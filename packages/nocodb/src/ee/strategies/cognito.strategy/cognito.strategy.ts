@@ -43,54 +43,59 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         });
 
         const payload = await verifier.verify(req.headers['xc-cognito']);
-        const email = (payload as any)['email']?.toLowerCase();
+        const rawEmail = (payload as any)['email']?.toLowerCase();
 
-        if (!email) {
+        if (!rawEmail) {
           return callback('Invalid token');
         }
 
-        if (/\+/.test(email.split('@')[0])) {
-          return callback(new Error("Emails with '+' are not allowed"));
+        // Reject plus addressing (always abusive)
+        if (rawEmail.split('@')[0].includes('+')) {
+          return callback(
+            new Error(
+              'Email aliases with "+" are not allowed. Please use your primary email address.',
+            ),
+          );
         }
 
         // check if email is disposable and throw error
-        if (isDisposableEmail(email)) {
+        if (isDisposableEmail(rawEmail)) {
           NcError.badRequest(
             'For the security and integrity of NocoDB platform, we require users to sign up with a permanent email address. Please provide a valid, long-term email address to continue.',
           );
         }
 
-        // get user by email
-        await User.getByEmail(email).then(async (user) => {
-          if (user) {
-            return callback(null, {
-              ...sanitiseUserObj(user),
-              provider: 'cognito',
-            });
-          } else {
-            try {
-              // if user not found create new user
-              const salt = await promisify(bcrypt.genSalt)(10);
-              const user = await this.usersService.registerNewUserIfAllowed({
-                email,
-                password: '',
-                email_verification_token: null,
-                avatar: (payload as any)['picture'],
-                user_name: null,
-                display_name: (payload as any)['name'],
-                salt,
-                req,
-              });
+        // Login: use exact email match to avoid returning wrong user
+        const user = await User.getByEmail(rawEmail);
 
-              return callback(null, {
-                ...sanitiseUserObj(user),
-                provider: 'cognito',
-              });
-            } catch (err) {
-              return callback(new Error('Token validation failed'));
-            }
-          }
-        });
+        if (user) {
+          return callback(null, {
+            ...sanitiseUserObj(user),
+            provider: 'cognito',
+          });
+        }
+
+        try {
+          // if user not found create new user
+          const salt = await promisify(bcrypt.genSalt)(10);
+          const newUser = await this.usersService.registerNewUserIfAllowed({
+            email: rawEmail,
+            password: '',
+            email_verification_token: null,
+            avatar: (payload as any)['picture'],
+            user_name: null,
+            display_name: (payload as any)['name'],
+            salt,
+            req,
+          });
+
+          return callback(null, {
+            ...sanitiseUserObj(newUser),
+            provider: 'cognito',
+          });
+        } catch (err) {
+          return callback(new Error('Token validation failed'));
+        }
       } else {
         return callback(new Error('No token found'));
       }

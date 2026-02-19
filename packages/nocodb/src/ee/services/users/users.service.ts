@@ -295,11 +295,18 @@ export class UsersService extends UsersServiceCE {
       NcError.badRequest(`Invalid email`);
     }
 
+    // Reject plus addressing (always abusive)
+    if (_email.split('@')[0].includes('+')) {
+      NcError.badRequest('Email aliases with "+" are not allowed');
+    }
+
     const email = _email.toLowerCase();
 
     this.validateEmailPattern(email);
 
-    let user = await User.getByEmail(email);
+    // Check for existing user by canonical email to prevent alias abuse
+    let user =
+      (await User.getByCanonicalEmail(email)) || (await User.getByEmail(email));
 
     if (user) {
       if (token) {

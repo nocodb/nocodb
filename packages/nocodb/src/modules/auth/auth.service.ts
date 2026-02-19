@@ -2,8 +2,6 @@ import { promisify } from 'util';
 import { OrgUserRoles } from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-
-import { v4 as uuidv4 } from 'uuid';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
 import { UsersService } from '~/services/users/users.service';
@@ -48,33 +46,6 @@ export class AuthService {
     return {
       token: genJwt(payload, Noco.getConfig()),
     };
-  }
-
-  async signup(createUserDto: CreateUserDto) {
-    const { email: _email, firstname, lastname } = createUserDto as any;
-
-    let { password } = createUserDto;
-
-    const email = _email.toLowerCase();
-
-    let user = await this.usersService.findOne(email);
-
-    const salt = await promisify(bcrypt.genSalt)(10);
-    password = await promisify(bcrypt.hash)(password, salt);
-    const email_verification_token = uuidv4();
-
-    if (!user) {
-      await this.registerNewUserIfAllowed({
-        firstname,
-        lastname,
-        email,
-        salt,
-        password,
-        email_verification_token,
-      });
-    }
-    user = await this.usersService.findOne(email);
-    return await this.login(user);
   }
 
   async registerNewUserIfAllowed(

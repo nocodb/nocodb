@@ -15,6 +15,11 @@ const tabs = computed(() => {
             value: 'logs',
             icon: 'audit',
           },
+          {
+            label: 'Settings',
+            value: 'settings',
+            icon: 'ncSettings',
+          },
         ]
       : []),
   ]

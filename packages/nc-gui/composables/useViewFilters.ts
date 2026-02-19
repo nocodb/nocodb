@@ -67,7 +67,7 @@ export function useViewFilters(
 
   const { $api, $e, $eventBus } = useNuxtApp()
 
-  const { isUIAllowed } = useRoles()
+  const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
 
   const { getMeta, getMetaByKey } = useMetas()
 
@@ -77,7 +77,13 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  const nestedMode = computed(() => isTemp.value || !isUIAllowed('filterList') || !isUIAllowed('filterChildrenList'))
+  const canListFilter = hasPersonalViewPermission('filterList')
+
+  const canListFilterChildren = hasPersonalViewPermission('filterChildrenList')
+
+  const canSyncFilter = hasPersonalViewPermission('filterSync')
+
+  const nestedMode = computed(() => isTemp.value || !canListFilter.value || !canListFilterChildren.value)
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
@@ -376,12 +382,13 @@ export function useViewFilters(
     loadAllFilters?: boolean
     isLink?: boolean
   } = {}) => {
+    // Wait for meta to be available before loading filters (up to 5 seconds)
+    if (!meta.value && view.value?.id) {
+      await until(meta).toBeTruthy({ timeout: 5000 })
+    }
+
     if (!view.value?.id || !meta.value) return
-    if (
-      (nestedMode.value && (isTemp.value || !isUIAllowed('filterChildrenList'))) ||
-      (isForm.value && !isWebhook) ||
-      isWorkflow
-    ) {
+    if ((nestedMode.value && (isTemp.value || !canListFilterChildren.value)) || (isForm.value && !isWebhook) || isWorkflow) {
       // ignore restoring if not root filter group
       return
     }
@@ -445,12 +452,17 @@ export function useViewFilters(
               })
             ).list as ColumnFilterType[]
           } else {
+            if (!canListFilter.value) {
+              return
+            }
+
             filters.value = (
               await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterList',
                 viewId: view.value!.id!,
               })
             ).list as ColumnFilterType[]
+
             if (loadAllFilters) {
               allFilters.value = [...filters.value] as FilterType[]
               await loadAllChildFilters(allFilters.value as ColumnFilterType[])
@@ -917,7 +929,10 @@ export function useViewFilters(
 
     filters.value.push(
       (draftFilter?.fk_column_id
-        ? { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order', 'logical_op']) }
+        // Strip only 'order' from the draft so it gets a fresh order from placeholderFilter.
+        // Preserve 'logical_op' from the draft when provided (e.g. AI-generated filters may use 'or'),
+        // otherwise normalizeFilterNode falls back to placeholderFilter's default.
+        ? { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order']) }
         : placeholderFilter()) as ColumnFilterType,
     )
     if (!undo && !(isForm.value && !isWebhook)) {
@@ -1136,5 +1151,6 @@ export function useViewFilters(
     btLookupTypesMap,
     types,
     isFilterUpdated,
+    canSyncFilter,
   }
 }

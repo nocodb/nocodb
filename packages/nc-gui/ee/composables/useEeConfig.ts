@@ -267,6 +267,9 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE)
   })
 
+  // UUID is available on all cloud plans + self-hosted EE — never blocked in EE
+  const blockUuidField = computed(() => false)
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -1272,6 +1275,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseUuidField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockUuidField.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseUuidField'),
+      content: t('upgrade.upgradeToUseUuidFieldSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_UUID_FIELD,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseSync = ({
     callback,
     successCallback,
@@ -1375,7 +1393,9 @@ export const useEeConfig = createSharedComposable(() => {
     blockCardFieldHeaderVisibility,
     blockSync,
     blockUnique,
+    blockUuidField,
     showUpgradeToUseUnique,
     showUpgradeToUseSync,
+    showUpgradeToUseUuidField,
   }
 })

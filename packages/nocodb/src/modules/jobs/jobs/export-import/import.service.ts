@@ -1380,7 +1380,9 @@ export class ImportService {
       col.dt = col.dt ?? sqlUi.getDataTypeForUiType(col).dt;
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
+        // Skip if relation column or lookup column can't be mapped (e.g., cross-base lookups)
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
+        if (!getIdOrExternalId(colOptions.fk_lookup_column_id)) continue;
         const freshModelData = (await this.columnsService.columnAdd(
           targetContext,
           {
@@ -1409,7 +1411,9 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Rollup) {
+        // Skip if relation column or rollup column can't be mapped (e.g., cross-base rollups)
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
+        if (!getIdOrExternalId(colOptions.fk_rollup_column_id)) continue;
         const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({

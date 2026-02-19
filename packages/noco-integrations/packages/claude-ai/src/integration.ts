@@ -1,5 +1,8 @@
 import { generateText, Output } from 'ai';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import {
+  anthropic as anthropicProvider,
+  createAnthropic,
+} from '@ai-sdk/anthropic';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
@@ -49,7 +52,7 @@ export class ClaudeIntegration extends AiIntegration {
   ];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
-    const { messages, schema } = args;
+    const { messages, schema, websearch } = args;
 
     if (!this.model || args.customModel) {
       const model = args.customModel || this.config.models[0];
@@ -76,6 +79,11 @@ export class ClaudeIntegration extends AiIntegration {
       output: Output.object({ schema }),
       messages,
       temperature: 0.5,
+      ...(websearch && {
+        tools: {
+          web_search: anthropicProvider.tools.webSearch_20250305(),
+        },
+      }),
     });
 
     return {
@@ -90,7 +98,7 @@ export class ClaudeIntegration extends AiIntegration {
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { customModel, system } = args;
+    const { customModel, system, websearch } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -121,6 +129,11 @@ export class ClaudeIntegration extends AiIntegration {
       ...('messages' in args
         ? { messages: args.messages }
         : { prompt: args.prompt }),
+      ...(websearch && {
+        tools: {
+          web_search: anthropicProvider.tools.webSearch_20250305(),
+        },
+      }),
     });
 
     return {

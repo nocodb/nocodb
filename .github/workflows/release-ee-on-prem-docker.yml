@@ -31,15 +31,15 @@ permissions:
 
 jobs:
   buildx:
-    runs-on: [self-hosted, docker-build]
+    runs-on: ubicloud-standard-4
     env:
       working-directory: ./packages/nocodb
     steps:
-      # Setup Node.js environment
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      # Checkout repository
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          node-version: 22.12.0
+          fetch-depth: 1
 
       # Setup pnpm package manager
       - name: Setup pnpm
@@ -47,18 +47,12 @@ jobs:
         with:
           version: 9
 
-      # Configure pnpm store directory
-      - name: Get pnpm store directory
-        shell: bash
-        timeout-minutes: 1
-        run: |
-          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
-
-      # Checkout repository
-      - name: Checkout
-        uses: actions/checkout@v3
+      # Setup Node.js environment
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          fetch-depth: 1
+          node-version: 22.12.0
+          cache: 'pnpm'
 
       # Configure Docker repository and build tag
       - name: Get Docker Repository
@@ -100,7 +94,7 @@ jobs:
           NC_ON_PREM: true
           NUXT_CHATWOOT_WEBSITE_TOKEN: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM }}
         run: |
-          export NODE_OPTIONS="--max_old_space_size=16384"
+          export NODE_OPTIONS="--max-old-space-size=8192"
           # generate static build of nc-gui
           cd packages/nc-gui &&
           pnpm run generate:ee &&

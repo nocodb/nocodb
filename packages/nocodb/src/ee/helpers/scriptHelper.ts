@@ -8,7 +8,6 @@ import {
   viewTypeAlias,
 } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
-import BaseUser from '~/models/BaseUser';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';

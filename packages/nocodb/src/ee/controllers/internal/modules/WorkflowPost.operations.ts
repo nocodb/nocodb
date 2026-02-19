@@ -6,12 +6,16 @@ import type {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import { WorkflowsService } from '~/services/workflows.service';
+import { WorkflowSubscribersService } from '~/services/workflow-subscribers.service';
 
 @Injectable()
 export class WorkflowPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
 {
-  constructor(private readonly workflowsService: WorkflowsService) {}
+  constructor(
+    private readonly workflowsService: WorkflowsService,
+    private readonly workflowSubscribersService: WorkflowSubscribersService,
+  ) {}
   operations = [
     'workflowCreate' as const,
     'workflowUpdate' as const,
@@ -21,6 +25,8 @@ export class WorkflowPostOperations
     'workflowNodeIntegrationFetchOptions' as const,
     'workflowTestNode' as const,
     'workflowPublish' as const,
+    'workflowAddSubscribers' as const,
+    'workflowRemoveSubscriber' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -99,6 +105,17 @@ export class WorkflowPostOperations
           {
             cancelPendingExecutions: payload.cancelPendingExecutions,
           },
+        );
+      case 'workflowAddSubscribers':
+        return await this.workflowSubscribersService.addSubscribers(
+          context,
+          payload.workflowId,
+          payload.userIds,
+        );
+      case 'workflowRemoveSubscriber':
+        return await this.workflowSubscribersService.removeSubscriber(
+          context,
+          payload.subscriberId,
         );
     }
   }

@@ -36,6 +36,7 @@ import { LookupCellRenderer } from './Lookup'
 import { ButtonCellRenderer } from './Button'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
+import { UUIDCellRenderer } from './UUID'
 import { GenericReadOnlyRenderer } from './GenericReadonlyRenderer'
 import { NullCellRenderer } from './Null'
 import { PlainCellRenderer } from './Plain'
@@ -138,6 +139,7 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.Formula, FormulaCellRenderer)
   cellTypesRegistry.set(UITypes.Geometry, SingleLineTextCellRenderer)
   cellTypesRegistry.set(UITypes.SpecificDBType, SingleLineTextCellRenderer)
+  cellTypesRegistry.set(UITypes.UUID, UUIDCellRenderer)
   cellTypesRegistry.set(UITypes.ForeignKey, GenericReadOnlyRenderer)
   cellTypesRegistry.set(UITypes.ID, GenericReadOnlyRenderer)
 

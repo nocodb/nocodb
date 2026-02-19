@@ -110,7 +110,7 @@ export const form: FormDefinition = [
           category: 'Authentication',
           validators: [
             {
-              type: FormBuilderValidatorType.Required,
+              type: FormBuilderValidatorType.Required as const,
               message: 'OAuth configuration is required',
             },
           ],

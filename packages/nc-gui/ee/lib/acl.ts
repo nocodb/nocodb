@@ -142,6 +142,7 @@ const rolePermissions = {
     include: {
       sortSync: true,
       filterSync: true,
+      groupBySync: true,
       viewFieldEdit: true,
       fieldUpdate: true,
       hookList: true,
@@ -280,7 +281,7 @@ export const sourceRestrictions = {
   },
 }
 
-export const managedAppRestrictions = {
+export const managedAppRestrictions: Record<Permission, boolean> = {
   tableCreate: true,
   tableRename: true,
   tableDelete: true,

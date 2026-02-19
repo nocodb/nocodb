@@ -195,11 +195,6 @@ export default class Integration implements IntegrationType {
     ]);
 
     if (updateObj.config) {
-      updateObj.config = encryptPropIfRequired({
-        data: updateObj,
-      });
-      updateObj.is_encrypted = isEncryptionRequired();
-
       this.encryptConfigIfRequired(updateObj);
     }
 
@@ -626,7 +621,9 @@ export default class Integration implements IntegrationType {
 
   getIntegrationWrapper<T = any>(pLogger?: (message: string) => void) {
     if (!this.wrapper) {
-      const integrationWrapper = Integration.availableIntegrations.find(
+      const IntegrationClass = this.constructor as typeof Integration;
+
+      const integrationWrapper = IntegrationClass.availableIntegrations.find(
         (el) => el.type === this.type && el.sub_type === this.sub_type,
       );
 
@@ -637,7 +634,7 @@ export default class Integration implements IntegrationType {
 
       this.wrapper = new integrationWrapper.wrapper(this.getConfig(), {
         saveConfig: async (config: any) => {
-          await Integration.updateIntegration(
+          await IntegrationClass.updateIntegration(
             {
               workspace_id: this.fk_workspace_id,
             },
@@ -655,7 +652,7 @@ export default class Integration implements IntegrationType {
       ) {
         (this.wrapper as any).setTokenRefreshCallback(
           async (tokens: { oauth_token: string; refresh_token?: string }) => {
-            await Integration.updateIntegration(
+            await IntegrationClass.updateIntegration(
               { workspace_id: this.fk_workspace_id },
               this.id,
               {

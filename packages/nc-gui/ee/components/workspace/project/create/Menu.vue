@@ -85,7 +85,7 @@ onMounted(() => {
       :variant="variant"
       icon="ncAutoAwesome"
       label="Build with AI"
-      subtext="Pre-built structures for common use cases"
+      subtext="AI-powered base creation from your use case"
       data-testid="nc-menu-build-with-ai"
       @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
     />
@@ -139,7 +139,7 @@ onMounted(() => {
       v-e="['c:base:ai:create']"
       icon="ncAutoAwesome"
       label="Build with AI"
-      subtext="Pre-built structures for common use cases"
+      subtext="AI-powered base creation from your use case"
       @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
     />
 

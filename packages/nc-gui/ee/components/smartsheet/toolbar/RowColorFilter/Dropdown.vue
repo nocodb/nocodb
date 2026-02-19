@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ROW_COLORING_MODE, UITypes } from 'nocodb-sdk'
+import { ROW_COLORING_MODE, UITypes, ViewLockType } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
 
@@ -11,7 +11,13 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { isUIAllowed } = useRoles()
 
-const hasPermission = computed(() => !isLocked.value && isUIAllowed('rowColourUpdate'))
+const { isUserViewOwner } = useViewsStore()
+
+const isPersonalViewOwner = computed(
+  () => activeView.value?.lock_type === ViewLockType.Personal && isUserViewOwner(activeView.value),
+)
+
+const hasPermission = computed(() => !isLocked.value && (isUIAllowed('rowColourUpdate') || isPersonalViewOwner.value))
 
 const { isMobileMode } = useGlobal()
 

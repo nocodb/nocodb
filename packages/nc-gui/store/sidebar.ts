@@ -20,6 +20,9 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const tablesStore = useTablesStore()
 
+  const viewsStore = useViewsStore()
+  const { activeViewTitleOrId } = storeToRefs(viewsStore)
+
   const allowHideLeftSidebarForCurrentRoute = computed(() => {
     return ['index-typeOrId-baseId-index-index', 'index-typeOrId-settings'].includes(route.name as string)
   })
@@ -30,7 +33,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
         return _isLeftSidebarOpen.value
       }
 
-      return (isMobileMode.value && !tablesStore.activeTableId) || _isLeftSidebarOpen.value
+      return (isMobileMode.value && !activeViewTitleOrId.value) || _isLeftSidebarOpen.value
     },
     set(value) {
       _isLeftSidebarOpen.value = value

@@ -12,6 +12,14 @@ import {
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
 import RowColorCondition from 'src/models/RowColorCondition';
+import {
+  checkIsPersonalViewOwner,
+  editorPersonalViewOnlyPermissions,
+  markPersonalViewIfNeeded,
+  personalViewOwnerAllowedPermissions,
+  personalViewOwnerOnlyOps,
+  VIEW_KEY,
+} from './extract-ids.helpers';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -49,6 +57,8 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { RootScopes } from '~/utils/globals';
 import MCPToken from '~/models/MCPToken';
 import Noco from '~/Noco';
+// Re-export VIEW_KEY for external consumers (previously defined here)
+export { VIEW_KEY };
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -65,8 +75,6 @@ export const rolesLabel = {
   [ProjectRoles.EDITOR]: 'Base Editor',
   [ProjectRoles.COMMENTER]: 'Base Commenter',
 };
-
-const VIEW_KEY = Symbol('view');
 
 export function getRolesLabels(
   roles: (OrgUserRoles | WorkspaceUserRoles | ProjectRoles | string)[],
@@ -135,6 +143,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         permissions: [],
       };
 
+      let view;
+
       const mcpTokenId = params.mcpTokenId || query.mcpTokenId;
       const integrationId = params.integrationId || query.integrationId;
       const tableId =
@@ -201,6 +211,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = view.source_id;
+
+        markPersonalViewIfNeeded(req, view);
       } else if (
         formViewId ||
         gridViewId ||
@@ -228,6 +240,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = view.source_id;
+
+        markPersonalViewIfNeeded(req, view);
       } else if (publicDataUuid) {
         const view = await View.getByUUID(context, publicDataUuid);
 
@@ -284,6 +298,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = gridViewColumn?.source_id;
+
+        if (gridViewColumn?.fk_view_id) {
+          view = await View.get(context, gridViewColumn.fk_view_id);
+        }
       } else if (formViewColumnId) {
         const formViewColumn = await FormViewColumn.get(
           context,
@@ -295,6 +313,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = formViewColumn.source_id;
+
+        if (formViewColumn?.fk_view_id) {
+          view = await View.get(context, formViewColumn.fk_view_id);
+        }
       } else if (galleryViewColumnId) {
         const galleryViewColumn = await GalleryViewColumn.get(
           context,
@@ -306,6 +328,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = galleryViewColumn.source_id;
+
+        if (galleryViewColumn?.fk_view_id) {
+          view = await View.get(context, galleryViewColumn.fk_view_id);
+        }
       } else if (columnId) {
         const column = await Column.get(context, { colId: columnId });
 
@@ -321,12 +347,20 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           NcError.genericNotFound('Filter', filterId);
         }
 
+        if (filter.fk_view_id) {
+          view = await View.get(context, filter.fk_view_id);
+        }
+
         req.ncSourceId = filter.source_id;
       } else if (filterParentId) {
         const filter = await Filter.get(context, filterParentId);
 
         if (!filter) {
           NcError.genericNotFound('Filter', filterParentId);
+        }
+
+        if (filter.fk_view_id) {
+          view = await View.get(context, filter.fk_view_id);
         }
 
         req.ncSourceId = filter.source_id;
@@ -341,6 +375,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         if (!sort) {
           NcError.genericNotFound('Sort', sortId);
+        }
+
+        if (sort.fk_view_id) {
+          view = await View.get(context, sort.fk_view_id);
         }
 
         req.ncSourceId = sort.source_id;
@@ -359,6 +397,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           NcError.genericNotFound('Extension', extensionId);
         }
       }
+
+      markPersonalViewIfNeeded(req, view);
     } else {
       await this.legacyExtractIds(req);
     }
@@ -878,10 +918,36 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = base.id;
     }
 
-    // if view API and view is pesonal view then check if user has access to view
-    if (view && view.lock_type === ViewLockType.Personal) {
-      req[VIEW_KEY] = view;
+    // When viewId is present but wasn't the primary entity in the if-else
+    // chain (e.g., internal API with viewId/filterId/sortId/viewColumnId
+    // in query params), extract the view for personal-view permission checks.
+    if (!view && (params.viewId || req.query.viewId)) {
+      const viewFromId = await View.get(
+        context,
+        params.viewId || req.query.viewId,
+      );
+      if (viewFromId instanceof View) {
+        view = viewFromId;
+      }
+    } else if (!view && req.query.filterId) {
+      const filter = await Filter.get(context, req.query.filterId);
+      if (filter?.fk_view_id) {
+        const viewFromFilter = await View.get(context, filter.fk_view_id);
+        if (viewFromFilter instanceof View) {
+          view = viewFromFilter;
+        }
+      }
+    } else if (!view && req.query.sortId) {
+      const sort = await Sort.get(context, req.query.sortId);
+      if (sort?.fk_view_id) {
+        const viewFromSort = await View.get(context, sort.fk_view_id);
+        if (viewFromSort instanceof View) {
+          view = viewFromSort;
+        }
+      }
     }
+
+    markPersonalViewIfNeeded(req, view);
 
     if (!req.ncWorkspaceId) {
       req.ncWorkspaceId = Noco.ncDefaultWorkspaceId;
@@ -955,13 +1021,28 @@ export class AclMiddleware implements NestInterceptor {
       NcError.unauthorized('Invalid token');
     }
 
-    // if view API and view is personal view then check if user has access to view
-    // if user is not owner of view then restrict write operations
+    // Block non-owners from modifying filters/sorts on someone else's personal view
     if (
       req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
       req[VIEW_KEY].owned_by !== req.user?.id &&
-      ['POST', 'PATCH', 'DELETE', 'PUT'].includes(req.method) &&
-      !['viewUpdate', 'viewDelete', 'dataList'].includes(permissionName)
+      personalViewOwnerOnlyOps.includes(permissionName)
+    ) {
+      NcError.forbidden('Unauthorized access');
+    }
+
+    const isPersonalViewOwner = checkIsPersonalViewOwner(req);
+
+    // For editors: restrict filter/sort/view-management operations to personal views they own
+    const userBaseRoles = extractRolesObj(req.user?.base_roles);
+    const isEditor =
+      userBaseRoles?.[ProjectRoles.EDITOR] &&
+      !userBaseRoles?.[ProjectRoles.CREATOR] &&
+      !userBaseRoles?.[ProjectRoles.OWNER];
+
+    if (
+      isEditor &&
+      editorPersonalViewOnlyPermissions.includes(permissionName) &&
+      !isPersonalViewOwner
     ) {
       NcError.forbidden('Unauthorized access');
     }
@@ -1028,7 +1109,12 @@ export class AclMiddleware implements NestInterceptor {
       req.params?.workspaceUserId &&
       req.params?.workspaceUserId === req.user?.id;
 
+    const isPersonalViewOwnerAllowed =
+      isPersonalViewOwner &&
+      personalViewOwnerAllowedPermissions.includes(permissionName);
+
     const isAllowed =
+      isPersonalViewOwnerAllowed ||
       (roles &&
         Object.entries(roles).some(([name, hasRole]) => {
           return (
@@ -1112,6 +1198,10 @@ export class AclMiddleware implements NestInterceptor {
       ) {
         NcError.sourceDataReadOnly(source.alias);
       }
+    }
+
+    if (req.context) {
+      req.context.is_api_token = req.user.is_api_token;
     }
   }
 

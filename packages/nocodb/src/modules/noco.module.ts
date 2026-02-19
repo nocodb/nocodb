@@ -407,6 +407,7 @@ export const nocoModuleMetadata = {
     ViewRowColorService,
     ViewRowColorV3Service,
     DependencyService,
+    MailService,
 
     /* Datas */
     DatasService,

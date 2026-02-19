@@ -63,7 +63,7 @@ const showDeleteColumnModal = ref(false)
 
 const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow()
 
-const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
+const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByOrThrow()
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
@@ -171,6 +171,11 @@ const duplicateVirtualColumn = async () => {
     colOptions: undefined,
     order: undefined,
     system: false,
+    // Clear UUID-specific metadata to avoid conflicts during duplication
+    ...(column!.value.uidt === UITypes.UUID ? {
+      internal_meta: undefined,
+      unique: undefined, // Let backend set this automatically for UUID
+    } : {}),
   }
 
   try {
@@ -516,13 +521,22 @@ const isFilterLimitExceeded = computed(
     getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW),
 )
 
-const isGroupedByThisField = computed(() => !!gridViewCols.value[column?.value?.id]?.group_by)
+const isGroupedByThisField = computed(() => {
+  // null = no override (use synced), [] = override with empty (no grouping)
+  if (localGroupBy.value !== null) {
+    return localGroupBy.value.some((g) => g.column.id === column?.value?.id)
+  }
+  return !!gridViewCols.value[column?.value?.id]?.group_by
+})
 
 const isGroupBySupported = computed(() => !!(fieldsToGroupBy.value || []).find((f) => f.id === column?.value?.id))
 
 const isGroupByLimitExceeded = computed(() => {
-  const groupBy = Object.values(gridViewCols.value).filter((c) => c.group_by)
-  return !(fieldsToGroupBy.value.length && fieldsToGroupBy.value.length > groupBy.length && groupBy.length < groupByLimit)
+  return !(
+    fieldsToGroupBy.value.length &&
+    fieldsToGroupBy.value.length > groupBy.value.length &&
+    groupBy.value.length < groupByLimit
+  )
 })
 
 const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
@@ -721,7 +735,7 @@ const onDeleteColumn = () => {
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced)"
+            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced) || isUUID(column)"
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()

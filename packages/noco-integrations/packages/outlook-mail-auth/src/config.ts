@@ -8,6 +8,7 @@ export const scopes = [
   'https://graph.microsoft.com/Mail.Send',
   'https://graph.microsoft.com/MailboxSettings.Read',
   'https://graph.microsoft.com/User.ReadBasic.All',
+  'offline_access',
 ];
 
 export const authUri =

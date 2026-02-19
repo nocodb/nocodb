@@ -19,8 +19,7 @@
         "Fields",
         "View Filters",
         "View Sorts",
-        "Scripts",
-        "API Tokens"
+        "Scripts"
       ]
     },
     {
@@ -3879,6 +3878,15 @@
             "description": "***View Identifier***. Allows you to fetch records that are currently visible within a specific view. API retrieves records in the order they are displayed if the SORT option is enabled within that view.\n\nAdditionally, if you specify a `sort` query parameter, it will take precedence over any sorting configuration defined in the view. If you specify a `where` query parameter, it will be applied over the filtering configuration defined in the view. \n\nBy default, all fields, including those that are disabled within the view, are included in the response. To explicitly specify which fields to include or exclude, you can use the `fields` query parameter to customize the output according to your requirements."
           },
           {
+            "schema": {
+              "type": "string",
+              "enum": ["true"]
+            },
+            "name": "linksAsLtar",
+            "in": "query",
+            "description": "When set to `true`, Links fields will return full linked record data (id and display value) instead of just a count. This makes Links fields behave like LinkToAnotherRecord (LTAR) fields in the response."
+          },
+          {
             "required": true,
             "$ref": "#/components/parameters/xc-token"
           }
@@ -4285,6 +4293,15 @@
             "in": "query",
             "name": "fields",
             "description": "Allows you to specify the fields that you wish to include from the linked records in your API response. By default, only Primary Key and associated display value field is included.\n\nExample: `fields=[\"field1\",\"field2\"]` or `fields=field1,field2` will include only 'field1' and 'field2' in the API response."
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": ["true"]
+            },
+            "name": "linksAsLtar",
+            "in": "query",
+            "description": "When set to `true`, Links fields will return full linked record data (id and display value) instead of just a count. This makes Links fields behave like LinkToAnotherRecord (LTAR) fields in the response."
           },
           {
             "required": true,

@@ -97,6 +97,13 @@ export class OutlookAuthIntegration extends AuthIntegration<
     };
   }
 
+  shouldRefreshToken(err: any) {
+    if (err?.code === 'InvalidAuthenticationToken') {
+      return true;
+    }
+    return false;
+  }
+
   public async refreshToken(payload: { refresh_token: string }): Promise<{
     oauth_token: string;
     refresh_token?: string;

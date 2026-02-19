@@ -57,6 +57,9 @@ const permissionScopes = {
 
     'paymentSeatCount',
     'manageSubscription',
+
+    // etc
+    'fetchViaUrl',
   ],
   org: [
     // SSO Client
@@ -118,6 +121,7 @@ const permissionScopes = {
     // Managed App (public operations)
     'managedAppStoreList',
     'managedAppGet',
+    'managedAppVersionsList',
   ],
   workspace: [
     // Managed App (install operation)
@@ -209,11 +213,10 @@ const permissionScopes = {
     'gridViewUpdate',
     'formViewUpdate',
     'formColumnUpdate',
-    // missing earlier confirm w/ Raju
-    // 'galleryViewUpdate',
-    // 'kanbanViewUpdate',
-    // 'mapViewUpdate',
-    // 'calendarViewUpdate',
+    'galleryViewUpdate',
+    'kanbanViewUpdate',
+    'mapViewUpdate',
+    'calendarViewUpdate',
     'groupedDataList',
     'mmList',
     'hmList',
@@ -330,6 +333,12 @@ const permissionScopes = {
     'mcpDelete',
 
     'viewRowColorInfo',
+    'viewRowColorConditionAdd',
+    'viewRowColorConditionUpdate',
+    'viewRowColorConditionDelete',
+    'viewRowColorSelectAdd',
+    'viewRowColorInfoDelete',
+    'rowColorConditionsFilterCreate',
     'viewSettingOverride',
 
     // Dashboard
@@ -364,6 +373,7 @@ const permissionScopes = {
     'workflowUpdate',
     'workflowDelete',
     'workflowExecutionList',
+    'workflowExecutionGet',
     'workflowNodes',
     'workflowExecute',
     'workflowTestNode',
@@ -376,10 +386,12 @@ const permissionScopes = {
     'managedAppDelete',
     'managedAppPublish',
     'managedAppUnpublish',
-    'managedAppVersionsList',
 
     // Audit Logs
     'baseAuditList',
+
+    // Send record email
+    'sendRecordEmail',
   ],
 };
 
@@ -431,6 +443,7 @@ const rolePermissions:
       // Managed App (public operations - available to everyone)
       managedAppStoreList: true,
       managedAppGet: true,
+      managedAppVersionsList: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {
@@ -617,6 +630,9 @@ const rolePermissions:
       // Base Teams
       baseTeamList: true,
       baseTeamGet: true,
+
+      // Send record email
+      sendRecordEmail: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -673,6 +689,31 @@ const rolePermissions:
 
       // Extensions
       extensionUpdate: true,
+
+      // Sort/Filter/ViewColumn/View operations for personal views (middleware handles ownership check)
+      sortCreate: true,
+      sortUpdate: true,
+      sortDelete: true,
+      filterCreate: true,
+      filterUpdate: true,
+      filterDelete: true,
+      viewColumnUpdate: true,
+      hideAllColumns: true,
+      showAllColumns: true,
+      gridColumnUpdate: true,
+      gridViewUpdate: true,
+      galleryViewUpdate: true,
+      kanbanViewUpdate: true,
+      mapViewUpdate: true,
+      calendarViewUpdate: true,
+
+      // Row color operations for personal views (middleware handles ownership check)
+      viewRowColorConditionAdd: true,
+      viewRowColorConditionUpdate: true,
+      viewRowColorConditionDelete: true,
+      viewRowColorSelectAdd: true,
+      viewRowColorInfoDelete: true,
+      rowColorConditionsFilterCreate: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -1136,6 +1177,7 @@ const permissionDescriptions: Record<string, string> = {
   workflowUpdate: 'update workflow details',
   workflowDelete: 'delete a workflow',
   workflowExecutionList: 'view workflow execution logs',
+  workflowExecutionGet: 'view workflow execution details',
 
   baseAuditList: 'view audit log for a base',
 };

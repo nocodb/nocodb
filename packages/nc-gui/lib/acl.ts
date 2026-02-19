@@ -101,6 +101,7 @@ const rolePermissions = {
       // Creator specific permissions (previously inherited from Editor)
       sortSync: true,
       filterSync: true,
+      groupBySync: true,
       viewFieldEdit: true,
     },
   },

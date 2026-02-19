@@ -1,3 +1,5 @@
+.skills
+CLAUDE.md
 packages/nocodb/src/ee
 packages/nocodb/src/ee-on-prem
 packages/nocodb/src/ee-cloud

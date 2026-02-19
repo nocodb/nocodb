@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
 import { type NcContext, ncIsUndefined } from 'nocodb-sdk';
+import debug from 'debug';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Knex } from '~/db/CustomKnex';
 import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
@@ -13,6 +14,8 @@ import { NcError } from '~/helpers/catchError';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+const dateHandlerDebug = debug('nc:DateGeneralHandler');
 
 export class DateGeneralHandler extends DateTimeGeneralHandler {
   override async parseUserInput(params: {
@@ -82,6 +85,12 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
     { knex }: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
   ) {
+    dateHandlerDebug(
+      'comparisonBetween ' +
+        anchorDate.format(this.dateValueFormat) +
+        ' - ' +
+        rangeDate.format(this.dateValueFormat),
+    );
     qb.where(
       knex.raw('?? between ? and ?', [
         sourceField,
@@ -101,16 +110,156 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
       sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
       val: dayjs.Dayjs;
       qb: Knex.QueryBuilder;
-      comparisonOp: '<' | '<=' | '>' | '>=';
+      comparisonOp: '<' | '<=' | '>' | '>=' | '=' | '!=';
     },
     { knex }: { knex: CustomKnex; filter: Filter; column: Column },
     _options: FilterOptions,
   ) {
+    dateHandlerDebug('comparisonOp ' + val.format(this.dateValueFormat));
     qb.where(
       knex.raw(`?? ${comparisonOp} ?`, [
         sourceField,
         val.format(this.dateValueFormat),
       ]),
     );
+  }
+
+  filterByOperation(operation: string) {
+    async function applyFilter(
+      args: {
+        sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+        val: any;
+      },
+      rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+      _options: FilterOptions,
+    ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+      const anchorDate = dayjs(args.val).tz(
+        this.getTimezone(
+          rootArgs.knex,
+          rootArgs.filter,
+          rootArgs.column,
+          _options,
+        ),
+      );
+
+      dateHandlerDebug(
+        'filterByOperation ' +
+          operation +
+          ' anchorDate ' +
+          anchorDate.format(this.dateValueFormat),
+      );
+      return {
+        rootApply: undefined,
+        clause: (qb: Knex.QueryBuilder) => {
+          qb.where((nestedQb) => {
+            this.comparisonOp(
+              {
+                ...args,
+                val: anchorDate,
+                qb: nestedQb,
+                comparisonOp: operation,
+              },
+              rootArgs,
+              _options,
+            );
+          });
+        },
+      };
+    }
+    return applyFilter.bind(this);
+  }
+
+  override async filterEq(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    return this.filterByOperation('=')(args, rootArgs, _options);
+  }
+
+  override async filterNeq(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    const anchorDate = dayjs(args.val).tz(
+      this.getTimezone(
+        rootArgs.knex,
+        rootArgs.filter,
+        rootArgs.column,
+        _options,
+      ),
+    );
+
+    dateHandlerDebug(
+      'filterNeq anchorDate ' + anchorDate.format(this.dateValueFormat),
+    );
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        // is earlier than anchor date
+        // or later than range date
+        // or null
+        qb.where((nestedQb) => {
+          this.comparisonOp(
+            { ...args, val: anchorDate, qb: nestedQb, comparisonOp: '!=' },
+            rootArgs,
+            _options,
+          );
+          nestedQb.orWhereNull(args.sourceField as any);
+        });
+      },
+    };
+  }
+
+  override async filterGt(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    return this.filterByOperation('>')(args, rootArgs, _options);
+  }
+
+  override async filterGte(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    return this.filterByOperation('>=')(args, rootArgs, _options);
+  }
+
+  override async filterLt(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    return this.filterByOperation('<')(args, rootArgs, _options);
+  }
+
+  override async filterLte(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
+    return this.filterByOperation('<=')(args, rootArgs, _options);
   }
 }

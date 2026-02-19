@@ -32,6 +32,7 @@ import {
   ModelStat,
   Permission,
   Source,
+  Workflow,
   Workspace,
 } from '~/models';
 import NocoCache from '~/cache/NocoCache';
@@ -54,31 +55,26 @@ export default class Base extends BaseCE {
     return base && new Base(base);
   }
 
-  /**
-   * Compute and set managed_app_schema_locked property
-   * - Not locked: non-managed app bases
-   * - Always locked: installed managed app instances (managed_app_master=false)
-   * - Conditionally locked: managed app masters with published version
-   */
-  public static async computeSchemaLocked(base: Base): Promise<boolean> {
-    // Not a managed app - schema is not locked
-    if (!base.managed_app_id) {
-      return false;
-    }
+  public static async populateManagedAppInfo(base: Base): Promise<void> {
+    // Extra check to avoid unwanted behaviour
+    if (!base.managed_app_id) return;
+
+    // default values
+    base.managed_app_schema_locked = false;
 
     // Installed instance (non-master) - always locked
     if (!base.managed_app_master) {
-      return true;
+      base.managed_app_schema_locked = true;
     }
 
     // Master base - check if current version is published
     if (base.managed_app_version_id) {
       const version = await ManagedAppVersion.get(base.managed_app_version_id);
-      return version?.status === ManagedAppVersionStatus.PUBLISHED;
+      base.managed_app_schema_locked =
+        version?.status === ManagedAppVersionStatus.PUBLISHED;
+      base.managed_app_version = version?.version || null;
+      base.managed_app_published_at = version?.published_at || null;
     }
-
-    // No version set - not locked
-    return false;
   }
 
   static async list(
@@ -149,7 +145,9 @@ export default class Base extends BaseCE {
       );
     }
 
-    return baseList
+    const promises = [];
+
+    const castedProjectList = baseList
       .filter(
         (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
       )
@@ -158,7 +156,19 @@ export default class Base extends BaseCE {
           (a.order != null ? a.order : Infinity) -
           (b.order != null ? b.order : Infinity),
       )
-      .map((m) => this.castType(m));
+      .map((m) => {
+        const base = this.castType(m);
+
+        if (base.managed_app_id) {
+          promises.push(Base.populateManagedAppInfo(base));
+        }
+
+        return base;
+      });
+
+    await Promise.all(promises);
+
+    return castedProjectList;
   }
 
   public static async createProject(
@@ -446,6 +456,7 @@ export default class Base extends BaseCE {
     );
 
     await Dashboard.deleteByBaseId(context, baseId, ncMeta);
+    await Workflow.deleteByBaseId(context, baseId, ncMeta);
 
     const sources = await Source.list(
       context,
@@ -1025,6 +1036,10 @@ export default class Base extends BaseCE {
           const base = this.castType(p);
           base.meta = parseMetaProp(base);
           promises.push(base.getSources(false, ncMeta));
+
+          if (base.managed_app_id) {
+            promises.push(Base.populateManagedAppInfo(base));
+          }
           return base;
         });
 
@@ -1080,6 +1095,10 @@ export default class Base extends BaseCE {
           const base = this.castType(p);
           base.meta = parseMetaProp(base);
           promises.push(base.getSources(false, ncMeta));
+
+          if (base.managed_app_id) {
+            promises.push(Base.populateManagedAppInfo(base));
+          }
           return base;
         });
 

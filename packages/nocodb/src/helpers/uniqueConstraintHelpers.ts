@@ -45,7 +45,13 @@ export function validateUniqueConstraint(
   }
 
   // Check if default value is set (mutually exclusive with unique constraint)
-  if (cdf !== null && cdf !== undefined && cdf !== '') {
+  // Exception: UUID fields are allowed to have both unique constraint and auto-generation
+  if (
+    cdf !== null &&
+    cdf !== undefined &&
+    cdf !== '' &&
+    uidt !== UITypes.UUID
+  ) {
     NcError.get(context).badRequest(
       'Cannot enable unique constraint because a default value is set. Please remove the default value first.',
     );

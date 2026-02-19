@@ -20,6 +20,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const { $poller } = useNuxtApp()
 
+  const route = useRoute()
+
+  const router = useRouter()
+
   const workflowStore = useWorkflowStore()
 
   const baseStore = useBases()
@@ -34,13 +38,23 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const selectedNodeId = ref<string | null>(null)
 
-  const activeTab = ref<'editor' | 'logs'>('editor')
+  const getInitialTab = (): 'editor' | 'logs' | 'settings' => {
+    const tabFromQuery = route.query.tab as string
+    if (tabFromQuery && ['editor', 'logs', 'settings'].includes(tabFromQuery)) {
+      return tabFromQuery as 'editor' | 'logs' | 'settings'
+    }
+    return 'editor'
+  }
+
+  const activeTab = ref<'editor' | 'logs' | 'settings'>(getInitialTab())
 
   const isSaving = ref(false)
 
   const isWorkflowEditAllowed = computed(() => isUIAllowed('workflowCreateOrEdit'))
 
   const viewingExecution = ref<IWorkflowExecution | null>(null)
+
+  const initialExecutionId = route.query.executionId as string | undefined
 
   const initialData = getSourceNodesAndEdges(workflow.value, isWorkflowEditAllowed.value)
   const initialFiltered = filterNodesByPermission(initialData.sourceNodes, initialData.sourceEdges, isWorkflowEditAllowed.value)
@@ -601,6 +615,14 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   }
 
   watch(viewingExecution, async (execution) => {
+    const query = { ...route.query }
+    if (execution) {
+      query.executionId = execution.id
+    } else {
+      delete query.executionId
+    }
+    router.replace({ query })
+
     if (execution) {
       if (execution.workflow_data) {
         const filtered = filterOutPlusNodes(execution.workflow_data.nodes || [], execution.workflow_data.edges || [])
@@ -626,6 +648,18 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   })
 
   watch(activeTab, async (tab) => {
+    const query = { ...route.query }
+    if (tab === 'editor') {
+      delete query.tab
+      delete query.executionId
+    } else {
+      query.tab = tab
+      if (tab !== 'logs') {
+        delete query.executionId
+      }
+    }
+    router.replace({ query })
+
     if (tab === 'editor' && viewingExecution.value) {
       viewingExecution.value = null
       selectedNodeId.value = null
@@ -682,6 +716,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     activeTab,
     viewingExecution,
     isWorkflowEditAllowed,
+    initialExecutionId,
 
     // Methods
     updateWorkflowData,

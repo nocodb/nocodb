@@ -54,7 +54,33 @@ export const useBase = defineStore('baseStore', () => {
 
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
+  const managedApp = ref<any>(null)
+
+  const managedAppVersions = ref<any[]>([])
+
+  const managedAppVersionsInfo = computed(() => {
+    const result = {
+      current: managedAppVersions.value.find((v: any) => v.id === base.value.managed_app_version_id),
+      published: managedAppVersions.value.find((v: any) => v.status === 'published'),
+      draft: managedAppVersions.value.find((v: any) => v.status === 'draft'),
+      updateAvailable: false,
+    }
+
+    if (
+      result.current &&
+      result.published &&
+      result.current.id !== result.published.id &&
+      result.published.version_number > result.current.version_number
+    ) {
+      result.updateAvailable = true
+    }
+
+    return result
+  })
+
   const isManagedAppMaster = computed(() => !!base.value?.managed_app_master && !!base.value?.managed_app_id)
+
+  const isManagedAppInstaller = computed(() => !!base.value?.managed_app_id && !base.value?.managed_app_master)
 
   // todo: refactor path param name and variable name
   const baseType = computed(() => route.value.params.typeOrId as string)
@@ -298,6 +324,41 @@ export const useBase = defineStore('baseStore', () => {
     return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
   }
 
+  // Load managed app info and current version
+  const loadManagedApp = async () => {
+    if (!base.value?.managed_app_id || !base.value?.managed_app_master || !base.value?.fk_workspace_id) return
+
+    try {
+      const response = await api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
+        operation: 'managedAppGet',
+        baseId: base.value.id,
+      } as any)
+      if (response) {
+        managedApp.value = response
+      }
+    } catch (e) {
+      console.error('Failed to load managed app:', e)
+    }
+  }
+
+  // Load current version info
+  const loadCurrentVersion = async () => {
+    if (!base.value?.managed_app_version_id || !base.value?.fk_workspace_id) return
+
+    try {
+      // Get version details from versions list
+      const response = await api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
+        operation: 'managedAppVersionsList',
+        managedAppId: (base.value as any).managed_app_id,
+      } as any)
+      if (response?.list) {
+        managedAppVersions.value = response.list
+      }
+    } catch (e) {
+      console.error('Failed to load current version:', e)
+    }
+  }
+
   watch(
     () => route.value.params.baseType,
     (n) => {
@@ -381,6 +442,12 @@ export const useBase = defineStore('baseStore', () => {
     isPrivateBase,
     showBaseAccessRequestOverlay,
     isManagedAppMaster,
+    isManagedAppInstaller,
+    managedApp,
+    loadManagedApp,
+    loadCurrentVersion,
+    managedAppVersions,
+    managedAppVersionsInfo,
   }
 })
 

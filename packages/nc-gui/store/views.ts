@@ -1264,7 +1264,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     const tableName = tablesStore.baseTables.get(view.base_id)?.find((t) => t.id === view.fk_model_id)?.title
 
-    const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title
+    const base = bases.basesList.find((p) => p.id === view.base_id)
     allRecentViews.value = [
       {
         viewId: view.id,
@@ -1274,7 +1274,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
         viewType: view.type,
         workspaceId: activeWorkspaceId.value,
         tableName: tableName as string,
-        baseName: baseName as string,
+        baseName: base?.title as string,
+        managed_app_master: base?.managed_app_master,
+        managed_app_id: base?.managed_app_id,
+        iconColor: parseProp(base?.meta).iconColor,
       },
       ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
     ]

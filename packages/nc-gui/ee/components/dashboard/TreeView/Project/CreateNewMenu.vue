@@ -80,7 +80,23 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
     </NcMenuItem>
-
+    <NcMenuItem
+      class="nc-menu-item-integration"
+      inner-class="w-full"
+      data-testid="create-new-workflow"
+      @click="emits('emptyWorkflow')"
+    >
+      <GeneralIcon icon="ncAutomation" />
+      {{ $t('general.workflow') }}
+      <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
+      <div class="flex-1 w-full" />
+      <div class="flex items-center">
+        <div v-for="icon in automationIcons" :key="icon" class="nc-integration-icon-wrapper">
+          <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
+        </div>
+        <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+4</div>
+      </div>
+    </NcMenuItem>
     <ProjectSyncCreateProvider>
       <template #default="{ createSyncClick }">
         <NcMenuItem
@@ -105,23 +121,6 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
         </NcMenuItem>
       </template>
     </ProjectSyncCreateProvider>
-    <NcMenuItem
-      class="nc-menu-item-integration"
-      inner-class="w-full"
-      data-testid="create-new-workflow"
-      @click="emits('emptyWorkflow')"
-    >
-      <GeneralIcon icon="ncAutomation" />
-      {{ $t('general.workflow') }}
-      <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
-      <div class="flex-1 w-full" />
-      <div class="flex items-center">
-        <div v-for="icon in automationIcons" :key="icon" class="nc-integration-icon-wrapper">
-          <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
-        </div>
-        <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+4</div>
-      </div>
-    </NcMenuItem>
     <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-script" @click="emits('emptyScript')">
       <div class="w-full flex items-center">
         <div class="flex-1 flex items-center gap-2 cursor-pointer">

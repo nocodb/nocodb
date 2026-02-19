@@ -50,9 +50,15 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { addUndo, defineViewScope } = useUndoRedo()
 
-    const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
+    const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
+
+    const canEditViewFields = hasPersonalViewPermission('viewFieldEdit')
+
+    const isLocalMode = computed(() => isPublic || !canEditViewFields.value || isSharedBase.value)
 
     const hasViewFieldDataEditPermission = computed(() => isUIAllowed('viewFieldDataEdit'))
+
+    const canUpdateViewMeta = hasPersonalViewPermission('viewCreateOrEdit')
 
     const localChanges = ref<Record<string, Field>>({})
 
@@ -313,7 +319,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         localChanges.value[field.fk_column_id] = field
       }
 
-      if (isUIAllowed('viewFieldEdit')) {
+      if (canEditViewFields.value) {
         if (field.id && view?.value?.id) {
           await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,
@@ -363,10 +369,18 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       set(v: boolean) {
         if (view?.value?.id) {
           if (!isLocalMode.value) {
-            $api.dbView
-              .update(view.value.id, {
-                show_system_fields: v,
-              })
+            $api.internal
+              .postOperation(
+                view.value.fk_workspace_id!,
+                view.value.base_id!,
+                {
+                  operation: 'viewUpdate',
+                  viewId: view.value.id,
+                },
+                {
+                  show_system_fields: v,
+                },
+              )
               .finally(() => {
                 loadViewColumns()
                 reloadData?.()
@@ -579,7 +593,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
       try {
         // sync with server if allowed
-        if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
+        if (!isPublic.value && canEditViewFields.value && gridViewCols.value[id]?.id) {
           await $api.internal.postOperation(
             view.value!.fk_workspace_id!,
             view.value!.base_id!,
@@ -683,6 +697,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       updateDefaultViewColumnMeta,
       hidingViewColumnsMap,
       hasViewFieldDataEditPermission,
+      canUpdateViewMeta,
     }
   },
   'useViewColumnsOrThrow',

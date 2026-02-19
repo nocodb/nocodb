@@ -22,9 +22,6 @@ const { ncNavigateTo } = useGlobal()
 
 const route = useRoute()
 
-const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
-const { activeTableId } = storeToRefs(useTablesStore())
-
 const { activeProjectId } = storeToRefs(useBases())
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
@@ -183,10 +180,6 @@ const onDrop = async (event: DragEvent) => {
     console.log('error', e)
   }
 }
-
-watch([activeViewTitleOrId, activeTableId], () => {
-  handleSidebarOpenOnMobileForNonViews()
-})
 
 const { leftSidebarWidth, windowSize, isFullScreen } = storeToRefs(useSidebarStore())
 

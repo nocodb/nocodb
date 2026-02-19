@@ -11,6 +11,7 @@ export const botScopes = [
   'users:read', // List users for dropdown
   'im:write', // Send direct messages to users
   'chat:write.customize', // Customize bot name and icon when sending messages
+  'chat:write.public', // Send messages to public channels
 ];
 
 export const userScopes: string[] = [];

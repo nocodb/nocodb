@@ -25,33 +25,35 @@ on:
 
 jobs:
   unit-tests-pg:
-    runs-on: [self-hosted, v4, generic]
+    runs-on: ubicloud-standard-2
     timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.12.0
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
-      - name: Get pnpm store directory
-        shell: bash
-        timeout-minutes: 1
-        run: |
-          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version: 22.12.0
+          cache: 'pnpm'
       - name: Set CI env
         run: export CI=true
       - name: Set NC Edition

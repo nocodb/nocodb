@@ -137,7 +137,8 @@ export class OrgUsersService {
     const emails = (param.user.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim());
+      .map((v) => v.trim())
+      .filter(Boolean);
 
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));
@@ -154,7 +155,7 @@ export class OrgUsersService {
 
     for (const email of emails) {
       // add user to base if user already exist
-      let user = await User.getByEmail(email);
+      let user = await User.getByCanonicalEmail(email);
 
       if (user) {
         NcError.badRequest('User already exist');

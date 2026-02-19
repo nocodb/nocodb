@@ -495,7 +495,12 @@ const { message: templatedMessage } = useTemplatedMessage(
                         data-testid="nc-survey-form__btn-submit-confirm"
                         @click="showSubmitConfirmModal"
                       >
-                        {{ $t('general.submit') }} {{ $t('objects.viewType.form') }}
+                        {{
+                          parseProp(sharedFormView?.meta)?.custom_submit_enabled
+                            ? parseProp(sharedFormView.meta)?.submit_button_label ||
+                              `${$t('general.submit')} ${$t('objects.viewType.form')}`
+                            : `${$t('general.submit')} ${$t('objects.viewType.form')}`
+                        }}
                       </NcButton>
                     </div>
 

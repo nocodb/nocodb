@@ -16,6 +16,10 @@ const baseStore = useBase()
 
 const { loadProject } = baseStore
 
+const { base } = storeToRefs(baseStore)
+
+provide(ProjectInj, base)
+
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 

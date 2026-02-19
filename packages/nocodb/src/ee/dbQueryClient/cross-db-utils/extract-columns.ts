@@ -39,6 +39,11 @@ export function extractColumns({
     validateFormula: boolean;
     apiVersion: NcApiVersion;
   }) {
+    // since this operation is meta-heavy,
+    // we set context to true
+    const lastUseCache = baseModel.context.cache;
+    baseModel.context.cache = true;
+
     const extractPromises = [];
 
     const baseUsers = await BaseUser.getUsersList(baseModel.context, {
@@ -65,7 +70,10 @@ export function extractColumns({
         rootAlias: alias,
         qb,
         getAlias,
-        params: params?.nested?.[firstFormula.title],
+        params: {
+          ...params?.nested?.[firstFormula.title],
+          linksAsLtar: params?.linksAsLtar,
+        },
         baseModel,
         ast: ast?.[firstFormula.title] ?? ast?.[firstFormula.id],
         throwErrorIfInvalidParams,
@@ -99,7 +107,10 @@ export function extractColumns({
           rootAlias: alias,
           qb,
           getAlias,
-          params: params?.nested?.[column.title],
+          params: {
+            ...params?.nested?.[column.title],
+            linksAsLtar: params?.linksAsLtar,
+          },
           baseModel,
           ast: ast?.[column.title] ?? ast?.[column.id],
           throwErrorIfInvalidParams,
@@ -115,5 +126,7 @@ export function extractColumns({
     }
 
     await Promise.all(extractPromises);
+    // we reset the use cache
+    baseModel.context.cache = lastUseCache;
   };
 }

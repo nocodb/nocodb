@@ -105,8 +105,10 @@ const {
 
 provide(MetaInj, relatedTableMeta)
 
-const extractCurrentColumnValue = (row: Record<string, any>) => {
-  return row[relatedTableDisplayValueProp.value] ?? row[relatedTableDisplayValuePropId.value]
+const extractCurrentColumnValue = (row: Record<string, any>, column?: ColumnType) => {
+  return column
+    ? row[column.title!] ?? row[column.id!]
+    : row[relatedTableDisplayValueProp.value] ?? row[relatedTableDisplayValuePropId.value]
 }
 
 const inlineValue = computed(() => {
@@ -349,11 +351,15 @@ const widgetColors = computed(() => {
                   }"
                 >
                   <img
-                    v-if="attachmentUrl(extractCurrentColumnValue(relatedRow))"
-                    :src="attachmentUrl(extractCurrentColumnValue(relatedRow))"
+                    v-if="attachmentUrl(extractCurrentColumnValue(relatedRow, relatedColumn))"
+                    :src="attachmentUrl(extractCurrentColumnValue(relatedRow, relatedColumn))"
                     class="h-full w-auto object-contain"
                   />
-                  <SmartsheetPlainCell v-else :column="relatedColumn" :model-value="extractCurrentColumnValue(relatedRow)" />
+                  <SmartsheetPlainCell
+                    v-else
+                    :column="relatedColumn"
+                    :model-value="extractCurrentColumnValue(relatedRow, relatedColumn)"
+                  />
                 </td>
               </tr>
             </tbody>

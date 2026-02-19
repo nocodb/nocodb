@@ -88,9 +88,6 @@ export default class NocoSocket {
         [EventType.WORKFLOW_EVENT].includes(eventType as EventType) &&
         !hasMinimumRoleAccess(userWithRole, ProjectRoles.CREATOR)
       ) {
-        this.logger.warn(
-          `User ${user.id} has no access to base ${baseId} in workspace ${workspaceId}`,
-        );
         return;
       }
 
@@ -104,9 +101,6 @@ export default class NocoSocket {
         ].includes(eventType as EventType) &&
         userWithRole.base_roles?.[ProjectRoles.NO_ACCESS]
       ) {
-        this.logger.warn(
-          `User ${user.id} has no access to base ${baseId} in workspace ${workspaceId}`,
-        );
         return;
       }
 

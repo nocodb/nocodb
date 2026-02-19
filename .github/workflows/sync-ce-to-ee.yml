@@ -15,22 +15,22 @@ on:
 
 jobs:
   sync:
-    runs-on: [self-hosted, v4, generic]
+    runs-on: ubicloud-standard-2
     steps:
       - name: Log event
         run: |
           echo '${{ toJSON(github.event.client_payload) }}'
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.12.0
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: nocohub
       - name: Checkout OSS
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.OSS_TOKEN }}
           repository: 'nocodb/nocodb'

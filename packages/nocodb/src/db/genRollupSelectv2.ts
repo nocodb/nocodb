@@ -79,7 +79,7 @@ export default async function genRollupSelectv2(param: {
   const parentCol = await relationColumnOption.getParentColumn(parentContext);
   const parentModel = await parentCol?.getModel(parentContext);
   const refTableAlias =
-    `__nc_rollup` + (nestedLevel > 0 ? `_${nestedLevel}` : ``);
+    `__nc_rollup_` + Math.random().toString(36).substring(2, 8);
   profiler.log('get base model');
 
   const parentBaseModel = await Model.getBaseModelSQL(parentContext, {

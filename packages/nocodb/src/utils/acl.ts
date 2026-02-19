@@ -107,11 +107,10 @@ const permissionScopes = {
     'gridViewUpdate',
     'formViewUpdate',
     'formColumnUpdate',
-    // missing earlier confirm w/ Raju
-    // 'galleryViewUpdate',
-    // 'kanbanViewUpdate',
-    // 'mapViewUpdate',
-    // 'calendarViewUpdate',
+    'galleryViewUpdate',
+    'kanbanViewUpdate',
+    'mapViewUpdate',
+    'calendarViewUpdate',
     'calendarViewGet',
     'groupedDataList',
     'mmList',
@@ -207,6 +206,9 @@ const permissionScopes = {
     'mcpCreate',
     'mcpUpdate',
     'mcpDelete',
+
+    // etc
+    'fetchViaUrl',
   ],
 };
 
@@ -335,6 +337,26 @@ const rolePermissions:
 
       // Extensions
       extensionUpdate: true,
+
+      // etc
+      fetchViaUrl: true,
+
+      // Sort/Filter/ViewColumn/View operations for personal views (middleware handles ownership check)
+      sortCreate: true,
+      sortUpdate: true,
+      sortDelete: true,
+      filterCreate: true,
+      filterUpdate: true,
+      filterDelete: true,
+      viewColumnUpdate: true,
+      hideAllColumns: true,
+      showAllColumns: true,
+      gridColumnUpdate: true,
+      gridViewUpdate: true,
+      galleryViewUpdate: true,
+      kanbanViewUpdate: true,
+      mapViewUpdate: true,
+      calendarViewUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {

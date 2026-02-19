@@ -1082,6 +1082,7 @@ Object.freeze(UITypes);
             {
               ...this.#options,
               page,
+              linksAsLtar: 'true',
               ...(this.#view ? { viewId: this.#view.id } : {})
             }
           );
@@ -1249,7 +1250,10 @@ Object.freeze(UITypes);
             } else return (data?.map(d => new Collaborator({ id: d.id, email: d.email, name: d.display_name ?? '' })) ?? []);
           }
           case 'Links': {
-            if (['hm', 'mm'].includes(field?.options?.relation_type)) return data
+            if (['hm', 'mm'].includes(field?.options?.relation_type)) {
+              const relatedTable = base.getTable(field?.options?.related_table_id)
+              return new LazyRecordQueryResult(data || [], relatedTable, this.#table, field, this.id)
+            }
             if (['bt', 'oo'].includes(field?.options?.relation_type)) {
               if(!data) return null;
               const relatedTable = base.getTable(field?.options?.related_table_id)
@@ -1336,7 +1340,12 @@ Object.freeze(UITypes);
         }
         case 'Links': {
           if (['hm', 'mm'].includes(field?.options?.relation_type)) {
-            return value === 1 ? \`\${value} \${field?.options?.singular}\` : \`\${value} \${field?.options?.plural}\`
+            if (value instanceof LazyRecordQueryResult || value instanceof RecordQueryResult) {
+              const count = value.records.length;
+              const hasMore = value.hasMoreRecords ? '+' : '';
+              return \`\${count}\${hasMore} linked record\${count !== 1 ? 's' : ''}\`;
+            }
+            return value?.map?.((v) => v.name || v.id).join(', ') || '';
           } else if (['bt', 'oo'].includes(field?.options?.relation_type)) {
             return value?.name || value?.id
           }
@@ -1513,6 +1522,7 @@ Object.freeze(UITypes);
       try {
         const data = await api.dbDataTableRowRead(this.#table.base.id, this.#table.id, recordId, {
           viewId: this.id,
+          linksAsLtar: 'true',
           ...(fields?.length && { fields: fieldsToSelect })
         })
         
@@ -1562,15 +1572,14 @@ Object.freeze(UITypes);
         ...(sortArray.length && { sort: sortArray }),
       };
       try {
-        const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, requestOptions)
-        
+        const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, { ...requestOptions, linksAsLtar: 'true' })
         return new RecordQueryResult(data, this.#table, this, requestOptions);
       } catch (e) {
         return null
-      }       
+      }
     }
   }
-  
+
   class Table {
     #base;
     #all_fields
@@ -1645,6 +1654,7 @@ Object.freeze(UITypes);
       
       try {
         const data = await api.dbDataTableRowRead(this.base.id, this.id, recordId, {
+          linksAsLtar: 'true',
           ...(fields?.length && { fields: fieldsToSelect })
         })
         
@@ -1693,8 +1703,8 @@ Object.freeze(UITypes);
       };
       
       try {
-        const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
-        
+        const data = await api.dbDataTableRowList(this.#base.id, this.id, { ...requestOptions, linksAsLtar: 'true' })
+
         return new RecordQueryResult(data, this, null, requestOptions);
       } catch (e) {
         throw new Error(\`Failed to read records in table \${this.name}\`)
@@ -1712,7 +1722,7 @@ Object.freeze(UITypes);
       }
       
       try {
-        const data = await api.dbDataTableRowCreate(this.base.id, this.id, { fields: recordData });
+        const data = await api.dbDataTableRowCreate(this.base.id, this.id, { fields: recordData }, { query: { linksAsLtar: 'true' } });
         return new NocoDBRecord(data?.records?.[0], this).id;
       } catch (e) {
         throw new Error(\`Failed to create record in table \${this.name}\`)
@@ -1749,7 +1759,7 @@ Object.freeze(UITypes);
       }
       
       try {
-        const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs);
+        const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs, { query: { linksAsLtar: 'true' } });
         return (response.records || []).map(r => new NocoDBRecord(r, this).id);
       } catch (e) {
         throw new Error(\`Failed to create records in table \${this.name}\`)
@@ -1783,7 +1793,7 @@ Object.freeze(UITypes);
       });
       
       try {
-        await api.dbDataTableRowUpdate(this.base.id, this.id, { fields: recordData, id: recordID });
+        await api.dbDataTableRowUpdate(this.base.id, this.id, { fields: recordData, id: recordID }, { query: { linksAsLtar: 'true' } });
         
         // Notify that record update is complete
         self.postMessage({
@@ -1860,7 +1870,7 @@ Object.freeze(UITypes);
       }
       
       try {
-        await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs);
+        await api.dbDataTableRowUpdate(this.base.id, this.id, updateObjs, { query: { linksAsLtar: 'true' } });
         
         // Notify that all record updates are complete
         for (const { recordId, fields } of allUpdatedFields) {

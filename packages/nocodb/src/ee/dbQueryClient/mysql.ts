@@ -35,12 +35,13 @@ import conditionV2, { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import sortV2 from '~/db/sortV2';
+import { NC_MAX_TEXT_LENGTH } from '~/constants';
 import { extractColumns } from '~/dbQueryClient/cross-db-utils/extract-columns';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Column, Model, View } from '~/models';
 
-import { list } from '~/dbQueryClient/mysql/list';
-import { read } from '~/dbQueryClient/mysql/read';
+import { singleQueryRead } from '~/dbQueryClient/cross-db-utils/single-query-read';
+import { singleQueryList } from '~/dbQueryClient/cross-db-utils/single-query-list';
 
 export class MySqlDBQueryClient
   extends MySqlDBQueryClientCE
@@ -1006,8 +1007,36 @@ export class MySqlDBQueryClient
           }
         }
         break;
-      case UITypes.Rollup:
       case UITypes.Links:
+        if (
+          (params?.linksAsLtar === 'true') &&
+          apiVersion === NcApiVersion.V3
+        ) {
+          try {
+            return await this.extractColumn({
+              column: new Column({
+                ...column,
+                uidt: UITypes.LinkToAnotherRecord,
+              }),
+              qb,
+              rootAlias,
+              knex,
+              params,
+              isLookup,
+              getAlias,
+              baseModel,
+              ast,
+              throwErrorIfInvalidParams,
+              validateFormula,
+              columns,
+              apiVersion,
+            });
+          } finally {
+            // No Op
+          }
+        }
+      // eslint-disable-next-line no-fallthrough -- falls through to Rollup when linksAsLtar is not set
+      case UITypes.Rollup:
         qb.select(
           (
             await genRollupSelectv2({
@@ -1148,6 +1177,20 @@ export class MySqlDBQueryClient
         );
         break;
       }
+      case UITypes.LongText: {
+        if ((baseModel.dbDriver as any).isExternal) {
+          qb.select(
+            knex.raw(`SUBSTR(??.??, 1, ?) as ??`, [
+              rootAlias,
+              sanitize(column.column_name),
+              NC_MAX_TEXT_LENGTH,
+              getAs(column),
+            ]),
+          );
+          break;
+        }
+        // Else fall through
+      }
       default:
         {
           // if v3 api then return as array by splitting
@@ -1201,7 +1244,7 @@ export class MySqlDBQueryClient
       apiVersion?: NcApiVersion;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
-    return read(this).singleQueryRead(context, ctx);
+    return singleQueryRead(this).read(context, ctx);
   }
 
   singleQueryList(
@@ -1227,6 +1270,6 @@ export class MySqlDBQueryClient
   ): Promise<
     PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
   > {
-    return list(this, this.logger).singleQueryList(context, ctx);
+    return singleQueryList(this, this.logger).list(context, ctx);
   }
 }

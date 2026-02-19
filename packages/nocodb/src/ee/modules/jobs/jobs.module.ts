@@ -19,6 +19,7 @@ import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow/workflow-r
 import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow/workflow-schedule.processor';
 import { WorkflowTestProcessor } from '~/modules/jobs/jobs/workflow/workflow-test.processor';
 import { WorkflowProcessor } from '~/modules/jobs/jobs/workflow/workflow.processor';
+import { WorkflowErrorNotificationProcessor } from '~/modules/jobs/jobs/workflow/workflow-error-notification.processor';
 import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { PaymentModule } from '~/modules/payment/payment.module';
 
@@ -50,6 +51,7 @@ import { PaymentModule } from '~/modules/payment/payment.module';
     WorkflowScheduleProcessor,
     WorkflowResumeProcessor,
     WorkflowTestProcessor,
+    WorkflowErrorNotificationProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

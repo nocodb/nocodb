@@ -1,5 +1,5 @@
 import { generateText, Output } from 'ai';
-import { createAzure } from '@ai-sdk/azure';
+import { azure as azureProvider, createAzure } from '@ai-sdk/azure';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
@@ -107,7 +107,7 @@ export class AzureAiIntegration extends AiIntegration {
   ];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
-    const { messages, schema } = args;
+    const { messages, schema, websearch } = args;
 
     if (!this.model || args.customModel) {
       const model = args.customModel || this.config.models[0];
@@ -138,6 +138,11 @@ export class AzureAiIntegration extends AiIntegration {
       output: Output.object({ schema }),
       messages,
       temperature: 0.5,
+      ...(websearch && {
+        tools: {
+          web_search_preview: azureProvider.tools.webSearchPreview({}),
+        },
+      }),
     });
 
     return {
@@ -152,7 +157,7 @@ export class AzureAiIntegration extends AiIntegration {
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { customModel, system } = args;
+    const { customModel, system, websearch } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -184,6 +189,11 @@ export class AzureAiIntegration extends AiIntegration {
       ...('messages' in args
         ? { messages: args.messages }
         : { prompt: args.prompt }),
+      ...(websearch && {
+        tools: {
+          web_search_preview: azureProvider.tools.webSearchPreview({}),
+        },
+      }),
     });
 
     return {

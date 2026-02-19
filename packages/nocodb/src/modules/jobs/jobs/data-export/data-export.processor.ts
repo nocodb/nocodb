@@ -37,7 +37,8 @@ export class DataExportProcessor {
       ncSiteUrl,
     } = job.data;
 
-    if (exportAs !== 'csv') NcError.notImplemented(`Export as ${exportAs}`);
+    if (exportAs !== 'csv' && exportAs !== 'json' && exportAs !== 'excel')
+      NcError.notImplemented(`Export as ${exportAs}`);
 
     const hrTime = initTime();
 
@@ -62,7 +63,9 @@ export class DataExportProcessor {
       view,
     )}) ${date}`;
 
-    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.csv`;
+    const fileExtension =
+      exportAs === 'json' ? 'json' : exportAs === 'excel' ? 'xlsx' : 'csv';
+    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.${fileExtension}`;
 
     let url = null;
 
@@ -71,9 +74,13 @@ export class DataExportProcessor {
         read() {},
       });
 
-      dataStream.setEncoding('utf8');
+      // Excel outputs binary data, so only set encoding for text-based formats
+      if (exportAs !== 'excel') {
+        dataStream.setEncoding('utf8');
+      }
 
       const encodedStream =
+        exportAs !== 'excel' &&
         options?.encoding &&
         options.encoding !== 'utf-8' &&
         iconv.encodingExists(options.encoding)
@@ -83,10 +90,11 @@ export class DataExportProcessor {
           : dataStream;
 
       if (
+        exportAs === 'csv' &&
         (!options?.encoding || options.encoding === 'utf-8') &&
         options.includeByteOrderMark
       ) {
-        // Push UTF-8 BOM at the start
+        // Push UTF-8 BOM at the start (only for CSV text format)
         dataStream.push('\uFEFF');
       }
 
@@ -99,50 +107,96 @@ export class DataExportProcessor {
           error = e;
         });
 
-      this.exportService
-        .streamModelDataAsCsv(context, {
-          dataStream,
-          linkStream: null,
-          baseId: model.base_id,
-          modelId: model.id,
-          viewId: view.id,
-          ncSiteUrl: ncSiteUrl,
-          delimiter: options?.delimiter,
-          includeCrossBaseColumns: true,
-          filterArrJson: options.filterArrJson,
-          sortArrJson: options.sortArrJson,
-        })
-        .catch((e) => {
-          this.logger.debug(e);
-          dataStream.push(null);
-          error = e;
-        });
+      if (exportAs === 'json') {
+        this.exportService
+          .streamModelDataAsJson(context, {
+            dataStream,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      } else if (exportAs === 'excel') {
+        this.exportService
+          .streamModelDataAsExcel(context, {
+            dataStream,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      } else {
+        this.exportService
+          .streamModelDataAsCsv(context, {
+            dataStream,
+            linkStream: null,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            delimiter: options?.delimiter,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      }
 
       url = await uploadFilePromise;
 
+      if (error) {
+        throw error;
+      }
+
       // if url is not defined, it is local attachment
+      const mimetype =
+        exportAs === 'json'
+          ? 'application/json'
+          : exportAs === 'csv'
+          ? 'text/csv'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const filenameWithExt = `${filename}.${fileExtension}`;
+
       if (!url) {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),
-          filename: `${filename}.csv`,
+          filename: filenameWithExt,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
-          mimetype: 'text/csv',
-          encoding: options?.encoding || 'utf-8',
+          mimetype,
+          encoding:
+            exportAs === 'excel' ? undefined : options?.encoding || 'utf-8',
         });
       } else {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: url,
-          filename: `${filename}.csv`,
+          filename: filenameWithExt,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
-          mimetype: 'text/csv',
-          encoding: options?.encoding || 'utf-8',
+          mimetype,
+          encoding:
+            exportAs === 'excel' ? undefined : options?.encoding || 'utf-8',
         });
-      }
-
-      if (error) {
-        throw error;
       }
 
       elapsedTime(

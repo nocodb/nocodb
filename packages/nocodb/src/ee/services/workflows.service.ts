@@ -18,7 +18,12 @@ import { extractWorkflowDependencies } from '~/services/workflows/extractDepende
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { DependencyTracker, Workflow, WorkflowExecution } from '~/models';
+import {
+  DependencyTracker,
+  Workflow,
+  WorkflowExecution,
+  WorkflowSubscriber,
+} from '~/models';
 import { checkLimit, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import {
   getPlanDisplayName,
@@ -61,6 +66,15 @@ export class WorkflowsService implements OnModuleInit {
       },
       {
         jobId: JobTypes.WorkflowResumeSchedule,
+        repeat: { cron: '* * * * *' },
+      },
+    );
+    this.nocoJobsService.jobsQueue.add(
+      {
+        jobName: JobTypes.WorkflowErrorNotification,
+      },
+      {
+        jobId: JobTypes.WorkflowErrorNotification,
         repeat: { cron: '* * * * *' },
       },
     );
@@ -138,6 +152,16 @@ export class WorkflowsService implements OnModuleInit {
       fk_workspace_id: context.workspace_id,
       created_by: req.user.id,
     });
+
+    try {
+      await WorkflowSubscriber.insert(context, {
+        fk_automation_id: workflow.id,
+        fk_user_id: req.user.id,
+        notify_on_error: true,
+      });
+    } catch (error) {
+      console.error('Failed to add workflow creator as subscriber:', error);
+    }
 
     try {
       const dependencies = extractWorkflowDependencies(workflow.nodes || []);
@@ -311,6 +335,16 @@ export class WorkflowsService implements OnModuleInit {
     });
 
     try {
+      await WorkflowSubscriber.insert(context, {
+        fk_automation_id: newWorkflow.id,
+        fk_user_id: req.user.id,
+        notify_on_error: true,
+      });
+    } catch (error) {
+      console.error('Failed to add workflow creator as subscriber:', error);
+    }
+
+    try {
       const dependencies = extractWorkflowDependencies(newWorkflow.nodes || []);
       await DependencyTracker.trackDependencies(
         context,
@@ -452,6 +486,30 @@ export class WorkflowsService implements OnModuleInit {
       ...params,
       retentionLimit: limit,
     });
+  }
+
+  async getExecution(
+    context: NcContext,
+    params: {
+      workflowId: string;
+      executionId: string;
+    },
+  ) {
+    const { workflowId, executionId } = params;
+
+    const workflow = await Workflow.get(context, workflowId);
+
+    if (!workflow) {
+      NcError.get(context).workflowNotFound(workflowId);
+    }
+
+    const execution = await WorkflowExecution.get(context, executionId);
+
+    if (!execution || execution.fk_workflow_id !== workflowId) {
+      NcError.get(context).genericNotFound('Workflow Execution', executionId);
+    }
+
+    return execution;
   }
 
   async publishWorkflow(
@@ -782,6 +840,13 @@ export class WorkflowsService implements OnModuleInit {
             triggerNode,
             wrapper,
           );
+        } else if (activationType === TriggerActivationType.POLLING) {
+          await this.activatePollingTrigger(
+            context,
+            workflow,
+            triggerNode,
+            wrapper,
+          );
         }
       } catch (error) {
         console.error(
@@ -852,6 +917,42 @@ export class WorkflowsService implements OnModuleInit {
     });
 
     if (!activationState?.cronExpression) return;
+
+    const interval = CronExpressionParser.parse(
+      activationState.cronExpression,
+      {
+        tz: activationState.timezone,
+        currentDate: new Date(),
+      },
+    );
+    const nextSyncAt = interval.next().toISOString();
+    await Workflow.trackExternalTrigger(context, workflow.id, {
+      nodeId: triggerNode.id,
+      nodeType: triggerNode.type,
+      nextSyncAt,
+      activationState,
+    });
+  }
+
+  /**
+   * Activate a polling-based trigger
+   */
+  private async activatePollingTrigger(
+    context: NcContext,
+    workflow: Workflow,
+    triggerNode: any,
+    wrapper: any,
+  ): Promise<void> {
+    // Call onActivateHook to get polling configuration
+    const activationState = await wrapper.onActivateHook({
+      workflowId: workflow.id,
+      nodeId: triggerNode.id,
+    });
+
+    if (!activationState?.cronExpression) return;
+
+    // Mark as polling trigger
+    activationState.polling = true;
 
     const interval = CronExpressionParser.parse(
       activationState.cronExpression,

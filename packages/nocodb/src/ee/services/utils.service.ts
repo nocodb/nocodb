@@ -173,6 +173,11 @@ export class UtilsService extends UtilsServiceCE {
     result.templatesRootUrl =
       process.env.NC_TEMPLATES_ROOT_URL || 'https://nocodb.com';
 
+    result.sendRecordMaxRecipients = parseInt(
+      process.env.NC_SEND_RECORD_MAX_RECIPIENTS || '15',
+      10,
+    );
+
     return result;
   }
 

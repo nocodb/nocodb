@@ -8,6 +8,7 @@ import { isDevOrTestEnvironment } from '~/utils';
 /**
  * Map of workflow node IDs to minimum required plan tier
  * Nodes not listed here are considered FREE (available to all plans)
+ * Supports wildcard patterns using '*' at the end (e.g., 'hubspot_crm.*')
  */
 export const WorkflowNodePlanRequirements: Record<string, PlanTitles> = {
   // Triggers
@@ -32,6 +33,12 @@ export const WorkflowNodePlanRequirements: Record<string, PlanTitles> = {
   'twilio.action.send_sms': PlanTitles.PLUS, // Twilio SMS
   'twilio.action.call_phone': PlanTitles.PLUS, // Twilio Call
   'twilio.action.send_whatsapp': PlanTitles.PLUS, // Twilio WhatsApp
+
+  // Google Calendar
+  'google_calendar.*': PlanTitles.PLUS, // All Google Calendar nodes
+
+  // HubSpot CRM
+  'hubspot_crm.*': PlanTitles.BUSINESS, // All HubSpot CRM nodes
 };
 
 /**
@@ -45,7 +52,24 @@ export function isNodeAvailableForPlan(
   userPlanTitle: string,
 ): boolean {
   if (isDevOrTestEnvironment) return true;
-  const requiredPlan = WorkflowNodePlanRequirements[nodeId];
+
+  // Check for exact match first
+  let requiredPlan = WorkflowNodePlanRequirements[nodeId];
+
+  // If no exact match, check for wildcard patterns
+  if (!requiredPlan) {
+    for (const [pattern, plan] of Object.entries(
+      WorkflowNodePlanRequirements,
+    )) {
+      if (pattern.endsWith('*')) {
+        const prefix = pattern.slice(0, -1);
+        if (nodeId.startsWith(prefix)) {
+          requiredPlan = plan;
+          break;
+        }
+      }
+    }
+  }
 
   // If node not in requirements map, it's free
   if (!requiredPlan) return true;

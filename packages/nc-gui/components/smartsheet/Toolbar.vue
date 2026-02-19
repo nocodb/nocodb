@@ -19,8 +19,6 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isViewActionsEnabled } = useActionPane()
 
-const { isLocalMode } = useViewColumnsOrThrow()
-
 const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)
@@ -84,7 +82,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
           <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-          <SmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
+          <SmartsheetToolbarGroupByMenu v-if="isGrid" />
 
           <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 

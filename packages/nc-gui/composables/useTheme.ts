@@ -1,4 +1,5 @@
 import { barcodeCache } from '../components/smartsheet/grid/canvas/utils/canvas'
+import { isSharedViewRoute } from '~/utils/routeUtils'
 
 export type ThemeMode = 'system' | 'light' | 'dark'
 
@@ -233,6 +234,16 @@ export const useTheme = createSharedComposable(() => {
     const saved = localStorage.getItem('nc-theme') as ThemeMode
     if (saved && ['system', 'light', 'dark'].includes(saved)) {
       selectedTheme.value = saved
+    }
+
+    // Check for theme query parameter on shared views (without persisting to localStorage)
+    // Use 'nc-theme' to avoid conflicts with user form fields named 'theme'
+    const themeParam = route.value.query?.['nc-theme'] || route.value.query?.theme
+    if (isSharedViewRoute(route.value) && themeParam) {
+      const queryTheme = themeParam as string
+      if (['light', 'dark'].includes(queryTheme)) {
+        selectedTheme.value = queryTheme as 'light' | 'dark'
+      }
     }
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')

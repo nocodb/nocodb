@@ -13,48 +13,51 @@ on:
 
 jobs:
   playwright:
-    runs-on: [self-hosted, v4, playwright]
+    runs-on: ubicloud-standard-4
     timeout-minutes: 100
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: password
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.12.0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: setup pg
-        working-directory: ./
-        run: cd /var/lib/postgresql/ && sudo -u postgres psql -c "SELECT 'dropdb '||datname||'' FROM pg_database WHERE datistemplate = false AND datallowconn = true And datname NOT IN ('postgres')" |grep ' dropdb ' |  sudo -u postgres /bin/bash ; cd; service postgresql restart
+          node-version: 22.12.0
+          cache: 'pnpm'
 
       - name: Set CI env
         run: export CI=true
-
-      - name: Kill stale servers
-        run: |
-          kill -9 $(lsof -t -i:8080) || echo "no process running on 8080"
-          kill -9 $(lsof -t -i:3000) || echo "no process running on 3000"
 
       - name: Set NC Edition
         run: export EE=true
@@ -69,7 +72,7 @@ jobs:
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./packages/nocodb/tests/pg-cy-quick/
         run: |
-          sudo -u postgres psql -U postgres -f 01-cy-quick.sql
+          PGPASSWORD=password psql -h localhost -U postgres -f 01-cy-quick.sql
 
       - name: run sql-executor
         working-directory: ./packages/nc-sql-executor
@@ -84,13 +87,20 @@ jobs:
           cd ../saml-provider
           npm install
 
-      - name: Download pre-built UI
+      - name: Configure AWS credentials for UI download
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ARTIFACTS_S3_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ARTIFACTS_S3_SECRET_KEY }}
+          aws-region: us-east-2
+
+      - name: Download pre-built UI from S3
         working-directory: ./packages/nc-gui/
         run: |
           rm -rf ee/.output.zip ee/.output
           mkdir -p ee/.output
           FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}.zip"
-          cp /mnt/gh-artifacts/ui-builds/${FILE} ./output.zip
+          aws s3 cp s3://nocohub-ci-artifacts/ui-builds/${FILE} ./output.zip
           unzip -oq output.zip
 
       - name: Start frontend
@@ -114,6 +124,14 @@ jobs:
         working-directory: ./packages/nocodb
         run: |
           pnpm run watch:run:playwright:pg:ee &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('tests/playwright/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
 
       - name: Install Playwright Browsers
         working-directory: ./tests/playwright
@@ -144,14 +162,14 @@ jobs:
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '1' }}
         working-directory: ./packages/nocodb
         run: |
-          kill -9 $(lsof -t -i:8080)
+          kill -9 $(lsof -t -i:8080) || true
           pnpm run watch:run:playwright:pg:cyquick &
 
       - name: Run quick server and tests (sqlite)
         if: ${{ inputs.db == 'sqlite' && inputs.shard == '2' }}
         working-directory: ./packages/nocodb
         run: |
-          kill -9 $(lsof -t -i:8080)
+          kill -9 $(lsof -t -i:8080) || true
           pnpm run watch:run:playwright:quick > quick_${{ inputs.shard }}_test_backend.log &
 
       - name: Wait for backend & run quick tests
@@ -164,18 +182,33 @@ jobs:
           done
           PLAYWRIGHT_HTML_REPORT=playwright-report-quick pnpm run test:quick
 
-      - name: Copy Artifacts to Local Artifacts Dir
+      - name: Configure AWS credentials for artifact upload
+        if: always()
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ARTIFACTS_S3_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ARTIFACTS_S3_SECRET_KEY }}
+          aws-region: us-east-2
+
+      - name: Upload Artifacts to S3
         if: always()
         working-directory: ./
         run: |
-          path="gh-artifacts/runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/"${GITHUB_JOB}"-${{ inputs.shard }}/${RANDOM}-$(date +%s)"
-          target_dir="/mnt/${path}"
-          mkdir -p ${target_dir}
-          mkdir -p ${target_dir}/playwright-report
+          s3_path="runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/${GITHUB_JOB}-${{ inputs.shard }}/${RANDOM}-$(date +%s)"
 
-          cp -r ./tests/playwright/playwright-report ${target_dir}/  || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
-          cp ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log ${target_dir}/ || echo "backend logs file does not exists" >> ${target_dir}/index.html
+          # Upload playwright reports if they exist
+          if [ -d "./tests/playwright/playwright-report" ]; then
+            aws s3 sync ./tests/playwright/playwright-report s3://nocohub-ci-artifacts/${s3_path}/playwright-report/
+          else
+            echo "playwright reports directory does not exist" | aws s3 cp - s3://nocohub-ci-artifacts/${s3_path}/playwright-report/index.html
+          fi
 
-          SUMMARY='[Artifacts](http://65.21.27.147/'${path}')
-          [playwright-report](http://65.21.27.147/'${path}'/playwright-report)'
+          # Upload backend logs if they exist (as text/plain so they render in browser)
+          LOG_FILE="${{ inputs.db }}_${{ inputs.shard }}_test_backend.log"
+          if [ -f "./packages/nocodb/${LOG_FILE}" ]; then
+            aws s3 cp ./packages/nocodb/${LOG_FILE} s3://nocohub-ci-artifacts/${s3_path}/${LOG_FILE} --content-type "text/plain; charset=utf-8"
+          fi
+
+          SUMMARY="[backend-logs](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/${LOG_FILE})
+          [playwright-report](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/playwright-report/index.html)"
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY

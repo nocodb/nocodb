@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
+import { ViewLockType } from 'nocodb-sdk'
 import { SmartsheetHeaderIcon } from '#components'
 
 interface Props {
@@ -34,9 +35,17 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const activeView = inject(ActiveViewInj, ref())
+
 const { isUIAllowed } = useRoles()
 
-const hasPermission = computed(() => !isLocked.value && isUIAllowed('rowColourUpdate'))
+const { isUserViewOwner } = useViewsStore()
+
+const isPersonalViewOwner = computed(
+  () => activeView.value?.lock_type === ViewLockType.Personal && isUserViewOwner(activeView.value),
+)
+
+const hasPermission = computed(() => !isLocked.value && (isUIAllowed('rowColourUpdate') || isPersonalViewOwner.value))
 </script>
 
 <template>

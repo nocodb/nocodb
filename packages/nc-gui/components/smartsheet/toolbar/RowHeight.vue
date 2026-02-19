@@ -32,7 +32,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { isUIAllowed } = useRoles()
+const { canUpdateViewMeta } = useViewColumnsOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -65,7 +65,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
           row_height: rh,
         },
         {
-          skipNetworkCall: isPublic.value || isSharedBase.value || !isUIAllowed('viewCreateOrEdit'),
+          skipNetworkCall: isPublic.value || isSharedBase.value || !canUpdateViewMeta.value,
         },
       )
 

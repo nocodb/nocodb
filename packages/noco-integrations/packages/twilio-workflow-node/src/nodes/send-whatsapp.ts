@@ -109,7 +109,6 @@ export class SendWhatsAppNode extends WorkflowNodeIntegration<SendWhatsAppNodeCo
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/twilio',
       keywords: ['twilio', 'whatsapp', 'message', 'send', 'chat'],
-      hidden: true,
     };
   }
 

@@ -105,3 +105,6 @@ result
 # Temp
 migrate-colors.js
 antd.variable.css
+
+# Claude - per-branch working memory (ephemeral, local only)
+.claude/branches/

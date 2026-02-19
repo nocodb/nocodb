@@ -9,6 +9,7 @@ export function shouldSkipCache(
     validateFormula?: boolean;
     customConditions?: Filter[];
     ignoreViewFilterAndSort?: boolean;
+    limitOverride?: number;
   },
   isList = true,
 ) {
@@ -31,6 +32,7 @@ export function shouldSkipCache(
     ctx.ignoreViewFilterAndSort ||
     process.env.NC_DISABLE_CACHE === 'true' ||
     ctx.validateFormula ||
+    !!ctx.limitOverride ||
     queryParamKeys.some(
       (key) =>
         key in ctx.params &&

@@ -552,9 +552,9 @@ export class DatasService {
 
     const { ast, dependencyFields } = await getAst(context, {
       model,
-      query,
+      query: { ...query },
       view,
-      includeRowColorColumns: query.include_row_color === 'true',
+      includeRowColorColumns: query?.include_row_color === 'true',
     });
 
     const listArgs: any = { ...dependencyFields };

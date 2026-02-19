@@ -26,11 +26,15 @@ export async function getDisplayValueOfRefTable(
   context: NcContext,
   relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
 ) {
-  return await relationCol
-    .getColOptions(context)
-    .then((colOpt) => colOpt.getRelatedTable(context))
-    .then((model) => model.getColumns(context))
-    .then((cols) => cols.find((col) => col.pv) || cols[0]);
+  // Use the column's own base_id for getColOptions since the relation metadata
+  // is stored in the column's base, not the related table's base (cross-base links)
+  const colOpt = await relationCol.getColOptions<
+    LinkToAnotherRecordColumn | LinksColumn
+  >({ ...context, base_id: relationCol.base_id });
+  const model = await colOpt.getRelatedTable(context);
+  const modelContext = { ...context, base_id: model.base_id };
+  const cols = await model.getColumns(modelContext);
+  return cols.find((col) => col.pv) || cols[0];
 }
 
 // this function will generate the query for lookup column
@@ -222,8 +226,12 @@ export default async function generateLookupSelectQuery({
 
     // if lookup column is qr code or barcode extract the referencing column
     if ([UITypes.QrCode, UITypes.Barcode].includes(lookupColumn.uidt)) {
+      // For cross-base lookups, lookupColumn might belong to a different base than context
+      const lookupColContext = lookupColumn.base_id
+        ? { ...context, base_id: lookupColumn.base_id }
+        : context;
       lookupColumn = await lookupColumn
-        .getColOptions<BarcodeColumn | QrCodeColumn>(context)
+        .getColOptions<BarcodeColumn | QrCodeColumn>(lookupColContext)
         .then((barcode) => barcode.getValueColumn(refContext));
     }
     {
@@ -260,7 +268,7 @@ export default async function generateLookupSelectQuery({
         const {
           parentContext,
           childContext,
-          refContext: _refContext,
+          refContext: nestedRefContext,
           mmContext,
         } = await relation.getParentChildContext(context, relationCol);
 
@@ -365,14 +373,16 @@ export default async function generateLookupSelectQuery({
         }
 
         if (lookupColumn.uidt === UITypes.Lookup)
-          lookupColumn = await nestedLookupColOpt.getLookupColumn(refContext);
+          lookupColumn = await nestedLookupColOpt.getLookupColumn(
+            nestedRefContext,
+          );
         else
           lookupColumn = await getDisplayValueOfRefTable(
-            refContext,
+            nestedRefContext,
             relationCol,
           );
         prevAlias = nestedAlias;
-        context = _refContext;
+        context = nestedRefContext;
       }
 
       {

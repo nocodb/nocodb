@@ -305,11 +305,14 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
 
 watch(
   () => activeView.value?.id,
-  (n, o) => {
+  (viewId, oldViewId) => {
     // if nested no need to reload since it will get reloaded from parent
+    // if isViewFilter (toolbar), rely on ColumnFilterMenu to load filters
     if (
       !nested.value &&
-      n !== o &&
+      !isViewFilter.value &&
+      viewId &&
+      viewId !== oldViewId &&
       (hookId?.value || !webHook.value) &&
       (linkColId?.value || !link.value) &&
       (widgetId.value || !widget.value)
@@ -323,6 +326,7 @@ watch(
         isLink: link.value,
       })
   },
+  { immediate: true },
 )
 
 const allFilters: Ref<Record<string, FilterType[]>> = inject(AllFiltersInj, ref({}))
@@ -438,6 +442,14 @@ const scrollDownIfNeeded = () => {
   }
 }
 
+/**
+ * Add a filter to the list.
+ * @param filter - Optional draft filter with pre-populated fields (e.g. from copy or AI).
+ * @param isCopyFilter - When true, skips `selectFilterField()` which resets comparison_op
+ *   to the column's default and clears value to null. Set to true for programmatic filter
+ *   creation where the draft already contains the correct operator, value, and logical_op
+ *   (e.g. AI-generated filters, copy-paste filters).
+ */
 const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
   await _addFilter(false, filter)
 
@@ -763,11 +775,16 @@ const changeToDynamic = async (filter, i) => {
   await saveOrUpdate(filter, i)
 }
 
+// Expose internal state and methods for parent components.
+// `deleteFilter` and `filters` are exposed for EE AI filter management
+// (ColumnFilterMenu.vue uses them to clear/replace filters programmatically).
 defineExpose({
   applyChanges,
   parentId,
   addFilterGroup,
   addFilter,
+  deleteFilter,
+  filters,
   isFilterUpdated,
 })
 </script>

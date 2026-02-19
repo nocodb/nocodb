@@ -6454,11 +6454,13 @@ declare interface ConfigItem {}
       `@param options Optional. Options for the table setting`,
       `@param options.label Optional. Label for the table picker.`,
       `@param options.description Optional. Description for the table picker.`,
+      `@param options.default Optional. Default table ID to pre-select.`,
     ])
     this.write(`table(key: string, options?: {`)
     this.indent_in()
     this.write(`label?: string;`)
     this.write(`description?: string;`)
+    this.write(`default?: string;`)
     this.indent_out()
     this.write(`}): ConfigItem;`)
 
@@ -6471,6 +6473,7 @@ declare interface ConfigItem {}
       `@param options.label Optional. Label for the field picker.`,
       `@param options.description Optional. Description for the field picker.`,
       `@param options.parentTable The key for a previously-defined table setting.`,
+      `@param options.default Optional. Default field ID to pre-select.`,
     ])
 
     this.write(`field(key: string, options: {`)
@@ -6478,6 +6481,7 @@ declare interface ConfigItem {}
     this.write(`label?: string;`)
     this.write(`description?: string;`)
     this.write(`parentTable: string;`)
+    this.write(`default?: string;`)
     this.indent_out()
     this.write(`}): ConfigItem;`)
 
@@ -6490,26 +6494,31 @@ declare interface ConfigItem {}
       `@param options.label Optional. Label for the view picker.`,
       `@param options.description Optional. Description for the view picker.`,
       `@param options.parentTable The key for a previously-defined table setting.`,
+      `@param options.default Optional. Default view ID to pre-select.`,
     ])
     this.write(`view(key: string, options: {`)
     this.indent_in()
     this.write(`label?: string;`)
     this.write(`description?: string;`)
     this.write(`parentTable: string;`)
+    this.write(`default?: string;`)
     this.indent_out()
     this.write(`}): ConfigItem;`)
 
     // input.config.text
     this.formatJSDoc([
       `Defines a setting for a text variable.`,
+      `@param key A unique identifier for the text setting.`,
       `@param options Optional. Options for the text setting.`,
       `@param options.label Optional. Label for the text input.`,
       `@param options.description Optional. Description for the text input.`,
+      `@param options.default Optional. Default text value to pre-fill.`,
     ])
     this.write(`text(key: string, options?: {`)
     this.indent_in()
     this.write(`label?: string;`)
     this.write(`description?: string;`)
+    this.write(`default?: string;`)
     this.indent_out()
     this.write(`}): ConfigItem;`)
 
@@ -6520,11 +6529,13 @@ declare interface ConfigItem {}
       `@param options Optional. Options for the number setting.`,
       `@param options.label Optional. Label for the number input.`,
       `@param options.description Optional. Description for the number input.`,
+      `@param options.default Optional. Default number value to pre-fill.`,
     ])
     this.write(`number(key: string, options?: {`)
     this.indent_in()
     this.write(`label?: string;`)
     this.write(`description?: string;`)
+    this.write(`default?: number;`)
     this.indent_out()
     this.write(`}): ConfigItem;`)
 
@@ -6539,12 +6550,14 @@ declare interface ConfigItem {}
       `@param options.options List of options for the dropdown menu.`,
       `@param options.options.value Returned value for a given select option. Will also be used as the option label if no label is defined.`,
       `@param options.options.label Optional. Label for a given select option.`,
+      `@param options.default Optional. Default option value to pre-select. Must be one of the defined option values.`,
     ])
     this.write(`select(key: string, options: {`)
     this.indent_in()
     this.write(`options: Array<{value: string, label?: string}>;`)
     this.write(`label?: string;`)
     this.write(`description?: string;`)
+    this.write(`default?: string;`)
     this.indent_out()
     this.write(`}): ConfigItem;`)
 

@@ -12,7 +12,7 @@ on:
 
 jobs:
   promote-and-deploy:
-    runs-on: [self-hosted, docker-build]
+    runs-on: ubicloud-standard-2
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -20,7 +20,7 @@ jobs:
       PROMOTE_READY_BEFORE_ROLLOUT: ${{ github.event.inputs.promote }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Run promote script
         run: |
           ./scripts/release/prod_executors.sh ${{ github.event.inputs.promote }}

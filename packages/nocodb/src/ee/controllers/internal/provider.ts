@@ -7,6 +7,7 @@ import { UiGetOperations } from '~/controllers/internal/modules/UiGet.operations
 import { IntegrationPostOperations } from '~/controllers/internal/modules/IntegrationPost.operations';
 import { ManagedAppGetOperations } from '~/controllers/internal/modules/ManagedAppGet.operations';
 import { ManagedAppPostOperations } from '~/controllers/internal/modules/ManagedAppPost.operations';
+import { SendRecordEmailOperations } from '~/controllers/internal/modules/SendRecordEmail.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -18,6 +19,7 @@ export const InternalApiModules = [
   IntegrationPostOperations,
   ManagedAppGetOperations,
   ManagedAppPostOperations,
+  SendRecordEmailOperations,
 ];
 
 export const InternalApiModuleProvider = {

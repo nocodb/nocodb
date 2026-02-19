@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, ROW_COLORING_MODE } from 'nocodb-sdk'
+import { type ColumnType, ROW_COLORING_MODE, ViewLockType } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 import type { NcListItemType } from '../../../../../components/nc/List/index.vue'
 
@@ -31,11 +31,19 @@ const { columns } = toRefs(props)
 
 const isLocked = inject(IsLockedInj, ref(false))
 
+const activeView = inject(ActiveViewInj, ref())
+
 const { t } = useI18n()
 
 const { isUIAllowed } = useRoles()
 
-const hasPermission = computed(() => isUIAllowed('rowColourUpdate'))
+const { isUserViewOwner } = useViewsStore()
+
+const isPersonalViewOwner = computed(
+  () => activeView.value?.lock_type === ViewLockType.Personal && isUserViewOwner(activeView.value),
+)
+
+const hasPermission = computed(() => isUIAllowed('rowColourUpdate') || isPersonalViewOwner.value)
 
 const chooseOption = (option: ROW_COLORING_MODE) => {
   clearRowColouringCache()

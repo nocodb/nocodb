@@ -278,6 +278,163 @@ export class PaymentService {
     return subscription;
   }
 
+  async addTrial(
+    workspaceOrOrgId: string,
+    planTitle: string,
+    days: number,
+    period: 'month' | 'year' = 'year',
+    ncMeta = Noco.ncMeta,
+  ) {
+    const existingSubscription = await Subscription.getByWorkspaceOrOrg(
+      workspaceOrOrgId,
+    );
+
+    if (existingSubscription) {
+      NcError._.subscriptionAlreadyExists(workspaceOrOrgId);
+    }
+
+    const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
+
+    if (!workspaceOrOrg) {
+      NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
+    }
+
+    const plans = await Plan.list(ncMeta);
+
+    const plan = plans.find((p) => p.title === planTitle);
+
+    if (!plan) {
+      NcError.genericNotFound('Plan', planTitle);
+    }
+
+    // Find price for the plan based on period - exclude loyalty prices
+    const price = plan.prices.find(
+      (p) =>
+        p.recurring?.interval === period &&
+        (!p.lookup_key || !p.lookup_key.includes('loyalty')),
+    );
+
+    if (!price) {
+      NcError.genericNotFound(
+        'Price',
+        `non-loyalty ${period}ly price for plan ${planTitle}`,
+      );
+    }
+
+    // Get workspace owner for customer creation and metadata
+    const owners = await WorkspaceUser.userList({
+      fk_workspace_id:
+        workspaceOrOrg.entity === 'workspace' ? workspaceOrOrg.id : undefined,
+      roles: WorkspaceUserRoles.OWNER,
+    });
+
+    const owner = owners[0];
+    if (!owner) {
+      NcError.genericNotFound('Owner', workspaceOrOrgId);
+    }
+
+    const user = await User.get(owner.id, ncMeta);
+
+    // Get or create Stripe customer
+    let customerId = workspaceOrOrg.stripe_customer_id;
+
+    if (!customerId || customerId === NOCODB_INTERNAL) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          ...(workspaceOrOrg.entity === 'workspace'
+            ? { fk_workspace_id: workspaceOrOrg.id }
+            : { fk_org_id: workspaceOrOrg.id }),
+          fk_user_id: user.id,
+          entity: `${workspaceOrOrg.entity}_${workspaceOrOrg.id}`,
+        },
+        invoice_settings: {
+          custom_fields: [
+            {
+              name: `NocoDB ${
+                workspaceOrOrg.entity === 'org' ? 'Org' : 'Workspace'
+              } ID`,
+              value: workspaceOrOrg.id,
+            },
+            {
+              name: `NocoDB ${
+                workspaceOrOrg.entity === 'org' ? 'Org' : 'Workspace'
+              } Title`,
+              value: workspaceOrOrg.title,
+            },
+          ],
+        },
+      });
+
+      customerId = customer.id;
+
+      if (workspaceOrOrg.entity === 'workspace') {
+        await Workspace.update(workspaceOrOrg.id, {
+          stripe_customer_id: customerId,
+        });
+      } else {
+        await Org.update(workspaceOrOrg.id, {
+          stripe_customer_id: customerId,
+        });
+      }
+    }
+
+    const seatCount = await this.getSeatCount(workspaceOrOrgId, ncMeta);
+    const trialEnd = dayjs().utc().add(days, 'day').unix();
+
+    // Create Stripe subscription with trial
+    // Cancel subscription if no payment method added by trial end
+    const stripeSubscription = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [
+        {
+          price: price.id,
+          quantity: seatCount || 1,
+        },
+      ],
+      trial_end: trialEnd,
+      trial_settings: {
+        end_behavior: {
+          missing_payment_method: 'cancel',
+        },
+      },
+      metadata: {
+        ...(workspaceOrOrg.entity === 'workspace'
+          ? { fk_workspace_id: workspaceOrOrg.id }
+          : { fk_org_id: workspaceOrOrg.id }),
+        fk_user_id: user.id,
+        fk_plan_id: plan.id,
+        plan_title: plan.title,
+        period: price.recurring.interval,
+      },
+    });
+
+    const trialEndAt = dayjs.unix(trialEnd).utc().toISOString();
+
+    await this.telemetryService.sendSystemEvent({
+      event_type: 'payment_alert',
+      payment_type: 'trial_created',
+      message: `Stripe trial subscription created for ${workspaceOrOrg.title} (${plan.title}) - ${days} days`,
+      workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
+      extra: {
+        stripe_subscription_id: stripeSubscription.id,
+        plan_title: plan.title,
+        trial_days: days,
+        trial_end_at: trialEndAt,
+      },
+    });
+
+    return {
+      stripe_subscription_id: stripeSubscription.id,
+      stripe_customer_id: customerId,
+      plan: plan.title,
+      period: price.recurring.interval,
+      status: stripeSubscription.status,
+      trial_end_at: trialEndAt,
+      seat_count: seatCount || 1,
+    };
+  }
+
   async customerUpdate(workspaceOrOrgId: string, ncMeta = Noco.ncMeta) {
     const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
 
@@ -1388,6 +1545,13 @@ export class PaymentService {
 
       return invoice;
     } catch (err) {
+      // invoice_upcoming_none is expected for trialing subscriptions with missing_payment_method: 'cancel'
+      if (err?.code === 'invoice_upcoming_none') {
+        this.logger.log(
+          `No upcoming invoice for workspace or org ${workspaceOrOrgId} (likely trialing with cancel behavior)`,
+        );
+        return null;
+      }
       this.logger.error(
         `Error getting next invoice for workspace or org ${workspaceOrOrgId}:`,
       );
@@ -2114,6 +2278,9 @@ export class PaymentService {
             seat_count: seatCount,
             status: stripeSub.status,
             start_at: dayjs.unix(stripeSub.start_date).utc().toISOString(),
+            trial_end_at: stripeSub.trial_end
+              ? dayjs.unix(stripeSub.trial_end).utc().toISOString()
+              : null,
             period,
             billing_cycle_anchor: dayjs
               .unix(stripeSub.billing_cycle_anchor)
@@ -2148,9 +2315,11 @@ export class PaymentService {
           }
 
           // schedule loyalty downgrade if this was a loyalty price
-          if (price.lookup_key.includes('loyalty')) {
+          if (price.lookup_key?.includes('loyalty')) {
             await this.scheduleLoyaltyDowngrade(workspaceOrOrgId);
-          } else {
+          } else if (stripeSub.status !== 'trialing') {
+            // Only fetch next invoice for non-trialing subscriptions
+            // Trialing subscriptions with missing_payment_method: 'cancel' won't have upcoming invoices
             await this.updateNextInvoice(
               subRec.id,
               await this.getNextInvoice(workspaceOrOrgId),
@@ -2202,6 +2371,9 @@ export class PaymentService {
               seat_count: seatCount,
               status: stripeSub.status,
               start_at: dayjs.unix(stripeSub.start_date).utc().toISOString(),
+              trial_end_at: stripeSub.trial_end
+                ? dayjs.unix(stripeSub.trial_end).utc().toISOString()
+                : null,
               canceled_at: stripeSub.cancel_at
                 ? dayjs.unix(stripeSub.cancel_at).utc().toISOString()
                 : null,
@@ -2219,7 +2391,7 @@ export class PaymentService {
           if (
             workspaceOrOrg.entity === 'workspace' &&
             workspaceOrOrg.loyal &&
-            price.lookup_key.includes('loyalty') &&
+            price.lookup_key?.includes('loyalty') &&
             !workspaceOrOrg.loyalty_discount_used
           ) {
             await Workspace.update(workspaceOrOrg.id, {
@@ -2228,8 +2400,8 @@ export class PaymentService {
             await this.scheduleLoyaltyDowngrade(workspaceOrOrgId, Noco.ncMeta);
           }
 
-          // refresh next invoice
-          if (!stripeSub.cancel_at) {
+          // refresh next invoice (skip for trialing subscriptions with cancel behavior)
+          if (!stripeSub.cancel_at && stripeSub.status !== 'trialing') {
             await this.updateNextInvoice(
               subRec.id,
               await this.getNextInvoice(workspaceOrOrgId),

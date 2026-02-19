@@ -19,6 +19,7 @@ interface GenerateTextActionConfig extends WorkflowNodeConfig {
   integrationId: string;
   model?: string;
   temperature?: number;
+  websearch?: boolean;
 }
 
 export class GenerateTextAction extends WorkflowNodeIntegration<GenerateTextActionConfig> {
@@ -82,6 +83,14 @@ export class GenerateTextAction extends WorkflowNodeIntegration<GenerateTextActi
           groupCollapsible: true,
           groupLabel: 'More options',
           groupDefaultCollapsed: true,
+        },
+        {
+          type: FormBuilderInputType.Switch,
+          label: 'Enable Web Search',
+          model: 'config.websearch',
+          span: 24,
+          helpText:
+            'Allow the AI model to search the web for up-to-date information',
         },
       ],
       keywords: ['ai', 'generate', 'text', 'gpt', 'claude', 'llm', 'openai'],
@@ -174,6 +183,9 @@ export class GenerateTextAction extends WorkflowNodeIntegration<GenerateTextActi
         customModel: model,
         ...(config.temperature !== undefined && {
           temperature: config.temperature,
+        }),
+        ...(config.websearch && {
+          websearch: true,
         }),
       });
 

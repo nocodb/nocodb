@@ -3,6 +3,7 @@ import { diff } from 'deep-object-diff'
 import type {
   CustomFormBuilderValidator,
   FormBuilderCondition,
+  FormBuilderConditionGroup,
   FormBuilderElement,
   FormBuilderValidator,
   FormDefinition,
@@ -60,6 +61,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
           setNestedProp(defaultState, field.model, field.defaultValue ?? false)
         } else if (field.type === FormBuilderInputType.Select) {
           setNestedProp(defaultState, field.model, field.defaultValue ?? [])
+        } else if (field.type === FormBuilderInputType.ConditionBuilder) {
+          setNestedProp(defaultState, field.model, field.defaultValue ?? { combinator: 'and', conditions: [] })
         } else {
           setNestedProp(defaultState, field.model, field.defaultValue ?? '')
         }
@@ -78,7 +81,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       setFormStateHelper(formState, path, value)
     }
 
-    const loadOptions = async (field: FormBuilderElement) => {
+    const loadOptions = async (field: FormBuilderElement, searchQuery?: string) => {
       /**
        * If the field is not visible, don't load options
        */
@@ -87,7 +90,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       isLoadingFieldOptions.value[field.model] = true
 
       try {
-        fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey)
+        fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey, searchQuery)
       } finally {
         isLoadingFieldOptions.value[field.model] = false
       }
@@ -132,47 +135,98 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       })
     }
 
-    function checkCondition(field: FormBuilderElement) {
-      if (!field.condition) return true
+    function checkConditionItem(condition: FormBuilderCondition): boolean {
+      const value = deepReference(condition.model)
 
-      const condition = field.condition
-
-      function checkConditionItem(condition: FormBuilderCondition) {
-        const value = deepReference(condition.model)
-        if (condition.value || condition.equal) {
-          return condition.value ? condition.value === value : condition.equal === value
-        }
-
-        if (condition.in) {
-          return condition.in.includes(value)
-        }
-
-        if (condition.empty) {
-          if (Array.isArray(value)) {
-            return value.length === 0
-          }
-
-          return !value
-        }
-
-        if (condition.notEmpty) {
-          if (Array.isArray(value)) {
-            return value.length > 0
-          }
-
-          return !!value
-        }
-
-        return false
+      // Check equality
+      if (condition.value !== undefined || condition.equal !== undefined) {
+        return condition.value !== undefined ? condition.value === value : condition.equal === value
       }
 
-      if (Array.isArray(condition)) {
-        return condition.every((c) => {
-          return checkConditionItem(c)
-        })
+      // Check not equal
+      if (condition.notEqual !== undefined) {
+        return condition.notEqual !== value
       }
 
-      return checkConditionItem(condition)
+      // Check if value is in array
+      // When value is an array (multi-select), check if ANY condition.in element is in value
+      if (condition.in) {
+        if (Array.isArray(value)) {
+          return condition.in.some((item) => value.includes(item))
+        }
+        return condition.in.includes(value)
+      }
+
+      // Check if value is NOT in array
+      // When value is an array (multi-select), check if NONE of condition.notIn elements are in value
+      if (condition.notIn) {
+        if (Array.isArray(value)) {
+          return !condition.notIn.some((item) => value.includes(item))
+        }
+        return !condition.notIn.includes(value)
+      }
+
+      // Check if empty
+      if (condition.empty) {
+        if (Array.isArray(value)) {
+          return value.length === 0
+        }
+        return !value
+      }
+
+      // Check if not empty
+      if (condition.notEmpty) {
+        if (Array.isArray(value)) {
+          return value.length > 0
+        }
+        return !!value
+      }
+
+      return false
+    }
+
+    function checkConditionGroup(
+      conditionOrGroup: FormBuilderCondition | FormBuilderCondition[] | FormBuilderConditionGroup,
+    ): boolean {
+      // Single condition
+      if ('model' in conditionOrGroup && typeof conditionOrGroup.model === 'string') {
+        return checkConditionItem(conditionOrGroup as FormBuilderCondition)
+      }
+
+      // Array of conditions (AND logic)
+      if (Array.isArray(conditionOrGroup)) {
+        return conditionOrGroup.every((c) => checkConditionItem(c))
+      }
+
+      // Condition group with operator
+      if ('conditions' in conditionOrGroup) {
+        const group = conditionOrGroup as FormBuilderConditionGroup
+        const operator = group.operator || 'and'
+
+        if (operator === 'or') {
+          return group.conditions.some((c) => checkConditionItem(c))
+        }
+        // Default: AND
+        return group.conditions.every((c) => checkConditionItem(c))
+      }
+
+      return true
+    }
+
+    function checkCondition(field: FormBuilderElement): boolean {
+      // Check show condition
+      if (field.condition) {
+        const showResult = checkConditionGroup(field.condition)
+        if (!showResult) return false
+      }
+
+      // Check hide condition (opposite logic - hide when condition is met)
+      if (field.hideCondition) {
+        const hideResult = checkConditionGroup(field.hideCondition)
+        if (hideResult) return false
+      }
+
+      return true
     }
 
     const groupCollapseState = ref<Record<string, boolean>>({})
@@ -247,23 +301,67 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
         if (field.validators && checkCondition(field)) {
           validatorsObject[field.model] = field.validators
             .map((validator: FormBuilderValidator) => {
-              if (validator.type === FormBuilderValidatorType.Required) {
-                return {
-                  required: true,
-                  message: validator.message,
-                }
-              }
+              switch (validator.type) {
+                case FormBuilderValidatorType.Required:
+                  return {
+                    required: true,
+                    message: validator.message || 'This field is required',
+                  }
 
-              if (
-                validator.type === FormBuilderValidatorType.Custom &&
-                ncIsFunction((validator as CustomFormBuilderValidator).validator)
-              ) {
-                return {
-                  validator: (validator as CustomFormBuilderValidator).validator,
-                }
-              }
+                case FormBuilderValidatorType.Regex:
+                  return {
+                    pattern: new RegExp(validator.pattern, validator.flags),
+                    message: validator.message || 'Invalid format',
+                  }
 
-              return null
+                case FormBuilderValidatorType.MinValue:
+                  return {
+                    type: 'number',
+                    min: validator.value,
+                    message: validator.message || `Value must be at least ${validator.value}`,
+                  }
+
+                case FormBuilderValidatorType.MaxValue:
+                  return {
+                    type: 'number',
+                    max: validator.value,
+                    message: validator.message || `Value must be at most ${validator.value}`,
+                  }
+
+                case FormBuilderValidatorType.MinLength:
+                  return {
+                    min: validator.value,
+                    message: validator.message || `Must be at least ${validator.value} characters`,
+                  }
+
+                case FormBuilderValidatorType.MaxLength:
+                  return {
+                    max: validator.value,
+                    message: validator.message || `Must be at most ${validator.value} characters`,
+                  }
+
+                case FormBuilderValidatorType.Email:
+                  return {
+                    type: 'email',
+                    message: validator.message || 'Please enter a valid email address',
+                  }
+
+                case FormBuilderValidatorType.Url:
+                  return {
+                    type: 'url',
+                    message: validator.message || 'Please enter a valid URL',
+                  }
+                case FormBuilderValidatorType.Custom:
+                  if (!ncIsFunction((validator as CustomFormBuilderValidator).validator)) {
+                    return null
+                  }
+                  return {
+                    validator: (validator as CustomFormBuilderValidator).validator,
+                  }
+
+                default:
+                  return null
+              }
             })
             .filter((v: any) => v !== null)
         }

@@ -154,7 +154,7 @@ const copyEmail = () => {
             <a
               v-if="!isMiniSidebar"
               v-e="['c:nocodb:discord']"
-              href="https://discord.gg/5RgZmkW"
+              href="https://discord.gg/c7GEYrvFtT"
               target="_blank"
               class="!underline-transparent"
               rel="noopener noreferrer"

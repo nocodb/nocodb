@@ -7,10 +7,6 @@ export enum WorkflowNodeComparisonOp {
   LT = 'lt',
   GTE = 'gte',
   LTE = 'lte',
-  EMPTY = 'empty',
-  NOT_EMPTY = 'notempty',
-  NULL = 'null',
-  NOT_NULL = 'notnull',
   BLANK = 'blank',
   NOT_BLANK = 'notblank',
   CHECKED = 'checked',
@@ -20,6 +16,15 @@ export enum WorkflowNodeComparisonOp {
   NOT_ALL_OF = 'nallof',
   NOT_ANY_OF = 'nanyof',
   IS_WITHIN = 'isWithin',
+
+  /** @deprecated Use BLANK instead. Kept for backward compatibility with existing workflows. */
+  EMPTY = 'empty',
+  /** @deprecated Use NOT_BLANK instead. Kept for backward compatibility with existing workflows. */
+  NOT_EMPTY = 'notempty',
+  /** @deprecated Use BLANK instead. Kept for backward compatibility with existing workflows. */
+  NULL = 'null',
+  /** @deprecated Use NOT_BLANK instead. Kept for backward compatibility with existing workflows. */
+  NOT_NULL = 'notnull',
 }
 
 export enum WorkflowNodeComparisonSubOp {

@@ -420,14 +420,14 @@ if (props.isCreateNewActionMenu) {
 .nc-create-project-dlg-wrapper-managedApp,
 .nc-create-project-dlg-wrapper-managedApp {
   .nc-modal {
-    max-height: min(90vh, 540px) !important;
-    height: min(90vh, 540px) !important;
+    max-height: min(90vh, 620px) !important;
+    height: min(90vh, 620px) !important;
   }
 }
 
 .nc-create-project-dlg-wrapper-null {
   .ant-modal-content {
-    @apply !rounded-[12px];
+    @apply !rounded-[12px] border-1 border-solid border-nc-border-gray-medium;
   }
 }
 </style>

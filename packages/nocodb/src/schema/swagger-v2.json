@@ -13631,6 +13631,7 @@
               "LastModifiedBy",
               "Meta",
               "Colour"
+              "UUID"
             ],
             "type": "string"
           },
@@ -16552,7 +16553,8 @@
           "Geometry",
           "JSON",
           "SpecificDBType",
-          "Colour"
+          "Colour",
+          "UUID"
         ],
         "type": "string"
       },

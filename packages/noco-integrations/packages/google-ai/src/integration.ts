@@ -1,5 +1,8 @@
 import { generateText, Output } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import {
+  createGoogleGenerativeAI,
+  google as googleProvider,
+} from '@ai-sdk/google';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
@@ -41,7 +44,7 @@ export class GeminiIntegration extends AiIntegration {
   ];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
-    const { messages, schema } = args;
+    const { messages, schema, websearch } = args;
 
     if (!this.model || args.customModel) {
       const model = args.customModel || this.config.models[0];
@@ -68,6 +71,11 @@ export class GeminiIntegration extends AiIntegration {
       output: Output.object({ schema }),
       messages,
       temperature: 0.5,
+      ...(websearch && {
+        tools: {
+          google_search: googleProvider.tools.googleSearch({}),
+        },
+      }),
     });
 
     return {
@@ -82,7 +90,7 @@ export class GeminiIntegration extends AiIntegration {
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { customModel, system } = args;
+    const { customModel, system, websearch } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -113,6 +121,11 @@ export class GeminiIntegration extends AiIntegration {
       ...('messages' in args
         ? { messages: args.messages }
         : { prompt: args.prompt }),
+      ...(websearch && {
+        tools: {
+          google_search: googleProvider.tools.googleSearch({}),
+        },
+      }),
     });
 
     return {

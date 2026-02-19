@@ -1,5 +1,4 @@
 import { IntegrationWrapper } from '../integration';
-import { AuthIntegration } from '../auth';
 import { NocoSDK } from '../sdk';
 import { IDataV3Service, ITablesService, IMailService } from './nocodb.interface';
 import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, TriggerTestMode, LoopContext } from 'nocodb-sdk'
@@ -67,6 +66,32 @@ export interface WorkflowActivationContext {
  * Store any data needed for cleanup (e.g., external webhook IDs, secrets)
  */
 export type WorkflowActivationState = Record<string, any>;
+
+/**
+ * Context provided to poll() method for polling-based triggers
+ */
+export interface PollingContext {
+  /** Workflow ID */
+  workflowId: string;
+  /** Trigger node ID in the workflow */
+  nodeId: string;
+  /** Previous cursor/state from last successful poll (null on first poll) */
+  previousCursor: Record<string, any> | null;
+  /** When this poll was scheduled (ISO string) */
+  scheduledTime: string;
+}
+
+/**
+ * Result from poll() method containing detected items and updated cursor
+ */
+export interface PollingResult {
+  /** New items detected since last poll */
+  items: any[];
+  /** Updated cursor/state for next poll (e.g., lastId, timestamp, etag) */
+  cursor: Record<string, any>;
+  /** Optional: Override default batch behavior for this poll ('single' = one workflow per item, 'batch' = all items in single workflow) */
+  batchMode?: 'single' | 'batch';
+}
 
 export interface WorkflowNodeResult {
   outputs: Record<string, unknown>;
@@ -179,6 +204,7 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
 
   public async fetchOptions(
     _key: string,
+    _searchQuery?: string,
   ): Promise<unknown> {
     return []
   }
@@ -267,4 +293,30 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
     context: WorkflowActivationContext,
     state?: WorkflowActivationState
   ): Promise<WorkflowActivationState>;
+
+  /**
+   * Called on schedule for polling-based triggers to check for new items.
+   * Must return detected items and updated cursor state.
+   *
+   * @param context - Polling context with previous cursor state
+   * @returns Items to trigger workflows and updated cursor
+   *
+   * @example RSS Feed Polling
+   * ```typescript
+   * async poll(context: PollingContext): Promise<PollingResult> {
+   *   const feed = await this.fetchRssFeed(this.config.feedUrl);
+   *   const lastSeenGuid = context.previousCursor?.lastGuid;
+   *
+   *   const newItems = feed.items.filter(item =>
+   *     !lastSeenGuid || item.guid > lastSeenGuid
+   *   );
+   *
+   *   return {
+   *     items: newItems,
+   *     cursor: { lastGuid: feed.items[0]?.guid },
+   *   };
+   * }
+   * ```
+   */
+  public async poll?(context: PollingContext): Promise<PollingResult>;
 }

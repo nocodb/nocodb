@@ -115,6 +115,10 @@ function handleAutoScroll(scroll: boolean, className: string) {
                 <GeneralProjectIcon
                   :color="bases.get(selectedAudit?.base_id)?.meta?.iconColor"
                   :type="bases.get(selectedAudit?.base_id)?.type || 'database'"
+                  :managed-app="{
+                    managed_app_master: bases.get(selectedAudit?.base_id)?.managed_app_master,
+                    managed_app_id: bases.get(selectedAudit?.base_id)?.managed_app_id,
+                  }"
                   class="nc-view-icon w-5 h-5"
                 />
               </div>

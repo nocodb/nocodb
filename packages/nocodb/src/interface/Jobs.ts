@@ -62,6 +62,8 @@ export enum JobTypes {
   ResumeWorkflow = 'resume-workflow',
   TestWorkflowNode = 'test-workflow-node',
   HeartbeatWorkflow = 'heartbeat-workflow',
+  PollWorkflow = 'poll-workflow',
+  WorkflowErrorNotification = 'workflow-error-notification',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -81,6 +83,8 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowResumeSchedule,
   JobTypes.ResumeWorkflow,
   JobTypes.HeartbeatWorkflow,
+  JobTypes.PollWorkflow,
+  JobTypes.WorkflowErrorNotification,
 ];
 
 export enum JobStatus {
@@ -226,7 +230,7 @@ export interface DataExportJobData extends JobData {
   };
   modelId: string;
   viewId: string;
-  exportAs: 'csv' | 'json' | 'xlsx';
+  exportAs: 'csv' | 'json' | 'excel';
   ncSiteUrl: string;
 }
 
@@ -299,4 +303,10 @@ export interface TestWorkflowNodeJobData extends JobData {
 
 export interface HeartbeatWorkflowJobData extends JobData {
   workflowId: string;
+}
+
+export interface PollWorkflowJobData extends JobData {
+  workflowId: string;
+  triggerNodeId: string;
+  activationState: Record<string, any>;
 }

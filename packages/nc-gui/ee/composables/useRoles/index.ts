@@ -193,9 +193,13 @@ export const useRolesShared = createSharedComposable(() => {
       roles?: string | Record<string, boolean> | string[] | null
       source?: MaybeRef<SourceType & { meta?: Record<string, any> }>
       skipSourceCheck?: boolean
+      base?: MaybeRef<NcProject>
+      skipBaseCheck?: boolean
     } = {},
   ) => {
     const { roles } = args
+
+    const activeBase = unref(args.base)
 
     let checkRoles: Record<string, boolean> = {}
 
@@ -203,6 +207,17 @@ export const useRolesShared = createSharedComposable(() => {
       if (allRoles.value) checkRoles = allRoles.value
     } else {
       checkRoles = extractRolesObj(roles)
+    }
+
+    if (
+      !args.skipBaseCheck &&
+      activeBase &&
+      activeBase.id &&
+      activeBase.managed_app_id &&
+      activeBase.managed_app_schema_locked &&
+      managedAppRestrictions[permission as Permission]
+    ) {
+      return false
     }
 
     // check source level restrictions
@@ -245,6 +260,7 @@ type IsUIAllowedParams = Parameters<ReturnType<typeof useRolesShared>['isUIAllow
  */
 export const useRoles = () => {
   const currentSource = inject(ActiveSourceInj, ref())
+  const currentBase = inject(ProjectInj, ref())
   const useRolesRes = useRolesShared()
 
   const isMetaReadOnly = computed(() => {
@@ -258,7 +274,7 @@ export const useRoles = () => {
   return {
     ...useRolesRes,
     isUIAllowed: (...args: IsUIAllowedParams) => {
-      return useRolesRes.isUIAllowed(args[0], { source: currentSource, ...(args[1] || {}) })
+      return useRolesRes.isUIAllowed(args[0], { source: currentSource, base: currentBase, ...(args[1] || {}) })
     },
     isDataReadOnly,
     isMetaReadOnly,

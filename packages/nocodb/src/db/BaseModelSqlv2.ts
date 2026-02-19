@@ -37,6 +37,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import debug from 'debug';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -136,12 +137,17 @@ import {
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import {
+  QUERY_STRING_FIELD_ID_ON_RESULT,
+  QUERY_STRING_LINKS_AS_LTAR,
+} from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
 import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { isTransientError } from '~/helpers/db-error/utils';
+
+const debugCount = debug('nc:db:query:basemodel:count');
 
 dayjs.extend(utc);
 
@@ -179,6 +185,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public model: Model;
   public context: NcContext;
   public schema?: string;
+  public formulaDryRunFailed?: boolean;
 
   public static config: any = defaultLimitConfig;
 
@@ -275,10 +282,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
 
+    const linksAsLtar =
+      apiVersion === NcApiVersion.V3 &&
+      query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
     await this.selectObject({
       ...(dependencyFields ?? {}),
       qb,
       validateFormula,
+      linksAsLtar,
     });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
@@ -293,7 +305,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       });
     } catch (e) {
+      const isTransient = isTransientError(e);
+
       if (
+        isTransient ||
         validateFormula ||
         !haveFormulaColumn(await this.model.getColumns(this.context))
       )
@@ -305,7 +320,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     if (data) {
-      const proto = await this.getProto();
+      const proto = await this.getProto({ linksAsLtar });
       data.__proto__ = proto;
     }
 
@@ -442,7 +457,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       data = await this.execAndParse(qb, null, { first: true });
     } catch (e) {
-      if (validateFormula || !haveFormulaColumn(columns)) throw e;
+      const isTransient = isTransientError(e);
+
+      if (isTransient || validateFormula || !haveFormulaColumn(columns))
+        throw e;
       logger.log(e);
       return this.findOne(args, true);
     }
@@ -466,6 +484,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       pks?: string;
       customConditions?: Filter[];
       apiVersion?: NcApiVersion;
+      linksAsLtar?: boolean | string;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
@@ -492,12 +511,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const qb = this.dbDriver(this.tnPath);
 
+    const linksAsLtar =
+      args.linksAsLtar === true || args.linksAsLtar === 'true';
+
     await this.selectObject({
       qb,
       fieldsSet: args.fieldsSet,
       viewId: this.viewId,
       validateFormula,
       columns,
+      linksAsLtar,
     });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
@@ -636,7 +659,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         applyPaginate(qb, { ...rest, limit: limitOverride });
       }
     }
-    const proto = await this.getProto();
+    const proto = await this.getProto({ linksAsLtar });
 
     let data;
     try {
@@ -759,7 +782,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count',
     }).first();
-
+    debugCount(qb.toQuery());
     return (await this.execAndParse(qb, null, { raw: true, first: true }))
       ?.count;
   }
@@ -1260,6 +1283,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ids: any[];
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
@@ -1275,6 +1299,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       parentId: any;
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
     selectAllRecords = false,
@@ -1302,6 +1327,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       id: any;
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
@@ -1321,6 +1347,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       parentIds: any[];
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
@@ -1559,8 +1586,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async getProto({
     apiVersion = NcApiVersion.V2,
+    linksAsLtar = false,
   }: {
     apiVersion?: NcApiVersion;
+    linksAsLtar?: boolean;
   } = {}) {
     if (this._proto) {
       return this._proto as ResolverObj;
@@ -1583,7 +1612,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_relation_column_id,
               });
               const relColTitle =
-                relCol.uidt === UITypes.Links
+                relCol.uidt === UITypes.Links && !linksAsLtar
                   ? `_nc_lk_${relCol.title}`
                   : relCol.title;
               proto.__columnAliases[column.title] = {
@@ -1617,6 +1646,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                           colId: column.id,
                           ids,
                           apiVersion,
+                          linksAsLtar,
                         },
                         (listLoader as any).args,
                       );
@@ -1631,6 +1661,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                             id: ids[0],
                             apiVersion,
                             nested: true,
+                            linksAsLtar,
                           },
                           (listLoader as any).args,
                         ),
@@ -1644,7 +1675,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 const self: BaseModelSqlv2 = this;
 
                 proto[
-                  column.uidt === UITypes.Links
+                  column.uidt === UITypes.Links && !linksAsLtar
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args): Promise<any> {
@@ -1663,6 +1694,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                           colId: column.id,
                           apiVersion,
                           nested: true,
+                          linksAsLtar,
                         },
                         (listLoader as any).args,
                       );
@@ -1676,6 +1708,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                             colId: column.id,
                             apiVersion,
                             nested: true,
+                            linksAsLtar,
                           },
                           (listLoader as any).args,
                         ),
@@ -1689,7 +1722,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                 const self: BaseModelSqlv2 = this;
                 proto[
-                  column.uidt === UITypes.Links
+                  column.uidt === UITypes.Links && !linksAsLtar
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args): Promise<any> {
@@ -1913,7 +1946,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   const self: BaseModelSqlv2 = this;
 
                   proto[
-                    column.uidt === UITypes.Links
+                    column.uidt === UITypes.Links && !linksAsLtar
                       ? `_nc_lk_${column.title}`
                       : column.title
                   ] = async function (args): Promise<any> {
@@ -1968,6 +2001,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     alias?: string;
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
+    linksAsLtar?: boolean;
   }): Promise<void> {
     return await selectObject(this, logger)(params);
   }
@@ -2825,8 +2859,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const chunkedPks = chunkArray(pks, chunkSize);
 
+    const { ast } = await getAst(this.context, {
+      model: this.model,
+      query: args.args || {},
+    });
+
     for (const chunk of chunkedPks) {
-      const chunkData = await this.list(
+      let chunkData = await this.list(
         {
           pks: chunk.join(','),
           apiVersion: args.apiVersion,
@@ -2837,7 +2876,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           ignoreViewFilterAndSort: true,
         },
       );
-
+      chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
       data.push(...chunkData);
     }
 
@@ -3104,7 +3143,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const chunk = pkAndData.slice(i, i + readChunkSize);
         const pksToRead = chunk.map((v) => v.pk);
 
-        const oldRecords = await this.chunkList({ pks: pksToRead });
+        const oldRecordChunkList = await this.chunkList({ pks: pksToRead });
+
+        // get ast
+        const { ast, parsedQuery } = await getAst(this.context, {
+          model: this.model,
+          query: {},
+          extractOnlyPrimaries: false,
+        });
+        // nocoexecute
+        const oldRecords = await nocoExecute(
+          ast,
+          oldRecordChunkList,
+          {},
+          parsedQuery,
+        );
         const oldRecordsMap = new Map<string, any>(
           oldRecords.map((r) => [this.extractPksValues(r, true), r]),
         );
@@ -3191,11 +3244,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         for (let i = 0; i < updatePkValues.length; i += readChunkSize) {
           const pksChunk = updatePkValues.slice(i, i + readChunkSize);
 
-          const updatedRecords = await this.list(
+          const updatedRecordList = await this.list(
             { pks: pksChunk.join(',') },
             { limitOverride: pksChunk.length },
           );
 
+          // get ast
+          const { ast, parsedQuery } = await getAst(this.context, {
+            model: this.model,
+            query: {},
+            extractOnlyPrimaries: false,
+          });
+          // nocoexecute
+          const updatedRecords = await nocoExecute(
+            ast,
+            updatedRecordList,
+            {},
+            parsedQuery,
+          );
           const updatedRecordsMap = new Map(
             updatedRecords.map((record) => [
               this.extractPksValues(record, true),
@@ -4196,6 +4262,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: Record<string, any>,
   ) {
     if (
+      // skip dtxp length check for date/time columns where dtxp represents precision, not max length
+      ![UITypes.Date, UITypes.DateTime, UITypes.Time].includes(column.uidt) &&
       typeof data[column.title] === 'string' &&
       typeof column.dtxp === 'number' &&
       column.dtxp < data[column.title]?.length
@@ -5249,10 +5317,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       idToAliasMap[col.id] = col.title;
 
-      const isLtarColumn = [
-        UITypes.LinkToAnotherRecord,
-        UITypes.Lookup,
-      ].includes(col.uidt);
+      // For Links columns, only treat as LTAR when linksAsLtar produced
+      // nested object data (not a count number). Check the actual data to decide.
+      let isLinksAsLtar = false;
+      if (col.uidt === UITypes.Links) {
+        const sampleRow = data.find((d) => d[col.id] != null);
+        const sampleVal = sampleRow?.[col.id];
+        isLinksAsLtar =
+          Array.isArray(sampleVal) ||
+          (sampleVal && typeof sampleVal === 'object');
+      }
+
+      const isLtarColumn =
+        [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt) ||
+        isLinksAsLtar;
       if (isLtarColumn) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);

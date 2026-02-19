@@ -10,9 +10,9 @@ const workflowStore = useWorkflowStore()
 
 const { activeWorkflowId } = storeToRefs(workflowStore)
 
-const { loadWorkflowExecutions } = workflowStore
+const { loadWorkflowExecutions, getWorkflowExecution } = workflowStore
 
-const { viewingExecution, selectedNodeId } = useWorkflowOrThrow()
+const { viewingExecution, selectedNodeId, initialExecutionId } = useWorkflowOrThrow()
 
 const { base } = storeToRefs(useBase())
 
@@ -155,6 +155,18 @@ onBeforeUnmount(() => {
 
 onBeforeMount(async () => {
   await loadExecutionLogs()
+
+  // If there's an executionId in URL, load and view that execution
+  if (initialExecutionId && activeWorkflowId.value) {
+    const execution = await getWorkflowExecution({
+      workflowId: activeWorkflowId.value,
+      executionId: initialExecutionId,
+    })
+    if (execution) {
+      viewingExecution.value = execution
+      _activeItem.value = execution
+    }
+  }
 })
 </script>
 

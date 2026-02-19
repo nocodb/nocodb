@@ -18,6 +18,7 @@ import {
 } from '~/utils/globals';
 import { Base, BaseUser, OrgUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 import { extractUserTeamRoles } from '~/utils/team-role-extractor';
@@ -40,6 +41,7 @@ export default class User extends UserCE implements UserType {
     const insertObj = extractProps(user, [
       'id',
       'email',
+      'canonical_email',
       'password',
       'salt',
       'user_name',
@@ -66,6 +68,7 @@ export default class User extends UserCE implements UserType {
 
     if (insertObj.email) {
       insertObj.email = insertObj.email.toLowerCase();
+      insertObj.canonical_email = normalizeEmail(insertObj.email);
     }
 
     const { id } = await ncMeta.metaInsert2(
@@ -83,6 +86,7 @@ export default class User extends UserCE implements UserType {
   public static async update(id, user: Partial<User>, ncMeta = Noco.ncMeta) {
     const updateObj = extractProps(user, [
       'email',
+      'canonical_email',
       'password',
       'salt',
       'avatar',
@@ -113,10 +117,20 @@ export default class User extends UserCE implements UserType {
 
     if (updateObj.email) {
       updateObj.email = updateObj.email.toLowerCase();
+      updateObj.canonical_email = normalizeEmail(updateObj.email);
 
       // check if the target email addr is in use or not
       const targetUser = await this.getByEmail(updateObj.email, ncMeta);
-      if (targetUser.id !== id) {
+      if (targetUser && targetUser.id !== id) {
+        NcError.badRequest('email is in use');
+      }
+
+      // check if a user with the same canonical email already exists
+      const canonicalUser = await this.getByCanonicalEmail(
+        updateObj.email,
+        ncMeta,
+      );
+      if (canonicalUser && canonicalUser.id !== id) {
         NcError.badRequest('email is in use');
       }
     } else {
@@ -683,6 +697,12 @@ export default class User extends UserCE implements UserType {
       `${CacheScope.USER}:${user.email}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+    if (user.email) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.USER}:canonical:${normalizeEmail(user.email)}`,
+      );
+    }
   }
 
   public static async softDelete(userId: string, ncMeta = Noco.ncMeta) {

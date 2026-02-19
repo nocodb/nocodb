@@ -44,6 +44,25 @@ interface WorkspaceRequestUpgradePayload {
   limitOrFeature: string;
 }
 
+interface WorkflowErrorDigestPayload {
+  req?: NcRequest;
+  user: UserType;
+  workflow: {
+    id: string;
+    title: string;
+  };
+  workspace: {
+    id: string;
+    title: string;
+  };
+  failureCount: number;
+  firstFailureTime: string;
+  lastFailureTime: string;
+  lastFailureId: string;
+  baseId: string;
+  workspaceId: string;
+}
+
 type MailParams =
   | CEMailParams // Base CE types
   | {
@@ -154,6 +173,10 @@ type MailParams =
         oldBaseRole: string;
         baseRole: string;
       };
+    }
+  | {
+      mailEvent: MailEvent.WORKFLOW_ERROR_DIGEST;
+      payload: WorkflowErrorDigestPayload;
     };
 
-export { MailEvent, MailParams, RawMailParams };
+export { MailEvent, MailParams, RawMailParams, WorkflowErrorDigestPayload };

@@ -12,6 +12,8 @@ import WorkspaceTeamRemoved from '~/services/mail/templates/workspace-team-remov
 import WorkspaceTeamRoleUpdate from '~/services/mail/templates/workspace-team-role-update';
 import BaseTeamRemoved from '~/services/mail/templates/base-team-removed';
 import BaseTeamRoleUpdate from '~/services/mail/templates/base-team-role-update';
+import WorkflowErrorDigest from '~/services/mail/templates/workflow-error-digest';
+import SendRecord from '~/services/mail/templates/send-record';
 
 export * from 'src/services/mail/templates';
 
@@ -30,4 +32,6 @@ export {
   WorkspaceTeamRoleUpdate,
   BaseTeamRemoved,
   BaseTeamRoleUpdate,
+  WorkflowErrorDigest,
+  SendRecord,
 };

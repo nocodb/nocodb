@@ -9,6 +9,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { ncNavigateTo } = useGlobal()
 
+  const { t } = useI18n()
+
   const { refreshCommandPalette } = useCommandPalette()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -305,7 +307,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const duplicateWorkflow = async (baseId: string, workflowId: string) => {
+  const duplicateWorkflow = async (baseId: string, workflowId: string, navigate = true) => {
     if (!activeWorkspaceId.value) return null
 
     try {
@@ -324,12 +326,16 @@ export const useWorkflowStore = defineStore('workflow', () => {
       baseWorkflows.push(created)
       workflows.value.set(baseId, baseWorkflows)
 
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        baseId: activeProjectId.value,
-        workflowId: created.id,
-        workflowTitle: created.title,
-      })
+      if (navigate) {
+        ncNavigateTo({
+          workspaceId: activeWorkspaceId.value,
+          baseId: activeProjectId.value,
+          workflowId: created.id,
+          workflowTitle: created.title,
+        })
+      } else {
+        message.toast(t('msg.success.workflowDuplicated'))
+      }
 
       await refreshCommandPalette()
 
@@ -411,6 +417,23 @@ export const useWorkflowStore = defineStore('workflow', () => {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
+    }
+  }
+
+  const getWorkflowExecution = async (params: { workflowId: string; executionId: string }) => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return null
+    if (!isUIAllowed('workflowExecutionList')) return null
+    try {
+      const response = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+        operation: 'workflowExecutionGet',
+        workflowId: params.workflowId,
+        executionId: params.executionId,
+      })
+
+      return response || null
+    } catch (e) {
+      console.error(e)
+      return null
     }
   }
 
@@ -644,6 +667,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     executeWorkflow,
     // Execution Logs
     loadWorkflowExecutions,
+    getWorkflowExecution,
   }
 })
 

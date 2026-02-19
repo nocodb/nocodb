@@ -1,5 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
-import { EventType, ViewTypes } from 'nocodb-sdk'
+import { EventType, ViewLockType, ViewTypes } from 'nocodb-sdk'
 import type {
   Api,
   ColumnType,
@@ -46,6 +46,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { isUIAllowed } = useRoles()
 
+    const { user } = useGlobal()
+
     /**
      * In shared view mode, `isPublic` will still be false because both
      * `useProvideSmartsheetStore` and `provide(IsPublicInj)` are called at the same
@@ -64,8 +66,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const { updateViewMeta } = viewStore
 
     const { setMeta, metas } = useMetas()
-
-    const { user } = useGlobal()
 
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])
@@ -332,8 +332,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     async function updateKanbanMeta(updateObj: Partial<KanbanType>) {
       if (!viewMeta?.value?.id) return
+
+      // Check if user can update based on role OR personal view ownership
+      const isPersonalViewOwner = viewMeta.value.lock_type === ViewLockType.Personal && viewMeta.value.owned_by === user.value?.id
+
+      const canUpdate = isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true }) || isPersonalViewOwner
+
       await updateViewMeta(viewMeta.value.id, ViewTypes.KANBAN, updateObj, {
-        skipNetworkCall: isPublic.value || !isUIAllowed('viewCreateOrEdit', { skipSourceCheck: true }),
+        skipNetworkCall: isPublic.value || !canUpdate,
       })
     }
 

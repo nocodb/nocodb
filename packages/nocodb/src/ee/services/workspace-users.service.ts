@@ -559,7 +559,8 @@ export class WorkspaceUsersService {
     const emails = (email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim());
+      .map((v) => v.trim())
+      .filter(Boolean);
 
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));
@@ -695,8 +696,8 @@ export class WorkspaceUsersService {
     const registeredEmails = [];
 
     for (const email of emails) {
-      // register user if not exists
-      let user = await User.getByEmail(email, ncMeta);
+      // register user if not exists (canonical lookup handles alias variants)
+      let user = await User.getByCanonicalEmail(email, ncMeta);
       if (!user) {
         const salt = await promisify(bcrypt.genSalt)(10);
         user = await this.usersService.registerNewUserIfAllowed(
@@ -878,8 +879,8 @@ export class WorkspaceUsersService {
     const postOperations = [];
     let isUserCreated = false;
 
-    // register user if not exists
-    let user = await User.getByEmail(email, ncMeta);
+    // register user if not exists (canonical lookup handles alias variants)
+    let user = await User.getByCanonicalEmail(email, ncMeta);
     if (!user) {
       const salt = await promisify(bcrypt.genSalt)(10);
       user = await this.usersService.registerNewUserIfAllowed(

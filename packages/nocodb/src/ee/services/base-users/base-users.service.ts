@@ -19,7 +19,7 @@ import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { Base, BaseUser, User, Workspace } from '~/models';
+import { Base, BaseUser, User, WorkflowSubscriber, Workspace } from '~/models';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
@@ -110,7 +110,8 @@ export class BaseUsersService extends BaseUsersServiceCE {
     const emails = (param.baseUser.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim());
+      .map((v) => v.trim())
+      .filter(Boolean);
 
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));
@@ -331,8 +332,8 @@ export class BaseUsersService extends BaseUsersServiceCE {
       roles,
       base,
     } = param;
-    // add user to base if user already exist
-    const user = await User.getByEmail(email, ncMeta);
+    // add user to base if user already exist (canonical lookup handles alias variants)
+    const user = await User.getByCanonicalEmail(email, ncMeta);
     if (user) {
       emailUserMap?.set(email, user);
       // check if this user has been added to this base
@@ -853,6 +854,12 @@ export class BaseUsersService extends BaseUsersServiceCE {
         NcError.forbidden("Admin can't delete themselves!");
       }
       await BaseUser.delete(context, base_id, param.userId, transaction);
+
+      await WorkflowSubscriber.deleteByUserAndBase(
+        context,
+        param.userId,
+        transaction,
+      );
 
       await transaction.commit();
     } catch (e) {

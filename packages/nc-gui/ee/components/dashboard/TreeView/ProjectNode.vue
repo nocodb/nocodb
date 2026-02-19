@@ -611,6 +611,10 @@ defineExpose({
                 <div v-else>
                   <GeneralBaseIconColorPicker
                     :key="`${base.id}_${parseProp(base.meta).iconColor}`"
+                    :managed-app="{
+                      managed_app_master: base.managed_app_master,
+                      managed_app_id: base.managed_app_id,
+                    }"
                     :type="base?.type"
                     :model-value="parseProp(base.meta).iconColor"
                     size="small"
@@ -868,7 +872,16 @@ defineExpose({
   <DlgBaseDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
 
   <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
-  <DlgConvertToManagedApp v-if="base?.id" v-model:visible="isConvertToManagedAppDlgOpen" :base-id="base.id" />
+  <DlgManagedApp v-if="base?.id" v-model:visible="isConvertToManagedAppDlgOpen" modal-size="sm">
+    <WorkspaceProjectCreateManagedApp
+      v-model:visible="isConvertToManagedAppDlgOpen"
+      :base-id="base.id"
+      title="Convert to Managed App"
+      :sub-title="$t('labels.publishToAppStore')"
+      submit-button-text="Convert to Managed App"
+      alert-description="Convert this base into a living application that can be published to the App Store. You'll be able to manage versions and push updates to all installations."
+    />
+  </DlgManagedApp>
 </template>
 
 <style lang="scss" scoped>

@@ -59,7 +59,16 @@ const handleNavigateToProject = async (base: NcProject) => {
         @change="handleNavigateToProject"
       >
         <template #listItem="{ option }">
-          <GeneralBaseIconColorPicker :type="option?.type" :model-value="parseProp(option.meta).iconColor" size="xsmall" readonly>
+          <GeneralBaseIconColorPicker
+            :type="option?.type"
+            :model-value="parseProp(option.meta).iconColor"
+            :managed-app="{
+              managed_app_master: option?.managed_app_master,
+              managed_app_id: option?.managed_app_id,
+            }"
+            size="xsmall"
+            readonly
+          >
           </GeneralBaseIconColorPicker>
           <NcTooltip class="truncate flex-1" show-on-truncate-only>
             <template #title>

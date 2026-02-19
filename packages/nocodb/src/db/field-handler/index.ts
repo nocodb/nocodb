@@ -74,6 +74,7 @@ import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.gen
 import { AttachmentGeneralHandler } from '~/db/field-handler/handlers/attachment/attachment.general.handler';
 import { TimeGeneralHandler } from '~/db/field-handler/handlers/time/time.general.handler';
 import { TimeMysqlHandler } from '~/db/field-handler/handlers/time/time.mysql.handler';
+import { UuidPgHandler } from '~/db/field-handler/handlers/uuid/uuid.pg.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -137,6 +138,10 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.URL]: {
     [CLIENT_DEFAULT]: GenericFieldHandler,
   },
+  [UITypes.UUID]: {
+    [CLIENT_DEFAULT]: GenericFieldHandler,
+    [ClientType.PG]: UuidPgHandler,
+  },
   [UITypes.Number]: {
     [CLIENT_DEFAULT]: NumberGeneralHandler,
     [ClientType.PG]: NumberPgHandler,
@@ -186,10 +191,16 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
   },
   [UITypes.CreatedTime]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: DateTimeGeneralHandler,
+    [ClientType.PG]: DateTimePGHandler,
+    [ClientType.MYSQL]: DateTimeMySQLHandler,
+    [ClientType.SQLITE]: DateTimeSQLiteHandler,
   },
   [UITypes.LastModifiedTime]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: DateTimeGeneralHandler,
+    [ClientType.PG]: DateTimePGHandler,
+    [ClientType.MYSQL]: DateTimeMySQLHandler,
+    [ClientType.SQLITE]: DateTimeSQLiteHandler,
   },
   [UITypes.AutoNumber]: {},
   [UITypes.Geometry]: {},

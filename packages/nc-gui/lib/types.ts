@@ -186,6 +186,7 @@ interface SharedViewMeta extends Record<string, any> {
   transitionDuration?: number // in ms
   withTheme?: boolean
   theme?: Partial<ThemeConfig>
+  defaultTheme?: 'light' | 'dark'
   allowCSVDownload?: boolean
   rtl?: boolean
   preFillEnabled?: boolean
@@ -229,6 +230,8 @@ type NcProject = BaseType & {
   managed_app_master?: boolean
   managed_app_id?: string
   managed_app_version_id?: string
+  managed_app_version?: string
+  managed_app_published_at?: string
   auto_update?: boolean
   managed_app_schema_locked?: boolean
 }
@@ -277,7 +280,15 @@ interface Users {
   invitationToken?: string
 }
 
-type ProjectPageType = 'overview' | 'collaborator' | 'data-source' | 'base-settings' | 'syncs' | 'permissions' | 'audits'
+type ProjectPageType =
+  | 'overview'
+  | 'collaborator'
+  | 'data-source'
+  | 'base-settings'
+  | 'syncs'
+  | 'permissions'
+  | 'audits'
+  | 'workflows'
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
 

@@ -1130,6 +1130,17 @@ export async function interceptQueryIfNeeded(
   // Bytes 1-4: Message length
   let queryText = data.subarray(5).toString('utf8').replace(/\0/g, '');
 
+  // Strip double-quotes around known dangerous identifiers so the rewrite
+  // regexes below match regardless of client quoting style. In PostgreSQL,
+  // "pg_get_indexdef" ≡ pg_get_indexdef (quotes on already-lowercase names
+  // are identity). Also handles "pg_catalog"."fn" and U&"fn" forms.
+  // This is safe — it only strips quotes around specific function names,
+  // not around user table/column identifiers.
+  queryText = queryText.replace(
+    /(?:U&\s*)?"(pg_(?:catalog|get_indexdef|get_constraintdef|get_userbyid))"/gi,
+    '$1',
+  );
+
   // Neutralize dangerous OID-resolving functions before any checks.
   // These leak cross-tenant schema/table/column names via OID brute-force.
   // Replaced with safe literals so psql \d/\dt still renders output.
@@ -1158,7 +1169,9 @@ export async function interceptQueryIfNeeded(
   }
 
   // Strip SQL comments to prevent regex bypass (e.g. pg_sleep/**/())
-  const normalizedQueryText = stripSqlComments(queryText);
+  // Also strip identifier double-quotes so blocked patterns catch "pg_sleep"(1) etc.
+  // Safe because stripSqlComments already neutralizes string literal content.
+  const normalizedQueryText = stripSqlComments(queryText).replace(/"/g, '');
 
   // Check for blocked patterns before parsing (use comment-stripped text)
   for (const { pattern, message } of blockedQueryPatterns) {

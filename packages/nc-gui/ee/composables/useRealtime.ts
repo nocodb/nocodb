@@ -20,7 +20,7 @@ export const useRealtime = createSharedComposable(() => {
   const basesStore = useBases()
   const { bases, basesUser } = storeToRefs(basesStore)
 
-  const { setMeta, getMeta, clearAllMeta } = useMetas()
+  const { setMeta, getMeta, removeMeta } = useMetas()
   const { tables: _tables, baseId: activeBaseId, base } = storeToRefs(useBase())
 
   const tableStore = useTablesStore()
@@ -107,40 +107,6 @@ export const useRealtime = createSharedComposable(() => {
           }
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
-        })
-      }
-    } else if (event.action === 'base_full_reload') {
-      const { payload } = event
-      const baseId = payload.base_id
-      if (baseId && activeBaseId.value === baseId) {
-        // Clear all cached metadata first to ensure fresh data
-        clearAllMeta()
-        // Clear local caches
-        scriptStore.scripts.clear()
-        workflowStore.workflows.clear()
-        dashboardStore.dashboards.clear()
-
-        // Reload everything in the base
-        loadProjectTables(baseId, true).then(async () => {
-          // Reload all table metadata
-          const tables = baseTables.value.get(baseId)
-          for (const table of tables || []) {
-            if (table.id) {
-              getMeta(baseId, table.id, true)
-            }
-          }
-
-          // Reload scripts, workflows, and dashboards with force flag
-          await Promise.all([
-            scriptStore.loadScripts({ baseId, force: true }),
-            workflowStore.loadWorkflows({ baseId, force: true }),
-            dashboardStore.loadDashboards({ baseId, force: true }),
-          ])
-
-          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
-          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
-
-          refreshCommandPalette()
         })
       }
     } else if (event.action === 'table_create') {
@@ -707,6 +673,45 @@ export const useRealtime = createSharedComposable(() => {
             if (user) {
               baseUsers.splice(baseUsers.indexOf(user), 1)
             }
+          }
+        }
+      } else if (event.action === 'base_meta_reload') {
+        const baseId = event.payload?.base_id
+        if (baseId) {
+          // Clear cached metadata only for the affected base
+          const cachedTables = baseTables.value.get(baseId)
+          if (cachedTables) {
+            for (const table of cachedTables) {
+              if (table.id) {
+                removeMeta(baseId, table.id)
+              }
+            }
+          }
+          baseTables.value.delete(baseId)
+          scriptStore.scripts.delete(baseId)
+          workflowStore.workflows.delete(baseId)
+          dashboardStore.dashboards.delete(baseId)
+
+          // If this is the active base, reload immediately
+          if (activeBaseId.value === baseId) {
+            loadProjectTables(baseId, true).then(async () => {
+              const tables = baseTables.value.get(baseId)
+              for (const table of tables || []) {
+                if (table.id) {
+                  getMeta(baseId, table.id, true)
+                }
+              }
+
+              await Promise.all([
+                scriptStore.loadScripts({ baseId, force: true }),
+                workflowStore.loadWorkflows({ baseId, force: true }),
+                dashboardStore.loadDashboards({ baseId, force: true }),
+              ])
+
+              $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+              $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+              refreshCommandPalette()
+            })
           }
         }
       }

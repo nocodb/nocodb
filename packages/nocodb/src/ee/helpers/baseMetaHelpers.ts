@@ -504,14 +504,14 @@ export async function applyMeta(
     progressCallback?.('Clearing caches', 98);
     await clearRelatedCaches(targetContext);
 
-    // Step 9: Broadcast realtime event to trigger UI reload
+    // Step 9: Broadcast realtime event to trigger UI reload for all base users
     progressCallback?.('Broadcasting changes', 99);
-    NocoSocket.broadcastEvent(
+    NocoSocket.broadcastEventToBaseUsers(
       targetContext,
       {
-        event: EventType.META_EVENT,
+        event: EventType.USER_EVENT,
         payload: {
-          action: 'base_full_reload',
+          action: 'base_meta_reload',
           payload: {
             base_id: base_id,
           },

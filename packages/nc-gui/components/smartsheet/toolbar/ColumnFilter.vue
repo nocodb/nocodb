@@ -617,10 +617,14 @@ const pinnedFilterCount = computed(() => {
 
 const PINNABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User]
 
+const isPinnableType = (filter: ColumnFilterType): boolean => {
+  const col = getColumn(filter)
+  return !!col && PINNABLE_TYPES.includes(col.uidt as UITypes)
+}
+
 const canPinFilter = (filter: ColumnFilterType): boolean => {
   if (filter.is_group) return false
-  const col = getColumn(filter)
-  if (!col || !PINNABLE_TYPES.includes(col.uidt as UITypes)) return false
+  if (!isPinnableType(filter)) return false
   const meta = parseProp(filter.meta)
   return meta?.pinned || pinnedFilterCount.value < MAX_PINNED_FILTERS
 }
@@ -1371,14 +1375,16 @@ defineExpose({
               <GeneralIcon icon="copy" />
             </NcButton>
 
-            <NcTooltip v-if="!filter.readOnly && !readOnly && isEeUI && !filter.is_group && !webHook && !link && !widget && PINNABLE_TYPES.includes(getColumn(filter)?.uidt)">
+            <NcTooltip v-if="!filter.readOnly && !readOnly && isEeUI && !filter.is_group && !webHook && !link && !widget">
               <template #title>
                 {{
-                  parseProp(filter.meta)?.pinned
-                    ? $t('labels.unpinFromToolbar')
-                    : canPinFilter(filter)
-                      ? $t('labels.pinToToolbar')
-                      : $t('labels.maxPinnedFilters', { count: MAX_PINNED_FILTERS })
+                  !isPinnableType(filter)
+                    ? $t('labels.pinNotSupported')
+                    : parseProp(filter.meta)?.pinned
+                      ? $t('labels.unpinFromToolbar')
+                      : canPinFilter(filter)
+                        ? $t('labels.pinToToolbar')
+                        : $t('labels.maxPinnedFilters', { count: MAX_PINNED_FILTERS })
                 }}
               </template>
               <NcButton

@@ -1401,6 +1401,7 @@ const unique = computed({
                 isXcdbBase(meta?.source_id) &&
                 !isVirtualCol(formState) &&
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
+                !isUUID(formState) &&
                 isEeUI
               "
               class="flex"

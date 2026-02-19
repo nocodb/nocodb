@@ -224,14 +224,15 @@ watch(
 )
 
 // Watch allFilters (populated by ColumnFilter.vue via AllFiltersInj) to keep
-// enabled count in sync when individual filters are toggled on/off
+// enabled count in sync when individual filters are toggled on/off.
+// Count root-level items only — filter groups count as 1.
 watch(
   allFilters,
   () => {
-    const flatFilters = Object.values(allFilters.value).flat() as FilterType[]
-    if (flatFilters.length) {
-      filtersLength.value = flatFilters.filter((f) => !f.is_group).length
-      enabledFiltersLength.value = flatFilters.filter((f) => !f.is_group && f.enabled !== false).length
+    const rootFilters = (allFilters.value as Record<string, FilterType[]>)['root']
+    if (rootFilters?.length) {
+      filtersLength.value = rootFilters.length
+      enabledFiltersLength.value = rootFilters.filter((f) => f.enabled !== false).length
     }
   },
   { deep: true },

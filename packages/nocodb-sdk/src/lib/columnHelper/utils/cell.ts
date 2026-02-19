@@ -90,6 +90,8 @@ export const isSpecificDBType = (column: ColumnType) =>
 export const isGeometry = (column: ColumnType) =>
   column.uidt === UITypes.Geometry;
 
+export const isUUID = (column: ColumnType) => column.uidt === UITypes.UUID;
+
 export const isUser = (column: ColumnType) => column.uidt === UITypes.User;
 
 export const isMultiUser = (column: ColumnType) =>

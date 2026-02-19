@@ -190,6 +190,7 @@ const cellType = computed(() => {
   if (isAI(column.value)) return 'ai'
   if (isTextArea(column.value)) return 'textarea'
   if (isGeoData(column.value)) return 'geoData'
+  if (isUUID(column.value)) return 'uuid'
   if (isBoolean(column.value, abstractType.value)) return 'checkbox'
   if (isAttachment(column.value)) return 'attachment'
   if (isSingleSelect(column.value)) return 'singleSelect'
@@ -236,8 +237,9 @@ const showReadonlyField = computed(() => {
     }
 
     case 'checkbox':
-    case 'rating': {
-      return readOnly.value
+    case 'rating':
+    case 'uuid': {
+      return true // UUID is always read-only
     }
 
     case 'singleSelect':
@@ -342,6 +344,8 @@ const cellClassName = computed(() => {
       <CellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
 
       <CellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
+
+      <CellUuid v-else-if="cellType === 'uuid'" v-model="vModel" />
 
       <template v-else-if="cellType === 'checkbox'">
         <CellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />

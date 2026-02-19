@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ViewType, ViewSectionType } from 'nocodb-sdk'
+import type { ViewSectionType, ViewType } from 'nocodb-sdk'
 import { ViewTypes, getFirstNonPersonalView, viewTypeAlias } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
@@ -45,7 +45,10 @@ const { viewsByTable, activeView, allRecentViews, isShowEveryonePersonalViewsEna
 
 const viewSectionsStore = useViewSectionsStore()
 
-const { sections } = storeToRefs(viewSectionsStore)
+const sections = computed(() => {
+  if (!table.value.base_id || !table.value.id) return []
+  return viewSectionsStore.getSections(table.value.base_id, table.value.id)
+})
 
 const views = computed(() => {
   if (!table.value.base_id || !table.value.id) return []
@@ -71,6 +74,9 @@ const isMarked = ref<string | false>(false)
 
 /** Expanded sections state stored in localStorage */
 const expandedSections = ref<Record<string, boolean>>({})
+
+/** Virtual section ID for the default folder that holds unassigned views */
+const DEFAULT_SECTION_ID = '__default__'
 
 /** Load expanded sections from localStorage */
 const loadExpandedSections = () => {
@@ -146,16 +152,16 @@ const getTopLevelViews = () => {
   return views.value.filter((v) => !v.fk_view_section_id)
 }
 
-/** Virtual section ID for the default folder that holds unassigned views */
-const DEFAULT_SECTION_ID = '__default__'
-
 /** Virtual default section data */
-const defaultSection = computed<ViewSectionType>(() => ({
-  id: DEFAULT_SECTION_ID,
-  title: 'Default',
-  order: Number.MAX_SAFE_INTEGER,
-  fk_model_id: table.value.id,
-} as ViewSectionType))
+const defaultSection = computed<ViewSectionType>(
+  () =>
+    ({
+      id: DEFAULT_SECTION_ID,
+      title: 'Default',
+      order: Number.MAX_SAFE_INTEGER,
+      fk_model_id: table.value.id,
+    } as ViewSectionType),
+)
 
 /** Whether the default folder should be shown (only when at least one real section exists) */
 const showDefaultFolder = computed(() => sections.value.length > 0)
@@ -612,18 +618,14 @@ function onOpenModal({
 
 /** Create a new section */
 async function onCreateSection() {
-  if (!table.value.id) return
+  if (!table.value.id || !table.value.base_id) return
 
   try {
     // Calculate order: place after the last item
-    const lastOrder = Math.max(
-      ...sections.value.map((s) => s.order || 0),
-      ...getTopLevelViews().map((v) => v.order || 0),
-      0,
-    )
+    const lastOrder = Math.max(...sections.value.map((s) => s.order || 0), ...getTopLevelViews().map((v) => v.order || 0), 0)
 
-    const section = await viewSectionsStore.createSection(table.value.id, {
-      title: viewSectionsStore.getNextSectionTitle(),
+    const section = await viewSectionsStore.createSection(table.value.base_id, table.value.id, {
+      title: viewSectionsStore.getNextSectionTitle(table.value.base_id, table.value.id),
       order: lastOrder + 1,
     })
 
@@ -711,7 +713,7 @@ watch(
       <!-- Render top-level items (sections and views) -->
       <template v-for="item of topLevelItems" :key="item.id">
         <!-- Section node with child views -->
-        <div v-if="item.type === 'section'" :data-id="item.id" :data-type="'section'" class="nc-section-item w-full">
+        <div v-if="item.type === 'section'" :data-id="item.id" data-type="section" class="nc-section-item w-full">
           <DashboardTreeViewViewsSectionNode
             :section="item.data as ViewSectionType"
             :is-expanded="!!expandedSections[item.id]"
@@ -734,7 +736,7 @@ watch(
               :data-id="view.id"
               :data-order="view.order"
               :data-title="view.title"
-              :data-type="'view'"
+              data-type="view"
               :class="{
                 'bg-nc-bg-gray-medium': isMarked === view.id,
                 'active': activeView?.id === view.id,
@@ -760,7 +762,7 @@ watch(
           :data-id="item.id"
           :data-order="item.data.order"
           :data-title="item.data.title"
-          :data-type="'view'"
+          data-type="view"
           :class="{
             'bg-nc-bg-gray-medium': isMarked === item.id,
             'active': activeView?.id === item.id,
@@ -790,7 +792,11 @@ watch(
           v-if="sectionToDelete"
           class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
         >
-          <GeneralIcon icon="ncFolderOpen" class="w-4 min-h-4" :style="{ color: parseProp(sectionToDelete?.meta)?.iconColor || '#3f8292' }" />
+          <GeneralIcon
+            icon="ncFolderOpen"
+            class="w-4 min-h-4"
+            :style="{ color: parseProp(sectionToDelete?.meta)?.iconColor || '#3f8292' }"
+          />
           <div
             class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

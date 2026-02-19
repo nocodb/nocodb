@@ -6,10 +6,6 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { activeTableId } = storeToRefs(useTablesStore())
-
-  const { activeTable } = storeToRefs(useTablesStore())
-
   // Helper function to create composite key: baseId:tableId
   const getSectionsKey = (baseId: string, tableId: string) => `${baseId}:${tableId}`
 
@@ -19,22 +15,37 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   // Reverse index: sectionId -> table key for O(1) lookups
   const sectionTableIndex = ref<Map<string, string>>(new Map())
 
+  /**
+   * Get sections for a specific table
+   * @param baseId - The base ID
+   * @param tableId - The table ID
+   * @returns Array of sections, sorted by order
+   */
+  const getSections = (baseId: string, tableId: string): ViewSectionType[] => {
+    if (!baseId || !tableId) {
+      console.warn('[getSections] baseId and tableId are required')
+      return []
+    }
+
+    const key = getSectionsKey(baseId, tableId)
+    return sectionsByTable.value.get(key) ?? []
+  }
+
   // Computed properties
-  const sections = computed({
-    get: () => {
-      if (!activeTableId.value || !activeTable.value?.base_id) return []
+  // DEPRECATED: Use getSections(baseId, tableId) instead
+  const sections = computed(() => {
+    console.warn(
+      '[viewSectionsStore] The `sections` computed property is deprecated. Use `getSections(baseId, tableId)` instead.',
+    )
 
-      const key = getSectionsKey(activeTable.value.base_id, activeTableId.value)
-      return sectionsByTable.value.get(key) ?? []
-    },
-    set: (value) => {
-      if (!activeTableId.value || !activeTable.value?.base_id) return
+    const tablesStore = useTablesStore()
+    const { activeTableId, activeTable } = storeToRefs(tablesStore)
 
-      const key = getSectionsKey(activeTable.value.base_id, activeTableId.value)
-      if (!value) return sectionsByTable.value.delete(key)
+    if (!activeTableId.value || !activeTable.value?.base_id) {
+      return []
+    }
 
-      sectionsByTable.value.set(key, value)
-    },
+    return getSections(activeTable.value.base_id, activeTableId.value)
   })
 
   const loadSections = async ({
@@ -83,17 +94,20 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     }
   }
 
-  const createSection = async (tableId: string, data: { title: string; order?: number; meta?: Record<string, any> }) => {
-    if (!tableId || !activeTable.value?.base_id) return null
+  const createSection = async (
+    baseId: string,
+    tableId: string,
+    data: { title: string; order?: number; meta?: Record<string, any> },
+  ) => {
+    if (!baseId || !tableId) return null
 
     try {
       const response = await $api.instance.post(
-        `/api/v2/internal/${activeWorkspaceId.value}/${activeTable.value.base_id}?operation=viewSectionCreate&tableId=${tableId}`,
+        `/api/v2/internal/${activeWorkspaceId.value}/${baseId}?operation=viewSectionCreate&tableId=${tableId}`,
         data,
       )
 
       const section = response.data as ViewSectionType
-      const baseId = activeTable.value.base_id
 
       if (section && section.id) {
         const key = getSectionsKey(baseId, tableId)
@@ -121,9 +135,17 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   ) => {
     if (!sectionId) return null
 
+    // Use reverse index to find the table key, then extract baseId
+    const tableKey = sectionTableIndex.value.get(sectionId)
+    if (!tableKey) {
+      console.error('[updateSection] Section not found in index:', sectionId)
+      return null
+    }
+    const [baseId] = tableKey.split(':')
+
     try {
       const response = await $api.instance.post(
-        `/api/v2/internal/${activeWorkspaceId.value}/${activeTable.value.base_id}?operation=viewSectionUpdate&sectionId=${sectionId}`,
+        `/api/v2/internal/${activeWorkspaceId.value}/${baseId}?operation=viewSectionUpdate&sectionId=${sectionId}`,
         data,
       )
 
@@ -157,9 +179,17 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   const deleteSection = async (sectionId: string) => {
     if (!sectionId) return false
 
+    // Use reverse index to find the table key, then extract baseId
+    const tableKey = sectionTableIndex.value.get(sectionId)
+    if (!tableKey) {
+      console.error('[deleteSection] Section not found in index:', sectionId)
+      return false
+    }
+    const [baseId] = tableKey.split(':')
+
     try {
       await $api.instance.post(
-        `/api/v2/internal/${activeWorkspaceId.value}/${activeTable.value.base_id}?operation=viewSectionDelete&sectionId=${sectionId}`,
+        `/api/v2/internal/${activeWorkspaceId.value}/${baseId}?operation=viewSectionDelete&sectionId=${sectionId}`,
       )
 
       // Use reverse index for O(1) lookup
@@ -183,9 +213,17 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   const reorderSection = async (sectionId: string, newOrder: number) => {
     if (!sectionId) return null
 
+    // Use reverse index to find the table key, then extract baseId
+    const tableKey = sectionTableIndex.value.get(sectionId)
+    if (!tableKey) {
+      console.error('[reorderSection] Section not found in index:', sectionId)
+      return null
+    }
+    const [baseId] = tableKey.split(':')
+
     try {
       const response = await $api.instance.post(
-        `/api/v2/internal/${activeWorkspaceId.value}/${activeTable.value.base_id}?operation=viewSectionUpdate&sectionId=${sectionId}`,
+        `/api/v2/internal/${activeWorkspaceId.value}/${baseId}?operation=viewSectionUpdate&sectionId=${sectionId}`,
         { order: newOrder },
       )
 
@@ -218,9 +256,10 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   }
 
   /** Generate a unique default section title like "View section", "View section 2", etc. */
-  const getNextSectionTitle = () => {
+  const getNextSectionTitle = (baseId: string, tableId: string) => {
     const baseName = 'View section'
-    const existingTitles = new Set(sections.value.map((s) => s.title?.trim()))
+    const currentSections = getSections(baseId, tableId)
+    const existingTitles = new Set(currentSections.map((s) => s.title?.trim()))
 
     if (!existingTitles.has(baseName)) return baseName
 
@@ -236,15 +275,16 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     sectionsByTable,
 
     // Getters
-    sections,
+    sections, // DEPRECATED: Use getSections(baseId, tableId) instead
+    getSections,
 
     // Actions
     loadSections,
-    createSection,
+    createSection, // Updated: now requires baseId parameter
     updateSection,
     deleteSection,
     reorderSection,
-    getNextSectionTitle,
+    getNextSectionTitle, // Updated: now requires baseId and tableId parameters
   }
 })
 

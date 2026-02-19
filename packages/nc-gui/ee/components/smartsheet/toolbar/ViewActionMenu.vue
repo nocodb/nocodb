@@ -50,7 +50,11 @@ const { showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
 
 // --- EE: View Sections ---
 const viewSectionsStore = useViewSectionsStore()
-const { sections } = storeToRefs(viewSectionsStore)
+
+const sections = computed(() => {
+  if (!table.value.base_id || !table.value.id) return []
+  return viewSectionsStore.getSections(table.value.base_id, table.value.id)
+})
 
 const currentSectionId = computed(() => view.value?.fk_view_section_id || null)
 
@@ -71,7 +75,7 @@ async function onMoveToSection(sectionId: string | null) {
 }
 
 async function onMoveToNewSection() {
-  if (!view.value?.id || !table.value?.id) return
+  if (!view.value?.id || !table.value?.id || !table.value?.base_id) return
 
   try {
     const allSections = sections.value || []
@@ -81,8 +85,8 @@ async function onMoveToNewSection() {
       0,
     )
 
-    const section = await viewSectionsStore.createSection(table.value.id, {
-      title: viewSectionsStore.getNextSectionTitle(),
+    const section = await viewSectionsStore.createSection(table.value.base_id, table.value.id, {
+      title: viewSectionsStore.getNextSectionTitle(table.value.base_id, table.value.id),
       order: lastOrder + 1,
     })
 

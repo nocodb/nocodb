@@ -345,7 +345,7 @@ const cellClassName = computed(() => {
 
       <CellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
 
-      <CellUuid v-else-if="cellType === 'uuid'" v-model="vModel" />
+      <CellUUID v-else-if="cellType === 'uuid'" v-model="vModel" />
 
       <template v-else-if="cellType === 'checkbox'">
         <CellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type {
+  FilterType,
   RlsDefaultBehavior,
   RlsPolicySubjectType,
 } from 'nocodb-sdk';
@@ -116,6 +117,7 @@ export class RlsService {
       userId,
       req,
       policyId: policy.id,
+      policyTitle: policy.title || '',
       tableId: body.fk_model_id,
     });
 
@@ -155,6 +157,7 @@ export class RlsService {
       userId,
       req,
       policyId: body.id,
+      policyTitle: body.title || policy.title || '',
     });
 
     return this.getPolicy(context, { policyId: body.id });
@@ -223,16 +226,7 @@ export class RlsService {
   async createFilter(
     context: NcContext,
     param: {
-      body: {
-        fk_rls_policy_id: string;
-        fk_column_id?: string;
-        comparison_op?: string;
-        comparison_sub_op?: string;
-        value?: string;
-        is_group?: boolean;
-        logical_op?: string;
-        fk_parent_id?: string;
-      };
+      body: Partial<FilterType> & { fk_rls_policy_id: string };
       req: NcRequest;
     },
   ) {
@@ -258,14 +252,7 @@ export class RlsService {
   async updateFilter(
     context: NcContext,
     param: {
-      body: {
-        id: string;
-        fk_column_id?: string;
-        comparison_op?: string;
-        comparison_sub_op?: string;
-        value?: string;
-        logical_op?: string;
-      };
+      body: Partial<FilterType> & { id: string };
       req: NcRequest;
     },
   ) {

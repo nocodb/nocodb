@@ -178,6 +178,10 @@ enum AuditV1OperationTypes {
   RECORD_TEMPLATE_UPDATE = 'RECORD_TEMPLATE_UPDATE',
   RECORD_TEMPLATE_DELETE = 'RECORD_TEMPLATE_DELETE',
   RECORD_TEMPLATE_USE = 'RECORD_TEMPLATE_USE',
+
+  RLS_POLICY_CREATE = 'RLS_POLICY_CREATE',
+  RLS_POLICY_UPDATE = 'RLS_POLICY_UPDATE',
+  RLS_POLICY_DELETE = 'RLS_POLICY_DELETE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -1117,6 +1121,22 @@ export interface PermissionDeletePayload {
   entity_id: string;
 }
 
+export interface RlsPolicyCreatePayload {
+  policy_id: string;
+  policy_title: string;
+  table_id: string;
+}
+
+export interface RlsPolicyUpdatePayload {
+  policy_id: string;
+  policy_title: string;
+}
+
+export interface RlsPolicyDeletePayload {
+  policy_id: string;
+  table_id: string;
+}
+
 export interface TeamCreatePayload {
   team_id: string;
   team_title: string;
@@ -1462,6 +1482,17 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.RECORD_TEMPLATE_USE]: (
     audit: AuditV1<RecordTemplateUsePayload>
   ) => `Record template '${audit.details.template_title}' has been used`,
+  [AuditV1OperationTypes.RLS_POLICY_CREATE]: (
+    audit: AuditV1<RlsPolicyCreatePayload>
+  ) =>
+    `RLS policy '${audit.details.policy_title}' has been created for table '${audit.details.table_id}'`,
+  [AuditV1OperationTypes.RLS_POLICY_UPDATE]: (
+    audit: AuditV1<RlsPolicyUpdatePayload>
+  ) => `RLS policy '${audit.details.policy_title}' has been updated`,
+  [AuditV1OperationTypes.RLS_POLICY_DELETE]: (
+    audit: AuditV1<RlsPolicyDeletePayload>
+  ) =>
+    `RLS policy '${audit.details.policy_id}' has been deleted from table '${audit.details.table_id}'`,
 };
 
 function auditDescription(audit: AuditV1) {

@@ -23,7 +23,7 @@ export default class RlsPolicy {
   is_default: boolean;
   default_behavior?: RlsDefaultBehavior;
   order?: number;
-  meta?: Record<string, any>;
+  meta?: string | Record<string, unknown>;
   created_by?: string;
   created_at?: string;
   updated_at?: string;
@@ -240,7 +240,7 @@ export default class RlsPolicy {
     ]);
 
     if (insertObj.meta && typeof insertObj.meta === 'object') {
-      (insertObj as any).meta = JSON.stringify(insertObj.meta);
+      insertObj.meta = JSON.stringify(insertObj.meta);
     }
 
     const { id } = await ncMeta.metaInsert2(
@@ -282,7 +282,7 @@ export default class RlsPolicy {
     ]);
 
     if (updateObj.meta && typeof updateObj.meta === 'object') {
-      (updateObj as any).meta = JSON.stringify(updateObj.meta);
+      updateObj.meta = JSON.stringify(updateObj.meta);
     }
 
     await ncMeta.metaUpdate(

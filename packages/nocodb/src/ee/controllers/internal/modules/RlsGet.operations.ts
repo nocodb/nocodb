@@ -19,13 +19,12 @@ export class RlsGetOperations
   async handle(
     context: NcContext,
     {
-      payload,
+      req,
       operation,
     }: {
       workspaceId: string;
       baseId: string;
       operation: keyof typeof OPERATION_SCOPES;
-      payload: any;
       req: NcRequest;
     },
   ): InternalGETResponseType {
@@ -33,14 +32,14 @@ export class RlsGetOperations
       case 'rlsPolicyList':
         return (
           await this.rlsService.listPolicies(context, {
-            tableId: payload.tableId,
+            tableId: req.query.tableId as string,
           })
-        ).list as any;
+        ).list as InternalGETResponseType;
 
       case 'rlsPolicyGet':
         return (await this.rlsService.getPolicy(context, {
-          policyId: payload.policyId,
-        })) as any;
+          policyId: req.query.policyId as string,
+        })) as InternalGETResponseType;
     }
   }
 }

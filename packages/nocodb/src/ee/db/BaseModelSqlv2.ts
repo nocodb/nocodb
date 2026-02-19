@@ -3730,15 +3730,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       } = await import('~/ee/utils/rls-resolver');
 
       // Build user context for RLS resolution
-      const baseRoles = user.base_roles
-        ? typeof user.base_roles === 'string'
-          ? Object.keys(JSON.parse(user.base_roles))
-              .filter((r) => JSON.parse(user.base_roles as string)[r])
-              .join(',')
-          : Object.keys(user.base_roles)
-              .filter((r) => (user.base_roles as Record<string, boolean>)[r])
-              .join(',')
-        : '';
+      let baseRoles = '';
+      if (user.base_roles) {
+        const roles =
+          typeof user.base_roles === 'string'
+            ? JSON.parse(user.base_roles)
+            : user.base_roles;
+        baseRoles = Object.keys(roles)
+          .filter((r) => roles[r])
+          .join(',');
+      }
 
       const rlsUser = {
         id: user.id,
@@ -3798,11 +3799,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
             if (subject.type === 'team') {
               try {
+                const { ResourceType, PrincipalType } = await import(
+                  '~/utils/globals'
+                );
                 const assignment = await PrincipalAssignment.get(
                   this.context,
-                  'team',
+                  ResourceType.TEAM,
                   subject.id,
-                  'user',
+                  PrincipalType.USER,
                   user.id,
                 );
                 if (assignment) {

@@ -437,15 +437,16 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
     pattern: /\bpg_(try_)?advisory/i,
     message: 'Advisory locks are not permitted',
   },
-  // Block OID-to-name type casts that bypass schema filtering (all ::reg* variants)
+  // Block OID-to-name type casts that bypass schema filtering (::reg* variants).
+  // regtype is allowed — it only resolves standard PG type names (integer, text, etc.)
+  // and is needed by psql \d for typed table display.
   {
-    pattern: /::reg(class|namespace|role|type|proc|oper|config|dictionary)\b/i,
+    pattern: /::reg(class|namespace|role|proc|oper|config|dictionary)\b/i,
     message: 'Type cast to reg* types is not permitted',
   },
   // Block CAST(... AS reg*) syntax — bypasses the :: form check above
   {
-    pattern:
-      /\bAS\s+reg(class|namespace|role|type|proc|oper|config|dictionary)\b/i,
+    pattern: /\bAS\s+reg(class|namespace|role|proc|oper|config|dictionary)\b/i,
     message: 'CAST to reg* types is not permitted',
   },
   // Block dangerous catalog functions that leak cross-tenant metadata
@@ -457,6 +458,9 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
     pattern: /\bpg_identify_object\s*\(/i,
     message: 'pg_identify_object is not permitted',
   },
+  // pg_get_indexdef and pg_get_constraintdef resolve arbitrary OIDs to DDL text, bypassing
+  // namespace OID filtering. These are neutralized (→ ''::text) before this check runs,
+  // so these patterns serve as a safety net for edge cases the rewrite misses.
   {
     pattern: /\bpg_get_indexdef\s*\(/i,
     message: 'pg_get_indexdef is not permitted',
@@ -476,6 +480,10 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
   {
     pattern: /\bpg_get_triggerdef\s*\(/i,
     message: 'pg_get_triggerdef is not permitted',
+  },
+  {
+    pattern: /\bpg_get_ruledef\s*\(/i,
+    message: 'pg_get_ruledef is not permitted',
   },
   // Block all has_*_privilege() function variants (schema, table, database, column, etc.)
   {
@@ -618,10 +626,16 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
     pattern: /\bpg_(event_trigger|seclabel|shseclabel|init_privs)\b/i,
     message: 'Access to server-wide object catalogs is not permitted',
   },
-  // Block OID resolution functions — leak cross-tenant object names
+  // Block OID resolution functions — leak cross-tenant object names via OID brute-force.
+  // pg_get_userbyid is neutralized (→ 'nocodb'::text) before this check runs,
+  // so this pattern serves as a safety net.
+  {
+    pattern: /\bpg_get_userbyid\s*\(/i,
+    message: 'pg_get_userbyid is not permitted',
+  },
   {
     pattern:
-      /\bpg_(get_userbyid|describe_object|identify_object_as_address|filenode_relation)\s*\(/i,
+      /\bpg_(describe_object|identify_object_as_address|filenode_relation)\s*\(/i,
     message: 'OID resolution functions are not permitted',
   },
   // Block low-level stat functions — bypass view-level schema filtering
@@ -1116,6 +1130,33 @@ export async function interceptQueryIfNeeded(
   // Bytes 1-4: Message length
   let queryText = data.subarray(5).toString('utf8').replace(/\0/g, '');
 
+  // Neutralize dangerous OID-resolving functions before any checks.
+  // These leak cross-tenant schema/table/column names via OID brute-force.
+  // Replaced with safe literals so psql \d/\dt still renders output.
+  // Blocked patterns below serve as safety net for edge cases the rewrite misses.
+  const originalQueryText = queryText;
+  queryText = queryText
+    .replace(/\b(?:pg_catalog\.)?pg_get_indexdef\s*\([^)]*\)/gi, "''::text")
+    .replace(
+      /\b(?:pg_catalog\.)?pg_get_constraintdef\s*\([^)]*\)/gi,
+      "''::text",
+    )
+    .replace(
+      /\b(?:pg_catalog\.)?pg_get_userbyid\s*\([^)]*\)/gi,
+      "'nocodb'::text",
+    );
+  const fnRewritten = queryText !== originalQueryText;
+
+  // psql's \d sends a publication query (pg_publication + pg_relation_is_publishable)
+  // that uses unparseable syntax (array subscripts, ::int2[]). Publications are
+  // irrelevant for a read-only data reflection proxy, so return an empty result.
+  if (
+    /\bpg_publication\b/i.test(queryText) &&
+    /\bpg_relation_is_publishable\b/i.test(queryText)
+  ) {
+    return serialize.query("SELECT ''::text WHERE false");
+  }
+
   // Strip SQL comments to prevent regex bypass (e.g. pg_sleep/**/())
   const normalizedQueryText = stripSqlComments(queryText);
 
@@ -1176,11 +1217,32 @@ export async function interceptQueryIfNeeded(
     return; // Allowed RESET — pass through
   }
 
+  // Normalize psql-specific syntax that the parser cannot handle:
+  // - OPERATOR(pg_catalog.op) → bare operator (schema-qualified operator syntax)
+  // - COLLATE pg_catalog.default → removed (default collation is implicit)
+  // - ::pg_catalog.regclass etc → ::text (neutralize dangerous casts — returns OID as text)
+  // - ::pg_catalog.type → ::type (safe schema-qualified type casts)
+  // Order matters: dangerous reg* casts must be neutralized BEFORE the blanket replacement,
+  // otherwise ::pg_catalog.regclass would become ::regclass (bypassing the blocked pattern
+  // check which runs on the original query text).
+  let forceModified = fnRewritten;
+  const psqlNormalized = queryText
+    .replace(/\bOPERATOR\s*\(\s*pg_catalog\s*\.\s*([~!<>=]+\*?)\s*\)/gi, '$1')
+    .replace(/\s+COLLATE\s+pg_catalog\s*\.\s*"?default"?/gi, '')
+    .replace(
+      /::pg_catalog\.reg(class|namespace|role|proc|oper|config|dictionary)\b/gi,
+      '::text',
+    )
+    .replace(/::pg_catalog\./g, '::');
+  if (psqlNormalized !== queryText) {
+    queryText = psqlNormalized;
+    forceModified = true;
+  }
+
   // Rewrite session-level identifiers to return the session values.
   // current_database()/current_catalog → workspace ID
   // current_user/session_user → DB user (these are SQL keywords without parens
   // that many parsers cannot handle as column expressions)
-  let forceModified = false;
   const rewritten = queryText
     .replace(/\bcurrent_database\s*\(\s*\)/gi, `'${session.fk_workspace_id}'`)
     .replace(/\bcurrent_catalog\b/gi, `'${session.fk_workspace_id}'`)

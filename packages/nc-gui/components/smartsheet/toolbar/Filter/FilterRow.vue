@@ -422,12 +422,12 @@ const onChangeToDynamic = async () => {
     class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-nc-bg-default"
     :class="[
       `nc-filter-wrapper-${vModel.fk_column_id}`,
-      { 'nc-filter-disabled-row': !effectiveEnabled },
+      { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled },
     ]"
     v-bind="containerProps"
   >
-    <!-- #region enabled checkbox -->
-    <div class="flex items-center pl-2 pr-1">
+    <!-- #region enabled checkbox (EE only) -->
+    <div v-if="isEeUI" class="flex items-center pl-2 pr-1">
       <NcCheckbox
         :checked="isFilterEnabled"
         size="default"
@@ -440,7 +440,7 @@ const onChangeToDynamic = async () => {
 
     <!-- #region logical op -->
     <template v-if="index === 0">
-      <div class="flex items-center !min-w-18 !max-w-18 pl-1 nc-filter-where-label" v-bind="logicalOpsProps">
+      <div class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label" :class="isEeUI ? 'pl-1' : 'pl-3'" v-bind="logicalOpsProps">
         {{ $t('labels.where') }}
       </div>
     </template>

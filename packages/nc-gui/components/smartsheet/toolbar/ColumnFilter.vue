@@ -345,33 +345,35 @@ watch(
   },
 )
 
-// Watch the smartsheet store's allFilters for external changes (e.g. from PinnedFilters)
+// EE only: Watch the smartsheet store's allFilters for external changes (e.g. from PinnedFilters)
 // and sync them back to the local filters so the filter menu stays in sync
-watch(
-  smartsheetAllFilters,
-  (storeFilters) => {
-    if (!storeFilters?.length) return
-    for (const storeFilter of storeFilters) {
-      if (!storeFilter.id) continue
-      const localFilter = filters.value.find((f) => f.id === storeFilter.id)
-      if (!localFilter) continue
+if (isEeUI) {
+  watch(
+    smartsheetAllFilters,
+    (storeFilters) => {
+      if (!storeFilters?.length) return
+      for (const storeFilter of storeFilters) {
+        if (!storeFilter.id) continue
+        const localFilter = filters.value.find((f) => f.id === storeFilter.id)
+        if (!localFilter) continue
 
-      // Sync value, enabled, and meta if they differ
-      if (localFilter.value !== storeFilter.value) {
-        localFilter.value = storeFilter.value
+        // Sync value, enabled, and meta if they differ
+        if (localFilter.value !== storeFilter.value) {
+          localFilter.value = storeFilter.value
+        }
+        if (localFilter.enabled !== storeFilter.enabled) {
+          localFilter.enabled = storeFilter.enabled
+        }
+        const localMeta = parseProp(localFilter.meta)
+        const storeMeta = parseProp(storeFilter.meta)
+        if (localMeta?.pinned !== storeMeta?.pinned) {
+          localFilter.meta = storeFilter.meta
+        }
       }
-      if (localFilter.enabled !== storeFilter.enabled) {
-        localFilter.enabled = storeFilter.enabled
-      }
-      const localMeta = parseProp(localFilter.meta)
-      const storeMeta = parseProp(storeFilter.meta)
-      if (localMeta?.pinned !== storeMeta?.pinned) {
-        localFilter.meta = storeFilter.meta
-      }
-    }
-  },
-  { deep: true },
-)
+    },
+    { deep: true },
+  )
+}
 
 const filtersCount = computed(() => {
   return Object.values(allFilters.value).reduce((acc, filters) => {
@@ -517,8 +519,8 @@ const addFilterGroup = async (filter?: Partial<FilterType>) => {
 const copyFilter = (filter: Filter, isGroup = false) => {
   const filterToCopy = clone(filter)
 
-  // Strip pinned state from copied filter
-  if (filterToCopy.meta) {
+  // EE only: Strip pinned state from copied filter (pinned filters are EE feature)
+  if (isEeUI && filterToCopy.meta) {
     const meta = parseProp(filterToCopy.meta)
     if (meta?.pinned) {
       delete meta.pinned
@@ -639,13 +641,16 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
 const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
   filter.enabled = filter.enabled === false ? true : false
   await saveOrUpdate(filter, index)
-  // Refresh allFilters so ColumnFilterMenu can reactively update the enabled count
-  allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
 
-  // Sync enabled state to smartsheet store so PinnedFilters.vue reflects it
-  const storeFilter = smartsheetAllFilters.value.find((f) => f.id === filter.id)
-  if (storeFilter) {
-    storeFilter.enabled = filter.enabled
+  if (isEeUI) {
+    // EE only: Refresh allFilters so ColumnFilterMenu can reactively update the enabled count
+    allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
+
+    // EE only: Sync enabled state to smartsheet store so PinnedFilters.vue reflects it
+    const storeFilter = smartsheetAllFilters.value.find((f) => f.id === filter.id)
+    if (storeFilter) {
+      storeFilter.enabled = filter.enabled
+    }
   }
 }
 
@@ -1000,7 +1005,7 @@ defineExpose({
           <template v-if="filter.is_group">
             <div
               class="flex flex-col min-w-full w-min max-w-full gap-y-2"
-              :class="{ 'nc-filter-disabled-group': filter.enabled === false }"
+              :class="{ 'nc-filter-disabled-group': isEeUI && filter.enabled === false }"
             >
               <div
                 class="flex rounded-lg p-2 min-w-full w-min max-w-full border-1"
@@ -1034,6 +1039,7 @@ defineExpose({
                 >
                   <template #start>
                     <NcCheckbox
+                      v-if="isEeUI"
                       :checked="filter.enabled !== false"
                       size="default"
                       :disabled="isLockedView || readOnly"
@@ -1117,6 +1123,7 @@ defineExpose({
 
           <div v-else class="flex items-center gap-2 w-full">
             <NcCheckbox
+              v-if="isEeUI"
               :checked="filter.enabled !== false"
               size="default"
               :disabled="isLockedView || readOnly"
@@ -1127,7 +1134,7 @@ defineExpose({
               class="flex flex-row gap-x-0 flex-1 nc-filter-wrapper"
               :class="[
                 `nc-filter-wrapper-${filter.fk_column_id}`,
-                { 'nc-filter-disabled-row': filter.enabled === false },
+                { 'nc-filter-disabled-row': isEeUI && filter.enabled === false },
               ]"
             >
             <div v-if="!visibleFilters.indexOf(filter)" class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label">

@@ -639,7 +639,9 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
 }
 
 const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
-  filter.enabled = filter.enabled === false ? true : false
+  const newEnabled = filter.enabled === false ? true : false
+  $e('a:filter:toggle-enabled', { enabled: newEnabled, isGroup: !!filter.is_group })
+  filter.enabled = newEnabled
   await saveOrUpdate(filter, index)
 
   if (isEeUI) {
@@ -686,7 +688,9 @@ const canPinFilter = (filter: ColumnFilterType): boolean => {
 
 const togglePinFilter = async (filter: ColumnFilterType, index: number) => {
   const meta = parseProp(filter.meta) || {}
-  meta.pinned = !meta.pinned
+  const newPinned = !meta.pinned
+  $e('a:filter:toggle-pin', { pinned: newPinned })
+  meta.pinned = newPinned
   filter.meta = meta
   await saveOrUpdate(filter, index)
 

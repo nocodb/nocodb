@@ -106,13 +106,53 @@ const getSelectValueOption = (filter: FilterType) => {
   return options.find((o: any) => o.title === values[0]) || null
 }
 
+// ============ Multi-Select Chips (for pill) ============
+const getSelectedSelectOptions = (filter: FilterType) => {
+  if (!filter.value) return []
+  const values = String(filter.value).split(',').filter(Boolean)
+  const options = getSelectOptions(filter)
+  return values
+    .map((v) => options.find((o: any) => o.title === v))
+    .filter(Boolean)
+}
+
+const getSelectedUsers = (filter: FilterType) => {
+  if (!filter.value) return []
+  const values = String(filter.value).split(',').filter(Boolean)
+  return values
+    .map((v) => userOptions.value.find((u: any) => u.id === v || u.email === v))
+    .filter(Boolean)
+}
+
+const removeSelectValue = async (filter: FilterType, optionTitle: string) => {
+  const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
+  const idx = values.indexOf(optionTitle)
+  if (idx >= 0) values.splice(idx, 1)
+  filter.value = values.join(',') || null
+  await saveFilter(filter)
+}
+
+const removeUserValue = async (filter: FilterType, userId: string) => {
+  const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
+  const idx = values.indexOf(userId)
+  if (idx >= 0) values.splice(idx, 1)
+  filter.value = values.join(',') || null
+  await saveFilter(filter)
+}
+
+const getUserDisplayName = (user: any) => {
+  if (user?.display_name) return user.display_name
+  if (user?.email) return user.email.split('@')[0]
+  return ''
+}
+
 const getUserValueDisplay = (filter: FilterType) => {
   if (!filter.value) return null
   const values = String(filter.value).split(',').filter(Boolean)
   if (values.length === 0) return null
   const firstUser = userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0])
   if (values.length > 1) return `${values.length} selected`
-  return firstUser?.display_name || firstUser?.email || values[0]
+  return getUserDisplayName(firstUser) || values[0]
 }
 
 const getUserValueUser = (filter: FilterType) => {
@@ -257,7 +297,7 @@ const unpinFilter = async (filter: FilterType) => {
           {{ getColumn(filter)?.title }} {{ getComparisonOpLabel(filter) }}
         </template>
         <div
-          class="nc-pinned-filter-pill nc-toolbar-btn flex items-center gap-0.5 !h-7 py-1 pl-2.5 pr-1.5 rounded-lg cursor-pointer select-none"
+          class="nc-pinned-filter-pill nc-toolbar-btn flex items-center flex-wrap gap-0.5 !h-auto min-h-7 py-0.5 pl-1.5 pr-1.5 rounded-lg cursor-pointer select-none"
           :class="{
             'bg-nc-bg-gray-extralight !text-nc-content-gray': openFilterId === filter.id,
             'opacity-60': filter.enabled === false,
@@ -265,42 +305,90 @@ const unpinFilter = async (filter: FilterType) => {
           @click="toggleDropdown(filter.id)"
         >
           <!-- Value display for select types -->
-          <template v-if="isSelectType(filter) && getSelectValueDisplay(filter)">
-            <a-tag
-              v-if="getSelectValueOption(filter)"
-              class="rounded-tag-sm max-w-28"
-              :color="getSelectValueOption(filter).bgColor"
-            >
-              <span :style="{ color: getSelectValueOption(filter).textColor }" class="text-[11px] leading-tight truncate">
+          <template v-if="isSelectType(filter) && (isMultiValueOp(filter) ? getSelectedSelectOptions(filter).length : getSelectValueDisplay(filter))">
+            <template v-if="isMultiValueOp(filter)">
+              <a-tag
+                v-for="opt in getSelectedSelectOptions(filter)"
+                :key="opt.title"
+                class="nc-pinned-select-tag max-w-28"
+                :color="opt.bgColor"
+              >
+                <span class="flex items-center gap-0.5">
+                  <span :style="{ color: opt.textColor }" class="text-[11px] leading-tight truncate">
+                    {{ opt.title }}
+                  </span>
+                  <GeneralIcon
+                    icon="close"
+                    :style="{ color: opt.textColor }"
+                    class="h-3 w-3 cursor-pointer opacity-70 hover:opacity-100 flex-none"
+                    @click.stop="removeSelectValue(filter, opt.title)"
+                  />
+                </span>
+              </a-tag>
+            </template>
+            <template v-else>
+              <a-tag
+                v-if="getSelectValueOption(filter)"
+                class="nc-pinned-select-tag max-w-28"
+                :color="getSelectValueOption(filter).bgColor"
+              >
+                <span :style="{ color: getSelectValueOption(filter).textColor }" class="text-[11px] leading-tight truncate">
+                  {{ getSelectValueDisplay(filter) }}
+                </span>
+              </a-tag>
+              <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
                 {{ getSelectValueDisplay(filter) }}
               </span>
-            </a-tag>
-            <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
-              {{ getSelectValueDisplay(filter) }}
-            </span>
+            </template>
           </template>
 
           <!-- Value display for user type -->
-          <template v-else-if="isUserType(filter) && getUserValueDisplay(filter)">
-            <a-tag
-              v-if="getUserValueUser(filter)"
-              class="rounded-tag-sm max-w-32 !pl-0"
-              :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
-            >
-              <span class="flex items-center gap-1">
-                <GeneralUserIcon
-                  :user="getUserValueUser(filter)"
-                  size="small"
-                  class="!text-[0.45rem]"
-                />
-                <span class="text-[11px] text-nc-content-gray truncate leading-tight">
-                  {{ getUserValueDisplay(filter) }}
+          <template v-else-if="isUserType(filter) && (isMultiValueOp(filter) ? getSelectedUsers(filter).length : getUserValueDisplay(filter))">
+            <template v-if="isMultiValueOp(filter)">
+              <a-tag
+                v-for="user in getSelectedUsers(filter)"
+                :key="user.id"
+                class="nc-pinned-user-tag max-w-32"
+                :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
+              >
+                <span class="flex items-center gap-0.5">
+                  <GeneralUserIcon
+                    :user="user"
+                    size="small"
+                    class="!text-[0.45rem]"
+                  />
+                  <span class="text-[11px] text-nc-content-gray truncate leading-tight">
+                    {{ getUserDisplayName(user) }}
+                  </span>
+                  <GeneralIcon
+                    icon="close"
+                    class="h-3 w-3 text-nc-content-gray-subtle2 cursor-pointer opacity-70 hover:opacity-100 flex-none"
+                    @click.stop="removeUserValue(filter, user.id)"
+                  />
                 </span>
+              </a-tag>
+            </template>
+            <template v-else>
+              <a-tag
+                v-if="getUserValueUser(filter)"
+                class="nc-pinned-user-tag max-w-32"
+                :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
+              >
+                <span class="flex items-center gap-0.5">
+                  <GeneralUserIcon
+                    :user="getUserValueUser(filter)"
+                    size="small"
+                    class="!text-[0.45rem]"
+                  />
+                  <span class="text-[11px] text-nc-content-gray truncate leading-tight">
+                    {{ getUserValueDisplay(filter) }}
+                  </span>
+                </span>
+              </a-tag>
+              <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
+                {{ getUserValueDisplay(filter) }}
               </span>
-            </a-tag>
-            <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
-              {{ getUserValueDisplay(filter) }}
-            </span>
+            </template>
           </template>
 
           <!-- Fallback: show field name if no value -->
@@ -496,6 +584,14 @@ const unpinFilter = async (filter: FilterType) => {
 
 .rounded-tag-sm {
   @apply py-0 px-1.5 rounded-[10px];
+}
+
+.nc-pinned-select-tag {
+  @apply py-0.5 px-1.5 rounded-[10px];
+}
+
+.nc-pinned-user-tag {
+  @apply py-0.5 pl-0 pr-1.5 rounded-[10px];
 }
 
 :deep(.ant-tag) {

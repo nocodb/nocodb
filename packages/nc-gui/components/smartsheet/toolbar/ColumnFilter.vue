@@ -1451,7 +1451,7 @@ defineExpose({
               <GeneralIcon icon="copy" />
             </NcButton>
 
-            <NcTooltip v-if="!filter.readOnly && !readOnly && isEeUI && !filter.is_group && !webHook && !link && !widget">
+            <NcTooltip v-if="!filter.readOnly && !readOnly && isEeUI && isViewFilter && !filter.is_group && !webHook && !link && !widget">
               <template #title>
                 {{ getPinTooltip(filter) }}
               </template>

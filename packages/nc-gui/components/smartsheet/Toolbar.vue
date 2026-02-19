@@ -5,10 +5,18 @@ defineProps<{
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isLocked = inject(IsLockedInj, ref(false))
+
+const activeView = inject(ActiveViewInj, ref())
+
 const { isGrid, isGallery, isKanban, isMap, isCalendar, isForm, isViewOperationsAllowed, allFilters } =
   useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
+
+const { hasPersonalViewPermission } = usePersonalViewPermissions(activeView)
+
+const canSyncFilter = hasPersonalViewPermission('filterSync')
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -35,9 +43,12 @@ const isTab = computed(() => {
   return width.value > 1200
 })
 
-/** EE only: Check if any filters are pinned to the toolbar */
+/** EE only: Check if any filters are pinned to the toolbar.
+ *  Hidden for restricted editors in collaborative/locked views — they cannot modify filters.
+ *  Visible for personal view owners — they have full control over view config. */
 const hasPinnedFilters = computed(() => {
   if (!isEeUI) return false
+  if (isLocked.value || !canSyncFilter.value) return false
   return allFilters.value.some((f) => f.id && !f.is_group && parseProp(f.meta)?.pinned === true)
 })
 
@@ -121,7 +132,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
-        <SmartsheetToolbarPinnedFilters v-if="isEeUI && (isGrid || isGallery || isKanban || isMap)" />
+        <SmartsheetToolbarPinnedFilters v-if="isEeUI && !isLocked && canSyncFilter && (isGrid || isGallery || isKanban || isMap)" />
 
         <div class="flex-1" />
       </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, CURRENT_USER_TOKEN, type FilterType, UITypes } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, UITypes, comparisonOpList } from 'nocodb-sdk'
 
 /**
  * PinnedFilters — renders interactive filter pills in the toolbar.
@@ -154,6 +154,18 @@ const getComparisonOpLabel = (filter: FilterType) => {
   return op?.text || filter.comparison_op || ''
 }
 
+/**
+ * Check if the filter's operator doesn't require a value.
+ * Uses the ignoreVal property from operator definitions (e.g., blank, notblank, empty, checked).
+ * Follows the same pattern as FilterRow.vue line 144.
+ */
+const isValuelessOp = (filter: FilterType) => {
+  const col = getColumn(filter)
+  if (!col || !filter.comparison_op) return false
+  const op = comparisonOpList(col.uidt as UITypes, col?.meta?.date_format).find((o) => o.value === filter.comparison_op)
+  return op?.ignoreVal === true
+}
+
 // ============ @me (Current User) Token ============
 
 /**
@@ -236,9 +248,7 @@ const getSelectedSelectOptions = (filter: FilterType) => {
   if (!filter.value) return []
   const values = String(filter.value).split(',').filter(Boolean)
   const options = getSelectOptions(filter)
-  return values
-    .map((v) => options.find((o: any) => o.title === v))
-    .filter(Boolean)
+  return values.map((v) => options.find((o: any) => o.title === v)).filter(Boolean)
 }
 
 /**
@@ -397,9 +407,7 @@ const getFilteredSelectOptions = (filter: FilterType) => {
 const filteredUserOptions = computed(() => {
   if (!searchQuery.value) return userOptions.value
   const q = searchQuery.value.toLowerCase()
-  return userOptions.value.filter(
-    (u: any) => u.display_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q),
-  )
+  return userOptions.value.filter((u: any) => u.display_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q))
 })
 
 // ============ Selection Checking ============
@@ -518,7 +526,7 @@ const toggleEnabled = async (filter: FilterType) => {
   if (isLocked.value) return
   const newState = filter.enabled === false || filter.enabled === 0
   $e('a:pinned-filter:toggle-enabled', { enabled: newState })
-  filter.enabled = newState ? true : false
+  filter.enabled = !!newState
   await saveFilter(filter)
 }
 
@@ -549,25 +557,28 @@ const unpinFilter = async (filter: FilterType) => {
         forward those, so it must be the outer wrapper.
       -->
       <NcTooltip :disabled="openFilterId === filter.id" placement="bottom">
-        <template #title>
-          {{ getColumn(filter)?.title }} {{ getComparisonOpLabel(filter) }}
-        </template>
+        <template #title> {{ getColumn(filter)?.title }} {{ getComparisonOpLabel(filter) }} </template>
 
         <NcDropdown
           :visible="openFilterId === filter.id"
           placement="bottomLeft"
           overlay-class-name="nc-pinned-filter-dropdown-overlay"
-          @update:visible="(val) => { if (!val) closeDropdown() }"
+          @update:visible="
+            (val) => {
+              if (!val) closeDropdown()
+            }
+          "
         >
           <!-- ====== PILL TRIGGER ====== -->
           <div
-            class="nc-pinned-filter-pill nc-toolbar-btn flex items-center !h-7 rounded-lg cursor-pointer select-none overflow-hidden"
+            class="nc-pinned-filter-pill nc-toolbar-btn flex items-center !h-7 rounded-lg select-none overflow-hidden"
             :class="{
               'opacity-60': !isEffectivelyEnabled(filter),
               'cursor-not-allowed opacity-70': isLocked,
+              'cursor-pointer': !isLocked && !isValuelessOp(filter),
               'bg-nc-bg-gray-extralight !text-nc-content-gray': openFilterId === filter.id,
             }"
-            @click="!isLocked && toggleDropdown(filter.id)"
+            @click="!isLocked && !isValuelessOp(filter) && toggleDropdown(filter.id)"
           >
             <!-- Pin icon + field name (unified label block) -->
             <div class="flex items-center gap-1 px-1.5 h-full flex-none">
@@ -579,7 +590,6 @@ const unpinFilter = async (filter: FilterType) => {
 
             <!-- Value section -->
             <div class="flex items-center gap-1 pl-0.5 pr-1.5">
-
               <!-- ── Select type: single value pill + N ── -->
               <template v-if="isSelectType(filter) && getPrimarySelectDisplay(filter)">
                 <a-tag
@@ -612,11 +622,7 @@ const unpinFilter = async (filter: FilterType) => {
                   :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
                 >
                   <span class="flex items-center gap-0.5">
-                    <GeneralUserIcon
-                      :user="getPrimaryUser(filter)"
-                      size="small"
-                      class="!text-[0.45rem]"
-                    />
+                    <GeneralUserIcon :user="getPrimaryUser(filter)" size="small" class="!text-[0.45rem]" />
                     <span class="text-[11px] text-nc-content-gray truncate leading-tight">
                       {{ getPrimaryUserDisplay(filter) }}
                     </span>
@@ -633,6 +639,9 @@ const unpinFilter = async (filter: FilterType) => {
                 </span>
               </template>
 
+              <template v-else-if="['blank', 'notblank'].includes(filter.comparison_op as string)">
+                {{ getComparisonOpLabel(filter) }}
+              </template>
               <!-- ── Fallback: show "no value" when nothing is selected ── -->
               <span v-else class="text-xs text-nc-content-gray-subtle whitespace-nowrap italic">
                 {{ t('general.none') }}
@@ -640,6 +649,7 @@ const unpinFilter = async (filter: FilterType) => {
 
               <!-- Chevron indicator -->
               <GeneralIcon
+                v-if="!isValuelessOp(filter)"
                 :icon="openFilterId === filter.id ? 'arrowUp' : 'arrowDown'"
                 class="h-3.5 w-3.5 text-nc-content-gray-subtle2 flex-none"
               />
@@ -674,9 +684,9 @@ const unpinFilter = async (filter: FilterType) => {
                     {{
                       isParentGroupDisabled(filter)
                         ? t('labels.parentGroupDisabled')
-                        : (filter.enabled === false || filter.enabled === 0)
-                          ? t('general.enable')
-                          : t('general.disable')
+                        : filter.enabled === false || filter.enabled === 0
+                        ? t('general.enable')
+                        : t('general.disable')
                     }}
                   </template>
                   <NcButton
@@ -695,12 +705,7 @@ const unpinFilter = async (filter: FilterType) => {
                 </NcTooltip>
 
                 <!-- Unpin button -->
-                <NcButton
-                  type="text"
-                  size="xxsmall"
-                  class="!w-6 !h-6"
-                  @click.stop="unpinFilter(filter)"
-                >
+                <NcButton type="text" size="xxsmall" class="!w-6 !h-6" @click.stop="unpinFilter(filter)">
                   <GeneralIcon icon="close" class="h-3.5 w-3.5 text-nc-content-gray-subtle2" />
                 </NcButton>
               </div>
@@ -722,10 +727,7 @@ const unpinFilter = async (filter: FilterType) => {
               </div>
 
               <!-- Options list for Select types (SingleSelect / MultiSelect) -->
-              <div
-                v-if="isSelectType(filter)"
-                class="max-h-48 overflow-y-auto nc-scrollbar-thin"
-              >
+              <div v-if="isSelectType(filter)" class="max-h-48 overflow-y-auto nc-scrollbar-thin">
                 <div
                   v-for="option in getFilteredSelectOptions(filter)"
                   :key="option.id || option.title"
@@ -735,7 +737,10 @@ const unpinFilter = async (filter: FilterType) => {
                 >
                   <a-tag class="rounded-tag max-w-full" :color="option.bgColor">
                     <span :style="{ color: option.textColor }" class="text-small">
-                      <span class="text-ellipsis overflow-hidden" style="word-break: keep-all; white-space: nowrap; display: inline;">
+                      <span
+                        class="text-ellipsis overflow-hidden"
+                        style="word-break: keep-all; white-space: nowrap; display: inline"
+                      >
                         {{ option.title }}
                       </span>
                     </span>
@@ -756,10 +761,7 @@ const unpinFilter = async (filter: FilterType) => {
               </div>
 
               <!-- Options list for User types (User / CreatedBy / LastModifiedBy) -->
-              <div
-                v-else-if="isUserType(filter)"
-                class="max-h-48 overflow-y-auto nc-scrollbar-thin"
-              >
+              <div v-else-if="isUserType(filter)" class="max-h-48 overflow-y-auto nc-scrollbar-thin">
                 <!--
                   @me option — uses CURRENT_USER_TOKEN ('$me') as the stored value.
                   This is a distinct value from the user's actual ID, so selecting @me
@@ -778,23 +780,13 @@ const unpinFilter = async (filter: FilterType) => {
                   >
                     <span class="flex items-stretch gap-2">
                       <div v-if="currentUserForAvatar" class="flex-none">
-                        <GeneralUserIcon
-                          :user="currentUserForAvatar"
-                          size="auto"
-                          class="!text-[0.5rem] !h-[16.8px]"
-                        />
+                        <GeneralUserIcon :user="currentUserForAvatar" size="auto" class="!text-[0.5rem] !h-[16.8px]" />
                       </div>
-                      <span class="text-small text-nc-content-gray truncate">
-                        @me
-                      </span>
+                      <span class="text-small text-nc-content-gray truncate"> @me </span>
                     </span>
                   </a-tag>
                   <div class="flex-1" />
-                  <GeneralIcon
-                    v-if="isMeSelected(filter)"
-                    icon="check"
-                    class="h-4 w-4 text-primary flex-none"
-                  />
+                  <GeneralIcon v-if="isMeSelected(filter)" icon="check" class="h-4 w-4 text-primary flex-none" />
                 </div>
 
                 <!-- Regular user options -->
@@ -811,12 +803,7 @@ const unpinFilter = async (filter: FilterType) => {
                   >
                     <span class="flex items-stretch gap-2">
                       <div class="flex-none">
-                        <GeneralUserIcon
-                          :user="user"
-                          size="auto"
-                          :is-deleted="user.deleted"
-                          class="!text-[0.5rem] !h-[16.8px]"
-                        />
+                        <GeneralUserIcon :user="user" size="auto" :is-deleted="user.deleted" class="!text-[0.5rem] !h-[16.8px]" />
                       </div>
                       <span class="text-small text-nc-content-gray truncate">
                         {{ user.display_name || user.email }}
@@ -824,11 +811,7 @@ const unpinFilter = async (filter: FilterType) => {
                     </span>
                   </a-tag>
                   <div class="flex-1" />
-                  <GeneralIcon
-                    v-if="isUserOptionSelected(filter, user)"
-                    icon="check"
-                    class="h-4 w-4 text-primary flex-none"
-                  />
+                  <GeneralIcon v-if="isUserOptionSelected(filter, user)" icon="check" class="h-4 w-4 text-primary flex-none" />
                 </div>
                 <div
                   v-if="!filteredUserOptions.length && !showMeOption"
@@ -840,10 +823,7 @@ const unpinFilter = async (filter: FilterType) => {
 
               <!-- Footer: disabled status indicator + Select all · Clear all / Clear value -->
               <div class="flex items-center justify-between px-3 py-2 border-t border-nc-border-gray-medium">
-                <span
-                  v-if="!isEffectivelyEnabled(filter)"
-                  class="text-xs text-nc-content-gray-muted flex items-center gap-1"
-                >
+                <span v-if="!isEffectivelyEnabled(filter)" class="text-xs text-nc-content-gray-muted flex items-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-nc-content-gray-muted" />
                   {{ isParentGroupDisabled(filter) ? 'Group disabled' : 'Disabled' }}
                 </span>

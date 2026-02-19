@@ -73,6 +73,8 @@ export enum PlanFeatureTypes {
   FEATURE_UNIQUE = 'feature_unique',
   FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
   FEATURE_PINNED_FILTER = 'feature_pinned_filter',
+  // EE-only UUID field type — gated by plan feature flag
+  FEATURE_UUID_FIELD = 'feature_uuid_field',
 }
 
 export enum PlanTitles {
@@ -293,6 +295,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
   [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]: 'to enable or disable individual filters.',
   [PlanFeatureTypes.FEATURE_PINNED_FILTER]: 'to pin filters to the toolbar.',
+  [PlanFeatureTypes.FEATURE_UUID_FIELD]: 'to use UUID fields.',
 };
 
 export const getUpgradeMessage = (

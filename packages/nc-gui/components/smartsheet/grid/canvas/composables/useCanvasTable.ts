@@ -7,6 +7,7 @@ import {
   isOrderCol,
   isReadonlyVirtualColumn,
   isSystemColumn,
+  isUUID,
   isVirtualCol,
   ncHasProperties,
 } from 'nocodb-sdk'
@@ -785,11 +786,12 @@ export function useCanvasTable({
       if (removeInlineAddRecord.value && selection.value.start.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) return null
 
       const selectedColumn = columns.value[selection.value.end.col]
-      // If the cell is virtual or system column, hide the fill handler
+      // If the cell is virtual, system column, AI prompt, or UUID (read-only auto-generated), hide the fill handler
       if (
         selectedColumn?.virtual ||
         isSystemColumn(selectedColumn?.columnObj) ||
-        (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj))
+        (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj)) ||
+        (selectedColumn?.columnObj && isUUID(selectedColumn?.columnObj))
       ) {
         return null
       }
@@ -1462,6 +1464,9 @@ export function useCanvasTable({
         await Promise.all(
           metaIdsToFetch.map(async ([colId, tableId, relatedBaseId]) => {
             if (!tableId || !relatedBaseId) return
+            // Try fetching full table meta first. If it fails (e.g., user lacks permission
+            // to access the related table), fall back to partial meta which only fetches
+            // the linked column metadata needed to render the LTAR cell.
             try {
               await getMeta(relatedBaseId, tableId, false, false, true)
             } catch {}

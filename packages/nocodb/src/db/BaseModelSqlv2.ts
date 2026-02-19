@@ -4262,6 +4262,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: Record<string, any>,
   ) {
     if (
+      // skip dtxp length check for date/time columns where dtxp represents precision, not max length
+      ![UITypes.Date, UITypes.DateTime, UITypes.Time].includes(column.uidt) &&
       typeof data[column.title] === 'string' &&
       typeof column.dtxp === 'number' &&
       column.dtxp < data[column.title]?.length

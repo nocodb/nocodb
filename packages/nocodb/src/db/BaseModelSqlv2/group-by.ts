@@ -33,6 +33,23 @@ import { getAliasGenerator } from '~/utils';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
 import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
 
+// PR review fix #2: Shared helper for UUID group-by to avoid 4x code duplication.
+// Casts UUID to text on PostgreSQL (avoids type mismatch), passes through on other DBs.
+const buildUuidGroupBySelector = ({
+  baseModel,
+  columnName,
+  alias,
+}: {
+  baseModel: IBaseModelSqlV2;
+  columnName: string;
+  alias: string;
+}) => {
+  if (baseModel.isPg) {
+    return baseModel.dbDriver.raw('(??)::text as ??', [columnName, alias]);
+  }
+  return baseModel.dbDriver.raw('?? as ??', [columnName, alias]);
+};
+
 // Returns a SQL expression that converts blank (null or '') values to NULL
 const sqlNullIfBlank = ({
   baseModel,
@@ -235,6 +252,27 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 baseModel.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
               );
             }
+          }
+          break;
+        }
+        case UITypes.UUID: {
+          // PR review fix #2: Cast UUID to text on PG to avoid type mismatch
+          const uuidColumnName = await getColumnName(
+            baseModel.context,
+            column,
+            columns,
+          );
+          if (baseModel.isPg) {
+            columnQuery = baseModel.dbDriver.raw('(??)::text', [
+              uuidColumnName,
+            ]);
+          } else {
+            columnQuery = baseModel.dbDriver.raw('??', [uuidColumnName]);
+          }
+          if (!isSubGroup) {
+            selectors.push(
+              baseModel.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
+            );
           }
           break;
         }
@@ -652,6 +690,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             }
             break;
           }
+          case UITypes.UUID: {
+            // PR review fix #2: use shared helper to cast UUID to text on PG
+            const columnName = await getColumnName(baseModel.context, column, columns);
+            selectors.push(buildUuidGroupBySelector({ baseModel, columnName, alias: getAs(column) }));
+            groupBySelectors.push(getAs(column));
+            break;
+          }
           default:
             {
               const columnName = await getColumnName(
@@ -930,6 +975,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   groupBySelectors.push(getAs(column));
                 }
                 break;
+              case UITypes.UUID: {
+                // PR review fix #2: use shared helper to cast UUID to text on PG
+                const columnName = await getColumnName(baseModel.context, column, columns);
+                colSelectors.push(buildUuidGroupBySelector({ baseModel, columnName, alias: getAs(column) }));
+                groupBySelectors.push(getAs(column));
+                break;
+              }
               default: {
                 const columnName = await getColumnName(
                   baseModel.context,
@@ -1267,6 +1319,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   groupBySelectors.push(getAs(column));
                 }
                 break;
+              case UITypes.UUID: {
+                // PR review fix #2: use shared helper to cast UUID to text on PG
+                const columnName = await getColumnName(baseModel.context, column, columns);
+                colSelectors.push(buildUuidGroupBySelector({ baseModel, columnName, alias: getAs(column) }));
+                groupBySelectors.push(getAs(column));
+                break;
+              }
               default: {
                 const columnName = await getColumnName(
                   baseModel.context,

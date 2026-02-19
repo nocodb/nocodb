@@ -171,6 +171,11 @@ const duplicateVirtualColumn = async () => {
     colOptions: undefined,
     order: undefined,
     system: false,
+    // Clear UUID-specific metadata to avoid conflicts during duplication
+    ...(column!.value.uidt === UITypes.UUID ? {
+      internal_meta: undefined,
+      unique: undefined, // Let backend set this automatically for UUID
+    } : {}),
   }
 
   try {
@@ -730,7 +735,7 @@ const onDeleteColumn = () => {
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced)"
+            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced) || isUUID(column)"
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()

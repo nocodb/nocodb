@@ -41,7 +41,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     }
 
     // state
-    const { getMeta, getMetaByKey } = useMetas()
+    const { getMeta, getMetaByKey, getPartialMeta, metas } = useMetas()
 
     const { base, sqlUis } = storeToRefs(useBase())
 
@@ -161,7 +161,19 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         return
       }
 
-      await getMeta(relatedBaseId, colOptions.value.fk_related_model_id as string)
+      const tableId = colOptions.value.fk_related_model_id as string
+      const colId = colOptions.value.fk_column_id as string
+
+      // Try fetching full table meta first. If it fails (e.g., user lacks permission
+      // to access the related table), fall back to partial meta which only fetches
+      // the linked column metadata needed to render the LTAR cell.
+      try {
+        await getMeta(relatedBaseId, tableId, false, false, true)
+      } catch {}
+      const metaKey = `${relatedBaseId}:${tableId}`
+      if (!metas.value[metaKey]) {
+        await getPartialMeta(relatedBaseId, colId, tableId)
+      }
 
       if (isPublic.value) return
 

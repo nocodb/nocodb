@@ -90,6 +90,9 @@ export const isSpecificDBType = (column: ColumnType) =>
 export const isGeometry = (column: ColumnType) =>
   column.uidt === UITypes.Geometry;
 
+// PR review fix #1: UUID is in the ColumnType.uidt union — no cast needed
+export const isUUID = (column: ColumnType) => column.uidt === UITypes.UUID;
+
 export const isUser = (column: ColumnType) => column.uidt === UITypes.User;
 
 export const isMultiUser = (column: ColumnType) =>

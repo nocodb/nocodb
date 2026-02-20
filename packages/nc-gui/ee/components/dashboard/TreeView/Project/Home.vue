@@ -14,6 +14,7 @@ const workflowStore = useWorkflowStore()
 const { openNewWorkflowModal } = workflowStore
 const { openNewScriptModal } = useScriptStore()
 const { openNewDashboardModal } = useDashboardStore()
+const { createDoc } = useDocsStore()
 
 const base = inject(ProjectInj)!
 
@@ -94,6 +95,7 @@ const hasTableCreatePermission = computed(() => {
                 @empty-script="openNewScriptModal({ baseId: base.id })"
                 @empty-workflow="openNewWorkflowModal({ baseId: base.id })"
                 @empty-dashboard="openNewDashboardModal({ baseId: base.id })"
+                @empty-page="createDoc(base.id!)"
               />
             </template>
           </NcDropdown>

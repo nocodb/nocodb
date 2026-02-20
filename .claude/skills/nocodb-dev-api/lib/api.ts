@@ -145,7 +145,7 @@ export async function inviteToWorkspace(
   email: string,
   role: string,
 ): Promise<unknown> {
-  return request(`/api/v1/workspaces/${wsId}/users`, {
+  return request(`/api/v1/workspaces/${wsId}/invitations`, {
     method: 'POST',
     token,
     body: { email, roles: role },
@@ -690,7 +690,7 @@ export async function createScript(
   baseId: string,
   script: Record<string, unknown>,
 ): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'createScript', { script });
+  return iPost(token, wsId, baseId, 'createScript', script);
 }
 
 export async function updateScript(
@@ -700,7 +700,7 @@ export async function updateScript(
   scriptId: string,
   script: Record<string, unknown>,
 ): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'updateScript', { script: { ...script, id: scriptId } });
+  return iPost(token, wsId, baseId, 'updateScript', { ...script, id: scriptId });
 }
 
 export async function deleteScript(token: string, wsId: string, baseId: string, scriptId: string): Promise<unknown> {
@@ -857,6 +857,14 @@ function iPost(
   body?: unknown, params?: Record<string, string | number | string[] | undefined>,
 ): Promise<unknown> {
   return internal(token, wsId, baseId, op, { method: 'POST', body, params });
+}
+
+/** Exported wrapper for iPost (used by init.ts for dashboard creation) */
+export function iPostExported(
+  token: string, wsId: string, baseId: string, op: string,
+  body?: unknown, params?: Record<string, string | number | string[] | undefined>,
+): Promise<unknown> {
+  return iPost(token, wsId, baseId, op, body, params);
 }
 
 // ---------------------------------------------------------------------------

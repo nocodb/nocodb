@@ -26,6 +26,7 @@ enum MailEvent {
   WORKSPACE_INVITE = 'WORKSPACE_INVITE',
   WORKSPACE_ROLE_UPDATE = 'WORKSPACE_ROLE_UPDATE',
   WORKSPACE_REQUEST_UPGRADE = 'WORKSPACE_REQUEST_UPGRADE',
+  UPDATED_EMAIL= 'UPDATED_EMAIL'
   TEAM_MEMBER_INVITE = 'TEAM_MEMBER_INVITE',
   TEAM_MEMBER_ROLE_UPDATE = 'TEAM_MEMBER_ROLE_UPDATE',
   TEAM_MEMBER_REMOVED = 'TEAM_MEMBER_REMOVED',
@@ -103,6 +104,10 @@ interface FormSubmissionPayload {
     uidt: UITypes | string;
   }[];
 }
+interface UpdateEmailPayload {
+  req: NcRequest;
+  user: UserType;
+}
 
 interface SendRecordPayload {
   senderName: string;
@@ -158,6 +163,9 @@ type MailParams =
       mailEvent: MailEvent.FORM_SUBMISSION;
       payload: FormSubmissionPayload;
     }
+    | {
+      mailEvent: MailEvent.UPDATED_EMAIL;
+      payload: UpdateEmailPayload;
   | {
       mailEvent: MailEvent.SEND_RECORD;
       payload: SendRecordPayload;

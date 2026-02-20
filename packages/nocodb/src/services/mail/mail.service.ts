@@ -301,6 +301,17 @@ export class MailService {
               baseTitle: base.title,
             }),
           });
+          break;
+        }
+         case MailEvent.UPDATED_EMAIL: {
+          const { user, req } = payload;
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: 'Email Updated',
+            html: await this.renderMail('UpdateEmail', {
+              email: user.email
+            }),
+          });
 
           break;
         }

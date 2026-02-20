@@ -1328,6 +1328,75 @@
         ],
         "description": "Delete an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked."
       }
+    },    "/api/v1/users/{userId}/email": {
+      "parameters": [
+        {
+          "schema": {
+            "$ref": "#/components/schemas/Id",
+            "example": "us_b3xo2i44nx5y9l"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true,
+          "description": "Unique User ID"
+        }
+      ],
+      "patch": {
+        "summary": "Update Organisation User",
+        "operationId": "org-users-update-email",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "x-stoplight": {
+                        "id": "6oa45bkw7j57j"
+                      },
+                      "example": "The user has been updated successfully"
+                    }
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "msg": "The user has been updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        },
+        "tags": [
+          "Org Users"
+        ],
+        "description": "Update an organisation user by User ID. Exclusive for Super Admin. Access with API Tokens will be blocked.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrgUserReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "email": "user@example.com"
+                  }
+                }
+              }
+            }
+          },
+          "description": ""
+        }
+      }
     },
     "/api/v1/users/{username}": {
       "parameters": [

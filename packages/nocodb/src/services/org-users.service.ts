@@ -50,7 +50,7 @@ export class OrgUsersService {
   }) {
     validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
 
-    const updateBody = extractProps(param.user, ['roles']);
+    const updateBody = extractProps(param.user, ['roles','email']);
 
     const user = await User.get(param.userId);
 
@@ -72,7 +72,34 @@ export class OrgUsersService {
       ...updateBody,
     });
   }
+async updateUserEmail(param: {
+    // todo: better typing
+    user: Partial<UserType>;
+    userId: string;
+    req: NcRequest;
+  }) {
+    validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
 
+    const updateBody = extractProps(param.user, ['email']);
+
+    const user = await User.get(param.userId);
+
+    if (extractRolesObj(user.roles)[OrgUserRoles.SUPER_ADMIN]) {
+      NcError.badRequest('Cannot update super admin roles');
+    }
+
+   await this.mailService.sendMail({
+     mailEvent: MailEvent.UPDATED_EMAIL,
+     payload: {
+       req: param.req,
+        user,
+     },
+  });
+
+    return await User.update(param.userId, {
+      ...updateBody,
+    });
+  }
   async userDelete(param: { userId: string }) {
     const ncMeta = await Noco.ncMeta.startTransaction();
     try {

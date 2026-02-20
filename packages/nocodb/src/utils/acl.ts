@@ -35,6 +35,7 @@ const permissionScopes = {
     'passwordChange',
     'userInviteResend',
     'generateResetUrl',
+    'userEmailUpdate',
 
     // Plugin
     'isPluginActive',

@@ -5,6 +5,7 @@ import type { Dashboard, Workflow } from '~/models';
 import type {
   Column,
   DataReflection,
+  Doc,
   Extension,
   Filter,
   Hook,
@@ -20,6 +21,8 @@ import type {
 export type InternalGETResponseType = Promise<
   | void
   | DataReflection
+  | Doc
+  | Doc[]
   | MCPToken
   | MCPToken[]
   | Script
@@ -50,6 +53,7 @@ export type InternalGETResponseType = Promise<
 export type InternalPOSTResponseType = Promise<
   | void
   | boolean
+  | Doc
   | MCPToken
   | OAuthClient
   | OAuthClient[]

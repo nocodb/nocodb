@@ -253,6 +253,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     replace,
     dashboardId,
     dashboardTitle,
+    docId,
+    docTitle,
     newTab,
   }: {
     workspaceId?: string
@@ -265,6 +267,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     scriptTitle?: string
     dashboardId?: string
     dashboardTitle?: string
+    docId?: string
+    docTitle?: string
     workflowId?: string
     workflowTitle?: string
     query?: string
@@ -291,6 +295,10 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       ? `/workflows/${workflowId}${toReadableUrlSlug([workflowTitle]) ? `/${toReadableUrlSlug([workflowTitle])}` : ''}`
       : ''
 
+    const docPath = docId
+      ? `/docs/${docId}${toReadableUrlSlug([docTitle]) ? `/${toReadableUrlSlug([docTitle])}` : ''}`
+      : ''
+
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'
 
@@ -302,6 +310,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
         path = `/${workspaceId}/${baseId}${dashboardPath}${queryParams}`
       } else if (workflowId) {
         path = `/${workspaceId}/${baseId}${workflowPath}${queryParams}`
+      } else if (docId) {
+        path = `/${workspaceId}/${baseId}${docPath}${queryParams}`
       } else {
         path = `/${workspaceId}/${baseId}${tablePath}${queryParams}`
       }

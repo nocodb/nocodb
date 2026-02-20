@@ -122,6 +122,7 @@ export enum MetaTable {
   VIEW_SECTIONS = 'nc_view_sections',
   CHAT_SESSIONS = 'nc_chat_sessions',
   CHAT_MESSAGES = 'nc_chat_messages',
+  DOCS = 'nc_docs_v2',
 }
 
 export const BaseRelatedMetaTables = [
@@ -183,6 +184,7 @@ export const BaseRelatedMetaTables = [
   MetaTable.RLS_POLICIES,
   MetaTable.RLS_POLICY_SUBJECTS,
   MetaTable.VIEW_SECTIONS,
+  MetaTable.DOCS,
 ];
 
 export const orderedMetaTables = [
@@ -459,6 +461,7 @@ export enum CacheScope {
   RLS_POLICY = 'rlsPolicy',
   VIEW_SECTION = 'viewSection',
   CHAT_SESSION = 'chatSession',
+  DOC = 'doc',
 }
 
 export const RootScopeTables = {

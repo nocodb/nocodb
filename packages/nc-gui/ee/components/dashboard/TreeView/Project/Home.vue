@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import Automation from '../Automation/index.vue'
 import Data from '../Data/index.vue'
+import Pages from '../Pages/index.vue'
 
 const sidebarStore = useSidebarStore()
 
@@ -103,6 +104,11 @@ const hasTableCreatePermission = computed(() => {
       <!-- Data tab -->
       <template v-if="activeSidebarTab === 'data'">
         <Data :base-id="base.id" hide-header />
+      </template>
+
+      <!-- Pages/Docs tab -->
+      <template v-else-if="activeSidebarTab === 'docs'">
+        <Pages v-if="!isSharedBase && !isMobileMode" :base-id="base.id" />
       </template>
 
       <!-- Automation/Workflows tab -->

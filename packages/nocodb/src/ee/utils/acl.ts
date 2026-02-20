@@ -369,6 +369,14 @@ const permissionScopes = {
     'mcpUpdate',
     'mcpDelete',
 
+    // Docs (Pages)
+    'docList',
+    'docGet',
+    'docCreate',
+    'docUpdate',
+    'docDelete',
+    'docReorder',
+
     'viewRowColorInfo',
     'viewRowColorConditionAdd',
     'viewRowColorConditionUpdate',
@@ -698,6 +706,14 @@ const rolePermissions:
       mcpCreate: true,
       mcpUpdate: true,
       mcpDelete: true,
+
+      // Docs (Pages)
+      docList: true,
+      docGet: true,
+      docCreate: true,
+      docUpdate: true,
+      docDelete: true,
+      docReorder: true,
 
       viewRowColorInfo: true,
 
@@ -1263,6 +1279,13 @@ const permissionDescriptions: Record<string, string> = {
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',
   mcpDelete: 'delete an MCP token',
+
+  docList: 'view list of pages',
+  docGet: 'view page details',
+  docCreate: 'create a new page',
+  docUpdate: 'update a page',
+  docDelete: 'delete a page',
+  docReorder: 'reorder pages',
 
   dashboardList: 'view list of dashboards',
   dashboardGet: 'view dashboard details',

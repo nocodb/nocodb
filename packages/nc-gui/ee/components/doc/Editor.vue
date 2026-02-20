@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { useEditor, EditorContent } from '@tiptap/vue-3'
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
+import TaskList from '@tiptap/extension-task-list'
+import { TaskItem } from '~/helpers/tiptap-markdown/extensions'
 import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
@@ -106,6 +108,8 @@ const editor = useEditor({
     Link.configure({ openOnClick: false }),
     Placeholder.configure({ placeholder: 'Type \'/\' for commands, or start writing...' }),
     Image,
+    TaskList,
+    TaskItem.configure({ nested: true }),
     Table.configure({ resizable: true }),
     TableRow,
     TableCell,
@@ -231,7 +235,13 @@ onBeforeUnmount(() => {
 
       <!-- Editor -->
       <div class="nc-doc-editor-body pb-48">
-        <EditorContent v-if="editor" :editor="editor" />
+        <template v-if="editor">
+          <!-- Bubble menu: appears on text selection -->
+          <BubbleMenu :editor="editor" :update-delay="250" :tippy-options="{ duration: 100, maxWidth: 600 }">
+            <CellRichTextSelectedBubbleMenu :editor="editor" embed-mode hide-mention />
+          </BubbleMenu>
+          <EditorContent :editor="editor" />
+        </template>
       </div>
     </div>
   </div>
@@ -244,6 +254,13 @@ onBeforeUnmount(() => {
 <style lang="scss">
 .nc-doc-editor {
   background: var(--nc-bg-default);
+}
+
+// Doc editor bubble menu — override embed-mode's transparent/no-shadow defaults
+.nc-doc-editor-body .bubble-menu.embed-mode {
+  @apply !rounded-lg;
+  border: 1px solid #d1d5db !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 // Subtitle (created by / updated by) — match Outline's muted slate

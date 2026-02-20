@@ -266,13 +266,31 @@ onBeforeUnmount(() => {
       margin-top: 0.75em;
     }
 
-    // Heading hierarchy — match Outline: semibold, clear size steps, moderate spacing
+    // Heading hierarchy — semibold, clear size steps
+    // H1/H2/H3 prefix labels sit outside the content area via absolute positioning
+    h1, h2, h3 {
+      position: relative;
+
+      &::before {
+        position: absolute;
+        right: 100%;
+        margin-right: 0.5em;
+        color: #9BA6B2;
+        font-size: 12px;
+        font-weight: 500;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+    }
+
     h1 {
       font-size: 1.625em !important;
       font-weight: 600 !important;
       margin-top: 1.4em !important;
       margin-bottom: 0.4em !important;
       line-height: 1.3 !important;
+
+      &::before { content: 'H1'; }
     }
 
     h2 {
@@ -281,6 +299,8 @@ onBeforeUnmount(() => {
       margin-top: 1.2em !important;
       margin-bottom: 0.35em !important;
       line-height: 1.35 !important;
+
+      &::before { content: 'H2'; }
     }
 
     h3 {
@@ -289,6 +309,8 @@ onBeforeUnmount(() => {
       margin-top: 1em !important;
       margin-bottom: 0.3em !important;
       line-height: 1.4 !important;
+
+      &::before { content: 'H3'; }
     }
 
     p.is-editor-empty:first-child::before {

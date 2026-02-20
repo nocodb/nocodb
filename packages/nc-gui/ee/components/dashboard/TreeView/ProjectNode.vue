@@ -909,12 +909,7 @@ defineExpose({
 
   <!-- Sandbox Modals -->
   <DlgSandboxCreate v-if="base?.id" v-model="isSandboxCreateDlgOpen" :base="base" />
-  <DlgSandboxList
-    v-if="base?.id"
-    v-model="isSandboxListDlgOpen"
-    :base="base"
-    @create-sandbox="handleCreateSandboxFromList"
-  />
+  <DlgSandboxList v-if="base?.id" v-model="isSandboxListDlgOpen" :base="base" @create-sandbox="handleCreateSandboxFromList" />
 </template>
 
 <style lang="scss" scoped>

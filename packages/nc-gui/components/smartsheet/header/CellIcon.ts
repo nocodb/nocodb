@@ -5,7 +5,7 @@ import type { PropType } from '@vue/runtime-core'
 export const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
     return iconMap.cellSystemKey
-  // PR review fix #5: isUUID() already checks column.uidt === UITypes.UUID
+    // PR review fix #5: isUUID() already checks column.uidt === UITypes.UUID
   } else if (isUUID(column)) {
     return iconMap.cellUuid
   } else if (isSpecificDBType(column)) {

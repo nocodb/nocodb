@@ -248,7 +248,7 @@ watch(
   () => {
     if (isRestrictedEditor.value) return
 
-    const rootFilters = (allFilters.value as Record<string, FilterType[]>)['root']
+    const rootFilters = (allFilters.value as Record<string, FilterType[]>).root
     if (rootFilters?.length) {
       filtersLength.value = rootFilters.length
       enabledFiltersLength.value = rootFilters.filter((f) => f.enabled !== false && f.enabled !== 0).length

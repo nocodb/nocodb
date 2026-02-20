@@ -69,10 +69,7 @@ export const ColourCellRenderer: CellRenderer = {
     // Set cursor to pointer when hovering over the cell
     if (mousePosition && !readonly) {
       const isHovered =
-        mousePosition.x >= x &&
-        mousePosition.x <= x + width &&
-        mousePosition.y >= y &&
-        mousePosition.y <= y + height
+        mousePosition.x >= x && mousePosition.x <= x + width && mousePosition.y >= y && mousePosition.y <= y + height
 
       if (isHovered) {
         setCursor('pointer')
@@ -195,8 +192,7 @@ export const ColourCellRenderer: CellRenderer = {
 
   async handleKeyDown(ctx) {
     const { e, row, column, readonly, makeCellEditable } = ctx
-    if (column.readonly || readonly || column.columnObj?.readonly || !column.isCellEditable || column.isSyncedColumn)
-      return false
+    if (column.readonly || readonly || column.columnObj?.readonly || !column.isCellEditable || column.isSyncedColumn) return false
 
     // Open color picker on Enter
     if (e.key === 'Enter') {

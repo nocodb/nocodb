@@ -345,9 +345,9 @@ const showFilterSection = computed(() => {
                   <span class="text-sm">{{ option.label }}</span>
                 </div>
                 <!-- User item -->
-                <NcUserInfo v-else-if="option.subjectType === 'user'" :user="(option as any)" class="w-full max-w-[calc(100%_-_24px)]" />
+                <NcUserInfo v-else-if="option.subjectType === 'user'" :user="option" class="w-full max-w-[calc(100%_-_24px)]" />
                 <!-- Team item -->
-                <GeneralTeamInfo v-else-if="option.subjectType === 'team'" :team="(option as any)" class="max-w-[calc(100%_-_24px)]" />
+                <GeneralTeamInfo v-else-if="option.subjectType === 'team'" :team="option" class="max-w-[calc(100%_-_24px)]" />
               </template>
 
               <template #listItemExtraRight="{ option }">

@@ -264,6 +264,9 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]: false,
   [PlanFeatureTypes.FEATURE_CELL_COLOUR]: false,
   [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: false,
+  [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
+  [PlanFeatureTypes.FEATURE_RLS]: true,
+  [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 5,
 };
 
 export const FreePlan = Plan.prepare({

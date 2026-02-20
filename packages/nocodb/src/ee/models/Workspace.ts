@@ -120,7 +120,6 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
     if (workspace) {
       workspace.payment = await getActivePlanAndSubscription(
         workspace.fk_org_id || workspace.id,
-        workspace.loyal,
         ncMeta,
       );
     }
@@ -172,7 +171,6 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
 
     workspaceData.payment = await getActivePlanAndSubscription(
       workspaceData.fk_org_id || workspaceData.id,
-      workspaceData.loyal,
       ncMeta,
     );
 

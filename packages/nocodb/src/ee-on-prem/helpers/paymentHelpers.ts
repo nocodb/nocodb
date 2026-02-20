@@ -18,7 +18,6 @@ export const getOnPremPlan = () => {
 
 export async function getActivePlanAndSubscription(
   _workspaceOrOrgId: string,
-  _loyal = false,
   _ncMeta = Noco.ncMeta,
 ) {
   const plan = getOnPremPlan();

@@ -21,12 +21,36 @@ const docsStore = useDocsStore()
 const { loadDoc, updateDoc } = docsStore
 
 const basesStore = useBases()
-const { activeProjectId } = storeToRefs(basesStore)
+const { activeProjectId, basesUser } = storeToRefs(basesStore)
+
+const { user } = useGlobal()
+
+const base = inject(ProjectInj, ref())
+
+// Resolve created_by user ID to display name
+const idUserMap = computed<Record<string, any>>(() => {
+  if (!base.value?.id) return {}
+  return (basesUser.value.get(base.value.id) || []).reduce((acc: Record<string, any>, u: any) => {
+    acc[u.id] = u
+    acc[u.email] = u
+    return acc
+  }, {})
+})
+
+const createdByLabel = computed(() => {
+  const creatorId = doc.value?.created_by
+  if (!creatorId) return ''
+  const creator = idUserMap.value[creatorId]
+  if (!creator) return ''
+  if (creator.id === user.value?.id) return 'You'
+  return creator.display_name || creator.email || ''
+})
 
 const doc = ref<DocType | null>(null)
 const title = ref('')
 const isSaving = ref(false)
 const isLoaded = ref(false)
+const titleInput = useTemplateRef('titleInput')
 
 const saveTimeout = ref<NodeJS.Timeout>()
 
@@ -38,7 +62,7 @@ const save = async () => {
   try {
     const content = editor.value.getJSON()
     const updated = await updateDoc(activeProjectId.value, doc.value.id!, {
-      title: title.value,
+      title: title.value || 'Untitled',
       content,
       version: doc.value.version,
     })
@@ -68,7 +92,7 @@ const editor = useEditor({
     }),
     Underline,
     Link.configure({ openOnClick: false }),
-    Placeholder.configure({ placeholder: 'Start writing...' }),
+    Placeholder.configure({ placeholder: 'Type \'/\' for commands, or start writing...' }),
     Image,
     Table.configure({ resizable: true }),
     TableRow,
@@ -110,7 +134,8 @@ const loadAndSetDoc = async (id: string) => {
 
   if (loaded) {
     doc.value = loaded
-    title.value = loaded.title || ''
+    // Treat "Untitled" as empty — it's the server default, not a user-provided name
+    title.value = loaded.title === 'Untitled' ? '' : (loaded.title || '')
 
     const parsed = parseContent(loaded.content)
     if (editor.value && parsed) {
@@ -118,6 +143,14 @@ const loadAndSetDoc = async (id: string) => {
     }
   }
   isLoaded.value = true
+
+  // Auto-focus the title input on new (untitled) pages so the user
+  // can immediately start typing a name
+  if (!title.value) {
+    nextTick(() => {
+      ;(titleInput.value as HTMLInputElement)?.focus()
+    })
+  }
 }
 
 // Re-load doc when navigating between pages
@@ -132,7 +165,9 @@ watch(
 )
 
 const onTitleBlur = () => {
-  if (title.value !== doc.value?.title) {
+  // Compare effective titles — empty input maps to "Untitled" on save
+  const effectiveTitle = title.value || 'Untitled'
+  if (effectiveTitle !== doc.value?.title) {
     debouncedSave()
   }
 }
@@ -155,22 +190,29 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="isLoaded && doc" class="nc-doc-editor flex flex-col h-full w-full">
-    <!-- Title -->
-    <div class="nc-doc-editor-header px-12 pt-12 pb-4">
-      <input
-        v-model="title"
-        class="nc-doc-title w-full text-3xl font-bold outline-none bg-transparent placeholder-nc-content-gray-muted"
-        placeholder="Untitled"
-        @blur="onTitleBlur"
-        @keydown="onTitleKeydown"
-      />
-      <div class="text-xs mt-1 h-4" :class="isSaving ? 'text-nc-content-gray-muted' : 'text-transparent'">Saving...</div>
-    </div>
+  <div v-if="isLoaded && doc" class="nc-doc-editor flex flex-col h-full w-full overflow-y-auto">
+    <div class="nc-doc-editor-inner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16">
+      <!-- Title -->
+      <div class="nc-doc-editor-header pt-12 pb-4">
+        <input
+          ref="titleInput"
+          v-model="title"
+          class="nc-doc-title w-full text-3xl font-bold outline-none bg-transparent nc-doc-title-input"
+          placeholder="Untitled"
+          @blur="onTitleBlur"
+          @keydown="onTitleKeydown"
+        />
+        <div class="flex items-center gap-2 mt-1.5 h-4 text-xs text-nc-content-gray-muted">
+          <span v-if="createdByLabel">Created by {{ createdByLabel }}</span>
+          <span v-if="createdByLabel && isSaving" class="text-nc-content-gray-muted">&middot;</span>
+          <span :class="isSaving ? '' : 'text-transparent'">Saving...</span>
+        </div>
+      </div>
 
-    <!-- Editor -->
-    <div class="nc-doc-editor-body flex-1 overflow-y-auto px-12 pb-24">
-      <EditorContent v-if="editor" :editor="editor" />
+      <!-- Editor -->
+      <div class="nc-doc-editor-body pb-48">
+        <EditorContent v-if="editor" :editor="editor" />
+      </div>
     </div>
   </div>
 
@@ -184,6 +226,12 @@ onBeforeUnmount(() => {
   background: var(--nc-bg-default);
 }
 
+// Title placeholder — lighter than muted to feel like a watermark
+.nc-doc-title-input::placeholder {
+  color: #d1d5db;
+  opacity: 1;
+}
+
 .nc-doc-editor-content {
   .ProseMirror {
     min-height: 200px;
@@ -195,7 +243,7 @@ onBeforeUnmount(() => {
     p.is-editor-empty:first-child::before {
       content: attr(data-placeholder);
       float: left;
-      color: var(--nc-content-gray-muted);
+      color: #d1d5db;
       pointer-events: none;
       height: 0;
     }

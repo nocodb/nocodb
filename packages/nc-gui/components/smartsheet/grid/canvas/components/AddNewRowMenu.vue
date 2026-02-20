@@ -65,8 +65,10 @@ const handleUseTemplate = async (tmpl: any) => {
       class="nc-new-record-with-grid group"
       :disabled="removeInlineAddRecord"
       @click="
-        setSelectedTemplate(null)
-        onNewRecordToGridClick(path ?? [])
+        () => {
+          setSelectedTemplate(null)
+          onNewRecordToGridClick(path ?? [])
+        }
       "
     >
       <div class="flex flex-row flex-1 items-center justify-start gap-x-3">

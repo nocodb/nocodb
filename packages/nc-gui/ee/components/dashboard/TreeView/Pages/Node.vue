@@ -8,7 +8,6 @@ interface Props {
 const props = defineProps<Props>()
 
 const { $e } = useNuxtApp()
-const { t } = useI18n()
 
 const { ncNavigateTo } = useGlobal()
 const { isUIAllowed } = useRoles()
@@ -25,8 +24,9 @@ const base = inject(ProjectInj, ref())
 
 const isEditing = ref(false)
 const isDropdownOpen = ref(false)
-const editTitle = ref('')
-const input = ref<HTMLInputElement>()
+const _title = ref('')
+const input = useTemplateRef('input')
+const showNodeTooltip = ref(true)
 
 const navigateToDoc = () => {
   if (isEditing.value) return
@@ -43,24 +43,38 @@ const onClick = useDebounceFn(() => {
   navigateToDoc()
 }, 250)
 
+const handleOnClick = () => {
+  if (isEditing.value) return
+
+  const cmdOrCtrl = isMac() ? metaKey?.value : control?.value
+
+  if (cmdOrCtrl) {
+    navigateToDoc()
+  } else {
+    onClick()
+  }
+}
+
+const { meta: metaKey, control } = useMagicKeys()
+
 const onDblClick = () => {
   if (!isUIAllowed('docUpdate')) return
 
   isEditing.value = true
-  editTitle.value = props.doc.title || ''
+  _title.value = props.doc.title || ''
   nextTick(() => {
-    input.value?.focus()
-    input.value?.select()
+    ;(input.value as any)?.$el?.querySelector('input')?.focus()
+    ;(input.value as any)?.$el?.querySelector('input')?.select()
   })
 }
 
 const onRename = async () => {
-  if (!editTitle.value.trim()) {
-    editTitle.value = props.doc.title || 'Untitled'
+  if (!_title.value.trim()) {
+    _title.value = props.doc.title || 'Untitled'
   }
 
-  if (editTitle.value !== props.doc.title && base.value?.id) {
-    await updateDoc(base.value.id, props.doc.id!, { title: editTitle.value, version: props.doc.version })
+  if (_title.value !== props.doc.title && base.value?.id) {
+    await updateDoc(base.value.id, props.doc.id!, { title: _title.value, version: props.doc.version })
   }
 
   isEditing.value = false
@@ -71,58 +85,112 @@ const onDelete = async () => {
   await deleteDoc(base.value.id, props.doc.id!)
 }
 
-const onKeydown = (e: KeyboardEvent) => {
+const onKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
     onRename()
   } else if (e.key === 'Escape') {
     isEditing.value = false
-    editTitle.value = props.doc.title || ''
+    _title.value = props.doc.title || ''
   }
+}
+
+const onRenameMenuClick = () => {
+  isDropdownOpen.value = false
+  onDblClick()
 }
 </script>
 
 <template>
-  <div class="nc-page-node flex items-center gap-1 py-0.5 pl-2 pr-1 cursor-pointer group" @click="onClick" @dblclick="onDblClick">
-    <GeneralIcon icon="ncFileText" class="flex-none text-nc-content-gray-muted !h-4 !w-4" />
+  <div
+    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    :data-testid="`view-sidebar-doc-${doc.title}`"
+    @dblclick.stop="onDblClick"
+    @click.prevent="handleOnClick"
+  >
+    <div v-e="['a:doc:open']" class="text-sm flex items-center w-full gap-1" data-testid="doc-item">
+      <div class="flex min-w-6 items-center justify-center">
+        <GeneralIcon
+          :class="activeDocId === doc.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+          class="w-4 text-nc-content-gray-subtle !text-[16px]"
+          icon="ncFileText"
+        />
+      </div>
 
-    <input
-      v-if="isEditing"
-      ref="input"
-      v-model="editTitle"
-      class="flex-1 min-w-0 outline-none bg-transparent text-sm"
-      @blur="onRename"
-      @keydown="onKeydown"
-      @click.stop
-    />
-    <span v-else class="flex-1 min-w-0 truncate text-sm">{{ doc.title || 'Untitled' }}</span>
-
-    <NcDropdown v-if="isUIAllowed('docDelete') && !isEditing" v-model:visible="isDropdownOpen" placement="bottomRight">
-      <NcButton
-        type="text"
-        size="xxsmall"
-        class="nc-page-node-menu !opacity-0 group-hover:!opacity-100"
-        :class="{ '!opacity-100': isDropdownOpen }"
-        @click.stop
+      <a-input
+        v-if="isEditing"
+        ref="input"
+        v-model:value="_title"
+        :class="{
+          'font-semibold !text-nc-content-brand-disabled': activeDocId === doc.id,
+        }"
+        :style="{
+          fontWeight: 'inherit',
+        }"
+        class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
+        @blur="onRename"
+        @keydown.stop="onKeyDown($event)"
+      />
+      <NcTooltip
+        v-else
+        class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full max-w-full"
+        disabled
+        show-on-truncate-only
       >
-        <GeneralIcon icon="threeDotVertical" class="text-nc-content-gray-muted" />
-      </NcButton>
-      <template #overlay>
-        <NcMenu variant="medium">
-          <NcMenuItem @click="onDblClick">
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="rename" />
-              Rename
-            </div>
-          </NcMenuItem>
-          <NcDivider />
-          <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="onDelete">
-            <div class="flex items-center gap-2">
-              <GeneralIcon icon="delete" />
-              Delete
-            </div>
-          </NcMenuItem>
-        </NcMenu>
+        <template #title> {{ doc.title || 'Untitled' }}</template>
+        <div
+          :class="{
+            'font-semibold text-nc-content-brand-disabled': activeDocId === doc.id,
+          }"
+          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+          data-testid="sidebar-doc-title"
+        >
+          {{ doc.title || 'Untitled' }}
+        </div>
+      </NcTooltip>
+
+      <template v-if="!isEditing && isUIAllowed('docUpdate')">
+        <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
+          <NcButton
+            v-e="['c:doc:option']"
+            :class="{
+              '!visible !opacity-100': isDropdownOpen,
+            }"
+            class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100) nc-sidebar-doc-node-context-btn"
+            size="xxsmall"
+            type="text"
+            @mouseenter="showNodeTooltip = false"
+            @mouseleave="showNodeTooltip = true"
+            @click.stop="isDropdownOpen = !isDropdownOpen"
+            @dblclick.stop
+          >
+            <GeneralIcon class="text-xl w-4.75" icon="threeDotHorizontal" />
+          </NcButton>
+
+          <template #overlay>
+            <NcMenu :data-testid="`sidebar-doc-context-menu-list-${doc.title}`" class="!min-w-62.5" variant="small">
+              <NcMenuItem
+                v-e="['c:doc:rename']"
+                :data-testid="`sidebar-doc-rename-${doc.title}`"
+                class="nc-doc-rename"
+                @click="onRenameMenuClick"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="rename" />
+                Rename page
+              </NcMenuItem>
+              <NcDivider />
+              <NcMenuItem
+                v-e="['c:doc:delete']"
+                :data-testid="`sidebar-doc-delete-${doc.title}`"
+                class="!text-red-500 !hover:bg-red-50"
+                @click="onDelete"
+              >
+                <GeneralIcon icon="delete" />
+                Delete page
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
       </template>
-    </NcDropdown>
+    </div>
   </div>
 </template>

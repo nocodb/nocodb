@@ -89,10 +89,9 @@ const { isSharedBase } = storeToRefs(baseStore)
           'nc-mini-sidebar-ws-item': isMiniSidebar,
           'group cursor-pointer flex flex-grow w-full gap-x-2 items-center overflow-hidden py-1.25 xs:py-1.75 pr-0.25':
             !isMiniSidebar,
-          'nc-small-shadow': workspacesList.length === 2,
           'nc-medium-shadow': workspacesList.length > 2,
         }"
-        class="nc-workspace-menu"
+        class="nc-workspace-menu nc-small-shadow"
       >
         <GeneralWorkspaceIcon
           :workspace="activeWorkspace"

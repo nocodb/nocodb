@@ -84,7 +84,7 @@ const tablesWithTemplates = computed(() => {
 })
 
 // --- Table Columns ---
-const columns = computed<NcTableColumnProps[]>(() => [
+const columns = [
   {
     key: 'enabled',
     title: '',
@@ -136,7 +136,7 @@ const columns = computed<NcTableColumnProps[]>(() => [
     width: 100,
     justify: 'justify-end',
   },
-])
+] as NcTableColumnProps[]
 
 // --- Computed ---
 const filteredTemplates = computed(() => {

@@ -2,14 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
+import type { CreateRecordTemplateDto } from './dto/create-record-template.dto';
+import type { UpdateRecordTemplateDto } from './dto/update-record-template.dto';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
 import RecordTemplate from '~/models/RecordTemplate';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
-import type { CreateRecordTemplateDto } from './dto/create-record-template.dto';
-import type { UpdateRecordTemplateDto } from './dto/update-record-template.dto';
 
 @Injectable()
 export class RecordTemplatesService {
@@ -145,10 +145,7 @@ export class RecordTemplatesService {
     userId: string;
     req: NcRequest;
   }) {
-    const template = await RecordTemplate.get(
-      param.context,
-      param.templateId,
-    );
+    const template = await RecordTemplate.get(param.context, param.templateId);
     if (!template) {
       NcError.notFound('Record template not found');
     }
@@ -170,10 +167,7 @@ export class RecordTemplatesService {
     userId: string;
     req: NcRequest;
   }) {
-    const template = await RecordTemplate.get(
-      param.context,
-      param.templateId,
-    );
+    const template = await RecordTemplate.get(param.context, param.templateId);
     if (!template) {
       NcError.notFound('Record template not found');
     }
@@ -238,7 +232,9 @@ export class RecordTemplatesService {
     const MAX_TEMPLATE_DATA_SIZE = 256 * 1024; // 256 KB
     if (serialized.length > MAX_TEMPLATE_DATA_SIZE) {
       NcError.badRequest(
-        `Template data exceeds maximum size of ${MAX_TEMPLATE_DATA_SIZE / 1024} KB`,
+        `Template data exceeds maximum size of ${
+          MAX_TEMPLATE_DATA_SIZE / 1024
+        } KB`,
       );
     }
   }
@@ -255,10 +251,7 @@ export class RecordTemplatesService {
     userId: string;
     req: NcRequest;
   }): Promise<any> {
-    const template = await RecordTemplate.get(
-      param.context,
-      param.templateId,
-    );
+    const template = await RecordTemplate.get(param.context, param.templateId);
     if (!template) {
       NcError.notFound('Record template not found');
     }
@@ -285,10 +278,7 @@ export class RecordTemplatesService {
     });
 
     // Increment usage count
-    await RecordTemplate.incrementUsageCount(
-      param.context,
-      param.templateId,
-    );
+    await RecordTemplate.incrementUsageCount(param.context, param.templateId);
 
     return { id: recordId };
   }
@@ -341,10 +331,7 @@ export class RecordTemplatesService {
 
             const linkedModelId = (column.colOptions as any)
               .fk_related_model_id;
-            const linkedModel = await Model.get(
-              param.context,
-              linkedModelId,
-            );
+            const linkedModel = await Model.get(param.context, linkedModelId);
 
             if (!linkedModel) {
               continue;

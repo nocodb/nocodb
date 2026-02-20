@@ -76,7 +76,8 @@ export default class WorkflowSubscriber implements IWorkflowSubscriber {
       [workflowId],
     );
 
-    let { list: subscriberList, isNoneList } = cachedList;
+    let { list: subscriberList } = cachedList;
+    const { isNoneList } = cachedList;
 
     if (!isNoneList && !subscriberList.length) {
       subscriberList = await ncMeta.metaList2(

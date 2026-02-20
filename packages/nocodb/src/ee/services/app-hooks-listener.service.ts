@@ -50,6 +50,10 @@ import type {
   PermissionCreatePayload,
   PermissionDeletePayload,
   PermissionUpdatePayload,
+  RecordTemplateCreatePayload,
+  RecordTemplateDeletePayload,
+  RecordTemplateUpdatePayload,
+  RecordTemplateUsePayload,
   ScriptCreatePayload,
   ScriptDeletePayload,
   ScriptDuplicatePayload,
@@ -105,10 +109,6 @@ import type {
   WorkspaceUpdatePayload,
   WorkspaceUserDeletePayload,
   WorkspaceUserUpdatePayload,
-  RecordTemplateCreatePayload,
-  RecordTemplateUpdatePayload,
-  RecordTemplateDeletePayload,
-  RecordTemplateUsePayload,
 } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
@@ -149,6 +149,10 @@ import type {
   ProjectUpdateEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
+  RecordTemplateCreateEvent,
+  RecordTemplateDeleteEvent,
+  RecordTemplateUpdateEvent,
+  RecordTemplateUseEvent,
   ScriptCreateEvent,
   ScriptDeleteEvent,
   ScriptDuplicateEvent,
@@ -203,10 +207,6 @@ import type {
   WorkspaceUserDeleteEvent,
   WorkspaceUserInviteEvent,
   WorkspaceUserUpdateEvent,
-  RecordTemplateCreateEvent,
-  RecordTemplateUpdateEvent,
-  RecordTemplateDeleteEvent,
-  RecordTemplateUseEvent,
 } from '~/services/app-hooks/interfaces';
 import type { SelectOption } from '~/models';
 import { Audit, Column, User } from '~/models';

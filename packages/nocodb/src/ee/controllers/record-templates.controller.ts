@@ -10,15 +10,15 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { NcContext, NcRequest } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { CreateRecordTemplateDto } from '~/services/record-templates/dto/create-record-template.dto';
-import type { UpdateRecordTemplateDto } from '~/services/record-templates/dto/update-record-template.dto';
+import { CreateRecordTemplateDto } from '~/services/record-templates/dto/create-record-template.dto';
+import { UpdateRecordTemplateDto } from '~/services/record-templates/dto/update-record-template.dto';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)

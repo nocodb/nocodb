@@ -405,15 +405,13 @@ export class ScimGroupsService {
       .map((a) => a.principal_ref_id);
 
     // Include deactivated users — SCIM groups must reflect all assigned members
-    const allUsers = await WorkspaceUser.userList({
-      fk_workspace_id: workspaceId,
-      include_deleted: true,
-    });
-
-    const userIdSet = new Set(userIds);
-    return allUsers.filter(
-      (wu) => userIdSet.has(wu.fk_user_id) && wu.scim_managed,
+    const members = await Promise.all(
+      userIds.map((userId) =>
+        WorkspaceUser.get(workspaceId, userId, { include_deleted: true }),
+      ),
     );
+
+    return members.filter((wu) => wu && wu.scim_managed);
   }
 
   /**

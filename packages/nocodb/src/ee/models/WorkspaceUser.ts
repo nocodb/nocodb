@@ -155,7 +155,16 @@ export default class WorkspaceUser {
     }
   }
 
-  static async get(workspaceId: string, userId: string, ncMeta = Noco.ncMeta) {
+  static async get(
+    workspaceId: string,
+    userId: string,
+    {
+      include_deleted = false,
+    }: {
+      include_deleted?: boolean;
+    } = {},
+    ncMeta = Noco.ncMeta,
+  ) {
     let workspaceUser =
       workspaceId &&
       userId &&
@@ -204,7 +213,7 @@ export default class WorkspaceUser {
       }
     }
 
-    if (workspaceUser?.deleted) {
+    if (workspaceUser?.deleted && !include_deleted) {
       workspaceUser = null;
     }
 

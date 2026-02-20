@@ -109,6 +109,7 @@ export default class BaseUser extends BaseUserCE {
     const wsUser = await WorkspaceUser.get(
       workspace_id,
       baseUser.fk_user_id,
+      {},
       ncMeta,
     );
 

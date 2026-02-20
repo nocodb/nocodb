@@ -129,6 +129,7 @@ export class WorkspaceUsersService {
     const workspaceUser = await WorkspaceUser.get(
       param.workspaceId,
       param.userId,
+      {},
       ncMeta,
     );
 
@@ -918,6 +919,7 @@ export class WorkspaceUsersService {
     const workspaceUser = await WorkspaceUser.get(
       workspace.id,
       user.id,
+      {},
       ncMeta,
     );
 
@@ -972,6 +974,7 @@ export class WorkspaceUsersService {
         const workspaceUser = await WorkspaceUser.get(
           workspace.id,
           user.id,
+          {},
           ncMeta,
         );
 

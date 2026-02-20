@@ -19,7 +19,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import type { NcTableColumnProps } from '../../../../lib/types'
 
 /** Shape of a record template as returned by the API */
 interface TemplateType {
@@ -472,22 +471,7 @@ const customRow = (record: Record<string, any>) => ({
         @click="openManager"
       >
         <div class="flex items-center gap-1 min-h-5">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-4 w-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            <path d="M9 12v-1h6v1" />
-            <path d="M11 17h2" />
-            <path d="M12 11v6" />
-          </svg>
+          <GeneralIcon icon="ncClipboardType" class="h-4 w-4" />
         </div>
       </NcButton>
     </NcTooltip>
@@ -505,23 +489,8 @@ const customRow = (record: Record<string, any>) => ({
         <!-- Header -->
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 text-base font-semibold text-nc-content-gray">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-              <path d="M9 12v-1h6v1" />
-              <path d="M11 17h2" />
-              <path d="M12 11v6" />
-            </svg>
+            <GeneralIcon icon="ncClipboardType" class="h-5 w-5 flex-none" />
+
             {{ $t('activity.manageTemplates') }}
           </div>
           <NcButton type="primary" size="small" @click="openTemplateForm()">
@@ -654,24 +623,7 @@ const customRow = (record: Record<string, any>) => ({
 
           <template #emptyText>
             <div class="flex flex-col items-center gap-4 py-8">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="36"
-                height="36"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="text-nc-content-gray-muted"
-              >
-                <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-                <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                <path d="M9 12v-1h6v1" />
-                <path d="M11 17h2" />
-                <path d="M12 11v6" />
-              </svg>
+              <GeneralIcon icon="ncClipboardType" class="h-9 w-9 text-nc-content-gray-muted" />
               <div class="text-sm font-semibold text-nc-content-gray-subtle">{{ $t('msg.info.noTemplates') }}</div>
               <div class="text-xs text-nc-content-gray-subtle2 max-w-xs text-center">{{ $t('msg.info.noTemplatesDesc') }}</div>
               <NcButton type="primary" size="small" @click="openTemplateForm()">
@@ -687,7 +639,8 @@ const customRow = (record: Record<string, any>) => ({
             <div class="flex flex-row justify-center items-center bg-nc-bg-gray-extralight min-h-10">
               <div v-if="filteredTemplates.length" class="flex justify-between items-center w-full px-6">
                 <div class="text-nc-content-gray-muted text-xs">
-                  {{ filteredTemplates.length }} {{ filteredTemplates.length === 1 ? 'template' : 'templates' }}
+                  {{ filteredTemplates.length }}
+                  {{ filteredTemplates.length === 1 ? $t('general.template') : $t('general.templates') }}
                 </div>
                 <NcPagination
                   v-if="filteredTemplates.length > PAGE_SIZE"
@@ -711,7 +664,10 @@ const customRow = (record: Record<string, any>) => ({
       :delete-label="$t('general.delete')"
     >
       <template #entity-preview>
-        <div v-if="templateToDelete" class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+        <div
+          v-if="templateToDelete"
+          class="flex flex-row items-center py-2 px-3.25 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
+        >
           <span class="font-semibold truncate">{{ templateToDelete.title }}</span>
         </div>
       </template>

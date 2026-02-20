@@ -816,6 +816,7 @@ import NcGraduationCap from '~icons/nc-icons-v2/graduation-cap'
 import NcSupportAgent from '~icons/nc-icons-v2/support-agent'
 import NcBuilding from '~icons/nc-icons-v2/building'
 import NcExtUrlPreviewEmptyState from '~icons/nc-icons/extension-url-preview-empty-state'
+import NcClipboardType from '~icons/nc-icons-v2/clipboard-type'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1843,6 +1844,7 @@ export const iconMap = {
   'ncIfElse': NcIfElse,
   'ncRecordEntersView': NcRecordEntersView,
   'ncExtUrlPreviewEmptyState': h(NcExtUrlPreviewEmptyState, { stroke: 'transparent' }),
+  'ncClipboardType': NcClipboardType,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4637,6 +4639,10 @@ export const searchableMap = {
   ncBuilding: {
     icon: NcBuilding,
     keywords: ['building', 'office', 'building-outline'],
+  },
+  ncClipboardType: {
+    icon: NcClipboardType,
+    keywords: ['clipboard', 'type', 'copy', 'paste'],
   },
 }
 

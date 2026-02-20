@@ -214,6 +214,7 @@
     "authorization": "Authorization",
     "revoke": "Revoke",
     "marketplace": "Marketplace",
+    "template": "Template",
     "templates": "Templates",
     "script": "Script",
     "dashboard": "Dashboard",

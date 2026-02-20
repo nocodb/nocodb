@@ -76,7 +76,7 @@ const handleUseTemplate = async (tmpl: any) => {
         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
       </div>
 
-      <GeneralIcon v-if="!selectedTemplate && isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+      <GeneralIcon v-if="!selectedTemplate && isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-nc-content-brand" />
     </NcMenuItem>
     <NcMenuItem
       v-e="['c:row:add:form']"
@@ -93,7 +93,7 @@ const handleUseTemplate = async (tmpl: any) => {
         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
       </div>
 
-      <GeneralIcon v-if="!selectedTemplate && !isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+      <GeneralIcon v-if="!selectedTemplate && !isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-nc-content-brand" />
     </NcMenuItem>
 
     <!-- Record Templates (when available) -->
@@ -112,24 +112,7 @@ const handleUseTemplate = async (tmpl: any) => {
         "
       >
         <div class="flex items-center flex-1 gap-2">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="flex-none"
-          >
-            <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            <path d="M9 12v-1h6v1" />
-            <path d="M11 17h2" />
-            <path d="M12 11v6" />
-          </svg>
+          <GeneralIcon icon="ncClipboardType" class="h-4 w-4 flex-none" />
           <span class="truncate flex-1">{{ tmpl.title }}</span>
         </div>
         <GeneralIcon v-if="selectedTemplate?.id === tmpl.id" icon="check" class="w-4 h-4 text-primary" />

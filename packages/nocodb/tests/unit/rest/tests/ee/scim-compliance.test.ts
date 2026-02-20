@@ -1024,7 +1024,7 @@ function protocolComplianceTests() {
 
   // ── §3.6 DELETE idempotency ─────────────────────────────────────
 
-  it('DELETE /Users/:id is idempotent — second delete returns 204 (RFC 7644 §3.6)', async () => {
+  it('DELETE /Users/:id — second delete returns 404 (Microsoft SCIM compliance)', async () => {
     const createRes = await request(ctx.app)
       .post(USERS())
       .set('Authorization', `Bearer ${scimToken}`)
@@ -1041,7 +1041,7 @@ function protocolComplianceTests() {
     const res2 = await request(ctx.app)
       .delete(`${USERS()}/${id}`)
       .set('Authorization', `Bearer ${scimToken}`);
-    expect(res2.status).to.be.oneOf([200, 204]);
+    expect(res2.status).to.equal(404);
   });
 
   // ── §3.5.1 PUT full replacement ─────────────────────────────────

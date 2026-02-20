@@ -575,7 +575,7 @@ function scimUsersTests() {
 
   // ── DELETE Idempotency ────────────────────────────────────────
 
-  it('DELETE same user twice returns 204 both times (idempotent)', async () => {
+  it('DELETE same user twice — first returns 204, second returns 404', async () => {
     const payload = makeScimUserPayload();
     const createRes = await request(context.app)
       .post(SCIM_USERS_PREFIX())
@@ -591,11 +591,11 @@ function scimUsersTests() {
       .set('Authorization', `Bearer ${scimToken}`);
     expect(res1.status).to.be.oneOf([200, 204]);
 
-    // Second delete — should still succeed (idempotent)
+    // Second delete — should return 404 (resource already deleted)
     const res2 = await request(context.app)
       .delete(`${SCIM_USERS_PREFIX()}/${userId}`)
       .set('Authorization', `Bearer ${scimToken}`);
-    expect(res2.status).to.be.oneOf([200, 204]);
+    expect(res2.status).to.equal(404);
   });
 
   it('List users with pagination (startIndex and count)', async () => {

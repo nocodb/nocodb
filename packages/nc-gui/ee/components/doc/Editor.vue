@@ -233,7 +233,8 @@ onBeforeUnmount(() => {
 }
 
 .nc-doc-editor-content {
-  .ProseMirror {
+  // Both classes sit on the same DOM element (Tiptap merges them)
+  &.ProseMirror {
     min-height: 200px;
 
     > * + * {
@@ -246,6 +247,29 @@ onBeforeUnmount(() => {
       color: #d1d5db;
       pointer-events: none;
       height: 0;
+    }
+
+    // Tailwind Typography v1 renders bullets as ::before pseudo-elements
+    // with background-color — override the default grey.
+    ul > li::before {
+      background-color: #1f2937 !important;
+    }
+
+    ol > li::before {
+      color: #1f2937 !important;
+    }
+
+    // Tighter list spacing — prose wraps each li's text in a <p>
+    ul li,
+    ol li {
+      margin-top: 0.1em !important;
+      margin-bottom: 0.1em !important;
+    }
+
+    ul li p,
+    ol li p {
+      margin-top: 0 !important;
+      margin-bottom: 0 !important;
     }
 
     table {

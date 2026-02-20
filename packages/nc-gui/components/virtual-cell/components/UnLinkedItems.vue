@@ -601,7 +601,13 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :load-row="!isPublic && !isBlueprintMode"
         :close-after-save="isExpandedFormCloseAfterSave"
         :meta="relatedTableMeta"
-        :new-record-header="isBlueprintMode ? `New ${relatedTableMeta?.title} Record` : isExpandedFormCloseAfterSave ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title }) : undefined"
+        :new-record-header="
+          isBlueprintMode
+            ? `New ${relatedTableMeta?.title} Record`
+            : isExpandedFormCloseAfterSave
+            ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title })
+            : undefined
+        "
         :row="{
           row: expandedFormRow,
           oldRow: {},

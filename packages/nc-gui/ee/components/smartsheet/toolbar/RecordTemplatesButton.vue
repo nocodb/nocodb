@@ -275,8 +275,7 @@ const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateT
 
   // Enforce unique template name per table (client-side check)
   const duplicate = templates.value.find(
-    (t) =>
-      t.title?.trim().toLowerCase() === title.toLowerCase() && t.id !== editingTmpl?.id && t.source_id === tableId,
+    (t) => t.title?.trim().toLowerCase() === title.toLowerCase() && t.id !== editingTmpl?.id && t.source_id === tableId,
   )
   if (duplicate) {
     message.toast(`A template with the name "${title}" already exists`)
@@ -342,9 +341,7 @@ const openManager = () => {
  * The form's table may differ from the current view's table for cross-table templates.
  */
 const openTemplateForm = async (editingTmpl: TemplateType | null = null) => {
-  const { fields: existingFields, ltarState } = editingTmpl
-    ? parseRecordTemplateData(editingTmpl)
-    : { fields: {}, ltarState: {} }
+  const { fields: existingFields, ltarState } = editingTmpl ? parseRecordTemplateData(editingTmpl) : { fields: {}, ltarState: {} }
   const templateName = editingTmpl?.title || `Record Template #${nextTemplateNumber.value}`
 
   // Resolve the table meta for this template (may be a different table than the current one)
@@ -433,9 +430,7 @@ const handleUseTemplate = async (tmpl: TemplateType) => {
     })
 
     // Update usage count in local state for immediate UI feedback
-    templates.value = templates.value.map((t) =>
-      t.id === tmpl.id ? { ...t, usage_count: (t.usage_count || 0) + 1 } : t,
-    )
+    templates.value = templates.value.map((t) => (t.id === tmpl.id ? { ...t, usage_count: (t.usage_count || 0) + 1 } : t))
 
     message.toast('Record created from template')
     reloadViewDataHook?.trigger()
@@ -477,18 +472,56 @@ const customRow = (record: Record<string, any>) => ({
         @click="openManager"
       >
         <div class="flex items-center gap-1 min-h-5">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12v-1h6v1"/><path d="M11 17h2"/><path d="M12 11v6"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            <path d="M9 12v-1h6v1" />
+            <path d="M11 17h2" />
+            <path d="M12 11v6" />
+          </svg>
         </div>
       </NcButton>
     </NcTooltip>
 
     <!-- ==================== MANAGER MODAL ==================== -->
-    <NcModal v-model:visible="showManager" centered :footer="null" size="small" :width="960" wrap-class-name="nc-modal-record-template-manager">
+    <NcModal
+      v-model:visible="showManager"
+      centered
+      :footer="null"
+      size="small"
+      :width="960"
+      wrap-class-name="nc-modal-record-template-manager"
+    >
       <div class="flex flex-col gap-5 nc-record-templates-manager">
         <!-- Header -->
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 text-base font-semibold text-nc-content-gray">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12v-1h6v1"/><path d="M11 17h2"/><path d="M12 11v6"/></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+              <path d="M9 12v-1h6v1" />
+              <path d="M11 17h2" />
+              <path d="M12 11v6" />
+            </svg>
             {{ $t('activity.manageTemplates') }}
           </div>
           <NcButton type="primary" size="small" @click="openTemplateForm()">
@@ -530,19 +563,11 @@ const customRow = (record: Record<string, any>) => ({
                   </div>
                 </NcMenuItem>
                 <NcDivider />
-                <NcMenuItem
-                  v-for="table in tablesWithTemplates"
-                  :key="table.id"
-                  @click="selectedTableFilter = table.id"
-                >
+                <NcMenuItem v-for="table in tablesWithTemplates" :key="table.id" @click="selectedTableFilter = table.id">
                   <div class="flex items-center gap-2">
                     <GeneralIcon icon="table" class="h-4 w-4 text-nc-content-gray-muted" />
                     <span class="truncate">{{ table.title }}</span>
-                    <GeneralIcon
-                      v-if="selectedTableFilter === table.id"
-                      icon="check"
-                      class="h-4 w-4 ml-auto text-primary"
-                    />
+                    <GeneralIcon v-if="selectedTableFilter === table.id" icon="check" class="h-4 w-4 ml-auto text-primary" />
                   </div>
                 </NcMenuItem>
               </NcMenu>
@@ -601,12 +626,7 @@ const customRow = (record: Record<string, any>) => ({
               <div class="nc-template-action-btns flex">
                 <NcTooltip>
                   <template #title>{{ $t('activity.useTemplate') }}</template>
-                  <NcButton
-                    size="small"
-                    type="secondary"
-                    class="!rounded-r-none !border-r-0"
-                    @click="handleUseTemplate(tmpl)"
-                  >
+                  <NcButton size="small" type="secondary" class="!rounded-r-none !border-r-0" @click="handleUseTemplate(tmpl)">
                     <GeneralIcon icon="plus" />
                   </NcButton>
                 </NcTooltip>

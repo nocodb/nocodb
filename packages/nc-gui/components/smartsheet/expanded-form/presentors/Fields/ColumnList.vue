@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, type TableType, PermissionEntity, PermissionKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  PermissionEntity,
+  PermissionKey,
+  type TableType,
+  isLinksOrLTAR,
+  isVirtualCol,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -258,10 +266,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
         'pl-0': props.forceVerticalMode,
       }"
     >
-      <div
-        v-if="!props.forceVerticalMode"
-        class="flex-none w-45 <lg:hidden sm:mx-2"
-      />
+      <div v-if="!props.forceVerticalMode" class="flex-none w-45 <lg:hidden sm:mx-2" />
       <div class="flex flex-col gap-1.5 mt-3">
         <span class="text-[11px] text-nc-content-gray-muted">Or, create and link a new record</span>
         <div class="flex items-center gap-2">

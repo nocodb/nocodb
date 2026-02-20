@@ -245,14 +245,7 @@ async function resolveSingleBlueprint(
   if (_ltarState && Object.keys(_ltarState).length && getMeta) {
     const relatedMeta = await getMeta(baseId, relatedTableId)
     const relatedColumns = relatedMeta?.columns || []
-    const resolvedNestedState = await resolveBlueprintsInLtarState(
-      _ltarState,
-      relatedColumns,
-      api,
-      baseId,
-      getMeta,
-      depth + 1,
-    )
+    const resolvedNestedState = await resolveBlueprintsInLtarState(_ltarState, relatedColumns, api, baseId, getMeta, depth + 1)
     Object.assign(recordData, resolvedNestedState)
   }
 

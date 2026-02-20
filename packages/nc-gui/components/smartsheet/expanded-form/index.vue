@@ -117,12 +117,21 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 provide(MetaInj, activeMeta)
 
-provide(IsTemplateModeInj, computed(() => !!props.templateMode || !!props.blueprintMode))
+provide(
+  IsTemplateModeInj,
+  computed(() => !!props.templateMode || !!props.blueprintMode),
+)
 
-provide(BlueprintParentTableIdInj, computed(() => props.blueprintParentTableId))
+provide(
+  BlueprintParentTableIdInj,
+  computed(() => props.blueprintParentTableId),
+)
 
 // Provide current breadcrumb trail so nested sub-record forms can extend it
-provide(TemplateBreadcrumbsInj, computed(() => props.breadcrumbs || []))
+provide(
+  TemplateBreadcrumbsInj,
+  computed(() => props.breadcrumbs || []),
+)
 
 // override cell event hook to avoid unexpected behavior at form fields
 // issue happens when opening expanded form from cell (LTAR/Links)
@@ -899,7 +908,13 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="(templateMode || blueprintMode) ? 'min(65vw,700px)' : commentsDrawer && isUIAllowed('commentList', baseRoles) ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
+    :width="
+      templateMode || blueprintMode
+        ? 'min(65vw,700px)'
+        : commentsDrawer && isUIAllowed('commentList', baseRoles)
+        ? 'min(80vw,1280px)'
+        : 'min(70vw,768px)'
+    "
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
@@ -962,19 +977,11 @@ export default {
               </div>
               <template #overlay>
                 <NcMenu variant="small" class="max-h-60 overflow-auto !min-w-[200px]">
-                  <NcMenuItem
-                    v-for="table in availableTables"
-                    :key="table.id"
-                    @click="onTemplateTableChange(table.id)"
-                  >
+                  <NcMenuItem v-for="table in availableTables" :key="table.id" @click="onTemplateTableChange(table.id)">
                     <div class="flex items-center gap-2 w-full">
                       <GeneralTableIcon size="xsmall" :meta="table" class="!mx-0 flex-none" />
                       <span class="truncate flex-1">{{ table.title }}</span>
-                      <GeneralIcon
-                        v-if="table.id === activeMeta?.id"
-                        icon="check"
-                        class="flex-none w-4 h-4 text-primary"
-                      />
+                      <GeneralIcon v-if="table.id === activeMeta?.id" icon="check" class="flex-none w-4 h-4 text-primary" />
                     </div>
                   </NcMenuItem>
                 </NcMenu>
@@ -988,10 +995,7 @@ export default {
               <GeneralTableIcon size="xsmall" :meta="activeMeta" class="!mx-0 !text-nc-content-inverted-secondary" />
               <span class="nc-expanded-form-table-name whitespace-nowrap">{{ tableTitle }}</span>
             </div>
-            <div
-              v-if="templateMode"
-              class="flex flex-col truncate overflow-hidden"
-            >
+            <div v-if="templateMode" class="flex flex-col truncate overflow-hidden">
               <input
                 ref="templateNameInputRef"
                 v-model="editableTemplateName"
@@ -1003,12 +1007,12 @@ export default {
                 A template with this name already exists
               </span>
             </div>
-            <div
-              v-else-if="row.rowMeta?.new || props.newRecordHeader"
-              class="flex flex-col truncate overflow-hidden"
-            >
+            <div v-else-if="row.rowMeta?.new || props.newRecordHeader" class="flex flex-col truncate overflow-hidden">
               <!-- Breadcrumb trail for nested sub-record forms (e.g., Project Template > Tasks) -->
-              <div v-if="props.breadcrumbs?.length" class="flex items-center gap-1 text-[11px] text-nc-content-gray-muted leading-tight">
+              <div
+                v-if="props.breadcrumbs?.length"
+                class="flex items-center gap-1 text-[11px] text-nc-content-gray-muted leading-tight"
+              >
                 <template v-for="(crumb, idx) in props.breadcrumbs" :key="idx">
                   <span class="truncate max-w-[140px]">{{ crumb }}</span>
                   <GeneralIcon icon="chevronRight" class="flex-none h-3 w-3 text-nc-content-gray-muted" />

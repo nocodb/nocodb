@@ -175,7 +175,9 @@ export default {
               :class="{
                 'px-1 rounded-full flex-1': !isAttachment(column),
                 'border-nc-border-gray-medium rounded border-1 blue-chip':
-                  !isBlueprint && border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
+                  !isBlueprint &&
+                  border &&
+                  ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
                 'rounded border-1 border-dashed blueprint-chip':
                   isBlueprint && border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
               }"

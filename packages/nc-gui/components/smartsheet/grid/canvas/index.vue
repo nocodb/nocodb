@@ -3120,7 +3120,13 @@ watch(
               </NcButton>
               <NcButton
                 v-else
-                v-e="[selectedTemplate ? 'c:row:add:template' : isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+                v-e="[
+                  selectedTemplate
+                    ? 'c:row:add:template'
+                    : isAddNewRecordGridMode && !isGroupBy
+                    ? 'c:row:add:grid'
+                    : 'c:row:add:form',
+                ]"
                 class="nc-grid-add-new-row"
                 size="small"
                 :class="{
@@ -3128,7 +3134,13 @@ watch(
                 }"
                 type="secondary"
                 :shadow="false"
-                @click.stop="selectedTemplate ? onSelectedTemplateClick() : isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
+                @click.stop="
+                  selectedTemplate
+                    ? onSelectedTemplateClick()
+                    : isAddNewRecordGridMode && !isGroupBy
+                    ? addEmptyRow()
+                    : onNewRecordToFormClick()
+                "
               >
                 <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
                   <GeneralIcon icon="plus" />

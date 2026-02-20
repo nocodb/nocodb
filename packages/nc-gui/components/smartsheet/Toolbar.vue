@@ -165,7 +165,9 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
         <SmartsheetToolbarCalendarToggleSideBar />
       </template>
-      <SmartsheetToolbarRecordTemplatesButton v-if="isEeUI && isGrid && isViewOperationsAllowed && !isPublic && !isSharedBase && !isMobileMode" />
+      <SmartsheetToolbarRecordTemplatesButton
+        v-if="isEeUI && isGrid && isViewOperationsAllowed && !isPublic && !isSharedBase && !isMobileMode"
+      />
       <NcFullScreenToggleButton v-if="showFullScreenToggle" />
     </template>
   </div>

@@ -303,7 +303,7 @@ for v in (views if isinstance(views, list) else []):
   if [[ -n "$NEW_VIEW_ID" && "$NEW_VIEW_ID" != "None" ]]; then
     echo "  PASS  create-view (id=$NEW_VIEW_ID)"
     PASS=$((PASS + 1))
-    run "get-view" $CLI get-view --base="$BASE_ID" --id="$NEW_VIEW_ID"
+    run "get-view" $CLI get-view --base="$BASE_ID" --table="$TABLE_ID" --id="$NEW_VIEW_ID"
     run "update-view" $CLI update-view --base="$BASE_ID" --id="$NEW_VIEW_ID" --title="Grid2 Renamed"
   else
     echo "  FAIL  create-view"

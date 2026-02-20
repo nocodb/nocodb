@@ -138,41 +138,43 @@ export async function listWorkspaceUsers(
   return request(`/api/v1/workspaces/${wsId}/users`, { token });
 }
 
+/** Invite user to workspace. Uses v1 (v3 requires feature_api_member_management, EE only). */
 export async function inviteToWorkspace(
   token: string,
   wsId: string,
   email: string,
   role: string,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/workspaces/${wsId}/members`, {
+  return request(`/api/v1/workspaces/${wsId}/users`, {
     method: 'POST',
     token,
-    body: [{ email, workspace_role: role }],
+    body: { email, roles: role },
   });
 }
 
+/** Update workspace member role. Uses v1. */
 export async function updateWorkspaceMember(
   token: string,
   wsId: string,
   userId: string,
   role: string,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/workspaces/${wsId}/members`, {
+  return request(`/api/v1/workspaces/${wsId}/users/${userId}`, {
     method: 'PATCH',
     token,
-    body: { user_id: userId, workspace_role: role },
+    body: { roles: role },
   });
 }
 
+/** Remove workspace member. Uses v1. */
 export async function removeWorkspaceMember(
   token: string,
   wsId: string,
   userId: string,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/workspaces/${wsId}/members`, {
+  return request(`/api/v1/workspaces/${wsId}/users/${userId}`, {
     method: 'DELETE',
     token,
-    body: { user_id: userId },
   });
 }
 
@@ -336,21 +338,29 @@ export async function deleteField(token: string, baseId: string, fieldId: string
 }
 
 // ---------------------------------------------------------------------------
-// Views (v3)
+// Views (internal — v3 requires feature_api_view_v3, EE only)
 // ---------------------------------------------------------------------------
 
 const VALID_VIEW_TYPES = ['grid', 'form', 'gallery', 'kanban', 'calendar', 'map'];
 
+/** Map generic view types to internal create operation names */
+const VIEW_CREATE_OPS: Record<string, string> = {
+  grid: 'gridViewCreate', form: 'formViewCreate', gallery: 'galleryViewCreate',
+  kanban: 'kanbanViewCreate', map: 'mapViewCreate', calendar: 'calendarViewCreate',
+};
+
 export async function listViews(
   token: string,
+  wsId: string,
   baseId: string,
   tableId: string,
 ): Promise<{ list: View[] }> {
-  return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}/views`, { token });
+  return iGet(token, wsId, baseId, 'viewList', { tableId }) as Promise<{ list: View[] }>;
 }
 
 export async function createView(
   token: string,
+  wsId: string,
   baseId: string,
   tableId: string,
   title: string,
@@ -359,52 +369,56 @@ export async function createView(
   if (!VALID_VIEW_TYPES.includes(type)) {
     throw new Error(`Unknown view type: ${type}. Use: ${VALID_VIEW_TYPES.join(', ')}`);
   }
-  return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}/views`, {
-    method: 'POST',
-    token,
-    body: { title, type },
-  });
+  const op = VIEW_CREATE_OPS[type];
+  return iPost(token, wsId, baseId, op, { title }, { tableId }) as Promise<View>;
 }
 
-export async function getView(token: string, baseId: string, viewId: string): Promise<View> {
-  return request(`/api/v3/meta/bases/${baseId}/views/${viewId}`, { token });
+export async function getView(
+  token: string,
+  wsId: string,
+  baseId: string,
+  tableId: string,
+  viewId: string,
+): Promise<View> {
+  // No v1/v2 GET endpoint for a single view; v3 requires EE.
+  // Use internal viewList and filter by viewId.
+  const { list } = await listViews(token, wsId, baseId, tableId);
+  const view = list.find((v) => v.id === viewId);
+  if (!view) throw new Error(`View ${viewId} not found in table ${tableId}`);
+  return view;
 }
 
 export async function updateView(
   token: string,
+  wsId: string,
   baseId: string,
   viewId: string,
   data: Record<string, unknown>,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/views/${viewId}`, {
-    method: 'PATCH',
-    token,
-    body: data,
-  });
+  return iPost(token, wsId, baseId, 'viewUpdate', { view: data }, { viewId });
 }
 
-export async function deleteView(token: string, baseId: string, viewId: string): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/views/${viewId}`, { method: 'DELETE', token });
+export async function deleteView(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
+  return iPost(token, wsId, baseId, 'viewDelete', {}, { viewId });
 }
 
 // ---------------------------------------------------------------------------
-// View Columns (v3)
+// View Columns (internal)
 // ---------------------------------------------------------------------------
 
-export async function listViewColumns(token: string, viewId: string): Promise<unknown> {
-  return request(`/api/v3/meta/views/${viewId}/columns`, { token });
+export async function listViewColumns(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
+  return iGet(token, wsId, baseId, 'viewColumnList', { viewId });
 }
 
 export async function updateViewColumns(
   token: string,
+  wsId: string,
+  baseId: string,
   viewId: string,
+  columnId: string,
   data: unknown,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/views/${viewId}/columns`, {
-    method: 'PATCH',
-    token,
-    body: data,
-  });
+  return iPost(token, wsId, baseId, 'viewColumnUpdate', { column: data }, { viewId, columnId });
 }
 
 // ---------------------------------------------------------------------------
@@ -659,44 +673,38 @@ export async function deleteToken(token: string, tokenId: string): Promise<unkno
 }
 
 // ---------------------------------------------------------------------------
-// Scripts (v3 — EE)
+// Scripts (internal — EE only, v3 requires feature_api_script_management)
 // ---------------------------------------------------------------------------
 
-export async function listScripts(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/scripts`, { token });
+export async function listScripts(token: string, wsId: string, baseId: string): Promise<unknown> {
+  return iGet(token, wsId, baseId, 'listScripts');
 }
 
-export async function getScript(token: string, baseId: string, scriptId: string): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/scripts/${scriptId}`, { token });
+export async function getScript(token: string, wsId: string, baseId: string, scriptId: string): Promise<unknown> {
+  return iGet(token, wsId, baseId, 'getScript', { id: scriptId });
 }
 
 export async function createScript(
   token: string,
+  wsId: string,
   baseId: string,
   script: Record<string, unknown>,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/scripts`, {
-    method: 'POST',
-    token,
-    body: script,
-  });
+  return iPost(token, wsId, baseId, 'createScript', { script });
 }
 
 export async function updateScript(
   token: string,
+  wsId: string,
   baseId: string,
   scriptId: string,
   script: Record<string, unknown>,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/scripts/${scriptId}`, {
-    method: 'PATCH',
-    token,
-    body: script,
-  });
+  return iPost(token, wsId, baseId, 'updateScript', { script: { ...script, id: scriptId } });
 }
 
-export async function deleteScript(token: string, baseId: string, scriptId: string): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/scripts/${scriptId}`, { method: 'DELETE', token });
+export async function deleteScript(token: string, wsId: string, baseId: string, scriptId: string): Promise<unknown> {
+  return iPost(token, wsId, baseId, 'deleteScript', {}, { scriptId });
 }
 
 // ---------------------------------------------------------------------------
@@ -1887,26 +1895,26 @@ export async function markAllNotificationsRead(token: string): Promise<unknown> 
 }
 
 // ---------------------------------------------------------------------------
-// Gallery View GET (v1) — no internal GET operation
+// Gallery View GET (v1) — no internal GET operation; baseId for scope consistency
 // ---------------------------------------------------------------------------
 
-export async function getGalleryView(token: string, galleryViewId: string): Promise<unknown> {
+export async function getGalleryView(token: string, baseId: string, galleryViewId: string): Promise<unknown> {
   return request(`/api/v1/db/meta/galleries/${galleryViewId}`, { token });
 }
 
 // ---------------------------------------------------------------------------
-// Kanban View GET (v1) — no internal GET operation
+// Kanban View GET (v1) — no internal GET operation; baseId for scope consistency
 // ---------------------------------------------------------------------------
 
-export async function getKanbanView(token: string, kanbanViewId: string): Promise<unknown> {
+export async function getKanbanView(token: string, baseId: string, kanbanViewId: string): Promise<unknown> {
   return request(`/api/v1/db/meta/kanbans/${kanbanViewId}`, { token });
 }
 
 // ---------------------------------------------------------------------------
-// Grid Columns List (v1) — for grid-specific column data
+// Grid Columns List (v1) — for grid-specific column data; baseId for scope consistency
 // ---------------------------------------------------------------------------
 
-export async function listGridColumns(token: string, gridViewId: string): Promise<unknown> {
+export async function listGridColumns(token: string, baseId: string, gridViewId: string): Promise<unknown> {
   return request(`/api/v1/db/meta/grids/${gridViewId}/grid-columns`, { token });
 }
 

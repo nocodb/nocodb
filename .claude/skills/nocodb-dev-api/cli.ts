@@ -290,10 +290,11 @@ const commands: Record<string, Handler> = {
     return api.deleteField(token(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
   },
 
-  // Views (v3)
+  // Views (internal)
   async 'list-views'(flags) {
     return api.listViews(
       token(flags),
+      wsId(flags),
       requireFlag(flags, 'base'),
       requireFlag(flags, 'table'),
     );
@@ -301,6 +302,7 @@ const commands: Record<string, Handler> = {
   async 'create-view'(flags) {
     return api.createView(
       token(flags),
+      wsId(flags),
       requireFlag(flags, 'base'),
       requireFlag(flags, 'table'),
       requireFlag(flags, 'title'),
@@ -308,26 +310,26 @@ const commands: Record<string, Handler> = {
     );
   },
   async 'get-view'(flags) {
-    return api.getView(token(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
+    return api.getView(token(flags), wsId(flags), requireFlag(flags, 'base'), requireFlag(flags, 'table'), requireFlag(flags, 'id'));
   },
   async 'update-view'(flags) {
     const data: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(flags)) {
       if (!['base', 'id', 'as', 'workspace', 'table'].includes(k)) data[k] = v;
     }
-    return api.updateView(token(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'), data);
+    return api.updateView(token(flags), wsId(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'), data);
   },
   async 'delete-view'(flags) {
-    return api.deleteView(token(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
+    return api.deleteView(token(flags), wsId(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
   },
 
-  // View Columns (v3)
+  // View Columns (internal)
   async 'list-view-columns'(flags) {
-    return api.listViewColumns(token(flags), requireFlag(flags, 'view'));
+    return api.listViewColumns(token(flags), wsId(flags), requireFlag(flags, 'base'), requireFlag(flags, 'view'));
   },
   async 'update-view-columns'(flags) {
     const data = parseJson(requireFlag(flags, 'data'));
-    return api.updateViewColumns(token(flags), requireFlag(flags, 'view'), data);
+    return api.updateViewColumns(token(flags), wsId(flags), requireFlag(flags, 'base'), requireFlag(flags, 'view'), requireFlag(flags, 'column'), data);
   },
 
   // Filters (v3)
@@ -516,28 +518,29 @@ const commands: Record<string, Handler> = {
     return api.deleteToken(token(flags), requireFlag(flags, 'id'));
   },
 
-  // Scripts (v3 — EE)
+  // Scripts (internal — EE)
   async 'list-scripts'(flags) {
-    return api.listScripts(token(flags), requireFlag(flags, 'base'));
+    return api.listScripts(token(flags), wsId(flags), requireFlag(flags, 'base'));
   },
   async 'get-script'(flags) {
-    return api.getScript(token(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
+    return api.getScript(token(flags), wsId(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
   },
   async 'create-script'(flags) {
     const script = parseJson(requireFlag(flags, 'data')) as Record<string, unknown>;
-    return api.createScript(token(flags), requireFlag(flags, 'base'), script);
+    return api.createScript(token(flags), wsId(flags), requireFlag(flags, 'base'), script);
   },
   async 'update-script'(flags) {
     const script = parseJson(requireFlag(flags, 'data')) as Record<string, unknown>;
     return api.updateScript(
       token(flags),
+      wsId(flags),
       requireFlag(flags, 'base'),
       requireFlag(flags, 'id'),
       script,
     );
   },
   async 'delete-script'(flags) {
-    return api.deleteScript(token(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
+    return api.deleteScript(token(flags), wsId(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
   },
 
   // Records (v3) — uses --base (base ID or name) and --table (table ID or name)
@@ -779,7 +782,7 @@ const commands: Record<string, Handler> = {
 
   // Gallery View Config
   async 'get-gallery-view'(flags) {
-    return api.getGalleryView(token(flags), requireFlag(flags, 'id'));
+    return api.getGalleryView(token(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
   },
   async 'update-gallery-view'(flags) {
     const data = parseJson(requireFlag(flags, 'data')) as Record<string, unknown>;
@@ -788,7 +791,7 @@ const commands: Record<string, Handler> = {
 
   // Kanban View Config
   async 'get-kanban-view'(flags) {
-    return api.getKanbanView(token(flags), requireFlag(flags, 'id'));
+    return api.getKanbanView(token(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
   },
   async 'update-kanban-view'(flags) {
     const data = parseJson(requireFlag(flags, 'data')) as Record<string, unknown>;
@@ -797,7 +800,7 @@ const commands: Record<string, Handler> = {
 
   // Grid View Config
   async 'list-grid-columns'(flags) {
-    return api.listGridColumns(token(flags), requireFlag(flags, 'id'));
+    return api.listGridColumns(token(flags), requireFlag(flags, 'base'), requireFlag(flags, 'id'));
   },
   async 'update-grid-column'(flags) {
     const data = parseJson(requireFlag(flags, 'data')) as Record<string, unknown>;

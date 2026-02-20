@@ -469,7 +469,7 @@ onMounted(async () => {
                     <MdiCheck v-if="isCopied.scimToken" class="h-3.5 text-green-600" />
                     <component :is="iconMap.copy" v-else class="text-nc-content-gray" />
                   </NcButton>
-                  <NcButton :loading="isScimLoading" size="xsmall" type="secondary" @click="handleRegenerateToken">
+                  <NcButton size="xsmall" type="secondary" @click="handleRegenerateToken">
                     <component :is="iconMap.reload" />
                     Regenerate
                   </NcButton>

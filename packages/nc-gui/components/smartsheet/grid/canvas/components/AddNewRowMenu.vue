@@ -82,8 +82,10 @@ const handleUseTemplate = async (tmpl: any) => {
       v-e="['c:row:add:form']"
       class="nc-new-record-with-form group"
       @click="
-        setSelectedTemplate(null)
-        onNewRecordToFormClick(path ?? [])
+        () => {
+          setSelectedTemplate(null)
+          onNewRecordToFormClick(path ?? [])
+        }
       "
     >
       <div class="flex flex-row items-center flex-1 justify-start gap-x-3">
@@ -103,8 +105,10 @@ const handleUseTemplate = async (tmpl: any) => {
         v-e="['c:record-templates:use']"
         class="nc-template-menu-item"
         @click="
-          setSelectedTemplate(tmpl.id)
-          handleUseTemplate(tmpl)
+          () => {
+            setSelectedTemplate(tmpl.id)
+            handleUseTemplate(tmpl)
+          }
         "
       >
         <div class="flex items-center flex-1 gap-2">

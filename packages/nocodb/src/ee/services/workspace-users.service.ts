@@ -303,7 +303,12 @@ export class WorkspaceUsersService {
     const workspace = await Workspace.get(workspaceId);
 
     const user = await User.get(userId);
-    const workspaceUser = await WorkspaceUser.get(workspaceId, userId, {}, ncMeta);
+    const workspaceUser = await WorkspaceUser.get(
+      workspaceId,
+      userId,
+      {},
+      ncMeta,
+    );
 
     if (!workspaceUser) NcError.userNotFound(userId);
 

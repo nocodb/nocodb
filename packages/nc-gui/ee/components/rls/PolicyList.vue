@@ -183,10 +183,18 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
         <p class="text-sm font-semibold">No RLS policies configured</p>
         <p class="text-xs mt-1">Row-Level Security controls which rows users can see and modify.</p>
       </div>
-      <div class="flex gap-2 mt-2">
-        <NcButton type="primary" size="small" @click="handleCreatePolicy">Add Scoped Policy</NcButton>
-        <NcButton v-if="!defaultPolicy" type="secondary" size="small" @click="handleCreateDefaultPolicy">
-          Add Default Policy
+      <div class="flex flex-col items-center gap-2 mt-2">
+        <NcButton type="primary" size="small" @click="handleCreatePolicy">
+          <div class="flex items-center gap-1">
+            <GeneralIcon icon="plus" />
+            Add Policy
+          </div>
+        </NcButton>
+        <NcButton v-if="!defaultPolicy" type="text" size="xs" class="!text-nc-content-brand" @click="handleCreateDefaultPolicy">
+          <div class="flex items-center gap-1">
+            <GeneralIcon icon="plus" />
+            Add default policy
+          </div>
         </NcButton>
       </div>
     </div>

@@ -10,6 +10,7 @@ import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import type { DocType } from 'nocodb-sdk'
+import { timeAgo } from '~/utils/datetimeUtils'
 
 const props = defineProps<{
   docId: string
@@ -37,13 +38,22 @@ const idUserMap = computed<Record<string, any>>(() => {
   }, {})
 })
 
-const createdByLabel = computed(() => {
-  const creatorId = doc.value?.created_by
-  if (!creatorId) return ''
-  const creator = idUserMap.value[creatorId]
-  if (!creator) return ''
-  if (creator.id === user.value?.id) return 'You'
-  return creator.display_name || creator.email || ''
+const resolveUserLabel = (userId?: string) => {
+  if (!userId) return ''
+  const u = idUserMap.value[userId]
+  if (!u) return ''
+  if (u.id === user.value?.id) return 'you'
+  return u.display_name || u.email || ''
+}
+
+const createdByLabel = computed(() => resolveUserLabel(doc.value?.created_by))
+
+const updatedByLabel = computed(() => resolveUserLabel(doc.value?.updated_by))
+
+const updatedAgo = computed(() => {
+  const ts = doc.value?.updated_at
+  if (!ts) return ''
+  return timeAgo(ts)
 })
 
 const doc = ref<DocType | null>(null)
@@ -67,9 +77,11 @@ const save = async () => {
       version: doc.value.version,
     })
 
-    // Advance local version to match server for optimistic concurrency
+    // Advance local doc fields to match server response
     if (updated) {
       doc.value.version = updated.version
+      doc.value.updated_at = updated.updated_at
+      doc.value.updated_by = updated.updated_by
     }
   } catch (e) {
     console.error('[doc:editor] save failed', e)
@@ -197,15 +209,23 @@ onBeforeUnmount(() => {
         <input
           ref="titleInput"
           v-model="title"
-          class="nc-doc-title w-full text-3xl font-bold outline-none bg-transparent nc-doc-title-input"
+          class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
           placeholder="Untitled"
           @blur="onTitleBlur"
           @keydown="onTitleKeydown"
         />
-        <div class="flex items-center gap-2 mt-1.5 h-4 text-xs text-nc-content-gray-muted">
-          <span v-if="createdByLabel">Created by {{ createdByLabel }}</span>
-          <span v-if="createdByLabel && isSaving" class="text-nc-content-gray-muted">&middot;</span>
-          <span :class="isSaving ? '' : 'text-transparent'">Saving...</span>
+        <div class="nc-doc-subtitle flex items-center gap-1 mt-2 text-sm">
+          <template v-if="createdByLabel">
+            <span>Created by {{ createdByLabel }}</span>
+          </template>
+          <template v-if="updatedByLabel && updatedAgo">
+            <span v-if="createdByLabel">&middot;</span>
+            <span>Updated by {{ updatedByLabel }} {{ updatedAgo }}</span>
+          </template>
+          <template v-if="isSaving">
+            <span v-if="createdByLabel || updatedByLabel">&middot;</span>
+            <span>Saving...</span>
+          </template>
         </div>
       </div>
 
@@ -226,6 +246,11 @@ onBeforeUnmount(() => {
   background: var(--nc-bg-default);
 }
 
+// Subtitle (created by / updated by) — match Outline's muted slate
+.nc-doc-subtitle {
+  color: #9BA6B2;
+}
+
 // Title placeholder — lighter than muted to feel like a watermark
 .nc-doc-title-input::placeholder {
   color: #d1d5db;
@@ -239,6 +264,31 @@ onBeforeUnmount(() => {
 
     > * + * {
       margin-top: 0.75em;
+    }
+
+    // Heading hierarchy — match Outline: semibold, clear size steps, moderate spacing
+    h1 {
+      font-size: 1.625em !important;
+      font-weight: 600 !important;
+      margin-top: 1.4em !important;
+      margin-bottom: 0.4em !important;
+      line-height: 1.3 !important;
+    }
+
+    h2 {
+      font-size: 1.3em !important;
+      font-weight: 600 !important;
+      margin-top: 1.2em !important;
+      margin-bottom: 0.35em !important;
+      line-height: 1.35 !important;
+    }
+
+    h3 {
+      font-size: 1.125em !important;
+      font-weight: 600 !important;
+      margin-top: 1em !important;
+      margin-bottom: 0.3em !important;
+      line-height: 1.4 !important;
     }
 
     p.is-editor-empty:first-child::before {

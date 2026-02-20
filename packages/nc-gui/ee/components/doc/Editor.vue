@@ -5,8 +5,6 @@ import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
-import TaskList from '@tiptap/extension-task-list'
-import { TaskItem } from '~/helpers/tiptap-markdown/extensions'
 import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
@@ -108,8 +106,7 @@ const editor = useEditor({
     Link.configure({ openOnClick: false }),
     Placeholder.configure({ placeholder: 'Type \'/\' for commands, or start writing...' }),
     Image,
-    TaskList,
-    TaskItem.configure({ nested: true }),
+    // TODO Phase-2: TaskList + TaskItem (needs task list CSS that doesn't conflict with prose)
     Table.configure({ resizable: true }),
     TableRow,
     TableCell,
@@ -117,7 +114,7 @@ const editor = useEditor({
   ],
   editorProps: {
     attributes: {
-      class: 'nc-doc-editor-content prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[200px]',
+      class: 'nc-doc-editor-content focus:outline-none min-h-[200px]',
     },
   },
   onUpdate: () => {
@@ -238,7 +235,12 @@ onBeforeUnmount(() => {
         <template v-if="editor">
           <!-- Bubble menu: appears on text selection -->
           <BubbleMenu :editor="editor" :update-delay="250" :tippy-options="{ duration: 100, maxWidth: 600 }">
-            <CellRichTextSelectedBubbleMenu :editor="editor" embed-mode hide-mention />
+            <CellRichTextSelectedBubbleMenu
+              :editor="editor"
+              embed-mode
+              hide-mention
+              :hidden-options="[RichTextBubbleMenuOptions.taskList]"
+            />
           </BubbleMenu>
           <EditorContent :editor="editor" />
         </template>
@@ -274,119 +276,163 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
-.nc-doc-editor-content {
-  // Both classes sit on the same DOM element (Tiptap merges them)
-  &.ProseMirror {
-    min-height: 200px;
+// Doc editor typography — no prose class, clean styles
+.nc-doc-editor-content.ProseMirror {
+  min-height: 200px;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #1f2937;
 
-    > * + * {
-      margin-top: 0.75em;
+  > * + * {
+    margin-top: 0.75em;
+  }
+
+  // Headings — H1/H2/H3 prefix labels sit outside via absolute positioning
+  h1, h2, h3 {
+    position: relative;
+    color: #111827;
+
+    &::before {
+      position: absolute;
+      right: 100%;
+      margin-right: 0.5em;
+      color: #9BA6B2;
+      font-size: 12px;
+      font-weight: 500;
+      top: 50%;
+      transform: translateY(-50%);
     }
+  }
 
-    // Heading hierarchy — semibold, clear size steps
-    // H1/H2/H3 prefix labels sit outside the content area via absolute positioning
-    h1, h2, h3 {
+  h1 {
+    font-size: 1.625em;
+    font-weight: 600;
+    margin-top: 1.4em;
+    margin-bottom: 0.4em;
+    line-height: 1.3;
+    &::before { content: 'H1'; }
+  }
+
+  h2 {
+    font-size: 1.3em;
+    font-weight: 600;
+    margin-top: 1.2em;
+    margin-bottom: 0.35em;
+    line-height: 1.35;
+    &::before { content: 'H2'; }
+  }
+
+  h3 {
+    font-size: 1.125em;
+    font-weight: 600;
+    margin-top: 1em;
+    margin-bottom: 0.3em;
+    line-height: 1.4;
+    &::before { content: 'H3'; }
+  }
+
+  // Placeholder
+  p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: #d1d5db;
+    pointer-events: none;
+    height: 0;
+  }
+
+  // Lists
+  ul {
+    list-style-type: disc;
+    padding-left: 1.5em;
+  }
+
+  ol {
+    list-style-type: decimal;
+    padding-left: 1.5em;
+  }
+
+  ul li,
+  ol li {
+    margin-top: 0.1em;
+    margin-bottom: 0.1em;
+  }
+
+  ul li p,
+  ol li p {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  // Blockquote
+  blockquote {
+    border-left: 3px solid #d1d5db;
+    padding-left: 1em;
+    color: #6b7280;
+    margin: 0.75em 0;
+  }
+
+  // Code
+  code {
+    background-color: #f3f4f6;
+    border-radius: 0.25em;
+    padding: 0.15em 0.3em;
+    font-size: 0.875em;
+  }
+
+  pre {
+    background-color: #1f2937;
+    color: #f9fafb;
+    border-radius: 0.5em;
+    padding: 0.75em 1em;
+    overflow-x: auto;
+
+    code {
+      background: none;
+      padding: 0;
+      color: inherit;
+      font-size: inherit;
+    }
+  }
+
+  // Horizontal rule
+  hr {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    margin: 1.5em 0;
+  }
+
+  // Links
+  a {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+
+  // Table
+  table {
+    border-collapse: collapse;
+    margin: 0;
+    overflow: hidden;
+    table-layout: fixed;
+    width: 100%;
+
+    td,
+    th {
+      border: 1px solid var(--nc-border-gray-medium);
+      box-sizing: border-box;
+      min-width: 1em;
+      padding: 6px 8px;
       position: relative;
+      vertical-align: top;
 
-      &::before {
-        position: absolute;
-        right: 100%;
-        margin-right: 0.5em;
-        color: #9BA6B2;
-        font-size: 12px;
-        font-weight: 500;
-        top: 50%;
-        transform: translateY(-50%);
+      > * {
+        margin-bottom: 0;
       }
     }
 
-    h1 {
-      font-size: 1.625em !important;
-      font-weight: 600 !important;
-      margin-top: 1.4em !important;
-      margin-bottom: 0.4em !important;
-      line-height: 1.3 !important;
-
-      &::before { content: 'H1'; }
-    }
-
-    h2 {
-      font-size: 1.3em !important;
-      font-weight: 600 !important;
-      margin-top: 1.2em !important;
-      margin-bottom: 0.35em !important;
-      line-height: 1.35 !important;
-
-      &::before { content: 'H2'; }
-    }
-
-    h3 {
-      font-size: 1.125em !important;
-      font-weight: 600 !important;
-      margin-top: 1em !important;
-      margin-bottom: 0.3em !important;
-      line-height: 1.4 !important;
-
-      &::before { content: 'H3'; }
-    }
-
-    p.is-editor-empty:first-child::before {
-      content: attr(data-placeholder);
-      float: left;
-      color: #d1d5db;
-      pointer-events: none;
-      height: 0;
-    }
-
-    // Tailwind Typography v1 renders bullets as ::before pseudo-elements
-    // with background-color — override the default grey.
-    ul > li::before {
-      background-color: #1f2937 !important;
-    }
-
-    ol > li::before {
-      color: #1f2937 !important;
-    }
-
-    // Tighter list spacing — prose wraps each li's text in a <p>
-    ul li,
-    ol li {
-      margin-top: 0.1em !important;
-      margin-bottom: 0.1em !important;
-    }
-
-    ul li p,
-    ol li p {
-      margin-top: 0 !important;
-      margin-bottom: 0 !important;
-    }
-
-    table {
-      border-collapse: collapse;
-      margin: 0;
-      overflow: hidden;
-      table-layout: fixed;
-      width: 100%;
-
-      td,
-      th {
-        border: 1px solid var(--nc-border-gray-medium);
-        box-sizing: border-box;
-        min-width: 1em;
-        padding: 6px 8px;
-        position: relative;
-        vertical-align: top;
-
-        > * {
-          margin-bottom: 0;
-        }
-      }
-
-      th {
-        background-color: var(--nc-bg-gray-light);
-        font-weight: bold;
-        text-align: left;
-      }
+    th {
+      background-color: var(--nc-bg-gray-light);
+      font-weight: bold;
+      text-align: left;
     }
   }
 }

@@ -104,7 +104,7 @@ const editor = useEditor({
     }),
     Underline,
     Link.configure({ openOnClick: false }),
-    Placeholder.configure({ placeholder: 'Type \'/\' for commands, or start writing...' }),
+    Placeholder.configure({ placeholder: 'Start writing...' }),
     Image,
     // TODO Phase-2: TaskList + TaskItem (needs task list CSS that doesn't conflict with prose)
     Table.configure({ resizable: true }),

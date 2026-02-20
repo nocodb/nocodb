@@ -1,5 +1,6 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import isEmail from 'validator/lib/isEmail';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -107,10 +108,7 @@ export class ScimUsersService {
   ) {
     const { scimUser, workspaceId } = param;
 
-    // Extract email from SCIM user
-    const primaryEmail =
-      scimUser.emails?.find((e) => e.primary)?.value ||
-      scimUser.emails?.[0]?.value;
+    const primaryEmail = this.extractEmail(scimUser);
 
     if (!primaryEmail) {
       NcError.badRequest('Email is required');
@@ -662,4 +660,46 @@ export class ScimUsersService {
     return result;
   }
 
+  /**
+   * Extract and validate email from SCIM user payload.
+   *
+   * IdP-specific behaviour:
+   *  - Okta / JumpCloud / Duo  → emails[primary=true].value
+   *  - Azure AD (Entra ID)     → emails[type="work"].value, userName must match
+   *  - OneLogin                → emails[] or userName when emails absent
+   *  - Google Workspace        → single email in emails[]
+   *  - PingIdentity            → single email in emails[]
+   *
+   * Extraction priority (RFC 7643 §4.1.2):
+   *  1. emails entry with primary=true
+   *  2. emails entry with type="work"
+   *  3. first emails entry
+   *  4. userName (if it's a valid email)
+   */
+  private extractEmail(scimUser: any): string | null {
+    const emails = scimUser.emails;
+
+    let candidate: string | null = null;
+
+    if (Array.isArray(emails) && emails.length > 0) {
+      candidate =
+        emails.find((e: any) => e.primary)?.value ||
+        emails.find((e: any) => e.type === 'work')?.value ||
+        emails[0]?.value ||
+        null;
+    }
+
+    // Fallback: userName (OneLogin, some custom IdPs)
+    if (!candidate && scimUser.userName) {
+      candidate = scimUser.userName;
+    }
+
+    if (!candidate) return null;
+
+    candidate = candidate.trim().toLowerCase();
+
+    if (!isEmail(candidate)) return null;
+
+    return candidate;
+  }
 }

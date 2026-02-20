@@ -140,16 +140,20 @@ export const useDocsStore = defineStore('docsStore', () => {
         { ...updates, docId },
       )) as DocType
 
+      // Patch the existing doc in place to avoid replacing the entire array
+      // which would trigger reactivity on every sidebar node during auto-save.
       const baseDocs = docs.value.get(baseId) || []
-      const index = baseDocs.findIndex((d) => d.id === docId)
+      const existing = baseDocs.find((d) => d.id === docId)
 
-      if (index !== -1) {
-        const updatedDocs = [...baseDocs]
-        updatedDocs[index] = { ...baseDocs[index], ...updated }
-        docs.value.set(baseId, updatedDocs)
+      if (existing) {
+        existing.version = updated.version
+        existing.updated_at = updated.updated_at
+        existing.updated_by = updated.updated_by
+        if (updates.title !== undefined) {
+          existing.title = updated.title
+        }
       }
 
-      await refreshCommandPalette()
       $e('a:doc:update')
 
       return updated

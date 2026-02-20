@@ -165,7 +165,7 @@ onBeforeUnmount(() => {
         @blur="onTitleBlur"
         @keydown="onTitleKeydown"
       />
-      <div v-if="isSaving" class="text-xs text-nc-content-gray-muted mt-1">Saving...</div>
+      <div class="text-xs mt-1 h-4" :class="isSaving ? 'text-nc-content-gray-muted' : 'text-transparent'">Saving...</div>
     </div>
 
     <!-- Editor -->

@@ -323,19 +323,26 @@ export class ScimUsersService {
       updateData.deleted_at = null;
     }
 
-    // WorkspaceUser.update calls get() internally, but get() returns null
-    // for deleted users. For deactivation, construct the response manually.
-    const updatedUser = await WorkspaceUser.update(
+    // Persist the update
+    await WorkspaceUser.update(
       workspaceId,
       workspaceUser.fk_user_id,
       updateData,
     );
 
-    if (updatedUser) {
-      return this.toScimUser(updatedUser, workspaceId);
+    // Re-fetch from DB via getByScimExternalId (same code path as GET)
+    // to ensure response reflects persisted state and scim_meta is parsed
+    const refreshed = await WorkspaceUser.getByScimExternalId(
+      workspaceId,
+      scimId,
+      { include_deleted: true },
+    );
+
+    if (refreshed) {
+      return this.toScimUser(refreshed, workspaceId);
     }
 
-    // Fallback for deactivated users (get() filters deleted records)
+    // Fallback for edge cases (e.g. race condition on deactivation)
     return this.toScimUser({ ...workspaceUser, ...updateData }, workspaceId);
   }
 
@@ -346,21 +353,22 @@ export class ScimUsersService {
     context: NcContext,
     param: { workspaceId: string; scimId: string },
   ) {
-    // Direct indexed lookup (include deleted for idempotency per RFC 7644)
+    // Direct indexed lookup (include deleted so we can distinguish not-found vs already-deleted)
     const workspaceUser = await WorkspaceUser.getByScimExternalId(
       param.workspaceId,
       param.scimId,
       { include_deleted: true },
     );
 
-    // RFC 7644 §3.6: DELETE should be idempotent — return 204 even if not found
+    // RFC 7644 §3.6: Return 404 if the resource does not exist
     if (!workspaceUser) {
-      return;
+      NcError.notFound('User not found');
     }
 
-    // Already deactivated — no-op (idempotent)
+    // Already deactivated — return 404 (Microsoft SCIM compliance requires
+    // 404 for DELETE on an already-deleted resource)
     if (workspaceUser.deleted) {
-      return;
+      NcError.notFound('User not found');
     }
 
     await WorkspaceUser.softDelete(param.workspaceId, workspaceUser.fk_user_id);

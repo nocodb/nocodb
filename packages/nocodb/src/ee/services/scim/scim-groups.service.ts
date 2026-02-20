@@ -325,9 +325,9 @@ export class ScimGroupsService {
       param.scimId,
     );
 
-    // RFC 7644 §3.6: DELETE should be idempotent — return 204 even if not found
+    // RFC 7644 §3.6: Return 404 if the resource does not exist
     if (!team) {
-      return;
+      NcError.notFound('Group not found');
     }
 
     await Team.softDelete(context, team.id);

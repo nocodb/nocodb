@@ -39,6 +39,7 @@ export function useViewFilters(
   fieldsToFilter?: Ref<ColumnType[]>,
   parentColId?: Ref<string>,
   isTempFilters?: boolean,
+  isRlsPolicy?: boolean,
 ) {
   const savingStatus: Record<number, boolean> = {}
 
@@ -51,7 +52,7 @@ export function useViewFilters(
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const { nestedFilters, isForm, allFilters } =
-    isWidget || isWorkflow
+    isWidget || isWorkflow || isRlsPolicy
       ? {
           nestedFilters: ref([]),
           isForm: ref(false),
@@ -119,7 +120,8 @@ export function useViewFilters(
 
   const filters = computed<ColumnFilterType[]>({
     get: () => {
-      return (nestedMode.value && !isLink && !isWebhook && !isWidget && !isWorkflow) || (isForm.value && !isWebhook)
+      return (nestedMode.value && !isLink && !isWebhook && !isWidget && !isWorkflow && !isRlsPolicy) ||
+        (isForm.value && !isWebhook)
         ? currentFilters.value!
         : _filters.value
     },
@@ -129,7 +131,7 @@ export function useViewFilters(
         return
       } else if (nestedMode.value || isWorkflow) {
         currentFilters.value = value
-        if (!isLink && !isWebhook && !isWidget && !isWorkflow) {
+        if (!isLink && !isWebhook && !isWidget && !isWorkflow && !isRlsPolicy) {
           if (!isNestedRoot) {
             nestedFilters.value = value
           }
@@ -160,7 +162,7 @@ export function useViewFilters(
   const activeView = inject(ActiveViewInj, ref())
 
   const { showSystemFields, fieldsMap } =
-    widgetId?.value || isWorkflow ? { showSystemFields: ref(false), fieldsMap: ref({}) } : useViewColumnsOrThrow()
+    isWidget || isWorkflow || isRlsPolicy ? { showSystemFields: ref(false), fieldsMap: ref({}) } : useViewColumnsOrThrow()
 
   const options = computed<SelectProps['options']>(() =>
     meta.value?.columns?.filter((c: ColumnType) => {
@@ -366,7 +368,7 @@ export function useViewFilters(
     await Promise.all(promises)
 
     // Push all child filters into the allFilters array
-    if (!isLink && !isWebhook && !isWidget) allFilters.value.push(...(allChildFilters as FilterType[]))
+    if (!isLink && !isWebhook && !isWidget && !isRlsPolicy) allFilters.value.push(...(allChildFilters as FilterType[]))
   }
 
   const loadFilters = async ({
@@ -526,7 +528,8 @@ export function useViewFilters(
           if (filter.is_group) {
             deleteFilterGroupFromAllFilters(filter)
           } else {
-            if (!isLink && !isWebhook && !isWidget) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+            if (!isLink && !isWebhook && !isWidget && !isRlsPolicy)
+              allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
           }
         } else if (filter.status === 'update') {
           await $api.internal.postOperation(
@@ -544,7 +547,7 @@ export function useViewFilters(
 
           // EE only: Sync updated filter properties to the smartsheet store's allFilters
           // so PinnedFilters and other consumers see changes immediately
-          if (isEeUI && !isLink && !isWebhook && !isWidget) {
+          if (isEeUI && !isLink && !isWebhook && !isWidget && !isRlsPolicy) {
             const storeFilter = allFilters.value.find((f) => f.id === filter.id)
             if (storeFilter) {
               Object.assign(storeFilter, {
@@ -633,11 +636,11 @@ export function useViewFilters(
 
           if (children) filters.value[+i].children = children
 
-          if (!isLink && !isWebhook && !isWidget) allFilters.value.push(filters.value[+i] as FilterType)
+          if (!isLink && !isWebhook && !isWidget && !isRlsPolicy) allFilters.value.push(filters.value[+i] as FilterType)
         }
       }
 
-      if (!isWebhook && !isLink && !isWidget) reloadData?.()
+      if (!isWebhook && !isLink && !isWidget && !isRlsPolicy) reloadData?.()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -757,7 +760,7 @@ export function useViewFilters(
 
         // EE only: Sync updated filter to the smartsheet store's allFilters
         // so PinnedFilters and other consumers see changes immediately
-        if (isEeUI && !isLink && !isWebhook && !isWidget) {
+        if (isEeUI && !isLink && !isWebhook && !isWidget && !isRlsPolicy) {
           const storeFilter = allFilters.value.find((f) => f.id === filter.id)
           if (storeFilter) {
             Object.assign(storeFilter, {
@@ -841,7 +844,7 @@ export function useViewFilters(
 
           filters.value = filters.value.sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
         }
-        if (!isLink && !isWebhook && !isWidget) allFilters.value.push(filters.value[+i] as FilterType)
+        if (!isLink && !isWebhook && !isWidget && !isRlsPolicy) allFilters.value.push(filters.value[+i] as FilterType)
       }
     } catch (e: any) {
       console.log(e)
@@ -852,7 +855,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    if (!isWebhook && !skipDataReload && !isLink && !isWidget) reloadData?.()
+    if (!isWebhook && !skipDataReload && !isLink && !isWidget && !isRlsPolicy) reloadData?.()
   }
 
   function deleteFilterGroupFromAllFilters(filter: ColumnFilterType) {
@@ -905,7 +908,7 @@ export function useViewFilters(
     if (nestedMode.value || isWorkflow) {
       filters.value.splice(i, 1)
       filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
-      if (!isWebhook && !isLink && !isWidget && !isWorkflow) reloadData?.()
+      if (!isWebhook && !isLink && !isWidget && !isWorkflow && !isRlsPolicy) reloadData?.()
     } else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
@@ -924,7 +927,7 @@ export function useViewFilters(
               },
               {},
             )
-            if (!isWebhook && !isLink && !isWidget) reloadData?.()
+            if (!isWebhook && !isLink && !isWidget && !isRlsPolicy) reloadData?.()
 
             // find item index by using id and remove it from array since item index may change
             const itemIndex = filters.value.findIndex((f) => f.id === filter.id)
@@ -950,7 +953,8 @@ export function useViewFilters(
     if (filter.is_group) {
       deleteFilterGroupFromAllFilters(filter)
     } else {
-      if (!isLink && !isWebhook && !isWidget) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+      if (!isLink && !isWebhook && !isWidget && !isRlsPolicy)
+        allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
     }
   }
 

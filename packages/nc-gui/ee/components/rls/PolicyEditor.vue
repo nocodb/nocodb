@@ -390,7 +390,6 @@ const showFilterSection = computed(() => {
           :auto-save="false"
           :show-loading="false"
           :rls-policy-id="policy.id"
-          :web-hook="true"
           :show-dynamic-condition="false"
           action-btn-type="secondary"
         />

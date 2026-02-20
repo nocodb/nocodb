@@ -141,7 +141,7 @@ const {
   isForm,
   eventBus,
   allFilters: smartsheetAllFilters,
-} = widget.value || workflow.value
+} = widget.value || workflow.value || rlsPolicyId?.value
   ? {
       nestedFilters: ref([]),
       isForm: ref(false),
@@ -204,6 +204,7 @@ const {
   fieldsToFilter,
   parentColId,
   props.isTempFilters,
+  !!rlsPolicyId?.value,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -1214,7 +1215,7 @@ defineExpose({
                   }"
                   class="nc-filter-field-select min-w-32 max-h-8"
                   :columns="fieldsToFilter"
-                  :disable-smartsheet="!!widget || !!workflow"
+                  :disable-smartsheet="!!widget || !!workflow || !!rlsPolicyId"
                   :disabled="filter.readOnly || isLockedView || readOnly"
                   :meta="meta"
                   :show-all-columns="filter.readOnly || isLockedView || readOnly"

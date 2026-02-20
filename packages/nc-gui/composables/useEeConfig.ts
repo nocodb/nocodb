@@ -61,6 +61,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockPinnedFilter = computed(() => true)
 
+  const blockCellColoring = computed(() => true)
+
   const blockTableAndFieldPermissions = computed(() => true)
 
   const blockPrivateBases = computed(() => true)
@@ -151,6 +153,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUsePinnedFilter = (..._args: any[]) => {}
 
+  const showUpgradeToUseCellColoring = (..._args: any[]) => {}
+
   const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
 
   const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
@@ -231,6 +235,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseToggleFilter,
     blockPinnedFilter,
     showUpgradeToUsePinnedFilter,
+    blockCellColoring,
+    showUpgradeToUseCellColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
     blockPrivateBases,

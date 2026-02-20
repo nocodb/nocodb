@@ -6,7 +6,7 @@ export function useViewRowColorRender() {
 
   const { getBaseType } = useBase()
 
-  const { blockRowColoring } = useEeConfig()
+  const { blockRowColoring, blockCellColoring } = useEeConfig()
 
   const { user } = useGlobal()
 
@@ -20,6 +20,10 @@ export function useViewRowColorRender() {
     return !blockRowColoring.value && activeViewRowColorInfo.value && !!activeViewRowColorInfo.value?.mode
   })
 
+  const isCellColouringEnabled = computed(() => {
+    return !blockCellColoring.value && isRowColouringEnabled.value
+  })
+
   /**
    * In shared view meta.columns will include only visible columns so we have to use columnsById to get all columns
    */
@@ -27,7 +31,7 @@ export function useViewRowColorRender() {
     return Object.values(meta.value?.columnsById ?? {})
   })
 
-  const evaluateRowColor = (row: any) => {
+  const evaluateRowColor = (row: any, columnId?: string) => {
     if (!isRowColouringEnabled.value) return null
 
     if (activeViewRowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
@@ -50,6 +54,7 @@ export function useViewRowColorRender() {
       return color
         ? {
             is_set_as_background: selectRowColorInfo.is_set_as_background,
+            type: selectRowColorInfo.type || 'row',
             color,
             hoverColor,
             rawColor,
@@ -65,7 +70,18 @@ export function useViewRowColorRender() {
         return null
       }
 
-      for (const eachCondition of filterRowColorInfo.conditions) {
+      // When evaluating a specific cell, prioritize cell-type conditions over row-type
+      const conditionsToCheck = columnId
+        ? [
+            // First check cell-type conditions for this column
+            ...filterRowColorInfo.conditions.filter((c) => c.type === 'cell' && c.fk_target_column_id === columnId),
+            // Then check row-type conditions
+            ...filterRowColorInfo.conditions.filter((c) => c.type !== 'cell'),
+          ]
+        : // For row evaluation, only check row-type conditions
+          filterRowColorInfo.conditions.filter((c) => c.type !== 'cell')
+
+      for (const eachCondition of conditionsToCheck) {
         const isFilterValid = validateRowFilters(
           eachCondition.conditions,
           row,
@@ -98,6 +114,8 @@ export function useViewRowColorRender() {
 
           return {
             is_set_as_background: eachCondition.is_set_as_background,
+            type: eachCondition.type || 'row',
+            fk_target_column_id: eachCondition.fk_target_column_id,
             color,
             hoverColor,
             rawColor: eachCondition.color,
@@ -110,13 +128,14 @@ export function useViewRowColorRender() {
     return null
   }
 
-  const getCachedEvaluatedResult = (rowHash: string, row: any) => {
-    const cachedEvaluatedResult = rowColouringCache.get(rowHash)
+  const getCachedEvaluatedResult = (rowHash: string, row: any, columnId?: string) => {
+    const cacheKey = columnId ? `${rowHash}:${columnId}` : rowHash
+    const cachedEvaluatedResult = rowColouringCache.get(cacheKey)
 
     if (!cachedEvaluatedResult) {
-      const evaluatedResult = evaluateRowColor(row)
+      const evaluatedResult = evaluateRowColor(row, columnId)
       if (evaluatedResult) {
-        rowColouringCache.set(rowHash, evaluatedResult)
+        rowColouringCache.set(cacheKey, evaluatedResult)
       }
 
       return evaluatedResult
@@ -132,6 +151,7 @@ export function useViewRowColorRender() {
       rowLeftBorderColor: null,
       rowHoverColor: null,
       rowBorderColor: null,
+      cellColors: {},
     }
 
     if (!row || !isRowColouringEnabled.value) return result
@@ -140,19 +160,107 @@ export function useViewRowColorRender() {
 
     const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
 
+    // Pre-compute cell colors for all columns
+    const cellColors: Record<string, any> = {}
+    if (isCellColouringEnabled.value && activeViewRowColorInfo.value.mode === ROW_COLORING_MODE.FILTER) {
+      const filterRowColorInfo = activeViewRowColorInfo.value
+
+      // Get all cell-type conditions
+      const cellConditions = filterRowColorInfo.conditions?.filter((c) => c.type === 'cell') || []
+
+      // For each cell condition, evaluate and store in map
+      for (const condition of cellConditions) {
+        if (!condition.fk_target_column_id) continue
+
+        const columnId = condition.fk_target_column_id
+
+        // Skip if we already have a color for this column (precedence: first match wins)
+        if (cellColors[columnId]) continue
+
+        // Evaluate the condition
+        const cellColorResult = getCachedEvaluatedResult(rowHash, row, columnId)
+
+        if (cellColorResult && cellColorResult.type === 'cell') {
+          cellColors[columnId] = {
+            is_set_as_background: cellColorResult.is_set_as_background ?? false,
+            cellBgColor: cellColorResult.is_set_as_background ? cellColorResult.color ?? null : null,
+            cellBorderColor: cellColorResult.is_set_as_background ? cellColorResult.borderColor ?? null : null,
+            cellHoverColor: cellColorResult.hoverColor ?? null,
+            cellLeftBorderColor: cellColorResult.rawColor ?? null,
+          }
+        }
+      }
+    }
+
     return {
       is_set_as_background: cachedEvaluatedResult?.is_set_as_background ?? false,
       rowBgColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.color ?? null : null,
       rowLeftBorderColor: cachedEvaluatedResult?.rawColor ?? null,
       rowHoverColor: cachedEvaluatedResult?.hoverColor ?? null,
       rowBorderColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.borderColor ?? null : null,
+      cellColors,
     }
+  }
+
+  const getEvaluatedCellColorInfo = (row: any, columnId: string) => {
+    const result = {
+      is_set_as_background: false,
+      cellBgColor: null as string | null,
+      cellBorderColor: null as string | null,
+      cellHoverColor: null as string | null,
+      cellLeftBorderColor: null as string | null,
+    }
+
+    if (!row || !isRowColouringEnabled.value || !columnId) return result
+
+    const rowHash = getRowHash(row)
+    const cellColorResult = getCachedEvaluatedResult(rowHash, row, columnId)
+
+    if (!cellColorResult || cellColorResult.type !== 'cell') return result
+
+    return {
+      is_set_as_background: cellColorResult.is_set_as_background ?? false,
+      cellBgColor: cellColorResult.is_set_as_background ? cellColorResult.color ?? null : null,
+      cellBorderColor: cellColorResult.is_set_as_background ? cellColorResult.borderColor ?? null : null,
+      cellHoverColor: cellColorResult.hoverColor ?? null,
+      cellLeftBorderColor: cellColorResult.rawColor ?? null,
+    }
+  }
+
+  const getCellColorStyle = (row: any, columnId: string) => {
+    if (!isCellColouringEnabled.value || !columnId) return {}
+
+    const cellColorInfo = getEvaluatedCellColorInfo(row, columnId)
+
+    if (!cellColorInfo) return {}
+
+    const style: Record<string, string> = {}
+
+    if (cellColorInfo.cellBgColor) {
+      style.backgroundColor = cellColorInfo.cellBgColor
+    }
+
+    return style
+  }
+
+  const getCellLeftBorderStyle = (row: any, columnId: string) => {
+    if (!isCellColouringEnabled.value || !columnId) return null
+
+    const cellColorInfo = getEvaluatedCellColorInfo(row, columnId)
+
+    if (!cellColorInfo || cellColorInfo.is_set_as_background || !cellColorInfo.cellLeftBorderColor) return null
+
+    return { backgroundColor: cellColorInfo.cellLeftBorderColor }
   }
 
   return {
     rowColorInfo: activeViewRowColorInfo,
     evaluateRowColor,
     isRowColouringEnabled,
+    isCellColouringEnabled,
     getEvaluatedRowMetaRowColorInfo,
+    getEvaluatedCellColorInfo,
+    getCellColorStyle,
+    getCellLeftBorderStyle,
   }
 }

@@ -78,6 +78,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         options: (selectOptions as any).options,
         mode: ROW_COLORING_MODE.SELECT,
         is_set_as_background: meta?.rowColoringInfo?.is_set_as_background,
+        type: 'row', // Select mode only supports row coloring
         fk_column_id: meta?.rowColoringInfo?.fk_column_id,
         selectColumn,
         fk_model_id: model.id,
@@ -126,6 +127,8 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           color: rowColorCondition.color,
           nc_order: rowColorCondition.nc_order,
           is_set_as_background: rowColorCondition.is_set_as_background,
+          type: rowColorCondition.type ?? 'row',
+          fk_target_column_id: rowColorCondition.fk_target_column_id,
           conditions: filters,
           nestedConditions: nestedFilters,
         };
@@ -143,6 +146,8 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     color: string;
     is_set_as_background: boolean;
     nc_order: number;
+    type?: string;
+    fk_target_column_id?: string;
     filter?: FilterType;
     viewWebhookManager?: ViewWebhookManager;
     ncMeta?: MetaService;
@@ -150,6 +155,18 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     const { context } = params;
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
     await checkForFeature(context, PlanFeatureTypes.FEATURE_ROW_COLOUR, ncMeta);
+
+    if (params.type === 'cell') {
+      await checkForFeature(
+        context,
+        PlanFeatureTypes.FEATURE_CELL_COLOUR,
+        ncMeta,
+      );
+
+      if (!params.fk_target_column_id) {
+        NcError.get(params.context).requiredFieldMissing('fk_target_column_id');
+      }
+    }
 
     let view: View;
     if (params.fk_view_id) {
@@ -199,6 +216,8 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           color: params.color,
           nc_order: params.nc_order,
           is_set_as_background: params.is_set_as_background ?? false,
+          type: params.type ?? 'row',
+          fk_target_column_id: params.fk_target_column_id,
         },
       );
       const rowColoringConditionId = rowColoringCondition.id;
@@ -279,10 +298,25 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     color: string;
     is_set_as_background: boolean;
     nc_order: number;
+    type?: string;
+    fk_target_column_id?: string;
     viewWebhookManager?: ViewWebhookManager;
     ncMeta?: MetaService;
   }) {
     const ncMeta = params.ncMeta ?? Noco.ncMeta;
+
+    if (params.type === 'cell') {
+      await checkForFeature(
+        params.context,
+        PlanFeatureTypes.FEATURE_CELL_COLOUR,
+        ncMeta,
+      );
+
+      if (!params.fk_target_column_id) {
+        NcError.get(params.context).requiredFieldMissing('fk_target_column_id');
+      }
+    }
+
     let view: View;
     if (params.fk_view_id) {
       view = await View.get(params.context, params.fk_view_id);
@@ -322,6 +356,10 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         color: params.color,
         nc_order: params.nc_order,
         is_set_as_background: params.is_set_as_background,
+        ...(params.type !== undefined && { type: params.type }),
+        ...(params.fk_target_column_id !== undefined && {
+          fk_target_column_id: params.fk_target_column_id,
+        }),
       },
       params.fk_row_coloring_conditions_id,
     );
@@ -648,6 +686,55 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
 
     if (action === 'delete') {
+      // Handle cell-type row color conditions that target this column (fk_target_column_id)
+      const cellColorConditions = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.ROW_COLOR_CONDITIONS,
+        {
+          condition: {
+            fk_target_column_id: existingColumn.id,
+            type: 'cell',
+          },
+        },
+      );
+
+      if (cellColorConditions?.length > 0) {
+        for (const condition of cellColorConditions) {
+          // Delete the cell-type condition (this will cascade delete filters)
+          commitHandlers.push(() =>
+            this.deleteRowColoringCondition({
+              context,
+              fk_view_id: condition.fk_view_id,
+              fk_row_coloring_conditions_id: condition.id,
+              ncMeta,
+            }),
+          );
+
+          // Check if this was the last condition in the view
+          const allConditionsInView = await RowColorCondition.getByViewId(
+            context,
+            condition.fk_view_id,
+          );
+
+          const remainingConditions = allConditionsInView.filter(
+            (c) => c.id !== condition.id,
+          );
+
+          if (remainingConditions.length === 0) {
+            // If no other conditions remain, remove row coloring mode entirely
+            commitHandlers.push(() =>
+              this.removeRowColorInfo({
+                context,
+                fk_view_id: condition.fk_view_id,
+                ncMeta,
+              }),
+            );
+          }
+        }
+      }
+
+      // Handle row color conditions that use this column in filters (fk_column_id)
       const inConditions = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
@@ -688,16 +775,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
                 flt.fk_row_color_condition_id === affectedRowColorConditionId,
             )
           ) {
-            commitHandlers.push(() =>
-              this.deleteRowColoringCondition({
-                context,
-                fk_row_coloring_conditions_id: affectedRowColorConditionId,
-                ncMeta,
-              }),
-            );
             const rowColorCondition = await RowColorCondition.getById(
               context,
               affectedRowColorConditionId,
+            );
+            commitHandlers.push(() =>
+              this.deleteRowColoringCondition({
+                context,
+                fk_view_id: rowColorCondition.fk_view_id,
+                fk_row_coloring_conditions_id: affectedRowColorConditionId,
+                ncMeta,
+              }),
             );
             const rowColoringConditionsFromView =
               await RowColorCondition.getByViewId(

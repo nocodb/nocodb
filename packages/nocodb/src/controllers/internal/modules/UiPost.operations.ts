@@ -271,6 +271,8 @@ export class UiPostOperations
           color: payload.color,
           is_set_as_background: payload.is_set_as_background,
           nc_order: payload.nc_order,
+          type: payload.type,
+          fk_target_column_id: payload.fk_target_column_id,
           filter: payload.filter,
         });
       case 'viewRowColorConditionUpdate':
@@ -281,6 +283,8 @@ export class UiPostOperations
           color: payload.color,
           is_set_as_background: payload.is_set_as_background,
           nc_order: payload.nc_order,
+          type: payload.type,
+          fk_target_column_id: payload.fk_target_column_id,
         });
       case 'viewRowColorConditionDelete':
         return await this.viewRowColorService.deleteRowColoringCondition({

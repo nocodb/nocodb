@@ -138,15 +138,14 @@ const {
   isForm,
   eventBus,
   allFilters: smartsheetAllFilters,
-} =
-  widget.value || workflow.value
-    ? {
-        nestedFilters: ref([]),
-        isForm: ref(false),
-        eventBus: null,
-        allFilters: ref([]),
-      }
-    : useSmartsheetStoreOrThrow()
+} = widget.value || workflow.value
+  ? {
+      nestedFilters: ref([]),
+      isForm: ref(false),
+      eventBus: null,
+      allFilters: ref([]),
+    }
+  : useSmartsheetStoreOrThrow()
 
 const currentFilters = modelValue.value || (!link.value && !webHook.value && !workflow.value && nestedFilters.value) || []
 
@@ -649,7 +648,7 @@ const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
 }
 
 const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
-  const newEnabled = filter.enabled === false ? true : false
+  const newEnabled = filter.enabled === false
   $e('a:filter:toggle-enabled', { enabled: newEnabled, isGroup: !!filter.is_group })
   filter.enabled = newEnabled
   await saveOrUpdate(filter, index)
@@ -1151,354 +1150,361 @@ defineExpose({
                 { 'nc-filter-disabled-row': isEeUI && filter.enabled === false },
               ]"
             >
-            <div v-if="!visibleFilters.indexOf(filter)" class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label">
-              {{ $t('labels.where') }}
-            </div>
-
-            <NcSelect
-              v-else
-              v-model:value="filter.logical_op"
-              v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
-              :dropdown-match-select-width="false"
-              class="h-full !max-w-18 !min-w-18 capitalize"
-              hide-details
-              :disabled="
-                filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly
-              "
-              dropdown-class-name="nc-dropdown-filter-logical-op"
-              :class="{
-                'nc-disabled-logical-op':
-                  filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || readOnly,
-              }"
-              @change="onLogicalOpUpdate(filter, i)"
-              @click.stop
-            >
-              <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
-                <div class="flex items-center w-full justify-between w-full gap-2">
-                  <div class="truncate flex-1 capitalize">{{ op.text }}</div>
-                  <component
-                    :is="iconMap.check"
-                    v-if="filter.logical_op === op.value"
-                    id="nc-selected-item-icon"
-                    class="text-primary w-4 h-4"
-                  />
-                </div>
-              </a-select-option>
-            </NcSelect>
-
-            <NcTooltip
-              v-if="isForm && !webHook && !fieldsToFilter.find((c) => c?.id === filter.fk_column_id)"
-              class="flex-1 flex items-center gap-2 px-2 !text-nc-content-red-medium cursor-pointer"
-              :disabled="!filter.fk_column_id || !visibilityError[filter.fk_column_id]"
-            >
-              <template #title> {{ visibilityError[filter.fk_column_id!] ?? '' }}</template>
-              <GeneralIcon icon="alertTriangle" class="flex-none" />
-              {{ $t('title.fieldInaccessible') }}
-            </NcTooltip>
-
-            <template v-else>
-              <SmartsheetToolbarFieldListAutoCompleteDropdown
-                :key="`${i}_6`"
-                v-model="filter.fk_column_id"
-                :class="{
-                  'max-w-32': !webHook,
-                }"
-                class="nc-filter-field-select min-w-32 max-h-8"
-                :columns="fieldsToFilter"
-                :disable-smartsheet="!!widget || !!workflow"
-                :disabled="filter.readOnly || isLockedView || readOnly"
-                :meta="meta"
-                :show-all-columns="filter.readOnly || isLockedView || readOnly"
-                @click.stop
-                @change="selectFilterField(filter, i)"
-              />
-
-              <NcSelect
-                v-model:value="filter.comparison_op"
-                v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
-                :dropdown-match-select-width="false"
-                class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
-                :placeholder="$t('labels.operation')"
-                :class="{
-                  '!max-w-26.75': !webHook,
-                }"
-                density="compact"
-                variant="solo"
-                :disabled="filter.readOnly || isLockedView || readOnly"
-                hide-details
-                dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
-                @change="filterUpdateCondition(filter, i)"
+              <div
+                v-if="!visibleFilters.indexOf(filter)"
+                class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label"
               >
-                <template
-                  v-for="compOp of comparisonOpList(types[filter.fk_column_id], getColumn(filter)?.meta?.date_format)"
-                  :key="compOp.value"
-                >
-                  <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
-                    <div class="flex items-center w-full justify-between w-full gap-2">
-                      <div class="truncate flex-1">{{ compOp.text }}</div>
-                      <component
-                        :is="iconMap.check"
-                        v-if="filter.comparison_op === compOp.value"
-                        id="nc-selected-item-icon"
-                        class="text-primary w-4 h-4"
-                      />
-                    </div>
-                  </a-select-option>
-                </template>
-              </NcSelect>
-
-              <div v-if="['blank', 'notblank'].includes(filter.comparison_op)" class="flex flex-grow"></div>
-
-              <NcSelect
-                v-else-if="isDateType(types[filter.fk_column_id])"
-                v-model:value="filter.comparison_sub_op"
-                v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
-                :dropdown-match-select-width="false"
-                class="caption nc-filter-sub_operation-select min-w-28"
-                :class="{
-                  'flex-grow w-full': !showFilterInput(filter),
-                  'max-w-28': showFilterInput(filter) && !webHook,
-                }"
-                :placeholder="$t('labels.operationSub')"
-                density="compact"
-                variant="solo"
-                :disabled="filter.readOnly || isLockedView || readOnly"
-                hide-details
-                dropdown-class-name="nc-dropdown-filter-comp-sub-op"
-                @change="filterUpdateCondition(filter, i)"
-              >
-                <template
-                  v-for="compSubOp of comparisonSubOpList(filter.comparison_op, getColumn(filter)?.meta?.date_format)"
-                  :key="compSubOp.value"
-                >
-                  <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
-                    <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
-                      <NcTooltip show-on-truncate-only class="truncate flex-1">
-                        <template #title>{{ compSubOp.text }}</template>
-                        {{ compSubOp.text }}
-                      </NcTooltip>
-                      <component
-                        :is="iconMap.check"
-                        v-if="filter.comparison_sub_op === compSubOp.value"
-                        id="nc-selected-item-icon"
-                        class="text-primary w-4 h-4"
-                      />
-                    </div>
-                  </a-select-option>
-                </template>
-              </NcSelect>
-              <div class="flex items-center flex-grow min-w-0">
-                <div v-if="link && (filter.dynamic || filter.fk_value_col_id)" class="flex-grow">
-                  <SmartsheetToolbarFieldListAutoCompleteDropdown
-                    v-if="showFilterInput(filter)"
-                    v-model="filter.fk_value_col_id"
-                    :disable-smartsheet="!!widget"
-                    class="nc-filter-field-select min-w-32 w-full max-h-8"
-                    :columns="dynamicColumns(filter)"
-                    :meta="rootMeta"
-                    @change="saveOrUpdate(filter, i)"
-                  />
-                </div>
-                <template v-else-if="workflow && filter.dynamic">
-                  <slot
-                    name="dynamic-filter"
-                    :filter="filter"
-                    @update-filter-value="(value) => updateFilterValue(value, filter, i)"
-                  />
-                </template>
-
-                <template v-else>
-                  <a-checkbox
-                    v-if="filter.field && types[filter.field] === 'boolean'"
-                    v-model:checked="filter.value"
-                    dense
-                    :disabled="filter.readOnly || isLockedView || readOnly"
-                    @change="saveOrUpdate(filter, i)"
-                  />
-
-                  <SmartsheetToolbarFilterInput
-                    v-if="showFilterInput(filter) && (isViewFilter ? isOpen : true)"
-                    class="nc-filter-value-select rounded-md min-w-34"
-                    :class="{
-                      '!w-full': webHook,
-                    }"
-                    :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
-                    :filter="filter"
-                    :disabled="isLockedView || readOnly"
-                    @update-filter-value="(value) => updateFilterValue(value, filter, i)"
-                    @click.stop
-                  />
-
-                  <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
-                </template>
-                <template v-if="workflow && showDynamicCondition">
-                  <NcDropdown
-                    class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
-                    :trigger="['click']"
-                    placement="left"
-                  >
-                    <NcButton type="text" size="small">
-                      <GeneralIcon icon="settings" />
-                    </NcButton>
-
-                    <template #overlay>
-                      <div class="relative overflow-visible min-h-17 w-10">
-                        <div
-                          class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
-                          style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
-                        >
-                          <div
-                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
-                            @click="resetDynamicField(filter, i)"
-                          >
-                            <div class="flex flex-row items-center justify-between w-full">
-                              <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
-                              <GeneralIcon
-                                v-if="!filter.dynamic && !filter.fk_value_col_id"
-                                icon="check"
-                                class="w-4 h-4 text-primary"
-                              />
-                            </div>
-                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
-                          </div>
-                          <div
-                            v-e="['c:filter:dynamic-filter']"
-                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
-                            @click="changeToDynamic(filter, i)"
-                          >
-                            <div class="flex flex-row items-center justify-between w-full">
-                              <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
-                              <GeneralIcon
-                                v-if="filter.dynamic || filter.fk_value_col_id"
-                                icon="check"
-                                class="w-4 h-4 text-primary"
-                              />
-                            </div>
-                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
-                          </div>
-                        </div>
-                      </div>
-                    </template>
-                  </NcDropdown>
-                </template>
-                <template v-if="link && showDynamicCondition">
-                  <NcDropdown
-                    class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
-                    :trigger="['click']"
-                    placement="bottom"
-                    :disabled="isLockedView"
-                  >
-                    <NcButton type="text" size="small">
-                      <GeneralIcon icon="settings" />
-                    </NcButton>
-
-                    <template #overlay>
-                      <div class="relative overflow-visible min-h-17 w-10">
-                        <div
-                          class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
-                          style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
-                        >
-                          <div
-                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
-                            @click="resetDynamicField(filter, i)"
-                          >
-                            <div class="flex flex-row items-center justify-between w-full">
-                              <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
-                              <GeneralIcon
-                                v-if="!filter.dynamic && !filter.fk_value_col_id"
-                                icon="check"
-                                class="w-4 h-4 text-primary"
-                              />
-                            </div>
-                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
-                          </div>
-                          <div
-                            v-e="['c:filter:dynamic-filter']"
-                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
-                            :class="
-                              isDynamicFilterAllowed(filter) && showFilterInput(filter) ? 'cursor-pointer' : 'cursor-not-allowed'
-                            "
-                            @click="changeToDynamic(filter, i)"
-                          >
-                            <div class="flex flex-row items-center justify-between w-full">
-                              <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
-                              <GeneralIcon
-                                v-if="filter.dynamic || filter.fk_value_col_id"
-                                icon="check"
-                                class="w-4 h-4 text-primary"
-                              />
-                            </div>
-                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
-                          </div>
-                        </div>
-                      </div>
-                    </template>
-                  </NcDropdown>
-                </template>
+                {{ $t('labels.where') }}
               </div>
-              <SmartsheetToolbarFilterTimezoneAbbreviation :column="getColumn(filter)" :filter="filter" />
-            </template>
-            <NcButton
-              v-if="!filter.readOnly && !readOnly"
-              v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
-              type="text"
-              size="small"
-              :disabled="isLockedView"
-              class="nc-filter-item-remove-btn self-center"
-              @click.stop="deleteFilter(filter, i)"
-            >
-              <GeneralIcon icon="deleteListItem" />
-            </NcButton>
-            <NcButton
-              v-if="!filter.readOnly && !readOnly && isEeUI"
-              v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
-              type="text"
-              size="small"
-              :disabled="isLockedView"
-              class="nc-filter-item-copy-btn self-center"
-              @click.stop="copyFilter(filter)"
-            >
-              <GeneralIcon icon="copy" />
-            </NcButton>
 
-            <NcTooltip v-if="!filter.readOnly && !readOnly && isEeUI && isViewFilter && !filter.is_group && !webHook && !link && !widget">
-              <template #title>
-                {{ getPinTooltip(filter) }}
+              <NcSelect
+                v-else
+                v-model:value="filter.logical_op"
+                v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
+                :dropdown-match-select-width="false"
+                class="h-full !max-w-18 !min-w-18 capitalize"
+                hide-details
+                :disabled="
+                  filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly
+                "
+                dropdown-class-name="nc-dropdown-filter-logical-op"
+                :class="{
+                  'nc-disabled-logical-op':
+                    filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || readOnly,
+                }"
+                @change="onLogicalOpUpdate(filter, i)"
+                @click.stop
+              >
+                <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
+                  <div class="flex items-center w-full justify-between w-full gap-2">
+                    <div class="truncate flex-1 capitalize">{{ op.text }}</div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="filter.logical_op === op.value"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </NcSelect>
+
+              <NcTooltip
+                v-if="isForm && !webHook && !fieldsToFilter.find((c) => c?.id === filter.fk_column_id)"
+                class="flex-1 flex items-center gap-2 px-2 !text-nc-content-red-medium cursor-pointer"
+                :disabled="!filter.fk_column_id || !visibilityError[filter.fk_column_id]"
+              >
+                <template #title> {{ visibilityError[filter.fk_column_id!] ?? '' }}</template>
+                <GeneralIcon icon="alertTriangle" class="flex-none" />
+                {{ $t('title.fieldInaccessible') }}
+              </NcTooltip>
+
+              <template v-else>
+                <SmartsheetToolbarFieldListAutoCompleteDropdown
+                  :key="`${i}_6`"
+                  v-model="filter.fk_column_id"
+                  :class="{
+                    'max-w-32': !webHook,
+                  }"
+                  class="nc-filter-field-select min-w-32 max-h-8"
+                  :columns="fieldsToFilter"
+                  :disable-smartsheet="!!widget || !!workflow"
+                  :disabled="filter.readOnly || isLockedView || readOnly"
+                  :meta="meta"
+                  :show-all-columns="filter.readOnly || isLockedView || readOnly"
+                  @click.stop
+                  @change="selectFilterField(filter, i)"
+                />
+
+                <NcSelect
+                  v-model:value="filter.comparison_op"
+                  v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
+                  :dropdown-match-select-width="false"
+                  class="caption nc-filter-operation-select !min-w-26.75 max-h-8"
+                  :placeholder="$t('labels.operation')"
+                  :class="{
+                    '!max-w-26.75': !webHook,
+                  }"
+                  density="compact"
+                  variant="solo"
+                  :disabled="filter.readOnly || isLockedView || readOnly"
+                  hide-details
+                  dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
+                  @change="filterUpdateCondition(filter, i)"
+                >
+                  <template
+                    v-for="compOp of comparisonOpList(types[filter.fk_column_id], getColumn(filter)?.meta?.date_format)"
+                    :key="compOp.value"
+                  >
+                    <a-select-option v-if="isComparisonOpAllowed(filter, compOp)" :value="compOp.value">
+                      <div class="flex items-center w-full justify-between w-full gap-2">
+                        <div class="truncate flex-1">{{ compOp.text }}</div>
+                        <component
+                          :is="iconMap.check"
+                          v-if="filter.comparison_op === compOp.value"
+                          id="nc-selected-item-icon"
+                          class="text-primary w-4 h-4"
+                        />
+                      </div>
+                    </a-select-option>
+                  </template>
+                </NcSelect>
+
+                <div v-if="['blank', 'notblank'].includes(filter.comparison_op)" class="flex flex-grow"></div>
+
+                <NcSelect
+                  v-else-if="isDateType(types[filter.fk_column_id])"
+                  v-model:value="filter.comparison_sub_op"
+                  v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
+                  :dropdown-match-select-width="false"
+                  class="caption nc-filter-sub_operation-select min-w-28"
+                  :class="{
+                    'flex-grow w-full': !showFilterInput(filter),
+                    'max-w-28': showFilterInput(filter) && !webHook,
+                  }"
+                  :placeholder="$t('labels.operationSub')"
+                  density="compact"
+                  variant="solo"
+                  :disabled="filter.readOnly || isLockedView || readOnly"
+                  hide-details
+                  dropdown-class-name="nc-dropdown-filter-comp-sub-op"
+                  @change="filterUpdateCondition(filter, i)"
+                >
+                  <template
+                    v-for="compSubOp of comparisonSubOpList(filter.comparison_op, getColumn(filter)?.meta?.date_format)"
+                    :key="compSubOp.value"
+                  >
+                    <a-select-option v-if="isComparisonSubOpAllowed(filter, compSubOp)" :value="compSubOp.value">
+                      <div class="flex items-center w-full justify-between w-full gap-2 max-w-40">
+                        <NcTooltip show-on-truncate-only class="truncate flex-1">
+                          <template #title>{{ compSubOp.text }}</template>
+                          {{ compSubOp.text }}
+                        </NcTooltip>
+                        <component
+                          :is="iconMap.check"
+                          v-if="filter.comparison_sub_op === compSubOp.value"
+                          id="nc-selected-item-icon"
+                          class="text-primary w-4 h-4"
+                        />
+                      </div>
+                    </a-select-option>
+                  </template>
+                </NcSelect>
+                <div class="flex items-center flex-grow min-w-0">
+                  <div v-if="link && (filter.dynamic || filter.fk_value_col_id)" class="flex-grow">
+                    <SmartsheetToolbarFieldListAutoCompleteDropdown
+                      v-if="showFilterInput(filter)"
+                      v-model="filter.fk_value_col_id"
+                      :disable-smartsheet="!!widget"
+                      class="nc-filter-field-select min-w-32 w-full max-h-8"
+                      :columns="dynamicColumns(filter)"
+                      :meta="rootMeta"
+                      @change="saveOrUpdate(filter, i)"
+                    />
+                  </div>
+                  <template v-else-if="workflow && filter.dynamic">
+                    <slot
+                      name="dynamic-filter"
+                      :filter="filter"
+                      @update-filter-value="(value) => updateFilterValue(value, filter, i)"
+                    />
+                  </template>
+
+                  <template v-else>
+                    <a-checkbox
+                      v-if="filter.field && types[filter.field] === 'boolean'"
+                      v-model:checked="filter.value"
+                      dense
+                      :disabled="filter.readOnly || isLockedView || readOnly"
+                      @change="saveOrUpdate(filter, i)"
+                    />
+
+                    <SmartsheetToolbarFilterInput
+                      v-if="showFilterInput(filter) && (isViewFilter ? isOpen : true)"
+                      class="nc-filter-value-select rounded-md min-w-34"
+                      :class="{
+                        '!w-full': webHook,
+                      }"
+                      :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
+                      :filter="filter"
+                      :disabled="isLockedView || readOnly"
+                      @update-filter-value="(value) => updateFilterValue(value, filter, i)"
+                      @click.stop
+                    />
+
+                    <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
+                  </template>
+                  <template v-if="workflow && showDynamicCondition">
+                    <NcDropdown
+                      class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
+                      :trigger="['click']"
+                      placement="left"
+                    >
+                      <NcButton type="text" size="small">
+                        <GeneralIcon icon="settings" />
+                      </NcButton>
+
+                      <template #overlay>
+                        <div class="relative overflow-visible min-h-17 w-10">
+                          <div
+                            class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
+                            style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
+                          >
+                            <div
+                              class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
+                              @click="resetDynamicField(filter, i)"
+                            >
+                              <div class="flex flex-row items-center justify-between w-full">
+                                <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                                <GeneralIcon
+                                  v-if="!filter.dynamic && !filter.fk_value_col_id"
+                                  icon="check"
+                                  class="w-4 h-4 text-primary"
+                                />
+                              </div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                            </div>
+                            <div
+                              v-e="['c:filter:dynamic-filter']"
+                              class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
+                              @click="changeToDynamic(filter, i)"
+                            >
+                              <div class="flex flex-row items-center justify-between w-full">
+                                <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                                <GeneralIcon
+                                  v-if="filter.dynamic || filter.fk_value_col_id"
+                                  icon="check"
+                                  class="w-4 h-4 text-primary"
+                                />
+                              </div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </NcDropdown>
+                  </template>
+                  <template v-if="link && showDynamicCondition">
+                    <NcDropdown
+                      class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
+                      :trigger="['click']"
+                      placement="bottom"
+                      :disabled="isLockedView"
+                    >
+                      <NcButton type="text" size="small">
+                        <GeneralIcon icon="settings" />
+                      </NcButton>
+
+                      <template #overlay>
+                        <div class="relative overflow-visible min-h-17 w-10">
+                          <div
+                            class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
+                            style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
+                          >
+                            <div
+                              class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
+                              @click="resetDynamicField(filter, i)"
+                            >
+                              <div class="flex flex-row items-center justify-between w-full">
+                                <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                                <GeneralIcon
+                                  v-if="!filter.dynamic && !filter.fk_value_col_id"
+                                  icon="check"
+                                  class="w-4 h-4 text-primary"
+                                />
+                              </div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                            </div>
+                            <div
+                              v-e="['c:filter:dynamic-filter']"
+                              class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
+                              :class="
+                                isDynamicFilterAllowed(filter) && showFilterInput(filter)
+                                  ? 'cursor-pointer'
+                                  : 'cursor-not-allowed'
+                              "
+                              @click="changeToDynamic(filter, i)"
+                            >
+                              <div class="flex flex-row items-center justify-between w-full">
+                                <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                                <GeneralIcon
+                                  v-if="filter.dynamic || filter.fk_value_col_id"
+                                  icon="check"
+                                  class="w-4 h-4 text-primary"
+                                />
+                              </div>
+                              <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </NcDropdown>
+                  </template>
+                </div>
+                <SmartsheetToolbarFilterTimezoneAbbreviation :column="getColumn(filter)" :filter="filter" />
               </template>
               <NcButton
-                v-e="['c:filter:pin']"
+                v-if="!filter.readOnly && !readOnly"
+                v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
                 type="text"
                 size="small"
-                :disabled="!canPinFilter(filter) || isLockedView"
-                class="nc-filter-item-pin-btn self-center"
-                @click.stop="blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, i)"
+                :disabled="isLockedView"
+                class="nc-filter-item-remove-btn self-center"
+                @click.stop="deleteFilter(filter, i)"
               >
-                <GeneralIcon
-                  :icon="parseProp(filter.meta)?.pinned ? 'ncPinOff' : 'ncPin'"
-                  class="h-3.5 w-3.5"
-                  :class="
-                    (!canPinFilter(filter) && !parseProp(filter.meta)?.pinned) || isLockedView
-                      ? 'text-nc-content-gray-muted'
-                      : parseProp(filter.meta)?.pinned
+                <GeneralIcon icon="deleteListItem" />
+              </NcButton>
+              <NcButton
+                v-if="!filter.readOnly && !readOnly && isEeUI"
+                v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
+                type="text"
+                size="small"
+                :disabled="isLockedView"
+                class="nc-filter-item-copy-btn self-center"
+                @click.stop="copyFilter(filter)"
+              >
+                <GeneralIcon icon="copy" />
+              </NcButton>
+
+              <NcTooltip
+                v-if="!filter.readOnly && !readOnly && isEeUI && isViewFilter && !filter.is_group && !webHook && !link && !widget"
+              >
+                <template #title>
+                  {{ getPinTooltip(filter) }}
+                </template>
+                <NcButton
+                  v-e="['c:filter:pin']"
+                  type="text"
+                  size="small"
+                  :disabled="!canPinFilter(filter) || isLockedView"
+                  class="nc-filter-item-pin-btn self-center"
+                  @click.stop="blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, i)"
+                >
+                  <GeneralIcon
+                    :icon="parseProp(filter.meta)?.pinned ? 'ncPinOff' : 'ncPin'"
+                    class="h-3.5 w-3.5"
+                    :class="
+                      (!canPinFilter(filter) && !parseProp(filter.meta)?.pinned) || isLockedView
+                        ? 'text-nc-content-gray-muted'
+                        : parseProp(filter.meta)?.pinned
                         ? 'text-primary'
                         : 'text-nc-content-gray-subtle2'
-                  "
-                />
-              </NcButton>
-            </NcTooltip>
+                    "
+                  />
+                </NcButton>
+              </NcTooltip>
 
-            <NcButton
-              v-if="!filter.readOnly && !readOnly && isReorderEnabled"
-              v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
-              type="text"
-              size="small"
-              class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
-              :shadow="false"
-              :disabled="visibleFilters.length === 1"
-            >
-              <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
-            </NcButton>
-          </div>
+              <NcButton
+                v-if="!filter.readOnly && !readOnly && isReorderEnabled"
+                v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
+                type="text"
+                size="small"
+                class="nc-filter-item-reorder-btn nc-column-filter-drag-handler self-center"
+                :shadow="false"
+                :disabled="visibleFilters.length === 1"
+              >
+                <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
+              </NcButton>
+            </div>
           </div>
         </div>
       </template>

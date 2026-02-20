@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ClientType, RowColoringInfoFilter, RowColoringInfoFilterRow } from 'nocodb-sdk'
-import { ViewLockType } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, ViewLockType, ViewTypes } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
 import Draggable from 'vuedraggable'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
@@ -15,7 +15,14 @@ interface Props {
   isLoadingFilter?: boolean
   handler: {
     conditionAdd: () => void
-    conditionUpdate: (params: { index: number; color: string; is_set_as_background: boolean; nc_order?: number }) => void
+    conditionUpdate: (params: {
+      index: number
+      color: string
+      is_set_as_background: boolean
+      nc_order?: number
+      type?: string
+      fk_target_column_id?: string
+    }) => void
     conditionDelete: (index: number) => void
     conditionCopy: (index: number) => void
     allConditionDeleted: () => void
@@ -41,6 +48,8 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const activeView = inject(ActiveViewInj, ref())
 
+const { $e } = useNuxtApp()
+
 const { isUIAllowed } = useRoles()
 
 const { isUserViewOwner } = useViewsStore()
@@ -50,6 +59,10 @@ const isPersonalViewOwner = computed(
 )
 
 const hasPermission = computed(() => isUIAllowed('rowColourUpdate') || isPersonalViewOwner.value)
+
+const isCalendarView = computed(() => activeView.value?.type === ViewTypes.CALENDAR)
+
+const { blockCellColoring, showUpgradeToUseCellColoring } = useEeConfig()
 
 const readOnlyFilter = computed(() => props.isLockedView || props.disabled)
 
@@ -95,6 +108,19 @@ const removeColor = (index: number) => {
 const updateColorPendingPayload = ref({})
 const debouncedUpdateColor = useDebounceFn(() => props.handler.conditionUpdate(updateColorPendingPayload.value), 200)
 const updateColor = (index: number, field: string, value: string) => {
+  if (field === 'type' && value === 'cell' && blockCellColoring.value) {
+    showUpgradeToUseCellColoring()
+    return
+  }
+
+  if (field === 'type') {
+    $e('c:row-color:type-change', { type: value })
+  } else if (field === 'fk_target_column_id') {
+    $e('c:row-color:cell:field-select')
+  } else if (field === 'is_set_as_background') {
+    $e('c:row-color:background-toggle', { enabled: value })
+  }
+
   if (field === 'color') {
     updateColorPendingPayload.value = {
       index,
@@ -221,7 +247,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
             >
               <template #root-header>
                 <div class="flex justify-between w-full pb-2">
-                  <div class="flex-grow">
+                  <div class="flex items-center gap-2">
                     <template v-if="!readOnlyFilter">
                       <GeneralAdvanceColorPickerDropdown v-model="rowColorConfig.color" @change="updateColor(i, 'color', $event)">
                         <NcButton
@@ -252,6 +278,94 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       >
                       </NcButton>
                     </template>
+                    <NcSelect
+                      v-if="!isCalendarView"
+                      :value="rowColorConfig.type || 'row'"
+                      class="!w-24 nc-row-color-type-select"
+                      :disabled="readOnlyFilter"
+                      :dropdown-match-select-width="false"
+                      option-label-prop="label"
+                      @change="updateColor(i, 'type', $event)"
+                    >
+                      <a-select-option value="row" :label="$t('objects.row')">
+                        <div class="flex flex-col gap-0.5">
+                          <div class="w-full flex items-center justify-between">
+                            {{ $t('objects.row') }}
+                            <GeneralIcon
+                              v-if="rowColorConfig.type === 'row'"
+                              id="nc-selected-item-icon"
+                              icon="check"
+                              class="w-4 h-4 text-nc-content-brand"
+                            />
+                          </div>
+                          <span class="text-xs text-nc-content-gray-subtle2">{{
+                            $t('objects.coloring.rowColorDescription')
+                          }}</span>
+                        </div>
+                      </a-select-option>
+                      <a-select-option value="cell" :label="$t('objects.cell')">
+                        <div class="flex flex-col">
+                          <div class="flex items-center gap-2 justify-between">
+                            <div class="flex items-center gap-2">
+                              {{ $t('objects.cell') }}
+
+                              <LazyPaymentUpgradeBadge
+                                v-if="blockCellColoring"
+                                :plan-title="PlanTitles.BUSINESS"
+                                :feature="PlanFeatureTypes.FEATURE_CELL_COLOUR"
+                                :title="$t('upgrade.upgradeToUseCellColoring')"
+                                :content="$t('upgrade.upgradeToUseCellColoringSubtitle', { plan: PlanTitles.BUSINESS })"
+                                size="xs"
+                              />
+                            </div>
+                            <GeneralIcon
+                              v-if="rowColorConfig.type === 'cell'"
+                              id="nc-selected-item-icon"
+                              icon="check"
+                              class="w-4 h-4 text-nc-content-brand"
+                            />
+                          </div>
+                          <span class="text-xs text-nc-content-gray-subtle2">{{
+                            $t('objects.coloring.cellColorDescription')
+                          }}</span>
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
+                    <NcSelect
+                      v-if="!isCalendarView && rowColorConfig.type === 'cell'"
+                      :value="rowColorConfig.fk_target_column_id ?? undefined"
+                      class="nc-cell-color-field-select !w-38"
+                      show-search
+                      :filter-option="(input, option) => antSelectFilterOption(input, option, ['label'])"
+                      :placeholder="`-${$t('placeholder.selectField')}-`"
+                      :disabled="readOnlyFilter"
+                      dropdown-class-name="nc-cell-color-field-dropdown"
+                      @change="updateColor(i, 'fk_target_column_id', $event)"
+                    >
+                      <a-select-option
+                        v-for="column in columns"
+                        :key="column.id"
+                        :value="column.id"
+                        :label="column.title"
+                        class="flex items-center"
+                      >
+                        <div class="w-full flex gap-1.5 items-center">
+                          <SmartsheetHeaderIcon :column="column" class="!mx-0 !h-3.5 !w-3.5" color="text-nc-content-gray-muted" />
+                          <NcTooltip class="flex min-w-0 flex-1 truncate" show-on-truncate-only>
+                            <template #title>
+                              {{ column.title }}
+                            </template>
+                            {{ column.title }}
+                          </NcTooltip>
+                          <GeneralIcon
+                            v-if="rowColorConfig.fk_target_column_id === column.id"
+                            id="nc-selected-item-icon"
+                            icon="check"
+                            class="w-4 h-4 text-nc-content-brand"
+                          />
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
                   </div>
                   <div class="flex items-center justify-end">
                     <NcButton
@@ -290,7 +404,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
               </template>
 
               <template #root-add-filter-row>
-                <div class="flex-grow flex justify-end items-center">
+                <div class="flex-grow flex justify-end items-center gap-4">
                   <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
                     <NcSwitch
                       v-model:checked="rowColorConfig.is_set_as_background"
@@ -327,3 +441,27 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.nc-cell-color-field-dropdown {
+  .ant-select-item {
+    @apply !text-[13px];
+  }
+}
+
+.nc-row-color-type-select,
+.nc-cell-color-field-select {
+  .ant-select-selector,
+  .ant-select-selection-search {
+    @apply flex items-center;
+  }
+
+  .ant-select-selector {
+    @apply !rounded-lg !text-body;
+
+    input {
+      @apply !text-body;
+    }
+  }
+}
+</style>

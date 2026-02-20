@@ -23,6 +23,7 @@ export class ViewRowColorService {
     fk_view_id?: string;
     color: string;
     is_set_as_background: boolean;
+    type?: string;
     nc_order: number;
     filter: FilterType;
     ncMeta?: MetaService;
@@ -39,6 +40,7 @@ export class ViewRowColorService {
     fk_row_coloring_conditions_id: string;
     color: string;
     is_set_as_background: boolean;
+    type?: string;
     nc_order: number;
     ncMeta?: MetaService;
   }) {}

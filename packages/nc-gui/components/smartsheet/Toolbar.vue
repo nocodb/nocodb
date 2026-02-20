@@ -135,7 +135,9 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
-        <SmartsheetToolbarPinnedFilters v-if="isEeUI && !blockPinnedFilter && !isLocked && canSyncFilter && (isGrid || isGallery || isKanban || isMap)" />
+        <SmartsheetToolbarPinnedFilters
+          v-if="isEeUI && !blockPinnedFilter && !isLocked && canSyncFilter && (isGrid || isGallery || isKanban || isMap)"
+        />
 
         <div class="flex-1" />
       </template>

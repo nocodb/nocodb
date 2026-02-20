@@ -13,6 +13,8 @@ export interface IRowColorCondition {
   color: string;
   nc_order: number;
   is_set_as_background: boolean;
+  type: string;
+  fk_target_column_id?: string;
 }
 const logger = new Logger('RowColorCondition');
 export default class RowColorCondition implements IRowColorCondition {
@@ -23,6 +25,8 @@ export default class RowColorCondition implements IRowColorCondition {
   color: string;
   nc_order: number;
   is_set_as_background: boolean;
+  type: string;
+  fk_target_column_id?: string;
 
   constructor(data: RowColorCondition) {
     Object.assign(this, data);

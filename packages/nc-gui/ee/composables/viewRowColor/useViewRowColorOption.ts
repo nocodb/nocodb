@@ -7,6 +7,7 @@ import {
   UITypes,
   type ViewType,
 } from 'nocodb-sdk'
+import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 import type { FilterRowChangeEvent } from '#imports'
 
 export function useViewRowColorOption(params: {
@@ -176,6 +177,7 @@ export function useViewRowColorOption(params: {
       color: getThemeV3RandomColor(conditions.length),
       conditions: [filter],
       is_set_as_background: false,
+      type: 'row',
       nestedConditions: [filter],
       nc_order: conditions.length + 1,
     }
@@ -289,12 +291,20 @@ export function useViewRowColorOption(params: {
     color: string
     is_set_as_background: boolean
     nc_order?: number
+    type?: string
+    fk_target_column_id?: string
   }) => {
     await popPendingAction()
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToUpdate = conditions[params.index]!
     conditionToUpdate.is_set_as_background = params.is_set_as_background
     conditionToUpdate.color = params.color
+    if (params.type !== undefined) {
+      conditionToUpdate.type = params.type
+    }
+    if (params.fk_target_column_id !== undefined) {
+      conditionToUpdate.fk_target_column_id = params.fk_target_column_id
+    }
     try {
       await $api.internal.postOperation(
         meta.value!.fk_workspace_id!,
@@ -308,6 +318,8 @@ export function useViewRowColorOption(params: {
           color: params.color,
           is_set_as_background: params.is_set_as_background,
           nc_order: conditionToUpdate.nc_order,
+          type: conditionToUpdate.type,
+          fk_target_column_id: conditionToUpdate.fk_target_column_id,
         },
       )
     } catch (err: any) {
@@ -366,6 +378,8 @@ export function useViewRowColorOption(params: {
 
     reloadViewDataIfNeeded(evalColumn?.id)
 
+    // Clear cache before re-rendering so color evaluation uses fresh data
+    clearRowColouringCache()
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
 
     isLoadingFilter.value = false
@@ -412,6 +426,8 @@ export function useViewRowColorOption(params: {
       )
       filter.id = result.id
     })
+    // Clear cache before re-rendering so color evaluation uses fresh data
+    clearRowColouringCache()
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
 
     isLoadingFilter.value = false
@@ -469,6 +485,8 @@ export function useViewRowColorOption(params: {
         updateObj,
       )
     }
+    // Clear cache before re-rendering so color evaluation uses fresh data
+    clearRowColouringCache()
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
@@ -501,6 +519,8 @@ export function useViewRowColorOption(params: {
       if (!conditionToDelete.conditions.length && !conditionToDelete.nestedConditions.length) {
         onRowColorConditionDelete(colorIndex)
       } else {
+        // Clear cache before re-rendering so color evaluation uses fresh data
+        clearRowColouringCache()
         eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
       }
     } catch (err: any) {
@@ -707,6 +727,8 @@ export function useViewRowColorOption(params: {
       tmp_id: generateUniqueRandomUUID(conditions, ['id', 'tmp_id']),
       color: conditionToCopy.color,
       is_set_as_background: conditionToCopy.is_set_as_background,
+      type: conditionToCopy.type || 'row',
+      fk_target_column_id: conditionToCopy.fk_target_column_id,
       nc_order: conditions.length + 1,
       conditions: conditionToCopy.conditions.map((filter) => cloneFilter(filter)),
       nestedConditions: clonedNestedConditions,

@@ -49,12 +49,12 @@ async function userMatchesSubjects(
         break;
 
       case 'team':
-        // Check if user belongs to the team
-        if (user.teams?.includes(subject.id)) {
-          return true;
-        }
-        // Also check via principal assignment if teams not pre-loaded
-        try {
+        {
+          // Check if user belongs to the team
+          if (user.teams?.includes(subject.id)) {
+            return true;
+          }
+          // Also check via principal assignment if teams not pre-loaded
           const assignment = await PrincipalAssignment.get(
             context,
             ResourceType.TEAM,
@@ -65,8 +65,6 @@ async function userMatchesSubjects(
           if (assignment) {
             return true;
           }
-        } catch {
-          // If lookup fails, continue checking other subjects
         }
         break;
 

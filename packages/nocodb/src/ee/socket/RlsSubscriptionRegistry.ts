@@ -127,7 +127,7 @@ export class RlsSubscriptionRegistry {
     const socketReg = this.sockets.get(socketId);
     if (!socketReg) return;
 
-    for (const tableId of socketReg.tables.keys()) {
+    for (const tableId of [...socketReg.tables.keys()]) {
       this.unregisterTable(socketId, tableId);
     }
 

@@ -82,7 +82,7 @@ Update these fields:
 ## Rules
 
 - Never modify `context.md` — it's written once during discovery
-- Never modify `test.py` — that's managed by the developer
+- Never modify `test.ts` — that's managed by the developer or nc-api-verifier agent
 - Be factual — only log what actually happened (commits, file changes), don't infer intent
 - If you can't determine what was done (no commits, no changes), log a minimal entry: "Session with no code changes"
 - Keep log entries concise — this is a timeline, not documentation

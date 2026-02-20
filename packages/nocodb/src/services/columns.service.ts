@@ -1068,6 +1068,14 @@ export class ColumnsService implements IColumnsService {
       }
       colBody = await getColumnPropsFromUIDT(colBody, source);
 
+      // Preserve existing colOptions when the request doesn't include them.
+      // Without this, a metadata-only PATCH (e.g. updating description) would
+      // skip the options-processing block entirely or cause options to be wiped
+      // when Column.update deletes and re-inserts colOptions.
+      if (!colBody.colOptions?.options && column.colOptions?.options) {
+        colBody.colOptions = column.colOptions;
+      }
+
       const baseModel = await reuseOrSave('baseModel', reuse, async () =>
         Model.getBaseModelSQL(context, {
           id: table.id,

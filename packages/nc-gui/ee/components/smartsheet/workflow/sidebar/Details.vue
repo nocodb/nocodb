@@ -1,11 +1,37 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import type { WorkflowRunAs, WorkflowRunAsType } from 'nocodb-sdk'
+import { RUN_AS_ALLOWED_ROLES, extractProjectRolePower } from 'nocodb-sdk'
 
 const { updateWorkflowData, debouncedWorkflowUpdate, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { workflow } = useWorkflowOrThrow()
 
 const { $e } = useNuxtApp()
+
+const { user } = useGlobal()
+
+const { baseRoles } = useRoles()
+
+const workflowStore = useWorkflowStore()
+
+const { updateWorkflow } = workflowStore
+
+const baseStore = useBases()
+
+const { activeProjectId } = storeToRefs(baseStore)
+
+const { getBaseUsers } = baseStore
+
+const baseUsers = ref<any[]>([])
+
+async function loadBaseUsers() {
+  if (!activeProjectId.value) return
+  const { users: fetchedUsers } = await getBaseUsers({ baseId: activeProjectId.value, force: true })
+  baseUsers.value = fetchedUsers || []
+}
+
+onMounted(loadBaseUsers)
 
 const isTitleInEditMode = ref(false)
 
@@ -41,6 +67,153 @@ const workflowDescription = computed({
     debouncedWorkflowUpdate()
   },
 })
+
+// --- Run As ---
+
+const currentRunAs = computed<WorkflowRunAs>(() => {
+  const meta = parseProp(workflow.value?.meta)
+  return meta?.run_as || { type: 'service_account' }
+})
+
+// Encode run_as into a single string value for the select dropdown
+const runAsSelectValue = computed(() => {
+  const ra = currentRunAs.value
+  if (ra.type === 'role' && ra.value) return `role:${ra.value}`
+  if (ra.type === 'user' && ra.value) return `user:${ra.value}`
+  return 'service_account'
+})
+
+const currentUserPower = computed(() => {
+  return extractProjectRolePower({ base_roles: baseRoles.value })
+})
+
+const runAsOptions = computed(() => {
+  const options: Array<{ value: string; label: string; group: string; role?: string; disabled?: boolean }> = []
+
+  options.push({
+    value: 'service_account',
+    label: 'Service Account',
+    group: 'Default',
+  })
+
+  for (const role of RUN_AS_ALLOWED_ROLES) {
+    const rolePower = extractProjectRolePower({ base_roles: { [role]: true } })
+    if (rolePower <= currentUserPower.value) {
+      options.push({
+        value: `role:${role}`,
+        label: role.charAt(0).toUpperCase() + role.slice(1),
+        group: 'Role',
+        role,
+      })
+    }
+  }
+
+  for (const u of baseUsers.value) {
+    const userBaseRoles = u.base_roles || (u.roles ? { [u.roles]: true } : {})
+    const userPower = extractProjectRolePower({ base_roles: userBaseRoles })
+    const isSelf = u.id === user.value?.id
+    const isDisabled = !isSelf && userPower >= currentUserPower.value
+    const activeRole = Object.keys(userBaseRoles).find((r) => userBaseRoles[r]) || u.roles
+
+    options.push({
+      value: `user:${u.id}`,
+      label: u.email || u.display_name || 'User',
+      group: 'User',
+      role: activeRole,
+      disabled: isDisabled,
+    })
+  }
+
+  return options
+})
+
+function getCurrentRunAsPower(): number {
+  const ra = currentRunAs.value
+  if (ra.type === 'role' && ra.value) {
+    return extractProjectRolePower({ base_roles: { [ra.value]: true } })
+  }
+  if (ra.type === 'user' && ra.value) {
+    const u = baseUsers.value.find((bu) => bu.id === ra.value)
+    if (u) {
+      const roles = u.base_roles || (u.roles ? { [u.roles]: true } : {})
+      return extractProjectRolePower({ base_roles: roles })
+    }
+  }
+  return -1
+}
+
+const showRunAsWarning = ref(false)
+const pendingRunAsValue = ref<string | null>(null)
+
+function handleRunAsChange(selectValue: string) {
+  if (!workflow.value?.id || !activeProjectId.value) return
+
+  // If current run_as has higher privilege than the user, warn before changing
+  const currentPower = getCurrentRunAsPower()
+  if (currentPower >= currentUserPower.value) {
+    pendingRunAsValue.value = selectValue
+    showRunAsWarning.value = true
+    return
+  }
+
+  applyRunAsChange(selectValue)
+}
+
+function onConfirmRunAsChange() {
+  if (pendingRunAsValue.value) {
+    applyRunAsChange(pendingRunAsValue.value)
+  }
+  showRunAsWarning.value = false
+  pendingRunAsValue.value = null
+}
+
+function onCancelRunAsChange() {
+  showRunAsWarning.value = false
+  pendingRunAsValue.value = null
+}
+
+async function applyRunAsChange(selectValue: string) {
+  if (!workflow.value?.id || !activeProjectId.value) return
+
+  let runAs: WorkflowRunAs
+
+  if (selectValue.startsWith('role:')) {
+    const role = selectValue.replace('role:', '')
+    runAs = { type: 'role' as WorkflowRunAsType, value: role }
+  } else if (selectValue.startsWith('user:')) {
+    const userId = selectValue.replace('user:', '')
+    const selectedUser = baseUsers.value.find((u) => u.id === userId)
+    runAs = {
+      type: 'user' as WorkflowRunAsType,
+      value: userId,
+      display_label: selectedUser?.email || user.value?.email,
+    }
+  } else {
+    runAs = { type: 'service_account' as WorkflowRunAsType }
+  }
+
+  const previousMeta = parseProp(workflow.value.meta)
+
+  const meta = {
+    ...previousMeta,
+    run_as: runAs,
+  }
+
+  workflow.value.meta = meta
+
+  const result = await updateWorkflow(activeProjectId.value, workflow.value.id, { meta })
+
+  if (!result) {
+    // Revert local state on failure
+    workflow.value.meta = previousMeta
+    return
+  }
+
+  $e('a:workflow:run-as:update', {
+    workflow_id: workflow.value.id,
+    run_as_type: runAs.type,
+  })
+}
 
 function enableTitleEditMode() {
   if (!isWorkflowEditAllowed.value) return
@@ -148,6 +321,61 @@ watch(
       </div>
 
       <NcDivider class="!my-6" />
+
+      <!-- Run As -->
+      <div class="flex flex-col gap-2 mb-4">
+        <div class="text-nc-content-gray text-bodyDefaultSmBold font-semibold">Run As</div>
+        <p class="text-xs text-nc-content-gray-muted">Choose the identity context for data operations when this workflow runs.</p>
+        <NcSelect
+          :value="runAsSelectValue"
+          :disabled="!isWorkflowEditAllowed"
+          class="!rounded-lg w-full"
+          @change="handleRunAsChange"
+        >
+          <template v-for="group in ['Default', 'Role', 'User']" :key="group">
+            <a-select-opt-group v-if="runAsOptions.some((o) => o.group === group)" :label="group">
+              <a-select-option
+                v-for="option in runAsOptions.filter((o) => o.group === group)"
+                :key="option.value"
+                :value="option.value"
+                :disabled="option.disabled"
+              >
+                <div class="flex justify-between items-center" :class="{ 'opacity-40': option.disabled }">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <RolesBadge
+                      v-if="option.role && option.group === 'Role'"
+                      :border="false"
+                      :role="option.role"
+                      icon-only
+                      nc-badge-class="!px-1"
+                    />
+                    <GeneralIcon
+                      v-else-if="option.group === 'User'"
+                      class="w-4 h-4 text-nc-content-gray-subtle flex-none"
+                      icon="ncUser"
+                    />
+                    <GeneralIcon v-else class="w-4 h-4 text-nc-content-gray-subtle flex-none" icon="ncSettings" />
+                    <span class="truncate">{{ option.label }}</span>
+                    <RolesBadge
+                      v-if="option.role && option.group === 'User'"
+                      :border="false"
+                      :role="option.role"
+                      size="xs"
+                      class="flex-none"
+                    />
+                  </div>
+                  <GeneralIcon
+                    v-if="option.value === runAsSelectValue"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4 flex-none"
+                    icon="ncCheck"
+                  />
+                </div>
+              </a-select-option>
+            </a-select-opt-group>
+          </template>
+        </NcSelect>
+      </div>
     </div>
     <div class="flex-1" />
     <NcDivider />
@@ -175,5 +403,20 @@ watch(
         </div>
       </div>
     </div>
+
+    <GeneralModal v-model:visible="showRunAsWarning" size="small" centered>
+      <div class="flex flex-col p-6">
+        <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-nc-content-gray">Change Run As</div>
+        <div class="mb-3 text-nc-content-gray-subtle">
+          The current "Run As" setting has a higher privilege than your role. Once changed, you won't be able to set it back.
+        </div>
+        <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+          <NcButton type="secondary" size="small" @click="onCancelRunAsChange">
+            {{ $t('general.cancel') }}
+          </NcButton>
+          <NcButton type="danger" size="small" @click="onConfirmRunAsChange"> Change </NcButton>
+        </div>
+      </div>
+    </GeneralModal>
   </div>
 </template>

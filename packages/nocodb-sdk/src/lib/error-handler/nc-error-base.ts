@@ -365,6 +365,16 @@ export class NcErrorBase {
     });
   }
 
+  insufficientPrivilege(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INSUFFICIENT_PRIVILEGE,
+      {
+        params: message,
+        ...args,
+      }
+    );
+  }
+
   sourceDataReadOnly(name: string) {
     this.forbidden(`Source '${name}' is read-only`);
   }

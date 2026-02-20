@@ -175,6 +175,10 @@ export class NcError {
     return NcError._.forbidden(message, args);
   }
 
+  static insufficientPrivilege(message: string, args?: NcErrorArgs): never {
+    return NcError._.insufficientPrivilege(message, args);
+  }
+
   static sourceDataReadOnly(name: string): never {
     return NcError.forbidden(`Source '${name}' is read-only`);
   }

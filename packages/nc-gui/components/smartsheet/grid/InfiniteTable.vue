@@ -2583,9 +2583,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                         Row hidden
 
                         <NcTooltip>
-                          <template #title>
-                            This record will be hidden as it does not match your access permissions.
-                          </template>
+                          <template #title> This record will be hidden as it does not match your access permissions. </template>
 
                           <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-gray" />
                         </NcTooltip>
@@ -2608,7 +2606,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           activeCell.row === row.rowMeta.rowIndex || selectedRange._start?.row === row.rowMeta.rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
                         'selected-row': row.rowMeta.selected || vSelectedAllRecords,
-                        'invalid-row': row.rowMeta?.isValidationFailed || row.rowMeta?.isRowOrderUpdated || row.rowMeta?.isRlsHidden,
+                        'invalid-row':
+                          row.rowMeta?.isValidationFailed || row.rowMeta?.isRowOrderUpdated || row.rowMeta?.isRlsHidden,
                         'is-dragging': row.rowMeta?.rowIndex === draggingRecord?.rowMeta?.rowIndex,
                       }"
                     >

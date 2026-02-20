@@ -365,7 +365,7 @@ const onCopy = () => {
 
 const isFilterEnabled = computed(() => vModel.value.enabled !== false && vModel.value.enabled !== 0)
 
-const effectiveEnabled = computed(() => (props.parentEnabled !== false && props.parentEnabled !== 0) && isFilterEnabled.value)
+const effectiveEnabled = computed(() => props.parentEnabled !== false && props.parentEnabled !== 0 && isFilterEnabled.value)
 
 const onToggleFilterChange = (val: boolean | Event) => {
   if (blockToggleFilter.value) {
@@ -430,10 +430,7 @@ const onChangeToDynamic = async () => {
 <template>
   <div
     class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-nc-bg-default"
-    :class="[
-      `nc-filter-wrapper-${vModel.fk_column_id}`,
-      { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled },
-    ]"
+    :class="[`nc-filter-wrapper-${vModel.fk_column_id}`, { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled }]"
     v-bind="containerProps"
   >
     <!-- #region enabled checkbox (EE only) -->
@@ -450,7 +447,11 @@ const onChangeToDynamic = async () => {
 
     <!-- #region logical op -->
     <template v-if="index === 0">
-      <div class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label" :class="isEeUI ? 'pl-1' : 'pl-3'" v-bind="logicalOpsProps">
+      <div
+        class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label"
+        :class="isEeUI ? 'pl-1' : 'pl-3'"
+        v-bind="logicalOpsProps"
+      >
         {{ $t('labels.where') }}
       </div>
     </template>

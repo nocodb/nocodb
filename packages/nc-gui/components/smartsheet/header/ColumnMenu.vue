@@ -172,10 +172,12 @@ const duplicateVirtualColumn = async () => {
     order: undefined,
     system: false,
     // Clear UUID-specific metadata to avoid conflicts during duplication
-    ...(column!.value.uidt === UITypes.UUID ? {
-      internal_meta: undefined,
-      unique: undefined, // Let backend set this automatically for UUID
-    } : {}),
+    ...(column!.value.uidt === UITypes.UUID
+      ? {
+          internal_meta: undefined,
+          unique: undefined, // Let backend set this automatically for UUID
+        }
+      : {}),
   }
 
   try {

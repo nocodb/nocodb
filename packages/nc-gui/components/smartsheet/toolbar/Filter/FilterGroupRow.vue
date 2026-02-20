@@ -150,7 +150,7 @@ const onCopy = () => {
 
 const isFilterEnabled = computed(() => vModel.value.enabled !== false)
 
-const effectiveEnabled = computed(() => (props.parentEnabled !== false) && isFilterEnabled.value)
+const effectiveEnabled = computed(() => props.parentEnabled !== false && isFilterEnabled.value)
 
 const onToggleFilterChange = (val: boolean | Event) => {
   if (blockToggleFilter.value) {
@@ -190,10 +190,7 @@ const onEnabledChange = (val: boolean | Event) => {
   <div class="flex flex-col min-w-full w-min gap-y-2">
     <div
       class="flex rounded-lg p-2 min-w-full w-min border-1"
-      :class="[
-        `nc-filter-nested-level-${nestedLevel}`,
-        { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled },
-      ]"
+      :class="[`nc-filter-nested-level-${nestedLevel}`, { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled }]"
     >
       <SmartsheetToolbarFilterGroup
         v-model="vModel.children"

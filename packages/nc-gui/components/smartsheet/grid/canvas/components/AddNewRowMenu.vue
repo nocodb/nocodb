@@ -71,7 +71,7 @@ const handleUseTemplate = async (tmpl: any) => {
         }
       "
     >
-      <div class="flex flex-row flex-1 items-center justify-start gap-x-3">
+      <div class="flex flex-row flex-1 items-center justify-start gap-x-2">
         <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
       </div>
@@ -88,7 +88,7 @@ const handleUseTemplate = async (tmpl: any) => {
         }
       "
     >
-      <div class="flex flex-row items-center flex-1 justify-start gap-x-3">
+      <div class="flex flex-row items-center flex-1 justify-start gap-x-2">
         <component :is="viewIcons[ViewTypes.FORM]?.icon" class="nc-view-icon text-inherit" />
         {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
       </div>

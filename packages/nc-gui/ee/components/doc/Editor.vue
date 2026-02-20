@@ -28,9 +28,9 @@ const title = ref('')
 const isSaving = ref(false)
 const isLoaded = ref(false)
 
-// Debounced save
 const saveTimeout = ref<NodeJS.Timeout>()
 
+/** Persist current editor state + title to the backend. */
 const save = async () => {
   if (!doc.value || !activeProjectId.value || !editor.value) return
 
@@ -43,9 +43,12 @@ const save = async () => {
       version: doc.value.version,
     })
 
+    // Advance local version to match server for optimistic concurrency
     if (updated) {
       doc.value.version = updated.version
     }
+  } catch (e) {
+    console.error('[doc:editor] save failed', e)
   } finally {
     isSaving.value = false
   }
@@ -82,6 +85,25 @@ const editor = useEditor({
   },
 })
 
+/**
+ * Parse content from the API response into a Tiptap-compatible JSON object.
+ * The backend should return parsed JSON, but we defensively handle string
+ * values in case of cache inconsistencies.
+ */
+const parseContent = (content: unknown): Record<string, any> | null => {
+  if (!content) return null
+  if (typeof content === 'object') return content as Record<string, any>
+  if (typeof content === 'string') {
+    try {
+      return JSON.parse(content)
+    } catch {
+      console.error('[doc:editor] failed to parse content JSON')
+      return null
+    }
+  }
+  return null
+}
+
 const loadAndSetDoc = async (id: string) => {
   isLoaded.value = false
   const loaded = await loadDoc(id)
@@ -90,16 +112,15 @@ const loadAndSetDoc = async (id: string) => {
     doc.value = loaded
     title.value = loaded.title || ''
 
-    if (editor.value && loaded.content) {
-      // Ensure content is a parsed JSON object, not a string
-      const content = typeof loaded.content === 'string' ? JSON.parse(loaded.content) : loaded.content
-      editor.value.commands.setContent(content)
+    const parsed = parseContent(loaded.content)
+    if (editor.value && parsed) {
+      editor.value.commands.setContent(parsed)
     }
   }
   isLoaded.value = true
 }
 
-// Watch for docId changes
+// Re-load doc when navigating between pages
 watch(
   docId,
   async (newId) => {
@@ -110,7 +131,6 @@ watch(
   { immediate: true },
 )
 
-// Save title on blur
 const onTitleBlur = () => {
   if (title.value !== doc.value?.title) {
     debouncedSave()
@@ -125,7 +145,7 @@ const onTitleKeydown = (e: KeyboardEvent) => {
 }
 
 onBeforeUnmount(() => {
-  // Flush any pending save
+  // Flush any pending save before the editor is destroyed
   if (saveTimeout.value) {
     clearTimeout(saveTimeout.value)
     save()

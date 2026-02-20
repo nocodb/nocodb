@@ -22,15 +22,12 @@ watch(
   { immediate: true },
 )
 
-// Update page title
-watch(
-  () => activeDoc.value?.title,
-  (title) => {
-    if (!title) return
-    useTitle(`${title} | ${openedProject.value?.title}`)
-  },
-  { immediate: true },
-)
+// Update browser tab title reactively
+const pageTitle = computed(() => {
+  if (!activeDoc.value?.title) return ''
+  return `${activeDoc.value.title} | ${openedProject.value?.title ?? ''}`
+})
+useTitle(pageTitle)
 
 // Clear activeDocId when leaving the page
 onBeforeRouteLeave(() => {

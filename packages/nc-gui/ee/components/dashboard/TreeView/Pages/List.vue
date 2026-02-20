@@ -1,33 +1,17 @@
 <script setup lang="ts">
-import type { DocType } from 'nocodb-sdk'
-
 const props = defineProps<{
   baseId: string
 }>()
 
 const baseId = toRef(props, 'baseId')
 
-const { $e } = useNuxtApp()
-
 const { isUIAllowed } = useRoles()
 
 const docsStore = useDocsStore()
-const { createDoc, reorderDoc } = docsStore
+const { createDoc } = docsStore
 const { activeDocId, docs: allDocs } = storeToRefs(docsStore)
 
 const baseDocs = computed(() => allDocs.value.get(baseId.value) ?? [])
-
-const isMarked = ref<string | false>(false)
-
-const keys = ref<Record<string, number>>({})
-
-/** shortly mark an item after sorting */
-function markItem(id: string) {
-  isMarked.value = id
-  setTimeout(() => {
-    isMarked.value = false
-  }, 300)
-}
 
 const onCreateDoc = async () => {
   await createDoc(baseId.value)
@@ -36,6 +20,7 @@ const onCreateDoc = async () => {
 
 <template>
   <div>
+    <!-- Empty state: show "New page" CTA -->
     <template v-if="!baseDocs.length && isUIAllowed('docCreate')">
       <div
         class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
@@ -49,6 +34,7 @@ const onCreateDoc = async () => {
       </div>
     </template>
 
+    <!-- Empty state: no create permission -->
     <div
       v-else-if="!baseDocs.length && !isUIAllowed('docCreate')"
       class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
@@ -56,9 +42,9 @@ const onCreateDoc = async () => {
       No pages
     </div>
 
+    <!-- Page list -->
     <div
       v-else
-      :key="`data-${keys.data || 0}`"
       class="nc-pages-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar"
     >
       <DashboardTreeViewPagesNode
@@ -70,7 +56,6 @@ const onCreateDoc = async () => {
         :doc="doc"
         class="nc-page-item nc-tree-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
         :class="{
-          'bg-nc-bg-gray-medium': isMarked === doc.id,
           active: activeDocId === doc.id,
         }"
       />

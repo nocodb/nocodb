@@ -9,7 +9,7 @@ const { isUIAllowed } = useRoles()
 
 const docsStore = useDocsStore()
 const { loadDocs } = docsStore
-const { activeDocId, activeDoc, docs } = storeToRefs(docsStore)
+const { activeDocId, activeDoc } = storeToRefs(docsStore)
 
 const bases = useBases()
 const { openedProject } = storeToRefs(bases)
@@ -30,39 +30,13 @@ onMounted(() => {
   }
 })
 
-watch(
-  () => activeDoc.value?.id,
-  async () => {
-    if (!activeDoc.value) return
-
-    await loadDocs({ baseId: baseId.value })
-
-    if (activeDoc.value?.base_id === openedProject.value?.id) {
-      isExpanded.value = true
-    }
-  },
-)
-
-let docTimeout: NodeJS.Timeout
-
+// Reload docs and auto-expand when the active doc changes
+// (e.g. navigating to a doc from another base)
 watch(activeDocId, () => {
   loadDocs({ baseId: baseId.value })
 
-  if (docTimeout) {
-    clearTimeout(docTimeout)
-  }
-
-  if (activeDocId.value && isExpanded.value) {
-    const _docs = docs.value.get(baseId.value) ?? []
-
-    if (_docs.length) return
-
-    docTimeout = setTimeout(() => {
-      if (isExpanded.value) {
-        isExpanded.value = false
-      }
-      clearTimeout(docTimeout)
-    }, 10000)
+  if (activeDoc.value?.base_id === openedProject.value?.id) {
+    isExpanded.value = true
   }
 })
 </script>

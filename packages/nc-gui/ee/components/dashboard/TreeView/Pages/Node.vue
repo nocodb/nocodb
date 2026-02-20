@@ -7,14 +7,10 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { $e } = useNuxtApp()
-
 const { ncNavigateTo } = useGlobal()
 const { isUIAllowed } = useRoles()
 
 const docsStore = useDocsStore()
-const basesStore = useBases()
-const { activeProjectId } = storeToRefs(basesStore)
 const { updateDoc, deleteDoc } = docsStore
 const { activeDocId } = storeToRefs(docsStore)
 
@@ -26,7 +22,13 @@ const isEditing = ref(false)
 const isDropdownOpen = ref(false)
 const _title = ref('')
 const input = useTemplateRef('input')
+
+// Controls whether the NcTooltip is active — disabled while
+// the context-menu button is hovered to avoid tooltip overlap.
 const showNodeTooltip = ref(true)
+
+// Declare before usage in handleOnClick
+const { meta: metaKey, control } = useMagicKeys()
 
 const navigateToDoc = () => {
   if (isEditing.value) return
@@ -48,14 +50,13 @@ const handleOnClick = () => {
 
   const cmdOrCtrl = isMac() ? metaKey?.value : control?.value
 
+  // Cmd/Ctrl-click navigates immediately (skips debounce)
   if (cmdOrCtrl) {
     navigateToDoc()
   } else {
     onClick()
   }
 }
-
-const { meta: metaKey, control } = useMagicKeys()
 
 const onDblClick = () => {
   if (!isUIAllowed('docUpdate')) return
@@ -133,7 +134,7 @@ const onRenameMenuClick = () => {
       <NcTooltip
         v-else
         class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none w-full max-w-full"
-        disabled
+        :disabled="!showNodeTooltip"
         show-on-truncate-only
       >
         <template #title> {{ doc.title || 'Untitled' }}</template>

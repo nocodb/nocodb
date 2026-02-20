@@ -1,6 +1,12 @@
 import { defineStore } from 'pinia'
 import type { DocType } from 'nocodb-sdk'
 
+/**
+ * Pinia store for Pages (internally "Docs").
+ *
+ * Manages a per-base list of docs, tracks the active doc for editor routing,
+ * and provides CRUD + reorder operations via the internal API.
+ */
 export const useDocsStore = defineStore('docsStore', () => {
   const { $api, $e } = useNuxtApp()
   const { ncNavigateTo } = useGlobal()

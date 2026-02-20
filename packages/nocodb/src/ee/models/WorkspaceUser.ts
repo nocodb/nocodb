@@ -131,7 +131,7 @@ export default class WorkspaceUser {
         );
       }
 
-      const res = await this.get(fk_workspace_id, fk_user_id, ncMetaTrans);
+      const res = await this.get(fk_workspace_id, fk_user_id, {}, ncMetaTrans);
 
       // add to workspace user list cache
       await NocoCache.appendToList(
@@ -695,7 +695,7 @@ export default class WorkspaceUser {
       logger.error('Error cleaning command palette cache');
     });
 
-    return this.get(workspaceId, userId, ncMeta);
+    return this.get(workspaceId, userId, {}, ncMeta);
   }
 
   static async softDelete(workspaceId: any, userId: any, ncMeta = Noco.ncMeta) {

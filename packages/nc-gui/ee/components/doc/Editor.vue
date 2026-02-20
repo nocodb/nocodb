@@ -91,7 +91,9 @@ const loadAndSetDoc = async (id: string) => {
     title.value = loaded.title || ''
 
     if (editor.value && loaded.content) {
-      editor.value.commands.setContent(loaded.content)
+      // Ensure content is a parsed JSON object, not a string
+      const content = typeof loaded.content === 'string' ? JSON.parse(loaded.content) : loaded.content
+      editor.value.commands.setContent(content)
     }
   }
   isLoaded.value = true

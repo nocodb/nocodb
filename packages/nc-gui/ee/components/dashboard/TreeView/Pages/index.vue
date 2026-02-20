@@ -23,6 +23,13 @@ const onExpand = async () => {
   isExpanded.value = !isExpanded.value
 }
 
+// Eagerly load docs on mount so the list is populated on page reload
+onMounted(() => {
+  if (isUIAllowed('docList')) {
+    loadDocs({ baseId: baseId.value })
+  }
+})
+
 watch(
   () => activeDoc.value?.id,
   async () => {
@@ -33,9 +40,6 @@ watch(
     if (activeDoc.value?.base_id === openedProject.value?.id) {
       isExpanded.value = true
     }
-  },
-  {
-    immediate: true,
   },
 )
 

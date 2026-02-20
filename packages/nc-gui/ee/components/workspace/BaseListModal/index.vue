@@ -182,7 +182,7 @@ const displayedSections = computed(() => {
 })
 
 const emptyFilterResult = computed(() => {
-  return displayedSections.value.every((section) => section.bases.length === 0)
+  return displayedSections.value.every((section) => section.bases.length === 0) && !modalState.searchQuery.length
 })
 
 // Check if there are no search results

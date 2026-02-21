@@ -110,7 +110,7 @@ const onMenuClick = (e: Event) => {
   <div
     :tabindex="0"
     class="nc-base-node group relative flex items-center gap-3 p-3 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
-    :class="{ 'is-marked': isMarked, 'is-editing': editMode, 'is-selected': activeProjectId === base.id }"
+    :class="{ 'is-marked': isMarked, 'is-editing': editMode }"
     :data-id="base.id"
     :data-testid="`nc-base-list-modal-base-title-${base.title}`"
     @click="handleSelect"
@@ -166,7 +166,11 @@ const onMenuClick = (e: Event) => {
       </div>
 
       <!-- More Options Button -->
-      <div v-if="!editMode" class="nc-base-node-menu-wrapper" :class="{ 'is-open': isMenuOpen }">
+      <div
+        v-if="!editMode"
+        class="nc-base-node-menu-wrapper"
+        :class="{ 'is-open': isMenuOpen, 'is-active': activeProjectId === base.id }"
+      >
         <NcDropdown
           v-model:visible="isMenuOpen"
           :trigger="['click']"
@@ -174,7 +178,13 @@ const onMenuClick = (e: Event) => {
           overlay-class-name="nc-base-node-menu"
         >
           <NcButton :tabindex="-1" type="text" size="xsmall" class="nc-base-node-menu-btn" @click.stop="onMenuClick">
-            <GeneralIcon icon="threeDotVertical" class="text-nc-content-gray-muted" />
+            <GeneralIcon
+              v-if="activeProjectId === base.id"
+              v-show="!isMenuOpen"
+              icon="ncCheck"
+              class="nc-base-active-check text-nc-content-brand flex-none"
+            />
+            <GeneralIcon icon="threeDotVertical" class="nc-base-three-dot text-nc-content-gray-muted flex-none" />
           </NcButton>
 
           <template #overlay>
@@ -242,13 +252,20 @@ const onMenuClick = (e: Event) => {
   @apply bg-white dark:bg-nc-bg-gray-light;
 
   &:hover,
-  &:focus-within {
-    &:not(.is-selected) {
-      @apply bg-nc-bg-gray-light dark:bg-nc-bg-gray-medium;
-    }
+  &:focus-within,
+  &:focus-visible {
+    @apply bg-nc-bg-gray-light dark:bg-nc-bg-gray-medium;
 
     .nc-base-node-menu-wrapper {
       @apply w-6 !flex;
+
+      .nc-base-active-check {
+        @apply !hidden;
+      }
+
+      .nc-base-three-dot {
+        @apply !block;
+      }
     }
   }
 
@@ -266,10 +283,6 @@ const onMenuClick = (e: Event) => {
 
   &.is-editing {
     @apply cursor-default;
-  }
-
-  &.is-selected {
-    @apply border-nc-border-brand/30 hover:border-nc-border-brand/40 bg-brand-500/5 dark:bg-brand-500/10;
   }
 }
 

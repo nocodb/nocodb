@@ -443,6 +443,96 @@ describe('dataApiV3', () => {
       });
     });
 
+    // ─── Cache key correctness ─────────────────────────────────
+    // These tests reproduce the bug where the EE single-query
+    // optimized path cached SQL without considering linksAsLtar,
+    // causing a request with linksAsLtar=true to return stale
+    // rollup-count results from a prior non-linksAsLtar request.
+
+    describe('cache key: read without then with linksAsLtar', () => {
+      it('HM dataRead: count first, then linksAsLtar returns nested records', async function () {
+        // First call WITHOUT linksAsLtar — caches rollup-count SQL
+        const rspCount = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}/records/1`,
+        });
+        expect(rspCount.body.fields['Cities']).to.equal(5);
+
+        // Second call WITH linksAsLtar — must NOT return cached count
+        const rspLtar = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}/records/1`,
+          query: { linksAsLtar: 'true' },
+        });
+        const cities = rspLtar.body.fields['Cities'];
+        expect(cities).to.be.an('array');
+        expect(cities).to.have.length(5);
+        expect(cities.sort(idc)).to.deep.equal(expectedCities);
+      });
+
+      it('HM dataRead: linksAsLtar first, then without returns count', async function () {
+        // First call WITH linksAsLtar — caches LTAR SQL
+        const rspLtar = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}/records/1`,
+          query: { linksAsLtar: 'true' },
+        });
+        expect(rspLtar.body.fields['Cities']).to.be.an('array');
+
+        // Second call WITHOUT linksAsLtar — must NOT return cached LTAR
+        const rspCount = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}/records/1`,
+        });
+        expect(rspCount.body.fields['Cities']).to.equal(5);
+      });
+
+      it('MM dataRead: count first, then linksAsLtar returns nested records', async function () {
+        const rspCount = await ncAxiosGet({
+          url: `${urlPrefix}/${tblActor.id}/records/1`,
+        });
+        expect(rspCount.body.fields['Films']).to.equal(5);
+
+        const rspLtar = await ncAxiosGet({
+          url: `${urlPrefix}/${tblActor.id}/records/1`,
+          query: { linksAsLtar: 'true' },
+        });
+        const films = rspLtar.body.fields['Films'];
+        expect(films).to.be.an('array');
+        expect(films).to.have.length(5);
+        expect(films.sort(idc)).to.deep.equal(expectedFilms);
+      });
+
+      it('HM dataList: count first, then linksAsLtar returns nested records', async function () {
+        // No `where` param — shouldSkipCache skips cache when `where` is present
+        const rspCount = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}/records`,
+          query: { limit: 1 },
+        });
+        expect(rspCount.body.records[0].fields['Cities']).to.equal(5);
+
+        const rspLtar = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}/records`,
+          query: { limit: 1, linksAsLtar: 'true' },
+        });
+        const cities = rspLtar.body.records[0].fields['Cities'];
+        expect(cities).to.be.an('array');
+        expect(cities).to.have.length(5);
+        expect(cities.sort(idc)).to.deep.equal(expectedCities);
+      });
+
+      it('HM dataList: linksAsLtar first, then without returns count', async function () {
+        // No `where` param — shouldSkipCache skips cache when `where` is present
+        const rspLtar = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}/records`,
+          query: { limit: 1, linksAsLtar: 'true' },
+        });
+        expect(rspLtar.body.records[0].fields['Cities']).to.be.an('array');
+
+        const rspCount = await ncAxiosGet({
+          url: `${urlPrefix}/${tblCountry.id}/records`,
+          query: { limit: 1 },
+        });
+        expect(rspCount.body.records[0].fields['Cities']).to.equal(5);
+      });
+    });
+
     // ─── Link removal ──────────────────────────────────────────
 
     describe('after link changes', () => {

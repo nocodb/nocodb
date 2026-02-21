@@ -182,7 +182,7 @@ const hasNoSearchResults = computed(() => {
           ref="searchInputRef"
           v-model:value="modalState.searchQuery"
           class="nc-workspace-base-search"
-          :placeholder="$t('placeholder.searchWorkspacesAndBases')"
+          :placeholder="isEeUI ? $t('placeholder.searchWorkspacesAndBases') : `${$t('labels.searchProjects')}...`"
           allow-clear
           size="large"
         >

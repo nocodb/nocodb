@@ -4,7 +4,7 @@ const isBaseListModalOpen = ref(false)
 
 <template>
   <div class="nc-mini-sidebar-btn-full-width">
-    <div data-testid="nc-workspace-menu" class="nc-workspace-menu nc-mini-sidebar-ws-item" @click="isBaseListModalOpen = true">
+    <div data-testid="nc-workspace-menu" class="nc-workspace-menu nc-mini-sidebar-ws-item nc-small-shadow" @click="isBaseListModalOpen = true">
       <GeneralWorkspaceIcon
         :workspace="{
           id: 'nc',

@@ -1,6 +1,6 @@
 import { WebhookHandlerProcessor as WebhookHandlerProcessorCE } from 'src/modules/jobs/jobs/webhook-handler/webhook-handler.processor';
 import { PlanLimitTypes } from 'nocodb-sdk';
-import { Job } from 'bull';
+import { type Job } from 'bull';
 import { UsageStat, Workspace } from '~/models';
 import { type HandleWebhookJobData } from '~/interface/Jobs';
 import { checkLimit } from '~/helpers/paymentHelpers';

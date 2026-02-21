@@ -9,7 +9,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
-import { EEOnly } from '~/ee/decorators/ee-only.decorator';
 import type {
   ColumnReqType,
   FilterType,
@@ -21,6 +20,7 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { Column, Filter, SelectOption } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,

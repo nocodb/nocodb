@@ -12,7 +12,6 @@ export function useMapConfig() {
   const tileUrl = computed(() => {
     const mapProvider = appInfo.value.mapProvider || MapProvider.OPENSTREETMAP
 
-    console.log('mapProvider', mapProvider)
     // Providers that require API key and backend proxy
     if (mapProvider === MapProvider.STADIAMAP_APIKEY) {
       const apiBaseUrl = $api.instance.defaults.baseURL

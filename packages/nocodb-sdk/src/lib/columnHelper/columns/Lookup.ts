@@ -18,7 +18,49 @@ export class LookupHelper extends AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string | null {
     if (params.serializeSearchQuery) {
-      return this.parseValue(value, params);
+      if (!value) return null;
+
+      // Get the child column being looked up
+      const { col, meta, metas } = params;
+      const baseId = meta?.base_id;
+      const colOptions = col.colOptions as LookupType;
+      const relationColumnOptions = colOptions.fk_relation_column_id
+        ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)
+            ?.colOptions as LinkToAnotherRecordType)
+        : null;
+      const relatedBaseId = relationColumnOptions?.fk_related_base_id || baseId;
+      const relatedTableMeta =
+        relationColumnOptions?.fk_related_model_id &&
+        getMetaWithCompositeKey(
+          metas,
+          relatedBaseId,
+          relationColumnOptions.fk_related_model_id as string
+        );
+
+      let childColumn = relatedTableMeta?.columns.find(
+        (c: ColumnType) => c.id === colOptions.fk_lookup_column_id
+      ) as ColumnType | undefined;
+
+      if (!childColumn) return value;
+
+      childColumn = clone(childColumn);
+
+      // Use serializeValue on child column to get raw search value
+      if (ncIsArray(value)) {
+        return value
+          .map((v) => {
+            return ColumnHelper.serializeValue(v, {
+              ...params,
+              col: childColumn!,
+            });
+          })
+          .join(', ');
+      }
+
+      return ColumnHelper.serializeValue(value, {
+        ...params,
+        col: childColumn!,
+      });
     }
 
     if (params.isMultipleCellPaste) {

@@ -84,7 +84,8 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'row_color_update'
     | 'extension_update'
     | 'extension_create'
-    | 'extension_delete';
+    | 'extension_delete'
+    | 'rls_policy_update';
   payload: T;
   baseId?: string;
 }

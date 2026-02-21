@@ -8,15 +8,28 @@ export interface RlsPolicyState {
 export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>) => {
   const { $api } = useNuxtApp()
   const { getMeta } = useMetas()
+  const { baseTables } = storeToRefs(useTablesStore())
 
   const policies = ref<RlsPolicyType[]>([])
   const isLoading = ref(false)
   const isSaving = ref(false)
 
   const refreshTableMeta = () => {
-    if (base.value?.id && tableId.value) {
-      getMeta(base.value.id, tableId.value, true)
-    }
+    const baseId = base.value?.id
+    if (!baseId || !tableId.value) return
+
+    getMeta(baseId, tableId.value, true).then((updatedMeta) => {
+      if (!updatedMeta) return
+
+      const tables = baseTables.value.get(baseId)
+      if (tables) {
+        const index = tables.findIndex((t) => t.id === tableId.value)
+        if (index !== -1) {
+          tables[index] = { ...tables[index], meta: updatedMeta.meta }
+          baseTables.value.set(baseId, tables)
+        }
+      }
+    })
   }
 
   const loadPolicies = async () => {

@@ -1,5 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  PlanFeatureTypes,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
@@ -160,6 +165,18 @@ export class RlsService {
 
     await this.syncRlsEnabledMeta(context, body.fk_model_id);
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'rls_policy_update',
+          payload: { tableId: body.fk_model_id, base_id: context.base_id },
+        },
+      },
+      context.socket_id,
+    );
+
     this.appHooksService.emit(AppEvents.RLS_POLICY_CREATE, {
       context,
       userId,
@@ -212,6 +229,21 @@ export class RlsService {
 
     await this.syncRlsEnabledMeta(context, policy.fk_model_id);
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'rls_policy_update',
+          payload: {
+            tableId: policy.fk_model_id,
+            base_id: context.base_id,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     this.appHooksService.emit(AppEvents.RLS_POLICY_UPDATE, {
       context,
       userId,
@@ -255,6 +287,21 @@ export class RlsService {
     await View.clearSingleQueryCache(context, policy.fk_model_id);
 
     await this.syncRlsEnabledMeta(context, policy.fk_model_id);
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'rls_policy_update',
+          payload: {
+            tableId: policy.fk_model_id,
+            base_id: context.base_id,
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     this.appHooksService.emit(AppEvents.RLS_POLICY_DELETE, {
       context,

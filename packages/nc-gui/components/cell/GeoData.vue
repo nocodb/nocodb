@@ -41,6 +41,7 @@ const isUpdatingFromMap = ref(false)
 const DEFAULT_CENTER: [number, number] = [20, 0]
 const DEFAULT_ZOOM = 2
 const LOCATION_ZOOM = 15
+const AUTO_POSITION_ZOOM = 10
 
 function syncToFormState(lat: number, lng: number) {
   isUpdatingFromMap.value = true
@@ -104,10 +105,38 @@ function initMap() {
     const marker = L.marker(center, { draggable: !readonly.value }).addTo(map)
     setupMarkerDrag(marker)
     markerRef.value = marker
+  } else {
+    // No saved coordinates - try auto-positioning with geolocation
+    tryAutoPositionMap()
   }
 
   map.on('click', onMapClick)
   mapInstanceRef.value = map
+}
+
+function tryAutoPositionMap() {
+  if (!navigator.geolocation) return
+
+  const onSuccess: PositionCallback = (position: GeolocationPosition) => {
+    // Guard: only update if map still exists (user might have closed overlay)
+    if (!mapInstanceRef.value) return
+
+    const { latitude, longitude } = position.coords
+    mapInstanceRef.value.setView([latitude, longitude], AUTO_POSITION_ZOOM)
+  }
+
+  const onError: PositionErrorCallback = (err: GeolocationPositionError) => {
+    // Silent failure - common for denied permissions
+    console.debug(`Geolocation auto-position skipped: ${err.code}`)
+  }
+
+  const options: PositionOptions = {
+    enableHighAccuracy: true,
+    timeout: 20000,
+    maximumAge: 2000,
+  }
+
+  navigator.geolocation.getCurrentPosition(onSuccess, onError, options)
 }
 
 function destroyMap() {

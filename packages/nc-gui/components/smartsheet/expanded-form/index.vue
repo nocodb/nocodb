@@ -967,26 +967,19 @@ export default {
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
             <!-- Table selector dropdown (template mode) -->
-            <NcDropdown v-if="templateMode && !props.showNextPrevIcons" :disabled="availableTables.length === 0">
-              <div
-                class="hidden md:flex items-center rounded-lg bg-nc-bg-gray-light px-2 py-1 gap-2 cursor-pointer hover:bg-nc-bg-gray-medium transition-colors"
-              >
-                <GeneralTableIcon size="xsmall" :meta="activeMeta" class="!mx-0 !text-nc-content-inverted-secondary" />
-                <span class="nc-expanded-form-table-name whitespace-nowrap">{{ tableTitle }}</span>
-                <GeneralIcon icon="chevronDown" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
-              </div>
-              <template #overlay>
-                <NcMenu variant="small" class="max-h-60 overflow-auto !min-w-[200px]">
-                  <NcMenuItem v-for="table in availableTables" :key="table.id" @click="onTemplateTableChange(table.id)">
-                    <div class="flex items-center gap-2 w-full">
-                      <GeneralTableIcon size="xsmall" :meta="table" class="!mx-0 flex-none" />
-                      <span class="truncate flex-1">{{ table.title }}</span>
-                      <GeneralIcon v-if="table.id === activeMeta?.id" icon="check" class="flex-none w-4 h-4 text-primary" />
-                    </div>
-                  </NcMenuItem>
-                </NcMenu>
-              </template>
-            </NcDropdown>
+            <NcListTableSelector
+              v-if="templateMode && !props.showNextPrevIcons && activeMeta?.base_id"
+              :key="activeMeta.base_id"
+              :value="activeMeta.id || null"
+              :base-id="activeMeta.base_id"
+              disable-label
+              dropdown-class="max-w-64 min-w-32"
+              dropdown-overlay-class-name="max-w-64 min-w-32"
+              default-slot-wrapper-class="!px-1.5 !bg-nc-bg-gray-extralight hover:!bg-nc-bg-gray-light"
+              @update:value="onTemplateTableChange($event as string)"
+            >
+            </NcListTableSelector>
+
             <!-- Static table chip (non-template mode) -->
             <div
               v-else-if="!props.showNextPrevIcons"

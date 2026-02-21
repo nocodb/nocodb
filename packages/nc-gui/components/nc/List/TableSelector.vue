@@ -11,6 +11,9 @@ interface Props {
   disableLabel?: boolean
   autoSelect?: boolean
   disabled?: boolean
+  dropdownClass?: string
+  dropdownOverlayClassName?: string
+  defaultSlotWrapperClass?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -133,7 +136,14 @@ defineExpose({
         <slot name="label">{{ t('objects.table') }}</slot>
       </div>
     </template>
-    <NcListDropdown v-model:is-open="isOpenTableSelectDropdown" :disabled="disabled" :has-error="!!selectedTable?.ncItemDisabled">
+    <NcListDropdown
+      v-model:is-open="isOpenTableSelectDropdown"
+      :disabled="disabled"
+      :has-error="!!selectedTable?.ncItemDisabled"
+      :class="dropdownClass"
+      :overlay-class-name="dropdownOverlayClassName"
+      :default-slot-wrapper-class="defaultSlotWrapperClass"
+    >
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedTable" class="min-w-5 flex items-center justify-center">
           <NcIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-nc-content-muted" />
@@ -147,10 +157,17 @@ defineExpose({
           >
             {{ selectedTable?.label }}
           </span>
-          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select table --</span>
+          <template v-else>
+            <slot name="placeholder">
+              <span class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select table --</span>
+            </slot>
+          </template>
 
           <template #title>
-            {{ selectedTable?.label || 'Select table' }}
+            <template v-if="selectedTable?.label">
+              {{ selectedTable?.label }}
+            </template>
+            <slot v-else name="placeholderTooltip"> Select table </slot>
           </template>
         </NcTooltip>
 
@@ -175,6 +192,9 @@ defineExpose({
             <div class="min-w-5 flex items-center justify-center">
               <NcIconTable :table="option as TableType" class="text-nc-content-muted" />
             </div>
+          </template>
+          <template v-if="$slots.listHeader" #listHeader>
+            <slot name="listHeader" />
           </template>
         </NcList>
       </template>

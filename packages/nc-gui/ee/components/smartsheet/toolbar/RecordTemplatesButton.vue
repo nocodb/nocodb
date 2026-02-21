@@ -514,34 +514,40 @@ const customRow = (record: Record<string, any>) => ({
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
             </template>
           </a-input>
-          <NcDropdown>
-            <NcButton size="small" type="secondary">
-              <div class="flex items-center gap-1.5">
-                <GeneralIcon icon="table" class="h-4 w-4" />
-                <span class="text-sm">{{ selectedTableFilter ? getTableName(selectedTableFilter) : 'All Tables' }}</span>
-                <GeneralIcon icon="arrowDown" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+          <NcListTableSelector
+            :key="tablesWithTemplates.length"
+            :value="selectedTableFilter || null"
+            :base-id="base?.id"
+            :filter-table="(table) => tablesWithTemplates.some((t) => t.id === table.id)"
+            disable-label
+            dropdown-class="max-w-64 min-w-38"
+            dropdown-overlay-class-name="max-w-64 min-w-38"
+            @update:value="selectedTableFilter = ($event as string) || ''"
+          >
+            <template #listHeader>
+              <div
+                class="flex items-center gap-2 mx-2 px-2 py-[5px] hover:bg-nc-bg-gray-light cursor-pointer rounded-md"
+                :class="{
+                  'bg-nc-bg-gray-light': !selectedTableFilter,
+                }"
+                @click="selectedTableFilter = ''"
+              >
+                <GeneralIcon icon="table" class="h-4 w-4 text-nc-content-gray-muted" />
+                <span class="flex-1">All Tables</span>
+                <GeneralIcon v-if="!selectedTableFilter" icon="check" class="h-4 w-4 ml-auto text-nc-content-brand" />
               </div>
-            </NcButton>
-            <template #overlay>
-              <NcMenu variant="small" class="!max-h-72 overflow-auto nc-scrollbar-thin">
-                <NcMenuItem @click="selectedTableFilter = ''">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="table" class="h-4 w-4 text-nc-content-gray-muted" />
-                    <span>All Tables</span>
-                    <GeneralIcon v-if="!selectedTableFilter" icon="check" class="h-4 w-4 ml-auto text-primary" />
-                  </div>
-                </NcMenuItem>
-                <NcDivider />
-                <NcMenuItem v-for="table in tablesWithTemplates" :key="table.id" @click="selectedTableFilter = table.id">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="table" class="h-4 w-4 text-nc-content-gray-muted" />
-                    <span class="truncate">{{ table.title }}</span>
-                    <GeneralIcon v-if="selectedTableFilter === table.id" icon="check" class="h-4 w-4 ml-auto text-primary" />
-                  </div>
-                </NcMenuItem>
-              </NcMenu>
+
+              <NcDivider />
             </template>
-          </NcDropdown>
+            <template #placeholder>
+              <div class="flex items-center gap-2">
+                <NcIconTable :table="{ title: '', table_name: '' }" class="text-nc-content-muted" />
+
+                All Tables
+              </div>
+            </template>
+            <template #placeholderTooltip> All Tables </template>
+          </NcListTableSelector>
         </div>
 
         <!-- Table -->

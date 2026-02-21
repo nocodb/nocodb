@@ -6,7 +6,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { navigateToProject, getBaseUrl } = useGlobal()
+  const { navigateToProject } = useGlobal()
   const { $api, $e } = useNuxtApp()
   const route = useRoute()
 
@@ -54,14 +54,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     try {
       const newStarredState = !base.starred
       updateBaseInWorkspace(base, { starred: newStarredState })
-      await $api.base.userMetaUpdate(
-        base.id!,
-        { starred: newStarredState },
-        {
-          baseURL: getBaseUrl(base.fk_workspace_id!) ?? undefined,
-        },
-      )
-      $e('a:base:star:toggle')
+      await $api.base.userMetaUpdate(base.id!, { starred: newStarredState })
+      $e('a:base:starred:toggle')
     } catch (e: any) {
       updateBaseInWorkspace(base, { starred: base.starred })
       message.error(await extractSdkResponseErrorMsg(e))
@@ -169,7 +163,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 export { useProvideWsBaseListActions, useWsBaseListActions }
 
 export function useWsBaseListActionsOrThrow() {
-  const wsBaseListActions = useWsBaseListActions()
-  if (wsBaseListActions == null) throw new Error('Please call `useProvideWsBaseListActions` on the appropriate parent component')
-  return wsBaseListActions
+  const baseActions = useWsBaseListActions()
+  if (baseActions == null) throw new Error('Please call `useProvideWsBaseListActions` on the appropriate parent component')
+  return baseActions
 }

@@ -6,7 +6,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { appInfo, navigateToProject, getBaseUrl } = useGlobal()
+  const { navigateToProject, getBaseUrl } = useGlobal()
   const { $api, $e } = useNuxtApp()
   const route = useRoute()
 

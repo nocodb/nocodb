@@ -14,11 +14,13 @@ const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { bases, basesList, activeProjectId, isProjectsLoaded } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const baseCreateDlg = ref(false)
+
+const searchQuery = ref('')
 
 const baseStore = useBase()
 
@@ -330,17 +332,6 @@ watch(
           </template>
         </DashboardTreeViewProjectHome>
       </ProjectWrapper>
-    </div>
-
-    <div v-else-if="isProjectsLoaded && !basesList.length" class="nc-treeview-empty-state">
-      <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBasesFound')" class="!mb-1" />
-
-      <WorkspaceCreateProjectBtn type="primary">
-        <div class="flex items-center gap-1.5">
-          <GeneralIcon icon="plus" />
-          {{ $t('title.newProj') }}
-        </div>
-      </WorkspaceCreateProjectBtn>
     </div>
     <DashboardTreeViewProjectListSkeleton v-else />
 

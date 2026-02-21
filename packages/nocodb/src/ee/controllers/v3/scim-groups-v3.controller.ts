@@ -19,14 +19,14 @@ import { ScimGroupsService } from '~/ee/services/scim/scim-groups.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
 import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.filter';
 import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/scim-content-type.interceptor';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { ScimApiLimiterGuard } from '~/ee/guards/scim-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 import { isCloud } from '~/utils';
 import { NcError } from '~/helpers/catchError';
 
 @Controller()
-@UseGuards(MetaApiLimiterGuard, ScimAuthGuard)
+@UseGuards(ScimApiLimiterGuard, ScimAuthGuard)
 @UseFilters(ScimExceptionFilter)
 @UseInterceptors(ScimContentTypeInterceptor)
 export class ScimGroupsController {

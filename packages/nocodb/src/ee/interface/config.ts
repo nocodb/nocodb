@@ -39,6 +39,11 @@ export interface AppConfig {
       max_apis: number;
       block_duration: number;
     };
+    scim: {
+      ttl: number;
+      max_apis: number;
+      block_duration: number;
+    };
     calc_execution_time: boolean;
   };
   basicAuth: {

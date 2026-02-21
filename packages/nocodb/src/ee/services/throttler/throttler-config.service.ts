@@ -42,6 +42,12 @@ export class ThrottlerConfigService implements ThrottlerOptionsFactory {
           name: 'meta-gui',
         },
         {
+          ttl: config.scim.ttl,
+          limit: config.scim.max_apis,
+          blockDuration: config.scim.block_duration,
+          name: 'scim',
+        },
+        {
           ttl: config.data.ttl,
           limit: config.data.max_apis,
           blockDuration: config.data.block_duration,

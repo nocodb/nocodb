@@ -71,7 +71,12 @@ const clearFilter = () => {
       </div>
 
       <!-- Filter Dropdown - Desktop -->
-      <NcListDropdown v-if="!isFilterActive" v-model:is-open="isFilterDropdownOpen" :default-slot-wrapper="false" placement="bottomRight">
+      <NcListDropdown
+        v-if="!isFilterActive"
+        v-model:is-open="isFilterDropdownOpen"
+        :default-slot-wrapper="false"
+        placement="bottomRight"
+      >
         <NcButton size="small" type="secondary">
           <div class="flex items-center gap-1">
             <GeneralIcon icon="ncList" class="w-4 h-4" />
@@ -133,7 +138,12 @@ const clearFilter = () => {
       </div>
 
       <!-- Filter Dropdown - Compact -->
-      <NcListDropdown v-if="!isFilterActive" v-model:is-open="isFilterDropdownOpen" :default-slot-wrapper="false" placement="bottomRight">
+      <NcListDropdown
+        v-if="!isFilterActive"
+        v-model:is-open="isFilterDropdownOpen"
+        :default-slot-wrapper="false"
+        placement="bottomRight"
+      >
         <NcButton size="small" type="secondary" class="flex-none">
           <div class="flex items-center gap-1">
             <GeneralIcon icon="ncList" class="w-4 h-4" />

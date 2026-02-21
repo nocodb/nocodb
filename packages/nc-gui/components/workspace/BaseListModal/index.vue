@@ -20,7 +20,6 @@ const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 const { basesList } = storeToRefs(basesStore)
 
 const { isMobileMode } = useGlobal()
-const { $e } = useNuxtApp()
 
 // Provide base actions to child components
 const closeModal = () => {

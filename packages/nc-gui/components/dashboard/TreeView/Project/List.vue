@@ -20,8 +20,6 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const baseCreateDlg = ref(false)
 
-const searchQuery = ref('')
-
 const baseStore = useBase()
 
 const { loadTables } = baseStore

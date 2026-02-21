@@ -4,9 +4,9 @@ const props = withDefaults(
     workspaceId?: string | undefined
     modal?: boolean
     type?: string
-    isOpen: boolean
     size?: NcButtonSize
     centered?: boolean
+    // isOpen: boolean
   }>(),
   {
     type: 'text',

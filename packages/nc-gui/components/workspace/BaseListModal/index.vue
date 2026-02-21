@@ -37,7 +37,7 @@ const isCompactView = computed(() => isMobileMode.value || windowWidth.value < 1
 const modalState = reactive({
   selectedWorkspaceId: null as string | null,
   searchQuery: '',
-  activeFilter: 'all' as 'all' | 'starred' | 'private' | 'owned' | 'managed',
+  activeFilter: 'all' as 'all' | 'owned',
 })
 
 // Event handlers
@@ -107,30 +107,23 @@ const categorizedBases = computed(() => {
   const bases = workspaceBases.value
   const { starred, private: isPrivate, managed, owned } = baseCheckers
 
-  // Priority order: Starred → Private → Managed → Owned → Default
-  const starredBases = bases.filter(starred)
-  const privateBases = bases.filter((b) => !starred(b) && isPrivate(b))
-  const managedBases = bases.filter((b) => !starred(b) && !isPrivate(b) && managed(b))
-  const ownedBases = bases.filter((b) => !starred(b) && !isPrivate(b) && !managed(b) && owned(b))
+  const ownedBases = bases.filter((b) => owned(b))
   const defaultBases = bases.filter((b) => !starred(b) && !isPrivate(b) && !managed(b) && !owned(b))
 
-  return { starred: starredBases, private: privateBases, managed: managedBases, owned: ownedBases, default: defaultBases }
+  return { owned: ownedBases, default: defaultBases }
 })
 
 // All bases matching specific filter (not priority-based)
 const allFilteredBases = computed(() => {
   const bases = workspaceBases.value
   return {
-    starred: bases.filter(baseCheckers.starred),
-    private: bases.filter(baseCheckers.private),
-    managed: bases.filter(baseCheckers.managed),
     owned: bases.filter(baseCheckers.owned),
   }
 })
 
 // Section types for loop rendering
-type SectionType = 'starred' | 'private' | 'managed' | 'owned' | 'default'
-const sectionOrder: SectionType[] = ['starred', 'private', 'managed', 'owned', 'default']
+type SectionType = 'owned' | 'default'
+const sectionOrder: SectionType[] = ['owned', 'default']
 
 // Get displayed bases based on active filter
 const displayedSections = computed(() => {

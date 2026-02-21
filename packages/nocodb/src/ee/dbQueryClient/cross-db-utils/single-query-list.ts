@@ -80,9 +80,13 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
         dbDriver: knex,
       }));
 
+    const linksAsLtar =
+      ctx.apiVersion === NcApiVersion.V3 && ctx.params?.linksAsLtar === 'true';
+
+    const cacheKeySuffix = linksAsLtar ? ':ltar' : '';
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
-    }:queries`;
+    }:queries${cacheKeySuffix}`;
     const countCacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
     }:count`;

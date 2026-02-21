@@ -64,11 +64,15 @@ export const singleQueryRead = (client: DBQueryClient) => {
       dbDriver: knex,
     });
 
-    // Use bitwise flags: bit 0 (1) = getHiddenColumn, bit 1 (2) = extractOnlyPrimaries, bit 2 (4) = extractOrderColumn
+    // Use bitwise flags: bit 0 (1) = getHiddenColumn, bit 1 (2) = extractOnlyPrimaries, bit 2 (4) = extractOrderColumn, bit 3 (8) = linksAsLtar
+    const linksAsLtar =
+      ctx.apiVersion === NcApiVersion.V3 && ctx.params?.linksAsLtar === 'true';
+
     const flags =
       (ctx.getHiddenColumn ? 1 : 0) |
       (ctx.extractOnlyPrimaries ? 2 : 0) |
-      (ctx.extractOrderColumn ? 4 : 0);
+      (ctx.extractOrderColumn ? 4 : 0) |
+      (linksAsLtar ? 8 : 0);
 
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'

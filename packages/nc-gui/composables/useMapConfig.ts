@@ -5,6 +5,7 @@ export function useMapConfig() {
   const { base } = storeToRefs(useBase())
   const { $api } = useNuxtApp()
   const { sharedView } = useSharedView()
+  const { isDark } = useTheme()
 
   /**
    * Build tile URL based on configured map provider
@@ -26,13 +27,14 @@ export function useMapConfig() {
       const baseId = base.value?.id
 
       return workspaceId && baseId
-        ? `${apiBaseUrl}/api/v1/bases/${baseId}/maptile/{z}/{x}/{y}.png`
+        ? `${apiBaseUrl}/api/v1/bases/${baseId}/maptile/{z}/{x}/{y}.png?theme=${isDark.value ? 'dark' : 'light'}`
         : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' // Fallback
     }
 
     // Direct tile URLs (no proxy needed)
     if (mapProvider === MapProvider.STADIAMAP) {
-      return 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}.png' // Free tier
+      const tileStyle = isDark.value ? 'alidade_smooth_dark' : 'osm_bright'
+      return `https://tiles.stadiamaps.com/tiles/${tileStyle}/{z}/{x}/{y}.png` // Free tier
     }
 
     // Default: OpenStreetMap

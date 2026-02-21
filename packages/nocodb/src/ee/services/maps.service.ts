@@ -14,11 +14,13 @@ export class MapsService extends MapsServiceCE {
       z,
       x,
       y,
+      theme,
       res,
     }: {
       z: string;
       x: string;
       y: string;
+      theme?: string;
       res: Response;
     },
   ) {
@@ -46,16 +48,24 @@ export class MapsService extends MapsServiceCE {
     const mapProvider = process.env.NC_MAP_PROVIDER_NAME || 'openstreetmap';
 
     let tileUrl: string;
+    const allowedTheme = ['light', 'dark'];
+    const useTheme = allowedTheme.includes(process.env.NC_MAP_PROVIDER_THEME)
+      ? process.env.NC_MAP_PROVIDER_THEME
+      : allowedTheme.includes(theme)
+      ? theme
+      : 'light';
 
     switch (mapProvider) {
       case MapProvider.STADIAMAP_APIKEY: {
-        const stadiaApiKey = process.env.NC_STADIA_MAPS_API_KEY;
+        const stadiaApiKey = process.env.NC_MAP_PROVIDER_KEY;
         if (!stadiaApiKey) {
           NcError.get(context).internalServerError(
-            `NC_STADIA_MAPS_API_KEY environment variable is required for NC_MAP_PROVIDER_NAME = ${MapProvider.STADIAMAP_APIKEY}`,
+            `NC_MAP_PROVIDER_KEY environment variable is required`,
           );
         }
-        tileUrl = `https://tiles.stadiamaps.com/tiles/osm_bright/${z}/${x}/${y}.png?api_key=${stadiaApiKey}`;
+        const providerTheme =
+          useTheme === 'light' ? 'osm_bright' : 'alidade_smooth_dark';
+        tileUrl = `https://tiles.stadiamaps.com/tiles/${providerTheme}/${z}/${x}/${y}.png?api_key=${stadiaApiKey}`;
         break;
       }
       default:

@@ -5,6 +5,7 @@ import {
   HttpCode,
   Param,
   Post,
+  Query,
   Req,
   Res,
 } from '@nestjs/common';
@@ -28,6 +29,7 @@ export class MapsController extends MapsControllerCE {
     @Param('z') z: string,
     @Param('x') x: string,
     @Param('y') y: string,
+    @Query('theme') theme: string,
     @Req() req: NcRequest,
     @Res() res: Response,
   ) {
@@ -35,6 +37,7 @@ export class MapsController extends MapsControllerCE {
       z,
       x,
       y,
+      theme,
       res,
     });
   }

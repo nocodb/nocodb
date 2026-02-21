@@ -76,6 +76,10 @@ export class TreeViewPage extends BasePage {
     // Ensure the base is active/open in the sidebar (opens from modal if needed)
     await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: title, open: true });
 
+    // Click on the base node to expand it (show tables)
+    const nodes = this.get().locator(`[data-testid="nc-sidebar-base-${title.toLowerCase()}"]`);
+    await nodes.waitFor();
+    await nodes.click();
     return;
   }
 
@@ -429,6 +433,7 @@ export class TreeViewPage extends BasePage {
       // createNewButton (.nc-home-create-new-btn) is visible only for owner & creator
       // context menu is visible for all roles
       await expect(this.createNewButton).toHaveCount(count);
+      await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
 
       await this.openProject({ title: param.baseTitle, context });
 

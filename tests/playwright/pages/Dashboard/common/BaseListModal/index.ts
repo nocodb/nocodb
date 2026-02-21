@@ -29,9 +29,6 @@ export class BaseListModalPage extends BasePage {
 
   async waitForClose() {
     await this.modal.waitFor({ state: 'hidden' });
-
-    // Wait for modal animation to complete
-    await this.rootPage.waitForTimeout(300);
   }
 
   async close() {

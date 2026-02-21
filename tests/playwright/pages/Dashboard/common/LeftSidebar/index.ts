@@ -73,6 +73,8 @@ export class LeftSidebarPage extends BasePage {
   async verifyBaseListOpen(open: boolean = false) {
     const isModalOpen = await this.modal_baseList.isVisible();
 
+    const isModalOpen = await this.modal_baseList.isVisible();
+
     if (!isModalOpen && open) {
       // Click workspace menu to open the base list modal
       await this.miniSidebarActionClick({ type: 'ws' });
@@ -172,7 +174,7 @@ export class LeftSidebarPage extends BasePage {
     await newWorkspaceBtn.click();
 
     // Fill in the workspace creation dialog
-    const inputModal = this.rootPage.locator('div.ant-modal.active').last();
+    const inputModal = this.rootPage.locator('div.ant-modal.active');
     await inputModal.waitFor();
     await inputModal.locator('input').clear();
     await inputModal.locator('input').fill(title);

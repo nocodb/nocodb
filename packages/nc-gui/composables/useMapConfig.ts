@@ -4,7 +4,6 @@ export function useMapConfig() {
   const { appInfo } = useGlobal()
   const { base } = storeToRefs(useBase())
   const { $api } = useNuxtApp()
-  const meta = inject(MetaInj, ref())
   const { sharedView } = useSharedView()
 
   /**
@@ -20,16 +19,15 @@ export function useMapConfig() {
 
       // Shared view: use public shared view endpoint
       if (sharedView.value?.uuid) {
-        return `${apiBaseUrl}/api/v1/db/public/shared-view/${sharedView.value.uuid}/maptile?x={x}&y={y}&z={z}`
+        return `${apiBaseUrl}/api/v1/db/public/shared-view/${sharedView.value.uuid}/maptile/{z}/{x}/{y}.png`
       }
 
       // Regular view: use workspace/base endpoint
       const workspaceId = base.value?.fk_workspace_id
       const baseId = base.value?.id
-      const tableId = meta.value?.id
 
       return workspaceId && baseId
-        ? `${apiBaseUrl}/api/v1/bases/${baseId}/maptile?x={x}&y={y}&z={z}${tableId ? `&tableId=${tableId}` : ''}`
+        ? `${apiBaseUrl}/api/v1/bases/${baseId}/maptile/{z}/{x}/{y}.png`
         : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' // Fallback
     }
 

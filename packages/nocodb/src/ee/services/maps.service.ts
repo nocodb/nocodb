@@ -19,7 +19,6 @@ export class MapsService extends MapsServiceCE {
       z: string;
       x: string;
       y: string;
-      tableId?: string;
       res: Response;
     },
   ) {

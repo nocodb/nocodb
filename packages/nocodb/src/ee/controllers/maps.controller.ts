@@ -5,7 +5,6 @@ import {
   HttpCode,
   Param,
   Post,
-  Query,
   Req,
   Res,
 } from '@nestjs/common';
@@ -20,16 +19,15 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 @Controller()
 export class MapsController extends MapsControllerCE {
   @Get([
-    '/api/v1/bases/:baseId/maptile',
-    '/api/v1/db/public/shared-view/:sharedViewUuid/maptile',
+    '/api/v1/bases/:baseId/maptile/:z/:x/:y.png',
+    '/api/v1/db/public/shared-view/:sharedViewUuid/maptile/:z/:x/:y.png',
   ])
   async getMapTile(
     @TenantContext() context: NcContext,
     @Param('baseId') baseId: string,
-    @Query('z') z: string,
-    @Query('x') x: string,
-    @Query('y') y: string,
-    @Query('tableId') tableId: string | undefined,
+    @Param('z') z: string,
+    @Param('x') x: string,
+    @Param('y') y: string,
     @Req() req: NcRequest,
     @Res() res: Response,
   ) {
@@ -37,7 +35,6 @@ export class MapsController extends MapsControllerCE {
       z,
       x,
       y,
-      tableId,
       res,
     });
   }

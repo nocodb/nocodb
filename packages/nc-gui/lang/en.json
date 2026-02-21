@@ -1876,6 +1876,7 @@
     "newWorkspace": "New Workspace",
     "basesIn": "Bases in",
     "noBases": "No bases",
+    "noBasesFound": "No bases found",
     "ownedByMe": "Owned by me",
     "allBases": "All Bases",
     "addDomain": "Add Domain",

@@ -1,17 +1,12 @@
 <script setup lang="ts">
-const props = withDefaults(
-  defineProps<{
-    workspaceId?: string | undefined
-    modal?: boolean
-    type?: string
-    isOpen: boolean
-    size?: NcButtonSize
-    centered?: boolean
-  }>(),
-  {
-    type: 'text',
-  },
-)
+const props = defineProps<{
+  workspaceId?: string | undefined
+  modal?: boolean
+  type?: string
+  isOpen: boolean
+  size?: NcButtonSize
+  centered?: boolean
+}>()
 
 const { isUIAllowed } = useRoles()
 

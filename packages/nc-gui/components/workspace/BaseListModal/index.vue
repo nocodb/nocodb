@@ -9,6 +9,8 @@ const emits = defineEmits(['update:visible'])
 
 const visible = useVModel(props, 'visible', emits)
 
+provide(IsWsBaseListModalInj, readonly(ref(true)))
+
 // Stores
 const workspaceStore = useWorkspace()
 const basesStore = useBases()

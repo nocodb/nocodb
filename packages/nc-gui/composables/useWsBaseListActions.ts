@@ -6,7 +6,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { navigateToProject } = useGlobal()
+  const { appInfo, navigateToProject, getBaseUrl } = useGlobal()
   const { $api, $e } = useNuxtApp()
   const route = useRoute()
 
@@ -54,8 +54,14 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     try {
       const newStarredState = !base.starred
       updateBaseInWorkspace(base, { starred: newStarredState })
-      await $api.base.userMetaUpdate(base.id!, { starred: newStarredState })
-      $e('a:base:starred:toggle')
+      await $api.base.userMetaUpdate(
+        base.id!,
+        { starred: newStarredState },
+        {
+          baseURL: getBaseUrl(base.fk_workspace_id!) ?? undefined,
+        },
+      )
+      $e('a:base:star:toggle')
     } catch (e: any) {
       updateBaseInWorkspace(base, { starred: base.starred })
       message.error(await extractSdkResponseErrorMsg(e))

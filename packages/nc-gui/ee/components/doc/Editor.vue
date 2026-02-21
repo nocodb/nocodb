@@ -64,6 +64,10 @@ const titleInput = useTemplateRef('titleInput')
 
 const saveTimeout = ref<NodeJS.Timeout>()
 
+// Guard: suppress onUpdate saves while we're programmatically loading content
+// into the editor (setContent triggers onUpdate, which would queue a no-op save).
+const isSettingContent = ref(false)
+
 /** Persist current editor state + title to the backend. */
 const save = async () => {
   if (!doc.value || !activeProjectId.value || !editor.value) return
@@ -91,6 +95,9 @@ const save = async () => {
 }
 
 const debouncedSave = () => {
+  // Skip saves triggered by programmatic setContent during page load
+  if (isSettingContent.value) return
+
   if (saveTimeout.value) {
     clearTimeout(saveTimeout.value)
   }
@@ -123,6 +130,26 @@ const editor = useEditor({
 })
 
 /**
+ * Wait for the Tiptap editor to be available.
+ * `useEditor` creates the Editor instance inside `onMounted`, so
+ * `editor.value` is `undefined` during setup and the first immediate
+ * watch execution. This helper polls via `nextTick` until the editor
+ * exists (typically resolves after the first mount tick).
+ */
+const waitForEditor = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (editor.value) return resolve()
+
+    const unwatch = watch(editor, (val) => {
+      if (val) {
+        unwatch()
+        resolve()
+      }
+    })
+  })
+}
+
+/**
  * Parse content from the API response into a Tiptap-compatible JSON object.
  * The backend should return parsed JSON, but we defensively handle string
  * values in case of cache inconsistencies.
@@ -142,6 +169,12 @@ const parseContent = (content: unknown): Record<string, any> | null => {
 }
 
 const loadAndSetDoc = async (id: string) => {
+  // Flush any pending save for the *previous* page before switching
+  if (saveTimeout.value) {
+    clearTimeout(saveTimeout.value)
+    await save()
+  }
+
   isLoaded.value = false
   const loaded = await loadDoc(id)
 
@@ -151,8 +184,18 @@ const loadAndSetDoc = async (id: string) => {
     title.value = loaded.title === 'Untitled' ? '' : (loaded.title || '')
 
     const parsed = parseContent(loaded.content)
-    if (editor.value && parsed) {
-      editor.value.commands.setContent(parsed)
+    if (parsed) {
+      // useEditor creates the instance in onMounted — wait for it on first load
+      await waitForEditor()
+
+      // Suppress onUpdate → debouncedSave while loading content programmatically
+      isSettingContent.value = true
+      editor.value!.commands.setContent(parsed)
+
+      // Wait a tick for ProseMirror to finish its transaction cycle
+      // before re-enabling user-edit saves
+      await nextTick()
+      isSettingContent.value = false
     }
   }
   isLoaded.value = true
@@ -203,7 +246,16 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="isLoaded && doc" class="nc-doc-editor flex flex-col h-full w-full overflow-y-auto">
+  <!-- Show loader only on initial load (no doc fetched yet) -->
+  <div v-if="!isLoaded && !doc" class="flex items-center justify-center h-full">
+    <GeneralLoader />
+  </div>
+
+  <!--
+    Keep the editor mounted across page switches to avoid detaching
+    ProseMirror's view from the DOM. Content is swapped via setContent.
+  -->
+  <div v-else class="nc-doc-editor flex flex-col h-full w-full overflow-y-auto">
     <div class="nc-doc-editor-inner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16">
       <!-- Title -->
       <div class="nc-doc-editor-header pt-12 pb-4">
@@ -230,7 +282,7 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <!-- Editor -->
+      <!-- Editor — always mounted so ProseMirror view stays attached -->
       <div class="nc-doc-editor-body pb-48">
         <template v-if="editor">
           <!-- Bubble menu: appears on text selection -->
@@ -246,10 +298,6 @@ onBeforeUnmount(() => {
         </template>
       </div>
     </div>
-  </div>
-
-  <div v-else class="flex items-center justify-center h-full">
-    <GeneralLoader />
   </div>
 </template>
 

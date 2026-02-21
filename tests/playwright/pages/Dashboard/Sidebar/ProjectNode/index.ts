@@ -15,6 +15,10 @@ export class SidebarProjectNodeObject extends BasePage {
     return this.sidebar.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).last();
   }
 
+  getMenuTrigger({ baseTitle }: { baseTitle: string }) {
+    return this.sidebar.get().getByTestId(`nc-sidebar-base-${baseTitle}`);
+  }
+
   async click({ baseTitle }: { baseTitle: string }) {
     await this.get({
       baseTitle,
@@ -22,37 +26,27 @@ export class SidebarProjectNodeObject extends BasePage {
   }
 
   async clickOptions({ baseTitle }: { baseTitle: string }) {
-    await this.get({
-      baseTitle,
-    }).hover();
+    await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
 
-    await this.get({
-      baseTitle,
-    })
-      .getByTestId(`nc-sidebar-context-menu`)
-      .click();
+    await this.getMenuTrigger({ baseTitle }).waitFor();
+    await this.getMenuTrigger({ baseTitle }).click();
   }
 
   async verifyTableAddBtn({ baseTitle, visible }: { baseTitle: string; visible: boolean }) {
-    await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(true);
+    await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
 
     await this.get({
       baseTitle,
     }).waitFor({ state: 'visible' });
-    await this.get({
-      baseTitle,
-    }).scrollIntoViewIfNeeded();
-    await this.get({
-      baseTitle,
-    }).hover();
 
-    const addBtn = this.get({
-      baseTitle,
-    }).getByTestId('nc-sidebar-add-base-entity');
+    // The createNewButton (.nc-home-create-new-btn) is now used to add tables
+    const createNewBtn = this.sidebar.dashboard.get().locator('.nc-home-create-new-btn');
 
     if (visible) {
-      await expect(addBtn).toBeVisible();
-    } else await expect(addBtn).toHaveCount(0);
+      await expect(createNewBtn).toBeVisible();
+    } else {
+      await expect(createNewBtn).toHaveCount(0);
+    }
   }
 
   async verifyProjectOptions({
@@ -80,75 +74,51 @@ export class SidebarProjectNodeObject extends BasePage {
     copyProjectInfoVisible?: boolean;
     clickBaseTitle?: boolean;
   }) {
-    await this.get({
-      baseTitle,
-    }).waitFor({ state: 'visible' });
-    await this.get({
-      baseTitle,
-    }).scrollIntoViewIfNeeded();
-    await this.get({
-      baseTitle,
-    }).hover();
+    const projectOptions = await this.rootPage.getByTestId(`nc-sidebar-base-${baseTitle}-options`);
 
-    const renameLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
-      .getByTestId('nc-sidebar-base-rename');
+    await projectOptions.waitFor({ state: 'visible' });
+
+    const renameLocator = projectOptions.getByTestId('nc-sidebar-base-rename');
 
     if (renameVisible) await renameLocator.isVisible();
     else await expect(renameLocator).toHaveCount(0);
 
-    const starredLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
-      .getByTestId('nc-sidebar-base-starred');
+    const starredLocator = projectOptions.getByTestId('nc-sidebar-base-starred');
 
     if (starredVisible) await expect(starredLocator).toBeVisible();
     else await expect(starredLocator).toHaveCount(0);
 
-    const duplicateLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
-      .getByTestId('nc-sidebar-base-duplicate');
+    const duplicateLocator = projectOptions.getByTestId('nc-sidebar-base-duplicate');
 
     if (duplicateVisible) await expect(duplicateLocator).toBeVisible();
     else await expect(duplicateLocator).toHaveCount(0);
 
-    const relationsLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
-      .getByTestId('nc-sidebar-base-relations');
+    const relationsLocator = projectOptions.getByTestId('nc-sidebar-base-relations');
 
     if (relationsVisible) await expect(relationsLocator).toBeVisible();
     else await expect(relationsLocator).toHaveCount(0);
 
-    const restApisLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
-      .getByTestId('nc-sidebar-base-rest-apis');
+    const restApisLocator = projectOptions.getByTestId('nc-sidebar-base-rest-apis');
 
     if (restApisVisible) await expect(restApisLocator).toBeVisible();
     else await expect(restApisLocator).toHaveCount(0);
 
-    const importLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
-      .getByTestId('nc-sidebar-base-import');
+    const importLocator = projectOptions.getByTestId('nc-sidebar-base-import');
 
     if (importVisible) await expect(importLocator).toBeVisible();
     else await expect(importLocator).toHaveCount(0);
 
-    const settingsLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
-      .getByTestId('nc-sidebar-base-settings');
+    const settingsLocator = projectOptions.getByTestId('nc-sidebar-base-settings');
 
     if (settingsVisible) await expect(settingsLocator).toBeVisible();
     else await expect(settingsLocator).toHaveCount(0);
 
-    const deleteLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
-      .getByTestId('nc-sidebar-base-delete');
+    const deleteLocator = projectOptions.getByTestId('nc-sidebar-base-delete');
 
     if (deleteVisible) await expect(deleteLocator).toBeVisible();
     else await expect(deleteLocator).toHaveCount(0);
 
-    const copyProjectInfoLocator = await this.rootPage
-      .getByTestId(`nc-sidebar-base-${baseTitle}-options`)
-      .getByTestId('nc-sidebar-base-copy-base-info');
+    const copyProjectInfoLocator = projectOptions.getByTestId('nc-sidebar-base-copy-base-info');
 
     if (copyProjectInfoVisible) await expect(copyProjectInfoLocator).toBeVisible();
     else await expect(copyProjectInfoLocator).toHaveCount(0);
@@ -165,33 +135,25 @@ export class SidebarProjectNodeObject extends BasePage {
   async verifyActiveProject({ baseTitle, open = false }: { baseTitle: string; open?: boolean }) {
     if (!(await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible())) return true;
 
-    const isBaseListSidebar = await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(false);
-    // If base home page sidebar is open then verify base title is same as baseTitle
-    if (!isBaseListSidebar) {
-      const baseLocator = await this.get({ baseTitle }).getAttribute('class');
+    const ncProjectHeader = this.sidebar.get().locator('.nc-project-header');
 
-      // If active project is same as baseTitle then return true
-      if (baseLocator?.includes('nc-project-header')) return true;
+    // Check if active project is same as baseTitle then return true
+    if ((await ncProjectHeader.count()) > 0) {
+      await ncProjectHeader.waitFor();
 
-      if (!open) return false;
+      const isActiveProject =
+        (await ncProjectHeader.getAttribute('data-testid')) === `nc-sidebar-base-title-${baseTitle}`;
 
-      // If it is not same base home page sidebar then go to base list and open
-      await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(true);
+      if (isActiveProject) return true;
     }
 
     if (!open) return false;
 
-    await this.get({
-      baseTitle,
-    }).waitFor({ state: 'visible' });
+    // If it is not the same base, open the base list modal and navigate to it
+    await this.sidebar.dashboard.leftSidebar.openBaseListModal();
+    await this.sidebar.dashboard.rootPage.waitForTimeout(300);
 
-    await this.get({
-      baseTitle,
-    }).scrollIntoViewIfNeeded();
-
-    await this.get({
-      baseTitle,
-    }).click();
+    await this.sidebar.dashboard.leftSidebar.baseListModal.clickBase(baseTitle);
 
     await this.sidebar.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
 

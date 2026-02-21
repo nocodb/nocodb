@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import Draggable from 'vuedraggable'
-import {
-  type DashboardType,
-  ProjectRoles,
-  type ScriptType,
-  type TableType,
-  type ViewType,
-  extractBaseRoleFromWorkspaceRole,
-} from 'nocodb-sdk'
+import { type DashboardType, type ScriptType, type TableType, type ViewType, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 import ProjectWrapper from '../ProjectWrapper.vue'
 import { useRouter } from '#app'
 
@@ -19,19 +11,19 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { isWorkspaceLoading, activeWorkspaceId, activeWorkspace } = storeToRefs(useWorkspace())
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const basesStore = useBases()
 
-const { createProject: _createProject, updateProject } = basesStore
+const { createProject: _createProject } = basesStore
 
-const { bases, basesList, activeProjectId, showProjectList, isProjectsLoaded } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, isProjectsLoaded } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
 const { loadTables } = baseStore
 
-const { isSharedBase, base } = storeToRefs(baseStore)
+const { base } = storeToRefs(baseStore)
 
 const { workspaceRoles } = useRoles()
 
@@ -40,8 +32,6 @@ const tablesStore = useTablesStore()
 const { loadProjectTables } = tablesStore
 
 const { activeTable: _activeTable } = storeToRefs(tablesStore)
-
-const { isMobileMode } = useGlobal()
 
 const { setMeta } = useMetas()
 
@@ -53,78 +43,9 @@ const { addUndo, defineProjectScope } = useUndoRedo()
 
 const baseCreateDlg = ref(false)
 
-const searchQuery = ref('')
-
-const searchInputRef = ref()
-
-const isCreateProjectOpen = ref(false)
-
-const starredProjectList = computed(() => basesList.value.filter((base) => base.starred))
-const nonStarredProjectList = computed(() =>
-  basesList.value.filter((base) => !base.starred && base.default_role !== ProjectRoles.NO_ACCESS),
-)
-// Todo: @rameshmane7218 if project is starred and private then it should be shown in both starred and private list (active project node state we have to handle)
-const privateProjectList = computed(() =>
-  basesList.value.filter((base) => !base.starred && base.default_role === ProjectRoles.NO_ACCESS),
-)
-
-const filteredStarredProjectList = computed(() =>
-  starredProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
-)
-const filteredNonStarredProjectList = computed(() =>
-  nonStarredProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
-)
-const filteredPrivateProjectList = computed(() =>
-  privateProjectList.value.filter((base) => searchCompare(base.title, searchQuery.value)),
-)
-
 const openedBase = computed(() => {
   return basesList.value.find((b) => b.id === activeProjectId.value)
 })
-
-const isWsSwitching = ref(false)
-
-const stopLoading = ref(false)
-
-const isLoadingSidebar = computed(() => {
-  if (!stopLoading.value || isWsSwitching.value) return true
-
-  return !isProjectsLoaded.value
-})
-
-let stopTimerId: any
-watch(
-  () => ncIsEmptyObject(route.value.params),
-  () => {
-    clearTimeout(stopTimerId)
-
-    if (ncIsEmptyObject(route.value.params)) {
-      if (isProjectsLoaded.value && !basesList.value.length) {
-        stopLoading.value = true
-        showProjectList.value = true
-        return
-      } else {
-        stopLoading.value = false
-      }
-    } else {
-      stopLoading.value = true
-      return
-    }
-
-    stopTimerId = setTimeout(() => {
-      stopLoading.value = true
-      clearTimeout(stopTimerId)
-
-      // If their is no active project then show base list
-      if (!showProjectList.value && (!activeProjectId.value || !openedBase.value?.id)) {
-        showProjectList.value = true
-      }
-    }, 5000)
-  },
-  {
-    immediate: true,
-  },
-)
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main'; value?: any }>({})
 
@@ -437,357 +358,45 @@ provide(TreeViewInj, {
 })
 
 useEventListener(document, 'contextmenu', handleContext, true)
-
-const onMove = async (
-  _event: { moved: { newIndex: number; oldIndex: number; element: NcProject } },
-  currentBaseList: NcProject[],
-) => {
-  const {
-    moved: { newIndex = 0, oldIndex = 0, element },
-  } = _event
-
-  if (!element?.id) return
-
-  let nextOrder: number
-
-  // set new order value based on the new order of the items
-  if (currentBaseList.length - 1 === newIndex) {
-    // If moving to the end, set nextOrder greater than the maximum order in the list
-    nextOrder = Math.max(...currentBaseList.map((item) => item?.order ?? 0)) + 1
-  } else if (newIndex === 0) {
-    // If moving to the beginning, set nextOrder smaller than the minimum order in the list
-    nextOrder = Math.min(...currentBaseList.map((item) => item?.order ?? 0)) / 2
-  } else {
-    nextOrder =
-      (parseFloat(String(currentBaseList[newIndex - 1]?.order ?? 0)) +
-        parseFloat(String(currentBaseList[newIndex + 1]?.order ?? 0))) /
-      2
-  }
-
-  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
-
-  await updateProject(element.id, {
-    order: _nextOrder,
-  })
-
-  $e('a:base:reorder')
-}
-
-const transitionName = ref<'slide-left' | 'slide-right' | undefined>(undefined)
-
-const avoidTransition = ref(false)
-
-watch(
-  [showProjectList, activeWorkspaceId],
-  ([newShowProjectList, newWsId], [_oldShowProjectList, oldWsId]) => {
-    if (!isProjectsLoaded.value) {
-      transitionName.value = undefined // No animation
-      return
-    }
-
-    // If workspace changed, skip animation
-    if (newWsId !== oldWsId) {
-      transitionName.value = undefined // No animation
-      avoidTransition.value = true
-      isWsSwitching.value = true
-
-      if (!showProjectList.value) {
-        showProjectList.value = true
-      }
-    } else {
-      if (isWsSwitching.value) {
-        if (!showProjectList.value) {
-          showProjectList.value = true
-          isWsSwitching.value = false
-        }
-
-        transitionName.value = undefined
-      } else if (!avoidTransition.value) {
-        transitionName.value = newShowProjectList ? 'slide-left' : 'slide-right'
-      }
-    }
-  },
-  {
-    flush: 'pre',
-  },
-)
-
-watch(
-  showProjectList,
-  () => {
-    if (avoidTransition.value) {
-      nextTick(() => {
-        avoidTransition.value = false
-      })
-    }
-  },
-  {
-    flush: 'post',
-  },
-)
-
-watch([searchInputRef, showProjectList], () => {
-  if (!searchInputRef.value || !showProjectList.value) return
-
-  nextTick(() => {
-    const inputEl = searchInputRef.value.$el?.querySelector('input')
-
-    inputEl?.focus()
-  })
-})
-
-watch(
-  isProjectsLoaded,
-  () => {
-    if (isProjectsLoaded.value && !avoidTransition.value && basesList.value.length) {
-      transitionName.value = 'slide-right'
-    } else {
-      transitionName.value = undefined
-      avoidTransition.value = false
-    }
-
-    if (isProjectsLoaded.value && !basesList.value.length) {
-      showProjectList.value = true
-      stopLoading.value = true
-    }
-  },
-  {
-    immediate: true,
-  },
-)
-
-let timerId: any
-
-watch(isWsSwitching, (newValue) => {
-  if (!newValue) {
-    clearTimeout(timerId)
-    return
-  }
-
-  timerId = setTimeout(() => {
-    if (!showProjectList.value) {
-      showProjectList.value = true
-    }
-
-    isWsSwitching.value = false
-
-    clearTimeout(timerId)
-  }, 2000)
-})
-
-onBeforeUnmount(() => {
-  clearTimeout(timerId)
-})
 </script>
 
 <template>
-  <div
-    class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch"
-    :class="showProjectList ? 'nc-treeview-container-base-list' : 'nc-treeview-container-active-base'"
-  >
-    <DashboardTreeViewProjectListSkeleton v-if="isLoadingSidebar" />
-
-    <template v-else>
-      <Transition :name="transitionName" appear>
-        <div
-          v-if="showProjectList"
-          key="project-list"
-          class="nc-treeview-base-list absolute w-full h-full top-0 left-0 z-10 bg-nc-bg-gray-extralight"
+  <div class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch nc-treeview-container-active-base">
+    <template v-if="activeProjectId && openedBase?.id && !openedBase.isLoading">
+      <div
+        v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
+        class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
+      >
+        <ProjectWrapper
+          :base-role="openedBase?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
+          :base="openedBase"
         >
-          <div class="w-full">
-            <DashboardSidebarHeaderWrapper>
-              <NcTooltip show-on-truncate-only class="truncate capitalize">
-                <template #title>
-                  {{ activeWorkspace?.title }}
-                </template>
-
-                {{ activeWorkspace?.title }}
-              </NcTooltip>
-            </DashboardSidebarHeaderWrapper>
-            <div class="px-2 h-11 flex items-center">
-              <DashboardTreeViewProjectSearchInput ref="searchInputRef" v-model:value="searchQuery" />
-            </div>
-            <div class="nc-project-home-section pt-1 !pb-2">
-              <WorkspaceCreateProjectBtn
-                v-model:is-open="isCreateProjectOpen"
-                modal
-                type="text"
-                class="nc-sidebar-create-base-btn nc-sidebar-item-dark nc-project-home-section-item !text-nc-content-brand !hover:(text-nc-content-brand-disabled bg-none) !xs:hidden w-full"
-              >
-              </WorkspaceCreateProjectBtn>
-            </div>
-          </div>
-
-          <div class="nc-treeview flex-1 relative overflow-auto nc-scrollbar-thin">
-            <div v-if="starredProjectList?.length" class="nc-project-home-section">
-              <div v-if="!isSharedBase" class="nc-project-home-section-header">Starred</div>
-              <div>
-                <Draggable
-                  v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
-                  :model-value="starredProjectList"
-                  :disabled="isMobileMode || !isUIAllowed('baseReorder') || starredProjectList?.length < 2"
-                  item-key="starred-project"
-                  handle=".base-title-node"
-                  ghost-class="ghost"
-                  :filter="isTouchEvent"
-                  @change="onMove($event, starredProjectList)"
-                >
-                  <template #item="{ element: baseItem }">
-                    <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
-                      <ProjectWrapper
-                        :base-role="baseItem.project_role || extractBaseRoleFromWorkspaceRole(baseItem.workspace_role)"
-                        :base="baseItem"
-                      >
-                        <DashboardTreeViewProjectNode />
-                      </ProjectWrapper>
-                    </div>
-                  </template>
-                  <template v-if="!isWorkspaceLoading && !filteredStarredProjectList.length" #footer>
-                    <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
-                      {{ $t('placeholder.noResultsFoundForYourSearch') }}
-                    </div>
-                  </template>
-                </Draggable>
-              </div>
-            </div>
-            <div v-if="privateProjectList?.length" class="nc-project-home-section">
-              <div v-if="!isSharedBase" class="nc-project-home-section-header">Private</div>
-              <div>
-                <Draggable
-                  v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
-                  :model-value="privateProjectList"
-                  :disabled="isMobileMode || !isUIAllowed('baseReorder') || privateProjectList?.length < 2"
-                  item-key="private-project"
-                  handle=".base-title-node"
-                  ghost-class="ghost"
-                  :filter="isTouchEvent"
-                  @change="onMove($event, privateProjectList)"
-                >
-                  <template #item="{ element: baseItem }">
-                    <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
-                      <ProjectWrapper
-                        :base-role="baseItem.project_role || extractBaseRoleFromWorkspaceRole(baseItem.workspace_role)"
-                        :base="baseItem"
-                      >
-                        <DashboardTreeViewProjectNode />
-                      </ProjectWrapper>
-                    </div>
-                  </template>
-                  <template v-if="!isWorkspaceLoading && !filteredPrivateProjectList.length" #footer>
-                    <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
-                      {{ $t('placeholder.noResultsFoundForYourSearch') }}
-                    </div>
-                  </template>
-                </Draggable>
-              </div>
-            </div>
-            <div class="nc-project-home-section">
-              <div v-if="!isSharedBase" class="nc-project-home-section-header">
-                {{ $t('objects.projects') }}
-              </div>
-              <div v-if="nonStarredProjectList?.length">
-                <Draggable
-                  v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 50 })"
-                  v-model="nonStarredProjectList"
-                  :disabled="isMobileMode || !isUIAllowed('baseReorder') || nonStarredProjectList?.length < 2"
-                  item-key="non-starred-project"
-                  handle=".base-title-node"
-                  ghost-class="ghost"
-                  :filter="isTouchEvent"
-                  @change="onMove($event, nonStarredProjectList)"
-                >
-                  <template #item="{ element: baseItem }">
-                    <div v-if="searchCompare(baseItem.title, searchQuery)" :key="baseItem.id">
-                      <ProjectWrapper
-                        :base-role="baseItem.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
-                        :base="baseItem"
-                      >
-                        <DashboardTreeViewProjectNode />
-                      </ProjectWrapper>
-                    </div>
-                  </template>
-                  <template v-if="!isWorkspaceLoading && !filteredNonStarredProjectList.length" #footer>
-                    <div class="nc-project-home-section-item text-nc-content-gray-muted font-normal">
-                      {{ $t('placeholder.noResultsFoundForYourSearch') }}
-                    </div>
-                  </template>
-                </Draggable>
-              </div>
-              <div v-else class="nc-project-home-section-item text-nc-content-gray-muted font-normal">No Bases</div>
-            </div>
-          </div>
-          <slot name="footer"> </slot>
-        </div>
-      </Transition>
-
-      <!-- Project Home -->
-      <template v-if="!showProjectList">
-        <div
-          v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
-          class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-        >
-          <ProjectWrapper
-            :base-role="openedBase?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
-            :base="openedBase"
-          >
-            <DashboardTreeViewProjectHome>
-              <template #footer>
-                <slot name="footer"></slot>
-              </template>
-            </DashboardTreeViewProjectHome>
-          </ProjectWrapper>
-        </div>
-        <DashboardTreeViewProjectListSkeleton v-else />
-      </template>
+          <DashboardTreeViewProjectHome>
+            <template #footer>
+              <slot name="footer"></slot>
+            </template>
+          </DashboardTreeViewProjectHome>
+        </ProjectWrapper>
+      </div>
+      <DashboardTreeViewProjectListSkeleton v-else />
 
       <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
+    <div v-else-if="isProjectsLoaded && !basesList.length" class="nc-treeview-empty-state">
+      <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBasesFound')" class="!mb-1" />
+
+      <WorkspaceCreateProjectBtn type="primary">
+        <div class="flex items-center gap-1.5">
+          <GeneralIcon icon="plus" />
+          {{ $t('title.newProj') }}
+        </div>
+      </WorkspaceCreateProjectBtn>
+    </div>
+    <DashboardTreeViewProjectListSkeleton v-else />
   </div>
 </template>
 
 <style scoped lang="scss">
-.slide-left-enter-active,
-.slide-left-leave-active,
-.slide-right-enter-active,
-.slide-right-leave-active {
-  transition: transform 0.4s ease, opacity 0.4s ease;
-  will-change: transform, opacity;
-}
-
-.slide-left-enter-from {
-  transform: translateX(-100%);
-  opacity: 0;
-}
-.slide-left-enter-to {
-  transform: translateX(0);
-  opacity: 1;
-}
-.slide-left-leave-from {
-  transform: translateX(0);
-  opacity: 1;
-}
-.slide-left-leave-to {
-  transform: translateX(100%);
-  opacity: 0;
-}
-
-.slide-right-enter-from {
-  transform: translateX(100%);
-  opacity: 0;
-}
-.slide-right-enter-to {
-  transform: translateX(0);
-  opacity: 1;
-}
-.slide-right-leave-from {
-  transform: translateX(0);
-  opacity: 1;
-}
-.slide-right-leave-to {
-  transform: translateX(-100%);
-  opacity: 0;
-}
-
 .nc-treeview-subheading {
   @apply flex flex-row w-full justify-between items-center mb-1.5 pl-3.5 pr-0.5;
 }
@@ -797,6 +406,10 @@ onBeforeUnmount(() => {
 }
 .ghost {
   @apply bg-primary-selected dark:bg-nc-bg-gray-medium;
+}
+
+.nc-treeview-empty-state {
+  @apply w-full h-full flex flex-col items-center justify-center p-6 text-nc-content-gray-muted;
 }
 
 :deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {

@@ -216,7 +216,7 @@ test.describe('Form view', () => {
 
     await dashboard.rootPage.goto(formLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.attachment.addFile({
@@ -318,7 +318,7 @@ test.describe('Form view with LTAR', () => {
     }
 
     // reload page after api calls
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -336,7 +336,7 @@ test.describe('Form view with LTAR', () => {
     // sign-out
     await dashboard.signOut();
     await page.goto(formUrl);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.fillText({
@@ -355,7 +355,7 @@ test.describe('Form view with LTAR', () => {
     await sharedForm.verifySuccessMessage();
 
     await page.goto(url);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     await loginPage.signIn({
       email: `user-${process.env.TEST_PARALLEL_INDEX}@nocodb.com`,
       password: getDefaultPwd(),
@@ -438,7 +438,7 @@ test.describe('Form view', () => {
       columns: columns,
     });
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(100);
 
     await dashboard.treeView.openTable({ title: 'selectBased', baseTitle: context.base.title });
@@ -450,7 +450,7 @@ test.describe('Form view', () => {
     const formLink = await dashboard.form.topbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
 
@@ -479,7 +479,7 @@ test.describe('Form view', () => {
 
     await dashboard.rootPage.goto(url);
     // kludge- reload
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.treeView.openTable({ title: 'selectBased', baseTitle: context.base.title });
 
@@ -643,7 +643,7 @@ test.describe('Form view: field validation', () => {
       columns: columns,
     });
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(100);
 
     await dashboard.treeView.openTable({ title: tableName, baseTitle: context.base.title });
@@ -740,7 +740,7 @@ test.describe('Form view: field validation', () => {
     await click({ enable: true });
     await verifyWorkEmail({ isVisible: true });
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await form.selectVisibleField({ title: 'Email' });
 
     await verify({ isEnabled: true });
@@ -887,13 +887,13 @@ test.describe('Form view: field validation', () => {
       message: 'Successfully submitted form data',
     });
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     const formLink = await dashboard.form.topbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
 
@@ -918,14 +918,14 @@ test.describe('Form view: field validation', () => {
 
     await dashboard.rootPage.goto(url);
     // kludge- reload
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.form.topbar.clickShare();
     await dashboard.form.topbar.share.clickShareViewPublicAccess();
     await dashboard.form.topbar.share.closeModal();
 
     const surveyLink = await dashboard.form.topbar.getSharedViewUrl(true);
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.form.configureSubmitMessage({
       message: 'Thank you for submitting the form',
     });
@@ -935,7 +935,7 @@ test.describe('Form view: field validation', () => {
 
     await dashboard.rootPage.goto(surveyLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     const surveyForm = new SurveyFormPage(dashboard.rootPage);
@@ -1206,13 +1206,13 @@ test.describe('Form view: field validation', () => {
       message: 'Successfully submitted form data',
     });
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     const formLink = await dashboard.form.topbar.getSharedViewUrl();
 
     await dashboard.rootPage.goto(formLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
 
@@ -1259,14 +1259,14 @@ test.describe('Form view: field validation', () => {
 
     await dashboard.rootPage.goto(url);
     // kludge- reload
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.form.topbar.clickShare();
     await dashboard.form.topbar.share.clickShareViewPublicAccess();
     await dashboard.form.topbar.share.closeModal();
 
     const surveyLink = await dashboard.form.topbar.getSharedViewUrl(true);
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.form.configureSubmitMessage({
       message: 'Thank you for submitting the form',
     });
@@ -1276,7 +1276,7 @@ test.describe('Form view: field validation', () => {
 
     await dashboard.rootPage.goto(surveyLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     const surveyForm = new SurveyFormPage(dashboard.rootPage);
@@ -1344,7 +1344,7 @@ test.describe('Form view: field validation', () => {
 
     await dashboard.rootPage.goto(formLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
     await sharedForm.cell.attachment.addFile({
@@ -1375,7 +1375,7 @@ test.describe('Form view: field validation', () => {
 
     await dashboard.rootPage.goto(url);
     // kludge- reload
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.form.topbar.clickShare();
     await dashboard.form.topbar.share.clickShareViewPublicAccess();
@@ -1389,7 +1389,7 @@ test.describe('Form view: field validation', () => {
 
     await dashboard.rootPage.goto(surveyLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     const surveyForm = new SurveyFormPage(dashboard.rootPage);
@@ -1538,7 +1538,7 @@ test.describe('Form view: conditional fields', () => {
       columns: columns,
     });
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(100);
 
     await dashboard.treeView.openTable({ title: tableName, baseTitle: context.base.title });
@@ -1649,7 +1649,7 @@ test.describe('Form view: conditional fields', () => {
 
     await dashboard.rootPage.goto(formLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     const sharedForm = new SharedFormPage(dashboard.rootPage);
 
@@ -1680,6 +1680,6 @@ test.describe('Form view: conditional fields', () => {
 
     await dashboard.rootPage.goto(url);
     // kludge- reload
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
   });
 });

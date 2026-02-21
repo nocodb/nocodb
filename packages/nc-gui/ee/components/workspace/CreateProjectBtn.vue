@@ -1,24 +1,30 @@
 <script setup lang="ts">
 import type { ButtonType } from 'ant-design-vue/lib/button'
 
-const props = defineProps<{
-  activeWorkspaceId?: string
-  modal?: boolean
-  type?: ButtonType
-  size?: NcButtonSize
-  centered?: boolean
-  // isOpen: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    workspaceId?: string
+    modal?: boolean
+    type?: ButtonType
+    size?: NcButtonSize
+    centered?: boolean
+    // isOpen: boolean
+  }>(),
+  {
+    type: 'text',
+  },
+)
+
+const { workspaceId } = toRefs(props)
 
 const { isUIAllowed } = useRoles()
+
+const { activeWorkspaceId, workspaces } = storeToRefs(useWorkspace())
 
 const { baseCreateMode } = storeToRefs(useBases())
 
 const baseStore = useBase()
 const { isSharedBase } = storeToRefs(baseStore)
-
-const workspaceStore = useWorkspace()
-const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const baseCreateDlg = ref(false)
 
@@ -26,13 +32,19 @@ const isVisibleCreateBase = ref(false)
 
 const size = computed(() => props.size || 'small')
 const centered = computed(() => props.centered ?? true)
+
+const hasAccess = computed(() => {
+  if (!workspaceId.value || workspaceId.value === activeWorkspaceId.value) return isUIAllowed('baseCreate') && !isSharedBase.value
+
+  return isUIAllowed('baseCreate', { roles: workspaces.value.get(workspaceId.value)?.roles })
+})
 </script>
 
 <template>
-  <NcDropdown v-if="isUIAllowed('baseCreate') && !isSharedBase" v-model:visible="isVisibleCreateBase">
+  <NcDropdown v-if="hasAccess" v-model:visible="isVisibleCreateBase">
     <NcButton
       v-e="['c:base:create']"
-      type="text"
+      :type="type"
       data-testid="nc-sidebar-create-base-btn"
       :size="size"
       :centered="centered"
@@ -50,13 +62,14 @@ const centered = computed(() => props.centered ?? true)
         </div>
       </slot>
 
-      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :default-base-create-mode="baseCreateMode" />
+      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :default-base-create-mode="baseCreateMode" :workspace-id="workspaceId" />
     </NcButton>
     <template #overlay>
       <WorkspaceProjectCreateMenu
         v-model:visible="isVisibleCreateBase"
         v-model:base-create-mode="baseCreateMode"
         variant="dropdown"
+        :workspace-id="workspaceId"
         @update:base-create-mode="baseCreateDlg = true"
       />
     </template>

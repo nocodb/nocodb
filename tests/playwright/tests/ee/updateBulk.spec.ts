@@ -37,7 +37,7 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
   const table = await createDemoTable({ context, type: tableType, recordCnt: 50 });
 
   // For tables created via API to appear
-  await dashboard.rootPage.reload();
+  await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
   await dashboard.treeView.openTable({ title: tableType, baseTitle: context.base.title });
 

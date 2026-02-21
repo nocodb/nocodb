@@ -28,7 +28,7 @@ test.describe('Single select', () => {
     const tables = await api.dbTable.list(context.base.id);
     tableId = tables.list.find((table: any) => table.title === 'sheet1').id;
     await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [{ Id: 1, Title: `Row 0` }]);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -154,7 +154,7 @@ test.describe('Single select - filter & sort', () => {
       { Id: 3, Title: '3' },
       { Id: 4, Title: '4' },
     ]);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     await grid.cell.selectOption.select({ index: 1, columnHeader: 'SingleSelect', option: 'foo', multiSelect: false });
     await grid.cell.selectOption.select({ index: 2, columnHeader: 'SingleSelect', option: 'bar', multiSelect: false });

@@ -106,7 +106,7 @@ test.describe('Undo Redo', () => {
     }
 
     // reload page after api calls
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     // wait for auto navigate to project completion
     await dashboard.rootPage.waitForTimeout(2000);
@@ -417,7 +417,7 @@ test.describe('Undo Redo - Table & view rename operations', () => {
     }
 
     // reload page after api calls
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -555,7 +555,7 @@ test.describe('Undo Redo - LTAR', () => {
     }
 
     // reload page after api calls
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -648,7 +648,7 @@ test.describe('Undo Redo - LTAR', () => {
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+z' : 'Control+z');
     await dashboard.rootPage.waitForTimeout(200);
     await verifyRecords(['Mumbai', 'Delhi']);
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await verifyRecords(['Mumbai', 'Delhi']);
   });
 });
@@ -708,7 +708,7 @@ test.describe('Undo Redo - Select based', () => {
     }
 
     // reload page after api calls
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {

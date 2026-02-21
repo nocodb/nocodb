@@ -157,7 +157,7 @@ test.describe('Expanded record duplicate & delete options', () => {
     await dashboard.grid.openExpandedRow({ index: 3 });
     await dashboard.expandedForm.clickDeleteRow();
     await dashboard.expandedForm.escape();
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.grid.verifyRowCount({ count: 3 });
 
     // expand row, duplicate & verify menu

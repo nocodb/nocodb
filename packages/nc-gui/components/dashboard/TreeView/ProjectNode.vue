@@ -34,7 +34,7 @@ const { isMobileMode, user } = useGlobal()
 
 const { createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
 
-const { bases, basesUser, showProjectList } = storeToRefs(basesStore)
+const { bases, basesUser } = storeToRefs(basesStore)
 
 const collaborators = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).map((user: any) => {
@@ -240,11 +240,6 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-  if (!cmdOrCtrl && activeProjectId.value === base.id) {
-    showProjectList.value = false
-    return
-  }
-
   if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
 
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
@@ -297,8 +292,6 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
       updatedProject.isLoading = false
     }
   }
-
-  showProjectList.value = false
 }
 
 function openErdView(source: SourceType) {

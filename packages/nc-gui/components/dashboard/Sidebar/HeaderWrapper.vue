@@ -13,8 +13,6 @@ const { isLeftSidebarOpen, allowHideLeftSidebarForCurrentRoute } = storeToRefs(u
 
 const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
-const { showProjectList } = storeToRefs(useBases())
-
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
@@ -31,11 +29,7 @@ const showSidebarBtn = computed(() => {
 </script>
 
 <template>
-  <div
-    class="nc-sidebar-header"
-    :class="showProjectList ? 'nc-project-list' : 'nc-active-project'"
-    :data-workspace-title="activeWorkspace?.title"
-  >
+  <div class="nc-sidebar-header nc-active-project" :data-workspace-title="activeWorkspace?.title">
     <template v-if="!isWorkspacesLoading && !isLoading">
       <div class="nc-sidebar-header-content text-subHeading2 truncate">
         <slot> Bases </slot>

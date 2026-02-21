@@ -12,6 +12,8 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { createWorkspace } = useWorkspace()
 
+const wsBaseListActions = useWsBaseListActions()
+
 const workspace = ref({})
 const isCreating = ref(false)
 
@@ -64,6 +66,10 @@ const _createWorkspace = async () => {
       : await createWorkspace(workspace.value)
     if (workspaceRes) {
       emit('success', workspaceRes)
+    }
+
+    if (wsBaseListActions) {
+      wsBaseListActions.closeModal()
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

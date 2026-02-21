@@ -4,6 +4,7 @@ import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType } from '#imports'
 
 const props = defineProps<{
   visible: boolean
+  workspaceId: string
   baseId?: string
   title?: string
   subTitle?: string
@@ -15,13 +16,15 @@ const emit = defineEmits(['update:visible'])
 
 const visible = useVModel(props, 'visible', emit)
 
-const { title, subTitle, alertDescription, submitButtonText } = toRefs(props)
+const { workspaceId, title, subTitle, alertDescription, submitButtonText } = toRefs(props)
 
 const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
 const { navigateToProject } = useGlobal()
+
+const wsBaseListActions = useWsBaseListActions()
 
 const initialSanboxFormState = ref<Record<string, any>>({
   title: '',
@@ -32,10 +35,6 @@ const initialSanboxFormState = ref<Record<string, any>>({
   baseId: props.baseId,
 })
 
-const workspaceStore = useWorkspace()
-
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
-
 const basesStore = useBases()
 
 const baseStore = useBase()
@@ -45,7 +44,7 @@ const { base } = storeToRefs(baseStore)
 const createManagedApp = async (formState: Record<string, any>) => {
   try {
     const response = await $api.internal.postOperation(
-      activeWorkspaceId.value as string,
+      workspaceId.value,
       formState.baseId || NO_SCOPE,
       {
         operation: 'managedAppCreate',
@@ -90,11 +89,15 @@ const createManagedApp = async (formState: Record<string, any>) => {
     if (!props.baseId && (response?.base_id || formState.baseId) && base.value?.id !== (response?.base_id || formState.baseId)) {
       navigateToProject({
         baseId: response?.base_id || formState.baseId,
-        workspaceId: activeWorkspaceId.value as string,
+        workspaceId: workspaceId.value as string,
       })
     } else if (base.value?.id && base.value.id === formState.baseId) {
       baseStore.loadManagedApp()
       baseStore.loadCurrentVersion()
+    }
+
+    if (wsBaseListActions) {
+      wsBaseListActions.closeModal()
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

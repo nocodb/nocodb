@@ -4,6 +4,7 @@ interface Props {
   visible: boolean
   variant: 'modal' | 'dropdown'
   baseCreateMode: NcBaseCreateMode | null
+  workspaceId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,11 +20,15 @@ const vVisible = useVModel(props, 'visible', emits)
 
 const baseCreateMode = useVModel(props, 'baseCreateMode', emits)
 
+const { workspaceId } = toRefs(props)
+
 const workspaceStore = useWorkspace()
 
 const { navigateToTemplates } = workspaceStore
 
 const { isTemplatesFeatureEnabled } = storeToRefs(workspaceStore)
+
+const wsBaseListActions = useWsBaseListActions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -32,7 +37,11 @@ const { isAiFeaturesEnabled } = useNocoAi()
 const onClickOption = (mode: NcBaseCreateMode) => {
   if (isTemplatesFeatureEnabled.value && mode === NcBaseCreateMode.FROM_TEMPLATE) {
     vVisible.value = false
-    navigateToTemplates()
+    navigateToTemplates(workspaceId.value)
+
+    if (wsBaseListActions) {
+      wsBaseListActions.closeModal()
+    }
 
     return
   }
@@ -114,51 +123,4 @@ onMounted(() => {
       />
     </template>
   </component>
-
-  <!-- Todo: confirm design - same as base overview cards -->
-  <!-- <div v-else class="flex flex-row gap-6 flex-wrap max-w-[min(80vw,738px)] children:(!w-[230px] !max-w-[230px])">
-    <ProjectActionItem
-      v-e="['c:base:create:scratch']"
-      icon="plus"
-      label="From Scratch"
-      subtext="Start with an empty base"
-      @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)"
-    />
-
-    <ProjectActionItem
-      v-if="isTemplatesFeatureEnabled"
-      v-e="['c:base:template:create']"
-      icon="globe"
-      label="From Template"
-      subtext="Pre-built structures for common use cases"
-      @click="onClickOption(NcBaseCreateMode.FROM_TEMPLATE)"
-    />
-
-    <ProjectActionItem
-      v-if="isAiFeaturesEnabled"
-      v-e="['c:base:ai:create']"
-      icon="ncAutoAwesome"
-      label="Build with AI"
-      subtext="AI-powered base creation from your use case"
-      @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
-    />
-
-    <template v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)">
-      <ProjectActionItem
-        v-e="['c:base:market:create']"
-        icon="ncBox"
-        label="From App Store"
-        subtext="Install apps built by the community"
-        @click="onClickOption(NcBaseCreateMode.FROM_APP_STORE)"
-      />
-
-      <ProjectActionItem
-        v-e="['c:base:managedApp:create']"
-        icon="ncBox"
-        label="Managed App"
-        subtext="Build and publish to the App Store"
-        @click="onClickOption(NcBaseCreateMode.MANAGED_APP)"
-      />
-    </template>
-  </div> -->
 </template>

@@ -42,8 +42,15 @@ export class CollaborationPage extends BasePage {
     // flaky test: wait for the input to be ready
     await this.rootPage.waitForTimeout(500);
 
-    // email
-    await input_email.fill(email + ' ');
+    // email - use clipboard paste instead of fill for more reliable input
+    const emailWithSpace = email + ' ';
+    await this.rootPage.evaluate(async text => {
+      await navigator.clipboard.writeText(text);
+    }, emailWithSpace);
+    await input_email.focus();
+    // Use platform-specific paste shortcut
+    const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
+    await this.rootPage.keyboard.press(`${modifier}+v`);
 
     // role
     await selector_role.first().click();

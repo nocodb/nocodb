@@ -437,6 +437,7 @@
     "connection": "Connection",
     "connections": "Connections",
     "private": "Private",
+    "starred": "Starred",
     "request": "Request",
     "languages": "Languages",
     "extension": "Extension",
@@ -1843,7 +1844,10 @@
     "recordSelected": "record selected",
     "recordsSelected": "records selected",
     "saveChanges": "Save changes",
-    "publishing": "Publishing"
+    "publishing": "Publishing",
+    "navigate": "Navigate",
+    "select": "Select",
+    "managed": "Managed"
   },
   "activity": {
     "clickToResolve": "Click to resolve",
@@ -1870,6 +1874,11 @@
     "deactivate": "De-activate",
     "manageUsers": "Manage Users",
     "newWorkspace": "New Workspace",
+    "basesIn": "Bases in",
+    "noBases": "No bases",
+    "noBasesFound": "No bases found",
+    "ownedByMe": "Owned by me",
+    "allBases": "All Bases",
     "addDomain": "Add Domain",
     "addMembers": "Add Members",
     "enterEmail": "Enter email addresses",
@@ -2278,6 +2287,7 @@
   },
   "placeholder": {
     "searchWorkflows": "Search Workflows",
+    "searchWorkspacesAndBases": "Search workspaces and bases...",
     "searchByTitle": "Search by title or description",
     "enterSyncName": "Enter sync name",
     "searchIcons": "Search icons",

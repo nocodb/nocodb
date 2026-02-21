@@ -39,7 +39,7 @@ test.describe('GroupBy CRUD Operations', () => {
     topbar = dashboard.grid.topbar;
 
     await createDemoTable({ context, type: 'groupBased', recordCnt: 400 });
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test('Single GroupBy CRUD Operations', async ({ page }) => {

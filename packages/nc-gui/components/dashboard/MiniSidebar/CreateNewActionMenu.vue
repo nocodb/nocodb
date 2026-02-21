@@ -5,7 +5,7 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, orgRoles, workspaceRoles } = useRoles()
 
-const { openedProject, showProjectList } = storeToRefs(useBases())
+const { openedProject } = storeToRefs(useBases())
 
 const { base, isSharedBase } = storeToRefs(useBase())
 
@@ -105,7 +105,7 @@ const hasBaseCreateAccess = computed(() => {
 })
 
 const isBaseHomePage = computed(() => {
-  return !showProjectList.value && !!openedProject.value
+  return !!openedProject.value
 })
 
 const hasTableCreateAccess = computed(() => {

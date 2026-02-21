@@ -6,6 +6,7 @@ const props = defineProps<{
   activeFilter: FilterType
   isCompactView?: boolean
   searchQuery?: string
+  selectedWorkspaceId?: string
 }>()
 
 const emit = defineEmits<{
@@ -14,6 +15,8 @@ const emit = defineEmits<{
 }>()
 
 const vSearchQuery = useVModel(props, 'searchQuery', emit)
+
+const { selectedWorkspaceId } = toRefs(props)
 
 const { t } = useI18n()
 
@@ -84,6 +87,12 @@ const onFilterChange = (value: string) => {
           </NcList>
         </template>
       </NcListDropdown>
+      <WorkspaceCreateProjectBtn :workspace-id="selectedWorkspaceId ?? undefined" type="primary">
+        <div class="flex items-center gap-1.5">
+          <GeneralIcon icon="plus" />
+          {{ $t('title.newProj') }}
+        </div>
+      </WorkspaceCreateProjectBtn>
     </template>
 
     <!-- Compact: Search + Filter -->

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import Sortable, { type SortableEvent } from 'sortablejs'
-import { useBaseActions } from './useBaseActions'
+import { useBaseActionsOrThrow } from './useBaseActions'
 
 type SectionType = 'starred' | 'private' | 'owned' | 'managed' | 'default'
 
@@ -21,7 +21,7 @@ const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
 
 // Get reorder action from provider
-const { onReorder } = useBaseActions()
+const { onReorder } = useBaseActionsOrThrow()
 
 const gridRef = useTemplateRef('gridRef')
 const dragging = ref(false)

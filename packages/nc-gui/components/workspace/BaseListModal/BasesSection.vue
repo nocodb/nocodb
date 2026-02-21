@@ -20,7 +20,7 @@ const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
 
 // Get reorder action from provider
-const { onReorder } = useBaseActionsOrThrow()
+const { onReorder } = useWsBaseListActionsOrThrow()
 
 const gridRef = useTemplateRef('gridRef')
 const dragging = ref(false)

@@ -26,7 +26,7 @@ const { $e } = useNuxtApp()
 const closeModal = () => {
   visible.value = false
 }
-const { dialogState } = useProvideBaseActions(closeModal)
+const { dialogState } = useProvideWsBaseListActions(closeModal)
 
 const searchInputRef = ref<HTMLInputElement>()
 

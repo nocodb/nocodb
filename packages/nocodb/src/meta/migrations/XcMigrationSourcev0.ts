@@ -21,6 +21,7 @@ import * as nc_020_add_cell_coloring_fields_to_row_color_conditions from './v0/n
 import * as nc_021_scim_support from './v0/nc_021_scim_support';
 import * as nc_022_record_templates from './v0/nc_022_record_templates';
 import * as nc_023_rls_policies from './v0/nc_023_rls_policies';
+import * as nc_202601010000_placeholder from './v0/nc_202601010000_placeholder';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -53,6 +54,7 @@ export default class XcMigrationSourcev0 {
       'nc_021_scim_support',
       'nc_022_record_templates',
       'nc_023_rls_policies',
+      'nc_202601010000_placeholder',
     ]);
   }
 
@@ -108,6 +110,8 @@ export default class XcMigrationSourcev0 {
         return nc_022_record_templates;
       case 'nc_023_rls_policies':
         return nc_023_rls_policies;
+      case 'nc_202601010000_placeholder':
+        return nc_202601010000_placeholder;
     }
   }
 }

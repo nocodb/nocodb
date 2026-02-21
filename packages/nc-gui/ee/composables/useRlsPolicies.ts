@@ -7,10 +7,17 @@ export interface RlsPolicyState {
 
 export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>) => {
   const { $api } = useNuxtApp()
+  const { getMeta } = useMetas()
 
   const policies = ref<RlsPolicyType[]>([])
   const isLoading = ref(false)
   const isSaving = ref(false)
+
+  const refreshTableMeta = () => {
+    if (base.value?.id && tableId.value) {
+      getMeta(base.value.id, tableId.value, true)
+    }
+  }
 
   const loadPolicies = async () => {
     if (!base.value?.fk_workspace_id || !base.value?.id || !tableId.value) return
@@ -47,6 +54,7 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
         body,
       )
       await loadPolicies()
+      refreshTableMeta()
       return result
     } finally {
       isSaving.value = false
@@ -71,6 +79,7 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
         body,
       )
       await loadPolicies()
+      refreshTableMeta()
       return result
     } finally {
       isSaving.value = false
@@ -84,6 +93,7 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
     try {
       await $api.internal.postOperation(base.value.fk_workspace_id, base.value.id, { operation: 'rlsPolicyDelete' }, { policyId })
       await loadPolicies()
+      refreshTableMeta()
     } finally {
       isSaving.value = false
     }

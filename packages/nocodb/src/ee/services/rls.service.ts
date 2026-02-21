@@ -7,7 +7,8 @@ import NocoSocket from '~/ee/socket/NocoSocket';
 import Filter from '~/models/Filter';
 import { NcError } from '~/helpers/ncError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { View } from '~/models';
+import { Model, View } from '~/models';
+import { parseMetaProp } from '~/utils/modelUtils';
 import { checkForFeature, checkLimit } from '~/ee/helpers/paymentHelpers';
 
 @Injectable()
@@ -15,6 +16,35 @@ export class RlsService {
   protected logger: Logger = new Logger(RlsService.name);
 
   constructor(protected readonly appHooksService: AppHooksService) {}
+
+  /**
+   * Sync `is_rls_enabled` flag in the table's meta after any policy mutation.
+   * Reads current meta, merges the flag, and writes back to preserve other meta keys (icon, etc).
+   */
+  private async syncRlsEnabledMeta(
+    context: NcContext,
+    tableId: string,
+  ): Promise<void> {
+    const hasEnabled = await RlsPolicy.hasEnabledPolicies(context, tableId);
+    const table = await Model.get(context, tableId);
+
+    if (!table) return;
+
+    const currentMeta =
+      typeof table.meta === 'string' ? parseMetaProp(table) : table.meta || {};
+
+    // Skip update if already in sync
+    if (!!currentMeta.is_rls_enabled === hasEnabled) return;
+
+    const updatedMeta = { ...currentMeta };
+    if (hasEnabled) {
+      updatedMeta.is_rls_enabled = true;
+    } else {
+      delete updatedMeta.is_rls_enabled;
+    }
+
+    await Model.updateMeta(context, tableId, { meta: updatedMeta });
+  }
 
   async listPolicies(context: NcContext, param: { tableId: string }) {
     const policies = await RlsPolicy.listByModel(context, param.tableId);
@@ -128,6 +158,8 @@ export class RlsService {
     await RlsPolicy.clearModelCache(context, body.fk_model_id);
     await View.clearSingleQueryCache(context, body.fk_model_id);
 
+    await this.syncRlsEnabledMeta(context, body.fk_model_id);
+
     this.appHooksService.emit(AppEvents.RLS_POLICY_CREATE, {
       context,
       userId,
@@ -178,6 +210,8 @@ export class RlsService {
     await RlsPolicy.clearModelCache(context, policy.fk_model_id);
     await View.clearSingleQueryCache(context, policy.fk_model_id);
 
+    await this.syncRlsEnabledMeta(context, policy.fk_model_id);
+
     this.appHooksService.emit(AppEvents.RLS_POLICY_UPDATE, {
       context,
       userId,
@@ -219,6 +253,8 @@ export class RlsService {
     // Invalidate caches: RLS model cache + single query cache
     await RlsPolicy.clearModelCache(context, policy.fk_model_id);
     await View.clearSingleQueryCache(context, policy.fk_model_id);
+
+    await this.syncRlsEnabledMeta(context, policy.fk_model_id);
 
     this.appHooksService.emit(AppEvents.RLS_POLICY_DELETE, {
       context,

@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { useBaseActionsOrThrow } from './useBaseActions'
-
 const props = defineProps<{
   base: NcProject
   isMarked?: boolean

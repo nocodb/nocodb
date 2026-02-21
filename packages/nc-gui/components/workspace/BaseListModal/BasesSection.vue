@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import Sortable, { type SortableEvent } from 'sortablejs'
-import { useBaseActionsOrThrow } from './useBaseActions'
 
 type SectionType = 'starred' | 'private' | 'owned' | 'managed' | 'default'
 

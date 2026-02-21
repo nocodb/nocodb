@@ -1,5 +1,5 @@
-import crypto from 'crypto';
 import { Logger } from '@nestjs/common';
+import hash from 'object-hash';
 import type { FilterType } from 'nocodb-sdk';
 import type { ColumnType } from 'nocodb-sdk';
 
@@ -201,8 +201,7 @@ export class RlsSubscriptionRegistry {
       return 'all'; // No filters = see all rows
     }
 
-    // Serialize filters deterministically
-    const serialized = JSON.stringify(
+    return hash(
       resolvedFilters.map((f) => ({
         fk_column_id: f.fk_column_id,
         comparison_op: f.comparison_op,
@@ -213,11 +212,5 @@ export class RlsSubscriptionRegistry {
         children: f.children,
       })),
     );
-
-    return crypto
-      .createHash('sha256')
-      .update(serialized)
-      .digest('hex')
-      .slice(0, 12);
   }
 }

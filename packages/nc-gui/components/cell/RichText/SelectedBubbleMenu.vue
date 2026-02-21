@@ -430,6 +430,19 @@ const closeTextArea = () => {
       :tab-index="tabIndex"
     />
 
+    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.table)" :placement="tooltipPlacement">
+      <template #title> Table </template>
+      <NcButton
+        size="small"
+        type="text"
+        :tabindex="tabIndex"
+        :class="{ 'is-active': editor.isActive('table') }"
+        @click="editor!.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()"
+      >
+        <GeneralIcon icon="table" />
+      </NcButton>
+    </NcTooltip>
+
     <div v-if="enableCloseButton" class="!sticky right-0 pr-0.5 bg-nc-bg-default">
       <NcButton type="text" size="small" @click="closeTextArea">
         <GeneralIcon icon="close" />

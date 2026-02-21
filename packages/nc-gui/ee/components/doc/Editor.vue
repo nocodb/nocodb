@@ -9,6 +9,7 @@ import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
+import { CellSelection } from '@tiptap/pm/tables'
 import type { DocType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/datetimeUtils'
 
@@ -67,6 +68,21 @@ const saveTimeout = ref<NodeJS.Timeout>()
 // Guard: suppress onUpdate saves while we're programmatically loading content
 // into the editor (setContent triggers onUpdate, which would queue a no-op save).
 const isSettingContent = ref(false)
+
+/**
+ * Show table toolbar only when the user has actively selected content inside a table:
+ * - Multi-cell selection (CellSelection from prosemirror-tables), OR
+ * - Text selection (non-empty) within a table cell.
+ * A plain cursor inside a table (empty selection) does NOT trigger the toolbar.
+ */
+const showTableToolbar = ({ editor: e }: { editor: any }) => {
+  if (!e.isActive('table')) return false
+  const { selection } = e.state
+  // Multi-cell selection — always show
+  if (selection instanceof CellSelection) return true
+  // Text selection within a cell — show only if non-empty
+  return !selection.empty
+}
 
 /** Persist current editor state + title to the backend. */
 const save = async () => {
@@ -285,8 +301,13 @@ onBeforeUnmount(() => {
       <!-- Editor — always mounted so ProseMirror view stays attached -->
       <div class="nc-doc-editor-body pb-48">
         <template v-if="editor">
-          <!-- Bubble menu: appears on text selection -->
-          <BubbleMenu :editor="editor" :update-delay="250" :tippy-options="{ duration: 100, maxWidth: 600 }">
+          <!-- Bubble menu: appears on text selection outside tables -->
+          <BubbleMenu
+            :editor="editor"
+            :update-delay="250"
+            :tippy-options="{ duration: 100, maxWidth: 600 }"
+            :should-show="({ editor: e }) => !e.isActive('table') && !e.state.selection.empty"
+          >
             <CellRichTextSelectedBubbleMenu
               :editor="editor"
               embed-mode
@@ -294,6 +315,16 @@ onBeforeUnmount(() => {
               :hidden-options="[RichTextBubbleMenuOptions.taskList]"
             />
           </BubbleMenu>
+
+          <!-- Table toolbar: appears on text/cell selection inside a table -->
+          <BubbleMenu
+            :editor="editor"
+            :tippy-options="{ duration: 100, maxWidth: 700, placement: 'top' }"
+            :should-show="showTableToolbar"
+          >
+            <DocTableToolbar :editor="editor" />
+          </BubbleMenu>
+
           <EditorContent :editor="editor" />
         </template>
       </div>
@@ -311,6 +342,12 @@ onBeforeUnmount(() => {
   @apply !rounded-lg;
   border: 1px solid #d1d5db !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+// Table context toolbar — same visual treatment as the text bubble menu
+.nc-doc-table-toolbar {
+  border: 1px solid #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 // Subtitle (created by / updated by) — match Outline's muted slate
@@ -455,17 +492,21 @@ onBeforeUnmount(() => {
     text-decoration: underline;
   }
 
-  // Table
+  // Table — border-separate so border-radius works on corners
   table {
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
     margin: 0;
     overflow: hidden;
     table-layout: fixed;
     width: 100%;
+    border: 1px solid var(--nc-border-gray-medium);
+    border-radius: 8px;
 
     td,
     th {
-      border: 1px solid var(--nc-border-gray-medium);
+      border-right: 1px solid var(--nc-border-gray-medium);
+      border-bottom: 1px solid var(--nc-border-gray-medium);
       box-sizing: border-box;
       min-width: 1em;
       padding: 6px 8px;
@@ -475,6 +516,17 @@ onBeforeUnmount(() => {
       > * {
         margin-bottom: 0;
       }
+
+      // Remove right border on last column (outer border handles it)
+      &:last-child {
+        border-right: none;
+      }
+    }
+
+    // Remove bottom border on last row (outer border handles it)
+    tr:last-child td,
+    tr:last-child th {
+      border-bottom: none;
     }
 
     th {
@@ -482,6 +534,53 @@ onBeforeUnmount(() => {
       font-weight: bold;
       text-align: left;
     }
+
+    // Round inner corners of corner cells to match outer radius
+    tr:first-child th:first-child,
+    tr:first-child td:first-child {
+      border-top-left-radius: 7px;
+    }
+    tr:first-child th:last-child,
+    tr:first-child td:last-child {
+      border-top-right-radius: 7px;
+    }
+    tr:last-child td:first-child,
+    tr:last-child th:first-child {
+      border-bottom-left-radius: 7px;
+    }
+    tr:last-child td:last-child,
+    tr:last-child th:last-child {
+      border-bottom-right-radius: 7px;
+    }
+
+    // Selected cell highlight (Tiptap adds this class)
+    .selectedCell::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      background: rgba(59, 130, 246, 0.08);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    // Column resize handle
+    .column-resize-handle {
+      position: absolute;
+      right: -2px;
+      top: 0;
+      bottom: -2px;
+      width: 4px;
+      background-color: #3b82f6;
+      pointer-events: none;
+    }
+  }
+
+  // Resize cursor when hovering over column borders
+  &.resize-cursor {
+    cursor: col-resize;
   }
 }
 </style>

@@ -37,6 +37,7 @@ onMounted(() => {
     v-if="isUIAllowed('baseCreate', { roles: orgRoles }) && !isSharedBase"
     v-e="['c:base:create']"
     :type="type"
+    data-testid="nc-sidebar-create-base-btn"
     :size="size"
     :centered="centered"
     full-width

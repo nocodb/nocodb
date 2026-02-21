@@ -147,6 +147,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     giftUrl: '',
     isOnPrem: false,
     disableGroupByAggregation: false,
+    mapProvider: 'openstreetmap',
   })
 
   /** reactive token payload */

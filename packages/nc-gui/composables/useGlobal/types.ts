@@ -52,6 +52,7 @@ export interface AppInfo {
   iframeWhitelistDomains?: Array<string>
   disableGroupByAggregation?: boolean
   sendRecordMaxRecipients?: number
+  mapProvider?: string
 }
 
 export interface StoredState {

@@ -631,3 +631,9 @@ export enum MetaEntityType {
   SORT = 'SORT',
   VIEW_ROW_COLOR = 'VIEW_ROW_COLOR',
 }
+
+export enum MapProvider {
+  OPENSTREETMAP = 'openstreetmap',
+  STADIAMAP = 'stadiamap',
+  STADIAMAP_APIKEY = 'stadiamap_apikey',
+}

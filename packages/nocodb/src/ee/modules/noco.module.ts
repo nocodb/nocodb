@@ -84,6 +84,9 @@ import { WorkflowExecutionService } from '~/services/workflow-execution.service'
 import { WorkflowSubscribersService } from '~/services/workflow-subscribers.service';
 import { WorkflowWebhookController } from '~/controllers/workflow-webhook.controller';
 
+/* Maps */
+import { MapTileController } from '~/controllers/map-tile.controller';
+
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
 
@@ -256,6 +259,9 @@ export const nocoModuleEeMetadata = {
 
     /* Record Templates */
     RecordTemplatesController,
+
+    /* Maps */
+    MapTileController,
 
     // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
     // /* Workspace Teams V3 */

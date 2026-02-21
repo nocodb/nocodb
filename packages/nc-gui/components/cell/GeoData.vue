@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
-import { type GeoLocationType, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
+import { type GeoLocationType, MapProvider, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
 
 interface Props {
@@ -17,6 +17,12 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const column = inject(ColumnInj)
+
+const meta = inject(MetaInj, ref())
+
+const { $api } = useNuxtApp()
+const { base } = storeToRefs(useBase())
+const { appInfo } = useGlobal()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -40,7 +46,31 @@ const DEFAULT_CENTER: [number, number] = [20, 0]
 const DEFAULT_ZOOM = 2
 const LOCATION_ZOOM = 15
 
-const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+// Build tile URL based on configured map provider
+const OSM_TILE_URL = computed(() => {
+  const mapProvider = appInfo.value.mapProvider || MapProvider.OPENSTREETMAP
+
+  // Providers that require API key and backend proxy
+  if (mapProvider === MapProvider.STADIAMAP_APIKEY) {
+    const workspaceId = base.value?.fk_workspace_id
+    const baseId = base.value?.id
+    const tableId = meta.value?.id
+    const apiBaseUrl = $api.instance.defaults.baseURL
+
+    return workspaceId && baseId
+      ? `${apiBaseUrl}/api/v1/bases/${baseId}/maptile?x={x}&y={y}&z={z}${tableId ? `&tableId=${tableId}` : ''}`
+      : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' // Fallback
+  }
+
+  // Direct tile URLs (no proxy needed)
+  if (mapProvider === MapProvider.STADIAMAP) {
+    return 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}.png' // Free tier
+  }
+
+  // Default: OpenStreetMap
+  return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+})
+
 const OSM_ATTRIBUTION = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 
 function syncToFormState(lat: number, lng: number) {
@@ -96,7 +126,10 @@ function initMap() {
 
   L.control.zoom({ position: 'bottomleft' }).addTo(map)
 
-  L.tileLayer(OSM_TILE_URL, { maxZoom: 19, attribution: OSM_ATTRIBUTION }).addTo(map)
+  L.tileLayer(OSM_TILE_URL.value, {
+    maxZoom: 19,
+    attribution: OSM_ATTRIBUTION,
+  }).addTo(map)
 
   if (validCoords) {
     const marker = L.marker(center, { draggable: !readonly.value }).addTo(map)
@@ -327,7 +360,9 @@ const openInGoogleMaps = () => {
 const openInOSM = () => {
   const [latitude, longitude] = (vModel.value || '').split(';')
   if (!latitude || !longitude) return
-  const url = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(latitude)}&mlon=${encodeURIComponent(longitude)}#map=15/${latitude}/${longitude}`
+  const url = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(latitude)}&mlon=${encodeURIComponent(
+    longitude,
+  )}#map=15/${latitude}/${longitude}`
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
@@ -350,10 +385,7 @@ function parseGeoString(raw: string): string | null {
   // Try convertCellData first (handles NocoDB internal formats) — but only when column metadata is available
   if (column?.value?.uidt) {
     try {
-      const converted = convertCellData(
-        { value: trimmed, to: column.value.uidt, column: column.value },
-        false,
-      )
+      const converted = convertCellData({ value: trimmed, to: column.value.uidt, column: column.value }, false)
       if (converted) return converted
     } catch {
       // fall through to manual parsing
@@ -671,11 +703,7 @@ onBeforeUnmount(() => {
                       @keydown.stop
                       @mousedown.stop
                     />
-                    <GeneralIcon
-                      v-if="isSearching"
-                      icon="loading"
-                      class="nc-geodata-search-spinner animate-spin"
-                    />
+                    <GeneralIcon v-if="isSearching" icon="loading" class="nc-geodata-search-spinner animate-spin" />
                   </div>
                   <div v-if="showSearchResults" id="nc-geo-search-results" role="listbox" class="nc-geodata-search-results">
                     <div
@@ -748,7 +776,14 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="nc-geodata-footer-right">
-                <NcButton v-if="isLocationSet" type="secondary" size="small" class="!text-red-500 !hover:bg-red-50" data-testid="nc-geo-data-clear" @click="clearValue">
+                <NcButton
+                  v-if="isLocationSet"
+                  type="secondary"
+                  size="small"
+                  class="!text-red-500 !hover:bg-red-50"
+                  data-testid="nc-geo-data-clear"
+                  @click="clearValue"
+                >
                   {{ $t('general.clear') }}
                 </NcButton>
                 <NcButton type="secondary" size="small" @click="clear">

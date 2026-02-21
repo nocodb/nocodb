@@ -2,15 +2,19 @@
 import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
-import { ViewTypes, latLongToJoinedString } from 'nocodb-sdk'
+import { MapProvider, ViewTypes, latLongToJoinedString } from 'nocodb-sdk'
 
 const route = useRoute()
+
+const { base } = storeToRefs(useBase())
+const { appInfo } = useGlobal()
 
 const popupIsOpen = ref(false)
 const popUpRow = ref<Row>()
 const fields = inject(FieldsInj, ref([]))
 
 const router = useRouter()
+const { $api } = useNuxtApp()
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
@@ -98,9 +102,7 @@ const buildTooltipContent = (row: Row, lat: number, long: number): string => {
   const geoTitle = geoDataFieldColumn.value?.title
 
   // Show up to MAX_TOOLTIP_FIELDS visible fields, excluding the geo column itself
-  const tooltipFields = visibleFields
-    .filter((f) => f.title !== geoTitle)
-    .slice(0, MAX_TOOLTIP_FIELDS)
+  const tooltipFields = visibleFields.filter((f) => f.title !== geoTitle).slice(0, MAX_TOOLTIP_FIELDS)
 
   if (tooltipFields.length === 0) {
     return `<div class="nc-map-tooltip-content"><span class="nc-map-tooltip-coords">${lat}, ${long}</span></div>`
@@ -113,7 +115,7 @@ const buildTooltipContent = (row: Row, lat: number, long: number): string => {
 
       let displayValue = String(rawValue)
       if (displayValue.length > MAX_TOOLTIP_VALUE_LENGTH) {
-        displayValue = displayValue.substring(0, MAX_TOOLTIP_VALUE_LENGTH) + '…'
+        displayValue = `${displayValue.substring(0, MAX_TOOLTIP_VALUE_LENGTH)}…`
       }
 
       // Escape HTML to prevent XSS
@@ -179,9 +181,31 @@ onMounted(async () => {
 
   myMapRef.value = myMap
 
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // Build tile URL based on configured map provider
+  const mapProvider = appInfo.value.mapProvider || MapProvider.OPENSTREETMAP
+  let tileUrl: string
+
+  if (mapProvider === MapProvider.STADIAMAP_APIKEY) {
+    const workspaceId = base.value?.fk_workspace_id
+    const baseId = base.value?.id
+    const tableId = meta.value?.id
+    const apiBaseUrl = $api.instance.defaults.baseURL
+
+    tileUrl =
+      workspaceId && baseId
+        ? `${apiBaseUrl}/api/v1/bases/${baseId}/maptile?x={x}&y={y}&z={z}${tableId ? `&tableId=${tableId}` : ''}`
+        : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+  } else if (mapProvider === MapProvider.STADIAMAP) {
+    tileUrl = 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}.png'
+  } else {
+    // Default: OpenStreetMap
+    tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+  }
+
+  L.tileLayer(tileUrl, {
     maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    attribution:
+      '&copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
   }).addTo(myMap)
 
   markersClusterGroupRef.value = L.markerClusterGroup({
@@ -317,10 +341,7 @@ const medianCoordinates = computed(() => {
 const onAddRecordClick = async () => {
   const newRow = await addEmptyRow()
   if (geoDataFieldColumn.value?.title && medianCoordinates.value) {
-    newRow.row[geoDataFieldColumn.value.title] = latLongToJoinedString(
-      medianCoordinates.value.lat,
-      medianCoordinates.value.lng,
-    )
+    newRow.row[geoDataFieldColumn.value.title] = latLongToJoinedString(medianCoordinates.value.lat, medianCoordinates.value.lng)
   }
   expandForm(newRow)
 }
@@ -340,7 +361,11 @@ const onAddRecordClick = async () => {
           <span> {{ $t('msg.info.map.limitNumber') }} </span>
         </template>
 
-        <div v-if="count > 900" role="alert" class="nc-warning-info flex min-w-32px h-32px items-center gap-1 px-2 bg-nc-bg-default rounded-md">
+        <div
+          v-if="count > 900"
+          role="alert"
+          class="nc-warning-info flex min-w-32px h-32px items-center gap-1 px-2 bg-nc-bg-default rounded-md"
+        >
           <div>{{ count }} {{ $t('objects.records') }}</div>
           <component :is="iconMap.markerAlert" aria-hidden="true" />
         </div>
@@ -348,7 +373,13 @@ const onAddRecordClick = async () => {
 
       <NcTooltip v-if="!isPublic" placement="right" class="absolute bottom-5 left-3 z-500">
         <template #title> {{ $t('activity.addNewRecord') }} </template>
-        <NcButton type="secondary" size="small" data-testid="nc-map-add-record-btn" class="!rounded-full !w-10 !h-10 !shadow-lg" @click="onAddRecordClick">
+        <NcButton
+          type="secondary"
+          size="small"
+          data-testid="nc-map-add-record-btn"
+          class="!rounded-full !w-10 !h-10 !shadow-lg"
+          @click="onAddRecordClick"
+        >
           <GeneralIcon icon="plus" />
         </NcButton>
       </NcTooltip>

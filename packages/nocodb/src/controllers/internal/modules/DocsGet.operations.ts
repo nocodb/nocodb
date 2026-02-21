@@ -1,3 +1,7 @@
+/**
+ * Internal API GET operations for Pages (Docs).
+ * Handles docList (all pages in a base) and docGet (single page by ID).
+ */
 import { Injectable } from '@nestjs/common';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { NcContext, NcRequest } from 'nocodb-sdk';

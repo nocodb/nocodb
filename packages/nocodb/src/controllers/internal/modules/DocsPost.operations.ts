@@ -1,3 +1,8 @@
+/**
+ * Internal API POST operations for Pages (Docs).
+ * Handles docCreate, docUpdate, docDelete, and docReorder.
+ * All mutating operations expect `payload.docId` for targeting a specific page.
+ */
 import { Injectable } from '@nestjs/common';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { NcContext, NcRequest } from 'nocodb-sdk';

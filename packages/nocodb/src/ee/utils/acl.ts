@@ -707,13 +707,9 @@ const rolePermissions:
       mcpUpdate: true,
       mcpDelete: true,
 
-      // Docs (Pages)
+      // Docs (Pages) — read-only for viewers
       docList: true,
       docGet: true,
-      docCreate: true,
-      docUpdate: true,
-      docDelete: true,
-      docReorder: true,
 
       viewRowColorInfo: true,
 
@@ -787,6 +783,10 @@ const rolePermissions:
 
       // Sync
       triggerSync: true,
+
+      // Docs (Pages) — editors can modify existing pages
+      docUpdate: true,
+      docReorder: true,
 
       // Extensions
       extensionUpdate: true,

@@ -81,9 +81,21 @@ const onRename = async () => {
   isEditing.value = false
 }
 
-const onDelete = async () => {
+const onDelete = () => {
   if (!base.value?.id) return
-  await deleteDoc(base.value.id, props.doc.id!)
+
+  isDropdownOpen.value = false
+
+  Modal.confirm({
+    title: `Delete page "${props.doc.title || 'Untitled'}"?`,
+    okText: 'Delete',
+    okType: 'danger',
+    cancelText: 'Cancel',
+    wrapClassName: 'nc-modal-doc-delete',
+    async onOk() {
+      await deleteDoc(base.value!.id!, props.doc.id!)
+    },
+  })
 }
 
 const onKeyDown = (e: KeyboardEvent) => {

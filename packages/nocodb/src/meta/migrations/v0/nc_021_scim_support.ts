@@ -28,6 +28,9 @@ const up = async (knex: Knex) => {
 
     // Display name from SCIM
     table.string('scim_display_name', 255).nullable();
+
+    // Additional SCIM metadata (externalId, etc.)
+    table.text('scim_meta').nullable();
   });
 
   // Create nc_scim_config table for workspace-level SCIM configuration
@@ -74,6 +77,7 @@ const down = async (knex: Knex) => {
     table.dropColumn('scim_external_id');
     table.dropColumn('scim_managed');
     table.dropColumn('scim_display_name');
+    table.dropColumn('scim_meta');
   });
 
   // Remove SCIM columns from workspace_user

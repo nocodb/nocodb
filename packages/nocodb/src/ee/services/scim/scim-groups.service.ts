@@ -160,6 +160,9 @@ export class ScimGroupsService {
           scim_external_id: uuidv4(), // Server-assigned SCIM id (immutable)
           scim_managed: true,
           scim_display_name: scimGroup.displayName,
+          ...(scimGroup.externalId
+            ? { scim_meta: { externalId: scimGroup.externalId } }
+            : {}),
         });
 
         // Update membership to match SCIM
@@ -198,6 +201,9 @@ export class ScimGroupsService {
       scim_external_id: uuidv4(),
       scim_managed: true,
       scim_display_name: scimGroup.displayName,
+      ...(scimGroup.externalId
+        ? { scim_meta: { externalId: scimGroup.externalId } }
+        : {}),
     });
 
     // Add members if provided
@@ -294,6 +300,14 @@ export class ScimGroupsService {
       updateData.title = scimGroup.displayName;
       updateData.scim_display_name = scimGroup.displayName;
     }
+    if (scimGroup.externalId !== undefined) {
+      const currentMeta =
+        typeof team.scim_meta === 'object' ? team.scim_meta : {};
+      updateData.scim_meta = {
+        ...currentMeta,
+        externalId: scimGroup.externalId,
+      };
+    }
 
     // Team.update returns the full updated record (via metaGet)
     let updatedTeam = team;
@@ -342,10 +356,13 @@ export class ScimGroupsService {
     workspaceId: string,
     excludeMembers = false,
   ): Promise<ScimGroupResource> {
+    const scimMeta =
+      typeof team.scim_meta === 'object' ? team.scim_meta : {};
+
     const result: ScimGroupResource = {
       schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
       id: team.scim_external_id, // Server-assigned immutable ID
-      // externalId is client-assigned (from IdP) — only include if present
+      ...(scimMeta.externalId ? { externalId: scimMeta.externalId } : {}),
       displayName: team.scim_display_name || team.title,
       meta: {
         resourceType: 'Group',
@@ -530,14 +547,33 @@ export class ScimGroupsService {
             updateData.title = op.value;
             updateData.scim_display_name = op.value;
           }
-          // Note: externalId (scim_external_id) is server-assigned and immutable per RFC 7643
+          if (op.path === 'externalId' && op.value) {
+            // externalId is client-assigned — store in scim_meta
+            const currentMeta =
+              typeof latestTeam.scim_meta === 'object'
+                ? latestTeam.scim_meta
+                : {};
+            updateData.scim_meta = {
+              ...currentMeta,
+              externalId: op.value,
+            };
+          }
         } else if (op.value && typeof op.value === 'object') {
-          // Bulk replace: { op: "replace", value: { displayName: "..." } }
+          // Bulk replace: { op: "replace", value: { displayName: "...", externalId: "..." } }
           if (op.value.displayName) {
             updateData.title = op.value.displayName;
             updateData.scim_display_name = op.value.displayName;
           }
-          // Note: externalId is server-assigned and immutable per RFC 7643
+          if (op.value.externalId) {
+            const currentMeta =
+              typeof latestTeam.scim_meta === 'object'
+                ? latestTeam.scim_meta
+                : {};
+            updateData.scim_meta = {
+              ...currentMeta,
+              externalId: op.value.externalId,
+            };
+          }
         }
 
         if (Object.keys(updateData).length > 0) {

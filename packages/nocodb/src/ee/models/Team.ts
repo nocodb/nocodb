@@ -35,13 +35,16 @@ export default class Team {
   scim_external_id?: string;
   scim_managed?: boolean;
   scim_display_name?: string;
+  scim_meta?: Record<string, any> | string;
 
   constructor(data: Team) {
     Object.assign(this, data);
   }
 
   protected static castType(team: Team): Team {
-    return team && new Team(prepareForResponse(team, 'meta'));
+    if (!team) return team;
+    const prepared = prepareForResponse(team, 'meta');
+    return new Team(prepareForResponse(prepared, 'scim_meta'));
   }
 
   public static async insert(
@@ -59,13 +62,15 @@ export default class Team {
       'scim_external_id',
       'scim_managed',
       'scim_display_name',
+      'scim_meta',
     ]);
 
     // Set deleted to false by default
     insertObj.deleted = false;
 
     // Prepare meta for database storage
-    const preparedTeam = prepareForDb(insertObj, 'meta');
+    let preparedTeam = prepareForDb(insertObj, 'meta');
+    preparedTeam = prepareForDb(preparedTeam, 'scim_meta');
 
     const { id } = await ncMeta.metaInsert2(
       RootScopes.ROOT,
@@ -234,10 +239,12 @@ export default class Team {
       'scim_external_id',
       'scim_managed',
       'scim_display_name',
+      'scim_meta',
     ]);
 
     // Prepare meta for database storage
-    const preparedTeam = prepareForDb(updateObj, 'meta');
+    let preparedTeam = prepareForDb(updateObj, 'meta');
+    preparedTeam = prepareForDb(preparedTeam, 'scim_meta');
 
     // get existing cache
     const key = `${CacheScope.TEAM}:${teamId}`;

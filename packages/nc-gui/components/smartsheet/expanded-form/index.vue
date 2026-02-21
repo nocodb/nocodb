@@ -65,7 +65,6 @@ const { t } = useI18n()
 const { rowId, row, state, meta, lastRow: isLastRow, firstRow: isFirstRow, maintainDefaultViewOrder } = toRefs(props)
 
 // Template mode: writable meta ref for table selection dropdown
-const { baseTables } = storeToRefs(useTablesStore())
 const { getMeta } = useMetas()
 const activeMeta = ref(props.meta) as Ref<TableType>
 
@@ -75,11 +74,6 @@ watch(
     if (val) activeMeta.value = val
   },
 )
-
-const availableTables = computed(() => {
-  if (!props.templateMode || !activeMeta.value?.base_id) return []
-  return baseTables.value.get(activeMeta.value.base_id) || []
-})
 
 const route = useRoute()
 

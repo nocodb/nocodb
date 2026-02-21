@@ -20,7 +20,6 @@ const { removeInlineAddRecord } = toRefs(props)
 const { isAddNewRecordGridMode } = useGlobal()
 const { base } = storeToRefs(useBase())
 const { meta } = useSmartsheetStoreOrThrow()
-const { t } = useI18n()
 
 const { templates: allTemplates, selectedTemplate, setSelectedTemplate } = useRecordTemplate()
 

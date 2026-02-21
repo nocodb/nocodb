@@ -2027,10 +2027,11 @@ export default class View implements ViewType {
     for (const view of viewsList) {
       deleteKeys.push(
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries:ltar`,
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:count`,
       );
-      // Add all 8 combinations of bitwise flags (0-7)
-      for (let flags = 0; flags < 8; flags++) {
+      // Add all 16 combinations of bitwise flags (0-15)
+      for (let flags = 0; flags < 16; flags++) {
         deleteKeys.push(
           `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:${flags}`,
         );
@@ -2039,10 +2040,11 @@ export default class View implements ViewType {
 
     deleteKeys.push(
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries:ltar`,
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:count`,
     );
-    // Add all 8 combinations of bitwise flags (0-7)
-    for (let flags = 0; flags < 8; flags++) {
+    // Add all 16 combinations of bitwise flags (0-15)
+    for (let flags = 0; flags < 16; flags++) {
       deleteKeys.push(
         `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:${flags}`,
       );

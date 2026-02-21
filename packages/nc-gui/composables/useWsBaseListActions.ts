@@ -1,4 +1,5 @@
 import type { SourceType } from 'nocodb-sdk'
+import { DlgBaseErd } from '#components'
 
 const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((closeModal: () => void) => {
   const basesStore = useBases()
@@ -25,15 +26,18 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   // Helper to update base in its workspace
   const updateBaseInWorkspace = (base: NcProject, updates: Partial<NcProject>) => {
     const workspaceId = base.fk_workspace_id!
-    const workspaceBases = workspaceBasesMap.value.get(workspaceId)
-    if (workspaceBases && base.id) {
-      const existingBase = workspaceBases.get(base.id)
-      if (existingBase) {
-        workspaceBases.set(base.id, { ...existingBase, ...updates })
+
+    if (isEeUI) {
+      const workspaceBases = workspaceBasesMap.value.get(workspaceId)
+      if (workspaceBases && base.id) {
+        const existingBase = workspaceBases.get(base.id)
+        if (existingBase) {
+          workspaceBases.set(base.id, { ...existingBase, ...updates })
+        }
       }
     }
 
-    if (activeWorkspaceId.value === workspaceId) {
+    if (!isEeUI || activeWorkspaceId.value === workspaceId) {
       bases.value.set(base.id!, { ...(bases.value.get(base.id!) || base), ...updates })
     }
   }
@@ -79,7 +83,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
     const isOpen = ref(true)
 
-    const { close } = useDialog(resolveComponent('DlgBaseErd'), {
+    const { close } = useDialog(DlgBaseErd, {
       'modelValue': isOpen,
       'sourceId': source.id,
       'onUpdate:modelValue': () => closeDialog(),

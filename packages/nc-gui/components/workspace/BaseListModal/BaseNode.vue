@@ -271,10 +271,6 @@ const onMenuClick = (e: Event) => {
 
   &:focus-visible {
     @apply outline-none shadow-focus;
-
-    .nc-base-node-menu-wrapper {
-      @apply w-6 !flex;
-    }
   }
 
   &.is-marked {
@@ -289,6 +285,14 @@ const onMenuClick = (e: Event) => {
 .nc-base-node-menu-wrapper {
   @apply w-0 hidden overflow-hidden items-center justify-center;
   @apply transition-all duration-200 ease-in-out;
+
+  &.is-active {
+    @apply w-6 flex;
+
+    .nc-base-three-dot {
+      @apply hidden;
+    }
+  }
 
   &.is-open {
     @apply w-6 !flex;

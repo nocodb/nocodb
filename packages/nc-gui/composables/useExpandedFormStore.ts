@@ -253,9 +253,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           },
         )
 
-        // Skip insert as it will be first for all
-        response.list = response.list.filter((audit) => !audit?.op_type.includes('INSERT'))
-
         const lastRecord = response.list?.[response.list.length - 1]
 
         if (lastRecord) {

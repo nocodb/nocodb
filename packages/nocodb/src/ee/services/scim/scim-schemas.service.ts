@@ -19,6 +19,7 @@ export class ScimSchemasService {
       Resources: [
         // User Schema
         {
+          schemas: ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
           id: 'urn:ietf:params:scim:schemas:core:2.0:User',
           name: 'User',
           description: 'User Account',
@@ -124,6 +125,7 @@ export class ScimSchemasService {
         },
         // Group Schema
         {
+          schemas: ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
           id: 'urn:ietf:params:scim:schemas:core:2.0:Group',
           name: 'Group',
           description: 'Group',

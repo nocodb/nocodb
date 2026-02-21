@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { useBaseActions } from './useBaseActions'
+
 const props = defineProps<{
   base: NcProject
   isMarked?: boolean
@@ -9,12 +11,11 @@ const props = defineProps<{
 
 // Get actions from provider
 const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDelete, onUpdateColor, onSelect } =
-  useWsBaseListActionsOrThrow()
+  useBaseActions()
 
 const { isUIAllowed } = useRoles()
+const { $e } = useNuxtApp()
 const { showRecordPlanLimitExceededModal } = useEeConfig()
-
-const { activeProjectId } = storeToRefs(useBases())
 
 // Local state
 const isMenuOpen = ref(false)
@@ -24,12 +25,12 @@ const inputRef = useTemplateRef('inputRef')
 
 // Computed
 const iconColor = computed(() => parseProp(props.base.meta).iconColor)
-const baseRole = computed(() => props.base.project_role || props.base.workspace_role)
+const baseRole = computed(() => props.base.project_role)
 
 const isOptionVisible = computed(() => ({
-  baseRename: isUIAllowed('baseRename', { roles: baseRole.value }),
+  baseRename: isUIAllowed('baseRename'),
   baseDuplicate: isUIAllowed('baseDuplicate', { roles: baseRole.value }),
-  baseMiscSettings: isUIAllowed('baseMiscSettings', { roles: baseRole.value }),
+  baseMiscSettings: isUIAllowed('baseMiscSettings'),
   baseDelete: isUIAllowed('baseDelete', { roles: baseRole.value }),
 }))
 
@@ -111,18 +112,16 @@ const onMenuClick = (e: Event) => {
     :tabindex="0"
     class="nc-base-node group relative flex items-center gap-3 p-3 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
     :class="{ 'is-marked': isMarked, 'is-editing': editMode }"
-    :data-id="base.id"
-    :data-testid="`nc-base-list-modal-base-title-${base.title}`"
     @click="handleSelect"
     @keydown.enter.stop="handleSelect"
   >
     <!-- Project Icon with Color Picker -->
     <GeneralBaseIconColorPicker
-      :key="`${base.id}_${iconColor}`"
       :managed-app="{
         managed_app_master: base.managed_app_master,
         managed_app_id: base.managed_app_id,
       }"
+      :key="`${base.id}_${iconColor}`"
       :type="base?.type"
       :model-value="iconColor"
       size="small"
@@ -166,11 +165,7 @@ const onMenuClick = (e: Event) => {
       </div>
 
       <!-- More Options Button -->
-      <div
-        v-if="!editMode"
-        class="nc-base-node-menu-wrapper"
-        :class="{ 'is-open': isMenuOpen, 'is-active': activeProjectId === base.id }"
-      >
+      <div v-if="!editMode" class="nc-base-node-menu-wrapper" :class="{ 'is-open': isMenuOpen }">
         <NcDropdown
           v-model:visible="isMenuOpen"
           :trigger="['click']"
@@ -178,13 +173,7 @@ const onMenuClick = (e: Event) => {
           overlay-class-name="nc-base-node-menu"
         >
           <NcButton :tabindex="-1" type="text" size="xsmall" class="nc-base-node-menu-btn" @click.stop="onMenuClick">
-            <GeneralIcon
-              v-if="activeProjectId === base.id"
-              v-show="!isMenuOpen"
-              icon="ncCheck"
-              class="nc-base-active-check text-nc-content-brand flex-none"
-            />
-            <GeneralIcon icon="threeDotVertical" class="nc-base-three-dot text-nc-content-gray-muted flex-none" />
+            <GeneralIcon icon="threeDotVertical" class="text-nc-content-gray-muted" />
           </NcButton>
 
           <template #overlay>
@@ -252,25 +241,20 @@ const onMenuClick = (e: Event) => {
   @apply bg-white dark:bg-nc-bg-gray-light;
 
   &:hover,
-  &:focus-within,
-  &:focus-visible {
+  &:focus-within {
     @apply bg-nc-bg-gray-light dark:bg-nc-bg-gray-medium;
 
     .nc-base-node-menu-wrapper {
       @apply w-6 !flex;
-
-      .nc-base-active-check {
-        @apply !hidden;
-      }
-
-      .nc-base-three-dot {
-        @apply !block;
-      }
     }
   }
 
   &:focus-visible {
     @apply outline-none shadow-focus;
+
+    .nc-base-node-menu-wrapper {
+      @apply w-6 !flex;
+    }
   }
 
   &.is-marked {
@@ -286,20 +270,8 @@ const onMenuClick = (e: Event) => {
   @apply w-0 hidden overflow-hidden items-center justify-center;
   @apply transition-all duration-200 ease-in-out;
 
-  &.is-active {
-    @apply w-6 flex;
-
-    .nc-base-three-dot {
-      @apply hidden;
-    }
-  }
-
   &.is-open {
     @apply w-6 !flex;
-
-    .nc-base-three-dot {
-      @apply !block;
-    }
   }
 }
 </style>

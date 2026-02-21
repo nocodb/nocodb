@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import Sortable, { type SortableEvent } from 'sortablejs'
+import { useBaseActions } from './useBaseActions'
 
 type SectionType = 'starred' | 'private' | 'owned' | 'managed' | 'default'
 
@@ -20,7 +21,7 @@ const { isUIAllowed } = useRoles()
 const { isMobileMode } = useGlobal()
 
 // Get reorder action from provider
-const { onReorder } = useWsBaseListActionsOrThrow()
+const { onReorder } = useBaseActions()
 
 const gridRef = useTemplateRef('gridRef')
 const dragging = ref(false)
@@ -149,14 +150,15 @@ onBeforeUnmount(() => {
 <template>
   <div v-if="bases.length || isFilterApplied" class="nc-bases-section mb-6">
     <div class="flex items-center gap-2 mb-4 text-xs font-medium text-nc-content-gray-muted capitalize tracking-wide">
-      <GeneralIcon
-        :icon="sectionConfig.icon"
-        class="w-3.5 h-3.5"
-        :class="type === 'starred' ? 'nc-starred-icon text-nc-content-yellow-dark' : ''"
-      />
+      <GeneralIcon :icon="sectionConfig.icon" class="w-3.5 h-3.5" />
       <span>{{ sectionConfig.label }}</span>
     </div>
-    <div v-if="bases.length" ref="gridRef" class="nc-bases-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" :class="{ dragging }">
+    <div
+      v-if="bases.length"
+      ref="gridRef"
+      class="nc-bases-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+      :class="{ dragging }"
+    >
       <WorkspaceBaseListModalBaseNode
         v-for="base in bases"
         :key="base.id"
@@ -172,12 +174,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-.nc-starred-icon {
-  :deep(path) {
-    fill: currentColor;
-  }
-}
-
 .nc-bases-grid {
   .ghost,
   .ghost > * {

@@ -28,8 +28,8 @@ const config: AppConfig = {
       block_duration: +process.env.NC_META_BLOCK_DURATION || 30000,
     },
     scim: {
-      ttl: +process.env.NC_SCIM_API_TTL || 1000,
-      max_apis: +process.env.NC_SCIM_COUNT || 10,
+      ttl: +process.env.NC_SCIM_API_TTL || 60000,
+      max_apis: +process.env.NC_SCIM_COUNT || 200,
       block_duration: +process.env.NC_SCIM_BLOCK_DURATION || 30000,
     },
 

@@ -126,19 +126,10 @@ export class ScimUsersService {
       });
     }
 
-    // Targeted lookup (avoids loading all workspace users)
-    // First check non-deleted, then include deleted for reactivation
-    let existingWsUser = await WorkspaceUser.get(workspaceId, user.id);
-    if (!existingWsUser) {
-      // Check for soft-deleted user (get() filters deleted records)
-      const deletedUsers = await WorkspaceUser.userList({
-        fk_workspace_id: workspaceId,
-        include_deleted: true,
-      });
-      existingWsUser = deletedUsers.find(
-        (wu) => wu.fk_user_id === user.id && wu.deleted,
-      );
-    }
+    // Targeted lookup with include_deleted for reactivation support
+    const existingWsUser = await WorkspaceUser.get(workspaceId, user.id, {
+      include_deleted: true,
+    });
 
     if (existingWsUser && !existingWsUser.deleted) {
       // RFC 7644 §3.3: Return 409 Conflict for duplicate resources

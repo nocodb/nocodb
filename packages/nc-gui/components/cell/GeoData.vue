@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
-import { type GeoLocationType, MapProvider, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
+import { type GeoLocationType, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
 
 interface Props {
@@ -18,11 +18,7 @@ const emits = defineEmits<Emits>()
 
 const column = inject(ColumnInj)
 
-const meta = inject(MetaInj, ref())
-
-const { $api } = useNuxtApp()
-const { base } = storeToRefs(useBase())
-const { appInfo } = useGlobal()
+const { tileUrl, attribution } = useMapConfig()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -45,33 +41,6 @@ const isUpdatingFromMap = ref(false)
 const DEFAULT_CENTER: [number, number] = [20, 0]
 const DEFAULT_ZOOM = 2
 const LOCATION_ZOOM = 15
-
-// Build tile URL based on configured map provider
-const OSM_TILE_URL = computed(() => {
-  const mapProvider = appInfo.value.mapProvider || MapProvider.OPENSTREETMAP
-
-  // Providers that require API key and backend proxy
-  if (mapProvider === MapProvider.STADIAMAP_APIKEY) {
-    const workspaceId = base.value?.fk_workspace_id
-    const baseId = base.value?.id
-    const tableId = meta.value?.id
-    const apiBaseUrl = $api.instance.defaults.baseURL
-
-    return workspaceId && baseId
-      ? `${apiBaseUrl}/api/v1/bases/${baseId}/maptile?x={x}&y={y}&z={z}${tableId ? `&tableId=${tableId}` : ''}`
-      : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' // Fallback
-  }
-
-  // Direct tile URLs (no proxy needed)
-  if (mapProvider === MapProvider.STADIAMAP) {
-    return 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}.png' // Free tier
-  }
-
-  // Default: OpenStreetMap
-  return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-})
-
-const OSM_ATTRIBUTION = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 
 function syncToFormState(lat: number, lng: number) {
   isUpdatingFromMap.value = true
@@ -126,9 +95,9 @@ function initMap() {
 
   L.control.zoom({ position: 'bottomleft' }).addTo(map)
 
-  L.tileLayer(OSM_TILE_URL.value, {
+  L.tileLayer(tileUrl.value, {
     maxZoom: 19,
-    attribution: OSM_ATTRIBUTION,
+    attribution: attribution.value,
   }).addTo(map)
 
   if (validCoords) {

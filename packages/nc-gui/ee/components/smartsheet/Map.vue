@@ -2,19 +2,17 @@
 import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
-import { MapProvider, ViewTypes, latLongToJoinedString } from 'nocodb-sdk'
+import { ViewTypes, latLongToJoinedString } from 'nocodb-sdk'
 
 const route = useRoute()
 
-const { base } = storeToRefs(useBase())
-const { appInfo } = useGlobal()
+const { tileUrl, attribution } = useMapConfig()
 
 const popupIsOpen = ref(false)
 const popUpRow = ref<Row>()
 const fields = inject(FieldsInj, ref([]))
 
 const router = useRouter()
-const { $api } = useNuxtApp()
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
@@ -181,31 +179,9 @@ onMounted(async () => {
 
   myMapRef.value = myMap
 
-  // Build tile URL based on configured map provider
-  const mapProvider = appInfo.value.mapProvider || MapProvider.OPENSTREETMAP
-  let tileUrl: string
-
-  if (mapProvider === MapProvider.STADIAMAP_APIKEY) {
-    const workspaceId = base.value?.fk_workspace_id
-    const baseId = base.value?.id
-    const tableId = meta.value?.id
-    const apiBaseUrl = $api.instance.defaults.baseURL
-
-    tileUrl =
-      workspaceId && baseId
-        ? `${apiBaseUrl}/api/v1/bases/${baseId}/maptile?x={x}&y={y}&z={z}${tableId ? `&tableId=${tableId}` : ''}`
-        : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-  } else if (mapProvider === MapProvider.STADIAMAP) {
-    tileUrl = 'https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}.png'
-  } else {
-    // Default: OpenStreetMap
-    tileUrl = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-  }
-
-  L.tileLayer(tileUrl, {
+  L.tileLayer(tileUrl.value, {
     maxZoom: 19,
-    attribution:
-      '&copy; <a href="https://stadiamaps.com/" target="_blank">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a>',
+    attribution: attribution.value,
   }).addTo(myMap)
 
   markersClusterGroupRef.value = L.markerClusterGroup({

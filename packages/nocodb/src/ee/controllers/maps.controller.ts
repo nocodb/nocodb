@@ -1,10 +1,18 @@
-import { Body, Controller, HttpCode, Param, Post, Req } from '@nestjs/common';
-import type { ViewCreateReqType } from 'nocodb-sdk';
-import { MapsController as MapsControllerCE } from 'src/controllers/maps.controller';
 import {
-  checkForFeature,
-  PlanFeatureTypes,
-} from '~/helpers/paymentHelpers';
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
+import { MapsController as MapsControllerCE } from 'src/controllers/maps.controller';
+import { ViewCreateReqType } from 'nocodb-sdk';
+import { Response } from 'express';
+import { checkForFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
 import { MapsService } from '~/services/maps.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcContext, NcRequest } from '~/interface/config';
@@ -14,6 +22,29 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 export class MapsController extends MapsControllerCE {
   constructor(private readonly mapsServiceEE: MapsService) {
     super(mapsServiceEE);
+  }
+
+  @Get([
+    '/api/v1/bases/:baseId/maptile',
+    '/api/v1/db/public/shared-view/:sharedViewUuid/maptile',
+  ])
+  async getMapTile(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Query('z') z: string,
+    @Query('x') x: string,
+    @Query('y') y: string,
+    @Query('tableId') tableId: string | undefined,
+    @Req() req: NcRequest,
+    @Res() res: Response,
+  ) {
+    await this.mapsService.proxyMapTile(context, {
+      z,
+      x,
+      y,
+      tableId,
+      res,
+    });
   }
 
   @Post([

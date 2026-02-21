@@ -28,9 +28,8 @@ export class SidebarProjectNodeObject extends BasePage {
   async clickOptions({ baseTitle }: { baseTitle: string }) {
     await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
 
-    await this.get({
-      baseTitle,
-    }).click();
+    await this.getMenuTrigger({ baseTitle }).waitFor();
+    await this.getMenuTrigger({ baseTitle }).click();
   }
 
   async verifyTableAddBtn({ baseTitle, visible }: { baseTitle: string; visible: boolean }) {

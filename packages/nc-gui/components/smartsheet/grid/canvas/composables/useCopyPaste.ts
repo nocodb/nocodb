@@ -398,6 +398,10 @@ export function useCopyPaste({
                 rowIndex: absoluteRowIndex,
               },
             }
+
+            // Skip rows hidden by RLS policy — they are locked and should not be pasted into
+            if (targetRow.rowMeta?.isRlsHidden) continue
+
             updatedRows.push(targetRow)
           } else {
             targetRow = {
@@ -978,7 +982,7 @@ export function useCopyPaste({
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
-    if (!col || !col?.columnObj || !rowObj || !col.isCellEditable || col.isSyncedColumn) return
+    if (!col || !col?.columnObj || !rowObj || !col.isCellEditable || col.isSyncedColumn || rowObj.rowMeta?.isRlsHidden) return
     const columnObj = col.columnObj
 
     if (

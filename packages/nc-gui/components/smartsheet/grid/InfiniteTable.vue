@@ -639,6 +639,9 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
 }
 
 function makeEditable(row: Row, col: ColumnType) {
+  // Row is hidden by RLS policy — lock it to prevent edits before it's removed from view
+  if (row.rowMeta?.isRlsHidden) return
+
   // If the cell is readonly, return
   if (!hasEditPermission.value || editEnabled.value || readOnly.value || isSystemColumn(col) || col.readonly) {
     return

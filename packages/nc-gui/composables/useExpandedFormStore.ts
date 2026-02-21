@@ -435,13 +435,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             return message.info(t('msg.info.updateNotAllowedWithoutPK'))
           }
 
-          await $api.dbTableRow.update(
+          const updatedData = await $api.dbTableRow.update(
             NOCO,
             meta.value.base_id ?? (base.value.id as string),
             meta.value.id,
             encodeURIComponent(id),
             updateOrInsertObj,
           )
+
+          // If the updated row is now hidden by RLS policy, mark it
+          if (updatedData?.__nc_rls_hidden) {
+            row.value.row.__nc_rls_hidden = true
+          }
 
           if (!undo) {
             const undoObject = [...changedColumns.value].reduce((obj, col) => {

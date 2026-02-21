@@ -812,13 +812,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             params: {},
             source,
             getHiddenColumn: true,
+            ignoreRls: true,
           })
         : await this.readByPk(
             newId,
             false,
             {},
-            { ignoreView: true, getHiddenColumn: true },
+            { ignoreView: true, getHiddenColumn: true, ignoreRls: true },
           );
+
+      // Check if the updated row is still visible under the user's RLS policy
+      const rlsConditionsForVisibility = await this.getRlsConditions();
+      if (rlsConditionsForVisibility.length && newData) {
+        const isVisible = await this.exist(
+          this.extractPksValues(newData, true),
+        );
+        if (!isVisible) newData.__nc_rls_hidden = true;
+      }
+
       if (btColumn && Object.keys(data || {}).length === 1) {
         await this.addChild({
           colId: btColumn.id,
@@ -1367,13 +1378,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     for (const d of data) {
       const id = this.extractPksValues(d);
+      // Strip __nc_rls_hidden from broadcast — other clients have different
+      // RLS policies and the flag would be incorrect for them
+      const { __nc_rls_hidden: _, ...broadcastPayload } = d || {};
+
       NocoSocket.broadcastDataEvent(
         this.context,
         {
           payload: {
             id,
             action: 'add',
-            payload: d,
+            payload: broadcastPayload,
           },
           tableId: this.model.id,
         },
@@ -2222,6 +2237,26 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           });
           profiler.log('chunkList done');
 
+          // Check which inserted rows are visible under the user's RLS policy
+          const rlsConditionsForBulkInsert = await this.getRlsConditions();
+          if (rlsConditionsForBulkInsert.length && insertResponses.length) {
+            const insertPks = responses.map((d) => this.extractPksValues(d));
+            const visibleInsertRecords = await this.chunkList({
+              pks: insertPks,
+            });
+            const visibleInsertPks = new Set(
+              visibleInsertRecords.map((r) =>
+                this.extractPksValues(r, true)?.toString(),
+              ),
+            );
+            for (const record of insertResponses) {
+              const pk = this.extractPksValues(record, true)?.toString();
+              if (!visibleInsertPks.has(pk)) {
+                record.__nc_rls_hidden = true;
+              }
+            }
+          }
+
           await this.afterBulkInsert(insertResponses, this.dbDriver, cookie);
           profiler.log('afterBulkInsert done');
         }
@@ -2585,12 +2620,45 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }));
         }
 
+        const insertPksForUpsert = insertResponses.map((d) =>
+          this.extractPksValues(d),
+        );
+
         insertResponses = await this.chunkList({
-          pks: insertResponses.map((d) => this.extractPksValues(d)),
+          pks: insertPksForUpsert,
+          ignoreRls: true,
         });
 
+        // Check which inserted rows are visible under the user's RLS policy
+        const rlsConditionsForUpsertInsert = await this.getRlsConditions();
+        if (rlsConditionsForUpsertInsert.length && insertResponses.length) {
+          const visibleUpsertInserts = await this.chunkList({
+            pks: insertPksForUpsert,
+          });
+          const visibleUpsertInsertPks = new Set(
+            visibleUpsertInserts.map((r) =>
+              this.extractPksValues(r, true)?.toString(),
+            ),
+          );
+          for (const record of insertResponses) {
+            const pk = this.extractPksValues(record, true)?.toString();
+            if (!visibleUpsertInsertPks.has(pk)) {
+              record.__nc_rls_hidden = true;
+            }
+          }
+        }
+
         if (insertResponses.length === 1) {
-          const insertData = await this.readByPk(insertResponses[0]);
+          const insertData = await this.readByPk(
+            insertResponses[0],
+            false,
+            {},
+            { ignoreRls: true },
+          );
+          // Preserve RLS hidden flag from the chunk response
+          if (insertResponses[0].__nc_rls_hidden) {
+            insertData.__nc_rls_hidden = true;
+          }
           await this.afterInsert({
             data: insertData,
             trx: this.dbDriver,
@@ -2604,7 +2672,27 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         // Updated Records
         updateResponses = await this.chunkList({
           pks: updatePkValues,
+          ignoreRls: true,
         });
+
+        // Check which updated rows are still visible under the user's RLS policy
+        const rlsConditionsForUpsertUpdate = await this.getRlsConditions();
+        if (rlsConditionsForUpsertUpdate.length && updateResponses.length) {
+          const visibleUpsertUpdates = await this.chunkList({
+            pks: updatePkValues,
+          });
+          const visibleUpsertUpdatePks = new Set(
+            visibleUpsertUpdates.map((r) =>
+              this.extractPksValues(r, true)?.toString(),
+            ),
+          );
+          for (const record of updateResponses) {
+            const pk = this.extractPksValues(record, true)?.toString();
+            if (!visibleUpsertUpdatePks.has(pk)) {
+              record.__nc_rls_hidden = true;
+            }
+          }
+        }
 
         if (!raw) {
           if (updateResponses.length === 1) {
@@ -2854,8 +2942,28 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           pks: updatePkValues,
           chunkSize: READ_CHUNK_SIZE,
           apiVersion,
+          ignoreRls: true,
         });
         profiler.log('this.chunkList done');
+
+        // Check which updated rows are still visible under the user's RLS policy
+        const rlsConditionsForCheck = await this.getRlsConditions();
+        let rlsHiddenPks: Set<string> | null = null;
+        if (rlsConditionsForCheck.length && updatedRecords.length) {
+          const visibleRecords = await this.chunkList({
+            pks: updatePkValues,
+            chunkSize: READ_CHUNK_SIZE,
+            apiVersion,
+          });
+          const visiblePks = new Set(
+            visibleRecords.map((r) =>
+              this.extractPksValues(r, true)?.toString(),
+            ),
+          );
+          rlsHiddenPks = new Set(
+            updatePkValues.filter((pk) => !visiblePks.has(pk?.toString())),
+          );
+        }
 
         const updatedRecordsMap = new Map(
           updatedRecords.map((record) => {
@@ -2863,12 +2971,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               this.model.primaryKeys,
               record,
             );
-            return [
+            const pkStr =
               typeof compositePk === 'string'
                 ? compositePk
-                : compositePk.toString(),
-              record,
-            ];
+                : compositePk.toString();
+            if (rlsHiddenPks?.has(pkStr)) {
+              record.__nc_rls_hidden = true;
+            }
+            return [pkStr, record];
           }),
         );
         for (const pk of updatePkValues) {
@@ -3301,13 +3411,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       Object.assign(data, newData);
     }
 
+    // Strip __nc_rls_hidden from broadcast — other clients have different
+    // RLS policies and the flag would be incorrect for them
+    const { __nc_rls_hidden: _, ...broadcastPayload } = newData || {};
+
     NocoSocket.broadcastDataEvent(
       this.context,
       {
         payload: {
           id,
           action: 'update',
-          payload: newData,
+          payload: broadcastPayload,
         },
         tableId: this.model.id,
       },
@@ -3385,13 +3499,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     if (newData && newData.length > 0) {
       for (const data of newData) {
+        // Strip __nc_rls_hidden from broadcast — other clients have different
+        // RLS policies and the flag would be incorrect for them
+        const { __nc_rls_hidden: _, ...broadcastPayload } = data || {};
+
         NocoSocket.broadcastDataEvent(
           this.context,
           {
             payload: {
               id: this.extractPksValues(data),
               action: 'update',
-              payload: data,
+              payload: broadcastPayload,
             },
             tableId: this.model.id,
           },

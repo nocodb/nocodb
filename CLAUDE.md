@@ -36,7 +36,7 @@ nocodb-sdk  →  nocodb (backend)  →  nc-gui (frontend)
 
 Start with migration or SDK type changes when a feature needs them. If schema evolves during the PR, update the same migration file — **1 migration per PR max**.
 
-The format of migration file is `nc_YYYYMMDDHHmm_{title}`, where `nc_` is the prefix, followed by date timestamp, followed by title. Use bash command `echo nc_$(date +%Y%m%d%H%M)_` to generate the prefix for migration file, `touch packages/nocodb/src/meta/migrations/v0/nc_$(date +%Y%m%d%H%M)_add_my_feature.ts` for example will create a migration file titled `add_my_feature`.
+Use `pnpm migration:add table my feature` to create migration `nc_YYYYMMDDHHmm_table_my_feature.ts`.
 
 After SDK changes, rebuild SDK before backend or frontend: `cd packages/nocodb-sdk && pnpm run build:ee`
 

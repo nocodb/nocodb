@@ -506,7 +506,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   }
 }
 
-const onDrag = (event: MouseEvent) => {
+const onDrag = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !dragRecord.value) return
 
   calculateNewRow(event, false)
@@ -516,7 +516,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
   updateRowProperty(row, updateProperty, isDelete)
 }, 500)
 
-const onResize = (event: MouseEvent) => {
+const onResize = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !resizeRecord.value) return
 
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()
@@ -592,11 +592,12 @@ const onResizeEnd = () => {
   resizeDirection.value = undefined
   resizeRecord.value = null
 
-  document.removeEventListener('mousemove', onResize)
-  document.removeEventListener('mouseup', onResizeEnd)
+  document.removeEventListener('pointermove', onResize)
+  document.removeEventListener('pointerup', onResizeEnd)
+  document.removeEventListener('pointercancel', onResizeEnd)
 }
 
-const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: Row) => {
+const onResizeStart = (direction: 'right' | 'left', event: MouseEvent | PointerEvent, record: Row) => {
   if (!isUIAllowed('dataEdit') || draggingId.value) return
 
   if (record.rowMeta.range?.is_readonly) return
@@ -606,11 +607,12 @@ const onResizeStart = (direction: 'right' | 'left', event: MouseEvent, record: R
   resizeDirection.value = direction
   resizeRecord.value = record
 
-  document.addEventListener('mousemove', onResize)
-  document.addEventListener('mouseup', onResizeEnd)
+  document.addEventListener('pointermove', onResize)
+  document.addEventListener('pointerup', onResizeEnd)
+  document.addEventListener('pointercancel', onResizeEnd)
 }
 
-const stopDrag = (event: MouseEvent) => {
+const stopDrag = (event: MouseEvent | PointerEvent) => {
   clearTimeout(dragTimeout.value)
   if (!isUIAllowed('dataEdit') || !dragRecord.value || !isDragging.value) return
   if (dragRecord.value.rowMeta.range?.is_readonly) return
@@ -638,11 +640,12 @@ const stopDrag = (event: MouseEvent) => {
 
   $e('c:calendar:month:drag-record')
 
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('pointermove', onDrag)
+  document.removeEventListener('pointerup', stopDrag)
+  document.removeEventListener('pointercancel', stopDrag)
 }
 
-const dragStart = (event: MouseEvent, record: Row) => {
+const dragStart = (event: MouseEvent | PointerEvent, record: Row) => {
   if (resizeInProgress.value || !record.rowMeta.id || isSyncedFromColumn.value) return
   let target = event.target as HTMLElement
   isDragging.value = false
@@ -671,19 +674,20 @@ const dragStart = (event: MouseEvent, record: Row) => {
       y: event.clientY,
     }
 
-    document.addEventListener('mousemove', onDrag)
-    document.addEventListener('mouseup', stopDrag)
+    document.addEventListener('pointermove', onDrag)
+    document.addEventListener('pointerup', stopDrag)
+    document.addEventListener('pointercancel', stopDrag)
   }, 500)
 
-  const onMouseUp = () => {
+  const onPointerUp = () => {
     clearTimeout(dragTimeout.value)
-    document.removeEventListener('mouseup', onMouseUp)
+    document.removeEventListener('pointerup', onPointerUp)
     if (!isDragging.value) {
       emit('expandRecord', record)
     }
   }
 
-  document.addEventListener('mouseup', onMouseUp)
+  document.addEventListener('pointerup', onPointerUp)
 }
 
 const dropEvent = (event: DragEvent) => {
@@ -969,9 +973,9 @@ const addRecord = (date: dayjs.Dayjs) => {
             'cursor-pointer': !resizeInProgress,
           }"
           class="absolute group draggable-record transition pointer-events-auto"
-          @mouseleave="hoverRecord = null"
-          @mouseover="hoverRecord = record.rowMeta.id"
-          @mousedown.stop="dragStart($event, record)"
+          @pointerleave="hoverRecord = null"
+          @pointerover="hoverRecord = record.rowMeta.id"
+          @pointerdown.stop="dragStart($event, record)"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard

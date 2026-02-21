@@ -328,7 +328,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const handleContext = (e: MouseEvent) => {
+const handleContext = (e: MouseEvent | PointerEvent) => {
   if (!document.querySelector('.source-context, .table-context')?.contains(e.target as Node)) {
     setMenuContext('main')
   }
@@ -487,6 +487,7 @@ watch(isProjectsLoaded, () => {
                   handle=".base-title-node"
                   ghost-class="ghost"
                   :filter="isTouchEvent"
+                  :prevent-on-filter="false"
                   @change="onMove($event)"
                 >
                   <template #item="{ element: baseItem }">

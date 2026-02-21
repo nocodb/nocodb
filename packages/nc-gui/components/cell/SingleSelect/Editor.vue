@@ -239,7 +239,7 @@ const toggleMenu = (e: Event) => {
   isOpen.value = editAllowed.value && !isOpen.value
 }
 
-const handleClose = (e: MouseEvent) => {
+const handleClose = (e: MouseEvent | PointerEvent) => {
   if (isOpen.value && aselect.value && !aselect.value.$el.contains(e.target)) {
     isOpen.value = false
   }

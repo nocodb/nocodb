@@ -231,7 +231,7 @@ const contextMenu = computed({
   },
 })
 
-const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
+const showContextMenu = (e: MouseEvent | PointerEvent, target?: { row: number; col: number }) => {
   if (isSqlView.value) return
   e.preventDefault()
   if (target) {
@@ -1638,7 +1638,7 @@ useEventListener(scrollWrapper, 'scroll', (e) => {
   })
 })
 
-useEventListener(document, 'mousedown', (e) => {
+useEventListener(document, 'pointerdown', (e) => {
   if (e.offsetX > (e.target as HTMLElement)?.clientWidth || e.offsetY > (e.target as HTMLElement)?.clientHeight) {
     scrolling.value = true
   }
@@ -1648,7 +1648,7 @@ useEventListener(document, 'mousedown', (e) => {
   }
 })
 
-useEventListener(document, 'mouseup', () => {
+useEventListener(document, 'pointerup', () => {
   isGridCellMouseDown.value = false
   // wait for click event to finish before setting scrolling to false
   setTimeout(() => {
@@ -1832,7 +1832,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   selectedRange.clear()
 }
 
-const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+const handleCellClick = (event: MouseEvent | PointerEvent, row: number, col: number) => {
   const rowData = dataRef.value[row]
 
   if (isMobileMode.value) {
@@ -2379,8 +2379,8 @@ onKeyStroke('ArrowDown', onDown)
                         :data-title="fields[0].title"
                         :data-row-index="rowIndex"
                         :data-col-index="0"
-                        @mousedown="handleMouseDown($event, rowIndex, 0)"
-                        @mouseover="handleMouseOver($event, rowIndex, 0)"
+                        @pointerdown="handleMouseDown($event, rowIndex, 0)"
+                        @pointerover="handleMouseOver($event, rowIndex, 0)"
                         @click="handleCellClick($event, rowIndex, 0)"
                         @dblclick="makeEditable(row, fields[0])"
                         @contextmenu="showContextMenu($event, { row: rowIndex, col: 0 })"
@@ -2457,8 +2457,8 @@ onKeyStroke('ArrowDown', onDown)
                         :data-title="columnObj.title"
                         :data-row-index="rowIndex"
                         :data-col-index="colIndex"
-                        @mousedown="handleMouseDown($event, rowIndex, colIndex)"
-                        @mouseover="handleMouseOver($event, rowIndex, colIndex)"
+                        @pointerdown="handleMouseDown($event, rowIndex, colIndex)"
+                        @pointerover="handleMouseOver($event, rowIndex, colIndex)"
                         @click="handleCellClick($event, rowIndex, colIndex)"
                         @dblclick="makeEditable(row, columnObj)"
                         @contextmenu="showContextMenu($event, { row: rowIndex, col: colIndex })"
@@ -2522,7 +2522,7 @@ onKeyStroke('ArrowDown', onDown)
                   :class="{
                     '!border-r-2 !border-r-gray-100': visibleColLength === 1,
                   }"
-                  @mouseup.stop
+                  @pointerup.stop
                   @click="addEmptyRow()"
                 >
                   <td

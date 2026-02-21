@@ -279,7 +279,7 @@ const toggleMenu = () => {
   isOpen.value = editAllowed.value && !isOpen.value
 }
 
-const handleClose = (e: MouseEvent) => {
+const handleClose = (e: MouseEvent | PointerEvent) => {
   // close dropdown if clicked outside of dropdown
   if (
     isOpen.value &&

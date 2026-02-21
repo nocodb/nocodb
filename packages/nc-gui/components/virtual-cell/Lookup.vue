@@ -301,7 +301,7 @@ const cellHeight = computed(() =>
     : `2.85rem`,
 )
 
-const handleCloseDropdown = (e: MouseEvent) => {
+const handleCloseDropdown = (e: MouseEvent | PointerEvent) => {
   if (e.target && e.target.closest('.nc-attachment-item')) {
     e.stopPropagation()
     dropdownVisible.value = false

@@ -35,9 +35,9 @@ function mdLinkRuleSetupExt(md: MarkdownIt, { openLinkOnClick = false }: { openL
       if (relIndex < 0) {
         tokens[idx]!.attrPush(['rel', 'noopener noreferrer nofollow'])
       }
-      const onClickIndex = tokens[idx]!.attrIndex('onmousedown')
+      const onClickIndex = tokens[idx]!.attrIndex('onpointerdown')
       if (onClickIndex < 0) {
-        tokens[idx]!.attrPush(['onmousedown', '(function(event) { event.preventDefault();})(event)'])
+        tokens[idx]!.attrPush(['onpointerdown', '(function(event) { event.preventDefault();})(event)'])
       }
 
       const clickIndex = tokens[idx]!.attrIndex('onclick')

@@ -296,7 +296,7 @@ defineExpose({
   <div
     class="nc-workflow-variable-picker flex bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg shadow-lg overflow-hidden"
     style="width: 560px; max-height: 400px"
-    @mousedown.stop
+    @pointerdown.stop
   >
     <div class="nc-variable-picker-nodes w-[220px] border-r border-nc-border-gray-medium flex flex-col">
       <div class="px-3 py-2 text-sm font-semibold text-nc-content-gray-emphasis border-b border-nc-border-gray-light">

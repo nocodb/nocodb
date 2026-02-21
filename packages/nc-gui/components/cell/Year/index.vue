@@ -304,8 +304,8 @@ function handleSelectDate(value?: dayjs.Dayjs) {
         :readonly="readOnly"
         @blur="onBlur"
         @keydown="handleKeydown($event, open)"
-        @mouseup.stop
-        @mousedown.stop
+        @pointerup.stop
+        @pointerdown.stop
         @click="clickHandler"
         @input="handleUpdateValue"
       />

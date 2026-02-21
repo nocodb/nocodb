@@ -91,28 +91,23 @@ const stopDrag = () => {
   isDragging.value = false
 }
 
-const stopPropagationIfScaled = (e: MouseEvent | TouchEvent) => {
+const stopPropagationIfScaled = (e: MouseEvent | PointerEvent | TouchEvent) => {
   if (scale.value <= 1 || !props.isCellPreview) return
   e.preventDefault()
   e.stopPropagation()
 }
 
-useEventListener(window, 'mousemove', (e: MouseEvent) => drag(e.clientX, e.clientY))
-useEventListener(window, 'mouseup', stopDrag)
-useEventListener(window, 'touchmove', (e: TouchEvent) => drag(e.touches[0].clientX, e.touches[0].clientY))
-useEventListener(window, 'touchend', stopDrag)
+useEventListener(window, 'pointermove', (e: PointerEvent) => drag(e.clientX, e.clientY))
+useEventListener(window, 'pointerup', stopDrag)
+useEventListener(window, 'pointercancel', stopDrag)
 
-const onMouseDown = (e: MouseEvent) => {
-  stopPropagationIfScaled(e)
-  startDrag(e.clientX, e.clientY)
-}
-const onTouchStart = (e: TouchEvent) => {
-  if (props.isCellPreview) {
+const onPointerDown = (e: PointerEvent) => {
+  if (e.pointerType === 'touch' && props.isCellPreview) {
     e.preventDefault()
   }
 
   stopPropagationIfScaled(e)
-  startDrag(e.touches[0].clientX, e.touches[0].clientY)
+  startDrag(e.clientX, e.clientY)
 }
 </script>
 
@@ -124,8 +119,7 @@ const onTouchStart = (e: TouchEvent) => {
       :class="{
         'flex items-center justify-center': index >= props.srcs?.length,
       }"
-      @mousedown="onMouseDown"
-      @touchstart="onTouchStart"
+      @pointerdown="onPointerDown"
     >
       <img
         v-if="index < props.srcs?.length"

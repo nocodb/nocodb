@@ -91,7 +91,7 @@ const onBlur = () => {
   isClicked.value = false
 }
 
-useEventListener(NcButton, 'mousedown', () => {
+useEventListener(NcButton, 'pointerdown', () => {
   isClicked.value = true
 })
 </script>

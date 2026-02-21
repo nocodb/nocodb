@@ -81,7 +81,7 @@ const onMouseover = async () => {
     </a>
 
     <a-tooltip arrow-point-at-center overlay-class-name="nc-join-cloud-tooltip">
-      <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg" @mouseover="onMouseover">
+      <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg" @pointerover="onMouseover">
         <GeneralIcon icon="help" class="!text-lg -mt-0.5 text-nc-content-gray-subtle" />
       </NcButton>
       <template #title>

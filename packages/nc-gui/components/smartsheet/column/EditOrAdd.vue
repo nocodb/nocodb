@@ -1248,7 +1248,7 @@ const unique = computed({
                   'ant-select-item-option-active-selected': showHoverEffectOnSelectedType && formState.uidt === opt.name,
                   '!text-nc-content-purple-dark': [AIPrompt, AIButton].includes(opt.name),
                 }"
-                @mouseover="handleResetHoverEffect"
+                @pointerover="handleResetHoverEffect"
               >
                 <NcTooltip
                   class="w-full flex gap-2 items-center justify-between"
@@ -1446,8 +1446,8 @@ const unique = computed({
                       <GeneralIcon
                         icon="info"
                         class="h-3.5 w-3.5 text-nc-content-gray-muted"
-                        @mouseover="onMouseOverUniqueValuesInfoIcon = true"
-                        @mouseleave="onMouseOverUniqueValuesInfoIcon = false"
+                        @pointerover="onMouseOverUniqueValuesInfoIcon = true"
+                        @pointerleave="onMouseOverUniqueValuesInfoIcon = false"
                       />
                     </NcTooltip>
 

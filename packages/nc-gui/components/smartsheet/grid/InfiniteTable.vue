@@ -461,7 +461,7 @@ const contextMenu = computed({
   },
 })
 
-const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
+const showContextMenu = (e: MouseEvent | PointerEvent, target?: { row: number; col: number }) => {
   if (isSqlView.value) return
   e.preventDefault()
   if (target) {
@@ -1899,7 +1899,7 @@ useScroll(gridWrapper, {
   behavior: 'smooth',
 })
 
-useEventListener(document, 'mousedown', (e) => {
+useEventListener(document, 'pointerdown', (e) => {
   if (e.offsetX > (e.target as HTMLElement)?.clientWidth || e.offsetY > (e.target as HTMLElement)?.clientHeight) {
     scrolling.value = true
   }
@@ -1909,7 +1909,7 @@ useEventListener(document, 'mousedown', (e) => {
   }
 })
 
-useEventListener(document, 'mouseup', () => {
+useEventListener(document, 'pointerup', () => {
   isGridCellMouseDown.value = false
   // wait for click event to finish before setting scrolling to false
   setTimeout(() => {
@@ -2084,7 +2084,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   selectedRange.clear()
 }
 
-const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+const handleCellClick = (event: MouseEvent | PointerEvent, row: number, col: number) => {
   const rowData = cachedRows.value.get(row)
 
   if (activeCell.row !== row) {
@@ -2162,7 +2162,7 @@ const {
   cachedRows,
 })
 
-const startDragging = (row: Row, event: MouseEvent) => {
+const startDragging = (row: Row, event: MouseEvent | PointerEvent) => {
   if (isPublicView.value) return
   row.rowMeta.isDragging = true
   cachedRows.value.set(row.rowMeta.rowIndex!, row)
@@ -2621,7 +2621,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               size="xxsmall"
                               type="text"
                               :disabled="!!selectedRows.length || !!vSelectedAllRecords"
-                              @mousedown="startDragging(row, $event)"
+                              @pointerdown="startDragging(row, $event)"
                             >
                               <GeneralIcon
                                 :class="{
@@ -2728,8 +2728,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               }
                             : {}
                         "
-                        @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
-                        @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, 0)"
+                        @pointerdown="handleMouseDown($event, row.rowMeta.rowIndex, 0)"
+                        @pointerover="handleMouseOver($event, row.rowMeta.rowIndex, 0)"
                         @dblclick="makeEditable(row, fields[0])"
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: 0 })"
                         @click="handleCellClick($event, row.rowMeta.rowIndex, 0)"
@@ -2832,8 +2832,8 @@ const headerFilteredOrSortedClass = (colId: string) => {
                               }
                             : {}
                         "
-                        @mousedown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
-                        @mouseover="handleMouseOver($event, row.rowMeta.rowIndex, colIndex)"
+                        @pointerdown="handleMouseDown($event, row.rowMeta.rowIndex, colIndex)"
+                        @pointerover="handleMouseOver($event, row.rowMeta.rowIndex, colIndex)"
                         @click="handleCellClick($event, row.rowMeta.rowIndex, colIndex)"
                         @dblclick="makeEditable(row, columnObj)"
                         @contextmenu="showContextMenu($event, { row: row.rowMeta.rowIndex, col: colIndex })"

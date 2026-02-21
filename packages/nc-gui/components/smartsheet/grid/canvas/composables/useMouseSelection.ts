@@ -68,7 +68,7 @@ export function useMouseSelection({
     return { row, col: -1, path: path ?? [] }
   }
 
-  const handleMouseDown = (e: MouseEvent) => {
+  const handleMouseDown = (e: MouseEvent | PointerEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect || e.button !== 0) return
 
@@ -92,7 +92,7 @@ export function useMouseSelection({
     }
   }
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = (e: MouseEvent | PointerEvent) => {
     if (!isSelecting.value) return
 
     const rect = canvasRef.value?.getBoundingClientRect()
@@ -124,6 +124,7 @@ export function useMouseSelection({
       triggerReRender()
     }
   }
+
   const handleMouseUp = () => {
     isSelecting.value = false
 

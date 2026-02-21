@@ -149,14 +149,14 @@ const handleKeyDown = (event) => {
 }
 
 onMounted(() => {
-  if (props.closeOnClickOutside) document.addEventListener('mousedown', handleClickOutside)
+  if (props.closeOnClickOutside) document.addEventListener('pointerdown', handleClickOutside)
   if (props.closeOnEsc) document.addEventListener('keydown', handleKeyDown)
   window.addEventListener('resize', updatePopoverPosition)
   window.addEventListener('scroll', updatePopoverPosition)
 })
 
 onUnmounted(() => {
-  if (props.closeOnClickOutside) document.removeEventListener('mousedown', handleClickOutside)
+  if (props.closeOnClickOutside) document.removeEventListener('pointerdown', handleClickOutside)
   if (props.closeOnEsc) document.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('resize', updatePopoverPosition)
   window.removeEventListener('scroll', updatePopoverPosition)

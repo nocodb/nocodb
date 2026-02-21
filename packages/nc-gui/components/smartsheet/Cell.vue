@@ -165,7 +165,7 @@ const isNumericField = computed(() => {
 // disable contexxtmenu event propagation when cell is in
 // editable state and typable (e.g. text area)
 // this is to prevent the custom grid view context menu from opening
-const onContextmenu = (e: MouseEvent) => {
+const onContextmenu = (e: MouseEvent | PointerEvent) => {
   if (props.editEnabled && isTypableInputColumn(column.value)) {
     e.stopPropagation()
   }

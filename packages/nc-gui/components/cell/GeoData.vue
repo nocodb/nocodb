@@ -96,7 +96,7 @@ const openInOSM = () => {
   window.open(url, '_blank', "'noopener,noreferrer'")
 }
 
-const handleClose = (e: MouseEvent) => {
+const handleClose = (e: MouseEvent | PointerEvent) => {
   if (e.target instanceof HTMLElement && !e.target.closest('.nc-geodata-picker-overlay')) {
     isExpanded.value = false
   }
@@ -246,7 +246,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                   @blur="handleBlur"
                   @keydown.stop
                   @selectstart.capture.stop
-                  @mousedown.stop
+                  @pointerdown.stop
                 />
               </a-form-item>
 
@@ -265,7 +265,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                   @blur="handleBlur"
                   @keydown.stop
                   @selectstart.capture.stop
-                  @mousedown.stop
+                  @pointerdown.stop
                 />
               </a-form-item>
             </a-row>

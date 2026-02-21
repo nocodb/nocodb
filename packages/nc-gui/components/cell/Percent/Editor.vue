@@ -139,7 +139,7 @@ onMounted(() => {
         @keydown.delete.stop
         @keydown.alt.stop
         @selectstart.capture.stop
-        @mousedown.stop
+        @pointerdown.stop
       />
     </template>
   </CellPercentProgressBar>
@@ -161,7 +161,7 @@ onMounted(() => {
       @keydown.delete.stop
       @keydown.alt.stop
       @selectstart.capture.stop
-      @mousedown.stop
+      @pointerdown.stop
     />
   </div>
 </template>

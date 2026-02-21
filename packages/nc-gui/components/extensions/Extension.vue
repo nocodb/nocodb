@@ -62,7 +62,7 @@ const fullscreenModalSize = computed(() => {
 })
 
 // close fullscreen on clicking extensionModalRef directly
-const closeFullscreen = (e: MouseEvent) => {
+const closeFullscreen = (e: MouseEvent | PointerEvent) => {
   if (e.target === extensionModalRef.value) {
     fullscreen.value = false
   }
@@ -155,8 +155,8 @@ watch(
             }
           : {}
       "
-      @mousedown="isMouseDown = true"
-      @mouseup="isMouseDown = false"
+      @pointerdown="isMouseDown = true"
+      @pointerup="isMouseDown = false"
     >
       <ExtensionsExtensionHeader :is-fullscreen="false" />
 

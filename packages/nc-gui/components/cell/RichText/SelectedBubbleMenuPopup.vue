@@ -38,7 +38,7 @@ watchDebounced(
   },
 )
 
-const handleEditorMouseDown = (e: MouseEvent) => {
+const handleEditorMouseDown = (e: MouseEvent | PointerEvent) => {
   const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
   const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
   if (isBubble || isSelectAllShortcut.value) {
@@ -50,7 +50,7 @@ const handleEditorMouseDown = (e: MouseEvent) => {
   pageContent?.classList.add('bubble-menu-hidden')
 }
 
-const handleEditorMouseUp = (e: MouseEvent) => {
+const handleEditorMouseUp = (e: MouseEvent | PointerEvent) => {
   const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
   const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
 
@@ -74,13 +74,13 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 })
 
 onMounted(() => {
-  document.addEventListener('mouseup', handleEditorMouseUp)
-  document.addEventListener('mousedown', handleEditorMouseDown)
+  document.addEventListener('pointerup', handleEditorMouseUp)
+  document.addEventListener('pointerdown', handleEditorMouseDown)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('mouseup', handleEditorMouseUp)
-  document.removeEventListener('mousedown', handleEditorMouseDown)
+  document.removeEventListener('pointerup', handleEditorMouseUp)
+  document.removeEventListener('pointerdown', handleEditorMouseDown)
 })
 </script>
 

@@ -179,7 +179,7 @@ export class UtilsService extends UtilsServiceCE {
     );
 
     // Map provider configuration for tile rendering
-    result.mapProvider = process.env.NC_MAP_PROVIDER_NAME || 'openstreetmap';
+    result.mapProvider = process.env.NC_MAP_TILE_PROVIDER || 'openstreetmap';
 
     return result;
   }

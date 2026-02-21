@@ -45,22 +45,22 @@ export class MapsService extends MapsServiceCE {
     // TODO: Add analytics/logging for tile requests (baseId, tableId, z/x/y)
 
     // Get map provider from environment
-    const mapProvider = process.env.NC_MAP_PROVIDER_NAME || 'openstreetmap';
+    const mapProvider = process.env.NC_MAP_TILE_PROVIDER || 'openstreetmap';
 
     let tileUrl: string;
     const allowedTheme = ['light', 'dark'];
-    const useTheme = allowedTheme.includes(process.env.NC_MAP_PROVIDER_THEME)
-      ? process.env.NC_MAP_PROVIDER_THEME
+    const useTheme = allowedTheme.includes(process.env.NC_MAP_TILE_THEME)
+      ? process.env.NC_MAP_TILE_THEME
       : allowedTheme.includes(theme)
       ? theme
       : 'light';
 
     switch (mapProvider) {
       case MapProvider.STADIAMAP_APIKEY: {
-        const stadiaApiKey = process.env.NC_MAP_PROVIDER_KEY;
+        const stadiaApiKey = process.env.NC_MAP_TILE_KEY;
         if (!stadiaApiKey) {
           NcError.get(context).internalServerError(
-            `NC_MAP_PROVIDER_KEY environment variable is required`,
+            `NC_MAP_TILE_KEY environment variable is required`,
           );
         }
         const providerTheme =

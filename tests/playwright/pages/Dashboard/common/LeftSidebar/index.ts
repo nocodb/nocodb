@@ -73,8 +73,6 @@ export class LeftSidebarPage extends BasePage {
   async verifyBaseListOpen(open: boolean = false) {
     const isModalOpen = await this.modal_baseList.isVisible();
 
-    const isModalOpen = await this.modal_baseList.isVisible();
-
     if (!isModalOpen && open) {
       // Click workspace menu to open the base list modal
       await this.miniSidebarActionClick({ type: 'ws' });

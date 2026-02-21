@@ -496,11 +496,6 @@ const enabledOptions = computed(() => {
           </span>
         </NcTooltip>
         <div v-if="!isEditing" class="flex items-center">
-          <NcTooltip v-if="table.meta?.is_rls_enabled" placement="bottom">
-            <template #title> Row-level security is enabled. Some rows may be hidden based on your access permissions. </template>
-            <GeneralIcon icon="ncShield" class="!w-3.5 !h-3.5 flex-none text-nc-content-gray-subtle2" />
-          </NcTooltip>
-
           <NcTooltip v-if="table.description?.length" placement="bottom">
             <template #title>
               <div class="whitespace-pre-wrap break-words">{{ table.description }}</div>

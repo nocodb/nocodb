@@ -2278,7 +2278,7 @@ export function useCanvasRender({
             ? t('objects.records')
             : t('objects.record')
 
-        renderSingleLineText(ctx, {
+        const recordCountResult = renderSingleLineText(ctx, {
           text: `${Intl.NumberFormat('en', { notation: 'compact' }).format(count)} ${label}`,
           x: xOffset + 8,
           y: height.value - AGGREGATION_HEIGHT + 2,
@@ -2288,6 +2288,22 @@ export function useCanvasRender({
           maxWidth: availWidth - 16,
           fontFamily: '500 12px Inter',
         })
+
+        const isRlsEnabled = parseProp(meta.value?.meta)?.is_rls_enabled === true
+
+        if (isRlsEnabled) {
+          const shieldX = xOffset + 8 + recordCountResult.width + 6
+          const shieldY = height.value - AGGREGATION_HEIGHT + (AGGREGATION_HEIGHT - 14) / 2
+
+          spriteLoader.renderIcon(ctx, {
+            icon: 'ncShield' as IconMapKey,
+            size: 14,
+            color: getColor(themeV4Colors.gray['400']),
+            x: shieldX,
+            y: shieldY,
+          })
+        }
+
         //  Not exactly sure, but height.value becomes zero, randomly when scroll
         if (height.value) {
           tryShowTooltip({
@@ -2296,10 +2312,23 @@ export function useCanvasRender({
             rect: {
               x: xOffset,
               y: height.value - AGGREGATION_HEIGHT,
-              width: availWidth - 16,
+              width: recordCountResult.width + 16,
               height: AGGREGATION_HEIGHT,
             },
           })
+
+          if (isRlsEnabled) {
+            tryShowTooltip({
+              mousePosition,
+              text: 'Row-level security is enabled. Some rows may be hidden based on your access permissions.',
+              rect: {
+                x: xOffset + 8 + recordCountResult.width + 6,
+                y: height.value - AGGREGATION_HEIGHT,
+                width: 20,
+                height: AGGREGATION_HEIGHT,
+              },
+            })
+          }
         }
 
         ctx.strokeStyle = getColor(themeV4Colors.gray['200'])

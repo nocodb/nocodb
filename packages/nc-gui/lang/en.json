@@ -1846,7 +1846,8 @@
     "saveChanges": "Save changes",
     "publishing": "Publishing",
     "navigate": "Navigate",
-    "select": "Select"
+    "select": "Select",
+    "managed": "Managed"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

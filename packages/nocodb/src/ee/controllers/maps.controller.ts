@@ -13,17 +13,12 @@ import { MapsController as MapsControllerCE } from 'src/controllers/maps.control
 import { ViewCreateReqType } from 'nocodb-sdk';
 import { Response } from 'express';
 import { checkForFeature, PlanFeatureTypes } from '~/helpers/paymentHelpers';
-import { MapsService } from '~/services/maps.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcContext, NcRequest } from '~/interface/config';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 
 @Controller()
 export class MapsController extends MapsControllerCE {
-  constructor(private readonly mapsServiceEE: MapsService) {
-    super(mapsServiceEE);
-  }
-
   @Get([
     '/api/v1/bases/:baseId/maptile',
     '/api/v1/db/public/shared-view/:sharedViewUuid/maptile',

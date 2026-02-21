@@ -149,13 +149,17 @@ onBeforeUnmount(() => {
 <template>
   <div v-if="bases.length || isFilterApplied" class="nc-bases-section mb-6">
     <div class="flex items-center gap-2 mb-4 text-xs font-medium text-nc-content-gray-muted capitalize tracking-wide">
-      <GeneralIcon :icon="sectionConfig.icon" class="w-3.5 h-3.5" />
+      <GeneralIcon
+        :icon="sectionConfig.icon"
+        class="w-3.5 h-3.5"
+        :class="type === 'starred' ? 'nc-starred-icon text-nc-content-yellow-dark' : ''"
+      />
       <span>{{ sectionConfig.label }}</span>
     </div>
     <div
       v-if="bases.length"
       ref="gridRef"
-      class="nc-bases-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+      class="nc-bases-grid grid grid-cols-2 sm:grid-cols-3 gap-3"
       :class="{ dragging }"
     >
       <WorkspaceBaseListModalBaseNode
@@ -173,6 +177,12 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
+.nc-starred-icon {
+  :deep(path) {
+    fill: currentColor;
+  }
+}
+
 .nc-bases-grid {
   .ghost,
   .ghost > * {

@@ -206,7 +206,7 @@ const hasNoSearchResults = computed(() => {
             @update:active-filter="modalState.activeFilter = $event"
           >
             <template #baseListHeader>
-              <span class="text-nc-content-gray-subtle">
+              <span class="text-nc-content-gray-muted">
                 {{ $t('objects.projects') }}
               </span>
             </template>

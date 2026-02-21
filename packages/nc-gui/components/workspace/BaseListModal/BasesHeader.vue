@@ -28,9 +28,13 @@ const isSearchFocused = ref(false)
 // Filter options in priority order: Starred → Private → Managed → Owned
 const filterOptions = computed<NcListItemType[]>(() => [
   { value: 'all', label: t('activity.allBases'), icon: 'ncList' },
-  { value: 'starred', label: t('general.starred'), icon: 'star' },
-  { value: 'private', label: t('general.private'), icon: 'ncLock' },
-  { value: 'managed', label: t('labels.managed'), icon: 'ncBox' },
+  ...(isEeUI
+    ? [
+        { value: 'starred', label: t('general.starred'), icon: 'star' },
+        { value: 'private', label: t('general.private'), icon: 'ncLock' },
+        { value: 'managed', label: t('labels.managed'), icon: 'ncBox' },
+      ]
+    : []),
   { value: 'owned', label: t('activity.ownedByMe'), icon: 'ncUser' },
 ])
 

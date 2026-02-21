@@ -517,10 +517,15 @@ export async function ensureSampleData(): Promise<unknown> {
 // ---------------------------------------------------------------------------
 
 export async function init(url?: string): Promise<State> {
+  const existingState = readState();
+
+  // If already initialized, skip — run only once
+  if (existingState?.workspace?.id && existingState?.tokens?.owner) {
+    return existingState;
+  }
+
   const resolvedUrl = url || process.env.NOCODB_URL || getBaseUrl();
 
-  // Temporarily write state so getBaseUrl() picks up the URL for API calls
-  const existingState = readState();
   const state: State = {
     url: resolvedUrl,
     tokens: existingState?.tokens || {},
@@ -541,7 +546,7 @@ export async function init(url?: string): Promise<State> {
   state.tokens = tokens as State['tokens'];
   writeState(state);
 
-  // Remove auto-created bases (clean workspace for sample-data)
+  // Remove auto-created bases on fresh workspace (clean slate for sample-data)
   const { list: bases } = await api.listBases(tokens.owner, workspace.id);
   for (const b of bases) {
     await api.deleteBase(tokens.owner, b.id);

@@ -24,6 +24,7 @@ const FEATURES = [
     description: 'Define filter-based policies to control which rows each role, team, or user can access.',
     enabled: false,
     version: 1,
+    isEngineering: true,
     isEE: true,
   },
   {

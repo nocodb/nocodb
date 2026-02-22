@@ -103,8 +103,8 @@ const save = async () => {
       doc.value.updated_at = updated.updated_at
       doc.value.updated_by = updated.updated_by
     }
-  } catch (e) {
-    console.error('[doc:editor] save failed', e)
+  } catch (_e) {
+    // Error already surfaced by store's updateDoc via message.error
   } finally {
     isSaving.value = false
   }
@@ -254,10 +254,20 @@ const onTitleKeydown = (e: KeyboardEvent) => {
 }
 
 onBeforeUnmount(() => {
-  // Flush any pending save before the editor is destroyed
+  // Flush any pending save before the editor is destroyed.
+  // Capture content synchronously BEFORE destroy() tears down ProseMirror,
+  // then fire the async save with the captured snapshot.
   if (saveTimeout.value) {
     clearTimeout(saveTimeout.value)
-    save()
+    if (doc.value && activeProjectId.value && editor.value) {
+      const content = editor.value.getJSON()
+      const docId = doc.value.id!
+      const version = doc.value.version
+      const docTitle = title.value || 'Untitled'
+      const baseId = activeProjectId.value
+      // Fire-and-forget is acceptable here — content is already captured
+      updateDoc(baseId, docId, { title: docTitle, content, version })
+    }
   }
   editor.value?.destroy()
 })

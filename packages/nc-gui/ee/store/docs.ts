@@ -54,7 +54,6 @@ export const useDocsStore = defineStore('docsStore', () => {
         return []
       }
     } catch (e) {
-      console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
     } finally {
@@ -77,7 +76,6 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       return doc
     } catch (e) {
-      console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
@@ -103,7 +101,6 @@ export const useDocsStore = defineStore('docsStore', () => {
       )) as DocType
 
       if (!created?.id) {
-        console.error('[docs] docCreate returned invalid response:', created)
         throw new Error('Failed to create page')
       }
 
@@ -123,7 +120,6 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       return created
     } catch (e) {
-      console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     }
@@ -158,7 +154,6 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       return updated
     } catch (e) {
-      console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     }
@@ -176,7 +171,7 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       // If the deleted doc was active, navigate away
       if (activeDocId.value === docId) {
-        activeDocId.value = undefined
+        setActiveDocId(undefined)
         ncNavigateTo({
           workspaceId: activeWorkspaceId.value,
           baseId,
@@ -188,7 +183,6 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       return true
     } catch (e) {
-      console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return false
     }
@@ -218,10 +212,13 @@ export const useDocsStore = defineStore('docsStore', () => {
       $e('a:doc:reorder')
       return updated
     } catch (e) {
-      console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     }
+  }
+
+  const setActiveDocId = (id: string | undefined) => {
+    activeDocId.value = id
   }
 
   return {
@@ -230,6 +227,7 @@ export const useDocsStore = defineStore('docsStore', () => {
     isLoadingDocs,
     activeDocs,
     activeDoc,
+    setActiveDocId,
     loadDocs,
     loadDoc,
     createDoc,

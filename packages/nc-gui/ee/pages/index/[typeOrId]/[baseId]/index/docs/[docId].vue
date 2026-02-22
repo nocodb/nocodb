@@ -16,7 +16,7 @@ watch(
   docId,
   (id) => {
     if (id) {
-      docsStore.activeDocId = id
+      docsStore.setActiveDocId(id)
     }
   },
   { immediate: true },
@@ -31,7 +31,7 @@ useTitle(pageTitle)
 
 // Clear activeDocId when leaving the page
 onBeforeRouteLeave(() => {
-  docsStore.activeDocId = undefined
+  docsStore.setActiveDocId(undefined)
 })
 </script>
 

@@ -17,10 +17,10 @@ const { openedProject } = storeToRefs(bases)
 const isExpanded = ref(true)
 
 const onExpand = async () => {
-  if (isUIAllowed('docList')) {
-    loadDocs({ baseId: baseId.value })
-  }
   isExpanded.value = !isExpanded.value
+  if (isExpanded.value && isUIAllowed('docList')) {
+    await loadDocs({ baseId: baseId.value })
+  }
 }
 
 // Eagerly load docs on mount so the list is populated on page reload

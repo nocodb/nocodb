@@ -93,6 +93,7 @@ defineExpose({ onKeyDown })
         @click="selectItem(entry.globalIndex)"
         @mouseenter="selectedIndex = entry.globalIndex"
       >
+        <!-- SAFETY: icon is always a trusted SVG string from SlashCommand.ts — never user input -->
         <span class="nc-slash-menu-icon" v-html="entry.item.icon" />
         <span class="nc-slash-menu-label">{{ entry.item.title }}</span>
       </div>

@@ -127,7 +127,7 @@ const editor = useEditor({
     }),
     Underline,
     Link.configure({ openOnClick: false }),
-    Placeholder.configure({ placeholder: 'Start writing...' }),
+    Placeholder.configure({ placeholder: 'Start writing or type / for commands...' }),
     Image,
     // TODO Phase-2: TaskList + TaskItem (needs task list CSS that doesn't conflict with prose)
     Table.configure({ resizable: true }),
@@ -605,10 +605,12 @@ onBeforeUnmount(() => {
     border-left: 4px solid;
 
     .nc-callout-icon {
-      font-size: 16px;
-      line-height: 1.7;
       flex-shrink: 0;
       user-select: none;
+      display: flex;
+      align-items: center;
+      // Match the first line height of editor content (0.95rem × 1.7)
+      height: calc(0.95rem * 1.7);
     }
 
     .nc-callout-content {

@@ -169,6 +169,32 @@ const editor = useEditor({
     attributes: {
       class: 'nc-doc-editor-content focus:outline-none min-h-[200px]',
     },
+    handleKeyDown(view, event) {
+      if (event.key !== 'Backspace') return false
+
+      const { state } = view
+      const { selection } = state
+      const { $from, empty } = selection
+
+      // Only handle when cursor is collapsed (no selection range)
+      if (!empty) return false
+
+      // Check if cursor is at the very start of the current block node
+      if ($from.parentOffset !== 0) return false
+
+      const node = $from.parent
+      const nodeType = node.type.name
+
+      // For headings / code blocks: convert to paragraph (strip formatting)
+      if (nodeType === 'heading' || nodeType === 'codeBlock') {
+        const from = $from.before() + 1
+        const to = from + node.content.size
+        view.dispatch(state.tr.setBlockType(from, to, state.schema.nodes.paragraph))
+        return true
+      }
+
+      return false
+    },
     handlePaste(view, event) {
       // If clipboard contains HTML (e.g. pasting from a browser / rich editor),
       // let Tiptap's default handler deal with it.

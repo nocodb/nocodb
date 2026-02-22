@@ -179,6 +179,8 @@ const onEditorMouseMove = (e: MouseEvent) => {
   }
 }
 
+const onEditorMouseLeave = () => { isHovering.value = false }
+
 let unregisterTransaction: (() => void) | null = null
 
 onMounted(() => {
@@ -207,7 +209,7 @@ onMounted(() => {
   const bodyEl = editorBodyEl.value
   if (bodyEl) {
     bodyEl.addEventListener('mousemove', onEditorMouseMove)
-    bodyEl.addEventListener('mouseleave', () => { isHovering.value = false })
+    bodyEl.addEventListener('mouseleave', onEditorMouseLeave)
   }
 })
 
@@ -216,6 +218,7 @@ onBeforeUnmount(() => {
   const bodyEl = editorBodyEl.value
   if (bodyEl) {
     bodyEl.removeEventListener('mousemove', onEditorMouseMove)
+    bodyEl.removeEventListener('mouseleave', onEditorMouseLeave)
   }
 })
 </script>
@@ -346,8 +349,7 @@ onBeforeUnmount(() => {
 // All interactive children receive pointer-events
 .nc-table-corner-handle,
 .nc-table-col-handle,
-.nc-table-row-handle,
-.nc-table-context-btn {
+.nc-table-row-handle {
   pointer-events: auto;
 }
 

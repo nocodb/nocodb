@@ -14,6 +14,8 @@ import { marked } from 'marked'
 import { DOMParser as PmDOMParser } from '@tiptap/pm/model'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
+import type { DocType } from 'nocodb-sdk'
+import { timeAgo } from '~/utils/datetimeUtils'
 
 // Override TableCell & TableHeader to ignore colwidth — we use CSS table-layout:fixed
 // for equal columns instead of pixel widths (which go stale on column add/delete).
@@ -33,8 +35,6 @@ const DocTableHeader = TableHeader.extend({
     }
   },
 })
-import type { DocType } from 'nocodb-sdk'
-import { timeAgo } from '~/utils/datetimeUtils'
 
 const props = defineProps<{
   docId: string
@@ -48,7 +48,7 @@ const { loadDoc, updateDoc, deleteDoc, createDoc } = docsStore
 const basesStore = useBases()
 const { activeProjectId, basesUser } = storeToRefs(basesStore)
 
-const { user, ncNavigateTo } = useGlobal()
+const { user } = useGlobal()
 const { isUIAllowed } = useRoles()
 
 const base = inject(ProjectInj, ref())

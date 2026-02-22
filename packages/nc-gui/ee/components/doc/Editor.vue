@@ -43,12 +43,13 @@ const props = defineProps<{
 const docId = toRef(props, 'docId')
 
 const docsStore = useDocsStore()
-const { loadDoc, updateDoc } = docsStore
+const { loadDoc, updateDoc, deleteDoc, createDoc } = docsStore
 
 const basesStore = useBases()
 const { activeProjectId, basesUser } = storeToRefs(basesStore)
 
-const { user } = useGlobal()
+const { user, ncNavigateTo } = useGlobal()
+const { isUIAllowed } = useRoles()
 
 const base = inject(ProjectInj, ref())
 
@@ -349,6 +350,41 @@ const onTitleKeydown = (e: KeyboardEvent) => {
   }
 }
 
+// --- Page context menu (3-dot) ---
+const isPageMenuOpen = ref(false)
+
+const onCopyPageId = () => {
+  if (!doc.value?.id) return
+  navigator.clipboard.writeText(doc.value.id)
+  message.success('Page ID copied')
+  isPageMenuOpen.value = false
+}
+
+const onDuplicatePage = async () => {
+  isPageMenuOpen.value = false
+  if (!base.value?.id || !doc.value?.id) return
+
+  const fullDoc = await loadDoc(doc.value.id, false)
+  if (!fullDoc) return
+
+  await createDoc(base.value.id, {
+    title: `${fullDoc.title || 'Untitled'} (copy)`,
+    content: fullDoc.content,
+  })
+}
+
+const isDeleteModalOpen = ref(false)
+
+const onDeletePage = () => {
+  isPageMenuOpen.value = false
+  isDeleteModalOpen.value = true
+}
+
+const confirmDeletePage = async () => {
+  if (!base.value?.id || !doc.value?.id) return
+  await deleteDoc(base.value.id, doc.value.id)
+}
+
 onBeforeUnmount(() => {
   // Flush any pending save before the editor is destroyed.
   // Capture content synchronously BEFORE destroy() tears down ProseMirror,
@@ -381,8 +417,41 @@ onBeforeUnmount(() => {
   -->
   <div v-else class="nc-doc-editor flex flex-col h-full w-full overflow-y-auto">
     <div class="nc-doc-editor-inner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16">
-      <!-- Title -->
-      <div class="nc-doc-editor-header pt-12 pb-4">
+      <!-- Title + page context menu -->
+      <div class="nc-doc-editor-header pt-12 pb-4 relative">
+        <!-- 3-dot page context menu at top-right -->
+        <div class="nc-doc-page-menu">
+          <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
+            <NcButton size="xsmall" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
+              <GeneralIcon icon="threeDotHorizontal" />
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small" class="!min-w-52">
+                <NcMenuItem @click="onCopyPageId">
+                  <GeneralIcon class="text-nc-content-gray-subtle" icon="copy" />
+                  Copy page ID
+                </NcMenuItem>
+                <NcMenuItem
+                  v-if="isUIAllowed('docCreate')"
+                  @click="onDuplicatePage"
+                >
+                  <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
+                  Duplicate page
+                </NcMenuItem>
+                <NcDivider />
+                <NcMenuItem
+                  v-if="isUIAllowed('docDelete')"
+                  class="!text-red-500 !hover:bg-red-50"
+                  @click="onDeletePage"
+                >
+                  <GeneralIcon icon="delete" />
+                  Delete page
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
+        </div>
+
         <input
           ref="titleInput"
           v-model="title"
@@ -431,6 +500,25 @@ onBeforeUnmount(() => {
         </template>
       </div>
     </div>
+
+    <!-- Delete page modal — matches table delete styling -->
+    <GeneralDeleteModal
+      v-model:visible="isDeleteModalOpen"
+      entity-name="Page"
+      :on-delete="confirmDeletePage"
+    >
+      <template #entity-preview>
+        <div class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle">
+          <GeneralIcon icon="ncFileText" class="text-nc-content-gray-subtle" />
+          <div
+            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+          >
+            {{ title || 'Untitled' }}
+          </div>
+        </div>
+      </template>
+    </GeneralDeleteModal>
   </div>
 </template>
 
@@ -444,6 +532,13 @@ onBeforeUnmount(() => {
   @apply !rounded-lg;
   border: 1px solid #d1d5db !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+// Page 3-dot context menu — always visible at top-right of header
+.nc-doc-page-menu {
+  position: absolute;
+  top: 12px;
+  right: 0;
 }
 
 // Subtitle (created by / updated by) — match Outline's muted slate

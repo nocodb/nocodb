@@ -10,6 +10,8 @@ import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import { CellSelection } from '@tiptap/pm/tables'
+import { marked } from 'marked'
+import { DOMParser as PmDOMParser } from '@tiptap/pm/model'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
 import type { DocType } from 'nocodb-sdk'
@@ -120,6 +122,32 @@ const debouncedSave = () => {
   saveTimeout.value = setTimeout(save, 2000)
 }
 
+/**
+ * Detect whether plain text looks like markdown by checking for common patterns.
+ * We only trigger markdown parsing when there's strong evidence — at least one
+ * structural markdown element (heading, list, code fence, blockquote, hr, link, image).
+ */
+const looksLikeMarkdown = (text: string): boolean => {
+  const patterns = [
+    /^#{1,6}\s/m, // headings
+    /^[-*+]\s/m, // unordered list
+    /^\d+\.\s/m, // ordered list
+    /^```/m, // fenced code block
+    /^>\s/m, // blockquote
+    /^---+$/m, // horizontal rule
+    /\[.+?\]\(.+?\)/, // links / images
+    /\*\*.+?\*\*/, // bold
+    /~~.+?~~/, // strikethrough
+  ]
+  // Require at least 2 matches to avoid false positives on simple text
+  let hits = 0
+  for (const p of patterns) {
+    if (p.test(text)) hits++
+    if (hits >= 2) return true
+  }
+  return false
+}
+
 const editor = useEditor({
   extensions: [
     StarterKit.configure({
@@ -140,6 +168,26 @@ const editor = useEditor({
   editorProps: {
     attributes: {
       class: 'nc-doc-editor-content focus:outline-none min-h-[200px]',
+    },
+    handlePaste(view, event) {
+      // If clipboard contains HTML (e.g. pasting from a browser / rich editor),
+      // let Tiptap's default handler deal with it.
+      const html = event.clipboardData?.getData('text/html')
+      if (html) return false
+
+      const text = event.clipboardData?.getData('text/plain')
+      if (!text || !looksLikeMarkdown(text)) return false
+
+      // Convert markdown → HTML, then let ProseMirror parse it into a doc slice
+      const converted = marked.parse(text, { async: false }) as string
+      const wrapper = document.createElement('div')
+      wrapper.innerHTML = converted
+
+      const parser = PmDOMParser.fromSchema(view.state.schema)
+      const slice = parser.parseSlice(wrapper)
+
+      view.dispatch(view.state.tr.replaceSelection(slice))
+      return true
     },
   },
   onUpdate: () => {

@@ -4,7 +4,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
-import Image from '@tiptap/extension-image'
+import { DocImageExtension } from './DocImageExtension'
 import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
@@ -14,6 +14,7 @@ import { marked } from 'marked'
 import { DOMParser as PmDOMParser } from '@tiptap/pm/model'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
+import { useDocImageUpload } from '~/ee/composables/useDocImageUpload'
 import type { DocType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/datetimeUtils'
 
@@ -50,6 +51,7 @@ const { activeProjectId, basesUser } = storeToRefs(basesStore)
 
 const { user } = useGlobal()
 const { isUIAllowed } = useRoles()
+const { openFilePicker, uploadAndInsert } = useDocImageUpload()
 
 const base = inject(ProjectInj, ref())
 
@@ -173,7 +175,7 @@ const editor = useEditor({
     Underline,
     Link.configure({ openOnClick: false }),
     Placeholder.configure({ placeholder: 'Start writing or type / for commands...' }),
-    Image,
+    DocImageExtension,
     // TODO Phase-2: TaskList + TaskItem (needs task list CSS that doesn't conflict with prose)
     // resizable: false — the columnResizing plugin's TableView node view causes
     // ProseMirror decoration tracking crashes (localsInner/eq undefined) on any
@@ -220,7 +222,43 @@ const editor = useEditor({
 
       return false
     },
+    handleDrop(view, event, _slice, moved) {
+      // Internal drag (reorder) — let ProseMirror handle it
+      if (moved) return false
+
+      const files = Array.from(event.dataTransfer?.files || [])
+      const images = files.filter((f) => f.type.startsWith('image/'))
+      if (!images.length) return false
+
+      event.preventDefault()
+      // Upload each dropped image
+      const ed = editor.value
+      if (ed) {
+        // Position cursor at drop point
+        const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })
+        if (pos) ed.commands.setTextSelection(pos.pos)
+
+        for (const img of images) {
+          uploadAndInsert(ed, img)
+        }
+      }
+      return true
+    },
     handlePaste(view, event) {
+      // Check for pasted image files (e.g. screenshot from clipboard)
+      const files = Array.from(event.clipboardData?.files || [])
+      const images = files.filter((f) => f.type.startsWith('image/'))
+      if (images.length) {
+        event.preventDefault()
+        const ed = editor.value
+        if (ed) {
+          for (const img of images) {
+            uploadAndInsert(ed, img)
+          }
+        }
+        return true
+      }
+
       // If clipboard contains HTML (e.g. pasting from a browser / rich editor),
       // let Tiptap's default handler deal with it.
       const html = event.clipboardData?.getData('text/html')
@@ -244,6 +282,17 @@ const editor = useEditor({
   onUpdate: () => {
     debouncedSave()
   },
+})
+
+// Register the slash command upload trigger once the editor is available.
+// The slash command calls editor.storage.image.openUpload() which we wire here.
+watch(editor, (ed) => {
+  if (ed?.storage?.image) {
+    ed.storage.image.openUpload = async () => {
+      const file = await openFilePicker()
+      if (file) uploadAndInsert(ed, file)
+    }
+  }
 })
 
 /**

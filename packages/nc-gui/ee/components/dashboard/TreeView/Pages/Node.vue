@@ -11,7 +11,7 @@ const { ncNavigateTo } = useGlobal()
 const { isUIAllowed } = useRoles()
 
 const docsStore = useDocsStore()
-const { updateDoc, deleteDoc } = docsStore
+const { updateDoc, deleteDoc, createDoc, loadDoc } = docsStore
 const { activeDocId } = storeToRefs(docsStore)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
@@ -98,6 +98,20 @@ const onDelete = () => {
   })
 }
 
+const onDuplicate = async () => {
+  isDropdownOpen.value = false
+  if (!base.value?.id || !props.doc.id) return
+
+  // Load full doc content, then create a copy
+  const fullDoc = await loadDoc(props.doc.id, false)
+  if (!fullDoc) return
+
+  await createDoc(base.value.id, {
+    title: `${fullDoc.title || 'Untitled'} (copy)`,
+    content: fullDoc.content,
+  })
+}
+
 const onKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
     onRename()
@@ -181,6 +195,15 @@ const onRenameMenuClick = () => {
 
           <template #overlay>
             <NcMenu :data-testid="`sidebar-doc-context-menu-list-${doc.title}`" class="!min-w-62.5" variant="small">
+              <NcMenuItemCopyId
+                v-if="doc"
+                v-e="['c:doc:copy-id']"
+                :id="doc.id"
+                tooltip="Click to copy Page ID"
+                :label="`PAGE ID: ${doc.id}`"
+                :data-testid="`sidebar-doc-copy-id-${doc.title}`"
+              />
+              <NcDivider />
               <NcMenuItem
                 v-e="['c:doc:rename']"
                 :data-testid="`sidebar-doc-rename-${doc.title}`"
@@ -190,8 +213,18 @@ const onRenameMenuClick = () => {
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="rename" />
                 Rename page
               </NcMenuItem>
+              <NcMenuItem
+                v-if="isUIAllowed('docCreate')"
+                v-e="['c:doc:duplicate']"
+                :data-testid="`sidebar-doc-duplicate-${doc.title}`"
+                @click="onDuplicate"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
+                Duplicate page
+              </NcMenuItem>
               <NcDivider />
               <NcMenuItem
+                v-if="isUIAllowed('docDelete')"
                 v-e="['c:doc:delete']"
                 :data-testid="`sidebar-doc-delete-${doc.title}`"
                 class="!text-red-500 !hover:bg-red-50"

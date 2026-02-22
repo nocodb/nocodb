@@ -14,6 +14,25 @@ import { marked } from 'marked'
 import { DOMParser as PmDOMParser } from '@tiptap/pm/model'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
+
+// Override TableCell & TableHeader to ignore colwidth — we use CSS table-layout:fixed
+// for equal columns instead of pixel widths (which go stale on column add/delete).
+const DocTableCell = TableCell.extend({
+  addAttributes() {
+    return {
+      ...TableCell.config.addAttributes?.call(this),
+      colwidth: { default: null, renderHTML: () => ({}) },
+    }
+  },
+})
+const DocTableHeader = TableHeader.extend({
+  addAttributes() {
+    return {
+      ...TableHeader.config.addAttributes?.call(this),
+      colwidth: { default: null, renderHTML: () => ({}) },
+    }
+  },
+})
 import type { DocType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/datetimeUtils'
 
@@ -74,16 +93,11 @@ const saveTimeout = ref<NodeJS.Timeout>()
 const isSettingContent = ref(false)
 
 /** Show rich text bubble menu on any non-empty text selection (including inside table cells),
- *  but NOT on multi-cell CellSelection (that gets the table toolbar instead). */
+ *  but NOT on multi-cell CellSelection (that gets the table context menus instead). */
 const showRichTextMenu = ({ editor: e }: { editor: any }) => {
   const { selection } = e.state
   if (selection instanceof CellSelection) return false
   return !selection.empty
-}
-
-/** Show table toolbar only on multi-cell CellSelection (shift-click / drag across cells). */
-const showTableToolbar = ({ editor: e }: { editor: any }) => {
-  return e.state.selection instanceof CellSelection
 }
 
 /** Persist current editor state + title to the backend. */
@@ -158,10 +172,14 @@ const editor = useEditor({
     Placeholder.configure({ placeholder: 'Start writing or type / for commands...' }),
     Image,
     // TODO Phase-2: TaskList + TaskItem (needs task list CSS that doesn't conflict with prose)
-    Table.configure({ resizable: true }),
+    // resizable: false — the columnResizing plugin's TableView node view causes
+    // ProseMirror decoration tracking crashes (localsInner/eq undefined) on any
+    // structural table change (delete col/row, cell selection). Tables use CSS
+    // table-layout: fixed with equal-width columns instead.
+    Table.configure({ resizable: false }),
     TableRow,
-    TableCell,
-    TableHeader,
+    DocTableCell,
+    DocTableHeader,
     SlashCommandExtension,
     CalloutExtension,
   ],
@@ -179,17 +197,21 @@ const editor = useEditor({
       // Only handle when cursor is collapsed (no selection range)
       if (!empty) return false
 
+      // Skip when inside a table cell — let the table plugin handle it
+      for (let d = $from.depth; d > 0; d--) {
+        const ancestor = $from.node(d).type.name
+        if (ancestor === 'tableCell' || ancestor === 'tableHeader') return false
+      }
+
       // Check if cursor is at the very start of the current block node
       if ($from.parentOffset !== 0) return false
 
-      const node = $from.parent
-      const nodeType = node.type.name
+      const nodeType = $from.parent.type.name
 
       // For headings / code blocks: convert to paragraph (strip formatting)
       if (nodeType === 'heading' || nodeType === 'codeBlock') {
-        const from = $from.before() + 1
-        const to = from + node.content.size
-        view.dispatch(state.tr.setBlockType(from, to, state.schema.nodes.paragraph))
+        const pos = $from.before()
+        view.dispatch(state.tr.setBlockType(pos, pos + $from.parent.nodeSize - 2, state.schema.nodes.paragraph))
         return true
       }
 
@@ -385,7 +407,7 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Editor — always mounted so ProseMirror view stays attached -->
-      <div class="nc-doc-editor-body pb-48">
+      <div class="nc-doc-editor-body pb-48 relative">
         <template v-if="editor">
           <!-- Bubble menu: appears on text selection (including inside table cells) -->
           <BubbleMenu
@@ -402,16 +424,10 @@ onBeforeUnmount(() => {
             />
           </BubbleMenu>
 
-          <!-- Table toolbar: appears on text/cell selection inside a table -->
-          <BubbleMenu
-            :editor="editor"
-            :tippy-options="{ duration: 100, maxWidth: 700, placement: 'top' }"
-            :should-show="showTableToolbar"
-          >
-            <DocTableToolbar :editor="editor" />
-          </BubbleMenu>
-
           <EditorContent :editor="editor" />
+
+          <!-- Table context menus: column/row handles + dropdown menus -->
+          <DocTableMenu :editor="editor" />
         </template>
       </div>
     </div>
@@ -428,12 +444,6 @@ onBeforeUnmount(() => {
   @apply !rounded-lg;
   border: 1px solid #d1d5db !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-}
-
-// Table context toolbar — same visual treatment as the text bubble menu
-.nc-doc-table-toolbar {
-  border: 1px solid #d1d5db;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 // Subtitle (created by / updated by) — match Outline's muted slate
@@ -652,21 +662,6 @@ onBeforeUnmount(() => {
       z-index: 2;
     }
 
-    // Column resize handle
-    .column-resize-handle {
-      position: absolute;
-      right: -2px;
-      top: 0;
-      bottom: -2px;
-      width: 4px;
-      background-color: #3b82f6;
-      pointer-events: none;
-    }
-  }
-
-  // Resize cursor when hovering over column borders
-  &.resize-cursor {
-    cursor: col-resize;
   }
 
   // Callout (notice) blocks
@@ -685,6 +680,10 @@ onBeforeUnmount(() => {
       align-items: center;
       // Match the first line height of editor content (0.95rem × 1.7)
       height: calc(0.95rem * 1.7);
+      width: 18px;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 18px 18px;
     }
 
     .nc-callout-content {
@@ -699,24 +698,41 @@ onBeforeUnmount(() => {
       }
     }
 
+    // Each callout type: background color, border, and icon via CSS data URI
     &.nc-callout-note {
       background: #eff6ff;
       border-left-color: #3b82f6;
+
+      .nc-callout-icon {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E");
+      }
     }
 
     &.nc-callout-warning {
       background: #fffbeb;
       border-left-color: #f59e0b;
+
+      .nc-callout-icon {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
+      }
     }
 
     &.nc-callout-tip {
       background: #f0fdf4;
       border-left-color: #22c55e;
+
+      .nc-callout-icon {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 20h10'/%3E%3Cpath d='M10 20c5.5-2.5.8-6.4 3-10'/%3E%3Cpath d='M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z'/%3E%3Cpath d='M14.1 6a7 7 0 0 0-1.1-3c1.9.5 3.3 1.6 4.4 3.1a12.3 12.3 0 0 1 2 5.6c-2-.8-3.5-1.8-4.5-3.2a9 9 0 0 1-.8-2.5z'/%3E%3C/svg%3E");
+      }
     }
 
     &.nc-callout-important {
       background: #fef2f2;
       border-left-color: #ef4444;
+
+      .nc-callout-icon {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
+      }
     }
   }
 }

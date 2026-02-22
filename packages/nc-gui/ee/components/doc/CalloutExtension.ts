@@ -73,34 +73,7 @@ export const CalloutExtension = Node.create({
     }
   },
 
-  /**
-   * Inject SVG icons into callout icon containers after the node view is rendered.
-   * ProseMirror's `renderHTML` only supports text content in leaf nodes, not raw HTML,
-   * so we use a plugin to inject the SVG after DOM creation.
-   */
-  addNodeView() {
-    return ({ node }) => {
-      const type = (node.attrs.type as CalloutType) || 'note'
-
-      const dom = document.createElement('div')
-      dom.classList.add('nc-callout', `nc-callout-${type}`)
-      dom.setAttribute('data-callout-type', type)
-
-      const iconEl = document.createElement('div')
-      iconEl.classList.add('nc-callout-icon')
-      iconEl.contentEditable = 'false'
-      iconEl.innerHTML = calloutIcons[type]
-
-      const contentEl = document.createElement('div')
-      contentEl.classList.add('nc-callout-content')
-
-      dom.appendChild(iconEl)
-      dom.appendChild(contentEl)
-
-      return {
-        dom,
-        contentDOM: contentEl,
-      }
-    }
-  },
+  // Icons are rendered purely via CSS background-image on .nc-callout-icon
+  // (see Editor.vue styles). No addNodeView() — avoids ProseMirror decoration
+  // tracking conflicts with the table plugin's CellSelection decorations.
 })

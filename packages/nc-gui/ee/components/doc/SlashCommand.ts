@@ -20,6 +20,7 @@ export interface SlashCommandItem {
   title: string
   description: string
   icon: string
+  group: string
   command: (editor: Editor, range: Range) => void
 }
 
@@ -41,13 +42,20 @@ const icons = {
   code: svg('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>'),
   table: svg('<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>'),
   divider: svg('<line x1="5" y1="12" x2="19" y2="12"/>'),
+  // Callout icons — black versions for slash menu (colored versions live in CalloutExtension)
+  note: svg('<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'),
+  warning: svg('<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
+  tip: svg('<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1-3c1.9.5 3.3 1.6 4.4 3.1a12.3 12.3 0 0 1 2 5.6c-2-.8-3.5-1.8-4.5-3.2a9 9 0 0 1-.8-2.5z"/>'),
+  important: svg('<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'),
 }
 
 export const slashCommandItems: SlashCommandItem[] = [
+  // — Headings —
   {
     title: 'Heading 1',
     description: 'Large section heading',
     icon: icons.h1,
+    group: 'Headings',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run()
     },
@@ -56,6 +64,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     title: 'Heading 2',
     description: 'Medium section heading',
     icon: icons.h2,
+    group: 'Headings',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run()
     },
@@ -64,14 +73,17 @@ export const slashCommandItems: SlashCommandItem[] = [
     title: 'Heading 3',
     description: 'Small section heading',
     icon: icons.h3,
+    group: 'Headings',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run()
     },
   },
+  // — Lists —
   {
     title: 'Bullet List',
     description: 'Unordered list',
     icon: icons.bulletList,
+    group: 'Lists',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleBulletList().run()
     },
@@ -80,14 +92,17 @@ export const slashCommandItems: SlashCommandItem[] = [
     title: 'Numbered List',
     description: 'Ordered list',
     icon: icons.numberedList,
+    group: 'Lists',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleOrderedList().run()
     },
   },
+  // — Blocks —
   {
     title: 'Blockquote',
     description: 'Quote or callout',
     icon: icons.quote,
+    group: 'Blocks',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleBlockquote().run()
     },
@@ -96,6 +111,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     title: 'Code Block',
     description: 'Fenced code block',
     icon: icons.code,
+    group: 'Blocks',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleCodeBlock().run()
     },
@@ -104,18 +120,56 @@ export const slashCommandItems: SlashCommandItem[] = [
     title: 'Table',
     description: '3×3 table with header row',
     icon: icons.table,
+    group: 'Blocks',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
     },
   },
   // TODO Phase-2: Image upload — needs integration with NocoDB's file storage API
-  // (/api/v1/db/storage/upload) before enabling in the slash menu.
   {
     title: 'Divider',
     description: 'Horizontal rule',
     icon: icons.divider,
+    group: 'Blocks',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setHorizontalRule().run()
+    },
+  },
+  // — Callouts —
+  {
+    title: 'Note',
+    description: 'Info callout',
+    icon: icons.note,
+    group: 'Callouts',
+    command: (editor, range) => {
+      editor.chain().focus().deleteRange(range).setCallout({ type: 'note' }).run()
+    },
+  },
+  {
+    title: 'Warning',
+    description: 'Warning callout',
+    icon: icons.warning,
+    group: 'Callouts',
+    command: (editor, range) => {
+      editor.chain().focus().deleteRange(range).setCallout({ type: 'warning' }).run()
+    },
+  },
+  {
+    title: 'Tip',
+    description: 'Tip callout',
+    icon: icons.tip,
+    group: 'Callouts',
+    command: (editor, range) => {
+      editor.chain().focus().deleteRange(range).setCallout({ type: 'tip' }).run()
+    },
+  },
+  {
+    title: 'Important',
+    description: 'Important callout',
+    icon: icons.important,
+    group: 'Callouts',
+    command: (editor, range) => {
+      editor.chain().focus().deleteRange(range).setCallout({ type: 'important' }).run()
     },
   },
 ]

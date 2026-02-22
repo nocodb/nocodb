@@ -11,6 +11,7 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import { CellSelection } from '@tiptap/pm/tables'
 import { SlashCommandExtension } from './SlashCommand'
+import { CalloutExtension } from './CalloutExtension'
 import type { DocType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/datetimeUtils'
 
@@ -134,6 +135,7 @@ const editor = useEditor({
     TableCell,
     TableHeader,
     SlashCommandExtension,
+    CalloutExtension,
   ],
   editorProps: {
     attributes: {
@@ -581,6 +583,55 @@ onBeforeUnmount(() => {
   // Resize cursor when hovering over column borders
   &.resize-cursor {
     cursor: col-resize;
+  }
+
+  // Callout (notice) blocks
+  .nc-callout {
+    display: flex;
+    gap: 10px;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin: 0.75em 0;
+    border-left: 4px solid;
+
+    .nc-callout-icon {
+      font-size: 16px;
+      line-height: 1.7;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .nc-callout-content {
+      flex: 1;
+      min-width: 0;
+
+      > *:first-child {
+        margin-top: 0;
+      }
+      > *:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    &.nc-callout-note {
+      background: #eff6ff;
+      border-left-color: #3b82f6;
+    }
+
+    &.nc-callout-warning {
+      background: #fffbeb;
+      border-left-color: #f59e0b;
+    }
+
+    &.nc-callout-tip {
+      background: #f0fdf4;
+      border-left-color: #22c55e;
+    }
+
+    &.nc-callout-important {
+      background: #fef2f2;
+      border-left-color: #ef4444;
+    }
   }
 }
 </style>

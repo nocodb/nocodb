@@ -10,6 +10,7 @@ import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import { CellSelection } from '@tiptap/pm/tables'
+import { SlashCommandExtension } from './SlashCommand'
 import type { DocType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/datetimeUtils'
 
@@ -134,6 +135,7 @@ const editor = useEditor({
     TableRow,
     TableCell,
     TableHeader,
+    SlashCommandExtension,
   ],
   editorProps: {
     attributes: {

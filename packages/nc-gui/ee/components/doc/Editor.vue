@@ -416,42 +416,42 @@ onBeforeUnmount(() => {
     ProseMirror's view from the DOM. Content is swapped via setContent.
   -->
   <div v-else class="nc-doc-editor flex flex-col h-full w-full overflow-y-auto">
-    <div class="nc-doc-editor-inner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16">
-      <!-- Title + page context menu -->
-      <div class="nc-doc-editor-header pt-12 pb-4 relative">
-        <!-- 3-dot page context menu at top-right -->
-        <div class="nc-doc-page-menu">
-          <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
-            <NcButton size="xsmall" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
-              <GeneralIcon icon="threeDotHorizontal" />
-            </NcButton>
-            <template #overlay>
-              <NcMenu variant="small" class="!min-w-52">
-                <NcMenuItem @click="onCopyPageId">
-                  <GeneralIcon class="text-nc-content-gray-subtle" icon="copy" />
-                  Copy page ID
-                </NcMenuItem>
-                <NcMenuItem
-                  v-if="isUIAllowed('docCreate')"
-                  @click="onDuplicatePage"
-                >
-                  <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
-                  Duplicate page
-                </NcMenuItem>
-                <NcDivider />
-                <NcMenuItem
-                  v-if="isUIAllowed('docDelete')"
-                  class="!text-red-500 !hover:bg-red-50"
-                  @click="onDeletePage"
-                >
-                  <GeneralIcon icon="delete" />
-                  Delete page
-                </NcMenuItem>
-              </NcMenu>
-            </template>
-          </NcDropdown>
-        </div>
+    <!-- 3-dot page context menu — pinned to top-right of editor -->
+    <div class="nc-doc-page-menu">
+      <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
+        <NcButton size="xsmall" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
+          <GeneralIcon icon="threeDotHorizontal" />
+        </NcButton>
+        <template #overlay>
+          <NcMenu variant="small" class="!min-w-52">
+            <NcMenuItem @click="onCopyPageId">
+              <GeneralIcon class="text-nc-content-gray-subtle" icon="copy" />
+              Copy page ID
+            </NcMenuItem>
+            <NcMenuItem
+              v-if="isUIAllowed('docCreate')"
+              @click="onDuplicatePage"
+            >
+              <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
+              Duplicate page
+            </NcMenuItem>
+            <NcDivider />
+            <NcMenuItem
+              v-if="isUIAllowed('docDelete')"
+              class="!text-red-500 !hover:bg-red-50"
+              @click="onDeletePage"
+            >
+              <GeneralIcon icon="delete" />
+              Delete page
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
+    </div>
 
+    <div class="nc-doc-editor-inner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16">
+      <!-- Title -->
+      <div class="nc-doc-editor-header pt-12 pb-4">
         <input
           ref="titleInput"
           v-model="title"
@@ -534,11 +534,15 @@ onBeforeUnmount(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
-// Page 3-dot context menu — always visible at top-right of header
+// Page 3-dot context menu — pinned to top-right of full editor area
 .nc-doc-page-menu {
-  position: absolute;
-  top: 12px;
-  right: 0;
+  position: sticky;
+  top: 0;
+  align-self: flex-end;
+  z-index: 20;
+  padding: 12px 12px 0 0;
+  // Collapse height so it doesn't push content down
+  margin-bottom: -36px;
 }
 
 // Subtitle (created by / updated by) — match Outline's muted slate

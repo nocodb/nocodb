@@ -27,6 +27,11 @@ const config: AppConfig = {
       max_apis: +process.env.NC_META_COUNT || 60,
       block_duration: +process.env.NC_META_BLOCK_DURATION || 30000,
     },
+    scim: {
+      ttl: +process.env.NC_SCIM_API_TTL || 60000,
+      max_apis: +process.env.NC_SCIM_COUNT || 500,
+      block_duration: +process.env.NC_SCIM_BLOCK_DURATION || 30000,
+    },
 
     // todo: decide on xc-auth API limits
     data_gui: {

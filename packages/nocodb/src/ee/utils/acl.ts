@@ -187,6 +187,12 @@ const permissionScopes = {
     // Managed App
     'managedAppList',
     'managedAppCreate',
+
+    // SCIM Config
+    'scimConfigGet',
+    'scimConfigCreate',
+    'scimConfigUpdate',
+    'scimConfigDelete',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -542,6 +548,10 @@ const rolePermissions:
     exclude: {
       workspaceDelete: true,
       'cloud-org_manageSubscription': true,
+      scimConfigGet: true,
+      scimConfigCreate: true,
+      scimConfigUpdate: true,
+      scimConfigDelete: true,
     },
   },
   [WorkspaceUserRoles.OWNER]: {
@@ -1043,6 +1053,12 @@ const permissionDescriptions: Record<string, string> = {
   teamMembersAdd: 'add members to a team',
   teamMembersRemove: 'remove members from a team',
   teamMembersUpdate: 'update member roles in a team',
+
+  // SCIM Config permissions
+  scimConfigGet: 'view SCIM configuration',
+  scimConfigCreate: 'initialize SCIM configuration',
+  scimConfigUpdate: 'update SCIM configuration',
+  scimConfigDelete: 'delete SCIM configuration',
 
   // base permissions
   formViewGet: 'view forms',

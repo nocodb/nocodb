@@ -494,6 +494,7 @@ export default class User extends UserCE implements UserType {
           WorkspaceUser.get(
             args.workspaceId ?? context.workspace_id,
             user.id,
+            {},
             ncMeta,
           )
             .then((workspaceUser) => {

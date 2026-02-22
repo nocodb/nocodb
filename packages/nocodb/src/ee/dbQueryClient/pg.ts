@@ -1114,10 +1114,7 @@ export class PGDBQueryClient
         }
         break;
       case UITypes.Links:
-        if (
-          (params?.linksAsLtar === 'true') &&
-          apiVersion === NcApiVersion.V3
-        ) {
+        if (params?.linksAsLtar === 'true' && apiVersion === NcApiVersion.V3) {
           try {
             return await this.extractColumn({
               column: new Column({

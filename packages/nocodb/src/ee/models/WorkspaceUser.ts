@@ -17,7 +17,7 @@ import NocoCache from '~/cache/NocoCache';
 import Base from '~/models/Base';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
 import { PresignedUrl } from '~/models';
-import { parseMetaProp } from '~/utils/modelUtils';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 import { clearWorkspaceUserCountCache } from '~/helpers/cacheHelpers';
 import { NcError } from '~/helpers/ncError';
@@ -34,6 +34,11 @@ export default class WorkspaceUser {
   deleted?: boolean;
   deleted_at?: string;
   invited_by?: string;
+  // SCIM fields (workspace-specific)
+  scim_external_id?: string;
+  scim_managed?: boolean;
+  scim_user_name?: string;
+  scim_meta?: Record<string, any> | string;
 
   constructor(data: WorkspaceUser) {
     Object.assign(this, data);
@@ -84,7 +89,16 @@ export default class WorkspaceUser {
         'invited_by',
         'deleted',
         'deleted_at',
+        'scim_external_id',
+        'scim_managed',
+        'scim_user_name',
+        'scim_meta',
       ]);
+
+      // Stringify scim_meta (TEXT column) before insert
+      if ('scim_meta' in insertObj) {
+        insertObj.scim_meta = stringifyMetaProp(insertObj, 'scim_meta', null);
+      }
 
       await ncMetaTrans.metaInsert2(
         RootScopes.WORKSPACE,
@@ -117,7 +131,7 @@ export default class WorkspaceUser {
         );
       }
 
-      const res = await this.get(fk_workspace_id, fk_user_id, ncMetaTrans);
+      const res = await this.get(fk_workspace_id, fk_user_id, {}, ncMetaTrans);
 
       // add to workspace user list cache
       await NocoCache.appendToList(
@@ -141,7 +155,16 @@ export default class WorkspaceUser {
     }
   }
 
-  static async get(workspaceId: string, userId: string, ncMeta = Noco.ncMeta) {
+  static async get(
+    workspaceId: string,
+    userId: string,
+    {
+      include_deleted = false,
+    }: {
+      include_deleted?: boolean;
+    } = {},
+    ncMeta = Noco.ncMeta,
+  ) {
     let workspaceUser =
       workspaceId &&
       userId &&
@@ -190,7 +213,7 @@ export default class WorkspaceUser {
       }
     }
 
-    if (workspaceUser?.deleted) {
+    if (workspaceUser?.deleted && !include_deleted) {
       workspaceUser = null;
     }
 
@@ -484,6 +507,7 @@ export default class WorkspaceUser {
 
       workspaceUsers = workspaceUsers.map((workspaceUser) => {
         workspaceUser.meta = parseMetaProp(workspaceUser);
+        workspaceUser.scim_meta = parseMetaProp(workspaceUser, 'scim_meta');
         return workspaceUser;
       });
 
@@ -604,7 +628,16 @@ export default class WorkspaceUser {
       'deleted',
       'deleted_at',
       'order',
+      'scim_external_id',
+      'scim_managed',
+      'scim_user_name',
+      'scim_meta',
     ]);
+
+    // Stringify scim_meta (TEXT column) before update
+    if ('scim_meta' in updateObj) {
+      updateObj.scim_meta = stringifyMetaProp(updateObj, 'scim_meta', null);
+    }
 
     await ncMeta.metaUpdate(
       RootScopes.WORKSPACE,
@@ -662,7 +695,7 @@ export default class WorkspaceUser {
       logger.error('Error cleaning command palette cache');
     });
 
-    return this.get(workspaceId, userId, ncMeta);
+    return this.get(workspaceId, userId, {}, ncMeta);
   }
 
   static async softDelete(workspaceId: any, userId: any, ncMeta = Noco.ncMeta) {
@@ -759,5 +792,174 @@ export default class WorkspaceUser {
       },
     );
     return new WorkspaceUser(workspaceUser);
+  }
+
+  /**
+   * Direct DB lookup by SCIM external ID using the indexed column.
+   * Avoids loading all workspace users into memory.
+   */
+  static async getByScimExternalId(
+    workspaceId: string,
+    scimExternalId: string,
+    {
+      include_deleted = false,
+    }: {
+      include_deleted?: boolean;
+    } = {},
+    ncMeta = Noco.ncMeta,
+  ): Promise<any | null> {
+    const queryBuilder = ncMeta
+      .knex(MetaTable.USERS)
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.WORKSPACE_USER}.*`,
+      )
+      .innerJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          '=',
+          ncMeta.knex.raw('?', [workspaceId]),
+        );
+      })
+      .where(`${MetaTable.WORKSPACE_USER}.scim_external_id`, scimExternalId);
+
+    if (!include_deleted) {
+      queryBuilder.where(function () {
+        this.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE_USER}.deleted`,
+        );
+      });
+    }
+
+    const row = await queryBuilder.first();
+
+    if (!row) return null;
+
+    row.meta = parseMetaProp(row);
+    row.scim_meta = parseMetaProp(row, 'scim_meta');
+
+    return row;
+  }
+
+  /**
+   * SQL-level paginated list for SCIM endpoints.
+   * Filters scim_managed=true at the DB level with LIMIT/OFFSET.
+   * Returns { list, totalResults } for SCIM ListResponse.
+   */
+  static async scimList(
+    {
+      fk_workspace_id,
+      include_deleted = false,
+      offset = 0,
+      limit = 100,
+      filterUserName,
+      filterExternalId,
+      sortBy,
+      sortAscending = true,
+    }: {
+      fk_workspace_id: string;
+      include_deleted?: boolean;
+      offset?: number;
+      limit?: number;
+      filterUserName?: string;
+      filterExternalId?: string;
+      sortBy?: string;
+      sortAscending?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ list: any[]; totalResults: number }> {
+    const baseQuery = () => {
+      const qb = ncMeta
+        .knex(MetaTable.USERS)
+        .innerJoin(MetaTable.WORKSPACE_USER, function () {
+          this.on(
+            `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+            '=',
+            ncMeta.knex.raw('?', [fk_workspace_id]),
+          );
+        })
+        .where(`${MetaTable.WORKSPACE_USER}.scim_managed`, true);
+
+      if (!include_deleted) {
+        qb.where(function () {
+          this.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
+            `${MetaTable.WORKSPACE_USER}.deleted`,
+          );
+        });
+      }
+
+      if (filterUserName) {
+        qb.where(function () {
+          this.whereRaw(
+            `LOWER(${MetaTable.WORKSPACE_USER}.scim_user_name) = ?`,
+            [filterUserName.toLowerCase()],
+          ).orWhereRaw(`LOWER(${MetaTable.USERS}.email) = ?`, [
+            filterUserName.toLowerCase(),
+          ]);
+        });
+      }
+
+      if (filterExternalId) {
+        qb.whereRaw(`LOWER(${MetaTable.WORKSPACE_USER}.scim_external_id) = ?`, [
+          filterExternalId.toLowerCase(),
+        ]);
+      }
+
+      return qb;
+    };
+
+    // Count query
+    const countResult = await baseQuery().count('* as count').first();
+    const totalResults = Number(countResult?.count || 0);
+
+    // Data query with pagination and sorting
+    const dataQuery = baseQuery()
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.WORKSPACE_USER}.*`,
+      )
+      .offset(offset)
+      .limit(limit);
+
+    // Apply sorting
+    if (sortBy) {
+      const sortCol =
+        sortBy === 'userName'
+          ? `${MetaTable.WORKSPACE_USER}.scim_user_name`
+          : sortBy === 'displayName'
+          ? `${MetaTable.USERS}.display_name`
+          : sortBy === 'externalId'
+          ? `${MetaTable.WORKSPACE_USER}.scim_external_id`
+          : `${MetaTable.WORKSPACE_USER}.scim_user_name`;
+      dataQuery.orderBy(sortCol, sortAscending ? 'asc' : 'desc');
+    } else {
+      dataQuery.orderBy(`${MetaTable.WORKSPACE_USER}.created_at`, 'asc');
+    }
+
+    const rows = await dataQuery;
+
+    const list = rows.map((row) => {
+      row.meta = parseMetaProp(row);
+      row.scim_meta = parseMetaProp(row, 'scim_meta');
+      return row;
+    });
+
+    return { list, totalResults };
   }
 }

@@ -1,8 +1,44 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
+import { PlanFeatureTypes } from 'nocodb-sdk'
+import { FEATURE_FLAG } from '~/composables/useBetaFeatureToggle'
 
 const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, getPrePopulatedProvider, signInUrl } =
   useAuthentication(false, true)
+
+const { getFeature, handleUpgradePlan } = useEeConfig()
+const { appInfo } = useGlobal()
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+// Feature flag controls visibility of the entire SCIM section
+const isScimFeatureEnabled = computed(() => {
+  if (!isEeUI) return false
+  return isFeatureEnabled(FEATURE_FLAG.SCIM)
+})
+
+// Plan check controls whether SCIM can be configured (vs showing upgrade prompt)
+const isScimAvail = computed(() => {
+  if (!isScimFeatureEnabled.value) return false
+  // On cloud: requires SCIM feature in the plan
+  // On-prem EE: always available (no plan gating)
+  if (appInfo.value?.isCloud) {
+    return !!getFeature(PlanFeatureTypes.FEATURE_SCIM)
+  }
+  return true
+})
+
+// SCIM composable
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+const {
+  scimConfig,
+  isLoading: isScimLoading,
+  tokenVisible,
+  fetchScimConfig,
+  initializeScim,
+  regenerateToken,
+  toggleScim,
+  deleteScimConfig,
+} = useScim(activeWorkspaceId)
 
 const samlProviders = computed(() => {
   return [...providers.value].filter((provider: SSOClientType) => provider.type === 'saml' && !provider.deleted)
@@ -32,6 +68,8 @@ const isEdit = ref(false)
 
 const isCopied = ref({
   signIn: false,
+  scimUrl: false,
+  scimToken: false,
 })
 
 const providerProp = ref<SSOClientType>()
@@ -78,7 +116,6 @@ watch(
 
 watch(isCopied.value, (v) => {
   if (v.signIn) {
-    console.log('copied')
     setTimeout(() => {
       isCopied.value.signIn = false
     }, 2000)
@@ -111,8 +148,39 @@ const enableEdit = async (provider: SSOClientType) => {
   }
 }
 
+const copyScimUrl = async () => {
+  if (!scimConfig.value?.base_url) return
+  await copy(scimConfig.value.base_url)
+  isCopied.value.scimUrl = true
+  setTimeout(() => {
+    isCopied.value.scimUrl = false
+  }, 2000)
+}
+
+const copyScimToken = async () => {
+  if (!scimConfig.value?.provisioning_token) return
+  await copy(scimConfig.value.provisioning_token)
+  isCopied.value.scimToken = true
+  setTimeout(() => {
+    isCopied.value.scimToken = false
+  }, 2000)
+}
+
+// Modal visibility
+const showRegenerateTokenModal = ref(false)
+const showDeleteScimModal = ref(false)
+
+const handleRegenerateToken = async () => {
+  showRegenerateTokenModal.value = true
+}
+
+const handleDeleteScim = async () => {
+  showDeleteScimModal.value = true
+}
+
 onMounted(async () => {
   await fetchProviders()
+  await fetchScimConfig()
 })
 </script>
 
@@ -329,7 +397,115 @@ onMounted(async () => {
             </div>
           </div>
         </div>
+
+        <!-- SCIM Provisioning Section (behind feature flag, disabled by default) -->
+        <div v-if="isScimFeatureEnabled" class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
+        <div class="flex font-bold justify-between text-base items-center" data-rec="true">
+          <span>SCIM Provisioning</span>
+          <template v-if="isScimAvail">
+            <NcButton
+              v-if="!scimConfig"
+              :loading="isScimLoading"
+              data-test-id="nc-init-scim"
+              size="small"
+              type="secondary"
+              @click="initializeScim"
+            >
+              <component :is="iconMap.plus" />
+              <span>Enable SCIM</span>
+            </NcButton>
+          </template>
+          <NcButton
+            v-else
+            size="small"
+            type="secondary"
+            @click="handleUpgradePlan(PlanFeatureTypes.FEATURE_SCIM)"
+          >
+            <GeneralIcon icon="crown" class="!text-yellow-500" />
+            <span>Upgrade</span>
+          </NcButton>
+        </div>
+
+        <template v-if="isScimAvail">
+          <div v-if="scimConfig" class="flex flex-col gap-y-4">
+            <!-- Enable/Disable Toggle -->
+            <div class="flex items-center justify-between p-3 rounded-lg bg-nc-bg-gray-light">
+              <div class="flex flex-col">
+                <span class="text-sm font-medium">SCIM Enabled</span>
+                <span class="text-xs text-nc-content-gray-muted">
+                  {{ scimConfig.enabled ? 'Provisioning is active' : 'Provisioning is paused' }}
+                </span>
+              </div>
+              <NcSwitch :checked="scimConfig.enabled" :loading="isScimLoading" @change="toggleScim" />
+            </div>
+
+            <!-- SCIM Endpoint URL -->
+            <div>
+              <h1 class="text-sm font-medium text-nc-content-gray mb-2">SCIM Endpoint URL</h1>
+              <div
+                class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg"
+              >
+                <span class="text-nc-content-gray text-sm font-mono truncate mr-2">{{ scimConfig.base_url }}</span>
+                <NcButton size="xsmall" type="text" @click="copyScimUrl">
+                  <MdiCheck v-if="isCopied.scimUrl" class="h-3.5 text-green-600" />
+                  <component :is="iconMap.copy" v-else class="text-nc-content-gray" />
+                </NcButton>
+              </div>
+            </div>
+
+            <!-- Provisioning Token -->
+            <div>
+              <h1 class="text-sm font-medium text-nc-content-gray mb-2">Bearer Token</h1>
+              <div
+                class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg"
+              >
+                <span class="text-nc-content-gray text-sm font-mono">
+                  {{
+                    tokenVisible && scimConfig.provisioning_token ? scimConfig.provisioning_token : '••••••••••••••••••••••••••••'
+                  }}
+                </span>
+                <div class="flex gap-2">
+                  <NcButton v-if="tokenVisible && scimConfig.provisioning_token" size="xsmall" type="text" @click="copyScimToken">
+                    <MdiCheck v-if="isCopied.scimToken" class="h-3.5 text-green-600" />
+                    <component :is="iconMap.copy" v-else class="text-nc-content-gray" />
+                  </NcButton>
+                  <NcButton size="xsmall" type="secondary" @click="handleRegenerateToken">
+                    <component :is="iconMap.reload" />
+                    Regenerate
+                  </NcButton>
+                </div>
+              </div>
+              <div v-if="tokenVisible && scimConfig.provisioning_token" class="text-xs text-orange-600 mt-2 flex items-start gap-1">
+                <component :is="iconMap.alertTriangle" class="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                <span>Copy this token now - you won't be able to view it again after leaving this page</span>
+              </div>
+            </div>
+
+            <!-- Delete SCIM Config -->
+            <div class="pt-2 border-t border-nc-border-gray-light">
+              <NcButton danger data-test-id="nc-scim-delete" size="small" type="text" @click="handleDeleteScim">
+                <component :is="iconMap.delete" />
+                Disable SCIM
+              </NcButton>
+            </div>
+          </div>
+
+          <span v-if="!scimConfig && !isScimLoading" class="text-nc-content-gray-muted text-sm">
+            SCIM provisioning is not configured for this workspace. Click "Enable SCIM" to get started.
+          </span>
+
+          <div v-if="isScimLoading && !scimConfig" class="flex items-center justify-center py-8">
+            <a-spin />
+          </div>
+        </template>
+        <template v-else>
+          <span class="text-nc-content-gray-muted text-sm">
+            SCIM provisioning requires an upgraded plan. Upgrade your workspace to enable automatic user and group provisioning.
+          </span>
+        </template>
+        </div>
       </div>
+
       <DlgGoogleProvider
         v-if="googleDialogShow"
         v-model:model-value="googleDialogShow"
@@ -344,6 +520,37 @@ onMounted(async () => {
         :is-edit="isEdit"
         :saml="providerProp"
       />
+      <GeneralDeleteModal
+        v-model:visible="showDeleteScimModal"
+        entity-name="SCIM configuration"
+        delete-label="Disable"
+        :on-delete="deleteScimConfig"
+      >
+        <template #entity-preview>
+          <div class="text-nc-content-gray">
+            This will delete the SCIM configuration and stop all provisioning. SCIM-managed users will remain but will no longer
+            sync.
+          </div>
+        </template>
+      </GeneralDeleteModal>
+
+      <GeneralDeleteModal
+        v-model:visible="showRegenerateTokenModal"
+        entity-name="provisioning token"
+        delete-label="Regenerate"
+        :on-delete="
+          async () => {
+            await regenerateToken()
+          }
+        "
+      >
+        <template #entity-preview>
+          <div class="text-nc-content-gray">
+            This will invalidate the current token. IdP connections using the old token will stop working.
+          </div>
+        </template>
+      </GeneralDeleteModal>
+
       <DlgOIDCProvider
         v-if="oidcDialogShow"
         v-model:model-value="oidcDialogShow"

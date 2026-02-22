@@ -64,6 +64,7 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
           const workspaceUser = await WorkspaceUser.get(
             param.req.ncWorkspaceId,
             user.id,
+            {},
             ncMeta,
           );
           if (!workspaceUser) {

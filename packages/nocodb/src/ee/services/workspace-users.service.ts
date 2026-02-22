@@ -129,6 +129,7 @@ export class WorkspaceUsersService {
     const workspaceUser = await WorkspaceUser.get(
       param.workspaceId,
       param.userId,
+      {},
       ncMeta,
     );
 
@@ -303,9 +304,21 @@ export class WorkspaceUsersService {
     const workspace = await Workspace.get(workspaceId);
 
     const user = await User.get(userId);
-    const workspaceUser = await WorkspaceUser.get(workspaceId, userId, ncMeta);
+    const workspaceUser = await WorkspaceUser.get(
+      workspaceId,
+      userId,
+      {},
+      ncMeta,
+    );
 
     if (!workspaceUser) NcError.userNotFound(userId);
+
+    // Block removal of SCIM-managed users — deactivation must happen via IdP
+    if (workspaceUser.scim_managed) {
+      NcError.badRequest(
+        'This user is managed via SCIM. Removal must be done from your identity provider.',
+      );
+    }
 
     if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
       // current workspaceUser should have owner role to delete owner
@@ -906,6 +919,7 @@ export class WorkspaceUsersService {
     const workspaceUser = await WorkspaceUser.get(
       workspace.id,
       user.id,
+      {},
       ncMeta,
     );
 
@@ -960,6 +974,7 @@ export class WorkspaceUsersService {
         const workspaceUser = await WorkspaceUser.get(
           workspace.id,
           user.id,
+          {},
           ncMeta,
         );
 

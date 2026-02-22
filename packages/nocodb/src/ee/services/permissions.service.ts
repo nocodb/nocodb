@@ -151,6 +151,7 @@ export class PermissionsService {
             const permissionUser = await WorkspaceUser.get(
               context.workspace_id,
               subject.id,
+              {},
               ncMeta,
             );
 

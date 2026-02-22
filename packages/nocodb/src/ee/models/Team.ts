@@ -31,13 +31,20 @@ export default class Team {
   deleted: boolean; // Soft delete flag
   created_at?: string;
   updated_at?: string;
+  // SCIM fields
+  scim_external_id?: string;
+  scim_managed?: boolean;
+  scim_display_name?: string;
+  scim_meta?: Record<string, any> | string;
 
   constructor(data: Team) {
     Object.assign(this, data);
   }
 
   protected static castType(team: Team): Team {
-    return team && new Team(prepareForResponse(team, 'meta'));
+    if (!team) return team;
+    const prepared = prepareForResponse(team, 'meta');
+    return new Team(prepareForResponse(prepared, 'scim_meta'));
   }
 
   public static async insert(
@@ -52,20 +59,24 @@ export default class Team {
       'fk_org_id',
       'fk_workspace_id',
       'created_by',
+      'scim_external_id',
+      'scim_managed',
+      'scim_display_name',
+      'scim_meta',
     ]);
 
     // Set deleted to false by default
     insertObj.deleted = false;
 
     // Prepare meta for database storage
-    const preparedTeam = prepareForDb(insertObj, 'meta');
+    let preparedTeam = prepareForDb(insertObj, 'meta');
+    preparedTeam = prepareForDb(preparedTeam, 'scim_meta');
 
     const { id } = await ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.TEAMS,
       preparedTeam,
-      true,
     );
 
     // Get the full record with timestamps
@@ -225,10 +236,15 @@ export default class Team {
       'meta',
       'fk_org_id',
       'fk_workspace_id',
+      'scim_external_id',
+      'scim_managed',
+      'scim_display_name',
+      'scim_meta',
     ]);
 
     // Prepare meta for database storage
-    const preparedTeam = prepareForDb(updateObj, 'meta');
+    let preparedTeam = prepareForDb(updateObj, 'meta');
+    preparedTeam = prepareForDb(preparedTeam, 'scim_meta');
 
     // get existing cache
     const key = `${CacheScope.TEAM}:${teamId}`;
@@ -437,5 +453,111 @@ export default class Team {
         error.message,
       );
     }
+  }
+
+  /**
+   * Direct DB lookup by SCIM external ID using the indexed column.
+   * Avoids loading all teams into memory for SCIM operations.
+   */
+  public static async getByScimExternalId(
+    context: NcContext,
+    workspaceId: string,
+    scimExternalId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Team | null> {
+    const teams = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
+      {
+        condition: {
+          fk_workspace_id: workspaceId,
+          scim_external_id: scimExternalId,
+        },
+        xcCondition: {
+          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+        },
+      },
+    );
+
+    if (!teams.length) return null;
+
+    return this.castType(teams[0]);
+  }
+
+  /**
+   * SQL-level paginated list for SCIM endpoints.
+   * Filters scim_managed=true at the DB level with LIMIT/OFFSET.
+   */
+  public static async scimList(
+    context: NcContext,
+    {
+      fk_workspace_id,
+      offset = 0,
+      limit = 100,
+      filterDisplayName,
+      filterExternalId,
+      sortBy,
+      sortAscending = true,
+    }: {
+      fk_workspace_id: string;
+      offset?: number;
+      limit?: number;
+      filterDisplayName?: string;
+      filterExternalId?: string;
+      sortBy?: string;
+      sortAscending?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ list: Team[]; totalResults: number }> {
+    const baseQuery = () => {
+      const qb = ncMeta
+        .knex(MetaTable.TEAMS)
+        .where('fk_workspace_id', fk_workspace_id)
+        .where('scim_managed', true)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        });
+
+      if (filterDisplayName) {
+        qb.where(function () {
+          this.whereRaw('LOWER(scim_display_name) = ?', [
+            filterDisplayName.toLowerCase(),
+          ]).orWhereRaw('LOWER(title) = ?', [filterDisplayName.toLowerCase()]);
+        });
+      }
+
+      if (filterExternalId) {
+        qb.whereRaw('LOWER(scim_external_id) = ?', [
+          filterExternalId.toLowerCase(),
+        ]);
+      }
+
+      return qb;
+    };
+
+    // Count query
+    const countResult = await baseQuery().count('* as count').first();
+    const totalResults = Number(countResult?.count || 0);
+
+    // Data query with pagination and sorting
+    const dataQuery = baseQuery().select('*').offset(offset).limit(limit);
+
+    if (sortBy) {
+      const sortCol =
+        sortBy === 'displayName'
+          ? 'scim_display_name'
+          : sortBy === 'externalId'
+          ? 'scim_external_id'
+          : 'scim_display_name';
+      dataQuery.orderBy(sortCol, sortAscending ? 'asc' : 'desc');
+    } else {
+      dataQuery.orderBy('created_at', 'asc');
+    }
+
+    const rows = await dataQuery;
+    const list = rows.map((row) => this.castType(row));
+
+    return { list, totalResults };
   }
 }

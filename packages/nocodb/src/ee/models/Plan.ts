@@ -251,6 +251,7 @@ const legacyLimitAndFeatures = {
   [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
   [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
   [PlanFeatureTypes.FEATURE_SSO]: false,
+  [PlanFeatureTypes.FEATURE_SCIM]: false,
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: false,
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: false,
   [PlanFeatureTypes.FEATURE_COLOUR_FIELD]: false,
@@ -291,12 +292,13 @@ export const FreePlan = Plan.prepare({
     [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 1000,
     [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 15,
     [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 0,
+    ...(!process.env.NC_STRIPE_SECRET_KEY ? legacyLimitAndFeatures : {}),
     ...(process.env.NODE_ENV === 'test'
       ? {
           [PlanFeatureTypes.FEATURE_SSO]: true,
+          [PlanFeatureTypes.FEATURE_SCIM]: true,
         }
       : {}),
-    ...(!process.env.NC_STRIPE_SECRET_KEY ? legacyLimitAndFeatures : {}),
   },
   free: true,
 });

@@ -135,6 +135,7 @@ export class MetaService {
       [MetaTable.MANAGED_APP_VERSIONS]: 'mav',
       [MetaTable.MANAGED_APP_DEPLOYMENT_LOGS]: 'madl',
       [MetaTable.SANDBOXES]: 'sb',
+      [MetaTable.SCIM_CONFIG]: 'scfg',
     };
 
     const prefix = prefixMap[target] || 'nc';

@@ -147,30 +147,56 @@ const closeMenu = () => {
 }
 
 // --- Mouse tracking ---
-const onEditorMouseOver = (e: MouseEvent) => {
+// Check if a mouse position is within the table + gutter zone
+const isInTableZone = (e: MouseEvent): boolean => {
+  const table = tableEl.value
+  const body = editorBodyEl.value
+  if (!table || !body) return false
+  const tRect = table.getBoundingClientRect()
+  return (
+    e.clientX >= tRect.left - GUTTER &&
+    e.clientX <= tRect.right + 8 &&
+    e.clientY >= tRect.top - GUTTER &&
+    e.clientY <= tRect.bottom + 8
+  )
+}
+
+const onEditorMouseMove = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   const table = target.closest?.('table')
+
   if (table) {
     if (table !== tableEl.value) {
       tableEl.value = table as HTMLTableElement
       recalcPositions()
     }
     isHovering.value = true
+  } else if (tableEl.value && isInTableZone(e)) {
+    // Mouse is in the gutter area outside the table but within handle zone
+    isHovering.value = true
+  } else {
+    isHovering.value = false
   }
 }
 
 let unregisterTransaction: (() => void) | null = null
 
 onMounted(() => {
-  editorBodyEl.value = editor.value.view.dom.closest('.nc-doc-editor-body') as HTMLElement
+  editorBodyEl.value =
+    (editor.value.view.dom.closest('.nc-doc-editor-body') as HTMLElement) ||
+    (document.querySelector('.nc-doc-editor-body') as HTMLElement)
 
   unregisterTransaction = (() => {
     const handler = () => {
       const newTable = findTableElement()
-      if (newTable !== tableEl.value) {
-        tableEl.value = newTable
-      }
-      if (tableEl.value) {
+      if (newTable) {
+        if (newTable !== tableEl.value) {
+          tableEl.value = newTable
+        }
+        recalcPositions()
+      } else if (tableEl.value && !isHovering.value && !menuOpen.value) {
+        tableEl.value = null
+      } else if (tableEl.value) {
         recalcPositions()
       }
     }
@@ -178,15 +204,18 @@ onMounted(() => {
     return () => editor.value.off('transaction', handler)
   })()
 
-  const editorDom = editor.value.view.dom
-  editorDom.addEventListener('mouseover', onEditorMouseOver)
+  const bodyEl = editorBodyEl.value
+  if (bodyEl) {
+    bodyEl.addEventListener('mousemove', onEditorMouseMove)
+    bodyEl.addEventListener('mouseleave', () => { isHovering.value = false })
+  }
 })
 
 onBeforeUnmount(() => {
   unregisterTransaction?.()
-  const editorDom = editor.value?.view?.dom
-  if (editorDom) {
-    editorDom.removeEventListener('mouseover', onEditorMouseOver)
+  const bodyEl = editorBodyEl.value
+  if (bodyEl) {
+    bodyEl.removeEventListener('mousemove', onEditorMouseMove)
   }
 })
 </script>
@@ -198,8 +227,6 @@ onBeforeUnmount(() => {
     class="nc-table-hover-zone"
     :class="{ 'is-visible': showControls }"
     :style="hoverZoneStyle"
-    @mouseenter="isHovering = true"
-    @mouseleave="isHovering = false"
   >
     <template v-if="showControls">
       <!-- ═══ Table options: circular icon at top-left corner ═══ -->
@@ -311,12 +338,17 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .nc-table-hover-zone {
-  pointer-events: auto;
+  // Let clicks pass through to the table below; only handles intercept
+  pointer-events: none;
   z-index: 10;
+}
 
-  &:not(.is-visible) {
-    pointer-events: none;
-  }
+// All interactive children receive pointer-events
+.nc-table-corner-handle,
+.nc-table-col-handle,
+.nc-table-row-handle,
+.nc-table-context-btn {
+  pointer-events: auto;
 }
 
 // Filled circle at top-left corner — proportionate to 8px handle bars

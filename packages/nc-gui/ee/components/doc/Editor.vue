@@ -70,19 +70,17 @@ const saveTimeout = ref<NodeJS.Timeout>()
 // into the editor (setContent triggers onUpdate, which would queue a no-op save).
 const isSettingContent = ref(false)
 
-/**
- * Show table toolbar only when the user has actively selected content inside a table:
- * - Multi-cell selection (CellSelection from prosemirror-tables), OR
- * - Text selection (non-empty) within a table cell.
- * A plain cursor inside a table (empty selection) does NOT trigger the toolbar.
- */
-const showTableToolbar = ({ editor: e }: { editor: any }) => {
-  if (!e.isActive('table')) return false
+/** Show rich text bubble menu on any non-empty text selection (including inside table cells),
+ *  but NOT on multi-cell CellSelection (that gets the table toolbar instead). */
+const showRichTextMenu = ({ editor: e }: { editor: any }) => {
   const { selection } = e.state
-  // Multi-cell selection — always show
-  if (selection instanceof CellSelection) return true
-  // Text selection within a cell — show only if non-empty
+  if (selection instanceof CellSelection) return false
   return !selection.empty
+}
+
+/** Show table toolbar only on multi-cell CellSelection (shift-click / drag across cells). */
+const showTableToolbar = ({ editor: e }: { editor: any }) => {
+  return e.state.selection instanceof CellSelection
 }
 
 /** Persist current editor state + title to the backend. */
@@ -303,12 +301,12 @@ onBeforeUnmount(() => {
       <!-- Editor — always mounted so ProseMirror view stays attached -->
       <div class="nc-doc-editor-body pb-48">
         <template v-if="editor">
-          <!-- Bubble menu: appears on text selection outside tables -->
+          <!-- Bubble menu: appears on text selection (including inside table cells) -->
           <BubbleMenu
             :editor="editor"
             :update-delay="250"
             :tippy-options="{ duration: 100, maxWidth: 600 }"
-            :should-show="({ editor: e }) => !e.isActive('table') && !e.state.selection.empty"
+            :should-show="showRichTextMenu"
           >
             <CellRichTextSelectedBubbleMenu
               :editor="editor"

@@ -180,16 +180,6 @@ const addNewRecord = () => {
   isBlueprintMode.value = false
 }
 
-const addNewBlueprintRecord = () => {
-  if (!isLinkedTableAccessible.value) return
-
-  expandedFormRow.value = {}
-  expandedFormDlg.value = true
-  isExpandedFormCloseAfterSave.value = true
-  isNewRecord.value = true
-  isBlueprintMode.value = true
-}
-
 const reloadViewDataListener = withLoading((params) => {
   if (params?.isFromLinkRecord) {
     refreshCurrentRow()

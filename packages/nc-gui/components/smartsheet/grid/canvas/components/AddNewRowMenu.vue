@@ -141,7 +141,7 @@ const templatesList = computed(() => {
     <NcDivider class="!my-0" />
 
     <NcList
-      :value="''"
+      value=""
       :list="[
         {
           label: $t('activity.manageTemplates'),

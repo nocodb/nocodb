@@ -23,6 +23,8 @@ import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { TimelineColumnsService } from '~/services/timeline-columns.service';
+import { TimelinesService } from '~/services/timelines.service';
 import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
@@ -54,6 +56,8 @@ export class UiPostOperations
     protected kanbansService: KanbansService,
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
+    protected timelineColumnsService: TimelineColumnsService,
+    protected timelinesService: TimelinesService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
     protected syncService: SyncService,
@@ -79,6 +83,7 @@ export class UiPostOperations
     'viewColumnUpdate' as const,
     'viewColumnCreate' as const,
     'gridColumnUpdate' as const,
+    'timelineColumnUpdate' as const,
     'viewRowColorConditionAdd' as const,
     'viewRowColorConditionUpdate' as const,
     'viewRowColorConditionDelete' as const,
@@ -103,6 +108,7 @@ export class UiPostOperations
     'kanbanViewCreate' as const,
     'mapViewCreate' as const,
     'calendarViewCreate' as const,
+    'timelineViewCreate' as const,
     'gridViewUpdate' as const,
     'formViewUpdate' as const,
     'formColumnUpdate' as const,
@@ -110,6 +116,7 @@ export class UiPostOperations
     'kanbanViewUpdate' as const,
     'mapViewUpdate' as const,
     'calendarViewUpdate' as const,
+    'timelineViewUpdate' as const,
     'nestedDataLink' as const,
     'nestedDataUnlink' as const,
     'nestedDataListCopyPasteOrDeleteAll' as const,
@@ -267,6 +274,12 @@ export class UiPostOperations
         return await this.gridColumnsService.gridColumnUpdate(context, {
           gridViewColumnId: req.query.gridViewColumnId,
           grid: payload,
+          req,
+        });
+      case 'timelineColumnUpdate':
+        return await this.timelineColumnsService.timelineColumnUpdate(context, {
+          timelineViewColumnId: req.query.timelineViewColumnId,
+          timeline: payload,
           req,
         });
       case 'viewColumnCreate':
@@ -434,6 +447,13 @@ export class UiPostOperations
           user: req.user,
           req,
         });
+      case 'timelineViewCreate':
+        return await this.timelinesService.timelineViewCreate(context, {
+          timeline: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
       case 'gridViewUpdate':
         return await this.gridsService.gridViewUpdate(context, {
           viewId: req.query.viewId,
@@ -474,6 +494,12 @@ export class UiPostOperations
         return await this.calendarsService.calendarViewUpdate(context, {
           calendarViewId: req.query.viewId,
           calendar: payload,
+          req,
+        });
+      case 'timelineViewUpdate':
+        return await this.timelinesService.timelineViewUpdate(context, {
+          timelineViewId: req.query.viewId,
+          timeline: payload,
           req,
         });
       case 'nestedDataLink':

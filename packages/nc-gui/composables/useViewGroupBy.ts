@@ -37,6 +37,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
+    const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+
     const { getMeta, getPartialMeta } = useMetas()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
@@ -142,7 +144,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       list.map((row) => ({
         row: { ...row },
         oldRow: { ...row },
-        rowMeta: {},
+        rowMeta: {
+          ...getEvaluatedRowMetaRowColorInfo(row),
+        },
       }))
 
     const colors = ref(enumColor.light)
@@ -435,6 +439,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
               ...query,
               ...params,
+              include_row_color: true,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             } as any)

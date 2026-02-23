@@ -438,6 +438,7 @@
   --color-view-icon-map: #1ea47e;
   --color-view-icon-kanban: #ff9052;
   --color-view-icon-list: #27d665;
+  --color-view-icon-timeline: #1f6524;
   --color-view-icon-view: #1ea47e;
 }
 
@@ -857,6 +858,7 @@
   --color-view-icon-map: #36cfaa;
   --color-view-icon-kanban: #ffad70;
   --color-view-icon-list: #27d665;
+  --color-view-icon-timeline: #2d8a34;
   --color-view-icon-view: #36cfaa;
 }
 

@@ -260,6 +260,10 @@ const hasDashboardCreateAccess = computed(() => {
                   <div>{{ $t('objects.viewType.list') }}</div>
                 </NcMenuItem>
               </template>
+              <NcMenuItem data-testid="mini-sidebar-view-create-timeline" @click="onOpenModal({ type: ViewTypes.TIMELINE })">
+                <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
+                <div>{{ $t('objects.viewType.timeline') }}</div>
+              </NcMenuItem>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />
                 <NcMenuItem data-testid="mini-sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">

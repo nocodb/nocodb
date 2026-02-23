@@ -23,6 +23,8 @@ import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { TimelineColumnsService } from '~/services/timeline-columns.service';
+import { TimelinesService } from '~/services/timelines.service';
 import { CommentsService } from '~/services/comments.service';
 import { ListsService } from '~/ee/services/lists.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -54,6 +56,8 @@ export class UiPostOperations
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
     protected listsService: ListsService,
+    protected timelineColumnsService: TimelineColumnsService,
+    protected timelinesService: TimelinesService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
     protected syncService: SyncService,
@@ -78,6 +82,8 @@ export class UiPostOperations
       kanbansService,
       mapsService,
       calendarsService,
+      timelineColumnsService,
+      timelinesService,
       commentsService,
       bulkDataAliasService,
       syncService,

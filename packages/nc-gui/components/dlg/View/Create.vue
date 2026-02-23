@@ -14,6 +14,7 @@ import {
   PlanFeatureTypes,
   type SerializedAiViewType,
   type TableType,
+  type TimelineType,
   stringToViewTypeMap,
   viewTypeToStringMap,
 } from 'nocodb-sdk'
@@ -53,7 +54,7 @@ interface Props {
 interface Emits {
   (event: 'update:modelValue', value: boolean): void
 
-  (event: 'created', value: GridType | KanbanType | GalleryType | FormType | MapType | CalendarType): void
+  (event: 'created', value: GridType | KanbanType | GalleryType | FormType | MapType | CalendarType | TimelineType): void
 }
 
 interface Form {
@@ -70,6 +71,13 @@ interface Form {
     fk_from_column_id: string
     fk_to_column_id: string | null // for ee only
   }>
+
+  // for timeline view only
+  timeline_range: Array<{
+    fk_from_column_id: string
+    fk_to_column_id: string | null
+  }>
+
   fk_cover_image_col_id: string | null | undefined
 }
 
@@ -128,6 +136,7 @@ const errorMessages = {
   [ViewTypes.KANBAN]: t('msg.warning.kanbanNoFields'),
   [ViewTypes.MAP]: t('msg.warning.mapNoFields'),
   [ViewTypes.CALENDAR]: t('msg.warning.calendarNoFields'),
+  [ViewTypes.TIMELINE]: t('msg.warning.calendarNoFields'),
 }
 
 const form = reactive<Form>({
@@ -137,6 +146,7 @@ const form = reactive<Form>({
   fk_grp_col_id: null,
   fk_geo_data_col_id: null,
   calendar_range: props.calendarRange || [],
+  timeline_range: [],
   fk_cover_image_col_id: undefined,
   description: props.description || '',
 })
@@ -172,6 +182,7 @@ const typeAlias = computed(
       [ViewTypes.MAP]: 'map',
       [ViewTypes.CALENDAR]: 'calendar',
       [ViewTypes.LIST]: 'list',
+      [ViewTypes.TIMELINE]: 'timeline',
       // Todo: add ai view docs route
       AI: '',
     }[props.type]),
@@ -339,7 +350,7 @@ onMounted(async () => {
   }
 
   if (
-    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR].includes(props.type) ||
+    [ViewTypes.GALLERY, ViewTypes.KANBAN, ViewTypes.MAP, ViewTypes.CALENDAR, ViewTypes.TIMELINE].includes(props.type) ||
     aiIntegrationAvailable.value
   ) {
     isMetaLoading.value = true
@@ -508,6 +519,49 @@ onMounted(async () => {
           }
         } else {
           // if there is no grouping field column, disable the create button
+          isNecessaryColumnsPresent.value = false
+        }
+      }
+
+      if (props.type === ViewTypes.TIMELINE) {
+        viewSelectFieldOptions.value = meta
+          .value!.columns!.filter(
+            (el) =>
+              [UITypes.DateTime, UITypes.Date, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(el.uidt) ||
+              (el.uidt === UITypes.Formula && (el.colOptions as any)?.parsed_tree?.dataType === FormulaDataTypes.DATE),
+          )
+          .map((field) => {
+            return {
+              value: field.id,
+              label: field.title,
+              uidt: field.uidt,
+              col: field,
+            }
+          })
+          .sort((a, b) => {
+            const priority = {
+              [UITypes.DateTime]: 1,
+              [UITypes.Date]: 2,
+              [UITypes.Formula]: 3,
+              [UITypes.CreatedTime]: 4,
+              [UITypes.LastModifiedTime]: 5,
+            }
+
+            return (priority[a.uidt] || 6) - (priority[b.uidt] || 6)
+          })
+
+        if (viewSelectFieldOptions.value?.length) {
+          // take the first option
+          if (form.timeline_range.length === 0) {
+            form.timeline_range = [
+              {
+                fk_from_column_id: viewSelectFieldOptions.value[0].value as string,
+                fk_to_column_id: null,
+              },
+            ]
+          }
+        } else {
+          // if there is no date field column, disable the create button
           isNecessaryColumnsPresent.value = false
         }
       }
@@ -857,6 +911,14 @@ watch(activeBaseId, () => {
               {{ $t(`labels.${getPluralName('createMapView')}`) }}
             </template>
           </template>
+          <template v-else-if="form.type === ViewTypes.TIMELINE">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateTimelineView') }}
+            </template>
+            <template v-else>
+              {{ $t(`labels.${getPluralName('createTimelineView')}`) }}
+            </template>
+          </template>
           <template v-else-if="form.type === 'AI'">
             {{ $t('labels.createViewUsingAi') }}
           </template>
@@ -1179,6 +1241,179 @@ watch(activeBaseId, () => {
                   <span class="text-nc-content-gray-muted font-default text-sm"> {{ $t('msg.info.calendarReadOnly') }}</span>
                 </div>
               </div>
+            </div>
+          </template>
+          <template v-if="form.type === ViewTypes.TIMELINE && !form.copy_from_id">
+            <div
+              v-for="(range, index) in form.timeline_range"
+              :key="`timeline-range-${index}`"
+              :class="{
+                '!gap-2': range.fk_to_column_id === null,
+              }"
+              class="flex flex-col w-full gap-6"
+            >
+              <div class="w-full space-y-2">
+                <div class="text-nc-content-gray">
+                  {{ $t('labels.organiseBy') }}
+                </div>
+
+                <a-select
+                  v-model:value="range.fk_from_column_id"
+                  class="nc-select-shadow w-full nc-from-select !rounded-lg"
+                  dropdown-class-name="!rounded-lg"
+                  show-search
+                  :placeholder="$t('placeholder.notSelected')"
+                  data-testid="nc-timeline-range-from-field-select"
+                  @click.stop
+                  @change="onValueChange"
+                >
+                  <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+                  <a-select-option
+                    v-for="(option, id) in [...viewSelectFieldOptions!].filter((f) => {
+                  // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                  // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+                  if (index === 0) return true
+                  const firstRange = viewSelectFieldOptions!.find((f) => f.value === form.timeline_range[0].fk_from_column_id)
+                  return firstRange?.uidt === f.uidt
+                })"
+                    :key="id"
+                    :value="option.value"
+                  >
+                    <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                      <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                        <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
+
+                        <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                          <template #title>
+                            {{ option.label }}
+                          </template>
+                          <template #default>{{ option.label }}</template>
+                        </NcTooltip>
+                      </div>
+                      <GeneralIcon
+                        v-if="option.value === range.fk_from_column_id"
+                        id="nc-selected-item-icon"
+                        icon="check"
+                        class="flex-none text-primary w-4 h-4"
+                      />
+                    </div>
+                  </a-select-option>
+                </a-select>
+              </div>
+              <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+                <template #default="{ click }">
+                  <div class="w-full space-y-2">
+                    <NcButton
+                      v-if="range.fk_to_column_id === null"
+                      size="small"
+                      type="text"
+                      @click="click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => (range.fk_to_column_id = undefined))"
+                    >
+                      <div class="flex items-center gap-1">
+                        <component :is="iconMap.plus" class="h-4 w-4" />
+                        {{ $t('activity.endDate') }}
+                      </div>
+                      <PaymentUpgradeBadge
+                        class="ml-2"
+                        :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                        :content="
+                          $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
+                            plan: getPlanTitle(PlanTitles.PLUS),
+                          })
+                        "
+                        :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                      />
+                    </NcButton>
+
+                    <template v-else>
+                      <div class="flex gap-2 items-center text-nc-content-gray-subtle">
+                        {{ $t('activity.withEndDate') }}
+                        <PaymentUpgradeBadge
+                          :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                          :content="
+                            $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
+                              plan: getPlanTitle(PlanTitles.PLUS),
+                            })
+                          "
+                          :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                        />
+                      </div>
+
+                      <div class="flex">
+                        <a-select
+                          v-model:value="range.fk_to_column_id"
+                          class="nc-select-shadow w-full flex-1"
+                          allow-clear
+                          show-search
+                          :disabled="isMetaLoading || blockCalendarRange"
+                          :loading="isMetaLoading"
+                          :placeholder="$t('placeholder.notSelected')"
+                          data-testid="nc-timeline-range-to-field-select"
+                          dropdown-class-name="!rounded-lg"
+                          @click.stop
+                        >
+                          <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+
+                          <a-select-option
+                            v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
+                              // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                              // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+                              const firstRange = viewSelectFieldOptions.find(
+                                (f) => f.value === form.timeline_range[0].fk_from_column_id,
+                              )
+                              // First ensure the data type matches
+                              const dataTypeMatches = firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
+
+                              // If no match in data type, return false
+                              if (!dataTypeMatches) return false
+
+                              // If first range has a timezone configured, ensure this option has the same timezone
+                              const firstRangeColumn = meta?.columns?.find(
+                                (c) => c.id === form.timeline_range[0].fk_from_column_id,
+                              )
+                              const optionColumn = meta?.columns?.find((c) => c.id === f.value)
+                              return optionColumn?.meta?.timezone === firstRangeColumn.meta.timezone
+                            })"
+                            :key="id"
+                            :value="option.value"
+                          >
+                            <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                              <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                                <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
+
+                                <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                                  <template #title>
+                                    {{ option.label }}
+                                  </template>
+                                  <template #default>{{ option.label }}</template>
+                                </NcTooltip>
+                              </div>
+                              <GeneralIcon
+                                v-if="option.value === range.fk_from_column_id"
+                                id="nc-selected-item-icon"
+                                icon="check"
+                                class="flex-none text-primary w-4 h-4"
+                              />
+                            </div>
+                          </a-select-option>
+                        </a-select>
+                      </div>
+                      <NcButton
+                        v-if="index !== 0"
+                        size="small"
+                        type="secondary"
+                        @click="
+                          () => {
+                            form.timeline_range = form.timeline_range.filter((_, i) => i !== index)
+                          }
+                        "
+                      >
+                        <component :is="iconMap.close" />
+                      </NcButton>
+                    </template>
+                  </div>
+                </template>
+              </PaymentUpgradeBadgeProvider>
             </div>
           </template>
         </template>

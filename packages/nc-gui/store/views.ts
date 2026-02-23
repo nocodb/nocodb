@@ -1,4 +1,4 @@
-import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, ViewType } from 'nocodb-sdk'
+import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, TimelineType, ViewType } from 'nocodb-sdk'
 import {
   ProjectRoles,
   ViewSettingOverrideOptions,
@@ -497,6 +497,23 @@ export const useViewsStore = defineStore('viewsStore', () => {
             form,
           )
           break
+        case ViewTypes.TIMELINE:
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'timelineViewCreate',
+              tableId,
+            },
+            {
+              ...form,
+              timeline_range: form.timeline_range.map((range) => ({
+                fk_from_column_id: range.fk_from_column_id,
+                fk_to_column_id: range.fk_to_column_id,
+              })),
+            },
+          )
+          break
       }
 
       if (data) {
@@ -586,6 +603,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
             ...baseProps,
             calendar_range:
               (sourceView.view as CalendarType)?.calendar_range?.map((range) => ({
+                fk_from_column_id: range.fk_from_column_id as string,
+                fk_to_column_id: range.fk_to_column_id as string,
+              })) || [],
+          }
+        case ViewTypes.TIMELINE:
+          return {
+            ...baseProps,
+            timeline_range:
+              (sourceView.view as TimelineType)?.timeline_range?.map((range) => ({
                 fk_from_column_id: range.fk_from_column_id as string,
                 fk_to_column_id: range.fk_to_column_id as string,
               })) || [],
@@ -798,6 +824,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
               activeView.value!.fk_workspace_id!,
               activeView.value!.base_id!,
               { operation: 'calendarViewUpdate', viewId },
+              updates,
+            )
+            break
+          case ViewTypes.TIMELINE:
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'timelineViewUpdate', viewId },
               updates,
             )
             break

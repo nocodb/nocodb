@@ -220,6 +220,13 @@ export interface MapViewUpdateEvent extends NcBaseEvent {
   owner: UserType;
 }
 
+export interface TimelineViewUpdateEvent extends NcBaseEvent {
+  view: ViewType;
+  timelineView: any;
+  oldTimelineView: any;
+  owner: UserType;
+}
+
 export interface FormViewUpdateEvent extends NcBaseEvent {
   view: ViewType;
   formView: any;

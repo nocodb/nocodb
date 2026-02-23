@@ -572,6 +572,7 @@
       "form": "Form",
       "kanban": "Kanban",
       "calendar": "Calendar",
+      "timeline": "Timeline",
       "map": "Map",
       "list": "List"
     },
@@ -1465,6 +1466,8 @@
     "previousMonth": "Previous Month",
     "next": "Next",
     "organiseBy": "Organise by",
+    "initialView": "Initial view",
+    "closestRecordToToday": "Closest record to today",
     "heading1": "Heading 1",
     "heading2": "Heading 2",
     "heading3": "Heading 3",
@@ -1962,6 +1965,7 @@
     "addTeamsToBase": "Add Teams to Base",
     "addTeamsToWorkspace": "Add Teams to Workspace",
     "noRange": "Calendar view requires a date range",
+    "noTimelineRange": "No date range configured",
     "goToToday": "Go to Today",
     "toggleSidebar": "Toggle Sidebar",
     "addEndDate": "Add end date",
@@ -2488,6 +2492,8 @@
     "invalidLabel": "Enter a valid button label",
     "buttonConditionNotMet": "Conditions not met",
     "formulaNotSupported": "This function is unavailable for your database",
+    "configureTimelineRange": "Select start and end date fields in the toolbar to view records on the timeline.",
+    "dateFieldRequired": "Date field is required!",
     "controlOrgAppearance": "Control your organisations name and appearance.",
     "addCompanyDomains": "Add company domains to restrict access to unwanted users.",
     "restrictUsersFromSharing": "Restrict users from being able to share bases publicly.",
@@ -2788,7 +2794,8 @@
         "kanban": "Add Kanban View",
         "map": "Add Map View",
         "calendar": "Add Calendar View",
-        "list": "Add List View"
+        "list": "Add List View",
+        "timeline": "Add Timeline View"
       },
       "tablesMetadataInSync": "Tables metadata is in Sync",
       "addMultipleUsers": "You can add multiple comma(,) separated emails",

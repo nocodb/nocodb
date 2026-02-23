@@ -187,9 +187,12 @@ export enum AppEvents {
 
   ROW_USER_MENTION = 'row.user.mention',
   CALENDAR_CREATE = 'calendar.create',
+  TIMELINE_CREATE = 'timeline.create',
   FORM_DUPLICATE = 'form.duplicate',
   CALENDAR_UPDATE = 'calendar.update',
+  TIMELINE_UPDATE = 'timeline.update',
   CALENDAR_DELETE = 'calendar.delete',
+  TIMELINE_DELETE = 'timeline.delete',
   FORM_DELETE = 'form.delete',
 
   SOURCE_CREATE = 'source.create',

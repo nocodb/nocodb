@@ -31,9 +31,12 @@ import GridView from '~/models/GridView';
 import KanbanView from '~/models/KanbanView';
 import GalleryView from '~/models/GalleryView';
 import CalendarView from '~/models/CalendarView';
+import TimelineView from '~/models/TimelineView';
 import GridViewColumn from '~/models/GridViewColumn';
 import CalendarViewColumn from '~/models/CalendarViewColumn';
+import TimelineViewColumn from '~/models/TimelineViewColumn';
 import CalendarRange from '~/models/CalendarRange';
+import TimelineRange from '~/models/TimelineRange';
 import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import GalleryViewColumn from '~/models/GalleryViewColumn';
@@ -109,7 +112,8 @@ export default class View implements ViewType {
     | KanbanView
     | GalleryView
     | MapView
-    | CalendarView;
+    | CalendarView
+    | TimelineView;
   columns?: Array<
     | FormViewColumn
     | GridViewColumn
@@ -117,6 +121,7 @@ export default class View implements ViewType {
     | KanbanViewColumn
     | MapViewColumn
     | CalendarViewColumn
+    | TimelineViewColumn
   >;
 
   sorts: Sort[];
@@ -301,10 +306,12 @@ export default class View implements ViewType {
           | KanbanView
           | MapView
           | CalendarView
+          | TimelineView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
+          timeline_range?: Partial<TimelineRange>[];
         };
       req: NcRequest;
     },
@@ -500,6 +507,28 @@ export default class View implements ViewType {
           );
 
           await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
+          break;
+        }
+        case ViewTypes.TIMELINE: {
+          const obj = extractProps(view, ['timeline_range']);
+          if (!obj.timeline_range) break;
+          const timelineRange = obj.timeline_range as Partial<TimelineRange>[];
+          timelineRange.forEach((range) => {
+            range.fk_view_id = view_id;
+          });
+
+          await TimelineView.insert(
+            context,
+            {
+              ...(copyFromView?.view || {}),
+              ...view,
+              fk_view_id: view_id,
+            },
+            ncMeta,
+          );
+
+          await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
+          break;
         }
       }
 
@@ -601,7 +630,7 @@ export default class View implements ViewType {
         let kanbanShowLimit = 0;
         let calendarRanges: Array<string> | null = null;
 
-        if (view.type === ViewTypes.CALENDAR) {
+        if (view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE) {
           calendarRanges = await View.getRangeColumnsAsArray(
             context,
             view_id,
@@ -681,6 +710,14 @@ export default class View implements ViewType {
               show = true;
             } else
               show = vCol.id === calendarView?.fk_cover_image_col_id || vCol.pv;
+            // Show all Fields in Ranges
+          } else if (view.type === ViewTypes.TIMELINE && !copyFromView) {
+            // Timeline has no cover image, just show range columns and primary value
+            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+              show = true;
+            } else {
+              show = vCol.pv;
+            }
             // Show all Fields in Ranges
           } else if (view.type === ViewTypes.MAP && !copyFromView) {
             const mapView = await MapView.get(context, view_id, ncMeta);
@@ -764,6 +801,7 @@ export default class View implements ViewType {
     viewId: string,
     ncMeta,
   ) {
+    // Try CalendarRange first
     const calRange = await CalendarRange.read(context, viewId, ncMeta);
     if (calRange) {
       const calIds: Set<string> = new Set();
@@ -771,6 +809,16 @@ export default class View implements ViewType {
         calIds.add(range.fk_from_column_id);
       });
       return Array.from(calIds) as Array<string>;
+    }
+    // Try TimelineRange
+    const tlRange = await TimelineRange.read(context, viewId, ncMeta);
+    if (tlRange) {
+      const tlIds: Set<string> = new Set();
+      tlRange.ranges.forEach((range) => {
+        if (range.fk_from_column_id) tlIds.add(range.fk_from_column_id);
+        if (range.fk_to_column_id) tlIds.add(range.fk_to_column_id);
+      });
+      return Array.from(tlIds) as Array<string>;
     }
     return [];
   }
@@ -897,6 +945,16 @@ export default class View implements ViewType {
             ncMeta,
           );
           break;
+        case ViewTypes.TIMELINE:
+          await TimelineViewColumn.insert(
+            context,
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+          break;
         case ViewTypes.FORM:
           await FormViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
@@ -1007,6 +1065,18 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.TIMELINE:
+        {
+          col = await TimelineViewColumn.insert(
+            context,
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+        }
+        break;
     }
 
     return col;
@@ -1036,6 +1106,7 @@ export default class View implements ViewType {
       | KanbanViewColumn
       | MapViewColumn
       | CalendarViewColumn
+      | TimelineViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
@@ -1063,6 +1134,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.CALENDAR:
         columns = await CalendarViewColumn.list(context, viewId, ncMeta);
+        break;
+      case ViewTypes.TIMELINE:
+        columns = await TimelineViewColumn.list(context, viewId, ncMeta);
         break;
     }
 
@@ -1119,6 +1193,11 @@ export default class View implements ViewType {
       case ViewTypes.CALENDAR:
         tableName = MetaTable.CALENDAR_VIEW_COLUMNS;
         cacheScope = CacheScope.CALENDAR_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.TIMELINE:
+        tableName = MetaTable.TIMELINE_VIEW_COLUMNS;
+        cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
 
         break;
     }
@@ -1187,6 +1266,10 @@ export default class View implements ViewType {
       case ViewTypes.CALENDAR:
         table = MetaTable.CALENDAR_VIEW_COLUMNS;
         cacheScope = CacheScope.CALENDAR_VIEW_COLUMN;
+        break;
+      case ViewTypes.TIMELINE:
+        table = MetaTable.TIMELINE_VIEW_COLUMNS;
+        cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
     }
     let updateObj = extractProps(colData, ['order', 'show']);
 
@@ -1244,7 +1327,7 @@ export default class View implements ViewType {
         updateObj.show = true;
       }
     }
-    if (view.type === ViewTypes.CALENDAR) {
+    if (view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE) {
       updateObj = {
         ...updateObj,
         ...extractProps(colData, ['underline', 'bold', 'italic']),
@@ -1290,6 +1373,8 @@ export default class View implements ViewType {
         return FormViewColumn.get(context, colId, ncMeta);
       case ViewTypes.CALENDAR:
         return CalendarViewColumn.get(context, colId, ncMeta);
+      case ViewTypes.TIMELINE:
+        return TimelineViewColumn.get(context, colId, ncMeta);
     }
     return null;
   }
@@ -1415,6 +1500,17 @@ export default class View implements ViewType {
           );
         case ViewTypes.CALENDAR:
           return await CalendarViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
+        case ViewTypes.TIMELINE:
+          return await TimelineViewColumn.insert(
             context,
             {
               fk_view_id: viewId,
@@ -1761,6 +1857,23 @@ export default class View implements ViewType {
         CacheDelDirection.CHILD_TO_PARENT,
       );
     }
+
+    // For Timeline View, delete the range associated with viewId
+    if (view.type === ViewTypes.TIMELINE) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.TIMELINE_VIEW_RANGE,
+        {
+          fk_view_id: viewId,
+        },
+      );
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.TIMELINE_VIEW_RANGE}:${viewId}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
     await NocoCache.deepDel(
       context,
       `${columnTableScope}:${viewId}`,
@@ -2040,6 +2153,9 @@ export default class View implements ViewType {
       case ViewTypes.CALENDAR:
         viewType = 'calendar';
         break;
+      case ViewTypes.TIMELINE:
+        viewType = 'timeline';
+        break;
       default:
         viewType = 'view';
     }
@@ -2287,6 +2403,7 @@ export default class View implements ViewType {
         | KanbanViewColumn
         | MapViewColumn
         | CalendarViewColumn
+        | TimelineViewColumn
       )[];
     },
     view: View,
@@ -2309,7 +2426,7 @@ export default class View implements ViewType {
             'base_id',
             'source_id',
             'order',
-            ...(view.type === ViewTypes.CALENDAR
+            ...(view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE
               ? ['bold', 'italic', 'underline']
               : []),
             ...(view.type === ViewTypes.FORM
@@ -2361,6 +2478,20 @@ export default class View implements ViewType {
         );
         if (calendarRange) {
           calendarRangeColumns = calendarRange.ranges
+            .map((range) => [
+              range.fk_from_column_id,
+              (range as any).fk_to_column_id,
+            ])
+            .flat();
+        }
+      } else if (view.type == ViewTypes.TIMELINE) {
+        const timelineRange = await TimelineRange.read(
+          context,
+          view.id,
+          ncMeta,
+        );
+        if (timelineRange) {
+          calendarRangeColumns = timelineRange.ranges
             .map((range) => [
               range.fk_from_column_id,
               (range as any).fk_to_column_id,
@@ -2428,6 +2559,11 @@ export default class View implements ViewType {
         } else if (view.type === ViewTypes.FORM && isSystemColumn(column)) {
           show = false;
         } else if (view.type === ViewTypes.CALENDAR) {
+          if (!calendarRangeColumns) break;
+          if (calendarRangeColumns.includes(column.id)) {
+            show = true;
+          }
+        } else if (view.type === ViewTypes.TIMELINE) {
           if (!calendarRangeColumns) break;
           if (calendarRangeColumns.includes(column.id)) {
             show = true;
@@ -2506,6 +2642,14 @@ export default class View implements ViewType {
           MetaTable.CALENDAR_VIEW_COLUMNS,
           insertObjs,
         );
+        break;
+      case ViewTypes.TIMELINE:
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.TIMELINE_VIEW_COLUMNS,
+          insertObjs,
+        );
     }
   }
 
@@ -2524,10 +2668,12 @@ export default class View implements ViewType {
           | KanbanView
           | MapView
           | CalendarView
+          | TimelineView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
+          timeline_range?: Partial<TimelineRange>[];
           created_by: string;
           owned_by: string;
           expanded_record_mode?: ExpandedFormModeType;
@@ -2737,6 +2883,27 @@ export default class View implements ViewType {
 
         await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
         await CalendarView.insert(
+          context,
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+
+        break;
+      }
+      case ViewTypes.TIMELINE: {
+        const obj = extractProps(view, ['timeline_range']);
+        if (!obj.timeline_range) break;
+        const timelineRange = obj.timeline_range as Partial<TimelineRange>[];
+        timelineRange.forEach((range) => {
+          range.fk_view_id = view_id;
+        });
+
+        await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
+        await TimelineView.insert(
           context,
           {
             ...(copyFromView?.view || {}),
@@ -2969,6 +3136,9 @@ export default class View implements ViewType {
       case ViewTypes.CALENDAR:
         table = MetaTable.CALENDAR_VIEW_COLUMNS;
         break;
+      case ViewTypes.TIMELINE:
+        table = MetaTable.TIMELINE_VIEW_COLUMNS;
+        break;
     }
     return table;
   }
@@ -2996,6 +3166,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.CALENDAR:
         table = MetaTable.CALENDAR_VIEW;
+        break;
+      case ViewTypes.TIMELINE:
+        table = MetaTable.TIMELINE_VIEW;
         break;
     }
     return table;
@@ -3025,6 +3198,9 @@ export default class View implements ViewType {
       case ViewTypes.CALENDAR:
         scope = CacheScope.CALENDAR_VIEW_COLUMN;
         break;
+      case ViewTypes.TIMELINE:
+        scope = CacheScope.TIMELINE_VIEW_COLUMN;
+        break;
     }
     return scope;
   }
@@ -3052,6 +3228,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.CALENDAR:
         scope = CacheScope.CALENDAR_VIEW;
+        break;
+      case ViewTypes.TIMELINE:
+        scope = CacheScope.TIMELINE_VIEW;
         break;
     }
     return scope;
@@ -3099,6 +3278,9 @@ export default class View implements ViewType {
       case ViewTypes.CALENDAR:
         this.view = await CalendarView.get(context, this.id, ncMeta);
         break;
+      case ViewTypes.TIMELINE:
+        this.view = await TimelineView.get(context, this.id, ncMeta);
+        break;
     }
     return <T>this.view;
   }
@@ -3128,6 +3310,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.CALENDAR:
         this.view = await CalendarView.get(context, this.id, ncMeta);
+        break;
+      case ViewTypes.TIMELINE:
+        this.view = await TimelineView.get(context, this.id, ncMeta);
         break;
     }
     return this.view;

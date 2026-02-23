@@ -28,6 +28,7 @@ import * as nc_202602260000_rename_outline_to_list_view from './v0/nc_2026022600
 import * as nc_202602260636_view_sections from './v0/nc_202602260636_view_sections';
 import * as nc_202602251401_links_v2 from './v0/nc_202602251401_links_v2';
 import * as nc_202602270448_map_view_columns_add_source_id from './v0/nc_202602270448_map_view_columns_add_source_id';
+import * as nc_202602270729_timeline_view from './v0/nc_202602270729_timeline_view';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -67,6 +68,7 @@ export default class XcMigrationSourcev0 {
       'nc_202602260636_view_sections',
       'nc_202602251401_links_v2',
       'nc_202602270448_map_view_columns_add_source_id',
+      'nc_202602270729_timeline_view',
     ]);
   }
 
@@ -136,6 +138,8 @@ export default class XcMigrationSourcev0 {
         return nc_202602251401_links_v2;
       case 'nc_202602270448_map_view_columns_add_source_id':
         return nc_202602270448_map_view_columns_add_source_id;
+      case 'nc_202602270729_timeline_view':
+        return nc_202602270729_timeline_view;
     }
   }
 }

@@ -483,7 +483,7 @@ const handleEscape = (event: KeyboardEvent) => {
           ref="inputRef"
           v-model:value="searchQuery"
           :placeholder="searchInputPlaceholder"
-          class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
+          class="nc-list-search-input nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
           :class="`nc-theme-${theme}`"
           allow-clear
           :bordered="inputBordered"

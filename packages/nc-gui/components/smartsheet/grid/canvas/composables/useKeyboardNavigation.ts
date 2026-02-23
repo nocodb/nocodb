@@ -95,7 +95,7 @@ export function useKeyboardNavigation({
       return true
     }
 
-    if (isExpandedCellInputExist()) return
+    if (isExpandedCellInputExist() || isNcListSearchInputActive()) return
     if (isNcDropdownOpen()) return
     if (isCmdJActive() || cmdKActive()) return
 

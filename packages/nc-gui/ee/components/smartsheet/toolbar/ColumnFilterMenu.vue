@@ -414,7 +414,7 @@ const handleAiFilters = async (payload: {
       <div :key="filterKey">
         <template v-if="!isRestrictedEditor">
           <!-- EE: AI Filter Prompt — natural-language input that generates filter conditions via AI -->
-          <SmartsheetToolbarAiFilterPrompt @apply-filters="handleAiFilters" />
+          <SmartsheetToolbarAiFilterPrompt :is-parent-open="open" @apply-filters="handleAiFilters" />
 
           <SmartsheetToolbarColumnFilter
             ref="filterComp"

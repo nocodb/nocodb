@@ -207,7 +207,7 @@ const isMeSelected = (filter: FilterType) => {
  */
 const selectMe = async (filter: FilterType) => {
   if (isLocked.value) return
-  $e('a:pinned-filter:select-me')
+  $e('a:filter-pinned:select-me')
   if (isMultiValueOp(filter)) {
     const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
     const idx = values.indexOf(CURRENT_USER_TOKEN)
@@ -271,7 +271,7 @@ const getSelectedUsers = (filter: FilterType) => {
 /** Remove a select option value from a multi-value filter and save */
 const removeSelectValue = async (filter: FilterType, optionTitle: string) => {
   if (isLocked.value) return
-  $e('a:pinned-filter:remove-select-value')
+  $e('a:filter-pinned:remove-select-value')
   const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
   const idx = values.indexOf(optionTitle)
   if (idx >= 0) values.splice(idx, 1)
@@ -282,7 +282,7 @@ const removeSelectValue = async (filter: FilterType, optionTitle: string) => {
 /** Remove a user (by ID or CURRENT_USER_TOKEN) from a multi-value filter and save */
 const removeUserValue = async (filter: FilterType, userId: string) => {
   if (isLocked.value) return
-  $e('a:pinned-filter:remove-user-value')
+  $e('a:filter-pinned:remove-user-value')
   const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
   const idx = values.indexOf(userId)
   if (idx >= 0) values.splice(idx, 1)
@@ -456,7 +456,7 @@ const saveFilter = useDebounceFn(async (filter: FilterType) => {
  */
 const selectOption = async (filter: FilterType, option: any) => {
   if (isLocked.value) return
-  $e('a:pinned-filter:select-option')
+  $e('a:filter-pinned:select-option')
   if (isMultiValueOp(filter)) {
     const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
     const idx = values.indexOf(option.title)
@@ -473,7 +473,7 @@ const selectOption = async (filter: FilterType, option: any) => {
 /** Toggle a user in the filter value (by user ID) */
 const selectUser = async (filter: FilterType, user: any) => {
   if (isLocked.value) return
-  $e('a:pinned-filter:select-user')
+  $e('a:filter-pinned:select-user')
   if (isMultiValueOp(filter)) {
     const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
     const idx = values.indexOf(user.id)
@@ -502,7 +502,7 @@ const isAllSelected = (filter: FilterType) => {
 /** Select all options (for multi-value select-type filters) */
 const selectAllOptions = async (filter: FilterType) => {
   if (isLocked.value) return
-  $e('a:pinned-filter:select-all')
+  $e('a:filter-pinned:select-all')
   if (isSelectType(filter)) {
     const allTitles = getSelectOptions(filter).map((o: any) => o.title)
     filter.value = allTitles.join(',') || null
@@ -516,7 +516,7 @@ const selectAllOptions = async (filter: FilterType) => {
 /** Clear all selected values from the filter */
 const clearValue = async (filter: FilterType) => {
   if (isLocked.value) return
-  $e('a:pinned-filter:clear-value')
+  $e('a:filter-pinned:clear-value')
   filter.value = null
   await saveFilter(filter)
 }
@@ -525,7 +525,7 @@ const clearValue = async (filter: FilterType) => {
 const toggleEnabled = async (filter: FilterType) => {
   if (isLocked.value) return
   const newState = filter.enabled === false || filter.enabled === 0
-  $e('a:pinned-filter:toggle-enabled', { enabled: newState })
+  $e('a:filter-pinned:toggle-enabled', { enabled: newState })
   filter.enabled = !!newState
   await saveFilter(filter)
 }
@@ -533,7 +533,7 @@ const toggleEnabled = async (filter: FilterType) => {
 /** Unpin this filter from the toolbar (sets meta.pinned = false) */
 const unpinFilter = async (filter: FilterType) => {
   if (isLocked.value) return
-  $e('a:pinned-filter:unpin')
+  $e('a:filter-pinned:unpin')
   const filterMeta = parseProp(filter.meta) || {}
   filterMeta.pinned = false
   filter.meta = filterMeta

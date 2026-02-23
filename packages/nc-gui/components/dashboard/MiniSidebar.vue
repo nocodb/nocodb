@@ -11,8 +11,14 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading, isTemplatesPageOpened } =
-  storeToRefs(workspaceStore)
+const {
+  activeWorkspaceId,
+  activeWorkspace,
+  isWorkspaceSettingsPageOpened,
+  isIntegrationsPageOpened,
+  isWorkspacesLoading,
+  isTemplatesPageOpened,
+} = storeToRefs(workspaceStore)
 
 const {
   navigateToWorkspaceSettings,
@@ -102,7 +108,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           }"
         >
           <GeneralLoader v-if="isWorkspacesLoading" size="large" />
-          <WorkspaceMenu v-else />
+          <NcTooltip v-else placement="right" hide-on-click :arrow="false" :disabled="!activeWorkspace">
+            <template #title>
+              <div class="capitalize">{{ activeWorkspace?.title ?? '' }}</div>
+            </template>
+            <WorkspaceMenu />
+          </NcTooltip>
         </div>
       </DashboardMiniSidebarItemWrapper>
 

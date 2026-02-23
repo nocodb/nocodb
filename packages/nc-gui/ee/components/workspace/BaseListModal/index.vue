@@ -98,6 +98,12 @@ watch(
   },
 )
 
+const filteredWorkspaceList = computed(() => {
+  return workspacesList.value.filter(
+    (ws) => ws.id === modalState.selectedWorkspaceId || searchCompare(ws.title ?? '', modalState.searchQuery),
+  )
+})
+
 // Computed
 const selectedWorkspace = computed(() => {
   return workspacesList.value.find((ws) => ws.id === modalState.selectedWorkspaceId)
@@ -194,6 +200,7 @@ const hasNoSearchResults = computed(() => {
 // Workspace handlers
 const onSelectWorkspace = async (workspaceId: string) => {
   modalState.selectedWorkspaceId = workspaceId
+  modalState.searchQuery = ''
 
   if (workspaceBasesMap.value.get(workspaceId)) return
   await loadProjects('workspace', workspaceId)
@@ -267,7 +274,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
 
           <div class="flex-1 overflow-y-auto nc-scrollbar-thin flex flex-col px-2 py-1">
             <WorkspaceBaseListModalWorkspaceNode
-              v-for="workspace in workspacesList"
+              v-for="workspace in filteredWorkspaceList"
               :key="workspace.id"
               :workspace="workspace"
               :is-selected="modalState.selectedWorkspaceId === workspace.id"

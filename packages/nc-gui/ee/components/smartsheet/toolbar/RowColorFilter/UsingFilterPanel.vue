@@ -244,6 +244,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
               is-colour-filter
               :read-only="isLockedView || disabled"
               :is-loading-filter="isLoadingFilter"
+              :parent-enabled="true"
             >
               <template #root-header>
                 <div class="flex justify-between w-full pb-2">

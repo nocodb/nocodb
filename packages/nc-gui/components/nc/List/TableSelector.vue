@@ -194,7 +194,10 @@ defineExpose({
             </div>
           </template>
           <template v-if="$slots.listHeader" #listHeader>
-            <slot name="listHeader" />
+            <slot name="listHeader" :length="tableList.length" />
+          </template>
+          <template v-if="$slots.emptyState" #emptyState>
+            <slot name="emptyState" :length="tableList.length" />
           </template>
         </NcList>
       </template>

@@ -524,7 +524,7 @@ const customRow = (record: Record<string, any>) => ({
             dropdown-overlay-class-name="max-w-64 min-w-38"
             @update:value="selectedTableFilter = ($event as string) || ''"
           >
-            <template #listHeader>
+            <template #listHeader="{ length }">
               <div
                 class="flex items-center gap-2 mx-2 px-2 py-[5px] hover:bg-nc-bg-gray-light cursor-pointer rounded-md"
                 :class="{
@@ -537,7 +537,7 @@ const customRow = (record: Record<string, any>) => ({
                 <GeneralIcon v-if="!selectedTableFilter" icon="check" class="h-4 w-4 ml-auto text-nc-content-brand" />
               </div>
 
-              <NcDivider />
+              <NcDivider v-if="length" />
             </template>
             <template #placeholder>
               <div class="flex items-center gap-2">
@@ -547,6 +547,9 @@ const customRow = (record: Record<string, any>) => ({
               </div>
             </template>
             <template #placeholderTooltip> All Tables </template>
+            <template #emptyState="{ length }">
+              <NcSpanHidden v-if="!length" />
+            </template>
           </NcListTableSelector>
         </div>
 

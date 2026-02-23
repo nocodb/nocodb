@@ -19,7 +19,6 @@ export interface ScimConfigType {
   fk_workspace_id: string;
   enabled: boolean;
   provisioning_token: string; // encrypted
-  base_url: string; // generated SCIM endpoint URL
   role_mapping?: Record<string, any>; // map IdP group names to NocoDB roles
   created_at?: Date;
   updated_at?: Date;
@@ -30,7 +29,6 @@ export default class ScimConfig implements ScimConfigType {
   fk_workspace_id: string;
   enabled: boolean;
   provisioning_token: string;
-  base_url: string;
   role_mapping?: Record<string, any>;
   created_at?: Date;
   updated_at?: Date;
@@ -75,7 +73,6 @@ export default class ScimConfig implements ScimConfigType {
       'fk_workspace_id',
       'enabled',
       'provisioning_token',
-      'base_url',
       'role_mapping',
     ]);
 
@@ -102,7 +99,6 @@ export default class ScimConfig implements ScimConfigType {
     const updateObj: Record<string, any> = extractProps(config, [
       'enabled',
       'provisioning_token',
-      'base_url',
       'role_mapping',
     ]);
 

@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { PlanFeatureTypes } from 'nocodb-sdk';
@@ -37,9 +38,12 @@ export class ScimConfigController {
   async getConfig(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
+    @Req() req: any,
   ) {
     await this.checkScimFeature(context);
-    return this.scimConfigService.getConfig(context, workspaceId);
+    return this.scimConfigService.getConfig(context, workspaceId, {
+      ncSiteUrl: req.ncSiteUrl,
+    });
   }
 
   @Post('/api/v3/meta/workspaces/:workspaceId/scim/config')
@@ -50,10 +54,12 @@ export class ScimConfigController {
   async initializeConfig(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
+    @Req() req: any,
   ) {
     await this.checkScimFeature(context);
     return this.scimConfigService.initializeConfig(context, {
       workspaceId,
+      ncSiteUrl: req.ncSiteUrl,
     });
   }
 
@@ -78,10 +84,12 @@ export class ScimConfigController {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Body() config: { enabled?: boolean; role_mapping?: Record<string, any> },
+    @Req() req: any,
   ) {
     await this.checkScimFeature(context);
     return this.scimConfigService.updateConfig(context, {
       workspaceId,
+      ncSiteUrl: req.ncSiteUrl,
       config,
     });
   }

@@ -206,6 +206,7 @@ const FEATURES = [
     enabled: false,
     version: 1,
     isEngineering: true,
+    isAdvanced: true,
     isEE: true,
   },
 ] as const

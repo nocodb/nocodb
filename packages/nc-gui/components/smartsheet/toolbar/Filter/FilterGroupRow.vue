@@ -78,6 +78,9 @@ const isDisabled = computed(() => {
 const isChildLogicalOpChangeAllowed = computed(() => {
   return new Set(vModel.value.children?.slice(1).map((filter) => filter.logical_op)).size > 1
 })
+
+// For now hide toggle filter enabled feature
+const isAllowFilterEnableToggle = false
 // #endregion
 
 // #region event handling
@@ -222,7 +225,7 @@ const onEnabledChange = (val: boolean | Event) => {
       >
         <template #nestedRowStart>
           <NcCheckbox
-            v-if="isEeUI"
+            v-if="isEeUI && isAllowFilterEnableToggle"
             :checked="isFilterEnabled"
             size="default"
             :disabled="isDisabled || parentEnabled === false"

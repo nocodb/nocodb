@@ -1052,7 +1052,7 @@ defineExpose({
                 >
                   <template #start>
                     <NcCheckbox
-                      v-if="isEeUI"
+                      v-if="isEeUI && isViewFilter"
                       :checked="filter.enabled !== false"
                       size="default"
                       :disabled="isLockedView || readOnly"
@@ -1136,7 +1136,7 @@ defineExpose({
 
           <div v-else class="flex items-center gap-2 w-full">
             <NcCheckbox
-              v-if="isEeUI"
+              v-if="isEeUI && isViewFilter"
               :checked="filter.enabled !== false"
               size="default"
               :disabled="isLockedView || readOnly"

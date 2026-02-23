@@ -73,6 +73,9 @@ const isFilterSaving = ref(false)
 
 const localFilterValue = ref('')
 
+// For now hide toggle filter enabled feature
+const isAllowFilterEnableToggle = false
+
 /**
  * We are using debounce to save filter value so we have to sync the value from localFilterValue to vModel.value.value
  */
@@ -434,7 +437,7 @@ const onChangeToDynamic = async () => {
     v-bind="containerProps"
   >
     <!-- #region enabled checkbox (EE only) -->
-    <div v-if="isEeUI" class="flex items-center pl-2 pr-1">
+    <div v-if="isEeUI && isAllowFilterEnableToggle" class="flex items-center pl-2 pr-1">
       <NcCheckbox
         :checked="isFilterEnabled"
         size="default"
@@ -449,7 +452,7 @@ const onChangeToDynamic = async () => {
     <template v-if="index === 0">
       <div
         class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label"
-        :class="isEeUI ? 'pl-1' : 'pl-3'"
+        :class="isEeUI && isAllowFilterEnableToggle ? 'pl-1' : 'pl-3'"
         v-bind="logicalOpsProps"
       >
         {{ $t('labels.where') }}

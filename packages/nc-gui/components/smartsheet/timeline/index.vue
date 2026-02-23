@@ -60,6 +60,8 @@ const {
   groupWrapperChangePage,
 } = useViewGroupByOrThrow()
 
+const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
+
 const router = useRouter()
 const route = useRoute()
 
@@ -147,7 +149,14 @@ const onFloatingNewRecord = () => {
 
 const reloadData = async () => {
   if (isGroupBy.value) {
-    await loadGroups({}, rootGroup.value)
+    isViewDataLoading.value = true
+    isPaginationLoading.value = true
+    try {
+      await loadGroups({}, rootGroup.value)
+    } finally {
+      isViewDataLoading.value = false
+      isPaginationLoading.value = false
+    }
   } else {
     await loadTimelineData()
   }
@@ -179,6 +188,17 @@ watch([currentDate, zoomLevel, timelineRange], () => {
 watch(isGroupBy, () => {
   reloadData()
 })
+
+// When group-by fields change, reload data
+watch(
+  groupBy,
+  () => {
+    if (isGroupBy.value) {
+      reloadData()
+    }
+  },
+  { deep: true },
+)
 
 // --- Shared date header for grouped layout ---
 const GROUP_SIDEBAR_WIDTH = TIMELINE_GROUP_SIDEBAR_WIDTH

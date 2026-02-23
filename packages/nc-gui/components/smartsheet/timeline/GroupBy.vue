@@ -44,6 +44,30 @@ const _depth = props.depth ?? 0
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
+const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
+
+// Wrapper function to manage loading state when loading group data
+const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
+  isViewDataLoading.value = true
+  isPaginationLoading.value = true
+
+  await props.loadGroupData(group, force, params)
+
+  isViewDataLoading.value = false
+  isPaginationLoading.value = false
+}
+
+// Wrapper function to manage loading state when loading groups
+const _loadGroups = async (params?: any, group?: Group, options?: { triggerChildOnly?: boolean }) => {
+  isViewDataLoading.value = true
+  isPaginationLoading.value = true
+
+  await props.loadGroups(params, group, options)
+
+  isViewDataLoading.value = false
+  isPaginationLoading.value = false
+}
+
 // Expanded groups tracker — plain object for reliable Vue reactivity
 const expandedGroups = ref<Record<string, boolean>>({})
 // Track keys we've already processed so we don't re-expand manually collapsed groups
@@ -60,11 +84,11 @@ const toggleGroup = async (grp: any) => {
     // Load data on expand if not yet loaded
     if (grp.nested) {
       if (!grp.children?.[0]?.children?.length) {
-        await props.loadGroups({}, grp, { triggerChildOnly: true })
+        await _loadGroups({}, grp, { triggerChildOnly: true })
       }
     } else {
       if (!grp.rows?.length) {
-        await props.loadGroupData(grp)
+        await _loadGroupData(grp)
       }
     }
   }
@@ -75,6 +99,21 @@ watch(
   () => props.group?.children,
   (children) => {
     if (!children) return
+
+    // If this is the root group, check if we have a completely new set of children
+    // (different grouping configuration). If so, reset tracking state.
+    if (props.group.root && children.length > 0) {
+      const currentKeys = new Set(children.map((g) => String(g.key)))
+      const hasNewKeys = Array.from(currentKeys).some((k) => !seenKeys.has(k))
+      const hasOldKeys = Array.from(seenKeys).some((k) => !currentKeys.has(k))
+
+      // If we have both new keys and missing old keys, this is a different grouping
+      if (hasNewKeys && hasOldKeys) {
+        seenKeys.clear()
+        expandedGroups.value = {}
+      }
+    }
+
     let changed = false
     const updates: Record<string, boolean> = {}
     for (const grp of children) {
@@ -86,11 +125,11 @@ watch(
         changed = true
         // Load data for leaf groups
         if (!grp.nested && !grp.rows?.length) {
-          props.loadGroupData(grp)
+          _loadGroupData(grp)
         }
         // Load sub-groups for nested groups
         if (grp.nested && !grp.children?.length) {
-          props.loadGroups({}, grp, { triggerChildOnly: true })
+          _loadGroups({}, grp, { triggerChildOnly: true })
         }
       }
     }
@@ -103,9 +142,9 @@ watch(
 
 const reloadViewDataHandler = () => {
   if (props.group.nested) {
-    props.loadGroups({}, props.group)
+    _loadGroups({}, props.group)
   } else {
-    props.loadGroupData(props.group, true)
+    _loadGroupData(props.group, true)
   }
 }
 
@@ -120,7 +159,7 @@ onBeforeUnmount(async () => {
 // Root auto-load: if root has no children, load groups
 onMounted(async () => {
   if (props.group.root === true && !props.group?.children?.length) {
-    await props.loadGroups({}, props.group)
+    await _loadGroups({}, props.group)
   }
 })
 </script>

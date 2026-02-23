@@ -46,10 +46,15 @@ const selectedColumnLabel = computed(() => {
   return `${count} fields selected`
 })
 
+// Debounce group set loading to avoid redundant API calls when toggling multiple fields quickly
+const debouncedLoadGroupSets = useDebounceFn(() => {
+  loadGroupSets()
+}, 500)
+
 const onSelectField = (value: any) => {
   config.value.selectedFieldIds = value
   saveConfig()
-  loadGroupSets()
+  debouncedLoadGroupSets()
 }
 
 onMounted(() => {

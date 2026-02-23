@@ -133,9 +133,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       .filter(Boolean) as ColumnType[]
   })
 
-  // Backward compat: first selected field
-  const selectedField = computed(() => selectedFields.value[0] ?? null)
-
   const selectedView = computed(() => {
     if (!config.value.selectedViewId) return null
     return views.value.find((view) => view.id === config.value.selectedViewId)
@@ -452,7 +449,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const nextSet = async () => {
     if (hasNextGroup.value) {
-      currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
       resetMergeState()
 
       currentGroupIndex.value++
@@ -876,7 +872,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     tableList,
     viewList,
     availableFields,
-    selectedField,
     selectedFields,
     groupSetsPaginationData,
     currentGroupIndex,

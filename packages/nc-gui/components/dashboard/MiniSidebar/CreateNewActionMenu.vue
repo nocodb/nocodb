@@ -25,6 +25,8 @@ const { activeView, isListViewEnabled } = storeToRefs(viewsStore)
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isVisibleCreateNew = ref(false)
 
 const baseCreateDlg = ref(false)
@@ -260,7 +262,7 @@ const hasDashboardCreateAccess = computed(() => {
                   <div>{{ $t('objects.viewType.list') }}</div>
                 </NcMenuItem>
               </template>
-              <NcMenuItem data-testid="mini-sidebar-view-create-timeline" @click="onOpenModal({ type: ViewTypes.TIMELINE })">
+              <NcMenuItem v-if="isFeatureEnabled(FEATURE_FLAG.TIMELINE)" data-testid="mini-sidebar-view-create-timeline" @click="onOpenModal({ type: ViewTypes.TIMELINE })">
                 <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.timeline') }}</div>
               </NcMenuItem>

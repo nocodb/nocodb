@@ -477,7 +477,14 @@ const customRow = (record: Record<string, any>) => ({
     </NcTooltip>
 
     <!-- ==================== MANAGER MODAL ==================== -->
-    <NcModal v-model:visible="showManager" centered :footer="null" size="md" wrap-class-name="nc-modal-record-template-manager">
+    <NcModal
+      v-model:visible="showManager"
+      centered
+      :footer="null"
+      size="md"
+      width="min(80vw, 960px)"
+      wrap-class-name="nc-modal-record-template-manager"
+    >
       <div class="h-full flex flex-col gap-5 nc-record-templates-manager">
         <!-- Header -->
         <div class="flex items-center justify-between">

@@ -23,8 +23,6 @@ import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
-import { TimelineColumnsService } from '~/services/timeline-columns.service';
-import { TimelinesService } from '~/services/timelines.service';
 import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
@@ -56,8 +54,6 @@ export class UiPostOperations
     protected kanbansService: KanbansService,
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
-    protected timelineColumnsService: TimelineColumnsService,
-    protected timelinesService: TimelinesService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
     protected syncService: SyncService,
@@ -276,12 +272,6 @@ export class UiPostOperations
           grid: payload,
           req,
         });
-      case 'timelineColumnUpdate':
-        return await this.timelineColumnsService.timelineColumnUpdate(context, {
-          timelineViewColumnId: req.query.timelineViewColumnId,
-          timeline: payload,
-          req,
-        });
       case 'viewColumnCreate':
         return await this.viewColumnsService.columnAdd(context, {
           viewId: req.query.viewId,
@@ -447,13 +437,6 @@ export class UiPostOperations
           user: req.user,
           req,
         });
-      case 'timelineViewCreate':
-        return await this.timelinesService.timelineViewCreate(context, {
-          timeline: payload,
-          tableId: req.query.tableId,
-          user: req.user,
-          req,
-        });
       case 'gridViewUpdate':
         return await this.gridsService.gridViewUpdate(context, {
           viewId: req.query.viewId,
@@ -494,12 +477,6 @@ export class UiPostOperations
         return await this.calendarsService.calendarViewUpdate(context, {
           calendarViewId: req.query.viewId,
           calendar: payload,
-          req,
-        });
-      case 'timelineViewUpdate':
-        return await this.timelinesService.timelineViewUpdate(context, {
-          timelineViewId: req.query.viewId,
-          timeline: payload,
           req,
         });
       case 'nestedDataLink':

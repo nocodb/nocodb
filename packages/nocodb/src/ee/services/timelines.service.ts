@@ -24,10 +24,7 @@ import NocoSocket from '~/socket/NocoSocket';
 export class TimelinesService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async timelineViewGet(
-    context: NcContext,
-    param: { timelineViewId: string },
-  ) {
+  async timelineViewGet(context: NcContext, param: { timelineViewId: string }) {
     return await TimelineView.get(context, param.timelineViewId);
   }
 

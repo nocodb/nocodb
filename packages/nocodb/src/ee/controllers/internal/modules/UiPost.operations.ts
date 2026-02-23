@@ -82,8 +82,6 @@ export class UiPostOperations
       kanbansService,
       mapsService,
       calendarsService,
-      timelineColumnsService,
-      timelinesService,
       commentsService,
       bulkDataAliasService,
       syncService,
@@ -152,6 +150,25 @@ export class UiPostOperations
         return await this.listsService.listViewUpdate(context, {
           listViewId: req.query.viewId,
           list: payload,
+          req,
+        });
+      case 'timelineColumnUpdate':
+        return await this.timelineColumnsService.timelineColumnUpdate(context, {
+          timelineViewColumnId: req.query.timelineViewColumnId,
+          timeline: payload,
+          req,
+        });
+      case 'timelineViewCreate':
+        return await this.timelinesService.timelineViewCreate(context, {
+          timeline: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
+      case 'timelineViewUpdate':
+        return await this.timelinesService.timelineViewUpdate(context, {
+          timelineViewId: req.query.viewId,
+          timeline: payload,
           req,
         });
     }

@@ -21,7 +21,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { blockMapView, showUpgradeToUseMapView } = useEeConfig()
+const { blockMapView, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -275,7 +275,7 @@ async function onOpenModal({
                     />
                   </div>
                 </a-menu-item>
-                <a-menu-item v-if="isFeatureEnabled(FEATURE_FLAG.TIMELINE)" data-testid="topbar-view-create-timeline" @click="onOpenModal({ type: ViewTypes.TIMELINE })">
+                <a-menu-item v-if="isFeatureEnabled(FEATURE_FLAG.TIMELINE)" data-testid="topbar-view-create-timeline" @click="showUpgradeToUseTimelineView() || onOpenModal({ type: ViewTypes.TIMELINE })">
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
                     {{ $t('objects.viewType.timeline') }}

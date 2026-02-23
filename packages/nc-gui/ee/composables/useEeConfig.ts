@@ -209,6 +209,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CALENDAR_RANGE)
   })
 
+  const blockTimelineView = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
+  })
+
   const blockTableAndFieldPermissions = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
   })
@@ -1062,6 +1066,22 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseTimelineView = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockTimelineView.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseTimelineView'),
+      content: t('upgrade.upgradeToUseTimelineViewSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.PLUS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TIMELINE_VIEW,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseRowColoring = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockRowColoring.value) return
 
@@ -1593,6 +1613,8 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewDashboard,
     blockCalendarRange,
     showUpgradeToUseCalendarRange,
+    blockTimelineView,
+    showUpgradeToUseTimelineView,
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,

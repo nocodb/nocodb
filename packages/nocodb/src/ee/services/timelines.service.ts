@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
+import { AppEvents, EventType, PlanFeatureTypes, ViewTypes } from 'nocodb-sdk';
 import type {
   TimelineUpdateReqType,
   UserType,
@@ -14,6 +14,7 @@ import {
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { Model, User, View } from '~/models';
 import TimelineView from '~/models/TimelineView';
 import NocoCache from '~/cache/NocoCache';
@@ -40,6 +41,11 @@ export class TimelinesService {
     },
     ncMeta?: MetaService,
   ) {
+    await checkForFeature(
+      context,
+      PlanFeatureTypes.FEATURE_TIMELINE_VIEW,
+    );
+
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
       param.timeline,

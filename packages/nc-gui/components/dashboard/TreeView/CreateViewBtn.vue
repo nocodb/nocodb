@@ -23,7 +23,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { blockMapView, showUpgradeToUseMapView } = useEeConfig()
+const { blockMapView, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -240,7 +240,11 @@ function onCreateSection() {
             </template>
           </div>
         </NcMenuItem>
-        <NcMenuItem v-if="isFeatureEnabled(FEATURE_FLAG.TIMELINE)" data-testid="sidebar-view-create-timeline" @click="onOpenModal({ type: ViewTypes.TIMELINE })">
+        <NcMenuItem
+          v-if="isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
+          data-testid="sidebar-view-create-timeline"
+          @click="showUpgradeToUseTimelineView() || onOpenModal({ type: ViewTypes.TIMELINE })"
+        >
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />

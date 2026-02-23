@@ -85,6 +85,7 @@ export enum PlanFeatureTypes {
   FEATURE_RLS = 'feature_rls',
   FEATURE_VIEW_SECTIONS = 'feature_view_sections',
   FEATURE_MAP_VIEW = 'feature_map_view',
+  FEATURE_TIMELINE_VIEW = 'feature_timeline_view',
 }
 
 export enum PlanTitles {
@@ -319,6 +320,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_RLS]: 'to use row-level security.',
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into sections.',
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
+  [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: 'to use timeline view.',
 };
 
 export const getUpgradeMessage = (

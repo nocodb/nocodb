@@ -72,7 +72,7 @@ const isLoading = ref(false)
 const templateToDelete = ref<TemplateType | null>(null)
 const searchQuery = ref('')
 const selectedTableFilter = ref<string>('')
-const orderBy = ref<Record<string, 'asc' | 'desc'>>({ title: 'asc' })
+const orderBy = ref<Record<string, 'asc' | 'desc'>>({})
 const currentPage = ref(1)
 const PAGE_SIZE = 5
 

@@ -202,11 +202,12 @@ export default class RecordTemplate {
       id,
     );
 
-    // Clear item cache and remove from parent list caches so they're refreshed
-    await NocoCache.deepDel(
+    // Patch only the changed fields on the cached item — list caches store
+    // item keys and fetch item data via mget, so this is sufficient.
+    await NocoCache.update(
       context,
       `${CacheScope.RECORD_TEMPLATE}:${id}`,
-      CacheDelDirection.CHILD_TO_PARENT,
+      updateObj,
     );
 
     return this.get(context, id, ncMeta);
@@ -259,11 +260,11 @@ export default class RecordTemplate {
       id,
     );
 
-    // Clear item + parent list caches so they're refreshed with new count
-    await NocoCache.deepDel(
+    // Patch the cached item in-place — no list cache manipulation needed.
+    await NocoCache.update(
       context,
       `${CacheScope.RECORD_TEMPLATE}:${id}`,
-      CacheDelDirection.CHILD_TO_PARENT,
+      { usage_count: (template.usage_count || 0) + 1 },
     );
 
     return this.get(context, id, ncMeta);

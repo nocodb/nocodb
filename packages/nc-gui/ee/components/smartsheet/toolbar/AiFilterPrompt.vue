@@ -11,6 +11,10 @@
  * Visibility: only shown when EE UI is active, AI features are enabled,
  * and an AI integration is configured in the workspace.
  */
+const props = defineProps<{
+  isParentOpen: boolean
+}>()
+
 const emit = defineEmits<{
   applyFilters: [
     payload: {
@@ -26,6 +30,8 @@ const emit = defineEmits<{
   ]
 }>()
 
+const { isParentOpen } = toRefs(props)
+
 const { $e } = useNuxtApp()
 
 const { predictFilters, aiIntegrationAvailable, isAiFeaturesEnabled } = useNocoAi()
@@ -39,6 +45,33 @@ const { activeTable } = storeToRefs(useTablesStore())
 const { activeProjectId } = storeToRefs(useBases())
 
 const prompt = ref('')
+
+const aiFilterInputRef = ref<HTMLInputElement>()
+
+// Auto-focus the AI filter input when the parent dropdown opens.
+// Follows the same pattern as NcList's focusInputBox (used by sort/group-by menus).
+//
+// Two triggers are needed:
+// 1. watch(isParentOpen) — handles re-opens (component stays mounted after first open)
+// 2. onMounted — handles the first open after page reload, because the component
+//    mounts *after* isParentOpen is already true (the watch doesn't fire for the initial value)
+const focusInput = () => {
+  setTimeout(() => {
+    aiFilterInputRef.value?.focus()
+  }, 100)
+}
+
+watch(isParentOpen, (isOpen) => {
+  if (isOpen) {
+    focusInput()
+  }
+})
+
+onMounted(() => {
+  if (isParentOpen.value) {
+    focusInput()
+  }
+})
 
 const isLoading = ref(false)
 
@@ -114,6 +147,7 @@ const handleKeydown = (e: KeyboardEvent) => {
     <div class="nc-ai-filter-input-wrapper">
       <GeneralIcon icon="ncAutoAwesome" class="nc-ai-filter-sparkle-icon" />
       <input
+        ref="aiFilterInputRef"
         v-model="prompt"
         class="nc-ai-filter-input"
         :placeholder="$t('title.aiFilterPlaceholder')"

@@ -6,6 +6,7 @@ import {
   type TableType,
   UITypes,
   type ViewType,
+  isSystemColumn,
 } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 import type { FilterRowChangeEvent } from '#imports'
@@ -13,13 +14,12 @@ import type { FilterRowChangeEvent } from '#imports'
 export function useViewRowColorOption(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>
   view: Ref<ViewType>
-  viewFieldsMap: ComputedRef<Record<string, any>>
 }) {
   const { $api } = useNuxtApp()
 
   const view = params.view
 
-  const viewFieldsMap = params.viewFieldsMap
+  const { fieldsMap: viewFieldsMap, isLocalMode, showSystemFields } = useViewColumnsOrThrow()
 
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -68,6 +68,25 @@ export function useViewRowColorOption(params: {
     if (!metas.value || Object.keys(metas.value).length === 0) return []
     return await composeColumnsForFilter({ rootMeta: meta.value, getMeta: async (id) => getMetaByKey(meta.value?.base_id, id) })
   }, [])
+
+  const targetFieldColumns = computed(() => {
+    return filterColumns.value.filter((c) => {
+      const field = viewFieldsMap.value[c.id]
+
+      if (!field) return false
+
+      if (!field.initialShow && isLocalMode.value) {
+        return false
+      }
+
+      // hide system columns if not enabled
+      if (!showSystemFields.value && isSystemColumn(c)) {
+        return false
+      }
+
+      return true
+    })
+  })
 
   const getViewById = (viewId: string) => {
     return views.value.find((v) => v.id === viewId)
@@ -305,6 +324,12 @@ export function useViewRowColorOption(params: {
     if (params.fk_target_column_id !== undefined) {
       conditionToUpdate.fk_target_column_id = params.fk_target_column_id
     }
+
+    // auto-select the first visible field when switching to cell colour type
+    if (conditionToUpdate.type === 'cell' && !conditionToUpdate.fk_target_column_id) {
+      conditionToUpdate.fk_target_column_id = targetFieldColumns.value[0]?.id
+    }
+
     try {
       await $api.internal.postOperation(
         meta.value!.fk_workspace_id!,
@@ -788,6 +813,7 @@ export function useViewRowColorOption(params: {
   return {
     rowColorInfo,
     filterColumns,
+    targetFieldColumns,
     filterPerViewLimit,
     isLoadingFilter,
     onDropdownOpen,

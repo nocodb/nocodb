@@ -91,6 +91,8 @@ const handleDelete = () => {
 }
 
 const handleColorChange = (color: string) => {
+  if (!isOptionVisible.value.baseRename) return
+
   onUpdateColor(props.base, color)
 }
 

@@ -1053,6 +1053,18 @@ const hoverLineLeft = computed(() => {
             </NcTooltip>
           </div>
 
+          <!-- Empty row for inserting a new record (flat mode only) -->
+          <!-- Clicks and drags are handled by the parent onGridBodyMouseDown (drag-to-create) -->
+          <div
+            v-if="!hideHeader && isUIAllowed('dataEdit')"
+            class="nc-timeline-add-row relative border-b border-nc-border-gray-light flex items-center cursor-cell transition-colors group"
+            :style="{ height: `${ROW_HEIGHT}px` }"
+          >
+            <div class="flex items-center gap-2 pl-3 text-nc-content-gray-muted">
+              <GeneralIcon icon="plus" class="w-4 h-4" />
+            </div>
+          </div>
+
           <!-- Drag-to-create dotted rectangle -->
           <div
             v-if="dragCreateActive && dragCreateStyle"
@@ -1143,6 +1155,25 @@ const hoverLineLeft = computed(() => {
 /* Header cell highlight on hover */
 .nc-timeline-header-hover {
   background-color: var(--nc-bg-gray-light);
+}
+
+/* Add-row: translucent wash so it reads as a placeholder, not a data row */
+.nc-timeline-add-row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--nc-bg-default);
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.nc-timeline-add-row:hover::before {
+  opacity: 0;
+}
+
+.nc-timeline-add-row:hover {
+  background-color: var(--nc-bg-gray-extralight);
 }
 
 /* Drag-to-create dotted rectangle */

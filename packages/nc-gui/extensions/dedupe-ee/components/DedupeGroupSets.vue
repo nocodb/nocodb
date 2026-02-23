@@ -2,14 +2,11 @@
 import { type TableType } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
 
-const { selectedField, groupSets, meta, loadMoreGroupSets, groupSetsPaginationData, scrollContainer } = useDedupeOrThrow()
+const { selectedFields, groupSets, meta, loadMoreGroupSets, groupSetsPaginationData, scrollContainer } = useDedupeOrThrow()
 
 provide(MetaInj, ref(meta.value as TableType))
 
-const getFieldValue = (group: Record<string, any>) => {
-  // The field title (e.g., "fNumber") is used as the key in the group object
-  const fieldTitle = selectedField?.value?.title
-  if (!fieldTitle) return null
+const getFieldValue = (group: Record<string, any>, fieldTitle: string) => {
   return group[fieldTitle]
 }
 
@@ -41,7 +38,7 @@ useInfiniteScroll(
     <div v-if="groupSets.length === 0 && !groupSetsPaginationData.isLoading" class="text-center py-12">
       <a-empty description="No duplicate groups found" :image="Empty.PRESENTED_IMAGE_SIMPLE">
         <template #description>
-          <span class="text-nc-content-gray-muted">Select a table, view, and field to find duplicates</span>
+          <span class="text-nc-content-gray-muted">Select a table, view, and field(s) to find duplicates</span>
         </template>
       </a-empty>
     </div>
@@ -52,22 +49,27 @@ useInfiniteScroll(
         :key="index"
         class="flex items-center justify-between px-3 py-2 border-1 border-nc-border-gray-medium rounded-lg hover:(border-nc-border-gray-dark shadow-hover) dark:hover:shadow-nc-bg-gray-light transition-all"
       >
-        <div class="flex items-center gap-3 flex-1 justify-between">
-          <NcTooltip v-if="selectedField" class="truncate leading-[20px]" show-on-truncate-only>
-            <template #title>
-              <SmartsheetPlainCell
-                :model-value="getFieldValue(group)"
-                :column="selectedField"
-                class="font-semibold leading-[20px]"
-              />
-            </template>
+        <div class="flex items-center gap-3 flex-1 justify-between min-w-0">
+          <div class="flex items-center gap-2 flex-1 min-w-0 overflow-hidden">
+            <template v-for="(field, fieldIndex) in selectedFields" :key="field.id">
+              <span v-if="fieldIndex > 0" class="text-nc-content-gray-muted flex-none">&middot;</span>
+              <NcTooltip class="truncate leading-[20px]" show-on-truncate-only>
+                <template #title>
+                  <SmartsheetPlainCell
+                    :model-value="getFieldValue(group, field.title!)"
+                    :column="field"
+                    class="font-semibold leading-[20px]"
+                  />
+                </template>
 
-            <SmartsheetPlainCell
-              :model-value="getFieldValue(group)"
-              :column="selectedField"
-              class="font-semibold text-nc-content-brand leading-[20px]"
-            />
-          </NcTooltip>
+                <SmartsheetPlainCell
+                  :model-value="getFieldValue(group, field.title!)"
+                  :column="field"
+                  class="font-semibold text-nc-content-brand leading-[20px]"
+                />
+              </NcTooltip>
+            </template>
+          </div>
 
           <div class="text-bodyDefaultSm text-nc-content-gray-muted whitespace-nowrap">Count: {{ group.count }}</div>
         </div>

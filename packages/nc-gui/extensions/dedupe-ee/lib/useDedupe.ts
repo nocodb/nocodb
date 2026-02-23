@@ -51,7 +51,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     selectedTableId: undefined,
     selectedViewId: undefined,
     selectedFieldIds: [],
-    selectedFieldId: undefined,
   })
 
   const currentStep = ref<'config' | 'review'>('config')
@@ -115,22 +114,27 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       }))
   })
 
-  const selectedField = computed(() => {
-    if (!config.value.selectedFieldId) return null
-    const field = meta.value?.columns?.find((col) => col.id === config.value.selectedFieldId)
-
-    if (!field) return field
-    ;(
-      field as ColumnType & {
-        permission: {
-          supported: boolean
-          tooltip: string
-        }
-      }
-    ).permission = { ...isColumnMergeSupported(field) }
-
-    return field
+  const selectedFields = computed(() => {
+    if (!config.value.selectedFieldIds.length) return []
+    return config.value.selectedFieldIds
+      .map((fieldId) => {
+        const field = meta.value?.columns?.find((col) => col.id === fieldId)
+        if (!field) return null
+        ;(
+          field as ColumnType & {
+            permission: {
+              supported: boolean
+              tooltip: string
+            }
+          }
+        ).permission = { ...isColumnMergeSupported(field) }
+        return field
+      })
+      .filter(Boolean) as ColumnType[]
   })
+
+  // Backward compat: first selected field
+  const selectedField = computed(() => selectedFields.value[0] ?? null)
 
   const selectedView = computed(() => {
     if (!config.value.selectedViewId) return null
@@ -141,7 +145,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const fields = computed(() => {
     return (meta.value?.columns || [])
       .filter((col) => {
-        if (isSystemColumn(col) || col.id === selectedField.value?.id) return false
+        if (isSystemColumn(col) || config.value.selectedFieldIds.includes(col.id!)) return false
         return true
       })
       .map((col) => ({
@@ -162,28 +166,34 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   })
 
   const computedWhere = computed(() => {
-    if (!selectedField.value?.id || !currentGroup.value) return ''
+    if (!selectedFields.value.length || !currentGroup.value) return ''
 
-    let value = currentGroup.value[selectedField.value.title!]
+    const fieldValues: Record<string, any> = {}
 
-    if (selectedField.value.uidt === UITypes.User) {
-      value = parseUserValue(value, false, true)
+    for (const field of selectedFields.value) {
+      if (!field?.id) continue
 
-      if (ncIsString(value)) {
-        value = value
-          .split(',')
-          .map((id: string) => id.trim())
-          .join(',')
+      let value = currentGroup.value[field.title!]
+
+      if (field.uidt === UITypes.User) {
+        value = parseUserValue(value, false, true)
+
+        if (ncIsString(value)) {
+          value = value
+            .split(',')
+            .map((id: string) => id.trim())
+            .join(',')
+        }
+      } else if (field.uidt === UITypes.JSON) {
+        value = parseJsonValue(value)
+      } else if (field.uidt === UITypes.Checkbox) {
+        value = parseCheckboxValue(value)
       }
-    } else if (selectedField.value.uidt === UITypes.JSON) {
-      value = parseJsonValue(value)
-    } else if (selectedField.value.uidt === UITypes.Checkbox) {
-      value = parseCheckboxValue(value)
+
+      fieldValues[field.id!] = value
     }
 
-    return buildWhereQueryForGroup({
-      [selectedField.value.id!]: value,
-    })
+    return buildWhereQueryForGroup(fieldValues)
   })
 
   const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = useInfiniteData({
@@ -215,7 +225,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const resetDedupeState = () => {
     // Clear field selection
     config.value.selectedFieldIds = []
-    config.value.selectedFieldId = undefined
 
     // Clear group sets (only when resetting completely, not when navigating between groups)
     groupSets.value = []
@@ -266,6 +275,11 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     const saved = extensionUserPrefsManager.get(user.value.id, extension.value.id)
     if (saved) {
       config.value = { ...config.value, ...saved }
+
+      // Migrate old single-field config to multi-field
+      if ((saved as any).selectedFieldId && (!config.value.selectedFieldIds || !config.value.selectedFieldIds.length)) {
+        config.value.selectedFieldIds = [(saved as any).selectedFieldId]
+      }
     }
 
     if (!config.value.selectedTableId && activeTableId.value) {
@@ -319,8 +333,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   // Find duplicate groups (only metadata, not all records)
   const findDuplicates = async (reset = true) => {
-    if (!config.value.selectedTableId || !config.value.selectedFieldId || !selectedField.value) {
-      message.error('Please select a table and field for duplicate detection')
+    if (!config.value.selectedTableId || !config.value.selectedFieldIds.length || !selectedFields.value.length) {
+      message.error('Please select a table and field(s) for duplicate detection')
       return
     }
 
@@ -455,7 +469,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         }
       }
     } else {
-      message.info('No more sets to review')
+      message.toast('No more sets to review')
       currentGroupIndex.value = 0
       currentStep.value = 'config'
     }
@@ -586,7 +600,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }).filter((i): i is number => i !== null)
 
     if (recordIndicesToDelete.length === 0) {
-      message.info('No records to delete')
+      message.toast('No records to delete')
       return
     }
 
@@ -674,19 +688,15 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
       await deleteRecordsAfterMerge(recordIndicesToDelete)
 
-      if (hasNextGroup.value) {
-        currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
-      }
-
       resetMergeState()
 
       if (!hasNextGroup.value) {
-        message.success('All duplicates have been merged and deleted')
+        message.toast('All duplicates have been merged and deleted')
         return true
       } else {
         currentGroupIndex.value++
 
-        message.success(`Merged and deleted ${recordIndicesToDelete.length} record(s)`)
+        message.toast(`Merged and deleted ${recordIndicesToDelete.length} record(s)`)
 
         return false
       }
@@ -705,7 +715,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   }
 
   async function loadGroupSets(reset = true) {
-    if (!config.value.selectedTableId || !config.value.selectedViewId || !config.value.selectedFieldId) {
+    if (!config.value.selectedTableId || !config.value.selectedViewId || !config.value.selectedFieldIds.length) {
       return
     }
 
@@ -731,8 +741,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         {
           offset: (groupSetsPaginationData.value.page! - 1) * groupSetsPaginationData.value.pageSize!,
           limit: groupSetsPaginationData.value.pageSize!,
-          sort: `+${selectedField.value?.title}` as any,
-          column_name: selectedField.value?.title,
+          sort: `+${selectedFields.value[0]?.title}` as any,
+          column_name: selectedFields.value.map((f) => f.title).join(','),
           minCount: 2, // Only return groups with count >= 2 (duplicates)
         } as any, // Type assertion needed until API types are updated
 
@@ -867,6 +877,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     viewList,
     availableFields,
     selectedField,
+    selectedFields,
     groupSetsPaginationData,
     currentGroupIndex,
     currentGroup,

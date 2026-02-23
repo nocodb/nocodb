@@ -507,7 +507,7 @@ const customRow = (record: Record<string, any>) => ({
             v-model:value="searchQuery"
             type="text"
             class="nc-search-template-input !min-w-[250px] !max-w-[400px] nc-input-sm flex-none"
-            :placeholder="`${$t('general.search')} ${$t('objects.recordTemplates').toLowerCase()}`"
+            :placeholder="$t('placeholder.searchRecordTemplates')"
             allow-clear
           >
             <template #prefix>

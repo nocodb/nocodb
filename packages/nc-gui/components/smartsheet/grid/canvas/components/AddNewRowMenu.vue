@@ -123,7 +123,7 @@ const templatesList = computed(() => {
         variant="small"
         class="!pt-1"
         :item-height="30"
-        search-input-placeholder="Search record template"
+        :search-input-placeholder="$t('placeholder.searchRecordTemplates')"
         @change="
         (option) => {
           setSelectedTemplate(option.value as string)

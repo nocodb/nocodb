@@ -2388,7 +2388,7 @@
     "youHaveNotCreatedAnyTeamsSubtitle": "Group members into teams for easier assignments and permission configurations",
     "enterTeamName": "Enter team name",
     "enterTeamDescription": "Enter team description",
-    "searchTemplates": "Search templates"
+    "searchRecordTemplates": "Search record templates"
   },
   "msg": {
     "replaceVersionAndGoLive": "Replace {version} and go live",

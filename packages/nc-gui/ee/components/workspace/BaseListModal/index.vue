@@ -18,7 +18,7 @@ const basesStore = useBases()
 const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { workspaceBasesMap, basesList } = storeToRefs(basesStore)
+const { workspaceBasesMap, basesList, isProjectsLoading } = storeToRefs(basesStore)
 const { loadProjects } = basesStore
 
 const { navigateToTable } = useTablesStore()
@@ -335,7 +335,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
           </WorkspaceBaseListModalBasesHeader>
 
           <!-- Bases Content - Loop-based rendering -->
-          <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col">
+          <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col relative">
             <WorkspaceBaseListModalBasesSection
               v-for="section in displayedSections"
               :key="section.type"
@@ -346,8 +346,23 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               :is-base-private="baseCheckers.private"
             />
 
+            <GeneralOverlay
+              v-if="isProjectsLoading && emptyFilterResult"
+              :model-value="true"
+              inline
+              transition
+              class="!bg-opacity-15"
+            >
+              <div class="flex flex-col items-center justify-center h-full w-full">
+                <a-spin size="large" />
+              </div>
+            </GeneralOverlay>
+
             <!-- Empty State -->
-            <div v-if="emptyFilterResult" class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted">
+            <div
+              v-else-if="emptyFilterResult"
+              class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
+            >
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
             </div>
 

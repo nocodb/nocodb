@@ -19,13 +19,26 @@ const isActiveWorkspace = computed(() => {
   return activeWorkspaceId.value === props.workspace?.id
 })
 
+const wsNodeRef = ref<HTMLDivElement>()
+
 const onSelect = () => {
   emit('select', props.workspace.id!)
 }
+
+watch([wsNodeRef, isActiveWorkspace], () => {
+  if (!wsNodeRef.value || !isActiveWorkspace.value) return
+
+  wsNodeRef.value.scrollIntoView({
+    behavior: 'smooth',
+    block: 'center',
+    inline: 'nearest',
+  })
+})
 </script>
 
 <template>
   <div
+    ref="wsNodeRef"
     :tabindex="0"
     class="nc-workspace-node group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer my-0.5 border-1 border-transparent"
     :class="[isSelected ? 'nc-selected-workspace-node is-selected' : 'hover:(bg-nc-bg-gray-light !border-nc-border-gray-medium)']"

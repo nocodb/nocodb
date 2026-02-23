@@ -8,11 +8,9 @@ const props = defineProps<{
 }>()
 
 // Get actions from provider
-const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDelete, onUpdateColor, onSelect } =
-  useWsBaseListActionsOrThrow()
+const { onRename, onDuplicate, onOpenErd, onOpenSettings, onDelete, onUpdateColor, onSelect } = useWsBaseListActionsOrThrow()
 
 const { isUIAllowed } = useRoles()
-const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const { activeProjectId } = storeToRefs(useBases())
 
@@ -68,19 +66,14 @@ const updateTitle = () => {
   tempTitle.value = ''
 }
 
-const handleToggleStarred = () => {
-  onToggleStarred(props.base)
-  isMenuOpen.value = false
-}
-
 const handleDuplicate = () => {
-  if (showRecordPlanLimitExceededModal()) return
   onDuplicate(props.base)
   isMenuOpen.value = false
 }
 
 const handleOpenErd = () => {
   const source = props.base.sources?.[0]
+
   if (source) {
     onOpenErd(props.base, source)
   }
@@ -201,13 +194,6 @@ const onMenuClick = (e: Event) => {
               <NcMenuItem v-if="isOptionVisible.baseRename" data-testid="nc-base-node-rename" @click="enableEditMode">
                 <GeneralIcon icon="rename" />
                 {{ $t('general.rename') }} {{ $t('objects.project').toLowerCase() }}
-              </NcMenuItem>
-
-              <!-- Toggle Starred -->
-              <NcMenuItem data-testid="nc-base-node-starred" @click="handleToggleStarred">
-                <GeneralIcon v-if="base.starred" icon="unStar" />
-                <GeneralIcon v-else icon="star" />
-                {{ base.starred ? $t('activity.removeFromStarred') : $t('activity.addToStarred') }}
               </NcMenuItem>
 
               <!-- Duplicate -->

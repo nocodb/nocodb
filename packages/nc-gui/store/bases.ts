@@ -19,6 +19,8 @@ export const useBases = defineStore('basesStore', () => {
 
   const baseRoles = ref<Record<string, any>>({})
 
+  const workspaceBasesMap = ref<Map<string, Map<string, NcProject>>>(new Map())
+
   const bases = ref<Map<string, NcProject>>(new Map())
 
   const basesList = computed<NcProject[]>(() =>
@@ -461,6 +463,7 @@ export const useBases = defineStore('basesStore', () => {
     baseHomeSearchQuery,
     getBaseRoles,
     baseRoles,
+    workspaceBasesMap,
 
     // Base Teams
     isLoadingBaseTeams,

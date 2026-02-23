@@ -477,15 +477,8 @@ const customRow = (record: Record<string, any>) => ({
     </NcTooltip>
 
     <!-- ==================== MANAGER MODAL ==================== -->
-    <NcModal
-      v-model:visible="showManager"
-      centered
-      :footer="null"
-      size="small"
-      :width="960"
-      wrap-class-name="nc-modal-record-template-manager"
-    >
-      <div class="flex flex-col gap-5 nc-record-templates-manager">
+    <NcModal v-model:visible="showManager" centered :footer="null" size="md" wrap-class-name="nc-modal-record-template-manager">
+      <div class="h-full flex flex-col gap-5 nc-record-templates-manager">
         <!-- Header -->
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 text-base font-semibold text-nc-content-gray">
@@ -561,7 +554,7 @@ const customRow = (record: Record<string, any>) => ({
           :is-data-loading="isLoading"
           sticky-first-column
           :custom-row="customRow"
-          class="nc-record-templates-table"
+          class="flex-1"
         >
           <template #bodyCell="{ column, record: tmpl }">
             <!-- Enabled toggle -->
@@ -683,19 +676,3 @@ const customRow = (record: Record<string, any>) => ({
     </GeneralDeleteModal>
   </div>
 </template>
-
-<style scoped lang="scss">
-.nc-record-templates-table {
-  // Fixed table container height: 54px header + 5 × 54px rows + 40px footer = 364px
-  // This ensures consistent modal height whether empty or with data
-  :deep(.nc-table-container) {
-    height: 364px;
-  }
-
-  // Force wrapper to fill the container minus footer (40px)
-  // min-height prevents collapse when few rows exist
-  :deep(.nc-table-wrapper) {
-    min-height: calc(100% - 40px);
-  }
-}
-</style>

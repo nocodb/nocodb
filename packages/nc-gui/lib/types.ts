@@ -775,6 +775,51 @@ interface NcListSearchBasisOptionType {
 }
 
 /**
+ * Props interface for a standalone NcListItem component.
+ * Used both by NcList internally and anywhere an individual list-item
+ * with consistent variant / state styling is needed.
+ */
+interface NcListItemProps {
+  /** The list item data object */
+  option: NcListItemType
+  /** Size variant — controls padding and min-height */
+  variant?: 'default' | 'small' | 'medium'
+  /** Index within the parent list (used for keyboard-active CSS class) */
+  index?: number
+  /** Key for reading the label from the option object */
+  optionLabelKey?: string
+  /** Whether this item is currently selected */
+  isSelected?: boolean
+  /** Whether this item is currently active / keyboard-focused */
+  isActive?: boolean
+  /** Show a checkmark icon when the item is selected */
+  showSelectedOption?: boolean
+  /**
+   * Whether to render the selected-item background highlight.
+   * NcList sets this to false while the user is moving with the keyboard
+   * so the hover effect doesn't compete with the keyboard-active highlight.
+   */
+  showHoverEffect?: boolean
+  /** Disable all pointer interaction (locked view) */
+  isLocked?: boolean
+  /** Remove horizontal padding and rounded corners (full-width mode) */
+  itemFullWidth?: boolean
+  /** Extra CSS classes forwarded to the item root element */
+  itemClassName?: string
+  /** Extra CSS classes forwarded to group-header items */
+  groupHeaderClassName?: string
+  /** Placement for the item-level tooltip (ncItemTooltip) */
+  itemTooltipPlacement?: TooltipPlacement
+  /**
+   * Secondary info shown next to the label when the item was matched via
+   * a search-basis option rather than by label text.
+   */
+  searchBasisInfo?: string
+  /** Min-height of group header rows in pixels */
+  groupHeaderHeight?: number
+}
+
+/**
  * Props interface for the List component
  */
 interface NcListProps {
@@ -1077,6 +1122,7 @@ export type {
   PermissionConfig,
   PermissionSelectorUser,
   NcListProps,
+  NcListItemProps,
   NcListItemType,
   NcListSearchBasisOptionType,
   MultiSelectRawValueType,

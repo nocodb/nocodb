@@ -64,9 +64,16 @@ const saveRange = async () => {
       },
     ]
 
-    await $api.dbView.update(activeView.value.id, {
-      timeline_range: range,
-    } as any)
+    await $api.internal.postOperation(
+      activeView.value.fk_workspace_id!,
+      activeView.value.base_id!,
+      { operation: 'timelineViewUpdate', viewId: activeView.value.id },
+      { timeline_range: range },
+    )
+
+    if (timelineMetaData.value) {
+      ;(timelineMetaData.value as any).timeline_range = range
+    }
 
     await loadTimelineData()
   } catch (e: any) {
@@ -86,9 +93,12 @@ const initialViewMode = computed({
     if (!activeView.value?.id) return
     try {
       const newMeta = { ...viewMetaProperties.value, initial_view: val }
-      await $api.dbView.update(activeView.value.id, {
-        meta: newMeta,
-      } as any)
+      await $api.internal.postOperation(
+        activeView.value.fk_workspace_id!,
+        activeView.value.base_id!,
+        { operation: 'timelineViewUpdate', viewId: activeView.value.id },
+        { meta: newMeta },
+      )
       if (timelineMetaData.value) {
         ;(timelineMetaData.value as any).meta = newMeta
       }

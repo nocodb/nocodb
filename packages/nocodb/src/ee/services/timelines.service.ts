@@ -154,12 +154,6 @@ export class TimelinesService {
     },
     ncMeta?: MetaService,
   ) {
-    validatePayload(
-      'swagger.json#/components/schemas/TimelineUpdateReq',
-      param.timeline,
-      true,
-    );
-
     const view = await View.get(context, param.timelineViewId, ncMeta);
 
     if (!view) {
@@ -181,7 +175,6 @@ export class TimelinesService {
       param.timelineViewId,
       ncMeta,
     );
-
     await TimelineView.update(
       context,
       param.timelineViewId,

@@ -96,10 +96,12 @@ const saveTimeout = ref<NodeJS.Timeout>()
 const isSettingContent = ref(false)
 
 /** Show rich text bubble menu on any non-empty text selection (including inside table cells),
- *  but NOT on multi-cell CellSelection (that gets the table context menus instead). */
+ *  but NOT on multi-cell CellSelection or image NodeSelection (those have their own UI). */
 const showRichTextMenu = ({ editor: e }: { editor: any }) => {
   const { selection } = e.state
   if (selection instanceof CellSelection) return false
+  // Hide for image selections — the image NodeView has its own toolbar
+  if (selection.node?.type.name === 'image') return false
   return !selection.empty
 }
 

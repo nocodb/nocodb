@@ -38,7 +38,6 @@ import { BaseUsersController } from '~/controllers/base-users.controller';
 import { BasesController } from '~/controllers/bases.controller';
 import { CachesController } from '~/controllers/caches.controller';
 import { CalendarsController } from '~/controllers/calendars.controller';
-import { TimelinesController } from '~/controllers/timelines.controller';
 import { ColumnsController } from '~/controllers/columns.controller';
 import { CommandPaletteController } from '~/controllers/command-palette.controller';
 import { CommentsController } from '~/controllers/comments.controller';
@@ -203,7 +202,6 @@ export const nocoModuleMetadata = {
           SourcesController,
           CachesController,
           CalendarsController,
-          TimelinesController,
           ColumnsController,
           CommentsController,
           FiltersController,

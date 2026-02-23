@@ -249,7 +249,6 @@ onMounted(() => {
 // Always reload fresh data when the manager opens (backend cache may have stale data)
 watch(showManager, (val) => {
   if (val) {
-    orderBy.value = { title: 'asc' }
     loadTemplates()
   }
 })

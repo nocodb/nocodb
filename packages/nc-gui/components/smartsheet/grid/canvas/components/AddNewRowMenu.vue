@@ -17,6 +17,8 @@ const props = withDefaults(
 
 const { removeInlineAddRecord } = toRefs(props)
 
+const { $e } = useNuxtApp()
+const { t } = useI18n()
 const { isAddNewRecordGridMode } = useGlobal()
 const { base } = storeToRefs(useBase())
 const { meta } = useSmartsheetStoreOrThrow()
@@ -55,10 +57,112 @@ const handleUseTemplate = async (tmpl: any) => {
     message.toast(await extractSdkResponseErrorMsg(e))
   }
 }
+
+const showOldUi = false
+
+const defaultOptions = computed(() => {
+  return [
+    {
+      label: `${t('activity.newRecord')} - ${t('objects.viewType.grid')}`,
+      value: 'true',
+      disabled: removeInlineAddRecord.value,
+      click: () => {
+        $e('c:row:add:grid')
+        setSelectedTemplate(null)
+        props.onNewRecordToGridClick(props.path ?? [])
+      },
+      icon: viewIcons[ViewTypes.GRID]?.icon,
+    },
+    {
+      label: `${t('activity.newRecord')} - ${t('objects.viewType.form')}`,
+      value: 'false',
+      disabled: removeInlineAddRecord.value,
+      click: () => {
+        $e('c:row:add:form')
+        setSelectedTemplate(null)
+        props.onNewRecordToFormClick(props.path ?? [])
+      },
+      icon: viewIcons[ViewTypes.FORM]?.icon,
+    },
+  ]
+})
+
+const templatesList = computed(() => {
+  return templates.value.map((tmpl: any) => ({
+    label: tmpl.title,
+    value: tmpl.id,
+    template: tmpl,
+  }))
+})
 </script>
 
 <template>
-  <NcMenu variant="small">
+  <div v-if="!showOldUi">
+    <NcList
+      :value="!selectedTemplate ? `${!!isAddNewRecordGridMode}` : ''"
+      :list="defaultOptions"
+      variant="small"
+      class="!h-auto !pt-1"
+      :item-height="30"
+      @change="
+        (option) => {
+          option.click()
+        }
+      "
+    >
+      <template #listItemExtraLeft="{ option }">
+        <component :is="option.icon" class="nc-view-icon text-inherit" />
+      </template>
+    </NcList>
+
+    <template v-if="templates.length">
+      <NcDivider class="!my-0" />
+      <NcList
+        :value="selectedTemplate?.id ?? ''"
+        :list="templatesList"
+        variant="small"
+        class="!pt-1"
+        :item-height="30"
+        search-input-placeholder="Search record template"
+        @change="
+        (option) => {
+          setSelectedTemplate(option.value as string)
+          handleUseTemplate(option.template)
+        }
+      "
+      >
+        <template #listItemExtraLeft>
+          <GeneralIcon icon="ncClipboardType" class="h-4 w-4 flex-none" />
+        </template>
+      </NcList>
+    </template>
+
+    <!-- Manage Templates -->
+    <NcDivider class="!my-0" />
+
+    <NcList
+      :value="''"
+      :list="[
+        {
+          label: $t('activity.manageTemplates'),
+          value: 'manage-templates',
+        },
+      ]"
+      variant="small"
+      class="!h-auto !pt-1"
+      :item-height="30"
+      @change="
+        (option) => {
+          onOpenTemplateManager?.()
+        }
+      "
+    >
+      <template #listItemExtraLeft>
+        <GeneralIcon icon="settings" class="w-4 h-4" />
+      </template>
+    </NcList>
+  </div>
+  <NcMenu v-else variant="small">
     <NcMenuItem
       v-e="['c:row:add:grid']"
       class="nc-new-record-with-grid group"

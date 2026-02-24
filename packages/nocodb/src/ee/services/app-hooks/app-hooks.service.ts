@@ -21,6 +21,7 @@ import type {
   SandboxDeleteEvent,
   SandboxDiscardEvent,
   SandboxMergeEvent,
+  ScimUserEvent,
   SortEvent,
   TableEvent,
   TeamCreateEvent,

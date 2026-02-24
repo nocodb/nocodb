@@ -57,6 +57,11 @@ import type {
   RlsPolicyCreatePayload,
   RlsPolicyDeletePayload,
   RlsPolicyUpdatePayload,
+  ScimUserDeactivatePayload,
+  ScimUserDeletePayload,
+  ScimUserProvisionPayload,
+  ScimUserReactivatePayload,
+  ScimUserUpdatePayload,
   ScriptCreatePayload,
   ScriptDeletePayload,
   ScriptDuplicatePayload,
@@ -112,11 +117,6 @@ import type {
   WorkspaceUpdatePayload,
   WorkspaceUserDeletePayload,
   WorkspaceUserUpdatePayload,
-  ScimUserProvisionPayload,
-  ScimUserUpdatePayload,
-  ScimUserDeactivatePayload,
-  ScimUserReactivatePayload,
-  ScimUserDeletePayload,
 } from 'nocodb-sdk';
 import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import type {
@@ -157,6 +157,7 @@ import type {
   ProjectUpdateEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
+<<<<<<< HEAD
   RecordTemplateCreateEvent,
   RecordTemplateDeleteEvent,
   RecordTemplateUpdateEvent,
@@ -164,6 +165,7 @@ import type {
   RlsPolicyCreateEvent,
   RlsPolicyDeleteEvent,
   RlsPolicyUpdateEvent,
+  ScimUserEvent,
   ScriptCreateEvent,
   ScriptDeleteEvent,
   ScriptDuplicateEvent,
@@ -218,7 +220,6 @@ import type {
   WorkspaceUserDeleteEvent,
   WorkspaceUserInviteEvent,
   WorkspaceUserUpdateEvent,
-  ScimUserEvent,
 } from '~/services/app-hooks/interfaces';
 import type { SelectOption } from '~/models';
 import { Audit, Column, User } from '~/models';

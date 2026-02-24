@@ -27,7 +27,7 @@ export class ScimAuthGuard extends AuthGuard('scim-bearer') {
     return super.canActivate(context);
   }
 
-  handleRequest(err, user, info) {
+  handleRequest(err, user, _info) {
     if (err || !user) {
       throw err || NcError.unauthorized('SCIM authentication failed');
     }

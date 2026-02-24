@@ -46,7 +46,9 @@ export class ScimGroupsService {
         {
           schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
           scimType: 'invalidValue',
-          detail: `Invalid workspaceRole "${extension.workspaceRole}". Valid values: ${Object.keys(SCIM_ROLE_MAP).join(', ')}`,
+          detail: `Invalid workspaceRole "${
+            extension.workspaceRole
+          }". Valid values: ${Object.keys(SCIM_ROLE_MAP).join(', ')}`,
           status: '400',
         },
         400,
@@ -333,7 +335,12 @@ export class ScimGroupsService {
 
     // Assign workspace role if provided
     if (workspaceRole) {
-      await this.assignWorkspaceRole(context, team.id, workspaceId, workspaceRole);
+      await this.assignWorkspaceRole(
+        context,
+        team.id,
+        workspaceId,
+        workspaceRole,
+      );
     }
 
     return this.toScimGroup(context, team, workspaceId);
@@ -498,8 +505,7 @@ export class ScimGroupsService {
     workspaceId: string,
     excludeMembers = false,
   ): Promise<any> {
-    const scimMeta =
-      typeof team.scim_meta === 'object' ? team.scim_meta : {};
+    const scimMeta = typeof team.scim_meta === 'object' ? team.scim_meta : {};
 
     // Check if team has a workspace role assignment
     const wsRole = await this.getWorkspaceRole(context, team.id, workspaceId);
@@ -841,5 +847,4 @@ export class ScimGroupsService {
       }
     }
   }
-
 }

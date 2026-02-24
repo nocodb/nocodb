@@ -3,12 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
 import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { ScimUserEvent } from '~/services/app-hooks/interfaces';
 import { NcError } from '~/helpers/catchError';
 import { User, WorkspaceUser } from '~/ee/models';
 import Workspace from '~/ee/models/Workspace';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import type { ScimUserEvent } from '~/services/app-hooks/interfaces';
 
 // Enterprise extension schema URI
 const ENTERPRISE_EXTENSION =
@@ -56,7 +56,9 @@ export class ScimUsersService {
         {
           schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
           scimType: 'invalidValue',
-          detail: `Invalid workspaceRole "${extension.workspaceRole}". Valid values: ${Object.keys(SCIM_ROLE_MAP).join(', ')}`,
+          detail: `Invalid workspaceRole "${
+            extension.workspaceRole
+          }". Valid values: ${Object.keys(SCIM_ROLE_MAP).join(', ')}`,
           status: '400',
         },
         400,
@@ -728,7 +730,7 @@ export class ScimUsersService {
    */
   private async toScimUser(
     workspaceUser: any,
-    workspaceId: string,
+    _workspaceId: string,
   ): Promise<any> {
     // Parse scim_meta if it's a JSON string (WorkspaceUser.get() doesn't auto-parse)
     let rawMeta = workspaceUser.scim_meta;

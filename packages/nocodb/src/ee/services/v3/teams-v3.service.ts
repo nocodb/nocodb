@@ -166,7 +166,7 @@ export class TeamsV3Service {
 
     // Transform to v3 response format
     const teamsV3: TeamV3ResponseType[] = teamsWithCounts.map((team) => {
-      const meta = parseMetaProp(team);
+      const meta = parseMetaProp(team) ?? {};
       return {
         id: team.id,
         title: team.title,

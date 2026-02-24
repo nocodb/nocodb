@@ -42,9 +42,6 @@ const up = async (knex: Knex) => {
     // Encrypted provisioning token for IdP authentication
     table.text('provisioning_token').notNullable();
 
-    // SCIM base URL for this workspace
-    table.text('base_url').notNullable();
-
     // Role mapping configuration (JSON)
     table.text('role_mapping').nullable();
 

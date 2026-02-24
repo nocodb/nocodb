@@ -13,7 +13,18 @@ export class ScimConfigService {
 
   constructor() {}
 
-  async getConfig(context: NcContext, workspaceId: string) {
+  /**
+   * Construct SCIM base URL at runtime from the request
+   */
+  private getBaseUrl(ncSiteUrl: string, workspaceId: string): string {
+    return `${ncSiteUrl}/api/v3/meta/workspaces/${workspaceId}/scim/v2`;
+  }
+
+  async getConfig(
+    context: NcContext,
+    workspaceId: string,
+    { ncSiteUrl }: { ncSiteUrl: string },
+  ) {
     const config = await ScimConfig.get(context, workspaceId);
 
     if (!config) {
@@ -23,6 +34,7 @@ export class ScimConfigService {
     // Don't expose the full provisioning_token in the response
     return {
       ...config,
+      base_url: this.getBaseUrl(ncSiteUrl, workspaceId),
       provisioning_token: config.provisioning_token ? '******' : null,
       token_exists: !!config.provisioning_token,
     };
@@ -32,6 +44,7 @@ export class ScimConfigService {
     context: NcContext,
     param: {
       workspaceId: string;
+      ncSiteUrl: string;
     },
   ) {
     // Check if config already exists
@@ -45,24 +58,17 @@ export class ScimConfigService {
     const provisioningToken = this.generateProvisioningToken();
     const hashedToken = await bcrypt.hash(provisioningToken, BCRYPT_ROUNDS);
 
-    // Build SCIM base URL from server config (not client-supplied to prevent SSRF)
-    const siteUrl =
-      process.env.NC_PUBLIC_URL ||
-      `http://localhost:${process.env.PORT || 8080}`;
-    const baseUrl = `${siteUrl}/api/v3/meta/workspaces/${param.workspaceId}/scim/v2`;
-
     const config = await ScimConfig.insert(context, {
       fk_workspace_id: param.workspaceId,
       enabled: false, // Start disabled until user activates
       provisioning_token: hashedToken,
-      base_url: baseUrl,
       role_mapping: {}, // Default empty role mapping
     });
 
     return {
       id: config.id,
       enabled: config.enabled,
-      base_url: config.base_url,
+      base_url: this.getBaseUrl(param.ncSiteUrl, param.workspaceId),
       provisioning_token: provisioningToken, // Return plaintext only on creation
       role_mapping: config.role_mapping,
     };
@@ -91,6 +97,7 @@ export class ScimConfigService {
     context: NcContext,
     param: {
       workspaceId: string;
+      ncSiteUrl: string;
       config: {
         enabled?: boolean;
         role_mapping?: Record<string, any>;
@@ -105,7 +112,9 @@ export class ScimConfigService {
 
     await ScimConfig.update(context, param.workspaceId, param.config);
 
-    return this.getConfig(context, param.workspaceId);
+    return this.getConfig(context, param.workspaceId, {
+      ncSiteUrl: param.ncSiteUrl,
+    });
   }
 
   async disableScim(context: NcContext, workspaceId: string) {

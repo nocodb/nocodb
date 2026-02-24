@@ -639,14 +639,6 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   await saveOrUpdate(filter, index)
 }
 
-const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
-  if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
-    return
-  }
-  onEnabledChange(filter, index)
-}
-
 const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
   const newEnabled = filter.enabled === false
   $e('a:filter:toggle-enabled', { enabled: newEnabled, isGroup: !!filter.is_group })
@@ -663,6 +655,14 @@ const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
       storeFilter.enabled = filter.enabled
     }
   }
+}
+
+const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
+  if (blockToggleFilter.value) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(filter, index)
 }
 
 const MAX_PINNED_FILTERS = 3

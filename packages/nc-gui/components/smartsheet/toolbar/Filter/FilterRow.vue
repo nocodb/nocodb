@@ -370,14 +370,6 @@ const isFilterEnabled = computed(() => vModel.value.enabled !== false && vModel.
 
 const effectiveEnabled = computed(() => props.parentEnabled !== false && props.parentEnabled !== 0 && isFilterEnabled.value)
 
-const onToggleFilterChange = (val: boolean | Event) => {
-  if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
-    return
-  }
-  onEnabledChange(val)
-}
-
 const onEnabledChange = (val: boolean | Event) => {
   const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
   const prevValue = vModel.value.enabled
@@ -400,6 +392,14 @@ const onEnabledChange = (val: boolean | Event) => {
       index: props.index,
     })
   }
+}
+
+const onToggleFilterChange = (val: boolean | Event) => {
+  if (blockToggleFilter.value) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(val)
 }
 
 async function onResetDynamicField() {

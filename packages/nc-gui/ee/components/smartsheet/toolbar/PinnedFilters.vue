@@ -17,7 +17,6 @@ import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, UITypes, comparis
  *  - If a filter's parent group is disabled, the pill is dimmed and toggling is prevented.
  */
 
-// ============ Data Sources ============
 const { allFilters, $api } = useSmartsheetStoreOrThrow()
 
 const meta = inject(MetaInj, ref())
@@ -45,16 +44,15 @@ const { t } = useI18n()
 
 const { getColor, isDark } = useTheme()
 
-const columns = computed(() => meta.value?.columns || [])
+const openFilterId = ref<string | null>(null)
+const searchQuery = ref('')
 
-// ============ Pinned Filters ============
+const columns = computed(() => meta.value?.columns || [])
 
 /** Filters that have `meta.pinned === true` — these are rendered as toolbar pills */
 const pinnedFilters = computed(() => {
   return allFilters.value.filter((f) => f.id && !f.is_group && parseProp(f.meta)?.pinned === true)
 })
-
-// ============ Column Helpers ============
 
 /** Resolve the column definition for a given filter */
 const getColumn = (filter: FilterType): ColumnType | undefined => {
@@ -90,8 +88,6 @@ const isNegatedOp = (filter: FilterType) => {
   )
 }
 
-// ============ Effective Enabled State ============
-
 /**
  * Recursively checks whether any ancestor filter group is disabled.
  * A pinned filter inside a disabled group should itself appear disabled.
@@ -110,8 +106,6 @@ const isEffectivelyEnabled = (filter: FilterType): boolean => {
   return !isParentGroupDisabled(filter)
 }
 
-// ============ Select Options ============
-
 /** Retrieve the column's select options with computed colours for display */
 const getSelectOptions = (filter: FilterType) => {
   const col = getColumn(filter)
@@ -127,8 +121,6 @@ const getSelectOptions = (filter: FilterType) => {
     .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
 }
 
-// ============ User Options ============
-
 const baseUsers = computed(() => {
   const baseId = (meta.value as any)?.base_id
   if (!baseId) return []
@@ -143,8 +135,6 @@ const userOptions = computed(() => {
     deleted: user.deleted,
   }))
 })
-
-// ============ Comparison Op Label ============
 
 /** Human-readable label for the filter's comparison operator (e.g. "contains any of") */
 const getComparisonOpLabel = (filter: FilterType) => {
@@ -165,8 +155,6 @@ const isValuelessOp = (filter: FilterType) => {
   const op = comparisonOpList(col.uidt as UITypes, col?.meta?.date_format).find((o) => o.value === filter.comparison_op)
   return op?.ignoreVal === true
 }
-
-// ============ @me (Current User) Token ============
 
 /**
  * Synthetic user object for CURRENT_USER_TOKEN ('@me').
@@ -200,6 +188,33 @@ const isMeSelected = (filter: FilterType) => {
   return values.includes(CURRENT_USER_TOKEN)
 }
 
+const closeDropdown = () => {
+  openFilterId.value = null
+  searchQuery.value = ''
+}
+
+const apiBaseId = computed(() => activeView.value?.base_id || (meta.value as any)?.base_id)
+
+const apiWorkspaceId = computed(() => activeView.value?.fk_workspace_id || base.value?.fk_workspace_id)
+
+/** Debounced save — persists filter changes to the server and triggers data reload */
+const saveFilter = useDebounceFn(async (filter: FilterType) => {
+  if (!filter.id || !apiWorkspaceId.value || !apiBaseId.value) return
+
+  try {
+    await $api.internal.postOperation(
+      apiWorkspaceId.value,
+      apiBaseId.value,
+      { operation: 'filterUpdate', filterId: filter.id },
+      { ...filter },
+    )
+    reloadDataHook.trigger({ shouldShowLoading: false, offset: 0 })
+    reloadAggregate?.trigger({ path: [] })
+  } catch (e) {
+    console.error('Failed to save pinned filter:', e)
+  }
+}, 500)
+
 /**
  * Toggle the "@me" token in the filter value.
  * For multi-value ops: adds/removes '@me' from the comma-separated list.
@@ -221,75 +236,6 @@ const selectMe = async (filter: FilterType) => {
   await saveFilter(filter)
 }
 
-// ============ Value Display (for pill — single value) ============
-
-/** Display text for a single-select filter's pill (first option title, or "N selected") */
-const getSelectValueDisplay = (filter: FilterType) => {
-  if (!filter.value) return null
-  const values = String(filter.value).split(',').filter(Boolean)
-  if (values.length === 0) return null
-  if (values.length > 1) return `${values.length} selected`
-  return values[0]
-}
-
-/** Resolve the full option object for a single-value select filter (for colour rendering) */
-const getSelectValueOption = (filter: FilterType) => {
-  if (!filter.value) return null
-  const options = getSelectOptions(filter)
-  const values = String(filter.value).split(',').filter(Boolean)
-  if (values.length !== 1) return null
-  return options.find((o: any) => o.title === values[0]) || null
-}
-
-// ============ Multi-Select Chips (for pill — multiple values) ============
-
-/** All selected select-type options as full option objects */
-const getSelectedSelectOptions = (filter: FilterType) => {
-  if (!filter.value) return []
-  const values = String(filter.value).split(',').filter(Boolean)
-  const options = getSelectOptions(filter)
-  return values.map((v) => options.find((o: any) => o.title === v)).filter(Boolean)
-}
-
-/**
- * All selected users as user objects.
- * Handles CURRENT_USER_TOKEN specially — returns the synthetic ME_USER_OBJECT.
- */
-const getSelectedUsers = (filter: FilterType) => {
-  if (!filter.value) return []
-  const values = String(filter.value).split(',').filter(Boolean)
-  return values
-    .map((v) => {
-      if (v === CURRENT_USER_TOKEN) {
-        return { ...ME_USER_OBJECT }
-      }
-      return userOptions.value.find((u: any) => u.id === v || u.email === v)
-    })
-    .filter(Boolean)
-}
-
-/** Remove a select option value from a multi-value filter and save */
-const removeSelectValue = async (filter: FilterType, optionTitle: string) => {
-  if (isLocked.value) return
-  $e('a:filter-pinned:remove-select-value')
-  const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
-  const idx = values.indexOf(optionTitle)
-  if (idx >= 0) values.splice(idx, 1)
-  filter.value = values.join(',') || null
-  await saveFilter(filter)
-}
-
-/** Remove a user (by ID or CURRENT_USER_TOKEN) from a multi-value filter and save */
-const removeUserValue = async (filter: FilterType, userId: string) => {
-  if (isLocked.value) return
-  $e('a:filter-pinned:remove-user-value')
-  const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
-  const idx = values.indexOf(userId)
-  if (idx >= 0) values.splice(idx, 1)
-  filter.value = values.join(',') || null
-  await saveFilter(filter)
-}
-
 /**
  * User display name for pill chips.
  * Prefers display_name; falls back to the part before '@' in the email.
@@ -299,30 +245,6 @@ const getUserDisplayName = (user: any) => {
   if (user?.email) return user.email.split('@')[0]
   return ''
 }
-
-/** Single-value user filter display text — handles @me token and "N selected" fallback */
-const getUserValueDisplay = (filter: FilterType) => {
-  if (!filter.value) return null
-  const values = String(filter.value).split(',').filter(Boolean)
-  if (values.length === 0) return null
-  if (values.length > 1) return `${values.length} selected`
-  if (values[0] === CURRENT_USER_TOKEN) return '@me'
-  const firstUser = userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0])
-  return getUserDisplayName(firstUser) || values[0]
-}
-
-/** Single-value user filter — returns the user object (or ME_USER_OBJECT for @me) */
-const getUserValueUser = (filter: FilterType) => {
-  if (!filter.value) return null
-  const values = String(filter.value).split(',').filter(Boolean)
-  if (values.length !== 1) return null
-  if (values[0] === CURRENT_USER_TOKEN) {
-    return { ...ME_USER_OBJECT }
-  }
-  return userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0]) || null
-}
-
-// ============ Pill Display: Single Value + Overflow Count ============
 
 /**
  * For the pill trigger, show only the first selected value and a "+N" overflow count.
@@ -376,10 +298,6 @@ const getUserOverflowCount = (filter: FilterType): number => {
   return values.length > 1 ? values.length - 1 : 0
 }
 
-// ============ Dropdown State ============
-const openFilterId = ref<string | null>(null)
-const searchQuery = ref('')
-
 const toggleDropdown = (filterId: string) => {
   if (openFilterId.value === filterId) {
     openFilterId.value = null
@@ -388,13 +306,6 @@ const toggleDropdown = (filterId: string) => {
   }
   searchQuery.value = ''
 }
-
-const closeDropdown = () => {
-  openFilterId.value = null
-  searchQuery.value = ''
-}
-
-// ============ Filtered Options (Search) ============
 
 /** Select options filtered by the dropdown search query */
 const getFilteredSelectOptions = (filter: FilterType) => {
@@ -410,8 +321,6 @@ const filteredUserOptions = computed(() => {
   return userOptions.value.filter((u: any) => u.display_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q))
 })
 
-// ============ Selection Checking ============
-
 const isSelectOptionSelected = (filter: FilterType, option: any) => {
   if (!filter.value) return false
   const values = String(filter.value).split(',')
@@ -423,31 +332,6 @@ const isUserOptionSelected = (filter: FilterType, user: any) => {
   const values = String(filter.value).split(',')
   return values.includes(user.id) || values.includes(user.email)
 }
-
-// ============ API Save ============
-const apiBaseId = computed(() => activeView.value?.base_id || (meta.value as any)?.base_id)
-
-const apiWorkspaceId = computed(() => activeView.value?.fk_workspace_id || base.value?.fk_workspace_id)
-
-/** Debounced save — persists filter changes to the server and triggers data reload */
-const saveFilter = useDebounceFn(async (filter: FilterType) => {
-  if (!filter.id || !apiWorkspaceId.value || !apiBaseId.value) return
-
-  try {
-    await $api.internal.postOperation(
-      apiWorkspaceId.value,
-      apiBaseId.value,
-      { operation: 'filterUpdate', filterId: filter.id },
-      { ...filter },
-    )
-    reloadDataHook.trigger({ shouldShowLoading: false, offset: 0 })
-    reloadAggregate?.trigger({ path: [] })
-  } catch (e) {
-    console.error('Failed to save pinned filter:', e)
-  }
-}, 500)
-
-// ============ Selection Actions ============
 
 /**
  * Toggle a select option in the filter value.

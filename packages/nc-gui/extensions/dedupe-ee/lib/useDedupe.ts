@@ -449,6 +449,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const nextSet = async () => {
     if (hasNextGroup.value) {
+      currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: false }
       resetMergeState()
 
       currentGroupIndex.value++
@@ -690,6 +691,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         message.toast('All duplicates have been merged and deleted')
         return true
       } else {
+        currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: false }
         currentGroupIndex.value++
 
         message.toast(`Merged and deleted ${recordIndicesToDelete.length} record(s)`)
@@ -712,6 +714,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   async function loadGroupSets(reset = true) {
     if (!config.value.selectedTableId || !config.value.selectedViewId || !config.value.selectedFieldIds.length) {
+      groupSets.value = []
+      groupSetsPaginationData.value = { ...getDefaultPaginationData(), isLoading: false }
       return
     }
 
@@ -737,7 +741,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         {
           offset: (groupSetsPaginationData.value.page! - 1) * groupSetsPaginationData.value.pageSize!,
           limit: groupSetsPaginationData.value.pageSize!,
-          sort: `+${selectedFields.value[0]?.title}` as any,
+          sort: selectedFields.value.map((f) => `+${f.title}`).join(',') as any,
           column_name: selectedFields.value.map((f) => f.title).join(','),
           minCount: 2, // Only return groups with count >= 2 (duplicates)
         } as any, // Type assertion needed until API types are updated

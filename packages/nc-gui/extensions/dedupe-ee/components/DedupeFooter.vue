@@ -129,7 +129,7 @@ const handleReview = async () => {
         </NcButton>
         <NcButton v-if="!canMerge" size="small" @click="handleSkip"> Skip record </NcButton>
         <NcDropdown v-else v-model:visible="confirmingMerge" placement="topRight">
-          <NcButton size="small" type="danger" :loading="isMerging" @click="confirmingMerge = true">
+          <NcButton size="small" type="danger" :loading="isMerging">
             {{
               ncIsNumber(mergeState.primaryRecordIndex)
                 ? `Merge and delete ${deleteRecordCount} record${deleteRecordCount !== 1 ? 's' : ''}`
@@ -137,9 +137,9 @@ const handleReview = async () => {
             }}
           </NcButton>
           <template #overlay>
-            <div class="p-3 flex flex-col gap-2 max-w-64">
-              <p class="text-sm font-semibold m-0">Are you sure?</p>
-              <p class="text-xs text-nc-content-gray-muted m-0">
+            <div class="p-3 flex flex-col gap-2 w-full max-w-md">
+              <p class="text-bodyBold m-0">Are you sure?</p>
+              <p class="text-bodyDefaultSm text-nc-content-gray-muted m-0">
                 {{ deleteRecordCount }} record{{ deleteRecordCount !== 1 ? 's' : '' }} will be permanently deleted.
               </p>
               <div class="flex items-center justify-end gap-2 mt-1">

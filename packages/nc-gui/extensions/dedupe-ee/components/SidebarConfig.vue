@@ -51,7 +51,7 @@ const debouncedLoadGroupSets = useDebounceFn(() => {
   loadGroupSets()
 }, 500)
 
-const onSelectField = (value: any) => {
+const onSelectField = (value: string[]) => {
   config.value.selectedFieldIds = value
   saveConfig()
   debouncedLoadGroupSets()

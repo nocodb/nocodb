@@ -257,9 +257,6 @@ export const nocoModuleEeMetadata = {
     /* Record Templates */
     RecordTemplatesController,
 
-    /* Maps */
-    MapTileController,
-
     // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
     // /* Workspace Teams V3 */
     // WorkspaceTeamsV3Controller,

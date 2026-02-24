@@ -81,19 +81,11 @@ onMounted(() => {
       @update:value="saveConfig"
     />
 
-    <a-form-item
-      name="columnIds"
-      class="!mb-0 nc-column-selector nc-force-layout-vertical"
-      @click.stop
-      @dblclick.stop
-    >
+    <a-form-item name="columnIds" class="!mb-0 nc-column-selector nc-force-layout-vertical" @click.stop @dblclick.stop>
       <template #label>
         <div>Field(s)</div>
       </template>
-      <NcListDropdown
-        v-model:is-open="isOpenColumnSelectDropdown"
-        :disabled="!config.selectedTableId || !config.selectedViewId"
-      >
+      <NcListDropdown v-model:is-open="isOpenColumnSelectDropdown" :disabled="!config.selectedTableId || !config.selectedViewId">
         <div class="flex-1 flex group items-center gap-2 min-w-0">
           <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
             <span
@@ -151,26 +143,5 @@ onMounted(() => {
 <style lang="scss" scoped>
 :deep(.ant-form-item label) {
   @apply text-captionBold;
-}
-
-.nc-column-selector.ant-form-item {
-  &.nc-force-layout-vertical {
-    @apply !flex-col;
-
-    & > .ant-form-item-label {
-      @apply pb-2 text-left;
-
-      &::after {
-        @apply hidden;
-      }
-
-      & > label {
-        @apply !h-auto;
-        &::after {
-          @apply !hidden;
-        }
-      }
-    }
-  }
 }
 </style>

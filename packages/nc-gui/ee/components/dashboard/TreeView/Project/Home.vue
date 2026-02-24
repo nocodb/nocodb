@@ -44,50 +44,6 @@ const sidebarTabs = computed<{ key: SidebarTab; icon: string; activeIcon: string
   { key: 'agents', icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
 ])
 
-const tabRefs = ref<(HTMLElement | null)[]>([])
-const tabPillStyle = ref<Record<string, string | number>>({ opacity: 0 })
-
-function updatePillPosition() {
-  const activeIndex = sidebarTabs.value.findIndex((t) => t.key === activeTab.value)
-  const el = tabRefs.value[activeIndex]
-  if (!el) {
-    tabPillStyle.value = { opacity: 0 }
-    return
-  }
-
-  const btn = el.querySelector('.nc-sidebar-tab-btn') as HTMLElement | null
-  if (!btn) {
-    tabPillStyle.value = { opacity: 0 }
-    return
-  }
-
-  const bar = el.closest('.nc-sidebar-tab-bar') as HTMLElement | null
-  if (!bar) {
-    tabPillStyle.value = { opacity: 0 }
-    return
-  }
-
-  const barRect = bar.getBoundingClientRect()
-  const btnRect = btn.getBoundingClientRect()
-
-  tabPillStyle.value = {
-    left: `${btnRect.left - barRect.left}px`,
-    width: `${btnRect.width}px`,
-    opacity: 1,
-  }
-}
-
-watch(activeTab, () => {
-  nextTick(() => {
-    setTimeout(updatePillPosition, 50)
-  })
-})
-
-onMounted(() => {
-  nextTick(() => {
-    setTimeout(updatePillPosition, 100)
-  })
-})
 
 // If only base is open, i.e in case of docs, base view is open and not the page view
 const baseViewOpen = computed(() => {
@@ -176,36 +132,28 @@ const onTabClick = (tab: SidebarTab) => {
       </DashboardSidebarHeaderWrapper>
 
       <!-- Icon Tab Bar -->
-      <div v-if="!isSharedBase" class="nc-sidebar-tab-bar relative flex items-center px-1 pt-1 pb-0.5">
-        <!-- Background pill for active tab -->
+      <div v-if="!isSharedBase" class="nc-sidebar-tab-bar flex items-center px-1 pt-1 pb-0.5">
         <div
-          class="nc-sidebar-tab-pill absolute h-7 rounded-md bg-nc-bg-brand transition-all duration-200"
-          :style="tabPillStyle"
-        />
-
-        <NcTooltip
-          v-for="(tab, index) in sidebarTabs"
+          v-for="tab in sidebarTabs"
           :key="tab.key"
-          :ref="(el: any) => { tabRefs[index] = el?.$el || el }"
-          :title="tab.label"
-          placement="bottom"
-          :disabled="activeTab === tab.key"
-          class="flex-1 flex justify-center z-1"
+          class="flex-1 flex justify-center"
         >
-          <button
-            v-e="[`c:sidebar:tab:${tab.key}`]"
-            class="nc-sidebar-tab-btn flex items-center justify-center h-7 rounded-md cursor-pointer border-none gap-1 bg-transparent transition-colors duration-150"
-            :class="{
-              'text-nc-content-brand-disabled': activeTab === tab.key,
-              'text-nc-content-gray-muted hover:bg-nc-bg-gray-medium hover:text-nc-content-gray-subtle': activeTab !== tab.key,
-            }"
-            :data-testid="`nc-sidebar-tab-${tab.key}`"
-            @click="onTabClick(tab.key)"
-          >
-            <GeneralIcon :icon="activeTab === tab.key ? tab.activeIcon : tab.icon" class="!h-4 w-4 flex-none" />
-            <span v-if="activeTab === tab.key" class="text-bodySm leading-none font-semibold">{{ tab.label }}</span>
-          </button>
-        </NcTooltip>
+          <NcTooltip :title="tab.label" placement="bottom" :disabled="activeTab === tab.key">
+            <button
+              v-e="[`c:sidebar:tab:${tab.key}`]"
+              class="nc-sidebar-tab-btn flex items-center justify-center h-7 rounded-md cursor-pointer border-none gap-1 transition-colors duration-150"
+              :class="{
+                'bg-nc-bg-brand text-nc-content-brand-disabled px-2': activeTab === tab.key,
+                'bg-transparent text-nc-content-gray-muted hover:bg-nc-bg-gray-medium hover:text-nc-content-gray-subtle w-7': activeTab !== tab.key,
+              }"
+              :data-testid="`nc-sidebar-tab-${tab.key}`"
+              @click="onTabClick(tab.key)"
+            >
+              <GeneralIcon :icon="activeTab === tab.key ? tab.activeIcon : tab.icon" class="!h-4 w-4 flex-none" />
+              <span v-if="activeTab === tab.key" class="text-bodySm leading-none font-semibold">{{ tab.label }}</span>
+            </button>
+          </NcTooltip>
+        </div>
       </div>
 
       <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
@@ -217,12 +165,8 @@ const onTabClick = (tab: SidebarTab) => {
               full-width
               class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-brand !hover:(text-nc-content-brand-disabled) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
-              icon-position="right"
               data-testid="nc-home-create-new-btn"
             >
-              <template #icon>
-                <GeneralIcon icon="chevronDown" class="flex-none" />
-              </template>
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncPlusCircle" />
 
@@ -257,7 +201,7 @@ const onTabClick = (tab: SidebarTab) => {
 
       <!-- Automation tab: show only Automation -->
       <template v-else-if="activeTab === 'automation'">
-        <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header />
+        <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header hide-create-button />
       </template>
 
       <!-- Agents tab: placeholder -->
@@ -316,8 +260,6 @@ const onTabClick = (tab: SidebarTab) => {
 }
 
 :deep(.nc-home-create-new-btn.nc-button) {
-  @apply !pr-1.5;
-
   &:not(.active) {
     @apply hover:bg-nc-bg-brand;
   }

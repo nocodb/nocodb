@@ -60,8 +60,6 @@ const handleUseTemplate = async (tmpl: any) => {
   }
 }
 
-const showOldUi = false
-
 const defaultOptions = computed(() => {
   return [
     {
@@ -99,7 +97,7 @@ const templatesList = computed(() => {
 </script>
 
 <template>
-  <div v-if="!showOldUi">
+  <div>
     <NcList
       :value="!selectedTemplate ? `${!!isAddNewRecordGridMode}` : ''"
       :list="defaultOptions"
@@ -181,75 +179,6 @@ const templatesList = computed(() => {
       </template>
     </NcList>
   </div>
-  <NcMenu v-else variant="small">
-    <NcMenuItem
-      v-e="['c:row:add:grid']"
-      class="nc-new-record-with-grid group"
-      :disabled="removeInlineAddRecord"
-      @click="
-        () => {
-          setSelectedTemplate(null)
-          onNewRecordToGridClick(path ?? [])
-        }
-      "
-    >
-      <div class="flex flex-row flex-1 items-center justify-start gap-x-2">
-        <component :is="viewIcons[ViewTypes.GRID]?.icon" class="nc-view-icon text-inherit" />
-        {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.grid') }}
-      </div>
-
-      <GeneralIcon v-if="!selectedTemplate && isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-nc-content-brand" />
-    </NcMenuItem>
-    <NcMenuItem
-      v-e="['c:row:add:form']"
-      class="nc-new-record-with-form group"
-      @click="
-        () => {
-          setSelectedTemplate(null)
-          onNewRecordToFormClick(path ?? [])
-        }
-      "
-    >
-      <div class="flex flex-row items-center flex-1 justify-start gap-x-2">
-        <component :is="viewIcons[ViewTypes.FORM]?.icon" class="nc-view-icon text-inherit" />
-        {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}
-      </div>
-
-      <GeneralIcon v-if="!selectedTemplate && !isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-nc-content-brand" />
-    </NcMenuItem>
-
-    <!-- Record Templates (when available) -->
-    <template v-if="templates.length > 0">
-      <NcDivider />
-      <NcMenuItem
-        v-for="tmpl in templates"
-        :key="tmpl.id"
-        v-e="['c:record-templates:use']"
-        class="nc-template-menu-item"
-        @click="
-          () => {
-            setSelectedTemplate(tmpl.id)
-            handleUseTemplate(tmpl)
-          }
-        "
-      >
-        <div class="flex items-center flex-1 gap-2">
-          <GeneralIcon icon="ncClipboardType" class="h-4 w-4 flex-none" />
-          <span class="truncate flex-1">{{ tmpl.title }}</span>
-        </div>
-        <GeneralIcon v-if="selectedTemplate?.id === tmpl.id" icon="check" class="w-4 h-4 text-primary" />
-      </NcMenuItem>
-    </template>
-
-    <!-- Manage Templates -->
-    <NcDivider />
-    <NcMenuItem class="nc-manage-templates" @click="onOpenTemplateManager?.()">
-      <div class="flex items-center gap-2">
-        <GeneralIcon icon="settings" class="w-4 h-4" />
-        <span>{{ $t('activity.manageTemplates') }}</span>
-      </div>
-    </NcMenuItem>
-  </NcMenu>
 </template>
 
 <style scoped lang="scss">

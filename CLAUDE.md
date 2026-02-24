@@ -175,48 +175,33 @@ For significant architectural or design decisions (not small implementation deta
 
 ## Frontend Patterns
 
-### Telemetry — `v-e` directive and `$e()`
+### Telemetry — `v-e` and `$e()`
 
-Track user interactions by adding a `v-e` directive on interactive elements. First element of the array is the event name, second optional element is metadata:
+Add `v-e` on interactive elements. `c:` = UI action, `a:` = API call. Format: `c:feature:sub-feature:action`.
 
 ```html
 <NcButton v-e="['c:table:create']">Create</NcButton>
 <a-switch v-e="['c:share:enable:toggle', { enabled: isPublic }]" />
 ```
 
-Event name conventions: `c:` = action/click on UI element, `a:` = API call. Use colon-separated hierarchy: `c:feature:sub-feature:action`.
+In script: `const { $e } = useNuxtApp()` → `$e('a:table:import', { type: 'csv' })`
 
-In script, use `$e` from `useNuxtApp()`:
-```ts
-const { $e } = useNuxtApp()
-$e('a:table:import', { type: 'csv' })
-```
+### Type guards from `nocodb-sdk`
 
-### Type utilities from `nocodb-sdk`
-
-These runtime type guards are auto-imported from `nocodb-sdk` — prefer them over `typeof`/`Array.isArray`:
-
+Auto-imported — prefer over `typeof` / `Array.isArray`:
 `ncIsString`, `ncIsArray`, `ncIsFunction`, `ncIsObject`, `ncIsEmptyObject`, `ncIsNumber`, `ncIsBoolean`, `isPrimitiveValue`
-
-```ts
-if (ncIsArray(value)) { ... }
-if (ncIsString(value)) { ... }
-if (ncIsFunction(callback)) callback()
-```
 
 ### `computedAsync` for async-resolved values
 
-Use `computedAsync` (auto-imported from `@vueuse/core`) when a computed value requires an async operation. It returns a ref that starts as `undefined` (or your provided initial value) and updates reactively:
+Use instead of `watch` + separate `ref` for async-derived state (auto-imported from `@vueuse/core`):
 
 ```ts
 const currentWorkspace = computedAsync(async () => {
   if (!props.workspaceId) return activeWorkspace.value
   return workspacesList.value.find((w) => w.id === props.workspaceId)
-            ?? await loadWorkspace(props.workspaceId)
+    ?? await loadWorkspace(props.workspaceId)
 })
 ```
-
-Avoid using `watch` + a separate `ref` just to resolve an async value — `computedAsync` is cleaner.
 
 ### `inject()` — always provide a fallback
 
@@ -306,22 +291,15 @@ Keys can be nested as deeply as needed:
 ```
 Used as: `t('labels.auth.signIn')`
 
-#### Interpolation (dynamic values)
+#### Interpolation
 
-Use `{varName}` placeholders in the JSON value, then pass an object as the second argument:
+Use `{varName}` placeholders, then pass an object as the second argument:
 
 ```json
-"currentlyOnVersion": "Currently on {version}",
-"signInWithProvider": "Sign in with {provider}",
-"userIdColon": "USER ID: {userId}"
+"signInWithProvider": "Sign in with {provider}"
 ```
-
 ```ts
-// script
-t('msg.currentlyOnVersion', { version: '1.2.3' })
-
-// template
-$t('labels.signInWithProvider', { provider: 'Google' })
+t('labels.signInWithProvider', { provider: 'Google' })
 ```
 
 #### Things to watch out for
@@ -353,54 +331,35 @@ export const useEeConfig = createSharedComposable(() => {
 ```ts
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   (meta: Ref<TableType>) => {
-    // state & actions
     return { meta, ... }
   }
 )
 export { useProvideSmartsheetStore, useSmartsheetStore }
-
-// Optional: throw-variant for children that must be inside a provider
-export function useSmartsheetStoreOrThrow() {
-  const state = useSmartsheetStore()
-  if (!state) throw new Error('Please call `useProvideSmartsheetStore` on the appropriate parent component')
-  return state
-}
 ```
 
-- Parent calls `useProvideSmartsheetStore(meta)` to set up the context.
-- Children call `useSmartsheetStore()` (returns `undefined` if no provider) or `useSmartsheetStoreOrThrow()`.
+Parent calls `useProvideSmartsheetStore(meta)`. Children call `useSmartsheetStore()` (returns `undefined` if no provider).
 
 #### VueUse utilities used in this codebase
 
-These are imported from `@vueuse/core` — use them instead of reinventing:
+Imported from `@vueuse/core`:
 
 | Utility | Purpose |
 |---------|---------|
-| `createEventHook` | Typed event hooks — used for reload triggers, API hooks |
+| `createEventHook` | Typed event hooks |
 | `useStorage` | localStorage/sessionStorage with reactivity |
 | `useDebounceFn` | Debounce a function |
-| `useVModel` | Two-way binding helper for component props |
-| `useVirtualList` | Virtualised list rendering for large datasets |
-| `useTitle` | Reactively set `document.title` |
-| `useEventListener` | Add/remove DOM event listeners with auto-cleanup |
-| `onClickOutside` | Detect clicks outside an element |
-| `onKeyDown` / `onKeyStroke` / `onKeyUp` | Keyboard event listeners |
-| `useMagicKeys` | Declarative keyboard shortcut bindings |
+| `useVModel` | Two-way binding for component props |
+| `useVirtualList` | Virtualised list for large datasets |
+| `useEventListener` | DOM event listeners with auto-cleanup |
+| `onClickOutside` | Clicks outside an element |
+| `onKeyDown` / `useMagicKeys` | Keyboard listeners / shortcuts |
 | `useTextareaAutosize` | Auto-grow textarea |
-| `breakpointsTailwind` | Tailwind breakpoint constants for `useBreakpoints` |
 | `isClient` | `true` only in browser (not SSR) |
 | `useTimeoutFn` | `setTimeout` with auto-cleanup |
 
 #### `contextInject` — variables only
 
-Use `contextInject` (or `inject`) to share **read-only reactive variables** down the component tree. Do **not** inject functions — pass them via composables or props instead.
-
-```ts
-// ok — injecting a reactive ref
-const meta = inject(MetaInj)
-
-// not ok — do not inject functions via context
-```
+Use `inject()` to share **read-only reactive refs** down the tree. Do **not** inject functions — pass them via composables or props.
 
 #### Pinia stores vs composables
 
@@ -458,20 +417,7 @@ If you build a component that could be used in more than one place, put it in **
 
 #### Keep components small and composable
 
-Split components by responsibility. Avoid single large `.vue` files.
-
-```
-// preferred — each piece is focused
-components/nc/Modal/
-  index.vue       ← shell + v-model:visible wiring
-  Header.vue
-  Footer.vue
-
-// avoid — everything in one file
-components/nc/BigModal.vue  ← 600 lines
-```
-
-Extract repeated template blocks into sub-components. Move non-trivial logic into a composable, not into `<script setup lang="ts">` directly.
+Split by responsibility — extract repeated template blocks into sub-components, move non-trivial logic into a composable. Avoid single large `.vue` files.
 
 #### Toasts / notifications — use `ncMessage`
 
@@ -480,7 +426,6 @@ Always use `ncMessage` (auto-imported), not `message` from `ant-design-vue` dire
 ```ts
 ncMessage.success('Saved')
 ncMessage.error('Something went wrong')
-ncMessage.info({ title: 'Info', content: 'Details here' })
 ```
 
 #### Confirm / info dialogs — use `useNcConfirmModal`
@@ -488,15 +433,8 @@ ncMessage.info({ title: 'Info', content: 'Details here' })
 Use `useNcConfirmModal()` instead of `Modal.confirm()` from ant-design-vue.
 
 ```ts
-const { showConfirmModal, showInfoModal } = useNcConfirmModal()
-
-showConfirmModal({
-  title: 'Delete item?',
-  content: 'This cannot be undone.',
-  okText: 'Delete',
-  okCallback: async () => { await deleteItem() },
-})
-
+const { showConfirmModal } = useNcConfirmModal()
+showConfirmModal({ title: 'Delete item?', content: 'This cannot be undone.', okCallback: async () => { await deleteItem() } })
 // also: showInfoModal, showSuccessModal, showWarningModal, showErrorModal
 ```
 
@@ -547,15 +485,13 @@ const { close } = useDialog(DlgBaseErd, {
    ncMyIcon: { icon: NcMyIcon, keywords: ['...'] },
    ```
 
-**`stroke: 'transparent'` — when to use it:**
-
-`nuxt.config.ts` injects `stroke="currentColor"` on every SVG in `nc-icons` and `nc-icons-v2`. For icons that use **fill** (not stroke) for their colour — logos, solid icons, multi-colour icons — this inherited stroke will corrupt the rendering. Pass `stroke: 'transparent'` to neutralise it:
+**`stroke: 'transparent'`** — `nuxt.config.ts` injects `stroke="currentColor"` on all SVGs. For fill/solid/logo icons this corrupts rendering — neutralise it:
 
 ```ts
 'ncMyLogoIcon': h(NcMyLogoIcon, { stroke: 'transparent' }),
 ```
 
-Rule of thumb: line/outline icons → no extra prop needed. Fill/solid/logo icons → add `{ stroke: 'transparent' }`.
+Outline icons → no prop needed. Fill/solid/logo icons → add `{ stroke: 'transparent' }`.
 
 ## Payment Feature Gating
 
@@ -650,48 +586,40 @@ if (blockMyThing.value) return showUpgradeToUseMyThing()
 Keep declarations in this order with a **blank line between each group**:
 
 ```ts
-// 1. Imports (at the top of the file, outside the composable/setup)
+// 1. Imports
 
-// 2. Props / emits  (components only)
+// 2. Props / emits
 const props = defineProps<{ ... }>()
 
 const emits = defineEmits<{ ... }>()
 
-// 3. Injected stores & composables
+// 3. Stores & composables
 const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const { $api } = useNuxtApp()
 
-const { user } = useGlobal()
-
-const { isUIAllowed } = useRoles()
-
 const { t } = useI18n()
 
-// 4. Injected context values (inject)
+// 4. inject()
 const meta = inject(MetaInj)
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-// 5. Reactive state (ref / reactive)
+// 5. Reactive state
 const isLoading = ref(false)
-
-const form = reactive({ title: '' })
 
 // 6. Computed
 const isValid = computed(() => !!form.title)
 
-// 7. Functions & async actions
+// 7. Functions
 async function save() { ... }
-
-function reset() { ... }
 
 // 8. Watchers
 watch(isLoading, () => { ... })
 
-// 9. Lifecycle hooks
+// 9. Lifecycle
 onMounted(() => { ... })
 ```
 
@@ -717,26 +645,11 @@ onMounted(() => { ... })
 
 ### General best practices
 
-- **Early return** to reduce nesting — validate/guard at the top of a function, then write the happy path flat:
-  ```ts
-  async function save() {
-    if (!form.title) return
-    if (isLoading.value) return
+- **Early return** — guard at the top, write the happy path flat.
 
-    isLoading.value = true
-    try {
-      await $api.table.create(...)
-    } catch (e) {
-      ncMessage.error(await extractSdkResponseErrorMsg(e))
-    } finally {
-      isLoading.value = false
-    }
-  }
-  ```
+- **Name booleans positively** — `isLoading`, `isOpen`, `hasError`.
 
-- **Name booleans positively** — `isLoading`, `isOpen`, `hasError` rather than `notLoading`, `closed`, `noError`.
-
-- **Consistent async error handling** — always wrap API calls in try/catch and use `extractSdkResponseErrorMsg(e)` for the error message:
+- **Async error handling** — always wrap API calls in try/catch, use `extractSdkResponseErrorMsg(e)`:
   ```ts
   try {
     await $api.something.do()
@@ -772,40 +685,15 @@ Defined in [utils/colorsUtils.ts](packages/nc-gui/utils/colorsUtils.ts). These m
 | `border` | `border-` | `border-nc-border-gray-medium`, `border-nc-border-brand` |
 | `fill` | `fill-` / `bg-` / `text-` | `fill-nc-fill-primary`, `bg-nc-fill-warning`, `text-nc-fill-red-dark` |
 
-Common semantic tokens:
-```html
-<!-- Text -->
-<p class="text-nc-content-gray-subtle">muted text</p>
-<p class="text-nc-content-brand">brand text</p>
-
-<!-- Background -->
-<div class="bg-nc-bg-gray-light">light gray bg</div>
-<div class="bg-nc-bg-brand">brand tint bg</div>
-
-<!-- Border -->
-<div class="border-1 border-nc-border-gray-medium">bordered</div>
-
-<!-- Fill (buttons, icons, SVGs) -->
-<button class="bg-nc-fill-primary hover:bg-nc-fill-primary-hover">Primary</button>
-```
+Examples: `text-nc-content-gray-subtle`, `bg-nc-bg-gray-light`, `border-nc-border-gray-medium`, `bg-nc-fill-primary`, `bg-nc-fill-primary-hover`
 
 #### `themeV4Colors` — palette with `nc-` prefix
 
-Raw palette colors (e.g. `brand`, `gray`, `red`…) registered in Windi with `nc-` prefix via `themeV4ColorsWithNcPrefix`. Values are CSS variable references so they **also adapt to theme**. Use when no semantic token fits.
-
-```html
-<div class="bg-nc-brand-50">   <!-- brand-50 shade, theme-aware -->
-<div class="text-nc-gray-700"> <!-- gray-700 shade, theme-aware -->
-```
+Raw shades registered with `nc-` prefix (`themeV4ColorsWithNcPrefix`) — still adapt to theme. Use when no semantic token fits: `bg-nc-brand-50`, `text-nc-gray-700`.
 
 #### Static colors — `themeV3Colors` (no `nc-` prefix)
 
-These are **hardcoded hex values** — same in light and dark. Use for things that should never shift with theme (e.g. enum chip colours, data visualisation).
-
-```html
-<span class="text-brand-500">always #3366FF</span>
-<span class="bg-red-50">always #FFF2F1</span>
-```
+Hardcoded hex — same in all themes. Use for enum chips, data viz: `text-brand-500`, `bg-red-50`.
 
 #### `variables.css` — CSS custom properties
 
@@ -820,20 +708,9 @@ border: 1px solid var(--nc-border-gray-medium);
 
 ### Windi Plugins
 
-**`ncTypographyPlugin`** ([assets/nc-typography-plugin.ts](packages/nc-gui/assets/nc-typography-plugin.ts)) — adds Figma-aligned text style utilities:
+**`ncTypographyPlugin`** — Figma-aligned text utilities. Use instead of raw `text-sm`/`font-medium` combos:
 
-| Class | Size / Line-height / Weight |
-|-------|-----------------------------|
-| `text-heading1` | 64px / 92px / 700 |
-| `text-heading3` | 24px / 36px / 700 |
-| `text-body` | 14px / 24px / 500 |
-| `text-bodyDefaultSm` | 13px / 18px / 500 |
-| `text-bodySm` | 12px / 18px / 500 |
-| `text-caption` | 14px / 20px / 500 |
-| `text-captionSm` | 12px / 14px / 500 |
-| `text-sidebarDefault` | 14px / 20px / 550 |
-
-Use these instead of raw `text-sm`, `font-medium` combinations.
+`text-heading1` (64px/700), `text-heading3` (24px/700), `text-body` (14px/500), `text-bodyDefaultSm` (13px/500), `text-bodySm` (12px/500), `text-caption` (14px/500), `text-captionSm` (12px/500), `text-sidebarDefault` (14px/550)
 
 **`ncWindicssShortcutsPlugin`** ([assets/nc-windicss-shortcuts-plugin.ts](packages/nc-gui/assets/nc-windicss-shortcuts-plugin.ts)) — adds viewport-safe screen utilities:
 

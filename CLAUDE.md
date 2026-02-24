@@ -262,7 +262,7 @@ Translation keys live in `packages/nc-gui/lang/en.json`. **Always reuse an exist
 
 #### Usage
 
-**Inside `<script setup>` or Vue composables:**
+**Inside `<script setup lang="ts">` or Vue composables:**
 ```ts
 const { t } = useI18n()
 t('general.cancel')
@@ -273,7 +273,7 @@ t('general.cancel')
 {{ $t('general.cancel') }}
 ```
 
-**Outside `<script setup>` (utilities, non-setup composables):**
+**Outside `<script setup lang="ts">` (utilities, non-setup composables):**
 ```ts
 import { getI18n } from '~/plugins/a.i18n'
 
@@ -471,7 +471,7 @@ components/nc/Modal/
 components/nc/BigModal.vue  ← 600 lines
 ```
 
-Extract repeated template blocks into sub-components. Move non-trivial logic into a composable, not into `<script setup>` directly.
+Extract repeated template blocks into sub-components. Move non-trivial logic into a composable, not into `<script setup lang="ts">` directly.
 
 #### Toasts / notifications — use `ncMessage`
 
@@ -504,7 +504,7 @@ showConfirmModal({
 
 Mounts a component into the DOM without adding it to the template.
 
-**In `<script setup>`** — use `resolveComponent` (string name, resolved at runtime):
+**In `<script setup lang="ts">`** — use `resolveComponent` (string name, resolved at runtime):
 ```ts
 const { close } = useDialog(resolveComponent('DlgMCPDelete'), {
   'modelValue': isOpen,
@@ -852,6 +852,30 @@ Use `nc-h-screen` instead of `h-screen` everywhere to handle mobile browser chro
 2. **Need a raw shade that adapts to dark mode?** → use `nc-` prefixed V4 color (`bg-nc-brand-100`)
 3. **Must be same in all themes** (enum chips, data viz) → use V3 color without prefix (`text-brand-500`)
 4. **Complex style in `<style>`?** → use `var(--nc-content-brand)` CSS variables directly
+
+## Vue File Template
+
+Standard boilerplate for new `.vue` components:
+
+```vue
+<script setup lang="ts">
+interface Props {
+}
+
+const props = withDefaults(defineProps<Props>(), {
+})
+
+const {  } = toRefs(props)
+</script>
+
+<template>
+
+</template>
+
+<style lang="scss" scoped>
+
+</style>
+```
 
 ## File Naming
 

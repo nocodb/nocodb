@@ -60,6 +60,12 @@ export enum AppEvents {
   WORKSPACE_UPDATE = 'workspace.update',
   WORKSPACE_UPGRADE_REQUEST = 'workspace.upgrade.request',
 
+  SCIM_USER_PROVISION = 'scim.user.provision',
+  SCIM_USER_UPDATE = 'scim.user.update',
+  SCIM_USER_DEACTIVATE = 'scim.user.deactivate',
+  SCIM_USER_REACTIVATE = 'scim.user.reactivate',
+  SCIM_USER_DELETE = 'scim.user.delete',
+
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
   USER_INVITE = 'user.invite',

@@ -1,11 +1,14 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
+import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { User, WorkspaceUser } from '~/ee/models';
+import Workspace from '~/ee/models/Workspace';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import type { ScimUserEvent } from '~/services/app-hooks/interfaces';
 
 // Enterprise extension schema URI
 const ENTERPRISE_EXTENSION =
@@ -15,7 +18,10 @@ const ENTERPRISE_EXTENSION =
 export class ScimUsersService {
   protected logger = new Logger(ScimUsersService.name);
 
-  constructor(private readonly workspaceUsersService: WorkspaceUsersService) {}
+  constructor(
+    private readonly workspaceUsersService: WorkspaceUsersService,
+    private readonly appHooksService: AppHooksService,
+  ) {}
 
   /**
    * Get a single user by SCIM ID
@@ -170,6 +176,14 @@ export class ScimUsersService {
         updateData,
       );
 
+      this.emitScimEvent(AppEvents.SCIM_USER_REACTIVATE, {
+        workspaceId,
+        user,
+        workspaceUser: reactivatedUser,
+        scimId,
+        req: param.req,
+      });
+
       return this.toScimUser(reactivatedUser, workspaceId);
     }
 
@@ -185,6 +199,14 @@ export class ScimUsersService {
       scim_meta: scimMeta,
     });
 
+    this.emitScimEvent(AppEvents.SCIM_USER_PROVISION, {
+      workspaceId,
+      user,
+      workspaceUser,
+      scimId,
+      req: param.req,
+    });
+
     return this.toScimUser(workspaceUser, workspaceId);
   }
 
@@ -197,6 +219,7 @@ export class ScimUsersService {
       workspaceId: string;
       scimId: string;
       scimUser: any;
+      req: any;
     },
   ) {
     return this.updateUser(context, { ...param, isPatch: false });
@@ -211,6 +234,7 @@ export class ScimUsersService {
       workspaceId: string;
       scimId: string;
       scimUser: any;
+      req: any;
     },
   ) {
     const { scimUser } = param;
@@ -265,6 +289,7 @@ export class ScimUsersService {
       scimId: string;
       scimUser: any;
       isPatch: boolean;
+      req: any;
     },
   ) {
     const { workspaceId, scimId, scimUser } = param;
@@ -332,6 +357,36 @@ export class ScimUsersService {
       });
     }
 
+    // Determine the appropriate audit event
+    const isReactivating =
+      scimUser.active === true && workspaceUser.deleted && !isDeactivating;
+
+    if (isDeactivating) {
+      this.emitScimEvent(AppEvents.SCIM_USER_DEACTIVATE, {
+        workspaceId,
+        userId: workspaceUser.fk_user_id,
+        workspaceUser,
+        scimId,
+        req: param.req,
+      });
+    } else if (isReactivating) {
+      this.emitScimEvent(AppEvents.SCIM_USER_REACTIVATE, {
+        workspaceId,
+        userId: workspaceUser.fk_user_id,
+        workspaceUser,
+        scimId,
+        req: param.req,
+      });
+    } else {
+      this.emitScimEvent(AppEvents.SCIM_USER_UPDATE, {
+        workspaceId,
+        userId: workspaceUser.fk_user_id,
+        workspaceUser,
+        scimId,
+        req: param.req,
+      });
+    }
+
     // Re-fetch from DB via getByScimExternalId (same code path as GET)
     // to ensure response reflects persisted state and scim_meta is parsed
     const refreshed = await WorkspaceUser.getByScimExternalId(
@@ -353,7 +408,7 @@ export class ScimUsersService {
    */
   async deactivateUser(
     context: NcContext,
-    param: { workspaceId: string; scimId: string },
+    param: { workspaceId: string; scimId: string; req: any },
   ) {
     // Direct indexed lookup (include deleted so we can distinguish not-found vs already-deleted)
     const workspaceUser = await WorkspaceUser.getByScimExternalId(
@@ -380,6 +435,14 @@ export class ScimUsersService {
       context,
       workspaceId: param.workspaceId,
       userId: workspaceUser.fk_user_id,
+    });
+
+    this.emitScimEvent(AppEvents.SCIM_USER_DELETE, {
+      workspaceId: param.workspaceId,
+      userId: workspaceUser.fk_user_id,
+      workspaceUser,
+      scimId: param.scimId,
+      req: param.req,
     });
   }
 
@@ -675,6 +738,43 @@ export class ScimUsersService {
     }
 
     return result;
+  }
+
+  /**
+   * Emit a SCIM audit event asynchronously (fire-and-forget).
+   * Fetches workspace + user objects needed for the audit payload.
+   */
+  private emitScimEvent(
+    event: AppEvents,
+    param: {
+      workspaceId: string;
+      user?: any;
+      userId?: string;
+      workspaceUser: any;
+      scimId: string;
+      req: any;
+    },
+  ) {
+    // Fire-and-forget: resolve workspace + user then emit
+    Promise.all([
+      Workspace.get(param.workspaceId),
+      param.user
+        ? Promise.resolve(param.user)
+        : User.get(param.userId || param.workspaceUser.fk_user_id),
+    ])
+      .then(([workspace, user]) => {
+        if (!workspace || !user) return;
+        this.appHooksService.emit(event, {
+          workspace,
+          user,
+          workspaceUser: param.workspaceUser,
+          scimId: param.scimId,
+          req: param.req,
+        } as ScimUserEvent);
+      })
+      .catch((e) => {
+        this.logger.error(`Failed to emit SCIM audit event: ${event}`, e);
+      });
   }
 
   /**

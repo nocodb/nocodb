@@ -3,9 +3,15 @@ import Sortable from 'sortablejs'
 import { type SortableEvent } from 'sortablejs'
 import { AutomationTypes, type ScriptType, type WorkflowType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  baseId: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    baseId: string
+    hideCreateButton?: boolean
+  }>(),
+  {
+    hideCreateButton: false,
+  },
+)
 
 const baseId = toRef(props, 'baseId')
 
@@ -189,7 +195,7 @@ watchEffect(() => {
 
 <template>
   <div>
-    <template v-if="!allEntities.length && isUIAllowed('workflowCreateOrEdit')">
+    <template v-if="!allEntities.length && !props.hideCreateButton && isUIAllowed('workflowCreateOrEdit')">
       <NcDropdown
         v-if="isWorkflowsCreateOrEditAllowed || isScriptsCreateOrEditAllowed"
         overlay-class-name="nc-automation-create-dropdown"

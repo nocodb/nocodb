@@ -3,9 +3,11 @@ const props = withDefaults(
   defineProps<{
     baseId: string
     hideHeader?: boolean
+    hideCreateButton?: boolean
   }>(),
   {
     hideHeader: false,
+    hideCreateButton: false,
   },
 )
 
@@ -129,7 +131,7 @@ watch(activeWorkflowId, () => {
         :class="{ '!rotate-90': isExpanded }"
       />
     </div>
-    <DashboardTreeViewAutomationList v-if="props.hideHeader || isExpanded" :base-id="baseId!" />
+    <DashboardTreeViewAutomationList v-if="props.hideHeader || isExpanded" :base-id="baseId!" :hide-create-button="props.hideCreateButton" />
 
     <ScriptsMarket v-model:model-value="isMarketVisible" />
     <ScriptsDetails v-if="isDetailsVisible && detailsScriptId" v-model="isDetailsVisible" :script-id="detailsScriptId" />

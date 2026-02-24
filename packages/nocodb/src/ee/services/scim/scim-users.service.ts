@@ -841,7 +841,12 @@ export class ScimUsersService {
    * Fetches workspace + user objects needed for the audit payload.
    */
   private emitScimEvent(
-    event: AppEvents,
+    event:
+      | AppEvents.SCIM_USER_PROVISION
+      | AppEvents.SCIM_USER_UPDATE
+      | AppEvents.SCIM_USER_DEACTIVATE
+      | AppEvents.SCIM_USER_REACTIVATE
+      | AppEvents.SCIM_USER_DELETE,
     param: {
       workspaceId: string;
       user?: any;

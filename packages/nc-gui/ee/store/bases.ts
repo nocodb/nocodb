@@ -102,10 +102,11 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   async function getBaseTeams({ baseId, force = false }: { baseId: string; force?: boolean }) {
-    await until(() => !!workspaceStore.activeWorkspace?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
     const { blockTeamsManagement } = useEeConfig()
 
-    if (!baseId || blockTeamsManagement.value) return { teams: [], totalRows: 0 }
+    if (!baseId || !workspaceStore.activeWorkspace?.payment?.plan?.meta || blockTeamsManagement.value) {
+      return { teams: [], totalRows: 0 }
+    }
 
     if (!force && basesTeams.value.has(baseId)) {
       const teams = basesTeams.value.get(baseId)
@@ -535,6 +536,22 @@ export const useBases = defineStore('basesStore', () => {
     ncLastVisitedBase().set(activeProjectId.value)
   })
 
+  // When plan data loads, trigger base team loading if teams are available
+  watch(
+    () => workspaceStore.activeWorkspace?.payment?.plan?.meta,
+    (planMeta) => {
+      if (!planMeta || !activeProjectId.value) return
+
+      const { blockTeamsManagement } = useEeConfig()
+      if (blockTeamsManagement.value) return
+
+      getBaseTeams({ baseId: activeProjectId.value }).catch(() => {
+        // ignore
+      })
+    },
+    { immediate: true },
+  )
+
   const getBaseRoles = async (baseId: string) => {
     if (baseRoles.value[baseId]) return baseRoles.value[baseId]
 
@@ -562,10 +579,15 @@ export const useBases = defineStore('basesStore', () => {
   const isLoadingBaseTeams = ref(true)
 
   async function baseTeamList(baseId: string, showLoading = true) {
-    await until(() => !!workspaceStore.activeWorkspace?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
     const { blockTeamsManagement } = useEeConfig()
 
-    if (!workspaceStore.isTeamsEnabled || !workspaceStore.activeWorkspaceId || !baseId || blockTeamsManagement.value) {
+    if (
+      !workspaceStore.activeWorkspace?.payment?.plan?.meta ||
+      !workspaceStore.isTeamsEnabled ||
+      !workspaceStore.activeWorkspaceId ||
+      !baseId ||
+      blockTeamsManagement.value
+    ) {
       isLoadingBaseTeams.value = false
       return
     }
@@ -581,7 +603,10 @@ export const useBases = defineStore('basesStore', () => {
 
       return list || []
     } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
+      // Silently ignore forbidden errors (e.g. free plan without team management access)
+      if (e?.response?.status !== 403) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     } finally {
       isLoadingBaseTeams.value = false
     }

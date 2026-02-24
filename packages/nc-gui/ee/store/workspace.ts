@@ -677,10 +677,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const editTeamDetails = ref<TeamDetailV3V3Type | null>(null)
 
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
-    await until(() => !!activeWorkspace.value?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
     const { blockTeamsManagement } = useEeConfig()
 
-    if (!isTeamsEnabled.value || blockTeamsManagement.value) {
+    if (!activeWorkspace.value?.payment?.plan?.meta || !isTeamsEnabled.value || blockTeamsManagement.value) {
       teams.value = []
       isTeamsLoading.value = false
       return
@@ -1041,10 +1040,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaceTeams = ref<Record<string, any>>([])
 
   async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
-    await until(() => !!activeWorkspace.value?.payment?.plan?.meta).toBeTruthy({ timeout: 10000 })
     const { blockTeamsManagement } = useEeConfig()
 
-    if (!isTeamsEnabled.value || blockTeamsManagement.value || !workspaceId) {
+    if (!activeWorkspace.value?.payment?.plan?.meta || !isTeamsEnabled.value || blockTeamsManagement.value || !workspaceId) {
       workspaceTeams.value = []
       isLoadingWorkspaceTeams.value = false
       return
@@ -1194,6 +1192,22 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     await loadRoles(undefined, {}, activeWorkspaceId.value)
     if (activeWorkspaceId.value) await loadTeams({ workspaceId: activeWorkspaceId.value! })
   })
+
+  // When plan data loads, trigger team loading if teams are available
+  watch(
+    () => activeWorkspace.value?.payment?.plan?.meta,
+    (planMeta) => {
+      if (!planMeta || !activeWorkspaceId.value) return
+
+      const { blockTeamsManagement } = useEeConfig()
+      if (blockTeamsManagement.value) return
+
+      loadTeams({ workspaceId: activeWorkspaceId.value! }).catch(() => {
+        // ignore
+      })
+    },
+    { immediate: true },
+  )
 
   watch(
     () => activeWorkspace.value?.id,

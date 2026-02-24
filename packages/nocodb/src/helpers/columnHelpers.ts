@@ -3,7 +3,6 @@ import {
   AppEvents,
   getAvailableRollupForUiType,
   isLinksOrLTAR,
-  isLinkV2,
   isMMOrMMLike,
   RelationTypes,
   UITypes,
@@ -775,32 +774,4 @@ export const getRevType = (type: RelationTypes) => {
   }
 
   return type;
-};
-
-export const getTargetTableRelColumn = async (
-  context: NcContext,
-  relationColumn: Column,
-  _targetTable?: Model,
-) => {
-  if (!isLinkV2(relationColumn)) {
-    NcError.notImplemented();
-  }
-
-  const colOptions =
-    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
-  const { refContext } = colOptions.getRelContext(context);
-
-  const targetTable =
-    _targetTable ||
-    (await Model.get(refContext, colOptions.fk_related_model_id));
-
-  const targetColumns = await targetTable.getColumns(refContext);
-  return targetColumns.find(
-    (col: Column<LinkToAnotherRecordColumn>) =>
-      isLinksOrLTAR(col) &&
-      col.colOptions?.fk_related_model_id === relationColumn.fk_model_id &&
-      col.colOptions?.fk_child_column_id === colOptions.fk_parent_column_id &&
-      col.colOptions?.fk_parent_column_id === colOptions.fk_child_column_id &&
-      col.colOptions?.fk_mm_model_id === colOptions.fk_mm_model_id,
-  );
 };

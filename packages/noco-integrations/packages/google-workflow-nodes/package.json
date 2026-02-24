@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "googleapis": "^169.0.0"
+    "googleapis": "^169.0.0",
+    "@noco-integrations/google-mail-auth": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^5.0.10",

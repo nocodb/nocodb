@@ -1,4 +1,4 @@
-import UITypes, {isLinksOrLTAR, isNumericCol} from './UITypes';
+import UITypes, { isLinksOrLTAR, isNumericCol } from './UITypes';
 import { RelationTypes, RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
 import {
@@ -12,7 +12,6 @@ import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
 // import {RelationTypes} from "./globals";
 
-// const systemCols = ['created_at', 'updated_at']
 const filterOutSystemColumns = (columns) => {
   return (columns && columns.filter((c) => !isSystemColumn(c))) || [];
 };

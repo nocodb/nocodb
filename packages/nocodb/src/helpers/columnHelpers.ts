@@ -24,7 +24,7 @@ import type LookupColumn from '~/models/LookupColumn';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
-import Model from '~/models/Model';
+import type Model from '~/models/Model';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';

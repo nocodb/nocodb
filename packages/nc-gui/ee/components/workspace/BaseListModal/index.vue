@@ -18,7 +18,7 @@ const basesStore = useBases()
 const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { workspaceBasesMap, basesList } = storeToRefs(basesStore)
+const { workspaceBasesMap, basesList, isProjectsLoading } = storeToRefs(basesStore)
 const { loadProjects } = basesStore
 
 const { navigateToTable } = useTablesStore()
@@ -97,6 +97,12 @@ watch(
     immediate: true,
   },
 )
+
+const filteredWorkspaceList = computed(() => {
+  return workspacesList.value.filter(
+    (ws) => ws.id === modalState.selectedWorkspaceId || searchCompare(ws.title ?? '', modalState.searchQuery),
+  )
+})
 
 // Computed
 const selectedWorkspace = computed(() => {
@@ -194,6 +200,7 @@ const hasNoSearchResults = computed(() => {
 // Workspace handlers
 const onSelectWorkspace = async (workspaceId: string) => {
   modalState.selectedWorkspaceId = workspaceId
+  modalState.searchQuery = ''
 
   if (workspaceBasesMap.value.get(workspaceId)) return
   await loadProjects('workspace', workspaceId)
@@ -267,7 +274,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
 
           <div class="flex-1 overflow-y-auto nc-scrollbar-thin flex flex-col px-2 py-1">
             <WorkspaceBaseListModalWorkspaceNode
-              v-for="workspace in workspacesList"
+              v-for="workspace in filteredWorkspaceList"
               :key="workspace.id"
               :workspace="workspace"
               :is-selected="modalState.selectedWorkspaceId === workspace.id"
@@ -335,7 +342,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
           </WorkspaceBaseListModalBasesHeader>
 
           <!-- Bases Content - Loop-based rendering -->
-          <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col">
+          <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col relative">
             <WorkspaceBaseListModalBasesSection
               v-for="section in displayedSections"
               :key="section.type"
@@ -346,8 +353,24 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               :is-base-private="baseCheckers.private"
             />
 
+            <GeneralOverlay
+              v-if="isProjectsLoading && emptyFilterResult"
+              :model-value="true"
+              inline
+              transition
+              class="!bg-opacity-15"
+              data-testid="nc-base-list-loading"
+            >
+              <div class="flex flex-col items-center justify-center h-full w-full">
+                <a-spin size="large" />
+              </div>
+            </GeneralOverlay>
+
             <!-- Empty State -->
-            <div v-if="emptyFilterResult" class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted">
+            <div
+              v-else-if="emptyFilterResult"
+              class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
+            >
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
             </div>
 

@@ -25,6 +25,8 @@ export class BaseListModalPage extends BasePage {
     await this.modal.waitFor({ state: 'visible' });
     // Wait for modal animation to complete
     await this.rootPage.waitForTimeout(300);
+
+    await this.rootPage.getByTestId('nc-base-list-loading').waitFor({ state: 'hidden' });
   }
 
   async waitForClose() {

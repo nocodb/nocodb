@@ -639,14 +639,6 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   await saveOrUpdate(filter, index)
 }
 
-const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
-  if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
-    return
-  }
-  onEnabledChange(filter, index)
-}
-
 const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
   const newEnabled = filter.enabled === false
   $e('a:filter:toggle-enabled', { enabled: newEnabled, isGroup: !!filter.is_group })
@@ -663,6 +655,14 @@ const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
       storeFilter.enabled = filter.enabled
     }
   }
+}
+
+const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
+  if (blockToggleFilter.value) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(filter, index)
 }
 
 const MAX_PINNED_FILTERS = 3
@@ -1052,7 +1052,7 @@ defineExpose({
                 >
                   <template #start>
                     <NcCheckbox
-                      v-if="isEeUI"
+                      v-if="isEeUI && isViewFilter"
                       :checked="filter.enabled !== false"
                       size="default"
                       :disabled="isLockedView || readOnly"
@@ -1136,7 +1136,7 @@ defineExpose({
 
           <div v-else class="flex items-center gap-2 w-full">
             <NcCheckbox
-              v-if="isEeUI"
+              v-if="isEeUI && isViewFilter"
               :checked="filter.enabled !== false"
               size="default"
               :disabled="isLockedView || readOnly"

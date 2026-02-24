@@ -699,7 +699,9 @@ watch(inviteDlg, (newVal) => {
                         <NcDivider />
                       </template>
 
-                      <NcTooltip :disabled="(!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER) && !isScimManaged(record)">
+                      <NcTooltip
+                        :disabled="(!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER) && !isScimManaged(record)"
+                      >
                         <template #title>
                           {{ isScimManaged(record) ? $t('labels.scimManagedRemovalTooltip') : $t('tooltip.leaveWorkspace') }}
                         </template>

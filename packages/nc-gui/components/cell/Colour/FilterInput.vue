@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isValidHexColour, normalizeHexColour, normalizeHexColourWithAlpha } from 'nocodb-sdk'
+import { isValidHexColour, normalizeHexColour } from 'nocodb-sdk'
 import { iconMap } from '~/utils/iconUtils'
 
 interface Props {

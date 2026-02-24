@@ -3,7 +3,7 @@ import { DlgBaseErd } from '#components'
 
 const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((closeModal: () => void) => {
   const basesStore = useBases()
-  const { workspaceBasesMap, bases } = storeToRefs(basesStore)
+  const { workspaceBasesMap, bases, isProjectsLoaded } = storeToRefs(basesStore)
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -136,6 +136,10 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     $e('a:workspace:base:select')
     closeModal()
 
+    if (isEeUI && base.fk_workspace_id !== activeWorkspaceId.value) {
+      isProjectsLoaded.value = false
+    }
+
     await navigateToProject({
       baseId: base.id!,
       workspaceId: base.fk_workspace_id!,
@@ -148,6 +152,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
     $e('a:workspace:switch')
 
     closeModal()
+
+    isProjectsLoaded.value = false
 
     navigateToProject({
       workspaceId,

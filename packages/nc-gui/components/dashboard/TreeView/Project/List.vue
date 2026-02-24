@@ -14,7 +14,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { bases, basesList, activeProjectId, isProjectsLoaded } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading } = storeToRefs(basesStore)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -332,7 +332,7 @@ watch(
       </ProjectWrapper>
     </div>
 
-    <div v-else-if="isProjectsLoaded && !basesList.length" class="nc-treeview-empty-state">
+    <div v-else-if="isProjectsLoaded && !isProjectsLoading && !basesList.length" class="nc-treeview-empty-state">
       <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBasesFound')" class="!mb-1" />
 
       <WorkspaceCreateProjectBtn type="primary">

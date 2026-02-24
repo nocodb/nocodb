@@ -17,7 +17,7 @@ const basesStore = useBases()
 
 const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 
-const { basesList } = storeToRefs(basesStore)
+const { basesList, isProjectsLoading } = storeToRefs(basesStore)
 
 const { isMobileMode } = useGlobal()
 
@@ -205,7 +205,7 @@ const hasNoSearchResults = computed(() => {
           </WorkspaceBaseListModalBasesHeader>
 
           <!-- Bases Content - Loop-based rendering -->
-          <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col">
+          <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col relative">
             <WorkspaceBaseListModalBasesSection
               v-for="section in displayedSections"
               :key="section.type"
@@ -216,8 +216,24 @@ const hasNoSearchResults = computed(() => {
               :is-base-private="baseCheckers.private"
             />
 
+            <GeneralOverlay
+              v-if="isProjectsLoading && emptyFilterResult"
+              :model-value="true"
+              inline
+              transition
+              class="!bg-opacity-15"
+              data-testid="nc-base-list-loading"
+            >
+              <div class="flex flex-col items-center justify-center h-full w-full">
+                <a-spin size="large" />
+              </div>
+            </GeneralOverlay>
+
             <!-- Empty State -->
-            <div v-if="emptyFilterResult" class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted">
+            <div
+              v-else-if="emptyFilterResult"
+              class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
+            >
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
             </div>
 

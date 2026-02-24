@@ -8,6 +8,7 @@ import { clearRowColouringCache } from '../../../../../components/smartsheet/gri
 interface Props {
   modelValue?: RowColoringInfoFilter
   columns: ColumnTypeForFilter[]
+  targetFieldColumns: ColumnTypeForFilter[]
   filterPerViewLimit: number
   disabled?: boolean
   isLockedView?: boolean
@@ -344,7 +345,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       @change="updateColor(i, 'fk_target_column_id', $event)"
                     >
                       <a-select-option
-                        v-for="column in columns"
+                        v-for="column in targetFieldColumns"
                         :key="column.id"
                         :value="column.id"
                         :label="column.title"

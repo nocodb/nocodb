@@ -78,6 +78,9 @@ const isDisabled = computed(() => {
 const isChildLogicalOpChangeAllowed = computed(() => {
   return new Set(vModel.value.children?.slice(1).map((filter) => filter.logical_op)).size > 1
 })
+
+// For now hide toggle filter enabled feature
+const isAllowFilterEnableToggle = false
 // #endregion
 
 // #region event handling
@@ -152,14 +155,6 @@ const isFilterEnabled = computed(() => vModel.value.enabled !== false)
 
 const effectiveEnabled = computed(() => props.parentEnabled !== false && isFilterEnabled.value)
 
-const onToggleFilterChange = (val: boolean | Event) => {
-  if (blockToggleFilter.value) {
-    showUpgradeToUseToggleFilter()
-    return
-  }
-  onEnabledChange(val)
-}
-
 const onEnabledChange = (val: boolean | Event) => {
   const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
   const prevValue = vModel.value.enabled
@@ -182,6 +177,14 @@ const onEnabledChange = (val: boolean | Event) => {
       index: props.index,
     })
   }
+}
+
+const onToggleFilterChange = (val: boolean | Event) => {
+  if (blockToggleFilter.value) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(val)
 }
 // #endregion
 </script>
@@ -222,7 +225,7 @@ const onEnabledChange = (val: boolean | Event) => {
       >
         <template #nestedRowStart>
           <NcCheckbox
-            v-if="isEeUI"
+            v-if="isEeUI && isAllowFilterEnableToggle"
             :checked="isFilterEnabled"
             size="default"
             :disabled="isDisabled || parentEnabled === false"

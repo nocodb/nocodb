@@ -26,8 +26,6 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { fieldsMap } = useViewColumnsOrThrow()
-
 const {
   rowColorInfo,
   filterPerViewLimit,
@@ -46,10 +44,10 @@ const {
   onRowColorConditionFilterDelete,
   onRowColorConditionFilterCopy,
   filterColumns,
+  targetFieldColumns,
 } = useViewRowColorOption({
   meta,
   view: activeView,
-  viewFieldsMap: fieldsMap,
 })
 
 const { showUpgradeToUseRowColoring } = useEeConfig()
@@ -152,6 +150,7 @@ watch(open, (value) => {
           <SmartsheetToolbarRowColorFilterUsingFilterPanel
             v-model="rowColorInfo"
             :columns="filterColumns"
+            :target-field-columns="targetFieldColumns"
             :filter-per-view-limit="filterPerViewLimit"
             :is-loading-filter="isLoadingFilter"
             :handler="{

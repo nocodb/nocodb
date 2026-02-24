@@ -6,6 +6,8 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
+import { DocEmbedExtension } from './DocEmbedExtension'
+import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
@@ -104,7 +106,7 @@ const showRichTextMenu = ({ editor: e }: { editor: any }) => {
   const { selection } = e.state
   if (selection instanceof CellSelection) return false
   // Hide for image / file attachment selections — they have their own UI
-  if (selection.node?.type.name === 'image' || selection.node?.type.name === 'fileAttachment') return false
+  if (selection.node?.type.name === 'image' || selection.node?.type.name === 'fileAttachment' || selection.node?.type.name === 'embed') return false
   return !selection.empty
 }
 
@@ -193,6 +195,7 @@ const editor = useEditor({
     SlashCommandExtension,
     CalloutExtension,
     DocFileAttachmentExtension,
+    DocEmbedExtension,
   ],
   editorProps: {
     attributes: {
@@ -309,6 +312,17 @@ watch(editor, (ed) => {
     ed.storage.fileAttachment.openUpload = async () => {
       const file = await openFileAttachmentPicker()
       if (file) uploadAndInsertFile(ed, file)
+    }
+  }
+  if (ed?.storage?.embed) {
+    ed.storage.embed.insertFromUrl = (editor: any, url: string) => {
+      const [platform, embedUrl] = getEmbedURL(url.trim())
+      if (platform === 'unsupported' || embedUrl === 'unsupported') {
+        message.warning('URL not supported for embedding. Try a YouTube, Vimeo, or Loom link.')
+        return
+      }
+
+      editor.chain().focus().insertEmbed({ src: embedUrl, url: url.trim(), platform }).run()
     }
   }
 })
@@ -1088,6 +1102,70 @@ onBeforeUnmount(() => {
     flex-shrink: 0;
     display: flex;
     align-items: center;
+  }
+
+  // Embed (YouTube, Vimeo, etc.) cards
+  .nc-embed-wrapper {
+    margin: 0.75em 0;
+  }
+
+  .nc-embed-card {
+    position: relative;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #000;
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &:hover {
+      border-color: #d1d5db;
+
+      .nc-embed-delete {
+        opacity: 1;
+      }
+    }
+
+    &.nc-embed-selected {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px #3b82f6;
+    }
+  }
+
+  .nc-embed-delete {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    z-index: 2;
+    opacity: 0;
+    color: white;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s, background-color 0.15s;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  .nc-embed-iframe-wrapper {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%; // 16:9 aspect ratio
+  }
+
+  .nc-embed-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
   }
 
   // Callout (notice) blocks

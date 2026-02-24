@@ -40,7 +40,7 @@ const activeTab = ref<SidebarTab>('home')
 const sidebarTabs = computed<{ key: SidebarTab; icon: string; label: string }[]>(() => [
   { key: 'home', icon: 'home1', label: 'Home' },
   { key: 'data', icon: 'ncDatabase', label: 'Data' },
-  { key: 'automation', icon: 'ncAutomation', label: 'Automation' },
+  { key: 'automation', icon: 'ncAutomation', label: 'Automate' },
   { key: 'agents', icon: 'ncSupportAgent', label: 'Agents' },
 ])
 
@@ -132,10 +132,10 @@ const onTabClick = (tab: SidebarTab) => {
 
       <!-- Icon Tab Bar -->
       <div v-if="!isSharedBase" class="nc-sidebar-tab-bar flex items-center px-3 pt-1 pb-0.5 gap-1">
-        <NcTooltip v-for="tab in sidebarTabs" :key="tab.key" :title="tab.label" placement="bottom">
+        <NcTooltip v-for="tab in sidebarTabs" :key="tab.key" :title="tab.label" placement="bottom" :disabled="activeTab === tab.key">
           <button
             v-e="[`c:sidebar:tab:${tab.key}`]"
-            class="nc-sidebar-tab-btn flex items-center justify-center w-7 h-7 rounded-md transition-all duration-150 cursor-pointer border-none"
+            class="nc-sidebar-tab-btn flex items-center justify-center h-7 rounded-md transition-all duration-150 cursor-pointer border-none gap-1.5 px-2"
             :class="{
               'bg-nc-bg-brand text-nc-content-brand-disabled': activeTab === tab.key,
               'text-nc-content-gray-muted hover:bg-nc-bg-gray-medium hover:text-nc-content-gray-subtle': activeTab !== tab.key,
@@ -144,6 +144,7 @@ const onTabClick = (tab: SidebarTab) => {
             @click="onTabClick(tab.key)"
           >
             <GeneralIcon :icon="tab.icon" class="!h-4 w-4" />
+            <span v-if="activeTab === tab.key" class="text-xs font-medium">{{ tab.label }}</span>
           </button>
         </NcTooltip>
       </div>

@@ -45,6 +45,8 @@ const { t } = useI18n()
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const { open: openExpandedForm } = useExpandedFormDetached()
 
+const { showUpgradeToUseRecordTemplates } = useEeConfig()
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ──────────────────────────────────────────────────────────────────────────────
@@ -330,6 +332,8 @@ const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateT
 // ──────────────────────────────────────────────────────────────────────────────
 
 const openManager = () => {
+  if (showUpgradeToUseRecordTemplates()) return
+
   showManager.value = true
 }
 

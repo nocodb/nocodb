@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import { ViewTypes, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
@@ -24,6 +24,8 @@ const { base } = storeToRefs(useBase())
 const { meta } = useSmartsheetStoreOrThrow()
 
 const { templates: allTemplates, selectedTemplate, setSelectedTemplate } = useRecordTemplate()
+
+const { blockRecordTemplates, showUpgradeToUseRecordTemplates } = useEeConfig()
 
 /**
  * Filter the base-level template list to only show enabled templates
@@ -104,6 +106,7 @@ const templatesList = computed(() => {
       variant="small"
       class="!h-auto !pt-1"
       :item-height="30"
+      reset-hover-effect-on-mouse-leave
       @change="
         (option) => {
           option.click()
@@ -115,7 +118,7 @@ const templatesList = computed(() => {
       </template>
     </NcList>
 
-    <template v-if="templates.length">
+    <template v-if="!blockRecordTemplates && templates.length">
       <NcDivider class="!my-0" />
       <NcList
         :value="selectedTemplate?.id ?? ''"
@@ -124,6 +127,7 @@ const templatesList = computed(() => {
         class="!pt-1"
         :item-height="30"
         :search-input-placeholder="$t('placeholder.searchRecordTemplates')"
+        reset-hover-effect-on-mouse-leave
         @change="
         (option) => {
           setSelectedTemplate(option.value as string)
@@ -151,14 +155,29 @@ const templatesList = computed(() => {
       variant="small"
       class="!h-auto !pt-1"
       :item-height="30"
+      reset-hover-effect-on-mouse-leave
       @change="
-        (option) => {
+        () => {
+          if (showUpgradeToUseRecordTemplates()) return
+
           onOpenTemplateManager?.()
         }
       "
     >
       <template #listItemExtraLeft>
         <GeneralIcon icon="settings" class="w-4 h-4" />
+      </template>
+      <template #listItemExtraRight>
+        <PaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_RECORD_TEMPLATES"
+          :content="
+            $t('upgrade.upgradeToUseRecordTemplatesSubtitle', {
+              plan: PlanTitles.PLUS,
+            })
+          "
+          remove-click
+          class="-my-1"
+        />
       </template>
     </NcList>
   </div>

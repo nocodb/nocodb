@@ -206,7 +206,9 @@
     "upgradeToEnableUnique": "Upgrade to enable unique",
     "upgradeToEnableUniqueSubtitle": "Upgrade to the {plan} plan to enable unique constraint.",
     "upgradeToUseSandbox": "Upgrade to use Sandboxes",
-    "upgradeToUseSandboxSubtitle": "Sandboxes are available on the {plan} plan and above."
+    "upgradeToUseSandboxSubtitle": "Sandboxes are available on the {plan} plan and above.",
+    "upgradeToUseRecordTemplates": "Upgrade to use record templates",
+    "upgradeToUseRecordTemplatesSubtitle": "Upgrade to the {plan} plan to create and use record templates."
   },
   "general": {
     "done": "Done",

@@ -457,6 +457,12 @@ defineExpose({
 const handleEscape = (event: KeyboardEvent) => {
   emits('escape', event)
 }
+
+const handleResetHoverEffectOnMouseLeave = () => {
+  if (!props.resetHoverEffectOnMouseLeave) return
+
+  handleResetHoverEffect(true, -1)
+}
 </script>
 
 <template>
@@ -468,6 +474,7 @@ const handleEscape = (event: KeyboardEvent) => {
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex], undefined, $event)"
     @keydown.esc="handleEscape($event)"
+    @mouseleave="handleResetHoverEffectOnMouseLeave"
   >
     <template v-if="isSearchEnabled">
       <div

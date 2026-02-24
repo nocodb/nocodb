@@ -183,6 +183,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseUuidField = (..._args: any[]) => {}
 
+  const blockRecordTemplates = computed(() => false)
+
+  const showUpgradeToUseRecordTemplates = (..._args: any[]) => {}
+
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
 
   return {
@@ -271,5 +275,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseUuidField,
     blockAddNewSandbox,
     showSandboxPlanLimitExceededModal,
+    blockRecordTemplates,
+    showUpgradeToUseRecordTemplates,
   }
 })

@@ -959,6 +959,8 @@ interface NcListProps {
    * @default default
    */
   theme?: 'default' | 'ai'
+
+  resetHoverEffectOnMouseLeave?: boolean
 }
 
 // NcList type ends here

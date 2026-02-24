@@ -371,6 +371,39 @@ components/nc/BigModal.vue  ← 600 lines
 
 Extract repeated template blocks into sub-components. Move non-trivial logic into a composable, not into `<script setup>` directly.
 
+### Icons
+
+**To add a new icon:**
+
+1. Add the SVG (16px viewBox) to **both**:
+   - `packages/nc-gui/assets/nc-icons-v2/<name>.svg`
+   - `packages/nc-gui/ee/assets/nc-icons-v2/<name>.svg`
+
+2. Import it in `utils/iconUtils.ts` with `Nc` prefix:
+   ```ts
+   import NcMyIcon from '~icons/nc-icons-v2/my-icon.svg'
+   ```
+
+3. Add to `iconMap`:
+   ```ts
+   'ncMyIcon': NcMyIcon,
+   ```
+
+4. If it should appear in the icon picker, also add to `searchableMap`:
+   ```ts
+   ncMyIcon: { icon: NcMyIcon, keywords: ['...'] },
+   ```
+
+**`stroke: 'transparent'` — when to use it:**
+
+`nuxt.config.ts` injects `stroke="currentColor"` on every SVG in `nc-icons` and `nc-icons-v2`. For icons that use **fill** (not stroke) for their colour — logos, solid icons, multi-colour icons — this inherited stroke will corrupt the rendering. Pass `stroke: 'transparent'` to neutralise it:
+
+```ts
+'ncMyLogoIcon': h(NcMyLogoIcon, { stroke: 'transparent' }),
+```
+
+Rule of thumb: line/outline icons → no extra prop needed. Fill/solid/logo icons → add `{ stroke: 'transparent' }`.
+
 ## File Naming
 
 - Backend operations module: `{Feature}Get.operations.ts` / `{Feature}Post.operations.ts`

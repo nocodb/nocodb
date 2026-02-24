@@ -4,7 +4,7 @@ import { MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.RAG_SESSIONS, (table) => {
     table.string('id', 20).primary();
-    table.string('fk_base_id', 20).index();
+    table.string('base_id', 20).index();
     table.string('fk_workspace_id', 20).index();
     table.string('title', 255);
     table.string('created_by', 20);
@@ -14,6 +14,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.RAG_MESSAGES, (table) => {
     table.string('id', 20).primary();
     table.string('fk_session_id', 20).index();
+    table.string('base_id', 20).index();
     table.string('fk_workspace_id', 20).index();
     table.string('role', 20); // 'user' | 'assistant'
     table.text('content');

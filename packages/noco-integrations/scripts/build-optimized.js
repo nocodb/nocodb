@@ -10,7 +10,7 @@ import {
 import { join, resolve } from 'path';
 
 const CHECKSUM_FILE = '.build-checksums.json';
-const WORKSPACE_PACKAGES = ['core', ...getPackages()];
+const WORKSPACE_PACKAGES = buildDependencyOrder(['core', ...getPackages()]);
 
 function getPackages() {
   try {
@@ -27,6 +27,67 @@ function getPackages() {
     console.error('Error reading packages directory:', error.message);
     return [];
   }
+}
+
+/**
+ * Returns the @noco-integrations/* workspace dependency short-names for a package.
+ * e.g. { "@noco-integrations/smtp-auth": "workspace:*" } → ["smtp-auth"]
+ */
+function getWorkspaceDependencies(packagePath) {
+  const pkgJsonPath = join(packagePath, 'package.json');
+  if (!existsSync(pkgJsonPath)) return [];
+  try {
+    const pkg = JSON.parse(readFileSync(pkgJsonPath, 'utf8'));
+    const allDeps = { ...(pkg.dependencies || {}), ...(pkg.devDependencies || {}) };
+    return Object.entries(allDeps)
+      .filter(([name, version]) =>
+        name.startsWith('@noco-integrations/') && String(version).startsWith('workspace:'),
+      )
+      .map(([name]) => name.replace('@noco-integrations/', ''));
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Returns packages sorted so that every dependency is built before the package
+ * that depends on it (topological order). Packages with no intra-workspace deps
+ * retain their discovery order (i.e. 'core' still comes first).
+ */
+function buildDependencyOrder(packages) {
+  // Map short-name → full path ("smtp-auth" → "packages/smtp-auth", "core" → "core")
+  const nameToPath = new Map();
+  for (const pkg of packages) {
+    const shortName = pkg === 'core' ? 'core' : pkg.replace('packages/', '');
+    nameToPath.set(shortName, pkg);
+  }
+
+  const visited = new Set();
+  const visiting = new Set(); // cycle detection
+  const result = [];
+
+  function visit(pkgPath) {
+    if (visited.has(pkgPath)) return;
+    if (visiting.has(pkgPath)) {
+      console.warn(`⚠️  Circular dependency detected involving ${pkgPath}, skipping`);
+      return;
+    }
+    visiting.add(pkgPath);
+
+    for (const depName of getWorkspaceDependencies(pkgPath)) {
+      const depPath = nameToPath.get(depName);
+      if (depPath) visit(depPath);
+    }
+
+    visiting.delete(pkgPath);
+    visited.add(pkgPath);
+    result.push(pkgPath);
+  }
+
+  for (const pkg of packages) {
+    visit(pkg);
+  }
+  return result;
 }
 
 function getAllFiles(dir, files = []) {

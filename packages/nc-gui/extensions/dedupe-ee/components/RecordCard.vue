@@ -14,7 +14,7 @@ const { record } = toRefs(props)
 
 const {
   currentGroup,
-  selectedField,
+  selectedFields,
   contextMenuTarget,
   mergeState,
   hideComputedFields,
@@ -29,8 +29,10 @@ provide(IsGridInj, ref(false))
 provide(IsCalendarInj, ref(false))
 provide(RowHeightInj, ref(1 as const))
 
+const selectedFieldIdSet = computed(() => new Set(selectedFields.value.map((f) => f.id)))
+
 const fields = computed(() => {
-  if (_fields.value.length === 0 && selectedField.value) return [selectedField.value]
+  if (_fields.value.length === 0 && selectedFields.value.length) return [...selectedFields.value]
 
   return _fields.value
 })
@@ -101,7 +103,7 @@ const handleClickField = (col: ColumnType) => {
     return
   }
 
-  if (!col.permission.supported || col.id === selectedField.value?.id) return
+  if (!col.permission.supported || selectedFieldIdSet.value.has(col.id)) return
 
   if (isPrimaryRecord.value && !ncIsUndefined(mergeState.value.selectedFields[col.id!])) {
     delete mergeState.value.selectedFields[col.id!]
@@ -115,7 +117,7 @@ const handleClickField = (col: ColumnType) => {
 const isFieldSelected = (col: ColumnType) => {
   if (props.isMergeRecord || record.value.rowMeta.isLoading) return false
 
-  if (ncIsUndefined(mergeState.value.selectedFields[col.id!]) || col.id === selectedField.value?.id) {
+  if (ncIsUndefined(mergeState.value.selectedFields[col.id!]) || selectedFieldIdSet.value.has(col.id)) {
     return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
   }
 
@@ -140,7 +142,7 @@ const isFieldSelected = (col: ColumnType) => {
       @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
     >
       <template #cover>
-        <div v-if="selectedField" class="p-2 rounded-t-xl border-1 bg-nc-bg-default">
+        <div v-if="selectedFields.length" class="p-2 rounded-t-xl border-1 bg-nc-bg-default">
           <div class="flex items-center gap-3">
             <div
               v-if="!ncIsNumber(mergeState.primaryRecordIndex)"
@@ -158,25 +160,30 @@ const isFieldSelected = (col: ColumnType) => {
             >
               <GeneralIcon :icon="isPrimaryRecord || isMergeRecord ? 'circleCheckSolid' : 'close'" />
             </div>
-            <NcTooltip class="truncate leading-[20px] flex-1" show-on-truncate-only>
-              <template #title>
-                <SmartsheetPlainCell
-                  :model-value="currentGroup?.[selectedField.title!] ?? null"
-                  :column="selectedField"
-                  class="font-semibold leading-[20px]"
-                />
-              </template>
+            <div class="flex items-center gap-1.5 flex-1 min-w-0 overflow-hidden">
+              <template v-for="(field, fieldIndex) in selectedFields" :key="field.id">
+                <span v-if="fieldIndex > 0" class="text-nc-content-gray-muted flex-none">&middot;</span>
+                <NcTooltip class="truncate leading-[20px]" show-on-truncate-only>
+                  <template #title>
+                    <SmartsheetPlainCell
+                      :model-value="currentGroup?.[field.title!] ?? null"
+                      :column="field"
+                      class="font-semibold leading-[20px]"
+                    />
+                  </template>
 
-              <SmartsheetPlainCell
-                :model-value="currentGroup?.[selectedField.title!] ?? null"
-                :column="selectedField"
-                class="font-semibold text-nc-content-brand leading-[20px]"
-                :class="{
-                  'line-through decoration-red-700':
-                    ncIsNumber(mergeState.primaryRecordIndex) && !isPrimaryRecord && !isMergeRecord,
-                }"
-              />
-            </NcTooltip>
+                  <SmartsheetPlainCell
+                    :model-value="currentGroup?.[field.title!] ?? null"
+                    :column="field"
+                    class="font-semibold text-nc-content-brand leading-[20px]"
+                    :class="{
+                      'line-through decoration-red-700':
+                        ncIsNumber(mergeState.primaryRecordIndex) && !isPrimaryRecord && !isMergeRecord,
+                    }"
+                  />
+                </NcTooltip>
+              </template>
+            </div>
             <NcButton v-if="!isMergeRecord" icon-only type="text" size="small" @click="onClickMoreOption($event)">
               <template #icon>
                 <GeneralIcon v-if="!record.rowMeta.isLoading" icon="threeDotVertical" />
@@ -205,17 +212,17 @@ const isFieldSelected = (col: ColumnType) => {
             class="nc-card-col-wrapper p-2 !border-none min-h-15"
             :class="{
               'nc-field-selected': isFieldSelected(col) && !isMergeRecord && col.permission.supported,
-              '!cursor-not-allowed': !col.permission.supported && !isMergeRecord && col.id !== selectedField?.id,
-              'hidden': !col.permission.supported && hideComputedFields && col.id !== selectedField?.id,
+              '!cursor-not-allowed': !col.permission.supported && !isMergeRecord && !selectedFieldIdSet.has(col.id),
+              'hidden': !col.permission.supported && hideComputedFields && !selectedFieldIdSet.has(col.id),
             }"
             @click="handleClickField(col)"
           >
             <NcTooltip
               hide-on-click
-              :disabled="col.permission.supported || record.rowMeta.isLoading || isMergeRecord || col.id === selectedField?.id"
+              :disabled="col.permission.supported || record.rowMeta.isLoading || isMergeRecord || selectedFieldIdSet.has(col.id)"
               class="w-full z-10 flex"
               :class="{
-                'pointer-events-none': col.permission.supported || isMergeRecord || col.id === selectedField?.id,
+                'pointer-events-none': col.permission.supported || isMergeRecord || selectedFieldIdSet.has(col.id),
               }"
               placement="left"
               :arrow="false"

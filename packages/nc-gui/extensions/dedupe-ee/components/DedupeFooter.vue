@@ -19,6 +19,8 @@ const { toggleFullScreen } = useExtensionHelperOrThrow()
 
 const { showInfoModal } = useNcConfirmModal()
 
+const confirmingMerge = ref(false)
+
 const onCancel = () => {
   if (currentStep.value === 'review') {
     currentStep.value = 'config'
@@ -37,7 +39,7 @@ const canMerge = computed(() => {
 
 const handleReset = async () => {
   showInfoModal({
-    title: 'Are you sure you want to reset your changes for this set set of duplicates?',
+    title: 'Are you sure you want to reset your changes for this set of duplicates?',
     content: 'Any records excluded from the set will be restored and all field selections will be reverted.',
     showCancelBtn: true,
     showIcon: false,
@@ -59,26 +61,22 @@ const duplicateRecordCount = computed(() => {
   return Math.max((currentGroup.value?.count ?? totalRows.value ?? 0) - mergeState.value.excludedRecordIndexes.size, 0)
 })
 
-const handleMerge = async () => {
-  const deleteRecordCount = Math.max(duplicateRecordCount.value - 1, 0)
+const deleteRecordCount = computed(() => {
+  return Math.max(duplicateRecordCount.value - 1, 0)
+})
 
-  showInfoModal({
-    title: 'Are you sure you want to merge these records?',
-    content: `${deleteRecordCount} record${deleteRecordCount !== 1 ? 's' : ''} will be deleted.`,
-    showCancelBtn: true,
-    showIcon: false,
-    okProps: {
-      type: 'danger',
-    },
-    okText: 'Merge',
-    okCallback: async () => {
-      const allResolved = await mergeAndDelete()
-      if (allResolved) {
-        currentStep.value = 'config'
-      }
-    },
-  })
+const handleMergeConfirm = async () => {
+  confirmingMerge.value = false
+  const allResolved = await mergeAndDelete()
+  if (allResolved) {
+    currentStep.value = 'config'
+  }
 }
+
+// Reset confirm state when switching groups
+watch(currentGroupIndex, () => {
+  confirmingMerge.value = false
+})
 
 const handleReview = async () => {
   currentGroupIndex.value = 0
@@ -130,13 +128,27 @@ const handleReview = async () => {
           {{ $t('general.cancel') }}
         </NcButton>
         <NcButton v-if="!canMerge" size="small" @click="handleSkip"> Skip record </NcButton>
-        <NcButton v-else size="small" type="danger" :loading="isMerging" @click="handleMerge">
-          {{
-            ncIsNumber(mergeState.primaryRecordIndex)
-              ? `Merge and delete ${duplicateRecordCount - 1} record${duplicateRecordCount - 1 !== 1 ? 's' : ''}`
-              : 'Merge records'
-          }}</NcButton
-        >
+        <NcDropdown v-else v-model:visible="confirmingMerge" placement="topRight">
+          <NcButton size="small" type="danger" :loading="isMerging">
+            {{
+              ncIsNumber(mergeState.primaryRecordIndex)
+                ? `Merge and delete ${deleteRecordCount} record${deleteRecordCount !== 1 ? 's' : ''}`
+                : 'Merge records'
+            }}
+          </NcButton>
+          <template #overlay>
+            <div class="p-3 flex flex-col gap-2 w-full max-w-md">
+              <p class="text-bodyBold m-0">Are you sure?</p>
+              <p class="text-bodyDefaultSm text-nc-content-gray-muted m-0">
+                {{ deleteRecordCount }} record{{ deleteRecordCount !== 1 ? 's' : '' }} will be permanently deleted.
+              </p>
+              <div class="flex items-center justify-end gap-2 mt-1">
+                <NcButton size="xs" type="secondary" @click="confirmingMerge = false"> Cancel </NcButton>
+                <NcButton size="xs" type="danger" :loading="isMerging" @click="handleMergeConfirm"> Confirm </NcButton>
+              </div>
+            </div>
+          </template>
+        </NcDropdown>
       </div>
     </template>
   </div>

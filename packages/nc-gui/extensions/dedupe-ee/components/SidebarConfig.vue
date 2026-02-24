@@ -2,19 +2,63 @@
 import { type ColumnType, ViewTypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
 
-const { config, onTableSelect, saveConfig, loadGroupSets, hasMergedAnyRecords } = useDedupeOrThrow()
+const { config, meta, onTableSelect, saveConfig, loadGroupSets, hasMergedAnyRecords } = useDedupeOrThrow()
+
+const { loadTableMeta } = useTablesStore()
+
+const isOpenColumnSelectDropdown = ref(false)
 
 const filterColumn = (column: ColumnType) => {
   return !isSystemColumn(column) && !isVirtualCol(column) && !isAttachment(column)
 }
 
-const onSelectField = () => {
-  saveConfig()
+const columnList = computedAsync(async () => {
+  let fields: ColumnType[]
+
+  if (config.value.selectedTableId) {
+    const tableMeta = await loadTableMeta(config.value.selectedTableId)
+    fields = tableMeta?.columns || []
+  } else {
+    fields = meta.value?.columns || []
+  }
+
+  fields = fields.filter(filterColumn)
+
+  return fields.map((column) => ({
+    label: column.title || column.column_name,
+    value: column.id,
+    ...column,
+  }))
+}, [])
+
+const columnListMap = computed(() => {
+  if (!columnList.value || columnList.value.length === 0) return new Map()
+  return new Map(columnList.value.map((column) => [column.value, column]))
+})
+
+const selectedColumnLabel = computed(() => {
+  const count = config.value.selectedFieldIds.length
+  if (count === 0) return '-- Select field(s) --'
+  if (count === 1) {
+    const col = columnListMap.value.get(config.value.selectedFieldIds[0])
+    return col?.label || '1 field selected'
+  }
+  return `${count} fields selected`
+})
+
+// Debounce group set loading to avoid redundant API calls when toggling multiple fields quickly
+const debouncedLoadGroupSets = useDebounceFn(() => {
   loadGroupSets()
+}, 500)
+
+const onSelectField = (value: string[]) => {
+  config.value.selectedFieldIds = value
+  saveConfig()
+  debouncedLoadGroupSets()
 }
 
 onMounted(() => {
-  if (!config.value.selectedFieldId && !hasMergedAnyRecords.value) return
+  if (!config.value.selectedFieldIds.length && !hasMergedAnyRecords.value) return
 
   loadGroupSets(true)
 })
@@ -37,14 +81,62 @@ onMounted(() => {
       @update:value="saveConfig"
     />
 
-    <NcListColumnSelector
-      v-model:value="config.selectedFieldId"
-      :table-id="config.selectedTableId"
-      :disabled="!config.selectedTableId || !config.selectedViewId"
-      force-layout="vertical"
-      :filter-column="filterColumn"
-      @update:value="onSelectField"
-    />
+    <a-form-item name="columnIds" class="!mb-0 nc-column-selector nc-force-layout-vertical" @click.stop @dblclick.stop>
+      <template #label>
+        <div>Field(s)</div>
+      </template>
+      <NcListDropdown v-model:is-open="isOpenColumnSelectDropdown" :disabled="!config.selectedTableId || !config.selectedViewId">
+        <div class="flex-1 flex group items-center gap-2 min-w-0">
+          <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
+            <span
+              class="text-sm flex-1 truncate"
+              :class="{
+                'text-nc-content-gray-muted': !config.selectedFieldIds.length,
+              }"
+            >
+              {{ selectedColumnLabel }}
+            </span>
+
+            <template #title>
+              {{ selectedColumnLabel }}
+            </template>
+          </NcTooltip>
+
+          <GeneralIcon
+            v-if="config.selectedFieldIds.length"
+            class="hidden text-nc-content-gray-muted transition group-hover:!block h-4 w-4 cursor-pointer"
+            icon="ncXCircle"
+            @click.stop="onSelectField([])"
+          />
+
+          <GeneralIcon
+            icon="ncChevronDown"
+            class="flex-none h-4 w-4 transition-transform opacity-70"
+            :class="{ 'transform rotate-180': isOpenColumnSelectDropdown }"
+          />
+        </div>
+        <template #overlay="{ onEsc }">
+          <NcList
+            v-model:open="isOpenColumnSelectDropdown"
+            :value="config.selectedFieldIds"
+            :list="columnList"
+            variant="medium"
+            :close-on-select="false"
+            :is-multi-select="true"
+            class="!w-auto"
+            wrapper-class-name="!h-auto"
+            @update:value="onSelectField"
+            @escape="onEsc"
+          >
+            <template #listItemExtraLeft="{ option }">
+              <div class="min-w-5 flex items-center justify-center">
+                <SmartsheetHeaderIcon :column="option as ColumnType" color="text-nc-content-gray-muted" />
+              </div>
+            </template>
+          </NcList>
+        </template>
+      </NcListDropdown>
+    </a-form-item>
   </div>
 </template>
 

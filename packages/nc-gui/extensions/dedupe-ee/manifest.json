@@ -24,6 +24,5 @@
   "order": 9,
   "beta": true,
   "disabled": false,
-  "showAsBeta": true,
   "minAccessRole": "editor"
 }

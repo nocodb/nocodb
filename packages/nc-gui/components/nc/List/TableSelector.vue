@@ -181,38 +181,3 @@ defineExpose({
     </NcListDropdown>
   </a-form-item>
 </template>
-
-<style lang="scss">
-.nc-table-selector.ant-form-item {
-  &.nc-force-layout-vertical {
-    @apply !flex-col;
-
-    & > .ant-form-item-label {
-      @apply pb-2 text-left;
-
-      &::after {
-        @apply hidden;
-      }
-
-      & > label {
-        @apply !h-auto;
-        &::after {
-          @apply !hidden;
-        }
-      }
-    }
-  }
-
-  &.nc-force-layout-horizontal {
-    @apply !flex-row !items-center;
-
-    & > .ant-form-item-label {
-      @apply pb-0 items-center;
-
-      &::after {
-        @apply content-[':'] !mr-2 !ml-0.5 relative top-[0.5px];
-      }
-    }
-  }
-}
-</style>

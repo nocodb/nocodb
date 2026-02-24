@@ -15,6 +15,11 @@ on:
       tag:
         description: "Any additional Tag"
         required: false
+      auto_promote:
+        type: boolean
+        description: 'Auto-promote to production after smoke tests pass'
+        required: false
+        default: false
       services_to_deploy:
         type: choice
         description: services to deploy
@@ -185,6 +190,82 @@ jobs:
           API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
         run: |
           ./scripts/release/staging.sh
+
+      - name: Wait for staging to deploy new version
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' )) }}
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+          echo "Waiting for staging to serve commit $COMMIT_HASH..."
+          for i in $(seq 1 24); do
+            NC_TXT=$(curl -sf "$STAGING_URL/nc.txt" 2>/dev/null || echo "")
+            if echo "$NC_TXT" | grep -q "$COMMIT_HASH"; then
+              echo "✅ New version is live (attempt $i)"
+              break
+            fi
+            echo "⏳ Attempt $i/24 — new version not yet live, waiting 10s..."
+            sleep 10
+            if [ "$i" -eq 24 ]; then
+              echo "❌ Staging did not serve the new commit within 4 minutes"
+              exit 1
+            fi
+          done
+
+      - name: Smoke test staging
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' )) }}
+        id: smoke
+        env:
+          STAGING_URL: ${{ secrets.STAGING_URL }}
+          COMMIT_HASH: ${{ github.sha }}
+        run: |
+          echo "### Staging Smoke Tests — $COMMIT_HASH" >> $GITHUB_STEP_SUMMARY
+          FAILED=0
+
+          run_check() {
+            local label="$1"; local cmd="$2"
+            if eval "$cmd" > /dev/null 2>&1; then
+              echo "  ✅ $label"
+              echo "- ✅ $label" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "  ❌ $label"
+              echo "- ❌ $label" >> $GITHUB_STEP_SUMMARY
+              FAILED=1
+            fi
+          }
+
+          run_check "Health endpoint"      "curl -sf '$STAGING_URL/api/v1/health'"
+          run_check "Meta endpoint"        "curl -sf '$STAGING_URL/api/v1/meta/tables' -o /dev/null -w '%{http_code}' | grep -qE '^(200|401)'"
+          run_check "Correct commit live"  "curl -sf '$STAGING_URL/nc.txt' | grep -q '$COMMIT_HASH'"
+
+          if [ "$FAILED" -eq 0 ]; then
+            echo "smoke_passed=true" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Result: ✅ All checks passed**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "smoke_passed=false" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Result: ❌ Smoke tests failed — production promote skipped**" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Auto-promote to production
+        if: ${{ steps.smoke.outputs.smoke_passed == 'true' && ( github.event_name == 'schedule' || github.event.inputs.auto_promote == 'true' ) }}
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GH_TOKEN_PRIVATE_REPO }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'release-cloud-production.yml',
+              ref: context.ref,
+              inputs: { promote: 'true' },
+            });
+            core.summary.addRaw('\n\n🚀 **Smoke tests passed — production promote dispatched automatically.**\n');
+            await core.summary.write();
+            console.log('Production promote dispatched successfully');
+
       ### mux build and deploy starts here ###
       - name: Build, tag, and push mux service image (nc-sql-executor) to Amazon ECR
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all') }}

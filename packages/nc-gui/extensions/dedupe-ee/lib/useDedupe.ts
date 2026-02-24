@@ -440,13 +440,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     return row
   })
 
-  const getSelectedFieldValue = (fieldId: string) => {
-    const selectedRecordIndex = mergeState.value.selectedFields[fieldId]
-    if (!selectedRecordIndex) return null
-
-    return getFieldValue(fieldId, selectedRecordIndex)
-  }
-
   const nextSet = async () => {
     if (hasNextGroup.value) {
       currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: false }
@@ -898,7 +891,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     includeRecord,
     selectFieldValue,
     getFieldValue,
-    getSelectedFieldValue,
     nextSet,
 
     mergeAndDelete,

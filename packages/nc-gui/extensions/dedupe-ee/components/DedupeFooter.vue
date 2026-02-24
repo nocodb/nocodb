@@ -39,7 +39,7 @@ const canMerge = computed(() => {
 
 const handleReset = async () => {
   showInfoModal({
-    title: 'Are you sure you want to reset your changes for this set set of duplicates?',
+    title: 'Are you sure you want to reset your changes for this set of duplicates?',
     content: 'Any records excluded from the set will be restored and all field selections will be reverted.',
     showCancelBtn: true,
     showIcon: false,

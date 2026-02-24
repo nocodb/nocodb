@@ -7,7 +7,6 @@ const up = async (knex: Knex) => {
     table.string('fk_base_id', 20).index();
     table.string('fk_workspace_id', 20).index();
     table.string('title', 255);
-    table.text('integration_ids'); // JSON array of integration IDs
     table.string('created_by', 20);
     table.timestamps(true, true);
   });

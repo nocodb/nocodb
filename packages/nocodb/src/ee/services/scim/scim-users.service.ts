@@ -1,20 +1,10 @@
 import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
-import { AppEvents, WorkspaceUserRoles } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
-import type { UserType } from 'nocodb-sdk';
-import type { ScimUserEvent } from '~/services/app-hooks/interfaces';
+import { WorkspaceUserRoles } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { User, WorkspaceUser } from '~/ee/models';
-import Workspace from '~/ee/models/Workspace';
-import { WorkspaceUsersService } from '~/services/workspace-users.service';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import {
-  extractWorkspaceRoleFromExtension,
-  NOCODB_USER_EXTENSION,
-  WORKSPACE_ROLE_TO_LABEL,
-} from '~/services/scim/scim-helpers';
 
 // Enterprise extension schema URI
 const ENTERPRISE_EXTENSION =
@@ -24,20 +14,7 @@ const ENTERPRISE_EXTENSION =
 export class ScimUsersService {
   protected logger = new Logger(ScimUsersService.name);
 
-  constructor(
-    private readonly workspaceUsersService: WorkspaceUsersService,
-    private readonly appHooksService: AppHooksService,
-  ) {}
-
-  /**
-   * Extract and validate workspaceRole from NocoDB extension attribute.
-   * Returns the WorkspaceUserRoles enum value, or undefined if not present.
-   */
-  private extractWorkspaceRole(
-    scimUser: Record<string, unknown>,
-  ): WorkspaceUserRoles | undefined {
-    return extractWorkspaceRoleFromExtension(scimUser, NOCODB_USER_EXTENSION);
-  }
+  constructor() {}
 
   /**
    * Get a single user by SCIM ID
@@ -56,7 +33,7 @@ export class ScimUsersService {
       NcError.notFound('User not found');
     }
 
-    return this.toScimUser(workspaceUser);
+    return this.toScimUser(workspaceUser, param.workspaceId);
   }
 
   /**
@@ -106,7 +83,7 @@ export class ScimUsersService {
     );
 
     const resources = await Promise.all(
-      paginatedUsers.map((wu) => this.toScimUser(wu)),
+      paginatedUsers.map((wu) => this.toScimUser(wu, param.workspaceId)),
     );
 
     return {
@@ -125,8 +102,8 @@ export class ScimUsersService {
     context: NcContext,
     param: {
       workspaceId: string;
-      scimUser: Record<string, any>;
-      req: NcRequest;
+      scimUser: any;
+      req: any;
     },
   ) {
     const { scimUser, workspaceId } = param;
@@ -173,16 +150,12 @@ export class ScimUsersService {
     // Build comprehensive scim_meta to round-trip all attributes
     const scimMeta = this.buildScimMeta(scimUser);
 
-    // Extract workspace role from NocoDB extension (if provided)
-    const workspaceRole =
-      this.extractWorkspaceRole(scimUser) || WorkspaceUserRoles.VIEWER;
-
     // Reactivate soft-deleted user
     if (existingWsUser?.deleted) {
       const updateData = {
         deleted: false,
         deleted_at: null,
-        roles: workspaceRole,
+        roles: existingWsUser.roles || WorkspaceUserRoles.VIEWER,
         scim_external_id: scimId,
         scim_managed: true,
         scim_user_name: scimUser.userName,
@@ -196,22 +169,7 @@ export class ScimUsersService {
         updateData,
       );
 
-      // Restore caches and seat count after reactivation
-      await this.workspaceUsersService.restoreWorkspaceUser({
-        context,
-        workspaceId,
-        userId: existingWsUser.fk_user_id,
-      });
-
-      this.emitScimEvent(AppEvents.SCIM_USER_REACTIVATE, {
-        workspaceId,
-        user,
-        workspaceUser: reactivatedUser,
-        scimId,
-        req: param.req,
-      });
-
-      return this.toScimUser(reactivatedUser);
+      return this.toScimUser(reactivatedUser, workspaceId);
     }
 
     // Create new workspace user with SCIM data
@@ -219,22 +177,14 @@ export class ScimUsersService {
     const workspaceUser = await WorkspaceUser.insert({
       fk_workspace_id: workspaceId,
       fk_user_id: user.id,
-      roles: workspaceRole,
+      roles: WorkspaceUserRoles.VIEWER,
       scim_external_id: scimId,
       scim_managed: true,
       scim_user_name: scimUser.userName,
       scim_meta: scimMeta,
     });
 
-    this.emitScimEvent(AppEvents.SCIM_USER_PROVISION, {
-      workspaceId,
-      user,
-      workspaceUser,
-      scimId,
-      req: param.req,
-    });
-
-    return this.toScimUser(workspaceUser);
+    return this.toScimUser(workspaceUser, workspaceId);
   }
 
   /**
@@ -245,8 +195,7 @@ export class ScimUsersService {
     param: {
       workspaceId: string;
       scimId: string;
-      scimUser: Record<string, any>;
-      req: NcRequest;
+      scimUser: any;
     },
   ) {
     return this.updateUser(context, { ...param, isPatch: false });
@@ -260,8 +209,7 @@ export class ScimUsersService {
     param: {
       workspaceId: string;
       scimId: string;
-      scimUser: Record<string, any>;
-      req: NcRequest;
+      scimUser: any;
     },
   ) {
     const { scimUser } = param;
@@ -279,39 +227,15 @@ export class ScimUsersService {
               if (val.toLowerCase() === 'false') val = false;
               else if (val.toLowerCase() === 'true') val = true;
             }
-            // Handle NocoDB extension path (e.g. "urn:...:User:workspaceRole")
-            const nocoExtPrefix = `${NOCODB_USER_EXTENSION}:`;
-            if (op.path.startsWith(nocoExtPrefix)) {
-              const field = op.path.substring(nocoExtPrefix.length);
-              if (!flatUser[NOCODB_USER_EXTENSION])
-                flatUser[NOCODB_USER_EXTENSION] = {};
-              flatUser[NOCODB_USER_EXTENSION][field] = val;
-            } else {
-              flatUser[op.path] = val;
-            }
+            flatUser[op.path] = val;
           } else if (typeof op.value === 'object') {
             // Bulk operation: { op: "Replace", value: { displayName: "...", active: false } }
-            // Check for NocoDB extension in bulk value
-            if (op.value[NOCODB_USER_EXTENSION]) {
-              flatUser[NOCODB_USER_EXTENSION] = op.value[NOCODB_USER_EXTENSION];
-            }
             Object.assign(flatUser, op.value);
           }
         } else if (op.op?.toLowerCase() === 'add') {
           if (op.path) {
-            const nocoExtPrefix = `${NOCODB_USER_EXTENSION}:`;
-            if (op.path.startsWith(nocoExtPrefix)) {
-              const field = op.path.substring(nocoExtPrefix.length);
-              if (!flatUser[NOCODB_USER_EXTENSION])
-                flatUser[NOCODB_USER_EXTENSION] = {};
-              flatUser[NOCODB_USER_EXTENSION][field] = op.value;
-            } else {
-              flatUser[op.path] = op.value;
-            }
+            flatUser[op.path] = op.value;
           } else if (typeof op.value === 'object') {
-            if (op.value[NOCODB_USER_EXTENSION]) {
-              flatUser[NOCODB_USER_EXTENSION] = op.value[NOCODB_USER_EXTENSION];
-            }
             Object.assign(flatUser, op.value);
           }
         } else if (op.op?.toLowerCase() === 'remove') {
@@ -338,9 +262,8 @@ export class ScimUsersService {
     param: {
       workspaceId: string;
       scimId: string;
-      scimUser: Record<string, any>;
+      scimUser: any;
       isPatch: boolean;
-      req: NcRequest;
     },
   ) {
     const { workspaceId, scimId, scimUser } = param;
@@ -381,14 +304,7 @@ export class ScimUsersService {
       this.mergeScimMetaFromPatch(updateData.scim_meta, scimUser);
     }
 
-    // Handle workspace role from NocoDB extension attribute
-    const newRole = this.extractWorkspaceRole(scimUser);
-    if (newRole) {
-      updateData.roles = newRole;
-    }
-
     // Handle active status (deactivation)
-    const isDeactivating = scimUser.active === false && !workspaceUser.deleted;
     if (scimUser.active === false) {
       updateData.deleted = true;
       updateData.deleted_at = new Date();
@@ -405,54 +321,6 @@ export class ScimUsersService {
       updateData,
     );
 
-    // Determine reactivation before cleanup (workspaceUser.deleted is pre-update state)
-    const isReactivating =
-      scimUser.active === true && workspaceUser.deleted && !isDeactivating;
-
-    // Full cleanup on deactivation (base access, teams, orphan bases, seat recount)
-    if (isDeactivating) {
-      await this.workspaceUsersService.cleanupWorkspaceUser({
-        context,
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-      });
-    }
-
-    // Restore caches and seat count on reactivation
-    if (isReactivating) {
-      await this.workspaceUsersService.restoreWorkspaceUser({
-        context,
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-      });
-    }
-
-    if (isDeactivating) {
-      this.emitScimEvent(AppEvents.SCIM_USER_DEACTIVATE, {
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-        workspaceUser,
-        scimId,
-        req: param.req,
-      });
-    } else if (isReactivating) {
-      this.emitScimEvent(AppEvents.SCIM_USER_REACTIVATE, {
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-        workspaceUser,
-        scimId,
-        req: param.req,
-      });
-    } else {
-      this.emitScimEvent(AppEvents.SCIM_USER_UPDATE, {
-        workspaceId,
-        userId: workspaceUser.fk_user_id,
-        workspaceUser,
-        scimId,
-        req: param.req,
-      });
-    }
-
     // Re-fetch from DB via getByScimExternalId (same code path as GET)
     // to ensure response reflects persisted state and scim_meta is parsed
     const refreshed = await WorkspaceUser.getByScimExternalId(
@@ -462,11 +330,11 @@ export class ScimUsersService {
     );
 
     if (refreshed) {
-      return this.toScimUser(refreshed);
+      return this.toScimUser(refreshed, workspaceId);
     }
 
     // Fallback for edge cases (e.g. race condition on deactivation)
-    return this.toScimUser({ ...workspaceUser, ...updateData });
+    return this.toScimUser({ ...workspaceUser, ...updateData }, workspaceId);
   }
 
   /**
@@ -474,7 +342,7 @@ export class ScimUsersService {
    */
   async deactivateUser(
     context: NcContext,
-    param: { workspaceId: string; scimId: string; req: NcRequest },
+    param: { workspaceId: string; scimId: string },
   ) {
     // Direct indexed lookup (include deleted so we can distinguish not-found vs already-deleted)
     const workspaceUser = await WorkspaceUser.getByScimExternalId(
@@ -495,21 +363,6 @@ export class ScimUsersService {
     }
 
     await WorkspaceUser.softDelete(param.workspaceId, workspaceUser.fk_user_id);
-
-    // Full cleanup: base access, team membership, orphan bases, seat recount, socket notification
-    await this.workspaceUsersService.cleanupWorkspaceUser({
-      context,
-      workspaceId: param.workspaceId,
-      userId: workspaceUser.fk_user_id,
-    });
-
-    this.emitScimEvent(AppEvents.SCIM_USER_DELETE, {
-      workspaceId: param.workspaceId,
-      userId: workspaceUser.fk_user_id,
-      workspaceUser,
-      scimId: param.scimId,
-      req: param.req,
-    });
   }
 
   /**
@@ -703,7 +556,10 @@ export class ScimUsersService {
   /**
    * Convert WorkspaceUser to SCIM User format with full attribute round-tripping
    */
-  private async toScimUser(workspaceUser: any): Promise<Record<string, any>> {
+  private async toScimUser(
+    workspaceUser: any,
+    _workspaceId: string,
+  ): Promise<any> {
     // Parse scim_meta if it's a JSON string (WorkspaceUser.get() doesn't auto-parse)
     let rawMeta = workspaceUser.scim_meta;
     if (typeof rawMeta === 'string') {
@@ -800,56 +656,7 @@ export class ScimUsersService {
       result[ENTERPRISE_EXTENSION] = scimMeta[ENTERPRISE_EXTENSION];
     }
 
-    // Add NocoDB User extension (workspaceRole)
-    const wsRoleLabel = WORKSPACE_ROLE_TO_LABEL[workspaceUser.roles];
-    if (wsRoleLabel) {
-      result.schemas.push(NOCODB_USER_EXTENSION);
-      result[NOCODB_USER_EXTENSION] = { workspaceRole: wsRoleLabel };
-    }
-
     return result;
-  }
-
-  /**
-   * Emit a SCIM audit event asynchronously (fire-and-forget).
-   * Fetches workspace + user objects needed for the audit payload.
-   */
-  private emitScimEvent(
-    event:
-      | AppEvents.SCIM_USER_PROVISION
-      | AppEvents.SCIM_USER_UPDATE
-      | AppEvents.SCIM_USER_DEACTIVATE
-      | AppEvents.SCIM_USER_REACTIVATE
-      | AppEvents.SCIM_USER_DELETE,
-    param: {
-      workspaceId: string;
-      user?: UserType;
-      userId?: string;
-      workspaceUser: Partial<WorkspaceUser>;
-      scimId: string;
-      req: NcRequest;
-    },
-  ) {
-    // Fire-and-forget: resolve workspace + user then emit
-    Promise.all([
-      Workspace.get(param.workspaceId),
-      param.user
-        ? Promise.resolve(param.user)
-        : User.get(param.userId || param.workspaceUser.fk_user_id),
-    ])
-      .then(([workspace, user]) => {
-        if (!workspace || !user) return;
-        this.appHooksService.emit(event, {
-          workspace,
-          user,
-          workspaceUser: param.workspaceUser,
-          scimId: param.scimId,
-          req: param.req,
-        } as ScimUserEvent);
-      })
-      .catch((e) => {
-        this.logger.error(`Failed to emit SCIM audit event: ${event}`, e);
-      });
   }
 
   /**

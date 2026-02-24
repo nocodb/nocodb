@@ -2,7 +2,6 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
-  isLinksOrLTAR,
   isMMOrMMLike,
   RelationTypes,
   UITypes,

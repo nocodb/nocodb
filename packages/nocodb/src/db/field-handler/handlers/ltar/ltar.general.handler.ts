@@ -1,4 +1,4 @@
-import { isMMOrMMLike, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { FilterOptions } from '~/db/field-handler/field-handler.interface';

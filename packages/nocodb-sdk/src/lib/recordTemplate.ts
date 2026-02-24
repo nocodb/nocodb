@@ -13,7 +13,7 @@ export interface RecordTemplateType {
   id?: string;
   base_id?: string;
   fk_workspace_id?: string;
-  source_id?: string;
+  fk_model_id?: string;
   title?: string;
   description?: string;
   template_data?: RecordTemplateDataType | string;

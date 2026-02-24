@@ -7,7 +7,7 @@ const up = async (knex: Knex) => {
       table.string('id', 20).notNullable();
       table.string('base_id', 20).notNullable().index();
       table.string('fk_workspace_id', 20).index();
-      table.string('source_id', 20).notNullable().index();
+      table.string('fk_model_id', 20).notNullable().index();
       table.string('title', 255).notNullable();
       table.text('description');
       table.text('template_data').notNullable();

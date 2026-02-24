@@ -22,24 +22,24 @@ export class RecordTemplatesService {
   async list(param: {
     context: NcContext;
     baseId: string;
-    sourceId?: string;
+    modelId?: string;
     req: NcRequest;
   }) {
     return await RecordTemplate.list(param.context, {
       base_id: param.baseId,
-      source_id: param.sourceId,
+      fk_model_id: param.modelId,
     });
   }
 
   async listBySource(param: {
     context: NcContext;
     baseId: string;
-    sourceId: string;
+    modelId: string;
     req: NcRequest;
   }) {
     return await RecordTemplate.list(param.context, {
       base_id: param.baseId,
-      source_id: param.sourceId,
+      fk_model_id: param.modelId,
     });
   }
 
@@ -54,7 +54,7 @@ export class RecordTemplatesService {
   async create(param: {
     context: NcContext;
     baseId: string;
-    sourceId: string;
+    modelId: string;
     body: CreateRecordTemplateDto;
     userId: string;
     req: NcRequest;
@@ -71,14 +71,14 @@ export class RecordTemplatesService {
     await this.ensureUniqueTitle(
       param.context,
       param.baseId,
-      param.sourceId,
+      param.modelId,
       param.body.title,
     );
 
     const template = await RecordTemplate.insert(param.context, {
       base_id: param.baseId,
       fk_workspace_id: param.context.workspace_id,
-      source_id: param.sourceId,
+      fk_model_id: param.modelId,
       title: param.body.title,
       description: param.body.description,
       template_data: param.body.template_data,
@@ -124,7 +124,7 @@ export class RecordTemplatesService {
       await this.ensureUniqueTitle(
         param.context,
         existingTemplate.base_id,
-        existingTemplate.source_id,
+        existingTemplate.fk_model_id,
         param.body.title,
         param.templateId,
       );
@@ -215,13 +215,13 @@ export class RecordTemplatesService {
   private async ensureUniqueTitle(
     context: NcContext,
     baseId: string,
-    sourceId: string,
+    modelId: string,
     title: string,
     excludeTemplateId?: string,
   ) {
     const existing = await RecordTemplate.list(context, {
       base_id: baseId,
-      source_id: sourceId,
+      fk_model_id: modelId,
     });
 
     const duplicate = existing.find(
@@ -268,7 +268,7 @@ export class RecordTemplatesService {
     context: NcContext;
     templateId: string;
     baseId: string;
-    sourceId: string;
+    modelId: string;
     userId: string;
     req: NcRequest;
   }): Promise<any> {
@@ -278,7 +278,7 @@ export class RecordTemplatesService {
     }
 
     // Get model
-    const model = await Model.get(param.context, param.sourceId);
+    const model = await Model.get(param.context, param.modelId);
     if (!model) {
       NcError.notFound('Table not found');
     }

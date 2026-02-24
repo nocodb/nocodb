@@ -51,23 +51,23 @@ export class RecordTemplatesController {
     );
   }
 
-  /** List templates scoped to a specific table (source_id) */
+  /** List templates scoped to a specific table (fk_model_id) */
   @Get([
-    '/api/v1/db/meta/bases/:baseId/tables/:sourceId/record-templates',
-    '/api/v2/meta/bases/:baseId/tables/:sourceId/record-templates',
+    '/api/v1/db/meta/bases/:baseId/tables/:modelId/record-templates',
+    '/api/v2/meta/bases/:baseId/tables/:modelId/record-templates',
   ])
   @Acl('recordTemplateList')
   async list(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('baseId') baseId: string,
-    @Param('sourceId') sourceId: string,
+    @Param('modelId') modelId: string,
   ) {
     return new PagedResponseImpl(
       await this.recordTemplatesService.listBySource({
         context,
         baseId,
-        sourceId,
+        modelId,
         req,
       }),
     );
@@ -91,8 +91,8 @@ export class RecordTemplatesController {
   }
 
   @Post([
-    '/api/v1/db/meta/bases/:baseId/tables/:sourceId/record-templates',
-    '/api/v2/meta/bases/:baseId/tables/:sourceId/record-templates',
+    '/api/v1/db/meta/bases/:baseId/tables/:modelId/record-templates',
+    '/api/v2/meta/bases/:baseId/tables/:modelId/record-templates',
   ])
   @HttpCode(200)
   @Acl('recordTemplateCreate')
@@ -100,13 +100,13 @@ export class RecordTemplatesController {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('baseId') baseId: string,
-    @Param('sourceId') sourceId: string,
+    @Param('modelId') modelId: string,
     @Body() body: CreateRecordTemplateDto,
   ) {
     return await this.recordTemplatesService.create({
       context,
       baseId,
-      sourceId,
+      modelId,
       body,
       userId: req['user'].id,
       req,
@@ -171,8 +171,8 @@ export class RecordTemplatesController {
   }
 
   @Post([
-    '/api/v1/db/meta/bases/:baseId/tables/:sourceId/record-templates/:templateId/create-from',
-    '/api/v2/meta/bases/:baseId/tables/:sourceId/record-templates/:templateId/create-from',
+    '/api/v1/db/meta/bases/:baseId/tables/:modelId/record-templates/:templateId/create-from',
+    '/api/v2/meta/bases/:baseId/tables/:modelId/record-templates/:templateId/create-from',
   ])
   @HttpCode(200)
   @Acl('recordTemplateUse')
@@ -180,14 +180,14 @@ export class RecordTemplatesController {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('baseId') baseId: string,
-    @Param('sourceId') sourceId: string,
+    @Param('modelId') modelId: string,
     @Param('templateId') templateId: string,
   ) {
     return await this.recordTemplatesService.createFromTemplate({
       context,
       templateId,
       baseId,
-      sourceId,
+      modelId,
       userId: req['user'].id,
       req,
     });

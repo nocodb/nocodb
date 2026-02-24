@@ -14,7 +14,7 @@ export default class RecordTemplate {
   id?: string;
   base_id: string;
   fk_workspace_id?: string;
-  source_id: string;
+  fk_model_id: string;
   title: string;
   description?: string;
   template_data: string | Record<string, any>;
@@ -37,7 +37,7 @@ export default class RecordTemplate {
       'id',
       'base_id',
       'fk_workspace_id',
-      'source_id',
+      'fk_model_id',
       'title',
       'description',
       'template_data',
@@ -71,7 +71,7 @@ export default class RecordTemplate {
       await NocoCache.appendToList(
         context,
         CacheScope.RECORD_TEMPLATE,
-        [template.base_id, template.source_id],
+        [template.base_id, template.fk_model_id],
         key,
       );
       // Also update the base-level 'all' list cache so listAll returns fresh data
@@ -121,24 +121,24 @@ export default class RecordTemplate {
   }
 
   /**
-   * List templates for a base, optionally filtered by table (source_id).
-   * When source_id is omitted, returns ALL templates across all tables in the base.
-   * Cache key uses 'all' as the source_id placeholder for base-level queries.
+   * List templates for a base, optionally filtered by table (fk_model_id).
+   * When fk_model_id is omitted, returns ALL templates across all tables in the base.
+   * Cache key uses 'all' as the fk_model_id placeholder for base-level queries.
    */
   public static async list(
     context: NcContext,
-    param: { base_id: string; source_id?: string },
+    param: { base_id: string; fk_model_id?: string },
     ncMeta = Noco.ncMeta,
   ) {
     const condition: any = { base_id: param.base_id };
-    if (param.source_id) {
-      condition.source_id = param.source_id;
+    if (param.fk_model_id) {
+      condition.fk_model_id = param.fk_model_id;
     }
 
     const cachedList = await NocoCache.getList(
       context,
       CacheScope.RECORD_TEMPLATE,
-      [param.base_id, param.source_id || 'all'],
+      [param.base_id, param.fk_model_id || 'all'],
     );
 
     let { list: templateList } = cachedList;
@@ -160,7 +160,7 @@ export default class RecordTemplate {
       await NocoCache.setList(
         context,
         CacheScope.RECORD_TEMPLATE,
-        [param.base_id, param.source_id || 'all'],
+        [param.base_id, param.fk_model_id || 'all'],
         templateList,
       );
     }

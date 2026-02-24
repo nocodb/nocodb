@@ -9,7 +9,7 @@
   4. Template usage ("+") to create records with pre-filled values and sub-records
 
   Templates are stored at the base level (not table-scoped) so the manager
-  shows templates across all tables. Each template has a `source_id` that
+  shows templates across all tables. Each template has a `fk_model_id` that
   references the table it belongs to.
 
   Sub-record blueprints: Templates can include LTAR blueprints that define
@@ -26,8 +26,8 @@ interface TemplateType {
   title: string
   description?: string
   template_data: Record<string, any> | string
-  /** Table ID this template belongs to (named source_id for historical reasons) */
-  source_id?: string
+  /** Table (model) ID this template belongs to */
+  fk_model_id?: string
   usage_count?: number
   enabled?: boolean
   created_by?: string
@@ -51,7 +51,7 @@ const { showUpgradeToUseRecordTemplates } = useEeConfig()
 // Helpers
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Resolve a table ID (source_id) to its display name */
+/** Resolve a table ID (fk_model_id) to its display name */
 const getTableName = (sourceId?: string) => {
   if (!sourceId || !base.value?.id) return ''
   const tables = baseTables.value.get(base.value.id) || []
@@ -80,7 +80,7 @@ const PAGE_SIZE = 5
 
 // Tables that have at least one template
 const tablesWithTemplates = computed(() => {
-  const tableIds = new Set(templates.value.map((t) => t.source_id).filter(Boolean))
+  const tableIds = new Set(templates.value.map((t) => t.fk_model_id).filter(Boolean))
   const tables = baseTables.value.get(base.value?.id || '') || []
   return tables.filter((t) => tableIds.has(t.id))
 })
@@ -104,7 +104,7 @@ const columns = [
     key: 'table',
     title: t('objects.table'),
     minWidth: 140,
-    dataIndex: 'source_id',
+    dataIndex: 'fk_model_id',
     showOrderBy: true,
   },
   {
@@ -146,14 +146,14 @@ const filteredTemplates = computed(() => {
 
   // Apply table filter
   if (selectedTableFilter.value) {
-    result = result.filter((t) => t.source_id === selectedTableFilter.value)
+    result = result.filter((t) => t.fk_model_id === selectedTableFilter.value)
   }
 
   // Apply search filter
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.trim().toLowerCase()
     result = result.filter(
-      (t) => t.title?.toLowerCase().includes(query) || getTableName(t.source_id).toLowerCase().includes(query),
+      (t) => t.title?.toLowerCase().includes(query) || getTableName(t.fk_model_id).toLowerCase().includes(query),
     )
   }
 
@@ -165,7 +165,7 @@ const filteredTemplates = computed(() => {
 
     // Resolve the display/sort value for virtual columns (table name, sub-record count)
     const getSortValue = (tmpl: TemplateType): any => {
-      if (sortKey === 'source_id') return getTableName(tmpl.source_id)
+      if (sortKey === 'fk_model_id') return getTableName(tmpl.fk_model_id)
       if (sortKey === 'sub_records') return getSubRecordCount(tmpl)
       return (tmpl as any)[sortKey] ?? ''
     }
@@ -275,7 +275,7 @@ const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateT
 
   // Enforce unique template name per table (client-side check)
   const duplicate = templates.value.find(
-    (t) => t.title?.trim().toLowerCase() === title.toLowerCase() && t.id !== editingTmpl?.id && t.source_id === tableId,
+    (t) => t.title?.trim().toLowerCase() === title.toLowerCase() && t.id !== editingTmpl?.id && t.fk_model_id === tableId,
   )
   if (duplicate) {
     message.toast(`A template with the name "${title}" already exists`)
@@ -348,9 +348,9 @@ const openTemplateForm = async (editingTmpl: TemplateType | null = null) => {
 
   // Resolve the table meta for this template (may be a different table than the current one)
   let tableMeta: TableType | undefined
-  if (editingTmpl?.source_id && editingTmpl.source_id !== meta.value?.id) {
+  if (editingTmpl?.fk_model_id && editingTmpl.fk_model_id !== meta.value?.id) {
     try {
-      tableMeta = (await getMeta(base.value!.id!, editingTmpl.source_id)) as TableType
+      tableMeta = (await getMeta(base.value!.id!, editingTmpl.fk_model_id)) as TableType
     } catch {
       message.toast('Failed to load table metadata for this template')
       return
@@ -359,9 +359,9 @@ const openTemplateForm = async (editingTmpl: TemplateType | null = null) => {
   tableMeta = tableMeta || (meta.value as TableType)
 
   // Collect existing template names for duplicate validation per table (exclude current template when editing)
-  const templateTableId = editingTmpl?.source_id || tableMeta.id
+  const templateTableId = editingTmpl?.fk_model_id || tableMeta.id
   const existingTemplateNames = templates.value
-    .filter((t) => t.id !== editingTmpl?.id && t.source_id === templateTableId)
+    .filter((t) => t.id !== editingTmpl?.id && t.fk_model_id === templateTableId)
     .map((t) => t.title || '')
 
   openExpandedForm({
@@ -412,13 +412,13 @@ const onDeleteConfirm = async () => {
  */
 const handleUseTemplate = async (tmpl: TemplateType) => {
   if (!tmpl.id || !base.value?.id) return
-  const tableId = tmpl.source_id || meta.value?.id
+  const tableId = tmpl.fk_model_id || meta.value?.id
   if (!tableId) return
   try {
     // Resolve the table meta — template may belong to a different table than the current view
     let tableMeta: TableType | undefined
-    if (tmpl.source_id && tmpl.source_id !== meta.value?.id) {
-      tableMeta = (await getMeta(base.value.id!, tmpl.source_id)) as TableType
+    if (tmpl.fk_model_id && tmpl.fk_model_id !== meta.value?.id) {
+      tableMeta = (await getMeta(base.value.id!, tmpl.fk_model_id)) as TableType
     }
     tableMeta = tableMeta || (meta.value as TableType)
 
@@ -582,8 +582,8 @@ const customRow = (record: Record<string, any>) => ({
 
             <!-- Table -->
             <NcTooltip v-if="column.key === 'table'" placement="bottom" show-on-truncate-only class="truncate">
-              <template #title>{{ getTableName(tmpl.source_id) }}</template>
-              {{ getTableName(tmpl.source_id) }}
+              <template #title>{{ getTableName(tmpl.fk_model_id) }}</template>
+              {{ getTableName(tmpl.fk_model_id) }}
             </NcTooltip>
 
             <!-- Sub Records -->

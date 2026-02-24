@@ -359,49 +359,64 @@ export class WorkspaceUsersService {
       NcError.badRequest('Insufficient privilege to delete workspaceUser');
     }
 
-    const transaction = await ncMeta.startTransaction();
+    // Soft delete + full cleanup (base access, teams, orphan bases, seat recount, socket)
+    const res = await WorkspaceUser.softDelete(workspaceId, userId);
 
+    await this.cleanupWorkspaceUser({ context, workspaceId, userId });
+
+    this.appHooksService.emit(AppEvents.WORKSPACE_USER_DELETE, {
+      workspace,
+      workspaceUser: workspaceUser,
+      user,
+      req: param.req,
+    } as WorkspaceUserDeleteEvent);
+
+    return res;
+  }
+
+  /**
+   * Shared cleanup for workspace user removal/deactivation.
+   * Handles base access, team membership, orphan bases, cache, seat recount,
+   * and socket notifications. Used by both normal delete and SCIM deactivation.
+   *
+   * Does NOT call WorkspaceUser.softDelete — caller must handle that separately.
+   */
+  async cleanupWorkspaceUser(param: {
+    context: NcContext;
+    workspaceId: string;
+    userId: string;
+  }) {
+    const { context, workspaceId, userId } = param;
+    const ncMeta = Noco.ncMeta;
+
+    const transaction = await ncMeta.startTransaction();
     const cacheTransaction: (() => Promise<any>)[] = [];
 
-    let res;
-
     try {
-      // get all bases workspaceUser is part of and delete them
+      // Remove user from all bases in the workspace
       const workspaceBases = await Base.listByWorkspace(
         workspaceId,
-        {
-          includeDeleted: true,
-          includeSnapshot: true,
-        },
+        { includeDeleted: true, includeSnapshot: true },
         transaction,
       );
 
       for (const base of workspaceBases) {
         await BaseUser.delete(
-          {
-            workspace_id: workspaceId,
-            base_id: base.id,
-          },
+          { workspace_id: workspaceId, base_id: base.id },
           base.id,
           userId,
           transaction,
         );
 
         await Permission.removeSubjectBase(
-          {
-            workspace_id: workspaceId,
-            base_id: base.id,
-          },
+          { workspace_id: workspaceId, base_id: base.id },
           { type: 'user', id: userId },
           transaction,
         );
 
         cacheTransaction.push(() =>
           NocoCache.del(
-            {
-              workspace_id: workspaceId,
-              base_id: base.id,
-            },
+            { workspace_id: workspaceId, base_id: base.id },
             `${CacheScope.BASE_USER}:${base.id}:${userId}`,
           ),
         );
@@ -421,7 +436,6 @@ export class WorkspaceUsersService {
       );
 
       for (const team of teams) {
-        // Check if user is a member of this team
         const teamAssignment = await PrincipalAssignment.get(
           context,
           ResourceType.TEAM,
@@ -432,7 +446,6 @@ export class WorkspaceUsersService {
         );
 
         if (teamAssignment) {
-          // Delete the user from the team
           await PrincipalAssignment.delete(
             context,
             ResourceType.TEAM,
@@ -444,76 +457,53 @@ export class WorkspaceUsersService {
         }
       }
 
-      res = await WorkspaceUser.softDelete(workspaceId, userId, transaction);
-
       cacheTransaction.push(() =>
         NocoCache.del(
-          {
-            workspace_id: workspaceId,
-            base_id: null,
-          },
+          { workspace_id: workspaceId, base_id: null },
           `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
         ),
       );
 
-      // Handle orphan bases after user deletion
+      // Handle orphan bases after user removal
       await handleOrphanBases(workspaceId, userId, transaction);
 
       await transaction.commit();
+
+      // Execute cache cleanup after successful commit
+      await Promise.all(cacheTransaction.map((fn) => fn()));
     } catch (e) {
       await transaction.rollback();
 
-      // rollback cache
-      await Promise.all(cacheTransaction.map((fn) => fn()));
-
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      this.logger.error('Failed to delete workspace user', e);
-      NcError.get(param.req.context).internalServerError(
-        'Failed to delete workspace user',
-      );
+      this.logger.error('Failed to cleanup workspace user', e);
+      throw e;
     }
 
-    await this.paymentService.reseatSubscription(workspace.id, ncMeta);
+    // Reseat subscription (seat recount)
+    await this.paymentService.reseatSubscription(workspaceId, ncMeta);
 
-    this.appHooksService.emit(AppEvents.WORKSPACE_USER_DELETE, {
-      workspace,
-      workspaceUser: workspaceUser,
-      user,
-      req: param.req,
-    } as WorkspaceUserDeleteEvent);
-
-    // broadcast to user which we removed
-    NocoSocket.broadcastEventToUser(
-      user.id,
-      {
-        event: EventType.USER_EVENT,
-        payload: {
-          action: 'workspace_user_remove',
-          payload: user,
-          workspaceId: workspace.id,
-        },
+    // Broadcast socket event to notify user
+    NocoSocket.broadcastEventToUser(userId, {
+      event: EventType.USER_EVENT,
+      payload: {
+        action: 'workspace_user_remove',
+        payload: { id: userId },
+        workspaceId,
       },
-      param.req.ncSocketId,
-    );
+    });
 
-    // broadcast to workspace users
+    // Broadcast to workspace users
     NocoSocket.broadcastEventToWorkspaceUsers(
-      {
-        workspace_id: workspace.id,
-        base_id: null,
-      },
+      { workspace_id: workspaceId, base_id: null },
       {
         event: EventType.USER_EVENT,
         payload: {
           action: 'workspace_user_remove',
-          payload: user,
-          workspaceId: workspace.id,
+          payload: { id: userId },
+          workspaceId,
         },
       },
-      param.req.ncSocketId,
     );
-
-    return res;
   }
 
   async preInviteValidate(

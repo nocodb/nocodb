@@ -5,6 +5,7 @@ import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { User, WorkspaceUser } from '~/ee/models';
+import { WorkspaceUsersService } from '~/services/workspace-users.service';
 
 // Enterprise extension schema URI
 const ENTERPRISE_EXTENSION =
@@ -14,7 +15,7 @@ const ENTERPRISE_EXTENSION =
 export class ScimUsersService {
   protected logger = new Logger(ScimUsersService.name);
 
-  constructor() {}
+  constructor(private readonly workspaceUsersService: WorkspaceUsersService) {}
 
   /**
    * Get a single user by SCIM ID
@@ -305,6 +306,7 @@ export class ScimUsersService {
     }
 
     // Handle active status (deactivation)
+    const isDeactivating = scimUser.active === false && !workspaceUser.deleted;
     if (scimUser.active === false) {
       updateData.deleted = true;
       updateData.deleted_at = new Date();
@@ -320,6 +322,15 @@ export class ScimUsersService {
       workspaceUser.fk_user_id,
       updateData,
     );
+
+    // Full cleanup on deactivation (base access, teams, orphan bases, seat recount)
+    if (isDeactivating) {
+      await this.workspaceUsersService.cleanupWorkspaceUser({
+        context,
+        workspaceId,
+        userId: workspaceUser.fk_user_id,
+      });
+    }
 
     // Re-fetch from DB via getByScimExternalId (same code path as GET)
     // to ensure response reflects persisted state and scim_meta is parsed
@@ -363,6 +374,13 @@ export class ScimUsersService {
     }
 
     await WorkspaceUser.softDelete(param.workspaceId, workspaceUser.fk_user_id);
+
+    // Full cleanup: base access, team membership, orphan bases, seat recount, socket notification
+    await this.workspaceUsersService.cleanupWorkspaceUser({
+      context,
+      workspaceId: param.workspaceId,
+      userId: workspaceUser.fk_user_id,
+    });
   }
 
   /**

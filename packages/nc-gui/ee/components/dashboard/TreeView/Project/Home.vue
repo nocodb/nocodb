@@ -37,11 +37,11 @@ type SidebarTab = 'home' | 'data' | 'automation' | 'agents'
 
 const activeTab = ref<SidebarTab>('home')
 
-const sidebarTabs = computed<{ key: SidebarTab; icon: string; label: string }[]>(() => [
-  { key: 'home', icon: 'home1', label: 'Home' },
-  { key: 'data', icon: 'ncDatabase', label: 'Data' },
-  { key: 'automation', icon: 'ncAutomation', label: 'Automate' },
-  { key: 'agents', icon: 'ncSupportAgent', label: 'Agents' },
+const sidebarTabs = computed<{ key: SidebarTab; icon: string; activeIcon: string; label: string }[]>(() => [
+  { key: 'home', icon: 'home1', activeIcon: 'ncHomeFilled', label: 'Home' },
+  { key: 'data', icon: 'table', activeIcon: 'ncTableFilled', label: 'Data' },
+  { key: 'automation', icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
+  { key: 'agents', icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
 ])
 
 // If only base is open, i.e in case of docs, base view is open and not the page view
@@ -143,7 +143,7 @@ const onTabClick = (tab: SidebarTab) => {
             :data-testid="`nc-sidebar-tab-${tab.key}`"
             @click="onTabClick(tab.key)"
           >
-            <GeneralIcon :icon="tab.icon" class="!h-4 w-4" />
+            <GeneralIcon :icon="activeTab === tab.key ? tab.activeIcon : tab.icon" class="!h-4 w-4" />
             <span v-if="activeTab === tab.key" class="text-xs font-medium">{{ tab.label }}</span>
           </button>
         </NcTooltip>

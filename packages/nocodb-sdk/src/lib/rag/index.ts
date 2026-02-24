@@ -1,6 +1,6 @@
 export interface RagSessionType {
   id?: string;
-  fk_base_id?: string;
+  base_id?: string;
   fk_workspace_id?: string;
   title?: string;
   messages?: RagMessageType[];

@@ -276,7 +276,7 @@ export class RelationManager {
 
     const vChildCol = await colOptions.getMMChildColumn(mmContext);
     const vParentCol = await colOptions.getMMParentColumn(mmContext);
-    const vTable = await colOptions.getMMModel(baseModel.context);
+    const vTable = await colOptions.getMMModel(mmContext);
 
     const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
       model: vTable,

@@ -260,6 +260,10 @@ export enum AppEvents {
   SANDBOX_DELETE = 'sandbox.delete',
   SANDBOX_DISCARD = 'sandbox.discard',
   SANDBOX_MERGE = 'sandbox.merge',
+
+  RAG_CHAT = 'rag.chat',
+  RAG_SESSION_CREATE = 'rag.session.create',
+  RAG_SESSION_DELETE = 'rag.session.delete',
 }
 
 export enum ClickhouseTables {

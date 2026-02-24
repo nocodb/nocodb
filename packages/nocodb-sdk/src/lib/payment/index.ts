@@ -79,6 +79,8 @@ export enum PlanFeatureTypes {
   FEATURE_PINNED_FILTER = 'feature_pinned_filter',
   // EE-only UUID field type — gated by plan feature flag
   FEATURE_UUID_FIELD = 'feature_uuid_field',
+  // RAG data chat — gated by plan feature flag
+  FEATURE_RAG_CHAT = 'feature_rag_chat',
 }
 
 export enum PlanTitles {

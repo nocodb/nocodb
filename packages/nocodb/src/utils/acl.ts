@@ -201,6 +201,12 @@ const permissionScopes = {
     'aiData',
     'aiBaseSchema',
 
+    // RAG
+    'ragChat',
+    'ragSessionList',
+    'ragSessionGet',
+    'ragSessionDelete',
+
     // MCP
     'mcpList',
     'mcpCreate',
@@ -334,6 +340,12 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
+
+      // RAG
+      ragChat: true,
+      ragSessionList: true,
+      ragSessionGet: true,
+      ragSessionDelete: true,
 
       // Extensions
       extensionUpdate: true,

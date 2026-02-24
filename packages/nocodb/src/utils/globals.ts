@@ -111,6 +111,8 @@ export enum MetaTable {
   AUTOMATION_SUBSCRIBERS = 'nc_automation_subscribers',
   SANDBOXES = 'nc_sandboxes_v2',
   SCIM_CONFIG = 'nc_scim_config',
+  RAG_SESSIONS = 'nc_rag_sessions_v2',
+  RAG_MESSAGES = 'nc_rag_messages_v2',
 }
 
 export const BaseRelatedMetaTables = [

@@ -4,6 +4,55 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+import { Mark, mergeAttributes } from '@tiptap/core'
+
+/**
+ * Inline Highlight mark — lightweight alternative to @tiptap/extension-highlight.
+ * Renders <mark data-color="…" style="background-color:…"> around selected text.
+ * Supports multiple colours via the `color` attribute (multicolor mode).
+ *
+ * Commands exposed on the editor chain:
+ *   .setHighlight({ color })   — apply highlight to current selection
+ *   .unsetHighlight()          — remove highlight from current selection
+ */
+const Highlight = Mark.create({
+  name: 'highlight',
+
+  addAttributes() {
+    return {
+      color: {
+        default: null,
+        // Read colour from data-attr first, fall back to inline style (for pasted HTML)
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-color') || el.style.backgroundColor || null,
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.color) return {}
+          return { 'data-color': attrs.color, style: `background-color: ${attrs.color}` }
+        },
+      },
+    }
+  },
+
+  parseHTML() {
+    return [{ tag: 'mark' }]
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    return ['mark', mergeAttributes(HTMLAttributes), 0]
+  },
+
+  addCommands() {
+    return {
+      setHighlight:
+        (attributes?: { color?: string }) =>
+        ({ commands }: any) =>
+          commands.setMark('highlight', attributes),
+      unsetHighlight:
+        () =>
+        ({ commands }: any) =>
+          commands.unsetMark('highlight'),
+    }
+  },
+})
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
 import { DocEmbedExtension } from './DocEmbedExtension'
@@ -214,6 +263,7 @@ const editor = useEditor({
       heading: { levels: [1, 2, 3] },
     }),
     Underline,
+    Highlight,
     Link.configure({ openOnClick: false }),
     Placeholder.configure({ placeholder: 'Start writing or type / for commands...' }),
     DocImageExtension,
@@ -944,6 +994,14 @@ onBeforeUnmount(() => {
 
 // Doc editor typography — no prose class, clean styles
 .nc-doc-editor-content.ProseMirror {
+  // Highlight marks — keep text colour from parent, match native selection height
+  mark {
+    color: inherit;
+    padding: 2px 0;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
   min-height: 200px;
   font-size: 0.95rem;
   line-height: 1.7;

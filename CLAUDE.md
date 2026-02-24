@@ -175,6 +175,87 @@ For significant architectural or design decisions (not small implementation deta
 
 ## Frontend Patterns
 
+### Telemetry — `v-e` directive and `$e()`
+
+Track user interactions by adding a `v-e` directive on interactive elements. First element of the array is the event name, second optional element is metadata:
+
+```html
+<NcButton v-e="['c:table:create']">Create</NcButton>
+<a-switch v-e="['c:share:enable:toggle', { enabled: isPublic }]" />
+```
+
+Event name conventions: `c:` = action/click on UI element, `a:` = API call. Use colon-separated hierarchy: `c:feature:sub-feature:action`.
+
+In script, use `$e` from `useNuxtApp()`:
+```ts
+const { $e } = useNuxtApp()
+$e('a:table:import', { type: 'csv' })
+```
+
+### Type utilities from `nocodb-sdk`
+
+These runtime type guards are auto-imported from `nocodb-sdk` — prefer them over `typeof`/`Array.isArray`:
+
+`ncIsString`, `ncIsArray`, `ncIsFunction`, `ncIsObject`, `ncIsEmptyObject`, `ncIsNumber`, `ncIsBoolean`, `isPrimitiveValue`
+
+```ts
+if (ncIsArray(value)) { ... }
+if (ncIsString(value)) { ... }
+if (ncIsFunction(callback)) callback()
+```
+
+### `computedAsync` for async-resolved values
+
+Use `computedAsync` (auto-imported from `@vueuse/core`) when a computed value requires an async operation. It returns a ref that starts as `undefined` (or your provided initial value) and updates reactively:
+
+```ts
+const currentWorkspace = computedAsync(async () => {
+  if (!props.workspaceId) return activeWorkspace.value
+  return workspacesList.value.find((w) => w.id === props.workspaceId)
+            ?? await loadWorkspace(props.workspaceId)
+})
+```
+
+Avoid using `watch` + a separate `ref` just to resolve an async value — `computedAsync` is cleaner.
+
+### `inject()` — always provide a fallback
+
+Always pass a default to `inject()` so children don't crash when used outside a provider:
+
+```ts
+const isPublic = inject(IsPublicInj, ref(false))
+const activeView = inject(ActiveViewInj, ref())
+const isForm = inject(IsFormInj, ref(false))
+```
+
+### `data-testid` and `nc-*` CSS class naming
+
+- Add `data-testid` on interactive/important elements for Playwright tests. Use kebab-case with a feature prefix:
+  ```html
+  <input data-testid="nc-create-table-input" />
+  <NcButton data-testid="nc-create-table-btn-confirm" />
+  ```
+  Dynamic IDs: `:data-testid="\`nc-field-${col.title}\`"`.
+- Add `nc-*` CSS classes on elements that tests or users might need to target: `class="nc-table-row"`, `class="nc-sidebar-item"`.
+
+### `NcTooltip` vs `title` attribute
+
+Use `<NcTooltip>` instead of the native `title` attribute — it follows the design system and supports rich content.
+
+For text that may overflow/truncate, use `show-on-truncate-only` to only show the tooltip when text is actually clipped:
+```html
+<NcTooltip show-on-truncate-only class="truncate max-w-40">
+  {{ longText }}
+</NcTooltip>
+```
+
+For always-visible tooltips:
+```html
+<NcTooltip :title="$t('tooltip.myTip')" placement="right" :arrow="false">
+  <NcButton>...</NcButton>
+</NcTooltip>
+```
+
 ### i18n (Internationalization)
 
 Translation keys live in `packages/nc-gui/lang/en.json`. **Always reuse an existing key if it matches — only add a new one if no suitable key exists.**
@@ -561,6 +642,118 @@ if (blockMyThing.value) return showUpgradeToUseMyThing()
 ```
 
 `click(feature, successCallback)` — if feature is locked it shows the upgrade modal and returns `true`; if available it calls `successCallback`. The badge is auto-hidden when the feature is available.
+
+## Code Style & Organization
+
+### Script / composable internal order
+
+Keep declarations in this order with a **blank line between each group**:
+
+```ts
+// 1. Imports (at the top of the file, outside the composable/setup)
+
+// 2. Props / emits  (components only)
+const props = defineProps<{ ... }>()
+
+const emits = defineEmits<{ ... }>()
+
+// 3. Injected stores & composables
+const workspaceStore = useWorkspace()
+
+const { activeWorkspace } = storeToRefs(workspaceStore)
+
+const { $api } = useNuxtApp()
+
+const { user } = useGlobal()
+
+const { isUIAllowed } = useRoles()
+
+const { t } = useI18n()
+
+// 4. Injected context values (inject)
+const meta = inject(MetaInj)
+
+const isPublic = inject(IsPublicInj, ref(false))
+
+// 5. Reactive state (ref / reactive)
+const isLoading = ref(false)
+
+const form = reactive({ title: '' })
+
+// 6. Computed
+const isValid = computed(() => !!form.title)
+
+// 7. Functions & async actions
+async function save() { ... }
+
+function reset() { ... }
+
+// 8. Watchers
+watch(isLoading, () => { ... })
+
+// 9. Lifecycle hooks
+onMounted(() => { ... })
+```
+
+### Lint & hoisting rules
+
+- **`const` before use** — unlike `function` declarations, `const`/`let` are not hoisted. A computed or watcher that references a `ref` must come *after* that `ref` is declared.
+- **No unused variables** — lint will fail on declared-but-unused vars; remove them or prefix with `_` if intentionally unused (e.g. `_args`).
+- **No `console.log`** — remove before committing; use `Logger` in backend.
+- **Avoid `as any` / `as unknown as T`** — fix the type instead.
+
+### Spacing & readability
+
+- One blank line between each logical group (state, computed, functions, watchers).
+- One blank line between functions inside a block.
+- Keep lines under ~120 chars; break long chains onto new lines.
+
+### Reactivity tips
+
+- Prefer `computed` over `watch` + `ref` for derived state — it's lazy and cached.
+- Use `watchEffect` when the dependencies aren't known upfront; use `watch` when you need the old value or want explicit control.
+- Always `storeToRefs()` when destructuring Pinia store to keep reactivity: `const { bases } = storeToRefs(useBases())`.
+- Avoid mutating props directly — emit or use a local copy.
+
+### General best practices
+
+- **Early return** to reduce nesting — validate/guard at the top of a function, then write the happy path flat:
+  ```ts
+  async function save() {
+    if (!form.title) return
+    if (isLoading.value) return
+
+    isLoading.value = true
+    try {
+      await $api.table.create(...)
+    } catch (e) {
+      ncMessage.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoading.value = false
+    }
+  }
+  ```
+
+- **Name booleans positively** — `isLoading`, `isOpen`, `hasError` rather than `notLoading`, `closed`, `noError`.
+
+- **Consistent async error handling** — always wrap API calls in try/catch and use `extractSdkResponseErrorMsg(e)` for the error message:
+  ```ts
+  try {
+    await $api.something.do()
+  } catch (e: any) {
+    ncMessage.error(await extractSdkResponseErrorMsg(e))
+  }
+  ```
+
+- **Don't call composables inside conditionals or loops** — Vue composable rules apply; call them at the top level of setup/composable only.
+
+- **Avoid deep optional chaining chains** in templates (`a?.b?.c?.d`) — derive a computed that handles the nullability and use that instead.
+
+- **Type your refs** explicitly when the initial value doesn't convey the type:
+  ```ts
+  const items = ref<TableType[]>([])   // clear
+  const items = ref([])                // unclear
+  ```
 
 ## File Naming
 

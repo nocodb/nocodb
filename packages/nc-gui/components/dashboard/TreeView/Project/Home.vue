@@ -98,6 +98,29 @@ const hasTableCreatePermission = computed(() => {
       <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view" />
 
       <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
+        <NcButton
+          v-e="['c:base:home']"
+          type="text"
+          size="xsmall"
+          class="nc-sidebar-top-button !h-8 w-full !pl-0"
+          :centered="false"
+          :class="{
+            '!text-nc-content-brand-disabled !bg-nc-bg-brand !hover:bg-nc-bg-brand': activeProjectId === base.id && baseViewOpen,
+            '!hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle)': !(activeProjectId === base.id && baseViewOpen),
+          }"
+          data-testid="nc-sidebar-base-overview-btn"
+          @click="openBaseHomePage"
+        >
+          <div
+            class="flex items-center gap-2 pl-3 pr-1"
+            :class="{
+              'font-semibold': activeProjectId === base.id && baseViewOpen,
+            }"
+          >
+            <GeneralIcon icon="home1" class="!h-4 w-4" />
+            <div>{{ $t('general.home') }}</div>
+          </div>
+        </NcButton>
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
@@ -127,29 +150,6 @@ const hasTableCreatePermission = computed(() => {
             </template>
           </NcDropdown>
         </div>
-        <NcButton
-          v-e="['c:base:home']"
-          type="text"
-          size="xsmall"
-          class="nc-sidebar-top-button !h-8 w-full !pl-0"
-          :centered="false"
-          :class="{
-            '!text-nc-content-brand-disabled !bg-nc-bg-brand !hover:bg-nc-bg-brand': activeProjectId === base.id && baseViewOpen,
-            '!hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle)': !(activeProjectId === base.id && baseViewOpen),
-          }"
-          data-testid="nc-sidebar-base-overview-btn"
-          @click="openBaseHomePage"
-        >
-          <div
-            class="flex items-center gap-2 pl-3 pr-1"
-            :class="{
-              'font-semibold': activeProjectId === base.id && baseViewOpen,
-            }"
-          >
-            <GeneralIcon icon="home1" class="!h-4 w-4" />
-            <div>{{ $t('general.overview') }}</div>
-          </div>
-        </NcButton>
       </div>
     </div>
 

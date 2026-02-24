@@ -33,6 +33,17 @@ const { isDark } = useTheme()
 
 const projectNodeRef = ref()
 
+type SidebarTab = 'home' | 'data' | 'automation' | 'agents'
+
+const activeTab = ref<SidebarTab>('home')
+
+const sidebarTabs = computed<{ key: SidebarTab; icon: string; label: string }[]>(() => [
+  { key: 'home', icon: 'home1', label: 'Home' },
+  { key: 'data', icon: 'ncDatabase', label: 'Data' },
+  { key: 'automation', icon: 'ncAutomation', label: 'Automation' },
+  { key: 'agents', icon: 'ncSupportAgent', label: 'Agents' },
+])
+
 // If only base is open, i.e in case of docs, base view is open and not the page view
 const baseViewOpen = computed(() => {
   const routeNameSplit = String(route.value?.name).split('baseId-index-index')
@@ -86,6 +97,11 @@ const hasTableCreatePermission = computed(() => {
     source: base.value?.sources?.[0],
   })
 })
+
+const onTabClick = (tab: SidebarTab) => {
+  activeTab.value = tab
+  if (tab === 'home') openBaseHomePage()
+}
 </script>
 
 <template>
@@ -114,7 +130,23 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view, script" />
+      <!-- Icon Tab Bar -->
+      <div v-if="!isSharedBase" class="nc-sidebar-tab-bar flex items-center px-2 pt-1 pb-0.5 gap-0.5">
+        <NcTooltip v-for="tab in sidebarTabs" :key="tab.key" :title="tab.label" placement="bottom">
+          <button
+            v-e="[`c:sidebar:tab:${tab.key}`]"
+            class="nc-sidebar-tab-btn flex-1 flex items-center justify-center h-8 rounded-md transition-all duration-150 cursor-pointer border-none"
+            :class="{
+              'bg-nc-bg-brand text-nc-content-brand-disabled': activeTab === tab.key,
+              'text-nc-content-gray-muted hover:bg-nc-bg-gray-medium hover:text-nc-content-gray-subtle': activeTab !== tab.key,
+            }"
+            :data-testid="`nc-sidebar-tab-${tab.key}`"
+            @click="onTabClick(tab.key)"
+          >
+            <GeneralIcon :icon="tab.icon" class="!h-4 w-4" />
+          </button>
+        </NcTooltip>
+      </div>
 
       <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
@@ -149,36 +181,31 @@ const hasTableCreatePermission = computed(() => {
             </template>
           </NcDropdown>
         </div>
-
-        <NcButton
-          v-e="['c:base:home']"
-          type="text"
-          size="xsmall"
-          class="nc-sidebar-top-button !h-8 w-full !pl-0"
-          :centered="false"
-          :class="{
-            '!text-nc-content-brand-disabled !bg-nc-bg-brand !hover:bg-nc-bg-brand nc-sidebar-item-dark active':
-              activeProjectId === base.id && baseViewOpen,
-            '!hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle)': !(activeProjectId === base.id && baseViewOpen),
-          }"
-          data-testid="nc-sidebar-base-overview-btn"
-          @click="openBaseHomePage"
-        >
-          <div
-            class="flex items-center gap-2 pl-3 pr-1"
-            :class="{
-              'font-semibold': activeProjectId === base.id && baseViewOpen,
-            }"
-          >
-            <GeneralIcon icon="home1" class="!h-4 w-4" />
-            <div>{{ $t('general.overview') }}</div>
-          </div>
-        </NcButton>
       </div>
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
-      <Data :base-id="base.id" />
-      <Automation v-if="!isSharedBase && !isMobileMode && appInfo.ee" :base-id="base.id" />
+      <!-- Home tab: show both Data + Automation -->
+      <template v-if="activeTab === 'home'">
+        <Data :base-id="base.id" hide-header />
+        <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header />
+      </template>
+
+      <!-- Data tab: show only Data -->
+      <template v-else-if="activeTab === 'data'">
+        <Data :base-id="base.id" hide-header />
+      </template>
+
+      <!-- Automation tab: show only Automation -->
+      <template v-else-if="activeTab === 'automation'">
+        <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header />
+      </template>
+
+      <!-- Agents tab: placeholder -->
+      <template v-else-if="activeTab === 'agents'">
+        <div class="flex items-center justify-center h-32 text-nc-content-gray-muted text-bodySm">
+          {{ $t('general.comingSoon') }}
+        </div>
+      </template>
     </div>
 
     <slot name="footer"> </slot>

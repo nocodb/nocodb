@@ -250,6 +250,77 @@ $t('labels.signInWithProvider', { provider: 'Google' })
 - **Pluralisation** — vue-i18n supports `{count} item | {count} items` syntax if needed.
 - **`en.json` is the source of truth** — other locale files are translations of it; only edit `en.json` in PRs.
 
+### Composable Patterns
+
+#### Scoping composables
+
+| Utility | When to use |
+|---------|------------|
+| `createGlobalState()` | True singleton — shared across the entire app (e.g. `useGlobal`) |
+| `createSharedComposable()` | Singleton per Vue app instance — preferred for most shared composables (e.g. `useEeConfig`, `useRealtime`, `useJobs`) |
+| `useInjectionState()` | Component-tree scoped state — provider/consumer pair for contextual state (e.g. `useSmartsheetStore`, `useKanbanViewStore`) |
+
+**`createSharedComposable` example:**
+```ts
+export const useEeConfig = createSharedComposable(() => {
+  // runs once; all callers share the same state
+  return { ... }
+})
+```
+
+**`useInjectionState` example — always export as a pair:**
+```ts
+const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
+  (meta: Ref<TableType>) => {
+    // state & actions
+    return { meta, ... }
+  }
+)
+export { useProvideSmartsheetStore, useSmartsheetStore }
+
+// Optional: throw-variant for children that must be inside a provider
+export function useSmartsheetStoreOrThrow() {
+  const state = useSmartsheetStore()
+  if (!state) throw new Error('Please call `useProvideSmartsheetStore` on the appropriate parent component')
+  return state
+}
+```
+
+- Parent calls `useProvideSmartsheetStore(meta)` to set up the context.
+- Children call `useSmartsheetStore()` (returns `undefined` if no provider) or `useSmartsheetStoreOrThrow()`.
+
+#### VueUse utilities used in this codebase
+
+These are imported from `@vueuse/core` — use them instead of reinventing:
+
+| Utility | Purpose |
+|---------|---------|
+| `createEventHook` | Typed event hooks — used for reload triggers, API hooks |
+| `useStorage` | localStorage/sessionStorage with reactivity |
+| `useDebounceFn` | Debounce a function |
+| `useVModel` | Two-way binding helper for component props |
+| `useVirtualList` | Virtualised list rendering for large datasets |
+| `useTitle` | Reactively set `document.title` |
+| `useEventListener` | Add/remove DOM event listeners with auto-cleanup |
+| `onClickOutside` | Detect clicks outside an element |
+| `onKeyDown` / `onKeyStroke` / `onKeyUp` | Keyboard event listeners |
+| `useMagicKeys` | Declarative keyboard shortcut bindings |
+| `useTextareaAutosize` | Auto-grow textarea |
+| `breakpointsTailwind` | Tailwind breakpoint constants for `useBreakpoints` |
+| `isClient` | `true` only in browser (not SSR) |
+| `useTimeoutFn` | `setTimeout` with auto-cleanup |
+
+#### `contextInject` — variables only
+
+Use `contextInject` (or `inject`) to share **read-only reactive variables** down the component tree. Do **not** inject functions — pass them via composables or props instead.
+
+```ts
+// ok — injecting a reactive ref
+const meta = inject(MetaInj)
+
+// not ok — do not inject functions via context
+```
+
 ## File Naming
 
 - Backend operations module: `{Feature}Get.operations.ts` / `{Feature}Post.operations.ts`

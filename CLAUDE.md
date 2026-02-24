@@ -755,6 +755,104 @@ onMounted(() => { ... })
   const items = ref([])                // unclear
   ```
 
+## Styling
+
+### Color System
+
+The frontend has a layered color system. Always prefer semantic tokens over raw palette values.
+
+#### `themeVariables` — semantic tokens (prefer these)
+
+Defined in [utils/colorsUtils.ts](packages/nc-gui/utils/colorsUtils.ts). These map to CSS variables that **change with light/dark theme**. Four categories:
+
+| Category | Windi prefix | Example classes |
+|----------|-------------|----------------|
+| `content` | `text-` | `text-nc-content-gray`, `text-nc-content-brand`, `text-nc-content-red-dark` |
+| `background` | `bg-` | `bg-nc-bg-default`, `bg-nc-bg-brand`, `bg-nc-bg-gray-light` |
+| `border` | `border-` | `border-nc-border-gray-medium`, `border-nc-border-brand` |
+| `fill` | `fill-` / `bg-` / `text-` | `fill-nc-fill-primary`, `bg-nc-fill-warning`, `text-nc-fill-red-dark` |
+
+Common semantic tokens:
+```html
+<!-- Text -->
+<p class="text-nc-content-gray-subtle">muted text</p>
+<p class="text-nc-content-brand">brand text</p>
+
+<!-- Background -->
+<div class="bg-nc-bg-gray-light">light gray bg</div>
+<div class="bg-nc-bg-brand">brand tint bg</div>
+
+<!-- Border -->
+<div class="border-1 border-nc-border-gray-medium">bordered</div>
+
+<!-- Fill (buttons, icons, SVGs) -->
+<button class="bg-nc-fill-primary hover:bg-nc-fill-primary-hover">Primary</button>
+```
+
+#### `themeV4Colors` — palette with `nc-` prefix
+
+Raw palette colors (e.g. `brand`, `gray`, `red`…) registered in Windi with `nc-` prefix via `themeV4ColorsWithNcPrefix`. Values are CSS variable references so they **also adapt to theme**. Use when no semantic token fits.
+
+```html
+<div class="bg-nc-brand-50">   <!-- brand-50 shade, theme-aware -->
+<div class="text-nc-gray-700"> <!-- gray-700 shade, theme-aware -->
+```
+
+#### Static colors — `themeV3Colors` (no `nc-` prefix)
+
+These are **hardcoded hex values** — same in light and dark. Use for things that should never shift with theme (e.g. enum chip colours, data visualisation).
+
+```html
+<span class="text-brand-500">always #3366FF</span>
+<span class="bg-red-50">always #FFF2F1</span>
+```
+
+#### `variables.css` — CSS custom properties
+
+[assets/css/variables.css](packages/nc-gui/assets/css/variables.css) defines the actual CSS variable values for both `:root` (light) and `.dark` (dark). The `--rgb-color-*` variants are used by `ncBuildColorsWithOpacity` to support opacity utilities.
+
+Prefer using CSS variables directly in `<style>` blocks when Windi classes aren't expressive enough:
+```css
+color: var(--nc-content-brand);
+background: var(--nc-bg-brand);
+border: 1px solid var(--nc-border-gray-medium);
+```
+
+### Windi Plugins
+
+**`ncTypographyPlugin`** ([assets/nc-typography-plugin.ts](packages/nc-gui/assets/nc-typography-plugin.ts)) — adds Figma-aligned text style utilities:
+
+| Class | Size / Line-height / Weight |
+|-------|-----------------------------|
+| `text-heading1` | 64px / 92px / 700 |
+| `text-heading3` | 24px / 36px / 700 |
+| `text-body` | 14px / 24px / 500 |
+| `text-bodyDefaultSm` | 13px / 18px / 500 |
+| `text-bodySm` | 12px / 18px / 500 |
+| `text-caption` | 14px / 20px / 500 |
+| `text-captionSm` | 12px / 14px / 500 |
+| `text-sidebarDefault` | 14px / 20px / 550 |
+
+Use these instead of raw `text-sm`, `font-medium` combinations.
+
+**`ncWindicssShortcutsPlugin`** ([assets/nc-windicss-shortcuts-plugin.ts](packages/nc-gui/assets/nc-windicss-shortcuts-plugin.ts)) — adds viewport-safe screen utilities:
+
+```html
+<div class="nc-h-screen">   <!-- 100svh with 100dvh/100vh fallbacks -->
+<div class="nc-min-h-screen">
+<div class="nc-w-screen">
+<div class="nc-min-w-screen">
+```
+
+Use `nc-h-screen` instead of `h-screen` everywhere to handle mobile browser chrome correctly.
+
+### Summary: Which color to use?
+
+1. **Semantic token exists?** → use `themeVariables` class (`text-nc-content-*`, `bg-nc-bg-*`, etc.)
+2. **Need a raw shade that adapts to dark mode?** → use `nc-` prefixed V4 color (`bg-nc-brand-100`)
+3. **Must be same in all themes** (enum chips, data viz) → use V3 color without prefix (`text-brand-500`)
+4. **Complex style in `<style>`?** → use `var(--nc-content-brand)` CSS variables directly
+
 ## File Naming
 
 - Backend operations module: `{Feature}Get.operations.ts` / `{Feature}Post.operations.ts`

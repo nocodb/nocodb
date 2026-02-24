@@ -29,6 +29,13 @@ export class SidebarProjectNodeObject extends BasePage {
     await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
 
     await this.getMenuTrigger({ baseTitle }).waitFor();
+
+    await this.getMenuTrigger({ baseTitle }).hover({
+      position: {
+        x: 2,
+        y: 2,
+      },
+    });
     await this.getMenuTrigger({ baseTitle }).click();
   }
 
@@ -144,7 +151,11 @@ export class SidebarProjectNodeObject extends BasePage {
       const isActiveProject =
         (await ncProjectHeader.getAttribute('data-testid')) === `nc-sidebar-base-title-${baseTitle}`;
 
-      if (isActiveProject) return true;
+      if (isActiveProject) {
+        await ncProjectHeader.hover({ force: true, position: { x: 2, y: 2 } });
+
+        return true;
+      }
     }
 
     if (!open) return false;
@@ -156,6 +167,8 @@ export class SidebarProjectNodeObject extends BasePage {
     await this.sidebar.dashboard.leftSidebar.baseListModal.clickBase(baseTitle);
 
     await this.sidebar.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
+
+    await this.sidebar.dashboard.leftSidebar.active_base.hover({ force: true, position: { x: 2, y: 2 } });
 
     return true;
   }

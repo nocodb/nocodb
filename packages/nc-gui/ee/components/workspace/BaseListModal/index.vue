@@ -359,6 +359,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               inline
               transition
               class="!bg-opacity-15"
+              data-testid="nc-base-list-loading"
             >
               <div class="flex flex-col items-center justify-center h-full w-full">
                 <a-spin size="large" />

@@ -26,8 +26,6 @@ const isSystemColumn = (col): boolean =>
   !!(
     col &&
     (col.uidt === UITypes.ForeignKey ||
-      ((col.column_name === 'created_at' || col.column_name === 'updated_at') &&
-        col.uidt === UITypes.DateTime) ||
       (col.pk && (col.ai || col.cdf)) ||
       (col.pk && col.meta && col.meta.ag) ||
       col.system)

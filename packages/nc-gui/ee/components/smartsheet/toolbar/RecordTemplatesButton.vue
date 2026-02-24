@@ -52,10 +52,10 @@ const { showUpgradeToUseRecordTemplates } = useEeConfig()
 // ──────────────────────────────────────────────────────────────────────────────
 
 /** Resolve a table ID (fk_model_id) to its display name */
-const getTableName = (sourceId?: string) => {
-  if (!sourceId || !base.value?.id) return ''
+const getTableName = (modelId?: string) => {
+  if (!modelId || !base.value?.id) return ''
   const tables = baseTables.value.get(base.value.id) || []
-  return tables.find((t) => t.id === sourceId)?.title || ''
+  return tables.find((t) => t.id === modelId)?.title || ''
 }
 
 /** Count blueprint sub-records in a template (for the "Sub Records" column) */

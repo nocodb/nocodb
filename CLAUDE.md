@@ -321,6 +321,56 @@ const meta = inject(MetaInj)
 // not ok — do not inject functions via context
 ```
 
+#### Pinia stores vs composables
+
+Pinia stores (`store/*.ts`, defined with `defineStore`) are used for **global, persistent UI state** that multiple unrelated parts of the app need simultaneously — e.g. `useBases`, `useViewsStore`, `useTables`. They are accessed anywhere without a provider.
+
+Prefer a **`createSharedComposable`** instead when the state is transient or feature-specific. Use a **`useInjectionState` pair** when the state belongs to a subtree (e.g. a smartsheet view).
+
+```ts
+// Pinia store pattern (store/*.ts)
+export const useBases = defineStore('basesStore', () => {
+  const bases = ref<Map<string, NcProject>>(new Map())
+  // ... actions
+  return { bases, ... }
+})
+// Always add HMR support at the bottom of the file:
+if (import.meta.hot) acceptHMRUpdate(useBases, import.meta.hot)
+```
+
+### Components
+
+#### Use existing components first
+
+Before creating anything new, check these folders for an existing component:
+
+- **`components/nc/`** — NocoDB design system components (Button, Modal, Dropdown, Select, Tooltip, Input, Badge, Icon, etc.)
+- **`components/general/`** — App-level shared components (Loader, Spinner, ColorPicker, DeleteModal, CopyButton, Overlay, etc.)
+
+Examples of what already exists in `components/nc/`:
+`NcButton`, `NcModal`, `NcModalConfirm`, `NcDropdown`, `NcSelect`, `NcTooltip`, `NcSwitch`, `NcCheckbox`, `NcBadge`, `NcIcon`, `NcAlert`, `NcTabs`, `NcTable`, `NcPagination`, `NcDivider`, `NcPopover`, `NcMenu`, `NcDatePicker`, `NcEmptyPlaceholder`, `NcListWithSearch`
+
+#### Adding new reusable components
+
+If you build a component that could be used in more than one place, put it in **`components/nc/`** — not inline in a feature component.
+
+#### Keep components small and composable
+
+Split components by responsibility. Avoid single large `.vue` files.
+
+```
+// preferred — each piece is focused
+components/nc/Modal/
+  index.vue       ← shell + v-model:visible wiring
+  Header.vue
+  Footer.vue
+
+// avoid — everything in one file
+components/nc/BigModal.vue  ← 600 lines
+```
+
+Extract repeated template blocks into sub-components. Move non-trivial logic into a composable, not into `<script setup>` directly.
+
 ## File Naming
 
 - Backend operations module: `{Feature}Get.operations.ts` / `{Feature}Post.operations.ts`

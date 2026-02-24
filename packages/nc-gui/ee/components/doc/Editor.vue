@@ -5,6 +5,7 @@ import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import { DocImageExtension } from './DocImageExtension'
+import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
 import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableCell from '@tiptap/extension-table-cell'
@@ -15,6 +16,7 @@ import { DOMParser as PmDOMParser } from '@tiptap/pm/model'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
 import { useDocImageUpload } from '~/ee/composables/useDocImageUpload'
+import { useDocFileUpload } from '~/ee/composables/useDocFileUpload'
 import type { DocType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/datetimeUtils'
 
@@ -52,6 +54,7 @@ const { activeProjectId, basesUser } = storeToRefs(basesStore)
 const { user } = useGlobal()
 const { isUIAllowed } = useRoles()
 const { openFilePicker, uploadAndInsert } = useDocImageUpload()
+const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocFileUpload()
 
 const base = inject(ProjectInj, ref())
 
@@ -100,8 +103,8 @@ const isSettingContent = ref(false)
 const showRichTextMenu = ({ editor: e }: { editor: any }) => {
   const { selection } = e.state
   if (selection instanceof CellSelection) return false
-  // Hide for image selections — the image NodeView has its own toolbar
-  if (selection.node?.type.name === 'image') return false
+  // Hide for image / file attachment selections — they have their own UI
+  if (selection.node?.type.name === 'image' || selection.node?.type.name === 'fileAttachment') return false
   return !selection.empty
 }
 
@@ -189,6 +192,7 @@ const editor = useEditor({
     DocTableHeader,
     SlashCommandExtension,
     CalloutExtension,
+    DocFileAttachmentExtension,
   ],
   editorProps: {
     attributes: {
@@ -229,11 +233,14 @@ const editor = useEditor({
       if (moved) return false
 
       const files = Array.from(event.dataTransfer?.files || [])
+      if (!files.length) return false
+
       const images = files.filter((f) => f.type.startsWith('image/'))
-      if (!images.length) return false
+      const nonImages = files.filter((f) => !f.type.startsWith('image/'))
+
+      if (!images.length && !nonImages.length) return false
 
       event.preventDefault()
-      // Upload each dropped image
       const ed = editor.value
       if (ed) {
         // Position cursor at drop point
@@ -242,6 +249,9 @@ const editor = useEditor({
 
         for (const img of images) {
           uploadAndInsert(ed, img)
+        }
+        for (const file of nonImages) {
+          uploadAndInsertFile(ed, file)
         }
       }
       return true
@@ -286,13 +296,19 @@ const editor = useEditor({
   },
 })
 
-// Register the slash command upload trigger once the editor is available.
-// The slash command calls editor.storage.image.openUpload() which we wire here.
+// Register the slash command upload triggers once the editor is available.
+// The slash commands call editor.storage.{type}.openUpload() which we wire here.
 watch(editor, (ed) => {
   if (ed?.storage?.image) {
     ed.storage.image.openUpload = async () => {
       const file = await openFilePicker()
       if (file) uploadAndInsert(ed, file)
+    }
+  }
+  if (ed?.storage?.fileAttachment) {
+    ed.storage.fileAttachment.openUpload = async () => {
+      const file = await openFileAttachmentPicker()
+      if (file) uploadAndInsertFile(ed, file)
     }
   }
 })
@@ -977,6 +993,101 @@ onBeforeUnmount(() => {
       z-index: 2;
     }
 
+  }
+
+  // File attachment cards
+  .nc-file-attachment-wrapper {
+    margin: 0.5em 0;
+  }
+
+  .nc-file-attachment-card {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fafafa;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    max-width: 320px;
+    position: relative;
+
+    &:hover {
+      border-color: #d1d5db;
+      background: #f5f5f5;
+
+      .nc-file-attachment-delete {
+        opacity: 1;
+      }
+    }
+
+    &.nc-file-attachment-selected {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 1px #3b82f6;
+    }
+
+    &.nc-file-attachment-uploading {
+      opacity: 0.7;
+      cursor: default;
+    }
+  }
+
+  .nc-file-attachment-badge {
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .nc-file-attachment-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .nc-file-attachment-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: #374151;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .nc-file-attachment-size {
+    font-size: 11px;
+    color: #9ca3af;
+    line-height: 1.3;
+  }
+
+  .nc-file-attachment-delete {
+    flex-shrink: 0;
+    opacity: 0;
+    color: #9ca3af;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s, color 0.15s;
+
+    &:hover {
+      color: #ef4444;
+    }
+  }
+
+  .nc-file-attachment-spinner {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
   }
 
   // Callout (notice) blocks

@@ -76,6 +76,7 @@ const icons = {
   jsfiddle: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#0084FF"/><path d="M4 10.5c0-2 2.2-3.5 5-3.5s5 1.5 5 3.5-2.2 3.5-5 3.5-5-1.5-5-3.5z" stroke="white" stroke-width="1" fill="none"/><path d="M6.5 10.5c.5.8 1.3 1 2 .5M9.5 10.5c.5.8 1.3 1 2 .5" stroke="white" stroke-width=".8" stroke-linecap="round" fill="none"/></svg>`,
   stackblitz: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#1389FD"/><polygon points="10 3 5 10 8.5 10 8 15 13 8 9.5 8 10 3" fill="white"/></svg>`,
   codesandbox: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#151515"/><path d="M14 11.5V6.5L9 3.5 4 6.5v5l5 3 5-3z" stroke="white" stroke-width=".8" fill="none"/><path d="M4 6.5l5 3 5-3M9 9.5v5.5M6.5 5l5 3" stroke="white" stroke-width=".8" fill="none"/></svg>`,
+  nocodb: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#1348BA"/><path d="M5 6.5L9 4l4 2.5v5L9 14l-4-2.5v-5z" stroke="white" stroke-width="1" fill="none"/><path d="M9 4v10M5 6.5L13 11.5M13 6.5L5 11.5" stroke="white" stroke-width=".7" opacity=".5"/></svg>`,
 }
 
 export const slashCommandItems: SlashCommandItem[] = [
@@ -280,6 +281,7 @@ function embedCommands(): SlashCommandItem[] {
     { title: 'JSFiddle', description: 'Embed a JSFiddle', icon: icons.jsfiddle, placeholder: 'Paste a JSFiddle link...' },
     { title: 'StackBlitz', description: 'Embed a StackBlitz project', icon: icons.stackblitz, placeholder: 'Paste a StackBlitz link...' },
     { title: 'CodeSandbox', description: 'Embed a CodeSandbox', icon: icons.codesandbox, placeholder: 'Paste a CodeSandbox link...' },
+    { title: 'NocoDB View', description: 'Embed a shared NocoDB view', icon: icons.nocodb, placeholder: 'Paste a NocoDB shared view link...' },
   ]
 
   return embeds.map((e) => ({

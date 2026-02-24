@@ -301,6 +301,20 @@ const matchCodeSandbox = (url: string) => {
 }
 urlMatchers.push(['CodeSandbox', matchCodeSandbox])
 
+// NocoDB shared views — already iframeable, pass the URL through as-is
+const NOCODB_SHARED_RE = /^https?:\/\/[^\/]+\/#\/nc\/(view|form|gallery|kanban|map|calendar|dashboard)\/([a-zA-Z0-9_-]+)/
+const matchNocoDB = (url: string) => {
+  try {
+    const match = url.match(NOCODB_SHARED_RE)
+    if (!match) return null
+    // Shared view URLs are directly embeddable
+    return url
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['NocoDB', matchNocoDB])
+
 export const getEmbedURL = (url: string): [string, string] => {
   for (const matcher of urlMatchers) {
     const embedURL = matcher[1](url)

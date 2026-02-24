@@ -1,6 +1,3 @@
-// CE stub – Record Templates is an EE-only feature.
-// The actual implementation lives in ee/composables/useRecordTemplate.ts
-
 import type { ColumnType, RecordTemplateType } from 'nocodb-sdk'
 
 export const useRecordTemplate = createSharedComposable(() => {

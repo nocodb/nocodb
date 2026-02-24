@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { CreateRecordTemplateDto } from './dto/create-record-template.dto';
@@ -7,6 +7,7 @@ import type { UpdateRecordTemplateDto } from './dto/update-record-template.dto';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { DatasService } from '~/services/datas.service';
 import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import RecordTemplate from '~/models/RecordTemplate';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
@@ -58,6 +59,11 @@ export class RecordTemplatesService {
     userId: string;
     req: NcRequest;
   }) {
+    await checkForFeature(
+      param.context,
+      PlanFeatureTypes.FEATURE_RECORD_TEMPLATES,
+    );
+
     // Validate template data structure
     this.validateTemplateData(param.body.template_data);
 
@@ -95,6 +101,11 @@ export class RecordTemplatesService {
     userId: string;
     req: NcRequest;
   }) {
+    await checkForFeature(
+      param.context,
+      PlanFeatureTypes.FEATURE_RECORD_TEMPLATES,
+    );
+
     const existingTemplate = await RecordTemplate.get(
       param.context,
       param.templateId,
@@ -145,6 +156,11 @@ export class RecordTemplatesService {
     userId: string;
     req: NcRequest;
   }) {
+    await checkForFeature(
+      param.context,
+      PlanFeatureTypes.FEATURE_RECORD_TEMPLATES,
+    );
+
     const template = await RecordTemplate.get(param.context, param.templateId);
     if (!template) {
       NcError.notFound('Record template not found');
@@ -167,6 +183,11 @@ export class RecordTemplatesService {
     userId: string;
     req: NcRequest;
   }) {
+    await checkForFeature(
+      param.context,
+      PlanFeatureTypes.FEATURE_RECORD_TEMPLATES,
+    );
+
     const template = await RecordTemplate.get(param.context, param.templateId);
     if (!template) {
       NcError.notFound('Record template not found');

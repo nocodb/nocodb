@@ -3717,7 +3717,7 @@
         }
       ]
     },
-    "/api/v2/meta/bases/{baseId}/tables/{sourceId}/record-templates": {
+    "/api/v2/meta/bases/{baseId}/tables/{modelId}/record-templates": {
       "get": {
         "summary": "List Record Templates",
         "operationId": "record-template-list",
@@ -3777,7 +3777,7 @@
         },
         {
           "schema": {"type": "string"},
-          "name": "sourceId",
+          "name": "modelId",
           "in": "path",
           "required": true
         }
@@ -3844,7 +3844,7 @@
         }
       ]
     },
-    "/api/v2/meta/bases/{baseId}/tables/{sourceId}/record-templates/{templateId}/create-from": {
+    "/api/v2/meta/bases/{baseId}/tables/{modelId}/record-templates/{templateId}/create-from": {
       "post": {
         "summary": "Create Record From Template",
         "operationId": "record-template-create-from",
@@ -3864,7 +3864,7 @@
         },
         {
           "schema": {"type": "string"},
-          "name": "sourceId",
+          "name": "modelId",
           "in": "path",
           "required": true
         },

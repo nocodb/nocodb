@@ -209,6 +209,15 @@ const FEATURES = [
     isAdvanced: true,
     isEE: true,
   },
+  {
+    id: 'rag_chat',
+    title: 'Base Data Chat',
+    description: 'Enable AI-powered data chat for querying base data using natural language.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

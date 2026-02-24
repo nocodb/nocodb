@@ -315,9 +315,15 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/smtp-auth':
+        specifier: workspace:*
+        version: link:../smtp-auth
       cron-parser:
         specifier: ^5.4.0
         version: 5.4.0
+      nodemailer:
+        specifier: ^6.9.16
+        version: 6.10.1
       request-filtering-agent:
         specifier: ^3.2.0
         version: 3.2.0
@@ -328,6 +334,9 @@ importers:
       '@types/node':
         specifier: ^20.17.46
         version: 20.17.46
+      '@types/nodemailer':
+        specifier: ^6.4.17
+        version: 6.4.23
       '@vitest/coverage-v8':
         specifier: ^4.0.18
         version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.17.46)(jiti@2.4.2)(yaml@2.7.1))
@@ -1049,6 +1058,31 @@ importers:
       typescript:
         specifier: ^5.8.3
         version: 5.8.3
+
+  packages/smtp-auth:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      nodemailer:
+        specifier: ^6.9.16
+        version: 6.10.1
+    devDependencies:
+      '@types/nodemailer':
+        specifier: ^6.4.17
+        version: 6.4.23
+      '@vitest/coverage-v8':
+        specifier: ^4.0.18
+        version: 4.0.18(vitest@4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.17.46)(jiti@2.4.2)(yaml@2.7.1))
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+      vitest:
+        specifier: ^4.0.18
+        version: 4.0.18(@opentelemetry/api@1.9.0)(@types/node@20.17.46)(jiti@2.4.2)(yaml@2.7.1)
 
   packages/twilio-auth:
     dependencies:
@@ -1881,6 +1915,9 @@ packages:
 
   '@types/node@20.17.46':
     resolution: {integrity: sha512-0PQHLhZPWOxGW4auogW0eOQAuNIlCYvibIpG67ja0TOJ6/sehu+1en7sfceUn+QQtx4Rk3GxbLNwPh0Cav7TWw==}
+
+  '@types/nodemailer@6.4.23':
+    resolution: {integrity: sha512-aFV3/NsYFLSx9mbb5gtirBSXJnAlrusoKNuPbxsASWc7vrKLmIrTQRpdcxNcSFL3VW2A2XpeLEavwb2qMi6nlQ==}
 
   '@types/retry@0.12.0':
     resolution: {integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==}
@@ -3309,6 +3346,10 @@ packages:
   node-fetch@3.3.2:
     resolution: {integrity: sha512-dRB78srN/l6gqWulah9SrxeYnxeddIG30+GOqK/9OlLVyLg3HPnr6SqOWTWOXKRwC2eGYCkZ59NNuSgvSrpgOA==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+
+  nodemailer@6.10.1:
+    resolution: {integrity: sha512-Z+iLaBGVaSjbIzQ4pX6XV41HrooLsQ10ZWPUehGmuantvzWoDVBnmsdUcOIDM1t+yPor5pDhVlDESgOMEGxhHA==}
+    engines: {node: '>=6.0.0'}
 
   object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
@@ -4771,6 +4812,10 @@ snapshots:
   '@types/node@20.17.46':
     dependencies:
       undici-types: 6.19.8
+
+  '@types/nodemailer@6.4.23':
+    dependencies:
+      '@types/node': 20.17.46
 
   '@types/retry@0.12.0': {}
 
@@ -6427,6 +6472,8 @@ snapshots:
       data-uri-to-buffer: 4.0.1
       fetch-blob: 3.2.0
       formdata-polyfill: 4.0.10
+
+  nodemailer@6.10.1: {}
 
   object-assign@4.1.1: {}
 

@@ -43,6 +43,7 @@ import type {
   WorkspaceTeamInviteEvent,
   WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
+  ScimUserEvent,
 } from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 
@@ -754,6 +755,17 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.RECORD_TEMPLATE_USE,
     data: RecordTemplateUseEvent,
+  ): void;
+
+  // SCIM Events
+  emit(
+    event:
+      | AppEvents.SCIM_USER_PROVISION
+      | AppEvents.SCIM_USER_UPDATE
+      | AppEvents.SCIM_USER_DEACTIVATE
+      | AppEvents.SCIM_USER_REACTIVATE
+      | AppEvents.SCIM_USER_DELETE,
+    data: ScimUserEvent,
   ): void;
 
   emit(event, data): void {

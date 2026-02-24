@@ -18,6 +18,8 @@ const up = async (knex: Knex) => {
     table.string('fk_workspace_id', 20).index();
     table.string('role', 20); // 'user' | 'assistant'
     table.text('content');
+    table.string('format', 20); // 'text' | 'sql' | 'csv' | 'json' | 'markdown'
+    table.text('data'); // LLM-generated payload (CSV/JSON/markdown text)
     table.text('sql');
     table.text('result'); // JSON stringified query result
     table.text('error');

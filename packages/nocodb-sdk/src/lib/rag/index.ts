@@ -1,3 +1,11 @@
+export enum RagResponseFormat {
+  TEXT = 'text',
+  SQL = 'sql',
+  CSV = 'csv',
+  JSON = 'json',
+  MARKDOWN = 'markdown',
+}
+
 export interface RagSessionType {
   id?: string;
   base_id?: string;
@@ -15,6 +23,8 @@ export interface RagMessageType {
   fk_workspace_id?: string;
   role: 'user' | 'assistant';
   content: string;
+  format?: RagResponseFormat | null;
+  data?: string | null;
   sql?: string | null;
   result?: Record<string, unknown>[] | null;
   error?: string | null;

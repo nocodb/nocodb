@@ -46,9 +46,18 @@ const config: AppConfig = {
         30000,
     },
     scim: {
-      ttl: +process.env.NC_SCIM_API_TTL || 60000,
-      max_apis: +process.env.NC_SCIM_COUNT || 500,
-      block_duration: +process.env.NC_SCIM_BLOCK_DURATION || 30000,
+      ttl:
+        +process.env.NC_RATE_LIMIT_SCIM_DURATION ||
+        +process.env.NC_SCIM_API_TTL ||
+        60000,
+      max_apis:
+        +process.env.NC_RATE_LIMIT_SCIM_MAX_REQUESTS ||
+        +process.env.NC_SCIM_COUNT ||
+        500,
+      block_duration:
+        +process.env.NC_RATE_LIMIT_SCIM_BLOCK_DURATION ||
+        +process.env.NC_SCIM_BLOCK_DURATION ||
+        30000,
     },
 
     // todo: decide on xc-auth API limits

@@ -3332,7 +3332,7 @@ export class AppHooksListenerService
               details: {
                 template_title: param.template.title,
                 template_id: param.template.id,
-                table_id: param.template.source_id,
+                table_id: param.template.fk_model_id,
               },
             },
           ),
@@ -3350,7 +3350,7 @@ export class AppHooksListenerService
               details: {
                 template_title: param.template.title,
                 template_id: param.template.id,
-                table_id: param.template.source_id,
+                table_id: param.template.fk_model_id,
               },
             },
           ),
@@ -3368,7 +3368,7 @@ export class AppHooksListenerService
               details: {
                 template_title: param.template.title,
                 template_id: param.template.id,
-                table_id: param.template.source_id,
+                table_id: param.template.fk_model_id,
               },
             },
           ),
@@ -3386,7 +3386,7 @@ export class AppHooksListenerService
               details: {
                 template_title: param.template.title,
                 template_id: param.template.id,
-                table_id: param.template.source_id,
+                table_id: param.template.fk_model_id,
                 usage_count: param.template.usage_count ?? 0,
               },
             },

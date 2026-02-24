@@ -321,22 +321,22 @@ export interface SandboxMergeEvent extends NcBaseEvent {
 
 // Record Template Events
 export interface RecordTemplateCreateEvent extends NcBaseEvent {
-  template: { id?: string; title?: string; source_id?: string };
+  template: { id?: string; title?: string; fk_model_id?: string };
 }
 
 export interface RecordTemplateUpdateEvent extends NcBaseEvent {
-  template: { id?: string; title?: string; source_id?: string };
+  template: { id?: string; title?: string; fk_model_id?: string };
 }
 
 export interface RecordTemplateDeleteEvent extends NcBaseEvent {
-  template: { id?: string; title?: string; source_id?: string };
+  template: { id?: string; title?: string; fk_model_id?: string };
 }
 
 export interface RecordTemplateUseEvent extends NcBaseEvent {
   template: {
     id?: string;
     title?: string;
-    source_id?: string;
+    fk_model_id?: string;
     usage_count?: number;
   };
 }

@@ -106,6 +106,25 @@ export default class Doc implements DocType {
     return docList.map((doc) => new Doc(this.parseDoc(doc)));
   }
 
+  /**
+   * Lightweight list for sidebar/list views — excludes `content` to
+   * avoid transferring large ProseMirror JSON payloads for every page.
+   * Full content is fetched separately via `get()` when opening the editor.
+   */
+  public static async listLite(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const docs = await this.list(context, baseId, ncMeta);
+
+    // Strip content from each doc — sidebar only needs title, order, meta
+    return docs.map((doc) => {
+      const { content: _content, ...rest } = doc as any;
+      return new Doc(rest);
+    });
+  }
+
   public static async insert(
     context: NcContext,
     doc: Partial<DocType>,
@@ -214,8 +233,10 @@ export default class Doc implements DocType {
 
   /**
    * Parse stringified JSON fields (content, meta) from a DB row.
-   * Uses `prepareForResponse` for both fields — it's idempotent on
-   * already-parsed objects.
+   *
+   * Uses `prepareForResponse` which JSON.parse()s string-typed fields
+   * and skips already-parsed objects (checks `typeof field === 'string'`),
+   * making this safe to call on both raw DB rows and cached entries.
    */
   private static parseDoc(doc: any): any {
     if (!doc) return doc;

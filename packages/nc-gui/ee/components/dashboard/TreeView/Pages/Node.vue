@@ -29,6 +29,7 @@ const showNodeTooltip = ref(true)
 
 // Declare before usage in handleOnClick
 const { meta: metaKey, control } = useMagicKeys()
+const isMacOs = isMac()
 
 const navigateToDoc = () => {
   if (isEditing.value) return
@@ -48,7 +49,7 @@ const onClick = useDebounceFn(() => {
 const handleOnClick = () => {
   if (isEditing.value) return
 
-  const cmdOrCtrl = isMac() ? metaKey?.value : control?.value
+  const cmdOrCtrl = isMacOs ? metaKey?.value : control?.value
 
   // Cmd/Ctrl-click navigates immediately (skips debounce)
   if (cmdOrCtrl) {

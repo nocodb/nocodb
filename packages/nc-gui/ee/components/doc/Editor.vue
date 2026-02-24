@@ -777,7 +777,11 @@ onBeforeUnmount(() => {
     margin-top: 0.75em;
   }
 
-  // Headings — H1/H2/H3 prefix labels sit outside via absolute positioning
+  // Headings — H1/H2/H3 prefix labels sit outside via absolute positioning.
+  // Labels are bottom-aligned with the first line of heading text so they
+  // sit on the same baseline regardless of heading font size.
+  // Only visible when the editor is focused (ProseMirror-focused) — hidden
+  // when the cursor is in the title input or elsewhere outside the editor.
   h1, h2, h3 {
     position: relative;
     color: #111827;
@@ -789,8 +793,6 @@ onBeforeUnmount(() => {
       color: #9BA6B2;
       font-size: 12px;
       font-weight: 500;
-      top: 50%;
-      transform: translateY(-50%);
     }
   }
 
@@ -800,7 +802,6 @@ onBeforeUnmount(() => {
     margin-top: 1.4em;
     margin-bottom: 0.4em;
     line-height: 1.3;
-    &::before { content: 'H1'; }
   }
 
   h2 {
@@ -809,7 +810,6 @@ onBeforeUnmount(() => {
     margin-top: 1.2em;
     margin-bottom: 0.35em;
     line-height: 1.35;
-    &::before { content: 'H2'; }
   }
 
   h3 {
@@ -818,7 +818,13 @@ onBeforeUnmount(() => {
     margin-top: 1em;
     margin-bottom: 0.3em;
     line-height: 1.4;
-    &::before { content: 'H3'; }
+  }
+
+  // Show H1/H2/H3 labels only when editor is focused
+  &.ProseMirror-focused {
+    h1::before { content: 'H1'; top: calc(1.625em * 1.3 - 12px - 2px); }
+    h2::before { content: 'H2'; top: calc(1.3em * 1.35 - 12px - 2px); }
+    h3::before { content: 'H3'; top: calc(1.125em * 1.4 - 12px - 2px); }
   }
 
   // Placeholder

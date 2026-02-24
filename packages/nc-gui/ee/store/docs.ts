@@ -36,6 +36,9 @@ export const useDocsStore = defineStore('docsStore', () => {
   // Actions
   const loadDocs = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
     const existingDocs = docs.value.get(baseId)
+
+    // Return cached list immediately without toggling isLoadingDocs —
+    // avoids a flash of loading state when navigating between docs.
     if (existingDocs && !force) {
       return existingDocs
     }
@@ -72,7 +75,7 @@ export const useDocsStore = defineStore('docsStore', () => {
       const doc = (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
         operation: 'docGet',
         docId,
-      })) as unknown as DocType
+      })) as DocType
 
       return doc
     } catch (e) {
@@ -138,6 +141,10 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       // Patch the existing doc in place to avoid replacing the entire array
       // which would trigger reactivity on every sidebar node during auto-save.
+      // Only sidebar-visible fields (version, timestamps, title) are synced —
+      // `content` and `meta` are intentionally NOT patched here because the
+      // sidebar list doesn't use them (listLite excludes content), and the
+      // editor maintains its own copy via the Tiptap document model.
       const baseDocs = docs.value.get(baseId) || []
       const existing = baseDocs.find((d) => d.id === docId)
 

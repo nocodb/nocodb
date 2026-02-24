@@ -52,6 +52,6 @@ watch(activeDocId, () => {
         :class="{ '!rotate-90': isExpanded }"
       />
     </div>
-    <DashboardTreeViewPagesList v-if="isExpanded" :base-id="baseId!" />
+    <DashboardTreeViewPagesList v-if="isExpanded" :base-id="baseId" />
   </div>
 </template>

@@ -9,6 +9,7 @@ import type {
   InternalApiModule,
   InternalGETResponseType,
 } from '~/utils/internal-type';
+import { NcError } from '~/helpers/catchError';
 import { DocsService } from '~/services/docs.service';
 
 @Injectable()
@@ -35,8 +36,13 @@ export class DocsGetOperations
     switch (operation) {
       case 'docList':
         return await this.docsService.list(context, context.base_id);
-      case 'docGet':
-        return await this.docsService.get(context, req.query.docId as string);
+      case 'docGet': {
+        const docId = req.query.docId as string;
+        if (!docId) {
+          NcError.badRequest('Missing required parameter: docId');
+        }
+        return await this.docsService.get(context, docId);
+      }
     }
   }
 }

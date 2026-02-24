@@ -11,14 +11,23 @@ import { Doc } from '~/models';
  * Each page belongs to exactly one base and uses optimistic concurrency
  * via a `version` counter to prevent lost writes.
  */
+// 5 MB — generous limit for ProseMirror JSON content.
+// Prevents unbounded growth from extremely large documents.
+const MAX_DOC_CONTENT_SIZE = 5 * 1024 * 1024;
+
 @Injectable()
 export class DocsService {
   protected logger = new Logger(DocsService.name);
 
+  /**
+   * List all pages in a base (lightweight — excludes content).
+   * Use `get()` to fetch full content for a single page.
+   */
   async list(context: NcContext, baseId: string) {
-    return await Doc.list(context, baseId);
+    return await Doc.listLite(context, baseId);
   }
 
+  /** Fetch a single page with full content (ProseMirror JSON). */
   async get(context: NcContext, docId: string) {
     const doc = await Doc.get(context, docId);
     if (!doc) {
@@ -27,6 +36,7 @@ export class DocsService {
     return doc;
   }
 
+  /** Create a new page. Defaults to an empty ProseMirror doc if no content provided. */
   async create(
     context: NcContext,
     payload: Partial<DocType>,
@@ -39,6 +49,16 @@ export class DocsService {
 
     payload.title = payload.title?.trim() || 'Untitled';
 
+    // Guard against oversized documents
+    if (payload.content) {
+      const contentSize = JSON.stringify(payload.content).length;
+      if (contentSize > MAX_DOC_CONTENT_SIZE) {
+        NcError.badRequest(
+          `Page content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,
+        );
+      }
+    }
+
     // Default to empty ProseMirror doc if no content provided
     if (!payload.content) {
       payload.content = {
@@ -50,6 +70,7 @@ export class DocsService {
     return await Doc.insert(context, payload);
   }
 
+  /** Update a page. Requires `version` for optimistic concurrency control. */
   async update(
     context: NcContext,
     docId: string,
@@ -61,14 +82,27 @@ export class DocsService {
       NcError.notFound('Page not found');
     }
 
-    // Optimistic concurrency: reject stale writes
-    if (
-      payload.version !== undefined &&
-      payload.version !== existing.version
-    ) {
+    // Optimistic concurrency: reject stale writes.
+    // Version is mandatory to prevent silent overwrites by API consumers
+    // that omit it.
+    if (payload.version === undefined || payload.version === null) {
+      NcError.badRequest('version is required for page updates');
+    }
+
+    if (payload.version !== existing.version) {
       NcError.badRequest(
         'Page has been modified by another user. Please reload and try again.',
       );
+    }
+
+    // Guard against oversized documents
+    if (payload.content) {
+      const contentSize = JSON.stringify(payload.content).length;
+      if (contentSize > MAX_DOC_CONTENT_SIZE) {
+        NcError.badRequest(
+          `Page content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,
+        );
+      }
     }
 
     payload.updated_by = req.user.id;
@@ -81,6 +115,7 @@ export class DocsService {
     return await Doc.update(context, docId, payload);
   }
 
+  /** Permanently delete a page and remove it from cache. */
   async delete(context: NcContext, docId: string) {
     const doc = await Doc.get(context, docId);
     if (!doc) {
@@ -90,6 +125,16 @@ export class DocsService {
     return await Doc.delete(context, docId);
   }
 
+  /**
+   * Update page sort order.
+   *
+   * Intentionally does NOT bump `version` — reorder is a metadata-only
+   * change that shouldn't conflict with concurrent content edits. The
+   * client's cached version remains valid for subsequent content saves.
+   *
+   * @param order - Absolute sort-order value (float). The frontend
+   *   computes a midpoint between neighbours for fractional ordering.
+   */
   async reorder(
     context: NcContext,
     docId: string,

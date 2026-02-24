@@ -100,6 +100,40 @@ const saveTimeout = ref<NodeJS.Timeout>()
 // into the editor (setContent triggers onUpdate, which would queue a no-op save).
 const isSettingContent = ref(false)
 
+// --- Paste link embed menu ---
+const pasteLinkMenu = ref<{
+  visible: boolean
+  url: string
+  platform: string
+  embedUrl: string
+  from: number
+  to: number
+  top: number
+  left: number
+}>({ visible: false, url: '', platform: '', embedUrl: '', from: 0, to: 0, top: 0, left: 0 })
+
+const dismissPasteLinkMenu = () => {
+  pasteLinkMenu.value.visible = false
+}
+
+const keepAsLink = () => {
+  dismissPasteLinkMenu()
+}
+
+const convertToEmbed = () => {
+  const { from, to, embedUrl, url, platform } = pasteLinkMenu.value
+  const ed = editor.value
+  if (ed) {
+    ed.chain()
+      .focus()
+      .setTextSelection({ from, to })
+      .deleteSelection()
+      .insertEmbed({ src: embedUrl, url, platform })
+      .run()
+  }
+  dismissPasteLinkMenu()
+}
+
 /** Show rich text bubble menu on any non-empty text selection (including inside table cells),
  *  but NOT on multi-cell CellSelection or image NodeSelection (those have their own UI). */
 const showRichTextMenu = ({ editor: e }: { editor: any }) => {
@@ -274,6 +308,45 @@ const editor = useEditor({
         return true
       }
 
+      // Check if pasted text is a single embeddable URL — offer link vs embed choice
+      const pastedUrl = event.clipboardData?.getData('text/plain')?.trim()
+      if (pastedUrl && /^https?:\/\/\S+$/i.test(pastedUrl)) {
+        const [plat, embUrl] = getEmbedURL(pastedUrl)
+        if (plat !== 'unsupported' && embUrl !== 'unsupported') {
+          event.preventDefault()
+          const ed = editor.value
+          if (ed) {
+            // Insert URL as linked text
+            const from = ed.state.selection.from
+            ed.chain().focus().insertContent({
+              type: 'text',
+              text: pastedUrl,
+              marks: [{ type: 'link', attrs: { href: pastedUrl } }],
+            }).run()
+            const to = ed.state.selection.from
+
+            // Position popup below the pasted link (viewport coords for fixed positioning)
+            const coords = ed.view.coordsAtPos(to)
+
+            // Delay showing the popup so the onUpdate triggered by insertContent
+            // (which dismisses the menu) fires first before we set visible=true
+            setTimeout(() => {
+              pasteLinkMenu.value = {
+                visible: true,
+                url: pastedUrl,
+                platform: plat,
+                embedUrl: embUrl,
+                from,
+                to,
+                top: coords.bottom + 4,
+                left: coords.left,
+              }
+            }, 0)
+          }
+          return true
+        }
+      }
+
       // If clipboard contains HTML (e.g. pasting from a browser / rich editor),
       // let Tiptap's default handler deal with it.
       const html = event.clipboardData?.getData('text/html')
@@ -295,6 +368,8 @@ const editor = useEditor({
     },
   },
   onUpdate: () => {
+    // Dismiss paste-link menu on any editor content change (typing, etc.)
+    if (pasteLinkMenu.value.visible) dismissPasteLinkMenu()
     debouncedSave()
   },
 })
@@ -609,6 +684,16 @@ ${editor.value.getHTML()}
   }
 }
 
+// Dismiss paste-link menu on click outside
+const onDocClick = (e: MouseEvent) => {
+  if (!pasteLinkMenu.value.visible) return
+  const target = e.target as HTMLElement
+  if (target.closest('.nc-paste-link-menu')) return
+  dismissPasteLinkMenu()
+}
+onMounted(() => document.addEventListener('click', onDocClick, true))
+onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true))
+
 onBeforeUnmount(() => {
   // Flush any pending save before the editor is destroyed.
   // Capture content synchronously BEFORE destroy() tears down ProseMirror,
@@ -737,6 +822,7 @@ onBeforeUnmount(() => {
 
           <!-- Table context menus: column/row handles + dropdown menus -->
           <DocTableMenu :editor="editor" />
+
         </template>
       </div>
     </div>
@@ -759,6 +845,66 @@ onBeforeUnmount(() => {
         </div>
       </template>
     </GeneralDeleteModal>
+
+    <!-- Paste link embed popup — teleported to body to avoid style interference -->
+    <Teleport to="body">
+      <div
+        v-if="pasteLinkMenu.visible"
+        :style="{
+          position: 'fixed',
+          zIndex: 9999,
+          top: pasteLinkMenu.top + 'px',
+          left: pasteLinkMenu.left + 'px',
+          background: 'white',
+          border: '1px solid #e5e7eb',
+          borderRadius: '8px',
+          padding: '4px 0',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+          fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
+          minWidth: '160px',
+        }"
+        class="nc-paste-link-menu"
+      >
+        <div
+          :style="{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '7px 14px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            color: '#1f2937',
+          }"
+          class="nc-paste-link-item"
+          @click="keepAsLink"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+          </svg>
+          <span>Keep as link</span>
+        </div>
+        <div
+          :style="{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '7px 14px',
+            cursor: 'pointer',
+            fontSize: '13px',
+            color: '#1f2937',
+          }"
+          class="nc-paste-link-item"
+          @click="convertToEmbed"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+            <rect x="2" y="3" width="20" height="14" rx="2" />
+            <polygon points="10 9 15 12 10 15 10 9" fill="#6b7280" stroke="none" />
+          </svg>
+          <span>Embed</span>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -1239,5 +1385,10 @@ onBeforeUnmount(() => {
       }
     }
   }
+}
+
+// Paste link embed popup — hover only (layout via inline styles)
+.nc-paste-link-item:hover {
+  background-color: #f3f4f6;
 }
 </style>

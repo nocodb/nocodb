@@ -224,7 +224,8 @@ defineExpose({ onKeyDown })
   color: white;
 }
 
-.nc-slash-menu-item.is-selected .nc-slash-menu-icon svg {
+/* Only override stroke on icons that use currentColor (non-brand icons) */
+.nc-slash-menu-item.is-selected .nc-slash-menu-icon svg[stroke="currentColor"] {
   stroke: white;
 }
 
@@ -240,7 +241,6 @@ defineExpose({ onKeyDown })
 .nc-slash-menu-icon svg {
   width: 18px;
   height: 18px;
-  stroke: #1f2937;
 }
 
 .nc-slash-menu-label {

@@ -10,7 +10,7 @@ const up = async (knex: Knex) => {
       table.string('fk_model_id', 20).notNullable().index();
       table.string('title', 255).notNullable();
       table.text('description');
-      table.text('template_data').notNullable();
+      table.text('template_data', 'mediumtext').notNullable();
       table.integer('usage_count').defaultTo(0);
       table.boolean('enabled').defaultTo(true);
       table.string('created_by', 20);

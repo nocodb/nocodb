@@ -30,9 +30,9 @@ const { blockRecordTemplates, showUpgradeToUseRecordTemplates } = useEeConfig()
 /**
  * Filter the base-level template list to only show enabled templates
  * for the current table. The shared `allTemplates` contains templates
- * across all tables, so we filter by source_id (table ID).
+ * across all tables, so we filter by fk_model_id (table ID).
  */
-const templates = computed(() => allTemplates.value.filter((t: any) => t.enabled !== false && t.source_id === meta.value?.id))
+const templates = computed(() => allTemplates.value.filter((t: any) => t.enabled !== false && t.fk_model_id === meta.value?.id))
 
 const { $api } = useNuxtApp()
 const { getMeta } = useMetas()

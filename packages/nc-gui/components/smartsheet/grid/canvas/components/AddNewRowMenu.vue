@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ViewTypes, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, ViewTypes } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{

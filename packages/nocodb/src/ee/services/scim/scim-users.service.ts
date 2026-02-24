@@ -14,6 +14,25 @@ import type { ScimUserEvent } from '~/services/app-hooks/interfaces';
 const ENTERPRISE_EXTENSION =
   'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User';
 
+// NocoDB extension schema URI for User workspace role
+const NOCODB_USER_EXTENSION =
+  'urn:ietf:params:scim:schemas:extension:nocodb:2.0:User';
+
+// Map of SCIM role label → WorkspaceUserRoles enum value
+const SCIM_ROLE_MAP: Record<string, WorkspaceUserRoles> = {
+  owner: WorkspaceUserRoles.OWNER,
+  creator: WorkspaceUserRoles.CREATOR,
+  editor: WorkspaceUserRoles.EDITOR,
+  commenter: WorkspaceUserRoles.COMMENTER,
+  viewer: WorkspaceUserRoles.VIEWER,
+  'no-access': WorkspaceUserRoles.NO_ACCESS,
+};
+
+// Reverse map for output
+const WORKSPACE_ROLE_TO_LABEL: Record<string, string> = Object.entries(
+  SCIM_ROLE_MAP,
+).reduce((acc, [label, role]) => ({ ...acc, [role]: label }), {});
+
 @Injectable()
 export class ScimUsersService {
   protected logger = new Logger(ScimUsersService.name);
@@ -22,6 +41,42 @@ export class ScimUsersService {
     private readonly workspaceUsersService: WorkspaceUsersService,
     private readonly appHooksService: AppHooksService,
   ) {}
+
+  /**
+   * Extract and validate workspaceRole from NocoDB extension attribute.
+   * Returns the WorkspaceUserRoles enum value, or undefined if not present.
+   */
+  private extractWorkspaceRole(scimUser: any): WorkspaceUserRoles | undefined {
+    const extension = scimUser[NOCODB_USER_EXTENSION];
+    if (!extension?.workspaceRole) return undefined;
+
+    const role = SCIM_ROLE_MAP[extension.workspaceRole.toLowerCase()];
+    if (!role) {
+      throw new HttpException(
+        {
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
+          scimType: 'invalidValue',
+          detail: `Invalid workspaceRole "${extension.workspaceRole}". Valid values: ${Object.keys(SCIM_ROLE_MAP).join(', ')}`,
+          status: '400',
+        },
+        400,
+      );
+    }
+
+    if (role === WorkspaceUserRoles.INHERIT) {
+      throw new HttpException(
+        {
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
+          scimType: 'invalidValue',
+          detail: 'INHERIT role cannot be assigned via SCIM',
+          status: '400',
+        },
+        400,
+      );
+    }
+
+    return role;
+  }
 
   /**
    * Get a single user by SCIM ID
@@ -157,12 +212,16 @@ export class ScimUsersService {
     // Build comprehensive scim_meta to round-trip all attributes
     const scimMeta = this.buildScimMeta(scimUser);
 
+    // Extract workspace role from NocoDB extension (if provided)
+    const workspaceRole =
+      this.extractWorkspaceRole(scimUser) || WorkspaceUserRoles.VIEWER;
+
     // Reactivate soft-deleted user
     if (existingWsUser?.deleted) {
       const updateData = {
         deleted: false,
         deleted_at: null,
-        roles: existingWsUser.roles || WorkspaceUserRoles.VIEWER,
+        roles: workspaceRole,
         scim_external_id: scimId,
         scim_managed: true,
         scim_user_name: scimUser.userName,
@@ -192,7 +251,7 @@ export class ScimUsersService {
     const workspaceUser = await WorkspaceUser.insert({
       fk_workspace_id: workspaceId,
       fk_user_id: user.id,
-      roles: WorkspaceUserRoles.VIEWER,
+      roles: workspaceRole,
       scim_external_id: scimId,
       scim_managed: true,
       scim_user_name: scimUser.userName,
@@ -252,15 +311,39 @@ export class ScimUsersService {
               if (val.toLowerCase() === 'false') val = false;
               else if (val.toLowerCase() === 'true') val = true;
             }
-            flatUser[op.path] = val;
+            // Handle NocoDB extension path (e.g. "urn:...:User:workspaceRole")
+            const nocoExtPrefix = `${NOCODB_USER_EXTENSION}:`;
+            if (op.path.startsWith(nocoExtPrefix)) {
+              const field = op.path.substring(nocoExtPrefix.length);
+              if (!flatUser[NOCODB_USER_EXTENSION])
+                flatUser[NOCODB_USER_EXTENSION] = {};
+              flatUser[NOCODB_USER_EXTENSION][field] = val;
+            } else {
+              flatUser[op.path] = val;
+            }
           } else if (typeof op.value === 'object') {
             // Bulk operation: { op: "Replace", value: { displayName: "...", active: false } }
+            // Check for NocoDB extension in bulk value
+            if (op.value[NOCODB_USER_EXTENSION]) {
+              flatUser[NOCODB_USER_EXTENSION] = op.value[NOCODB_USER_EXTENSION];
+            }
             Object.assign(flatUser, op.value);
           }
         } else if (op.op?.toLowerCase() === 'add') {
           if (op.path) {
-            flatUser[op.path] = op.value;
+            const nocoExtPrefix = `${NOCODB_USER_EXTENSION}:`;
+            if (op.path.startsWith(nocoExtPrefix)) {
+              const field = op.path.substring(nocoExtPrefix.length);
+              if (!flatUser[NOCODB_USER_EXTENSION])
+                flatUser[NOCODB_USER_EXTENSION] = {};
+              flatUser[NOCODB_USER_EXTENSION][field] = op.value;
+            } else {
+              flatUser[op.path] = op.value;
+            }
           } else if (typeof op.value === 'object') {
+            if (op.value[NOCODB_USER_EXTENSION]) {
+              flatUser[NOCODB_USER_EXTENSION] = op.value[NOCODB_USER_EXTENSION];
+            }
             Object.assign(flatUser, op.value);
           }
         } else if (op.op?.toLowerCase() === 'remove') {
@@ -328,6 +411,12 @@ export class ScimUsersService {
     } else {
       // For PATCH, merge individual fields into existing meta
       this.mergeScimMetaFromPatch(updateData.scim_meta, scimUser);
+    }
+
+    // Handle workspace role from NocoDB extension attribute
+    const newRole = this.extractWorkspaceRole(scimUser);
+    if (newRole) {
+      updateData.roles = newRole;
     }
 
     // Handle active status (deactivation)
@@ -735,6 +824,13 @@ export class ScimUsersService {
     // Add enterprise extension
     if (scimMeta[ENTERPRISE_EXTENSION]) {
       result[ENTERPRISE_EXTENSION] = scimMeta[ENTERPRISE_EXTENSION];
+    }
+
+    // Add NocoDB User extension (workspaceRole)
+    const wsRoleLabel = WORKSPACE_ROLE_TO_LABEL[workspaceUser.roles];
+    if (wsRoleLabel) {
+      result.schemas.push(NOCODB_USER_EXTENSION);
+      result[NOCODB_USER_EXTENSION] = { workspaceRole: wsRoleLabel };
     }
 
     return result;

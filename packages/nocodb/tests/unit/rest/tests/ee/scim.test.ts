@@ -440,9 +440,7 @@ function scimUsersTests() {
       .send(payload)
       .expect(201);
 
-    const filterValue = encodeURIComponent(
-      `userName eq "${payload.userName}"`,
-    );
+    const filterValue = encodeURIComponent(`userName eq "${payload.userName}"`);
 
     const response = await request(context.app)
       .get(`${SCIM_USERS_PREFIX()}?filter=${filterValue}`)
@@ -460,13 +458,21 @@ function scimUsersTests() {
     const userA = makeScimUserPayload({
       userName: `aaa-sort-${Date.now()}@example.com`,
       emails: [
-        { primary: true, value: `aaa-sort-${Date.now()}@example.com`, type: 'work' },
+        {
+          primary: true,
+          value: `aaa-sort-${Date.now()}@example.com`,
+          type: 'work',
+        },
       ],
     });
     const userZ = makeScimUserPayload({
       userName: `zzz-sort-${Date.now()}@example.com`,
       emails: [
-        { primary: true, value: `zzz-sort-${Date.now()}@example.com`, type: 'work' },
+        {
+          primary: true,
+          value: `zzz-sort-${Date.now()}@example.com`,
+          type: 'work',
+        },
       ],
     });
 
@@ -512,9 +518,7 @@ function scimUsersTests() {
       .expect(201);
 
     const response = await request(context.app)
-      .get(
-        `${SCIM_USERS_PREFIX()}?sortBy=userName&sortOrder=descending`,
-      )
+      .get(`${SCIM_USERS_PREFIX()}?sortBy=userName&sortOrder=descending`)
       .set('Authorization', `Bearer ${scimToken}`)
       .expect(200);
 
@@ -742,6 +746,216 @@ function scimUsersTests() {
 
     // Per SCIM spec, should return 204 No Content (or 200 per implementation)
     expect(response.status).to.be.oneOf([200, 204]);
+  });
+
+  // ── Workspace Role via User Extension Schema ────────────────────
+
+  const NOCODB_USER_EXT =
+    'urn:ietf:params:scim:schemas:extension:nocodb:2.0:User';
+
+  it('Create user with workspaceRole extension — assigns workspace role', async () => {
+    const payload = makeScimUserPayload({
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:User', NOCODB_USER_EXT],
+      [NOCODB_USER_EXT]: { workspaceRole: 'editor' },
+    });
+
+    const response = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload)
+      .expect(201);
+
+    const user = response.body;
+    expect(user.schemas).to.include(NOCODB_USER_EXT);
+    expect(user[NOCODB_USER_EXT]).to.have.property('workspaceRole', 'editor');
+  });
+
+  it('Create user without workspaceRole — defaults to viewer', async () => {
+    const payload = makeScimUserPayload();
+
+    const response = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload)
+      .expect(201);
+
+    const user = response.body;
+    // Default role is viewer, so extension should be present
+    expect(user.schemas).to.include(NOCODB_USER_EXT);
+    expect(user[NOCODB_USER_EXT]).to.have.property('workspaceRole', 'viewer');
+  });
+
+  it('Update workspaceRole via PATCH Replace (path-targeted)', async () => {
+    const payload = makeScimUserPayload({
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:User', NOCODB_USER_EXT],
+      [NOCODB_USER_EXT]: { workspaceRole: 'viewer' },
+    });
+
+    const createRes = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload)
+      .expect(201);
+
+    const userId = createRes.body.id;
+
+    // PATCH to change role
+    const patchBody = {
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+      Operations: [
+        {
+          op: 'Replace',
+          path: `${NOCODB_USER_EXT}:workspaceRole`,
+          value: 'editor',
+        },
+      ],
+    };
+
+    const patchRes = await request(context.app)
+      .patch(`${SCIM_USERS_PREFIX()}/${userId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(patchBody)
+      .expect(200);
+
+    expect(patchRes.body[NOCODB_USER_EXT]).to.have.property(
+      'workspaceRole',
+      'editor',
+    );
+  });
+
+  it('Update workspaceRole via PATCH bulk Replace', async () => {
+    const payload = makeScimUserPayload({
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:User', NOCODB_USER_EXT],
+      [NOCODB_USER_EXT]: { workspaceRole: 'viewer' },
+    });
+
+    const createRes = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload)
+      .expect(201);
+
+    const userId = createRes.body.id;
+
+    const patchBody = {
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+      Operations: [
+        {
+          op: 'Replace',
+          value: {
+            [NOCODB_USER_EXT]: { workspaceRole: 'creator' },
+          },
+        },
+      ],
+    };
+
+    const patchRes = await request(context.app)
+      .patch(`${SCIM_USERS_PREFIX()}/${userId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(patchBody)
+      .expect(200);
+
+    expect(patchRes.body[NOCODB_USER_EXT]).to.have.property(
+      'workspaceRole',
+      'creator',
+    );
+  });
+
+  it('Update workspaceRole via PUT', async () => {
+    const payload = makeScimUserPayload({
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:User', NOCODB_USER_EXT],
+      [NOCODB_USER_EXT]: { workspaceRole: 'viewer' },
+    });
+
+    const createRes = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload)
+      .expect(201);
+
+    const userId = createRes.body.id;
+
+    // PUT with updated role
+    const replacePayload = {
+      ...payload,
+      [NOCODB_USER_EXT]: { workspaceRole: 'commenter' },
+    };
+
+    const putRes = await request(context.app)
+      .put(`${SCIM_USERS_PREFIX()}/${userId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(replacePayload)
+      .expect(200);
+
+    expect(putRes.body[NOCODB_USER_EXT]).to.have.property(
+      'workspaceRole',
+      'commenter',
+    );
+  });
+
+  it('Reject invalid workspaceRole value for user', async () => {
+    const payload = makeScimUserPayload({
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:User', NOCODB_USER_EXT],
+      [NOCODB_USER_EXT]: { workspaceRole: 'superadmin' },
+    });
+
+    const response = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload);
+
+    expect(response.status).to.equal(400);
+    expect(response.body).to.have.property('schemas');
+    expect(response.body.schemas).to.include(
+      'urn:ietf:params:scim:api:messages:2.0:Error',
+    );
+    expect(response.body.detail).to.include('Invalid workspaceRole');
+  });
+
+  it('workspaceRole is reflected in GET after create', async () => {
+    const payload = makeScimUserPayload({
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:User', NOCODB_USER_EXT],
+      [NOCODB_USER_EXT]: { workspaceRole: 'editor' },
+    });
+
+    const createRes = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload)
+      .expect(201);
+
+    const userId = createRes.body.id;
+
+    // Fetch independently
+    const getRes = await request(context.app)
+      .get(`${SCIM_USERS_PREFIX()}/${userId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    expect(getRes.body[NOCODB_USER_EXT]).to.have.property(
+      'workspaceRole',
+      'editor',
+    );
+  });
+
+  it('NocoDB User extension schema is advertised in /Schemas', async () => {
+    const response = await request(context.app)
+      .get(`/api/v3/meta/workspaces/${workspaceId}/scim/v2/Schemas`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    const schemaIds = (response.body.Resources || response.body).map(
+      (s: any) => s.id,
+    );
+    expect(schemaIds).to.include(NOCODB_USER_EXT);
+
+    // Verify the extension schema has workspaceRole attribute
+    const extSchema = (response.body.Resources || response.body).find(
+      (s: any) => s.id === NOCODB_USER_EXT,
+    );
+    expect(extSchema).to.not.be.undefined;
+    const attrNames = extSchema.attributes.map((a: any) => a.name);
+    expect(attrNames).to.include('workspaceRole');
   });
 
   // ── Authentication Checks ──────────────────────────────────────
@@ -1069,9 +1283,7 @@ function scimGroupsTests() {
       .set('Authorization', `Bearer ${scimToken}`)
       .expect(200);
 
-    const names = response.body.Resources.map(
-      (g: any) => g.displayName,
-    );
+    const names = response.body.Resources.map((g: any) => g.displayName);
     for (let i = 1; i < names.length; i++) {
       expect(
         names[i - 1].toLowerCase() <= names[i].toLowerCase(),
@@ -1399,6 +1611,221 @@ function scimGroupsTests() {
     expect(memberIds).to.include(userId);
   });
 
+  // ── Workspace Role via Extension Schema ──────────────────────────
+
+  const NOCODB_GROUP_EXT =
+    'urn:ietf:params:scim:schemas:extension:nocodb:2.0:Group';
+
+  it('Create group with workspaceRole extension — assigns workspace role', async () => {
+    const payload = makeScimGroupPayload({
+      schemas: [
+        'urn:ietf:params:scim:schemas:core:2.0:Group',
+        NOCODB_GROUP_EXT,
+      ],
+      [NOCODB_GROUP_EXT]: { workspaceRole: 'editor' },
+    });
+
+    const response = await createScimGroup(payload);
+    const group = response.body;
+
+    // Response should include extension schema and workspace role
+    expect(group.schemas).to.include(NOCODB_GROUP_EXT);
+    expect(group[NOCODB_GROUP_EXT]).to.have.property('workspaceRole', 'editor');
+  });
+
+  it('Create group without workspaceRole — no extension in response', async () => {
+    const payload = makeScimGroupPayload();
+
+    const response = await createScimGroup(payload);
+    const group = response.body;
+
+    expect(group.schemas).to.not.include(NOCODB_GROUP_EXT);
+    expect(group[NOCODB_GROUP_EXT]).to.be.undefined;
+  });
+
+  it('Update workspaceRole via PATCH Replace', async () => {
+    // Create group with viewer role
+    const payload = makeScimGroupPayload({
+      schemas: [
+        'urn:ietf:params:scim:schemas:core:2.0:Group',
+        NOCODB_GROUP_EXT,
+      ],
+      [NOCODB_GROUP_EXT]: { workspaceRole: 'viewer' },
+    });
+
+    const createRes = await createScimGroup(payload);
+    const groupId = createRes.body.id;
+
+    // Verify initial role
+    expect(createRes.body[NOCODB_GROUP_EXT]).to.have.property(
+      'workspaceRole',
+      'viewer',
+    );
+
+    // PATCH to change role to editor
+    const patchBody = {
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+      Operations: [
+        {
+          op: 'Replace',
+          path: `${NOCODB_GROUP_EXT}:workspaceRole`,
+          value: 'editor',
+        },
+      ],
+    };
+
+    const patchRes = await request(context.app)
+      .patch(`${SCIM_GROUPS_PREFIX()}/${groupId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(patchBody)
+      .expect(200);
+
+    expect(patchRes.body[NOCODB_GROUP_EXT]).to.have.property(
+      'workspaceRole',
+      'editor',
+    );
+  });
+
+  it('Update workspaceRole via PATCH bulk Replace', async () => {
+    // Create group with viewer role
+    const payload = makeScimGroupPayload({
+      schemas: [
+        'urn:ietf:params:scim:schemas:core:2.0:Group',
+        NOCODB_GROUP_EXT,
+      ],
+      [NOCODB_GROUP_EXT]: { workspaceRole: 'viewer' },
+    });
+
+    const createRes = await createScimGroup(payload);
+    const groupId = createRes.body.id;
+
+    // PATCH with bulk replace including extension attribute
+    const patchBody = {
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+      Operations: [
+        {
+          op: 'Replace',
+          value: {
+            [NOCODB_GROUP_EXT]: { workspaceRole: 'creator' },
+          },
+        },
+      ],
+    };
+
+    const patchRes = await request(context.app)
+      .patch(`${SCIM_GROUPS_PREFIX()}/${groupId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(patchBody)
+      .expect(200);
+
+    expect(patchRes.body[NOCODB_GROUP_EXT]).to.have.property(
+      'workspaceRole',
+      'creator',
+    );
+  });
+
+  it('Update workspaceRole via PUT', async () => {
+    // Create group with viewer role
+    const payload = makeScimGroupPayload({
+      schemas: [
+        'urn:ietf:params:scim:schemas:core:2.0:Group',
+        NOCODB_GROUP_EXT,
+      ],
+      [NOCODB_GROUP_EXT]: { workspaceRole: 'viewer' },
+    });
+
+    const createRes = await createScimGroup(payload);
+    const groupId = createRes.body.id;
+
+    // PUT with updated role
+    const replacePayload = {
+      schemas: [
+        'urn:ietf:params:scim:schemas:core:2.0:Group',
+        NOCODB_GROUP_EXT,
+      ],
+      displayName: payload.displayName,
+      members: [],
+      [NOCODB_GROUP_EXT]: { workspaceRole: 'commenter' },
+    };
+
+    const putRes = await request(context.app)
+      .put(`${SCIM_GROUPS_PREFIX()}/${groupId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(replacePayload)
+      .expect(200);
+
+    expect(putRes.body[NOCODB_GROUP_EXT]).to.have.property(
+      'workspaceRole',
+      'commenter',
+    );
+  });
+
+  it('Reject invalid workspaceRole value', async () => {
+    const payload = makeScimGroupPayload({
+      schemas: [
+        'urn:ietf:params:scim:schemas:core:2.0:Group',
+        NOCODB_GROUP_EXT,
+      ],
+      [NOCODB_GROUP_EXT]: { workspaceRole: 'superadmin' },
+    });
+
+    const response = await request(context.app)
+      .post(SCIM_GROUPS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload);
+
+    expect(response.status).to.equal(400);
+    expect(response.body).to.have.property('schemas');
+    expect(response.body.schemas).to.include(
+      'urn:ietf:params:scim:api:messages:2.0:Error',
+    );
+    expect(response.body.detail).to.include('Invalid workspaceRole');
+  });
+
+  it('workspaceRole is reflected in GET after create', async () => {
+    const payload = makeScimGroupPayload({
+      schemas: [
+        'urn:ietf:params:scim:schemas:core:2.0:Group',
+        NOCODB_GROUP_EXT,
+      ],
+      [NOCODB_GROUP_EXT]: { workspaceRole: 'editor' },
+    });
+
+    const createRes = await createScimGroup(payload);
+    const groupId = createRes.body.id;
+
+    // Fetch independently
+    const getRes = await request(context.app)
+      .get(`${SCIM_GROUPS_PREFIX()}/${groupId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    expect(getRes.body[NOCODB_GROUP_EXT]).to.have.property(
+      'workspaceRole',
+      'editor',
+    );
+  });
+
+  it('NocoDB Group extension schema is advertised in /Schemas', async () => {
+    const response = await request(context.app)
+      .get(`/api/v3/meta/workspaces/${workspaceId}/scim/v2/Schemas`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    const schemaIds = (response.body.Resources || response.body).map(
+      (s: any) => s.id,
+    );
+    expect(schemaIds).to.include(NOCODB_GROUP_EXT);
+
+    // Verify the extension schema has workspaceRole attribute
+    const extSchema = (response.body.Resources || response.body).find(
+      (s: any) => s.id === NOCODB_GROUP_EXT,
+    );
+    expect(extSchema).to.not.be.undefined;
+    const attrNames = extSchema.attributes.map((a: any) => a.name);
+    expect(attrNames).to.include('workspaceRole');
+  });
+
   // ── Delete Group ────────────────────────────────────────────────
 
   it('Delete a SCIM group', async () => {
@@ -1465,9 +1892,7 @@ function scimDiscoveryTests() {
 
   it('Get SCIM Schemas', async () => {
     const response = await request(context.app)
-      .get(
-        `/api/v3/meta/workspaces/${workspaceId}/scim/v2/Schemas`,
-      )
+      .get(`/api/v3/meta/workspaces/${workspaceId}/scim/v2/Schemas`)
       .set('Authorization', `Bearer ${scimToken}`)
       .expect(200);
 

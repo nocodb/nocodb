@@ -15,11 +15,6 @@ on:
       tag:
         description: "Any additional Tag"
         required: false
-      auto_promote:
-        type: boolean
-        description: 'Auto-promote to production after smoke tests pass'
-        required: false
-        default: false
       services_to_deploy:
         type: choice
         description: services to deploy
@@ -214,7 +209,6 @@ jobs:
 
       - name: Smoke test staging
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' )) }}
-        id: smoke
         env:
           STAGING_URL: ${{ secrets.STAGING_URL }}
           COMMIT_HASH: ${{ github.sha }}
@@ -239,32 +233,13 @@ jobs:
           run_check "Correct commit live"  "curl -sf '$STAGING_URL/nc.txt' | grep -q '$COMMIT_HASH'"
 
           if [ "$FAILED" -eq 0 ]; then
-            echo "smoke_passed=true" >> $GITHUB_OUTPUT
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Result: ✅ All checks passed**" >> $GITHUB_STEP_SUMMARY
+            echo "**Result: ✅ All checks passed — staging is healthy, ready to promote**" >> $GITHUB_STEP_SUMMARY
           else
-            echo "smoke_passed=false" >> $GITHUB_OUTPUT
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Result: ❌ Smoke tests failed — production promote skipped**" >> $GITHUB_STEP_SUMMARY
+            echo "**Result: ❌ Smoke tests failed**" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
-      - name: Auto-promote to production
-        if: ${{ steps.smoke.outputs.smoke_passed == 'true' && ( github.event_name == 'schedule' || github.event.inputs.auto_promote == 'true' ) }}
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GH_TOKEN_PRIVATE_REPO }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'release-cloud-production.yml',
-              ref: context.ref,
-              inputs: { promote: 'true' },
-            });
-            core.summary.addRaw('\n\n🚀 **Smoke tests passed — production promote dispatched automatically.**\n');
-            await core.summary.write();
-            console.log('Production promote dispatched successfully');
 
       ### mux build and deploy starts here ###
       - name: Build, tag, and push mux service image (nc-sql-executor) to Amazon ECR

@@ -173,6 +173,83 @@ For significant architectural or design decisions (not small implementation deta
 | Use `console.log` / `console.error` in production code | Use `Logger` (backend) or remove (frontend) |
 | Add `TODO` without a linked issue | Include issue reference or remove before PR |
 
+## Frontend Patterns
+
+### i18n (Internationalization)
+
+Translation keys live in `packages/nc-gui/lang/en.json`. **Always reuse an existing key if it matches — only add a new one if no suitable key exists.**
+
+#### Usage
+
+**Inside `<script setup>` or Vue composables:**
+```ts
+const { t } = useI18n()
+t('general.cancel')
+```
+
+**In `<template>`:**
+```html
+{{ $t('general.cancel') }}
+```
+
+**Outside `<script setup>` (utilities, non-setup composables):**
+```ts
+import { getI18n } from '~/plugins/a.i18n'
+
+const { t } = getI18n().global
+```
+
+#### Key Structure
+
+Keys are nested under top-level semantic groups. Add new keys to the most appropriate group:
+
+| Group | Purpose |
+|-------|---------|
+| `general` | Common words: Save, Cancel, Delete, Loading… |
+| `title` | Page / section headings |
+| `labels` | Field labels, form labels |
+| `objects` | Nouns: user, table, view, field… |
+| `placeholder` | Input placeholder text |
+| `tooltip` | Tooltip copy |
+| `msg` | Success / error / info messages |
+| `activity` | Activity feed strings |
+| `upgrade` | Upgrade / upsell prompts |
+
+Keys can be nested as deeply as needed:
+```json
+"labels": {
+  "auth": {
+    "signIn": "Sign in"
+  }
+}
+```
+Used as: `t('labels.auth.signIn')`
+
+#### Interpolation (dynamic values)
+
+Use `{varName}` placeholders in the JSON value, then pass an object as the second argument:
+
+```json
+"currentlyOnVersion": "Currently on {version}",
+"signInWithProvider": "Sign in with {provider}",
+"userIdColon": "USER ID: {userId}"
+```
+
+```ts
+// script
+t('msg.currentlyOnVersion', { version: '1.2.3' })
+
+// template
+$t('labels.signInWithProvider', { provider: 'Google' })
+```
+
+#### Things to watch out for
+
+- **Never hardcode user-visible strings** — always go through `t()` / `$t()`.
+- **Don't duplicate keys** — search `en.json` before adding a new one.
+- **Pluralisation** — vue-i18n supports `{count} item | {count} items` syntax if needed.
+- **`en.json` is the source of truth** — other locale files are translations of it; only edit `en.json` in PRs.
+
 ## File Naming
 
 - Backend operations module: `{Feature}Get.operations.ts` / `{Feature}Post.operations.ts`

@@ -464,6 +464,9 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/github-auth':
+        specifier: workspace:*
+        version: link:../github-auth
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -632,6 +635,9 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/google-mail-auth':
+        specifier: workspace:*
+        version: link:../google-mail-auth
       googleapis:
         specifier: ^169.0.0
         version: 169.0.0
@@ -737,6 +743,9 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/jira-cloud-auth':
+        specifier: workspace:*
+        version: link:../jira-cloud-auth
       dayjs:
         specifier: ^1.11.19
         version: 1.11.19
@@ -936,6 +945,9 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/outlook-mail-auth':
+        specifier: workspace:*
+        version: link:../outlook-mail-auth
     devDependencies:
       rimraf:
         specifier: ^5.0.10
@@ -1009,6 +1021,9 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/slack-auth':
+        specifier: workspace:*
+        version: link:../slack-auth
     devDependencies:
       rimraf:
         specifier: ^5.0.10

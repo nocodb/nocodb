@@ -14,27 +14,7 @@ import type {
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
-// Minimal interface for the smtp-auth integration client — avoids a compile-time
-// dependency on @noco-integrations/smtp-auth (which builds after core-workflow-node
-// alphabetically). The full SmtpAuthIntegration is resolved at runtime via the registry.
-interface SmtpAuthConfig {
-  fromEmail: string;
-  fromName?: string;
-}
-
-interface SmtpTransporter {
-  sendMail(options: Record<string, unknown>): Promise<{
-    messageId: string;
-    accepted: string[];
-    rejected: string[];
-    envelope: Record<string, unknown>;
-  }>;
-}
-
-interface SmtpAuthIntegration {
-  config: SmtpAuthConfig;
-  use<T>(fn: (transporter: SmtpTransporter) => Promise<T>): Promise<T>;
-}
+import type { SmtpAuthIntegration } from '@noco-integrations/smtp-auth';
 
 interface SmtpSendEmailConfig extends WorkflowNodeConfig {
   authIntegrationId: string;

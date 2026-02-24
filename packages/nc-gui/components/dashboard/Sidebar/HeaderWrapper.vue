@@ -42,23 +42,6 @@ const openSearch = () => {
       </div>
 
       <div class="flex items-center gap-0.5">
-        <NcTooltip class="flex" placement="bottom" hide-on-click :disabled="!!isMobileMode">
-          <template #title> {{ renderCmdOrCtrlKey(true) }} K </template>
-          <NcButton
-            v-if="!isMobileMode"
-            v-e="['c:sidebar:search']"
-            type="text"
-            size="small"
-            class="!text-nc-content-gray-subtle !hover:text-nc-content-gray !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
-            data-testid="nc-sidebar-search-btn"
-            @click="openSearch"
-          >
-            <div class="flex items-center text-inherit">
-              <GeneralIcon icon="search" class="!text-nc-content-gray-muted" />
-            </div>
-          </NcButton>
-        </NcTooltip>
-
         <NcTooltip
           class="flex"
           :class="{

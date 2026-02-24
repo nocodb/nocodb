@@ -131,29 +131,32 @@ const onTabClick = (tab: SidebarTab) => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <!-- Icon Tab Bar -->
-      <div v-if="!isSharedBase" class="nc-sidebar-tab-bar flex items-center px-1 pt-1 pb-0.5">
-        <div
-          v-for="tab in sidebarTabs"
+      <!-- Tab Bar -->
+      <div v-if="!isSharedBase" class="nc-sidebar-tab-bar flex items-center px-1 border-b-1 border-nc-border-gray-medium">
+        <button
+          v-for="(tab, index) in sidebarTabs"
           :key="tab.key"
-          class="flex-1 flex justify-center"
+          v-e="[`c:sidebar:tab:${tab.key}`]"
+          class="nc-sidebar-tab-btn relative flex items-center gap-1.5 py-1.5 cursor-pointer border-none bg-transparent transition-colors duration-150 px-2.5"
+          :class="[
+            {
+              'text-nc-content-brand font-semibold': activeTab === tab.key,
+              'text-nc-content-gray-muted hover:text-nc-content-gray-subtle': activeTab !== tab.key,
+            },
+            index === 0 ? '!pl-3' : '',
+          ]"
+          :data-testid="`nc-sidebar-tab-${tab.key}`"
+          @click="onTabClick(tab.key)"
         >
-          <NcTooltip :title="tab.label" placement="bottom" :disabled="activeTab === tab.key">
-            <button
-              v-e="[`c:sidebar:tab:${tab.key}`]"
-              class="nc-sidebar-tab-btn flex items-center justify-center h-7 rounded-md cursor-pointer border-none gap-1 transition-colors duration-150"
-              :class="{
-                'bg-nc-bg-brand text-nc-content-brand-disabled px-2': activeTab === tab.key,
-                'bg-transparent text-nc-content-gray-muted hover:bg-nc-bg-gray-medium hover:text-nc-content-gray-subtle w-7': activeTab !== tab.key,
-              }"
-              :data-testid="`nc-sidebar-tab-${tab.key}`"
-              @click="onTabClick(tab.key)"
-            >
-              <GeneralIcon :icon="activeTab === tab.key ? tab.activeIcon : tab.icon" class="!h-4 w-4 flex-none" />
-              <span v-if="activeTab === tab.key" class="text-bodySm leading-none font-semibold">{{ tab.label }}</span>
-            </button>
-          </NcTooltip>
-        </div>
+          <div class="w-4 h-4 flex items-center justify-center flex-none">
+            <GeneralIcon :icon="activeTab === tab.key ? tab.activeIcon : tab.icon" class="!h-3.5 !w-3.5" />
+          </div>
+          <span class="text-[13px] leading-none">{{ tab.label }}</span>
+          <div
+            v-if="activeTab === tab.key"
+            class="absolute bottom-0 left-1 right-1 h-0.5 rounded-t-full bg-nc-content-brand"
+          />
+        </button>
       </div>
 
       <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">

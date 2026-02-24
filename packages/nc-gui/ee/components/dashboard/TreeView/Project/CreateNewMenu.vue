@@ -57,8 +57,8 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
           {{ $t('objects.table') }}
         </div>
         <template v-if="source && showBaseOption(source)">
-          <div class="px-1 cursor-default flex items-center h-5 -my-2" @click.stop>
-            <div class="h-3.5 w-px flex-none bg-nc-border-gray-medium" />
+          <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
+            <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
           </div>
 
           <DashboardTreeViewBaseOptions
@@ -146,8 +146,8 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
           <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
         </div>
 
-        <div class="px-1 cursor-default flex items-center h-5 -my-2" @click.stop>
-          <div class="h-3.5 w-px flex-none bg-nc-border-gray-medium" />
+        <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
+          <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
         </div>
 
         <NcSubMenu

@@ -131,11 +131,11 @@ const onTabClick = (tab: SidebarTab) => {
       </DashboardSidebarHeaderWrapper>
 
       <!-- Icon Tab Bar -->
-      <div v-if="!isSharedBase" class="nc-sidebar-tab-bar flex items-center px-2 pt-1 pb-0.5 gap-0.5">
+      <div v-if="!isSharedBase" class="nc-sidebar-tab-bar flex items-center px-3 pt-1 pb-0.5 gap-1">
         <NcTooltip v-for="tab in sidebarTabs" :key="tab.key" :title="tab.label" placement="bottom">
           <button
             v-e="[`c:sidebar:tab:${tab.key}`]"
-            class="nc-sidebar-tab-btn flex-1 flex items-center justify-center h-8 rounded-md transition-all duration-150 cursor-pointer border-none"
+            class="nc-sidebar-tab-btn flex items-center justify-center w-7 h-7 rounded-md transition-all duration-150 cursor-pointer border-none"
             :class="{
               'bg-nc-bg-brand text-nc-content-brand-disabled': activeTab === tab.key,
               'text-nc-content-gray-muted hover:bg-nc-bg-gray-medium hover:text-nc-content-gray-subtle': activeTab !== tab.key,

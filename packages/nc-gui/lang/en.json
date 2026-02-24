@@ -3042,7 +3042,8 @@
       "scriptsByNocoDB": "Ready to use scripts by NocoDB"
     },
     "baseDataChat": {
-      "welcome": "Hello! I’m your AI assistant, here to help you explore and understand your base schema and data.\nHow can I help you today?"
+      "welcome": "Hello! I’m your AI assistant, here to help you explore and understand your base schema and data.\nHow can I help you today?",
+      "newChat": "New chat"
     },
     "noAccess": "No Access",
     "noAccessDescription": "You don't have access to any workspace. Please contact your administrator to request access.",

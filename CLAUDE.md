@@ -404,6 +404,92 @@ Extract repeated template blocks into sub-components. Move non-trivial logic int
 
 Rule of thumb: line/outline icons → no extra prop needed. Fill/solid/logo icons → add `{ stroke: 'transparent' }`.
 
+## Payment Feature Gating
+
+### Adding a new paid feature — full checklist
+
+**1. SDK** (`packages/nocodb-sdk/src/lib/payment/index.ts`)
+
+```ts
+// Add to PlanFeatureTypes enum
+FEATURE_MY_THING = 'feature_my_thing',
+
+// Add to PlanFeatureUpgradeMessages
+[PlanFeatureTypes.FEATURE_MY_THING]: 'to use my thing.',
+```
+
+**2. Backend default** (`packages/nocodb/src/ee/models/Plan.ts`)
+
+Add the feature with its default value (usually `false` for paid-only):
+```ts
+[PlanFeatureTypes.FEATURE_MY_THING]: false,
+```
+
+**3. Backend guard** — call at service/controller level:
+```ts
+import { checkForFeature } from '~/ee/helpers/paymentHelpers'
+import { PlanFeatureTypes } from 'nocodb-sdk'
+
+await checkForFeature(context, PlanFeatureTypes.FEATURE_MY_THING)
+// throws featureNotSupported if plan doesn't have it
+```
+
+**4. Frontend — CE stub** (`packages/nc-gui/composables/useEeConfig.ts`)
+
+CE always returns blocked/no-op — preserves CE/EE separation:
+```ts
+const blockMyThing = computed(() => true)
+const showUpgradeToUseMyThing = (..._args: any[]) => {}
+
+// add both to the return object
+```
+
+**5. Frontend — EE implementation** (`packages/nc-gui/ee/composables/useEeConfig.ts`)
+
+```ts
+const blockMyThing = computed(() => {
+  return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_MY_THING)
+})
+
+const showUpgradeToUseMyThing = () => {
+  handleUpgradePlan({ limitOrFeature: PlanFeatureTypes.FEATURE_MY_THING })
+}
+
+// add both to the return object
+```
+
+**6. Frontend — guard usage**
+
+```ts
+// In script
+const { blockMyThing, showUpgradeToUseMyThing } = useEeConfig()
+if (blockMyThing.value) return showUpgradeToUseMyThing()
+```
+
+**Badge-only** — upgrade modal triggered only when user clicks the badge itself:
+```html
+<div>
+  <MyControl />
+  <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_MY_THING" />
+</div>
+```
+
+**Badge + Provider** — upgrade modal triggered when user clicks the whole control (not just the badge). Provider exposes a `click` slot prop that intercepts the action:
+```html
+<PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_MY_THING">
+  <template #default="{ click }">
+    <NcButton
+      @click="click(PlanFeatureTypes.FEATURE_MY_THING, () => doAction())"
+    >
+      My Action
+    </NcButton>
+    <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_MY_THING" />
+  </template>
+</PaymentUpgradeBadgeProvider>
+```
+
+`click(feature, successCallback)` — if feature is locked it shows the upgrade modal and returns `true`; if available it calls `successCallback`. The badge is auto-hidden when the feature is available.
+
 ## File Naming
 
 - Backend operations module: `{Feature}Get.operations.ts` / `{Feature}Post.operations.ts`

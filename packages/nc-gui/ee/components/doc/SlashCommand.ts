@@ -49,6 +49,10 @@ const icons = {
   warning: svg('<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
   tip: svg('<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1-3c1.9.5 3.3 1.6 4.4 3.1a12.3 12.3 0 0 1 2 5.6c-2-.8-3.5-1.8-4.5-3.2a9 9 0 0 1-.8-2.5z"/>'),
   important: svg('<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'),
+  // Date/time icons
+  calendar: svg('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
+  clock: svg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
+  calendarClock: svg('<path d="M3 10h18"/><path d="M16 2v4"/><path d="M8 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M12 14l2 2 2-2"/><path d="M12 10v4"/>'),
 }
 
 export const slashCommandItems: SlashCommandItem[] = [
@@ -193,6 +197,39 @@ export const slashCommandItems: SlashCommandItem[] = [
     group: 'Callouts',
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setCallout({ type: 'important' }).run()
+    },
+  },
+  // — Date & Time —
+  {
+    title: 'Current date',
+    description: 'Insert today\'s date',
+    icon: icons.calendar,
+    group: 'Date & Time',
+    command: (editor, range) => {
+      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      editor.chain().focus().deleteRange(range).insertContent(date).run()
+    },
+  },
+  {
+    title: 'Current time',
+    description: 'Insert current time',
+    icon: icons.clock,
+    group: 'Date & Time',
+    command: (editor, range) => {
+      const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      editor.chain().focus().deleteRange(range).insertContent(time).run()
+    },
+  },
+  {
+    title: 'Current date and time',
+    description: 'Insert date and time',
+    icon: icons.calendarClock,
+    group: 'Date & Time',
+    command: (editor, range) => {
+      const dt = new Date()
+      const date = dt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      const time = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      editor.chain().focus().deleteRange(range).insertContent(`${date} ${time}`).run()
     },
   },
 ]

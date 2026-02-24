@@ -123,6 +123,14 @@ const rolePermissions = {
 
       // Extensions
       extensionUpdate: true,
+
+      // Record Templates
+      recordTemplateList: true,
+      recordTemplateGet: true,
+      recordTemplateCreate: true,
+      recordTemplateUpdate: true,
+      recordTemplateDelete: true,
+      recordTemplateUse: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

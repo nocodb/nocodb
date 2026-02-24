@@ -350,6 +350,27 @@ Before creating anything new, check these folders for an existing component:
 Examples of what already exists in `components/nc/`:
 `NcButton`, `NcModal`, `NcModalConfirm`, `NcDropdown`, `NcSelect`, `NcTooltip`, `NcSwitch`, `NcCheckbox`, `NcBadge`, `NcIcon`, `NcAlert`, `NcTabs`, `NcTable`, `NcPagination`, `NcDivider`, `NcPopover`, `NcMenu`, `NcDatePicker`, `NcEmptyPlaceholder`, `NcListWithSearch`
 
+#### NcModal — prefer `modalSizes` sizes
+
+`NcModal` accepts a `size` prop. Prefer the **`modalSizes`** keys (`xs`, `sm`, `md`, `lg`, `xl`, `fullscreen`) — these are the newer, responsive sizes. The legacy string sizes (`small`, `medium`, `large`) still work but are older.
+
+| Size | Width | Height |
+|------|-------|--------|
+| `xs` | max 448px | max 448px |
+| `sm` | max 640px | max 424px |
+| `md` | max 900px | max 540px |
+| `lg` | max 1280px | max 864px |
+| `xl` | max 1280px (90vw) | max 864px |
+| `fullscreen` | 100vw | 100vh |
+
+```html
+<NcModal v-model:visible="isOpen" size="md">
+  <!-- content -->
+</NcModal>
+```
+
+Use `small` / `medium` / `large` only when matching an existing modal that already uses them.
+
 #### Adding new reusable components
 
 If you build a component that could be used in more than one place, put it in **`components/nc/`** — not inline in a feature component.
@@ -370,6 +391,57 @@ components/nc/BigModal.vue  ← 600 lines
 ```
 
 Extract repeated template blocks into sub-components. Move non-trivial logic into a composable, not into `<script setup>` directly.
+
+#### Toasts / notifications — use `ncMessage`
+
+Always use `ncMessage` (auto-imported), not `message` from `ant-design-vue` directly. It wraps the ant message with NocoDB's `NcAlert` design.
+
+```ts
+ncMessage.success('Saved')
+ncMessage.error('Something went wrong')
+ncMessage.info({ title: 'Info', content: 'Details here' })
+```
+
+#### Confirm / info dialogs — use `useNcConfirmModal`
+
+Use `useNcConfirmModal()` instead of `Modal.confirm()` from ant-design-vue.
+
+```ts
+const { showConfirmModal, showInfoModal } = useNcConfirmModal()
+
+showConfirmModal({
+  title: 'Delete item?',
+  content: 'This cannot be undone.',
+  okText: 'Delete',
+  okCallback: async () => { await deleteItem() },
+})
+
+// also: showInfoModal, showSuccessModal, showWarningModal, showErrorModal
+```
+
+#### Programmatic dialogs — use `useDialog`
+
+Mounts a component into the DOM without adding it to the template.
+
+**In `<script setup>`** — use `resolveComponent` (string name, resolved at runtime):
+```ts
+const { close } = useDialog(resolveComponent('DlgMCPDelete'), {
+  'modelValue': isOpen,
+  'onUpdate:modelValue': () => { isOpen.value = false; close(300) },
+})
+```
+
+**In a composable** — `resolveComponent` doesn't work outside setup; import the component directly:
+```ts
+import { DlgBaseErd } from '#components'
+
+const { close } = useDialog(DlgBaseErd, {
+  'modelValue': isOpen,
+  'onUpdate:modelValue': () => { isOpen.value = false; close(300) },
+})
+```
+
+`close(delayMs?)` destroys the mounted component; pass ~300ms to let the modal close animation finish first.
 
 ### Icons
 

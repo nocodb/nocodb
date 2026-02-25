@@ -305,13 +305,13 @@ onBeforeUnmount(() => {
             <div class="nc-table-col-toolbar">
               <!-- Insert -->
               <NcTooltip :title="$t('labels.insertColumnLeft')">
-                <NcButton size="xsmall" type="text" @click="onColumnAction(cIdx, 'insertBefore')">
-                  <GeneralIcon icon="ncArrowLeft" />
+                <NcButton icon-only size="xsmall" type="text" @click="onColumnAction(cIdx, 'insertBefore')">
+                  <template #icon><GeneralIcon icon="ncInsertColumnLeft" /></template>
                 </NcButton>
               </NcTooltip>
               <NcTooltip :title="$t('labels.insertColumnRight')">
-                <NcButton size="xsmall" type="text" @click="onColumnAction(cIdx, 'insertAfter')">
-                  <GeneralIcon icon="ncArrowRight" />
+                <NcButton icon-only size="xsmall" type="text" @click="onColumnAction(cIdx, 'insertAfter')">
+                  <template #icon><GeneralIcon icon="ncInsertColumnRight" /></template>
                 </NcButton>
               </NcTooltip>
 
@@ -319,18 +319,18 @@ onBeforeUnmount(() => {
 
               <!-- Align -->
               <NcTooltip :title="$t('labels.alignLeft')">
-                <NcButton size="xsmall" type="text" @click="onColumnAlign(cIdx, 'left')">
-                  <GeneralIcon icon="ncAlignLeft" />
+                <NcButton icon-only size="xsmall" type="text" @click="onColumnAlign(cIdx, 'left')">
+                  <template #icon><GeneralIcon icon="ncAlignLeft" /></template>
                 </NcButton>
               </NcTooltip>
               <NcTooltip :title="$t('labels.alignCenter')">
-                <NcButton size="xsmall" type="text" @click="onColumnAlign(cIdx, 'center')">
-                  <GeneralIcon icon="ncAlignCenter" />
+                <NcButton icon-only size="xsmall" type="text" @click="onColumnAlign(cIdx, 'center')">
+                  <template #icon><GeneralIcon icon="ncAlignCenter" /></template>
                 </NcButton>
               </NcTooltip>
               <NcTooltip :title="$t('labels.alignRight')">
-                <NcButton size="xsmall" type="text" @click="onColumnAlign(cIdx, 'right')">
-                  <GeneralIcon icon="ncAlignRight" />
+                <NcButton icon-only size="xsmall" type="text" @click="onColumnAlign(cIdx, 'right')">
+                  <template #icon><GeneralIcon icon="ncAlignRight" /></template>
                 </NcButton>
               </NcTooltip>
 
@@ -338,8 +338,8 @@ onBeforeUnmount(() => {
 
               <!-- Delete -->
               <NcTooltip :title="$t('labels.deleteColumn')">
-                <NcButton size="xsmall" type="text" class="!text-red-500 !hover:text-red-600" @click="onColumnAction(cIdx, 'delete')">
-                  <GeneralIcon icon="delete" />
+                <NcButton icon-only size="xsmall" type="text" class="!text-red-500 !hover:text-red-600" @click="onColumnAction(cIdx, 'delete')">
+                  <template #icon><GeneralIcon icon="delete" /></template>
                 </NcButton>
               </NcTooltip>
             </div>
@@ -353,6 +353,7 @@ onBeforeUnmount(() => {
         <NcDropdown
           :visible="menuOpen?.type === 'row' && menuOpen?.index === rIdx"
           placement="bottomLeft"
+          overlay-class-name="nc-table-row-dropdown-overlay"
           @update:visible="(v: boolean) => { if (!v) closeMenu() }"
         >
           <div
@@ -369,21 +370,26 @@ onBeforeUnmount(() => {
             @click.stop="toggleMenu('row', rIdx)"
           />
           <template #overlay>
-            <NcMenu variant="small">
-              <NcMenuItem v-if="rIdx > 0" @click="onRowAction(rIdx, 'insertBefore')">
-                <GeneralIcon icon="plus" class="text-nc-content-gray-subtle" />
-                {{ $t('labels.insertRowAbove') }}
-              </NcMenuItem>
-              <NcMenuItem @click="onRowAction(rIdx, 'insertAfter')">
-                <GeneralIcon icon="plus" class="text-nc-content-gray-subtle" />
-                {{ $t('labels.insertRowBelow') }}
-              </NcMenuItem>
-              <NcDivider />
-              <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="onRowAction(rIdx, 'delete')">
-                <GeneralIcon icon="delete" />
-                {{ $t('labels.deleteRow') }}
-              </NcMenuItem>
-            </NcMenu>
+            <div class="nc-table-row-toolbar">
+              <NcTooltip v-if="rIdx > 0" :title="$t('labels.insertRowAbove')" placement="right">
+                <NcButton icon-only size="xsmall" type="text" @click="onRowAction(rIdx, 'insertBefore')">
+                  <template #icon><GeneralIcon icon="ncChevronUp" /></template>
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip :title="$t('labels.insertRowBelow')" placement="right">
+                <NcButton icon-only size="xsmall" type="text" @click="onRowAction(rIdx, 'insertAfter')">
+                  <template #icon><GeneralIcon icon="ncChevronDown" /></template>
+                </NcButton>
+              </NcTooltip>
+
+              <div class="nc-table-row-toolbar-divider" />
+
+              <NcTooltip :title="$t('labels.deleteRow')" placement="right">
+                <NcButton icon-only size="xsmall" type="text" class="!text-red-500 !hover:text-red-600" @click="onRowAction(rIdx, 'delete')">
+                  <template #icon><GeneralIcon icon="delete" /></template>
+                </NcButton>
+              </NcTooltip>
+            </div>
           </template>
         </NcDropdown>
       </template>
@@ -503,8 +509,20 @@ onBeforeUnmount(() => {
   }
 }
 
-// Override NcDropdown overlay for the column toolbar — remove default padding
+// Override NcDropdown overlays for compact toolbars — fit content
+:global(.nc-table-row-dropdown-overlay) {
+  width: auto !important;
+  min-width: 0 !important;
+
+  .ant-dropdown-menu {
+    padding: 0;
+  }
+}
+
 :global(.nc-table-col-dropdown-overlay) {
+  width: auto !important;
+  min-width: 0 !important;
+
   .ant-dropdown-menu {
     padding: 0;
   }
@@ -512,10 +530,11 @@ onBeforeUnmount(() => {
 
 // Horizontal icon-only toolbar for column operations
 .nc-table-col-toolbar {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 2px;
   padding: 4px;
+  white-space: nowrap;
 }
 
 .nc-table-col-toolbar-divider {
@@ -523,6 +542,23 @@ onBeforeUnmount(() => {
   height: 16px;
   background: var(--nc-border-gray-medium);
   margin: 0 2px;
+  flex-shrink: 0;
+}
+
+// Vertical icon-only toolbar for row operations
+.nc-table-row-toolbar {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+}
+
+.nc-table-row-toolbar-divider {
+  height: 1px;
+  width: 16px;
+  background: var(--nc-border-gray-medium);
+  margin: 2px 0;
   flex-shrink: 0;
 }
 

@@ -568,6 +568,8 @@ import NcMoonIcon from '~icons/nc-icons-v2/moon.svg'
 import NcShieldOffIcon from '~icons/nc-icons-v2/shield-off.svg'
 import NcMousePointerIcon from '~icons/nc-icons-v2/mouse-pointer.svg'
 import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
+import NcInsertColumnLeftIcon from '~icons/nc-icons-v2/insert-column-left.svg'
+import NcInsertColumnRightIcon from '~icons/nc-icons-v2/insert-column-right.svg'
 import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
 import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
 import NcYoutube2Icon from '~icons/nc-icons/youtube2.svg'
@@ -1636,6 +1638,8 @@ export const iconMap = {
   'ncShieldOff': NcShieldOffIcon,
   'ncMousePointer': NcMousePointerIcon,
   'ncAlignLeft': NcAlignLeftIcon,
+  'ncInsertColumnLeft': NcInsertColumnLeftIcon,
+  'ncInsertColumnRight': NcInsertColumnRightIcon,
   'ncVerticalAlignTop': NcVerticalAlignTop,
   'ncVerticalAlignCenter': NcVerticalAlignCenter,
   'ncVerticalAlignBottom': NcVerticalAlignBottom,

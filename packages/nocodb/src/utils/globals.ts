@@ -117,7 +117,7 @@ export enum MetaTable {
   RECORD_TEMPLATES = 'nc_record_templates',
   RLS_POLICIES = 'nc_rls_policies',
   RLS_POLICY_SUBJECTS = 'nc_rls_policy_subjects',
-  VIEW_SECTIONS = 'nc_view_sections_v2',
+  VIEW_SECTIONS = 'nc_view_sections',
 }
 
 export const BaseRelatedMetaTables = [

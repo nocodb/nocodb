@@ -609,6 +609,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
     v-if="dialogState.delete.base"
     v-model:visible="dialogState.delete.isOpen"
     :base-id="dialogState.delete.base?.id"
+    :base="dialogState.delete.base"
   />
 </template>
 

@@ -270,7 +270,7 @@ const colors = {
             <GeneralIcon icon="ncArrowUp" class="w-4 h-4 mr-1" />
             {{ t('labels.publishChangesAction') }}
           </template>
-          <template v-else-if="publishStatus === 'loading'"> {{ t('labels.publishing') }} </template>
+          <template v-else-if="publishStatus === 'loading'"> {{ `${t('labels.publishing')}...` }} </template>
           <template v-else-if="publishStatus === 'success'">
             <GeneralIcon icon="ncArrowRight" class="w-4 h-4 mr-1" />
             {{ t('labels.goToMasterBase') }}

@@ -29,9 +29,22 @@ const onCreateDoc = async () => {
     </div>
 
     <template v-else>
-      <!-- Page list (only when docs exist) -->
+      <!-- Empty state: show "+ New page" CTA only when no pages exist -->
       <div
-        v-if="baseDocs.length"
+        v-if="!baseDocs.length && isUIAllowed('docCreate')"
+        class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
+        role="button"
+        @click="onCreateDoc"
+      >
+        <div class="nc-project-home-section-item">
+          <GeneralIcon icon="plus" />
+          <div>New page</div>
+        </div>
+      </div>
+
+      <!-- Page list (shown when docs exist) -->
+      <div
+        v-else-if="baseDocs.length"
         class="nc-pages-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar"
       >
         <DashboardTreeViewPagesNode
@@ -46,19 +59,6 @@ const onCreateDoc = async () => {
             active: activeDocId === doc.id,
           }"
         />
-      </div>
-
-      <!-- "New page" CTA — shown in both empty state and below list -->
-      <div
-        v-if="isUIAllowed('docCreate')"
-        class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
-        role="button"
-        @click="onCreateDoc"
-      >
-        <div class="nc-project-home-section-item">
-          <GeneralIcon icon="plus" />
-          <div>New page</div>
-        </div>
       </div>
     </template>
   </div>

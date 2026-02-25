@@ -102,6 +102,9 @@ const toggleSectionExpanded = (sectionId?: string) => {
   saveExpandedSections()
 }
 
+/** Whether the default folder should be shown (only when at least one real section exists) */
+const showDefaultFolder = computed(() => sections.value.length > 0)
+
 /** Get all section IDs including the virtual default section */
 const allSectionIds = computed(() => {
   const ids = sections.value.map((s) => s.id).filter(Boolean) as string[]
@@ -139,17 +142,17 @@ const allSectionsCollapsed = computed(() => {
   return allSectionIds.value.every((id) => !expandedSections.value[id])
 })
 
+/** Get top-level views (not in any section) */
+const getTopLevelViews = () => {
+  return views.value.filter((v) => !v.fk_view_section_id)
+}
+
 /** Get views for a specific section */
 const getViewsInSection = (sectionId?: string) => {
   if (sectionId === DEFAULT_SECTION_ID) {
     return getTopLevelViews()
   }
   return views.value.filter((v) => v.fk_view_section_id === sectionId)
-}
-
-/** Get top-level views (not in any section) */
-const getTopLevelViews = () => {
-  return views.value.filter((v) => !v.fk_view_section_id)
 }
 
 /** Virtual default section data */
@@ -162,9 +165,6 @@ const defaultSection = computed<ViewSectionType>(
       fk_model_id: table.value.id,
     } as ViewSectionType),
 )
-
-/** Whether the default folder should be shown (only when at least one real section exists) */
-const showDefaultFolder = computed(() => sections.value.length > 0)
 
 /** Compute top-level items (sections and top-level views) sorted by order */
 const topLevelItems = computed(() => {
@@ -468,11 +468,6 @@ async function onRenameSection(section: ViewSectionType, newTitle: string) {
 
   try {
     const updated = await viewSectionsStore.updateSection(section.id, { title: newTitle })
-
-    if (!updated) {
-      // Revert on error
-      section.title = section.title
-    }
 
     $e('a:view-section:rename')
   } catch (e: any) {

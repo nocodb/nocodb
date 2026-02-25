@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { ViewSectionType } from 'nocodb-sdk'
-import type { WritableComputedRef } from '@vue/reactivity'
 
 interface Props {
   section: ViewSectionType
@@ -11,13 +10,13 @@ interface Props {
 }
 
 interface Emits {
-  (event: 'expand-toggle'): void
+  (event: 'expandToggle'): void
   (event: 'rename', title: string): void
   (event: 'delete'): void
-  (event: 'open-menu'): void
-  (event: 'expand-all'): void
-  (event: 'collapse-all'): void
-  (event: 'change-color', color: string): void
+  (event: 'openMenu'): void
+  (event: 'expandAll'): void
+  (event: 'collapseAll'): void
+  (event: 'changeColor', color: string): void
 }
 
 const props = defineProps<Props>()
@@ -25,8 +24,6 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const { $e } = useNuxtApp()
-
-const { t } = useI18n()
 
 const { isMobileMode } = useGlobal()
 
@@ -49,7 +46,7 @@ const showSectionNodeTooltip = ref(true)
 
 /** Debounce click handler for potential future use */
 const onClick = useDebounceFn(() => {
-  emits('expand-toggle')
+  emits('expandToggle')
 }, 250)
 
 const handleOnClick = () => {
@@ -171,12 +168,12 @@ const onDelete = () => {
 
 const onExpandAll = () => {
   isDropdownOpen.value = false
-  emits('expand-all')
+  emits('expandAll')
 }
 
 const onCollapseAll = () => {
   isDropdownOpen.value = false
-  emits('collapse-all')
+  emits('collapseAll')
 }
 
 const DEFAULT_ICON_COLOR = '#3f8292'
@@ -186,16 +183,13 @@ const iconColor = computed(() => {
 })
 
 const onChangeColor = (color: string) => {
-  emits('change-color', color)
+  emits('changeColor', color)
 }
 </script>
 
 <template>
   <div
-    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
-    :class="{
-      '!pl-7.5 !xs:(pl-6.5)': true,
-    }"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer !pl-7.5 !xs:(pl-6.5)"
     :data-testid="`view-sidebar-section-${section.title}`"
     @click.prevent="handleOnClick"
   >

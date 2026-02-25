@@ -30,11 +30,7 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     return sectionsByTable.value.get(key) ?? []
   }
 
-  const loadSections = async ({
-    tableId,
-    baseId,
-    force,
-  }: { tableId?: string; baseId?: string; force?: boolean } = {}) => {
+  const loadSections = async ({ tableId, baseId, force }: { tableId?: string; baseId?: string; force?: boolean } = {}) => {
     const effectiveTableId = tableId || activeTableId.value
     const effectiveBaseId = baseId || activeTable.value?.base_id
 
@@ -50,10 +46,9 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     }
 
     try {
-      const response = await $api.instance.get(
-        `/api/v2/internal/${activeWorkspaceId.value}/${effectiveBaseId}`,
-        { params: { operation: 'viewSectionList', tableId: effectiveTableId } },
-      )
+      const response = await $api.instance.get(`/api/v2/internal/${activeWorkspaceId.value}/${effectiveBaseId}`, {
+        params: { operation: 'viewSectionList', tableId: effectiveTableId },
+      })
 
       if (response.data?.list) {
         const sortedSections = (response.data.list as ViewSectionType[]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -108,10 +103,7 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     }
   }
 
-  const updateSection = async (
-    sectionId: string,
-    data: { title?: string; order?: number; meta?: Record<string, any> },
-  ) => {
+  const updateSection = async (sectionId: string, data: { title?: string; order?: number; meta?: Record<string, any> }) => {
     if (!sectionId) return null
 
     const tableKey = sectionTableIndex.value.get(sectionId)
@@ -169,7 +161,10 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
       const sections = sectionsByTable.value.get(tableKey)
       if (sections) {
-        sectionsByTable.value.set(tableKey, sections.filter((s) => s.id !== sectionId))
+        sectionsByTable.value.set(
+          tableKey,
+          sections.filter((s) => s.id !== sectionId),
+        )
       }
       sectionTableIndex.value.delete(sectionId)
 

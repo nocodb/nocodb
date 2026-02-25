@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type TableType, viewTypeAlias, PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, type TableType, viewTypeAlias } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -155,7 +155,11 @@ function onCreateSection() {
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <NcMenuItem inner-class="w-full" data-testid="sidebar-view-create-kanban" @click="onOpenModal({ type: ViewTypes.KANBAN })">
+        <NcMenuItem
+          inner-class="w-full"
+          data-testid="sidebar-view-create-kanban"
+          @click="onOpenModal({ type: ViewTypes.KANBAN })"
+        >
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.KANBAN }" />
@@ -166,7 +170,11 @@ function onCreateSection() {
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <NcMenuItem inner-class="w-full" data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
+        <NcMenuItem
+          inner-class="w-full"
+          data-testid="sidebar-view-create-calendar"
+          @click="onOpenModal({ type: ViewTypes.CALENDAR })"
+        >
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />

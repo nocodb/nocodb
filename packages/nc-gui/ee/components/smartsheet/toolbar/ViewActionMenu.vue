@@ -79,11 +79,7 @@ async function onMoveToNewSection() {
 
   try {
     const allSections = sections.value || []
-    const lastOrder = Math.max(
-      ...allSections.map((s) => s.order || 0),
-      view.value.order || 0,
-      0,
-    )
+    const lastOrder = Math.max(...allSections.map((s) => s.order || 0), view.value.order || 0, 0)
 
     const section = await viewSectionsStore.createSection(table.value.base_id, table.value.id, {
       title: viewSectionsStore.getNextSectionTitle(table.value.base_id, table.value.id),
@@ -429,7 +425,11 @@ defineOptions({
                   :key="section.id"
                   @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onMoveToSection(section.id || null))"
                 >
-                  <GeneralIcon icon="ncFolderOpen" class="opacity-80" :style="{ color: parseProp(section.meta)?.iconColor || '#3f8292' }" />
+                  <GeneralIcon
+                    icon="ncFolderOpen"
+                    class="opacity-80"
+                    :style="{ color: parseProp(section.meta)?.iconColor || '#3f8292' }"
+                  />
                   {{ section.title }}
                 </NcMenuItem>
                 <NcDivider />
@@ -442,7 +442,10 @@ defineOptions({
               </NcMenuItem>
 
               <!-- Remove from section (only if view is in a section) -->
-              <NcMenuItem v-if="currentSectionId" @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onMoveToSection(null))">
+              <NcMenuItem
+                v-if="currentSectionId"
+                @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onMoveToSection(null))"
+              >
                 <GeneralIcon icon="minus" class="opacity-80" />
                 {{ $t('labels.removeFromSection') }}
               </NcMenuItem>

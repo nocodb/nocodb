@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type GridType, ViewTypes } from 'nocodb-sdk'
+import { type GridType, type ListType, ViewTypes } from 'nocodb-sdk'
 
 const rowHeightOptions: { icon: keyof typeof iconMap; heightClass: string }[] = [
   {
@@ -36,13 +36,30 @@ const { canUpdateViewMeta } = useViewColumnsOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
+const { isOutline } = useSmartsheetStoreOrThrow()
+
+const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
+
+const isOutlineConfigured = computed(
+  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+)
+
 const open = ref(false)
+
+const viewType = computed(() => (isOutline.value ? ViewTypes.OUTLINE : ViewTypes.GRID))
+
+const currentRowHeight = computed(() => {
+  if (isOutline.value) {
+    return (view.value?.view as ListType)?.row_height
+  }
+  return (view.value?.view as GridType)?.row_height
+})
 
 const updateRowHeight = async (rh: number, undo = false) => {
   if (isLocked.value) return
 
   if (view.value?.id) {
-    if (rh === (view.value.view as GridType).row_height) return
+    if (rh === currentRowHeight.value) return
     if (!undo) {
       addUndo({
         redo: {
@@ -51,7 +68,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
         },
         undo: {
           fn: (r: number) => updateRowHeight(r, true),
-          args: [(view.value.view as GridType).row_height || 0],
+          args: [currentRowHeight.value || 0],
         },
         scope: defineViewScope({ view: view.value }),
       })
@@ -60,7 +77,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
     try {
       await updateViewMeta(
         view.value.id,
-        ViewTypes.GRID,
+        viewType.value,
         {
           row_height: rh,
         },
@@ -75,6 +92,21 @@ const updateRowHeight = async (rh: number, undo = false) => {
     }
   }
 }
+
+const wrapHeaders = computed({
+  get: () => {
+    if (!isOutline.value || !outlineViewStore?.selectedLevel.value) return false
+    return !!outlineViewStore.selectedLevel.value.wrap_headers
+  },
+  set: async (val: boolean) => {
+    if (isLocked.value || !view.value?.id || !isOutline.value || !outlineViewStore?.selectedLevel.value) return
+
+    const updatedLevels = outlineViewStore.levels.value.map((l) =>
+      l.id === outlineViewStore!.selectedLevel.value?.id ? { ...l, wrap_headers: val } : { ...l },
+    )
+    await outlineViewStore.saveLevelConfiguration({ levels: updatedLevels })
+  },
+})
 
 useMenuCloseOnEsc(open)
 </script>
@@ -121,11 +153,24 @@ useMenuCloseOnEsc(open)
             </div>
             <component
               :is="iconMap.check"
-              v-if="i === 0 ? !(view?.view as GridType).row_height: (view?.view as GridType).row_height === i"
+              v-if="i === 0 ? !currentRowHeight : currentRowHeight === i"
               class="text-primary w-4 h-4"
             />
           </div>
         </div>
+        <!--        <template v-if="isOutline">
+          <div class="border-t border-nc-border-gray-medium">
+            <SmartsheetToolbarOutlineLevelSelector v-if="isOutlineConfigured" class="py-2" />
+            <div class="flex items-center px-2">
+              <NcSwitch v-model:checked="wrapHeaders" size="small" class="nc-switch" :disabled="isLocked">
+                <div class="text-sm text-nc-content-gray">
+                  {{ $t('labels.wrapHeaders') || 'Wrap headers' }}
+                </div>
+              </NcSwitch>
+            </div>
+          </div>
+        </template> -->
+
         <GeneralLockedViewFooter v-if="isLocked" class="-mx-1.5 -mb-1.5" @on-open="open = false" />
       </div>
     </template>

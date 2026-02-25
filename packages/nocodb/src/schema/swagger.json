@@ -22837,6 +22837,10 @@
           "enabled": {
             "$ref": "#/components/schemas/Bool",
             "description": "Whether this filter is enabled. Disabled filters are skipped during evaluation."
+          },
+          "fk_level_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Outline View Level"
           }
         },
         "readOnly": true,
@@ -23152,6 +23156,10 @@
           "enabled": {
             "$ref": "#/components/schemas/Bool",
             "description": "Whether this filter is enabled. Disabled filters are skipped during evaluation."
+          },
+          "fk_level_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Outline View Level"
           }
         },
         "readOnly": true
@@ -27659,6 +27667,10 @@
             "description": "Base ID",
             "example": "p_9sx43moxhqtjm3",
             "readOnly": true
+          },
+          "fk_level_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Outline View Level"
           }
         },
         "x-stoplight": {
@@ -27772,6 +27784,10 @@
               "desc"
             ],
             "type": "string"
+          },
+          "fk_level_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Outline View Level"
           }
         },
         "x-stoplight": {
@@ -28936,6 +28952,9 @@
               },
               {
                 "$ref": "#/components/schemas/Calendar"
+              },
+              {
+                "$ref": "#/components/schemas/Outline"
               }
             ],
             "description": "Associated View Model"
@@ -30265,6 +30284,217 @@
           "custom_path": {
             "type": "string",
             "description": "Custom url path"
+          }
+        }
+      },
+      "OutlineViewLevel": {
+        "description": "Model for Outline View Level",
+        "title": "OutlineViewLevel Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique ID for Level",
+            "type": "string"
+          },
+          "fk_view_id": {
+            "description": "Foreign Key to View",
+            "type": "string"
+          },
+          "level": {
+            "description": "Level number (1, 2, or 3)",
+            "type": "number"
+          },
+          "fk_model_id": {
+            "description": "Foreign Key to Model (table) for this level",
+            "type": "string"
+          },
+          "fk_link_column_id": {
+            "description": "Foreign Key to Link Column connecting levels",
+            "type": "string"
+          },
+          "enable_nested_records": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Enable nested records (Level 1 only)"
+          },
+          "fk_self_link_column_id": {
+            "description": "Foreign Key to Self-Link Column",
+            "type": "string"
+          },
+          "wrap_headers": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Wrap column headers in this level"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for this level"
+          }
+        }
+      },
+      "Outline": {
+        "description": "Model for Outline View",
+        "title": "Outline Model",
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "description": "The ID of the source that this view belongs to",
+            "type": "string"
+          },
+          "columns": {
+            "description": "Columns in this view",
+            "items": {
+              "$ref": "#/components/schemas/OutlineColumn"
+            },
+            "type": "array"
+          },
+          "fk_view_id": {
+            "description": "Foreign Key to View",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for this view"
+          },
+          "order": {
+            "description": "The order of the list",
+            "type": "number"
+          },
+          "base_id": {
+            "description": "The ID of the base that this view belongs to",
+            "type": "string"
+          },
+          "show": {
+            "description": "To show this view or not",
+            "type": "boolean"
+          },
+          "title": {
+            "description": "Title of Outline View",
+            "type": "string"
+          },
+          "show_empty_parents": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show empty parent sections"
+          },
+          "row_height": {
+            "description": "Row height for this outline view",
+            "type": "number"
+          },
+          "fk_prefix_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Prefix Column"
+          },
+          "levels": {
+            "description": "Levels configuration for this outline view",
+            "items": {
+              "$ref": "#/components/schemas/OutlineViewLevel"
+            },
+            "type": "array"
+          }
+        }
+      },
+      "OutlineColumn": {
+        "description": "Model for Outline Column",
+        "title": "OutlineColumn Model",
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "description": "The ID of the source",
+            "type": "string"
+          },
+          "fk_column_id": {
+            "description": "Foreign Key to Column",
+            "type": "string"
+          },
+          "fk_view_id": {
+            "description": "Foreign Key to View",
+            "type": "string"
+          },
+          "fk_level_id": {
+            "description": "Foreign Key to Level",
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique ID of Outline Column",
+            "type": "string"
+          },
+          "order": {
+            "description": "The order in the list of columns",
+            "type": "number"
+          },
+          "base_id": {
+            "description": "The ID of the base",
+            "type": "string"
+          },
+          "show": {
+            "description": "Whether to show this column or not",
+            "type": "number"
+          },
+          "width": {
+            "description": "Column width",
+            "type": "string"
+          }
+        }
+      },
+      "OutlineUpdateReq": {
+        "description": "Model for Outline View Update Request",
+        "title": "OutlineUpdateReq Model",
+        "type": "object",
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for this view"
+          },
+          "show_empty_parents": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show empty parent sections"
+          },
+          "row_height": {
+            "description": "Row height for this outline view",
+            "type": "number"
+          },
+          "fk_prefix_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Prefix Column"
+          },
+          "levels": {
+            "description": "Levels configuration for this outline view",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OutlineViewLevelReq"
+            }
+          }
+        }
+      },
+      "OutlineViewLevelReq": {
+        "description": "Model for Outline View Level Request",
+        "title": "OutlineViewLevelReq Model",
+        "type": "object",
+        "required": [
+          "level",
+          "fk_model_id"
+        ],
+        "properties": {
+          "level": {
+            "description": "Level number (1, 2, or 3)",
+            "type": "number"
+          },
+          "fk_model_id": {
+            "description": "Foreign Key to Model (table) for this level",
+            "type": "string"
+          },
+          "fk_link_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Link Column"
+          },
+          "enable_nested_records": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "fk_self_link_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Self-Link Column"
+          },
+          "wrap_headers": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Wrap column headers in this level"
           }
         }
       }

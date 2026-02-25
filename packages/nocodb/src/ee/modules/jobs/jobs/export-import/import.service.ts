@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
+import { ViewTypes, WorkspaceUserRoles } from 'nocodb-sdk';
 import { ImportService as ImportServiceCE } from 'src/modules/jobs/jobs/export-import/import.service';
-import type { WidgetType } from 'nocodb-sdk';
+import type { UserType, WidgetType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { Permission } from '~/models';
+import type { Permission, View, Model } from '~/models';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
+import { OutlinesService } from '~/services/outlines.service';
 import { type User, WorkspaceUser } from '~/models';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarsService } from '~/services/calendars.service';
@@ -54,6 +55,7 @@ export class ImportService extends ImportServiceCE {
     protected dashboardService: DashboardsService,
     protected permissionsService: PermissionsService,
     protected workflowService: WorkflowsService,
+    protected outlinesService: OutlinesService,
   ) {
     super(
       tablesService,
@@ -72,6 +74,56 @@ export class ImportService extends ImportServiceCE {
       hooksService,
       viewsService,
     );
+  }
+
+  async createView(
+    context: NcContext,
+    idMap: Map<string, string>,
+    md: Model,
+    vw: Partial<View>,
+    views: View[],
+    user: UserType,
+    req: NcRequest,
+  ): Promise<View> {
+    if (vw.type !== ViewTypes.OUTLINE) {
+      return super.createView(context, idMap, md, vw, views, user, req);
+    }
+
+    const rawLevels: any[] = (vw.view as any)?.levels ?? [];
+    const levelsToCreate = rawLevels.filter((level) => !!level.fk_model_id);
+
+    const processedLevels = levelsToCreate.map((level) => ({
+      level: level.level,
+      fk_model_id: idMap.get(level.fk_model_id),
+      fk_link_column_id: level.fk_link_column_id
+        ? idMap.get(level.fk_link_column_id)
+        : null,
+      fk_self_link_column_id: level.fk_self_link_column_id
+        ? idMap.get(level.fk_self_link_column_id)
+        : null,
+      enable_nested_records: level.enable_nested_records,
+      wrap_headers: level.wrap_headers,
+      meta: level.meta,
+    }));
+
+    const oview = await this.outlinesService.outlineViewCreate(context, {
+      tableId: md.id,
+      outline: vw as ViewCreateReqType,
+      ownedBy: (vw as any).owned_by,
+      user: user as any,
+      req,
+    });
+
+    // Apply levels if there are more than the default level 0
+    if (processedLevels.length > 0) {
+      await this.outlinesService.outlineViewUpdate(context, {
+        outlineViewId: oview.id,
+        outline: { levels: processedLevels } as any,
+        req,
+      });
+    }
+
+    return oview;
   }
 
   override async importScripts(

@@ -28,7 +28,13 @@ const {
   filtersFromUrlParams,
   whereQueryFromUrl,
   filtersFromUrlParamsReadableErrors,
+  isOutline,
 } = useSmartsheetStoreOrThrow()
+
+const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
+const isOutlineConfigured = computed(
+  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+)
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
 
@@ -412,6 +418,9 @@ const handleAiFilters = async (payload: {
 
     <template #overlay>
       <div :key="filterKey">
+        <div v-if="isOutline && isOutlineConfigured" class="px-2 py-2 border-b-1">
+          <SmartsheetToolbarOutlineLevelSelector />
+        </div>
         <template v-if="!isRestrictedEditor">
           <!-- EE: AI Filter Prompt — natural-language input that generates filter conditions via AI -->
           <SmartsheetToolbarAiFilterPrompt :is-parent-open="open" @apply-filters="handleAiFilters" />

@@ -220,6 +220,13 @@ export interface FormViewUpdateEvent extends NcBaseEvent {
   owner: UserType;
 }
 
+export interface OutlineViewUpdateEvent extends NcBaseEvent {
+  view: ViewType;
+  outlineView: any;
+  oldOutlineView: any;
+  owner: UserType;
+}
+
 type FilterEventAdditionalProp =
   | {
       hook: HookType;

@@ -35,10 +35,8 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && getMetaByKey(activeProjectId.value, viewId)
 })
 
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere, eventBus } = useProvideSmartsheetStore(
-  activeView,
-  meta,
-)
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isOutline, xWhere, eventBus } =
+  useProvideSmartsheetStore(activeView, meta)
 
 useViewRowColorProvider({ view: activeView, eventBus })
 
@@ -57,6 +55,7 @@ const activeSource = computed(() => {
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView, false, xWhere)
+useProvideOutlineViewStore(meta, activeView)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -305,6 +304,8 @@ watch(isViewsLoading, async () => {
                       <SmartsheetCalendar v-else-if="isCalendar" />
 
                       <SmartsheetMap v-else-if="isMap" />
+
+                      <SmartsheetOutline v-else-if="isOutline" />
                     </template>
                   </div>
                 </div>

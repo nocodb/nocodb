@@ -14,6 +14,7 @@ const alignLeftLevel = toRef(props, 'alignLeftLevel')
 
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
+const { isOutlineViewEnabled } = storeToRefs(viewsStore)
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
@@ -28,6 +29,8 @@ const isOpen = ref(false)
 const isSqlView = computed(() => (table.value as TableType)?.type === 'view')
 
 const isSyncedTable = computed(() => (table.value as TableType)?.synced)
+
+const isPgSource = computed(() => props.source?.type === 'pg')
 
 const overlayClassName = computed(() => {
   if (alignLeftLevel.value === 1) return 'nc-view-create-dropdown nc-view-create-dropdown-left-1'
@@ -186,6 +189,25 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
+        <template v-if="isOutlineViewEnabled">
+          <NcTooltip :title="$t('tooltip.outlineViewOnlyPg')" :disabled="isPgSource" placement="right">
+            <NcMenuItem
+              :disabled="!isPgSource"
+              data-testid="sidebar-view-create-outline"
+              @click="isPgSource && onOpenModal({ type: ViewTypes.OUTLINE })"
+            >
+              <div class="item">
+                <div class="item-inner">
+                  <GeneralViewIcon :meta="{ type: ViewTypes.OUTLINE }" :class="{ '!opacity-50': !isPgSource }" />
+                  <div>{{ $t('objects.viewType.outline') }}</div>
+                </div>
+
+                <GeneralLoader v-if="toBeCreateType === ViewTypes.OUTLINE && isViewListLoading" />
+                <GeneralIcon v-else class="plus" icon="plus" :class="{ '!text-current': !isPgSource }" />
+              </div>
+            </NcMenuItem>
+          </NcTooltip>
+        </template>
         <template v-if="isAiFeaturesEnabled">
           <NcDivider />
           <NcTooltip :title="`Auto suggest views for ${table?.title || 'the current table'}`" placement="right">

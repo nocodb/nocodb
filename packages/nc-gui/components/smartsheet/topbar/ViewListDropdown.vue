@@ -13,7 +13,7 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const viewsStore = useViewsStore()
 
-const { activeView, views } = storeToRefs(viewsStore)
+const { activeView, views, isOutlineViewEnabled } = storeToRefs(viewsStore)
 
 const { navigateToView, onOpenViewCreateModal } = viewsStore
 
@@ -24,6 +24,8 @@ const isOpen = ref<boolean>(false)
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
 
 const isSyncedTable = computed(() => (activeTable.value as TableType)?.synced)
+
+const isPgSource = computed(() => activeSource.value?.type === 'pg')
 
 const activeSource = computed(() => {
   return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
@@ -238,6 +240,20 @@ async function onOpenModal({
                     {{ $t('objects.viewType.calendar') }}
                   </div>
                 </a-menu-item>
+                <template v-if="isOutlineViewEnabled">
+                  <NcTooltip :title="$t('tooltip.outlineViewOnlyPg')" :disabled="isPgSource" placement="right">
+                    <a-menu-item
+                      :disabled="!isPgSource"
+                      data-testid="topbar-view-create-outline"
+                      @click="isPgSource && onOpenModal({ type: ViewTypes.OUTLINE })"
+                    >
+                      <div class="nc-viewlist-submenu-popup-item" :class="{ 'opacity-50': !isPgSource }">
+                        <GeneralViewIcon :meta="{ type: ViewTypes.OUTLINE }" />
+                        {{ $t('objects.viewType.outline') }}
+                      </div>
+                    </a-menu-item>
+                  </NcTooltip>
+                </template>
 
                 <template v-if="isAiFeaturesEnabled">
                   <NcDivider />

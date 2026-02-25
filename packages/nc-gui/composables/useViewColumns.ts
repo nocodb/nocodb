@@ -1,5 +1,5 @@
-import type { ButtonType, ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
-import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, GridColumnReqType, GridColumnType, MapType, OutlineType, TableType, ViewType } from 'nocodb-sdk'
+import { CommonAggregations, ViewLockType, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
@@ -25,6 +25,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const filterQuery = ref('')
 
     const { $api, $e, $eventBus } = useNuxtApp()
+
+    const { getMeta: _getMeta, getMetaByKey: _getMetaByKey } = useMetas()
 
     const { t } = useI18n()
 
@@ -70,15 +72,28 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     }
 
     const metaColumnById = computed<Record<string, ColumnType>>(() => {
-      if (!meta.value?.columns) return {}
+      const result: Record<string, ColumnType> = {}
 
-      return (meta.value.columns as ColumnType[]).reduce(
-        (acc, curr) => ({
-          ...acc,
-          [curr.id!]: curr,
-        }),
-        {},
-      ) as Record<string, ColumnType>
+      for (const col of (meta.value?.columns || []) as ColumnType[]) {
+        if (col.id) result[col.id] = col
+      }
+
+      // Include level table columns for outline views (from shared metas cache)
+      if (view.value?.type === ViewTypes.OUTLINE) {
+        const levels = (view.value?.view as OutlineType)?.levels || []
+        for (const level of levels) {
+          if (level.fk_model_id && level.fk_model_id !== meta.value?.id) {
+            const tableMeta = _getMetaByKey(meta.value?.base_id, level.fk_model_id)
+            if (tableMeta?.columns) {
+              for (const col of tableMeta.columns as ColumnType[]) {
+                if (col.id) result[col.id] = col
+              }
+            }
+          }
+        }
+      }
+
+      return result
     })
 
     const gridViewCols = ref<Record<string, GridColumnType>>({})
@@ -108,13 +123,56 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
       }, {})
 
-      fields.value = (meta.value?.columns || [])
-        .filter((column: ColumnType) => {
+      // For outline views with levels, ensure metas for non-root level tables are loaded
+      if (view.value?.type === ViewTypes.OUTLINE) {
+        const levels = (view.value?.view as OutlineType)?.levels || []
+
+        for (const level of levels) {
+          if (level.fk_model_id && level.fk_model_id !== meta.value?.id) {
+            try {
+              await _getMeta(meta.value!.base_id!, level.fk_model_id)
+            } catch (e) {
+              console.error(`Failed to load meta for level table ${level.fk_model_id}:`, e)
+            }
+          }
+        }
+      }
+
+      // Build combined columns: root table + level tables (for list views)
+      const allTableColumns: { column: ColumnType; tableMeta: TableType }[] = (meta.value?.columns || []).map(
+        (col: ColumnType) => ({
+          column: col,
+          tableMeta: meta.value!,
+        }),
+      )
+
+      if (view.value?.type === ViewTypes.OUTLINE) {
+        const levels = (view.value?.view as OutlineType)?.levels || []
+        // Track existing column IDs to avoid duplicates
+        // (public views already include level columns in meta.value?.columns)
+        const existingColIds = new Set(allTableColumns.map(({ column }) => column.id))
+        for (const level of levels) {
+          if (level.fk_model_id && level.fk_model_id !== meta.value?.id) {
+            const tableMeta = _getMetaByKey(meta.value?.base_id, level.fk_model_id)
+            if (tableMeta?.columns) {
+              for (const col of tableMeta.columns as ColumnType[]) {
+                if (!existingColIds.has(col.id)) {
+                  allTableColumns.push({ column: col, tableMeta })
+                  existingColIds.add(col.id)
+                }
+              }
+            }
+          }
+        }
+      }
+
+      fields.value = allTableColumns
+        .filter(({ column, tableMeta }) => {
           // filter created by and last modified by system columns
-          if (isHiddenCol(column, meta.value)) return false
+          if (isHiddenCol(column, tableMeta)) return false
           return true
         })
-        .map((column: ColumnType) => {
+        .map(({ column }) => {
           const currentColumnField = fieldById[column.id!] || {}
 
           return {
@@ -187,7 +245,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
     }
 
-    const showAll = async (ignoreIds?: any) => {
+    const showAll = async (ignoreIds?: any, levelId?: string) => {
       if (isLocalMode.value) {
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
           if (curr.fk_column_id) {
@@ -222,18 +280,12 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
 
       if (view?.value?.id) {
-        if (ignoreIds) {
-          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
-            operation: 'showAllColumns',
-            viewId: view.value.id,
-            ignoreIds,
-          })
-        } else {
-          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
-            operation: 'showAllColumns',
-            viewId: view.value.id,
-          })
-        }
+        await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+          operation: 'showAllColumns',
+          viewId: view.value.id,
+          ...(ignoreIds ? { ignoreIds } : {}),
+          ...(levelId ? { levelId } : {}),
+        })
 
         if (isDefaultView.value) {
           updateDefaultViewColumnMeta(undefined, { defaultViewColVisibility: true }, true)
@@ -245,7 +297,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       $e('a:fields:show-all')
     }
 
-    const hideAll = async (ignoreIds?: any) => {
+    const hideAll = async (ignoreIds?: any, levelId?: string) => {
       if (isLocalMode.value) {
         const fieldById = (fields.value || []).reduce<Record<string, any>>((acc, curr) => {
           if (curr.fk_column_id) {
@@ -279,18 +331,12 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         return
       }
       if (view?.value?.id) {
-        if (ignoreIds) {
-          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
-            operation: 'hideAllColumns',
-            viewId: view.value.id,
-            ignoreIds,
-          })
-        } else {
-          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
-            operation: 'hideAllColumns',
-            viewId: view.value.id,
-          })
-        }
+        await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+          operation: 'hideAllColumns',
+          viewId: view.value.id,
+          ...(ignoreIds ? { ignoreIds } : {}),
+          ...(levelId ? { levelId } : {}),
+        })
 
         if (isDefaultView.value) {
           updateDefaultViewColumnMeta(undefined, { defaultViewColVisibility: false }, true)

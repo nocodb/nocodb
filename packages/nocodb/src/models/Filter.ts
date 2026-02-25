@@ -9,6 +9,7 @@ import Model from '~/models/Model';
 import Column from '~/models/Column';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
+import OutlineViewLevel from '~/models/OutlineViewLevel';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -29,6 +30,7 @@ export default class Filter implements FilterType {
   fk_model_id?: string;
   fk_view_id?: string;
   fk_hook_id?: string;
+  fk_level_id?: string;
   fk_parent_column_id?: string;
   fk_column_id?: string;
   fk_parent_id?: string;
@@ -96,6 +98,7 @@ export default class Filter implements FilterType {
       'id',
       'fk_view_id',
       'fk_hook_id',
+      'fk_level_id',
       'fk_link_col_id',
       'fk_value_col_id',
       'fk_parent_column_id',
@@ -151,6 +154,15 @@ export default class Filter implements FilterType {
           { colId: filter.fk_column_id },
           ncMeta,
         );
+      } else if (filter.fk_level_id) {
+        const level = await OutlineViewLevel.get(
+          context,
+          filter.fk_level_id,
+          ncMeta,
+        );
+        if (level?.fk_model_id) {
+          model = await Model.get(context, level.fk_model_id, ncMeta);
+        }
       } else {
         NcError.invalidFilter(JSON.stringify(filter));
       }
@@ -197,11 +209,14 @@ export default class Filter implements FilterType {
     if (
       !(
         id &&
-        (filter.fk_view_id || filter.fk_hook_id || filter.fk_parent_column_id)
+        (filter.fk_view_id ||
+          filter.fk_hook_id ||
+          filter.fk_parent_column_id ||
+          filter.fk_level_id)
       )
     ) {
       NcError.get(context).badRequest(
-        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id}), fk_parent_column_id(${filter.fk_parent_column_id})`,
+        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id}), fk_parent_column_id(${filter.fk_parent_column_id}), fk_level_id(${filter.fk_level_id})`,
       );
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;

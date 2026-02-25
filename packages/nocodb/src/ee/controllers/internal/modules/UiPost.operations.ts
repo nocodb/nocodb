@@ -24,6 +24,7 @@ import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { CommentsService } from '~/services/comments.service';
+import { OutlinesService } from '~/ee/services/outlines.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
@@ -52,6 +53,7 @@ export class UiPostOperations
     protected kanbansService: KanbansService,
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
+    protected outlinesService: OutlinesService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
     protected syncService: SyncService,
@@ -124,6 +126,19 @@ export class UiPostOperations
         return await this.commentsService.commentResolve(context, {
           commentId: payload.commentId,
           user: req.user,
+          req,
+        });
+      case 'outlineViewCreate':
+        return await this.outlinesService.outlineViewCreate(context, {
+          outline: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
+      case 'outlineViewUpdate':
+        return await this.outlinesService.outlineViewUpdate(context, {
+          outlineViewId: req.query.viewId,
+          outline: payload,
           req,
         });
     }

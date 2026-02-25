@@ -37,6 +37,9 @@ export { default as RlsPolicy } from './RlsPolicy';
 export { default as Dashboard } from './Dashboard';
 export { default as ApiToken } from './ApiToken';
 export { default as Widget } from './Widget';
+export { default as OutlineView } from './OutlineView';
+export { default as OutlineViewColumn } from './OutlineViewColumn';
+export { default as OutlineViewLevel } from './OutlineViewLevel';
 
 // Teams-related models
 export { default as Team } from './Team';

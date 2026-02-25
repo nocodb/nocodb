@@ -18,6 +18,7 @@ import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import Widget from '~/models/Widget';
+import OutlineViewLevel from '~/models/OutlineViewLevel';
 import { Model } from '~/models';
 import RlsPolicy from '~/models/RlsPolicy';
 import { stringifyMetaProp } from '~/utils/modelUtils';
@@ -53,6 +54,7 @@ export default class Filter extends FilterCE implements FilterType {
       'id',
       'fk_view_id',
       'fk_hook_id',
+      'fk_level_id',
       'fk_widget_id',
       'fk_parent_column_id',
       'fk_row_color_condition_id',
@@ -86,6 +88,8 @@ export default class Filter extends FilterCE implements FilterType {
       referencedModelColName = 'fk_parent_column_id';
     } else if (filter.fk_row_color_condition_id) {
       referencedModelColName = 'fk_row_color_condition_id';
+    } else if (filter.fk_level_id) {
+      referencedModelColName = 'fk_level_id';
     }
     if (!insertObj.meta) {
       insertObj.meta = {};
@@ -145,6 +149,15 @@ export default class Filter extends FilterCE implements FilterType {
           NcError.invalidFilter(JSON.stringify(filter));
         }
         model = await Model.get(context, widget.fk_model_id, ncMeta);
+      } else if (filter.fk_level_id) {
+        const level = await OutlineViewLevel.get(
+          context,
+          filter.fk_level_id,
+          ncMeta,
+        );
+        if (level?.fk_model_id) {
+          model = await Model.get(context, level.fk_model_id, ncMeta);
+        }
       } else {
         NcError.invalidFilter(JSON.stringify(filter));
       }
@@ -193,11 +206,12 @@ export default class Filter extends FilterCE implements FilterType {
           filter.fk_link_col_id ||
           filter.fk_widget_id ||
           filter.fk_row_color_condition_id ||
-          filter.fk_parent_column_id)
+          filter.fk_parent_column_id ||
+          filter.fk_level_id)
       )
     ) {
       logger.error(
-        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_link_col_id(${filter.fk_link_col_id}), fk_hook_id(${filter.fk_hook_id}, fk_widget_id(${filter.fk_widget_id}), fk_parent_column_id(${filter.fk_parent_column_id})`,
+        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_link_col_id(${filter.fk_link_col_id}), fk_hook_id(${filter.fk_hook_id}, fk_widget_id(${filter.fk_widget_id}), fk_parent_column_id(${filter.fk_parent_column_id}), fk_level_id(${filter.fk_level_id})`,
       );
       NcError.get(context).internalServerError('Error creating filter');
     }

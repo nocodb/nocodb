@@ -16,7 +16,8 @@ import {
 import { ViewRowColorService } from './view-row-color.service';
 import type { NcContext } from '~/interface/config';
 import type { CalendarRange, FormView, FormViewColumn, View } from '~/models';
-import { Base, Dashboard, Permission, Workspace } from '~/models';
+import { Base, Column, Dashboard, Model, Permission, Workspace } from '~/models';
+import OutlineViewLevel from '~/models/OutlineViewLevel';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
 
@@ -45,6 +46,73 @@ export class PublicMetasService extends PublicMetasServiceCE {
         view,
         workspace,
       );
+    }
+
+    // Outline view: load level table metas and merge level table columns into view.model.columns
+    if (view.type === ViewTypes.OUTLINE) {
+      const levels = await OutlineViewLevel.list(context, view.id);
+      const relatedMetas = view.relatedMetas || {};
+      for (const level of levels) {
+        if (level.fk_model_id && !relatedMetas[level.fk_model_id]) {
+          const levelModel = await Model.getWithInfo(context, {
+            id: level.fk_model_id,
+          });
+          if (levelModel) {
+            relatedMetas[level.fk_model_id] = levelModel;
+            // Also extract related metas for this level's columns
+            for (const col of levelModel.columns) {
+              await this.extractRelatedMetas(context, {
+                col,
+                relatedMetas,
+              });
+            }
+          }
+        }
+      }
+      view.relatedMetas = relatedMetas;
+
+      // The CE viewMetaGet only merges base table columns into
+      // view.model.columns (non-base-table columns get filtered out).
+      // Add level table columns back by merging view column data
+      // with level table column data.
+      for (const level of levels) {
+        if (
+          !level.fk_model_id ||
+          level.fk_model_id === view.fk_model_id ||
+          !relatedMetas[level.fk_model_id]
+        ) {
+          continue;
+        }
+
+        const levelModel = relatedMetas[level.fk_model_id];
+        const levelColumnsById: Record<string, any> = {};
+        for (const col of levelModel.columns || []) {
+          if (col.id) levelColumnsById[col.id] = col;
+        }
+
+        // view.columns still has ALL view column configs from getColumns()
+        const levelViewCols = (view.columns || []).filter(
+          (vc) => vc.fk_column_id && levelColumnsById[vc.fk_column_id],
+        );
+
+        for (const vc of levelViewCols) {
+          const column = levelColumnsById[vc.fk_column_id];
+          if (!column) continue;
+
+          if (
+            vc.show ||
+            (column.rqd && !column.cdf && !column.ai) ||
+            column.pk
+          ) {
+            (view.model.columns as any[]).push(
+              new Column({
+                ...vc,
+                ...column,
+              } as any),
+            );
+          }
+        }
+      }
     }
 
     this.checkViewBaseType(view, base);

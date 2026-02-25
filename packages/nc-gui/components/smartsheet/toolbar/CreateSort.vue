@@ -20,11 +20,30 @@ const activeView = inject(ActiveViewInj, ref())
 
 const meta = inject(MetaInj, ref())
 
+const { isOutline } = useSmartsheetStoreOrThrow()
+
+const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
+const isOutlineConfigured = computed(() => outlineViewStore?.isConfigured.value ?? false)
+
+const { getMetaByKey } = useMetas()
+
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
+
+const levelTableColumns = computed(() => {
+  if (!isOutline.value || !isOutlineConfigured.value || !outlineViewStore?.selectedLevel.value) {
+    return meta.value?.columns || []
+  }
+  const level = outlineViewStore.selectedLevel.value
+  if (level.fk_model_id === meta.value?.id) {
+    return meta.value?.columns || []
+  }
+  const tableMeta = getMetaByKey(meta.value?.base_id, level.fk_model_id)
+  return tableMeta?.columns || []
+})
 
 const options = computed<ColumnType[]>(() =>
   (
-    clone(meta.value?.columns)
+    clone(levelTableColumns.value)
       ?.filter((c: ColumnType) => {
         if (c.uidt === UITypes.Links) {
           return true

@@ -20,7 +20,6 @@ import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
-
 @Injectable()
 export class UiGetOperations
   implements InternalApiModule<InternalGETResponseType>
@@ -68,6 +67,8 @@ export class UiGetOperations
     'syncSourceList' as const,
     'extensionList' as const,
     'extensionRead' as const,
+    'outlineViewDataList' as const,
+    'outlineViewDataCount' as const
   ];
   httpMethod = 'GET' as const;
 

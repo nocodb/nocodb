@@ -1224,10 +1224,23 @@ onBeforeUnmount(() => {
     height: 0;
   }
 
-  // Lists
+  // Lists — distinct markers for the first 3 nesting levels,
+  // then consistent dash (–) from level 4 onwards.
   ul {
     list-style-type: disc;
     padding-left: 1.5em;
+
+    ul {
+      list-style-type: circle;
+
+      ul {
+        list-style-type: square;
+
+        ul {
+          list-style-type: '–  ';
+        }
+      }
+    }
   }
 
   ol {

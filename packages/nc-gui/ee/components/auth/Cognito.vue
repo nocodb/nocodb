@@ -353,6 +353,12 @@ const onForgotPasswordClicked = (): void => {
   @apply !text-nc-content-gray !hover:text-nc-content-brand;
 }
 
+.amplify-button.amplify-button--default {
+  &:not(:hover):not(:focus) {
+    @apply dark:text-current;
+  }
+}
+
 .amplify-tabs-item {
   @apply border-transparent;
 }

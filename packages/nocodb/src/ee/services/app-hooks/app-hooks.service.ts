@@ -44,7 +44,6 @@ import type {
   WorkspaceTeamInviteEvent,
   WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
-  ScimUserEvent,
 } from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 

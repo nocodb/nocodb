@@ -157,7 +157,6 @@ import type {
   ProjectUpdateEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
-<<<<<<< HEAD
   RecordTemplateCreateEvent,
   RecordTemplateDeleteEvent,
   RecordTemplateUpdateEvent,

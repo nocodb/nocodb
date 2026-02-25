@@ -5787,18 +5787,21 @@ export class ColumnsService implements IColumnsService {
     // Track progress for rollback
     let junctionCreated = false;
     let fkDropped = false;
-    let aTn: string;
+
+    // Compute junction table name and column names before starting the
+    // transaction — getJunctionTableName queries the meta DB via Noco.ncMeta
+    // and would deadlock on SQLite if the transaction is already holding the
+    // only available connection.
+    const aTn = await getJunctionTableName({ base }, parentTable, childTable);
+    const aTnAlias = aTn;
+
+    const { parentCn: columnName, childCn: refColumnName } =
+      getMMColumnNames(parentTable, childTable);
 
     // Phase 3: Start meta transaction
     const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
     try {
-      // Phase 3a: Create junction table
-      aTn = await getJunctionTableName({ base }, parentTable, childTable);
-      const aTnAlias = aTn;
-
-      const { parentCn: columnName, childCn: refColumnName } =
-        getMMColumnNames(parentTable, childTable);
 
       const associateTableCols = [
         {

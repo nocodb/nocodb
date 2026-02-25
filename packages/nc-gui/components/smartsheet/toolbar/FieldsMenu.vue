@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, GalleryType, KanbanType, ListType, LookupType } from 'nocodb-sdk'
+import type { ColumnType, GalleryType, KanbanType, LinkToAnotherRecordType, ListType, LookupType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
@@ -61,6 +61,17 @@ const isFieldsMenuReadOnly = computed(() => {
 })
 
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+
+const showConvertAllLinksV2Modal = ref(false)
+
+const v1LinkColumns = computed(() => {
+  if (!isFeatureEnabled(FEATURE_FLAG.LTAR_V2)) return []
+  return (meta.value?.columns ?? []).filter((c) => {
+    if (!isLinksOrLTAR(c)) return false
+    const opts = c.colOptions as LinkToAnotherRecordType | undefined
+    return opts?.version !== 2 && opts?.type !== 'mm'
+  })
+})
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -1091,6 +1102,22 @@ const onAddColumnDropdownVisibilityChange = () => {
           </NcDropdown>
         </div>
 
+        <div
+          v-if="v1LinkColumns.length && isUIAllowed(‘fieldAlter’) && !isSqlView && !filterQuery"
+          class="flex px-2 py-1.5 border-t-1 border-nc-border-gray-medium"
+        >
+          <NcButton
+            class="!px-2 !font-medium"
+            size="small"
+            type="text"
+            data-testid="nc-fields-convert-all-links-v2"
+            @click="showConvertAllLinksV2Modal = true"
+          >
+            <GeneralIcon icon="ncArrowUpCircle" class="!w-4 !h-4 mr-1.5 opacity-80" />
+            <span>{{ t(‘labels.convertAllLegacyLinks’) }} ({{ v1LinkColumns.length }})</span>
+          </NcButton>
+        </div>
+
         <GeneralLockedViewFooter
           v-if="isFieldsMenuReadOnly"
           :show-icon="isLocked"
@@ -1102,6 +1129,8 @@ const onAddColumnDropdownVisibilityChange = () => {
       </div>
     </template>
   </NcDropdown>
+
+  <LazyDlgConvertAllLinksV2 v-model:visible="showConvertAllLinksV2Modal" />
 </template>
 
 <style lang="scss" scoped>

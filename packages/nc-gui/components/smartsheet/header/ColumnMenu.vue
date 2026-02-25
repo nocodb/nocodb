@@ -61,6 +61,8 @@ const { addUndo, defineModelScope, defineViewScope, clone } = useUndoRedo()
 
 const showDeleteColumnModal = ref(false)
 
+const showConvertLinkV2Modal = ref(false)
+
 const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByOrThrow()
@@ -668,6 +670,22 @@ const onDeleteColumn = () => {
         </div>
       </NcMenuItem>
     </GeneralSourceRestrictionTooltip>
+    <NcMenuItem
+      v-if="
+        isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
+        isLinksOrLTAR(column) &&
+        column.colOptions?.version !== 2 &&
+        isUIAllowed('fieldAlter') &&
+        !isSqlView
+      "
+      data-testid="nc-column-convert-link-v2"
+      @click="showConvertLinkV2Modal = true"
+    >
+      <div class="nc-column-convert-v2 nc-header-menu-item">
+        <GeneralIcon icon="ncArrowUpCircle" class="opacity-80" />
+        {{ $t('labels.convertToNewLink') }}
+      </div>
+    </NcMenuItem>
     <template v-if="!isExpandedForm">
       <GeneralSourceRestrictionTooltip
         v-if="!column?.pk"
@@ -967,6 +985,7 @@ const onDeleteColumn = () => {
     </GeneralSourceRestrictionTooltip>
     <div class="non-menu-items">
       <SmartsheetHeaderDeleteColumnModal key="dc" v-model:visible="showDeleteColumnModal" :on-delete-column="onDeleteColumn" />
+      <LazyDlgConvertLinkV2 v-model:visible="showConvertLinkV2Modal" :column="column" />
       <DlgColumnDuplicate
         v-if="column"
         key="ddc"

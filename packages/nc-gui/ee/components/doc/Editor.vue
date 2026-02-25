@@ -59,6 +59,7 @@ const Highlight = Mark.create({
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
 import { DocEmbedExtension } from './DocEmbedExtension'
+import { DocCodeBlockExtension } from './DocCodeBlockExtension'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
@@ -457,7 +458,9 @@ const editor = useEditor({
   extensions: [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
+      codeBlock: false, // replaced by DocCodeBlockExtension (lowlight + language selector)
     }),
+    DocCodeBlockExtension,
     Underline,
     Highlight,
     Link.configure({ openOnClick: false }),
@@ -1605,19 +1608,87 @@ onBeforeUnmount(() => {
     font-size: 0.875em;
   }
 
+  // Code blocks — background/padding/border-radius handled by DocCodeBlockNode.vue.
+  // Inline hljs token colours defined here (GitHub Dark–inspired theme).
   pre {
-    background-color: #1f2937;
-    color: #f9fafb;
-    border-radius: 0.5em;
-    padding: 0.75em 1em;
-    overflow-x: auto;
-
     code {
       background: none;
       padding: 0;
       color: inherit;
       font-size: inherit;
     }
+  }
+
+  // Syntax highlighting tokens (GitHub Dark)
+  .hljs-doctag,
+  .hljs-keyword,
+  .hljs-meta .hljs-keyword,
+  .hljs-template-tag,
+  .hljs-template-variable,
+  .hljs-type,
+  .hljs-variable.language_ {
+    color: #ff7b72;
+  }
+
+  .hljs-title,
+  .hljs-title.class_,
+  .hljs-title.class_.inherited__,
+  .hljs-title.function_ {
+    color: #d2a8ff;
+  }
+
+  .hljs-attr,
+  .hljs-attribute,
+  .hljs-literal,
+  .hljs-meta,
+  .hljs-number,
+  .hljs-operator,
+  .hljs-variable,
+  .hljs-selector-attr,
+  .hljs-selector-class,
+  .hljs-selector-id {
+    color: #79c0ff;
+  }
+
+  .hljs-regexp,
+  .hljs-string,
+  .hljs-meta .hljs-string {
+    color: #a5d6ff;
+  }
+
+  .hljs-built_in,
+  .hljs-symbol {
+    color: #ffa657;
+  }
+
+  .hljs-comment,
+  .hljs-code,
+  .hljs-formula {
+    color: #8b949e;
+  }
+
+  .hljs-name,
+  .hljs-quote,
+  .hljs-selector-tag,
+  .hljs-selector-pseudo {
+    color: #7ee787;
+  }
+
+  .hljs-subst {
+    color: #c9d1d9;
+  }
+
+  .hljs-section {
+    color: #1f6feb;
+    font-weight: bold;
+  }
+
+  .hljs-emphasis {
+    font-style: italic;
+  }
+
+  .hljs-strong {
+    font-weight: bold;
   }
 
   // Horizontal rule

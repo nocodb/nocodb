@@ -23,6 +23,10 @@ const { getMeta } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
+const reloadDataHook = inject(ReloadViewDataHookInj, undefined)
+
 const isConverting = ref(false)
 
 const colOptions = computed(() => props.column?.colOptions as LinkToAnotherRecordType | undefined)
@@ -62,8 +66,17 @@ async function handleConvert() {
 
     message.success(t('msg.info.convertLinkV2Success'))
 
-    // Reload meta
-    await getMeta(meta.value.id!, true)
+    // Reload current table meta
+    await getMeta(meta.value.base_id!, meta.value.id!, true)
+
+    // Reload related table meta (paired column changed too)
+    const relatedModelId = colOptions.value?.fk_related_model_id
+    if (relatedModelId) {
+      await getMeta(meta.value.base_id!, relatedModelId, true)
+    }
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    reloadDataHook?.trigger()
 
     $e('a:field:convert-link-v2')
 

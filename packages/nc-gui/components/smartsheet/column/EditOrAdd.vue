@@ -1285,7 +1285,8 @@ const unique = computed({
                           column &&
                           column.uidt === UITypes.LinkToAnotherRecord &&
                           opt.name === UITypes.LinkToAnotherRecord &&
-                          column.colOptions?.version !== 2
+                          column.colOptions?.version !== 2 &&
+                          column.colOptions?.type !== 'mm'
                         "
                         :title="$t('labels.convertToNewLink')"
                       >

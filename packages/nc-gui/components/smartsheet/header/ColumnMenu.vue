@@ -69,6 +69,8 @@ const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByO
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
 const setAsDisplayValue = async () => {
@@ -675,6 +677,7 @@ const onDeleteColumn = () => {
         isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
         isLinksOrLTAR(column) &&
         column.colOptions?.version !== 2 &&
+        column.colOptions?.type !== 'mm' &&
         isUIAllowed('fieldAlter') &&
         !isSqlView
       "

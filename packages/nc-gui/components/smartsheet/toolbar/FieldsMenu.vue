@@ -69,7 +69,8 @@ const v1LinkColumns = computed(() => {
   return (meta.value?.columns ?? []).filter((c) => {
     if (!isLinksOrLTAR(c)) return false
     const opts = c.colOptions as LinkToAnotherRecordType | undefined
-    return opts?.version !== 2 && opts?.type !== 'mm'
+    if (!opts) return false
+    return opts.version !== 2 && opts.type !== 'mm'
   })
 })
 
@@ -1103,7 +1104,7 @@ const onAddColumnDropdownVisibilityChange = () => {
         </div>
 
         <div
-          v-if="v1LinkColumns.length && isUIAllowed(‘fieldAlter’) && !isSqlView && !filterQuery"
+          v-if="v1LinkColumns.length && isUIAllowed('fieldAlter') && !isSqlView && !filterQuery"
           class="flex px-2 py-1.5 border-t-1 border-nc-border-gray-medium"
         >
           <NcButton
@@ -1114,7 +1115,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             @click="showConvertAllLinksV2Modal = true"
           >
             <GeneralIcon icon="ncArrowUpCircle" class="!w-4 !h-4 mr-1.5 opacity-80" />
-            <span>{{ t(‘labels.convertAllLegacyLinks’) }} ({{ v1LinkColumns.length }})</span>
+            <span>{{ t('labels.convertAllLegacyLinks') }} ({{ v1LinkColumns.length }})</span>
           </NcButton>
         </div>
 

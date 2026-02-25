@@ -22,13 +22,18 @@ const { getMeta } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
+const { eventBus } = useSmartsheetStoreOrThrow()
+
+const reloadDataHook = inject(ReloadViewDataHookInj, undefined)
+
 const isConverting = ref(false)
 
 const v1LinkColumns = computed(() => {
   return (meta.value?.columns ?? []).filter((c) => {
     if (!isLinksOrLTAR(c)) return false
     const opts = c.colOptions as LinkToAnotherRecordType | undefined
-    return opts?.version !== 2 && opts?.type !== 'mm'
+    if (!opts) return false
+    return opts.version !== 2 && opts.type !== 'mm'
   })
 })
 
@@ -57,7 +62,19 @@ async function handleConvertAll() {
     const { converted = 0, skipped = 0 } = (result as any) || {}
     message.success(t('msg.info.convertAllLinksV2Success', { converted, skipped }))
 
-    await getMeta(meta.value.id!, true)
+    // Reload current table meta
+    await getMeta(meta.value.base_id!, meta.value.id!, true)
+
+    // Reload related table metas (paired columns changed too)
+    const relatedModelIds = new Set(
+      v1LinkColumns.value
+        .map((c) => (c.colOptions as LinkToAnotherRecordType | undefined)?.fk_related_model_id)
+        .filter(Boolean) as string[],
+    )
+    await Promise.all([...relatedModelIds].map((id) => getMeta(meta.value!.base_id!, id, true)))
+
+    eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+    reloadDataHook?.trigger()
 
     $e('a:field:convert-all-links-v2')
 

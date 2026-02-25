@@ -111,7 +111,8 @@ import {
   convertAIRecordTypeToValue,
   convertValueToAIRecordType,
 } from '~/utils/dataConversion';
-import { MetaTable } from '~/utils/globals';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp } from '~/utils/modelUtils';
 import NocoSocket from '~/socket/NocoSocket';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
@@ -5630,6 +5631,591 @@ export class ColumnsService implements IColumnsService {
       ...table,
       is_private,
     };
+  }
+
+  /**
+   * Convert a V1 LTAR column (HM/BT/OO with direct FK) to V2 (junction-table-based).
+   * If a BT column is provided, automatically finds and converts from the paired HM side.
+   * Both paired columns are updated atomically.
+   */
+  async convertLinkToV2(
+    context: NcContext,
+    param: {
+      columnId: string;
+      req: NcRequest;
+    },
+  ) {
+    // Phase 0: Load and validate
+    const column = await Column.get(context, { colId: param.columnId });
+
+    if (!column) {
+      NcError.fieldNotFound(param.columnId);
+    }
+
+    if (!isLinksOrLTAR(column.uidt)) {
+      NcError.badRequest('Column is not a Link/LTAR type');
+    }
+
+    const colOptions =
+      await column.getColOptions<LinkToAnotherRecordColumn>(context);
+
+    if (colOptions.version === LinksVersion.V2) {
+      NcError.badRequest('Column is already V2');
+    }
+
+    if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+      NcError.badRequest(
+        'Many-to-Many relations already use junction tables and do not need conversion',
+      );
+    }
+
+    // Phase 1: Normalize to parent side (HM or parent-OO)
+    let hmColumn: Column;
+    let hmColOptions: LinkToAnotherRecordColumn;
+    let btColumn: Column;
+    let btColOptions: LinkToAnotherRecordColumn;
+
+    const isBtSide =
+      colOptions.type === RelationTypes.BELONGS_TO ||
+      (colOptions.type === RelationTypes.ONE_TO_ONE && column.meta?.bt);
+
+    if (isBtSide) {
+      btColumn = column;
+      btColOptions = colOptions;
+
+      // Find the paired HM/OO column in the related table
+      const { refContext } = colOptions.getRelContext(context);
+      const relatedTable = await colOptions.getRelatedTable(refContext);
+      const relatedColumns = await relatedTable.getColumns(refContext);
+
+      const pairedRelType =
+        colOptions.type === RelationTypes.ONE_TO_ONE
+          ? RelationTypes.ONE_TO_ONE
+          : RelationTypes.HAS_MANY;
+
+      for (const c of relatedColumns) {
+        if (!isLinksOrLTAR(c.uidt)) continue;
+        // Skip self (self-referencing OO: both sides have same type & FK columns)
+        if (c.id === column.id) continue;
+        const opts =
+          await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
+        if (
+          opts.fk_parent_column_id === colOptions.fk_parent_column_id &&
+          opts.fk_child_column_id === colOptions.fk_child_column_id &&
+          opts.type === pairedRelType
+        ) {
+          hmColumn = c;
+          hmColOptions = opts;
+          break;
+        }
+      }
+
+      if (!hmColumn) {
+        NcError.badRequest('Could not find the paired parent-side column');
+      }
+    } else {
+      hmColumn = column;
+      hmColOptions = colOptions;
+
+      // Find the paired BT column in the related table
+      const { refContext } = colOptions.getRelContext(context);
+      const relatedTable = await colOptions.getRelatedTable(refContext);
+      const relatedColumns = await relatedTable.getColumns(refContext);
+
+      const pairedRelType =
+        colOptions.type === RelationTypes.ONE_TO_ONE
+          ? RelationTypes.ONE_TO_ONE
+          : RelationTypes.BELONGS_TO;
+
+      for (const c of relatedColumns) {
+        if (!isLinksOrLTAR(c.uidt)) continue;
+        // Skip self (self-referencing OO: both sides have same type & FK columns)
+        if (c.id === column.id) continue;
+        const opts =
+          await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
+        if (
+          opts.fk_parent_column_id === colOptions.fk_parent_column_id &&
+          opts.fk_child_column_id === colOptions.fk_child_column_id &&
+          opts.type === pairedRelType
+        ) {
+          btColumn = c;
+          btColOptions = opts;
+          break;
+        }
+      }
+
+      if (!btColumn) {
+        NcError.badRequest('Could not find the paired child-side column');
+      }
+    }
+
+    // Phase 2: Load context
+    const parentTable = await Model.getWithInfo(context, {
+      id: hmColumn.fk_model_id,
+    });
+    const parentPK = parentTable.primaryKey;
+
+    const { refContext: childRefContext } = hmColOptions.getRelContext(context);
+    const childTable = await Model.getWithInfo(childRefContext, {
+      id: hmColOptions.fk_related_model_id,
+    });
+    const childPK = childTable.primaryKey;
+
+    // The FK column in the child table
+    const fkColumn = await Column.get(childRefContext, {
+      colId: hmColOptions.fk_child_column_id,
+    });
+
+    if (!fkColumn) {
+      NcError.badRequest('Could not find the foreign key column');
+    }
+
+    const source = await Source.get(context, parentTable.source_id);
+    const childSource =
+      childTable.source_id === source.id
+        ? source
+        : await Source.get(childRefContext, childTable.source_id);
+
+    const base = await source.getProject();
+
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(context, {
+      id: source.base_id,
+    });
+
+    const isVirtual = hmColOptions.virtual;
+
+    // Track progress for rollback
+    let junctionCreated = false;
+    let fkDropped = false;
+    let aTn: string;
+
+    // Phase 3: Start meta transaction
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+
+    try {
+      // Phase 3a: Create junction table
+      aTn = await getJunctionTableName({ base }, parentTable, childTable);
+      const aTnAlias = aTn;
+
+      const { parentCn: columnName, childCn: refColumnName } =
+        getMMColumnNames(parentTable, childTable);
+
+      const associateTableCols = [
+        {
+          cn: refColumnName,
+          column_name: refColumnName,
+          title: refColumnName,
+          rqd: true,
+          pk: true,
+          ai: false,
+          cdf: null,
+          dt: childPK.dt,
+          dtxp: childPK.dtxp,
+          dtxs: childPK.dtxs,
+          un: childPK.un,
+          altered: 1,
+          uidt: UITypes.ForeignKey,
+        },
+        {
+          cn: columnName,
+          column_name: columnName,
+          title: columnName,
+          rqd: true,
+          pk: true,
+          ai: false,
+          cdf: null,
+          dt: parentPK.dt,
+          dtxp: parentPK.dtxp,
+          dtxs: parentPK.dtxs,
+          un: parentPK.un,
+          altered: 1,
+          uidt: UITypes.ForeignKey,
+        },
+      ];
+
+      await sqlMgr.sqlOpPlus(source, 'tableCreate', {
+        tn: aTn,
+        _tn: aTnAlias,
+        columns: associateTableCols,
+      });
+      junctionCreated = true;
+
+      const assocModel = await Model.insert(
+        context,
+        base.id,
+        source.id,
+        {
+          table_name: aTn,
+          title: aTnAlias,
+          mm: true,
+          columns: associateTableCols,
+          user_id: (param.req as any).user?.id,
+        },
+        ncMeta,
+      );
+
+      // Create FK constraints (for non-virtual relations)
+      let foreignKeyName1: string;
+      let foreignKeyName2: string;
+
+      if (!isVirtual) {
+        foreignKeyName1 = generateFkName(parentTable, childTable);
+        foreignKeyName2 = generateFkName(parentTable, childTable);
+
+        await sqlMgr.sqlOpPlus(source, 'relationCreate', {
+          childTable: aTn,
+          childColumn: columnName,
+          parentTable: parentTable.table_name,
+          parentColumn: parentPK.column_name,
+          type: 'real',
+          foreignKeyName: foreignKeyName1,
+        });
+
+        await sqlMgr.sqlOpPlus(source, 'relationCreate', {
+          childTable: aTn,
+          childColumn: refColumnName,
+          parentTable: childTable.table_name,
+          parentColumn: childPK.column_name,
+          type: 'real',
+          foreignKeyName: foreignKeyName2,
+        });
+      }
+
+      // Get junction table columns
+      const parentCol = (await assocModel.getColumns(context, ncMeta))?.find(
+        (c) => c.column_name === columnName,
+      );
+      const childCol = (await assocModel.getColumns(context, ncMeta))?.find(
+        (c) => c.column_name === refColumnName,
+      );
+
+      // Create system HM/BT columns in junction table
+      await createHmAndBtColumn(
+        context,
+        param.req,
+        assocModel,
+        childTable,
+        childCol,
+        null,
+        null,
+        null,
+        foreignKeyName2,
+        isVirtual,
+        true,
+        null,
+        false,
+      );
+      await createHmAndBtColumn(
+        context,
+        param.req,
+        assocModel,
+        parentTable,
+        parentCol,
+        null,
+        null,
+        null,
+        foreignKeyName1,
+        isVirtual,
+        true,
+        null,
+        false,
+      );
+
+      // Phase 4: Migrate data from FK column to junction table
+      const dbDriver = await NcConnectionMgrv2.get(source);
+      const baseModel = await Model.getBaseModelSQL(context, {
+        id: childTable.id,
+        dbDriver,
+      });
+
+      const junctionTnPath = baseModel.getTnPath(aTn);
+      const childTnPath = baseModel.getTnPath(childTable.table_name);
+
+      await dbDriver(junctionTnPath)
+        .insert(
+          dbDriver(childTnPath)
+            .select(
+              dbDriver.ref(fkColumn.column_name).as(columnName),
+              dbDriver.ref(childPK.column_name).as(refColumnName),
+            )
+            .whereNotNull(fkColumn.column_name),
+        );
+
+      // Phase 5: Remove old FK constraint
+      if (!isVirtual) {
+        try {
+          await sqlMgr.sqlOpPlus(childSource, 'relationDelete', {
+            childColumn: fkColumn.column_name,
+            childTable: childTable.table_name,
+            parentTable: parentTable.table_name,
+            parentColumn: parentPK.column_name,
+            foreignKeyName: hmColOptions.fk_index_name,
+          });
+          fkDropped = true;
+        } catch (e) {
+          Logger.warn(
+            `Failed to drop FK constraint during V1→V2 migration: ${e.message}`,
+          );
+          // Continue - the constraint may not exist or may have been already removed
+          fkDropped = true;
+        }
+      } else {
+        fkDropped = true;
+      }
+
+      // Phase 6: Update column metadata
+      const isOO = hmColOptions.type === RelationTypes.ONE_TO_ONE;
+      const hmNewType = isOO
+        ? RelationTypes.ONE_TO_ONE
+        : RelationTypes.ONE_TO_MANY;
+      const btNewType = isOO
+        ? RelationTypes.ONE_TO_ONE
+        : RelationTypes.MANY_TO_ONE;
+
+      // Cross-base link props
+      let crossBaseLinkProps: Record<string, string> = {};
+      let refCrossBaseLinkProps: Record<string, string> = {};
+
+      if (hmColOptions.fk_related_base_id) {
+        crossBaseLinkProps = {
+          fk_related_base_id: hmColOptions.fk_related_base_id,
+          fk_mm_base_id: assocModel.base_id,
+          fk_related_source_id:
+            hmColOptions.fk_related_source_id || childTable.source_id,
+          fk_mm_source_id: assocModel.source_id,
+        };
+        refCrossBaseLinkProps = {
+          fk_related_base_id: context.base_id,
+          fk_mm_base_id: assocModel.base_id,
+          fk_related_source_id: parentTable.source_id,
+          fk_mm_source_id: assocModel.source_id,
+        };
+      }
+
+      // Delete old HM col_relations row and insert new one
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        { fk_column_id: hmColumn.id },
+      );
+
+      await ncMeta.metaInsert2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          fk_column_id: hmColumn.id,
+          type: hmNewType,
+          fk_child_column_id: parentPK.id,
+          fk_parent_column_id: childPK.id,
+          fk_mm_model_id: assocModel.id,
+          fk_mm_child_column_id: parentCol.id,
+          fk_mm_parent_column_id: childCol.id,
+          fk_related_model_id: hmColOptions.fk_related_model_id,
+          fk_target_view_id: hmColOptions.fk_target_view_id,
+          virtual: isVirtual,
+          version: LinksVersion.V2,
+          ...crossBaseLinkProps,
+        },
+      );
+
+      // Delete old BT col_relations row and insert new one
+      await ncMeta.metaDelete(
+        childRefContext.workspace_id,
+        childRefContext.base_id,
+        MetaTable.COL_RELATIONS,
+        { fk_column_id: btColumn.id },
+      );
+
+      await ncMeta.metaInsert2(
+        childRefContext.workspace_id,
+        childRefContext.base_id,
+        MetaTable.COL_RELATIONS,
+        {
+          fk_column_id: btColumn.id,
+          type: btNewType,
+          fk_child_column_id: childPK.id,
+          fk_parent_column_id: parentPK.id,
+          fk_mm_model_id: assocModel.id,
+          fk_mm_child_column_id: childCol.id,
+          fk_mm_parent_column_id: parentCol.id,
+          fk_related_model_id: btColOptions.fk_related_model_id,
+          fk_target_view_id: btColOptions.fk_target_view_id,
+          virtual: isVirtual,
+          version: LinksVersion.V2,
+          ...refCrossBaseLinkProps,
+        },
+      );
+
+      // Phase 7: Convert old FK column to regular type
+      if (fkColumn.uidt === UITypes.ForeignKey) {
+        const newUidt = determineRegularUidt(fkColumn.dt);
+        await ncMeta.metaUpdate(
+          childRefContext.workspace_id,
+          childRefContext.base_id,
+          MetaTable.COLUMNS,
+          { uidt: newUidt },
+          fkColumn.id,
+        );
+      }
+
+      // Phase 8: PG indexes
+      if (source.type === 'pg') {
+        await this.createColumnIndex(context, {
+          column: new Column({
+            ...associateTableCols[0],
+            fk_model_id: assocModel.id,
+          }),
+          indexName: generateFkName(parentTable, childTable),
+          source,
+          sqlMgr,
+        });
+        await this.createColumnIndex(context, {
+          column: new Column({
+            ...associateTableCols[1],
+            fk_model_id: assocModel.id,
+          }),
+          indexName: generateFkName(parentTable, childTable),
+          source,
+          sqlMgr,
+        });
+      }
+
+      // Phase 9: Commit
+      await ncMeta.commit();
+
+      // Clear caches after commit
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.COL_RELATION}:${hmColumn.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+      await NocoCache.deepDel(
+        childRefContext,
+        `${CacheScope.COL_RELATION}:${btColumn.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+
+      // Clear FK column cache if its uidt was changed
+      if (fkColumn.uidt === UITypes.ForeignKey) {
+        await NocoCache.update(
+          childRefContext,
+          `${CacheScope.COLUMN}:${fkColumn.id}`,
+          { uidt: determineRegularUidt(fkColumn.dt) },
+        );
+      }
+
+      await View.clearSingleQueryCache(context, parentTable.id);
+      await View.clearSingleQueryCache(childRefContext, childTable.id);
+
+      // Emit events
+      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+        table: parentTable,
+        column: hmColumn,
+        req: param.req,
+        context,
+        columnId: hmColumn.id,
+        columns: await parentTable.getColumns(context),
+      });
+
+      return parentTable;
+    } catch (e) {
+      await ncMeta.rollback();
+
+      // Reverse data DB changes
+      if (fkDropped && !isVirtual) {
+        try {
+          await sqlMgr.sqlOpPlus(childSource, 'relationCreate', {
+            childColumn: fkColumn.column_name,
+            childTable: childTable.table_name,
+            parentTable: parentTable.table_name,
+            parentColumn: parentPK.column_name,
+            type: 'real',
+            foreignKeyName: hmColOptions.fk_index_name,
+          });
+        } catch (_e) {
+          Logger.warn(
+            `Failed to restore FK constraint during rollback: ${_e.message}`,
+          );
+        }
+      }
+
+      if (junctionCreated) {
+        try {
+          await sqlMgr.sqlOpPlus(source, 'tableDelete', { tn: aTn });
+        } catch (_e) {
+          Logger.warn(
+            `Failed to drop junction table during rollback: ${_e.message}`,
+          );
+        }
+      }
+
+      throw e;
+    }
+  }
+
+  /**
+   * Convert all V1 LTAR columns in a table to V2 (junction-table-based).
+   * Automatically deduplicates HM/BT pairs so each relation is only converted once.
+   */
+  async convertAllLinksToV2(
+    context: NcContext,
+    param: {
+      tableId: string;
+      req: NcRequest;
+    },
+  ) {
+    const table = await Model.getWithInfo(context, { id: param.tableId });
+
+    if (!table) {
+      NcError.tableNotFound(param.tableId);
+    }
+
+    const columns = await table.getColumns(context);
+
+    // Collect V1 LTAR columns, preferring HM side to avoid duplicates
+    const columnsToConvert: Column[] = [];
+    const processedPairs = new Set<string>();
+
+    for (const col of columns) {
+      if (!isLinksOrLTAR(col.uidt)) continue;
+
+      const opts =
+        await col.getColOptions<LinkToAnotherRecordColumn>(context);
+
+      if (opts.version === LinksVersion.V2) continue;
+      if (opts.type === RelationTypes.MANY_TO_MANY) continue;
+
+      // Create a unique key for the pair based on parent/child column IDs
+      const pairKey = [opts.fk_parent_column_id, opts.fk_child_column_id]
+        .sort()
+        .join(':');
+
+      if (processedPairs.has(pairKey)) continue;
+      processedPairs.add(pairKey);
+
+      columnsToConvert.push(col);
+    }
+
+    let converted = 0;
+    let skipped = 0;
+    const errors: string[] = [];
+
+    for (const col of columnsToConvert) {
+      try {
+        await this.convertLinkToV2(context, {
+          columnId: col.id,
+          req: param.req,
+        });
+        converted++;
+      } catch (e) {
+        errors.push(`${col.title}: ${e.message}`);
+        skipped++;
+      }
+    }
+
+    return { converted, skipped, errors };
   }
 }
 

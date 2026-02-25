@@ -285,6 +285,7 @@ onBeforeUnmount(() => {
         <NcDropdown
           :visible="menuOpen?.type === 'column' && menuOpen?.index === cIdx"
           placement="bottomLeft"
+          overlay-class-name="nc-table-col-dropdown-overlay"
           @update:visible="(v: boolean) => { if (!v) closeMenu() }"
         >
           <div
@@ -301,34 +302,47 @@ onBeforeUnmount(() => {
             @click.stop="toggleMenu('column', cIdx)"
           />
           <template #overlay>
-            <NcMenu variant="small">
-              <NcMenuItem @click="onColumnAction(cIdx, 'insertBefore')">
-                <GeneralIcon icon="plus" class="text-nc-content-gray-subtle" />
-                {{ $t('labels.insertColumnLeft') }}
-              </NcMenuItem>
-              <NcMenuItem @click="onColumnAction(cIdx, 'insertAfter')">
-                <GeneralIcon icon="plus" class="text-nc-content-gray-subtle" />
-                {{ $t('labels.insertColumnRight') }}
-              </NcMenuItem>
-              <NcDivider />
-              <NcMenuItem @click="onColumnAlign(cIdx, 'left')">
-                <GeneralIcon icon="ncAlignLeft" class="text-nc-content-gray-subtle" />
-                {{ $t('labels.alignLeft') }}
-              </NcMenuItem>
-              <NcMenuItem @click="onColumnAlign(cIdx, 'center')">
-                <GeneralIcon icon="ncAlignCenter" class="text-nc-content-gray-subtle" />
-                {{ $t('labels.alignCenter') }}
-              </NcMenuItem>
-              <NcMenuItem @click="onColumnAlign(cIdx, 'right')">
-                <GeneralIcon icon="ncAlignRight" class="text-nc-content-gray-subtle" />
-                {{ $t('labels.alignRight') }}
-              </NcMenuItem>
-              <NcDivider />
-              <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="onColumnAction(cIdx, 'delete')">
-                <GeneralIcon icon="delete" />
-                {{ $t('labels.deleteColumn') }}
-              </NcMenuItem>
-            </NcMenu>
+            <div class="nc-table-col-toolbar">
+              <!-- Insert -->
+              <NcTooltip :title="$t('labels.insertColumnLeft')">
+                <NcButton size="xsmall" type="text" @click="onColumnAction(cIdx, 'insertBefore')">
+                  <GeneralIcon icon="ncArrowLeft" />
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip :title="$t('labels.insertColumnRight')">
+                <NcButton size="xsmall" type="text" @click="onColumnAction(cIdx, 'insertAfter')">
+                  <GeneralIcon icon="ncArrowRight" />
+                </NcButton>
+              </NcTooltip>
+
+              <div class="nc-table-col-toolbar-divider" />
+
+              <!-- Align -->
+              <NcTooltip :title="$t('labels.alignLeft')">
+                <NcButton size="xsmall" type="text" @click="onColumnAlign(cIdx, 'left')">
+                  <GeneralIcon icon="ncAlignLeft" />
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip :title="$t('labels.alignCenter')">
+                <NcButton size="xsmall" type="text" @click="onColumnAlign(cIdx, 'center')">
+                  <GeneralIcon icon="ncAlignCenter" />
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip :title="$t('labels.alignRight')">
+                <NcButton size="xsmall" type="text" @click="onColumnAlign(cIdx, 'right')">
+                  <GeneralIcon icon="ncAlignRight" />
+                </NcButton>
+              </NcTooltip>
+
+              <div class="nc-table-col-toolbar-divider" />
+
+              <!-- Delete -->
+              <NcTooltip :title="$t('labels.deleteColumn')">
+                <NcButton size="xsmall" type="text" class="!text-red-500 !hover:text-red-600" @click="onColumnAction(cIdx, 'delete')">
+                  <GeneralIcon icon="delete" />
+                </NcButton>
+              </NcTooltip>
+            </div>
           </template>
         </NcDropdown>
       </template>
@@ -487,6 +501,29 @@ onBeforeUnmount(() => {
   &:hover {
     background: var(--nc-content-brand);
   }
+}
+
+// Override NcDropdown overlay for the column toolbar — remove default padding
+:global(.nc-table-col-dropdown-overlay) {
+  .ant-dropdown-menu {
+    padding: 0;
+  }
+}
+
+// Horizontal icon-only toolbar for column operations
+.nc-table-col-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+}
+
+.nc-table-col-toolbar-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--nc-border-gray-medium);
+  margin: 0 2px;
+  flex-shrink: 0;
 }
 
 </style>

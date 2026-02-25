@@ -122,6 +122,13 @@ export class UiPostOperations
           rowColorConditionsId: req.query.rowColorConditionId,
           filter: payload,
         });
+      case 'buttonFilterCreate':
+        return await this.filtersService.buttonFilterCreate(context, {
+          buttonColId: req.query.buttonColId,
+          filter: payload,
+          user: req.user,
+          req,
+        });
       case 'commentResolve':
         return await this.commentsService.commentResolve(context, {
           commentId: payload.commentId,

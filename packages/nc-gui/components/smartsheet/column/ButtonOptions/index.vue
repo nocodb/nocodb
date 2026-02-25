@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { ButtonType, ColumnType, HookType, ScriptType, UnifiedMetaType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType, HookType, ScriptType, UnifiedMetaType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   FormulaError,
+  PlanFeatureTypes,
   UITypes,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
@@ -32,7 +33,7 @@ const { getMeta } = useMetas()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk } =
   useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
@@ -392,6 +393,33 @@ const handleUpdateActionType = () => {
   updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }
+
+const { blockButtonVisibility, showUpgradeToUseButtonVisibility } = useEeConfig()
+
+const filterRef = ref()
+
+const isFilterSectionOpen = ref(false)
+
+const filtersCount = ref(0)
+
+if (isEdit.value) {
+  const existingFilters = (vModel.value.colOptions as ButtonType)?.filters
+  if (Array.isArray(existingFilters) && existingFilters.length) {
+    vModel.value.filters = existingFilters.map((f: FilterType) => ({ ...f }))
+    isFilterSectionOpen.value = true
+    filtersCount.value = existingFilters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
+  }
+}
+
+onMounted(() => {
+  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
+    await filterRef.value?.applyChanges(colId || column?.id, false)
+  })
+})
+
+onUnmounted(() => {
+  setPostSaveOrUpdateCbk(null)
+})
 </script>
 
 <template>
@@ -561,6 +589,41 @@ const handleUpdateActionType = () => {
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />
+
+    <div v-if="isEeUI" class="nc-button-filter-section mt-2">
+      <div
+        class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+        @click="blockButtonVisibility ? showUpgradeToUseButtonVisibility() : (isFilterSectionOpen = !isFilterSectionOpen)"
+      >
+        <GeneralIcon
+          icon="arrowDown"
+          class="transform transition-transform duration-150 !w-4 !h-4"
+          :class="{ '-rotate-90': !isFilterSectionOpen || blockButtonVisibility }"
+        />
+        <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
+        <PaymentUpgradeBadge v-if="blockButtonVisibility" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY" />
+        <span
+          v-else-if="filtersCount > 0"
+          class="bg-brand-50 text-brand-500 rounded-full px-1.5 text-xs min-w-4.5 h-4.5 flex items-center justify-center"
+        >
+          {{ filtersCount }}
+        </span>
+      </div>
+      <div v-if="isFilterSectionOpen && !blockButtonVisibility" class="mt-2 overflow-x-auto nc-scrollbar-thin">
+        <SmartsheetToolbarColumnFilter
+          ref="filterRef"
+          v-model="vModel.filters"
+          :auto-save="false"
+          :is-button="true"
+          :button-col-id="vModel.id"
+          :show-loading="false"
+          :show-dynamic-condition="false"
+          :hide-checkbox="true"
+          class="!min-w-full !pl-0"
+          @update:filters-length="filtersCount = $event"
+        />
+      </div>
+    </div>
   </div>
 </template>
 

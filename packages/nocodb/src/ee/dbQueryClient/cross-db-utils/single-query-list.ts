@@ -325,6 +325,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
       getHiddenColumn: ctx.getHiddenColumns,
       includeRowColorColumns: ctx.params.include_row_color === 'true',
+      includeButtonFilterColumns: ctx.params.include_button_filter_columns === 'true',
     });
     profiler.log('extract column');
 

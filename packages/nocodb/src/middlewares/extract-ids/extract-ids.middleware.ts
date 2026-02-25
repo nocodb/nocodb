@@ -159,6 +159,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const sharedViewUuid = params.sharedViewUuid || query.sharedViewUuid;
       const sharedBaseUuid = params.sharedBaseUuid || query.sharedBaseUuid;
       const hookId = params.hookId || query.hookId;
+      const buttonColId = params.buttonColId || query.buttonColId;
       const rowColorConditionId =
         params.rowColorConditionId || query.rowColorConditionId;
       const gridViewColumnId =
@@ -272,6 +273,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = hook.source_id;
+      } else if (buttonColId) {
+        const column = await Column.get(context, { colId: buttonColId });
+
+        if (!column) {
+          NcError.get(context).fieldNotFound(buttonColId);
+        }
+
+        req.ncSourceId = column.source_id;
       } else if (rowColorConditionId) {
         const rowColorCondition = await RowColorCondition.getById(
           context,

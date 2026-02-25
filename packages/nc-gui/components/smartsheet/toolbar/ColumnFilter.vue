@@ -29,6 +29,8 @@ interface Props {
   isOpen?: boolean
   rootMeta?: any
   linkColId?: string
+  buttonColId?: string
+  isButton?: boolean
   parentColId?: string
   actionBtnType?: 'text' | 'secondary'
   /** Custom filter function */
@@ -41,6 +43,7 @@ interface Props {
   queryFilter?: boolean
   isColourFilter?: boolean
   isTempFilters?: boolean
+  hideCheckbox?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -57,6 +60,8 @@ const props = withDefaults(defineProps<Props>(), {
   workflow: false,
   showDynamicCondition: true,
   linkColId: undefined,
+  buttonColId: undefined,
+  isButton: false,
   parentColId: undefined,
   actionBtnType: 'text',
   visibilityError: () => ({}),
@@ -66,6 +71,7 @@ const props = withDefaults(defineProps<Props>(), {
   readOnly: false,
   isColourFilter: false,
   isTempFilters: false,
+  hideCheckbox: false,
 })
 
 const emit = defineEmits([
@@ -101,6 +107,8 @@ const {
   link,
   widget,
   linkColId,
+  buttonColId,
+  isButton,
   workflow,
   parentColId,
   visibilityError,
@@ -236,6 +244,7 @@ const {
   parentColId,
   props.isTempFilters,
   !!rlsPolicyId?.value,
+  buttonColId,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -357,7 +366,8 @@ watch(
       viewId !== oldViewId &&
       (hookId?.value || !webHook.value) &&
       (linkColId?.value || !link.value) &&
-      (widgetId.value || !widget.value)
+      (widgetId.value || !widget.value) &&
+      (buttonColId?.value || !isButton.value)
     )
       loadFilters({
         hookId: hookId.value,
@@ -367,6 +377,7 @@ watch(
         isWidget: widget.value,
         linkColId: unref(linkColId),
         isLink: link.value,
+        isButton: isButton.value,
       })
   },
   { immediate: true },
@@ -430,6 +441,9 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   if (link.value) {
     if (!hookOrColId && !props.nestedLevel) return
     await sync({ linkId: hookOrColId, nested })
+  } else if (isButton.value || buttonColId?.value) {
+    if (!hookOrColId && !props.nestedLevel) return
+    await sync({ buttonId: hookOrColId, nested })
   } else if (rlsPolicyId?.value) {
     await sync({ rlsPolicyId: rlsPolicyId.value, nested })
   } else {
@@ -614,6 +628,7 @@ onMounted(async () => {
           widgetId: widgetId.value,
           linkColId: unref(linkColId),
           isLink: link.value,
+          isButton: isButton.value,
         })
     })(),
     loadBtLookupTypes(),
@@ -972,11 +987,11 @@ defineExpose({
     data-testid="nc-filter"
     class="menu-filter-dropdown w-min"
     :class="{
-      'min-w-122 py-2 pl-4': !nested && !queryFilter,
+      'min-w-122 py-2 pl-4': !nested && !queryFilter && !widget,
       'max-h-[max(80vh,500px)]': !nested && !queryFilter && !link,
       'max-h-[max(50vh,400px)]': !nested && !queryFilter && link,
       '!min-w-127.5': isForm && !webHook,
-      '!min-w-full !w-full !pl-0': !nested && webHook,
+      '!min-w-full !w-full !pl-0': !nested && (webHook || widget),
       'min-w-full': nested || queryFilter,
     }"
   >
@@ -1059,7 +1074,7 @@ defineExpose({
         'nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
         'max-h-420px': !nested && !queryFilter && !link,
         'max-h-320px': !nested && !queryFilter && link,
-        '!pr-0': webHook && !nested,
+        '!pr-0': (webHook || widget) && !nested,
       }"
       :move="onMoveCallback"
       @change="onMove($event)"
@@ -1091,6 +1106,8 @@ defineExpose({
                   :show-loading="false"
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"
+                  :button-col-id="buttonColId"
+                  :is-button="isButton"
                   :widget-id="widgetId"
                   :workflow="workflow"
                   :widget="widget"
@@ -1101,10 +1118,11 @@ defineExpose({
                   :is-view-filter="isViewFilter"
                   :read-only="readOnly"
                   :is-temp-filters="isTempFilters"
+                  :hide-checkbox="hideCheckbox"
                 >
                   <template #start>
                     <NcCheckbox
-                      v-if="isEeUI && isViewFilter"
+                      v-if="isEeUI && !hideCheckbox"
                       :checked="filter.enabled !== false"
                       size="default"
                       :disabled="isLockedView || readOnly"
@@ -1188,7 +1206,7 @@ defineExpose({
 
           <div v-else class="flex items-center gap-2 w-full">
             <NcCheckbox
-              v-if="isEeUI && isViewFilter"
+              v-if="isEeUI && !hideCheckbox"
               :checked="filter.enabled !== false"
               size="default"
               :disabled="isLockedView || readOnly"

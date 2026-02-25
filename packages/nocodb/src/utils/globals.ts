@@ -452,6 +452,7 @@ export enum FilterCacheScope {
   WIDGET = 'widget',
   PARENT = 'parent',
   RLS_POLICY = 'rlsPolicy',
+  BUTTON_COLUMN = 'buttonColumn',
 }
 
 export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';

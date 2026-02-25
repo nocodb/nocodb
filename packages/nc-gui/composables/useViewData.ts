@@ -214,6 +214,7 @@ export function useViewData(
                 : {}),
               where: whereQueryFromUrl.value as string,
               include_row_color: true,
+              include_button_filter_columns: true,
             } as any,
             {
               cancelToken: syncViewCountController.value.token,
@@ -277,6 +278,7 @@ export function useViewData(
               where: where?.value,
               ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
               include_row_color: true,
+              include_button_filter_columns: true,
             } as any,
             {
               cancelToken: controller.value.token,

@@ -1,9 +1,10 @@
 import type { ComputedRef, Ref } from 'vue'
-import { EventType, ViewLockType, ViewTypes } from 'nocodb-sdk'
+import { EventType, UITypes, ViewLockType, ViewTypes } from 'nocodb-sdk'
 import type {
   Api,
   ColumnType,
-  type DataPayload,
+  DataPayload,
+  FilterType,
   KanbanType,
   SelectOptionType,
   SelectOptionsType,
@@ -60,6 +61,38 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const { addUndo, clone, defineViewScope } = useUndoRedo()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+
+    const buttonFilterColumns = computed(() => {
+      if (!meta.value?.columns) return []
+      return (meta.value as TableType).columns!.filter(
+        (col) => col.uidt === UITypes.Button && (col.colOptions as any)?.filters?.length,
+      )
+    })
+
+    const evaluateButtonVisibility = (row: Record<string, any>): Record<string, boolean> | undefined => {
+      if (!buttonFilterColumns.value.length) return undefined
+
+      const columns = (meta.value as TableType)?.columns as ColumnType[]
+      if (!columns) return undefined
+
+      const client = getBaseType((meta.value as TableType)?.source_id)
+      const result: Record<string, boolean> = {}
+
+      for (const col of buttonFilterColumns.value) {
+        const filters = (col.colOptions as any)?.filters as FilterType[]
+        if (!filters?.length) continue
+
+        const isValid = validateRowFilters(filters, row, columns, client, metas.value, (meta.value as TableType)?.base_id, {
+          currentUser: user.value?.id ? { id: user.value.id, email: user.value.email } : undefined,
+        })
+
+        if (!isValid) {
+          result[col.id!] = true
+        }
+      }
+
+      return Object.keys(result).length ? result : undefined
+    }
 
     const viewStore = useViewsStore()
 
@@ -230,14 +263,19 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const formatData = (
       list: Record<string, any>[],
       evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
+      evaluateButtonVisibilityCallback?: (row: Record<string, any>) => Record<string, boolean> | undefined,
     ) =>
-      list.map((row) => ({
-        row: { ...row },
-        oldRow: { ...row },
-        rowMeta: {
-          ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
-        },
-      }))
+      list.map((row) => {
+        const buttonDisabled = evaluateButtonVisibilityCallback?.(row)
+        return {
+          row: { ...row },
+          oldRow: { ...row },
+          rowMeta: {
+            ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
+            ...(buttonDisabled ? { buttonDisabled } : {}),
+          },
+        }
+      })
 
     async function loadKanbanData() {
       if ((!base?.value?.id || !meta.value?.id || !viewMeta?.value?.id || !groupingFieldColumn?.value?.id) && !isPublic.value)
@@ -262,14 +300,14 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           meta.value!.id!,
           viewMeta.value!.id!,
           groupingFieldColumn!.value!.id!,
-          { where: xWhere.value, include_row_color: true },
+          { where: xWhere.value, include_row_color: true, include_button_filter_columns: true },
           {},
         )
       }
 
       for (const data of groupData ?? []) {
         const key = typeof data.key === 'string' ? (data.key?.length ? data.key : null) : null
-        newFormattedData.set(key, formatData(data.value.list, getEvaluatedRowMetaRowColorInfo))
+        newFormattedData.set(key, formatData(data.value.list, getEvaluatedRowMetaRowColorInfo, evaluateButtonVisibility))
         newCountByStack.set(key, data.value.pageInfo.totalRows || 0)
       }
 
@@ -312,6 +350,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where,
+            include_row_color: true,
+            include_button_filter_columns: true,
           })
         : await fetchSharedViewData({
             ...params,
@@ -325,7 +365,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
         ...formattedData.value.get(stackTitle)!,
         ...filerDuplicateRecords(
           formattedData.value.get(stackTitle)!,
-          formatData(response!.list!, getEvaluatedRowMetaRowColorInfo),
+          formatData(response!.list!, getEvaluatedRowMetaRowColorInfo, evaluateButtonVisibility),
         ),
       ])
     }
@@ -412,6 +452,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
                 const pkData = rowPkData(row.row, meta.value?.columns as ColumnType[])
                 row.row = { ...pkData, ...row.row }
                 Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+                row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
                 await insertRow(row, rowIndex, true)
                 addOrEditStackRow(row, true)
               },
@@ -433,6 +474,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           row: insertedData,
           rowMeta: {
             ...getEvaluatedRowMetaRowColorInfo(insertedData),
+            buttonDisabled: evaluateButtonVisibility(insertedData),
           },
           oldRow: { ...insertedData },
         })
@@ -473,6 +515,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
                 if (row) {
                   Object.assign(row.row, updatedData)
                   Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(updatedData))
+                  row.rowMeta.buttonDisabled = evaluateButtonVisibility(updatedData)
 
                   if (row.row[groupingField.value] !== row.oldRow[groupingField.value])
                     addOrEditStackRow(row, false, nextRowIndex?.index)
@@ -492,6 +535,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
                 if (row) {
                   Object.assign(row.row, updatedData)
                   Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(updatedData))
+                  row.rowMeta.buttonDisabled = evaluateButtonVisibility(updatedData)
 
                   if (row.row[groupingField.value] !== row.oldRow[groupingField.value])
                     addOrEditStackRow(row, false, oldRowIndex?.index)
@@ -507,6 +551,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           Object.assign(toUpdate.row, updatedRowData)
           Object.assign(toUpdate.oldRow, updatedRowData)
           Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(updatedRowData))
+          toUpdate.rowMeta.buttonDisabled = evaluateButtonVisibility(updatedRowData)
         }
 
         return updatedRowData
@@ -780,6 +825,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
         formattedDataCopy.forEach((row) => {
           Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+          row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
         })
 
         formattedData.value.set(key, formattedDataCopy)
@@ -827,7 +873,11 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           const newRow: Row = {
             row: payload,
             oldRow: { ...payload },
-            rowMeta: { new: false, ...getEvaluatedRowMetaRowColorInfo(payload) },
+            rowMeta: {
+              new: false,
+              ...getEvaluatedRowMetaRowColorInfo(payload),
+              buttonDisabled: evaluateButtonVisibility(payload),
+            },
           }
 
           if (!formattedData.value.has(stackKey)) {
@@ -911,6 +961,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           Object.assign(found.row, payload)
           Object.assign(found.oldRow, payload)
           Object.assign(found.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
+          found.rowMeta.buttonDisabled = evaluateButtonVisibility(payload)
           found.rowMeta.changed = false
 
           // Handle stack change

@@ -106,6 +106,12 @@ export class UiGetOperations
           viewId: req.query.viewId as string,
           query: req.query,
         });
+      case 'buttonFilterList':
+        return new PagedResponseImpl(
+          await this.filtersService.buttonFilterList(context, {
+            buttonColId: req.query.buttonColId as string,
+          }),
+        );
     }
     return super.handle(context, {
       workspaceId,

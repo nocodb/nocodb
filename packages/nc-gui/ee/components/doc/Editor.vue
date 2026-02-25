@@ -596,14 +596,39 @@ const onTitleBlur = () => {
   // Compare effective titles — empty input maps to "Untitled" on save
   const effectiveTitle = title.value || 'Untitled'
   if (effectiveTitle !== doc.value?.title) {
-    // Eagerly sync title to the store so the sidebar updates immediately,
-    // without waiting for the 2-second debounce + API roundtrip.
+    // Eagerly sync title to the store so the sidebar + URL slug update
+    // immediately, without waiting for the 2-second debounce + API roundtrip.
     if (doc.value) {
       doc.value.title = effectiveTitle
+    }
+    // Also patch the store's copy so the sidebar node and URL slug watcher react
+    if (activeDoc.value) {
+      activeDoc.value.title = effectiveTitle
     }
     debouncedSave()
   }
 }
+
+// Eagerly sync title to sidebar + URL slug while the user types (debounced).
+// This mirrors the content auto-save pattern — the sidebar updates in near-real-time
+// without waiting for blur.
+const debouncedTitleSync = useDebounceFn(() => {
+  if (!isLoaded.value || !doc.value) return
+
+  const effectiveTitle = title.value || 'Untitled'
+  if (effectiveTitle !== activeDoc.value?.title) {
+    doc.value.title = effectiveTitle
+    if (activeDoc.value) {
+      activeDoc.value.title = effectiveTitle
+    }
+  }
+}, 500)
+
+watch(title, () => {
+  if (isLoaded.value) {
+    debouncedTitleSync()
+  }
+})
 
 const onTitleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {

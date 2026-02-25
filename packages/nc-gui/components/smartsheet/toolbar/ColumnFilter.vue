@@ -29,6 +29,8 @@ interface Props {
   isOpen?: boolean
   rootMeta?: any
   linkColId?: string
+  buttonColId?: string
+  isButton?: boolean
   parentColId?: string
   actionBtnType?: 'text' | 'secondary'
   /** Custom filter function */
@@ -58,6 +60,8 @@ const props = withDefaults(defineProps<Props>(), {
   workflow: false,
   showDynamicCondition: true,
   linkColId: undefined,
+  buttonColId: undefined,
+  isButton: false,
   parentColId: undefined,
   actionBtnType: 'text',
   visibilityError: () => ({}),
@@ -103,6 +107,8 @@ const {
   link,
   widget,
   linkColId,
+  buttonColId,
+  isButton,
   workflow,
   parentColId,
   visibilityError,
@@ -238,6 +244,7 @@ const {
   parentColId,
   props.isTempFilters,
   !!rlsPolicyId?.value,
+  buttonColId,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -359,7 +366,8 @@ watch(
       viewId !== oldViewId &&
       (hookId?.value || !webHook.value) &&
       (linkColId?.value || !link.value) &&
-      (widgetId.value || !widget.value)
+      (widgetId.value || !widget.value) &&
+      (buttonColId?.value || !isButton.value)
     )
       loadFilters({
         hookId: hookId.value,
@@ -369,6 +377,7 @@ watch(
         isWidget: widget.value,
         linkColId: unref(linkColId),
         isLink: link.value,
+        isButton: isButton.value,
       })
   },
   { immediate: true },
@@ -432,6 +441,9 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   if (link.value) {
     if (!hookOrColId && !props.nestedLevel) return
     await sync({ linkId: hookOrColId, nested })
+  } else if (isButton.value || buttonColId?.value) {
+    if (!hookOrColId && !props.nestedLevel) return
+    await sync({ buttonId: hookOrColId, nested })
   } else if (rlsPolicyId?.value) {
     await sync({ rlsPolicyId: rlsPolicyId.value, nested })
   } else {
@@ -616,6 +628,7 @@ onMounted(async () => {
           widgetId: widgetId.value,
           linkColId: unref(linkColId),
           isLink: link.value,
+          isButton: isButton.value,
         })
     })(),
     loadBtLookupTypes(),
@@ -1093,6 +1106,8 @@ defineExpose({
                   :show-loading="false"
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"
+                  :button-col-id="buttonColId"
+                  :is-button="isButton"
                   :widget-id="widgetId"
                   :workflow="workflow"
                   :widget="widget"

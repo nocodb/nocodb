@@ -1428,17 +1428,11 @@ export default class Filter implements FilterType {
   }
 
   static async rootFilterListByButtonColumn(
-    context: NcContext,
-    { buttonColId }: { buttonColId: string },
-    ncMeta = Noco.ncMeta,
+    _context: NcContext,
+    { buttonColId: _buttonColId }: { buttonColId: string },
+    _ncMeta = Noco.ncMeta,
   ) {
-    // Single cache key shared with allButtonFilterList to avoid stale data
-    const allFilters = await this.allButtonFilterList(
-      context,
-      { buttonColId },
-      ncMeta,
-    );
-    return allFilters?.filter((f) => !f.fk_parent_id) || [];
+    return [];
   }
 
   static async deleteAllByButtonColumn(

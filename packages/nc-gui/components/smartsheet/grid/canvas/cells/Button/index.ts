@@ -71,8 +71,8 @@ export const ButtonCellRenderer: CellRenderer = {
     cellRenderStore.invalidUrlTooltip = afterActionStatus?.tooltip
       ? afterActionStatus.tooltip
       : filterDisabled
-        ? t('msg.buttonConditionNotMet')
-        : ''
+      ? t('msg.buttonConditionNotMet')
+      : ''
 
     let disabledState = isLoading || disabled?.isInvalid || isQueued || filterDisabled
     ctx.textAlign = 'left'

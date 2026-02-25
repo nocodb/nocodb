@@ -36,8 +36,6 @@ const { isAiBetaFeaturesEnabled } = useNocoAi()
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk } =
   useColumnCreateStoreOrThrow()
 
-const { $api } = useNuxtApp()
-
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
 const webhooksStore = useWebhooksStore()
@@ -398,76 +396,29 @@ const handleUpdateActionType = () => {
 
 const { blockButtonVisibility, showUpgradeToUseButtonVisibility } = useEeConfig()
 
+const filterRef = ref()
+
 const isFilterSectionOpen = ref(false)
 
-const localFilters = ref<FilterType[]>([])
+const filtersCount = ref(0)
 
-const existingFilters = (vModel.value.colOptions as ButtonType)?.filters
-
-if (Array.isArray(existingFilters) && existingFilters.length) {
-  localFilters.value = existingFilters.map((f: FilterType) => ({ ...f }))
-  isFilterSectionOpen.value = true
+if (isEdit.value) {
+  const existingFilters = (vModel.value.colOptions as ButtonType)?.filters
+  if (Array.isArray(existingFilters) && existingFilters.length) {
+    vModel.value.filters = existingFilters.map((f: FilterType) => ({ ...f }))
+    isFilterSectionOpen.value = true
+    filtersCount.value = existingFilters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
+  }
 }
 
-setPostSaveOrUpdateCbk(async ({ colId }) => {
-  const wid = meta.value!.fk_workspace_id!
-  const bid = meta.value!.base_id!
+onMounted(() => {
+  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
+    await filterRef.value?.applyChanges(colId || column?.id, false)
+  })
+})
 
-  const activeFilters = localFilters.value.filter((f) => f.status !== 'delete' && (f.fk_column_id || f.is_group))
-
-  const hadExistingFilters = Array.isArray(existingFilters) && existingFilters.length > 0
-  if (!activeFilters.length && !hadExistingFilters) return
-
-  await $api.internal.postOperation(wid, bid, { operation: 'buttonFilterDeleteAll', buttonColId: colId }, {})
-
-  if (!activeFilters.length) return
-
-  // Two-pass insert: roots first, then children with remapped fk_parent_id
-  // (delete-and-recreate assigns new IDs, so old parent references become stale)
-  const oldIdToNewId = new Map<string, string>()
-
-  const rootFilters = activeFilters.filter((f) => !f.fk_parent_id)
-  const childFilters = activeFilters.filter((f) => !!f.fk_parent_id)
-
-  for (const filter of rootFilters) {
-    const created = await $api.internal.postOperation(
-      wid,
-      bid,
-      { operation: 'buttonFilterCreate', buttonColId: colId },
-      {
-        comparison_op: filter.comparison_op,
-        comparison_sub_op: filter.comparison_sub_op,
-        fk_column_id: filter.fk_column_id,
-        is_group: filter.is_group,
-        logical_op: filter.logical_op,
-        value: filter.value,
-      },
-    )
-    if (filter.id && created?.id) {
-      oldIdToNewId.set(filter.id, created.id)
-    }
-  }
-
-  for (const filter of childFilters) {
-    const newParentId = oldIdToNewId.get(filter.fk_parent_id!) ?? filter.fk_parent_id
-    const created = await $api.internal.postOperation(
-      wid,
-      bid,
-      { operation: 'buttonFilterCreate', buttonColId: colId },
-      {
-        comparison_op: filter.comparison_op,
-        comparison_sub_op: filter.comparison_sub_op,
-        fk_column_id: filter.fk_column_id,
-        fk_parent_id: newParentId,
-        is_group: filter.is_group,
-        logical_op: filter.logical_op,
-        value: filter.value,
-      },
-    )
-    if (filter.id && created?.id) {
-      oldIdToNewId.set(filter.id, created.id)
-    }
-  }
+onUnmounted(() => {
+  setPostSaveOrUpdateCbk(null)
 })
 </script>
 
@@ -653,22 +604,24 @@ setPostSaveOrUpdateCbk(async ({ colId }) => {
         <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
         <PaymentUpgradeBadge v-if="blockButtonVisibility" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY" />
         <span
-          v-else-if="localFilters.filter((f) => f.status !== 'delete' && f.fk_column_id).length > 0"
+          v-else-if="filtersCount > 0"
           class="bg-brand-50 text-brand-500 rounded-full px-1.5 text-xs min-w-4.5 h-4.5 flex items-center justify-center"
         >
-          {{ localFilters.filter((f) => f.status !== 'delete' && f.fk_column_id).length }}
+          {{ filtersCount }}
         </span>
       </div>
       <div v-if="isFilterSectionOpen && !blockButtonVisibility" class="mt-2 overflow-x-auto nc-scrollbar-thin">
         <SmartsheetToolbarColumnFilter
-          v-model:model-value="localFilters"
+          ref="filterRef"
+          v-model="vModel.filters"
           :auto-save="false"
-          :is-temp-filters="true"
-          :widget="true"
+          :is-button="true"
+          :button-col-id="vModel.id"
+          :show-loading="false"
           :show-dynamic-condition="false"
           :hide-checkbox="true"
-          :nested-level="0"
           class="!min-w-full !pl-0"
+          @update:filters-length="filtersCount = $event"
         />
       </div>
     </div>

@@ -123,17 +123,9 @@ const isFilterConditionMet = computed(() => {
   const columns = meta.value?.columns as ColumnType[]
   if (!columns) return true
 
-  return validateRowFilters(
-    filters,
-    rowData,
-    columns,
-    getBaseType(meta.value?.source_id),
-    metas.value,
-    meta.value?.base_id,
-    {
-      currentUser: user.value?.id ? { id: user.value.id, email: user.value.email } : undefined,
-    },
-  )
+  return validateRowFilters(filters, rowData, columns, getBaseType(meta.value?.source_id), metas.value, meta.value?.base_id, {
+    currentUser: user.value?.id ? { id: user.value.id, email: user.value.email } : undefined,
+  })
 })
 
 const filterDisabledTooltip = computed(() => {
@@ -318,10 +310,10 @@ const triggerAction = async () => {
           filterDisabledTooltip
             ? filterDisabledTooltip
             : isAiButtonType
-              ? aiIntegrations.length
-                ? $t('tooltip.aiIntegrationReConfigure')
-                : $t('tooltip.aiIntegrationAddAndReConfigure')
-              : afterActionStatus?.tooltip || invalidUrlTooltip
+            ? aiIntegrations.length
+              ? $t('tooltip.aiIntegrationReConfigure')
+              : $t('tooltip.aiIntegrationAddAndReConfigure')
+            : afterActionStatus?.tooltip || invalidUrlTooltip
         }}
       </template>
       <component

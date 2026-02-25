@@ -61,6 +61,7 @@ export default class Filter extends FilterCE implements FilterType {
       'fk_rls_policy_id',
       'fk_column_id',
       'fk_link_col_id',
+      'fk_button_col_id',
       'fk_value_col_id',
       'comparison_op',
       'comparison_sub_op',
@@ -82,6 +83,8 @@ export default class Filter extends FilterCE implements FilterType {
       referencedModelColName = 'fk_rls_policy_id';
     } else if (filter.fk_link_col_id) {
       referencedModelColName = 'fk_link_col_id';
+    } else if (filter.fk_button_col_id) {
+      referencedModelColName = 'fk_button_col_id';
     } else if (filter.fk_widget_id) {
       referencedModelColName = 'fk_widget_id';
     } else if (filter.fk_parent_column_id) {
@@ -122,6 +125,12 @@ export default class Filter extends FilterCE implements FilterType {
         model = await Column.get(
           context,
           { colId: filter.fk_link_col_id },
+          ncMeta,
+        );
+      } else if (filter.fk_button_col_id) {
+        model = await Column.get(
+          context,
+          { colId: filter.fk_button_col_id },
           ncMeta,
         );
       } else if (filter.fk_row_color_condition_id) {
@@ -204,6 +213,7 @@ export default class Filter extends FilterCE implements FilterType {
           filter.fk_hook_id ||
           filter.fk_rls_policy_id ||
           filter.fk_link_col_id ||
+          filter.fk_button_col_id ||
           filter.fk_widget_id ||
           filter.fk_row_color_condition_id ||
           filter.fk_parent_column_id ||
@@ -270,6 +280,16 @@ export default class Filter extends FilterCE implements FilterType {
             ),
           );
         }
+        if (filter.fk_button_col_id) {
+          p.push(
+            NocoCache.appendToList(
+              context,
+              CacheScope.FILTER_EXP,
+              [FilterCacheScope.BUTTON_COLUMN, filter.fk_button_col_id],
+              key,
+            ),
+          );
+        }
         if (filter.fk_widget_id) {
           p.push(
             NocoCache.appendToList(
@@ -328,6 +348,20 @@ export default class Filter extends FilterCE implements FilterType {
                 [
                   FilterCacheScope.LINK_COL,
                   filter.fk_link_col_id,
+                  filter.fk_parent_id,
+                ],
+                key,
+              ),
+            );
+          }
+          if (filter.fk_button_col_id) {
+            p.push(
+              NocoCache.appendToList(
+                context,
+                CacheScope.FILTER_EXP,
+                [
+                  FilterCacheScope.BUTTON_COLUMN,
+                  filter.fk_button_col_id,
                   filter.fk_parent_id,
                 ],
                 key,
@@ -433,6 +467,43 @@ export default class Filter extends FilterCE implements FilterType {
         context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.LINK_COL, columnId],
+        filterObjs,
+      );
+    }
+    return filterObjs
+      ?.filter((f) => !f.fk_parent_id)
+      ?.map((f) => this.castType(f));
+  }
+
+  static async rootFilterListByButtonColumn(
+    context: NcContext,
+    { buttonColId }: { buttonColId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.FILTER_EXP,
+      [FilterCacheScope.BUTTON_COLUMN, buttonColId],
+      { key: 'order' },
+    );
+    let { list: filterObjs } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !filterObjs.length) {
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_button_col_id: buttonColId },
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      );
+      await NocoCache.setList(
+        context,
+        CacheScope.FILTER_EXP,
+        [FilterCacheScope.BUTTON_COLUMN, buttonColId],
         filterObjs,
       );
     }

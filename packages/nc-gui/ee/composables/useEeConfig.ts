@@ -247,6 +247,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD)
   })
 
+  const blockButtonVisibility = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY)
+  })
+
   const blockColourField = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_COLOUR_FIELD)
   })
@@ -1266,6 +1270,17 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseButtonVisibility = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockButtonVisibility.value) return
+
+    handleUpgradePlan({
+      limitOrFeature: PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY,
+      callback,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseColourField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockColourField.value) return
 
@@ -1516,6 +1531,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToDuplicateTableToOtherBase,
     blockAiButtonField,
     showUpgradeToUseAiButtonField,
+    blockButtonVisibility,
+    showUpgradeToUseButtonVisibility,
     blockColourField,
     showUpgradeToUseColourField,
     blockTeamsManagement,

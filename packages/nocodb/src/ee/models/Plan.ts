@@ -254,6 +254,7 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_SCIM]: false,
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: false,
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: false,
+  [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]: false,
   [PlanFeatureTypes.FEATURE_COLOUR_FIELD]: false,
   [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]: false,
   [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,

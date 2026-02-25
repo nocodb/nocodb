@@ -403,9 +403,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             formState.value.validate = ''
           }
 
-          // ignore filters from payload since it's not required
-          const { filters: _, ...updateData } = formState.value
-
           try {
             oldCol = column.value
             await $api.internal.postOperation(
@@ -415,7 +412,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
                 operation: 'columnUpdate',
                 columnId: column.value?.id as string,
               },
-              updateData,
+              formState.value,
             )
 
             if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {

@@ -54,6 +54,39 @@ export class FiltersService {
     return Filter.rootFilterListByHook(context, { hookId: param.hookId });
   }
 
+  async buttonFilterCreate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      buttonColId: any;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
+    const filter = await Filter.insert(context, {
+      ...param.filter,
+      fk_button_col_id: param.buttonColId,
+    });
+
+    return filter;
+  }
+
+  async buttonFilterList(context: NcContext, param: { buttonColId: string }) {
+    return Filter.rootFilterListByButtonColumn(context, {
+      buttonColId: param.buttonColId,
+    });
+  }
+
+  async buttonFilterDeleteAll(
+    context: NcContext,
+    param: { buttonColId: string; req: NcRequest },
+  ) {
+    await Filter.deleteAllByButtonColumn(context, param.buttonColId);
+    return true;
+  }
+
   async filterDelete(
     context: NcContext,
     param: { filterId: string; req: NcRequest },

@@ -53,6 +53,7 @@ export class UiGetOperations
     'hookList' as const,
     'hookLogList' as const,
     'hookFilterList' as const,
+    'buttonFilterList' as const,
     'hookSamplePayload' as const,
     'tableSampleData' as const,
     'linkFilterList' as const,

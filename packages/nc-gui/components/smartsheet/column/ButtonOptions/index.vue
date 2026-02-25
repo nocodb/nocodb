@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { ButtonType, ColumnType, HookType, ScriptType, UnifiedMetaType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType, HookType, ScriptType, UnifiedMetaType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   FormulaError,
+  PlanFeatureTypes,
   UITypes,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
@@ -32,8 +33,10 @@ const { getMeta } = useMetas()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk } =
   useColumnCreateStoreOrThrow()
+
+const { $api } = useNuxtApp()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -392,6 +395,80 @@ const handleUpdateActionType = () => {
   updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }
+
+const { blockButtonVisibility, showUpgradeToUseButtonVisibility } = useEeConfig()
+
+const isFilterSectionOpen = ref(false)
+
+const localFilters = ref<FilterType[]>([])
+
+const existingFilters = (vModel.value.colOptions as ButtonType)?.filters
+
+if (Array.isArray(existingFilters) && existingFilters.length) {
+  localFilters.value = existingFilters.map((f: FilterType) => ({ ...f }))
+  isFilterSectionOpen.value = true
+}
+
+setPostSaveOrUpdateCbk(async ({ colId }) => {
+  const wid = meta.value!.fk_workspace_id!
+  const bid = meta.value!.base_id!
+
+  const activeFilters = localFilters.value.filter((f) => f.status !== 'delete' && (f.fk_column_id || f.is_group))
+
+  const hadExistingFilters = Array.isArray(existingFilters) && existingFilters.length > 0
+  if (!activeFilters.length && !hadExistingFilters) return
+
+  await $api.internal.postOperation(wid, bid, { operation: 'buttonFilterDeleteAll', buttonColId: colId }, {})
+
+  if (!activeFilters.length) return
+
+  // Two-pass insert: roots first, then children with remapped fk_parent_id
+  // (delete-and-recreate assigns new IDs, so old parent references become stale)
+  const oldIdToNewId = new Map<string, string>()
+
+  const rootFilters = activeFilters.filter((f) => !f.fk_parent_id)
+  const childFilters = activeFilters.filter((f) => !!f.fk_parent_id)
+
+  for (const filter of rootFilters) {
+    const created = await $api.internal.postOperation(
+      wid,
+      bid,
+      { operation: 'buttonFilterCreate', buttonColId: colId },
+      {
+        comparison_op: filter.comparison_op,
+        comparison_sub_op: filter.comparison_sub_op,
+        fk_column_id: filter.fk_column_id,
+        is_group: filter.is_group,
+        logical_op: filter.logical_op,
+        value: filter.value,
+      },
+    )
+    if (filter.id && created?.id) {
+      oldIdToNewId.set(filter.id, created.id)
+    }
+  }
+
+  for (const filter of childFilters) {
+    const newParentId = oldIdToNewId.get(filter.fk_parent_id!) ?? filter.fk_parent_id
+    const created = await $api.internal.postOperation(
+      wid,
+      bid,
+      { operation: 'buttonFilterCreate', buttonColId: colId },
+      {
+        comparison_op: filter.comparison_op,
+        comparison_sub_op: filter.comparison_sub_op,
+        fk_column_id: filter.fk_column_id,
+        fk_parent_id: newParentId,
+        is_group: filter.is_group,
+        logical_op: filter.logical_op,
+        value: filter.value,
+      },
+    )
+    if (filter.id && created?.id) {
+      oldIdToNewId.set(filter.id, created.id)
+    }
+  }
+})
 </script>
 
 <template>
@@ -561,6 +638,40 @@ const handleUpdateActionType = () => {
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />
+
+    <!-- Visibility Condition (Button Filter) -->
+    <div class="nc-button-filter-section mt-2">
+      <div
+        class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+        @click="blockButtonVisibility ? showUpgradeToUseButtonVisibility() : (isFilterSectionOpen = !isFilterSectionOpen)"
+      >
+        <GeneralIcon
+          icon="arrowDown"
+          class="transform transition-transform duration-150 !w-4 !h-4"
+          :class="{ '-rotate-90': !isFilterSectionOpen || blockButtonVisibility }"
+        />
+        <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
+        <PaymentUpgradeBadge v-if="blockButtonVisibility" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY" />
+        <span
+          v-else-if="localFilters.filter((f) => f.status !== 'delete' && f.fk_column_id).length > 0"
+          class="bg-brand-50 text-brand-500 rounded-full px-1.5 text-xs min-w-4.5 h-4.5 flex items-center justify-center"
+        >
+          {{ localFilters.filter((f) => f.status !== 'delete' && f.fk_column_id).length }}
+        </span>
+      </div>
+      <div v-if="isFilterSectionOpen && !blockButtonVisibility" class="mt-2 overflow-x-auto nc-scrollbar-thin">
+        <SmartsheetToolbarColumnFilter
+          v-model:model-value="localFilters"
+          :auto-save="false"
+          :is-temp-filters="true"
+          :widget="true"
+          :show-dynamic-condition="false"
+          :hide-checkbox="true"
+          :nested-level="0"
+          class="!min-w-full !pl-0"
+        />
+      </div>
+    </div>
   </div>
 </template>
 

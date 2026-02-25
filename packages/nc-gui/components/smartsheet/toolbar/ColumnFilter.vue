@@ -41,6 +41,7 @@ interface Props {
   queryFilter?: boolean
   isColourFilter?: boolean
   isTempFilters?: boolean
+  hideCheckbox?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -66,6 +67,7 @@ const props = withDefaults(defineProps<Props>(), {
   readOnly: false,
   isColourFilter: false,
   isTempFilters: false,
+  hideCheckbox: false,
 })
 
 const emit = defineEmits([
@@ -972,11 +974,11 @@ defineExpose({
     data-testid="nc-filter"
     class="menu-filter-dropdown w-min"
     :class="{
-      'min-w-122 py-2 pl-4': !nested && !queryFilter,
+      'min-w-122 py-2 pl-4': !nested && !queryFilter && !widget,
       'max-h-[max(80vh,500px)]': !nested && !queryFilter && !link,
       'max-h-[max(50vh,400px)]': !nested && !queryFilter && link,
       '!min-w-127.5': isForm && !webHook,
-      '!min-w-full !w-full !pl-0': !nested && webHook,
+      '!min-w-full !w-full !pl-0': !nested && (webHook || widget),
       'min-w-full': nested || queryFilter,
     }"
   >
@@ -1059,7 +1061,7 @@ defineExpose({
         'nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
         'max-h-420px': !nested && !queryFilter && !link,
         'max-h-320px': !nested && !queryFilter && link,
-        '!pr-0': webHook && !nested,
+        '!pr-0': (webHook || widget) && !nested,
       }"
       :move="onMoveCallback"
       @change="onMove($event)"
@@ -1101,10 +1103,11 @@ defineExpose({
                   :is-view-filter="isViewFilter"
                   :read-only="readOnly"
                   :is-temp-filters="isTempFilters"
+                  :hide-checkbox="hideCheckbox"
                 >
                   <template #start>
                     <NcCheckbox
-                      v-if="isEeUI && isViewFilter"
+                      v-if="isEeUI && !hideCheckbox"
                       :checked="filter.enabled !== false"
                       size="default"
                       :disabled="isLockedView || readOnly"
@@ -1188,7 +1191,7 @@ defineExpose({
 
           <div v-else class="flex items-center gap-2 w-full">
             <NcCheckbox
-              v-if="isEeUI && isViewFilter"
+              v-if="isEeUI && !hideCheckbox"
               :checked="filter.enabled !== false"
               size="default"
               :disabled="isLockedView || readOnly"

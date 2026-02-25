@@ -288,10 +288,15 @@ export function useCanvasTable({
     currentUser,
   )
 
-  // Set base information for internal API calls
-  if (baseStore.base?.id && baseStore.base?.fk_workspace_id) {
-    actionManager.setBaseInfo(baseStore.base.id, baseStore.base.fk_workspace_id)
-  }
+  watch(
+    () => [baseStore.base?.id, baseStore.base?.fk_workspace_id] as const,
+    ([baseId, workspaceId]) => {
+      if (baseId && workspaceId) {
+        actionManager.setBaseInfo(baseId, workspaceId)
+      }
+    },
+    { immediate: true },
+  )
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 

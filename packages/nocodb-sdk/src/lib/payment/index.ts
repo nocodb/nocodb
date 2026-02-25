@@ -68,6 +68,7 @@ export enum PlanFeatureTypes {
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
+  FEATURE_BUTTON_VISIBILITY = 'feature_button_visibility',
   FEATURE_COLOUR_FIELD = 'feature_colour_field',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
@@ -294,6 +295,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to visualize records in a calendar range.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: 'to use AI button fields.',
+  [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]:
+    'to use button visibility conditions.',
   [PlanFeatureTypes.FEATURE_COLOUR_FIELD]: 'to use colour fields.',
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE]:
     'to target different base when duplicate table.',

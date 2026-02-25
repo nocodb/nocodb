@@ -22794,6 +22794,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to RLS Policy"
           },
+          "fk_button_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Button Column"
+          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
@@ -23722,6 +23726,13 @@
           "model": {
             "description": "AI model",
             "type": "string"
+          },
+          "filters": {
+            "description": "Visibility condition filters for the button",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
           }
         },
         "x-stoplight": {

@@ -84,6 +84,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAiButtonField = computed(() => true)
 
+  const blockButtonVisibility = computed(() => true)
+
   const blockColourField = computed(() => true)
 
   const blockTeamsManagement = computed(() => true)
@@ -170,6 +172,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseAiPromptField = (..._args: any[]) => {}
 
   const showUpgradeToUseAiButtonField = (..._args: any[]) => {}
+
+  const showUpgradeToUseButtonVisibility = (..._args: any[]) => {}
 
   const showUpgradeToUseColourField = (..._args: any[]) => {}
 
@@ -259,6 +263,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiPromptField,
     blockAiButtonField,
     showUpgradeToUseAiButtonField,
+    blockButtonVisibility,
+    showUpgradeToUseButtonVisibility,
     blockColourField,
     showUpgradeToUseColourField,
     blockTeamsManagement,

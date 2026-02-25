@@ -4934,6 +4934,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to RLS Policy"
           },
+          "fk_button_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Button Column"
+          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"

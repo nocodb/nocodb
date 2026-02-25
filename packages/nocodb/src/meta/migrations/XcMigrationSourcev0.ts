@@ -23,6 +23,7 @@ import * as nc_022_record_templates from './v0/nc_022_record_templates';
 import * as nc_023_rls_policies from './v0/nc_023_rls_policies';
 import * as nc_202601010000_placeholder from './v0/nc_202601010000_placeholder';
 import * as nc_202602250000_outline_view from './v0/nc_202602250000_outline_view';
+import * as nc_202602250001_button_filter from './v0/nc_202602250001_button_filter';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -57,6 +58,7 @@ export default class XcMigrationSourcev0 {
       'nc_023_rls_policies',
       'nc_202601010000_placeholder',
       'nc_202602250000_outline_view',
+      'nc_202602250001_button_filter',
     ]);
   }
 
@@ -116,6 +118,8 @@ export default class XcMigrationSourcev0 {
         return nc_202601010000_placeholder;
       case 'nc_202602250000_outline_view':
         return nc_202602250000_outline_view;
+      case 'nc_202602250001_button_filter':
+        return nc_202602250001_button_filter;
     }
   }
 }

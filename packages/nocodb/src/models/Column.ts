@@ -416,6 +416,7 @@ export default class Column<T = any> implements ColumnType {
           fk_integration_id: column.fk_integration_id,
           model: column.model,
           output_column_ids: column.output_column_ids,
+          filters: column.filters,
         });
 
         break;
@@ -1545,6 +1546,8 @@ export default class Column<T = any> implements ColumnType {
         }
 
         case UITypes.Button: {
+          await Filter.deleteAllByButtonColumn(context, colId, ncMeta);
+
           await ncMeta.metaDelete(
             context.workspace_id,
             context.base_id,

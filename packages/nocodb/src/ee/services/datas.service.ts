@@ -120,6 +120,15 @@ export class DatasService extends DatasServiceCE {
         disableOptimization: param.disableOptimization,
       })
     ) {
+      baseModel =
+        baseModel ||
+        (await Model.getBaseModelSQL(context, {
+          id: model.id,
+          viewId: view?.id,
+          dbDriver: await NcConnectionMgrv2.get(source),
+          source,
+        }));
+
       responseData = await this.dataOptService.list(context, {
         model,
         view,
@@ -171,9 +180,16 @@ export class DatasService extends DatasServiceCE {
 
     const source = await Source.get(context, model.source_id);
 
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
     let row;
     if (
-      await await canUseOptimisedQuery(context, {
+      await canUseOptimisedQuery(context, {
         source,
         disableOptimization: param.disableOptimization,
       })
@@ -187,12 +203,6 @@ export class DatasService extends DatasServiceCE {
         throwErrorIfInvalidParams: true,
       });
     } else {
-      const baseModel = await Model.getBaseModelSQL(context, {
-        id: model.id,
-        viewId: view?.id,
-        dbDriver: await NcConnectionMgrv2.get(source),
-        source,
-      });
       row = await baseModel.readByPk(param.rowId, false, param.query, {
         getHiddenColumn: param.getHiddenColumn,
         throwErrorIfInvalidParams: true,

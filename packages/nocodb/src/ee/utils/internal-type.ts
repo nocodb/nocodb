@@ -30,6 +30,8 @@ import type {
 } from '~/services/v3/teams-v3.types';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { BaseMetaDiff } from '~/helpers/baseMetaHelpers';
+import type RlsPolicy from '~/models/RlsPolicy';
+
 export { INTERNAL_API_MODULE_PROVIDER_KEY } from 'src/utils/internal-type';
 import type {
   BaseTeamDetailV3Type,
@@ -90,6 +92,8 @@ export type InternalGETResponseType = Promise<
   | SyncConfig[]
   | { hash: string }
   | { diff: BaseMetaDiff }
+  | (RlsPolicy & { filters: Filter[] })
+  | (RlsPolicy & { filters: Filter[] })[]
 >;
 
 export type InternalPOSTResponseType = Promise<
@@ -160,6 +164,8 @@ export type InternalPOSTResponseType = Promise<
       link: (string | number)[];
       unlink: (string | number)[];
     }
+  | { success: boolean }
+  | (RlsPolicy & { filters: Filter[] })
 >;
 
 export interface InternalApiModule<

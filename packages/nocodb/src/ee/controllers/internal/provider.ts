@@ -10,6 +10,8 @@ import { ManagedAppPostOperations } from '~/controllers/internal/modules/Managed
 import { SendRecordEmailOperations } from '~/controllers/internal/modules/SendRecordEmail.operations';
 import { SandboxGetOperations } from '~/controllers/internal/modules/SandboxGet.operations';
 import { SandboxPostOperations } from '~/controllers/internal/modules/SandboxPost.operations';
+import { RlsGetOperations } from '~/controllers/internal/modules/RlsGet.operations';
+import { RlsPostOperations } from '~/controllers/internal/modules/RlsPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -24,6 +26,8 @@ export const InternalApiModules = [
   SendRecordEmailOperations,
   SandboxGetOperations,
   SandboxPostOperations,
+  RlsGetOperations,
+  RlsPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

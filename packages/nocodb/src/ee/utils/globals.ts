@@ -111,6 +111,8 @@ export enum MetaTable {
   SANDBOXES = 'nc_sandboxes_v2',
   SCIM_CONFIG = 'nc_scim_config',
   RECORD_TEMPLATES = 'nc_record_templates',
+  RLS_POLICIES = 'nc_rls_policies',
+  RLS_POLICY_SUBJECTS = 'nc_rls_policy_subjects',
 }
 
 export const BaseRelatedMetaTables = [
@@ -163,6 +165,8 @@ export const BaseRelatedMetaTables = [
   MetaTable.AUTOMATIONS,
   MetaTable.AUTOMATION_EXECUTIONS,
   MetaTable.DEPENDENCY_TRACKER,
+  MetaTable.RLS_POLICIES,
+  MetaTable.RLS_POLICY_SUBJECTS,
 ];
 
 export const orderedMetaTables = [
@@ -320,6 +324,7 @@ export enum CacheScope {
   SANDBOX = 'sandbox',
   SCIM_CONFIG = 'scimConfig',
   RECORD_TEMPLATE = 'recordTemplate',
+  RLS_POLICY = 'rlsPolicy',
 }
 
 export const RootScopeTables = {

@@ -19,6 +19,7 @@ import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import Widget from '~/models/Widget';
 import { Model } from '~/models';
+import RlsPolicy from '~/models/RlsPolicy';
 import { stringifyMetaProp } from '~/utils/modelUtils';
 
 const logger = new Logger('Filter');
@@ -55,6 +56,7 @@ export default class Filter extends FilterCE implements FilterType {
       'fk_widget_id',
       'fk_parent_column_id',
       'fk_row_color_condition_id',
+      'fk_rls_policy_id',
       'fk_column_id',
       'fk_link_col_id',
       'fk_value_col_id',
@@ -74,6 +76,8 @@ export default class Filter extends FilterCE implements FilterType {
     let referencedModelColName = 'fk_view_id';
     if (filter.fk_hook_id) {
       referencedModelColName = 'fk_hook_id';
+    } else if (filter.fk_rls_policy_id) {
+      referencedModelColName = 'fk_rls_policy_id';
     } else if (filter.fk_link_col_id) {
       referencedModelColName = 'fk_link_col_id';
     } else if (filter.fk_widget_id) {
@@ -101,6 +105,15 @@ export default class Filter extends FilterCE implements FilterType {
         model = await View.get(context, filter.fk_view_id, ncMeta);
       } else if (filter.fk_hook_id) {
         model = await Hook.get(context, filter.fk_hook_id, ncMeta);
+      } else if (filter.fk_rls_policy_id) {
+        const policy = await RlsPolicy.get(
+          context,
+          filter.fk_rls_policy_id,
+          ncMeta,
+        );
+        if (policy?.fk_model_id) {
+          model = await Model.get(context, policy.fk_model_id, ncMeta);
+        }
       } else if (filter.fk_link_col_id) {
         model = await Column.get(
           context,
@@ -176,6 +189,7 @@ export default class Filter extends FilterCE implements FilterType {
         id &&
         (filter.fk_view_id ||
           filter.fk_hook_id ||
+          filter.fk_rls_policy_id ||
           filter.fk_link_col_id ||
           filter.fk_widget_id ||
           filter.fk_row_color_condition_id ||
@@ -257,6 +271,16 @@ export default class Filter extends FilterCE implements FilterType {
           );
         }
 
+        if (filter.fk_rls_policy_id) {
+          p.push(
+            NocoCache.appendToList(
+              context,
+              CacheScope.FILTER_EXP,
+              [FilterCacheScope.RLS_POLICY, filter.fk_rls_policy_id],
+              key,
+            ),
+          );
+        }
         if (filter.fk_parent_id) {
           if (filter.fk_view_id) {
             p.push(
@@ -304,6 +328,20 @@ export default class Filter extends FilterCE implements FilterType {
                 [
                   FilterCacheScope.PARENT_COLUMN,
                   filter.fk_parent_column_id,
+                  filter.fk_parent_id,
+                ],
+                key,
+              ),
+            );
+          }
+          if (filter.fk_rls_policy_id) {
+            p.push(
+              NocoCache.appendToList(
+                context,
+                CacheScope.FILTER_EXP,
+                [
+                  FilterCacheScope.RLS_POLICY,
+                  filter.fk_rls_policy_id,
                   filter.fk_parent_id,
                 ],
                 key,

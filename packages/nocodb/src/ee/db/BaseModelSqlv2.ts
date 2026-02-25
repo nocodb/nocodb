@@ -3,7 +3,6 @@ import {
   AuditV1OperationTypes,
   convertDurationToSeconds,
   enumColors,
-  EventType,
   isAIPromptCol,
   isAttachment,
   isCreatedOrLastModifiedByCol,
@@ -18,9 +17,11 @@ import {
   PermissionEntity,
   PermissionKey,
   PlanLimitTypes,
+  ProjectRoles,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import BigNumber from 'bignumber.js';
 import { BaseModelSqlv2 as BaseModelSqlv2CE } from 'src/db/BaseModelSqlv2';
 import dayjs from 'dayjs';
@@ -50,7 +51,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 // import type { SelectOption } from '~/models';
-import { Source, View } from '~/models';
+import { PrincipalAssignment, RlsPolicy, Source, View } from '~/models';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import {
   batchUpdate,
@@ -78,7 +79,7 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 import { checkLimit, getLimit } from '~/helpers/paymentHelpers';
 import { extractMentions } from '~/utils/richTextHelper';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import {
   _wherePk,
   extractSortsObject,
@@ -98,6 +99,10 @@ import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mys
 import { Profiler } from '~/helpers/profiler';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
+import {
+  resolveRlsDynamicValues,
+  resolveRlsPolicies,
+} from '~/utils/rls-resolver';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -218,6 +223,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       extractOnlyPrimaries = false,
       apiVersion,
       extractOrderColumn = false,
+      ignoreRls = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -225,6 +231,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       extractOnlyPrimaries?: boolean;
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
+      ignoreRls?: boolean;
     } = {},
     disableOptimization = false,
   ): Promise<any> {
@@ -254,6 +261,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         apiVersion: apiVersion ?? this.context.api_version,
         extractOnlyPrimaries,
         extractOrderColumn,
+        ignoreRls,
       });
 
       // Ensure we return null instead of undefined for consistency with CE version
@@ -268,6 +276,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       extractOnlyPrimaries,
       apiVersion,
       extractOrderColumn,
+      ignoreRls,
     });
   }
 
@@ -551,12 +560,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               view: null,
               source,
               getHiddenColumn: true,
+              ignoreRls: true,
             })
           : this.readByPk(
               rowId,
               false,
               {},
-              { ignoreView: true, getHiddenColumn: true },
+              { ignoreView: true, getHiddenColumn: true, ignoreRls: true },
             ));
       } else if (
         !response ||
@@ -599,7 +609,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             this.extractCompositePK({ rowId: id, insertObj, ai, ag }),
             false,
             {},
-            { ignoreView: true, getHiddenColumn: true },
+            { ignoreView: true, getHiddenColumn: true, ignoreRls: true },
           );
         } else {
           response = data;
@@ -622,13 +632,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               params: {},
               source,
               getHiddenColumn: true,
+              ignoreRls: true,
             })
           : await this.readByPk(
               rowId,
               false,
               {},
-              { ignoreView: true, getHiddenColumn: true },
+              { ignoreView: true, getHiddenColumn: true, ignoreRls: true },
             );
+      }
+
+      // Check if the inserted row is visible under the user's RLS policy
+      const rlsConditions = await this.getRlsConditions();
+      if (rlsConditions.length && response) {
+        const row = Array.isArray(response) ? response[0] : response;
+        if (row) {
+          const isVisible = await this.exist(this.extractPksValues(row, true));
+          if (!isVisible) row.__nc_rls_hidden = true;
+        }
       }
 
       await this.afterInsert({
@@ -664,6 +685,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     source: Source;
     disableOptimization?: boolean;
     view?: View;
+    ignoreRls?: boolean;
   }): Promise<any> {
     return (await canUseOptimisedQuery(this.context, {
       source: param.source,
@@ -691,6 +713,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           params: {},
           source: param.source,
           getHiddenColumn: true,
+          ignoreRls: param.ignoreRls,
         })
       : super.readRecord(param);
   }
@@ -754,6 +777,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         .update(updateObj)
         .where(await this._wherePk(id, true));
 
+      const rlsConditions = await this.getRlsConditions();
+      if (rlsConditions.length) {
+        await conditionV2(
+          this,
+          [new Filter({ children: rlsConditions, is_group: true })],
+          query,
+        );
+      }
+
       try {
         await this.execAndParse(query, null, { raw: true });
       } catch (e: any) {
@@ -780,13 +812,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             params: {},
             source,
             getHiddenColumn: true,
+            ignoreRls: true,
           })
         : await this.readByPk(
             newId,
             false,
             {},
-            { ignoreView: true, getHiddenColumn: true },
+            { ignoreView: true, getHiddenColumn: true, ignoreRls: true },
           );
+
+      // Check if the updated row is still visible under the user's RLS policy
+      const rlsConditionsForVisibility = await this.getRlsConditions();
+      if (rlsConditionsForVisibility.length && newData) {
+        const isVisible = await this.exist(
+          this.extractPksValues(newData, true),
+        );
+        if (!isVisible) newData.__nc_rls_hidden = true;
+      }
+
       if (btColumn && Object.keys(data || {}).length === 1) {
         await this.addChild({
           colId: btColumn.id,
@@ -1057,16 +1100,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       response = await this.dbDriver.raw(query);
     }
 
-    NocoSocket.broadcastEvent(this.context, {
-      event: EventType.DATA_EVENT,
-      payload: {
-        id: rowId,
-        action: 'reorder',
-        payload: row,
-        before: beforeRowId,
+    NocoSocket.broadcastDataEvent(
+      this.context,
+      {
+        payload: {
+          id: rowId,
+          action: 'reorder',
+          payload: row,
+          before: beforeRowId,
+        },
+        tableId: this.model.id,
       },
-      scopes: [this.model.id],
-    });
+      this.context.socket_id,
+    );
 
     return response;
   }
@@ -1275,17 +1321,20 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
 
-    NocoSocket.broadcastEvent(
+    // Strip __nc_rls_hidden from broadcast — other clients have different
+    // RLS policies and the flag would be incorrect for them
+    const { __nc_rls_hidden: _, ...broadcastPayload } = data || {};
+
+    NocoSocket.broadcastDataEvent(
       this.context,
       {
-        event: EventType.DATA_EVENT,
         payload: {
           id,
           action: 'add',
-          payload: data,
+          payload: broadcastPayload,
           before: req?.query?.before,
         },
-        scopes: [this.model.id],
+        tableId: this.model.id,
       },
       this.context.socket_id,
     );
@@ -1329,16 +1378,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     for (const d of data) {
       const id = this.extractPksValues(d);
-      NocoSocket.broadcastEvent(
+      // Strip __nc_rls_hidden from broadcast — other clients have different
+      // RLS policies and the flag would be incorrect for them
+      const { __nc_rls_hidden: _, ...broadcastPayload } = d || {};
+
+      NocoSocket.broadcastDataEvent(
         this.context,
         {
-          event: EventType.DATA_EVENT,
           payload: {
             id,
             action: 'add',
-            payload: d,
+            payload: broadcastPayload,
           },
-          scopes: [this.model.id],
+          tableId: this.model.id,
         },
         this.context.socket_id,
       );
@@ -1414,16 +1466,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
     const id = this.extractPksValues(data);
 
-    NocoSocket.broadcastEvent(
+    NocoSocket.broadcastDataEvent(
       this.context,
       {
-        event: EventType.DATA_EVENT,
         payload: {
           id,
           action: 'delete',
           payload: null,
         },
-        scopes: [this.model.id],
+        tableId: this.model.id,
       },
       this.context.socket_id,
     );
@@ -1465,16 +1516,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     for (const d of data) {
       const id = this.extractPksValues(d);
-      NocoSocket.broadcastEvent(
+      NocoSocket.broadcastDataEvent(
         this.context,
         {
-          event: EventType.DATA_EVENT,
           payload: {
             id,
             action: 'delete',
             payload: null,
           },
-          scopes: [this.model.id],
+          tableId: this.model.id,
         },
         this.context.socket_id,
       );
@@ -1541,6 +1591,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         {},
         { ignoreView: true, getHiddenColumn: true },
       );
+
+      if (!data) {
+        NcError.get(this.context).recordNotFound(id);
+      }
+
       await this.beforeDelete(id, null, cookie);
 
       const execQueries: ((trx: CustomKnex) => Knex.QueryBuilder)[] = [];
@@ -1619,7 +1674,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         queries.push(q(this.dbDriver).toQuery());
       }
 
-      queries.push(this.dbDriver(this.tnPath).del().where(where).toQuery());
+      const delQb = this.dbDriver(this.tnPath).del().where(where);
+
+      const rlsConditions = await this.getRlsConditions();
+      if (rlsConditions.length) {
+        await conditionV2(
+          this,
+          [new Filter({ children: rlsConditions, is_group: true })],
+          delQb,
+        );
+      }
+
+      queries.push(delQb.toQuery());
 
       let responses;
 
@@ -2151,7 +2217,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
 
         if (isSingleRecordInsertion) {
-          const insertData = await this.readByPk(responses[0]);
+          const insertData = await this.readByPk(
+            responses[0],
+            false,
+            {},
+            { ignoreRls: true },
+          );
           await this.afterInsert({
             data: insertData,
             trx: this.dbDriver,
@@ -2162,8 +2233,29 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         } else {
           const insertResponses = await this.chunkList({
             pks: responses.map((d) => this.extractPksValues(d)),
+            ignoreRls: true,
           });
           profiler.log('chunkList done');
+
+          // Check which inserted rows are visible under the user's RLS policy
+          const rlsConditionsForBulkInsert = await this.getRlsConditions();
+          if (rlsConditionsForBulkInsert.length && insertResponses.length) {
+            const insertPks = responses.map((d) => this.extractPksValues(d));
+            const visibleInsertRecords = await this.chunkList({
+              pks: insertPks,
+            });
+            const visibleInsertPks = new Set(
+              visibleInsertRecords.map((r) =>
+                this.extractPksValues(r, true)?.toString(),
+              ),
+            );
+            for (const record of insertResponses) {
+              const pk = this.extractPksValues(record, true)?.toString();
+              if (!visibleInsertPks.has(pk)) {
+                record.__nc_rls_hidden = true;
+              }
+            }
+          }
 
           await this.afterBulkInsert(insertResponses, this.dbDriver, cookie);
           profiler.log('afterBulkInsert done');
@@ -2194,6 +2286,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     chunkSize?: number;
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
+    ignoreRls?: boolean;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -2220,6 +2313,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         },
         limitOverride: chunk.length,
         ignoreViewFilterAndSort: true,
+        ignoreRls: args.ignoreRls,
       };
 
       if (['mysql', 'mysql2'].includes(source.type)) {
@@ -2249,6 +2343,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           {
             limitOverride: chunk.length,
             ignoreViewFilterAndSort: true,
+            ignoreRls: args.ignoreRls,
           },
         );
         chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
@@ -2432,6 +2527,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (toUpdate.length > 0) {
+        const rlsConditions = await this.getRlsConditions();
+        const rlsFilterGroup = rlsConditions.length
+          ? [new Filter({ children: rlsConditions, is_group: true })]
+          : [];
+
         for (const d of toUpdate) {
           const pkValues = getCompositePkValue(
             this.model.primaryKeys,
@@ -2450,16 +2550,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               }
             }
 
-            updateQueries.push(
-              this.dbDriver(this.tnPath)
-                .update(dWithoutPk)
-                .where(wherePk)
-                .toQuery(),
-            );
+            const qb = this.dbDriver(this.tnPath)
+              .update(dWithoutPk)
+              .where(wherePk);
+            if (rlsFilterGroup.length) {
+              await conditionV2(this, rlsFilterGroup, qb);
+            }
+            updateQueries.push(qb.toQuery());
           } else {
-            updateQueries.push(
-              this.dbDriver(this.tnPath).update(d).where(wherePk).toQuery(),
-            );
+            const qb = this.dbDriver(this.tnPath).update(d).where(wherePk);
+            if (rlsFilterGroup.length) {
+              await conditionV2(this, rlsFilterGroup, qb);
+            }
+            updateQueries.push(qb.toQuery());
           }
         }
       }
@@ -2517,12 +2620,45 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }));
         }
 
+        const insertPksForUpsert = insertResponses.map((d) =>
+          this.extractPksValues(d),
+        );
+
         insertResponses = await this.chunkList({
-          pks: insertResponses.map((d) => this.extractPksValues(d)),
+          pks: insertPksForUpsert,
+          ignoreRls: true,
         });
 
+        // Check which inserted rows are visible under the user's RLS policy
+        const rlsConditionsForUpsertInsert = await this.getRlsConditions();
+        if (rlsConditionsForUpsertInsert.length && insertResponses.length) {
+          const visibleUpsertInserts = await this.chunkList({
+            pks: insertPksForUpsert,
+          });
+          const visibleUpsertInsertPks = new Set(
+            visibleUpsertInserts.map((r) =>
+              this.extractPksValues(r, true)?.toString(),
+            ),
+          );
+          for (const record of insertResponses) {
+            const pk = this.extractPksValues(record, true)?.toString();
+            if (!visibleUpsertInsertPks.has(pk)) {
+              record.__nc_rls_hidden = true;
+            }
+          }
+        }
+
         if (insertResponses.length === 1) {
-          const insertData = await this.readByPk(insertResponses[0]);
+          const insertData = await this.readByPk(
+            insertResponses[0],
+            false,
+            {},
+            { ignoreRls: true },
+          );
+          // Preserve RLS hidden flag from the chunk response
+          if (insertResponses[0].__nc_rls_hidden) {
+            insertData.__nc_rls_hidden = true;
+          }
           await this.afterInsert({
             data: insertData,
             trx: this.dbDriver,
@@ -2536,7 +2672,27 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         // Updated Records
         updateResponses = await this.chunkList({
           pks: updatePkValues,
+          ignoreRls: true,
         });
+
+        // Check which updated rows are still visible under the user's RLS policy
+        const rlsConditionsForUpsertUpdate = await this.getRlsConditions();
+        if (rlsConditionsForUpsertUpdate.length && updateResponses.length) {
+          const visibleUpsertUpdates = await this.chunkList({
+            pks: updatePkValues,
+          });
+          const visibleUpsertUpdatePks = new Set(
+            visibleUpsertUpdates.map((r) =>
+              this.extractPksValues(r, true)?.toString(),
+            ),
+          );
+          for (const record of updateResponses) {
+            const pk = this.extractPksValues(record, true)?.toString();
+            if (!visibleUpsertUpdatePks.has(pk)) {
+              record.__nc_rls_hidden = true;
+            }
+          }
+        }
 
         if (!raw) {
           if (updateResponses.length === 1) {
@@ -2712,6 +2868,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
       profiler.log('prepareNocoData done');
 
+      const rlsConditions = await this.getRlsConditions();
+      const rlsFilterGroup = rlsConditions.length
+        ? [new Filter({ children: rlsConditions, is_group: true })]
+        : [];
+
       if (
         this.model.primaryKeys.length === 1 &&
         (this.isPg || this.isMySQL || this.isSqlite)
@@ -2724,21 +2885,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         );
 
         if (batchQb) {
-          queries.push(
-            batchUpdate(
-              this.dbDriver,
-              this.tnPath,
-              toBeUpdated.map((o) => o.d),
-              this.model.primaryKey.column_name,
-            ).toQuery(),
-          );
+          if (rlsFilterGroup.length) {
+            await conditionV2(this, rlsFilterGroup, batchQb);
+          }
+          queries.push(batchQb.toQuery());
         }
       } else {
-        queries.push(
-          ...toBeUpdated.map((o) =>
-            this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
-          ),
-        );
+        for (const o of toBeUpdated) {
+          const qb = this.dbDriver(this.tnPath).update(o.d).where(o.wherePk);
+          if (rlsFilterGroup.length) {
+            await conditionV2(this, rlsFilterGroup, qb);
+          }
+          queries.push(qb.toQuery());
+        }
       }
 
       if ((this.dbDriver as any).isExternal) {
@@ -2783,8 +2942,28 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           pks: updatePkValues,
           chunkSize: READ_CHUNK_SIZE,
           apiVersion,
+          ignoreRls: true,
         });
         profiler.log('this.chunkList done');
+
+        // Check which updated rows are still visible under the user's RLS policy
+        const rlsConditionsForCheck = await this.getRlsConditions();
+        let rlsHiddenPks: Set<string> | null = null;
+        if (rlsConditionsForCheck.length && updatedRecords.length) {
+          const visibleRecords = await this.chunkList({
+            pks: updatePkValues,
+            chunkSize: READ_CHUNK_SIZE,
+            apiVersion,
+          });
+          const visiblePks = new Set(
+            visibleRecords.map((r) =>
+              this.extractPksValues(r, true)?.toString(),
+            ),
+          );
+          rlsHiddenPks = new Set(
+            updatePkValues.filter((pk) => !visiblePks.has(pk?.toString())),
+          );
+        }
 
         const updatedRecordsMap = new Map(
           updatedRecords.map((record) => {
@@ -2792,12 +2971,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               this.model.primaryKeys,
               record,
             );
-            return [
+            const pkStr =
               typeof compositePk === 'string'
                 ? compositePk
-                : compositePk.toString(),
-              record,
-            ];
+                : compositePk.toString();
+            if (rlsHiddenPks?.has(pkStr)) {
+              record.__nc_rls_hidden = true;
+            }
+            return [pkStr, record];
           }),
         );
         for (const pk of updatePkValues) {
@@ -3137,8 +3318,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
+      const rlsConditions = await this.getRlsConditions();
+      const rlsFilterGroup = rlsConditions.length
+        ? [new Filter({ children: rlsConditions, is_group: true })]
+        : [];
+
       for (const d of res) {
-        queries.push(this.dbDriver(this.tnPath).del().where(d).toQuery());
+        const qb = this.dbDriver(this.tnPath).del().where(d);
+        if (rlsFilterGroup.length) {
+          await conditionV2(this, rlsFilterGroup, qb);
+        }
+        queries.push(qb.toQuery());
       }
 
       if ((this.dbDriver as any).isExternal) {
@@ -3221,16 +3411,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       Object.assign(data, newData);
     }
 
-    NocoSocket.broadcastEvent(
+    // Strip __nc_rls_hidden from broadcast — other clients have different
+    // RLS policies and the flag would be incorrect for them
+    const { __nc_rls_hidden: _, ...broadcastPayload } = newData || {};
+
+    NocoSocket.broadcastDataEvent(
       this.context,
       {
-        event: EventType.DATA_EVENT,
         payload: {
           id,
           action: 'update',
-          payload: newData,
+          payload: broadcastPayload,
         },
-        scopes: [this.model.id],
+        tableId: this.model.id,
       },
       this.context.socket_id,
     );
@@ -3306,16 +3499,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     if (newData && newData.length > 0) {
       for (const data of newData) {
-        NocoSocket.broadcastEvent(
+        // Strip __nc_rls_hidden from broadcast — other clients have different
+        // RLS policies and the flag would be incorrect for them
+        const { __nc_rls_hidden: _, ...broadcastPayload } = data || {};
+
+        NocoSocket.broadcastDataEvent(
           this.context,
           {
-            event: EventType.DATA_EVENT,
             payload: {
               id: this.extractPksValues(data),
               action: 'update',
-              payload: data,
+              payload: broadcastPayload,
             },
-            scopes: [this.model.id],
+            tableId: this.model.id,
           },
           this.context.socket_id,
         );
@@ -3674,6 +3870,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const source = await Source.get(this.context, this.model.source_id);
 
       // Use singleQueryGroupedList which handles nested columns/rollups in SQL
+      // RLS conditions are resolved internally by singleQueryGroupedList
       return await singleQueryGroupedList(this.context, {
         model: this.model,
         view: this.viewId
@@ -3697,6 +3894,195 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } catch (e) {
       throw e;
     }
+  }
+
+  /**
+   * EE override: Returns RLS filter conditions for the current user.
+   * Resolves applicable policies and returns filter conditions that
+   * get AND'd with all other filters in the query.
+   */
+  public override async getRlsConditions(): Promise<Filter[]> {
+    // Only apply RLS if user context is available
+    if (!this.context?.user?.id) {
+      return [];
+    }
+
+    const user = this.context.user;
+
+    // Base owners are exempt from RLS
+    if (user.base_roles) {
+      const roles =
+        typeof user.base_roles === 'string'
+          ? JSON.parse(user.base_roles)
+          : user.base_roles;
+      if (roles?.[ProjectRoles.OWNER]) {
+        return [];
+      }
+    }
+
+    try {
+      // Build user context for RLS resolution
+      let baseRoles = '';
+      if (user.base_roles) {
+        const roles =
+          typeof user.base_roles === 'string'
+            ? JSON.parse(user.base_roles)
+            : user.base_roles;
+        baseRoles = Object.keys(roles)
+          .filter((r) => roles[r])
+          .join(',');
+      }
+
+      const rlsUser = {
+        id: user.id,
+        email: user.email,
+        roles: baseRoles,
+      };
+
+      const result = await resolveRlsPolicies(
+        this.context,
+        this.model.id,
+        rlsUser,
+      );
+
+      if (result.type === 'no_rls') {
+        return [];
+      }
+
+      if (result.type === 'deny_all') {
+        return this.getDenyAllFilter();
+      }
+
+      // Load and resolve filter trees for matched policies
+      const allPolicies = await RlsPolicy.listByModel(
+        this.context,
+        this.model.id,
+      );
+      const enabledPolicies = allPolicies.filter((p) => p.enabled);
+      const defaultPolicy = enabledPolicies.find((p) => p.is_default);
+      const scopedPolicies = enabledPolicies.filter((p) => !p.is_default);
+
+      const matchedPolicyIds: string[] = [];
+      for (const policy of scopedPolicies) {
+        if (policy.subjects?.length) {
+          let matched = false;
+          for (const subject of policy.subjects) {
+            if (subject.type === 'role' && baseRoles.includes(subject.id)) {
+              matched = true;
+              break;
+            }
+            if (subject.type === 'user' && user.id === subject.id) {
+              matched = true;
+              break;
+            }
+            if (subject.type === 'team') {
+              try {
+                const assignment = await PrincipalAssignment.get(
+                  this.context,
+                  ResourceType.TEAM,
+                  subject.id,
+                  PrincipalType.USER,
+                  user.id,
+                );
+                if (assignment) {
+                  matched = true;
+                  break;
+                }
+              } catch {
+                // continue
+              }
+            }
+          }
+          if (matched) {
+            matchedPolicyIds.push(policy.id);
+          }
+        }
+      }
+
+      // Load filters for matched policies (or default policy)
+      let policyIdsToLoad: string[];
+
+      if (matchedPolicyIds.length > 0) {
+        policyIdsToLoad = matchedPolicyIds;
+      } else if (
+        defaultPolicy &&
+        defaultPolicy.default_behavior === 'condition'
+      ) {
+        policyIdsToLoad = [defaultPolicy.id];
+      } else {
+        return [];
+      }
+
+      // Load filter trees and OR them together
+      const allFilters: Filter[] = [];
+      for (const policyId of policyIdsToLoad) {
+        const filters = await Filter.rootFilterListByRlsPolicy(this.context, {
+          rlsPolicyId: policyId,
+        });
+        if (filters?.length) {
+          const resolvedFilters = resolveRlsDynamicValues(filters, rlsUser);
+          allFilters.push(...resolvedFilters.map((f) => new Filter(f)));
+        }
+      }
+
+      if (allFilters.length === 0) {
+        return [];
+      }
+
+      // If multiple policies, wrap in OR group
+      if (policyIdsToLoad.length > 1) {
+        // Set logical_op on children so conditionV2 joins them with OR
+        const orChildren = allFilters.map((f, idx) => {
+          if (idx === 0) return f;
+          return new Filter({ ...f, logical_op: 'or' });
+        });
+        return [
+          new Filter({
+            children: orChildren,
+            is_group: true,
+            logical_op: 'or',
+          }),
+        ];
+      }
+
+      return allFilters;
+    } catch (e) {
+      // If RLS resolution fails, deny access (fail closed)
+      new Logger('BaseModelSqlv2').error('RLS resolution error:', e);
+      return this.getDenyAllFilter();
+    }
+  }
+
+  /**
+   * Returns a filter that matches zero rows (WHERE pk IS NULL).
+   * Used for deny_all default policy and fail-closed error handling.
+   */
+  private async getDenyAllFilter(): Promise<Filter[]> {
+    // Ensure columns are loaded so primaryKey is available
+    await this.model.getColumns(this.context);
+    const pkCol = this.model.primaryKey;
+    if (pkCol?.id) {
+      return [
+        new Filter({
+          comparison_op: 'null',
+          fk_column_id: pkCol.id,
+          is_group: false,
+        }),
+      ];
+    }
+    // Fallback: use first column with an impossible condition
+    const firstCol = this.model.columns?.[0];
+    if (firstCol?.id) {
+      return [
+        new Filter({
+          comparison_op: 'eq',
+          fk_column_id: firstCol.id,
+          value: '__nc_rls_deny_all__',
+          is_group: false,
+        }),
+      ];
+    }
+    return [];
   }
 }
 

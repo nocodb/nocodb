@@ -145,7 +145,7 @@ export default class Org implements OrganizationType {
       if (!org) return null;
     }
 
-    org.payment = await getActivePlanAndSubscription(org.id, false, ncMeta);
+    org.payment = await getActivePlanAndSubscription(org.id, ncMeta);
 
     return new Org(org);
   }

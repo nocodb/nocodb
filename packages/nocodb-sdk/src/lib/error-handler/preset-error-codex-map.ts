@@ -36,6 +36,11 @@ export const presetErrorCodexMap: Partial<
       message ? `Forbidden - ${message}` : 'Forbidden to access this resource',
     code: 403,
   },
+  [NcErrorType.ERR_INSUFFICIENT_PRIVILEGE]: {
+    message: (message: string) =>
+      message || 'Insufficient privilege to perform this action',
+    code: 403,
+  },
   [NcErrorType.ERR_API_TOKEN_NOT_ALLOWED]: {
     message: 'This request is not allowed with API token',
     code: 401,

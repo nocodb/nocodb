@@ -54,6 +54,9 @@ import type {
   RecordTemplateDeletePayload,
   RecordTemplateUpdatePayload,
   RecordTemplateUsePayload,
+  RlsPolicyCreatePayload,
+  RlsPolicyDeletePayload,
+  RlsPolicyUpdatePayload,
   ScriptCreatePayload,
   ScriptDeletePayload,
   ScriptDuplicatePayload,
@@ -153,6 +156,9 @@ import type {
   RecordTemplateDeleteEvent,
   RecordTemplateUpdateEvent,
   RecordTemplateUseEvent,
+  RlsPolicyCreateEvent,
+  RlsPolicyDeleteEvent,
+  RlsPolicyUpdateEvent,
   ScriptCreateEvent,
   ScriptDeleteEvent,
   ScriptDuplicateEvent,
@@ -3560,6 +3566,62 @@ export class AppHooksListenerService
                 permission_id: param.permission.id,
                 entity: param.permission.entity,
                 entity_id: param.permission.entity_id,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      // RLS Policy Events
+      case AppEvents.RLS_POLICY_CREATE: {
+        const param = data as RlsPolicyCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<RlsPolicyCreatePayload>(
+            AuditV1OperationTypes.RLS_POLICY_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                policy_id: param.policyId,
+                policy_title: param.policyTitle,
+                table_id: param.tableId,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.RLS_POLICY_UPDATE: {
+        const param = data as RlsPolicyUpdateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<RlsPolicyUpdatePayload>(
+            AuditV1OperationTypes.RLS_POLICY_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                policy_id: param.policyId,
+                policy_title: param.policyTitle,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.RLS_POLICY_DELETE: {
+        const param = data as RlsPolicyDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<RlsPolicyDeletePayload>(
+            AuditV1OperationTypes.RLS_POLICY_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                policy_id: param.policyId,
+                table_id: param.tableId,
               },
             },
           ),

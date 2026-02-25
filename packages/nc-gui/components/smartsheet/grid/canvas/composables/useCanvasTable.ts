@@ -1338,6 +1338,9 @@ export function useCanvasTable({
 
     if (!row || !column) return null
 
+    // Row is hidden by RLS policy — lock it to prevent edits before it's removed from view
+    if (row.rowMeta?.isRlsHidden) return null
+
     if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
     const isEditRestricted = column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)

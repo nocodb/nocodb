@@ -265,6 +265,10 @@ export enum AppEvents {
   RECORD_TEMPLATE_UPDATE = 'record.template.update',
   RECORD_TEMPLATE_DELETE = 'record.template.delete',
   RECORD_TEMPLATE_USE = 'record.template.use',
+
+  RLS_POLICY_CREATE = 'rls_policy.create',
+  RLS_POLICY_UPDATE = 'rls_policy.update',
+  RLS_POLICY_DELETE = 'rls_policy.delete',
 }
 
 export enum ClickhouseTables {

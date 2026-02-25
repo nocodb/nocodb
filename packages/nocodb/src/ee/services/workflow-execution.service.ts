@@ -21,6 +21,7 @@ import type {
   WorkflowExecutionState,
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
+  WorkflowRunAs,
   WorkflowType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -35,10 +36,11 @@ import {
   isNodeAvailableForPlan,
   WorkflowNodePlanRequirements,
 } from '~/helpers/workflowNodeHelpers';
-import { Column, Integration, Workflow } from '~/models';
+import { BaseUser, Column, Integration, User, Workflow } from '~/models';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { TablesService } from '~/services/tables.service';
 import { NcError } from '~/helpers/ncError';
+import rolePermissions from '~/utils/acl';
 import {
   buildWorkflowGraph,
   determineStartNode,
@@ -162,6 +164,115 @@ export class WorkflowExecutionService {
     private readonly mailService: MailService,
   ) {}
 
+  /**
+   * Wrap a service with role-based ACL enforcement using a Proxy.
+   * Only methods listed in operationMap are checked — unmapped methods pass through.
+   * @param service - The service instance to wrap
+   * @param executionUser - The resolved workflow execution user (with base_roles)
+   * @param operationMap - Maps service method names to ACL operation names
+   */
+  private wrapServiceWithAcl<T extends object>(
+    service: T,
+    executionUser: Record<string, any>,
+    operationMap: Record<string, string>,
+  ): T {
+    if (!executionUser.base_roles) {
+      // Service account — no restrictions
+      return service;
+    }
+
+    const roles =
+      typeof executionUser.base_roles === 'string'
+        ? JSON.parse(executionUser.base_roles)
+        : executionUser.base_roles;
+
+    return new Proxy(service, {
+      get(target, prop, receiver) {
+        const aclOp = operationMap[prop as string];
+        if (aclOp) {
+          const isAllowed = Object.entries(roles).some(
+            ([roleName, hasRole]) => {
+              if (!hasRole || !rolePermissions[roleName]) return false;
+              const perms = rolePermissions[roleName];
+              return (
+                perms === '*' ||
+                (perms.exclude && !perms.exclude[aclOp]) ||
+                (perms.include && perms.include[aclOp])
+              );
+            },
+          );
+
+          if (!isAllowed) {
+            return () => {
+              NcError.insufficientPrivilege(
+                `Workflow execution role does not have permission to perform '${aclOp}'`,
+              );
+            };
+          }
+        }
+        return Reflect.get(target, prop, receiver);
+      },
+    });
+  }
+
+  /**
+   * Resolve the execution user based on workflow run_as configuration.
+   * - service_account: returns the default WORKFLOW_USER (no base_roles)
+   * - role: returns WORKFLOW_USER with base_roles set to the specified role
+   * - user: loads the real user from DB with their live base_roles
+   */
+  public async resolveExecutionUser(
+    context: NcContext,
+    workflow: WorkflowType,
+  ): Promise<Record<string, any>> {
+    const runAs: WorkflowRunAs | undefined = (workflow.meta as any)?.run_as;
+
+    if (!runAs || runAs.type === 'service_account') {
+      return NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER];
+    }
+
+    if (runAs.type === 'role' && runAs.value) {
+      return {
+        ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+        base_roles: { [runAs.value]: true },
+      };
+    }
+
+    if (runAs.type === 'user' && runAs.value) {
+      try {
+        const baseUser = await BaseUser.get(
+          context,
+          context.base_id,
+          runAs.value,
+        );
+
+        if (!baseUser) {
+          this.logger.warn(
+            `Run-as user ${runAs.value} not found in base, falling back to service account`,
+          );
+          return NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER];
+        }
+
+        const user = await User.get(runAs.value);
+
+        return {
+          id: user.id,
+          email: user.email,
+          display_name: user.display_name,
+          base_roles: { [baseUser.roles]: true },
+        };
+      } catch (error) {
+        this.logger.warn(
+          `Failed to resolve run-as user ${runAs.value}, falling back to service account`,
+          error?.stack,
+        );
+        return NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER];
+      }
+    }
+
+    return NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER];
+  }
+
   public async getWorkflowNodes(context: NcContext) {
     // Get user's current plan title
     const userPlanTitle = await getPlanTitleFromContext(context);
@@ -233,6 +344,7 @@ export class WorkflowExecutionService {
     context: NcContext,
     nodeType: string,
     nodeConfig: any,
+    executionUser?: Record<string, any>,
   ): WorkflowNodeIntegration | null {
     const integration = Integration.availableIntegrations.find(
       (i) =>
@@ -266,6 +378,39 @@ export class WorkflowExecutionService {
       return authWrapper;
     };
 
+    const resolvedUser =
+      executionUser || NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER];
+
+    // Wrap services with ACL enforcement based on execution user's role
+    const aclDataService = this.wrapServiceWithAcl(
+      this.dataV3Service,
+      resolvedUser,
+      {
+        dataList: 'dataList',
+        dataRead: 'dataRead',
+        dataInsert: 'dataInsert',
+        dataUpdate: 'dataUpdate',
+        dataDelete: 'dataDelete',
+      },
+    );
+
+    const aclTablesService = this.wrapServiceWithAcl(
+      this.tablesService,
+      resolvedUser,
+      {
+        getAccessibleTables: 'tableList',
+        getTableWithAccessibleViews: 'tableGet',
+      },
+    );
+
+    const aclMailService = this.wrapServiceWithAcl(
+      this.mailService,
+      resolvedUser,
+      {
+        sendMailRaw: 'sendEmail',
+      },
+    );
+
     let nodeWrapper;
 
     try {
@@ -276,27 +421,27 @@ export class WorkflowExecutionService {
             context: {
               ...context,
               nc_site_url: context.nc_site_url,
-              user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+              user: resolvedUser,
             },
-            dataService: this.dataV3Service,
-            tablesService: this.tablesService,
-            mailService: this.mailService,
-            user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+            dataService: aclDataService,
+            tablesService: aclTablesService,
+            mailService: aclMailService,
+            user: resolvedUser,
             getBaseSchema: async () => await getBaseSchema(context),
             getAccessToken: () =>
               genJwt(
                 {
-                  ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+                  ...resolvedUser,
                   extra: {
                     context: {
                       base_id: context.base_id,
                       workspace_id: context.workspace_id,
                       org_id: context.org_id,
                       nc_site_url: context.nc_site_url,
-                      user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+                      user: resolvedUser,
                     },
                   },
-                },
+                } as any,
                 Noco.getConfig(),
                 {
                   expiresIn: '3m',
@@ -431,6 +576,7 @@ export class WorkflowExecutionService {
     testMode?: boolean,
     _nodeWrapper?: WorkflowNodeIntegration,
     nodes?: WorkflowGeneralNode[],
+    executionUser?: Record<string, any>,
   ): Promise<NodeExecutionResult> {
     const result: NodeExecutionResult = {
       nodeId: node.id,
@@ -463,7 +609,12 @@ export class WorkflowExecutionService {
 
       const nodeWrapper =
         _nodeWrapper ||
-        this.getNodeWrapper(context, node.type, node.data?.config || {});
+        this.getNodeWrapper(
+          context,
+          node.type,
+          node.data?.config || {},
+          executionUser,
+        );
       if (!nodeWrapper) {
         NcError.get(context).workflowNodeNotFound(node.type);
       }
@@ -579,6 +730,9 @@ export class WorkflowExecutionService {
     };
 
     try {
+      // Resolve execution user once for the entire workflow run
+      const executionUser = await this.resolveExecutionUser(context, workflow);
+
       const nodes = (workflow.nodes || []) as WorkflowGeneralNode[];
       const edges = (workflow.edges || []) as WorkflowGeneralEdge[];
 
@@ -685,6 +839,7 @@ export class WorkflowExecutionService {
           triggerData,
           expressionContext,
           nodes,
+          executionUser,
         );
 
         // Check if node is a delay/pause node and should pause execution
@@ -931,6 +1086,7 @@ export class WorkflowExecutionService {
     triggerData: any,
     expressionContext: ExpressionContext,
     nodes?: WorkflowGeneralNode[],
+    executionUser?: Record<string, any>,
   ): Promise<NodeExecutionResult> {
     const startTime = Date.now();
 
@@ -943,6 +1099,7 @@ export class WorkflowExecutionService {
         startTime,
         undefined,
         nodes,
+        executionUser,
       );
     }
 
@@ -954,6 +1111,7 @@ export class WorkflowExecutionService {
       undefined,
       undefined,
       nodes,
+      executionUser,
     );
   }
 
@@ -964,12 +1122,14 @@ export class WorkflowExecutionService {
     startTime: number,
     testMode?: boolean,
     nodes?: WorkflowGeneralNode[],
+    executionUser?: Record<string, any>,
   ): Promise<NodeExecutionResult> {
     if (isTriggerNode(node.type)) {
       const nodeWrapper = this.getNodeWrapper(
         context,
         node.type,
         node.data?.config || {},
+        executionUser,
       );
 
       if (nodeWrapper) {
@@ -1072,6 +1232,9 @@ export class WorkflowExecutionService {
     targetNodeId: string,
     testTriggerData?: any,
   ): Promise<NodeExecutionResult> {
+    // Resolve execution user for test mode too
+    const executionUser = await this.resolveExecutionUser(context, workflow);
+
     // ALWAYS PRIORITIZE DRAFT NODES WHEN TESTING
     const nodes = ((workflow as any).draft?.nodes ||
       workflow.nodes ||
@@ -1094,6 +1257,7 @@ export class WorkflowExecutionService {
       context,
       targetNode.type,
       targetNode.data?.config || {},
+      executionUser,
     );
 
     if (nodeWrapper) {
@@ -1132,6 +1296,7 @@ export class WorkflowExecutionService {
         Date.now(),
         true,
         nodes,
+        executionUser,
       );
 
       let inputVariables: VariableDefinition[] = [];
@@ -1246,6 +1411,7 @@ export class WorkflowExecutionService {
       true,
       nodeWrapper,
       nodes,
+      executionUser,
     );
 
     // Add note if tested with mock loop variables

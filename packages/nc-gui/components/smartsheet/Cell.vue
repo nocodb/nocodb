@@ -100,6 +100,8 @@ const syncValue = useDebounceFn(
   { maxWait: 2000 },
 )
 
+const isRlsEnabled = computed(() => parseProp(meta.value?.meta)?.is_rls_enabled === true)
+
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 onBeforeUnmount(() => {
@@ -107,6 +109,15 @@ onBeforeUnmount(() => {
   if (currentRow.value.oldRow?.[column.value.title] === currentRow.value.row?.[column.value.title]) return
   currentRow.value.rowMeta.changed = false
   emitSave()
+})
+
+// Non-canvas RLS: save on blur (when editEnabled goes true → false)
+watch(editEnabled, (newVal, oldVal) => {
+  if (!isRlsEnabled.value || isCanvasInjected) return
+  if (oldVal && !newVal && currentRow.value.rowMeta.changed) {
+    currentRow.value.rowMeta.changed = false
+    emitSave()
+  }
 })
 
 let saveTimer: number
@@ -138,6 +149,9 @@ const vModel = computed({
       emit('update:modelValue', val)
       if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()
+      } else if (isAutoSaved(column.value) && isRlsEnabled.value) {
+        // RLS enabled: skip debounced auto-save to prevent row disappearing mid-edit.
+        // Save will happen on blur (editEnabled watcher) or cell unmount (canvas).
       } else if (isAutoSaved(column.value)) {
         syncValue()
       } else if (!isManualSaved(column.value)) {

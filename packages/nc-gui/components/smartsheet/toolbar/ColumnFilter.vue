@@ -15,6 +15,7 @@ interface Props {
   parentId?: string
   autoSave: boolean
   hookId?: string
+  rlsPolicyId?: string
   widgetId?: string
   showLoading?: boolean
   modelValue?: FilterType[] | null
@@ -47,6 +48,7 @@ const props = withDefaults(defineProps<Props>(), {
   showLoading: true,
   parentId: undefined,
   hookId: undefined,
+  rlsPolicyId: undefined,
   widgetId: undefined,
   widget: false,
   webHook: false,
@@ -91,6 +93,7 @@ const {
   parentId,
   autoSave,
   hookId,
+  rlsPolicyId,
   widgetId,
   showLoading,
   webHook,
@@ -138,7 +141,7 @@ const {
   isForm,
   eventBus,
   allFilters: smartsheetAllFilters,
-} = widget.value || workflow.value
+} = widget.value || workflow.value || rlsPolicyId?.value
   ? {
       nestedFilters: ref([]),
       isForm: ref(false),
@@ -201,6 +204,7 @@ const {
   fieldsToFilter,
   parentColId,
   props.isTempFilters,
+  !!rlsPolicyId?.value,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -326,6 +330,7 @@ watch(
     )
       loadFilters({
         hookId: hookId.value,
+        rlsPolicyId: rlsPolicyId?.value,
         isWebhook: webHook.value,
         widgetId: widgetId.value,
         isWidget: widget.value,
@@ -394,6 +399,8 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   if (link.value) {
     if (!hookOrColId && !props.nestedLevel) return
     await sync({ linkId: hookOrColId, nested })
+  } else if (rlsPolicyId?.value) {
+    await sync({ rlsPolicyId: rlsPolicyId.value, nested })
   } else {
     await sync({ hookId: hookOrColId, nested })
   }
@@ -568,6 +575,7 @@ onMounted(async () => {
       if (!props.isTempFilters && !initialModelValue?.length)
         await loadFilters({
           hookId: hookId?.value,
+          rlsPolicyId: rlsPolicyId?.value,
           isWebhook: webHook.value,
           isWidget: widget.value,
           widgetId: widgetId.value,
@@ -1207,7 +1215,7 @@ defineExpose({
                   }"
                   class="nc-filter-field-select min-w-32 max-h-8"
                   :columns="fieldsToFilter"
-                  :disable-smartsheet="!!widget || !!workflow"
+                  :disable-smartsheet="!!widget || !!workflow || !!rlsPolicyId"
                   :disabled="filter.readOnly || isLockedView || readOnly"
                   :meta="meta"
                   :show-all-columns="filter.readOnly || isLockedView || readOnly"

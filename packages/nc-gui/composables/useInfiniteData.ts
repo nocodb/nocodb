@@ -880,7 +880,7 @@ export function useInfiniteData(args: {
     const sortedEntries = Array.from(dataCache.cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
 
     const invalidIndexes = sortedEntries
-      .filter(([_, row]) => row.rowMeta.isValidationFailed || row.rowMeta.isGroupChanged)
+      .filter(([_, row]) => row.rowMeta.isValidationFailed || row.rowMeta.isGroupChanged || row.rowMeta.isRlsHidden)
       .map(([index]) => index)
 
     if (invalidIndexes.length === 0) return
@@ -1535,6 +1535,7 @@ export function useInfiniteData(args: {
           rowIndex: insertIndex,
           new: false,
           saving: false,
+          isRlsHidden: !!insertedData?.__nc_rls_hidden,
           ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
         },
       })
@@ -1677,6 +1678,11 @@ export function useInfiniteData(args: {
       Object.assign(toUpdate.oldRow, updatedRowData)
       Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
 
+      // Mark row as hidden if it moved out of user's RLS scope after update
+      if (updatedRowData?.__nc_rls_hidden) {
+        toUpdate.rowMeta.isRlsHidden = true
+      }
+
       // Update the row in cachedRows
       if (toUpdate.rowMeta.rowIndex !== undefined) {
         dataCache.cachedRows.value.set(toUpdate.rowMeta.rowIndex, toUpdate)
@@ -1723,6 +1729,9 @@ export function useInfiniteData(args: {
     if (!row.rowMeta) {
       throw new Error('Row metadata is missing')
     }
+
+    // Row is hidden by RLS policy — skip save to avoid repeated API calls on a row the user can no longer access
+    if (row.rowMeta.isRlsHidden) return
 
     const dataCache = getDataCache(path)
 

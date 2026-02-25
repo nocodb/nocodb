@@ -4,6 +4,7 @@ export * from '~/lib/payment';
 export * from '~/lib/realtime';
 export * from '~/lib/scripts';
 export * from '~/lib/teams/index';
+export * from '~/lib/rls/index';
 
 /**
  * `extractProjectRolePower` and `hasMinimumRoleAccess` are already exported in `~/lib/roleHelper`

@@ -380,7 +380,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
       return published
     } catch (e) {
       console.error(e)
-      throw e
+      const errorInfo = await extractSdkResponseErrorMsgv2(e as any)
+      message.error(errorInfo?.message)
     }
   }
 

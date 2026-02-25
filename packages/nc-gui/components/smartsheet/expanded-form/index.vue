@@ -401,7 +401,11 @@ const save = async () => {
 
     isUnsavedFormExist.value = false
 
-    if (props.closeAfterSave) {
+    // Close expanded form if row is hidden by RLS policy
+    if (_row.value?.row?.__nc_rls_hidden) {
+      message.info('Record saved successfully but is hidden due to your access permissions.')
+      isExpanded.value = false
+    } else if (props.closeAfterSave) {
       isExpanded.value = false
     } else {
       if (isUnsavedDuplicatedRecordExist.value) {

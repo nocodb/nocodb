@@ -36,6 +36,8 @@ const { isMysql, isPg } = baseStore
 
 const { meta, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
+const isRlsEnabled = computed(() => parseProp(meta.value?.meta)?.is_rls_enabled === true)
+
 const { updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } = useViewAggregateOrThrow()
 
 const scrollLeft = toRef(props, 'scrollLeft')
@@ -165,13 +167,21 @@ const getCountWithLabel = (defaultCount: number) => {
               </div>
               <NcTooltip v-else class="flex sticky items-center h-full">
                 <template #title> {{ getCountWithLabel(count).count }} {{ getCountWithLabel(count).label }} </template>
-                <span
-                  data-testid="grid-pagination"
-                  class="text-nc-content-gray-muted text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
-                >
-                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(getCountWithLabel(count).count) }}
-                  {{ getCountWithLabel(count).label }}
-                </span>
+                <div class="flex items-center gap-1">
+                  <span
+                    data-testid="grid-pagination"
+                    class="text-nc-content-gray-muted text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+                  >
+                    {{ Intl.NumberFormat('en', { notation: 'compact' }).format(getCountWithLabel(count).count) }}
+                    {{ getCountWithLabel(count).label }}
+                  </span>
+                  <NcTooltip v-if="isRlsEnabled">
+                    <template #title>
+                      Row-level security is enabled. Some rows may be hidden based on your access permissions.
+                    </template>
+                    <GeneralIcon icon="ncShield" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
+                  </NcTooltip>
+                </div>
               </NcTooltip>
             </template>
 
@@ -180,13 +190,21 @@ const getCountWithLabel = (defaultCount: number) => {
                 <template #title>
                   {{ getCountWithLabel(totalRows ?? 0).count }} {{ getCountWithLabel(totalRows ?? 0).label }}
                 </template>
-                <span
-                  data-testid="grid-pagination"
-                  class="text-nc-content-gray-muted text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
-                >
-                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(getCountWithLabel(totalRows ?? 0).count) }}
-                  {{ getCountWithLabel(totalRows ?? 0).label }}
-                </span>
+                <div class="flex items-center gap-1">
+                  <span
+                    data-testid="grid-pagination"
+                    class="text-nc-content-gray-muted text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+                  >
+                    {{ Intl.NumberFormat('en', { notation: 'compact' }).format(getCountWithLabel(totalRows ?? 0).count) }}
+                    {{ getCountWithLabel(totalRows ?? 0).label }}
+                  </span>
+                  <NcTooltip v-if="isRlsEnabled">
+                    <template #title>
+                      Row-level security is enabled. Some rows may be hidden based on your access permissions.
+                    </template>
+                    <GeneralIcon icon="ncShield" class="!w-3.5 !h-3.5 text-nc-content-gray-muted" />
+                  </NcTooltip>
+                </div>
               </NcTooltip>
             </template>
 

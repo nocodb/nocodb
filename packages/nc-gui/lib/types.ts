@@ -131,6 +131,8 @@ interface Row {
     saving?: boolean
     ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
     fromExpandedForm?: boolean
+    // Row is hidden by RLS policy after insert
+    isRlsHidden?: boolean
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
     // Used in Calendar view

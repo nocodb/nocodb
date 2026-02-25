@@ -341,4 +341,24 @@ export interface RecordTemplateUseEvent extends NcBaseEvent {
   };
 }
 
+// RLS Events
+export interface RlsPolicyCreateEvent extends NcBaseEvent {
+  userId: string;
+  policyId: string;
+  policyTitle: string;
+  tableId: string;
+}
+
+export interface RlsPolicyUpdateEvent extends NcBaseEvent {
+  userId: string;
+  policyId: string;
+  policyTitle: string;
+}
+
+export interface RlsPolicyDeleteEvent extends NcBaseEvent {
+  userId: string;
+  policyId: string;
+  tableId: string;
+}
+
 export * from 'src/services/app-hooks/interfaces';

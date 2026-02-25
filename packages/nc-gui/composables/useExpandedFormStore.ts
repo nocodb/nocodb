@@ -435,13 +435,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             return message.info(t('msg.info.updateNotAllowedWithoutPK'))
           }
 
-          await $api.dbTableRow.update(
+          const updatedData = await $api.dbTableRow.update(
             NOCO,
             meta.value.base_id ?? (base.value.id as string),
             meta.value.id,
             encodeURIComponent(id),
             updateOrInsertObj,
           )
+
+          // If the updated row is now hidden by RLS policy, mark it
+          if (updatedData?.__nc_rls_hidden) {
+            row.value.row.__nc_rls_hidden = true
+          }
 
           if (!undo) {
             const undoObject = [...changedColumns.value].reduce((obj, col) => {
@@ -496,6 +501,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {
       if (row?.value?.rowMeta?.new || isPublic.value || !meta.value?.id) return
+
+      // Row is hidden by RLS policy — skip read to avoid 404
+      if (row?.value?.row?.__nc_rls_hidden) return
 
       const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 

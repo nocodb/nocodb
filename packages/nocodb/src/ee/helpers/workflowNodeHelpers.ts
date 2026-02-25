@@ -90,11 +90,7 @@ export async function getActivePlanTitle(
   workspaceOrOrgId: string,
   ncMeta = Noco.ncMeta,
 ): Promise<OnPremPlanTitles | PlanTitles> {
-  const { plan } = await getActivePlanAndSubscription(
-    workspaceOrOrgId,
-    false,
-    ncMeta,
-  );
+  const { plan } = await getActivePlanAndSubscription(workspaceOrOrgId, ncMeta);
   return plan?.title || PlanTitles.FREE;
 }
 

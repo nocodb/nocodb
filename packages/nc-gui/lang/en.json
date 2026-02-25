@@ -208,7 +208,9 @@
     "upgradeToUseSandbox": "Upgrade to use Sandboxes",
     "upgradeToUseSandboxSubtitle": "Sandboxes are available on the {plan} plan and above.",
     "upgradeToUseRecordTemplates": "Upgrade to use record templates",
-    "upgradeToUseRecordTemplatesSubtitle": "Upgrade to the {plan} plan to create and use record templates."
+    "upgradeToUseRecordTemplatesSubtitle": "Upgrade to the {plan} plan to create and use record templates.",
+    "upgradeToUseRls": "Upgrade to use Row-Level Security",
+    "upgradeToUseRlsSubtitle": "Upgrade to the {plan} plan to define row-level security policies that control which rows users can access."
   },
   "general": {
     "done": "Done",
@@ -2953,7 +2955,10 @@
       "syncTitleAlreadyExists": "Sync title already exists",
       "failedToDuplicateSharedBase": "Failed to duplicate shared base",
       "failedToCopyTemplate": "Failed to copy template",
-      "failedToLoadTemplateDetails": "Failed to load template details"
+      "failedToLoadTemplateDetails": "Failed to load template details",
+      "rlsPolicyCreateFailed": "Failed to create row-level security policy",
+      "rlsPolicyDeleteFailed": "Failed to delete row-level security policy",
+      "rlsPolicyUpdateFailed": "Failed to update row-level security policy"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",
@@ -2996,6 +3001,7 @@
       "mcpTokenUpdated": "MCP Token Updated",
       "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "License Key Updated",
+      "rlsPolicySaved": "Row-level security policy saved",
       "columnDuplicated": "Field duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Record duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",

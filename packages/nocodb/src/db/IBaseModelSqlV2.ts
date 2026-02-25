@@ -411,4 +411,5 @@ export interface IBaseModelSqlV2 {
    * to avoid amplifying requests to an overwhelmed external source.
    */
   formulaDryRunFailed?: boolean;
+  getRlsConditions(): Promise<Filter[]>;
 }

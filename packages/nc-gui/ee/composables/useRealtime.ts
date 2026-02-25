@@ -294,6 +294,29 @@ export const useRealtime = createSharedComposable(() => {
       $eventBus.realtimeViewMetaEventBus.emit(event.action, event.payload)
     } else if (event.action === 'row_color_update') {
       $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE, { rowColorInfo: event.payload || {} })
+    } else if (event.action === 'rls_policy_update') {
+      const { tableId, base_id: eventBaseId } = event.payload
+      if (!eventBaseId || eventBaseId !== activeBaseId.value || !tableId) return
+
+      // Refresh table meta to pick up updated is_rls_enabled flag
+      getMeta(eventBaseId, tableId, true).then((updatedMeta) => {
+        if (!updatedMeta) return
+
+        // Update sidebar table entry so shield icon reflects the change
+        const tables = baseTables.value.get(eventBaseId)
+        if (tables) {
+          const index = tables.findIndex((t) => t.id === tableId)
+          if (index !== -1) {
+            tables[index] = { ...tables[index], meta: updatedMeta.meta }
+            baseTables.value.set(eventBaseId, tables)
+          }
+        }
+      })
+
+      // If the affected table is currently open, reload its data (RLS may change visible rows)
+      if (tableId === activeTableId.value) {
+        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+      }
     } else if (event.action === 'extension_create') {
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
       const { payload } = event

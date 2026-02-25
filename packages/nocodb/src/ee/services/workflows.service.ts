@@ -3,14 +3,17 @@ import {
   AppEvents,
   DependencyTableType,
   EventType,
+  extractProjectRolePower,
   GeneralNodeID,
   generateUniqueCopyName,
   hasWorkflowDraftChanges,
   isTriggerNode,
+  RUN_AS_ALLOWED_ROLES,
   TriggerActivationType,
 } from 'nocodb-sdk';
 import { nanoid } from 'nanoid';
 import { CronExpressionParser } from 'cron-parser';
+import type { WorkflowRunAs } from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -19,6 +22,7 @@ import { WorkflowExecutionService } from '~/services/workflow-execution.service'
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
+  BaseUser,
   DependencyTracker,
   Workflow,
   WorkflowExecution,
@@ -121,6 +125,60 @@ export class WorkflowsService implements OnModuleInit {
     }
   }
 
+  /**
+   * Validate run_as configuration: the requesting user can only assign
+   * roles/users with strictly lower privilege than their own.
+   */
+  private async validateRunAs(
+    context: NcContext,
+    runAs: WorkflowRunAs | undefined,
+    req: NcRequest,
+  ): Promise<void> {
+    if (!runAs || runAs.type === 'service_account') return;
+
+    const callerPower = extractProjectRolePower(req.user);
+
+    if (runAs.type === 'role' && runAs.value) {
+      if (
+        !RUN_AS_ALLOWED_ROLES.includes(
+          runAs.value as (typeof RUN_AS_ALLOWED_ROLES)[number],
+        )
+      ) {
+        NcError.get(context).badRequest('Invalid run_as role');
+      }
+      const rolePower = extractProjectRolePower({
+        base_roles: { [runAs.value]: true },
+      });
+      if (rolePower >= callerPower) {
+        NcError.get(context).insufficientPrivilege(
+          'Cannot set run_as to a role with equal or higher privilege than your own',
+        );
+      }
+    }
+
+    if (runAs.type === 'user' && runAs.value) {
+      // Self-assignment is always allowed
+      if (runAs.value === req.user.id) return;
+
+      const targetUser = await BaseUser.get(
+        context,
+        context.base_id,
+        runAs.value,
+      );
+      if (!targetUser) {
+        NcError.get(context).badRequest('Target user not found in this base');
+      }
+      const targetPower = extractProjectRolePower({
+        base_roles: targetUser.roles ? { [targetUser.roles]: true } : {},
+      });
+      if (targetPower >= callerPower) {
+        NcError.get(context).insufficientPrivilege(
+          'Cannot set run_as to a user with equal or higher privilege than your own',
+        );
+      }
+    }
+  }
+
   async listWorkflows(context: NcContext) {
     return await Workflow.list(context, context.base_id);
   }
@@ -216,6 +274,15 @@ export class WorkflowsService implements OnModuleInit {
 
     if (workflowBody.title) {
       workflowBody.title = workflowBody.title.trim();
+    }
+
+    // Validate run_as if meta is being updated
+    if (workflowBody.meta) {
+      const meta =
+        typeof workflowBody.meta === 'string'
+          ? JSON.parse(workflowBody.meta)
+          : workflowBody.meta;
+      await this.validateRunAs(context, meta?.run_as, req);
     }
 
     if (!workflow.enabled && workflowBody.enabled) {
@@ -538,6 +605,10 @@ export class WorkflowsService implements OnModuleInit {
 
     // Validate workflow draft nodes are accessible for user's plan before publishing
     await this.validateWorkflowNodeAccess(context, workflow.draft.nodes);
+
+    // Validate run_as configuration
+    const runAs: WorkflowRunAs | undefined = (workflow.meta as any)?.run_as;
+    await this.validateRunAs(context, runAs, req);
 
     const pendingExecutionsCount = await WorkflowExecution.getWaitingDueCount(
       context,

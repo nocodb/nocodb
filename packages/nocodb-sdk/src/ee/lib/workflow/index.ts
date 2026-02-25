@@ -4,4 +4,5 @@ export * from './variable-schema-utils';
 export * from './node/ifTypes';
 export * from './node/typeParser';
 export * from './draftUtils';
+export * from './runAs';
 export * from 'src/lib/workflow';

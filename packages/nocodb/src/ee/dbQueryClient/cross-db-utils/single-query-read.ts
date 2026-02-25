@@ -22,6 +22,7 @@ import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { isTransientError } from '~/helpers/db-error/utils';
+import { RlsSubscriptionRegistry } from '~/socket/RlsSubscriptionRegistry';
 
 const debugSingleQueryRead = debug('nc:db:query:singleQueryRead');
 
@@ -40,6 +41,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       apiVersion?: NcApiVersion;
       extractOnlyPrimaries?: boolean;
       extractOrderColumn?: boolean;
+      ignoreRls?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     client.validateClientType(ctx.source.type);
@@ -68,6 +70,16 @@ export const singleQueryRead = (client: DBQueryClient) => {
     const linksAsLtar =
       ctx.apiVersion === NcApiVersion.V3 && ctx.params?.linksAsLtar === 'true';
 
+    // Resolve RLS conditions early — include policy hash in cache key
+    // so users with the same RLS filters share a cache entry
+    const rlsConditions = ctx.ignoreRls
+      ? []
+      : await baseModel.getRlsConditions();
+    let rlsCacheSegment = '';
+    if (rlsConditions.length) {
+      const hash = RlsSubscriptionRegistry.computeAccessHash(rlsConditions);
+      rlsCacheSegment = `:rls:${hash}`;
+    }
     const flags =
       (ctx.getHiddenColumn ? 1 : 0) |
       (ctx.extractOnlyPrimaries ? 2 : 0) |
@@ -76,7 +88,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
 
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
-    }:read:${flags}`;
+    }:read:${flags}${rlsCacheSegment}`;
     if (!skipCache) {
       const cachedQuery = await NocoCache.get(
         context,
@@ -137,7 +149,14 @@ export const singleQueryRead = (client: DBQueryClient) => {
       skipCache = true;
     }
 
+    // RLS conditions already resolved above (before cache check)
+    const rlsFilterGroup = rlsConditions.length
+      ? [new Filter({ children: rlsConditions, is_group: true })]
+      : [];
+
     const aggrConditionObj = [
+      // RLS filters — always first, always applied
+      ...rlsFilterGroup,
       ...(ctx.view?.id
         ? [
             new Filter({
@@ -245,6 +264,16 @@ export const singleQueryRead = (client: DBQueryClient) => {
     if (!skipCache) {
       // cache query for later use after successful execution
       await NocoCache.set(context, cacheKey, query);
+
+      // Track RLS-specific keys so clearSingleQueryCache can delete them
+      // Uses Redis SET (sadd) — appends without duplicates
+      if (rlsCacheSegment) {
+        await NocoCache.set(
+          context,
+          `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:rls_keys`,
+          [cacheKey],
+        );
+      }
     }
 
     return res;

@@ -2050,6 +2050,20 @@ export default class View implements ViewType {
       );
     }
 
+    // Delete tracked RLS-specific cache keys (stored as Redis SET)
+    const rlsTrackingKey = `${CacheScope.SINGLE_QUERY}:${modelId}:rls_keys`;
+    const rlsKeys = await NocoCache.get(
+      context,
+      rlsTrackingKey,
+      CacheGetType.TYPE_ARRAY,
+    );
+    if (rlsKeys?.length) {
+      deleteKeys.push(
+        ...rlsKeys.filter((k) => k && k !== 'NONE'),
+        rlsTrackingKey,
+      );
+    }
+
     await NocoCache.del(context, deleteKeys);
   }
 

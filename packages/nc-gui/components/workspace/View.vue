@@ -123,6 +123,8 @@ watch(
   },
 )
 
+const { shouldShow: btbShouldShow } = useBackToBase()
+
 onMounted(() => {
   hideSidebar.value = true
 })
@@ -133,7 +135,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings">
+  <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings h-full overflow-hidden">
     <div
       v-if="!props.workspaceId"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
@@ -154,6 +156,7 @@ onBeforeUnmount(() => {
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
+
       <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
     </div>
     <template v-else>
@@ -191,7 +194,10 @@ onBeforeUnmount(() => {
       </NcPageHeader>
     </template>
 
-    <NcTabs v-model:active-key="tab">
+    <!-- Back-to-base full-width bar: shown between breadcrumb and tabs (breadcrumb variant only) -->
+    <DashboardBackToBaseBreadcrumbVariant />
+
+    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
@@ -258,7 +264,7 @@ onBeforeUnmount(() => {
               </div>
             </template>
 
-            <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
+            <WorkspaceSso :class="btbShouldShow ? '!h-[calc(100vh-128px)]' : '!h-[calc(100vh-92px)]'" />
           </a-tab-pane>
         </template>
       </template>

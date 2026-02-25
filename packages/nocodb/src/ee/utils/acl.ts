@@ -746,8 +746,6 @@ const rolePermissions:
       filterCreate: true,
       filterUpdate: true,
       filterDelete: true,
-      buttonFilterList: true,
-      buttonFilterCreate: true,
       viewColumnUpdate: true,
       hideAllColumns: true,
       showAllColumns: true,

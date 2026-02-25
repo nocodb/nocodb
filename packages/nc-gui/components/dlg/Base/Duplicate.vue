@@ -25,6 +25,8 @@ const { workspacesList, activeWorkspace } = useWorkspace()
 
 const { loadProjects, createProject: _createProject } = basesStore
 
+const wsBaseListActions = useWsBaseListActions()
+
 // Check if current user is base owner
 const isBaseOwner = computed(() => {
   return user.value?.base_roles?.[ProjectRoles.OWNER]
@@ -39,7 +41,7 @@ const options = ref({
   includeDashboards: isEeUI,
   includeWorkflows: isEeUI,
 })
-const targetWorkspace = ref(activeWorkspace)
+const targetWorkspace = ref(workspacesList.find((ws) => ws.id === props.base.fk_workspace_id) ?? activeWorkspace)
 
 const errorMessage = ref()
 
@@ -128,7 +130,7 @@ const _duplicate = async () => {
             status.value = 'error'
             errorMessage.value = data?.data?.error?.message || 'Some error occurred'
             try {
-              await loadProjects('workspace')
+              await loadProjects('workspace', targetWorkspace?.value?.id ?? props.base.fk_workspace_id)
             } catch (_e: any) {
               // ignore
             }
@@ -166,6 +168,10 @@ const handleActionClick = () => {
       break
     }
     case 'success': {
+      if (wsBaseListActions) {
+        wsBaseListActions.closeModal()
+      }
+
       const base = targetBase.value
       navigateToProject({
         workspaceId: isEeUI ? base.fk_workspace_id : undefined,

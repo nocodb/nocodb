@@ -1255,7 +1255,6 @@
     "sandboxChangesPublishedSuccess": "Sandbox changes have been published successfully.",
     "viewChangesOnMaster": "You can now go to the master base to view the changes.",
     "publishChangesAction": "Publish Changes",
-    "publishing": "Publishing...",
     "createSandbox": "Create Sandbox",
     "sandboxCreated": "Sandbox Created",
     "failedToCreateSandbox": "Failed to Create Sandbox",
@@ -1263,7 +1262,6 @@
     "sandboxDescriptionOptional": "Description (optional)",
     "enterSandboxTitle": "Enter sandbox title",
     "sandboxDescriptionPlaceholder": "What are you working on in this sandbox?",
-    "includeRecords": "Include records",
     "creatingSandbox": "Creating Sandbox...",
     "goToSandbox": "Go to Sandbox",
     "sandboxCreatedSuccess": "Sandbox \"{title}\" has been created successfully.",
@@ -1865,7 +1863,8 @@
     "publishing": "Publishing",
     "navigate": "Navigate",
     "select": "Select",
-    "managed": "Managed"
+    "managed": "Managed",
+    "otherWorkspaces": "Other Workspaces"
   },
   "activity": {
     "useTemplate": "Use template",

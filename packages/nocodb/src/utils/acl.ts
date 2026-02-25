@@ -46,6 +46,7 @@ const permissionScopes = {
 
     // Misc
     'commandPalette',
+    'baseListAll',
     'testConnection',
     'genericGPT',
     'duplicateSharedBase',
@@ -384,6 +385,7 @@ const rolePermissions:
       testConnection: true,
       isPluginActive: true,
       commandPalette: true,
+      baseListAll: true,
       notification: true,
 
       // oAuth
@@ -646,6 +648,7 @@ const permissionDescriptions: Record<string, string> = {
   pluginUpdate: 'update plugin configuration',
 
   commandPalette: 'access the command palette',
+  baseListAll: 'list all workspaces and bases',
   testConnection: 'test connection to a service',
   genericGPT: 'use generic GPT functionality',
 

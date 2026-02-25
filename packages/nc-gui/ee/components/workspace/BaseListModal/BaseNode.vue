@@ -90,7 +90,7 @@ const handleOpenErd = () => {
 }
 
 const handleOpenSettings = () => {
-  onOpenSettings(props.base.id!)
+  onOpenSettings(props.base)
   isMenuOpen.value = false
 }
 

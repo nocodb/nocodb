@@ -1923,8 +1923,8 @@ export function useCanvasRender({
         text: warningRow.row.rowMeta.isValidationFailed
           ? 'Row filtered'
           : warningRow.row.rowMeta.isRlsHidden
-            ? 'Row hidden'
-            : 'Row moved',
+          ? 'Row hidden'
+          : 'Row moved',
         x: 10,
         y: warningRow.yOffset + rowHeight.value,
         py: 7,
@@ -2764,8 +2764,8 @@ export function useCanvasRender({
         text: warningRow.row.rowMeta.isValidationFailed
           ? 'Row filtered'
           : warningRow.row.rowMeta.isRlsHidden
-            ? 'Row hidden'
-            : 'Row moved',
+          ? 'Row hidden'
+          : 'Row moved',
         x: 10 + gXOffset,
         y: warningRow.yOffset + rowHeight.value,
         py: 7,

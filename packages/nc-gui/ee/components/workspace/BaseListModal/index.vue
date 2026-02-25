@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ProjectRoles } from 'nocodb-sdk'
+import { NO_SCOPE, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -23,7 +23,7 @@ const { loadProjects } = basesStore
 
 const { navigateToTable } = useTablesStore()
 const { isMobileMode, appInfo } = useGlobal()
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { orgRoles } = useRoles()
 
@@ -36,6 +36,42 @@ const canCreateWorkspace = computed(() => {
 
   return !!isSuper.value
 })
+
+// baseListAll — lightweight search index across all workspaces
+interface BaseListAllData {
+  workspaces: {
+    id: string
+    title: string
+    meta: Record<string, any>
+    bases: {
+      id: string
+      title: string
+      meta: Record<string, any>
+      role: string
+      order: number
+      managed_app_master?: boolean
+      managed_app_id?: string | null
+    }[]
+  }[]
+}
+
+const baseListAllData = ref<BaseListAllData | null>(null)
+const isBaseListAllLoading = ref(false)
+
+const loadBaseListAll = async () => {
+  isBaseListAllLoading.value = true
+  try {
+    baseListAllData.value = (await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
+      operation: 'baseListAll',
+    })) as BaseListAllData
+  } catch {
+    // silently fail — cross-workspace search won't be available
+  } finally {
+    isBaseListAllLoading.value = false
+  }
+}
+
+const loadBaseListAllDebounced = useDebounceFn(loadBaseListAll, 300)
 
 // Provide base actions to child components
 const closeModal = () => {
@@ -67,15 +103,8 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-onMounted(() => {
-  window.addEventListener('resize', onResize)
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', onResize)
-  window.removeEventListener('keydown', handleKeydown)
-})
+useEventListener(window, 'resize', onResize)
+useEventListener(window, 'keydown', handleKeydown)
 
 // Reset state when modal opens
 watch(visible, (isVisible) => {
@@ -85,6 +114,16 @@ watch(visible, (isVisible) => {
     modalState.activeFilter = 'all'
   }
 })
+
+// Load cross-workspace index only when searching (debounced).
+// Do NOT clear baseListAllData on empty query — stale data is harmless (both computeds
+// early-return on empty query) and keeping it stable prevents flicker when re-typing.
+watch(
+  () => modalState.searchQuery,
+  (query) => {
+    if (query) loadBaseListAllDebounced()
+  },
+)
 
 watch(
   searchInputRef,
@@ -98,9 +137,27 @@ watch(
   },
 )
 
+// Workspace IDs that have at least one base title matching the search query (from the lightweight index)
+const baseListAllMatchByWs = computed(() => {
+  if (!modalState.searchQuery || !baseListAllData.value) return new Map<string, number>()
+  const map = new Map<string, number>()
+  for (const ws of baseListAllData.value.workspaces) {
+    const count = ws.bases.filter((b) => searchCompare(b.title, modalState.searchQuery)).length
+    if (count > 0) map.set(ws.id, count)
+  }
+  return map
+})
+
 const filteredWorkspaceList = computed(() => {
+  if (!modalState.searchQuery) return workspacesList.value
+
+  // When searching, show workspaces whose title matches OR have matching bases.
+  // Always keep the currently selected workspace visible (safety net while baseListAll loads).
   return workspacesList.value.filter(
-    (ws) => ws.id === modalState.selectedWorkspaceId || searchCompare(ws.title ?? '', modalState.searchQuery),
+    (ws) =>
+      ws.id === modalState.selectedWorkspaceId ||
+      searchCompare(ws.title ?? '', modalState.searchQuery) ||
+      baseListAllMatchByWs.value.has(ws.id),
   )
 })
 
@@ -187,12 +244,89 @@ const displayedSections = computed(() => {
   return [{ type: filter, bases }]
 })
 
+// A specific filter is active but yields no bases in the selected workspace
+// (independent of search — shown even alongside other workspace results)
+const emptyFilterSection = computed(() => {
+  return modalState.activeFilter !== 'all' && displayedSections.value.every((section) => section.bases.length === 0)
+})
+
 const emptyFilterResult = computed(() => {
   return displayedSections.value.every((section) => section.bases.length === 0) && !modalState.searchQuery.length
 })
 
+// Other workspaces (not selected) that have matching base titles or workspace title
+const otherMatchingWorkspaceIds = computed((): string[] => {
+  if (!modalState.searchQuery || !baseListAllData.value) return []
+  return baseListAllData.value.workspaces
+    .filter(
+      (ws) =>
+        ws.id !== modalState.selectedWorkspaceId &&
+        (searchCompare(ws.title, modalState.searchQuery) || ws.bases.some((b) => searchCompare(b.title, modalState.searchQuery))),
+    )
+    .map((ws) => ws.id)
+})
+
+// Load full workspace data for other matching workspaces as they appear
+watch(
+  otherMatchingWorkspaceIds,
+  async (wsIds) => {
+    for (const wsId of wsIds) {
+      if (workspaceBasesMap.value.has(wsId)) continue
+      await loadProjects('workspace', wsId)
+    }
+  },
+  { immediate: true },
+)
+
+// Shared helper — compute categorized + search-filtered sections from a base list
+const computeSections = (bases: NcProject[]) => {
+  const { starred, private: isPrivate, managed, owned } = baseCheckers
+  const starredBases = bases.filter(starred)
+  const privateBases = bases.filter((b) => !starred(b) && isPrivate(b))
+  const managedBases = bases.filter((b) => !starred(b) && !isPrivate(b) && managed(b))
+  const ownedBases = bases.filter((b) => !starred(b) && !isPrivate(b) && !managed(b) && owned(b))
+  const defaultBases = bases.filter((b) => !starred(b) && !isPrivate(b) && !managed(b) && !owned(b))
+
+  const categorized: Record<SectionType, NcProject[]> = {
+    starred: starredBases,
+    private: privateBases,
+    managed: managedBases,
+    owned: ownedBases,
+    default: defaultBases,
+  }
+
+  return sectionOrder
+    .map((type) => ({ type, bases: filterWithSearch(categorized[type]) }))
+    .filter((section) => section.bases.length > 0)
+}
+
+// Sections for each other matching workspace (fully loaded, full feature parity)
+const otherWorkspaceSections = computed(() => {
+  if (!modalState.searchQuery) return []
+
+  return otherMatchingWorkspaceIds.value
+    .map((wsId) => {
+      const ws = workspacesList.value.find((w) => w.id === wsId)
+      if (!ws) return null
+
+      const wsBasesMap = workspaceBasesMap.value.get(wsId)
+      if (!wsBasesMap) return null // still loading
+
+      const bases = Array.from(wsBasesMap.values()).sort(
+        (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),
+      )
+
+      const sections = computeSections(bases)
+      if (sections.length === 0) return null
+
+      return { workspace: ws, sections }
+    })
+    .filter(Boolean) as { workspace: NcWorkspace; sections: { type: SectionType; bases: NcProject[] }[] }[]
+})
+
 // Check if there are no search results
 const hasNoSearchResults = computed(() => {
+  if (otherWorkspaceSections.value.length > 0) return false
   if (workspaceBases.value.length === 0) return false
   return displayedSections.value.length === 0 && modalState.searchQuery.length > 0
 })
@@ -200,11 +334,29 @@ const hasNoSearchResults = computed(() => {
 // Workspace handlers
 const onSelectWorkspace = async (workspaceId: string) => {
   modalState.selectedWorkspaceId = workspaceId
-  modalState.searchQuery = ''
 
   if (workspaceBasesMap.value.get(workspaceId)) return
   await loadProjects('workspace', workspaceId)
 }
+
+// Auto-switch selected workspace when search changes and the current workspace has no results.
+// Picks the first workspace in the filtered list (title match or base match), ensuring
+// there is always at least one workspace selected and visible in the left panel.
+watch(
+  () => modalState.searchQuery,
+  async (query) => {
+    if (!query) return
+    if (displayedSections.value.length > 0) return
+
+    const firstVisible = filteredWorkspaceList.value.find((ws) => ws.id !== modalState.selectedWorkspaceId)
+    if (!firstVisible?.id) return
+
+    modalState.selectedWorkspaceId = firstVisible.id
+    if (!workspaceBasesMap.value.has(firstVisible.id)) {
+      await loadProjects('workspace', firstVisible.id)
+    }
+  },
+)
 
 // Workspace creation
 const createDlg = ref(false)
@@ -259,7 +411,11 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
           size="large"
         >
           <template #prefix>
-            <GeneralIcon icon="search" class="text-nc-content-gray-muted mr-1" />
+            <div v-if="isBaseListAllLoading && modalState.searchQuery" class="h-4 w-4 mr-1">
+              <GeneralLoader size="regular" />
+            </div>
+
+            <GeneralIcon v-else icon="search" class="text-nc-content-gray-muted mr-1" />
           </template>
         </a-input>
       </div>
@@ -353,6 +509,54 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               :is-base-private="baseCheckers.private"
             />
 
+            <!-- No results for the active filter in the selected workspace -->
+            <div
+              v-if="emptyFilterSection"
+              class="flex flex-col items-center justify-center py-6 text-nc-content-gray-muted !children:my-0"
+            >
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
+            </div>
+
+            <!-- Other Workspaces cross-workspace search results -->
+            <template v-if="otherWorkspaceSections.length > 0">
+              <div class="flex items-center gap-3 my-2">
+                <div class="h-px flex-1 bg-nc-border-gray-medium" />
+                <span class="text-xs text-nc-content-gray-muted font-medium tracking-wide whitespace-nowrap">
+                  {{ $t('labels.otherWorkspaces') }}
+                </span>
+                <div class="h-px flex-1 bg-nc-border-gray-medium" />
+              </div>
+
+              <template v-for="wsData in otherWorkspaceSections" :key="wsData.workspace.id">
+                <div class="flex items-center gap-2 mb-4 mt-4 text-xs font-medium tracking-wide">
+                  <span class="text-nc-content-gray-muted">{{ $t('activity.basesIn') }}</span>
+                  <span
+                    class="text-nc-content-gray-muted capitalize"
+                    :class="{
+                      'text-nc-content-brand': activeWorkspaceId === wsData.workspace?.id,
+                      'underline cursor-pointer hover:text-nc-content-brand': activeWorkspaceId !== wsData.workspace?.id,
+                    }"
+                    @click="switchWorkspace(wsData.workspace?.id)"
+                  >
+                    {{ wsData.workspace.title }}
+                  </span>
+                  <span class="font-normal text-nc-content-gray-muted">
+                    ({{ wsData.sections.reduce((n, s) => n + s.bases.length, 0) }})
+                  </span>
+                </div>
+
+                <WorkspaceBaseListModalBasesSection
+                  v-for="section in wsData.sections"
+                  :key="`${wsData.workspace.id}-${section.type}`"
+                  :type="section.type"
+                  :bases="section.bases"
+                  :is-filter-applied="false"
+                  :is-base-starred="baseCheckers.starred"
+                  :is-base-private="baseCheckers.private"
+                />
+              </template>
+            </template>
+
             <GeneralOverlay
               v-if="isProjectsLoading && emptyFilterResult"
               :model-value="true"
@@ -407,6 +611,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
     v-if="dialogState.delete.base"
     v-model:visible="dialogState.delete.isOpen"
     :base-id="dialogState.delete.base?.id"
+    :base="dialogState.delete.base"
   />
 </template>
 

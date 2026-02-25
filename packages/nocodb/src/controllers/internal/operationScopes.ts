@@ -5,6 +5,7 @@ export const OPERATION_SCOPES = {
   mcpDelete: 'base',
   mcpGet: 'base',
   mcpRootList: 'org',
+  baseListAll: 'org',
   recordAuditList: 'base',
   oAuthClientList: 'org',
   oAuthClientCreate: 'org',

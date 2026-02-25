@@ -89,6 +89,8 @@ export async function singleQueryGroupedList(
     apiVersion?: NcApiVersion;
     includeSortAndFilterColumns?: boolean;
     ignoreViewFilterAndSort?: boolean;
+    includeButtonFilterColumns?: boolean;
+    includeRowColourColumns?: boolean;
   },
 ): Promise<
   {
@@ -244,6 +246,9 @@ export async function singleQueryGroupedList(
     view: ctx.view,
     throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
     apiVersion: ctx.apiVersion,
+    includeButtonFilterColumns: ctx.includeButtonFilterColumns,
+    includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
+    includeRowColorColumns: ctx.includeRowColourColumns,
   });
 
   const ast = { ..._ast };

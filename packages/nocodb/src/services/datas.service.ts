@@ -499,7 +499,8 @@ export class DatasService {
         query,
         view,
         includeRowColorColumns: query.include_row_color === 'true',
-        includeButtonFilterColumns: query.include_button_filter_columns === 'true',
+        includeButtonFilterColumns:
+          query.include_button_filter_columns === 'true',
       });
 
       const listArgs: any = { ...dependencyFields };
@@ -560,7 +561,8 @@ export class DatasService {
       query: { ...query },
       view,
       includeRowColorColumns: query?.include_row_color === 'true',
-      includeButtonFilterColumns: query?.include_button_filter_columns === 'true',
+      includeButtonFilterColumns:
+        query?.include_button_filter_columns === 'true',
     });
 
     const listArgs: any = { ...dependencyFields };
@@ -579,6 +581,9 @@ export class DatasService {
     const groupedData = await baseModel.groupedList({
       ...listArgs,
       groupColumnId: param.columnId,
+      includeRowColorColumns: query?.include_row_color === 'true',
+      includeButtonFilterColumns:
+        query?.include_button_filter_columns === 'true',
     });
     data = await nocoExecute({ key: 1, value: ast }, groupedData, {}, listArgs);
     const countArr = await baseModel.groupedListCount({

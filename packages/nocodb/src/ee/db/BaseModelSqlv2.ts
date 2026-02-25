@@ -3853,6 +3853,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     args: {
       groupColumnId: string;
       ignoreViewFilterAndSort?: boolean;
+      includeRowColorColumns?: boolean;
+      includeButtonFilterColumns?: boolean;
       options?: (string | number | null | boolean)[];
     } & Partial<XcFilter>,
   ): Promise<
@@ -3889,6 +3891,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         },
         groupColumnId: args.groupColumnId,
         ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
+        includeButtonFilterColumns: args.includeButtonFilterColumns,
+        includeRowColourColumns: args.includeRowColourColumns,
         baseModel: this,
       });
     } catch (e) {

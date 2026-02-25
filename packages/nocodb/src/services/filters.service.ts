@@ -5,11 +5,11 @@ import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import type { MetaService } from '~/meta/meta.service';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
-import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 import { Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -65,12 +65,10 @@ export class FiltersService {
   ) {
     validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
 
-    const filter = await Filter.insert(context, {
+    return await Filter.insert(context, {
       ...param.filter,
       fk_button_col_id: param.buttonColId,
     });
-
-    return filter;
   }
 
   async buttonFilterList(context: NcContext, param: { buttonColId: string }) {

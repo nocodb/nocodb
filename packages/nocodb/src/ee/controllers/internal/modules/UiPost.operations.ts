@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import { UiPostOperations as UiPostOperationsCE } from 'src/controllers/internal/modules/UiPost.operations';
-import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
@@ -125,7 +123,6 @@ export class UiPostOperations
           filter: payload,
         });
       case 'buttonFilterCreate':
-        await checkForFeature(context, PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY);
         return await this.filtersService.buttonFilterCreate(context, {
           buttonColId: req.query.buttonColId,
           filter: payload,

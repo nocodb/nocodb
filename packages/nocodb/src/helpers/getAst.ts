@@ -147,7 +147,7 @@ const getAst = async (
   }
 
   const buttonFilterColumnIds = new Set<string>();
-  if (includeButtonFilterColumns) {
+  if (view && includeButtonFilterColumns) {
     const addingColumns = await getButtonFilterFields({ context, model, view });
     for (const addColumn of addingColumns) {
       buttonFilterColumnIds.add(addColumn);

@@ -100,6 +100,7 @@ export enum PlanFeatureTypes {
   FEATURE_DOCUMENT_PERMISSIONS = 'feature_document_permissions',
   FEATURE_DOC_AI = 'feature_doc_ai',
   FEATURE_DATE_DEPENDENCY = 'feature_date_dependency',
+  FEATURE_API_COMMENT_V3 = 'feature_api_comment_v3',
 }
 
 export enum PlanTitles {
@@ -355,6 +356,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to use document permissions.',
   [PlanFeatureTypes.FEATURE_DOC_AI]: 'to use AI features in documents.',
   [PlanFeatureTypes.FEATURE_DATE_DEPENDENCY]: 'to use date dependencies.',
+  [PlanFeatureTypes.FEATURE_API_COMMENT_V3]: 'to use comment api.',
 };
 
 export const getUpgradeMessage = (

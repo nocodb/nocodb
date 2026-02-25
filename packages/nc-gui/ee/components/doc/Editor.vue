@@ -96,8 +96,10 @@ const cellTextAlignAttr = {
   default: 'left',
   parseHTML: (el: HTMLElement) => el.style.textAlign || el.getAttribute('data-text-align') || 'left',
   renderHTML: (attrs: Record<string, any>) => {
-    if (!attrs.textAlign || attrs.textAlign === 'left') return {}
-    return { style: `text-align: ${attrs.textAlign}` }
+    const align = attrs.textAlign
+    if (!align || align === 'left') return {}
+    if (!/^(left|center|right)$/.test(align)) return {}
+    return { style: `text-align: ${align}` }
   },
 }
 

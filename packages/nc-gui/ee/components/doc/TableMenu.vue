@@ -95,7 +95,7 @@ const recalcPositions = () => {
 // --- Focus a cell before running table commands ---
 const focusCell = (rowIndex: number, colIndex: number) => {
   const table = tableEl.value
-  if (!table || !editor.value) return
+  if (!table || !table.isConnected || !editor.value) return
   const rows = table.querySelectorAll('tr')
   const row = rows[rowIndex]
   if (!row) return
@@ -128,26 +128,40 @@ const onRowAction = (rowIndex: number, action: keyof typeof rowCommands) => {
 }
 
 // --- Column alignment ---
-// Iterates each row, focuses the cell at colIndex, then updates its textAlign.
-// Each cell is updated in a separate chained command to avoid position drift.
+// Updates textAlign for every cell in the column using a single ProseMirror
+// transaction to avoid position drift from multiple dispatches.
 const onColumnAlign = (colIndex: number, align: 'left' | 'center' | 'right') => {
   const table = tableEl.value
-  if (!table || !editor.value) return
+  if (!table || !table.isConnected || !editor.value) return
 
-  // Keep menuOpen non-null during alignment so the transaction handler
-  // doesn't clear tableEl (isHovering is false while cursor is on the dropdown)
+  const { state, dispatch } = editor.value.view
+  const tr = state.tr
+
+  // Collect cell positions from live DOM before any doc mutations
   const rows = table.querySelectorAll('tr')
+  const cellPositions: number[] = []
   rows.forEach((row) => {
     const cells = row.querySelectorAll('td, th')
     const cell = cells[colIndex]
     if (!cell) return
-    const pos = editor.value!.view.posAtDOM(cell, 0)
-    const nodeType = cell.tagName === 'TH' ? 'tableHeader' : 'tableCell'
-    editor.value!.chain().setTextSelection(pos).updateAttributes(nodeType, { textAlign: align }).run()
+    cellPositions.push(editor.value!.view.posAtDOM(cell, 0))
   })
 
-  // Close the menu after all updates, then re-focus the first cell so
-  // findTableElement() still finds the table on subsequent transactions
+  // Apply all attribute changes in a single transaction.
+  // setNodeMarkup only changes attrs (no structural change), so positions remain stable.
+  for (const pos of cellPositions) {
+    const resolved = tr.doc.resolve(pos)
+    for (let d = resolved.depth; d > 0; d--) {
+      const node = resolved.node(d)
+      if (node.type.name === 'tableCell' || node.type.name === 'tableHeader') {
+        tr.setNodeMarkup(resolved.before(d), undefined, { ...node.attrs, textAlign: align })
+        break
+      }
+    }
+  }
+
+  dispatch(tr)
+
   menuOpen.value = null
   focusCell(0, colIndex)
   nextTick(() => recalcPositions())
@@ -208,39 +222,75 @@ const onEditorMouseMove = (e: MouseEvent) => {
 const onEditorMouseLeave = () => { isHovering.value = false }
 
 let unregisterTransaction: (() => void) | null = null
+let resizeObserver: ResizeObserver | null = null
+
+// Re-observe when the tracked table element changes
+watch(tableEl, (newTable, oldTable) => {
+  if (oldTable && resizeObserver) resizeObserver.unobserve(oldTable)
+  if (newTable && resizeObserver) resizeObserver.observe(newTable)
+})
+
+const initListeners = () => {
+  const bodyEl = editorBodyEl.value
+  if (!bodyEl) return
+  bodyEl.addEventListener('mousemove', onEditorMouseMove)
+  bodyEl.addEventListener('mouseleave', onEditorMouseLeave)
+}
 
 onMounted(() => {
+  // Prefer DOM traversal from the editor view; fall back to querySelector
+  // in case EditorContent hasn't fully attached editor.view.dom yet.
   editorBodyEl.value =
     (editor.value.view.dom.closest('.nc-doc-editor-body') as HTMLElement) ||
     (document.querySelector('.nc-doc-editor-body') as HTMLElement)
 
+  // If closest() failed (timing edge case), retry on next tick
+  if (!editorBodyEl.value) {
+    nextTick(() => {
+      editorBodyEl.value =
+        (editor.value.view.dom.closest('.nc-doc-editor-body') as HTMLElement) ||
+        (document.querySelector('.nc-doc-editor-body') as HTMLElement)
+      initListeners()
+    })
+  }
+
   unregisterTransaction = (() => {
     const handler = () => {
+      // If cursor moved into a (different) table, adopt it
       const newTable = findTableElement()
       if (newTable) {
         if (newTable !== tableEl.value) {
           tableEl.value = newTable
         }
         recalcPositions()
-      } else if (tableEl.value && !isHovering.value && !menuOpen.value) {
-        tableEl.value = null
       } else if (tableEl.value) {
-        recalcPositions()
+        // Table was deleted from the DOM — clean up
+        if (!tableEl.value.isConnected) {
+          tableEl.value = null
+        } else {
+          // Cursor left table but DOM element still exists — recalc positions only.
+          // Do NOT null tableEl here: that would destroy the hover zone while
+          // the user is interacting with handle menus outside the table.
+          recalcPositions()
+        }
       }
     }
     editor.value.on('transaction', handler)
     return () => editor.value.off('transaction', handler)
   })()
 
-  const bodyEl = editorBodyEl.value
-  if (bodyEl) {
-    bodyEl.addEventListener('mousemove', onEditorMouseMove)
-    bodyEl.addEventListener('mouseleave', onEditorMouseLeave)
-  }
+  // ResizeObserver catches dimension changes not triggered by editor transactions
+  // (e.g. window resize, font loading)
+  resizeObserver = new ResizeObserver(() => recalcPositions())
+  if (tableEl.value) resizeObserver.observe(tableEl.value)
+
+  initListeners()
 })
 
 onBeforeUnmount(() => {
   unregisterTransaction?.()
+  resizeObserver?.disconnect()
+  resizeObserver = null
   const bodyEl = editorBodyEl.value
   if (bodyEl) {
     bodyEl.removeEventListener('mousemove', onEditorMouseMove)

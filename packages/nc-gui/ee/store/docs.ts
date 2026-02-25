@@ -62,7 +62,7 @@ export const useDocsStore = defineStore('docsStore', () => {
         return []
       }
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
     } finally {
       isLoadingDocs.value = false
@@ -84,7 +84,7 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       return doc
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
         baseId: activeProjectId.value,
@@ -128,7 +128,7 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       return created
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     }
   }
@@ -169,7 +169,7 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       return updated
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     }
   }
@@ -198,7 +198,7 @@ export const useDocsStore = defineStore('docsStore', () => {
 
       return true
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
       return false
     }
   }
@@ -227,7 +227,7 @@ export const useDocsStore = defineStore('docsStore', () => {
       $e('a:doc:reorder')
       return updated
     } catch (e) {
-      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     }
   }

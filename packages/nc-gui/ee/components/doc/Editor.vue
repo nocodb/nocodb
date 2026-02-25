@@ -26,6 +26,9 @@ const Highlight = Mark.create({
         parseHTML: (el: HTMLElement) => el.getAttribute('data-color') || el.style.backgroundColor || null,
         renderHTML: (attrs: Record<string, any>) => {
           if (!attrs.color) return {}
+          // Validate color to prevent CSS injection via crafted ProseMirror JSON
+          const safe = /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[a-zA-Z]+)$/.test(attrs.color)
+          if (!safe) return {}
           return { 'data-color': attrs.color, style: `background-color: ${attrs.color}` }
         },
       },
@@ -665,7 +668,7 @@ watch(editor, (ed) => {
     ed.storage.embed.insertFromUrl = (editor: any, url: string) => {
       const [platform, embedUrl] = getEmbedURL(url.trim())
       if (platform === 'unsupported' || embedUrl === 'unsupported') {
-        message.warning(t('msg.embedUrlNotSupported'))
+        ncMessage.warning(t('msg.embedUrlNotSupported'))
         return
       }
 
@@ -872,7 +875,7 @@ const isPageMenuOpen = ref(false)
 const onCopyPageId = () => {
   if (!doc.value?.id) return
   navigator.clipboard.writeText(doc.value.id)
-  message.toast(t('msg.pageIdCopied'))
+  ncMessage.info(t('msg.pageIdCopied'))
   isPageMenuOpen.value = false
 }
 
@@ -884,7 +887,7 @@ const onDuplicatePage = async () => {
   if (!fullDoc) return
 
   await createDoc(base.value.id, {
-    title: `Copy of ${fullDoc.title || 'Untitled'}`,
+    title: t('labels.copyOfPage', { title: fullDoc.title || t('general.untitled') }),
     content: fullDoc.content,
   })
 }
@@ -921,7 +924,7 @@ const updateDocIcon = async (icon: string) => {
 
     $e('a:doc:icon:editor', { icon })
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    ncMessage.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

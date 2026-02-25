@@ -40,7 +40,7 @@ watch(activeDocId, () => {
 <template>
   <div class="nc-tree-item nc-pages-node-wrapper nc-project-home-section text-sm select-none w-full nc-base-tree-pages">
     <div v-e="['c:pages:toggle-expand']" class="nc-project-home-section-header w-full cursor-pointer" @click.stop="onExpand">
-      <div>Pages</div>
+      <div>{{ $t('objects.pages') }}</div>
       <div class="flex-1" />
       <GeneralIcon
         icon="chevronRight"

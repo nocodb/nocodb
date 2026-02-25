@@ -278,12 +278,14 @@ export const orderedMetaTables = [
   MetaTable.COLUMN_VALIDATIONS,
   MetaTable.COLUMNS,
 
+
   // Model-related
   MetaTable.RECORD_TEMPLATES,
   MetaTable.DEPENDENCY_TRACKER,
   MetaTable.MODEL_STAT,
   MetaTable.CUSTOM_URLS,
   MetaTable.MCP_TOKENS,
+  MetaTable.DOCS,
   MetaTable.MODELS,
 
   // Dashboard / Widget

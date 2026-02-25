@@ -17,6 +17,9 @@ import type {
   RecordTemplateUpdateEvent,
   RecordTemplateUseEvent,
   RlsPolicyCreateEvent,
+  DocCreateEvent,
+  DocDeleteEvent,
+  DocUpdateEvent,
   RlsPolicyDeleteEvent,
   RlsPolicyUpdateEvent,
   SandboxCreateEvent,
@@ -790,6 +793,10 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.RLS_POLICY_CREATE, data: RlsPolicyCreateEvent): void;
   emit(event: AppEvents.RLS_POLICY_UPDATE, data: RlsPolicyUpdateEvent): void;
   emit(event: AppEvents.RLS_POLICY_DELETE, data: RlsPolicyDeleteEvent): void;
+
+  emit(event: AppEvents.DOC_CREATE, data: DocCreateEvent): void;
+  emit(event: AppEvents.DOC_UPDATE, data: DocUpdateEvent): void;
+  emit(event: AppEvents.DOC_DELETE, data: DocDeleteEvent): void;
 
   emit(
     event: AppEvents.RECORD_TEMPLATE_CREATE,

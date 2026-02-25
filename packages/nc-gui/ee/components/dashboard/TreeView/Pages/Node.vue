@@ -8,9 +8,11 @@ interface Props {
 const props = defineProps<Props>()
 
 const { $e } = useNuxtApp()
+const { t } = useI18n()
 
 const { isMobileMode, ncNavigateTo } = useGlobal()
 const { isUIAllowed } = useRoles()
+const { showConfirmModal } = useNcConfirmModal()
 
 const docsStore = useDocsStore()
 const { updateDoc, deleteDoc, createDoc, loadDoc } = docsStore
@@ -98,7 +100,7 @@ const onRename = async () => {
   }
 
   if (!_title.value) {
-    _title.value = props.doc.title || 'Untitled'
+    _title.value = props.doc.title || t('general.untitled')
   }
 
   if (_title.value === props.doc.title) {
@@ -118,13 +120,9 @@ const onDelete = () => {
 
   isDropdownOpen.value = false
 
-  Modal.confirm({
-    title: `Delete page "${props.doc.title || 'Untitled'}"?`,
-    okText: 'Delete',
-    okType: 'danger',
-    cancelText: 'Cancel',
-    wrapClassName: 'nc-modal-doc-delete',
-    async onOk() {
+  showConfirmModal({
+    title: t('msg.deletePageConfirm', { title: props.doc.title || t('general.untitled') }),
+    okCallback: async () => {
       await deleteDoc(base.value!.id!, props.doc.id!)
     },
   })
@@ -139,7 +137,7 @@ const onDuplicate = async () => {
   if (!fullDoc) return
 
   await createDoc(base.value.id, {
-    title: `Copy of ${fullDoc.title || 'Untitled'}`,
+    title: t('labels.copyOfPage', { title: fullDoc.title || t('general.untitled') }),
     content: fullDoc.content,
   })
 }
@@ -159,7 +157,7 @@ const updateDocIcon = async (icon: string) => {
 
     $e('a:doc:icon:sidebar', { icon })
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    ncMessage.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -274,7 +272,7 @@ function onStopEdit() {
         :disabled="!showNodeTooltip"
         show-on-truncate-only
       >
-        <template #title> {{ doc.title || 'Untitled' }}</template>
+        <template #title> {{ doc.title || $t('general.untitled') }}</template>
         <div
           :class="{
             'font-semibold text-nc-content-brand-disabled': activeDocId === doc.id,
@@ -282,7 +280,7 @@ function onStopEdit() {
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           data-testid="sidebar-doc-title"
         >
-          {{ doc.title || 'Untitled' }}
+          {{ doc.title || $t('general.untitled') }}
         </div>
       </NcTooltip>
 
@@ -314,7 +312,7 @@ function onStopEdit() {
                 :label="`PAGE ID: ${doc.id}`"
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
-              <template v-if="isUIAllowed('docCreate')">
+              <template v-if="isUIAllowed('docUpdate')">
                 <NcDivider />
                 <NcMenuItem
                   v-e="['c:doc:rename']"
@@ -323,7 +321,7 @@ function onStopEdit() {
                   @click="onRenameMenuClick"
                 >
                   <GeneralIcon class="text-nc-content-gray-subtle" icon="rename" />
-                  Rename page
+                  {{ $t('labels.renamePage') }}
                 </NcMenuItem>
               </template>
               <NcMenuItem
@@ -333,7 +331,7 @@ function onStopEdit() {
                 @click="onDuplicate"
               >
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
-                Duplicate page
+                {{ $t('labels.duplicatePage') }}
               </NcMenuItem>
               <template v-if="isUIAllowed('docDelete')">
                 <NcDivider />
@@ -344,7 +342,7 @@ function onStopEdit() {
                   @click="onDelete"
                 >
                   <GeneralIcon icon="delete" />
-                  Delete page
+                  {{ $t('labels.deletePage') }}
                 </NcMenuItem>
               </template>
             </NcMenu>

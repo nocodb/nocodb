@@ -58,7 +58,7 @@ export class DocsPostOperations
         if (!payload?.docId) {
           NcError.badRequest('Missing required parameter: docId');
         }
-        return await this.docsService.delete(context, payload.docId);
+        return await this.docsService.delete(context, payload.docId, req);
       }
       case 'docReorder': {
         if (!payload?.docId) {

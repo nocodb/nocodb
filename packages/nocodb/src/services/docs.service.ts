@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { DocType } from 'nocodb-sdk';
+import { AppEvents } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Doc } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 /**
  * Service layer for Pages (internally "Docs").
@@ -17,6 +19,8 @@ const MAX_DOC_CONTENT_SIZE = 5 * 1024 * 1024;
 
 @Injectable()
 export class DocsService {
+  constructor(protected readonly appHooksService: AppHooksService) {}
+
   /**
    * List all pages in a base (lightweight — excludes content).
    * Use `get()` to fetch full content for a single page.
@@ -65,7 +69,16 @@ export class DocsService {
       };
     }
 
-    return await Doc.insert(context, payload);
+    const doc = await Doc.insert(context, payload);
+
+    this.appHooksService.emit(AppEvents.DOC_CREATE, {
+      context,
+      req,
+      doc,
+      user: req.user,
+    });
+
+    return doc;
   }
 
   /** Update a page. Requires `version` for optimistic concurrency control. */
@@ -110,17 +123,35 @@ export class DocsService {
       payload.title = payload.title?.trim() || 'Untitled';
     }
 
-    return await Doc.update(context, docId, payload);
+    const doc = await Doc.update(context, docId, payload);
+
+    this.appHooksService.emit(AppEvents.DOC_UPDATE, {
+      context,
+      req,
+      doc,
+      user: req.user,
+    });
+
+    return doc;
   }
 
   /** Permanently delete a page and remove it from cache. */
-  async delete(context: NcContext, docId: string) {
+  async delete(context: NcContext, docId: string, req: NcRequest) {
     const doc = await Doc.get(context, docId);
     if (!doc) {
       NcError.notFound('Page not found');
     }
 
-    return await Doc.delete(context, docId);
+    await Doc.delete(context, docId);
+
+    this.appHooksService.emit(AppEvents.DOC_DELETE, {
+      context,
+      req,
+      doc,
+      user: req.user,
+    });
+
+    return true;
   }
 
   /**

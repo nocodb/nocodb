@@ -25,7 +25,7 @@ const onCreateDoc = async () => {
       v-if="!baseDocs.length && !isUIAllowed('docCreate')"
       class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
     >
-      No pages
+      {{ $t('labels.noPages') }}
     </div>
 
     <template v-else>
@@ -38,7 +38,7 @@ const onCreateDoc = async () => {
       >
         <div class="nc-project-home-section-item">
           <GeneralIcon icon="plus" />
-          <div>New page</div>
+          <div>{{ $t('labels.newPage') }}</div>
         </div>
       </div>
 

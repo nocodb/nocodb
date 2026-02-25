@@ -1,8 +1,8 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { isEE } from '../../../utils/helpers';
 import { PlanFeatureTypes } from 'nocodb-sdk';
+import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
 import { overrideFeature } from '../../../utils/plan.utils';
 import { Base, Model } from '~/models';
@@ -337,8 +337,7 @@ export default function () {
         expect(response.body.type).to.eq('gallery');
       });
 
-      // FIXME: form view is not handled yet
-      it.skip(`will create form view`, async () => {
+      it.only(`will create form view`, async () => {
         const response = await request(context.app)
           .post(`${API_PREFIX}/tables/${table.id}/views`)
           .set('xc-token', context.xc_token)
@@ -352,8 +351,7 @@ export default function () {
         expect(response.body.type).to.eq('form');
       });
 
-      // FIXME: form view is not handled yet
-      it.skip(`will create + update form view with fieldsById`, async () => {
+      it(`will create + update form view with fieldsById`, async () => {
         const singleSelectColumn = (await table.getColumns(ctx)).find(
           (col) => col.title === 'SingleSelect',
         );
@@ -399,7 +397,7 @@ export default function () {
 
         expect(response.body.type).to.eq('form');
         expect(
-          response.body.options.field_by_ids[titleColumn.id].validators.length,
+          response.body.options.fields_by_id[titleColumn.id].validators.length,
         ).to.greaterThan(0);
 
         const updateResponse = await request(context.app)
@@ -416,7 +414,7 @@ export default function () {
           });
 
         expect(
-          updateResponse.body.options.field_by_ids[singleSelectColumn.id].alias,
+          updateResponse.body.options.fields_by_id[singleSelectColumn.id].alias,
         ).to.eq('select32');
       });
     });

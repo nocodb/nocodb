@@ -10055,6 +10055,21 @@
             "type": "string",
             "format": "uri",
             "description": "URL to redirect to after form submission."
+          },
+          "submit_button_label": {
+            "type": "string",
+            "description": "Custom label for the submit button."
+          },
+          "send_response_email_to": {
+            "type": "string",
+            "description": "Email address to send form responses to."
+          },
+          "fields_by_id": {
+            "type": "object",
+            "description": "Per-field form configuration keyed by field_id.",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/FormFieldConfig"
+            }
           }
         }
       },
@@ -15171,6 +15186,7 @@
           "list"
         ]
       },
+
       "Comment": {
         "type": "object",
         "description": "A comment on a record.",
@@ -15275,6 +15291,75 @@
         "required": [
           "list"
         ]
+      },
+      "FormFieldConfig": {
+        "type": "object",
+        "description": "Form-specific configuration for a field.",
+        "properties": {
+          "alias": {
+            "type": "string",
+            "description": "Display label override for the field."
+          },
+          "description": {
+            "type": "string",
+            "description": "Help text shown below the field."
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Whether the field is required."
+          },
+          "allow_scanner_input": {
+            "type": "boolean",
+            "description": "Whether to show QR/barcode scanner input."
+          },
+          "is_list": {
+            "type": "boolean",
+            "description": "Whether to display as list layout."
+          },
+          "is_limit_option": {
+            "type": "boolean",
+            "description": "Whether to limit selectable options."
+          },
+          "validators": {
+            "type": "array",
+            "description": "List of validators for the field.",
+            "items": {
+              "$ref": "#/components/schemas/FormFieldValidator"
+            }
+          }
+        }
+      },
+      "FormFieldValidator": {
+        "type": "object",
+        "description": "Validator configuration for a form field.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "required",
+              "regex",
+              "minValue",
+              "maxValue",
+              "minLength",
+              "maxLength",
+              "email",
+              "url",
+              "custom"
+            ],
+            "description": "Type of validation to apply."
+          },
+          "value": {
+            "description": "Validator parameter value (e.g., min/max number, pattern string)."
+          },
+          "message": {
+            "type": "string",
+            "description": "Custom error message for validation failure."
+          },
+          "regex": {
+            "type": "string",
+            "description": "Regular expression pattern (for regex validator type)."
+          }
+        }
       }
     },
     "responses": {

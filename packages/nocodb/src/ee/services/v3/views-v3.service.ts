@@ -651,7 +651,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       case ViewTypes.FORM:
         {
           formattedView.options = formattedView.options ?? {};
-          formattedView.options.field_by_ids = viewColumnList.reduce(
+          formattedView.options.fields_by_id = viewColumnList.reduce(
             (acc, cur) => {
               acc[cur.fk_column_id] = this.v2Tov3ViewBuilders
                 .formFieldByIds()
@@ -1050,8 +1050,7 @@ export class ViewsV3Service extends ViewsV3ServiceCE {
       tableId: string;
       modelColumns?: { id: string; pv: boolean; order: number }[];
       fields?: ViewCreateV3Type['fields'];
-      // TODO: update with proper data type if swagger is updated with form
-      fieldsById?: any;
+      fieldsById?: Record<string, Record<string, any>>;
     },
     ncMeta?: MetaService,
   ) {

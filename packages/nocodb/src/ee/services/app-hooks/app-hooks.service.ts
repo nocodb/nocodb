@@ -429,6 +429,17 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: PermissionDeleteEvent) => void,
   ): () => void;
 
+  // SCIM Events
+  on(
+    event:
+      | AppEvents.SCIM_USER_PROVISION
+      | AppEvents.SCIM_USER_UPDATE
+      | AppEvents.SCIM_USER_DEACTIVATE
+      | AppEvents.SCIM_USER_REACTIVATE
+      | AppEvents.SCIM_USER_DELETE,
+    listener: (data: ScimUserEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }

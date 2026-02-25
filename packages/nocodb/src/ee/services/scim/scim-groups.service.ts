@@ -1,30 +1,16 @@
-import { HttpException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
-import { WorkspaceUserRoles } from 'nocodb-sdk';
+import type { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Team, WorkspaceUser } from '~/ee/models';
 import { PrincipalAssignment } from '~/ee/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
-
-// NocoDB SCIM extension schema URI for Group workspace role
-const NOCODB_GROUP_EXTENSION =
-  'urn:ietf:params:scim:schemas:extension:nocodb:2.0:Group';
-
-// Map of SCIM role label → WorkspaceUserRoles enum value
-const SCIM_ROLE_MAP: Record<string, WorkspaceUserRoles> = {
-  owner: WorkspaceUserRoles.OWNER,
-  creator: WorkspaceUserRoles.CREATOR,
-  editor: WorkspaceUserRoles.EDITOR,
-  commenter: WorkspaceUserRoles.COMMENTER,
-  viewer: WorkspaceUserRoles.VIEWER,
-  'no-access': WorkspaceUserRoles.NO_ACCESS,
-};
-
-// Reverse map for output
-const WORKSPACE_ROLE_TO_LABEL: Record<string, string> = Object.entries(
-  SCIM_ROLE_MAP,
-).reduce((acc, [label, role]) => ({ ...acc, [role]: label }), {});
+import {
+  extractWorkspaceRoleFromExtension,
+  NOCODB_GROUP_EXTENSION,
+  WORKSPACE_ROLE_TO_LABEL,
+} from '~/services/scim/scim-helpers';
 
 @Injectable()
 export class ScimGroupsService {
@@ -36,40 +22,10 @@ export class ScimGroupsService {
    * Extract workspaceRole from SCIM extension attribute.
    * Returns the WorkspaceUserRoles enum value, or undefined if not present.
    */
-  private extractWorkspaceRole(scimGroup: any): WorkspaceUserRoles | undefined {
-    const extension = scimGroup[NOCODB_GROUP_EXTENSION];
-    if (!extension?.workspaceRole) return undefined;
-
-    const role = SCIM_ROLE_MAP[extension.workspaceRole.toLowerCase()];
-    if (!role) {
-      throw new HttpException(
-        {
-          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
-          scimType: 'invalidValue',
-          detail: `Invalid workspaceRole "${
-            extension.workspaceRole
-          }". Valid values: ${Object.keys(SCIM_ROLE_MAP).join(', ')}`,
-          status: '400',
-        },
-        400,
-      );
-    }
-
-    // INHERIT role can only be assigned to individual users, not teams
-    if (role === WorkspaceUserRoles.INHERIT) {
-      throw new HttpException(
-        {
-          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
-          scimType: 'invalidValue',
-          detail:
-            'INHERIT role cannot be assigned to teams — only individual users',
-          status: '400',
-        },
-        400,
-      );
-    }
-
-    return role;
+  private extractWorkspaceRole(
+    scimGroup: Record<string, unknown>,
+  ): WorkspaceUserRoles | undefined {
+    return extractWorkspaceRoleFromExtension(scimGroup, NOCODB_GROUP_EXTENSION);
   }
 
   /**

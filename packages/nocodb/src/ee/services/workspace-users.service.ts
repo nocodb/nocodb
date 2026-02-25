@@ -524,10 +524,10 @@ export class WorkspaceUsersService {
 
     // 1. Invalidate BASE_USER list cache for every base in the workspace
     //    so the next getUsersList query re-runs and includes the reactivated user
-    const workspaceBases = await Base.listByWorkspace(
-      workspaceId,
-      { includeDeleted: true, includeSnapshot: true },
-    );
+    const workspaceBases = await Base.listByWorkspace(workspaceId, {
+      includeDeleted: true,
+      includeSnapshot: true,
+    });
 
     for (const base of workspaceBases) {
       await NocoCache.deepDel(

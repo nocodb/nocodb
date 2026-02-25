@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ViewSectionType } from 'nocodb-sdk'
+import type { BoolType, ViewSectionType } from 'nocodb-sdk'
 
 interface Props {
   section: ViewSectionType
@@ -7,7 +7,7 @@ interface Props {
   allExpanded: boolean
   allCollapsed: boolean
   isDefault?: boolean
-  isDefaultSource?: boolean
+  isDefaultSource?: BoolType
 }
 
 interface Emits {
@@ -47,6 +47,8 @@ const showSectionNodeTooltip = ref(true)
 
 /** Debounce click handler for potential future use */
 const onClick = useDebounceFn(() => {
+  if (isEditing.value || isStopped.value) return
+
   emits('expandToggle')
 }, 250)
 
@@ -245,6 +247,7 @@ const onChangeColor = (color: string) => {
           class="nc-sidebar-node-title text-ellipsis overflow-hidden select-none max-w-full flex-1"
           show-on-truncate-only
           disabled
+          @dblclick.stop
         >
           <template #title> {{ section.title }}</template>
           <div

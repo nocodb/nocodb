@@ -419,13 +419,13 @@ If you build a component that could be used in more than one place, put it in **
 
 Split by responsibility — extract repeated template blocks into sub-components, move non-trivial logic into a composable. Avoid single large `.vue` files.
 
-#### Toasts / notifications — use `ncMessage`
+#### Toasts / notifications — use `message`
 
-Always use `ncMessage` (auto-imported), not `message` from `ant-design-vue` directly. It wraps the ant message with NocoDB's `NcAlert` design.
+Use `message` from `ant-design-vue`. `plugins/ant.ts` patches it to point directly to `ncMessage`, so they are equivalent.
 
 ```ts
-ncMessage.success('Saved')
-ncMessage.error('Something went wrong')
+message.success('Saved')
+message.error('Something went wrong')
 ```
 
 #### Confirm / info dialogs — use `useNcConfirmModal`
@@ -654,7 +654,7 @@ onMounted(() => { ... })
   try {
     await $api.something.do()
   } catch (e: any) {
-    ncMessage.error(await extractSdkResponseErrorMsg(e))
+    message.error(await extractSdkResponseErrorMsg(e))
   }
   ```
 

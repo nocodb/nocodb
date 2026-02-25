@@ -98,6 +98,7 @@ const docId = toRef(props, 'docId')
 
 const docsStore = useDocsStore()
 const { loadDoc, updateDoc, deleteDoc, createDoc } = docsStore
+const { activeDoc } = storeToRefs(docsStore)
 
 const basesStore = useBases()
 const { activeProjectId, basesUser } = storeToRefs(basesStore)
@@ -569,6 +570,26 @@ watch(
     }
   },
   { immediate: true },
+)
+
+// Sync external title changes (e.g. sidebar rename) into the editor's local title ref.
+// Skip when the editor itself initiated the change (isSaving) or when loading a new doc.
+watch(
+  () => activeDoc.value?.title,
+  (storeTitle) => {
+    if (!storeTitle || isSaving.value || !isLoaded.value) return
+
+    // Map the server default "Untitled" to empty (editor convention)
+    const normalized = storeTitle === 'Untitled' ? '' : storeTitle
+
+    if (normalized !== title.value) {
+      title.value = normalized
+      // Also sync the local doc ref so version/title stay consistent
+      if (doc.value) {
+        doc.value.title = storeTitle
+      }
+    }
+  },
 )
 
 const onTitleBlur = () => {

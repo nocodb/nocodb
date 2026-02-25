@@ -10,6 +10,8 @@ import type { DocType } from 'nocodb-sdk'
 export const useDocsStore = defineStore('docsStore', () => {
   const { $api, $e } = useNuxtApp()
   const { t } = useI18n()
+  const router = useRouter()
+  const route = useRoute()
   const { ncNavigateTo } = useGlobal()
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -228,6 +230,53 @@ export const useDocsStore = defineStore('docsStore', () => {
   const setActiveDocId = (id: string | undefined) => {
     activeDocId.value = id
   }
+
+  // --- URL slug sync (mirrors Script store pattern) ---
+
+  const activeDocUrlSlug = computed(() => {
+    return route.params.slugs?.[0] || ''
+  })
+
+  const activeDocReadableUrlSlug = computed(() => {
+    if (!activeDoc.value) return ''
+
+    return toReadableUrlSlug([activeDoc.value.title])
+  })
+
+  /**
+   * Keeps the browser URL slug in sync with the doc's readable slug.
+   * Triggers only when:
+   * - The current browser URL slug is missing, OR
+   * - The browser URL slug does not match the doc's readable slug.
+   */
+  watch(
+    [activeDocReadableUrlSlug, activeDocUrlSlug],
+    ([newActiveDocReadableUrlSlug, newActiveDocUrlSlug]) => {
+      if (!newActiveDocReadableUrlSlug || newActiveDocUrlSlug === newActiveDocReadableUrlSlug) return
+
+      const slugs = (route.params.slugs as string[]) || []
+
+      const newSlug = [newActiveDocReadableUrlSlug]
+
+      if (slugs.length > 1) {
+        newSlug.push(...slugs.slice(1))
+      }
+
+      router.replace({
+        name: 'index-typeOrId-baseId-index-docs-docId-slugs',
+        params: {
+          ...route.params,
+          slugs: newSlug,
+        },
+        query: route.query,
+        force: true,
+      })
+    },
+    {
+      immediate: true,
+      flush: 'post',
+    },
+  )
 
   return {
     docs,

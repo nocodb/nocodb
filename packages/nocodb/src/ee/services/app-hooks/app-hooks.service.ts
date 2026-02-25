@@ -10,6 +10,14 @@ import type {
   ProjectDeleteEvent,
   ProjectInviteEvent,
   ProjectUpdateEvent,
+  RecordTemplateCreateEvent,
+  RecordTemplateDeleteEvent,
+  RecordTemplateUpdateEvent,
+  RecordTemplateUseEvent,
+  SandboxCreateEvent,
+  SandboxDeleteEvent,
+  SandboxDiscardEvent,
+  SandboxMergeEvent,
   SortEvent,
   TableEvent,
   TeamCreateEvent,
@@ -32,10 +40,6 @@ import type {
   WorkspaceTeamInviteEvent,
   WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
-  SandboxCreateEvent,
-  SandboxDeleteEvent,
-  SandboxDiscardEvent,
-  SandboxMergeEvent,
 } from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 
@@ -727,6 +731,23 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SANDBOX_DELETE, data: SandboxDeleteEvent): void;
   emit(event: AppEvents.SANDBOX_DISCARD, data: SandboxDiscardEvent): void;
   emit(event: AppEvents.SANDBOX_MERGE, data: SandboxMergeEvent): void;
+
+  emit(
+    event: AppEvents.RECORD_TEMPLATE_CREATE,
+    data: RecordTemplateCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.RECORD_TEMPLATE_UPDATE,
+    data: RecordTemplateUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.RECORD_TEMPLATE_DELETE,
+    data: RecordTemplateDeleteEvent,
+  ): void;
+  emit(
+    event: AppEvents.RECORD_TEMPLATE_USE,
+    data: RecordTemplateUseEvent,
+  ): void;
 
   emit(event, data): void {
     return super.emit(event, data);

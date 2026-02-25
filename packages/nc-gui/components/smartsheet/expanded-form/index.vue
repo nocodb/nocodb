@@ -21,6 +21,14 @@ interface Props {
   newRecordHeader?: string
   skipReload?: boolean
   newRecordSubmitBtnText?: string
+  templateMode?: boolean
+  templateName?: string
+  blueprintMode?: boolean
+  existingTemplateNames?: string[]
+  editingTemplateId?: string
+  blueprintParentTableId?: string
+  /** Breadcrumb trail showing the parent chain (e.g., ['Project Template', 'Tasks']) */
+  breadcrumbs?: string[]
   expandForm?: (row: Row) => void
   maintainDefaultViewOrder?: boolean
   allowNullFieldIds?: string[]
@@ -56,6 +64,17 @@ const { t } = useI18n()
 
 const { rowId, row, state, meta, lastRow: isLastRow, firstRow: isFirstRow, maintainDefaultViewOrder } = toRefs(props)
 
+// Template mode: writable meta ref for table selection dropdown
+const { getMeta } = useMetas()
+const activeMeta = ref(props.meta) as Ref<TableType>
+
+watch(
+  () => props.meta,
+  (val) => {
+    if (val) activeMeta.value = val
+  },
+)
+
 const route = useRoute()
 
 const router = useRouter()
@@ -90,7 +109,23 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-provide(MetaInj, meta)
+provide(MetaInj, activeMeta)
+
+provide(
+  IsTemplateModeInj,
+  computed(() => !!props.templateMode || !!props.blueprintMode),
+)
+
+provide(
+  BlueprintParentTableIdInj,
+  computed(() => props.blueprintParentTableId),
+)
+
+// Provide current breadcrumb trail so nested sub-record forms can extend it
+provide(
+  TemplateBreadcrumbsInj,
+  computed(() => props.breadcrumbs || []),
+)
 
 // override cell event hook to avoid unexpected behavior at form fields
 // issue happens when opening expanded form from cell (LTAR/Links)
@@ -100,8 +135,19 @@ const isLoading = ref(true)
 
 const isSaving = ref(false)
 
+// Template mode: editable template name in the header
+const editableTemplateName = ref(props.templateName || '')
+
+// Template name duplicate detection
+const isDuplicateTemplateName = computed(() => {
+  if (!props.templateMode || !props.existingTemplateNames?.length) return false
+  const trimmed = editableTemplateName.value.trim().toLowerCase()
+  if (!trimmed) return false
+  return props.existingTemplateNames.some((name) => name.trim().toLowerCase() === trimmed)
+})
+
 const expandedFormStore = useProvideExpandedFormStore(
-  meta,
+  activeMeta,
   row,
   maintainDefaultViewOrder,
   !!props.useMetaFields,
@@ -134,7 +180,34 @@ const loadingEmit = (event: 'update:modelValue' | 'cancel' | 'next' | 'prev' | '
   isLoading.value = true
 }
 
-const tableTitle = computed(() => meta.value?.title)
+const tableTitle = computed(() => activeMeta.value?.title)
+
+const templateNameInputRef = ref<HTMLInputElement | null>(null)
+
+// Auto-focus and select template name input when it renders
+watch(templateNameInputRef, (el) => {
+  if (el && props.templateMode) {
+    nextTick(() => {
+      el.focus()
+      el.select()
+    })
+  }
+})
+
+// Handle table change in template mode dropdown
+const onTemplateTableChange = async (tableId: string) => {
+  if (!activeMeta.value?.base_id || tableId === activeMeta.value?.id) return
+  try {
+    const newMeta = await getMeta(activeMeta.value.base_id, tableId)
+    if (newMeta) {
+      activeMeta.value = newMeta as TableType
+      // Reset row data for the new table's fields
+      _row.value = { row: {}, oldRow: {}, rowMeta: { new: true } }
+    }
+  } catch (e) {
+    console.error('Failed to load table meta:', e)
+  }
+}
 
 const activeViewMode = ref(
   !isPublic.value && isEeUI && !isNew.value && !isMobileMode.value
@@ -215,6 +288,10 @@ const isLTARChanged = computed(() => {
 })
 
 const isSaveRecordBtnDisabled = computed(() => {
+  // In template mode, disable if duplicate name
+  if (props.templateMode) return isDuplicateTemplateName.value
+  // In blueprint mode, always allow saving
+  if (props.blueprintMode) return false
   return changedColumns.value.size === 0 && !isUnsavedFormExist.value && !isLTARChanged.value
 })
 
@@ -258,6 +335,47 @@ const save = async () => {
   isSaving.value = true
 
   try {
+    // Template mode: emit row data without creating a real record
+    if (props.templateMode) {
+      if (!editableTemplateName.value.trim()) {
+        message.toast('Template name is required')
+        isSaving.value = false
+        return
+      }
+      if (isDuplicateTemplateName.value) {
+        message.toast('A template with this name already exists')
+        isSaving.value = false
+        return
+      }
+      isUnsavedFormExist.value = false
+      isExpanded.value = false
+      emits('createdRecord', {
+        ..._row.value.row,
+        _templateName: editableTemplateName.value.trim(),
+        _tableId: activeMeta.value?.id,
+        _ltarState: rowState.value,
+      })
+      isSaving.value = false
+      return
+    }
+
+    // Blueprint mode: emit row data as a blueprint (used for LTAR "link a new record" inside templates)
+    if (props.blueprintMode) {
+      isUnsavedFormExist.value = false
+      isExpanded.value = false
+      const blueprintData: Record<string, any> = {
+        ..._row.value.row,
+        _isBlueprint: true,
+      }
+      // Include nested ltarState so sub-blueprints (e.g., Tasks → Sub-tasks) are preserved
+      if (rowState.value && Object.keys(rowState.value).length) {
+        blueprintData._ltarState = rowState.value
+      }
+      emits('createdRecord', blueprintData)
+      isSaving.value = false
+      return
+    }
+
     let kanbanClbk
     if (activeView.value?.type === ViewTypes.KANBAN) {
       kanbanClbk = (row: any, isNewRow: boolean) => {
@@ -493,6 +611,12 @@ useActiveKeydownListener(
       }
 
       e.stopPropagation()
+
+      // In template/blueprint mode, use the save() function which handles template/blueprint logic
+      if (props.templateMode || props.blueprintMode) {
+        await save()
+        return
+      }
 
       if (!isAllowedAddNewRecord.value && isNew.value) {
         message.toast(t('objects.permissions.addNewRecordTooltip'))
@@ -732,6 +856,18 @@ function onTouchEnd() {
 const showSendRecordModal = ref(false)
 
 const visibleMoreOptions = computed(() => {
+  // In template/blueprint mode, hide all extra options
+  if (props.templateMode || props.blueprintMode) {
+    return {
+      reloadRecord: false,
+      copyRecordUrl: false,
+      sendRecord: false,
+      duplicateRecord: false,
+      deleteRecord: false,
+      showMoreOptionsMenu: false,
+      allHiddenExceptCopyRecordUrl: true,
+    }
+  }
   const result = {
     reloadRecord: !isEeUI,
     copyRecordUrl: !isNew.value && !!rowId.value,
@@ -766,7 +902,13 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="commentsDrawer && isUIAllowed('commentList', baseRoles) ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
+    :width="
+      templateMode || blueprintMode
+        ? 'min(65vw,700px)'
+        : commentsDrawer && isUIAllowed('commentList', baseRoles)
+        ? 'min(80vw,1280px)'
+        : 'min(70vw,768px)'
+    "
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
@@ -818,21 +960,54 @@ export default {
             <a-skeleton-input active class="!h-6 !sm:mr-14 !w-52 !rounded-md !overflow-hidden" size="small" />
           </div>
           <div v-else class="flex-1 flex items-center gap-2 xs:(flex-row-reverse justify-end) min-w-0">
+            <!-- Table selector dropdown (template mode) -->
+            <NcListTableSelector
+              v-if="templateMode && !props.showNextPrevIcons && activeMeta?.base_id"
+              :key="activeMeta.base_id"
+              :value="activeMeta.id || null"
+              :base-id="activeMeta.base_id"
+              disable-label
+              dropdown-class="max-w-64 min-w-32"
+              dropdown-overlay-class-name="max-w-64 min-w-32"
+              default-slot-wrapper-class="!px-1.5 !bg-nc-bg-gray-extralight hover:!bg-nc-bg-gray-light"
+              @update:value="onTemplateTableChange($event as string)"
+            >
+            </NcListTableSelector>
+
+            <!-- Static table chip (non-template mode) -->
             <div
-              v-if="!props.showNextPrevIcons"
+              v-else-if="!props.showNextPrevIcons"
               class="hidden md:flex items-center rounded-lg bg-nc-bg-gray-light px-2 py-1 gap-2"
             >
-              <GeneralTableIcon size="xsmall" :meta="meta" class="!mx-0 !text-nc-content-inverted-secondary" />
-
-              <span class="nc-expanded-form-table-name whitespace-nowrap">
-                {{ tableTitle }}
+              <GeneralTableIcon size="xsmall" :meta="activeMeta" class="!mx-0 !text-nc-content-inverted-secondary" />
+              <span class="nc-expanded-form-table-name whitespace-nowrap">{{ tableTitle }}</span>
+            </div>
+            <div v-if="templateMode" class="flex flex-col truncate overflow-hidden">
+              <input
+                ref="templateNameInputRef"
+                v-model="editableTemplateName"
+                class="bg-transparent border-none outline-none font-bold text-xl w-full placeholder-gray-300"
+                :class="isDuplicateTemplateName ? 'text-red-500' : 'text-nc-content-gray'"
+                placeholder="Enter template name..."
+              />
+              <span v-if="isDuplicateTemplateName" class="text-red-500 text-[11px] pl-0.5">
+                A template with this name already exists
               </span>
             </div>
-            <div
-              v-if="row.rowMeta?.new || props.newRecordHeader"
-              class="flex items-center truncate font-bold text-nc-content-gray text-xl overflow-hidden"
-            >
-              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+            <div v-else-if="row.rowMeta?.new || props.newRecordHeader" class="flex flex-col truncate overflow-hidden">
+              <!-- Breadcrumb trail for nested sub-record forms (e.g., Project Template > Tasks) -->
+              <div
+                v-if="props.breadcrumbs?.length"
+                class="flex items-center gap-1 text-[11px] text-nc-content-gray-muted leading-tight"
+              >
+                <template v-for="(crumb, idx) in props.breadcrumbs" :key="idx">
+                  <span class="truncate max-w-[140px]">{{ crumb }}</span>
+                  <GeneralIcon icon="chevronRight" class="flex-none h-3 w-3 text-nc-content-gray-muted" />
+                </template>
+              </div>
+              <span class="font-bold text-nc-content-gray text-xl truncate">
+                {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+              </span>
             </div>
             <div
               v-else-if="displayValue && !row?.rowMeta?.new"
@@ -844,9 +1019,10 @@ export default {
             </div>
           </div>
         </div>
-        <div class="ml-auto">
+        <div v-if="!templateMode && !blueprintMode" class="ml-auto">
           <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" :view="view" class="nc-expanded-form-mode-switch" />
         </div>
+        <div v-else class="ml-auto" />
         <div class="flex gap-2">
           <PermissionsTooltip
             v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
@@ -1074,6 +1250,14 @@ export default {
         <template v-else-if="activeViewMode === ExpandedFormMode.DISCUSSION">
           <SmartsheetExpandedFormPresentorsDiscussion :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist" />
         </template>
+      </div>
+      <div
+        v-if="templateMode || blueprintMode"
+        class="nc-expanded-form-template-notice flex items-center justify-center gap-2 px-4 py-1.5 border-t-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight text-nc-content-gray-muted text-[11px] flex-shrink-0"
+      >
+        <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5" />
+        <span v-if="templateMode">You are editing a record template. Changes here define default values for new records.</span>
+        <span v-else>You are editing a sub-record. A new record will be created and linked each time the template is used.</span>
       </div>
     </div>
   </component>

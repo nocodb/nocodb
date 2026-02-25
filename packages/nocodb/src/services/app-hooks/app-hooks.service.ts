@@ -413,6 +413,15 @@ export class AppHooksService {
       | CalendarViewUpdateEvent
       | FormViewUpdateEvent,
   ): void;
+  emit(
+    event:
+      | AppEvents.RECORD_TEMPLATE_CREATE
+      | AppEvents.RECORD_TEMPLATE_UPDATE
+      | AppEvents.RECORD_TEMPLATE_DELETE
+      | AppEvents.RECORD_TEMPLATE_USE,
+    data: any,
+  ): void;
+
   emit(event, data): void {
     this.eventEmitter.emit(event, data);
     this.eventEmitter.emit(ALL_EVENTS, { event, data: data });

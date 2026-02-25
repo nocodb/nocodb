@@ -173,6 +173,11 @@ enum AuditV1OperationTypes {
   WORKFLOW_DELETE = 'WORKFLOW_DELETE',
 
   WORKFLOW_DUPLICATE = 'WORKFLOW_DUPLICATE',
+
+  RECORD_TEMPLATE_CREATE = 'RECORD_TEMPLATE_CREATE',
+  RECORD_TEMPLATE_UPDATE = 'RECORD_TEMPLATE_UPDATE',
+  RECORD_TEMPLATE_DELETE = 'RECORD_TEMPLATE_DELETE',
+  RECORD_TEMPLATE_USE = 'RECORD_TEMPLATE_USE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -1194,6 +1199,31 @@ export interface WorkflowDuplicatePayload {
   error?: string;
 }
 
+export interface RecordTemplateCreatePayload {
+  template_title: string;
+  template_id: string;
+  table_id: string;
+}
+
+export interface RecordTemplateUpdatePayload {
+  template_title: string;
+  template_id: string;
+  table_id: string;
+}
+
+export interface RecordTemplateDeletePayload {
+  template_title: string;
+  template_id: string;
+  table_id: string;
+}
+
+export interface RecordTemplateUsePayload {
+  template_title: string;
+  template_id: string;
+  table_id: string;
+  usage_count: number;
+}
+
 export interface AuditV1<T = any> {
   // auto generated
   id?: string;
@@ -1420,6 +1450,18 @@ const descriptionTemplates = {
     audit: AuditV1<WorkflowDuplicatePayload>
   ) =>
     `Workflow '${audit.details.duplicated_workflow_title}' has been duplicated`,
+  [AuditV1OperationTypes.RECORD_TEMPLATE_CREATE]: (
+    audit: AuditV1<RecordTemplateCreatePayload>
+  ) => `Record template '${audit.details.template_title}' has been created`,
+  [AuditV1OperationTypes.RECORD_TEMPLATE_UPDATE]: (
+    audit: AuditV1<RecordTemplateUpdatePayload>
+  ) => `Record template '${audit.details.template_title}' has been updated`,
+  [AuditV1OperationTypes.RECORD_TEMPLATE_DELETE]: (
+    audit: AuditV1<RecordTemplateDeletePayload>
+  ) => `Record template '${audit.details.template_title}' has been deleted`,
+  [AuditV1OperationTypes.RECORD_TEMPLATE_USE]: (
+    audit: AuditV1<RecordTemplateUsePayload>
+  ) => `Record template '${audit.details.template_title}' has been used`,
 };
 
 function auditDescription(audit: AuditV1) {

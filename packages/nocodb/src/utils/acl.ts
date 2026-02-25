@@ -631,6 +631,7 @@ const permissionDescriptions: Record<string, string> = {
 
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',
+
   apiTokenDelete: 'delete an API token',
 
   passwordChange: 'change your password',

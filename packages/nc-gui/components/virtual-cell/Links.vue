@@ -24,6 +24,9 @@ const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
+// Inject breadcrumbs before the dropdown teleport boundary (teleport breaks provide/inject chain)
+const parentBreadcrumbs = inject(TemplateBreadcrumbsInj, ref([]))
+
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
 const cellEventHook = inject(CellEventHookInj, null)
@@ -235,6 +238,7 @@ onUnmounted(() => {
           :items="toatlRecordsLinked"
           :column="relatedTableDisplayColumn"
           :cell-value="localCellValue"
+          :parent-breadcrumbs="parentBreadcrumbs"
           @attach-record="onAttachRecord"
           @escape="isOpen = false"
         />
@@ -243,6 +247,7 @@ onUnmounted(() => {
           v-model="listItemsDlg"
           :column="relatedTableDisplayColumn"
           :hide-back-btn="hideBackBtn"
+          :parent-breadcrumbs="parentBreadcrumbs"
           @attach-linked-record="onAttachLinkedRecord"
           @escape="isOpen = false"
         />

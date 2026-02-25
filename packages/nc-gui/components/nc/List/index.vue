@@ -457,6 +457,12 @@ defineExpose({
 const handleEscape = (event: KeyboardEvent) => {
   emits('escape', event)
 }
+
+const handleResetHoverEffectOnMouseLeave = () => {
+  if (!props.resetHoverEffectOnMouseLeave) return
+
+  handleResetHoverEffect(true, -1)
+}
 </script>
 
 <template>
@@ -468,6 +474,7 @@ const handleEscape = (event: KeyboardEvent) => {
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex], undefined, $event)"
     @keydown.esc="handleEscape($event)"
+    @mouseleave="handleResetHoverEffectOnMouseLeave"
   >
     <template v-if="isSearchEnabled">
       <div
@@ -483,7 +490,7 @@ const handleEscape = (event: KeyboardEvent) => {
           ref="inputRef"
           v-model:value="searchQuery"
           :placeholder="searchInputPlaceholder"
-          class="nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
+          class="nc-list-search-input nc-toolbar-dropdown-search-field-input !pl-2 !pr-1.5 flex-1"
           :class="`nc-theme-${theme}`"
           allow-clear
           :bordered="inputBordered"
@@ -525,114 +532,46 @@ const handleEscape = (event: KeyboardEvent) => {
             ]"
           >
             <div v-bind="revisedWrapperProps" :class="wrapperClassName">
-              <NcTooltip
+              <NcListItem
                 v-for="{ data: option, index: idx } in virtualList"
                 :key="idx"
-                class="flex items-center gap-2 nc-list-item w-full px-2 my-[2px] first-of-type:mt-0 last-of-type:mb-0"
-                :class="[
-                  `nc-list-option-${idx}`,
-                  {
-                    'nc-list-group-header text-nc-content-gray-muted text-bodySmBold border-t !border-t-nc-border-gray-medium !first-of-type:border-t-transparent flex items-center':
-                      option.ncGroupHeader,
-                    'rounded-md': !itemFullWidth && !option.ncGroupHeader,
-                    'nc-list-option-selected': compareVModel(option[optionValueKey], option.ncGroupHeader),
-                    'bg-nc-bg-gray-light ':
-                      !option?.ncItemDisabled &&
-                      showHoverEffectOnSelectedOption &&
-                      compareVModel(option[optionValueKey], option.ncGroupHeader),
-                    'bg-nc-bg-gray-light nc-list-option-active':
-                      !option?.ncItemDisabled && activeOptionIndex === idx && !option.ncGroupHeader,
-                    'opacity-60 cursor-not-allowed': option?.ncItemDisabled && !option?.ncGroupHeader,
-                    'hover:bg-nc-bg-gray-light cursor-pointer': !option?.ncItemDisabled && !option?.ncGroupHeader,
-                    'py-2': variant === 'default' && !option.ncGroupHeader,
-                    'py-[5px]': variant === 'medium' && !option.ncGroupHeader,
-                    'py-[3px]': variant === 'small' && !option.ncGroupHeader,
-                    '-mx-1 px-3 w-[calc(100%_+_8px)]': variant === 'small' && option.ncGroupHeader,
-                    '-mx-2 px-4 w-[calc(100%_+_16px)]': variant !== 'small' && option.ncGroupHeader,
-                    'pointer-events-none': isLocked,
-                  },
-                  `${itemClassName}`,
-                  `${option.ncGroupHeader ? groupHeaderClassName : ''}`,
-                ]"
-                :style="{
-                  minHeight: `${groupHeaderHeight}px`,
-                }"
-                :placement="itemTooltipPlacement"
-                :disabled="!option?.ncItemTooltip"
-                :attrs="{
-                  onMouseover: () => !option.ncGroupHeader && handleResetHoverEffect(true, idx),
-                }"
-                @click="handleSelectOption(option, idx, $event)"
+                :option="option"
+                :variant="variant"
+                :index="idx"
+                :option-label-key="optionLabelKey"
+                :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
+                :is-active="activeOptionIndex === idx"
+                :show-selected-option="showSelectedOption"
+                :show-hover-effect="showHoverEffectOnSelectedOption"
+                :is-locked="isLocked"
+                :item-full-width="itemFullWidth"
+                :item-class-name="itemClassName"
+                :group-header-class-name="groupHeaderClassName"
+                :item-tooltip-placement="itemTooltipPlacement"
+                :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
+                :group-header-height="groupHeaderHeight"
+                @click="handleSelectOption"
+                @mouseover="handleResetHoverEffect(true, idx)"
               >
-                <template #title>{{ option.ncItemTooltip }} </template>
-                <slot v-if="option.ncGroupHeader" name="listItemGroupHeader" :option="option">
-                  <div>
-                    {{ option.ncGroupHeaderLabel }}
-                  </div>
-                </slot>
-                <slot
-                  v-else
-                  name="listItem"
-                  :option="option"
-                  :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
-                  :index="idx"
-                  :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
-                >
-                  <slot
-                    name="listItemExtraLeft"
-                    :option="option"
-                    :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
-                    :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
-                  >
-                  </slot>
-
-                  <slot
-                    name="listItemContent"
-                    :option="option"
-                    :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
-                    :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
-                  >
-                    <NcTooltip
-                      class="truncate"
-                      :class="{
-                        'flex-1': !searchBasisInfoMap[option[optionValueKey]],
-                      }"
-                      show-on-truncate-only
-                    >
-                      <template #title>
-                        {{ option[optionLabelKey] }}
-                      </template>
-                      {{ option[optionLabelKey] }}
-                    </NcTooltip>
-                    <div v-if="!option?.ncGroupHeader && searchBasisInfoMap[option[optionValueKey]]" class="flex-1 flex">
-                      <NcTooltip :title="searchBasisInfoMap[option[optionValueKey]]" class="flex cursor-help">
-                        <GeneralIcon icon="info" class="flex-none h-3.5 w-3.5 text-nc-content-gray-muted" />
-                      </NcTooltip>
-                    </div>
-                  </slot>
-
-                  <slot
-                    name="listItemExtraRight"
-                    :option="option"
-                    :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
-                    :search-basis-info="searchBasisInfoMap[option[optionValueKey]]"
-                  >
-                  </slot>
-
-                  <slot
-                    name="listItemSelectedIcon"
-                    :option="option"
-                    :is-selected="compareVModel(option[optionValueKey], option.ncGroupHeader)"
-                  >
-                    <GeneralIcon
-                      v-if="showSelectedOption && compareVModel(option[optionValueKey], option.ncGroupHeader)"
-                      id="nc-selected-item-icon"
-                      icon="check"
-                      class="flex-none text-nc-content-brand w-4 h-4"
-                    />
-                  </slot>
-                </slot>
-              </NcTooltip>
+                <template #listItemGroupHeader="slotProps">
+                  <slot name="listItemGroupHeader" v-bind="slotProps" />
+                </template>
+                <template #listItem="slotProps">
+                  <slot name="listItem" v-bind="slotProps" :index="idx" />
+                </template>
+                <template #listItemExtraLeft="slotProps">
+                  <slot name="listItemExtraLeft" v-bind="slotProps" />
+                </template>
+                <template #listItemContent="slotProps">
+                  <slot name="listItemContent" v-bind="slotProps" />
+                </template>
+                <template #listItemExtraRight="slotProps">
+                  <slot name="listItemExtraRight" v-bind="slotProps" />
+                </template>
+                <template #listItemSelectedIcon="slotProps">
+                  <slot name="listItemSelectedIcon" v-bind="slotProps" />
+                </template>
+              </NcListItem>
             </div>
           </div>
         </div>

@@ -150,6 +150,13 @@ export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | Comp
 
 export const IsOrgBillingInj: InjectionKey<Ref<boolean>> = Symbol('is-org-billing-injection')
 
+export const IsTemplateModeInj: InjectionKey<Ref<boolean>> = Symbol('is-template-mode-injection')
+
+export const BlueprintParentTableIdInj: InjectionKey<Ref<string | undefined>> = Symbol('blueprint-parent-table-id-injection')
+
+/** Breadcrumb trail for nested sub-record forms (e.g., ['Project Template', 'Tasks']) */
+export const TemplateBreadcrumbsInj: InjectionKey<Ref<string[]>> = Symbol('template-breadcrumbs-injection')
+
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]

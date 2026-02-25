@@ -692,8 +692,18 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           case UITypes.UUID: {
             // PR review fix #2: use shared helper to cast UUID to text on PG
-            const columnName = await getColumnName(baseModel.context, column, columns);
-            selectors.push(buildUuidGroupBySelector({ baseModel, columnName, alias: getAs(column) }));
+            const columnName = await getColumnName(
+              baseModel.context,
+              column,
+              columns,
+            );
+            selectors.push(
+              buildUuidGroupBySelector({
+                baseModel,
+                columnName,
+                alias: getAs(column),
+              }),
+            );
             groupBySelectors.push(getAs(column));
             break;
           }
@@ -977,8 +987,18 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 break;
               case UITypes.UUID: {
                 // PR review fix #2: use shared helper to cast UUID to text on PG
-                const columnName = await getColumnName(baseModel.context, column, columns);
-                colSelectors.push(buildUuidGroupBySelector({ baseModel, columnName, alias: getAs(column) }));
+                const columnName = await getColumnName(
+                  baseModel.context,
+                  column,
+                  columns,
+                );
+                colSelectors.push(
+                  buildUuidGroupBySelector({
+                    baseModel,
+                    columnName,
+                    alias: getAs(column),
+                  }),
+                );
                 groupBySelectors.push(getAs(column));
                 break;
               }
@@ -1321,8 +1341,18 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 break;
               case UITypes.UUID: {
                 // PR review fix #2: use shared helper to cast UUID to text on PG
-                const columnName = await getColumnName(baseModel.context, column, columns);
-                colSelectors.push(buildUuidGroupBySelector({ baseModel, columnName, alias: getAs(column) }));
+                const columnName = await getColumnName(
+                  baseModel.context,
+                  column,
+                  columns,
+                );
+                colSelectors.push(
+                  buildUuidGroupBySelector({
+                    baseModel,
+                    columnName,
+                    alias: getAs(column),
+                  }),
+                );
                 groupBySelectors.push(getAs(column));
                 break;
               }

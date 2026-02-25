@@ -13,6 +13,15 @@ export interface UseExpandedFormDetachedProps {
   'onUpdate:modelValue'?: Function
   'maintainDefaultViewOrder'?: boolean
   'skipReload'?: boolean
+  'templateMode'?: boolean
+  'templateName'?: string
+  'blueprintMode'?: boolean
+  'newRecordSubmitBtnText'?: string
+  'newRecordHeader'?: string
+  'existingTemplateNames'?: string[]
+  'editingTemplateId'?: string
+  'blueprintParentTableId'?: string
+  'breadcrumbs'?: string[]
   'createdRecord'?: (row: Row['row']) => void
 }
 

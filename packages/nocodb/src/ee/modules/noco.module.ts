@@ -86,6 +86,10 @@ import { WorkflowWebhookController } from '~/controllers/workflow-webhook.contro
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
 
+/* Record Templates */
+import { RecordTemplatesController } from '~/controllers/record-templates.controller';
+import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
+
 import { ActionsService } from '~/services/actions.service';
 
 /* SCIM */
@@ -170,6 +174,9 @@ export const nocoModuleEeMetadata = {
     /* Dashboards */
     DashboardsService,
 
+    /* Record Templates */
+    RecordTemplatesService,
+
     ActionsService,
 
     /* SCIM */
@@ -230,6 +237,9 @@ export const nocoModuleEeMetadata = {
     ScimSchemasController,
     ScimServiceProviderConfigController,
     ScimResourceTypesController,
+
+    /* Record Templates */
+    RecordTemplatesController,
 
     // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
     // /* Workspace Teams V3 */

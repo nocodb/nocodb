@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { type ColumnType, PermissionEntity, PermissionKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  PermissionEntity,
+  PermissionKey,
+  type TableType,
+  isLinksOrLTAR,
+  isVirtualCol,
+} from 'nocodb-sdk'
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -17,11 +25,93 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const meta = inject(MetaInj, ref())
 
+const isTemplateMode = inject(IsTemplateModeInj, ref(false))
+
+const blueprintParentTableId = inject(BlueprintParentTableIdInj, ref())
+
+const parentBreadcrumbs = inject(TemplateBreadcrumbsInj, ref([]))
+
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
+const { getMeta } = useMetas()
+
+const { open: openExpandedFormDetached } = useExpandedFormDetached()
+
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
+
+/**
+ * Check if an LTAR column points back to the parent table that opened this blueprint form.
+ * Such columns are auto-linked and should be disabled (read-only) in the blueprint editor
+ * to prevent circular linking.
+ */
+const isParentLtarColumn = (col: ColumnType): boolean => {
+  if (!blueprintParentTableId.value || !isLinksOrLTAR(col)) return false
+  const colOptions = col.colOptions as LinkToAnotherRecordType
+  return colOptions?.fk_related_model_id === blueprintParentTableId.value
+}
+
+/**
+ * Open a nested blueprint form for the given LTAR column.
+ * When saved, the blueprint is added to the parent row's ltarState,
+ * which will later be resolved into a real record when the template is used.
+ */
+const addBlueprintForColumn = async (col: ColumnType) => {
+  const colOptions = col.colOptions as LinkToAnotherRecordType
+  const relatedTableId = colOptions?.fk_related_model_id
+  const baseId = meta.value?.base_id
+  if (!relatedTableId || !baseId) return
+
+  try {
+    const relatedMeta = (await getMeta(baseId, relatedTableId)) as TableType
+    if (!relatedMeta) return
+
+    // Build breadcrumb trail: append current table name to parent trail
+    const breadcrumbs = [...parentBreadcrumbs.value, meta.value?.title || '']
+
+    openExpandedFormDetached({
+      isOpen: true,
+      row: { row: {}, oldRow: {}, rowMeta: { new: true } },
+      meta: relatedMeta,
+      loadRow: false,
+      useMetaFields: true,
+      blueprintMode: true,
+      blueprintParentTableId: meta.value?.id,
+      breadcrumbs,
+      newRecordSubmitBtnText: 'Save Record',
+      newRecordHeader: `New ${relatedMeta.title} Record`,
+      createdRecord: (record: Record<string, any>) => {
+        const blueprint = { ...record, _isBlueprint: true }
+        // Ensure ltarState structure exists
+        if (!_row.value.rowMeta) _row.value.rowMeta = {}
+        if (!_row.value.rowMeta.ltarState) _row.value.rowMeta.ltarState = {}
+
+        if (isHm(col) || isMm(col)) {
+          if (!_row.value.rowMeta.ltarState[col.title!]) {
+            _row.value.rowMeta.ltarState[col.title!] = []
+          }
+          _row.value.rowMeta.ltarState[col.title!].push(blueprint)
+        } else {
+          // BT or OO — single linked record
+          _row.value.rowMeta.ltarState[col.title!] = blueprint
+        }
+      },
+    })
+  } catch (e) {
+    console.error('Failed to open blueprint form:', e)
+  }
+}
+
+const getRelatedTableName = (col: ColumnType): string => {
+  const colOptions = col.colOptions as LinkToAnotherRecordType
+  const relatedTableId = colOptions?.fk_related_model_id
+  const baseId = meta.value?.base_id
+  if (!relatedTableId || !baseId) return 'Sub Record'
+  const { getMetaByKey } = useMetas()
+  const relatedMeta = getMetaByKey(baseId, relatedTableId)
+  return relatedMeta?.title || 'Sub Record'
+}
 
 const showCol = (col: ColumnType) => {
   return props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
@@ -100,10 +190,12 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
           'lg:max-w-[calc(100%_-_188px)]': !props.forceVerticalMode,
         }"
         :placement="isMobileMode ? 'top' : 'right'"
-        :disabled="!showReadonlyColumnTooltip(col)"
+        :disabled="!showReadonlyColumnTooltip(col) && !isParentLtarColumn(col)"
         :arrow="false"
       >
-        <template #title>{{ $t('msg.info.fieldReadonly') }}</template>
+        <template #title>{{
+          isParentLtarColumn(col) ? 'This field will be auto-linked to the parent record' : $t('msg.info.fieldReadonly')
+        }}</template>
         <PermissionsTooltip
           v-if="col.title"
           class="w-full"
@@ -122,7 +214,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
               :class="{
                 'w-full': props.forceVerticalMode,
                 '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
-                  showReadonlyColumnTooltip(col),
+                  showReadonlyColumnTooltip(col) || isParentLtarColumn(col),
                 '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed || isSyncedColumn(col),
               }"
             >
@@ -130,7 +222,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
                 v-if="isVirtualCol(col)"
                 v-model="_row.row[col.title]"
                 :column="col"
-                :read-only="readOnly || !isAllowed || isSyncedColumn(col)"
+                :read-only="readOnly || !isAllowed || isSyncedColumn(col) || isParentLtarColumn(col)"
                 :row="_row"
                 :is-allowed="isAllowed"
               />
@@ -162,6 +254,35 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
           class="absolute right-1 top-2 text-nc-content-gray-muted hover:text-nc-content-gray-subtle my-auto"
           icon="reload"
         />
+      </div>
+    </div>
+
+    <!-- Add Blueprint button below LTAR fields in template mode -->
+    <div
+      v-if="isTemplateMode && isLinksOrLTAR(col) && !readOnly && !isParentLtarColumn(col)"
+      class="flex items-center"
+      :class="{
+        'flex-row <lg:pl-0': !props.forceVerticalMode,
+        'pl-0': props.forceVerticalMode,
+      }"
+    >
+      <div v-if="!props.forceVerticalMode" class="flex-none w-45 <lg:hidden sm:mx-2" />
+      <div class="flex flex-col gap-1.5 mt-3">
+        <span class="text-[11px] text-nc-content-gray-muted">Or, create and link a new record</span>
+        <div class="flex items-center gap-2">
+          <NcButton type="secondary" size="small" @click.stop="addBlueprintForColumn(col)">
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
+              <span>New {{ getRelatedTableName(col) }} Record</span>
+            </div>
+          </NcButton>
+          <NcTooltip placement="bottom" class="flex items-center">
+            <template #title>
+              A new {{ getRelatedTableName(col) }} record will be created and linked each time this template is used
+            </template>
+            <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-subtle" />
+          </NcTooltip>
+        </div>
       </div>
     </div>
   </div>

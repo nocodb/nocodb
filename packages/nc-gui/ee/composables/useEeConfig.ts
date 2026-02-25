@@ -286,6 +286,10 @@ export const useEeConfig = createSharedComposable(() => {
   // UUID is available on all cloud plans + self-hosted EE — never blocked in EE
   const blockUuidField = computed(() => false)
 
+  const blockRecordTemplates = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES)
+  })
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -1377,6 +1381,22 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseRecordTemplates = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockRecordTemplates.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseRecordTemplates'),
+      content: t('upgrade.upgradeToUseRecordTemplatesSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_RECORD_TEMPLATES,
+      requiredPlan: PlanTitles.PLUS,
+    })
+
+    return true
+  }
+
   const showSandboxPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewSandbox.value) return
 
@@ -1485,5 +1505,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseUuidField,
     blockAddNewSandbox,
     showSandboxPlanLimitExceededModal,
+    blockRecordTemplates,
+    showUpgradeToUseRecordTemplates,
   }
 })

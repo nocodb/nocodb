@@ -50,6 +50,10 @@ import type {
   PermissionCreatePayload,
   PermissionDeletePayload,
   PermissionUpdatePayload,
+  RecordTemplateCreatePayload,
+  RecordTemplateDeletePayload,
+  RecordTemplateUpdatePayload,
+  RecordTemplateUsePayload,
   ScriptCreatePayload,
   ScriptDeletePayload,
   ScriptDuplicatePayload,
@@ -145,6 +149,10 @@ import type {
   ProjectUpdateEvent,
   ProjectUserResendInviteEvent,
   ProjectUserUpdateEvent,
+  RecordTemplateCreateEvent,
+  RecordTemplateDeleteEvent,
+  RecordTemplateUpdateEvent,
+  RecordTemplateUseEvent,
   ScriptCreateEvent,
   ScriptDeleteEvent,
   ScriptDuplicateEvent,
@@ -3310,6 +3318,79 @@ export class AppHooksListenerService
             context: param.context,
             req: param.req,
           }),
+        );
+        break;
+      }
+      case AppEvents.RECORD_TEMPLATE_CREATE: {
+        const param = data as RecordTemplateCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<RecordTemplateCreatePayload>(
+            AuditV1OperationTypes.RECORD_TEMPLATE_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                template_title: param.template.title,
+                template_id: param.template.id,
+                table_id: param.template.fk_model_id,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.RECORD_TEMPLATE_UPDATE: {
+        const param = data as RecordTemplateUpdateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<RecordTemplateUpdatePayload>(
+            AuditV1OperationTypes.RECORD_TEMPLATE_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                template_title: param.template.title,
+                template_id: param.template.id,
+                table_id: param.template.fk_model_id,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.RECORD_TEMPLATE_DELETE: {
+        const param = data as RecordTemplateDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<RecordTemplateDeletePayload>(
+            AuditV1OperationTypes.RECORD_TEMPLATE_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                template_title: param.template.title,
+                template_id: param.template.id,
+                table_id: param.template.fk_model_id,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.RECORD_TEMPLATE_USE: {
+        const param = data as RecordTemplateUseEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<RecordTemplateUsePayload>(
+            AuditV1OperationTypes.RECORD_TEMPLATE_USE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                template_title: param.template.title,
+                template_id: param.template.id,
+                table_id: param.template.fk_model_id,
+                usage_count: param.template.usage_count ?? 0,
+              },
+            },
+          ),
         );
         break;
       }

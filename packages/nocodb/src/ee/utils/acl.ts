@@ -407,6 +407,14 @@ const permissionScopes = {
 
     // Send record email
     'sendRecordEmail',
+
+    // Record Templates
+    'recordTemplateList',
+    'recordTemplateGet',
+    'recordTemplateCreate',
+    'recordTemplateUpdate',
+    'recordTemplateDelete',
+    'recordTemplateUse',
   ],
 };
 
@@ -735,6 +743,14 @@ const rolePermissions:
       viewRowColorSelectAdd: true,
       viewRowColorInfoDelete: true,
       rowColorConditionsFilterCreate: true,
+
+      // Record Templates
+      recordTemplateList: true,
+      recordTemplateGet: true,
+      recordTemplateCreate: true,
+      recordTemplateUpdate: true,
+      recordTemplateDelete: true,
+      recordTemplateUse: true,
     },
   },
   [ProjectRoles.CREATOR]: {

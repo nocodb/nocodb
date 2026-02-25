@@ -111,6 +111,7 @@ export enum MetaTable {
   AUTOMATION_SUBSCRIBERS = 'nc_automation_subscribers',
   SANDBOXES = 'nc_sandboxes_v2',
   SCIM_CONFIG = 'nc_scim_config',
+  RECORD_TEMPLATES = 'nc_record_templates',
 }
 
 export const BaseRelatedMetaTables = [
@@ -214,6 +215,7 @@ export const orderedMetaTables = [
   MetaTable.COL_RELATIONS,
   MetaTable.COLUMN_VALIDATIONS,
   MetaTable.COLUMNS,
+  MetaTable.RECORD_TEMPLATES,
   MetaTable.MODELS,
   MetaTable.SOURCES,
   MetaTable.PROJECT,
@@ -339,6 +341,7 @@ export enum CacheScope {
   AUTOMATION_SUBSCRIBER = 'automationSubscriber',
   SANDBOX = 'sandbox',
   SCIM_CONFIG = 'scimConfig',
+  RECORD_TEMPLATE = 'recordTemplate',
 }
 
 export enum CacheGetType {

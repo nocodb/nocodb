@@ -300,6 +300,11 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
 
       case AppEvents.UI_ACL:
         break;
+      case AppEvents.RECORD_TEMPLATE_CREATE:
+      case AppEvents.RECORD_TEMPLATE_UPDATE:
+      case AppEvents.RECORD_TEMPLATE_DELETE:
+      case AppEvents.RECORD_TEMPLATE_USE:
+        break;
     }
   }
 

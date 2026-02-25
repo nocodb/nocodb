@@ -36,9 +36,9 @@ describe('Attachment V3', () => {
 
     nock('http://myhost.local/files')
       .get('/image')
-      // FIXME: increase if insert / update result is updated too fast
-      // delay to ensure background not clear before list
-      .delay(10)
+      // delay to ensure background download does not complete before the PATCH/POST response is read
+      // PATCH does 3 chunkList DB reads (old records + internal + external) so needs more headroom than POST
+      .delay(50)
       .reply(200, imageBuffer, {
         'Content-Type': 'image/png',
         'Content-Disposition': 'attachment; filename="test-image.png"',

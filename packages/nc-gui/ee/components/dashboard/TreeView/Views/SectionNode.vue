@@ -212,7 +212,7 @@ const onChangeColor = (color: string) => {
         <div class="flex flex-col gap-3">
           <div>
             <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
-              {{ $t('labels.sectionName') || 'Section Name' }}
+              {{ $t('labels.sectionName') }}
             </div>
             <div class="text-small leading-[18px]">{{ section.title }}</div>
           </div>
@@ -226,11 +226,7 @@ const onChangeColor = (color: string) => {
           @mouseleave="showSectionNodeTooltip = true"
         >
           <NcButton type="text" size="xsmall" class="!px-0">
-            <GeneralIcon
-              :icon="isExpanded ? 'ncFolderOpen' : 'ncFolderClosed'"
-              class="w-4 h-4"
-              :style="{ color: iconColor }"
-            />
+            <GeneralIcon :icon="isExpanded ? 'ncFolderOpen' : 'ncFolderClosed'" class="w-4 h-4" :style="{ color: iconColor }" />
           </NcButton>
         </div>
 
@@ -281,11 +277,11 @@ const onChangeColor = (color: string) => {
 
             <template #overlay>
               <NcMenu class="!rounded-lg" variant="small">
-                <NcMenuItem :disabled="allExpanded" @click="onExpandAll">
+                <NcMenuItem v-e="['c:view-section:expand-all']" :disabled="allExpanded" @click="onExpandAll">
                   <GeneralIcon icon="ncFolderOpen" class="opacity-80" />
                   {{ $t('activity.kanban.expandAll') }}
                 </NcMenuItem>
-                <NcMenuItem :disabled="allCollapsed" @click="onCollapseAll">
+                <NcMenuItem v-e="['c:view-section:collapse-all']" :disabled="allCollapsed" @click="onCollapseAll">
                   <GeneralIcon icon="ncFolderClosed" class="opacity-80" />
                   {{ $t('activity.kanban.collapseAll') }}
                 </NcMenuItem>
@@ -305,10 +301,7 @@ const onChangeColor = (color: string) => {
                     />
                   </div>
                   <NcDivider v-if="isUIAllowed('viewCreateOrEdit')" />
-                  <NcMenuItem
-                    v-if="isUIAllowed('viewCreateOrEdit')"
-                    @click="onRenameMenuClick"
-                  >
+                  <NcMenuItem v-if="isUIAllowed('viewCreateOrEdit')" @click="onRenameMenuClick">
                     <GeneralIcon icon="rename" class="opacity-80" />
                     {{
                       $t('general.renameEntity', {
@@ -317,11 +310,7 @@ const onChangeColor = (color: string) => {
                     }}
                   </NcMenuItem>
                   <NcDivider v-if="isUIAllowed('viewCreateOrEdit')" />
-                  <NcMenuItem
-                    v-if="isUIAllowed('viewCreateOrEdit')"
-                    danger
-                    @click="onDelete"
-                  >
+                  <NcMenuItem v-if="isUIAllowed('viewCreateOrEdit')" danger @click="onDelete">
                     <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
                     {{
                       $t('general.deleteEntity', {

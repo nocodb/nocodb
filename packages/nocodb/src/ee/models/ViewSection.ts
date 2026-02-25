@@ -98,9 +98,7 @@ export default class ViewSection
           },
         },
       );
-      for (let section of sectionsList) {
-        section = prepareForResponse(section, ['meta']);
-      }
+      sectionsList = sectionsList.map((section) => prepareForResponse(section, ['meta']));
       await NocoCache.setList(
         context,
         CacheScope.VIEW_SECTION,

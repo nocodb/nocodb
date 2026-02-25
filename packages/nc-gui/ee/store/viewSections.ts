@@ -6,6 +6,8 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
+  const { activeTableId, activeTable } = storeToRefs(useTablesStore())
+
   // Helper function to create composite key: baseId:tableId
   const getSectionsKey = (baseId: string, tableId: string) => `${baseId}:${tableId}`
 
@@ -17,9 +19,6 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
   /**
    * Get sections for a specific table
-   * @param baseId - The base ID
-   * @param tableId - The table ID
-   * @returns Array of sections, sorted by order
    */
   const getSections = (baseId: string, tableId: string): ViewSectionType[] => {
     if (!baseId || !tableId) {
@@ -31,29 +30,11 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     return sectionsByTable.value.get(key) ?? []
   }
 
-  // Computed properties
-  // DEPRECATED: Use getSections(baseId, tableId) instead
-  const sections = computed(() => {
-    console.warn(
-      '[viewSectionsStore] The `sections` computed property is deprecated. Use `getSections(baseId, tableId)` instead.',
-    )
-
-    const tablesStore = useTablesStore()
-    const { activeTableId, activeTable } = storeToRefs(tablesStore)
-
-    if (!activeTableId.value || !activeTable.value?.base_id) {
-      return []
-    }
-
-    return getSections(activeTable.value.base_id, activeTableId.value)
-  })
-
   const loadSections = async ({
     tableId,
     baseId,
-    ignoreLoading,
     force,
-  }: { tableId?: string; baseId?: string; ignoreLoading?: boolean; force?: boolean } = {}) => {
+  }: { tableId?: string; baseId?: string; force?: boolean } = {}) => {
     const effectiveTableId = tableId || activeTableId.value
     const effectiveBaseId = baseId || activeTable.value?.base_id
 
@@ -78,7 +59,6 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
         const sortedSections = (response.data.list as ViewSectionType[]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
         sectionsByTable.value.set(key, sortedSections)
 
-        // Update reverse index
         for (const s of sortedSections) {
           if (s.id) sectionTableIndex.value.set(s.id, key)
         }
@@ -115,7 +95,6 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
         const updatedSections = [...currentSections, section].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
         sectionsByTable.value.set(key, updatedSections)
 
-        // Update reverse index
         sectionTableIndex.value.set(section.id, key)
 
         return section
@@ -135,12 +114,12 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   ) => {
     if (!sectionId) return null
 
-    // Use reverse index to find the table key, then extract baseId
     const tableKey = sectionTableIndex.value.get(sectionId)
     if (!tableKey) {
       console.error('[updateSection] Section not found in index:', sectionId)
       return null
     }
+
     const [baseId] = tableKey.split(':')
 
     try {
@@ -152,16 +131,12 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
       const updatedSection = response.data as ViewSectionType
 
       if (updatedSection && updatedSection.id) {
-        // Use reverse index for O(1) lookup instead of iterating all tables
-        const tableKey = sectionTableIndex.value.get(sectionId)
-        if (tableKey) {
-          const sections = sectionsByTable.value.get(tableKey)
-          if (sections) {
-            const index = sections.findIndex((s) => s.id === sectionId)
-            if (index !== -1) {
-              sections[index] = updatedSection
-              sectionsByTable.value.set(tableKey, [...sections])
-            }
+        const sections = sectionsByTable.value.get(tableKey)
+        if (sections) {
+          const index = sections.findIndex((s) => s.id === sectionId)
+          if (index !== -1) {
+            sections[index] = updatedSection
+            sectionsByTable.value.set(tableKey, [...sections])
           }
         }
 
@@ -179,12 +154,12 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   const deleteSection = async (sectionId: string) => {
     if (!sectionId) return false
 
-    // Use reverse index to find the table key, then extract baseId
     const tableKey = sectionTableIndex.value.get(sectionId)
     if (!tableKey) {
       console.error('[deleteSection] Section not found in index:', sectionId)
       return false
     }
+
     const [baseId] = tableKey.split(':')
 
     try {
@@ -192,13 +167,9 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
         `/api/v2/internal/${activeWorkspaceId.value}/${baseId}?operation=viewSectionDelete&sectionId=${sectionId}`,
       )
 
-      // Use reverse index for O(1) lookup
-      const tableKey = sectionTableIndex.value.get(sectionId)
-      if (tableKey) {
-        const sections = sectionsByTable.value.get(tableKey)
-        if (sections) {
-          sectionsByTable.value.set(tableKey, sections.filter((s) => s.id !== sectionId))
-        }
+      const sections = sectionsByTable.value.get(tableKey)
+      if (sections) {
+        sectionsByTable.value.set(tableKey, sections.filter((s) => s.id !== sectionId))
       }
       sectionTableIndex.value.delete(sectionId)
 
@@ -213,12 +184,12 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   const reorderSection = async (sectionId: string, newOrder: number) => {
     if (!sectionId) return null
 
-    // Use reverse index to find the table key, then extract baseId
     const tableKey = sectionTableIndex.value.get(sectionId)
     if (!tableKey) {
       console.error('[reorderSection] Section not found in index:', sectionId)
       return null
     }
+
     const [baseId] = tableKey.split(':')
 
     try {
@@ -230,17 +201,13 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
       const updatedSection = response.data as ViewSectionType
 
       if (updatedSection && updatedSection.id) {
-        // Use reverse index for O(1) lookup
-        const tableKey = sectionTableIndex.value.get(sectionId)
-        if (tableKey) {
-          const sections = sectionsByTable.value.get(tableKey)
-          if (sections) {
-            const index = sections.findIndex((s) => s.id === sectionId)
-            if (index !== -1) {
-              sections[index] = updatedSection
-              sections.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-              sectionsByTable.value.set(tableKey, [...sections])
-            }
+        const sections = sectionsByTable.value.get(tableKey)
+        if (sections) {
+          const index = sections.findIndex((s) => s.id === sectionId)
+          if (index !== -1) {
+            sections[index] = updatedSection
+            sections.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+            sectionsByTable.value.set(tableKey, [...sections])
           }
         }
 
@@ -275,20 +242,18 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     sectionsByTable,
 
     // Getters
-    sections, // DEPRECATED: Use getSections(baseId, tableId) instead
     getSections,
 
     // Actions
     loadSections,
-    createSection, // Updated: now requires baseId parameter
+    createSection,
     updateSection,
     deleteSection,
     reorderSection,
-    getNextSectionTitle, // Updated: now requires baseId and tableId parameters
+    getNextSectionTitle,
   }
 })
 
-// Enable HMR
 if (import.meta.hot) {
   import.meta.hot.accept(acceptHMRUpdate(useViewSectionsStore, import.meta.hot))
 }

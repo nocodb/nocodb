@@ -32,6 +32,7 @@ export class DatasService extends DatasServiceCE {
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
+      includeButtonFilterColumns?: boolean;
       skipSortBasedOnOrderCol?: boolean;
       ignoreViewFilterAndSort?: boolean;
       baseModel?: BaseModelSqlv2;

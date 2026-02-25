@@ -151,6 +151,8 @@ interface Row {
     minutes?: number
     recordIndex?: number // For week spanning records in month view
     maxSpanning?: number
+    /** Per-button-column visibility: true = button disabled for this row */
+    buttonDisabled?: Record<string, boolean>
   } & RowMetaRowColorInfo
 }
 

@@ -132,12 +132,6 @@ export class UiPostOperations
           user: req.user,
           req,
         });
-      case 'buttonFilterDeleteAll':
-        await checkForFeature(context, PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY);
-        return await this.filtersService.buttonFilterDeleteAll(context, {
-          buttonColId: req.query.buttonColId as string,
-          req,
-        });
       case 'commentResolve':
         return await this.commentsService.commentResolve(context, {
           commentId: payload.commentId,

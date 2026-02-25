@@ -919,6 +919,9 @@ export class DataTableService {
           query: { ...dF },
           model,
           view,
+          includeRowColorColumns: dF.include_row_color === 'true',
+          includeButtonFilterColumns:
+            dF.include_button_filter_columns === 'true',
         });
         return { alias: dF.alias, data };
       },

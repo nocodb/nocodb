@@ -1274,6 +1274,10 @@ export const useEeConfig = createSharedComposable(() => {
     if (!blockButtonVisibility.value) return
 
     handleUpgradePlan({
+      title: t('upgrade.upgradeToUseButtonVisibility'),
+      content: t('upgrade.upgradeToUseButtonVisibilitySubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
       limitOrFeature: PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY,
       callback,
     })

@@ -277,7 +277,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         const column = await Column.get(context, { colId: buttonColId });
 
         if (!column) {
-          NcError.get(context).genericNotFound('Column', buttonColId);
+          NcError.get(context).fieldNotFound(buttonColId);
         }
 
         req.ncSourceId = column.source_id;

@@ -79,14 +79,6 @@ export class FiltersService {
     });
   }
 
-  async buttonFilterDeleteAll(
-    context: NcContext,
-    param: { buttonColId: string; req: NcRequest },
-  ) {
-    await Filter.deleteAllByButtonColumn(context, param.buttonColId);
-    return true;
-  }
-
   async filterDelete(
     context: NcContext,
     param: { filterId: string; req: NcRequest },

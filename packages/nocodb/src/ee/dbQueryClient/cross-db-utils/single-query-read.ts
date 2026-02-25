@@ -195,6 +195,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
       apiVersion: ctx.apiVersion,
       includeRowColorColumns: ctx.params.include_row_color,
+      includeButtonFilterColumns: ctx.params.include_button_filter_columns,
       extractOnlyPrimaries: ctx.extractOnlyPrimaries,
       extractOrderColumn: ctx.extractOrderColumn,
     });

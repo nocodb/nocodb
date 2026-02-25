@@ -163,44 +163,4 @@ export class FiltersController {
     );
   }
 
-  @Get('/api/v2/meta/button-columns/:buttonColId/filters')
-  @Acl('buttonFilterList')
-  async buttonFilterList(
-    @TenantContext() context: NcContext,
-    @Param('buttonColId') buttonColId: string,
-  ) {
-    return new PagedResponseImpl(
-      await this.filtersService.buttonFilterList(context, { buttonColId }),
-    );
-  }
-
-  @Post('/api/v2/meta/button-columns/:buttonColId/filters')
-  @HttpCode(200)
-  @Acl('buttonFilterCreate')
-  async buttonFilterCreate(
-    @TenantContext() context: NcContext,
-    @Param('buttonColId') buttonColId: string,
-    @Body() body: FilterReqType,
-    @Req() req: NcRequest,
-  ) {
-    return this.filtersService.buttonFilterCreate(context, {
-      filter: body,
-      buttonColId,
-      user: req.user,
-      req,
-    });
-  }
-
-  @Delete('/api/v2/meta/button-columns/:buttonColId/filters')
-  @Acl('buttonFilterDeleteAll')
-  async buttonFilterDeleteAll(
-    @TenantContext() context: NcContext,
-    @Param('buttonColId') buttonColId: string,
-    @Req() req: NcRequest,
-  ) {
-    return this.filtersService.buttonFilterDeleteAll(context, {
-      buttonColId,
-      req,
-    });
-  }
 }

@@ -77,7 +77,6 @@ export const OPERATION_SCOPES = {
   hookTrigger: 'base',
   hookFilterCreate: 'base',
   buttonFilterCreate: 'base',
-  buttonFilterDeleteAll: 'base',
   gridViewCreate: 'base',
   formViewCreate: 'base',
   galleryViewCreate: 'base',

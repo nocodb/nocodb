@@ -97,7 +97,6 @@ export class UiPostOperations
     'hookTrigger' as const,
     'hookFilterCreate' as const,
     'buttonFilterCreate' as const,
-    'buttonFilterDeleteAll' as const,
     'gridViewCreate' as const,
     'formViewCreate' as const,
     'galleryViewCreate' as const,

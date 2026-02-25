@@ -170,6 +170,8 @@
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
     "upgradeToUseRowColoring": "Upgrade to use row colouring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
+    "upgradeToUseButtonVisibility": "Upgrade to use button visibility conditions",
+    "upgradeToUseButtonVisibilitySubtitle": "Upgrade to the {plan} plan to conditionally show or hide buttons based on record data, giving you precise control over button actions.",
     "upgradeToUseToggleFilter": "Upgrade to toggle individual filters",
     "upgradeToUseToggleFilterSubtitle": "Upgrade to the {plan} plan to enable or disable individual filters without removing them, giving you more control over your views.",
     "upgradeToUsePinnedFilter": "Upgrade to pin filters to toolbar",

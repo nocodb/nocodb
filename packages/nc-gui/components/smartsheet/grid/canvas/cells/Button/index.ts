@@ -1,7 +1,6 @@
-import { ButtonActionsType, type ButtonType, type ColumnType, type FilterType } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../../utils/canvas'
 import { getButtonColors } from './utils'
-import { validateRowFilters } from '~/utils/dataUtils'
 
 const horizontalPadding = 12
 const buttonHeight = 24
@@ -9,32 +8,6 @@ const buttonMinWidth = 32
 
 const iconSize = 14
 const iconSpacing = 6
-
-/**
- * Evaluates the button's visibility-condition filters against the current row.
- * Returns true when the row does NOT satisfy the filters (button should be disabled).
- */
-function isButtonFilterDisabled(
-  colOptions: ButtonType | undefined,
-  row: Record<string, any> | undefined,
-  meta: any,
-  metas: Record<string, any> | undefined,
-  isPg?: (sourceId?: string) => boolean,
-  user?: any,
-): boolean {
-  const filters = colOptions?.filters as FilterType[] | undefined
-  if (!filters || !filters.length) return false
-  if (!row) return false
-
-  const columns = meta?.columns as ColumnType[]
-  if (!columns) return false
-
-  const client = isPg?.(meta?.source_id) ? 'pg' : 'mysql2'
-
-  return !validateRowFilters(filters, row, columns, client, metas || {}, meta?.base_id, {
-    currentUser: user?.id ? { id: user.id, email: user.email } : undefined,
-  })
-}
 
 export const ButtonCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
@@ -52,11 +25,7 @@ export const ButtonCellRenderer: CellRenderer = {
       allowLocalUrl,
       cellRenderStore,
       t,
-      row,
-      meta,
-      metas,
-      isPg,
-      user,
+      rowMeta,
     } = props
 
     const isQueued = actionManager.isQueued(pk, column.id!)
@@ -65,7 +34,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const afterActionStatus = actionManager.getAfterActionStatus(pk, column.id!)
 
     const colOptions = column.colOptions as ButtonType
-    const filterDisabled = isButtonFilterDisabled(colOptions, row, meta, metas, isPg, user)
+    const filterDisabled = !!rowMeta?.buttonDisabled?.[column.id!]
 
     cellRenderStore.filterDisabled = filterDisabled
     cellRenderStore.invalidUrlTooltip = afterActionStatus?.tooltip

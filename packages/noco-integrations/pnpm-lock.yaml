@@ -153,6 +153,9 @@ importers:
 
   packages/bamboohr-sync:
     dependencies:
+      '@noco-integrations/bamboohr-auth':
+        specifier: workspace:*
+        version: link:../bamboohr-auth
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
@@ -185,6 +188,9 @@ importers:
 
   packages/bitbucket-sync:
     dependencies:
+      '@noco-integrations/bitbucket-auth':
+        specifier: workspace:*
+        version: link:../bitbucket-auth
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
@@ -217,6 +223,9 @@ importers:
 
   packages/box-sync:
     dependencies:
+      '@noco-integrations/box-auth':
+        specifier: workspace:*
+        version: link:../box-auth
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
@@ -375,6 +384,9 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/dropbox-auth':
+        specifier: workspace:*
+        version: link:../dropbox-auth
       axios:
         specifier: ^1.9.0
         version: 1.13.2
@@ -597,6 +609,9 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/google-drive-auth':
+        specifier: workspace:*
+        version: link:../google-drive-auth
       axios:
         specifier: ^1.9.0
         version: 1.13.2
@@ -708,6 +723,9 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/hubspot-auth':
+        specifier: workspace:*
+        version: link:../hubspot-auth
       axios:
         specifier: ^1.9.0
         version: 1.13.2
@@ -2758,6 +2776,7 @@ packages:
 
   glob@10.4.5:
     resolution: {integrity: sha512-7Bv8RF0k6xjo7d4A/PxYLbUCfb6c+Vpd2/mB2yRDlew7Jb5hEXiCD9ibfO7wpk8i4sevK6DFny9h7EYbM3/sHg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   globals@14.0.0:

@@ -286,7 +286,7 @@ function onStopEdit() {
         </div>
       </NcTooltip>
 
-      <template v-if="!isEditing && isUIAllowed('docUpdate')">
+      <template v-if="!isEditing">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton
             v-e="['c:doc:option']"
@@ -314,16 +314,18 @@ function onStopEdit() {
                 :label="`PAGE ID: ${doc.id}`"
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
-              <NcDivider />
-              <NcMenuItem
-                v-e="['c:doc:rename']"
-                :data-testid="`sidebar-doc-rename-${doc.title}`"
-                class="nc-doc-rename"
-                @click="onRenameMenuClick"
-              >
-                <GeneralIcon class="text-nc-content-gray-subtle" icon="rename" />
-                Rename page
-              </NcMenuItem>
+              <template v-if="isUIAllowed('docUpdate')">
+                <NcDivider />
+                <NcMenuItem
+                  v-e="['c:doc:rename']"
+                  :data-testid="`sidebar-doc-rename-${doc.title}`"
+                  class="nc-doc-rename"
+                  @click="onRenameMenuClick"
+                >
+                  <GeneralIcon class="text-nc-content-gray-subtle" icon="rename" />
+                  Rename page
+                </NcMenuItem>
+              </template>
               <NcMenuItem
                 v-if="isUIAllowed('docCreate')"
                 v-e="['c:doc:duplicate']"
@@ -333,17 +335,18 @@ function onStopEdit() {
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
                 Duplicate page
               </NcMenuItem>
-              <NcDivider />
-              <NcMenuItem
-                v-if="isUIAllowed('docDelete')"
-                v-e="['c:doc:delete']"
-                :data-testid="`sidebar-doc-delete-${doc.title}`"
-                class="!text-red-500 !hover:bg-red-50"
-                @click="onDelete"
-              >
-                <GeneralIcon icon="delete" />
-                Delete page
-              </NcMenuItem>
+              <template v-if="isUIAllowed('docDelete')">
+                <NcDivider />
+                <NcMenuItem
+                  v-e="['c:doc:delete']"
+                  :data-testid="`sidebar-doc-delete-${doc.title}`"
+                  class="!text-red-500 !hover:bg-red-50"
+                  @click="onDelete"
+                >
+                  <GeneralIcon icon="delete" />
+                  Delete page
+                </NcMenuItem>
+              </template>
             </NcMenu>
           </template>
         </NcDropdown>

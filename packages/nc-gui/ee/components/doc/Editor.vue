@@ -859,7 +859,7 @@ const isPageMenuOpen = ref(false)
 const onCopyPageId = () => {
   if (!doc.value?.id) return
   navigator.clipboard.writeText(doc.value.id)
-  message.success(t('msg.pageIdCopied'))
+  message.toast(t('msg.pageIdCopied'))
   isPageMenuOpen.value = false
 }
 

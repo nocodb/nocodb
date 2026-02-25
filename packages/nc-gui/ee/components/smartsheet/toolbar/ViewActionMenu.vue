@@ -432,7 +432,7 @@ defineOptions({
                   />
                   {{ section.title }}
                 </NcMenuItem>
-                <NcDivider />
+                <NcDivider class="!my-1" />
               </template>
 
               <!-- New section -->

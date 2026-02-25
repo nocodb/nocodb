@@ -332,15 +332,15 @@ const onChangeColor = (color: string) => {
   @apply !p-0;
 
   .color-picker-row {
-    @apply !space-x-0.5;
+    @apply !space-x-0.5 mb-1;
+
+    & > div {
+      @apply !p-0.5 !rounded !h-6;
+    }
   }
 
   .color-selector {
     @apply !h-5 !w-5 !rounded;
-  }
-
-  .color-picker-row > div {
-    @apply !p-0.5 !h-auto;
   }
 
   .nc-more-colors-trigger {

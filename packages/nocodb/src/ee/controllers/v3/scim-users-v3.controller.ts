@@ -102,6 +102,7 @@ export class ScimUsersController {
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
     @Body() scimUser: any,
+    @Req() req: any,
   ) {
     await this.checkScimFeature(context);
     this.validateScimPayload(scimUser);
@@ -109,6 +110,7 @@ export class ScimUsersController {
       workspaceId,
       scimId: userId,
       scimUser,
+      req,
     });
   }
 
@@ -118,6 +120,7 @@ export class ScimUsersController {
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
     @Body() scimUser: any,
+    @Req() req: any,
   ) {
     await this.checkScimFeature(context);
     this.validateScimPayload(scimUser);
@@ -125,6 +128,7 @@ export class ScimUsersController {
       workspaceId,
       scimId: userId,
       scimUser,
+      req,
     });
   }
 
@@ -134,11 +138,13 @@ export class ScimUsersController {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
+    @Req() req: any,
   ) {
     await this.checkScimFeature(context);
     return this.scimUsersService.deactivateUser(context, {
       workspaceId,
       scimId: userId,
+      req,
     });
   }
 }

@@ -57,6 +57,11 @@ import type {
   RlsPolicyCreatePayload,
   RlsPolicyDeletePayload,
   RlsPolicyUpdatePayload,
+  ScimUserDeactivatePayload,
+  ScimUserDeletePayload,
+  ScimUserProvisionPayload,
+  ScimUserReactivatePayload,
+  ScimUserUpdatePayload,
   ScriptCreatePayload,
   ScriptDeletePayload,
   ScriptDuplicatePayload,
@@ -159,6 +164,7 @@ import type {
   RlsPolicyCreateEvent,
   RlsPolicyDeleteEvent,
   RlsPolicyUpdateEvent,
+  ScimUserEvent,
   ScriptCreateEvent,
   ScriptDeleteEvent,
   ScriptDuplicateEvent,
@@ -1413,6 +1419,116 @@ export class AppHooksListenerService
                   user_id: param.user.id,
                   user_role: param.workspaceUser.roles,
                   ...updatePayload,
+                },
+                fk_workspace_id: param.workspace.id,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.SCIM_USER_PROVISION:
+        {
+          const param = data as ScimUserEvent;
+          await this.auditInsert(
+            await generateAuditV1Payload<ScimUserProvisionPayload>(
+              AuditV1OperationTypes.SCIM_USER_PROVISION,
+              {
+                details: {
+                  workspace_title: param.workspace.title,
+                  user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
+                  user_id: param.user.id,
+                  scim_id: param.scimId,
+                },
+                fk_workspace_id: param.workspace.id,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.SCIM_USER_UPDATE:
+        {
+          const param = data as ScimUserEvent;
+          await this.auditInsert(
+            await generateAuditV1Payload<ScimUserUpdatePayload>(
+              AuditV1OperationTypes.SCIM_USER_UPDATE,
+              {
+                details: {
+                  workspace_title: param.workspace.title,
+                  user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
+                  user_id: param.user.id,
+                  scim_id: param.scimId,
+                },
+                fk_workspace_id: param.workspace.id,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.SCIM_USER_DEACTIVATE:
+        {
+          const param = data as ScimUserEvent;
+          await this.auditInsert(
+            await generateAuditV1Payload<ScimUserDeactivatePayload>(
+              AuditV1OperationTypes.SCIM_USER_DEACTIVATE,
+              {
+                details: {
+                  workspace_title: param.workspace.title,
+                  user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
+                  user_id: param.user.id,
+                  scim_id: param.scimId,
+                },
+                fk_workspace_id: param.workspace.id,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.SCIM_USER_REACTIVATE:
+        {
+          const param = data as ScimUserEvent;
+          await this.auditInsert(
+            await generateAuditV1Payload<ScimUserReactivatePayload>(
+              AuditV1OperationTypes.SCIM_USER_REACTIVATE,
+              {
+                details: {
+                  workspace_title: param.workspace.title,
+                  user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
+                  user_id: param.user.id,
+                  scim_id: param.scimId,
+                },
+                fk_workspace_id: param.workspace.id,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.SCIM_USER_DELETE:
+        {
+          const param = data as ScimUserEvent;
+          await this.auditInsert(
+            await generateAuditV1Payload<ScimUserDeletePayload>(
+              AuditV1OperationTypes.SCIM_USER_DELETE,
+              {
+                details: {
+                  workspace_title: param.workspace.title,
+                  user_email: param.user.email,
+                  user_name: param.user.display_name ?? undefined,
+                  user_id: param.user.id,
+                  scim_id: param.scimId,
                 },
                 fk_workspace_id: param.workspace.id,
                 req: param.req,

@@ -49,7 +49,5 @@ class ScimApiLimiterGuardEE extends ThrottlerGuard {
 
 // Fallback to CE no-op guard when throttler (Redis) is not enabled
 const enableThrottler = throttlerEnabled();
-const Guard = enableThrottler
-  ? ScimApiLimiterGuardEE
-  : MetaApiLimiterGuardCE;
+const Guard = enableThrottler ? ScimApiLimiterGuardEE : MetaApiLimiterGuardCE;
 export { Guard as ScimApiLimiterGuard };

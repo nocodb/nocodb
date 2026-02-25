@@ -13,9 +13,9 @@ export class ScimSchemasService {
   async getSchemas() {
     return {
       schemas: ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
-      totalResults: 2,
+      totalResults: 4,
       startIndex: 1,
-      itemsPerPage: 2,
+      itemsPerPage: 4,
       Resources: [
         // User Schema
         {
@@ -182,6 +182,72 @@ export class ScimSchemasService {
             resourceType: 'Schema',
             location:
               '/scim/v2/Schemas/urn:ietf:params:scim:schemas:core:2.0:Group',
+          },
+        },
+        // NocoDB Group Extension Schema
+        {
+          schemas: ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
+          id: 'urn:ietf:params:scim:schemas:extension:nocodb:2.0:Group',
+          name: 'NocoDB Group Extension',
+          description:
+            'NocoDB-specific extension attributes for Group resources, including workspace role assignment',
+          attributes: [
+            {
+              name: 'workspaceRole',
+              type: 'string',
+              required: false,
+              caseExact: false,
+              mutability: 'readWrite',
+              returned: 'default',
+              description:
+                'The workspace-level role assigned to this group. Valid values: owner, creator, editor, commenter, viewer, no-access',
+              canonicalValues: [
+                'owner',
+                'creator',
+                'editor',
+                'commenter',
+                'viewer',
+                'no-access',
+              ],
+            },
+          ],
+          meta: {
+            resourceType: 'Schema',
+            location:
+              '/scim/v2/Schemas/urn:ietf:params:scim:schemas:extension:nocodb:2.0:Group',
+          },
+        },
+        // NocoDB User Extension Schema
+        {
+          schemas: ['urn:ietf:params:scim:schemas:core:2.0:Schema'],
+          id: 'urn:ietf:params:scim:schemas:extension:nocodb:2.0:User',
+          name: 'NocoDB User Extension',
+          description:
+            'NocoDB-specific extension attributes for User resources, including workspace role assignment',
+          attributes: [
+            {
+              name: 'workspaceRole',
+              type: 'string',
+              required: false,
+              caseExact: false,
+              mutability: 'readWrite',
+              returned: 'default',
+              description:
+                'The workspace-level role assigned to this user. Valid values: owner, creator, editor, commenter, viewer, no-access',
+              canonicalValues: [
+                'owner',
+                'creator',
+                'editor',
+                'commenter',
+                'viewer',
+                'no-access',
+              ],
+            },
+          ],
+          meta: {
+            resourceType: 'Schema',
+            location:
+              '/scim/v2/Schemas/urn:ietf:params:scim:schemas:extension:nocodb:2.0:User',
           },
         },
       ],

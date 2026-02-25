@@ -42,6 +42,13 @@ export interface WorkspaceUserDeleteEvent
   user: UserType;
 }
 
+export interface ScimUserEvent extends Optional<NcBaseEvent, 'context'> {
+  workspace: WorkspaceType;
+  user: UserType;
+  workspaceUser: any;
+  scimId: string;
+}
+
 export interface WorkspaceEvent extends Optional<NcBaseEvent, 'context'> {
   workspace: WorkspaceType;
   ip?: string;

@@ -77,7 +77,7 @@ export default class ScimConfig implements ScimConfigType {
     ]);
 
     // prepareForDb handles stringification of role_mapping internally
-    const { id } = await ncMeta.metaInsert2(
+    await ncMeta.metaInsert2(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,
       MetaTable.SCIM_CONFIG,

@@ -12,6 +12,12 @@ enum AuditV1OperationTypes {
   WORKSPACE_TEAM_UPDATE = 'WORKSPACE_TEAM_UPDATE',
   WORKSPACE_TEAM_DELETE = 'WORKSPACE_TEAM_DELETE',
 
+  SCIM_USER_PROVISION = 'SCIM_USER_PROVISION',
+  SCIM_USER_UPDATE = 'SCIM_USER_UPDATE',
+  SCIM_USER_DEACTIVATE = 'SCIM_USER_DEACTIVATE',
+  SCIM_USER_REACTIVATE = 'SCIM_USER_REACTIVATE',
+  SCIM_USER_DELETE = 'SCIM_USER_DELETE',
+
   USER_PASSWORD_CHANGE = 'USER_PASSWORD_CHANGE',
   USER_PASSWORD_RESET = 'USER_PASSWORD_RESET',
   USER_PASSWORD_FORGOT = 'USER_PASSWORD_FORGOT',
@@ -636,6 +642,46 @@ export interface WorkspaceUserDeletePayload {
   user_name?: string;
   user_id: string;
   user_role: string;
+}
+
+export interface ScimUserProvisionPayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
+}
+
+export interface ScimUserUpdatePayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
+}
+
+export interface ScimUserDeactivatePayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
+}
+
+export interface ScimUserReactivatePayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
+}
+
+export interface ScimUserDeletePayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
 }
 
 export interface WorkspaceTeamInvitePayload {

@@ -1,33 +1,93 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import type { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Team, WorkspaceUser } from '~/ee/models';
 import { PrincipalAssignment } from '~/ee/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
-
-interface ScimGroupResource {
-  schemas: string[];
-  id: string;
-  externalId?: string;
-  displayName: string;
-  members?: Array<{
-    value: string;
-    $ref?: string;
-    type?: string;
-    display?: string;
-  }>;
-  meta?: {
-    resourceType: string;
-    created?: string;
-    lastModified?: string;
-    location?: string;
-  };
-}
+import {
+  extractWorkspaceRoleFromExtension,
+  NOCODB_GROUP_EXTENSION,
+  WORKSPACE_ROLE_TO_LABEL,
+} from '~/services/scim/scim-helpers';
 
 @Injectable()
 export class ScimGroupsService {
+  protected logger = new Logger(ScimGroupsService.name);
+
   constructor() {}
+
+  /**
+   * Extract workspaceRole from SCIM extension attribute.
+   * Returns the WorkspaceUserRoles enum value, or undefined if not present.
+   */
+  private extractWorkspaceRole(
+    scimGroup: Record<string, unknown>,
+  ): WorkspaceUserRoles | undefined {
+    return extractWorkspaceRoleFromExtension(scimGroup, NOCODB_GROUP_EXTENSION);
+  }
+
+  /**
+   * Create or update the workspace-level PrincipalAssignment for a team.
+   * This is what gives the team (and its members) a workspace role.
+   */
+  private async assignWorkspaceRole(
+    context: NcContext,
+    teamId: string,
+    workspaceId: string,
+    role: WorkspaceUserRoles,
+  ) {
+    // Check if assignment already exists
+    const existing = await PrincipalAssignment.get(
+      context,
+      ResourceType.WORKSPACE,
+      workspaceId,
+      PrincipalType.TEAM,
+      teamId,
+    );
+
+    if (existing) {
+      // Update the role if different
+      if (existing.roles !== role) {
+        await PrincipalAssignment.update(
+          context,
+          ResourceType.WORKSPACE,
+          workspaceId,
+          PrincipalType.TEAM,
+          teamId,
+          { roles: role },
+        );
+      }
+    } else {
+      // Create workspace assignment for this team
+      await PrincipalAssignment.insert(context, {
+        resource_type: ResourceType.WORKSPACE,
+        resource_id: workspaceId,
+        principal_type: PrincipalType.TEAM,
+        principal_ref_id: teamId,
+        roles: role,
+      });
+    }
+  }
+
+  /**
+   * Get the current workspace role for a team (if assigned).
+   */
+  private async getWorkspaceRole(
+    context: NcContext,
+    teamId: string,
+    workspaceId: string,
+  ): Promise<string | undefined> {
+    const assignment = await PrincipalAssignment.get(
+      context,
+      ResourceType.WORKSPACE,
+      workspaceId,
+      PrincipalType.TEAM,
+      teamId,
+    );
+    return assignment?.roles;
+  }
 
   /**
    * Get a single group (team) by SCIM external ID
@@ -152,6 +212,9 @@ export class ScimGroupsService {
       (t) => t.title === scimGroup.displayName && !t.deleted,
     );
 
+    // Extract workspace role from NocoDB extension attribute (if present)
+    const workspaceRole = this.extractWorkspaceRole(scimGroup);
+
     if (existingTeam) {
       // If team exists but not SCIM-managed, convert it to SCIM-managed
       if (!existingTeam.scim_managed) {
@@ -172,6 +235,16 @@ export class ScimGroupsService {
             existingTeam.id,
             workspaceId,
             scimGroup.members,
+          );
+        }
+
+        // Assign workspace role if provided
+        if (workspaceRole) {
+          await this.assignWorkspaceRole(
+            context,
+            existingTeam.id,
+            workspaceId,
+            workspaceRole,
           );
         }
 
@@ -213,6 +286,16 @@ export class ScimGroupsService {
         team.id,
         workspaceId,
         scimGroup.members,
+      );
+    }
+
+    // Assign workspace role if provided
+    if (workspaceRole) {
+      await this.assignWorkspaceRole(
+        context,
+        team.id,
+        workspaceId,
+        workspaceRole,
       );
     }
 
@@ -271,6 +354,17 @@ export class ScimGroupsService {
       );
     }
 
+    // Handle workspace role from extension attribute
+    const workspaceRole = this.extractWorkspaceRole(scimGroup);
+    if (workspaceRole) {
+      await this.assignWorkspaceRole(
+        context,
+        team.id,
+        workspaceId,
+        workspaceRole,
+      );
+    }
+
     return this.toScimGroup(context, updatedTeam, workspaceId);
   }
 
@@ -323,6 +417,17 @@ export class ScimGroupsService {
       scimGroup.members || [],
     );
 
+    // Update workspace role if provided in the extension
+    const workspaceRole = this.extractWorkspaceRole(scimGroup);
+    if (workspaceRole) {
+      await this.assignWorkspaceRole(
+        context,
+        team.id,
+        workspaceId,
+        workspaceRole,
+      );
+    }
+
     return this.toScimGroup(context, updatedTeam, workspaceId);
   }
 
@@ -355,12 +460,20 @@ export class ScimGroupsService {
     team: any,
     workspaceId: string,
     excludeMembers = false,
-  ): Promise<ScimGroupResource> {
-    const scimMeta =
-      typeof team.scim_meta === 'object' ? team.scim_meta : {};
+  ): Promise<any> {
+    const scimMeta = typeof team.scim_meta === 'object' ? team.scim_meta : {};
 
-    const result: ScimGroupResource = {
-      schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+    // Check if team has a workspace role assignment
+    const wsRole = await this.getWorkspaceRole(context, team.id, workspaceId);
+    const hasExtension = !!wsRole;
+
+    const result: any = {
+      schemas: hasExtension
+        ? [
+            'urn:ietf:params:scim:schemas:core:2.0:Group',
+            NOCODB_GROUP_EXTENSION,
+          ]
+        : ['urn:ietf:params:scim:schemas:core:2.0:Group'],
       id: team.scim_external_id, // Server-assigned immutable ID
       ...(scimMeta.externalId ? { externalId: scimMeta.externalId } : {}),
       displayName: team.scim_display_name || team.title,
@@ -377,6 +490,13 @@ export class ScimGroupsService {
           : {}),
       },
     };
+
+    // Include the NocoDB extension with workspace role
+    if (wsRole && WORKSPACE_ROLE_TO_LABEL[wsRole]) {
+      result[NOCODB_GROUP_EXTENSION] = {
+        workspaceRole: WORKSPACE_ROLE_TO_LABEL[wsRole],
+      };
+    }
 
     if (!excludeMembers) {
       // Get team members
@@ -558,6 +678,23 @@ export class ScimGroupsService {
               externalId: op.value,
             };
           }
+          // Handle extension attribute path for workspaceRole
+          if (
+            op.path === `${NOCODB_GROUP_EXTENSION}:workspaceRole` &&
+            op.value
+          ) {
+            const role = this.extractWorkspaceRole({
+              [NOCODB_GROUP_EXTENSION]: { workspaceRole: op.value },
+            });
+            if (role) {
+              await this.assignWorkspaceRole(
+                context,
+                team.id,
+                workspaceId,
+                role,
+              );
+            }
+          }
         } else if (op.value && typeof op.value === 'object') {
           // Bulk replace: { op: "replace", value: { displayName: "...", externalId: "..." } }
           if (op.value.displayName) {
@@ -573,6 +710,20 @@ export class ScimGroupsService {
               ...currentMeta,
               externalId: op.value.externalId,
             };
+          }
+          // Handle extension in bulk replace value
+          if (op.value[NOCODB_GROUP_EXTENSION]?.workspaceRole) {
+            const role = this.extractWorkspaceRole({
+              [NOCODB_GROUP_EXTENSION]: op.value[NOCODB_GROUP_EXTENSION],
+            });
+            if (role) {
+              await this.assignWorkspaceRole(
+                context,
+                team.id,
+                workspaceId,
+                role,
+              );
+            }
           }
         }
 
@@ -652,5 +803,4 @@ export class ScimGroupsService {
       }
     }
   }
-
 }

@@ -261,11 +261,9 @@ export default class RecordTemplate {
     );
 
     // Patch the cached item in-place — no list cache manipulation needed.
-    await NocoCache.update(
-      context,
-      `${CacheScope.RECORD_TEMPLATE}:${id}`,
-      { usage_count: (template.usage_count || 0) + 1 },
-    );
+    await NocoCache.update(context, `${CacheScope.RECORD_TEMPLATE}:${id}`, {
+      usage_count: (template.usage_count || 0) + 1,
+    });
 
     return this.get(context, id, ncMeta);
   }

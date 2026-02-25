@@ -63,7 +63,6 @@ import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
 import { CellSelection } from '@tiptap/pm/tables'
 import { marked } from 'marked'
-import { DOMParser as PmDOMParser } from '@tiptap/pm/model'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
 import { useDocImageUpload } from '~/ee/composables/useDocImageUpload'
@@ -73,11 +72,22 @@ import { timeAgo } from '~/utils/datetimeUtils'
 
 // Override TableCell & TableHeader to ignore colwidth — we use CSS table-layout:fixed
 // for equal columns instead of pixel widths (which go stale on column add/delete).
+// Both also support a textAlign attribute for column-level alignment.
+const cellTextAlignAttr = {
+  default: 'left',
+  parseHTML: (el: HTMLElement) => el.style.textAlign || el.getAttribute('data-text-align') || 'left',
+  renderHTML: (attrs: Record<string, any>) => {
+    if (!attrs.textAlign || attrs.textAlign === 'left') return {}
+    return { style: `text-align: ${attrs.textAlign}` }
+  },
+}
+
 const DocTableCell = TableCell.extend({
   addAttributes() {
     return {
       ...TableCell.config.addAttributes?.call(this),
       colwidth: { default: null, renderHTML: () => ({}) },
+      textAlign: cellTextAlignAttr,
     }
   },
 })
@@ -86,6 +96,7 @@ const DocTableHeader = TableHeader.extend({
     return {
       ...TableHeader.config.addAttributes?.call(this),
       colwidth: { default: null, renderHTML: () => ({}) },
+      textAlign: cellTextAlignAttr,
     }
   },
 })
@@ -347,6 +358,16 @@ const save = async () => {
   isSaving.value = true
   try {
     const content = editor.value.getJSON()
+
+    // Guard: skip saving if editor state is empty (single empty paragraph)
+    // to prevent data loss from transient editor state corruption
+    const nodeCount = content?.content?.length ?? 0
+    const firstType = content?.content?.[0]?.type
+    if (nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content) {
+      isSaving.value = false
+      return
+    }
+
     const updated = await updateDoc(activeProjectId.value, doc.value.id!, {
       title: title.value || 'Untitled',
       content,
@@ -581,15 +602,11 @@ const editor = useEditor({
       const text = event.clipboardData?.getData('text/plain')
       if (!text || !looksLikeMarkdown(text)) return false
 
-      // Convert markdown → HTML, then let ProseMirror parse it into a doc slice
+      // Convert markdown → HTML, then insert via Tiptap's insertContent
+      // (avoids raw ProseMirror replaceSelection which can corrupt state with open slices)
       const converted = marked.parse(text, { async: false }) as string
-      const wrapper = document.createElement('div')
-      wrapper.innerHTML = converted
-
-      const parser = PmDOMParser.fromSchema(view.state.schema)
-      const slice = parser.parseSlice(wrapper)
-
-      view.dispatch(view.state.tr.replaceSelection(slice))
+      event.preventDefault()
+      editor.value?.chain().focus().insertContent(converted).run()
       return true
     },
   },
@@ -1050,8 +1067,16 @@ onBeforeUnmount(() => {
       const version = doc.value.version
       const docTitle = title.value || 'Untitled'
       const baseId = activeProjectId.value
-      // Fire-and-forget is acceptable here — content is already captured
-      updateDoc(baseId, docId, { title: docTitle, content, version })
+
+      // Guard: skip saving empty doc on unmount to prevent data loss
+      const nodeCount = content?.content?.length ?? 0
+      const firstType = content?.content?.[0]?.type
+      if (nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content) {
+        // Editor state is empty — do not persist to avoid overwriting real content
+      } else {
+        // Fire-and-forget is acceptable here — content is already captured
+        updateDoc(baseId, docId, { title: docTitle, content, version })
+      }
     }
   }
   editor.value?.destroy()
@@ -1617,7 +1642,7 @@ onBeforeUnmount(() => {
     th {
       background-color: var(--nc-bg-gray-light);
       font-weight: bold;
-      text-align: left;
+      text-align: left; // Override browser default (center) for <th>
     }
 
     // Round inner corners of corner cells to match outer radius

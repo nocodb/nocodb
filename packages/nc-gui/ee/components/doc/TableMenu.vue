@@ -127,6 +127,32 @@ const onRowAction = (rowIndex: number, action: keyof typeof rowCommands) => {
   })
 }
 
+// --- Column alignment ---
+// Iterates each row, focuses the cell at colIndex, then updates its textAlign.
+// Each cell is updated in a separate chained command to avoid position drift.
+const onColumnAlign = (colIndex: number, align: 'left' | 'center' | 'right') => {
+  const table = tableEl.value
+  if (!table || !editor.value) return
+
+  // Keep menuOpen non-null during alignment so the transaction handler
+  // doesn't clear tableEl (isHovering is false while cursor is on the dropdown)
+  const rows = table.querySelectorAll('tr')
+  rows.forEach((row) => {
+    const cells = row.querySelectorAll('td, th')
+    const cell = cells[colIndex]
+    if (!cell) return
+    const pos = editor.value!.view.posAtDOM(cell, 0)
+    const nodeType = cell.tagName === 'TH' ? 'tableHeader' : 'tableCell'
+    editor.value!.chain().setTextSelection(pos).updateAttributes(nodeType, { textAlign: align }).run()
+  })
+
+  // Close the menu after all updates, then re-focus the first cell so
+  // findTableElement() still finds the table on subsequent transactions
+  menuOpen.value = null
+  focusCell(0, colIndex)
+  nextTick(() => recalcPositions())
+}
+
 // --- Delete table ---
 const onDeleteTable = () => {
   menuOpen.value = null
@@ -283,6 +309,19 @@ onBeforeUnmount(() => {
               <NcMenuItem @click="onColumnAction(cIdx, 'insertAfter')">
                 <GeneralIcon icon="plus" class="text-nc-content-gray-subtle" />
                 {{ $t('labels.insertColumnRight') }}
+              </NcMenuItem>
+              <NcDivider />
+              <NcMenuItem @click="onColumnAlign(cIdx, 'left')">
+                <GeneralIcon icon="ncAlignLeft" class="text-nc-content-gray-subtle" />
+                {{ $t('labels.alignLeft') }}
+              </NcMenuItem>
+              <NcMenuItem @click="onColumnAlign(cIdx, 'center')">
+                <GeneralIcon icon="ncAlignCenter" class="text-nc-content-gray-subtle" />
+                {{ $t('labels.alignCenter') }}
+              </NcMenuItem>
+              <NcMenuItem @click="onColumnAlign(cIdx, 'right')">
+                <GeneralIcon icon="ncAlignRight" class="text-nc-content-gray-subtle" />
+                {{ $t('labels.alignRight') }}
               </NcMenuItem>
               <NcDivider />
               <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="onColumnAction(cIdx, 'delete')">

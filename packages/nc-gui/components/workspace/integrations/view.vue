@@ -66,7 +66,6 @@ onBeforeMount(() => {
           {{ $t('general.integrations') }}
         </h1>
       </div>
-
     </div>
 
     <DashboardBackToBaseBreadcrumbVariant />
@@ -106,7 +105,7 @@ onBeforeMount(() => {
               </div>
             </div>
           </template>
-          <div :class="[btbShouldShow ? 'h-[calc(100vh-128px)]' : 'h-[calc(100vh-92px)]', 'p-6']">
+          <div class="p-6" :class="[btbShouldShow ? 'h-[calc(100vh-128px)]' : 'h-[calc(100vh-92px)]']">
             <WorkspaceIntegrationsConnectionsTab />
           </div>
         </a-tab-pane>

@@ -17,12 +17,16 @@ const { shouldShow, navigateToBase, lastVisitedBase } = useBackToBase()
         icon="chevronLeft"
         class="flex-none h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-brand transition-colors duration-150"
       />
-      <span class="text-small font-medium text-nc-content-gray-subtle group-hover:text-nc-content-brand transition-colors duration-150 whitespace-nowrap">
+      <span
+        class="text-small font-medium text-nc-content-gray-subtle group-hover:text-nc-content-brand transition-colors duration-150 whitespace-nowrap"
+      >
         {{ $t('labels.backToBase') }}
       </span>
       <template v-if="lastVisitedBase?.title">
         <span class="text-nc-content-gray-muted group-hover:text-nc-content-brand transition-colors duration-150">-</span>
-        <span class="text-small font-semibold text-nc-content-gray group-hover:text-nc-content-brand transition-colors duration-150 truncate">
+        <span
+          class="text-small font-semibold text-nc-content-gray group-hover:text-nc-content-brand transition-colors duration-150 truncate"
+        >
           {{ lastVisitedBase.title }}
         </span>
       </template>

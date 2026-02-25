@@ -400,7 +400,7 @@ async function savePendingCell() {
           <div
             v-if="activeCell && activeCellRow"
             :style="activeCellStyle"
-            class="nc-outline-active-cell pointer-events-auto rounded bg-white dark:bg-nc-bg-default"
+            class="nc-outline-active-cell pointer-events-auto rounded bg-nc-bg-default"
           >
             <SmartsheetRow :row="activeCellRow">
               <template #default>

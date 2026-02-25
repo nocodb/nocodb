@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "@microsoft/microsoft-graph-client": "^3.0.7"
+    "@microsoft/microsoft-graph-client": "^3.0.7",
+    "@noco-integrations/outlook-mail-auth": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^5.0.10",

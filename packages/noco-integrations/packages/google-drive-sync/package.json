@@ -9,6 +9,7 @@
     "dev": "tsc -w"
   },
   "dependencies": {
+    "@noco-integrations/google-drive-auth": "workspace:*",
     "@noco-integrations/core": "workspace:*",
     "axios": "^1.9.0",
     "mime": "^4.1.0"

@@ -68,6 +68,16 @@ jobs:
       # Clean npm configuration and install dependencies
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
+      - name: Cache integration dists
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/noco-integrations/packages/*/dist
+            packages/noco-integrations/core/dist
+            packages/noco-integrations/.build-checksums.json
+          key: integrations-dist-${{ hashFiles('packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
+          restore-keys: |
+            integrations-dist-
       - name: install dependencies
         run: pnpm bootstrap
 

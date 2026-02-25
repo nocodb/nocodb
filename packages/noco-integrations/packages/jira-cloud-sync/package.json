@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "dayjs": "^1.11.19"
+    "dayjs": "^1.11.19",
+    "@noco-integrations/jira-cloud-auth": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.2.2"

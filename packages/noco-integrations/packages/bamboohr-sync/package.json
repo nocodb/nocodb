@@ -9,6 +9,7 @@
     "dev": "tsc -w"
   },
   "dependencies": {
+    "@noco-integrations/bamboohr-auth": "workspace:*",
     "@noco-integrations/core": "workspace:*",
     "axios": "^1.9.0"
   },

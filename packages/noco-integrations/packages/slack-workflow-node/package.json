@@ -9,7 +9,8 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@noco-integrations/core": "workspace:*"
+    "@noco-integrations/core": "workspace:*",
+    "@noco-integrations/slack-auth": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^5.0.10",

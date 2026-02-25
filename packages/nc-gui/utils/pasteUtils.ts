@@ -130,3 +130,83 @@ export const serializeRange = (
 
   return { html, text, json, clipboardItemConfig }
 }
+
+interface SerializeCb {
+  isPg: (sourceId: string) => boolean
+  isMysql: (sourceId: string) => boolean
+  meta: TableType
+  metas?: { [idOrTitle: string]: TableType | any }
+}
+
+export const serializeRangeAsJson = (rows: Row[], cols: ColumnType[], cb: SerializeCb): string => {
+  const result: Record<string, any>[] = []
+
+  rows.forEach((row) => {
+    const obj: Record<string, any> = {}
+
+    cols.forEach((col) => {
+      const { textToCopy } = valueToCopy(row, col, cb, { skipClipboardColumn: true })
+      obj[col.title ?? ''] = textToCopy === '' ? null : textToCopy
+    })
+
+    result.push(obj)
+  })
+
+  return JSON.stringify(result, null, 2)
+}
+
+function escapeCsvValue(value: any): string {
+  const str = value == null ? '' : String(value)
+
+  return str
+}
+
+export const serializeRangeAsCsv = (rows: Row[], cols: ColumnType[], cb: SerializeCb): string => {
+  const header = cols.map((col) => escapeCsvValue(col.title ?? '')).join(',')
+  const dataRows: string[] = []
+
+  rows.forEach((row) => {
+    const values = cols.map((col) => {
+      const { textToCopy } = valueToCopy(row, col, cb, { skipClipboardColumn: true })
+      return escapeCsvValue(textToCopy)
+    })
+    dataRows.push(values.join(','))
+  })
+
+  return [header, ...dataRows].join('\n')
+}
+
+function escapeSqlString(value: string): string {
+  return value.replace(/'/g, "''")
+}
+
+function escapeSqlIdentifier(name: string): string {
+  return `"${name.replace(/"/g, '""')}"`
+}
+
+export const serializeRangeAsSql = (rows: Row[], cols: ColumnType[], cb: SerializeCb, tableName?: string): string => {
+  const table = escapeSqlIdentifier(tableName ?? cb.meta.title ?? 'table')
+  const columnNames = cols.map((col) => escapeSqlIdentifier(col.title ?? '')).join(', ')
+
+  const valueRows = rows.map((row) => {
+    const values = cols.map((col) => {
+      const { textToCopy } = valueToCopy(row, col, cb, { skipClipboardColumn: true })
+
+      if (textToCopy == null || textToCopy === '') {
+        return 'NULL'
+      }
+
+      if (
+        typeof textToCopy === 'number' ||
+        (typeof textToCopy === 'string' && !isNaN(Number(textToCopy)) && textToCopy.trim() !== '')
+      ) {
+        return String(textToCopy)
+      }
+
+      return `'${escapeSqlString(String(textToCopy))}'`
+    })
+    return `(${values.join(', ')})`
+  })
+
+  return `INSERT INTO ${table} (${columnNames}) VALUES\n${valueRows.join(',\n')};`
+}

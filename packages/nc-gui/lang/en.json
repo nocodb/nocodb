@@ -363,6 +363,7 @@
     "generate": "Generate",
     "generating": "Generating...",
     "copy": "Copy",
+    "copyAs": "Copy as",
     "copied": "Copied",
     "are": "are",
     "misc": "Miscellaneous",

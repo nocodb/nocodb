@@ -3,6 +3,7 @@ import axios from 'axios'
 import { nextTick } from '@vue/runtime-core'
 import type { ButtonType, ColumnReqType, ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isAIPromptCol, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { serializeRangeAsCsv, serializeRangeAsJson, serializeRangeAsSql } from '../../../utils/pasteUtils'
 import { useColumnDrag } from './useColumnDrag'
 import { type CellRange, type Group, NavigateDir } from '#imports'
 
@@ -140,6 +141,8 @@ const {
 } = useNocoEe().table
 
 const { paste } = usePaste()
+const { copy } = useCopy()
+const { isMysql, isPg } = useBase()
 
 const { addLTARRef, syncLTARRefs, clearLTARCell, cleaMMCell } = useSmartsheetLtarHelpersOrThrow()
 
@@ -903,6 +906,44 @@ const deleteSelectedRangeOfRows = () => {
     activeCell.row = null
     activeCell.col = null
   })
+}
+
+const handleCopyAs = async (format: 'json' | 'csv' | 'sql') => {
+  try {
+    let rows: Row[] = []
+    let cols: ColumnType[] = []
+
+    if (contextMenuTarget.value) {
+      const startRow = selectedRange.start.row ?? contextMenuTarget.value.row
+      const endRow = selectedRange.end.row ?? contextMenuTarget.value.row
+      const startCol = selectedRange.start.col ?? contextMenuTarget.value.col
+      const endCol = selectedRange.end.col ?? contextMenuTarget.value.col
+
+      rows = dataRef.value.slice(startRow, endRow + 1)
+      cols = fields.value.slice(startCol, endCol + 1)
+    } else if (dataRef.value.some((r) => r.rowMeta.selected)) {
+      rows = dataRef.value.filter((r) => r.rowMeta.selected)
+      cols = fields.value
+    }
+
+    if (!rows.length || !cols.length) return
+
+    const cb = { isPg, isMysql, meta: meta.value as TableType }
+
+    let text = ''
+    if (format === 'json') {
+      text = serializeRangeAsJson(rows, cols, cb)
+    } else if (format === 'csv') {
+      text = serializeRangeAsCsv(rows, cols, cb)
+    } else {
+      text = serializeRangeAsSql(rows, cols, cb)
+    }
+
+    await copy(text)
+    message.toast(t('msg.toast.copiedToClipboard'))
+  } catch (e) {
+    message.error(t('msg.error.copyToClipboardError'))
+  }
 }
 
 const isSelectedOnlyAI = computed(() => {
@@ -2571,6 +2612,30 @@ onKeyStroke('ArrowDown', onDown)
                 {{ $t('title.updateSelectedRows') }}
               </div>
             </NcMenuItem>
+
+            <NcSubMenu
+              v-if="contextMenuTarget || (!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected))"
+              key="copy-as"
+              variant="small"
+              data-testid="nc-context-menu-copy-as"
+            >
+              <template #title>
+                <GeneralIcon icon="copy" />
+                {{ $t('general.copyAs') }}
+              </template>
+              <NcMenuItem key="copy-as-json" data-testid="nc-context-menu-copy-as-json" @click="handleCopyAs('json')">
+                <div v-e="['c:row:copy-as:json']" class="flex gap-2 items-center">JSON</div>
+              </NcMenuItem>
+              <NcMenuItem key="copy-as-csv" data-testid="nc-context-menu-copy-as-csv" @click="handleCopyAs('csv')">
+                <div v-e="['c:row:copy-as:csv']" class="flex gap-2 items-center">CSV</div>
+              </NcMenuItem>
+              <!-- hide this first since we unsure to reveal table & column name -->
+              <!-- <NcMenuItem key="copy-as-sql" data-testid="nc-context-menu-copy-as-sql" @click="handleCopyAs('sql')">
+                <div v-e="['c:row:copy-as:sql']" class="flex gap-2 items-center">
+                  SQL INSERT
+                </div>
+              </NcMenuItem> -->
+            </NcSubMenu>
 
             <NcMenuItem
               v-if="!contextMenuClosing && !contextMenuTarget && data.some((r) => r.rowMeta.selected) && !isDataReadOnly"

@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { PermissionEntity, PermissionKey, type TableType, type ViewType, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, isAIPromptCol, isLinksOrLTAR } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { CellRange } from '../../../../../composables/useMultiSelect/cellRange'
 import type { ActionManager } from '../loaders/ActionManager'
+import { serializeRangeAsCsv, serializeRangeAsJson, serializeRangeAsSql } from '../../../../../utils/pasteUtils'
 const props = defineProps<{
   selectedAllRecords: boolean
   selectedAllRecordsSkipPks: Record<string, string>
@@ -91,6 +93,9 @@ const { isDataReadOnly, isUIAllowed } = useRoles()
 const { aiIntegrations } = useNocoAi()
 const { isMobileMode } = useGlobal()
 const { paste } = usePaste()
+const { copy } = useCopy()
+const { isMysql, isPg } = useBase()
+const { t } = useI18n()
 const { meta } = useSmartsheetStoreOrThrow()
 const metaInj = inject(MetaInj, ref())
 const isPublic = inject(IsPublicInj, ref(false))
@@ -248,6 +253,47 @@ const execBulkAction = async (path: Array<number>) => {
     },
   )
 }
+
+const handleCopyAs = async (format: 'json' | 'csv' | 'sql') => {
+  try {
+    const path = contextMenuPath.value ?? []
+    let rows: Row[] = []
+    let cols: ColumnType[] = []
+
+    const dataColumns = columns.value.filter((c) => c.uidt !== null && c.columnObj?.title)
+
+    if (contextMenuCol.value !== null && selection.value.start !== null && selection.value.end !== null) {
+      rows = await getRows(selection.value.start.row, selection.value.end.row, path)
+      const startCol = selection.value.start.col
+      const endCol = selection.value.end.col
+      cols = columns.value
+        .slice(startCol, endCol + 1)
+        .filter((c) => c.uidt !== null && c.columnObj?.title)
+        .map((c) => c.columnObj) as ColumnType[]
+    } else if (selectedRows.value.length > 0) {
+      rows = selectedRows.value
+      cols = dataColumns.map((c) => c.columnObj) as ColumnType[]
+    }
+
+    if (!rows.length || !cols.length) return
+
+    const cb = { isPg, isMysql, meta: meta.value }
+
+    let text = ''
+    if (format === 'json') {
+      text = serializeRangeAsJson(rows, cols, cb)
+    } else if (format === 'csv') {
+      text = serializeRangeAsCsv(rows, cols, cb)
+    } else {
+      text = serializeRangeAsSql(rows, cols, cb)
+    }
+
+    await copy(text)
+    message.toast(t('msg.toast.copiedToClipboard'))
+  } catch (e) {
+    message.error(t('msg.error.copyToClipboardError'))
+  }
+}
 </script>
 
 <template>
@@ -279,6 +325,28 @@ const execBulkAction = async (path: Array<number>) => {
           {{ $t('title.updateSelectedRows') }}
         </div>
       </NcMenuItem>
+
+      <NcSubMenu
+        v-if="contextMenuPath !== null && !vSelectedAllRecords && selectedRows.length"
+        key="copy-as"
+        variant="small"
+        data-testid="nc-context-menu-copy-as"
+      >
+        <template #title>
+          <GeneralIcon icon="copy" />
+          {{ $t('general.copyAs') }}
+        </template>
+        <NcMenuItem key="copy-as-json" data-testid="nc-context-menu-copy-as-json" @click="handleCopyAs('json')">
+          <div v-e="['c:row:copy-as:json']" class="flex gap-2 items-center">JSON</div>
+        </NcMenuItem>
+        <NcMenuItem key="copy-as-csv" data-testid="nc-context-menu-copy-as-csv" @click="handleCopyAs('csv')">
+          <div v-e="['c:row:copy-as:csv']" class="flex gap-2 items-center">CSV</div>
+        </NcMenuItem>
+        <!-- hide this first since we unsure to reveal table & column name -->
+        <!-- <NcMenuItem key="copy-as-sql" data-testid="nc-context-menu-copy-as-sql" @click="handleCopyAs('sql')">
+          <div v-e="['c:row:copy-as:sql']" class="flex gap-2 items-center">SQL INSERT</div>
+        </NcMenuItem> -->
+      </NcSubMenu>
 
       <PermissionsTooltip
         v-if="contextMenuCol == null && !isDataReadOnly && contextMenuPath !== null && selectedRows.length"

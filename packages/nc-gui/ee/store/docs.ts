@@ -158,6 +158,9 @@ export const useDocsStore = defineStore('docsStore', () => {
         if (updates.title !== undefined) {
           existing.title = updated.title
         }
+        if (updates.meta !== undefined) {
+          existing.meta = updated.meta
+        }
       }
 
       $e('a:doc:update')

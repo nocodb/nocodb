@@ -103,6 +103,7 @@ const { activeDoc } = storeToRefs(docsStore)
 const basesStore = useBases()
 const { activeProjectId, basesUser } = storeToRefs(basesStore)
 
+const { $e } = useNuxtApp()
 const { user } = useGlobal()
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
@@ -689,6 +690,30 @@ const confirmDeletePage = async () => {
   await deleteDoc(base.value.id, doc.value.id)
 }
 
+const updateDocIcon = async (icon: string) => {
+  if (!doc.value?.id || !base.value?.id) return
+  try {
+    doc.value.meta = {
+      ...parseProp(doc.value.meta),
+      icon,
+    }
+
+    const updated = await updateDoc(base.value.id, doc.value.id, {
+      meta: doc.value.meta,
+      version: doc.value.version,
+    })
+
+    // Sync version so subsequent saves don't fail with stale version
+    if (updated?.version && doc.value) {
+      doc.value.version = updated.version
+    }
+
+    $e('a:doc:icon:editor', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 // --- Download helpers ---
 /** Escape HTML special characters to prevent XSS in generated HTML documents. */
 const escapeHtml = (str: string) =>
@@ -929,14 +954,34 @@ onBeforeUnmount(() => {
     <div class="nc-doc-editor-inner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16">
       <!-- Title -->
       <div class="nc-doc-editor-header pt-12 pb-4">
-        <input
-          ref="titleInput"
-          v-model="title"
-          class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
-          :placeholder="$t('general.untitled')"
-          @blur="onTitleBlur"
-          @keydown="onTitleKeydown"
-        />
+        <div class="nc-doc-title-row flex items-center">
+          <div class="nc-doc-editor-icon-wrapper flex-shrink-0">
+            <LazyGeneralEmojiPicker
+              :key="doc?.meta?.icon"
+              :clearable="true"
+              :emoji="doc?.meta?.icon"
+              :readonly="!isUIAllowed('docUpdate')"
+              class="nc-doc-editor-icon"
+              size="large"
+              @emoji-selected="updateDocIcon($event)"
+            >
+              <template #default>
+                <GeneralIcon
+                  class="nc-doc-editor-icon-default text-nc-content-gray-subtle2 !text-2xl"
+                  icon="ncFileText"
+                />
+              </template>
+            </LazyGeneralEmojiPicker>
+          </div>
+          <input
+            ref="titleInput"
+            v-model="title"
+            class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
+            :placeholder="$t('general.untitled')"
+            @blur="onTitleBlur"
+            @keydown="onTitleKeydown"
+          />
+        </div>
         <div class="nc-doc-subtitle flex items-center gap-1 mt-2 text-sm">
           <template v-if="createdByLabel">
             <span>{{ $t('labels.createdBy') }} {{ createdByLabel }}</span>
@@ -1045,6 +1090,22 @@ onBeforeUnmount(() => {
   padding: 12px 12px 0 0;
   // Collapse height so it doesn't push content down
   margin-bottom: -36px;
+}
+
+// Icon positioned to the left, outside the content bounds on large screens.
+// On small screens it sits inline with a small gap.
+.nc-doc-editor-icon-wrapper {
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-right: 4px;
+
+  @media (min-width: 1024px) {
+    margin-left: -48px;
+    margin-right: 8px;
+  }
 }
 
 // Subtitle (created by / updated by) — match Outline's muted slate

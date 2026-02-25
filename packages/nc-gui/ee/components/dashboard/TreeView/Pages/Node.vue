@@ -144,6 +144,25 @@ const onDuplicate = async () => {
   })
 }
 
+const updateDocIcon = async (icon: string) => {
+  if (!props.doc?.id || !base.value?.id) return
+  try {
+    props.doc.meta = {
+      ...parseProp(props.doc.meta),
+      icon,
+    }
+
+    await updateDoc(base.value.id, props.doc.id, {
+      meta: props.doc.meta,
+      version: props.doc.version,
+    })
+
+    $e('a:doc:icon:sidebar', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 /** Handle keydown on input field */
 const onKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
@@ -208,12 +227,31 @@ function onStopEdit() {
     @click.prevent="handleOnClick"
   >
     <div v-e="['a:doc:open']" class="text-sm flex items-center w-full gap-1" data-testid="doc-item">
-      <div class="flex min-w-6 items-center justify-center">
-        <GeneralIcon
-          :class="activeDocId === doc.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
-          class="w-4 text-nc-content-gray-subtle !text-[16px]"
-          icon="ncFileText"
-        />
+      <div
+        v-e="['c:doc:emoji-picker']"
+        class="flex min-w-6"
+        @mouseenter="showNodeTooltip = false"
+        @mouseleave="showNodeTooltip = true"
+        @click.stop
+        @dblclick.stop
+      >
+        <LazyGeneralEmojiPicker
+          :key="doc?.meta?.icon"
+          :clearable="true"
+          :emoji="doc?.meta?.icon"
+          :readonly="isMobileMode || !isUIAllowed('docUpdate')"
+          class="nc-doc-icon"
+          size="small"
+          @emoji-selected="updateDocIcon($event)"
+        >
+          <template #default>
+            <GeneralIcon
+              :class="activeDocId === doc.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+              class="nc-doc-icon w-4 text-nc-content-gray-subtle !text-[16px]"
+              icon="ncFileText"
+            />
+          </template>
+        </LazyGeneralEmojiPicker>
       </div>
 
       <a-input

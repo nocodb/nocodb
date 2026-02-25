@@ -18,15 +18,23 @@ export default class Noco extends NocoEE {
     const res = await super.init(param, httpServer, server);
 
     if (isLicenseClientEnabled()) {
-      await NocoLicense.init();
+      try {
+        await NocoLicense.init();
 
-      this.ee = NocoLicense.isEE;
+        this.ee = NocoLicense.isEE;
 
-      logger.log(
-        NocoLicense.isEE
-          ? 'License system initialized — EE features active'
-          : `License ${NocoLicense.licenseStatus} — running in CE mode`,
-      );
+        logger.log(
+          NocoLicense.isEE
+            ? 'License system initialized — EE features active'
+            : `License ${NocoLicense.licenseStatus} — running in CE mode`,
+        );
+      } catch (e) {
+        logger.warn(
+          `License activation failed: ${e.message} — falling back to CE mode`,
+        );
+        this.ee = false;
+        await verifyDefaultWorkspace();
+      }
     } else {
       this.ee = false;
       // ensure default workspace exists when running without license

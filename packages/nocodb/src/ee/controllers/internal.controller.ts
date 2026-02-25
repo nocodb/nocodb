@@ -118,6 +118,23 @@ const LICENSE_REQUIRED_OPS = new Set([
   'widgetUpdate',
   'widgetDelete',
   'widgetDataGet',
+  // Workflows (Enterprise only)
+  'workflowList',
+  'workflowGet',
+  'workflowCreate',
+  'workflowDuplicate',
+  'workflowUpdate',
+  'workflowDelete',
+  'workflowNodeIntegrationFetchOptions',
+  'workflowExecute',
+  'workflowTestNode',
+  'workflowPublish',
+  'workflowNodes',
+  'workflowListSubscribers',
+  'workflowAddSubscribers',
+  'workflowRemoveSubscriber',
+  'workflowExecutionList',
+  'workflowExecutionGet',
 ]);
 
 @Controller()

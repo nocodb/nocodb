@@ -87,7 +87,7 @@ When the plan includes backend API work, add a verification phase to `plan.md`:
 - [ ] **V.4** [S] — Log walkthrough results in log.md
 ```
 
-The `nc-api-verifier` agent builds/updates `.claude/branches/{branch}/test.py` and runs it. Pass a brief describing which endpoints and roles to test.
+The `nc-api-verifier` agent builds/updates `.claude/branches/{branch}/test.ts` and runs it via `npx tsx`. It imports directly from the `nocodb-dev-api` skill's API library — no external dependencies needed. Pass a brief describing which endpoints and roles to test.
 
 ## Phase 6: Launch
 

@@ -105,7 +105,7 @@ Claude maintains working memory in `.claude/branches/{branch}/` (gitignored) for
 ├── plan.md       # Phased task list with [S]/[M]/[L] sizing and checkboxes
 ├── context.md    # Why this feature exists, key decisions, discovery answers
 ├── log.md        # Reverse-chronological log of each session's work
-└── test.py       # API test script (if applicable) — single self-contained file
+└── test.ts       # API test script (if applicable) — imports from nocodb-dev-api skill
 ```
 
 ### Maintenance Protocol

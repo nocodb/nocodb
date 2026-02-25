@@ -1,0 +1,231 @@
+{
+  "description": "Sample data from pr-8053.nocopod.com workspace wmjhal84. Used as reference for init.ts sample data creation.",
+  "instance": "https://pr-8053.nocopod.com",
+  "user": {
+    "email": "user@nocodb.com",
+    "id": "usq6o3vavwf0twzr",
+    "display_name": "David Warner",
+    "roles": { "org-level-viewer": true },
+    "workspace_role": "workspace-level-owner"
+  },
+  "workspaces": [
+    { "id": "wmjhal84", "title": "Workspace-01" },
+    { "id": "wsxjjexs", "title": "Workspace-02" }
+  ],
+  "workspace": {
+    "id": "wmjhal84",
+    "title": "Workspace-01",
+    "members": [
+      { "email": "user@nocodb.com", "roles": "workspace-level-owner", "display_name": "David Warner" },
+      { "email": "logan.seth@example.org", "roles": "workspace-level-owner" },
+      { "email": "mason.ahmed@example.com", "roles": "workspace-level-creator" },
+      { "email": "daniel.malik@example.com", "roles": "workspace-level-editor" },
+      { "email": "ella.verma@example.org", "roles": "workspace-level-commenter" },
+      { "email": "harper.bose@example.org", "roles": "workspace-level-viewer" },
+      { "email": "benjamin.ray@example.net", "roles": "workspace-level-no-access" },
+      { "email": "chloe.wu@example.com", "roles": "workspace-level-no-access" },
+      { "email": "henry.zhao@example.org", "roles": "workspace-level-no-access" },
+      { "email": "layla.mehta@example.net", "roles": "workspace-level-no-access" },
+      { "email": "james.khan@example.com", "roles": "workspace-level-no-access" },
+      { "email": "sebastian.rao@example.net", "roles": "workspace-level-no-access" },
+      { "email": "zoey.iyer@example.com", "roles": "workspace-level-no-access" },
+      { "email": "alexander.jain@example.org", "roles": "workspace-level-no-access" },
+      { "email": "nora.shah@example.net", "roles": "workspace-level-no-access" },
+      { "email": "lily.gupta@example.org", "roles": "workspace-level-no-access" },
+      { "email": "jaxon.fernandez@example.net", "roles": "workspace-level-no-access" },
+      { "email": "aria.nair@example.com", "roles": "workspace-level-no-access" },
+      { "email": "sophie.roy@example.net", "roles": "workspace-level-no-access" }
+    ],
+    "bases": [
+      {
+        "id": "putil3iej9wb9xh",
+        "title": "Getting Started",
+        "meta": { "icon_color": "#36BFFF" },
+        "source": {
+          "id": "b51zqxsiw45dnjc",
+          "type": "pg",
+          "is_local": true,
+          "is_meta": false
+        },
+        "tables": [
+          {
+            "id": "ma334932sjnwp3e",
+            "title": "AllTypes",
+            "record_count": 110,
+            "fields": [
+              { "id": "c4uokujvc5czkwn", "title": "fId", "type": "ID" },
+              { "id": "cc5i4wkzktyqedh", "title": "fNumber", "type": "Number", "default_value": "100" },
+              { "id": "ct41ytilwlxf7u3", "title": "fDecimal", "type": "Decimal", "default_value": "100.88", "options": { "precision": 3, "locale_string": true } },
+              { "id": "cmbcaa8aoxtpdr9", "title": "fCurrency", "type": "Currency", "default_value": "100", "options": { "currency_locale": "en-GB", "currency_code": "USD" } },
+              { "id": "cecbz9rti2sr9lw", "title": "fPercent (progress)", "type": "Percent", "default_value": "100", "options": { "show_as_progress": true } },
+              { "id": "c4s4c5xdzlh381k", "title": "fPercent", "type": "Percent", "default_value": "100" },
+              { "id": "cfw42w8au2sp011", "title": "fDuration", "type": "Duration", "default_value": "1010", "options": { "duration_format": "h:mm:ss.s" } },
+              { "id": "c1ml15cu8azpc28", "title": "fRating", "type": "Rating", "default_value": "3", "options": { "color": "#dc2f02", "max_value": 7, "icon": "heart" } },
+              { "id": "cwfft53r1kb9oi6", "title": "fRating2", "type": "Rating", "default_value": "3", "options": { "color": "#1FAB51", "max_value": 10, "icon": "circle-filled" } },
+              { "id": "ct44oh8w8ao92cr", "title": "fYear", "type": "Year", "default_value": "2020" },
+              { "id": "cpcsxfydlno77u2", "title": "fTime", "type": "Time", "default_value": "20:20" },
+              { "id": "cq75bqs64mdf2je", "title": "fSingleLineText", "type": "SingleLineText", "default_value": "sample text" },
+              { "id": "cyadi9xzgurmuwg", "title": "fMultiLineText", "type": "LongText", "default_value": "sample text" },
+              { "id": "c1wp5fdk4df46sp", "title": "fEmail", "type": "Email", "default_value": "raju@us.com", "options": { "validate": true } },
+              { "id": "c69f26fj97pqbar", "title": "fPhoneNumber", "type": "PhoneNumber", "default_value": "1234567890", "options": { "validate": true } },
+              { "id": "cav5dehtxmp4aik", "title": "fURL", "type": "URL", "options": { "validate": true } },
+              { "id": "cd18df1smvaex84", "title": "fSingleSelect", "type": "SingleSelect", "default_value": "jan", "options": { "choices": ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"] } },
+              { "id": "ccbiik0b0x43gnh", "title": "fMultiSelect", "type": "MultiSelect", "default_value": "jan,feb,mar", "options": { "choices": ["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"] } },
+              { "id": "ceeweyacxqiinbh", "title": "fCheckbox", "type": "Checkbox", "default_value": "true", "options": { "color": "#dc2f02", "icon": "star" } },
+              { "id": "c2hclbr4iqgtyhx", "title": "fDate2", "type": "Date", "default_value": "2020-01-01", "options": { "date_format": "YYYY/MM/DD" } },
+              { "id": "cxrdes9fr5w9dhy", "title": "fDate", "type": "Date", "default_value": "2020-01-01", "options": { "date_format": "DD MM YYYY" } },
+              { "id": "cue0sgm8yvrmubi", "title": "fDateTime", "type": "DateTime", "default_value": "2022-02-02", "options": { "date_format": "YYYY-MM-DD", "time_format": "HH:mm" } },
+              { "id": "cjgkcd6399fqaxt", "title": "fAttachment", "type": "Attachment" },
+              { "id": "celmoya2fjotev8", "title": "fJSON", "type": "JSON", "default_value": "{\"x\": 1, \"y\": 2}" },
+              { "id": "cc0l3z09wid72r5", "title": "fGeometry", "type": "Geometry", "default_value": "POINT(1 1)" },
+              { "id": "c0sv54tygsturnj", "title": "fUser", "type": "User" },
+              { "id": "c3cslavn8jxgvaj", "title": "fButton", "type": "Button", "options": { "formula": "\"www.google.com\"", "button_type": "url" } },
+              { "id": "cupu0m8zkblmkch", "title": "fCreatedAt", "type": "CreatedTime" },
+              { "id": "cgl53r985ec1fqx", "title": "fLastModifiedAt", "type": "LastModifiedTime" },
+              { "id": "c944hfe4xod2459", "title": "fCreatedBy", "type": "CreatedBy" },
+              { "id": "c6dpz0ff632lbjs", "title": "fLastModifiedBy", "type": "LastModifiedBy" },
+              { "id": "c05owqi1h2sp1v2", "title": "fBarcode", "type": "Barcode", "options": { "barcode_value_field_id": "cq75bqs64mdf2je" } },
+              { "id": "c72bluafsqt69g9", "title": "fQRCode", "type": "QrCode", "options": { "qrcode_value_field_id": "cq75bqs64mdf2je" } },
+              { "id": "con1kugfck59m97", "title": "fFormula", "type": "Formula", "options": { "formula": "{fNumber}+{fDecimal}" } },
+              { "id": "c57r7958suez7xy", "title": "mmLinks", "type": "Links", "options": { "related_table_id": "ma334932sjnwp3e", "relation_type": "mm" } },
+              { "id": "c7foj73oshh0kuy", "title": "hmLinks", "type": "Links", "options": { "related_table_id": "ma334932sjnwp3e", "relation_type": "hm" } },
+              { "id": "cfd5a8uwkk0gonz", "title": "fLookup", "type": "Lookup", "options": { "related_field_id": "c7foj73oshh0kuy", "related_table_lookup_field_id": "cq75bqs64mdf2je" } },
+              { "id": "c2fkl1ill9gv1ld", "title": "fRollup", "type": "Rollup", "options": { "related_field_id": "c7foj73oshh0kuy", "related_table_rollup_field_id": "cc5i4wkzktyqedh", "rollup_function": "count" } },
+              { "id": "cmethbn6e94ky4r", "title": "fRichText", "type": "LongText", "options": { "rich_text": true } },
+              { "id": "cafl4wr9go327ht", "title": "AllTypes1", "type": "LinkToAnotherRecord", "options": { "enable_conditions": true, "related_table_id": "ma334932sjnwp3e", "relation_type": "mm" } },
+              { "id": "cvdly6imdgdgnwy", "title": "Tags", "type": "MultiSelect", "options": { "choices": ["jan","feb","mar","apr"] } }
+            ],
+            "views": [
+              { "id": "vwpwk5v4urgbu85g", "title": "AllTypes", "type": 3, "type_name": "grid", "is_default": true },
+              { "id": "vwfqa5qnmcaxt9yp", "title": "Show system fields", "type": 3, "type_name": "grid", "show_system_fields": true, "description": "Grid view with some description" },
+              {
+                "id": "vwx2x5ietbis99xg", "title": "Group By", "type": 3, "type_name": "grid"
+              },
+              {
+                "id": "vwk8bjzums9mh76c", "title": "Active Toolbar", "type": 3, "type_name": "grid",
+                "row_coloring_mode": "select",
+                "row_height": 1,
+                "filters": [
+                  { "id": "filncstvz6o6c642", "fk_column_id": "cc5i4wkzktyqedh", "logical_op": "and", "comparison_op": "lt", "value": "140", "column_title": "fNumber" },
+                  { "id": "fimrxa6tmtec5ump", "fk_column_id": "c4s4c5xdzlh381k", "logical_op": "and", "comparison_op": "eq", "value": "100", "column_title": "fPercent" }
+                ],
+                "sorts": [
+                  { "id": "soj46oqdzl4fnxqq", "fk_column_id": "ct41ytilwlxf7u3", "direction": "desc", "column_title": "fDecimal" }
+                ]
+              },
+              { "id": "vw37dnnt8ci0ri48", "title": "Footer aggregations", "type": 3, "type_name": "grid" },
+              { "id": "vwjctk8vdhbhxtd4", "title": "Gallery", "type": 2, "type_name": "gallery", "fk_cover_image_col_id": "cjgkcd6399fqaxt" },
+              { "id": "vwnyxj93jfswla29", "title": "Kanban", "type": 4, "type_name": "kanban", "fk_grp_col_id": "cd18df1smvaex84", "fk_cover_image_col_id": "cjgkcd6399fqaxt" },
+              { "id": "vw7hwhx551tbr44z", "title": "Calendar", "type": 6, "type_name": "calendar", "calendar_range_col_id": "cue0sgm8yvrmubi" },
+              { "id": "vwoabwpdacqcm5zi", "title": "Grid", "type": 3, "type_name": "grid" },
+              {
+                "id": "vwfr33vmf9lds8ff", "title": "Form", "type": 1, "type_name": "form",
+                "uuid": "ce3526ef-6581-4748-a00c-aa141849d6cf",
+                "shared": true,
+                "form_config": { "heading": "Form", "subheading": "", "submit_another_form": false, "show_blank_form": false }
+              }
+            ],
+            "shared_views": [
+              { "id": "vwfr33vmf9lds8ff", "title": "Form", "type": 1, "uuid": "ce3526ef-6581-4748-a00c-aa141849d6cf" }
+            ],
+            "sample_records": [
+              {
+                "fId": 1, "fNumber": 1002, "fDecimal": 100, "fCurrency": 1002, "fPercent (progress)": 22, "fPercent": 10,
+                "fDuration": 1010, "fRating": 3, "fRating2": 9, "fYear": 1926, "fTime": "02:00:00",
+                "fSingleLineText": "sample text sample text sample aaa", "fMultiLineText": "sample text sample",
+                "fEmail": "raju@us.com", "fPhoneNumber": "1234567890", "fURL": "https://www.nocodb.com",
+                "fSingleSelect": null, "fMultiSelect": "jan,mar,apr", "fCheckbox": true,
+                "fDate2": "2020-01-29", "fDate": "2020-01-24", "fDateTime": "2022-02-02 01:00:00+00:00",
+                "fJSON": {"x": 1, "y": 2}, "fGeometry": "POINT(1 1)",
+                "fUser": [{"email": "ella.verma@example.org"}],
+                "hmLinks": 2, "mmLinks": 2, "fFormula": 1102, "fRollup": 2,
+                "fLookup": ["sample text", "sample text"]
+              },
+              {
+                "fId": 2, "fNumber": 101, "fDecimal": 100.9, "fCurrency": 100, "fPercent (progress)": 5, "fPercent": 100,
+                "fDuration": 1010, "fRating": 6, "fRating2": 1, "fYear": 2021, "fTime": "01:00:00",
+                "fSingleLineText": "sample text", "fMultiLineText": "sample text",
+                "fEmail": "raju@us.com", "fPhoneNumber": "1234567890", "fURL": "https://www.nocodb.com",
+                "fSingleSelect": "mar", "fMultiSelect": "jan,feb,mar,apr,may,jun,jul", "fCheckbox": true,
+                "fDate2": "2020-01-09", "fDate": "2020-01-30", "fDateTime": "2022-02-02 00:00:00+00:00",
+                "fJSON": {"x": 1, "y": 2}, "fGeometry": "POINT(1 1)",
+                "fUser": [{"email": "logan.seth@example.org"}],
+                "hmLinks": 2, "mmLinks": 4, "fFormula": 201.9, "fRollup": 2,
+                "fLookup": ["sample text", "sample text"]
+              }
+            ]
+          },
+          {
+            "id": "mhvrskae13r9q5b",
+            "title": "Financial Sample",
+            "record_count": 700,
+            "fields": [
+              { "id": "cvo4jfd3450l2qv", "title": "Id", "type": "ID" },
+              { "id": "c62hpshs4dz1z4l", "title": "Segment", "type": "SingleLineText" },
+              { "id": "cwzr7qew08uys9h", "title": "Country", "type": "SingleSelect", "options": { "choices": ["France","Germany","Canada","United States of America","Mexico"] } },
+              { "id": "cii1ayajct0akxh", "title": "Product", "type": "SingleSelect", "options": { "choices": ["Carretera","Montana","Velo","Paseo","VTT","Amarilla"] } },
+              { "id": "ccwaxfqz8ui1y59", "title": "Discount Band", "type": "SingleSelect", "options": { "choices": ["High","None","Medium","Low"] } },
+              { "id": "cg7hyjnw6vb39lp", "title": "Units Sold", "type": "Number" },
+              { "id": "cu1kijkgwzjx7o1", "title": "Manufacturing Price", "type": "Currency", "options": { "currency_locale": "en-US", "currency_code": "USD" } },
+              { "id": "c0bcdok8a3600pb", "title": "Sale Price", "type": "Currency", "options": { "currency_locale": "en-US", "currency_code": "USD" } },
+              { "id": "ckxlf7ddu43rq4g", "title": "Gross Sales", "type": "Currency", "options": { "currency_locale": "en-US", "currency_code": "USD" } },
+              { "id": "cdlvpohrw5wbb9u", "title": "Discounts", "type": "SingleLineText" },
+              { "id": "c78hiizdnrrupnj", "title": "Sales", "type": "Currency", "options": { "currency_locale": "en-US", "currency_code": "USD" } },
+              { "id": "cph9cflehewegr3", "title": "COGS", "type": "Currency", "options": { "currency_locale": "en-US", "currency_code": "USD" } },
+              { "id": "cicokrt9n8uq61e", "title": "Profit", "type": "SingleLineText" },
+              { "id": "cdxyeufiy0kdmod", "title": "Date", "type": "Date", "options": { "date_format": "YYYY-MM-DD" } },
+              { "id": "c763xyv25acr4iq", "title": "Month Number", "type": "SingleLineText" },
+              { "id": "cgkv7uvb8i1gpxg", "title": "Month Name", "type": "SingleLineText" },
+              { "id": "cnv7qchaxign527", "title": "Year", "type": "SingleLineText" }
+            ],
+            "views": [
+              { "id": "vws4kks2syjezvqu", "title": "Financial Sample", "type": 3, "type_name": "grid", "is_default": true }
+            ],
+            "sample_records": [
+              { "Id": 1, "Segment": "Government", "Country": "Canada", "Product": "Carretera", "Discount Band": "None", "Units Sold": 1619, "Manufacturing Price": 3, "Sale Price": 20, "Gross Sales": 32370, "Discounts": "-", "Sales": 32370, "COGS": 16185, "Profit": "16185", "Date": "2014-01-01", "Month Number": "1", "Month Name": "January", "Year": "2014" },
+              { "Id": 2, "Segment": "Government", "Country": "Germany", "Product": "Carretera", "Discount Band": "None", "Units Sold": 1321, "Manufacturing Price": 3, "Sale Price": 20, "Gross Sales": 26420, "Discounts": "-", "Sales": 26420, "COGS": 13210, "Profit": "13210", "Date": "2014-01-01", "Month Number": "1", "Month Name": "January", "Year": "2014" }
+            ]
+          },
+          {
+            "id": "ma5n46ikb10ictw",
+            "title": "Webhook",
+            "record_count": 700,
+            "fields_summary": "Same schema as Financial Sample (Segment, Country, Product, Discount Band, Units Sold, ...)",
+            "views": [
+              { "id": "vwj67yv92ogi8ejy", "title": "Webhook", "type": 3, "type_name": "grid", "is_default": true }
+            ],
+            "hooks": [
+              { "id": "hkrnipmy4wnf65ps", "title": "Webhook-1", "event": "after", "operation": "insert", "active": true, "url": "https://webhook.site/3eab93ad-3d68-4409-a01b-81db6e3fb269" },
+              { "id": "hkxe6liqaqcig8f0", "title": "Webhook-2", "event": "after", "operation": "update", "active": true, "url": "https://webhook.site/3eab93ad-3d68-4409-a01b-81db6e3fb269" },
+              { "id": "hkfobj7zowwvitbl", "title": "Webhook-3", "event": "after", "operation": "delete", "active": true, "url": "https://webhook.site/3eab93ad-3d68-4409-a01b-81db6e3fb269" },
+              { "id": "hkt7ejeeheljstf9", "title": "Webhook-4", "event": "after", "operation": "bulkInsert", "active": false, "url": "https://webhook.site/3eab93ad-3d68-4409-a01b-81db6e3fb269" },
+              { "id": "hkgmyozcbkiqzodv", "title": "Webhook-5", "event": "after", "operation": "bulkUpdate", "active": false, "url": "https://webhook.site/3eab93ad-3d68-4409-a01b-81db6e3fb269" },
+              { "id": "hkwvopvrsvfz8c9n", "title": "Webhook-6", "event": "after", "operation": "bulkDelete", "active": false, "url": "https://webhook.site/3eab93ad-3d68-4409-a01b-81db6e3fb269" }
+            ]
+          },
+          {
+            "id": "mmoo2af1dom76wo",
+            "title": "Permissions",
+            "description": "Table- nobody can add or delete records. Field- nobody can edit select fields",
+            "record_count": 700,
+            "fields_summary": "Same schema as Financial Sample (Segment, Country, Product, Discount Band, Units Sold, ...)",
+            "views": [
+              { "id": "vwsks7to15hiip6n", "title": "Permissions", "type": 3, "type_name": "grid", "is_default": true }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "pmii050qr2rnrfu",
+        "title": "Private",
+        "meta": { "icon_color": "#7D26CD" },
+        "tables": []
+      }
+    ]
+  },
+  "notes": {
+    "v3_403_issue": "v3 list-views returns 403 on this instance for workspace-level-owner user. Internal API viewList works fine. May be a server version issue.",
+    "view_types": "1=form, 2=gallery, 3=grid, 4=kanban, 6=calendar",
+    "all_field_types_present": "ID, Number, Decimal, Currency, Percent, Duration, Rating, Year, Time, SingleLineText, LongText, Email, PhoneNumber, URL, SingleSelect, MultiSelect, Checkbox, Date, DateTime, Attachment, JSON, Geometry, User, Button, CreatedTime, LastModifiedTime, CreatedBy, LastModifiedBy, Barcode, QrCode, Formula, Links, ForeignKey, Lookup, Rollup, LinkToAnotherRecord"
+  }
+}

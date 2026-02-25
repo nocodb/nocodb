@@ -132,6 +132,10 @@ export class ViewColumnsService {
       ncMeta,
     );
 
+    if (!oldViewColumn) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
+
     const column = await Column.get(
       context,
       {

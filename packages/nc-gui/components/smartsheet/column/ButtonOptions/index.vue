@@ -590,8 +590,7 @@ onUnmounted(() => {
       v-model:selected-script="selectedScript"
     />
 
-    <!-- Visibility Condition (Button Filter) -->
-    <div class="nc-button-filter-section mt-2">
+    <div v-if="isEeUI" class="nc-button-filter-section mt-2">
       <div
         class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
         @click="blockButtonVisibility ? showUpgradeToUseButtonVisibility() : (isFilterSectionOpen = !isFilterSectionOpen)"

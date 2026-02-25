@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import type { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';

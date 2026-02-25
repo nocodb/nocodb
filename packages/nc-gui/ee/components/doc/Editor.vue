@@ -4,7 +4,9 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
+import TaskList from '@tiptap/extension-task-list'
 import { Mark, mergeAttributes } from '@tiptap/core'
+import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 
 /**
  * Inline Highlight mark — lightweight alternative to @tiptap/extension-highlight.
@@ -466,7 +468,8 @@ const editor = useEditor({
     Link.configure({ openOnClick: false }),
     Placeholder.configure({ placeholder: t('placeholder.docEditor') }),
     DocImageExtension,
-    // TODO Phase-2: TaskList + TaskItem (needs task list CSS that doesn't conflict with prose)
+    TaskList,
+    TaskItem.configure({ nested: true }),
     // resizable: false — disables columnResizing plugin (its TableView causes crashes).
     // DocTable also strips <colgroup> from renderHTML (see definition above).
     DocTable.configure({ resizable: false }),
@@ -1286,7 +1289,7 @@ onBeforeUnmount(() => {
                 :editor="editor"
                 embed-mode
                 hide-mention
-                :hidden-options="[RichTextBubbleMenuOptions.taskList, RichTextBubbleMenuOptions.link]"
+                :hidden-options="[RichTextBubbleMenuOptions.link]"
               />
               <NcTooltip placement="top">
                 <template #title>{{ $t('general.link') }}</template>
@@ -1590,6 +1593,50 @@ onBeforeUnmount(() => {
   ol li p {
     margin-top: 0;
     margin-bottom: 0;
+  }
+
+  // Task lists — checkbox + text on a single row, no bullet marker
+  ul[data-type='taskList'] {
+    list-style: none;
+    padding-left: 0;
+
+    li {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      margin-top: 0.1em;
+      margin-bottom: 0.1em;
+
+      > label {
+        flex: 0 0 auto;
+        margin-right: 0.4em;
+        user-select: none;
+        display: inline-flex;
+        align-items: center;
+
+        input[type='checkbox'] {
+          cursor: pointer;
+          margin: 0;
+          position: relative;
+          top: 0.1em;
+        }
+      }
+
+      > div {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        p {
+          margin-top: 0;
+          margin-bottom: 0;
+        }
+      }
+    }
+
+    // Nested task lists
+    ul[data-type='taskList'] {
+      padding-left: 1.2em;
+    }
   }
 
   // Blockquote

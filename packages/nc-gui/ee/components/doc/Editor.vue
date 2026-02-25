@@ -576,11 +576,14 @@ const loadAndSetDoc = async (id: string) => {
   }
 }
 
-// Re-load doc when navigating between pages
+// Re-load doc when navigating between pages.
+// Watch both docId AND activeProjectId — on a full page reload, activeProjectId
+// may not be available yet when docId resolves from route params. Without this,
+// loadDoc silently returns null (guard: !activeProjectId) and the editor stays empty.
 watch(
-  docId,
-  async (newId) => {
-    if (newId) {
+  [docId, activeProjectId],
+  async ([newId, newBaseId]) => {
+    if (newId && newBaseId) {
       await loadAndSetDoc(newId)
     }
   },
@@ -1203,6 +1206,13 @@ onBeforeUnmount(() => {
     h1::before { content: 'H1'; top: calc(1.625em * 1.3 - 12px - 2px); }
     h2::before { content: 'H2'; top: calc(1.3em * 1.35 - 12px - 2px); }
     h3::before { content: 'H3'; top: calc(1.125em * 1.4 - 12px - 2px); }
+
+    // Hide heading labels when inside a blockquote
+    blockquote h1::before,
+    blockquote h2::before,
+    blockquote h3::before {
+      content: none;
+    }
   }
 
   // Placeholder

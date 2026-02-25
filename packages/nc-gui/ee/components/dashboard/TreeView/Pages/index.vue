@@ -23,22 +23,18 @@ const onExpand = async () => {
   }
 }
 
-// Eagerly load docs on mount so the list is populated on page reload
-onMounted(() => {
-  if (isUIAllowed('docList')) {
-    loadDocs({ baseId: baseId.value })
-  }
-})
-
-// Reload docs and auto-expand when the active doc changes
-// (e.g. navigating to a doc from another base)
+// Load docs whenever activeDocId changes AND on initial mount (immediate: true).
+// This ensures the list is populated even on a full page reload where activeDocId
+// is set (by the route component) before this watcher is created.
+// No isUIAllowed gate here — the backend enforces ACL; the frontend gate on
+// onExpand is sufficient for the expand/collapse interaction.
 watch(activeDocId, () => {
   loadDocs({ baseId: baseId.value })
 
   if (activeDoc.value?.base_id === openedProject.value?.id) {
     isExpanded.value = true
   }
-})
+}, { immediate: true })
 </script>
 
 <template>

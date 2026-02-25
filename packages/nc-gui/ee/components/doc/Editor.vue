@@ -70,6 +70,22 @@ import { useDocFileUpload } from '~/ee/composables/useDocFileUpload'
 import type { DocType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/datetimeUtils'
 
+// Override Table to remove <colgroup> from renderHTML.  The default Tiptap Table
+// includes a <colgroup> with <col> elements sized from each cell's colwidth attr.
+// ProseMirror only patches the content-hole (<tbody>), so the <colgroup> goes stale
+// after add/delete-column operations, leaving ghost columns that show as empty space.
+// Since we use CSS table-layout:fixed + width:100% for equal columns, <colgroup> is
+// unnecessary.
+const DocTable = Table.extend({
+  renderHTML({ HTMLAttributes }) {
+    return [
+      'table',
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
+      ['tbody', 0],
+    ]
+  },
+})
+
 // Override TableCell & TableHeader to ignore colwidth — we use CSS table-layout:fixed
 // for equal columns instead of pixel widths (which go stale on column add/delete).
 // Both also support a textAlign attribute for column-level alignment.
@@ -437,11 +453,9 @@ const editor = useEditor({
     Placeholder.configure({ placeholder: t('placeholder.docEditor') }),
     DocImageExtension,
     // TODO Phase-2: TaskList + TaskItem (needs task list CSS that doesn't conflict with prose)
-    // resizable: false — the columnResizing plugin's TableView node view causes
-    // ProseMirror decoration tracking crashes (localsInner/eq undefined) on any
-    // structural table change (delete col/row, cell selection). Tables use CSS
-    // table-layout: fixed with equal-width columns instead.
-    Table.configure({ resizable: false }),
+    // resizable: false — disables columnResizing plugin (its TableView causes crashes).
+    // DocTable also strips <colgroup> from renderHTML (see definition above).
+    DocTable.configure({ resizable: false }),
     TableRow,
     DocTableCell,
     DocTableHeader,

@@ -7,7 +7,9 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { ncNavigateTo } = useGlobal()
+const { $e } = useNuxtApp()
+
+const { isMobileMode, ncNavigateTo } = useGlobal()
 const { isUIAllowed } = useRoles()
 
 const docsStore = useDocsStore()
@@ -18,10 +20,14 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const base = inject(ProjectInj, ref())
 
+const input = ref<HTMLInputElement>()
+
 const isEditing = ref(false)
 const isDropdownOpen = ref(false)
 const _title = ref('')
-const input = useTemplateRef('input')
+
+/** Helper to check if editing was disabled before the doc navigation timeout triggers */
+const isStopped = ref(false)
 
 // Controls whether the NcTooltip is active — disabled while
 // the context-menu button is hovered to avoid tooltip overlap.
@@ -47,7 +53,7 @@ const onClick = useDebounceFn(() => {
 }, 250)
 
 const handleOnClick = () => {
-  if (isEditing.value) return
+  if (isEditing.value || isStopped.value) return
 
   const cmdOrCtrl = isMacOs ? metaKey?.value : control?.value
 
@@ -59,27 +65,52 @@ const handleOnClick = () => {
   }
 }
 
-const onDblClick = () => {
-  if (!isUIAllowed('docUpdate')) return
-
-  isEditing.value = true
-  _title.value = props.doc.title || ''
-  nextTick(() => {
-    ;(input.value as any)?.$el?.querySelector('input')?.focus()
-    ;(input.value as any)?.$el?.querySelector('input')?.select()
+const focusInput = () => {
+  setTimeout(() => {
+    input.value?.focus()
+    input.value?.select()
   })
 }
 
+/** Enable editing doc name on dbl click */
+const onDblClick = () => {
+  if (isMobileMode.value) return
+  if (!isUIAllowed('docUpdate')) return
+
+  if (!isEditing.value) {
+    isEditing.value = true
+    _title.value = props.doc.title || ''
+    $e('c:doc:rename')
+
+    nextTick(() => {
+      focusInput()
+    })
+  }
+}
+
+/** Rename a doc */
 const onRename = async () => {
-  if (!_title.value.trim()) {
+  isDropdownOpen.value = false
+  if (!isEditing.value) return
+
+  if (_title.value) {
+    _title.value = _title.value.trim()
+  }
+
+  if (!_title.value) {
     _title.value = props.doc.title || 'Untitled'
   }
 
-  if (_title.value !== props.doc.title && base.value?.id) {
+  if (_title.value === props.doc.title) {
+    onCancel()
+    return
+  }
+
+  if (base.value?.id) {
     await updateDoc(base.value.id, props.doc.id!, { title: _title.value, version: props.doc.version })
   }
 
-  isEditing.value = false
+  onStopEdit()
 }
 
 const onDelete = () => {
@@ -113,18 +144,59 @@ const onDuplicate = async () => {
   })
 }
 
+/** Handle keydown on input field */
 const onKeyDown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
+    e.stopImmediatePropagation()
+    e.preventDefault()
     onRename()
   } else if (e.key === 'Escape') {
-    isEditing.value = false
-    _title.value = props.doc.title || ''
+    e.stopImmediatePropagation()
+    e.preventDefault()
+    onCancel()
   }
 }
 
+onKeyStroke('Enter', (event) => {
+  if (isEditing.value) {
+    event.stopImmediatePropagation()
+    event.preventDefault()
+    onRename()
+  }
+})
+
 const onRenameMenuClick = () => {
+  if (isMobileMode.value || !isUIAllowed('docUpdate')) return
+
   isDropdownOpen.value = false
-  onDblClick()
+
+  if (!isEditing.value) {
+    isEditing.value = true
+    _title.value = props.doc.title || ''
+    $e('c:doc:rename')
+
+    nextTick(() => {
+      focusInput()
+    })
+  }
+}
+
+/** Cancel renaming doc */
+function onCancel() {
+  if (!isEditing.value) return
+
+  onStopEdit()
+}
+
+/** Stop editing doc name, timeout makes sure that doc navigation (click trigger) does not pick up before stop is done */
+function onStopEdit() {
+  isStopped.value = true
+  isEditing.value = false
+  _title.value = ''
+
+  setTimeout(() => {
+    isStopped.value = false
+  }, 250)
 }
 </script>
 

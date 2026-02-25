@@ -1545,6 +1545,7 @@
     "controlAppearance": "Control your Appearance.",
     "accountEmailID": "Account Email ID",
     "backToWorkspace": "Back to Workspace",
+    "backToBase": "Back to Base",
     "untitledToken": "Untitled token",
     "tableName": "Table name",
     "createView": "Create view",

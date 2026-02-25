@@ -330,25 +330,45 @@ export class RelationManager {
    * Generate unlink audit log entries for removed junction rows.
    * Produces the same audit entries that individual removeChild calls would.
    */
-  private generateUnlinkAuditLogs(
+  private async generateUnlinkAuditLogs(
     removedPairs: Array<{ childFk: any; parentFk: any }>,
     relationType: RelationTypes,
-    parentTableId: string,
-    childTableId: string,
+    parentTable: Model,
+    childTable: Model,
   ) {
-    for (const pair of removedPairs) {
+    if (!removedPairs.length) return;
+
+    const { baseModel } = this.relationContext;
+
+    // Batch-fetch display values for all evicted rows
+    const displayValues = await baseModel.readOnlyPrimariesByPkFromModel(
+      removedPairs.flatMap((pair) => [
+        { model: parentTable, id: pair.parentFk },
+        { model: childTable, id: pair.childFk },
+      ]),
+    );
+
+    for (let i = 0; i < removedPairs.length; i++) {
+      const pair = removedPairs[i];
+      const parentDisplayValue = displayValues[i * 2];
+      const childDisplayValue = displayValues[i * 2 + 1];
+
       this.auditUpdateObj.push({
         rowId: pair.parentFk,
         refRowId: pair.childFk,
+        displayValue: parentDisplayValue,
+        refDisplayValue: childDisplayValue,
         opSubType: AuditOperationSubTypes.UNLINK_RECORD,
         type: relationType,
         direction: 'parent_child',
       });
 
-      if (parentTableId !== childTableId) {
+      if (parentTable.id !== childTable.id) {
         this.auditUpdateObj.push({
           rowId: pair.childFk,
           refRowId: pair.parentFk,
+          displayValue: childDisplayValue,
+          refDisplayValue: parentDisplayValue,
           opSubType: AuditOperationSubTypes.UNLINK_RECORD,
           type: getOppositeRelationType(relationType),
           direction: 'child_parent',
@@ -393,6 +413,8 @@ export class RelationManager {
 
     const allAffectedParentIds: any[] = [];
     const allAffectedChildIds: any[] = [];
+    let moRemovedPairs: Array<{ childFk: any; parentFk: any }> = [];
+    let omRemovedPairs: Array<{ childFk: any; parentFk: any }> = [];
 
     // F1/F2: Wrap cardinality enforcement + insert in a single transaction
     const trx = await baseModel.dbDriver.transaction();
@@ -405,7 +427,7 @@ export class RelationManager {
           .where(_wherePk(childTable.primaryKeys, childId))
           .first();
 
-        const removedPairs = await this.batchDeleteJunctionRows(trx, {
+        moRemovedPairs = await this.batchDeleteJunctionRows(trx, {
           vTn,
           vChildCol,
           vParentCol,
@@ -413,20 +435,13 @@ export class RelationManager {
           filterSubquery: childFkSubquery,
         });
 
-        this.generateUnlinkAuditLogs(
-          removedPairs,
-          colOptions.type as RelationTypes,
-          parentTable.id,
-          childTable.id,
-        );
-
-        for (const pair of removedPairs) {
+        for (const pair of moRemovedPairs) {
           allAffectedParentIds.push(pair.parentFk);
         }
 
-        if (removedPairs.length > 1) {
+        if (moRemovedPairs.length > 1) {
           logger.warn(
-            `V2 cardinality enforcement removed ${removedPairs.length} junction rows ` +
+            `V2 cardinality enforcement removed ${moRemovedPairs.length} junction rows ` +
               `(expected 0-1) for child ${childId} on column ${relationColumn.id}`,
           );
         }
@@ -440,7 +455,7 @@ export class RelationManager {
           .where(_wherePk(parentTable.primaryKeys, parentId))
           .first();
 
-        const removedPairs = await this.batchDeleteJunctionRows(trx, {
+        omRemovedPairs = await this.batchDeleteJunctionRows(trx, {
           vTn,
           vChildCol,
           vParentCol,
@@ -448,22 +463,13 @@ export class RelationManager {
           filterSubquery: parentFkSubquery,
         });
 
-        // F6: use the reverse column's relation type for audit logs
-        const reverseRelationType = colOptions.type as RelationTypes;
-        this.generateUnlinkAuditLogs(
-          removedPairs,
-          reverseRelationType,
-          parentTable.id,
-          childTable.id,
-        );
-
-        for (const pair of removedPairs) {
+        for (const pair of omRemovedPairs) {
           allAffectedChildIds.push(pair.childFk);
         }
 
-        if (removedPairs.length > 1) {
+        if (omRemovedPairs.length > 1) {
           logger.warn(
-            `V2 cardinality enforcement removed ${removedPairs.length} junction rows ` +
+            `V2 cardinality enforcement removed ${omRemovedPairs.length} junction rows ` +
               `(expected 0-1) for parent ${parentId} on column ${relationColumn.id}`,
           );
         }
@@ -504,11 +510,39 @@ export class RelationManager {
       throw e;
     }
 
+    // Generate audit logs after transaction (needs display value queries)
+    if (moRemovedPairs.length) {
+      await this.generateUnlinkAuditLogs(
+        moRemovedPairs,
+        colOptions.type as RelationTypes,
+        parentTable,
+        childTable,
+      );
+    }
+    if (omRemovedPairs.length) {
+      await this.generateUnlinkAuditLogs(
+        omRemovedPairs,
+        colOptions.type as RelationTypes,
+        parentTable,
+        childTable,
+      );
+    }
+
     // F14: Single batch of updateLastModified and broadcast after transaction
+    // Include evicted row IDs so their updated_at is refreshed too
+    const allParentRowIds = [
+      parentId,
+      ...allAffectedParentIds.filter((id) => id !== parentId),
+    ];
+    const allChildRowIds = [
+      childId,
+      ...allAffectedChildIds.filter((id) => id !== childId),
+    ];
+
     await parentBaseModel.updateLastModified({
       baseModel: parentBaseModel,
       model: parentTable,
-      rowIds: [parentId],
+      rowIds: allParentRowIds,
       cookie: req,
       updatedColIds: [refTableLinkColumnId],
     });
@@ -516,23 +550,13 @@ export class RelationManager {
     await childBaseModel.updateLastModified({
       baseModel: childBaseModel,
       model: childTable,
-      rowIds: [childId],
+      rowIds: allChildRowIds,
       cookie: req,
       updatedColIds: [column.id],
     });
 
-    // Broadcast once for all affected rows
-    const parentBroadcastIds = [
-      parentId,
-      ...allAffectedParentIds.filter((id) => id !== parentId),
-    ];
-    const childBroadcastIds = [
-      childId,
-      ...allAffectedChildIds.filter((id) => id !== childId),
-    ];
-
-    await parentBaseModel.broadcastLinkUpdates(parentBroadcastIds);
-    await childBaseModel.broadcastLinkUpdates(childBroadcastIds);
+    await parentBaseModel.broadcastLinkUpdates(allParentRowIds);
+    await childBaseModel.broadcastLinkUpdates(allChildRowIds);
   }
 
   async addChild(params: {

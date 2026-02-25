@@ -715,6 +715,7 @@ watch(
             :all-expanded="allSectionsExpanded"
             :all-collapsed="allSectionsCollapsed"
             :is-default="item.id === DEFAULT_SECTION_ID"
+            :is-default-source="isDefaultSource"
             @expand-toggle="toggleSectionExpanded(item.id)"
             @rename="onRenameSection(item.data as ViewSectionType, $event)"
             @delete="openDeleteSectionDialog(item.data as ViewSectionType)"
@@ -736,11 +737,13 @@ watch(
                 'bg-nc-bg-gray-medium': isMarked === view.id,
                 'active': activeView?.id === view.id,
                 [`nc-${view.type ? viewTypeAlias[view.type] : undefined || view.type}-view-item`]: true,
+                '!pl-13.5 !xs:(!pl-13.5)': isDefaultSource,
+                '!pl-20.5 !xs:(!pl-20.5)': !isDefaultSource,
               }"
               :on-validate="validate"
               :table="table"
               :view="view"
-              class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !pl-12 !xs:(!pl-12)"
+              class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
               @delete="openDeleteDialog"
               @rename="onRename"
               @change-view="changeView"

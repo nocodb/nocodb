@@ -7,6 +7,7 @@ interface Props {
   allExpanded: boolean
   allCollapsed: boolean
   isDefault?: boolean
+  isDefaultSource?: boolean
 }
 
 interface Emits {
@@ -189,7 +190,11 @@ const onChangeColor = (color: string) => {
 
 <template>
   <div
-    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer !pl-7.5 !xs:(pl-6.5)"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer rounded-md pr-[3px]"
+    :class="{
+      '!pl-7.5 !xs:(pl-6.5)': isDefaultSource !== false,
+      '!pl-14 !xs:(pl-13)': isDefaultSource === false,
+    }"
     :data-testid="`view-sidebar-section-${section.title}`"
     @click.prevent="handleOnClick"
   >
@@ -200,7 +205,7 @@ const onChangeColor = (color: string) => {
       class="w-full"
       trigger="hover"
       placement="right"
-      :disabled="isEditing || isDropdownOpen || !showSectionNodeTooltip || isMobileMode"
+      :disabled="isEditing || isDropdownOpen || !showSectionNodeTooltip || !!isMobileMode"
     >
       <template #title>
         <div class="flex flex-col gap-3">

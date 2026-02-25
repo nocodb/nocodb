@@ -314,7 +314,7 @@ function onStopEdit() {
                 :label="`PAGE ID: ${doc.id}`"
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
-              <template v-if="isUIAllowed('docUpdate')">
+              <template v-if="isUIAllowed('docCreate')">
                 <NcDivider />
                 <NcMenuItem
                   v-e="['c:doc:rename']"

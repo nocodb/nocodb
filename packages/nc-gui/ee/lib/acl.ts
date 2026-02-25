@@ -196,6 +196,10 @@ const rolePermissions = {
       workflowCreateOrEdit: true,
       workflowExecutionList: true,
       workflowList: true,
+
+      // Docs (Pages) — creators can create and delete pages
+      docCreate: true,
+      docDelete: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -220,6 +224,10 @@ const rolePermissions = {
 
       // Extensions
       extensionUpdate: true,
+
+      // Docs (Pages) — editors can update and reorder, but NOT create/delete
+      docUpdate: true,
+      docReorder: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -244,6 +252,10 @@ const rolePermissions = {
 
       // Extensions
       extensionList: true,
+
+      // Docs (Pages) — read-only for viewers
+      docList: true,
+      docGet: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

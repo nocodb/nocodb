@@ -42,7 +42,9 @@ export const useDocsStore = defineStore('docsStore', () => {
 
     // Return cached list immediately without toggling isLoadingDocs —
     // avoids a flash of loading state when navigating between docs.
-    if (existingDocs && !force) {
+    // Use .length check: an empty array is truthy in JS and would
+    // prevent re-fetching when another user has since created pages.
+    if (existingDocs?.length && !force) {
       return existingDocs
     }
 

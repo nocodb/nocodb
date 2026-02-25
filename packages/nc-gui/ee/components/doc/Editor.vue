@@ -112,6 +112,9 @@ const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInse
 
 const base = inject(ProjectInj, ref())
 
+/** Whether the current user can edit page content (Editor+ role). */
+const isEditable = computed(() => isUIAllowed('docUpdate'))
+
 // Resolve created_by user ID to display name
 const idUserMap = computed<Record<string, any>>(() => {
   if (!base.value?.id) return {}
@@ -189,6 +192,7 @@ const convertToEmbed = () => {
 /** Show rich text bubble menu on any non-empty text selection (including inside table cells),
  *  but NOT on multi-cell CellSelection or image NodeSelection (those have their own UI). */
 const showRichTextMenu = ({ editor: e }: { editor: any }) => {
+  if (!isEditable.value) return false
   const { selection } = e.state
   if (selection instanceof CellSelection) return false
   // Hide for image / file attachment selections — they have their own UI
@@ -198,6 +202,7 @@ const showRichTextMenu = ({ editor: e }: { editor: any }) => {
 
 /** Persist current editor state + title to the backend. */
 const save = async () => {
+  if (!isEditable.value) return
   if (!doc.value || !activeProjectId.value || !editor.value) return
 
   isSaving.value = true
@@ -261,6 +266,7 @@ const looksLikeMarkdown = (text: string): boolean => {
 }
 
 const editor = useEditor({
+  editable: isEditable.value,
   extensions: [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
@@ -483,6 +489,14 @@ watch(editor, (ed) => {
   }
 })
 
+// Keep editor editable state in sync with the user's role.
+// Roles may resolve asynchronously (e.g. after workspace/base data loads).
+watch(isEditable, (val) => {
+  if (editor.value) {
+    editor.value.setEditable(val)
+  }
+})
+
 /**
  * Wait for the Tiptap editor to be available.
  * `useEditor` creates the Editor instance inside `onMounted`, so
@@ -554,8 +568,8 @@ const loadAndSetDoc = async (id: string) => {
   isLoaded.value = true
 
   // Auto-focus the title input on new (untitled) pages so the user
-  // can immediately start typing a name
-  if (!title.value) {
+  // can immediately start typing a name (only for users who can edit)
+  if (!title.value && isEditable.value) {
     nextTick(() => {
       ;(titleInput.value as HTMLInputElement)?.focus()
     })
@@ -594,6 +608,8 @@ watch(
 )
 
 const onTitleBlur = () => {
+  if (!isEditable.value) return
+
   // Compare effective titles — empty input maps to "Untitled" on save
   const effectiveTitle = title.value || 'Untitled'
   if (effectiveTitle !== doc.value?.title) {
@@ -644,7 +660,7 @@ const onTitleKeydown = (e: KeyboardEvent) => {
  * This makes it easy to append content after the last block (table, callout, etc.).
  */
 const onEditorBodyClick = (e: MouseEvent) => {
-  if (!editor.value) return
+  if (!editor.value || !isEditable.value) return
 
   const target = e.target as HTMLElement
 
@@ -877,7 +893,7 @@ onBeforeUnmount(() => {
   // then fire the async save with the captured snapshot.
   if (saveTimeout.value) {
     clearTimeout(saveTimeout.value)
-    if (doc.value && activeProjectId.value && editor.value) {
+    if (isEditable.value && doc.value && activeProjectId.value && editor.value) {
       const content = editor.value.getJSON()
       const docId = doc.value.id!
       const version = doc.value.version
@@ -976,6 +992,7 @@ onBeforeUnmount(() => {
           <input
             ref="titleInput"
             v-model="title"
+            :readonly="!isEditable"
             class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
             :placeholder="$t('general.untitled')"
             @blur="onTitleBlur"
@@ -1017,8 +1034,8 @@ onBeforeUnmount(() => {
 
           <EditorContent :editor="editor" />
 
-          <!-- Table context menus: column/row handles + dropdown menus -->
-          <DocTableMenu :editor="editor" />
+          <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->
+          <DocTableMenu v-if="isEditable" :editor="editor" />
 
         </template>
       </div>

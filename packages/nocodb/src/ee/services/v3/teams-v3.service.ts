@@ -14,6 +14,8 @@ import type {
   TeamMembersRemoveV3ReqType,
   TeamMembersUpdateV3ReqType,
   TeamMemberV3ResponseType,
+  TeamMoveV3ReqType,
+  TeamTreeNodeV3Type,
   TeamUpdateV3ReqType,
   TeamV3ResponseType,
 } from './teams-v3.types';
@@ -180,6 +182,9 @@ export class TeamsV3Service {
         created_at: team.created_at,
         updated_at: team.updated_at,
         is_member: team.is_member,
+        fk_parent_team_id: team.fk_parent_team_id || null,
+        depth: team.depth ?? 0,
+        path: team.path || undefined,
       };
     });
 
@@ -326,6 +331,36 @@ export class TeamsV3Service {
     // Generate team ID
     const teamId = (await Noco.ncMeta.genNanoid(MetaTable.TEAMS)) as string;
 
+    // Handle parent team hierarchy
+    let parentTeam: any = null;
+    let depth = 0;
+    let path = `/${teamId}`;
+
+    if (param.team.parent_team_id) {
+      parentTeam = await Team.get(context, param.team.parent_team_id);
+      if (!parentTeam) {
+        NcError.get(context).teamNotFound(param.team.parent_team_id);
+      }
+
+      // Verify parent belongs to the same workspace
+      if (parentTeam.fk_workspace_id !== param.workspaceOrOrgId) {
+        NcError.get(context).invalidRequestBody(
+          'Parent team must belong to the same workspace',
+        );
+      }
+
+      depth = (parentTeam.depth ?? 0) + 1;
+
+      // Enforce max depth of 3
+      if (depth > 3) {
+        NcError.get(context).invalidRequestBody(
+          'Maximum team hierarchy depth of 3 levels exceeded',
+        );
+      }
+
+      path = `${parentTeam.path}/${teamId}`;
+    }
+
     // Create team with enhanced fields
     const teamData = {
       id: teamId,
@@ -336,6 +371,9 @@ export class TeamsV3Service {
         badge_color: param.team.badge_color,
       },
       fk_workspace_id: param.workspaceOrOrgId,
+      fk_parent_team_id: param.team.parent_team_id || null,
+      depth,
+      path,
       created_by: param.req.user.id,
     };
 
@@ -410,6 +448,9 @@ export class TeamsV3Service {
       created_at: team.created_at,
       updated_at: team.updated_at,
       is_member: isMember,
+      fk_parent_team_id: team.fk_parent_team_id || null,
+      depth: team.depth ?? 0,
+      path: team.path || undefined,
     };
 
     // Emit team create event
@@ -569,6 +610,7 @@ export class TeamsV3Service {
     param: {
       workspaceOrOrgId: string;
       teamId: string;
+      force?: boolean;
       req: NcRequest;
     },
   ) {
@@ -609,6 +651,21 @@ export class TeamsV3Service {
       // TODO: Add org owner check when org ownership is implemented
       if (!isTeamManager) {
         NcError.get(context).forbidden('Only team managers can delete teams');
+      }
+    }
+
+    // Check for child teams
+    const children = await Team.getChildren(context, param.teamId);
+    if (children.length > 0) {
+      if (!param.force) {
+        NcError.get(context).invalidRequestBody(
+          `Cannot delete team "${team.title}" — it has ${children.length} sub-team(s). Use force=true to reparent children.`,
+        );
+      }
+
+      // Reparent children to the deleted team's parent
+      for (const child of children) {
+        await Team.reparent(context, child.id, team.fk_parent_team_id || null);
       }
     }
 
@@ -1077,5 +1134,197 @@ export class TeamsV3Service {
     );
 
     return members;
+  }
+
+  // ── Hierarchy endpoints ─────────────────────────────────────────
+
+  async teamTree(
+    context: NcContext,
+    param: {
+      workspaceOrOrgId: string;
+    },
+  ): Promise<{ list: TeamTreeNodeV3Type[] }> {
+    await this.validateFeatureAccess(context);
+
+    const treeRoots = await Team.getTree(context, param.workspaceOrOrgId);
+    const currentUserId = context.user?.id;
+
+    // Recursively enrich each node with counts
+    const enrichNode = async (node: any): Promise<TeamTreeNodeV3Type> => {
+      const [membersCount, managersCount, managers] = await Promise.all([
+        this.getTeamMembersCount(context, node.id),
+        this.getTeamOwnersCount(context, node.id),
+        this.getTeamOwners(context, node.id),
+      ]);
+
+      let isMember = false;
+      if (currentUserId) {
+        const assignment = await PrincipalAssignment.get(
+          context,
+          ResourceType.TEAM,
+          node.id,
+          PrincipalType.USER,
+          currentUserId,
+        );
+        isMember = assignment !== null;
+      }
+
+      const meta = parseMetaProp(node) ?? {};
+
+      const enrichedChildren = await Promise.all(
+        (node.children || []).map(enrichNode),
+      );
+
+      return {
+        id: node.id,
+        title: node.title,
+        icon: meta.icon || undefined,
+        icon_type: meta.icon_type || undefined,
+        badge_color: meta.badge_color || undefined,
+        members_count: membersCount,
+        managers_count: managersCount,
+        managers,
+        created_by: node.created_by,
+        created_at: node.created_at,
+        updated_at: node.updated_at,
+        is_member: isMember,
+        fk_parent_team_id: node.fk_parent_team_id || null,
+        depth: node.depth ?? 0,
+        path: node.path || undefined,
+        children: enrichedChildren,
+      };
+    };
+
+    const enrichedRoots = await Promise.all(treeRoots.map(enrichNode));
+
+    return { list: enrichedRoots };
+  }
+
+  async teamMove(
+    context: NcContext,
+    param: {
+      workspaceOrOrgId: string;
+      teamId: string;
+      body: TeamMoveV3ReqType;
+      req: NcRequest;
+    },
+  ): Promise<TeamV3ResponseType> {
+    await this.validateFeatureAccess(context);
+
+    // Fetch workspace
+    const workspace = await Workspace.get(param.workspaceOrOrgId);
+    if (!workspace) {
+      NcError.get(context).workspaceNotFound(param.workspaceOrOrgId);
+    }
+
+    // Check if team exists and belongs to workspace
+    const team = await Team.get(context, param.teamId);
+    if (!team) {
+      NcError.get(context).teamNotFound(param.teamId);
+    }
+    if (team.fk_workspace_id !== param.workspaceOrOrgId) {
+      NcError.get(context).teamNotFound(param.teamId);
+    }
+
+    const newParentId = param.body.parent_team_id;
+
+    // Cannot move to self
+    if (newParentId === param.teamId) {
+      NcError.get(context).invalidRequestBody(
+        'Cannot move a team to be its own parent',
+      );
+    }
+
+    // Validate new parent
+    if (newParentId) {
+      const newParent = await Team.get(context, newParentId);
+      if (!newParent) {
+        NcError.get(context).teamNotFound(newParentId);
+      }
+      if (newParent.fk_workspace_id !== param.workspaceOrOrgId) {
+        NcError.get(context).invalidRequestBody(
+          'Parent team must belong to the same workspace',
+        );
+      }
+
+      // Circular reference check
+      const isDescendant = await Team.isAncestor(
+        context,
+        param.teamId,
+        newParentId,
+      );
+      if (isDescendant) {
+        NcError.get(context).invalidRequestBody(
+          'Cannot move a team under one of its own descendants (circular reference)',
+        );
+      }
+
+      // Depth limit check — get max depth in source subtree
+      const descendants = await Team.getDescendants(context, param.teamId);
+      const maxSubtreeDepth = descendants.length
+        ? Math.max(...descendants.map((d) => d.depth)) - team.depth
+        : 0;
+      const newDepth = (newParent.depth ?? 0) + 1;
+
+      if (newDepth + maxSubtreeDepth > 3) {
+        NcError.get(context).invalidRequestBody(
+          'Moving this team would exceed the maximum hierarchy depth of 3 levels',
+        );
+      }
+    }
+
+    // Perform the reparent
+    await Team.reparent(context, param.teamId, newParentId);
+
+    // Get updated team
+    const updatedTeam = await Team.get(context, param.teamId);
+
+    const [membersCount, managersCount, managers] = await Promise.all([
+      this.getTeamMembersCount(context, updatedTeam.id),
+      this.getTeamOwnersCount(context, updatedTeam.id),
+      this.getTeamOwners(context, updatedTeam.id),
+    ]);
+
+    const meta = parseMetaProp(updatedTeam);
+
+    const response: TeamV3ResponseType = {
+      id: updatedTeam.id,
+      title: updatedTeam.title,
+      icon: meta.icon || undefined,
+      icon_type: meta.icon_type || undefined,
+      badge_color: meta.badge_color || undefined,
+      members_count: membersCount,
+      managers_count: managersCount,
+      managers,
+      created_by: updatedTeam.created_by,
+      created_at: updatedTeam.created_at,
+      updated_at: updatedTeam.updated_at,
+      fk_parent_team_id: updatedTeam.fk_parent_team_id || null,
+      depth: updatedTeam.depth ?? 0,
+      path: updatedTeam.path || undefined,
+    };
+
+    // Emit team move event
+    this.appHooksService.emit(AppEvents.TEAM_MOVE, {
+      context,
+      req: param.req,
+      team: updatedTeam,
+      workspace,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.TEAM_EVENT,
+        payload: {
+          id: response.id,
+          action: 'teamMove',
+          payload: response,
+        },
+      },
+      context.socket_id,
+    );
+
+    return response;
   }
 }

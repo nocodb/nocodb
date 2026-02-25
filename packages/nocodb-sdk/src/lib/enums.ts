@@ -84,6 +84,7 @@ export enum AppEvents {
   TEAM_MEMBER_ADD = 'team.member.add',
   TEAM_MEMBER_UPDATE = 'team.member.update',
   TEAM_MEMBER_DELETE = 'team.member.delete',
+  TEAM_MOVE = 'team.move',
 
   TABLE_CREATE = 'table.create',
   TABLE_DELETE = 'table.delete',

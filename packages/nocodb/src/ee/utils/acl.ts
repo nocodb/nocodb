@@ -179,10 +179,12 @@ const permissionScopes = {
 
     // Teams
     'teamList',
+    'teamTree',
     'teamCreate',
     'teamGet',
     'teamUpdate',
     'teamDelete',
+    'teamMove',
     'teamMembersAdd',
     'teamMembersRemove',
     'teamMembersUpdate',
@@ -563,9 +565,11 @@ const rolePermissions:
 
       // Teams
       teamGet: true,
+      teamTree: true,
       teamCreate: true,
       teamUpdate: true,
       teamDelete: true,
+      teamMove: true,
       teamMembersAdd: true,
       teamMembersRemove: true,
       teamMembersUpdate: true,
@@ -1118,10 +1122,12 @@ const permissionDescriptions: Record<string, string> = {
 
   // Teams permissions
   teamList: 'view list of teams in the workspace',
+  teamTree: 'view team hierarchy tree in the workspace',
   teamCreate: 'create a new team in the workspace',
   teamGet: 'view team details',
   teamUpdate: 'update team details',
   teamDelete: 'delete a team from the workspace',
+  teamMove: 'move a team to a different parent in the hierarchy',
   teamMembersAdd: 'add members to a team',
   teamMembersRemove: 'remove members from a team',
   teamMembersUpdate: 'update member roles in a team',

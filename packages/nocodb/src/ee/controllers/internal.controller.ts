@@ -282,6 +282,10 @@ export class InternalController extends InternalControllerCE {
         return await this.teamsV3Service.teamList(context, {
           workspaceOrOrgId: workspaceId,
         });
+      case 'teamTree':
+        return await this.teamsV3Service.teamTree(context, {
+          workspaceOrOrgId: workspaceId,
+        });
       case 'teamGet':
         return await this.teamsV3Service.teamGet(context, {
           workspaceOrOrgId: workspaceId,
@@ -548,6 +552,13 @@ export class InternalController extends InternalControllerCE {
         return await this.teamsV3Service.teamDelete(context, {
           workspaceOrOrgId: workspaceId,
           teamId: payload.teamId,
+          req,
+        });
+      case 'teamMove':
+        return await this.teamsV3Service.teamMove(context, {
+          workspaceOrOrgId: workspaceId,
+          teamId: payload.teamId,
+          body: { parent_team_id: payload.parent_team_id },
           req,
         });
       case 'teamMembersAdd':

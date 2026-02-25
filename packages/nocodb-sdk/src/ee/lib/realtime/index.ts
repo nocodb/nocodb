@@ -71,6 +71,7 @@ export interface TeamPayload extends BaseSocketPayload {
     | 'teamCreate'
     | 'teamUpdate'
     | 'teamDelete'
+    | 'teamMove'
     | 'teamMembersAdd'
     | 'teamMembersRemove'
     | 'teamMembersUpdate';

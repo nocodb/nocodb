@@ -3,6 +3,7 @@ import { IconType } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
+  parentTeamId?: string | null
 }>()
 
 const emits = defineEmits(['update:visible', 'created'])
@@ -26,6 +27,7 @@ const formState = reactive<{
   description: string
   icon: string
   icon_type: IconType | string
+  parent_team_id: string | null
 
   // Todo: Phase II
   badge_color?: string
@@ -34,7 +36,41 @@ const formState = reactive<{
   description: '',
   icon: '',
   icon_type: '',
+  parent_team_id: props.parentTeamId || null,
   badge_color: undefined,
+})
+
+/**
+ * Return teams in depth-first tree order so the select dropdown
+ * shows parents immediately above their children. Siblings are sorted
+ * by title. Teams at depth >= 3 are excluded (cannot become a parent).
+ */
+const parentTeamOptions = computed(() => {
+  const eligible = (teams.value || []).filter((t: any) => (t.depth ?? 0) < 3)
+
+  // Build parentId → children map
+  const childrenMap = new Map<string | null, typeof eligible>()
+  for (const team of eligible) {
+    const parentId = (team as any).fk_parent_team_id || null
+    if (!childrenMap.has(parentId)) childrenMap.set(parentId, [])
+    childrenMap.get(parentId)!.push(team)
+  }
+
+  // Sort siblings alphabetically by title
+  for (const siblings of childrenMap.values()) {
+    siblings.sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+  }
+
+  // Depth-first traversal → correct nesting order
+  const ordered: typeof eligible = []
+  const walk = (parentId: string | null) => {
+    for (const child of childrenMap.get(parentId) ?? []) {
+      ordered.push(child)
+      walk(child.id)
+    }
+  }
+  walk(null)
+  return ordered
 })
 
 const enableDescription = ref(false)
@@ -80,6 +116,7 @@ const createTeam = async () => {
       icon: formState.icon || undefined,
       icon_type: formState.icon_type || undefined,
       badge_color: formState.badge_color || undefined,
+      parent_team_id: formState.parent_team_id || undefined,
     })
     emits('created', team as TeamType)
     vVisible.value = false
@@ -114,6 +151,7 @@ watch(vVisible, (newValue) => {
   formState.icon = ''
   formState.icon_type = ''
   formState.badge_color = undefined
+  formState.parent_team_id = props.parentTeamId || null
 
   nextTick(() => {
     inputEl.value?.focus()
@@ -195,6 +233,40 @@ watch(vVisible, (newValue) => {
                 </GeneralIconSelector>
               </div>
             </div>
+          </a-form-item>
+
+          <a-form-item class="!mb-0">
+            <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center">
+              <span class="text-[13px]">
+                {{ $t('labels.parentTeam') }}
+              </span>
+            </div>
+            <NcSelect
+              v-model:value="formState.parent_team_id"
+              :placeholder="$t('general.none')"
+              allow-clear
+              show-search
+              :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
+              class="w-full nc-select-shadow"
+              data-testid="create-team-parent-select"
+              dropdown-class-name="nc-dropdown-create-team-parent"
+            >
+              <a-select-option v-for="team in parentTeamOptions" :key="team.id" :value="team.id" :data-label="team.title">
+                <div class="flex items-center gap-2" :style="{ paddingLeft: `${(team.depth ?? 0) * 16}px` }">
+                  <GeneralTeamIcon :team="team" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+                  <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                    <template #title>{{ team.title }}</template>
+                    {{ team.title }}
+                  </NcTooltip>
+                  <component
+                    :is="iconMap.check"
+                    v-if="formState.parent_team_id === team.id"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4 flex-none"
+                  />
+                </div>
+              </a-select-option>
+            </NcSelect>
           </a-form-item>
 
           <a-form-item v-if="enableDescription" v-bind="validateInfos.description" class="!mb-0">

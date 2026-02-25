@@ -1,13 +1,20 @@
 import type { NcContext } from '~/interface/config';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
+import Team from '~/ee/models/Team';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 
 /**
- * Extract workspace roles for a user from teams in a workspace
+ * Extract workspace roles for a user from teams in a workspace.
+ *
+ * With hierarchy support (upward cascade):
+ * If a team is assigned to a workspace and the user is a member of an
+ * ANCESTOR team (parent, grandparent, etc.), the user inherits that role.
+ * This implements the "managers see what their reports see" pattern.
+ *
  * @param context - NocoDB context
  * @param userId - User ID
  * @param workspaceId - Workspace ID
- * @returns Promise<Record<string, boolean> | null> - Workspace roles from teams or null if no team roles
+ * @returns Promise with workspace roles from teams and matched team list
  */
 export async function extractUserTeamRoles(
   context: NcContext,
@@ -19,7 +26,6 @@ export async function extractUserTeamRoles(
 }> {
   const teams: { team_id: string; roles: string }[] = [];
 
-  // todo: optimize with fewer queries
   try {
     // Get all team assignments for this workspace
     const workspaceTeamAssignments = await PrincipalAssignment.list(context, {
@@ -28,26 +34,60 @@ export async function extractUserTeamRoles(
       principal_type: PrincipalType.TEAM,
     });
 
-    // Collect workspace roles from teams where user is a member
-    const workspaceRoles = [];
+    if (workspaceTeamAssignments.length === 0) {
+      return { roles: null, teams };
+    }
+
+    // Get all teams the user is a direct member of (with their paths)
+    const userTeamAssignments = await PrincipalAssignment.list(context, {
+      principal_type: PrincipalType.USER,
+      principal_ref_id: userId,
+      resource_type: ResourceType.TEAM,
+    });
+
+    if (userTeamAssignments.length === 0) {
+      return { roles: null, teams };
+    }
+
+    // Load team details for user's teams to get paths
+    const userTeams: { id: string; path: string }[] = [];
+    for (const assignment of userTeamAssignments) {
+      const team = await Team.get(context, assignment.resource_id);
+      if (team?.path) {
+        userTeams.push({ id: team.id, path: team.path });
+      }
+    }
+
+    // Collect workspace roles from matching teams
+    const workspaceRoles: string[] = [];
 
     for (const assignment of workspaceTeamAssignments) {
-      // Check if user is a member of this team
-      const userTeamAssignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        assignment.principal_ref_id,
-        PrincipalType.USER,
-        userId,
-      );
+      const assignedTeamId = assignment.principal_ref_id;
 
-      if (userTeamAssignment) {
+      // Load the assigned team to get its path
+      const assignedTeam = await Team.get(context, assignedTeamId);
+      if (!assignedTeam?.path) continue;
+
+      // Check if user matches via direct membership or ancestor relationship
+      let matched = false;
+      for (const userTeam of userTeams) {
+        // Direct membership
+        if (userTeam.id === assignedTeamId) {
+          matched = true;
+          break;
+        }
+        // Upward cascade: user's team is an ANCESTOR of the assigned team
+        if (assignedTeam.path.startsWith(userTeam.path + '/')) {
+          matched = true;
+          break;
+        }
+      }
+
+      if (matched) {
         teams.push({
-          team_id: assignment.principal_ref_id,
+          team_id: assignedTeamId,
           roles: assignment.roles,
         });
-
-        // User is a member of this team, add the team's workspace role
         workspaceRoles.push(assignment.roles);
       }
     }
@@ -56,11 +96,8 @@ export async function extractUserTeamRoles(
       return { roles: null, teams };
     }
 
-    // Return the workspace roles from teams
-    // The role hierarchy logic will be handled in User.ts
-    const roles: Record<string, boolean> = {};
-
     // Convert workspace roles to boolean map
+    const roles: Record<string, boolean> = {};
     for (const role of workspaceRoles) {
       if (role) {
         roles[role] = true;

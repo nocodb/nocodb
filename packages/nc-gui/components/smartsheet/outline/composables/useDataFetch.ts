@@ -64,7 +64,7 @@ export function useOutlineDataFetch({
       totalRows.value = result.totalRows
       levelCounts.value = result.counts
     } catch (e) {
-      console.error('Error fetching outline view count:', e)
+      // silently ignore — count will remain at previous value
     }
   }
 
@@ -100,7 +100,7 @@ export function useOutlineDataFetch({
         chunkStates.value[chunkId + 1] = 'loaded'
       }
     } catch (e) {
-      console.error(`Error fetching outline chunk ${chunkId}:`, e)
+      // reset chunk state so it can be retried
       chunkStates.value[chunkId] = undefined
       if (isInitialLoad) {
         chunkStates.value[chunkId + 1] = undefined
@@ -136,7 +136,7 @@ export function useOutlineDataFetch({
 
       group.forEach((id) => (chunkStates.value[id] = 'loaded'))
     } catch (e) {
-      console.error(`Error fetching outline chunks ${startChunk}-${endChunk}:`, e)
+      // reset chunk states so they can be retried
       group.forEach((id) => (chunkStates.value[id] = undefined))
     }
   }

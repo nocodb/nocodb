@@ -1,6 +1,5 @@
 import type { ColumnType, FormulaType, GridColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes, isLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { stringifyFilterOrSortArr } from '~/utils/dataUtils'
 import { SpriteLoader } from '../../grid/canvas/loaders/SpriteLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../../grid/canvas/utils/cell'
 import type { OutlineActiveCell, OutlineCanvasElement } from './types'
@@ -19,6 +18,7 @@ import { useCanvasRender } from './useCanvasRender'
 import { useColumnResize } from './useColumnResize'
 import { useOutlineDataFetch } from './useDataFetch'
 import { useOutlineCellRenderer } from './useOutlineCellRenderer'
+import { stringifyFilterOrSortArr } from '~/utils/dataUtils'
 import type { OutlineViewRow } from '~/composables/useOutlineViewStore'
 
 export function useCanvasOutline({
@@ -188,16 +188,14 @@ export function useCanvasOutline({
       : stringifyFilterOrSortArr([
           ...(nestedFilters.value ?? [])
             .filter((f) => !f.id)
-            .map((f) => ((f as any).fk_level_id ? f : { ...f, fk_level_id: fallbackLevelId })),
+            .map((f) => (f.fk_level_id ? f : { ...f, fk_level_id: fallbackLevelId })),
           ...searchFilters,
         ])
 
     const sortArrJson = isUIAllowed('sortSync')
       ? undefined
       : stringifyFilterOrSortArr(
-          (sorts.value ?? [])
-            .filter((s) => !s.id)
-            .map((s) => ((s as any).fk_level_id ? s : { ...s, fk_level_id: fallbackLevelId })),
+          (sorts.value ?? []).filter((s) => !s.id).map((s) => (s.fk_level_id ? s : { ...s, fk_level_id: fallbackLevelId })),
         )
 
     return { filterArrJson, sortArrJson }

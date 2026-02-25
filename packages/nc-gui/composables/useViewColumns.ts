@@ -132,7 +132,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             try {
               await _getMeta(meta.value!.base_id!, level.fk_model_id)
             } catch (e) {
-              console.error(`Failed to load meta for level table ${level.fk_model_id}:`, e)
+              // silently ignore — level table meta may not be accessible
             }
           }
         }

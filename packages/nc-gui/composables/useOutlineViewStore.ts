@@ -88,7 +88,6 @@ const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
           levels: config.levels,
         })
       } catch (e) {
-        console.error('Error saving level configuration:', e)
         throw e
       }
     }
@@ -100,7 +99,6 @@ const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
       try {
         await _updateViewMeta(viewId.value, ViewTypes.OUTLINE, updates)
       } catch (e) {
-        console.error('Error updating outline view meta:', e)
         throw e
       }
     }

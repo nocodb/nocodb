@@ -123,7 +123,7 @@ async function save() {
     eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
     eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
   } catch (e) {
-    console.error('Error saving level configuration:', e)
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

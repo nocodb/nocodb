@@ -664,7 +664,7 @@ watch(
 const visibleFilters = computed(() =>
   filters.value.filter((filter) => {
     if (filter.status === 'delete') return false
-    if (levelId.value && !nested.value) return (filter as any).fk_level_id === levelId.value
+    if (levelId.value && !nested.value) return filter.fk_level_id === levelId.value
     return true
   }),
 )

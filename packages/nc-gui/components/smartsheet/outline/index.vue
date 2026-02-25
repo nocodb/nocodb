@@ -326,8 +326,7 @@ async function saveRowProperty(cell: NonNullable<typeof activeCell.value>, rowOb
       triggerRefreshCanvas()
     }
   } catch (e: any) {
-    console.error('Failed to save cell:', e)
-    message.error(e.message || 'Failed to save')
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

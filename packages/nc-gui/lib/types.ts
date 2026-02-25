@@ -78,6 +78,7 @@ interface Field {
   underline: boolean | number
   title: string
   fk_column_id?: string
+  fk_level_id?: string
   system?: boolean
   isViewEssentialField?: boolean
   initialShow?: boolean

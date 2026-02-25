@@ -361,7 +361,7 @@ const visibleFields = computed(
 
       // For outline view with levels, only include selected level's fields
       if (isOutline.value && isOutlineConfigured.value && outlineViewStore?.selectedLevelId.value) {
-        if ((field as any).fk_level_id !== outlineViewStore.selectedLevelId.value) {
+        if (field.fk_level_id !== outlineViewStore.selectedLevelId.value) {
           return false
         }
       }

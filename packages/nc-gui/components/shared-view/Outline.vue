@@ -28,7 +28,6 @@ if (signedIn.value) {
   try {
     await loadProject()
   } catch (e: any) {
-    console.error(e)
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }

@@ -20,4 +20,8 @@ export default class OutlineViewColumn {
   static async update(..._args) {
     return null;
   }
+
+  static async getNextOrderForLevel(..._args): Promise<number> {
+    return 1;
+  }
 }

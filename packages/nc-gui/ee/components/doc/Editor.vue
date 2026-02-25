@@ -1616,6 +1616,12 @@ onBeforeUnmount(() => {
     text-decoration: underline;
   }
 
+  // Strikethrough — grey text and line (like Outline)
+  s, del {
+    color: var(--nc-content-gray-disabled);
+    text-decoration-color: var(--nc-content-gray-disabled);
+  }
+
   // Table — border-separate so border-radius works on corners
   table {
     border-collapse: separate;

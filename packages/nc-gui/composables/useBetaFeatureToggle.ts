@@ -170,9 +170,10 @@ const FEATURES = [
     title: 'Templates',
     description: 'Enable templates feature to browse and use templates.',
     enabled: true,
-    version: 2,
+    version: 3,
     isEngineering: false,
     isEE: true,
+    isOnPrem: false,
   },
   {
     id: 'gauge_widget',

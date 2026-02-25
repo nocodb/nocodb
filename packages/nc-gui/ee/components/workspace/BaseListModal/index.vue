@@ -24,6 +24,7 @@ const { loadProjects } = basesStore
 const { navigateToTable } = useTablesStore()
 const { isMobileMode, appInfo } = useGlobal()
 const { $api, $e } = useNuxtApp()
+const { isEEFeatureBlocked, showUpgradeToCreateWorkspace } = useEeConfig()
 
 const { orgRoles } = useRoles()
 
@@ -360,6 +361,11 @@ watch(
 const createDlg = ref(false)
 
 const onCreateWorkspace = () => {
+  if (isEEFeatureBlocked.value) {
+    showUpgradeToCreateWorkspace()
+    return
+  }
+
   $e('c:workspace:create')
 
   createDlg.value = true
@@ -451,6 +457,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               <div class="flex items-center justify-center gap-2 text-center">
                 <GeneralIcon icon="plus" class="flex-none" />
                 <span class="text-sm font-medium">{{ $t('activity.newWorkspace') }}</span>
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
               </div>
             </NcButton>
           </div>

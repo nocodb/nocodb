@@ -246,6 +246,12 @@ const displayedSections = computed(() => {
   return [{ type: filter, bases }]
 })
 
+// A specific filter is active but yields no bases in the selected workspace
+// (independent of search — shown even alongside other workspace results)
+const emptyFilterSection = computed(() => {
+  return modalState.activeFilter !== 'all' && displayedSections.value.every((section) => section.bases.length === 0)
+})
+
 const emptyFilterResult = computed(() => {
   return displayedSections.value.every((section) => section.bases.length === 0) && !modalState.searchQuery.length
 })
@@ -257,8 +263,7 @@ const otherMatchingWorkspaceIds = computed((): string[] => {
     .filter(
       (ws) =>
         ws.id !== modalState.selectedWorkspaceId &&
-        (searchCompare(ws.title, modalState.searchQuery) ||
-          ws.bases.some((b) => searchCompare(b.title, modalState.searchQuery))),
+        (searchCompare(ws.title, modalState.searchQuery) || ws.bases.some((b) => searchCompare(b.title, modalState.searchQuery))),
     )
     .map((ws) => ws.id)
 })
@@ -502,6 +507,14 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               :is-base-private="baseCheckers.private"
             />
 
+            <!-- No results for the active filter in the selected workspace -->
+            <div
+              v-if="emptyFilterSection"
+              class="flex flex-col items-center justify-center py-6 text-nc-content-gray-muted !children:my-0"
+            >
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
+            </div>
+
             <!-- Other Workspaces cross-workspace search results -->
             <template v-if="otherWorkspaceSections.length > 0">
               <div class="flex items-center gap-3 my-2">
@@ -516,8 +529,12 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
                 <div class="flex items-center gap-2 mb-4 mt-4 text-xs font-medium tracking-wide">
                   <span class="text-nc-content-gray-muted">{{ $t('activity.basesIn') }}</span>
                   <span
-                    class="text-nc-content-gray-muted capitalize underline cursor-pointer hover:text-nc-content-brand"
-                    @click="onSelectWorkspace(wsData.workspace.id!)"
+                    class="text-nc-content-gray-muted capitalize"
+                    :class="{
+                      'text-nc-content-brand': activeWorkspaceId === wsData.workspace?.id,
+                      'underline cursor-pointer hover:text-nc-content-brand': activeWorkspaceId !== wsData.workspace?.id,
+                    }"
+                    @click="switchWorkspace(wsData.workspace?.id)"
                   >
                     {{ wsData.workspace.title }}
                   </span>

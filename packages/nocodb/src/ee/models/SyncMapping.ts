@@ -27,6 +27,8 @@ export default class SyncMapping {
     id: string,
     ncMeta = Noco.ncMeta,
   ) {
+    if (!id) return null;
+
     const key = `${CacheScope.SYNC_MAPPINGS}:${id}`;
     let syncMapping = await NocoCache.get(
       context,

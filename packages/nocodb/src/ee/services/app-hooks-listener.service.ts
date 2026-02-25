@@ -3325,8 +3325,8 @@ export class AppHooksListenerService
             AuditV1OperationTypes.SCRIPT_DELETE,
             {
               details: {
-                script_title: param.script.title,
-                script_id: param.script.id,
+                script_title: param.script?.title,
+                script_id: param.script?.id,
               },
               context: param.context,
               req: param.req,

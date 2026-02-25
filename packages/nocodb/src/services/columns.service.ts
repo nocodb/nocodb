@@ -5798,11 +5798,15 @@ export class ColumnsService implements IColumnsService {
     const { parentCn: columnName, childCn: refColumnName } =
       getMMColumnNames(parentTable, childTable);
 
-    // Phase 3: Start meta transaction
-    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+    // Note: We intentionally do NOT use a meta transaction here.
+    // SQLite (used in dev/CE) has a single-connection pool, so holding a
+    // transaction connection while other operations (sqlMgr, NcConnectionMgrv2,
+    // EE payment/workspace lookups) try to acquire connections causes deadlock.
+    // This matches the existing MM column creation pattern. Rollback is handled
+    // manually via the junctionCreated/fkDropped flags.
+    const ncMeta = Noco.ncMeta;
 
     try {
-
       const associateTableCols = [
         {
           cn: refColumnName,
@@ -6085,10 +6089,7 @@ export class ColumnsService implements IColumnsService {
         });
       }
 
-      // Phase 9: Commit
-      await ncMeta.commit();
-
-      // Clear caches after commit
+      // Clear caches
       await NocoCache.deepDel(
         context,
         `${CacheScope.COL_RELATION}:${hmColumn.id}`,
@@ -6124,8 +6125,6 @@ export class ColumnsService implements IColumnsService {
 
       return parentTable;
     } catch (e) {
-      await ncMeta.rollback();
-
       // Reverse data DB changes
       if (fkDropped && !isVirtual) {
         try {

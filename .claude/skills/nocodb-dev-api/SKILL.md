@@ -1,6 +1,6 @@
 ---
 name: nocodb-dev-api
-description: NocoDB backend API CLI for dev/test. Use when interacting with the NocoDB backend — creating test data, verifying API endpoints, testing CRUD operations, checking role-based access, or setting up workspaces/bases/tables. Provides 153 commands covering all v3 + internal API operations. Run via `npx tsx .claude/skills/nocodb-dev-api/cli.ts <command>`.
+description: NocoDB backend API CLI for dev/test. Use when interacting with the NocoDB backend — creating test data, verifying API endpoints, testing CRUD operations, checking role-based access, or setting up workspaces/bases/tables. Provides 156 commands covering all v3 + internal API operations. Supports signup, signin, and auto-refreshes tokens on 401. Run via `npx tsx .claude/skills/nocodb-dev-api/cli.ts <command>`.
 ---
 
 # nocodb-dev-api — Dev CLI for NocoDB
@@ -23,34 +23,41 @@ Endpoints use **v3 > internal > v1 > v2** preference:
 ## Quick Start
 
 ```bash
-# Initialize: creates 5 test users, workspace, and role assignments
-npx tsx .claude/skills/nocodb-dev-api/cli.ts init
-
-# Check it worked
+# Sign up a user and start using the API directly
+npx tsx .claude/skills/nocodb-dev-api/cli.ts signup --email=test@example.com --password=Password123.
+npx tsx .claude/skills/nocodb-dev-api/cli.ts signin --email=test@example.com --password=Password123.
 npx tsx .claude/skills/nocodb-dev-api/cli.ts me
 npx tsx .claude/skills/nocodb-dev-api/cli.ts list-workspaces
 ```
 
-For a different backend URL:
+## Optional Setup (test users + sample data)
+
+Standalone scripts create 5 test users with role assignments and populate sample data. Most agents don't need this — use `signup`/`signin` directly instead.
+
 ```bash
-npx tsx .claude/skills/nocodb-dev-api/cli.ts init --url=http://localhost:8080
+# Create 5 test users (owner/creator/editor/commenter/viewer) + workspace + roles
+npx tsx .claude/skills/nocodb-dev-api/scripts/init.ts
+npx tsx .claude/skills/nocodb-dev-api/scripts/init.ts --url=http://localhost:8080
+
+# Populate sample data (AllTypes table with 42 fields, financial tables, scripts, etc.)
+npx tsx .claude/skills/nocodb-dev-api/scripts/sample-data.ts
 ```
 
 ## Global Flags
 
 | Flag | Description | Default |
 |------|-------------|---------|
-| `--as=<role>` | Run as a specific role's token | `owner` |
+| `--as=<email>` | Email to authenticate as | last signed-in user |
 | `--workspace=<id>` | Workspace ID (auto-resolved from state) | from state |
 | `--base=<id>` | Base ID (required for table/field/view/record ops) | — |
 | `--table=<id>` | Table ID (required for field/view/record ops) | — |
 | `--view=<id>` | View ID (required for filter/sort/view-column ops) | — |
 
-Roles: `owner`, `creator`, `editor`, `commenter`, `viewer`
+When `--as` is omitted, the CLI uses the **default user** — the last user who signed in or signed up. After `scripts/init.ts`, this is `owner@agent.test`.
 
-## Test Users
+## Test Users (created by `scripts/init.ts`)
 
-All users share password `Password123.`
+All users share password `Password123.`. Use `--as=<email>` to switch between them.
 
 | Role | Email | Workspace Role |
 |------|-------|----------------|
@@ -62,28 +69,34 @@ All users share password `Password123.`
 
 ## Commands
 
-### Setup
+### State
 
 ```bash
-# Initialize everything (idempotent — safe to re-run)
-npx tsx cli.ts init
-npx tsx cli.ts init --url=http://localhost:8080
-
-# View current state
+# View current state (tokens, workspace, etc.)
 npx tsx cli.ts state
-
-# Sample data placeholder
-npx tsx cli.ts sample-data
 ```
 
 ### Auth (v1)
 
 ```bash
-npx tsx cli.ts signin --as=owner
+# Sign in (stores credential + sets as default user)
+npx tsx cli.ts signin --email=owner@agent.test --password=Password123.
 npx tsx cli.ts signin --email=user@example.com --password=secret
+
+# Sign up a new user (stores credential + sets as default user)
+npx tsx cli.ts signup --email=new@example.com --password=Password123.
+
+# Refresh all stored user tokens at once
+npx tsx cli.ts refresh-tokens
+
+# Check current user (uses default user)
 npx tsx cli.ts me
-npx tsx cli.ts me --as=viewer
+
+# Check as a specific user
+npx tsx cli.ts me --as=viewer@agent.test
 ```
+
+**Auto-retry on 401**: All authenticated requests automatically detect expired tokens, re-sign in using stored credentials, and retry the request. Works for any user that has signed in — not just test users.
 
 ### Health (v1)
 
@@ -312,14 +325,14 @@ npx tsx cli.ts raw --method=GET --path=/api/v3/meta/bases/p_xxxxx
 
 # POST with JSON body
 npx tsx cli.ts raw --method=POST --path=/api/v3/meta/bases/p_xxxxx/some-endpoint \
-  --data='{"key":"value"}' --as=owner
+  --data='{"key":"value"}'
 
-# PATCH as different role
+# PATCH as different user
 npx tsx cli.ts raw --method=PATCH --path=/api/v3/meta/bases/p_xxxxx/some-endpoint \
-  --data='{"updated":"value"}' --as=editor
+  --data='{"updated":"value"}' --as=editor@agent.test
 
 # DELETE
-npx tsx cli.ts raw --method=DELETE --path=/api/v3/meta/bases/p_xxxxx/some-endpoint --as=owner
+npx tsx cli.ts raw --method=DELETE --path=/api/v3/meta/bases/p_xxxxx/some-endpoint
 
 # With query parameters (use --param-* prefix)
 npx tsx cli.ts raw --method=GET --path=/api/v3/data/p_xxxxx/md_xxxxx/records \
@@ -331,7 +344,7 @@ npx tsx cli.ts raw --method=GET --path=/api/v3/data/p_xxxxx/md_xxxxx/records \
 | `--method` | HTTP method (GET, POST, PATCH, PUT, DELETE) | `GET` |
 | `--path` | API path starting with `/api/...` | required |
 | `--data` | JSON body | — |
-| `--as` | Role to authenticate as | `owner` |
+| `--as` | Email to authenticate as | last signed-in user |
 | `--param-*` | Query parameters (e.g. `--param-limit=10`) | — |
 
 ### Internal API (generic)
@@ -605,14 +618,14 @@ npx tsx cli.ts create-sql-view --base=p_xxxxx --source=src_xxxxx \
 
 ### Role-based Testing
 
-Any command can be run as a different role with `--as`:
+Any command can be run as a different user with `--as=<email>`:
 
 ```bash
 # Viewer trying to create a record (should fail with 403)
-npx tsx cli.ts create-record --base=p_xxxxx --table=md_xxxxx --data='{"Name":"Test"}' --as=viewer
+npx tsx cli.ts create-record --base=p_xxxxx --table=md_xxxxx --data='{"Name":"Test"}' --as=viewer@agent.test
 
 # Editor creating a record (should succeed)
-npx tsx cli.ts create-record --base=p_xxxxx --table=md_xxxxx --data='{"Name":"Test"}' --as=editor
+npx tsx cli.ts create-record --base=p_xxxxx --table=md_xxxxx --data='{"Name":"Test"}' --as=editor@agent.test
 ```
 
 ## v3 Response Formats
@@ -659,13 +672,19 @@ State is persisted in `.claude/skills/nocodb-dev-api/.state.json` (gitignored):
 ```json
 {
   "url": "http://localhost:8080",
-  "tokens": {
-    "owner": "jwt...",
-    "creator": "jwt...",
-    "editor": "jwt...",
-    "commenter": "jwt...",
-    "viewer": "jwt..."
+  "credentials": {
+    "owner@agent.test": {
+      "email": "owner@agent.test",
+      "password": "Password123.",
+      "token": "jwt..."
+    },
+    "editor@agent.test": {
+      "email": "editor@agent.test",
+      "password": "Password123.",
+      "token": "jwt..."
+    }
   },
+  "defaultUser": "owner@agent.test",
   "workspace": {
     "id": "ws_xxxxx",
     "title": "Agent Workspace"
@@ -674,7 +693,7 @@ State is persisted in `.claude/skills/nocodb-dev-api/.state.json` (gitignored):
 }
 ```
 
-Tokens auto-refresh on 401 errors.
+Tokens auto-refresh on 401 errors — the CLI re-signs in using stored credentials and retries the request automatically. Legacy state files with `tokens` are auto-migrated on first read.
 
 ## Common Workflows
 
@@ -739,12 +758,12 @@ All errors are JSON with non-zero exit code:
 }
 ```
 
-## Complete Command List (153 commands)
+## Complete Command List (156 commands)
 
 | Category | Commands |
 |----------|----------|
-| **Setup** | `init`, `state`, `sample-data`, `raw`, `internal` |
-| **Auth** | `signin`, `me` |
+| **Setup** | `state`, `raw`, `internal` |
+| **Auth** | `signin`, `signup`, `refresh-tokens`, `me` |
 | **Health** | `health`, `version` |
 | **Workspaces** | `list-workspaces`, `create-workspace`, `get-workspace`, `update-workspace`, `delete-workspace` |
 | **Workspace Members** | `list-workspace-users`, `invite-workspace-member`, `update-workspace-member`, `remove-workspace-member` |

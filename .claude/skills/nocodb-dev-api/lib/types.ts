@@ -20,8 +20,25 @@ export const WORKSPACE_ROLES: Record<Role, string> = {
   viewer: 'workspace-level-viewer',
 };
 
+// Stored credential for a signed-in user
+export interface Credential {
+  email: string;
+  password: string;
+  token: string;
+}
+
 // Persisted state
 export interface State {
+  url: string;
+  credentials: Record<string, Credential>;   // email → {email, password, token}
+  defaultUser: string | null;                 // email of last signed-in user
+  workspace: { id: string; title: string } | null;
+  baseWorkspaces?: Record<string, string>;    // baseId → wsId cache
+  updatedAt: string;
+}
+
+// Legacy state shape (for auto-migration)
+export interface LegacyState {
   url: string;
   tokens: Partial<Record<Role, string>>;
   workspace: { id: string; title: string } | null;

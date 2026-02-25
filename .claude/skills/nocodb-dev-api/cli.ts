@@ -1,8 +1,5 @@
 #!/usr/bin/env npx tsx
-import type { Role } from './lib/types.js';
-import { ROLES, TEST_USERS } from './lib/types.js';
-import { getToken, readState } from './lib/state.js';
-import { init, ensureSampleData } from './lib/init.js';
+import { getToken, readState, refreshAllTokens, storeCredential } from './lib/state.js';
 import * as api from './lib/api.js';
 
 // ---------------------------------------------------------------------------
@@ -45,16 +42,8 @@ function parseJson(raw: string): unknown {
   }
 }
 
-function resolveRole(flags: Record<string, string>): Role {
-  const role = (flags.as || 'owner') as Role;
-  if (!ROLES.includes(role)) {
-    throw new Error(`Unknown role: ${role}. Use: ${ROLES.join(', ')}`);
-  }
-  return role;
-}
-
 function token(flags: Record<string, string>): string {
-  return getToken(resolveRole(flags));
+  return getToken(flags.as);
 }
 
 /** Resolve workspace ID from --workspace flag or state */
@@ -63,7 +52,7 @@ function wsId(flags: Record<string, string>): string {
   if (explicit) return explicit;
   const ws = readState()?.workspace;
   if (ws) return ws.id;
-  throw new Error('No workspace. Pass --workspace=ID or run init first.');
+  throw new Error('No workspace. Pass --workspace=ID or run scripts/init.ts first.');
 }
 
 // ---------------------------------------------------------------------------
@@ -86,22 +75,24 @@ function fail(msg: string): never {
 type Handler = (flags: Record<string, string>) => Promise<unknown>;
 
 const commands: Record<string, Handler> = {
-  // Setup
-  async init(flags) {
-    return init(flags.url);
-  },
-  async 'sample-data'() {
-    return ensureSampleData();
-  },
-
   // Auth (v1)
   async signin(flags) {
-    if (flags.as) {
-      const role = resolveRole(flags);
-      const { email, password } = TEST_USERS[role];
-      return api.signin(email, password);
-    }
-    return api.signin(requireFlag(flags, 'email'), requireFlag(flags, 'password'));
+    const email = requireFlag(flags, 'email');
+    const password = requireFlag(flags, 'password');
+    const res = await api.signin(email, password);
+    storeCredential(email, password, res.token);
+    return res;
+  },
+  async signup(flags) {
+    const email = requireFlag(flags, 'email');
+    const password = requireFlag(flags, 'password');
+    const res = await api.signup(email, password);
+    storeCredential(email, password, res.token);
+    return res;
+  },
+  async 'refresh-tokens'() {
+    const tokens = await refreshAllTokens();
+    return { refreshed: Object.keys(tokens), count: Object.keys(tokens).length };
   },
   async health() {
     return api.health();
@@ -1031,7 +1022,7 @@ const commands: Record<string, Handler> = {
   // State inspection
   async state() {
     const s = readState();
-    if (!s) throw new Error('Not initialized. Run: npx tsx cli.ts init');
+    if (!s) throw new Error('Not initialized. Run: npx tsx scripts/init.ts');
     return s;
   },
 };
@@ -1049,14 +1040,14 @@ async function main() {
       usage: 'npx tsx cli.ts <command> [--flags]',
       commands: Object.keys(commands).sort(),
       flags: {
-        '--as': 'Role to use (owner|creator|editor|commenter|viewer). Default: owner',
+        '--as': 'Email to authenticate as. Default: last signed-in user',
         '--url': 'NocoDB URL (for init command)',
         '--base': 'Base ID (required for table/field/view/record commands)',
         '--table': 'Table ID (required for field/view/record commands)',
         '--workspace': 'Workspace ID (auto-resolved from state if omitted)',
         '--view': 'View ID (required for filter/sort/view-column commands)',
       },
-      raw: 'Use "raw" command for arbitrary API calls: raw --method=POST --path=/api/v3/... --data=\'{"key":"val"}\' --as=owner',
+      raw: 'Use "raw" command for arbitrary API calls: raw --method=POST --path=/api/v3/... --data=\'{"key":"val"}\' --as=user@example.com',
     });
     return;
   }

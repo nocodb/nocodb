@@ -1,4 +1,4 @@
-import { getBaseUrl } from './state.js';
+import { getBaseUrl, readState, writeState, findCredentialForToken, refreshTokenForEmail } from './state.js';
 import type {
   SigninResponse,
   UserResponse,
@@ -59,6 +59,31 @@ export async function request<T = unknown>(
     data = JSON.parse(text);
   } catch {
     data = text;
+  }
+
+  // Auto-retry on 401: refresh the token and replay the request once
+  if (res.status === 401 && token) {
+    const cred = findCredentialForToken(token);
+    if (cred) {
+      const newToken = await refreshTokenForEmail(cred.email);
+      const retryHeaders = { ...headers, 'xc-auth': newToken };
+      const retry = await fetch(url, {
+        method,
+        headers: retryHeaders,
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+      });
+      const retryText = await retry.text();
+      let retryData: unknown;
+      try { retryData = JSON.parse(retryText); } catch { retryData = retryText; }
+      if (!retry.ok) {
+        const retryMsg =
+          typeof retryData === 'object' && retryData && 'msg' in retryData
+            ? (retryData as { msg: string }).msg
+            : typeof retryData === 'string' ? retryData : retry.statusText;
+        throw new Error(`${retry.status} ${retryMsg}`);
+      }
+      return retryData as T;
+    }
   }
 
   if (!res.ok) {
@@ -546,8 +571,10 @@ export async function listComments(
   tableId: string,
   rowId: string | number,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}/records/${rowId}/comments`, {
-    token,
+  const wsId = await resolveWsId(token, baseId);
+  return iGet(token, wsId, baseId, 'commentList', {
+    row_id: String(rowId),
+    fk_model_id: tableId,
   });
 }
 
@@ -558,10 +585,11 @@ export async function createComment(
   rowId: string | number,
   comment: string,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}/records/${rowId}/comments`, {
-    method: 'POST',
-    token,
-    body: { comment },
+  const wsId = await resolveWsId(token, baseId);
+  return iPost(token, wsId, baseId, 'commentRow', {
+    comment,
+    row_id: String(rowId),
+    fk_model_id: tableId,
   });
 }
 
@@ -571,10 +599,10 @@ export async function updateComment(
   commentId: string,
   comment: string,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/comment/${commentId}`, {
-    method: 'PATCH',
-    token,
-    body: { comment },
+  const wsId = await resolveWsId(token, baseId);
+  return iPost(token, wsId, baseId, 'commentUpdate', {
+    commentId,
+    comment,
   });
 }
 
@@ -583,9 +611,9 @@ export async function deleteComment(
   baseId: string,
   commentId: string,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/comment/${commentId}`, {
-    method: 'DELETE',
-    token,
+  const wsId = await resolveWsId(token, baseId);
+  return iPost(token, wsId, baseId, 'commentDelete', {
+    commentId,
   });
 }
 
@@ -747,8 +775,8 @@ export async function createRecord(
   table: string,
   data: Record<string, unknown>,
 ): Promise<unknown> {
-  // v3 wraps field data inside { fields: {...} }
-  return request(`/api/v3/data/${base}/${table}/records`, {
+  // v3 wraps field data inside { fields: {...} }; typecast=true auto-creates missing select options
+  return request(`/api/v3/data/${base}/${table}/records?typecast=true`, {
     method: 'POST',
     token,
     body: { fields: data },
@@ -761,8 +789,8 @@ export async function createRecords(
   table: string,
   data: Record<string, unknown>[],
 ): Promise<unknown> {
-  // v3 bulk: array of { fields: {...} }
-  return request(`/api/v3/data/${base}/${table}/records`, {
+  // v3 bulk: array of { fields: {...} }; typecast=true auto-creates missing select options
+  return request(`/api/v3/data/${base}/${table}/records?typecast=true`, {
     method: 'POST',
     token,
     body: data.map((d) => ({ fields: d })),
@@ -841,6 +869,27 @@ export async function internal(
     body,
     params: { operation, ...params },
   });
+}
+
+/** Resolve workspace ID for a base — checks state cache first, then fetches via API */
+async function resolveWsId(token: string, baseId: string): Promise<string> {
+  const state = readState();
+  const cached = state?.baseWorkspaces?.[baseId];
+  if (cached) return cached;
+
+  // Fetch base to get workspace_id
+  const base = (await getBase(token, baseId)) as Record<string, unknown>;
+  const wsId = base?.workspace_id as string;
+  if (!wsId) throw new Error(`Could not resolve workspace for base ${baseId}`);
+
+  // Cache in state
+  if (state) {
+    if (!state.baseWorkspaces) state.baseWorkspaces = {};
+    state.baseWorkspaces[baseId] = wsId;
+    writeState(state);
+  }
+
+  return wsId;
 }
 
 /** Internal GET shorthand */
@@ -2009,8 +2058,8 @@ export async function listIntegrations(token: string, wsId: string): Promise<unk
   return request(`/api/v2/meta/workspaces/${wsId}/integrations`, { token });
 }
 
-export async function getIntegration(token: string, wsId: string, integrationId: string): Promise<unknown> {
-  return request(`/api/v2/meta/workspaces/${wsId}/integrations/${integrationId}`, { token });
+export async function getIntegration(token: string, _wsId: string, integrationId: string): Promise<unknown> {
+  return request(`/api/v2/meta/integrations/${integrationId}`, { token });
 }
 
 export async function createIntegration(
@@ -2023,19 +2072,19 @@ export async function createIntegration(
 
 export async function updateIntegration(
   token: string,
-  wsId: string,
+  _wsId: string,
   integrationId: string,
   data: Record<string, unknown>,
 ): Promise<unknown> {
-  return request(`/api/v2/meta/workspaces/${wsId}/integrations/${integrationId}`, {
+  return request(`/api/v2/meta/integrations/${integrationId}`, {
     method: 'PATCH',
     token,
     body: data,
   });
 }
 
-export async function deleteIntegration(token: string, wsId: string, integrationId: string): Promise<unknown> {
-  return request(`/api/v2/meta/workspaces/${wsId}/integrations/${integrationId}`, { method: 'DELETE', token });
+export async function deleteIntegration(token: string, _wsId: string, integrationId: string): Promise<unknown> {
+  return request(`/api/v2/meta/integrations/${integrationId}`, { method: 'DELETE', token });
 }
 
 // ---------------------------------------------------------------------------

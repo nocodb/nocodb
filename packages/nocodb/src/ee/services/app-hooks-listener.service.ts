@@ -2637,7 +2637,7 @@ export class AppHooksListenerService
                   view_id: param.view.id,
                   view_title: param.view.title,
                   sort_field_id: param.sort.fk_column_id,
-                  sort_field_title: param.column.title,
+                  sort_field_title: param.column?.title,
                   ...extractNonSystemProps(param.sort, ['fk_column_id']),
                 },
                 fk_model_id: param.view?.fk_model_id,
@@ -2666,7 +2666,7 @@ export class AppHooksListenerService
               {
                 details: {
                   sort_field_id: param.sort.fk_column_id,
-                  sort_field_title: param.column.title,
+                  sort_field_title: param.column?.title,
                   sort_id: param.sort.id,
                   view_id: param.view.id,
                   view_title: param.view.title,
@@ -2698,7 +2698,7 @@ export class AppHooksListenerService
                   view_id: param.view.id,
                   view_title: param.view.title,
                   sort_field_id: param.sort.fk_column_id,
-                  sort_field_title: param.column.title,
+                  sort_field_title: param.column?.title,
                   ...extractNonSystemProps(param.sort, [
                     'fk_view_id',
                     'id',

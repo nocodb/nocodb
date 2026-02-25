@@ -49,7 +49,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { MailService } from '~/services/mail/mail.service';
 import { UsersService } from '~/services/users/users.service';
 import NocoSocket from '~/socket/NocoSocket';
-import { CacheScope } from '~/utils/globals';
+import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 
 @Injectable()
@@ -499,6 +499,60 @@ export class WorkspaceUsersService {
         event: EventType.USER_EVENT,
         payload: {
           action: 'workspace_user_remove',
+          payload: { id: userId },
+          workspaceId,
+        },
+      },
+    );
+  }
+
+  /**
+   * Restore caches and seat count after a workspace user is reactivated
+   * (e.g. via SCIM PATCH active=true). Counterpart of cleanupWorkspaceUser.
+   *
+   * Unlike cleanupWorkspaceUser, this does NOT re-create BaseUser records —
+   * workspace-level users inherit base access via the leftJoin in getUsersList.
+   * It only invalidates caches so the fresh DB state (deleted=false) is picked up.
+   */
+  async restoreWorkspaceUser(param: {
+    context: NcContext;
+    workspaceId: string;
+    userId: string;
+  }) {
+    const { workspaceId, userId } = param;
+    const ncMeta = Noco.ncMeta;
+
+    // 1. Invalidate BASE_USER list cache for every base in the workspace
+    //    so the next getUsersList query re-runs and includes the reactivated user
+    const workspaceBases = await Base.listByWorkspace(
+      workspaceId,
+      { includeDeleted: true, includeSnapshot: true },
+    );
+
+    for (const base of workspaceBases) {
+      await NocoCache.deepDel(
+        { workspace_id: workspaceId, base_id: base.id },
+        `${CacheScope.BASE_USER}:${base.id}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+    }
+
+    // 2. Invalidate the individual WORKSPACE_USER cache entry
+    await NocoCache.del(
+      { workspace_id: workspaceId, base_id: null },
+      `${CacheScope.WORKSPACE_USER}:${workspaceId}:${userId}`,
+    );
+
+    // 3. Reseat subscription (seat recount — user is now active again)
+    await this.paymentService.reseatSubscription(workspaceId, ncMeta);
+
+    // 4. Broadcast socket event so UI refreshes
+    NocoSocket.broadcastEventToWorkspaceUsers(
+      { workspace_id: workspaceId, base_id: null },
+      {
+        event: EventType.USER_EVENT,
+        payload: {
+          action: 'workspace_user_add',
           payload: { id: userId },
           workspaceId,
         },

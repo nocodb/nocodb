@@ -237,6 +237,13 @@ export class ScimUsersService {
         updateData,
       );
 
+      // Restore caches and seat count after reactivation
+      await this.workspaceUsersService.restoreWorkspaceUser({
+        context,
+        workspaceId,
+        userId: existingWsUser.fk_user_id,
+      });
+
       this.emitScimEvent(AppEvents.SCIM_USER_REACTIVATE, {
         workspaceId,
         user,
@@ -439,6 +446,10 @@ export class ScimUsersService {
       updateData,
     );
 
+    // Determine reactivation before cleanup (workspaceUser.deleted is pre-update state)
+    const isReactivating =
+      scimUser.active === true && workspaceUser.deleted && !isDeactivating;
+
     // Full cleanup on deactivation (base access, teams, orphan bases, seat recount)
     if (isDeactivating) {
       await this.workspaceUsersService.cleanupWorkspaceUser({
@@ -448,9 +459,14 @@ export class ScimUsersService {
       });
     }
 
-    // Determine the appropriate audit event
-    const isReactivating =
-      scimUser.active === true && workspaceUser.deleted && !isDeactivating;
+    // Restore caches and seat count on reactivation
+    if (isReactivating) {
+      await this.workspaceUsersService.restoreWorkspaceUser({
+        context,
+        workspaceId,
+        userId: workspaceUser.fk_user_id,
+      });
+    }
 
     if (isDeactivating) {
       this.emitScimEvent(AppEvents.SCIM_USER_DEACTIVATE, {

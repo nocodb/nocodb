@@ -172,6 +172,7 @@ const updatedAgo = computed(() => {
 
 const doc = ref<DocType | null>(null)
 const title = ref('')
+const lastSavedTitle = ref('')
 const isSaving = ref(false)
 const isLoaded = ref(false)
 const titleInput = useTemplateRef('titleInput')
@@ -375,17 +376,21 @@ const save = async () => {
   try {
     const content = editor.value.getJSON()
 
-    // Guard: skip saving if editor state is empty (single empty paragraph)
-    // to prevent data loss from transient editor state corruption
+    // Guard: skip saving if editor state is empty AND the title hasn't changed.
+    // This prevents data loss from transient editor state corruption (e.g. paste bugs)
+    // while still allowing title-only saves on pages with empty bodies.
     const nodeCount = content?.content?.length ?? 0
     const firstType = content?.content?.[0]?.type
-    if (nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content) {
+    const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
+    const effectiveTitle = title.value || 'Untitled'
+    const titleChanged = effectiveTitle !== lastSavedTitle.value
+    if (isEmptyDoc && !titleChanged) {
       isSaving.value = false
       return
     }
 
     const updated = await updateDoc(activeProjectId.value, doc.value.id!, {
-      title: title.value || 'Untitled',
+      title: effectiveTitle,
       content,
       version: doc.value.version,
     })
@@ -395,6 +400,7 @@ const save = async () => {
       doc.value.version = updated.version
       doc.value.updated_at = updated.updated_at
       doc.value.updated_by = updated.updated_by
+      lastSavedTitle.value = effectiveTitle
     }
   } catch (_e) {
     // Error already surfaced by store's updateDoc via message.error
@@ -728,6 +734,7 @@ const loadAndSetDoc = async (id: string) => {
     doc.value = loaded
     // Treat "Untitled" as empty — it's the server default, not a user-provided name
     title.value = loaded.title === 'Untitled' ? '' : (loaded.title || '')
+    lastSavedTitle.value = loaded.title || 'Untitled'
 
     const parsed = parseContent(loaded.content)
     if (parsed) {
@@ -792,25 +799,27 @@ watch(
 const onTitleBlur = () => {
   if (!isEditable.value) return
 
-  // Compare effective titles — empty input maps to "Untitled" on save
   const effectiveTitle = title.value || 'Untitled'
-  if (effectiveTitle !== doc.value?.title) {
-    // Eagerly sync title to the store so the sidebar + URL slug update
-    // immediately, without waiting for the 2-second debounce + API roundtrip.
-    if (doc.value) {
-      doc.value.title = effectiveTitle
-    }
-    // Also patch the store's copy so the sidebar node and URL slug watcher react
-    if (activeDoc.value) {
-      activeDoc.value.title = effectiveTitle
-    }
+
+  // Eagerly sync title to the store so the sidebar + URL slug update immediately
+  if (doc.value && effectiveTitle !== doc.value.title) {
+    doc.value.title = effectiveTitle
+  }
+  if (activeDoc.value && effectiveTitle !== activeDoc.value.title) {
+    activeDoc.value.title = effectiveTitle
+  }
+
+  // Compare against last-saved title to decide whether to persist.
+  // We must compare against lastSavedTitle (not doc.value.title) because
+  // debouncedTitleSync eagerly updates doc.value.title for sidebar/URL reactivity.
+  if (effectiveTitle !== lastSavedTitle.value) {
     debouncedSave()
   }
 }
 
 // Eagerly sync title to sidebar + URL slug while the user types (debounced).
 // This mirrors the content auto-save pattern — the sidebar updates in near-real-time
-// without waiting for blur.
+// without waiting for blur.  Also triggers a save so typing + waiting persists the rename.
 const debouncedTitleSync = useDebounceFn(() => {
   if (!isLoaded.value || !doc.value) return
 
@@ -820,6 +829,10 @@ const debouncedTitleSync = useDebounceFn(() => {
     if (activeDoc.value) {
       activeDoc.value.title = effectiveTitle
     }
+  }
+  // Trigger a save if the title differs from what was last persisted
+  if (effectiveTitle !== lastSavedTitle.value) {
+    debouncedSave()
   }
 }, 500)
 
@@ -1082,11 +1095,13 @@ onBeforeUnmount(() => {
       const docTitle = title.value || 'Untitled'
       const baseId = activeProjectId.value
 
-      // Guard: skip saving empty doc on unmount to prevent data loss
+      // Guard: skip saving empty doc on unmount unless title changed
       const nodeCount = content?.content?.length ?? 0
       const firstType = content?.content?.[0]?.type
-      if (nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content) {
-        // Editor state is empty — do not persist to avoid overwriting real content
+      const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
+      const titleChanged = docTitle !== lastSavedTitle.value
+      if (isEmptyDoc && !titleChanged) {
+        // Editor state is empty and title unchanged — do not persist
       } else {
         // Fire-and-forget is acceptable here — content is already captured
         updateDoc(baseId, docId, { title: docTitle, content, version })

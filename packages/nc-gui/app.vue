@@ -11,9 +11,7 @@ const { showOnboardingFlow } = useOnboardingFlow()
 
 const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
 
-const disableBaseLayout = computed(
-  () => route.value.meta?.pageType === 'shared-view' || showOnboardingFlow.value,
-)
+const disableBaseLayout = computed(() => route.value.meta?.pageType === 'shared-view' || showOnboardingFlow.value)
 
 const { isExperimentalFeatureModalOpen, initializeFeatures } = useBetaFeatureToggle()
 

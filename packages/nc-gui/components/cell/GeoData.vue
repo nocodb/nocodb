@@ -43,6 +43,13 @@ const DEFAULT_ZOOM = 2
 const LOCATION_ZOOM = 15
 const AUTO_POSITION_ZOOM = 10
 
+const [latitude, longitude] = (vModel.value || '').split(';')
+
+const formState = reactive({
+  latitude,
+  longitude,
+})
+
 function syncToFormState(lat: number, lng: number) {
   isUpdatingFromMap.value = true
   formState.latitude = convertGeoNumberToString(lat)
@@ -280,18 +287,11 @@ const isLocationSet = computed(() => {
   return !!vModel.value
 })
 
-const [latitude, longitude] = (vModel.value || '').split(';')
-
 const { t } = useI18n()
 
 const latLongStr = computed(() => {
-  const [latitude, longitude] = (vModel.value || '').split(';')
-  return latitude && longitude ? `${latitude}; ${longitude}` : t('labels.setLocation')
-})
-
-const formState = reactive({
-  latitude,
-  longitude,
+  const [lat, lng] = (vModel.value || '').split(';')
+  return lat && lng ? `${lat}; ${lng}` : t('labels.setLocation')
 })
 
 const isLatitudeInvalid = computed(() => {
@@ -402,6 +402,13 @@ function parseGeoString(raw: string): string | null {
   return null
 }
 
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
+const isGrid = inject(IsGridInj, ref(false))
+const isEditColumn = inject(EditColumnInj, ref(false))
+const isForm = inject(IsFormInj, ref(false))
+
 const handlePaste = (e: ClipboardEvent) => {
   if ([identifier.latitude, identifier.longitude].includes(e.target?.id)) {
     return
@@ -426,13 +433,6 @@ const handlePaste = (e: ClipboardEvent) => {
     }
   }
 }
-
-const isUnderLookup = inject(IsUnderLookupInj, ref(false))
-const isCanvasInjected = inject(IsCanvasInjectionInj, false)
-const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
-const isGrid = inject(IsGridInj, ref(false))
-const isEditColumn = inject(EditColumnInj, ref(false))
-const isForm = inject(IsFormInj, ref(false))
 
 const handleBlur = (e: Event) => {
   const target = e.target as HTMLInputElement

@@ -184,7 +184,7 @@ const fieldsToFilter = computed(() =>
   columns.value.filter((c) => {
     if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
 
-    if (isSystemColumn(c)) {
+    if (!link.value && !webHook.value && !workflow.value && isSystemColumn(c)) {
       if (isHiddenCol(c, meta.value)) return false
       if (!showSystemFields.value) return false
     }

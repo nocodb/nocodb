@@ -1274,10 +1274,7 @@ onBeforeUnmount(() => {
                   :disabled="editor.isActive('codeBlock')"
                   @click="openLinkInput"
                 >
-                  <div class="flex flex-row items-center px-0.5">
-                    <GeneralIcon icon="link2" />
-                    <div class="!text-xs !ml-1">{{ $t('general.link') }}</div>
-                  </div>
+                  <GeneralIcon icon="link2" />
                 </NcButton>
               </NcTooltip>
             </div>
@@ -1393,7 +1390,7 @@ onBeforeUnmount(() => {
 
 // Wrapper for formatting toolbar + link button
 .nc-doc-editor-body .nc-doc-bubble-toolbar {
-  @apply flex items-center bg-nc-bg-default rounded-lg;
+  @apply flex items-center bg-nc-bg-default rounded-lg pr-1;
   border: 1px solid var(--nc-border-gray-medium);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 

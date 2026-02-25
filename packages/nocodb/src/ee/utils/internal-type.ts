@@ -94,6 +94,7 @@ export type InternalGETResponseType = Promise<
   | { diff: BaseMetaDiff }
   | (RlsPolicy & { filters: Filter[] })
   | (RlsPolicy & { filters: Filter[] })[]
+  | { workspaces: any[] }
 >;
 
 export type InternalPOSTResponseType = Promise<

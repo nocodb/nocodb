@@ -91,6 +91,7 @@ const permissionScopes = {
 
     // Misc
     'commandPalette',
+    'baseListAll',
     'testConnection',
     'genericGPT',
 
@@ -453,6 +454,7 @@ const rolePermissions:
       workspaceList: true,
       workspaceCreate: true,
       commandPalette: true,
+      baseListAll: true,
       // allow only in cloud
       testConnection: true,
       notification: true,
@@ -1043,6 +1045,7 @@ const permissionDescriptions: Record<string, string> = {
   pluginUpdate: 'update plugin configuration',
 
   commandPalette: 'access the command palette',
+  baseListAll: 'list all workspaces and bases',
   testConnection: 'test connection to a service',
   genericGPT: 'use generic GPT functionality',
 

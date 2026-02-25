@@ -37,6 +37,7 @@ export type InternalGETResponseType = Promise<
   | OAuthClient[]
   | Extension
   | Extension[]
+  | { workspaces: any[] }
 >;
 
 export type InternalPOSTResponseType = Promise<

@@ -51,15 +51,8 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-onMounted(() => {
-  window.addEventListener('resize', onResize)
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', onResize)
-  window.removeEventListener('keydown', handleKeydown)
-})
+useEventListener(window, 'resize', onResize)
+useEventListener(window, 'keydown', handleKeydown)
 
 // Reset state when modal opens
 watch(visible, (isVisible) => {

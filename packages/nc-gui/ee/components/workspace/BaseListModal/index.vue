@@ -56,14 +56,18 @@ interface BaseListAllData {
 }
 
 const baseListAllData = ref<BaseListAllData | null>(null)
+const isBaseListAllLoading = ref(false)
 
 const loadBaseListAll = async () => {
+  isBaseListAllLoading.value = true
   try {
     baseListAllData.value = (await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
       operation: 'baseListAll',
     })) as BaseListAllData
   } catch {
     // silently fail — cross-workspace search won't be available
+  } finally {
+    isBaseListAllLoading.value = false
   }
 }
 
@@ -99,15 +103,8 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
-onMounted(() => {
-  window.addEventListener('resize', onResize)
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', onResize)
-  window.removeEventListener('keydown', handleKeydown)
-})
+useEventListener(window, 'resize', onResize)
+useEventListener(window, 'keydown', handleKeydown)
 
 // Reset state when modal opens
 watch(visible, (isVisible) => {
@@ -115,11 +112,12 @@ watch(visible, (isVisible) => {
     modalState.selectedWorkspaceId = activeWorkspaceId.value || workspacesList.value[0]?.id || null
     modalState.searchQuery = ''
     modalState.activeFilter = 'all'
-    loadBaseListAll()
   }
 })
 
-// Refresh baseListAll data on every search so baseListAllMatchByWs stays current
+// Load cross-workspace index only when searching (debounced).
+// Do NOT clear baseListAllData on empty query — stale data is harmless (both computeds
+// early-return on empty query) and keeping it stable prevents flicker when re-typing.
 watch(
   () => modalState.searchQuery,
   (query) => {
@@ -413,7 +411,11 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
           size="large"
         >
           <template #prefix>
-            <GeneralIcon icon="search" class="text-nc-content-gray-muted mr-1" />
+            <div v-if="isBaseListAllLoading && modalState.searchQuery" class="h-4 w-4 mr-1">
+              <GeneralLoader size="regular" />
+            </div>
+
+            <GeneralIcon v-else icon="search" class="text-nc-content-gray-muted mr-1" />
           </template>
         </a-input>
       </div>

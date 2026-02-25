@@ -189,10 +189,149 @@ const convertToEmbed = () => {
   dismissPasteLinkMenu()
 }
 
+// --- Link input inside bubble menu ---
+const isLinkInputMode = ref(false)
+const linkInputUrl = ref('')
+const linkInputRef = ref<HTMLInputElement>()
+// Snapshot the selection range so we can re-apply after the input steals focus
+const linkSelectionRange = ref<{ from: number; to: number } | null>(null)
+// Suppress onSelectionUpdate reset while our code is manipulating the selection
+const isLinkInputSuppressSelectionReset = ref(false)
+
+const openLinkInput = () => {
+  const ed = editor.value
+  if (!ed) return
+
+  // If selected text is already a link, prefill the URL
+  const { from, to } = ed.state.selection
+  linkSelectionRange.value = { from, to }
+
+  const linkMark = ed.state.doc.resolve(from).marks().find((m: any) => m.type.name === 'link')
+  linkInputUrl.value = linkMark?.attrs?.href || ''
+
+  isLinkInputSuppressSelectionReset.value = true
+  isLinkInputMode.value = true
+  nextTick(() => {
+    linkInputRef.value?.focus()
+    linkInputRef.value?.select()
+    // Re-enable selection reset after the focus change settles
+    nextTick(() => {
+      isLinkInputSuppressSelectionReset.value = false
+    })
+  })
+}
+
+const applyLink = () => {
+  const ed = editor.value
+  if (!ed || !linkSelectionRange.value) return
+
+  isLinkInputSuppressSelectionReset.value = true
+
+  const { from, to } = linkSelectionRange.value
+  let href = linkInputUrl.value.trim()
+
+  if (href) {
+    // Auto-prepend https:// if no protocol
+    if (!/^[a-zA-Z]+:\/\//.test(href) && !href.startsWith('/')) {
+      href = `https://${href}`
+    }
+    ed.chain().focus().setTextSelection({ from, to }).setLink({ href }).run()
+  } else {
+    ed.chain().focus().setTextSelection({ from, to }).unsetLink().run()
+  }
+
+  isLinkInputMode.value = false
+  linkInputUrl.value = ''
+  linkSelectionRange.value = null
+  nextTick(() => {
+    isLinkInputSuppressSelectionReset.value = false
+  })
+}
+
+const cancelLinkInput = () => {
+  isLinkInputSuppressSelectionReset.value = true
+  isLinkInputMode.value = false
+  linkInputUrl.value = ''
+  if (linkSelectionRange.value) {
+    editor.value?.chain().focus().setTextSelection(linkSelectionRange.value).run()
+  }
+  linkSelectionRange.value = null
+  nextTick(() => {
+    isLinkInputSuppressSelectionReset.value = false
+  })
+}
+
+// --- Link options bubble menu (for clicking on existing links) ---
+const linkEditUrl = ref('')
+const linkEditMark = ref<any>(null)
+const isLinkEditVisible = ref(false)
+const linkEditInputRef = ref<HTMLInputElement>()
+
+const checkLinkMark = ({ editor: e }: { editor: any }) => {
+  if (!e.view.editable) return false
+
+  const { selection } = e.state
+  const isTextSelected = selection.from !== selection.to
+  if (isTextSelected) return false
+
+  const activeNode = selection.$from?.nodeBefore || selection.$from?.nodeAfter
+  const linkMark = activeNode?.marks?.find((m: any) => m.type.name === 'link')
+  if (!linkMark) {
+    isLinkEditVisible.value = false
+    return false
+  }
+
+  linkEditMark.value = linkMark
+  linkEditUrl.value = linkMark.attrs?.href || ''
+  isLinkEditVisible.value = true
+  return true
+}
+
+const onLinkEditChange = () => {
+  const ed = editor.value
+  if (!ed) return
+
+  let href = linkEditUrl.value.trim()
+  if (href && !/^[a-zA-Z]+:\/\//.test(href) && !href.startsWith('/')) {
+    href = `https://${href}`
+  }
+
+  if (href) {
+    // Find the range of the link mark around the cursor
+    const { $from } = ed.state.selection
+    const linkMarkType = ed.schema.marks.link
+    const range = $from.nodeBefore
+      ? { from: $from.pos - $from.nodeBefore.nodeSize, to: $from.pos }
+      : { from: $from.pos, to: $from.pos + ($from.nodeAfter?.nodeSize || 0) }
+
+    ed.chain()
+      .setTextSelection(range)
+      .extendMarkRange('link')
+      .setLink({ href })
+      .setTextSelection($from.pos)
+      .run()
+  }
+}
+
+const deleteLinkEdit = () => {
+  const ed = editor.value
+  if (!ed) return
+  ed.chain().focus().extendMarkRange('link').unsetLink().run()
+  isLinkEditVisible.value = false
+}
+
+const openLinkExternal = () => {
+  if (linkEditUrl.value) {
+    window.open(linkEditUrl.value, '_blank', 'noopener,noreferrer')
+  }
+}
+
 /** Show rich text bubble menu on any non-empty text selection (including inside table cells),
  *  but NOT on multi-cell CellSelection or image NodeSelection (those have their own UI). */
 const showRichTextMenu = ({ editor: e }: { editor: any }) => {
   if (!isEditable.value) return false
+  // Keep bubble menu visible while link input is open
+  if (isLinkInputMode.value) return true
   const { selection } = e.state
   if (selection instanceof CellSelection) return false
   // Hide for image / file attachment selections — they have their own UI
@@ -458,6 +597,15 @@ const editor = useEditor({
     // Dismiss paste-link menu on any editor content change (typing, etc.)
     if (pasteLinkMenu.value.visible) dismissPasteLinkMenu()
     debouncedSave()
+  },
+  onSelectionUpdate: () => {
+    // Dismiss link input when user changes selection (clicks elsewhere, arrows, etc.)
+    // But not when our own code is manipulating the selection (applyLink, openLinkInput)
+    if (isLinkInputMode.value && !isLinkInputSuppressSelectionReset.value) {
+      isLinkInputMode.value = false
+      linkInputUrl.value = ''
+      linkSelectionRange.value = null
+    }
   },
 })
 
@@ -1027,12 +1175,113 @@ onBeforeUnmount(() => {
             :tippy-options="{ duration: 100, maxWidth: 600 }"
             :should-show="showRichTextMenu"
           >
-            <CellRichTextSelectedBubbleMenu
-              :editor="editor"
-              embed-mode
-              hide-mention
-              :hidden-options="[RichTextBubbleMenuOptions.taskList]"
-            />
+            <!-- Link URL input mode — replaces the formatting toolbar -->
+            <div
+              v-if="isLinkInputMode"
+              class="nc-doc-link-input flex items-center gap-1 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg py-1 px-1"
+            >
+              <input
+                ref="linkInputRef"
+                v-model="linkInputUrl"
+                class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
+                placeholder="Enter a link"
+                @keydown.enter.prevent="applyLink"
+                @keydown.escape.prevent="cancelLinkInput"
+              />
+              <NcTooltip placement="top">
+                <template #title>{{ $t('general.open') }}</template>
+                <NcButton
+                  size="small"
+                  type="text"
+                  :disabled="!linkInputUrl.trim()"
+                  @click="() => { if (linkInputUrl.trim()) window.open(linkInputUrl.trim().startsWith('http') ? linkInputUrl.trim() : `https://${linkInputUrl.trim()}`, '_blank', 'noopener,noreferrer') }"
+                >
+                  <GeneralIcon icon="externalLink" />
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip placement="top">
+                <template #title>{{ $t('general.remove') }}</template>
+                <NcButton
+                  size="small"
+                  type="text"
+                  class="!hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
+                  @click="() => { linkInputUrl = ''; applyLink() }"
+                >
+                  <GeneralIcon icon="close" />
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip placement="top">
+                <template #title>{{ $t('general.apply') }}</template>
+                <NcButton size="small" type="text" @click="applyLink">
+                  <GeneralIcon icon="returnKey" class="!w-3.5 !h-3.5" />
+                </NcButton>
+              </NcTooltip>
+            </div>
+
+            <!-- Default formatting toolbar + custom link button -->
+            <div v-else class="nc-doc-bubble-toolbar flex items-center">
+              <CellRichTextSelectedBubbleMenu
+                :editor="editor"
+                embed-mode
+                hide-mention
+                :hidden-options="[RichTextBubbleMenuOptions.taskList, RichTextBubbleMenuOptions.link]"
+              />
+              <NcTooltip placement="top">
+                <template #title>{{ $t('general.link') }}</template>
+                <NcButton
+                  size="small"
+                  type="text"
+                  :class="{ 'is-active': editor.isActive('link') }"
+                  :disabled="editor.isActive('codeBlock')"
+                  @click="openLinkInput"
+                >
+                  <div class="flex flex-row items-center px-0.5">
+                    <GeneralIcon icon="link2" />
+                    <div class="!text-xs !ml-1">{{ $t('general.link') }}</div>
+                  </div>
+                </NcButton>
+              </NcTooltip>
+            </div>
+          </BubbleMenu>
+
+          <!-- Link edit bubble menu: appears when cursor is on existing link text -->
+          <BubbleMenu
+            v-if="isEditable"
+            :editor="editor"
+            :tippy-options="{ duration: 100, maxWidth: 450 }"
+            :should-show="checkLinkMark"
+          >
+            <div
+              v-if="isLinkEditVisible"
+              class="nc-doc-link-input flex items-center gap-1 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg py-1 px-1"
+            >
+              <input
+                ref="linkEditInputRef"
+                v-model="linkEditUrl"
+                class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
+                placeholder="Enter a link"
+                @change="onLinkEditChange"
+                @keydown.enter.prevent="($event.target as HTMLInputElement)?.blur(); editor?.commands.focus()"
+                @keydown.escape.prevent="editor?.commands.focus()"
+              />
+              <NcTooltip placement="top">
+                <template #title>{{ $t('general.open') }}</template>
+                <NcButton size="small" type="text" :disabled="!linkEditUrl.trim()" @click="openLinkExternal">
+                  <GeneralIcon icon="externalLink" />
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip placement="top">
+                <template #title>{{ $t('general.remove') }}</template>
+                <NcButton
+                  size="small"
+                  type="text"
+                  class="!hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
+                  @click="deleteLinkEdit"
+                >
+                  <GeneralIcon icon="delete" />
+                </NcButton>
+              </NcTooltip>
+            </div>
           </BubbleMenu>
 
           <EditorContent :editor="editor" />
@@ -1095,10 +1344,34 @@ onBeforeUnmount(() => {
 }
 
 // Doc editor bubble menu — override embed-mode's transparent/no-shadow defaults
-.nc-doc-editor-body .bubble-menu.embed-mode {
-  @apply !rounded-lg;
+.nc-doc-editor-body .bubble-menu.embed-mode,
+.nc-doc-editor-body .nc-doc-bubble-toolbar .bubble-menu.embed-mode {
+  @apply !rounded-lg !rounded-r-none;
   border: 1px solid var(--nc-border-gray-medium) !important;
+  border-right: 0 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+// Wrapper for formatting toolbar + link button
+.nc-doc-editor-body .nc-doc-bubble-toolbar {
+  @apply flex items-center bg-nc-bg-default rounded-lg;
+  border: 1px solid var(--nc-border-gray-medium);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  > .bubble-menu.embed-mode {
+    @apply !rounded-lg !rounded-r-none;
+    border: none !important;
+    box-shadow: none !important;
+  }
+}
+
+// Link input bubble menus
+.nc-doc-editor-body .nc-doc-link-input {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  .nc-button {
+    @apply !my-auto;
+  }
 }
 
 // Page 3-dot context menu — pinned to top-right of full editor area

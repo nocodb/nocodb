@@ -75,6 +75,7 @@ export class RelationManager {
 
   // for M2M and Belongs to relation, the relation stored in column option is reversed
   // parent become child, child become parent from the viewpoint of col options
+  // In v2 we use junction table and it act like MM so we treat it as reversed relation as well
   static isRelationReversed(
     relationColumn: Column<any>,
     colOptions: LinkToAnotherRecordColumn,
@@ -367,7 +368,6 @@ export class RelationManager {
     vChildCol: Column;
     vParentCol: Column;
     vTn: string | Knex.Raw;
-    assocBaseModel: IBaseModelSqlV2;
     column: Column;
     req: any;
     refTableLinkColumnId: string;
@@ -400,8 +400,7 @@ export class RelationManager {
       // ManyToOne / OneToOne: this child can only link to one parent
       // → remove all existing junction rows for this child
       if (['mo', 'oo'].includes(colOptions.type)) {
-        const childFkSubquery = childBaseModel
-          .dbDriver(childTn)
+        const childFkSubquery = trx(childTn)
           .select(childColumn.column_name)
           .where(_wherePk(childTable.primaryKeys, childId))
           .first();
@@ -436,8 +435,7 @@ export class RelationManager {
       // OneToMany / OneToOne: this parent can only be linked to by one child
       // → remove all existing junction rows for this parent
       if (['om', 'oo'].includes(colOptions.type)) {
-        const parentFkSubquery = parentBaseModel
-          .dbDriver(parentTn)
+        const parentFkSubquery = trx(parentTn)
           .select(parentColumn.column_name)
           .where(_wherePk(parentTable.primaryKeys, parentId))
           .first();
@@ -473,14 +471,12 @@ export class RelationManager {
 
       // Insert the new junction row within the same transaction
       if (baseModel.isSnowflake || baseModel.isDatabricks) {
-        const parentPK = parentBaseModel
-          .dbDriver(parentTn)
+        const parentPK = trx(parentTn)
           .select(parentColumn.column_name)
           .where(_wherePk(parentTable.primaryKeys, parentId))
           .first();
 
-        const childPK = childBaseModel
-          .dbDriver(childTn)
+        const childPK = trx(childTn)
           .select(childColumn.column_name)
           .where(_wherePk(childTable.primaryKeys, childId))
           .first();
@@ -491,13 +487,11 @@ export class RelationManager {
         );
       } else {
         await trx(vTn).insert({
-          [vParentCol.column_name]: baseModel
-            .dbDriver(parentTn)
+          [vParentCol.column_name]: trx(parentTn)
             .select(parentColumn.column_name)
             .where(_wherePk(parentTable.primaryKeys, parentId))
             .first(),
-          [vChildCol.column_name]: baseModel
-            .dbDriver(childTn)
+          [vChildCol.column_name]: trx(childTn)
             .select(childColumn.column_name)
             .where(_wherePk(childTable.primaryKeys, childId))
             .first(),
@@ -613,7 +607,6 @@ export class RelationManager {
               vChildCol,
               vParentCol,
               vTn,
-              assocBaseModel,
               column,
               req,
               refTableLinkColumnId,
@@ -1049,6 +1042,14 @@ export class RelationManager {
 
     const { req } = params;
 
+    // Resolve once — every branch uses the same column + table
+    const refTableLinkColumnId = (
+      await extractCorrespondingLinkColumn(childBaseModel.context, {
+        ltarColumn: relationColumn,
+        referencedTable: parentTable,
+      })
+    )?.id;
+
     const webhookHandler = await RelationUpdateWebhookHandler.beginUpdate(
       {
         childBaseModel,
@@ -1103,14 +1104,7 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [
-              (
-                await extractCorrespondingLinkColumn(childBaseModel.context, {
-                  ltarColumn: this.relationContext.relationColumn,
-                  referencedTable: parentTable,
-                })
-              )?.id,
-            ],
+            updatedColIds: [refTableLinkColumnId],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -1157,14 +1151,7 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [
-              (
-                await extractCorrespondingLinkColumn(childBaseModel.context, {
-                  ltarColumn: this.relationContext.relationColumn,
-                  referencedTable: parentTable,
-                })
-              )?.id,
-            ],
+            updatedColIds: [refTableLinkColumnId],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -1202,14 +1189,7 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [
-              (
-                await extractCorrespondingLinkColumn(childBaseModel.context, {
-                  ltarColumn: this.relationContext.relationColumn,
-                  referencedTable: parentTable,
-                })
-              )?.id,
-            ],
+            updatedColIds: [refTableLinkColumnId],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -1241,14 +1221,7 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [
-              (
-                await extractCorrespondingLinkColumn(childBaseModel.context, {
-                  ltarColumn: this.relationContext.relationColumn,
-                  referencedTable: parentTable,
-                })
-              )?.id,
-            ],
+            updatedColIds: [refTableLinkColumnId],
           });
           await parentBaseModel.broadcastLinkUpdates([parentId]);
         }

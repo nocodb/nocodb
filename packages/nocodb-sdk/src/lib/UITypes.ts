@@ -507,7 +507,9 @@ export function isLinkV2(
 }
 
 export function isMMOrMMLike(
-  col: ColumnType | { uidt: UITypes | string; colOptions?: any },
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any; type?: RelationTypes },
 ): boolean {
   if (typeof col === 'object' && isLinksOrLTAR(col)) {
     if (col.colOptions) {
@@ -520,14 +522,13 @@ export function isMMOrMMLike(
       return opts.type === RelationTypes.MANY_TO_MANY;
     }
 
-    // colOptions not loaded — check v2-only relation types on the column itself
-    // These types (om, mo) only exist in v2 and are always MM-like
-    if ((col as any).type) {
-      const type = (col as any).type;
+    // colOptions not loaded — check type on column root
+    // (set during column creation in the UI before colOptions exists)
+    if ('type' in col && col.type) {
       return (
-        type === RelationTypes.MANY_TO_MANY ||
-        type === RelationTypes.ONE_TO_MANY ||
-        type === RelationTypes.MANY_TO_ONE
+        col.type === RelationTypes.MANY_TO_MANY ||
+        col.type === RelationTypes.ONE_TO_MANY ||
+        col.type === RelationTypes.MANY_TO_ONE
       );
     }
   }

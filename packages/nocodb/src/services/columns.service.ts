@@ -5798,48 +5798,46 @@ export class ColumnsService implements IColumnsService {
     const { parentCn: columnName, childCn: refColumnName } =
       getMMColumnNames(parentTable, childTable);
 
-    // Note: We intentionally do NOT use a meta transaction here.
-    // SQLite (used in dev/CE) has a single-connection pool, so holding a
-    // transaction connection while other operations (sqlMgr, NcConnectionMgrv2,
-    // EE payment/workspace lookups) try to acquire connections causes deadlock.
-    // This matches the existing MM column creation pattern. Rollback is handled
-    // manually via the junctionCreated/fkDropped flags.
-    const ncMeta = Noco.ncMeta;
+    // ── Phase A: SQL / data-DB operations (no meta transaction) ──
+    // These touch the data DB via sqlMgr and NcConnectionMgrv2, which may
+    // trigger indirect meta queries (EE workspace/payment lookups). Running
+    // them outside a meta transaction avoids SQLite single-connection deadlock.
+
+    const associateTableCols = [
+      {
+        cn: refColumnName,
+        column_name: refColumnName,
+        title: refColumnName,
+        rqd: true,
+        pk: true,
+        ai: false,
+        cdf: null,
+        dt: childPK.dt,
+        dtxp: childPK.dtxp,
+        dtxs: childPK.dtxs,
+        un: childPK.un,
+        altered: 1,
+        uidt: UITypes.ForeignKey,
+      },
+      {
+        cn: columnName,
+        column_name: columnName,
+        title: columnName,
+        rqd: true,
+        pk: true,
+        ai: false,
+        cdf: null,
+        dt: parentPK.dt,
+        dtxp: parentPK.dtxp,
+        dtxs: parentPK.dtxs,
+        un: parentPK.un,
+        altered: 1,
+        uidt: UITypes.ForeignKey,
+      },
+    ];
 
     try {
-      const associateTableCols = [
-        {
-          cn: refColumnName,
-          column_name: refColumnName,
-          title: refColumnName,
-          rqd: true,
-          pk: true,
-          ai: false,
-          cdf: null,
-          dt: childPK.dt,
-          dtxp: childPK.dtxp,
-          dtxs: childPK.dtxs,
-          un: childPK.un,
-          altered: 1,
-          uidt: UITypes.ForeignKey,
-        },
-        {
-          cn: columnName,
-          column_name: columnName,
-          title: columnName,
-          rqd: true,
-          pk: true,
-          ai: false,
-          cdf: null,
-          dt: parentPK.dt,
-          dtxp: parentPK.dtxp,
-          dtxs: parentPK.dtxs,
-          un: parentPK.un,
-          altered: 1,
-          uidt: UITypes.ForeignKey,
-        },
-      ];
-
+      // Create junction table in data DB
       await sqlMgr.sqlOpPlus(source, 'tableCreate', {
         tn: aTn,
         _tn: aTnAlias,
@@ -5847,21 +5845,7 @@ export class ColumnsService implements IColumnsService {
       });
       junctionCreated = true;
 
-      const assocModel = await Model.insert(
-        context,
-        base.id,
-        source.id,
-        {
-          table_name: aTn,
-          title: aTnAlias,
-          mm: true,
-          columns: associateTableCols,
-          user_id: (param.req as any).user?.id,
-        },
-        ncMeta,
-      );
-
-      // Create FK constraints (for non-virtual relations)
+      // Create FK constraints on junction table (non-virtual only)
       let foreignKeyName1: string;
       let foreignKeyName2: string;
 
@@ -5888,47 +5872,7 @@ export class ColumnsService implements IColumnsService {
         });
       }
 
-      // Get junction table columns
-      const parentCol = (await assocModel.getColumns(context, ncMeta))?.find(
-        (c) => c.column_name === columnName,
-      );
-      const childCol = (await assocModel.getColumns(context, ncMeta))?.find(
-        (c) => c.column_name === refColumnName,
-      );
-
-      // Create system HM/BT columns in junction table
-      await createHmAndBtColumn(
-        context,
-        param.req,
-        assocModel,
-        childTable,
-        childCol,
-        null,
-        null,
-        null,
-        foreignKeyName2,
-        isVirtual,
-        true,
-        null,
-        false,
-      );
-      await createHmAndBtColumn(
-        context,
-        param.req,
-        assocModel,
-        parentTable,
-        parentCol,
-        null,
-        null,
-        null,
-        foreignKeyName1,
-        isVirtual,
-        true,
-        null,
-        false,
-      );
-
-      // Phase 4: Migrate data from FK column to junction table
+      // Migrate data: copy FK → junction table
       const dbDriver = await NcConnectionMgrv2.get(source);
       const baseModel = await Model.getBaseModelSQL(context, {
         id: childTable.id,
@@ -5948,7 +5892,7 @@ export class ColumnsService implements IColumnsService {
             .whereNotNull(fkColumn.column_name),
         );
 
-      // Phase 5: Remove old FK constraint
+      // Remove old FK constraint from child table
       if (!isVirtual) {
         try {
           await sqlMgr.sqlOpPlus(childSource, 'relationDelete', {
@@ -5970,109 +5914,12 @@ export class ColumnsService implements IColumnsService {
         fkDropped = true;
       }
 
-      // Phase 6: Update column metadata
-      const isOO = hmColOptions.type === RelationTypes.ONE_TO_ONE;
-      const hmNewType = isOO
-        ? RelationTypes.ONE_TO_ONE
-        : RelationTypes.ONE_TO_MANY;
-      const btNewType = isOO
-        ? RelationTypes.ONE_TO_ONE
-        : RelationTypes.MANY_TO_ONE;
-
-      // Cross-base link props
-      let crossBaseLinkProps: Record<string, string> = {};
-      let refCrossBaseLinkProps: Record<string, string> = {};
-
-      if (hmColOptions.fk_related_base_id) {
-        crossBaseLinkProps = {
-          fk_related_base_id: hmColOptions.fk_related_base_id,
-          fk_mm_base_id: assocModel.base_id,
-          fk_related_source_id:
-            hmColOptions.fk_related_source_id || childTable.source_id,
-          fk_mm_source_id: assocModel.source_id,
-        };
-        refCrossBaseLinkProps = {
-          fk_related_base_id: context.base_id,
-          fk_mm_base_id: assocModel.base_id,
-          fk_related_source_id: parentTable.source_id,
-          fk_mm_source_id: assocModel.source_id,
-        };
-      }
-
-      // Delete old HM col_relations row and insert new one
-      await ncMeta.metaDelete(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COL_RELATIONS,
-        { fk_column_id: hmColumn.id },
-      );
-
-      await ncMeta.metaInsert2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.COL_RELATIONS,
-        {
-          fk_column_id: hmColumn.id,
-          type: hmNewType,
-          fk_child_column_id: parentPK.id,
-          fk_parent_column_id: childPK.id,
-          fk_mm_model_id: assocModel.id,
-          fk_mm_child_column_id: parentCol.id,
-          fk_mm_parent_column_id: childCol.id,
-          fk_related_model_id: hmColOptions.fk_related_model_id,
-          fk_target_view_id: hmColOptions.fk_target_view_id,
-          virtual: isVirtual,
-          version: LinksVersion.V2,
-          ...crossBaseLinkProps,
-        },
-      );
-
-      // Delete old BT col_relations row and insert new one
-      await ncMeta.metaDelete(
-        childRefContext.workspace_id,
-        childRefContext.base_id,
-        MetaTable.COL_RELATIONS,
-        { fk_column_id: btColumn.id },
-      );
-
-      await ncMeta.metaInsert2(
-        childRefContext.workspace_id,
-        childRefContext.base_id,
-        MetaTable.COL_RELATIONS,
-        {
-          fk_column_id: btColumn.id,
-          type: btNewType,
-          fk_child_column_id: childPK.id,
-          fk_parent_column_id: parentPK.id,
-          fk_mm_model_id: assocModel.id,
-          fk_mm_child_column_id: childCol.id,
-          fk_mm_parent_column_id: parentCol.id,
-          fk_related_model_id: btColOptions.fk_related_model_id,
-          fk_target_view_id: btColOptions.fk_target_view_id,
-          virtual: isVirtual,
-          version: LinksVersion.V2,
-          ...refCrossBaseLinkProps,
-        },
-      );
-
-      // Phase 7: Convert old FK column to regular type
-      if (fkColumn.uidt === UITypes.ForeignKey) {
-        const newUidt = determineRegularUidt(fkColumn.dt);
-        await ncMeta.metaUpdate(
-          childRefContext.workspace_id,
-          childRefContext.base_id,
-          MetaTable.COLUMNS,
-          { uidt: newUidt },
-          fkColumn.id,
-        );
-      }
-
-      // Phase 8: PG indexes
+      // PG indexes on junction FK columns
       if (source.type === 'pg') {
         await this.createColumnIndex(context, {
           column: new Column({
             ...associateTableCols[0],
-            fk_model_id: assocModel.id,
+            fk_model_id: parentTable.id, // placeholder, overwritten after Model.insert
           }),
           indexName: generateFkName(parentTable, childTable),
           source,
@@ -6081,7 +5928,7 @@ export class ColumnsService implements IColumnsService {
         await this.createColumnIndex(context, {
           column: new Column({
             ...associateTableCols[1],
-            fk_model_id: assocModel.id,
+            fk_model_id: parentTable.id,
           }),
           indexName: generateFkName(parentTable, childTable),
           source,
@@ -6089,7 +5936,173 @@ export class ColumnsService implements IColumnsService {
         });
       }
 
-      // Clear caches
+      // ── Phase A.2: Meta model + system columns (outside transaction) ──
+      // Model.insert and createHmAndBtColumn use Noco.ncMeta internally
+      // and cannot run inside a meta transaction (SQLite deadlock).
+      // This matches the existing MM creation pattern in columnAdd.
+
+      // Insert junction table model
+      const assocModel = await Model.insert(
+        context,
+        base.id,
+        source.id,
+        {
+          table_name: aTn,
+          title: aTnAlias,
+          mm: true,
+          columns: associateTableCols,
+          user_id: (param.req as any).user?.id,
+        },
+      );
+
+      // Get junction table columns
+      const parentCol = (
+        await assocModel.getColumns(context)
+      )?.find((c) => c.column_name === columnName);
+      const childCol = (
+        await assocModel.getColumns(context)
+      )?.find((c) => c.column_name === refColumnName);
+
+      // Create system HM/BT columns in junction table
+      await createHmAndBtColumn(
+        context,
+        param.req,
+        assocModel,
+        childTable,
+        childCol,
+        null,
+        null,
+        null,
+        foreignKeyName2,
+        isVirtual,
+        true,
+      );
+      await createHmAndBtColumn(
+        context,
+        param.req,
+        assocModel,
+        parentTable,
+        parentCol,
+        null,
+        null,
+        null,
+        foreignKeyName1,
+        isVirtual,
+        true,
+      );
+
+      // ── Phase B: Meta transaction ──
+      // Only pure meta operations (metaDelete/metaInsert2/metaUpdate)
+      // that accept ncMeta go here — no data-DB or indirect meta queries.
+      const ncMeta = await (
+        Noco.ncMeta as MetaService
+      ).startTransaction();
+
+      try {
+        // Update column metadata: HM → OM (or OO)
+        const isOO = hmColOptions.type === RelationTypes.ONE_TO_ONE;
+        const hmNewType = isOO
+          ? RelationTypes.ONE_TO_ONE
+          : RelationTypes.ONE_TO_MANY;
+        const btNewType = isOO
+          ? RelationTypes.ONE_TO_ONE
+          : RelationTypes.MANY_TO_ONE;
+
+        // Cross-base link props
+        let crossBaseLinkProps: Record<string, string> = {};
+        let refCrossBaseLinkProps: Record<string, string> = {};
+
+        if (hmColOptions.fk_related_base_id) {
+          crossBaseLinkProps = {
+            fk_related_base_id: hmColOptions.fk_related_base_id,
+            fk_mm_base_id: assocModel.base_id,
+            fk_related_source_id:
+              hmColOptions.fk_related_source_id || childTable.source_id,
+            fk_mm_source_id: assocModel.source_id,
+          };
+          refCrossBaseLinkProps = {
+            fk_related_base_id: context.base_id,
+            fk_mm_base_id: assocModel.base_id,
+            fk_related_source_id: parentTable.source_id,
+            fk_mm_source_id: assocModel.source_id,
+          };
+        }
+
+        // Delete old + insert new HM col_relations
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_RELATIONS,
+          { fk_column_id: hmColumn.id },
+        );
+
+        await ncMeta.metaInsert2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_RELATIONS,
+          {
+            fk_column_id: hmColumn.id,
+            type: hmNewType,
+            fk_child_column_id: parentPK.id,
+            fk_parent_column_id: childPK.id,
+            fk_mm_model_id: assocModel.id,
+            fk_mm_child_column_id: parentCol.id,
+            fk_mm_parent_column_id: childCol.id,
+            fk_related_model_id: hmColOptions.fk_related_model_id,
+            fk_target_view_id: hmColOptions.fk_target_view_id,
+            virtual: isVirtual,
+            version: LinksVersion.V2,
+            ...crossBaseLinkProps,
+          },
+        );
+
+        // Delete old + insert new BT col_relations
+        await ncMeta.metaDelete(
+          childRefContext.workspace_id,
+          childRefContext.base_id,
+          MetaTable.COL_RELATIONS,
+          { fk_column_id: btColumn.id },
+        );
+
+        await ncMeta.metaInsert2(
+          childRefContext.workspace_id,
+          childRefContext.base_id,
+          MetaTable.COL_RELATIONS,
+          {
+            fk_column_id: btColumn.id,
+            type: btNewType,
+            fk_child_column_id: childPK.id,
+            fk_parent_column_id: parentPK.id,
+            fk_mm_model_id: assocModel.id,
+            fk_mm_child_column_id: childCol.id,
+            fk_mm_parent_column_id: parentCol.id,
+            fk_related_model_id: btColOptions.fk_related_model_id,
+            fk_target_view_id: btColOptions.fk_target_view_id,
+            virtual: isVirtual,
+            version: LinksVersion.V2,
+            ...refCrossBaseLinkProps,
+          },
+        );
+
+        // Convert old FK column to regular type
+        if (fkColumn.uidt === UITypes.ForeignKey) {
+          const newUidt = determineRegularUidt(fkColumn.dt);
+          await ncMeta.metaUpdate(
+            childRefContext.workspace_id,
+            childRefContext.base_id,
+            MetaTable.COLUMNS,
+            { uidt: newUidt },
+            fkColumn.id,
+          );
+        }
+
+        await ncMeta.commit();
+      } catch (metaError) {
+        await ncMeta.rollback();
+        throw metaError;
+      }
+
+      // Clear caches after successful commit
       await NocoCache.deepDel(
         context,
         `${CacheScope.COL_RELATION}:${hmColumn.id}`,
@@ -6101,7 +6114,6 @@ export class ColumnsService implements IColumnsService {
         CacheDelDirection.CHILD_TO_PARENT,
       );
 
-      // Clear FK column cache if its uidt was changed
       if (fkColumn.uidt === UITypes.ForeignKey) {
         await NocoCache.update(
           childRefContext,

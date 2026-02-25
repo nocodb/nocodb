@@ -5776,7 +5776,7 @@ export class ColumnsService implements IColumnsService {
         ? source
         : await Source.get(childRefContext, childTable.source_id);
 
-    const base = await source.getProject();
+    const base = await source.getProject(context);
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr(context, {
       id: source.base_id,

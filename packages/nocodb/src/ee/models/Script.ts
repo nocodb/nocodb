@@ -45,6 +45,8 @@ export default class Script extends ScriptCE implements ScriptType {
     scriptId: string,
     ncMeta = Noco.ncMeta,
   ) {
+    if (!scriptId) return null;
+
     let script = await NocoCache.get(
       context,
       `${CacheScope.SCRIPTS}:${scriptId}`,
@@ -121,6 +123,8 @@ export default class Script extends ScriptCE implements ScriptType {
   }
 
   static async delete(context: NcContext, scriptId: any, ncMeta = Noco.ncMeta) {
+    if (!scriptId) return false;
+
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,

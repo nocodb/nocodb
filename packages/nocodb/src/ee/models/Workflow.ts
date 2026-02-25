@@ -64,6 +64,8 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
     workflowId: string,
     ncMeta = Noco.ncMeta,
   ) {
+    if (!workflowId) return null;
+
     let workflow = await NocoCache.get(
       context,
       `${CacheScope.WORKFLOW}:${workflowId}`,

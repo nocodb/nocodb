@@ -140,6 +140,11 @@ const onCreateBaseClick = () => {
           </NcTooltip>
         </template>
 
+        <!-- Docs tab actions -->
+        <template v-if="activeSidebarTab === 'docs' && !isMobileMode">
+          <ProjectActionCreateNewPage :base-id="base?.id" />
+        </template>
+
         <!-- Automation actions (shown on Automation tab) -->
         <template v-if="activeSidebarTab === 'workflows' && !isMobileMode">
           <ProjectActionCreateEmptyWorkflow />

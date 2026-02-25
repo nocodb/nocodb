@@ -2,6 +2,7 @@
   "dashboards": {
     "create_new_dashboard_project": "Create New Interface",
     "create_new_table": "Create New Table",
+    "create_new_page": "Create New Page",
     "connect_data_sources": "Connect data sources",
     "alert": "Alert",
     "alert-message": "No databases have been connected. Connect database bases to build interfaces. Skip this step and add databases from the base home page later.",

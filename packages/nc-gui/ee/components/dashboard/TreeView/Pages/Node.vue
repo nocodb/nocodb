@@ -139,7 +139,7 @@ const onDuplicate = async () => {
   if (!fullDoc) return
 
   await createDoc(base.value.id, {
-    title: `${fullDoc.title || 'Untitled'} (copy)`,
+    title: `Copy of ${fullDoc.title || 'Untitled'}`,
     content: fullDoc.content,
   })
 }

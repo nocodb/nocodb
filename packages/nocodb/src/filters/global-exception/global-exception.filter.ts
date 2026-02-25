@@ -4,6 +4,7 @@ import * as Sentry from '@sentry/nestjs';
 import { ThrottlerException } from '@nestjs/throttler';
 import hash from 'object-hash';
 import {
+  LicenseRequired,
   NcApiVersion,
   NcErrorType,
   NcSDKError,
@@ -79,6 +80,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof ExternalError ||
         exception instanceof SdkBadRequest ||
         exception instanceof NcSDKError ||
+        exception instanceof LicenseRequired ||
         (exception instanceof NcBaseErrorv2 &&
           ![
             NcErrorType.ERR_INTERNAL_SERVER,
@@ -272,6 +274,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         error: exception.error,
         message: exception.message,
         details: exception.details,
+      });
+    } else if (exception instanceof LicenseRequired) {
+      return response.status(402).json({
+        msg: exception.message,
+        code: exception.code,
       });
     }
 

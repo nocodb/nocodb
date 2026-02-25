@@ -387,8 +387,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
+  const { blockWorkflows } = useEeConfig()
+
   const loadWorkflowNodes = async () => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
+    if (blockWorkflows.value) return
+
     try {
       const response = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
         operation: 'workflowNodes',

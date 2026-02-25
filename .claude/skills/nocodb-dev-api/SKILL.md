@@ -10,8 +10,8 @@ A CLI tool for AI agents to interact with the NocoDB backend. All commands outpu
 ## API Version Priority
 
 Endpoints use **v3 > internal > v1 > v2** preference:
-- **v3** (`/api/v3/`) — workspaces, bases, tables, fields, views, records, filters, sorts, comments, links, tokens, scripts
-- **internal** (`/api/v2/internal/`) — workflows, dashboards, widgets, audit, MCP, OAuth, sync, permissions, AI features (via `internal` command)
+- **v3** (`/api/v3/`) — workspaces, bases, tables, fields, views, records, filters, sorts, links, tokens, scripts
+- **internal** (`/api/v2/internal/`) — comments, workflows, dashboards, widgets, audit, MCP, OAuth, sync, permissions, AI features (via `internal` command)
 - **v2** (`/api/v2/`) — shared views, extensions, integrations, snapshots, storage, aggregate
 - **v1** (`/api/v1/`) — auth, health, notifications, plugins, base users, org admin, bulk data, view configs
 
@@ -187,8 +187,8 @@ View types: `grid`, `form`, `gallery`, `kanban`, `calendar`, `map`
 ### View Columns (v3)
 
 ```bash
-npx tsx cli.ts list-view-columns --view=vw_xxxxx
-npx tsx cli.ts update-view-columns --view=vw_xxxxx --data='{"cl_xxxxx":{"show":true,"width":"200"}}'
+npx tsx cli.ts list-view-columns --base=p_xxxxx --view=vw_xxxxx
+npx tsx cli.ts update-view-columns --base=p_xxxxx --view=vw_xxxxx --column=vc_xxxxx --data='{"show":true}'
 ```
 
 ### Filters (v3)
@@ -281,7 +281,7 @@ npx tsx cli.ts upload-attachment --base=p_xxxxx --table=md_xxxxx --row=1 --colum
   --content-type=image/png --filename=photo.png --file="<base64-encoded-data>"
 ```
 
-### Comments (v3)
+### Comments (internal)
 
 ```bash
 npx tsx cli.ts list-comments --base=p_xxxxx --table=md_xxxxx --row=1
@@ -364,10 +364,10 @@ npx tsx cli.ts internal --base=p_xxxxx --operation=listWorkflows \
 
 ```bash
 npx tsx cli.ts list-shared-views --base=p_xxxxx --table=md_xxxxx
-npx tsx cli.ts create-shared-view --view=vw_xxxxx
-npx tsx cli.ts create-shared-view --view=vw_xxxxx --data='{"password":"secret"}'
-npx tsx cli.ts update-shared-view --view=vw_xxxxx --data='{"password":"newpass"}'
-npx tsx cli.ts delete-shared-view --view=vw_xxxxx
+npx tsx cli.ts create-shared-view --base=p_xxxxx --view=vw_xxxxx
+npx tsx cli.ts create-shared-view --base=p_xxxxx --view=vw_xxxxx --data='{"password":"secret"}'
+npx tsx cli.ts update-shared-view --base=p_xxxxx --view=vw_xxxxx --data='{"password":"newpass"}'
+npx tsx cli.ts delete-shared-view --base=p_xxxxx --view=vw_xxxxx
 ```
 
 ### Shared Bases (v2)
@@ -429,8 +429,8 @@ npx tsx cli.ts bulk-delete-all --base=p_xxxxx --table=md_xxxxx \
 ### Aggregate (v2)
 
 ```bash
-npx tsx cli.ts aggregate --table=md_xxxxx
-npx tsx cli.ts aggregate --table=md_xxxxx --column_name=Amount --func=sum
+npx tsx cli.ts aggregate --base=p_xxxxx --table=md_xxxxx
+npx tsx cli.ts aggregate --base=p_xxxxx --table=md_xxxxx --column_name=Amount --func=sum
 ```
 
 ### Notifications (v1)
@@ -448,37 +448,37 @@ npx tsx cli.ts delete-notification --id=notif_xxxxx
 #### Form
 
 ```bash
-npx tsx cli.ts get-form-view --id=vw_xxxxx
-npx tsx cli.ts update-form-view --id=vw_xxxxx --data='{"heading":"Submit Request","subheading":"Fill out the form"}'
-npx tsx cli.ts update-form-column --id=cl_xxxxx --data='{"label":"Your Name","required":true}'
+npx tsx cli.ts get-form-view --base=p_xxxxx --id=vw_xxxxx
+npx tsx cli.ts update-form-view --base=p_xxxxx --id=vw_xxxxx --data='{"heading":"Submit Request","subheading":"Fill out the form"}'
+npx tsx cli.ts update-form-column --base=p_xxxxx --id=cl_xxxxx --data='{"label":"Your Name","required":true}'
 ```
 
 #### Gallery
 
 ```bash
-npx tsx cli.ts get-gallery-view --id=vw_xxxxx
-npx tsx cli.ts update-gallery-view --id=vw_xxxxx --data='{"fk_cover_image_col_id":"cl_xxxxx"}'
+npx tsx cli.ts get-gallery-view --base=p_xxxxx --id=vw_xxxxx
+npx tsx cli.ts update-gallery-view --base=p_xxxxx --id=vw_xxxxx --data='{"fk_cover_image_col_id":"cl_xxxxx"}'
 ```
 
 #### Kanban
 
 ```bash
-npx tsx cli.ts get-kanban-view --id=vw_xxxxx
-npx tsx cli.ts update-kanban-view --id=vw_xxxxx --data='{"fk_grp_col_id":"cl_xxxxx"}'
+npx tsx cli.ts get-kanban-view --base=p_xxxxx --id=vw_xxxxx
+npx tsx cli.ts update-kanban-view --base=p_xxxxx --id=vw_xxxxx --data='{"fk_grp_col_id":"cl_xxxxx"}'
 ```
 
 #### Grid
 
 ```bash
-npx tsx cli.ts list-grid-columns --id=vw_xxxxx
-npx tsx cli.ts update-grid-column --id=cl_xxxxx --data='{"width":"300"}'
+npx tsx cli.ts list-grid-columns --base=p_xxxxx --id=vw_xxxxx
+npx tsx cli.ts update-grid-column --base=p_xxxxx --id=cl_xxxxx --data='{"width":"300"}'
 ```
 
 #### Map
 
 ```bash
-npx tsx cli.ts get-map-view --id=vw_xxxxx
-npx tsx cli.ts update-map-view --id=vw_xxxxx --data='{"fk_geo_data_col_id":"cl_xxxxx"}'
+npx tsx cli.ts get-map-view --base=p_xxxxx --id=vw_xxxxx
+npx tsx cli.ts update-map-view --base=p_xxxxx --id=vw_xxxxx --data='{"fk_geo_data_col_id":"cl_xxxxx"}'
 ```
 
 ### Calendar Data (v1)
@@ -506,19 +506,21 @@ npx tsx cli.ts remove-base-user --base=p_xxxxx --user-id=usr_xxxxx
 
 ```bash
 npx tsx cli.ts list-extensions --base=p_xxxxx
-npx tsx cli.ts get-extension --id=ext_xxxxx
+npx tsx cli.ts get-extension --base=p_xxxxx --id=ext_xxxxx
 npx tsx cli.ts create-extension --base=p_xxxxx --data='{"title":"My Extension","extension_id":"ext.abc"}'
-npx tsx cli.ts update-extension --id=ext_xxxxx --data='{"title":"Renamed"}'
-npx tsx cli.ts delete-extension --id=ext_xxxxx
+npx tsx cli.ts update-extension --base=p_xxxxx --id=ext_xxxxx --data='{"title":"Renamed"}'
+npx tsx cli.ts delete-extension --base=p_xxxxx --id=ext_xxxxx
 ```
 
 ### Integrations (v2)
+
+List/create are workspace-scoped; get/update/delete use the integration ID directly.
 
 ```bash
 npx tsx cli.ts list-integrations
 npx tsx cli.ts get-integration --id=integ_xxxxx
 npx tsx cli.ts create-integration --data='{"title":"My PG","type":"database","sub_type":"pg","config":{"host":"localhost","port":5432}}'
-npx tsx cli.ts update-integration --id=integ_xxxxx --data='{"title":"Renamed"}'
+npx tsx cli.ts update-integration --id=integ_xxxxx --data='{"title":"Renamed","type":"database","sub_type":"pg","config":{...}}'
 npx tsx cli.ts delete-integration --id=integ_xxxxx
 ```
 
@@ -689,11 +691,14 @@ State is persisted in `.claude/skills/nocodb-dev-api/.state.json` (gitignored):
     "id": "ws_xxxxx",
     "title": "Agent Workspace"
   },
+  "baseWorkspaces": {
+    "p_abc123": "ws_xxxxx"
+  },
   "updatedAt": "2026-02-19T18:00:00.000Z"
 }
 ```
 
-Tokens auto-refresh on 401 errors — the CLI re-signs in using stored credentials and retries the request automatically. Legacy state files with `tokens` are auto-migrated on first read.
+Tokens auto-refresh on 401 errors — the CLI re-signs in using stored credentials and retries the request automatically. Legacy state files with `tokens` are auto-migrated on first read. `baseWorkspaces` is auto-populated — when an internal API call needs a workspace ID for a base, it fetches via `get-base` and caches the mapping.
 
 ## Common Workflows
 

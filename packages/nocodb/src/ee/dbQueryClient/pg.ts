@@ -723,7 +723,7 @@ export class PGDBQueryClient
                   sanitize(childColumn.column_name),
                 ]);
 
-                relQb = knex(assocQb.as(alias4)).leftJoin(
+                relQb = knex(assocQb.as(alias4)).innerJoin(
                   knex.raw(`?? as ?? on ??.?? = ??.??`, [
                     parentBaseModel.getTnPath(parentModel),
                     relTableAlias,

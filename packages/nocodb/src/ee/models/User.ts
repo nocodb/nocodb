@@ -1,6 +1,7 @@
 import UserCE from 'src/models/User';
 import {
   extractRolesObj,
+  OrderedWorkspaceRoles,
   OrgUserRoles,
   ProjectRoles,
   type UserType,
@@ -625,17 +626,39 @@ export default class User extends UserCE implements UserType {
       }
     }
 
-    // If workspace role is not defined then extract from team role
-    let finalWorkspaceRoles = workspaceRoles;
-    if (teamRoles && Object.keys(workspaceRoles || {}).length === 0) {
-      finalWorkspaceRoles = teamRoles;
+    // Merge workspace roles: take the highest role across direct assignment and team roles (additive)
+    let finalWorkspaceRoles: Record<string, boolean> | null = null;
+    if (workspaceRoles || teamRoles) {
+      const allRoleKeys = [
+        ...Object.keys(workspaceRoles || {}),
+        ...Object.keys(teamRoles || {}),
+      ];
+
+      if (allRoleKeys.length > 0) {
+        // Find the highest role using OrderedWorkspaceRoles (index 0 = highest)
+        let highestIndex = OrderedWorkspaceRoles.length;
+        let highestRole: string | null = null;
+
+        for (const role of allRoleKeys) {
+          const idx = OrderedWorkspaceRoles.indexOf(
+            role as WorkspaceUserRoles,
+          );
+          if (idx !== -1 && idx < highestIndex) {
+            highestIndex = idx;
+            highestRole = role;
+          }
+        }
+
+        finalWorkspaceRoles = highestRole
+          ? { [highestRole]: true }
+          : workspaceRoles || teamRoles;
+      }
     }
 
     // Apply role priority hierarchy for base roles:
     // 1. Direct base role (highest priority)
     // 2. Role inherited from base-team
-    // 3. Role inherited from workspace role
-    // 4. Role inherited from workspace team role (lowest priority)
+    // 3. Role inherited from merged workspace role (direct + team, highest wins)
 
     let finalBaseRoles = baseRoles;
 
@@ -646,19 +669,13 @@ export default class User extends UserCE implements UserType {
         if (baseTeamRoles) {
           finalBaseRoles = baseTeamRoles;
         }
-        // 2. Fallback to direct workspace roles
-        else if (workspaceRoles) {
-          finalBaseRoles =
-            mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles);
-        }
-        // 3. Fallback to workspace team roles
+        // 2. Fallback to merged workspace roles (already includes team roles)
         else if (finalWorkspaceRoles) {
           finalBaseRoles =
             mapWorkspaceRolesObjToProjectRolesObj(finalWorkspaceRoles);
         }
       }
       // If direct base roles exist, they take highest priority (no override needed)
-      // Direct base roles should override any inherited roles
     }
 
     const finalUser = {

@@ -570,6 +570,7 @@ export default class Team {
         },
       );
 
+      const descendantIds: string[] = [];
       for (const desc of descendants) {
         if (desc.path?.startsWith(oldPath + '/')) {
           const updatedPath = newPath + desc.path.slice(oldPath.length);
@@ -584,7 +585,13 @@ export default class Team {
             },
             { id: desc.id },
           );
+          descendantIds.push(desc.id);
         }
+      }
+
+      // Clear individual caches for all updated descendants
+      for (const descId of descendantIds) {
+        await NocoCache.del(context, `${CacheScope.TEAM}:${descId}`);
       }
     }
 

@@ -68,12 +68,18 @@ export interface TeamMemberV3ResponseType {
   team_role: TeamUserRoles.OWNER | TeamUserRoles.MEMBER;
 }
 
+export interface InheritedTeamMemberV3Type extends TeamMemberV3ResponseType {
+  inherited_from_team_id: string;
+  inherited_from_team_title: string;
+}
+
 export interface TeamDetailV3Type {
   title: string;
   icon?: string;
   icon_type?: IconType;
   badge_color?: string;
   members: TeamMemberV3ResponseType[];
+  inherited_members?: InheritedTeamMemberV3Type[];
 }
 
 export interface TeamMembersAddV3ReqType {

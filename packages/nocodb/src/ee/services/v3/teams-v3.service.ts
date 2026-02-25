@@ -270,6 +270,46 @@ export class TeamsV3Service {
         team_role: assignment.roles as TeamUserRoles,
       }));
 
+    // Load inherited members from ancestor teams (path = /rootId/.../parentId/teamId)
+    const directMemberIds = new Set(members.map((m) => m.user_id));
+    const ancestorIds = (team.path || '')
+      .split('/')
+      .filter(Boolean)
+      .slice(0, -1); // remove own ID — leaves ancestor IDs root-first
+
+    const inheritedMembers: TeamDetailV3Type['inherited_members'] = [];
+
+    for (const ancestorId of ancestorIds) {
+      const ancestorTeam = await Team.get(context, ancestorId);
+      if (!ancestorTeam) continue;
+
+      const ancestorAssignments = await PrincipalAssignment.listByResource(
+        context,
+        ResourceType.TEAM,
+        ancestorId,
+      );
+
+      const ancestorUserAssignments = ancestorAssignments.filter(
+        (a) => a.principal_type === PrincipalType.USER,
+      );
+
+      for (const assignment of ancestorUserAssignments) {
+        // Skip users already in the direct members list (no duplicate display)
+        if (directMemberIds.has(assignment.principal_ref_id)) continue;
+
+        const user = await User.get(assignment.principal_ref_id);
+        if (!user) continue;
+
+        inheritedMembers.push({
+          user_email: user.email,
+          user_id: user.id,
+          team_role: assignment.roles as TeamUserRoles,
+          inherited_from_team_id: ancestorId,
+          inherited_from_team_title: ancestorTeam.title,
+        });
+      }
+    }
+
     const meta =
       typeof team.meta === 'string' ? JSON.parse(team.meta) : team.meta || {};
     const teamDetail: TeamDetailV3Type = {
@@ -278,6 +318,7 @@ export class TeamsV3Service {
       icon_type: meta.icon_type || null,
       badge_color: meta.badge_color || null,
       members,
+      inherited_members: inheritedMembers.length ? inheritedMembers : undefined,
     };
 
     return teamDetail;
@@ -769,9 +810,15 @@ export class TeamsV3Service {
       }
     }
 
+    if (!Array.isArray(param.members)) {
+      NcError.get(context).invalidRequestBody(
+        'Request body must be an array of {user_id, team_role} objects',
+      );
+    }
+
     const addedMembers = [];
 
-    for (const member of param.members ?? []) {
+    for (const member of param.members) {
       // Check if user exists
       const user = await User.get(member.user_id);
       if (!user) {
@@ -895,9 +942,15 @@ export class TeamsV3Service {
     }
 
     const userId = param.req.user?.id;
+    if (!Array.isArray(param.members)) {
+      NcError.get(context).invalidRequestBody(
+        'Request body must be an array of {user_id} objects',
+      );
+    }
+
     const removedMembers = [];
 
-    for (const member of param.members ?? []) {
+    for (const member of param.members) {
       const user = await User.get(member.user_id);
       // Check if user is assigned to team
       const assignment = await PrincipalAssignment.get(
@@ -1043,9 +1096,15 @@ export class TeamsV3Service {
       }
     }
 
+    if (!Array.isArray(param.members)) {
+      NcError.get(context).invalidRequestBody(
+        'Request body must be an array of {user_id, team_role} objects',
+      );
+    }
+
     const updatedMembers = [];
 
-    for (const member of param.members ?? []) {
+    for (const member of param.members) {
       // check user exists
       const user = await User.get(member.user_id);
 

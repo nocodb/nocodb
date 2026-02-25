@@ -7,9 +7,10 @@ import { PrincipalType, ResourceType } from '~/utils/globals';
  * Extract workspace roles for a user from teams in a workspace.
  *
  * With hierarchy support (upward cascade):
- * If a team is assigned to a workspace and the user is a member of an
- * ANCESTOR team (parent, grandparent, etc.), the user inherits that role.
- * This implements the "managers see what their reports see" pattern.
+ * If a team is assigned to a workspace, any member of that team OR any member
+ * of an ANCESTOR team (parent, grandparent, etc.) inherits that role.
+ * i.e. roles cascade UPWARD: parent team members see what child teams see.
+ * e.g. Frontend (assigned Editor) → Engineering members also get Editor.
  *
  * @param context - NocoDB context
  * @param userId - User ID
@@ -77,6 +78,8 @@ export async function extractUserTeamRoles(
           break;
         }
         // Upward cascade: user's team is an ANCESTOR of the assigned team
+        // e.g. Frontend (assigned) → Engineering (user's team) is ancestor
+        // An Engineering member inherits Frontend's workspace role.
         if (assignedTeam.path.startsWith(userTeam.path + '/')) {
           matched = true;
           break;

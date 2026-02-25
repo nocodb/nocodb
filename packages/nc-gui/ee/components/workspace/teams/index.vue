@@ -64,11 +64,18 @@ const flattenedTreeTeams = computed(() => {
   if (viewMode.value !== 'tree') return []
 
   const result: (TeamV3V3Type & { _treeDepth: number })[] = []
-  const filtered = teams.value.filter((team) => searchCompare([team.title], searchQuery.value))
 
-  // Build a quick parent→children map
-  const childrenMap = new Map<string | null, typeof filtered>()
-  for (const team of filtered) {
+  // When search is active, return matching teams as a flat list — tree traversal
+  // from roots would miss subtrees whose parents don't match the search query.
+  if (searchQuery.value) {
+    return teams.value
+      .filter((team) => searchCompare([team.title], searchQuery.value))
+      .map((team) => ({ ...team, _treeDepth: 0 }))
+  }
+
+  // Build a quick parent→children map (full list, no search filter)
+  const childrenMap = new Map<string | null, TeamV3V3Type[]>()
+  for (const team of teams.value) {
     const parentId = (team as any).fk_parent_team_id || null
     if (!childrenMap.has(parentId)) childrenMap.set(parentId, [])
     childrenMap.get(parentId)!.push(team)

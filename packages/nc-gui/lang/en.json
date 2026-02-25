@@ -1937,6 +1937,8 @@
     "moveTeam": "Move team",
     "addSubTeam": "Add sub-team",
     "teamHierarchy": "Team hierarchy",
+    "inheritedMembers": "Inherited members",
+    "inheritedFrom": "Inherited from {team}",
     "workspaceRole": "Workspace role",
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
@@ -2295,6 +2297,7 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
+    "inheritedMembersInfo": "These members belong to a parent team and inherit access to resources assigned to this team.",
     "notHaveAccess": "You don’t have access to this {context}",
     "manualTriggerDisabled": "Only workflows with manual trigger can be triggered manually.",
     "optionNotAvailableInSyncTable": "This option is not available for synced fields",

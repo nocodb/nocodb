@@ -10609,11 +10609,57 @@
             "items": {
               "$ref": "#/components/schemas/TeamMemberV3Response"
             }
+          },
+          "inherited_members": {
+            "type": "array",
+            "description": "Members inherited from ancestor teams",
+            "items": {
+              "$ref": "#/components/schemas/InheritedTeamMemberV3"
+            }
           }
         },
         "required": [
           "title",
           "members"
+        ]
+      },
+      "InheritedTeamMemberV3": {
+        "type": "object",
+        "description": "A team member inherited from an ancestor team",
+        "properties": {
+          "user_email": {
+            "type": "string",
+            "description": "Member email address",
+            "example": "user@example.com"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Member user ID",
+            "example": "usr_xxxx"
+          },
+          "team_role": {
+            "type": "string",
+            "enum": ["owner", "member"],
+            "description": "Member role in the ancestor team",
+            "example": "member"
+          },
+          "inherited_from_team_id": {
+            "type": "string",
+            "description": "ID of the ancestor team this member is inherited from",
+            "example": "tm_xxxx"
+          },
+          "inherited_from_team_title": {
+            "type": "string",
+            "description": "Title of the ancestor team this member is inherited from",
+            "example": "Engineering"
+          }
+        },
+        "required": [
+          "user_email",
+          "user_id",
+          "team_role",
+          "inherited_from_team_id",
+          "inherited_from_team_title"
         ]
       },
       "TeamMemberV3": {

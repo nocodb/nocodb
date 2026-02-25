@@ -7,8 +7,9 @@ import { PrincipalType, ResourceType } from '~/utils/globals';
  * Extract base-team roles for a user in a base.
  *
  * With hierarchy support (upward cascade):
- * If a team is assigned to a base and the user is a member of an
- * ANCESTOR team, the user inherits that base role.
+ * If a team is assigned to a base, any member of that team OR any member
+ * of an ANCESTOR team (parent, grandparent, etc.) inherits that base role.
+ * i.e. roles cascade UPWARD: parent team members see what child teams see.
  *
  * @param context - NocoDB context
  * @param userId - User ID
@@ -95,6 +96,8 @@ export async function extractUserBaseTeamRoles(
           break;
         }
         // Upward cascade: user's team is an ANCESTOR of the assigned team
+        // e.g. Frontend (assigned) → Engineering (user's team) is ancestor
+        // An Engineering member inherits Frontend's base role.
         if (assignedTeam.path.startsWith(userTeam.path + '/')) {
           matchedUserTeam = userTeam;
           break;

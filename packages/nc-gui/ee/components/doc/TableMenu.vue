@@ -247,7 +247,7 @@ onBeforeUnmount(() => {
           <NcMenu variant="small">
             <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="onDeleteTable">
               <GeneralIcon icon="delete" />
-              Delete table
+              {{ $t('labels.deleteTable') }}
             </NcMenuItem>
           </NcMenu>
         </template>
@@ -278,16 +278,16 @@ onBeforeUnmount(() => {
             <NcMenu variant="small">
               <NcMenuItem @click="onColumnAction(cIdx, 'insertBefore')">
                 <GeneralIcon icon="plus" class="text-nc-content-gray-subtle" />
-                Insert column left
+                {{ $t('labels.insertColumnLeft') }}
               </NcMenuItem>
               <NcMenuItem @click="onColumnAction(cIdx, 'insertAfter')">
                 <GeneralIcon icon="plus" class="text-nc-content-gray-subtle" />
-                Insert column right
+                {{ $t('labels.insertColumnRight') }}
               </NcMenuItem>
               <NcDivider />
               <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="onColumnAction(cIdx, 'delete')">
                 <GeneralIcon icon="delete" />
-                Delete column
+                {{ $t('labels.deleteColumn') }}
               </NcMenuItem>
             </NcMenu>
           </template>
@@ -319,16 +319,16 @@ onBeforeUnmount(() => {
             <NcMenu variant="small">
               <NcMenuItem v-if="rIdx > 0" @click="onRowAction(rIdx, 'insertBefore')">
                 <GeneralIcon icon="plus" class="text-nc-content-gray-subtle" />
-                Insert row above
+                {{ $t('labels.insertRowAbove') }}
               </NcMenuItem>
               <NcMenuItem @click="onRowAction(rIdx, 'insertAfter')">
                 <GeneralIcon icon="plus" class="text-nc-content-gray-subtle" />
-                Insert row below
+                {{ $t('labels.insertRowBelow') }}
               </NcMenuItem>
               <NcDivider />
               <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="onRowAction(rIdx, 'delete')">
                 <GeneralIcon icon="delete" />
-                Delete row
+                {{ $t('labels.deleteRow') }}
               </NcMenuItem>
             </NcMenu>
           </template>
@@ -360,11 +360,21 @@ onBeforeUnmount(() => {
   height: 10px;
   border-radius: 50%;
   cursor: pointer;
-  background: #e5e7eb;
+  background: var(--nc-border-gray-medium);
   transition: background 0.15s ease;
 
+  // Expand clickable area around the small circle
+  &::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: -4px;
+    right: -4px;
+  }
+
   &:hover {
-    background: #3366ff;
+    background: var(--nc-content-brand);
   }
 }
 
@@ -374,8 +384,18 @@ onBeforeUnmount(() => {
   height: 8px;
   border-radius: 0;
   cursor: pointer;
-  background: #e5e7eb;
+  background: var(--nc-border-gray-medium);
   transition: background 0.15s ease;
+
+  // Expand clickable area vertically without changing visual size
+  &::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    left: 0;
+    right: 0;
+  }
 
   &.is-first {
     border-radius: 4px 0 0 4px;
@@ -390,7 +410,7 @@ onBeforeUnmount(() => {
   }
 
   &:hover {
-    background: #3366ff;
+    background: var(--nc-content-brand);
   }
 }
 
@@ -400,8 +420,18 @@ onBeforeUnmount(() => {
   width: 8px;
   border-radius: 0;
   cursor: pointer;
-  background: #e5e7eb;
+  background: var(--nc-border-gray-medium);
   transition: background 0.15s ease;
+
+  // Expand clickable area horizontally without changing visual size
+  &::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    right: -6px;
+    top: 0;
+    bottom: 0;
+  }
 
   &.is-first {
     border-radius: 4px 4px 0 0;
@@ -416,7 +446,7 @@ onBeforeUnmount(() => {
   }
 
   &:hover {
-    background: #3366ff;
+    background: var(--nc-content-brand);
   }
 }
 

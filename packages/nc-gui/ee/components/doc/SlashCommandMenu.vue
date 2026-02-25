@@ -156,7 +156,7 @@ defineExpose({ onKeyDown })
         ref="inputRef"
         v-model="inputValue"
         class="nc-slash-input"
-        :placeholder="pendingItem?.inputPlaceholder || 'Enter URL...'"
+        :placeholder="pendingItem?.inputPlaceholder || $t('placeholder.enterUrl')"
         @keydown.enter.prevent="submitInput"
         @keydown.escape.prevent="cancelInput"
       />
@@ -167,6 +167,7 @@ defineExpose({ onKeyDown })
   <div v-else-if="items.length" ref="menuRef" class="nc-slash-menu">
     <template v-for="(group, gIdx) in groupedItems" :key="group.group">
       <div v-if="gIdx > 0" class="nc-slash-menu-divider" />
+      <div class="nc-slash-menu-group-label">{{ group.group }}</div>
       <div
         v-for="entry in group.items"
         :key="entry.item.title"
@@ -201,6 +202,16 @@ defineExpose({ onKeyDown })
   height: 1px;
   background: #e5e7eb;
   margin: 4px 12px;
+}
+
+.nc-slash-menu-group-label {
+  padding: 4px 14px 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  user-select: none;
 }
 
 .nc-slash-menu-item {

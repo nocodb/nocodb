@@ -139,8 +139,6 @@ const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
 
   if (hiddenOptions.value.includes(option)) return false
 
-  if (isFormField.value) return !hiddenOptions.value.includes(option)
-
   return true
 }
 
@@ -269,7 +267,7 @@ const closeTextArea = () => {
     </NcTooltip>
     <!-- Highlight colour picker — doc editor (embedMode) only -->
     <NcTooltip v-if="embedMode && !isEditColumn" :disabled="editor.isActive('codeBlock') || showHighlightPicker">
-      <template #title> Highlight </template>
+      <template #title> {{ $t('general.highlight') }} </template>
       <NcButton
         size="small"
         type="text"
@@ -307,7 +305,7 @@ const closeTextArea = () => {
         class="nc-highlight-clear"
         @click="applyHighlight(activeHighlightColor)"
       >
-        Clear
+        {{ $t('general.clear') }}
       </button>
     </div>
 
@@ -518,7 +516,7 @@ const closeTextArea = () => {
     />
 
     <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.table)" :placement="tooltipPlacement">
-      <template #title> Table </template>
+      <template #title> {{ $t('objects.table') }} </template>
       <NcButton
         size="small"
         type="text"
@@ -621,8 +619,8 @@ const closeTextArea = () => {
   position: absolute;
   bottom: 0;
   transform: translateY(calc(100% + 4px)); // 4px gap below bubble-menu
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--nc-bg-default);
+  border: 1px solid var(--nc-border-gray-medium);
   border-radius: 8px;
   padding: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -647,7 +645,7 @@ const closeTextArea = () => {
     transform: scale(1.15);
   }
   &.is-active {
-    border-color: #3366ff;
+    border-color: var(--nc-content-brand);
   }
 }
 
@@ -656,15 +654,15 @@ const closeTextArea = () => {
   margin-top: 6px;
   padding: 3px 0;
   font-size: 11px;
-  color: #6b7280;
+  color: var(--nc-content-gray-subtle);
   background: none;
   border: none;
   cursor: pointer;
   text-align: center;
 
   &:hover {
-    color: #1f2937;
-    background: #f3f4f6;
+    color: var(--nc-content-gray);
+    background: var(--nc-bg-gray-light);
     border-radius: 4px;
   }
 }

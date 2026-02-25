@@ -9,6 +9,7 @@ import type { DocType } from 'nocodb-sdk'
  */
 export const useDocsStore = defineStore('docsStore', () => {
   const { $api, $e } = useNuxtApp()
+  const { t } = useI18n()
   const { ncNavigateTo } = useGlobal()
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -104,7 +105,7 @@ export const useDocsStore = defineStore('docsStore', () => {
       )) as DocType
 
       if (!created?.id) {
-        throw new Error('Failed to create page')
+        throw new Error(t('msg.failedToCreatePage'))
       }
 
       const baseDocs = docs.value.get(baseId) || []

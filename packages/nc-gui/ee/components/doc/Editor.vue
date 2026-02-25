@@ -103,6 +103,7 @@ const basesStore = useBases()
 const { activeProjectId, basesUser } = storeToRefs(basesStore)
 
 const { user } = useGlobal()
+const { t } = useI18n()
 const { isUIAllowed } = useRoles()
 const { openFilePicker, uploadAndInsert } = useDocImageUpload()
 const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocFileUpload()
@@ -265,7 +266,7 @@ const editor = useEditor({
     Underline,
     Highlight,
     Link.configure({ openOnClick: false }),
-    Placeholder.configure({ placeholder: 'Start writing or type / for commands...' }),
+    Placeholder.configure({ placeholder: t('placeholder.docEditor') }),
     DocImageExtension,
     // TODO Phase-2: TaskList + TaskItem (needs task list CSS that doesn't conflict with prose)
     // resizable: false — the columnResizing plugin's TableView node view causes
@@ -286,11 +287,39 @@ const editor = useEditor({
       class: 'nc-doc-editor-content focus:outline-none min-h-[200px]',
     },
     handleKeyDown(view, event) {
-      if (event.key !== 'Backspace') return false
-
       const { state } = view
       const { selection } = state
       const { $from, empty } = selection
+
+      // Escape inside a table: move cursor to first paragraph after the table.
+      // If no paragraph exists after the table, insert one.
+      if (event.key === 'Escape') {
+        for (let d = $from.depth; d > 0; d--) {
+          const node = $from.node(d)
+          if (node.type.name === 'table') {
+            const tableEndPos = $from.after(d)
+            const $afterTable = state.doc.resolve(tableEndPos)
+
+            // Check if a block exists right after the table
+            if ($afterTable.nodeAfter) {
+              // Move cursor to start of the next block
+              view.dispatch(state.tr.setSelection(
+                state.selection.constructor.near(state.doc.resolve(tableEndPos + 1))
+              ))
+            } else {
+              // No block after table — insert an empty paragraph and focus it
+              const paragraph = state.schema.nodes.paragraph.create()
+              const tr = state.tr.insert(tableEndPos, paragraph)
+              tr.setSelection(state.selection.constructor.near(tr.doc.resolve(tableEndPos + 1)))
+              view.dispatch(tr)
+            }
+            return true
+          }
+        }
+        return false
+      }
+
+      if (event.key !== 'Backspace') return false
 
       // Only handle when cursor is collapsed (no selection range)
       if (!empty) return false
@@ -443,7 +472,7 @@ watch(editor, (ed) => {
     ed.storage.embed.insertFromUrl = (editor: any, url: string) => {
       const [platform, embedUrl] = getEmbedURL(url.trim())
       if (platform === 'unsupported' || embedUrl === 'unsupported') {
-        message.warning('URL not supported for embedding. Try a YouTube, Vimeo, or Loom link.')
+        message.warning(t('msg.embedUrlNotSupported'))
         return
       }
 
@@ -484,7 +513,6 @@ const parseContent = (content: unknown): Record<string, any> | null => {
     try {
       return JSON.parse(content)
     } catch {
-      console.error('[doc:editor] failed to parse content JSON')
       return null
     }
   }
@@ -547,6 +575,11 @@ const onTitleBlur = () => {
   // Compare effective titles — empty input maps to "Untitled" on save
   const effectiveTitle = title.value || 'Untitled'
   if (effectiveTitle !== doc.value?.title) {
+    // Eagerly sync title to the store so the sidebar updates immediately,
+    // without waiting for the 2-second debounce + API roundtrip.
+    if (doc.value) {
+      doc.value.title = effectiveTitle
+    }
     debouncedSave()
   }
 }
@@ -558,13 +591,30 @@ const onTitleKeydown = (e: KeyboardEvent) => {
   }
 }
 
+/**
+ * When the user clicks in the empty padding area below all content blocks,
+ * focus the editor and move cursor to the end of the document.
+ * This makes it easy to append content after the last block (table, callout, etc.).
+ */
+const onEditorBodyClick = (e: MouseEvent) => {
+  if (!editor.value) return
+
+  const target = e.target as HTMLElement
+
+  // Only handle clicks on the editor body wrapper itself — not on content inside it.
+  // The ProseMirror content area (.ProseMirror) and table menus handle their own clicks.
+  if (!target.classList.contains('nc-doc-editor-body')) return
+
+  editor.value.commands.focus('end')
+}
+
 // --- Page context menu (3-dot) ---
 const isPageMenuOpen = ref(false)
 
 const onCopyPageId = () => {
   if (!doc.value?.id) return
   navigator.clipboard.writeText(doc.value.id)
-  message.success('Page ID copied')
+  message.success(t('msg.pageIdCopied'))
   isPageMenuOpen.value = false
 }
 
@@ -594,6 +644,10 @@ const confirmDeletePage = async () => {
 }
 
 // --- Download helpers ---
+/** Escape HTML special characters to prevent XSS in generated HTML documents. */
+const escapeHtml = (str: string) =>
+  str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
 const fileName = computed(() => (title.value || 'Untitled').replace(/[/\\?%*:|"<>]/g, '-'))
 
 const downloadFile = (content: string, ext: string, mimeType: string) => {
@@ -670,11 +724,12 @@ const onDownloadMarkdown = () => {
 const onDownloadHTML = () => {
   isPageMenuOpen.value = false
   if (!editor.value) return
+  const safeTitle = escapeHtml(title.value || 'Untitled')
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>${title.value || 'Untitled'}</title>
+<title>${safeTitle}</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1f2937; line-height: 1.7; }
   h1 { font-size: 2em; margin-bottom: 0.5em; }
@@ -690,7 +745,7 @@ const onDownloadHTML = () => {
 </style>
 </head>
 <body>
-<h1>${title.value || 'Untitled'}</h1>
+<h1>${safeTitle}</h1>
 ${editor.value.getHTML()}
 </body>
 </html>`
@@ -700,12 +755,13 @@ ${editor.value.getHTML()}
 const onDownloadPDF = () => {
   isPageMenuOpen.value = false
   if (!editor.value) return
+  const safeTitle = escapeHtml(title.value || 'Untitled')
   // Open a print-ready window with styled content, then trigger print-to-PDF
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>${title.value || 'Untitled'}</title>
+<title>${safeTitle}</title>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px; color: #1f2937; line-height: 1.7; font-size: 14px; }
   h1 { font-size: 1.8em; margin-bottom: 0.5em; }
@@ -722,7 +778,7 @@ const onDownloadPDF = () => {
 </style>
 </head>
 <body>
-<h1>${title.value || 'Untitled'}</h1>
+<h1>${safeTitle}</h1>
 ${editor.value.getHTML()}
 <script>window.onload = function() { window.print(); }<\/script>
 </body>
@@ -785,29 +841,29 @@ onBeforeUnmount(() => {
           <NcMenu variant="small" class="!min-w-52">
             <NcMenuItem @click="onCopyPageId">
               <GeneralIcon class="text-nc-content-gray-subtle" icon="copy" />
-              Copy page ID
+              {{ $t('labels.copyPageId') }}
             </NcMenuItem>
             <NcMenuItem
               v-if="isUIAllowed('docCreate')"
               @click="onDuplicatePage"
             >
               <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
-              Duplicate page
+              {{ $t('labels.duplicatePage') }}
             </NcMenuItem>
             <NcDivider />
             <NcSubMenu key="download" variant="small">
               <template #title>
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="download" />
-                Download as
+                {{ $t('general.downloadAs') }}
               </template>
               <NcMenuItem @click="onDownloadMarkdown">
-                Markdown
+                {{ $t('general.markdown') }}
               </NcMenuItem>
               <NcMenuItem @click="onDownloadHTML">
-                HTML
+                {{ $t('general.html') }}
               </NcMenuItem>
               <NcMenuItem @click="onDownloadPDF">
-                PDF
+                {{ $t('general.pdf') }}
               </NcMenuItem>
             </NcSubMenu>
             <NcDivider />
@@ -817,7 +873,7 @@ onBeforeUnmount(() => {
               @click="onDeletePage"
             >
               <GeneralIcon icon="delete" />
-              Delete page
+              {{ $t('labels.deletePage') }}
             </NcMenuItem>
           </NcMenu>
         </template>
@@ -831,27 +887,27 @@ onBeforeUnmount(() => {
           ref="titleInput"
           v-model="title"
           class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
-          placeholder="Untitled"
+          :placeholder="$t('general.untitled')"
           @blur="onTitleBlur"
           @keydown="onTitleKeydown"
         />
         <div class="nc-doc-subtitle flex items-center gap-1 mt-2 text-sm">
           <template v-if="createdByLabel">
-            <span>Created by {{ createdByLabel }}</span>
+            <span>{{ $t('labels.createdBy') }} {{ createdByLabel }}</span>
           </template>
           <template v-if="updatedByLabel && updatedAgo">
             <span v-if="createdByLabel">&middot;</span>
-            <span>Updated by {{ updatedByLabel }} {{ updatedAgo }}</span>
+            <span>{{ $t('general.updatedBy') }} {{ updatedByLabel }} {{ updatedAgo }}</span>
           </template>
           <template v-if="isSaving">
             <span v-if="createdByLabel || updatedByLabel">&middot;</span>
-            <span>Saving...</span>
+            <span>{{ $t('general.saving') }}...</span>
           </template>
         </div>
       </div>
 
       <!-- Editor — always mounted so ProseMirror view stays attached -->
-      <div class="nc-doc-editor-body pb-48 relative">
+      <div class="nc-doc-editor-body pb-48 relative" @click="onEditorBodyClick">
         <template v-if="editor">
           <!-- Bubble menu: appears on text selection (including inside table cells) -->
           <BubbleMenu
@@ -890,7 +946,7 @@ onBeforeUnmount(() => {
             class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           >
-            {{ title || 'Untitled' }}
+            {{ title || $t('general.untitled') }}
           </div>
         </div>
       </template>
@@ -900,58 +956,22 @@ onBeforeUnmount(() => {
     <Teleport to="body">
       <div
         v-if="pasteLinkMenu.visible"
-        :style="{
-          position: 'fixed',
-          zIndex: 9999,
-          top: pasteLinkMenu.top + 'px',
-          left: pasteLinkMenu.left + 'px',
-          background: 'white',
-          border: '1px solid #e5e7eb',
-          borderRadius: '8px',
-          padding: '4px 0',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
-          fontFamily: '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif',
-          minWidth: '160px',
-        }"
         class="nc-paste-link-menu"
+        :style="{ top: pasteLinkMenu.top + 'px', left: pasteLinkMenu.left + 'px' }"
       >
-        <div
-          :style="{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '7px 14px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            color: '#1f2937',
-          }"
-          class="nc-paste-link-item"
-          @click="keepAsLink"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+        <div class="nc-paste-link-item" @click="keepAsLink">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 text-nc-content-gray-subtle">
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
           </svg>
-          <span>Keep as link</span>
+          <span>{{ $t('general.keepAsLink') }}</span>
         </div>
-        <div
-          :style="{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '7px 14px',
-            cursor: 'pointer',
-            fontSize: '13px',
-            color: '#1f2937',
-          }"
-          class="nc-paste-link-item"
-          @click="convertToEmbed"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+        <div class="nc-paste-link-item" @click="convertToEmbed">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 text-nc-content-gray-subtle">
             <rect x="2" y="3" width="20" height="14" rx="2" />
-            <polygon points="10 9 15 12 10 15 10 9" fill="#6b7280" stroke="none" />
+            <polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none" />
           </svg>
-          <span>Embed</span>
+          <span>{{ $t('general.embed') }}</span>
         </div>
       </div>
     </Teleport>
@@ -966,7 +986,7 @@ onBeforeUnmount(() => {
 // Doc editor bubble menu — override embed-mode's transparent/no-shadow defaults
 .nc-doc-editor-body .bubble-menu.embed-mode {
   @apply !rounded-lg;
-  border: 1px solid #d1d5db !important;
+  border: 1px solid var(--nc-border-gray-medium) !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
@@ -988,7 +1008,7 @@ onBeforeUnmount(() => {
 
 // Title placeholder — lighter than muted to feel like a watermark
 .nc-doc-title-input::placeholder {
-  color: #d1d5db;
+  color: var(--nc-content-gray-muted);
   opacity: 1;
 }
 
@@ -1445,8 +1465,29 @@ onBeforeUnmount(() => {
   }
 }
 
-// Paste link embed popup — hover only (layout via inline styles)
-.nc-paste-link-item:hover {
-  background-color: #f3f4f6;
+// Paste link embed popup
+.nc-paste-link-menu {
+  position: fixed;
+  z-index: 9999;
+  background: var(--nc-bg-default);
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 8px;
+  padding: 4px 0;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  min-width: 160px;
+}
+
+.nc-paste-link-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--nc-content-gray);
+
+  &:hover {
+    background-color: var(--nc-bg-gray-light);
+  }
 }
 </style>

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { DocType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -17,8 +17,6 @@ const MAX_DOC_CONTENT_SIZE = 5 * 1024 * 1024;
 
 @Injectable()
 export class DocsService {
-  protected logger = new Logger(DocsService.name);
-
   /**
    * List all pages in a base (lightweight — excludes content).
    * Use `get()` to fetch full content for a single page.

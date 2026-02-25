@@ -316,8 +316,8 @@ const showFilterSection = computed(() => {
           <!-- Dropdown overlay -->
           <template #overlay="{ onEsc }">
             <NcList
-              class="!w-full"
               v-model:open="isSubjectDropdownOpen"
+              class="!w-full"
               :value="selectedSubjectIds"
               :list="subjectListOptions"
               :group-order="subjectGroupOrder"

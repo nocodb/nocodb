@@ -3892,7 +3892,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         groupColumnId: args.groupColumnId,
         ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
         includeButtonFilterColumns: args.includeButtonFilterColumns,
-        includeRowColourColumns: args.includeRowColourColumns,
+        includeRowColourColumns: args.includeRowColorColumns,
         baseModel: this,
       });
     } catch (e) {

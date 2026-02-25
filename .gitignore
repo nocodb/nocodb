@@ -111,3 +111,4 @@ antd.variable.css
 
 # nocodb-api skill runtime state
 .claude/skills/nocodb-dev-api/.state.json
+/.claude/worktrees/

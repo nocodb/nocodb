@@ -72,6 +72,7 @@ jobs:
         with:
           path: |
             packages/noco-integrations/packages/*/dist
+            packages/noco-integrations/core/dist
             packages/noco-integrations/.build-checksums.json
           key: integrations-dist-${{ hashFiles('packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
           restore-keys: |

@@ -1,6 +1,6 @@
 import type { ColumnType, OutlineViewLevelType, TableType } from 'nocodb-sdk'
-import { parseCellWidth } from '../../grid/canvas/utils/cell'
-import { getSafe2DContext } from '../../grid/canvas/utils/safeCanvas'
+import { parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
+import { getSafe2DContext } from '~/components/smartsheet/grid/canvas/utils/safeCanvas'
 import type { OutlineCanvasElement } from './types'
 import {
   ADD_ROW_HEIGHT,

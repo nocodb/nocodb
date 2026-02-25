@@ -1,4 +1,4 @@
-import { parseCellWidth } from '../../grid/canvas/utils/cell'
+import { parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
 import { MIN_COLUMN_WIDTH, RESIZE_HANDLE_WIDTH } from './constants'
 
 export interface HeaderContext {

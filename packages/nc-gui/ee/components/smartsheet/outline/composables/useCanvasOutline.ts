@@ -1,7 +1,7 @@
 import type { ColumnType, FormulaType, GridColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes, isLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { SpriteLoader } from '../../grid/canvas/loaders/SpriteLoader'
-import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../../grid/canvas/utils/cell'
+import { SpriteLoader } from '~/components/smartsheet/grid/canvas/loaders/SpriteLoader'
+import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
 import type { OutlineActiveCell, OutlineCanvasElement } from './types'
 import {
   ADD_ROW_HEIGHT,

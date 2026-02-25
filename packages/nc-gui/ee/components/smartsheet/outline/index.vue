@@ -8,8 +8,8 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
-import Scroller from '../grid/canvas/components/Scroller.vue'
-import Tooltip from '../grid/canvas/components/Tooltip.vue'
+import Scroller from '~/components/smartsheet/grid/canvas/components/Scroller.vue'
+import Tooltip from '~/components/smartsheet/grid/canvas/components/Tooltip.vue'
 import { useCanvasOutline } from './composables/useCanvasOutline'
 
 const { meta, view } = useSmartsheetStoreOrThrow()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType, ListViewLevelType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, OutlineViewLevelType, TableType } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 const meta = inject(MetaInj, ref())
@@ -21,7 +21,7 @@ const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
-const localLevels = ref<Partial<ListViewLevelType>[]>([])
+const localLevels = ref<Partial<OutlineViewLevelType>[]>([])
 
 watch(open, (val) => {
   if (val) {
@@ -98,7 +98,7 @@ async function save() {
 
   try {
     const cleanedLevels = localLevels.value.map((l) => {
-      const clean: Partial<ListViewLevelType> = {
+      const clean: Partial<OutlineViewLevelType> = {
         level: l.level,
         fk_model_id: l.fk_model_id,
       }
@@ -110,7 +110,7 @@ async function save() {
     })
 
     await saveLevelConfiguration({
-      levels: cleanedLevels as ListViewLevelType[],
+      levels: cleanedLevels as OutlineViewLevelType[],
     })
 
     await nextTick()

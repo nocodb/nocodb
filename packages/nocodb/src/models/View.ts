@@ -2632,7 +2632,6 @@ export default class View implements ViewType {
                   'fk_link_column_id',
                   'enable_nested_records',
                   'fk_self_link_column_id',
-                  'row_height',
                   'meta',
                 ]),
                 fk_view_id: view_id,

@@ -800,6 +800,11 @@ export class OutlineDatasService {
     // 9. Add thin index + flat_index + page CTEs
     allCteParts.push(...cteParts);
 
+    // 9a. Add total count CTE — counts all rows in flat_index before pagination
+    allCteParts.push(
+      `"total_count" AS (SELECT COUNT(*)::int AS n FROM "flat_index")`,
+    );
+
     // 10. Add hydration CTEs (reference "page" CTE)
     for (let d = 0; d < N; d++) {
       allCteParts.push(`"l${d}_hydrated" AS (${hydrationQbs[d].toQuery()})`);
@@ -810,6 +815,7 @@ export class OutlineDatasService {
       'page.__nc_depth',
       'page.id AS __nc_row_id',
       'page.__nc_parent_fk',
+      '(SELECT n FROM total_count) AS __nc_total',
     ];
 
     const pkCoalesce = Array.from(
@@ -850,6 +856,9 @@ export class OutlineDatasService {
     if (!rawRows.length) {
       return { list: [], pageInfo: { offset, limit, totalRows: 0 } };
     }
+
+    // Extract total count from the first row (populated by total_count CTE)
+    const totalRows: number = rawRows[0]?.__nc_total ?? rawRows.length;
 
     // 13. Post-process: unpack JSONB, convert types, substitute column IDs
     const metaKeys = new Set(['__nc_pk', '__nc_parent_id']);
@@ -905,11 +914,12 @@ export class OutlineDatasService {
     // Clean up internal fields
     for (const row of rawRows) {
       delete row.__nc_parent_fk;
+      delete row.__nc_total;
     }
 
     return {
       list: rawRows,
-      pageInfo: { offset, limit, totalRows: rawRows.length },
+      pageInfo: { offset, limit, totalRows },
     };
   }
 }

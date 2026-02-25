@@ -89,7 +89,7 @@ export default async function generateLookupSelectQuery({
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
 
-      const isMMLike = isMMOrMMLike(column);
+      const isMMLike = isMMOrMMLike(relationCol);
 
       const {
         parentContext,

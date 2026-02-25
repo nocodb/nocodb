@@ -10,7 +10,13 @@ const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
 const clone = rfdc()
-const { eventBus } = useSmartsheetStoreOrThrow()
+const { eventBus, isOutline } = useSmartsheetStoreOrThrow()
+
+const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
+const isOutlineConfigured = computed(
+  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+)
+const { getMetaByKey } = useMetas()
 
 const {
   sorts,
@@ -40,8 +46,15 @@ const isRestrictedEditor = computed(() => isLocked.value || !canSyncSort.value)
 // True when user is viewing a personal view they don't own
 const isPersonalViewNonOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value))
 
-const existingSorts = computed(() => sorts.value.filter((s) => s.id))
-const localSorts = computed(() => sorts.value.filter((s) => !s.id))
+const displayedSorts = computed(() => {
+  if (!isOutline.value || !isOutlineConfigured.value || !outlineViewStore?.selectedLevelId.value) {
+    return sorts.value
+  }
+  return sorts.value.filter((s) => s.fk_level_id === outlineViewStore!.selectedLevelId.value)
+})
+
+const displayedExistingSorts = computed(() => displayedSorts.value.filter((s) => s.id))
+const displayedLocalSorts = computed(() => displayedSorts.value.filter((s) => !s.id))
 
 const isToolbarIconMode = inject(
   IsToolbarIconMode,
@@ -63,8 +76,20 @@ onBeforeUnmount(() => {
   eventBus.off(smartsheetEventHandler)
 })
 
+const levelTableColumns = computed(() => {
+  if (!isOutline.value || !isOutlineConfigured.value || !outlineViewStore?.selectedLevel.value) {
+    return meta.value?.columns || []
+  }
+  const level = outlineViewStore.selectedLevel.value
+  if (level.fk_model_id === meta.value?.id) {
+    return meta.value?.columns || []
+  }
+  const tableMeta = getMetaByKey(meta.value?.base_id, level.fk_model_id)
+  return tableMeta?.columns || []
+})
+
 const columns = computed(() =>
-  clone(meta.value?.columns || []).map((c) => {
+  clone(levelTableColumns.value).map((c) => {
     const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt)
 
     if (isDisabled) {
@@ -106,7 +131,10 @@ const availableColumns = computed(() => {
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       }
     })
-    .filter((c) => !((isRestrictedEditor.value ? localSorts : sorts).value ?? []).find((s) => s.fk_column_id === c.id))
+    .filter(
+      (c) =>
+        !((isRestrictedEditor.value ? displayedLocalSorts : displayedSorts).value ?? []).find((s) => s.fk_column_id === c.id),
+    )
 })
 
 const getColumnUidtByID = (key?: string) => {
@@ -121,6 +149,11 @@ const addSort = (column: ColumnType) => {
   _addSort(true, column)
 
   const createdSort = sorts.value[sorts.value.length - 1]
+
+  if (isOutline.value && outlineViewStore?.selectedLevelId.value) {
+    createdSort.fk_level_id = outlineViewStore.selectedLevelId.value
+  }
+
   saveOrUpdate(createdSort, sorts.value.length - 1)
 
   showCreateSort.value = false
@@ -196,16 +229,29 @@ watch(
           'nc-locked-view': isLocked,
         }"
       >
+        <div
+          v-if="isOutline && isOutlineConfigured"
+          :class="{
+            'max-w-64': !displayedSorts.length && !isPersonalViewNonOwner,
+          }"
+          class="px-2 py-2 border-b-1"
+        >
+          <SmartsheetToolbarOutlineLevelSelector />
+        </div>
         <SmartsheetToolbarCreateSort
-          v-if="!sorts.length && !isPersonalViewNonOwner"
-          :sorts="sorts"
+          v-if="!displayedSorts.length && !isPersonalViewNonOwner"
+          :sorts="displayedSorts"
           :is-parent-open="open"
           @created="addSort"
         />
         <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-sorts-menu">
           <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
             <template v-if="!isRestrictedEditor">
-              <div v-for="(sort, i) of sorts" :key="i" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
+              <div
+                v-for="sort of displayedSorts"
+                :key="sort.id || sort.fk_column_id"
+                class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center"
+              >
                 <SmartsheetToolbarFieldListAutoCompleteDropdown
                   v-model="sort.fk_column_id"
                   class="flex caption nc-sort-field-select !w-44 flex-grow"
@@ -214,7 +260,7 @@ watch(
                   :meta="meta"
                   :disabled="false"
                   @click.stop
-                  @update:model-value="saveOrUpdate(sort, i)"
+                  @update:model-value="saveOrUpdate(sort, getSortIndex(sort))"
                 />
 
                 <NcSelect
@@ -224,7 +270,7 @@ watch(
                   dropdown-class-name="sort-dir-dropdown nc-dropdown-sort-dir !rounded-lg"
                   :disabled="false"
                   @click.stop
-                  @select="saveOrUpdate(sort, i)"
+                  @select="saveOrUpdate(sort, getSortIndex(sort))"
                 >
                   <a-select-option
                     v-for="(option, j) of getSortDirectionOptions(getColumnUidtByID(sort.fk_column_id))"
@@ -252,7 +298,7 @@ watch(
                     :shadow="false"
                     :disabled="false"
                     class="nc-sort-item-remove-btn !max-w-8 !border-l-transparent !rounded-l-none"
-                    @click.stop="deleteSort(sort, i)"
+                    @click.stop="deleteSort(sort, getSortIndex(sort))"
                   >
                     <component :is="iconMap.deleteListItem" />
                   </NcButton>
@@ -262,7 +308,11 @@ watch(
             <template v-else>
               <!-- Local Sorts (Editable) - hidden for personal view non-owners -->
               <template v-if="!isPersonalViewNonOwner">
-                <div v-for="(sort, k) of localSorts" :key="`local-${k}`" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
+                <div
+                  v-for="(sort, k) of displayedLocalSorts"
+                  :key="`local-${k}`"
+                  class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center"
+                >
                   <SmartsheetToolbarFieldListAutoCompleteDropdown
                     v-model="sort.fk_column_id"
                     class="flex caption nc-sort-field-select !w-44 flex-grow"
@@ -319,7 +369,7 @@ watch(
 
               <!-- Existing Sorts (Read Only) -->
               <div
-                v-for="(sort, i) of existingSorts"
+                v-for="(sort, i) of displayedExistingSorts"
                 :key="`existing-${i}`"
                 class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center opacity-70"
               >
@@ -384,7 +434,7 @@ watch(
               <template v-if="isEeUI && !isPublic">
                 <NcButton
                   v-if="
-                    (isRestrictedEditor ? localSorts.length : sorts.length) <
+                    (isRestrictedEditor ? displayedLocalSorts.length : displayedSorts.length) <
                     getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW) + 10
                   "
                   v-e="['c:sort:add']"
@@ -424,14 +474,14 @@ watch(
               </template>
               <template #overlay>
                 <SmartsheetToolbarCreateSort
-                  :sorts="isRestrictedEditor ? localSorts : sorts"
+                  :sorts="isRestrictedEditor ? displayedLocalSorts : displayedSorts"
                   :is-parent-open="showCreateSort"
                   @created="addSort"
                 />
               </template>
             </NcDropdown>
             <LazyGeneralCopyFromAnotherViewActionBtn
-              v-if="view"
+              v-if="view && !isOutline"
               :view="view"
               :default-options="[ViewSettingOverrideOptions.SORT]"
               @open="open = false"
@@ -441,15 +491,16 @@ watch(
         <GeneralLockedViewFooter
           v-if="isLocked"
           :class="{
-            '-mt-2': sorts.length,
+            '-mt-2': displayedSorts.length,
           }"
           @on-open="open = false"
         />
         <div
-          v-else-if="view && !sorts.length"
+          v-else-if="view && !displayedSorts.length"
           class="flex items-center justify-end empty:hidden pl-3 pr-2 py-1.5 border-t-1 border-nc-border-gray-medium"
         >
           <LazyGeneralCopyFromAnotherViewActionBtn
+            v-if="!isOutline"
             :view="view"
             :default-options="[ViewSettingOverrideOptions.SORT]"
             @open="open = false"
@@ -461,6 +512,15 @@ watch(
 </template>
 
 <style scoped lang="scss">
+:deep(.selector-level) {
+  &:has(.level-three) {
+    @apply max-w-20;
+  }
+  &:has(.level-two) {
+    @apply max-w-23;
+  }
+}
+
 :deep(.nc-sort-field-select) {
   @apply !w-44;
   .ant-select-selector {

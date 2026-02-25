@@ -203,6 +203,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
   })
 
+  const isOutlineViewEnabled = computed(() => isEeUI && isFeatureEnabled(FEATURE_FLAG.OUTLINE_VIEW))
+
   const isShowEveryonePersonalViewsEnabled = computed({
     get: () => {
       if (!isEeUI || !isFeatureEnabled(FEATURE_FLAG.SHOW_EVERYONES_PERSONAL_VIEWS)) {
@@ -482,6 +484,17 @@ export const useViewsStore = defineStore('viewsStore', () => {
                 fk_to_column_id: range.fk_to_column_id,
               })),
             },
+          )
+          break
+        case ViewTypes.OUTLINE:
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'outlineViewCreate',
+              tableId,
+            },
+            form,
           )
           break
       }
@@ -793,6 +806,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
               activeView.value!.fk_workspace_id!,
               activeView.value!.base_id!,
               { operation: 'formViewUpdate', viewId },
+              updates,
+            )
+            break
+          case ViewTypes.OUTLINE:
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'outlineViewUpdate', viewId },
               updates,
             )
             break
@@ -1378,6 +1399,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isUserViewOwner,
     getCopyViewConfigBtnAccessStatus,
     isShowEveryonePersonalViewsEnabled,
+    isOutlineViewEnabled,
   }
 })
 

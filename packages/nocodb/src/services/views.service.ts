@@ -401,6 +401,8 @@ export class ViewsService {
       deleteEvent = AppEvents.KANBAN_DELETE;
     } else if (view.type === ViewTypes.MAP) {
       deleteEvent = AppEvents.MAP_DELETE;
+    } else if (view.type === ViewTypes.OUTLINE) {
+      deleteEvent = AppEvents.OUTLINE_DELETE;
     }
 
     let owner = param.req.user;
@@ -546,6 +548,7 @@ export class ViewsService {
     param: {
       viewId: string;
       ignoreIds?: string[];
+      levelId?: string;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
@@ -563,7 +566,13 @@ export class ViewsService {
           ).withViewId(view.id)
         ).forUpdate();
     }
-    await View.showAllColumns(context, param.viewId, param.ignoreIds || []);
+    await View.showAllColumns(
+      context,
+      param.viewId,
+      param.ignoreIds || [],
+      undefined,
+      param.levelId,
+    );
 
     NocoSocket.broadcastEvent(
       context,
@@ -593,6 +602,7 @@ export class ViewsService {
     param: {
       viewId: string;
       ignoreIds?: string[];
+      levelId?: string;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
@@ -616,6 +626,7 @@ export class ViewsService {
       param.viewId,
       param.ignoreIds || [],
       ncMeta,
+      param.levelId,
     );
 
     NocoSocket.broadcastEvent(

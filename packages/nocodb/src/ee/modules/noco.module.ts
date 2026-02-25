@@ -91,6 +91,10 @@ import { DashboardsService } from '~/services/dashboards.service';
 import { RecordTemplatesController } from '~/controllers/record-templates.controller';
 import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
 
+/* Outline View */
+import { OutlinesService } from '~/ee/services/outlines.service';
+import { OutlineDatasService } from '~/ee/services/outline-datas.service';
+
 import { ActionsService } from '~/services/actions.service';
 
 /* SCIM */
@@ -179,6 +183,10 @@ export const nocoModuleEeMetadata = {
     /* Record Templates */
     RecordTemplatesService,
 
+    /* Outline View */
+    OutlinesService,
+    OutlineDatasService,
+
     ActionsService,
 
     /* SCIM */
@@ -254,6 +262,7 @@ export const nocoModuleEeMetadata = {
   exports: [
     ScriptsService,
     WorkflowsService,
+    OutlinesService,
     WorkflowSubscribersService,
     'WorkflowExecutionService',
     DashboardsService,

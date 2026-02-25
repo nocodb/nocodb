@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
+import type { ColumnType, GalleryType, KanbanType, ListType, LookupType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
@@ -50,8 +50,12 @@ const {
   isLocalMode,
 } = useViewColumnsOrThrow()
 
-const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed, isOutline } = useSmartsheetStoreOrThrow()
 
+const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
+const isOutlineConfigured = computed(
+  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+)
 const isFieldsMenuReadOnly = computed(() => {
   return isLocked.value || !isViewOperationsAllowed.value || (isLocalMode.value && hasViewFieldDataEditPermission.value)
 })
@@ -91,9 +95,17 @@ const gridDisplayValueField = computed(() => {
 })
 
 const localFilteredFieldList = computed(() => {
-  return filteredFieldList.value.filter((el) =>
+  let list = filteredFieldList.value.filter((el) =>
     activeView.value?.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField.value : true,
   )
+
+  // For outline view with levels configured, filter by selected level
+  if (isOutline.value && isOutlineConfigured.value && outlineViewStore?.selectedLevelId.value) {
+    const levelId = outlineViewStore.selectedLevelId.value
+    list = list.filter((field: any) => field.fk_level_id === levelId)
+  }
+
+  return list
 })
 
 const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
@@ -284,42 +296,51 @@ const coverImageObjectFit = computed({
   },
 })
 
+const getSelectedLevelId = () => {
+  if (!isOutline.value || !isOutlineConfigured.value || !outlineViewStore?.selectedLevelId.value) {
+    return undefined
+  }
+  return outlineViewStore.selectedLevelId.value
+}
+
 const onShowAll = async () => {
+  const levelId = getSelectedLevelId()
   addUndo({
     undo: {
       fn: async () => {
-        await hideAll()
+        await hideAll(undefined, levelId)
       },
       args: [],
     },
     redo: {
       fn: async () => {
-        await showAll()
+        await showAll(undefined, levelId)
       },
       args: [],
     },
     scope: defineViewScope({ view: activeView.value }),
   })
-  await showAll()
+  await showAll(undefined, levelId)
 }
 
 const onHideAll = async () => {
+  const levelId = getSelectedLevelId()
   addUndo({
     undo: {
       fn: async () => {
-        await showAll()
+        await showAll(undefined, levelId)
       },
       args: [],
     },
     redo: {
       fn: async () => {
-        await hideAll()
+        await hideAll(undefined, levelId)
       },
       args: [],
     },
     scope: defineViewScope({ view: activeView.value }),
   })
-  await hideAll()
+  await hideAll(undefined, levelId)
 }
 
 const visibleFields = computed(
@@ -336,6 +357,13 @@ const visibleFields = computed(
       // hide system columns if not enabled
       if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
         return false
+      }
+
+      // For outline view with levels, only include selected level's fields
+      if (isOutline.value && isOutlineConfigured.value && outlineViewStore?.selectedLevelId.value) {
+        if (field.fk_level_id !== outlineViewStore.selectedLevelId.value) {
+          return false
+        }
       }
 
       return true
@@ -470,6 +498,72 @@ watch(
       })
 
     coverOptions.value = [...coverOptions.value, ...lookupAttColumns]
+  },
+  {
+    immediate: true,
+  },
+)
+
+const prefixColumnOptions = ref<SelectProps['options']>([])
+
+const allowedPrefixTypes = new Set([
+  UITypes.SingleSelect,
+  UITypes.User,
+  UITypes.Checkbox,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+])
+
+const updatePrefixColumn = async (val?: string | null) => {
+  if (activeView.value?.type === ViewTypes.OUTLINE && activeView.value?.id && activeView.value?.view) {
+    await updateViewMeta(activeView.value.id, ViewTypes.OUTLINE, {
+      fk_prefix_column_id: val,
+    })
+  }
+}
+
+const prefixColumnId = computed({
+  get: () => {
+    if (activeView.value?.type !== ViewTypes.OUTLINE || !activeView.value?.view) return undefined
+
+    const fk_prefix_column_id = (activeView.value.view as ListType).fk_prefix_column_id
+
+    if (prefixColumnOptions.value?.find((o) => o.value === fk_prefix_column_id)) return fk_prefix_column_id
+    return fk_prefix_column_id === null ? null : undefined
+  },
+  set: async (val) => {
+    if (val !== prefixColumnId.value) {
+      addUndo({
+        undo: {
+          fn: updatePrefixColumn,
+          args: [prefixColumnId.value],
+        },
+        redo: {
+          fn: updatePrefixColumn,
+          args: [val],
+        },
+        scope: defineViewScope({ view: activeView.value }),
+      })
+
+      await updatePrefixColumn(val)
+    }
+  },
+})
+
+watch(
+  fields,
+  (newValue) => {
+    if (!newValue || isPublic.value || activeView.value?.type !== ViewTypes.OUTLINE) return
+
+    const filterFields =
+      newValue
+        .filter((el) => el.fk_column_id && allowedPrefixTypes.has(metaColumnById.value[el.fk_column_id]?.uidt as UITypes))
+        .map((field) => ({
+          value: field.fk_column_id,
+          label: field.title,
+        })) ?? []
+
+    prefixColumnOptions.value = [{ value: null, label: t('labels.noPrefix') }, ...filterFields]
   },
   {
     immediate: true,
@@ -692,6 +786,64 @@ const onAddColumnDropdownVisibilityChange = () => {
           </div>
         </div>
 
+        <!--
+        <div v-if="!isPublic && isOutline" class="flex items-center gap-2 p-2 w-80 border-b-1 border-nc-border-gray-light">
+          <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.prefixField') }}</div>
+
+          <div
+            class="flex-1 nc-dropdown-prefix-column-wrapper flex items-stretch border-1 border-nc-border-gray-medium rounded-lg transition-all duration-0.3s"
+            :class="{
+              'nc-disabled': isFieldsMenuReadOnly,
+            }"
+          >
+            <a-select
+              v-model:value="prefixColumnId"
+              class="flex-1 w-full"
+              dropdown-class-name="nc-dropdown-prefix-column !rounded-lg"
+              :bordered="false"
+              :disabled="isFieldsMenuReadOnly"
+              @click.stop
+            >
+              <template #suffixIcon><GeneralIcon class="text-nc-content-gray-subtle" icon="arrowDown" /></template>
+
+              <a-select-option v-for="option of prefixColumnOptions" :key="option.value" :value="option.value">
+                <div class="w-full flex gap-2 items-center justify-between max-w-[400px]">
+                  <div
+                    class="flex-1 flex items-center gap-1"
+                    :class="{
+                      'max-w-[calc(100%_-_20px)]': prefixColumnId === option.value,
+                      'max-w-full': prefixColumnId !== option.value,
+                    }"
+                  >
+                    <SmartsheetHeaderIcon
+                      v-if="option.value && metaColumnById[option.value]"
+                      :column="metaColumnById[option.value]"
+                      class="!w-3.5 !h-3.5 !ml-0"
+                      color="text-nc-content-gray-subtle"
+                    />
+
+                    <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ option.label }}
+                      </template>
+                      <template #default>{{ option.label }}</template>
+                    </NcTooltip>
+                  </div>
+                  <GeneralIcon
+                    v-if="prefixColumnId === option.value"
+                    id="nc-selected-item-icon"
+                    icon="check"
+                    class="flex-none text-nc-content-brand w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </a-select>
+          </div>
+        </div>
+-->
+        <div v-if="isOutline && isOutlineConfigured" class="px-2 py-2 border-b-1">
+          <SmartsheetToolbarOutlineLevelSelector />
+        </div>
         <div class="py-2" @click.stop>
           <a-input
             ref="fieldsMenuSearchRef"
@@ -985,6 +1137,16 @@ const onAddColumnDropdownVisibilityChange = () => {
     @apply shadow-selected border-nc-border-brand;
   }
 }
+.nc-dropdown-prefix-column-wrapper {
+  @apply h-8;
+
+  &:not(.nc-disabled):not(:focus-within) {
+    @apply shadow-default hover:shadow-hover;
+  }
+  &:not(.nc-disabled):focus-within {
+    @apply shadow-selected border-nc-border-brand;
+  }
+}
 
 :deep(.ant-input-affix-wrapper) {
   &:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused):not(:focus) {
@@ -993,6 +1155,15 @@ const onAddColumnDropdownVisibilityChange = () => {
   &.ant-input-affix-wrapper-focused,
   &:focus {
     @apply border-nc-border-brand shadow-selected;
+  }
+}
+
+:deep(.selector-level) {
+  &:has(.level-three) {
+    @apply max-w-24.5;
+  }
+  &:has(.level-two) {
+    @apply max-w-23;
   }
 }
 </style>

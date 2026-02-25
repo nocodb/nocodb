@@ -4,6 +4,7 @@ import {
   type FilterType,
   ViewSettingOverrideOptions,
   isCreatedOrLastModifiedTimeCol,
+  isHiddenCol,
   isSystemColumn,
   isVirtualCol,
 } from 'nocodb-sdk'
@@ -141,22 +142,52 @@ const {
   isForm,
   eventBus,
   allFilters: smartsheetAllFilters,
+  isOutline,
 } = widget.value || workflow.value || rlsPolicyId?.value
   ? {
       nestedFilters: ref([]),
       isForm: ref(false),
       eventBus: null,
       allFilters: ref([]),
+      isOutline: ref(false),
     }
   : useSmartsheetStoreOrThrow()
 
+const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
+const isOutlineConfigured = computed(
+  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+)
+
+const levelId = computed(() =>
+  isOutline.value && isOutlineConfigured.value ? outlineViewStore?.selectedLevelId.value : undefined,
+)
+
+const { getMetaByKey } = useMetas()
+
 const currentFilters = modelValue.value || (!link.value && !webHook.value && !workflow.value && nestedFilters.value) || []
 
-const columns = computed(() => meta.value?.columns || [])
+const columns = computed(() => {
+  if (isOutline.value && isOutlineConfigured.value && outlineViewStore?.selectedLevel.value) {
+    const level = outlineViewStore.selectedLevel.value
+    if (level.fk_model_id && level.fk_model_id !== meta.value?.id) {
+      const tableMeta = getMetaByKey(meta.value?.base_id, level.fk_model_id)
+      return tableMeta?.columns || []
+    }
+  }
+  return meta.value?.columns || []
+})
+
+const { showSystemFields } =
+  widget.value || workflow.value || rlsPolicyId?.value ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
 
 const fieldsToFilter = computed(() =>
   columns.value.filter((c) => {
     if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
+
+    if (!link.value && !webHook.value && !workflow.value && isSystemColumn(c)) {
+      if (isHiddenCol(c, meta.value)) return false
+      if (!showSystemFields.value) return false
+    }
 
     const customFilter = props.filterOption ? props.filterOption(c) : true
 
@@ -495,7 +526,8 @@ const scrollDownIfNeeded = () => {
  *   (e.g. AI-generated filters, copy-paste filters).
  */
 const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
-  await _addFilter(false, filter)
+  const draft = levelId.value && !nested.value ? { ...(filter ?? {}), fk_level_id: levelId.value } : filter
+  await _addFilter(false, draft)
 
   if (filter && !isCopyFilter) {
     selectFilterField(filters.value[filters.value.length - 1], filters.value.length - 1)
@@ -512,7 +544,8 @@ const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => 
 }
 
 const addFilterGroup = async (filter?: Partial<FilterType>) => {
-  await _addFilterGroup(filter)
+  const draft = levelId.value && !nested.value ? { ...(filter ?? {}), fk_level_id: levelId.value } : filter
+  await _addFilterGroup(draft)
 
   if (!nested.value) {
     // if nested, scroll to bottom
@@ -628,7 +661,18 @@ watch(
   },
 )
 
-const visibleFilters = computed(() => filters.value.filter((filter) => filter.status !== 'delete'))
+const visibleFilters = computed(() =>
+  filters.value.filter((filter) => {
+    if (filter.status === 'delete') return false
+    if (levelId.value && !nested.value) return filter.fk_level_id === levelId.value
+    return true
+  }),
+)
+
+// Resolve the real index in filters.value from a visibleFilters element.
+// Needed because Draggable iterates visibleFilters (level-filtered) but
+// useViewFilters operations use indices into the full filters array.
+const getFilterIndex = (filter: ColumnFilterType) => filters.value.findIndex((f) => f === filter)
 
 const isLogicalOpChangeAllowed = computed(() => {
   return new Set(visibleFilters.value.slice(1).map((filter) => filter.logical_op)).size > 1
@@ -1004,7 +1048,7 @@ defineExpose({
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
       v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
-      :list="filters"
+      :list="visibleFilters"
       :disabled="!isReorderEnabled"
       group="nc-column-filters"
       ghost-class="bg-nc-bg-gray-extralight"
@@ -1065,7 +1109,7 @@ defineExpose({
                       size="default"
                       :disabled="isLockedView || readOnly"
                       class="nc-filter-enabled-checkbox"
-                      @change="onToggleFilterChange(filter, i)"
+                      @change="onToggleFilterChange(filter, getFilterIndex(filter))"
                     />
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
                       $t('labels.where')
@@ -1085,7 +1129,7 @@ defineExpose({
                           '!w-full': webHook,
                         }"
                         @click.stop
-                        @change="onLogicalOpUpdate(filter, i)"
+                        @change="onLogicalOpUpdate(filter, getFilterIndex(filter))"
                       >
                         <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                           <div class="flex items-center w-full justify-between w-full gap-2">
@@ -1110,7 +1154,7 @@ defineExpose({
                       size="small"
                       :disabled="isLockedView"
                       class="nc-filter-item-remove-btn cursor-pointer"
-                      @click.stop="deleteFilter(filter, i)"
+                      @click.stop="deleteFilter(filter, getFilterIndex(filter))"
                     >
                       <GeneralIcon icon="deleteListItem" />
                     </NcButton>
@@ -1149,7 +1193,7 @@ defineExpose({
               size="default"
               :disabled="isLockedView || readOnly"
               class="nc-filter-enabled-checkbox"
-              @change="onToggleFilterChange(filter, i)"
+              @change="onToggleFilterChange(filter, getFilterIndex(filter))"
             />
             <div
               class="flex flex-row gap-x-0 flex-1 nc-filter-wrapper"
@@ -1180,7 +1224,7 @@ defineExpose({
                   'nc-disabled-logical-op':
                     filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || readOnly,
                 }"
-                @change="onLogicalOpUpdate(filter, i)"
+                @change="onLogicalOpUpdate(filter, getFilterIndex(filter))"
                 @click.stop
               >
                 <a-select-option v-for="op of logicalOps" :key="op.value" :value="op.value">
@@ -1220,7 +1264,7 @@ defineExpose({
                   :meta="meta"
                   :show-all-columns="filter.readOnly || isLockedView || readOnly"
                   @click.stop
-                  @change="selectFilterField(filter, i)"
+                  @change="selectFilterField(filter, getFilterIndex(filter))"
                 />
 
                 <NcSelect
@@ -1237,7 +1281,7 @@ defineExpose({
                   :disabled="filter.readOnly || isLockedView || readOnly"
                   hide-details
                   dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
-                  @change="filterUpdateCondition(filter, i)"
+                  @change="filterUpdateCondition(filter, getFilterIndex(filter))"
                 >
                   <template
                     v-for="compOp of comparisonOpList(types[filter.fk_column_id], getColumn(filter)?.meta?.date_format)"
@@ -1275,7 +1319,7 @@ defineExpose({
                   :disabled="filter.readOnly || isLockedView || readOnly"
                   hide-details
                   dropdown-class-name="nc-dropdown-filter-comp-sub-op"
-                  @change="filterUpdateCondition(filter, i)"
+                  @change="filterUpdateCondition(filter, getFilterIndex(filter))"
                 >
                   <template
                     v-for="compSubOp of comparisonSubOpList(filter.comparison_op, getColumn(filter)?.meta?.date_format)"
@@ -1306,14 +1350,14 @@ defineExpose({
                       class="nc-filter-field-select min-w-32 w-full max-h-8"
                       :columns="dynamicColumns(filter)"
                       :meta="rootMeta"
-                      @change="saveOrUpdate(filter, i)"
+                      @change="saveOrUpdate(filter, getFilterIndex(filter))"
                     />
                   </div>
                   <template v-else-if="workflow && filter.dynamic">
                     <slot
                       name="dynamic-filter"
                       :filter="filter"
-                      @update-filter-value="(value) => updateFilterValue(value, filter, i)"
+                      @update-filter-value="(value) => updateFilterValue(value, filter, getFilterIndex(filter))"
                     />
                   </template>
 
@@ -1323,7 +1367,7 @@ defineExpose({
                       v-model:checked="filter.value"
                       dense
                       :disabled="filter.readOnly || isLockedView || readOnly"
-                      @change="saveOrUpdate(filter, i)"
+                      @change="saveOrUpdate(filter, getFilterIndex(filter))"
                     />
 
                     <SmartsheetToolbarFilterInput
@@ -1335,7 +1379,7 @@ defineExpose({
                       :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
                       :filter="filter"
                       :disabled="isLockedView || readOnly"
-                      @update-filter-value="(value) => updateFilterValue(value, filter, i)"
+                      @update-filter-value="(value) => updateFilterValue(value, filter, getFilterIndex(filter))"
                       @click.stop
                     />
 
@@ -1359,7 +1403,7 @@ defineExpose({
                           >
                             <div
                               class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
-                              @click="resetDynamicField(filter, i)"
+                              @click="resetDynamicField(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
                                 <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
@@ -1374,7 +1418,7 @@ defineExpose({
                             <div
                               v-e="['c:filter:dynamic-filter']"
                               class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
-                              @click="changeToDynamic(filter, i)"
+                              @click="changeToDynamic(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
                                 <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
@@ -1410,7 +1454,7 @@ defineExpose({
                           >
                             <div
                               class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
-                              @click="resetDynamicField(filter, i)"
+                              @click="resetDynamicField(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
                                 <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
@@ -1430,7 +1474,7 @@ defineExpose({
                                   ? 'cursor-pointer'
                                   : 'cursor-not-allowed'
                               "
-                              @click="changeToDynamic(filter, i)"
+                              @click="changeToDynamic(filter, getFilterIndex(filter))"
                             >
                               <div class="flex flex-row items-center justify-between w-full">
                                 <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
@@ -1457,7 +1501,7 @@ defineExpose({
                 size="small"
                 :disabled="isLockedView"
                 class="nc-filter-item-remove-btn self-center"
-                @click.stop="deleteFilter(filter, i)"
+                @click.stop="deleteFilter(filter, getFilterIndex(filter))"
               >
                 <GeneralIcon icon="deleteListItem" />
               </NcButton>
@@ -1474,7 +1518,7 @@ defineExpose({
               </NcButton>
 
               <NcTooltip
-                v-if="!filter.readOnly && !readOnly && isEeUI && isViewFilter && !filter.is_group && !webHook && !link && !widget"
+                v-if="!filter.readOnly && !readOnly && isEeUI && isViewFilter && !filter.is_group && !webHook && !link && !widget && !isOutline"
               >
                 <template #title>
                   {{ getPinTooltip(filter) }}
@@ -1485,7 +1529,7 @@ defineExpose({
                   size="small"
                   :disabled="!canPinFilter(filter) || isLockedView"
                   class="nc-filter-item-pin-btn self-center"
-                  @click.stop="blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, i)"
+                  @click.stop="blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, getFilterIndex(filter))"
                 >
                   <GeneralIcon
                     :icon="parseProp(filter.meta)?.pinned ? 'ncPinOff' : 'ncPin'"

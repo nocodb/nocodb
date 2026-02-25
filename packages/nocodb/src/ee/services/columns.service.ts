@@ -49,6 +49,8 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
+import OutlineViewLevel from '~/models/OutlineViewLevel';
+import OutlineViewColumn from '~/models/OutlineViewColumn';
 
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {
@@ -136,7 +138,45 @@ export class ColumnsService extends ColumnsServiceCE {
       }
     }
 
-    return super.columnAdd(context, param);
+    const result = await super.columnAdd(context, param);
+
+    // insertColumnToAllViews already handles levels whose outline view is on param.tableId.
+    // Here we handle levels from outline views on OTHER tables that reference param.tableId.
+    const allLevels = await OutlineViewLevel.listByModelId(context, param.tableId);
+    if (allLevels.length) {
+      // Views already processed by insertColumnToAllViews (views on this table)
+      const viewsOnThisTable = await View.list(context, param.tableId);
+      const processedViewIds = new Set(viewsOnThisTable.map((v) => v.id));
+
+      const unhandledLevels = allLevels.filter(
+        (l) => !processedViewIds.has(l.fk_view_id),
+      );
+
+      if (unhandledLevels.length) {
+        const tableMeta = await Model.getWithInfo(context, { id: param.tableId });
+        const insertedColumn = tableMeta.columns?.find(
+          (c) => c.title === (param.column as ColumnReqType).title,
+        );
+        if (insertedColumn) {
+          for (const level of unhandledLevels) {
+            const order = await OutlineViewColumn.getNextOrderForLevel(
+              context,
+              level.fk_view_id,
+              level.id,
+            );
+            await OutlineViewColumn.insert(context, {
+              fk_view_id: level.fk_view_id,
+              fk_column_id: insertedColumn.id,
+              fk_level_id: level.id,
+              show: false,
+              order,
+            });
+          }
+        }
+      }
+    }
+
+    return result;
   }
 
   // if column is links or ltar, insert filters if passed

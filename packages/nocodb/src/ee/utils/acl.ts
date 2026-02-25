@@ -224,6 +224,10 @@ const permissionScopes = {
     'kanbanViewUpdate',
     'mapViewUpdate',
     'calendarViewUpdate',
+    'outlineViewCreate',
+    'outlineViewUpdate',
+    'outlineViewDataList',
+    'outlineViewDataCount',
     'groupedDataList',
     'mmList',
     'hmList',
@@ -613,6 +617,8 @@ const rolePermissions:
       galleryViewGet: true,
       kanbanViewGet: true,
       calendarViewGet: true,
+      outlineViewDataList: true,
+      outlineViewDataCount: true,
       groupedDataList: true,
 
       mmList: true,
@@ -747,6 +753,7 @@ const rolePermissions:
       kanbanViewUpdate: true,
       mapViewUpdate: true,
       calendarViewUpdate: true,
+      outlineViewUpdate: true,
 
       // Row color operations for personal views (middleware handles ownership check)
       viewRowColorConditionAdd: true,
@@ -1117,6 +1124,10 @@ const permissionDescriptions: Record<string, string> = {
   galleryViewGet: 'view gallery',
   kanbanViewGet: 'view Kanban board',
   calendarViewGet: 'view calendar',
+  outlineViewCreate: 'create outline view',
+  outlineViewUpdate: 'update outline view',
+  outlineViewDataList: 'view outline view data',
+  outlineViewDataCount: 'view outline view data count',
   gridViewUpdate: 'update grid view',
   formViewUpdate: 'update form view',
   formColumnUpdate: 'update form columns',

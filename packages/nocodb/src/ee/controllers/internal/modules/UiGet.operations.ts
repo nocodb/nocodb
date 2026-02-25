@@ -19,6 +19,7 @@ import { HooksService } from '~/services/hooks.service';
 import { FormsService } from '~/services/forms.service';
 import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
+import { OutlineDatasService } from '~/ee/services/outline-datas.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
 
@@ -39,6 +40,7 @@ export class UiGetOperations
     protected hooksService: HooksService,
     protected formsService: FormsService,
     protected mapsService: MapsService,
+    protected outlineDatasService: OutlineDatasService,
     protected commentsService: CommentsService,
     protected syncService: SyncService,
     protected extensionsService: ExtensionsService,
@@ -90,6 +92,20 @@ export class UiGetOperations
             widgetId: req.query.widgetId as string,
           }),
         );
+      case 'outlineViewDataCount':
+      {
+        context.cache = true;
+        return await this.outlineDatasService.outlineViewCount(context, {
+          viewId: req.query.viewId as string,
+          query: req.query,
+        });
+      }
+      case 'outlineViewDataList':
+        context.cache = true;
+        return await this.outlineDatasService.outlineViewData(context, {
+          viewId: req.query.viewId as string,
+          query: req.query,
+        });
     }
     return super.handle(context, {
       workspaceId,

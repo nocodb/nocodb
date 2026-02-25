@@ -8,6 +8,7 @@ import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
+import { OutlineDatasService } from '~/ee/services/outline-datas.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';
 import { AttachmentsService } from '~/services/attachments.service';
@@ -21,6 +22,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
     @Inject(forwardRef(() => 'JobsService'))
     protected readonly jobsService: IJobsService,
     private readonly dataOptService: DataOptService,
+    private readonly outlineDatasService: OutlineDatasService,
     protected readonly attachmentsService: AttachmentsService,
     protected readonly publicMetasService: PublicMetasService,
   ) {
@@ -39,6 +41,19 @@ export class PublicDatasService extends PublicDatasServiceCE {
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
+
+    if (view.type === ViewTypes.OUTLINE) {
+      const base = await Base.get(context, view.base_id);
+      this.publicMetasService.checkViewBaseType(view, base);
+      if (view.password && view.password !== password) {
+        return NcError.invalidSharedViewPassword();
+      }
+      return await this.outlineDatasService.outlineViewData(context, {
+        viewId: view.id,
+        query: param.query,
+      });
+    }
+
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
@@ -84,6 +99,38 @@ export class PublicDatasService extends PublicDatasServiceCE {
       });
     }
     return await super.dataList(context, param);
+  }
+
+  async dataCount(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+    },
+  ) {
+    const { sharedViewUuid, password } = param;
+    const view = await View.getByUUID(context, sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(sharedViewUuid);
+
+    if (view.type === ViewTypes.OUTLINE) {
+      const base = await Base.get(context, view.base_id);
+      this.publicMetasService.checkViewBaseType(view, base);
+      if (view.password && view.password !== password) {
+        return NcError.invalidSharedViewPassword();
+      }
+      const result = await this.outlineDatasService.outlineViewCount(context, {
+        viewId: view.id,
+        query: param.query,
+      });
+      return {
+        count: result.totalRows,
+        ...result,
+      };
+    }
+
+    return await super.dataCount(context, param);
   }
 
   async widgetData(

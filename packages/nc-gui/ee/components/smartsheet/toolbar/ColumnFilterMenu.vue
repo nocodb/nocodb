@@ -28,7 +28,13 @@ const {
   filtersFromUrlParams,
   whereQueryFromUrl,
   filtersFromUrlParamsReadableErrors,
+  isOutline,
 } = useSmartsheetStoreOrThrow()
+
+const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
+const isOutlineConfigured = computed(
+  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+)
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
 
@@ -111,9 +117,20 @@ provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
 
-const draftFilter = ref({})
+const draftFilter = ref<Record<string, any>>(
+  isOutline.value && outlineViewStore?.selectedLevelId.value ? { fk_level_id: outlineViewStore.selectedLevelId.value } : {},
+)
 const queryFilterOpen = ref(false)
 const viewFilterOpen = ref(true)
+
+if (isOutline.value && outlineViewStore) {
+  watch(
+    () => outlineViewStore!.selectedLevelId.value,
+    (levelId) => {
+      draftFilter.value = levelId ? { fk_level_id: levelId } : {}
+    },
+  )
+}
 
 const smartsheetEventListener = async (event: string, payload?: any) => {
   if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
@@ -133,7 +150,12 @@ const smartsheetEventListener = async (event: string, payload?: any) => {
   if (!column) return
 
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
-    draftFilter.value = { fk_column_id: column.id }
+    draftFilter.value = {
+      fk_column_id: column.id,
+      ...(isOutline.value && outlineViewStore?.selectedLevelId.value
+        ? { fk_level_id: outlineViewStore.selectedLevelId.value }
+        : {}),
+    }
     open.value = true
   }
 }
@@ -412,6 +434,9 @@ const handleAiFilters = async (payload: {
 
     <template #overlay>
       <div :key="filterKey">
+        <div v-if="isOutline && isOutlineConfigured" class="px-2 py-2 border-b-1">
+          <SmartsheetToolbarOutlineLevelSelector />
+        </div>
         <template v-if="!isRestrictedEditor">
           <!-- EE: AI Filter Prompt — natural-language input that generates filter conditions via AI -->
           <SmartsheetToolbarAiFilterPrompt :is-parent-open="open" @apply-filters="handleAiFilters" />

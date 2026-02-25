@@ -145,6 +145,7 @@ import type {
   IntegrationEvent,
   IntegrationUpdateEvent,
   KanbanViewUpdateEvent,
+  OutlineViewUpdateEvent,
   MetaDiffEvent,
   ModelRoleVisibilityEvent,
   OrgUserInviteEvent,
@@ -1863,6 +1864,7 @@ export class AppHooksListenerService
       case AppEvents.CALENDAR_UPDATE:
       case AppEvents.GALLERY_UPDATE:
       case AppEvents.KANBAN_UPDATE:
+      case AppEvents.OUTLINE_UPDATE:
       case AppEvents.VIEW_UPDATE:
         {
           const param = data as
@@ -1871,6 +1873,7 @@ export class AppHooksListenerService
             | GalleryViewUpdateEvent
             | CalendarViewUpdateEvent
             | KanbanViewUpdateEvent
+            | OutlineViewUpdateEvent
             | ViewUpdateEvent;
           const type: string = viewTypeAlias[param.view.type];
 
@@ -1923,6 +1926,16 @@ export class AppHooksListenerService
               });
               prev = await extractViewRelatedProps({
                 view: (param as KanbanViewUpdateEvent).oldKanbanView,
+                context: param.context,
+              });
+              break;
+            case AppEvents.OUTLINE_UPDATE:
+              next = await extractViewRelatedProps({
+                view: (param as OutlineViewUpdateEvent).outlineView,
+                context: param.context,
+              });
+              prev = await extractViewRelatedProps({
+                view: (param as OutlineViewUpdateEvent).oldOutlineView,
                 context: param.context,
               });
               break;
@@ -2259,6 +2272,62 @@ export class AppHooksListenerService
                   view_title: param.view.title,
                   view_id: param.view.id,
                   view_type: 'calendar',
+                  view_owner_id: param.owner?.id,
+                  view_owner_email: param.owner?.email,
+                  ...extractNonSystemProps(
+                    await extractViewRelatedProps(param),
+                    ['title', 'type', 'id', 'fk_mode_id', 'owned_by', 'show'],
+                  ),
+                },
+                fk_model_id: param.view.fk_model_id,
+                source_id: param.view.source_id,
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+
+      case AppEvents.OUTLINE_CREATE:
+        {
+          const param = data as ViewCreateEvent;
+
+          await this.auditInsert(
+            await generateAuditV1Payload<ViewCreatePayload>(
+              AuditV1OperationTypes.VIEW_CREATE,
+              {
+                details: {
+                  view_title: param.view.title,
+                  view_id: param.view.id,
+                  view_type: 'outline',
+                  ...extractNonSystemProps(
+                    await extractViewRelatedProps(param),
+                    ['title', 'type', 'id', 'fk_mode_id', 'owned_by', 'show'],
+                  ),
+                  view_owner_id: param.owner?.id,
+                  view_owner_email: param.owner?.email,
+                },
+                fk_model_id: param.view.fk_model_id,
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.OUTLINE_DELETE:
+        {
+          const param = data as ViewDeleteEvent;
+
+          await this.auditInsert(
+            await generateAuditV1Payload<ViewDeletePayload>(
+              AuditV1OperationTypes.VIEW_DELETE,
+              {
+                details: {
+                  view_title: param.view.title,
+                  view_id: param.view.id,
+                  view_type: 'outline',
                   view_owner_id: param.owner?.id,
                   view_owner_email: param.owner?.email,
                   ...extractNonSystemProps(

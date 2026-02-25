@@ -97,6 +97,9 @@ const orderedSerializableMetaTables = [
   MetaTable.CALENDAR_VIEW_RANGE,
   MetaTable.MAP_VIEW,
   MetaTable.MAP_VIEW_COLUMNS,
+  MetaTable.OUTLINE_VIEW,
+  MetaTable.OUTLINE_VIEW_LEVELS,
+  MetaTable.OUTLINE_VIEW_COLUMNS,
 
   // Filters and sorts
   MetaTable.FILTER_EXP,

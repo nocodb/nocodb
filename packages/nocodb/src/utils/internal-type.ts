@@ -38,6 +38,7 @@ export type InternalGETResponseType = Promise<
   | Extension
   | Extension[]
   | { workspaces: any[] }
+  | { totalRows: number; counts: Record<string, number> }
 >;
 
 export type InternalPOSTResponseType = Promise<

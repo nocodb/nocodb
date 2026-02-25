@@ -470,7 +470,28 @@ export class ExportService {
               case 'fk_column_id':
               case 'fk_cover_image_col_id':
               case 'fk_grp_col_id':
+              case 'fk_prefix_column_id':
                 view.view[k] = idMap.get(v as string);
+                break;
+              case 'levels':
+                if (view.type === ViewTypes.OUTLINE) {
+                  view.view[k] = (v as any[]).map((level) => ({
+                    level: level.level,
+                    fk_model_id:
+                      idMap.get(level.fk_model_id) ?? level.fk_model_id,
+                    fk_link_column_id: level.fk_link_column_id
+                      ? idMap.get(level.fk_link_column_id) ??
+                        level.fk_link_column_id
+                      : null,
+                    fk_self_link_column_id: level.fk_self_link_column_id
+                      ? idMap.get(level.fk_self_link_column_id) ??
+                        level.fk_self_link_column_id
+                      : null,
+                    enable_nested_records: level.enable_nested_records,
+                    wrap_headers: level.wrap_headers,
+                    meta: level.meta,
+                  }));
+                }
                 break;
               case 'meta':
                 if (view.type === ViewTypes.KANBAN) {

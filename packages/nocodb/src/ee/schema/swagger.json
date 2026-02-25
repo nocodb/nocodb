@@ -4987,6 +4987,10 @@
                 "type": "null"
               }
             ]
+          },
+          "fk_level_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to List View Level"
           }
         },
         "readOnly": true,

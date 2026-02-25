@@ -41,6 +41,9 @@ import KanbanViewColumn from '~/models/KanbanViewColumn';
 import Column from '~/models/Column';
 import MapView from '~/models/MapView';
 import MapViewColumn from '~/models/MapViewColumn';
+import OutlineView from '~/models/OutlineView';
+import OutlineViewColumn from '~/models/OutlineViewColumn';
+import OutlineViewLevel from '~/models/OutlineViewLevel';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -358,6 +361,9 @@ export default class View implements ViewType {
         await Model.getByIdOrName(context, { id: view.fk_model_id }, ncMeta)
       ).getColumns(context, ncMeta);
 
+      const levelIdMap = new Map<string, string>();
+      let defaultLevelId: string | undefined;
+
       // insert view metadata based on view type
       switch (view.type) {
         case ViewTypes.GRID:
@@ -381,6 +387,61 @@ export default class View implements ViewType {
             ncMeta,
           );
           break;
+        case ViewTypes.OUTLINE: {
+          await OutlineView.insert(
+            context,
+            {
+              ...(copyFromView?.view || {}),
+              ...view,
+              fk_view_id: view_id,
+            },
+            ncMeta,
+          );
+
+          if (copyFromView?.view) {
+            const sourceLevels = await OutlineViewLevel.list(
+              context,
+              copyFromView.id,
+              ncMeta,
+            );
+            for (const level of sourceLevels) {
+              const newLevel = await OutlineViewLevel.insert(
+                context,
+                {
+                  ...extractProps(level, [
+                    'level',
+                    'fk_model_id',
+                    'fk_link_column_id',
+                    'enable_nested_records',
+                    'fk_self_link_column_id',
+                    'wrap_headers',
+                    'meta',
+                  ]),
+                  fk_view_id: view_id,
+                },
+                ncMeta,
+              );
+              if (level.id && newLevel?.id) {
+                levelIdMap.set(level.id, newLevel.id);
+              }
+              if (level.fk_model_id === view.fk_model_id && newLevel?.id) {
+                defaultLevelId = newLevel.id;
+              }
+            }
+          } else {
+            const defaultLevel = await OutlineViewLevel.insert(
+              context,
+              {
+                fk_view_id: view_id,
+                level: 0,
+                fk_model_id: view.fk_model_id,
+              },
+              ncMeta,
+            );
+            defaultLevelId = defaultLevel?.id;
+          }
+          break;
+        }
         case ViewTypes.GALLERY:
           await GalleryView.insert(
             context,
@@ -457,16 +518,22 @@ export default class View implements ViewType {
         columns = await copyFromView.getColumns(context, ncMeta);
 
         for (const sort of sorts) {
+          const sortProps = extractProps(sort, [
+            'fk_column_id',
+            'fk_level_id',
+            'direction',
+            'base_id',
+            'source_id',
+            'order',
+          ]);
+          if (sortProps.fk_level_id) {
+            sortProps.fk_level_id =
+              levelIdMap.get(sortProps.fk_level_id) || sortProps.fk_level_id;
+          }
           await Sort.insert(
             context,
             {
-              ...extractProps(sort, [
-                'fk_column_id',
-                'direction',
-                'base_id',
-                'source_id',
-                'order',
-              ]),
+              ...sortProps,
               fk_view_id: view_id,
               id: null,
             },
@@ -484,23 +551,29 @@ export default class View implements ViewType {
         }
 
         for (const filter of filters.children) {
+          const filterProps = extractProps(filter, [
+            'id',
+            'fk_level_id',
+            'fk_parent_column_id',
+            'fk_column_id',
+            'comparison_op',
+            'comparison_sub_op',
+            'value',
+            'fk_parent_id',
+            'is_group',
+            'logical_op',
+            'base_id',
+            'source_id',
+            'order',
+          ]);
+          if (filterProps.fk_level_id) {
+            filterProps.fk_level_id =
+              levelIdMap.get(filterProps.fk_level_id) || filterProps.fk_level_id;
+          }
           const createdFilter = await Filter.insert(
             context,
             {
-              ...extractProps(filter, [
-                'id',
-                'fk_parent_column_id',
-                'fk_column_id',
-                'comparison_op',
-                'comparison_sub_op',
-                'value',
-                'fk_parent_id',
-                'is_group',
-                'logical_op',
-                'base_id',
-                'source_id',
-                'order',
-              ]),
+              ...filterProps,
               fk_view_id: view_id,
               id: null,
             },
@@ -632,6 +705,7 @@ export default class View implements ViewType {
               bold,
               italic,
               id: null,
+              ...(defaultLevelId ? { fk_level_id: defaultLevelId } : {}),
             },
             ncMeta,
           );
@@ -782,6 +856,31 @@ export default class View implements ViewType {
             ncMeta,
           );
           break;
+        case ViewTypes.OUTLINE: {
+          // Insert the column to the outline view level matching the model id
+          const level = (
+            (await OutlineViewLevel.list(context, view.id, ncMeta)) || []
+          ).find((l) => l.fk_model_id === param.fk_model_id);
+          const outlineOrder = level?.id
+            ? await OutlineViewColumn.getNextOrderForLevel(
+                context,
+                view.id,
+                level.id,
+                ncMeta,
+              )
+            : undefined;
+          await OutlineViewColumn.insert(
+            context,
+            {
+              ...insertObj,
+              fk_level_id: level?.id,
+              fk_view_id: view.id,
+              order: outlineOrder,
+            },
+            ncMeta,
+          );
+          break;
+        }
         case ViewTypes.KANBAN:
           await KanbanViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
@@ -848,6 +947,18 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         {
           col = await MapViewColumn.insert(
+            context,
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+        }
+        break;
+      case ViewTypes.OUTLINE:
+        {
+          col = await OutlineViewColumn.insert(
             context,
             {
               ...param,
@@ -938,6 +1049,9 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         columns = await MapViewColumn.list(context, viewId, ncMeta);
         break;
+      case ViewTypes.OUTLINE:
+        columns = await OutlineViewColumn.list(context, viewId, ncMeta);
+        break;
       case ViewTypes.FORM:
         columns = await FormViewColumn.list(context, viewId, ncMeta);
         break;
@@ -982,6 +1096,11 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         tableName = MetaTable.MAP_VIEW_COLUMNS;
         cacheScope = CacheScope.MAP_VIEW_COLUMN;
+
+        break;
+      case ViewTypes.OUTLINE:
+        tableName = MetaTable.OUTLINE_VIEW_COLUMNS;
+        cacheScope = CacheScope.OUTLINE_VIEW_COLUMN;
 
         break;
       case ViewTypes.FORM:
@@ -1045,6 +1164,10 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         table = MetaTable.MAP_VIEW_COLUMNS;
         cacheScope = CacheScope.MAP_VIEW_COLUMN;
+        break;
+      case ViewTypes.OUTLINE:
+        table = MetaTable.OUTLINE_VIEW_COLUMNS;
+        cacheScope = CacheScope.OUTLINE_VIEW_COLUMN;
         break;
       case ViewTypes.GALLERY:
         table = MetaTable.GALLERY_VIEW_COLUMNS;
@@ -1154,6 +1277,8 @@ export default class View implements ViewType {
         return GridViewColumn.get(context, colId, ncMeta);
       case ViewTypes.MAP:
         return MapViewColumn.get(context, colId, ncMeta);
+      case ViewTypes.OUTLINE:
+        return OutlineViewColumn.get(context, colId, ncMeta);
       case ViewTypes.GALLERY:
         return GalleryViewColumn.get(context, colId, ncMeta);
       case ViewTypes.KANBAN:
@@ -1254,6 +1379,17 @@ export default class View implements ViewType {
           );
         case ViewTypes.MAP:
           return await MapViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
+        case ViewTypes.OUTLINE:
+          return await OutlineViewColumn.insert(
             context,
             {
               fk_view_id: viewId,
@@ -1578,6 +1714,23 @@ export default class View implements ViewType {
         CacheDelDirection.CHILD_TO_PARENT,
       );
     }
+
+    // For Outline View, delete the levels associated with viewId
+    if (view.type === ViewTypes.OUTLINE) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.OUTLINE_VIEW_LEVELS,
+        {
+          fk_view_id: viewId,
+        },
+      );
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.OUTLINE_VIEW_LEVEL}:${viewId}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
     await NocoCache.deepDel(
       context,
       `${columnTableScope}:${viewId}`,
@@ -1664,6 +1817,7 @@ export default class View implements ViewType {
     viewId,
     ignoreColdIds = [],
     ncMeta = Noco.ncMeta,
+    levelId?: string,
   ) {
     const view = await this.get(context, viewId);
     const table = this.extractViewColumnsTableName(view);
@@ -1683,6 +1837,7 @@ export default class View implements ViewType {
     const { isNoneList } = cachedList;
     if (!isNoneList && dataList?.length) {
       for (const o of dataList) {
+        if (levelId && o.fk_level_id !== levelId) continue;
         if (!ignoreColdIds?.length || !ignoreColdIds.includes(o.fk_column_id)) {
           // set data
           o.show = true;
@@ -1698,6 +1853,10 @@ export default class View implements ViewType {
 
       const colIndex = availableColumnsInView.indexOf(col.id);
       if (colIndex > -1) {
+        // Skip columns not belonging to the specified level
+        if (levelId && (viewColumns[colIndex] as any).fk_level_id !== levelId)
+          continue;
+
         await this.updateColumn(
           context,
           viewId,
@@ -1705,7 +1864,8 @@ export default class View implements ViewType {
           { show: true },
           ncMeta,
         );
-      } else {
+      } else if (!levelId) {
+        // Only insert new columns when not level-scoped
         await this.insertColumn(
           context,
           {
@@ -1746,6 +1906,7 @@ export default class View implements ViewType {
     viewId,
     ignoreColdIds = [],
     ncMeta = Noco.ncMeta,
+    levelId?: string,
   ) {
     const view = await this.get(context, viewId, ncMeta);
     const table = this.extractViewColumnsTableName(view);
@@ -1782,6 +1943,7 @@ export default class View implements ViewType {
 
     if (!isNoneList && dataList?.length) {
       for (const o of dataList) {
+        if (levelId && o.fk_level_id !== levelId) continue;
         if (
           !mergedIgnoreColdIds?.length ||
           !mergedIgnoreColdIds.includes(o.fk_column_id)
@@ -1793,15 +1955,21 @@ export default class View implements ViewType {
         }
       }
     }
+
     // set meta
+    const condition: Record<string, any> = {
+      fk_view_id: viewId,
+    };
+    if (levelId) {
+      condition.fk_level_id = levelId;
+    }
+
     return await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       table,
       { show: false },
-      {
-        fk_view_id: viewId,
-      },
+      condition,
       mergedIgnoreColdIds?.length
         ? {
             _not: {
@@ -1835,6 +2003,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.MAP:
         viewType = 'map';
+        break;
+      case ViewTypes.OUTLINE:
+        viewType = 'outline';
         break;
       case ViewTypes.CALENDAR:
         viewType = 'calendar';
@@ -2274,6 +2445,14 @@ export default class View implements ViewType {
           insertObjs,
         );
         break;
+      case ViewTypes.OUTLINE:
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.OUTLINE_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
       case ViewTypes.KANBAN:
         await ncMeta.bulkMetaInsert(
           context.workspace_id,
@@ -2399,6 +2578,10 @@ export default class View implements ViewType {
 
     const { id: view_id } = insertedView;
 
+    // Map old level IDs to new level IDs for sort/filter duplication (outline view)
+    const levelIdMap = new Map<string, string>();
+    let defaultLevelId: string | undefined;
+
     // insert view metadata based on view type
     switch (view.type) {
       case ViewTypes.GRID:
@@ -2422,6 +2605,61 @@ export default class View implements ViewType {
           ncMeta,
         );
         break;
+      case ViewTypes.OUTLINE: {
+        await OutlineView.insert(
+          context,
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+
+        if (copyFromView?.view) {
+          const sourceLevels = await OutlineViewLevel.list(
+            context,
+            copyFromView.id,
+            ncMeta,
+          );
+          for (const level of sourceLevels) {
+            const newLevel = await OutlineViewLevel.insert(
+              context,
+              {
+                ...extractProps(level, [
+                  'level',
+                  'fk_model_id',
+                  'fk_link_column_id',
+                  'enable_nested_records',
+                  'fk_self_link_column_id',
+                  'meta',
+                ]),
+                fk_view_id: view_id,
+              },
+              ncMeta,
+            );
+            if (level.id && newLevel?.id) {
+              levelIdMap.set(level.id, newLevel.id);
+            }
+            if (level.fk_model_id === view.fk_model_id && newLevel?.id) {
+              defaultLevelId = newLevel.id;
+            }
+          }
+        } else {
+          // Auto-create level 0 with the view's table
+          const defaultLevel = await OutlineViewLevel.insert(
+            context,
+            {
+              fk_view_id: view_id,
+              level: 0,
+              fk_model_id: view.fk_model_id,
+            },
+            ncMeta,
+          );
+          defaultLevelId = defaultLevel?.id;
+        }
+        break;
+      }
       case ViewTypes.GALLERY:
         await GalleryView.insert(
           context,
@@ -2515,13 +2753,19 @@ export default class View implements ViewType {
         const filterInsertObjs = [];
 
         for (const sort of sorts) {
+          const sortProps = extractProps(sort, [
+            'fk_column_id',
+            'fk_level_id',
+            'direction',
+            'base_id',
+            'source_id',
+          ]);
+          if (sortProps.fk_level_id) {
+            sortProps.fk_level_id =
+              levelIdMap.get(sortProps.fk_level_id) || sortProps.fk_level_id;
+          }
           sortInsertObjs.push({
-            ...extractProps(sort, [
-              'fk_column_id',
-              'direction',
-              'base_id',
-              'source_id',
-            ]),
+            ...sortProps,
             fk_view_id: view_id,
             id: undefined,
           });
@@ -2544,22 +2788,29 @@ export default class View implements ViewType {
           const fn = async (filter, parentId: string = null) => {
             const generatedId = await ncMeta.genNanoid(MetaTable.FILTER_EXP);
 
+            const filterProps = extractProps(filter, [
+              'fk_level_id',
+              'fk_parent_column_id',
+              'fk_row_color_condition_id',
+              'fk_column_id',
+              'comparison_op',
+              'comparison_sub_op',
+              'value',
+              'fk_parent_id',
+              'is_group',
+              'logical_op',
+              'base_id',
+              'source_id',
+              'order',
+              'meta',
+            ]);
+            if (filterProps.fk_level_id) {
+              filterProps.fk_level_id =
+                levelIdMap.get(filterProps.fk_level_id) ||
+                filterProps.fk_level_id;
+            }
             filterInsertObjs.push({
-              ...extractProps(filter, [
-                'fk_parent_column_id',
-                'fk_row_color_condition_id',
-                'fk_column_id',
-                'comparison_op',
-                'comparison_sub_op',
-                'value',
-                'fk_parent_id',
-                'is_group',
-                'logical_op',
-                'base_id',
-                'source_id',
-                'order',
-                'meta',
-              ]),
+              ...filterProps,
               fk_view_id: view_id,
               id: generatedId,
               fk_parent_id: parentId,
@@ -2625,6 +2876,17 @@ export default class View implements ViewType {
         );
       }
 
+      // Associate bulk-inserted outline view columns with the default level
+      if (view.type === ViewTypes.OUTLINE && defaultLevelId) {
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.OUTLINE_VIEW_COLUMNS,
+          { fk_level_id: defaultLevelId },
+          { fk_view_id: view_id },
+        );
+      }
+
       if (copyFromView) {
         Noco.appHooksService.emit(AppEvents.VIEW_DUPLICATE_COMPLETE, {
           sourceView: copyFromView,
@@ -2671,6 +2933,9 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         table = MetaTable.MAP_VIEW_COLUMNS;
         break;
+      case ViewTypes.OUTLINE:
+        table = MetaTable.OUTLINE_VIEW_COLUMNS;
+        break;
       case ViewTypes.CALENDAR:
         table = MetaTable.CALENDAR_VIEW_COLUMNS;
         break;
@@ -2696,6 +2961,9 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         table = MetaTable.MAP_VIEW;
         break;
+      case ViewTypes.OUTLINE:
+        table = MetaTable.OUTLINE_VIEW;
+        break;
       case ViewTypes.CALENDAR:
         table = MetaTable.CALENDAR_VIEW;
         break;
@@ -2714,6 +2982,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.MAP:
         scope = CacheScope.MAP_VIEW_COLUMN;
+        break;
+      case ViewTypes.OUTLINE:
+        scope = CacheScope.OUTLINE_VIEW_COLUMN;
         break;
       case ViewTypes.KANBAN:
         scope = CacheScope.KANBAN_VIEW_COLUMN;
@@ -2739,6 +3010,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.MAP:
         scope = CacheScope.MAP_VIEW;
+        break;
+      case ViewTypes.OUTLINE:
+        scope = CacheScope.OUTLINE_VIEW;
         break;
       case ViewTypes.KANBAN:
         scope = CacheScope.KANBAN_VIEW;
@@ -2786,6 +3060,9 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         this.view = await MapView.get(context, this.id, ncMeta);
         break;
+      case ViewTypes.OUTLINE:
+        this.view = await OutlineView.get(context, this.id, ncMeta);
+        break;
       case ViewTypes.FORM:
         this.view = await FormView.getWithInfo(context, this.id, ncMeta);
         break;
@@ -2812,6 +3089,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.MAP:
         this.view = await MapView.get(context, this.id, ncMeta);
+        break;
+      case ViewTypes.OUTLINE:
+        this.view = await OutlineView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.FORM:
         this.view = await FormView.get(context, this.id, ncMeta);

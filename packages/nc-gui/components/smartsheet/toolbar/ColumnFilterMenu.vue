@@ -110,7 +110,11 @@ const queryFilterOpen = ref(false)
 const viewFilterOpen = ref(true)
 
 const smartsheetEventListener = async (event: string, payload?: any) => {
-  if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
+  if (
+    (event === SmartsheetStoreEvents.FILTER_RELOAD ||
+      validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload)) &&
+    activeView?.value?.id
+  ) {
     await loadFilters({
       hookId: undefined,
       isWebhook: false,

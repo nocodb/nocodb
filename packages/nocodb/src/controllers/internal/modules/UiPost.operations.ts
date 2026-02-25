@@ -133,6 +133,8 @@ export class UiPostOperations
     'extensionCreate' as const,
     'extensionUpdate' as const,
     'extensionDelete' as const,
+    'outlineViewCreate' as const,
+    'outlineViewUpdate' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -239,11 +241,13 @@ export class UiPostOperations
         return await this.viewsService.showAllColumns(context, {
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
+          levelId: req.query.levelId,
         });
       case 'hideAllColumns':
         return await this.viewsService.hideAllColumns(context, {
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
+          levelId: req.query.levelId,
         });
       case 'viewColumnUpdate':
         return await this.viewColumnsService.columnUpdate(context, {

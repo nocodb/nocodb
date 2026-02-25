@@ -161,11 +161,23 @@ export function useViewFilters(
 
   const activeView = inject(ActiveViewInj, ref())
 
-  const { showSystemFields, fieldsMap } =
-    isWidget || isWorkflow || isRlsPolicy ? { showSystemFields: ref(false), fieldsMap: ref({}) } : useViewColumnsOrThrow()
+  const {
+    showSystemFields,
+    fieldsMap,
+    metaColumnById: _metaColumnById,
+  } = isWidget || isWorkflow || isRlsPolicy
+    ? { showSystemFields: ref(false), fieldsMap: ref({}), metaColumnById: computed(() => ({} as Record<string, ColumnType>)) }
+    : useViewColumnsOrThrow()
+
+  // Use metaColumnById (includes outline view level table columns) with fallback to meta.columns
+  const allMetaColumns = computed(() => {
+    if (isLink) return meta.value?.columns || []
+    const byId = _metaColumnById.value
+    return Object.keys(byId).length ? Object.values(byId) : (meta.value?.columns as ColumnType[]) || []
+  })
 
   const options = computed<SelectProps['options']>(() =>
-    meta.value?.columns?.filter((c: ColumnType) => {
+    allMetaColumns.value.filter((c: ColumnType) => {
       if (isSystemColumn(c)) {
         /** hide system columns if not enabled */
         return showSystemFields.value
@@ -179,11 +191,11 @@ export function useViewFilters(
   )
 
   const types = computed(() => {
-    if (!meta.value?.columns?.length) {
+    if (!allMetaColumns.value.length) {
       return {}
     }
 
-    return meta.value?.columns?.reduce((obj: any, col: any) => {
+    return allMetaColumns.value.reduce((obj: any, col: any) => {
       if (col.uidt === UITypes.Formula) {
         const formulaUIType = getEquivalentUIType({
           formulaColumn: col,
@@ -1008,7 +1020,14 @@ export function useViewFilters(
           // Preserve 'logical_op' from the draft when provided (e.g. AI-generated filters may use 'or'),
           // otherwise normalizeFilterNode falls back to placeholderFilter's default.
           { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order']) }
-        : placeholderFilter()) as ColumnFilterType,
+        : {
+            ...placeholderFilter(),
+            ...(draftFilter.fk_level_id
+              ? {
+                  fk_level_id: draftFilter.fk_level_id,
+                }
+              : {}),
+          }) as ColumnFilterType,
     )
     if (!undo && !(isForm.value && !isWebhook)) {
       addUndo({
@@ -1050,7 +1069,10 @@ export function useViewFilters(
   const addFilterGroup = async (draftFilter: Partial<ColumnFilterType> = {}) => {
     isFilterUpdated.value = true
 
-    const placeHolderGroupFilter: ColumnFilterType = placeholderGroupFilter()
+    const placeHolderGroupFilter: ColumnFilterType = {
+      ...placeholderGroupFilter(),
+      ...(draftFilter?.fk_level_id ? { fk_level_id: draftFilter.fk_level_id } : {}),
+    } as ColumnFilterType
 
     const draftFilterHasChildren = draftFilter && ncIsArray(draftFilter.children) && draftFilter.children.length > 0
 

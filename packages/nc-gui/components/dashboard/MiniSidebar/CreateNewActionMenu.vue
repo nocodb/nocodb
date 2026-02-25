@@ -21,7 +21,7 @@ const { openNewDashboardModal } = useDashboardStore()
 
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
-const { activeView } = storeToRefs(viewsStore)
+const { activeView, isOutlineViewEnabled } = storeToRefs(viewsStore)
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
@@ -254,6 +254,12 @@ const hasDashboardCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
+              <template v-if="isOutlineViewEnabled">
+                <NcMenuItem data-testid="mini-sidebar-view-create-outline" @click="onOpenModal({ type: ViewTypes.OUTLINE })">
+                  <GeneralViewIcon :meta="{ type: ViewTypes.OUTLINE }" />
+                  <div>{{ $t('objects.viewType.outline') }}</div>
+                </NcMenuItem>
+              </template>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />
                 <NcMenuItem data-testid="mini-sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">

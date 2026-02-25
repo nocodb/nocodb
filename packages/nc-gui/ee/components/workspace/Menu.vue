@@ -1,25 +1,48 @@
 <script lang="ts" setup>
-import { type WorkspaceType } from 'nocodb-sdk'
+import { UseVirtualList } from '@vueuse/components'
+import { OrgUserRoles, type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspace, workspacesList } = storeToRefs(workspaceStore)
+const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
 const { appInfo } = useGlobal()
 
 const { isEEFeatureBlocked, showUpgradeToCreateWorkspace } = useEeConfig()
 
-
 const { isDark } = useTheme()
 
+const { orgRoles } = useRoles()
+
+const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
+const { leftSidebarState, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const viewportWidth = ref(window.innerWidth)
+
 const { navigateToTable } = useTablesStore()
+
+const { $e } = useNuxtApp()
+
+const { navigateToProject, isMobileMode } = useGlobal()
+
+const isWorkspaceDropdownOpen = ref(false)
+
+const copyBtnRef = ref()
+
+watch(isLeftSidebarOpen, () => {
+  isWorkspaceDropdownOpen.value = false
+})
 
 const isBaseListModalOpen = ref(false)
 
 const createDlg = ref(false)
+
+const otherWorkspaces = computed(() => {
+  return workspacesList.value.filter((ws) => ws.id !== activeWorkspace.value?.id)
+})
 
 const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   createDlg.value = false
@@ -125,35 +148,42 @@ const canCreateWorkspace = computed(() => {
       maxWidth: !isMiniSidebar ? `calc(100% - 2.5rem)` : undefined,
     }"
   >
-    <div
-      v-e="['c:workspace:menu']"
-      :class="{
-        'flex items-center justify-center': isMiniSidebar,
-        'flex': !isMiniSidebar,
-      }"
-      @click="isBaseListModalOpen = true"
+    <NcDropdown
+      v-model:visible="isWorkspaceDropdownOpen"
+      class="h-full min-w-0 rounded-lg"
+      placement="bottomLeft"
+      :overlay-class-name="`nc-dropdown-workspace-menu !overflow-hidden ${isMiniSidebar ? '!left-1' : ''}`"
     >
       <div
-        data-testid="nc-workspace-menu"
+        v-e="['c:workspace:menu']"
         :class="{
-          'nc-mini-sidebar-ws-item': isMiniSidebar,
-          'group cursor-pointer flex flex-grow w-full gap-x-2 items-center overflow-hidden py-1.25 xs:py-1.75 pr-0.25':
-            !isMiniSidebar,
-          'nc-medium-shadow': workspacesList.length > 2,
+          'flex items-center justify-center': isMiniSidebar,
+          'flex': !isMiniSidebar,
         }"
-        class="nc-workspace-menu nc-small-shadow"
       >
-        <GeneralWorkspaceIcon
-          :workspace="activeWorkspace"
-          show-nocodb-icon
-          class="flex-none border-1 border-nc-border-gray-medium"
-          :size="isMiniSidebar ? 'mini-sidebar' : 'medium'"
-        />
-        <div v-if="activeWorkspace && !isMiniSidebar" class="flex min-w-10 w-full items-center">
-          <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
-            {{ activeWorkspace.title }}
+        <div
+          data-testid="nc-workspace-menu"
+          :class="{
+            'nc-mini-sidebar-ws-item': isMiniSidebar,
+            'group cursor-pointer flex flex-grow w-full gap-x-2 items-center overflow-hidden py-1.25 xs:py-1.75 pr-0.25':
+              !isMiniSidebar,
+            'nc-small-shadow': workspacesList.length === 2,
+            'nc-medium-shadow': workspacesList.length > 2,
+          }"
+          class="nc-workspace-menu"
+        >
+          <GeneralWorkspaceIcon
+            :workspace="activeWorkspace"
+            show-nocodb-icon
+            class="flex-none border-1 border-nc-border-gray-medium"
+            :size="isMiniSidebar ? 'mini-sidebar' : 'medium'"
+          />
+          <div v-if="activeWorkspace && !isMiniSidebar" class="flex min-w-10 w-full items-center">
+            <div class="nc-workspace-title font-semibold text-base text-md truncate capitalize">
+              {{ activeWorkspace.title }}
+            </div>
+            <GeneralIcon icon="chevronDown" class="mt-0.5 ml-1 min-w-6 text-lg !text-nc-gray-500/75" />
           </div>
-          <GeneralIcon icon="chevronDown" class="mt-0.5 ml-1 min-w-6 text-lg !text-nc-gray-500/75" />
         </div>
       </div>
 
@@ -285,7 +315,30 @@ const canCreateWorkspace = computed(() => {
 </template>
 
 <style scoped lang="scss">
+:deep(.nc-dropdown) {
+  @apply z-40;
+}
+
+:deep(.ant-dropdown-menu-title-content) {
+  @apply !flex !w-full;
+}
+
 .nc-workspace-menu {
   @apply cursor-pointer;
+}
+
+.nc-workspace-menu-item {
+  @apply flex items-center !py-0 !pl-1 text-sm hover:text-nc-content-gray-extreme;
+}
+
+.nc-workspace-dropdown-active-workspace-info {
+  @apply flex text-xs text-nc-content-gray-muted;
+  font-weight: 400;
+  line-height: 1.125rem; /* 150% */
+  letter-spacing: -0.015rem;
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply hidden;
 }
 </style>

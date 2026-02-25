@@ -36,6 +36,8 @@ nocodb-sdk  →  nocodb (backend)  →  nc-gui (frontend)
 
 Start with migration or SDK type changes when a feature needs them. If schema evolves during the PR, update the same migration file — **1 migration per PR max**.
 
+Use `pnpm migration:add table my feature` to create migration `nc_YYYYMMDDHHmm_table_my_feature.ts`.
+
 After SDK changes, rebuild SDK before backend or frontend: `cd packages/nocodb-sdk && pnpm run build:ee`
 
 ## Commands

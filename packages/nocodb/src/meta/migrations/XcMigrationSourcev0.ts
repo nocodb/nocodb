@@ -21,7 +21,6 @@ import * as nc_020_add_cell_coloring_fields_to_row_color_conditions from './v0/n
 import * as nc_021_scim_support from './v0/nc_021_scim_support';
 import * as nc_022_record_templates from './v0/nc_022_record_templates';
 import * as nc_023_rls_policies from './v0/nc_023_rls_policies';
-import * as nc_023_docs from './v0/nc_023_docs';
 import * as nc_202601010000_placeholder from './v0/nc_202601010000_placeholder';
 import * as nc_202602250000_outline_view from './v0/nc_202602250000_outline_view';
 import * as nc_202602250001_button_filter from './v0/nc_202602250001_button_filter';
@@ -34,6 +33,7 @@ import * as nc_202602260000_unify_ce_roles from './v0/nc_202602260000_unify_ce_r
 import * as nc_202603020000_hook_error_notifications from './v0/nc_202603020000_hook_error_notifications';
 import * as nc_202603020001_teams_hierarchy from './v0/nc_202603020001_teams_hierarchy';
 import * as nc_202603020002_chat from './v0/nc_202603020002_chat';
+import * as nc_202602260000_docs from './v0/nc_202602260000_docs';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -66,7 +66,6 @@ export default class XcMigrationSourcev0 {
       'nc_021_scim_support',
       'nc_022_record_templates',
       'nc_023_rls_policies',
-      'nc_023_docs',
       'nc_202601010000_placeholder',
       'nc_202602250000_outline_view',
       'nc_202602250001_button_filter',
@@ -79,6 +78,7 @@ export default class XcMigrationSourcev0 {
       'nc_202603020000_hook_error_notifications',
       'nc_202603020001_teams_hierarchy',
       'nc_202603020002_chat',
+      'nc_202602260000_docs',
     ]);
   }
 
@@ -134,8 +134,6 @@ export default class XcMigrationSourcev0 {
         return nc_022_record_templates;
       case 'nc_023_rls_policies':
         return nc_023_rls_policies;
-      case 'nc_023_docs':
-        return nc_023_docs;
       case 'nc_202601010000_placeholder':
         return nc_202601010000_placeholder;
       case 'nc_202602250000_outline_view':
@@ -160,6 +158,8 @@ export default class XcMigrationSourcev0 {
         return nc_202603020001_teams_hierarchy;
       case 'nc_202603020002_chat':
         return nc_202603020002_chat;
+      case 'nc_202602260000_docs':
+        return nc_202602260000_docs;
     }
   }
 }

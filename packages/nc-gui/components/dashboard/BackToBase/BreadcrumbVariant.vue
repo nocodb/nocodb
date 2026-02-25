@@ -9,7 +9,7 @@ const { shouldShow, navigateToBase, lastVisitedBase } = useBackToBase()
   <Transition name="nc-btb-bc">
     <div
       v-if="shouldShow"
-      class="nc-btb-bar w-full flex items-center gap-2 px-4 h-9 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight cursor-pointer select-none group hover:bg-nc-bg-brand-light transition-colors duration-150"
+      class="nc-btb-bar w-full flex items-center gap-2 pl-3 pr-4 h-9 border-b-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight cursor-pointer select-none group hover:bg-nc-bg-brand-light transition-colors duration-150"
       data-testid="nc-btb-bar"
       @click="navigateToBase"
     >
@@ -17,15 +17,15 @@ const { shouldShow, navigateToBase, lastVisitedBase } = useBackToBase()
         icon="chevronLeft"
         class="flex-none h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-brand transition-colors duration-150"
       />
-      <span class="text-small font-medium text-nc-content-gray-subtle group-hover:text-nc-content-brand transition-colors duration-150">
+      <span class="text-small font-medium text-nc-content-gray-subtle group-hover:text-nc-content-brand transition-colors duration-150 whitespace-nowrap">
         {{ $t('labels.backToBase') }}
       </span>
-      <span
-        v-if="lastVisitedBase?.title"
-        class="text-small font-semibold text-nc-content-gray group-hover:text-nc-content-brand transition-colors duration-150 truncate"
-      >
-        {{ lastVisitedBase.title }}
-      </span>
+      <template v-if="lastVisitedBase?.title">
+        <span class="text-nc-content-gray-muted group-hover:text-nc-content-brand transition-colors duration-150">-</span>
+        <span class="text-small font-semibold text-nc-content-gray group-hover:text-nc-content-brand transition-colors duration-150 truncate">
+          {{ lastVisitedBase.title }}
+        </span>
+      </template>
     </div>
   </Transition>
 </template>

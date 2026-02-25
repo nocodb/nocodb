@@ -89,3 +89,4 @@ export * from '~/lib/viewUtils';
 export * from '~/lib/workflow';
 export * from '~/lib/uniqueConstraintHelpers';
 export * from '~/lib/recordTemplate';
+export * from '~/lib/viewSection';

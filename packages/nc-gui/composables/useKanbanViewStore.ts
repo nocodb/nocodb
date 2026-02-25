@@ -350,6 +350,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
             ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
             ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             where,
+            include_row_color: true,
+            include_button_filter_columns: true,
           })
         : await fetchSharedViewData({
             ...params,

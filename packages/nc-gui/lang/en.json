@@ -1865,7 +1865,8 @@
     "publishing": "Publishing",
     "navigate": "Navigate",
     "select": "Select",
-    "managed": "Managed"
+    "managed": "Managed",
+    "otherWorkspaces": "Other Workspaces"
   },
   "activity": {
     "useTemplate": "Use template",

@@ -1,6 +1,7 @@
 import UserCE from 'src/models/User';
 import {
   extractRolesObj,
+  OrgUserRoles,
   ProjectRoles,
   type UserType,
   WorkspaceUserRoles,
@@ -17,7 +18,7 @@ import {
   RootScopes,
 } from '~/utils/globals';
 import { Base, BaseUser, OrgUser, WorkspaceUser } from '~/models';
-import { sanitiseUserObj } from '~/utils';
+import { isOnPrem, sanitiseUserObj } from '~/utils';
 import { normalizeEmail } from '~/utils/emailUtils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
@@ -478,6 +479,26 @@ export default class User extends UserCE implements UserType {
     const user = args.user ?? (await this.get(userId, ncMeta));
 
     if (!user) NcError.userNotFound(userId);
+
+    // On-prem: super admin is treated as owner of all workspaces and bases
+    if (isOnPrem && extractRolesObj(user.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+      return {
+        ...sanitiseUserObj(user),
+        roles: extractRolesObj(user.roles),
+        workspace_roles:
+          args.workspaceId || context.workspace_id
+            ? { [WorkspaceUserRoles.OWNER]: true }
+            : null,
+        base_roles: args.baseId
+          ? { [ProjectRoles.OWNER]: true }
+          : null,
+        org_roles: args.orgId
+          ? { [OrgUserRoles.SUPER_ADMIN]: true }
+          : null,
+        teams: [],
+        base_teams: [],
+      } as any;
+    }
 
     const [
       workspaceRoles,

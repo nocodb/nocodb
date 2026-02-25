@@ -78,6 +78,7 @@ import {
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
 import Widget from '~/models/Widget';
+import { isOnPrem } from '~/utils';
 import { isMuxEnabled } from '~/utils/envs';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 // Re-export VIEW_KEY for external consumers (previously defined here)
@@ -1400,12 +1401,22 @@ export class AclMiddleware implements NestInterceptor {
       scope,
     });
 
-    const userScopeRole = getUserRoleForScope(req.user, scope);
+    const userScopeRole =
+      isOnPrem && req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
+        ? OrgUserRoles.SUPER_ADMIN
+        : getUserRoleForScope(req.user, scope);
     // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
     const extendedScopeRoles =
       extendedScope && getUserRoleForScope(req.user, extendedScope);
     if (!userScopeRole && !extendedScopeRoles) {
       NcError.forbidden('Unauthorized access');
+    }
+
+    // On-prem: assign owner role to super admin for all bases (mirrors CE behavior)
+    if (isOnPrem && userScopeRole === OrgUserRoles.SUPER_ADMIN) {
+      req.user.base_roles = {
+        [ProjectRoles.OWNER]: true,
+      };
     }
 
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);

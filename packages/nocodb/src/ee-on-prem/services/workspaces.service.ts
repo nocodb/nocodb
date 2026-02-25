@@ -60,6 +60,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
    * Override workspace list to handle CE mode (no license).
    * In CE mode, instead of creating a personal workspace for each user,
    * add the user to the shared default workspace.
+   * In EE mode, super admin sees ALL workspaces as owner.
    */
   async list(param: {
     user: {
@@ -69,8 +70,25 @@ export class WorkspacesService extends WorkspacesServiceEE {
     };
     req: NcRequest;
   }) {
-    // In EE mode (licensed), use the standard EE behavior
+    // In EE mode (licensed), super admin sees all workspaces
     if (Noco.isEE()) {
+      const isSuperAdmin = extractRolesObj(param.user?.roles)?.[
+        OrgUserRoles.SUPER_ADMIN
+      ];
+
+      if (isSuperAdmin) {
+        const allWorkspaces = await Workspace.list();
+        // Inject owner role for each workspace
+        const workspacesWithRoles = allWorkspaces.map((ws) => ({
+          ...ws,
+          roles: WorkspaceUserRoles.OWNER,
+        }));
+
+        return new PagedResponseImpl(workspacesWithRoles, {
+          count: workspacesWithRoles.length,
+        });
+      }
+
       return super.list(param);
     }
 
@@ -143,6 +161,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
    * Override base listing to use CE access model when unlicensed.
    * CE: only bases with direct project_users entries (BaseUser.getProjectsList)
    * EE: workspace role inheritance gives access to all workspace bases
+   * Both modes: super admin sees all bases in any workspace
    */
   async getProjectList(param: {
     user: {
@@ -152,20 +171,25 @@ export class WorkspacesService extends WorkspacesServiceEE {
     workspaceId: string;
     req: NcRequest;
   }) {
+    // Super admin sees all workspace bases in both CE and EE mode
+    const isSuperAdmin = extractRolesObj(param.user?.roles)?.[
+      OrgUserRoles.SUPER_ADMIN
+    ];
+
+    if (isSuperAdmin) {
+      const bases = await Base.list(param.workspaceId);
+      return new PagedResponseImpl<BaseType>(bases, {
+        count: bases.length,
+      });
+    }
+
     // In EE mode (licensed), use the standard EE behavior (workspace role inheritance)
     if (Noco.isEE()) {
       return super.getProjectList(param);
     }
 
     // CE mode: use direct base membership only (matches original CE baseList)
-    const isSuperAdmin = extractRolesObj(param.user?.roles)[
-      OrgUserRoles.SUPER_ADMIN
-    ];
-
-    // Super admin sees all workspace bases; regular users only see directly-invited bases
-    const bases = isSuperAdmin
-      ? await Base.list(param.workspaceId)
-      : await BaseUser.getProjectsList(param.user.id, {});
+    const bases = await BaseUser.getProjectsList(param.user.id, {});
 
     return new PagedResponseImpl<BaseType>(bases, {
       count: bases.length,

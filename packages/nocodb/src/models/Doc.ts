@@ -111,19 +111,48 @@ export default class Doc implements DocType {
    * Lightweight list for sidebar/list views — excludes `content` to
    * avoid transferring large ProseMirror JSON payloads for every page.
    * Full content is fetched separately via `get()` when opening the editor.
+   *
+   * Unlike `list()`, this queries DB directly with a fields list to
+   * avoid fetching potentially large ProseMirror JSON content columns.
+   * It intentionally bypasses the list cache (which stores full docs)
+   * to keep memory usage low for sidebar use.
    */
   public static async listLite(
     context: NcContext,
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const docs = await this.list(context, baseId, ncMeta);
+    const liteFields = [
+      'id',
+      'base_id',
+      'fk_workspace_id',
+      'title',
+      'meta',
+      'order',
+      'parent_id',
+      'version',
+      'created_by',
+      'updated_by',
+      'created_at',
+      'updated_at',
+    ];
 
-    // Strip content from each doc — sidebar only needs title, order, meta
-    return docs.map((doc) => {
-      const { content: _content, ...rest } = doc as any;
-      return new Doc(rest);
-    });
+    const docList = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        condition: {
+          base_id: baseId,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+        fields: liteFields,
+      },
+    );
+
+    return docList.map((doc) => new Doc(this.parseDoc(doc)));
   }
 
   public static async insert(

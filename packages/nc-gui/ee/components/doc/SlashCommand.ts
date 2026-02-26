@@ -240,7 +240,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     icon: icons.calendar,
     group: 'Date & Time',
     command: (editor, range) => {
-      const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+      const date = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
       editor.chain().focus().deleteRange(range).insertContent(date).run()
     },
   },
@@ -250,7 +250,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     icon: icons.clock,
     group: 'Date & Time',
     command: (editor, range) => {
-      const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      const time = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
       editor.chain().focus().deleteRange(range).insertContent(time).run()
     },
   },
@@ -261,8 +261,8 @@ export const slashCommandItems: SlashCommandItem[] = [
     group: 'Date & Time',
     command: (editor, range) => {
       const dt = new Date()
-      const date = dt.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
-      const time = dt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      const date = dt.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
+      const time = dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
       editor.chain().focus().deleteRange(range).insertContent(`${date} ${time}`).run()
     },
   },

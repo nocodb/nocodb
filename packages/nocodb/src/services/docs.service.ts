@@ -53,7 +53,7 @@ export class DocsService {
 
     // Guard against oversized documents
     if (payload.content) {
-      const contentSize = JSON.stringify(payload.content).length;
+      const contentSize = Buffer.byteLength(JSON.stringify(payload.content), 'utf8');
       if (contentSize > MAX_DOC_CONTENT_SIZE) {
         NcError.badRequest(
           `Page content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,
@@ -108,7 +108,7 @@ export class DocsService {
 
     // Guard against oversized documents
     if (payload.content) {
-      const contentSize = JSON.stringify(payload.content).length;
+      const contentSize = Buffer.byteLength(JSON.stringify(payload.content), 'utf8');
       if (contentSize > MAX_DOC_CONTENT_SIZE) {
         NcError.badRequest(
           `Page content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,

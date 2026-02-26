@@ -701,11 +701,17 @@ watch(isEditable, (val) => {
  * exists (typically resolves after the first mount tick).
  */
 const waitForEditor = (): Promise<void> => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     if (editor.value) return resolve()
+
+    const timeout = setTimeout(() => {
+      unwatch()
+      reject(new Error('Editor failed to initialize within 5 seconds'))
+    }, 5000)
 
     const unwatch = watch(editor, (val) => {
       if (val) {
+        clearTimeout(timeout)
         unwatch()
         resolve()
       }

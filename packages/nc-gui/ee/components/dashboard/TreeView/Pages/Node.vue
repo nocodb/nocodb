@@ -145,13 +145,13 @@ const onDuplicate = async () => {
 const updateDocIcon = async (icon: string) => {
   if (!props.doc?.id || !base.value?.id) return
   try {
-    props.doc.meta = {
+    const updatedMeta = {
       ...parseProp(props.doc.meta),
       icon,
     }
 
     await updateDoc(base.value.id, props.doc.id, {
-      meta: props.doc.meta,
+      meta: updatedMeta,
       version: props.doc.version,
     })
 

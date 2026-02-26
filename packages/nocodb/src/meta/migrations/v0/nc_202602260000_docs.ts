@@ -6,7 +6,7 @@ const up = async (knex: Knex) => {
   if (!hasTable) {
     await knex.schema.createTable(MetaTable.DOCS, (table) => {
       table.string('id', 20).primary();
-      table.string('base_id', 20);
+      table.string('base_id', 20).notNullable();
       table.string('fk_workspace_id', 20);
       table.string('title', 512);
       table.text('content'); // ProseMirror JSON (stringified)

@@ -69,12 +69,12 @@ const workspaceColor = computed(() => {
       }
 
       default: {
-        return props.showNocodbIcon && blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
+        return props.showNocodbIcon && (blockWsImageLogoUpload.value || !workspace.value) ? undefined : color || '#0A1433'
       }
     }
   }
 
-  return props.showNocodbIcon && blockWsImageLogoUpload.value ? undefined : color || '#0A1433'
+  return props.showNocodbIcon && (blockWsImageLogoUpload.value || !workspace.value) ? undefined : color || '#0A1433'
 })
 
 const size = computed(() => props.size || 'medium')
@@ -152,7 +152,7 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
         }"
       />
       <template v-else>
-        <div v-if="props.showNocodbIcon && blockWsImageLogoUpload" class="h-full w-full p-0.25">
+        <div v-if="props.showNocodbIcon && (blockWsImageLogoUpload || !workspace)" class="h-full w-full p-0.25">
           <GeneralIcon icon="nocodb1" class="!h-full !w-full" />
         </div>
         <div

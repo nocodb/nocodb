@@ -18,6 +18,8 @@ const { canCreateWorkspace } = toRefs(props)
 
 const { t } = useI18n()
 
+const workspaceStore = useWorkspace()
+
 const { isMobileMode } = useGlobal()
 
 const isDropdownOpen = ref(false)
@@ -28,14 +30,21 @@ const selectedWorkspace = computed(() => {
 
 // Build workspace list for dropdown
 const workspaceOptions = computed<NcListItemType[]>(() => {
-  return props.workspaces.map((ws) => ({
-    value: ws.id!,
-    label: ws.title || '',
-    ncItemExtra: ws.payment?.plan?.title || props.baseListAllWsMap?.get(ws.id!)?.plan_title || 'Free',
-  }))
+  return props.workspaces.map((ws) => {
+    const locked = workspaceStore.isWorkspaceCeLocked(ws.id)
+    return {
+      value: ws.id!,
+      label: ws.title || '',
+      ncItemExtra: locked ? t('title.availableWithLicense') : ws.payment?.plan?.title || 'Free',
+      ncItemDisabled: locked,
+      ncItemTooltip: locked ? t('title.activateLicenseToAccess') : undefined,
+    }
+  })
 })
 
 const onSelectWorkspace = (value: string) => {
+  if (workspaceStore.isWorkspaceCeLocked(value)) return
+
   emit('select', value)
   isDropdownOpen.value = false
 }

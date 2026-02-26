@@ -12,7 +12,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Base, BaseUser, Workspace, WorkspaceUser } from '~/models';
+import { Base, Workspace, WorkspaceUser } from '~/models';
 import Noco from '~/Noco';
 import {
   verifyDefaultWorkspace,
@@ -21,23 +21,6 @@ import {
 
 @Injectable()
 export class WorkspacesService extends WorkspacesServiceEE {
-  /**
-   * Map org-level roles to workspace-level roles.
-   * Used in CE mode to derive workspace ACL from org roles.
-   */
-  static orgToWsRole(
-    roles?: string | Record<string, boolean>,
-  ): WorkspaceUserRoles {
-    const orgRoles = extractRolesObj(roles);
-    if (orgRoles?.[OrgUserRoles.SUPER_ADMIN]) {
-      return WorkspaceUserRoles.OWNER;
-    }
-    if (orgRoles?.[OrgUserRoles.CREATOR]) {
-      return WorkspaceUserRoles.CREATOR;
-    }
-    return WorkspaceUserRoles.VIEWER;
-  }
-
   constructor(
     protected appHooksService: AppHooksService,
     protected configService: ConfigService<AppConfig>,
@@ -57,10 +40,11 @@ export class WorkspacesService extends WorkspacesServiceEE {
   }
 
   /**
-   * Override workspace list to handle CE mode (no license).
-   * In CE mode, instead of creating a personal workspace for each user,
-   * add the user to the shared default workspace.
-   * In EE mode, super admin sees ALL workspaces as owner.
+   * Override workspace list for on-prem.
+   * Super admin sees ALL workspaces as owner (unconditional — both CE and EE).
+   * Regular users: EE workspace listing (role inheritance).
+   * If user has no workspace membership, lazily add them to the default workspace
+   * with NO_ACCESS (they must be explicitly invited to bases).
    */
   async list(param: {
     user: {
@@ -70,69 +54,48 @@ export class WorkspacesService extends WorkspacesServiceEE {
     };
     req: NcRequest;
   }) {
-    // In EE mode (licensed), super admin sees all workspaces
-    if (Noco.isEE()) {
-      const isSuperAdmin = extractRolesObj(param.user?.roles)?.[
-        OrgUserRoles.SUPER_ADMIN
-      ];
+    // Super admin sees all workspaces unconditionally
+    const isSuperAdmin = extractRolesObj(param.user?.roles)?.[
+      OrgUserRoles.SUPER_ADMIN
+    ];
 
-      if (isSuperAdmin) {
-        const allWorkspaces = await Workspace.list();
-        // Inject owner role for each workspace
-        const workspacesWithRoles = allWorkspaces.map((ws) => ({
-          ...ws,
-          roles: WorkspaceUserRoles.OWNER,
-        }));
+    if (isSuperAdmin) {
+      const allWorkspaces = await Workspace.list();
+      const workspacesWithRoles = allWorkspaces.map((ws) => ({
+        ...ws,
+        roles: WorkspaceUserRoles.OWNER,
+      }));
 
-        return new PagedResponseImpl(workspacesWithRoles, {
-          count: workspacesWithRoles.length,
-        });
-      }
-
-      return super.list(param);
+      return new PagedResponseImpl(workspacesWithRoles, {
+        count: workspacesWithRoles.length,
+      });
     }
 
-    // CE mode: ensure default workspace exists and add user to it if needed
+    // Check if user already has workspace membership
     const workspaces = await WorkspaceUser.workspaceList({
       fk_user_id: param.user.id,
     });
 
     if (workspaces.length) {
-      // Sync workspace role from org role (handles admin role changes)
-      if (Noco.ncDefaultWorkspaceId) {
-        const expectedRole = WorkspacesService.orgToWsRole(param.user.roles);
-        const defaultWs = workspaces.find(
-          (w) => w.id === Noco.ncDefaultWorkspaceId,
-        );
-        if (defaultWs && defaultWs.roles !== expectedRole) {
-          await WorkspaceUser.update(Noco.ncDefaultWorkspaceId, param.user.id, {
-            roles: expectedRole,
-          });
-          defaultWs.roles = expectedRole;
-        }
-      }
       return new PagedResponseImpl(workspaces, {
         count: workspaces.length,
       });
     }
 
-    // User has no workspaces — add them to the default workspace
+    // User has no workspaces — lazily add them to the default workspace with NO_ACCESS
     if (param.req.user?.id) {
       await verifyDefaultWorkspace(undefined, Noco.ncMeta);
       await verifyDefaultWsOwner(Noco.ncMeta);
 
       if (Noco.ncDefaultWorkspaceId) {
-        // Map org role → workspace role so workspace-scoped ACLs match CE behavior
-        const wsRole = WorkspacesService.orgToWsRole(param.user.roles);
-
         try {
           await WorkspaceUser.insert({
             fk_workspace_id: Noco.ncDefaultWorkspaceId,
             fk_user_id: param.user.id,
-            roles: wsRole,
+            roles: WorkspaceUserRoles.NO_ACCESS,
           });
           this.logger.log(
-            `Added user ${param.user.id} to default workspace as ${wsRole} (CE mode)`,
+            `Added user ${param.user.id} to default workspace as NO_ACCESS`,
           );
         } catch (e) {
           // User might already exist in workspace (race condition)
@@ -158,10 +121,9 @@ export class WorkspacesService extends WorkspacesServiceEE {
   }
 
   /**
-   * Override base listing to use CE access model when unlicensed.
-   * CE: only bases with direct project_users entries (BaseUser.getProjectsList)
-   * EE: workspace role inheritance gives access to all workspace bases
-   * Both modes: super admin sees all bases in any workspace
+   * Override base listing for on-prem.
+   * Super admin sees all bases. Regular users use EE workspace role inheritance
+   * (migration ensures existing bases stay private via no-access base_user entries).
    */
   async getProjectList(param: {
     user: {
@@ -171,7 +133,7 @@ export class WorkspacesService extends WorkspacesServiceEE {
     workspaceId: string;
     req: NcRequest;
   }) {
-    // Super admin sees all workspace bases in both CE and EE mode
+    // Super admin sees all workspace bases
     const isSuperAdmin = extractRolesObj(param.user?.roles)?.[
       OrgUserRoles.SUPER_ADMIN
     ];
@@ -183,17 +145,8 @@ export class WorkspacesService extends WorkspacesServiceEE {
       });
     }
 
-    // In EE mode (licensed), use the standard EE behavior (workspace role inheritance)
-    if (Noco.isEE()) {
-      return super.getProjectList(param);
-    }
-
-    // CE mode: use direct base membership only (matches original CE baseList)
-    const bases = await BaseUser.getProjectsList(param.user.id, {});
-
-    return new PagedResponseImpl<BaseType>(bases, {
-      count: bases.length,
-    });
+    // Always use EE behavior (workspace role inheritance)
+    return super.getProjectList(param);
   }
 
   async create(param: {

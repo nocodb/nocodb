@@ -40,7 +40,7 @@ const removeLicense = async () => {
   try {
     await api.orgLicense.set({ key: '' })
     key.value = ''
-    message.success('License key removed')
+    message.success(t('title.licenseKeyRemoved'))
     await loadAppInfo()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -81,10 +81,10 @@ loadLicense()
           <span class="text-sm font-medium">
             {{
               licenseStatus === 'active'
-                ? 'Enterprise license active'
+                ? $t('title.licenseActive')
                 : licenseStatus === 'expired'
-                  ? 'License key is invalid or expired'
-                  : 'No license key configured — running in Community Edition mode'
+                  ? $t('title.licenseInvalid')
+                  : $t('title.licenseNone')
             }}
           </span>
         </div>

@@ -21,6 +21,7 @@ import { BaseUser, PresignedUrl, SyncSource, User } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { MailEvent } from '~/interface/Mail';
+import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 
 @Injectable()
 export class OrgUsersService {
@@ -169,6 +170,8 @@ export class OrgUsersService {
             roles: param.user.roles || OrgUserRoles.VIEWER,
             token_version: randomTokenString(),
           });
+
+          await ensureUserInDefaultWorkspace(user.id);
 
           const count = await User.count();
 

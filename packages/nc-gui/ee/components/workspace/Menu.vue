@@ -66,7 +66,7 @@ const { isSharedBase } = storeToRefs(baseStore)
     </div>
   </div>
   <div
-    v-else-if="activeWorkspace"
+    v-else
     :class="{
       'flex flex-row flex-grow w-full max-w-85/100 hover:bg-nc-bg-gray-medium pl-2 pr-1 py-0.5 rounded-md': !isMiniSidebar,
       'nc-mini-sidebar-btn-full-width flex items-center justify-center children:(h-auto w-full)': isMiniSidebar,

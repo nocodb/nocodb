@@ -52,8 +52,8 @@ const navigateToProjectPage = () => {
 }
 
 const navigateToSettings = () => {
-  if (isEeUI && !appInfo.value?.ee) {
-    navigateTo(appInfo.value?.isOnPrem ? '/admin?tab=users-list' : '/account/users/list')
+  if (isEeUI && !appInfo.value?.ee && !appInfo.value?.isOnPrem) {
+    navigateTo('/account/users/list')
     return
   }
 

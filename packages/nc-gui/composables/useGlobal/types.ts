@@ -45,6 +45,7 @@ export interface AppInfo {
   feedEnabled: boolean
   sentryDSN: string
   isOnPrem: boolean
+  defaultWorkspaceId: string | null
   stripePublishableKey?: string
   marketingRootUrl?: string
   templatesRootUrl?: string

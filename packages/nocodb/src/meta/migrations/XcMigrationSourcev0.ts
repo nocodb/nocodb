@@ -29,6 +29,7 @@ import * as nc_202602260636_view_sections from './v0/nc_202602260636_view_sectio
 import * as nc_202602251401_links_v2 from './v0/nc_202602251401_links_v2';
 import * as nc_202602270448_map_view_columns_add_source_id from './v0/nc_202602270448_map_view_columns_add_source_id';
 import * as nc_202602270729_timeline_view from './v0/nc_202602270729_timeline_view';
+import * as nc_202602260000_unify_ce_roles from './v0/nc_202602260000_unify_ce_roles';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -69,6 +70,7 @@ export default class XcMigrationSourcev0 {
       'nc_202602251401_links_v2',
       'nc_202602270448_map_view_columns_add_source_id',
       'nc_202602270729_timeline_view',
+      'nc_202602260000_unify_ce_roles',
     ]);
   }
 
@@ -140,6 +142,8 @@ export default class XcMigrationSourcev0 {
         return nc_202602270448_map_view_columns_add_source_id;
       case 'nc_202602270729_timeline_view':
         return nc_202602270729_timeline_view;
+      case 'nc_202602260000_unify_ce_roles':
+        return nc_202602260000_unify_ce_roles;
     }
   }
 }

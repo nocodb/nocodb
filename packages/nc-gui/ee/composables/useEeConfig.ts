@@ -330,7 +330,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockScripts = computed(() => isEEFeatureBlocked.value)
   const blockWorkflows = computed(() => isEEFeatureBlocked.value)
   const blockWorkspaceCreate = computed(() => isEEFeatureBlocked.value)
-  const blockWorkspaceMembers = computed(() => isEEFeatureBlocked.value)
+  const blockWorkspaceMembers = computed(() => false)
 
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`

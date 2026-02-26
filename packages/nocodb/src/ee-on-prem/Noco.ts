@@ -33,14 +33,14 @@ export default class Noco extends NocoEE {
           `License activation failed: ${e.message} — falling back to CE mode`,
         );
         this.ee = false;
-        await verifyDefaultWorkspace();
       }
     } else {
       this.ee = false;
-      // ensure default workspace exists when running without license
-      await verifyDefaultWorkspace();
       logger.log('No license key found — running in CE mode');
     }
+
+    // Always ensure default workspace exists — on-prem needs it regardless of license state
+    await verifyDefaultWorkspace();
 
     return res;
   }
@@ -58,7 +58,6 @@ export default class Noco extends NocoEE {
       if (!licenseKey) {
         NocoLicense.reset();
         this.ee = false;
-        // ensure default workspace exists when running without license
         await verifyDefaultWorkspace();
         return false;
       }
@@ -69,16 +68,14 @@ export default class Noco extends NocoEE {
 
       this.ee = NocoLicense.isEE;
 
-      if (!NocoLicense.isEE) {
-        // license invalid/expired — ensure default workspace for CE mode
-        await verifyDefaultWorkspace();
-      }
-
       logger.log(
         NocoLicense.isEE
           ? 'License validated — EE features activated'
           : `License ${NocoLicense.licenseStatus} — running in CE mode`,
       );
+
+      // Ensure default workspace exists (idempotent — no-op if already there)
+      await verifyDefaultWorkspace();
 
       return NocoLicense.isEE;
     } catch (e) {

@@ -10,7 +10,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { InternalController as InternalControllerCE } from 'src/controllers/internal.controller';
-import { isServiceUser, LicenseRequired, ServiceUserType } from 'nocodb-sdk';
+import { isServiceUser, ServiceUserType } from 'nocodb-sdk';
 import type { InternalApiModule } from '~/utils/internal-type';
 import { DataReflectionService } from '~/services/data-reflection.service';
 import { DashboardsService } from '~/services/dashboards.service';
@@ -188,7 +188,7 @@ export class InternalController extends InternalControllerCE {
 
   private requireLicense(operation: string) {
     if (LICENSE_REQUIRED_OPS.has(operation) && !NocoLicense.isEE) {
-      throw new LicenseRequired(operation);
+      NcError.licenseRequired(operation);
     }
   }
 

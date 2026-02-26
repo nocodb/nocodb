@@ -325,6 +325,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     loadWorkspaces,
     workspaces,
     workspacesList,
+    isWorkspaceCeLocked: (_workspaceId?: string) => false,
     createWorkspace,
     deleteWorkspace,
     updateWorkspace,

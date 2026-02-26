@@ -107,6 +107,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at),
   )
 
+  const isWorkspaceCeLocked = (workspaceId?: string) => {
+    if (!workspaceId) return false
+    if (!appInfo.value.isOnPrem || appInfo.value.ee) return false
+    if (!appInfo.value.defaultWorkspaceId) return false
+    return workspaceId !== appInfo.value.defaultWorkspaceId
+  }
+
   const isWorkspaceLoading = ref(true)
   const isWorkspacesLoading = ref(true)
   const isCollaboratorsLoading = ref(true)
@@ -257,9 +264,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     params?: { offset?: number; limit?: number; ignoreLoading?: boolean; includeDeleted?: boolean },
     workspaceId?: string,
   ) => {
-    // Skip workspace user loading when unlicensed — workspace users API is EE-only
-    if (!appInfo.value?.ee) return
-
     if (!workspaceId && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }
@@ -1224,6 +1228,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     loadWorkspaces,
     workspaces,
     workspacesList,
+    isWorkspaceCeLocked,
     createWorkspace,
     deleteWorkspace,
     updateWorkspace,

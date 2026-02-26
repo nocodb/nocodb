@@ -1,18 +1,23 @@
 import { WorkspaceUserRoles } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { User } from '~/models';
 import {
   MetaTable,
   NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
   RootScopes,
 } from '~/utils/globals';
+import { isOnPrem } from '~/utils';
 import Noco from '~/Noco';
+
+const logger = new Logger('verifyDefaultWorkspace');
 
 export const verifyDefaultWorkspace = async (
   user?: User,
   ncMeta = Noco.ncMeta,
 ) => {
-  // skip for cloud/licensed EE — they handle workspaces via EE service
-  if (Noco.isEE()) {
+  // Skip for cloud/pure EE — they manage workspaces via EE service.
+  // On-prem always needs a default workspace regardless of license state.
+  if (Noco.isEE() && !isOnPrem) {
     return;
   }
 
@@ -98,8 +103,8 @@ export const verifyDefaultWorkspace = async (
 };
 
 export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
-  // skip for cloud/licensed EE — they handle workspaces via EE service
-  if (Noco.isEE()) {
+  // Skip for cloud/pure EE — on-prem always needs default workspace owner
+  if (Noco.isEE() && !isOnPrem) {
     return;
   }
 
@@ -148,5 +153,40 @@ export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
       .update({
         roles: WorkspaceUserRoles.OWNER,
       });
+  }
+};
+
+/**
+ * Ensures a user has a workspace_user entry in the default workspace.
+ * Used for non-first signups and org-user invites (CE + on-prem).
+ * Cloud EE manages workspace membership via its own EE service — skip there.
+ */
+export const ensureUserInDefaultWorkspace = async (
+  userId: string,
+  ncMeta = Noco.ncMeta,
+) => {
+  // Cloud EE manages workspace membership via its own service
+  if (Noco.isEE() && !isOnPrem) return;
+
+  if (!Noco.ncDefaultWorkspaceId) {
+    await verifyDefaultWorkspace(undefined, ncMeta);
+  }
+  if (!Noco.ncDefaultWorkspaceId) return;
+
+  try {
+    await ncMeta.metaInsert2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE_USER,
+      {
+        fk_workspace_id: Noco.ncDefaultWorkspaceId,
+        fk_user_id: userId,
+        roles: WorkspaceUserRoles.NO_ACCESS,
+      },
+      true,
+    );
+  } catch {
+    // Already in workspace — ignore duplicate
+    logger.debug(`User ${userId} already in default workspace`);
   }
 };

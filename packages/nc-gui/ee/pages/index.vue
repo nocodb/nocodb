@@ -92,6 +92,15 @@ watch(
         return
       }
 
+      // CE workspace restriction: if URL workspace is locked (non-default in CE mode), redirect to default
+      if (newId && !isWorkspacesLoading.value && workspaceStore.isWorkspaceCeLocked(newId)) {
+        const defaultWsId = workspaceStore.workspacesList.find((ws) => !workspaceStore.isWorkspaceCeLocked(ws.id))?.id
+        if (defaultWsId) {
+          await navigateTo(`/${defaultWsId}`)
+          return
+        }
+      }
+
       if (newId && oldId !== newId && lastPopulatedWorkspaceId.value !== newId) {
         basesStore.clearBases()
         collaborators.value = []
@@ -151,6 +160,12 @@ onMounted(async () => {
   // skip loading workspace and command palette for shared source
   if (!['base'].includes(route.value.params.typeOrId as string)) {
     await loadWorkspaces()
+
+    // No workspaces available (e.g. fresh user with NO_ACCESS) — stop skeleton
+    if (!workspaceStore.workspacesList.length) {
+      workspaceStore.setLoadingState(false)
+      basesStore.setProjectsLoaded()
+    }
   }
 
   if (sharedBaseId.value) isDuplicateDlgOpen.value = true

@@ -64,7 +64,7 @@ onMounted(async () => {
             </div>
             <div class="w-1/4 px-4 py-3">
               <div class="text-[40px] font-semibold">{{ isLoading ? '-' : stats.editorCount }}</div>
-              <div class="text-nc-content-gray-subtle2 mt-2">Editors</div>
+              <div class="text-nc-content-gray-subtle2 mt-2">{{ $t('title.editors') }}</div>
             </div>
           </div>
         </div>

@@ -13,7 +13,10 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
+import {
+  ensureUserInDefaultWorkspace,
+  verifyDefaultWorkspace,
+} from '~/helpers/verifyDefaultWorkspace';
 import { isEE, T } from '~/utils';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -127,6 +130,7 @@ export class UsersService {
       email_verification_token,
       req,
       is_invite = false,
+      workspace_invite = false,
     }: {
       email: string;
       salt: any;
@@ -134,6 +138,7 @@ export class UsersService {
       email_verification_token;
       req: NcRequest;
       is_invite?: boolean;
+      workspace_invite?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -184,6 +189,11 @@ export class UsersService {
         req,
         ncMeta,
       );
+    } else if (!isFirstUser && !is_invite && !workspace_invite) {
+      // Only add to default workspace for self-signups, not invites.
+      // Workspace invites set the role explicitly via the invite flow;
+      // org invites call ensureUserInDefaultWorkspace separately.
+      await ensureUserInDefaultWorkspace(user.id, ncMeta);
     }
 
     // todo: update swagger type

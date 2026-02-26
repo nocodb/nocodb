@@ -266,11 +266,13 @@ const otherMatchingWorkspaceIds = computed((): string[] => {
 })
 
 // Load full workspace data for other matching workspaces as they appear
+// Skip locked workspaces — their bases come from baseListAll (no extra API call)
 watch(
   otherMatchingWorkspaceIds,
   async (wsIds) => {
     for (const wsId of wsIds) {
       if (workspaceBasesMap.value.has(wsId)) continue
+      if (workspaceStore.isWorkspaceCeLocked(wsId)) continue
       await loadProjects('workspace', wsId)
     }
   },
@@ -300,6 +302,7 @@ const computeSections = (bases: NcProject[]) => {
 }
 
 // Sections for each other matching workspace (fully loaded, full feature parity)
+// Locked workspaces use lightweight baseListAll data instead of full project data
 const otherWorkspaceSections = computed(() => {
   if (!modalState.searchQuery) return []
 
@@ -307,6 +310,31 @@ const otherWorkspaceSections = computed(() => {
     .map((wsId) => {
       const ws = workspacesList.value.find((w) => w.id === wsId)
       if (!ws) return null
+
+      const isLocked = workspaceStore.isWorkspaceCeLocked(wsId)
+
+      if (isLocked) {
+        // Use baseListAll data for locked workspaces (no API call needed)
+        const wsData = baseListAllData.value?.workspaces.find((w) => w.id === wsId)
+        if (!wsData?.bases.length) return null
+
+        const bases = wsData.bases
+          .filter((b) => searchCompare(b.title, modalState.searchQuery))
+          .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+          .map(
+            (b) =>
+              ({
+                id: b.id,
+                title: b.title,
+                meta: b.meta,
+                order: b.order,
+                fk_workspace_id: wsId,
+              } as NcProject),
+          )
+
+        if (!bases.length) return null
+        return { workspace: ws, sections: [{ type: 'default' as SectionType, bases }] }
+      }
 
       const wsBasesMap = workspaceBasesMap.value.get(wsId)
       if (!wsBasesMap) return null // still loading
@@ -332,6 +360,9 @@ const hasNoSearchResults = computed(() => {
 
 // Workspace handlers
 const onSelectWorkspace = async (workspaceId: string) => {
+  // Prevent selecting locked workspaces (CE mode, non-default)
+  if (workspaceStore.isWorkspaceCeLocked(workspaceId)) return
+
   modalState.selectedWorkspaceId = workspaceId
 
   if (workspaceBasesMap.value.get(workspaceId)) return
@@ -347,7 +378,9 @@ watch(
     if (!query) return
     if (displayedSections.value.length > 0) return
 
-    const firstVisible = filteredWorkspaceList.value.find((ws) => ws.id !== modalState.selectedWorkspaceId)
+    const firstVisible = filteredWorkspaceList.value.find(
+      (ws) => ws.id !== modalState.selectedWorkspaceId && !workspaceStore.isWorkspaceCeLocked(ws.id),
+    )
     if (!firstVisible?.id) return
 
     modalState.selectedWorkspaceId = firstVisible.id
@@ -535,32 +568,40 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               </div>
 
               <template v-for="wsData in otherWorkspaceSections" :key="wsData.workspace.id">
-                <div class="flex items-center gap-2 mb-4 mt-4 text-xs font-medium tracking-wide">
-                  <span class="text-nc-content-gray-muted">{{ $t('activity.basesIn') }}</span>
-                  <span
-                    class="text-nc-content-gray-muted capitalize"
-                    :class="{
-                      'text-nc-content-brand': activeWorkspaceId === wsData.workspace?.id,
-                      'underline cursor-pointer hover:text-nc-content-brand': activeWorkspaceId !== wsData.workspace?.id,
-                    }"
-                    @click="switchWorkspace(wsData.workspace?.id)"
-                  >
-                    {{ wsData.workspace.title }}
-                  </span>
-                  <span class="font-normal text-nc-content-gray-muted">
-                    ({{ wsData.sections.reduce((n, s) => n + s.bases.length, 0) }})
-                  </span>
-                </div>
+                <div :class="{ 'opacity-50 pointer-events-none': workspaceStore.isWorkspaceCeLocked(wsData.workspace.id) }">
+                  <div class="flex items-center gap-2 mb-4 mt-4 text-xs font-medium tracking-wide">
+                    <span class="text-nc-content-gray-muted">{{ $t('activity.basesIn') }}</span>
+                    <span
+                      class="text-nc-content-gray-muted capitalize"
+                      :class="{
+                        'text-nc-content-brand': activeWorkspaceId === wsData.workspace?.id,
+                        'underline cursor-pointer hover:text-nc-content-brand':
+                          activeWorkspaceId !== wsData.workspace?.id && !workspaceStore.isWorkspaceCeLocked(wsData.workspace.id),
+                      }"
+                      @click="switchWorkspace(wsData.workspace?.id)"
+                    >
+                      {{ wsData.workspace.title }}
+                    </span>
+                    <GeneralIcon
+                      v-if="workspaceStore.isWorkspaceCeLocked(wsData.workspace.id)"
+                      icon="ncLock"
+                      class="w-3 h-3 text-nc-content-gray-muted"
+                    />
+                    <span class="font-normal text-nc-content-gray-muted">
+                      ({{ wsData.sections.reduce((n, s) => n + s.bases.length, 0) }})
+                    </span>
+                  </div>
 
-                <WorkspaceBaseListModalBasesSection
-                  v-for="section in wsData.sections"
-                  :key="`${wsData.workspace.id}-${section.type}`"
-                  :type="section.type"
-                  :bases="section.bases"
-                  :is-filter-applied="false"
-                  :is-base-starred="baseCheckers.starred"
-                  :is-base-private="baseCheckers.private"
-                />
+                  <WorkspaceBaseListModalBasesSection
+                    v-for="section in wsData.sections"
+                    :key="`${wsData.workspace.id}-${section.type}`"
+                    :type="section.type"
+                    :bases="section.bases"
+                    :is-filter-applied="false"
+                    :is-base-starred="baseCheckers.starred"
+                    :is-base-private="baseCheckers.private"
+                  />
+                </div>
               </template>
             </template>
 

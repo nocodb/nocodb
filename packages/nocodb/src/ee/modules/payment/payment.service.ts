@@ -35,10 +35,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
-import {
-  cleanCommandPaletteCache,
-  cleanCommandPaletteCacheForOrg,
-} from '~/helpers/commandPaletteHelpers';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import NocoSocket from '~/socket/NocoSocket';
@@ -64,11 +61,9 @@ export class PaymentService {
   private clearBaseListCacheForEntity(
     workspaceOrOrg: NonNullable<Awaited<ReturnType<typeof getWorkspaceOrOrg>>>,
   ) {
-    if (workspaceOrOrg.entity === 'workspace') {
-      cleanCommandPaletteCache(workspaceOrOrg.id).catch(() => {});
-    } else {
-      cleanCommandPaletteCacheForOrg(workspaceOrOrg.id).catch(() => {});
-    }
+    if (workspaceOrOrg.entity !== 'workspace') return;
+
+    cleanCommandPaletteCache(workspaceOrOrg.id).catch(() => {});
   }
 
   async getPlans() {

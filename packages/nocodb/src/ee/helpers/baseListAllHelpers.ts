@@ -42,7 +42,6 @@ export async function getBaseListAll(
         'ws.id as workspace_id',
         'ws.title as workspace_title',
         'ws.meta as workspace_meta',
-        'ws.fk_org_id as org_id',
         'p.title as plan_title',
         'b.id as base_id',
         'b.title as base_title',
@@ -103,12 +102,9 @@ export async function getBaseListAll(
 
     // Filter NO_ACCESS bases and group by workspace
     const wsMap = new Map<string, BaseListAllResult['workspaces'][number]>();
-    const orgIds = new Set<string>();
 
     for (const row of rows) {
       if (row.base_role === ProjectRoles.NO_ACCESS) continue;
-
-      if (row.org_id) orgIds.add(row.org_id);
 
       let ws = wsMap.get(row.workspace_id);
       if (!ws) {
@@ -142,12 +138,6 @@ export async function getBaseListAll(
     // Register in every workspace's list so any workspace change invalidates this cache.
     for (const wsId of wsMap.keys()) {
       await NocoCache.set('root', `${CacheScope.CMD_PALETTE}:ws:${wsId}`, [
-        key,
-      ]);
-    }
-    // Register under each org so on-prem plan changes can invalidate by org ID.
-    for (const orgId of orgIds) {
-      await NocoCache.set('root', `${CacheScope.CMD_PALETTE}:org:${orgId}`, [
         key,
       ]);
     }

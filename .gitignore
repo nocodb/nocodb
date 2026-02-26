@@ -17,6 +17,7 @@ app/tests/coverage/
 .bower-*/
 .idea/
 coverage/
+.pnpm-store/
 
 # MEAN.js app and assets
 # ======================

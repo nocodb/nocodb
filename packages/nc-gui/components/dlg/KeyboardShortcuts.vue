@@ -71,11 +71,11 @@ const shortcutList = [
       },
       {
         keys: [renderAltOrOptlKey(), '↑'],
-        behaviour: 'Jump to last page in this view',
+        behaviour: 'Jump to first page in this view',
       },
       {
         keys: [renderAltOrOptlKey(), '↓'],
-        behaviour: 'Jump to first page in this view',
+        behaviour: 'Jump to last page in this view',
       },
       {
         keys: [renderCmdOrCtrlKey(), '←'],
@@ -222,10 +222,6 @@ const shortcutList = [
     title: 'Expanded Form',
     shortcuts: [
       {
-        keys: [renderCmdOrCtrlKey(), 'Enter'],
-        behaviour: 'Save current expanded form item',
-      },
-      {
         keys: [renderAltOrOptlKey(), '→'],
         behaviour: 'Switch to next row',
       },
@@ -247,7 +243,7 @@ const shortcutList = [
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" size="md" :show-separator="false" closable>
+  <NcModal v-model:visible="dialogShow" size="md" :show-separator="false" closable wrap-class-name="nc-modal-keyboard-shortcuts">
     <div class="flex flex-col h-full">
       <div class="flex items-center gap-2 pb-3 border-b-1 border-nc-border-gray-medium flex-none">
         <GeneralIcon icon="keyboard" class="w-5 h-5 text-nc-content-gray-subtle" />
@@ -287,6 +283,14 @@ const shortcutList = [
     </div>
   </NcModal>
 </template>
+
+<style lang="scss">
+.nc-modal-keyboard-shortcuts {
+  .nc-modal {
+    @apply !p-0;
+  }
+}
+</style>
 
 <style lang="scss" scoped>
 .nc-kbd {

@@ -3767,6 +3767,44 @@
           "404": { "description": "Base not found." },
           "500": { "description": "Server error." }
         }
+      },
+      "post": {
+        "summary": "Create Dashboard",
+        "description": "Create a new dashboard within the specified base.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-create",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardCreateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dashboard created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardGetResponse"
+                }
+              }
+            }
+          },
+          "500": { "description": "Server error." }
+        }
       }
     },
     "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}": {
@@ -3817,6 +3855,79 @@
           },
           "404": { "description": "Dashboard not found." },
           "500": { "description": "Server error." }
+        }
+      },
+      "patch": {
+        "summary": "Update Dashboard",
+        "description": "Update the specified dashboard.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-update",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardUpdateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dashboard updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardGetResponse"
+                }
+              }
+            }
+          },
+          "404": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "delete": {
+        "summary": "Delete Dashboard",
+        "description": "Delete the specified dashboard.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-delete",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard deleted."
+          }
         }
       }
     },
@@ -3894,6 +4005,52 @@
           "404": { "description": "Dashboard not found." },
           "500": { "description": "Server error." }
         }
+      },
+      "post": {
+        "summary": "Create Widget",
+        "description": "Create a new widget within the specified dashboard.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-create",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WidgetCreateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Widget created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetRead"
+                }
+              }
+            }
+          },
+          "404": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
       }
     },
     "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets/{widget_id}": {
@@ -3938,6 +4095,93 @@
           },
           "404": { "description": "Widget not found." },
           "500": { "description": "Server error." }
+        }
+      },
+      "patch": {
+        "summary": "Update Widget",
+        "description": "Update the specified widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-update",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "widget_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the widget."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WidgetUpdateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Widget updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetRead"
+                }
+              }
+            }
+          },
+          "404": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "delete": {
+        "summary": "Delete Widget",
+        "description": "Delete the specified widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-delete",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "widget_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the widget."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget deleted."
+          }
         }
       }
     },
@@ -11655,6 +11899,136 @@
           }
         },
         "required": ["list"]
+      },
+      "DashboardCreateReq": {
+        "description": "Dashboard create request body",
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the dashboard."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the dashboard."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Additional metadata for the dashboard."
+          }
+        }
+      },
+      "DashboardUpdateReq": {
+        "description": "Dashboard update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the dashboard."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the dashboard."
+          },
+          "order": {
+            "type": "number",
+            "description": "Display order of the dashboard."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Additional metadata for the dashboard."
+          }
+        }
+      },
+      "WidgetCreateReq": {
+        "description": "Widget create request body",
+        "type": "object",
+        "required": ["title", "type"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the widget."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the widget."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Additional metadata for the widget."
+          },
+          "position": {
+            "type": "object",
+            "description": "Position and size of the widget on the dashboard grid.",
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" }
+            }
+          },
+          "model_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          }
+        }
+      },
+      "WidgetUpdateReq": {
+        "description": "Widget update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the widget."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Additional metadata for the widget."
+          },
+          "order": {
+            "type": "number",
+            "description": "Display order of the widget."
+          },
+          "position": {
+            "type": "object",
+            "description": "Position and size of the widget on the dashboard grid.",
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" }
+            }
+          },
+          "model_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          }
+        }
       },
       "ApiTokenV3": {
         "type": "object",

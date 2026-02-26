@@ -44,3 +44,42 @@ export type WidgetV3ListResponseType = {
 export type DashboardV3DataResponseType = {
   widgets: Record<string, unknown>;
 };
+
+// --- Dashboard request types ---
+
+export type DashboardV3CreateRequestType = {
+  title: string;
+  description?: string | null;
+  meta?: Record<string, unknown>;
+};
+
+export type DashboardV3UpdateRequestType = {
+  title?: string;
+  description?: string | null;
+  order?: number;
+  meta?: Record<string, unknown>;
+};
+
+// --- Widget request types ---
+
+export type WidgetV3CreateRequestType = {
+  title: string;
+  description?: string | null;
+  type: string;
+  config?: Record<string, unknown>;
+  meta?: Record<string, unknown>;
+  position?: { x: number; y: number; w: number; h: number };
+  model_id?: string;
+  view_id?: string;
+};
+
+export type WidgetV3UpdateRequestType = {
+  title?: string;
+  description?: string | null;
+  config?: Record<string, unknown>;
+  meta?: Record<string, unknown>;
+  order?: number;
+  position?: { x: number; y: number; w: number; h: number };
+  model_id?: string;
+  view_id?: string;
+};

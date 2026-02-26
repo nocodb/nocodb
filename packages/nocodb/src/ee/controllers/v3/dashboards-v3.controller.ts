@@ -1,18 +1,27 @@
 import {
+  Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
+  Patch,
+  Post,
   Query,
   Request,
   UseGuards,
 } from '@nestjs/common';
 import { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
+  DashboardV3CreateRequestType,
   DashboardV3DataResponseType,
   DashboardV3GetResponseType,
   DashboardV3ListResponseType,
+  DashboardV3UpdateRequestType,
+  WidgetV3CreateRequestType,
   WidgetV3ListResponseType,
   WidgetV3Type,
+  WidgetV3UpdateRequestType,
 } from '~/services/v3/dashboards-v3.types';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -91,5 +100,101 @@ export class DashboardsV3Controller {
     @Request() req: NcRequest,
   ): Promise<any> {
     return await this.dashboardsV3Service.widgetData(context, widgetId, req);
+  }
+
+  // --- Mutation endpoints ---
+
+  @Post(`${PREFIX_APIV3_METABASE}/dashboards`)
+  @HttpCode(200)
+  @Acl('dashboardCreate', { scope: 'base' })
+  async dashboardCreate(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Body() body: DashboardV3CreateRequestType,
+    @Request() req: NcRequest,
+  ): Promise<DashboardV3GetResponseType> {
+    return await this.dashboardsV3Service.dashboardCreate(
+      context,
+      baseId,
+      body,
+      req,
+    );
+  }
+
+  @Patch(`${PREFIX_APIV3_METABASE}/dashboards/:dashboardId`)
+  @Acl('dashboardUpdate', { scope: 'base' })
+  async dashboardUpdate(
+    @TenantContext() context: NcContext,
+    @Param('dashboardId') dashboardId: string,
+    @Body() body: DashboardV3UpdateRequestType,
+    @Request() req: NcRequest,
+  ): Promise<DashboardV3GetResponseType> {
+    return await this.dashboardsV3Service.dashboardUpdate(
+      context,
+      dashboardId,
+      body,
+      req,
+    );
+  }
+
+  @Delete(`${PREFIX_APIV3_METABASE}/dashboards/:dashboardId`)
+  @Acl('dashboardDelete', { scope: 'base' })
+  async dashboardDelete(
+    @TenantContext() context: NcContext,
+    @Param('dashboardId') dashboardId: string,
+    @Request() req: NcRequest,
+  ): Promise<boolean> {
+    return await this.dashboardsV3Service.dashboardDelete(
+      context,
+      dashboardId,
+      req,
+    );
+  }
+
+  @Post(`${PREFIX_APIV3_METABASE}/dashboards/:dashboardId/widgets`)
+  @HttpCode(200)
+  @Acl('widgetCreate', { scope: 'base' })
+  async widgetCreate(
+    @TenantContext() context: NcContext,
+    @Param('dashboardId') dashboardId: string,
+    @Body() body: WidgetV3CreateRequestType,
+    @Request() req: NcRequest,
+  ): Promise<WidgetV3Type> {
+    return await this.dashboardsV3Service.widgetCreate(
+      context,
+      dashboardId,
+      body,
+      req,
+    );
+  }
+
+  @Patch(`${PREFIX_APIV3_METABASE}/dashboards/:dashboardId/widgets/:widgetId`)
+  @Acl('widgetUpdate', { scope: 'base' })
+  async widgetUpdate(
+    @TenantContext() context: NcContext,
+    @Param('widgetId') widgetId: string,
+    @Body() body: WidgetV3UpdateRequestType,
+    @Request() req: NcRequest,
+  ): Promise<WidgetV3Type> {
+    return await this.dashboardsV3Service.widgetUpdate(
+      context,
+      widgetId,
+      body,
+      req,
+    );
+  }
+
+  @Delete(`${PREFIX_APIV3_METABASE}/dashboards/:dashboardId/widgets/:widgetId`)
+  @Acl('widgetDelete', { scope: 'base' })
+  async widgetDelete(
+    @TenantContext() context: NcContext,
+    @Param('widgetId') widgetId: string,
+    @Request() req: NcRequest,
+  ): Promise<boolean> {
+    return await this.dashboardsV3Service.widgetDelete(
+      context,
+      widgetId,
+      req,
+    );
   }
 }

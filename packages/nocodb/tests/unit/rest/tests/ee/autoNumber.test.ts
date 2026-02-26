@@ -8,9 +8,9 @@ import { createColumn, deleteColumn } from '../../../factory/column';
 import { createTable } from '../../../factory/table';
 import { createView } from '../../../factory/view';
 import { createBulkRows, listRow } from '../../../factory/row';
-import { backfillAutoNumber } from '../../../../../src/helpers/autonumberHelpers';
-import { Column } from '../../../../../src/models';
-import type Model from '../../../../../src/models/Model';
+import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
+import { Column } from '~/models';
+import type Model from '~/models/Model';
 import type Base from '~/models/Base';
 
 function autoNumberTests() {

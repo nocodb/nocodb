@@ -5,6 +5,7 @@ const props = defineProps<{
   workspace: NcWorkspace
   isSelected: boolean
   baseCount?: number
+  planTitle?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -59,7 +60,7 @@ watch([wsNodeRef, isActiveWorkspace], () => {
         </NcTooltip>
       </div>
       <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted mt-0.5">
-        <span class="truncate">{{ workspace.payment?.plan?.title || 'Free' }} Plan</span>
+        <span class="truncate">{{ workspace.payment?.plan?.title || planTitle || 'Free' }} Plan</span>
         <span>·</span>
         <span class="truncate">{{ workspace.id }}</span>
         <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" hide-on-click class="flex" placement="right">

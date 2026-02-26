@@ -4,6 +4,7 @@ import authTests from './tests/auth.test';
 import orgTests from './tests/org.test';
 import baseTests from './tests/base.test';
 import columnTypeSpecificTests from './tests/columnTypeSpecific.test';
+import autoNumberTests from './tests/autoNumber.test';
 import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
 import viewRowLocalTests from './tests/viewRow-local.test';
@@ -54,6 +55,7 @@ function restTests() {
     tableRowTests();
     viewRowLocalTests();
     columnTypeSpecificTests();
+    autoNumberTests();
     attachmentTests();
     filterTest();
     groupByTest();

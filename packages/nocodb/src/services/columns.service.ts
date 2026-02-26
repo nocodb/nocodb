@@ -2199,8 +2199,24 @@ export class ColumnsService implements IColumnsService {
         }
       }
 
+      // Block AutoNumber conversion on non-PG sources
+      if (
+        colBody.uidt === UITypes.AutoNumber &&
+        column.uidt !== UITypes.AutoNumber &&
+        source.type !== 'pg'
+      ) {
+        NcError.get(context).badRequest(
+          'AutoNumber field type is supported only for PostgreSQL databases',
+        );
+      }
+
       const originalCdf = colBody.cdf;
       colBody = await getColumnPropsFromUIDT(colBody, source);
+
+      // AutoNumber columns are read-only — prevent manual updates via data API
+      if (colBody.uidt === UITypes.AutoNumber) {
+        colBody.readonly = true;
+      }
 
       if (
         typeof colBody.cdf !== 'undefined' &&
@@ -2223,6 +2239,15 @@ export class ColumnsService implements IColumnsService {
           });
         },
       });
+
+      // After converting to AutoNumber, backfill existing rows + reset sequence
+      if (
+        colBody.uidt === UITypes.AutoNumber &&
+        column.uidt !== UITypes.AutoNumber
+      ) {
+        const savedCol = await Column.get(context, { colId: column.id });
+        await backfillAutoNumber(context, table, savedCol, source);
+      }
     }
 
     const DATE_TIME_TYPES = [
@@ -3059,6 +3084,8 @@ export class ColumnsService implements IColumnsService {
 
         // Get column properties from UI type (sets dt='int8', ai=true → BIGSERIAL on PG)
         colBody = await getColumnPropsFromUIDT(colBody, source);
+        // AutoNumber is read-only — prevent manual updates via data API
+        colBody.readonly = true;
 
         // Create the physical column in the database
         const tableUpdateBodyAN = {
@@ -3089,26 +3116,14 @@ export class ColumnsService implements IColumnsService {
           fk_model_id: table.id,
         });
 
-        // Backfill existing rows with sequential values
-        {
-          const dbDriver = await reuseOrSave('dbDriver', reuse, async () =>
-            NcConnectionMgrv2.get(source),
-          );
-          const rowCountResult = await dbDriver(table.table_name)
-            .count('nc_id as count')
-            .first();
-          const rowCount = Number(rowCountResult?.count ?? 0);
-
-          if (rowCount > 0) {
-            await backfillAutoNumber(
-              context,
-              table,
-              savedColumn,
-              source,
-              (colBody as any).viewId,
-            );
-          }
-        }
+        // Backfill existing rows with sequential values + reset PG sequence.
+        await backfillAutoNumber(
+          context,
+          table,
+          savedColumn,
+          source,
+          (colBody as any).view_id,
+        );
 
         break;
       }

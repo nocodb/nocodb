@@ -4,6 +4,7 @@ import {
   ButtonActionsType,
   FormulaError,
   PlanFeatureTypes,
+  PlanTitles,
   UITypes,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
@@ -601,7 +602,11 @@ onUnmounted(() => {
           :class="{ '-rotate-90': !isFilterSectionOpen || blockButtonVisibility }"
         />
         <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
-        <PaymentUpgradeBadge v-if="blockButtonVisibility" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY" remove-click />
+        <PaymentUpgradeBadge
+          v-if="blockButtonVisibility"
+          :plan-title="PlanTitles.BUSINESS"
+          :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY"
+        />
         <span
           v-else-if="filtersCount > 0"
           class="bg-brand-50 text-brand-500 rounded-full px-1.5 text-xs min-w-4.5 h-4.5 flex items-center justify-center"

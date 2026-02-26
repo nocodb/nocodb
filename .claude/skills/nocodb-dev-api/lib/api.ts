@@ -1,4 +1,4 @@
-import { getBaseUrl, readState, writeState, findCredentialForToken, refreshTokenForEmail } from './state.js';
+import { refreshToken } from './credentials.js';
 import type {
   SigninResponse,
   UserResponse,
@@ -17,20 +17,22 @@ import type {
 // ---------------------------------------------------------------------------
 
 interface RequestOptions {
+  url: string;
   method?: string;
   token?: string;
+  email?: string;      // for 401 auto-retry: which user to refresh
   body?: unknown;
   params?: Record<string, string | number | string[] | undefined>;
 }
 
 export async function request<T = unknown>(
   path: string,
-  opts: RequestOptions = {},
+  opts: RequestOptions,
 ): Promise<T> {
-  const { method = 'GET', token, body, params } = opts;
-  const base = getBaseUrl().replace(/\/+$/, '');
+  const { url: baseUrl, method = 'GET', token, email, body, params } = opts;
+  const base = baseUrl.replace(/\/+$/, '');
 
-  let url = `${base}${path}`;
+  let fullUrl = `${base}${path}`;
   if (params) {
     const parts: string[] = [];
     for (const [k, v] of Object.entries(params)) {
@@ -41,13 +43,13 @@ export async function request<T = unknown>(
         parts.push(`${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`);
       }
     }
-    if (parts.length) url += `?${parts.join('&')}`;
+    if (parts.length) fullUrl += `?${parts.join('&')}`;
   }
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (token) headers['xc-auth'] = token;
 
-  const res = await fetch(url, {
+  const res = await fetch(fullUrl, {
     method,
     headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -62,28 +64,25 @@ export async function request<T = unknown>(
   }
 
   // Auto-retry on 401: refresh the token and replay the request once
-  if (res.status === 401 && token) {
-    const cred = findCredentialForToken(token);
-    if (cred) {
-      const newToken = await refreshTokenForEmail(cred.email);
-      const retryHeaders = { ...headers, 'xc-auth': newToken };
-      const retry = await fetch(url, {
-        method,
-        headers: retryHeaders,
-        body: body !== undefined ? JSON.stringify(body) : undefined,
-      });
-      const retryText = await retry.text();
-      let retryData: unknown;
-      try { retryData = JSON.parse(retryText); } catch { retryData = retryText; }
-      if (!retry.ok) {
-        const retryMsg =
-          typeof retryData === 'object' && retryData && 'msg' in retryData
-            ? (retryData as { msg: string }).msg
-            : typeof retryData === 'string' ? retryData : retry.statusText;
-        throw new Error(`${retry.status} ${retryMsg}`);
-      }
-      return retryData as T;
+  if (res.status === 401 && token && email) {
+    const newToken = await refreshToken(baseUrl, email);
+    const retryHeaders = { ...headers, 'xc-auth': newToken };
+    const retry = await fetch(fullUrl, {
+      method,
+      headers: retryHeaders,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const retryText = await retry.text();
+    let retryData: unknown;
+    try { retryData = JSON.parse(retryText); } catch { retryData = retryText; }
+    if (!retry.ok) {
+      const retryMsg =
+        typeof retryData === 'object' && retryData && 'msg' in retryData
+          ? (retryData as { msg: string }).msg
+          : typeof retryData === 'string' ? retryData : retry.statusText;
+      throw new Error(`${retry.status} ${retryMsg}`);
     }
+    return retryData as T;
   }
 
   if (!res.ok) {
@@ -103,52 +102,52 @@ export async function request<T = unknown>(
 // Auth (v1 — no v3 prefix for auth)
 // ---------------------------------------------------------------------------
 
-export async function signin(email: string, password: string): Promise<SigninResponse> {
-  return request('/api/v1/auth/user/signin', { method: 'POST', body: { email, password } });
+export async function signin(url: string, email: string, password: string): Promise<SigninResponse> {
+  return request('/api/v1/auth/user/signin', { url, method: 'POST', body: { email, password } });
 }
 
-export async function signup(email: string, password: string): Promise<SigninResponse> {
-  return request('/api/v1/auth/user/signup', { method: 'POST', body: { email, password } });
+export async function signup(url: string, email: string, password: string): Promise<SigninResponse> {
+  return request('/api/v1/auth/user/signup', { url, method: 'POST', body: { email, password } });
 }
 
-export async function me(token: string): Promise<UserResponse> {
-  return request('/api/v1/auth/user/me', { token });
+export async function me(url: string, token: string, email?: string): Promise<UserResponse> {
+  return request('/api/v1/auth/user/me', { url, token, email });
 }
 
 // ---------------------------------------------------------------------------
 // Health / Version (v1)
 // ---------------------------------------------------------------------------
 
-export async function health(): Promise<unknown> {
-  return request('/api/v1/health');
+export async function health(url: string): Promise<unknown> {
+  return request('/api/v1/health', { url });
 }
 
-export async function version(): Promise<unknown> {
-  return request('/api/v1/version');
+export async function version(url: string): Promise<unknown> {
+  return request('/api/v1/version', { url });
 }
 
 // ---------------------------------------------------------------------------
 // Workspaces (v3)
 // ---------------------------------------------------------------------------
 
-export async function listWorkspaces(token: string): Promise<{ list: Workspace[] }> {
-  return request('/api/v3/meta/workspaces', { token });
+export async function listWorkspaces(url: string, token: string, email?: string): Promise<{ list: Workspace[] }> {
+  return request('/api/v3/meta/workspaces', { url, token, email });
 }
 
-export async function createWorkspace(token: string, title: string): Promise<Workspace> {
-  return request('/api/v3/meta/workspaces', { method: 'POST', token, body: { title } });
+export async function createWorkspace(url: string, token: string, title: string, email?: string): Promise<Workspace> {
+  return request('/api/v3/meta/workspaces', { url, method: 'POST', token, email, body: { title } });
 }
 
-export async function getWorkspace(token: string, id: string): Promise<Workspace> {
-  return request(`/api/v3/meta/workspaces/${id}`, { token });
+export async function getWorkspace(url: string, token: string, id: string, email?: string): Promise<Workspace> {
+  return request(`/api/v3/meta/workspaces/${id}`, { url, token, email });
 }
 
-export async function updateWorkspace(token: string, id: string, data: Record<string, unknown>): Promise<unknown> {
-  return request(`/api/v3/meta/workspaces/${id}`, { method: 'PATCH', token, body: data });
+export async function updateWorkspace(url: string, token: string, id: string, data: Record<string, unknown>, email?: string): Promise<unknown> {
+  return request(`/api/v3/meta/workspaces/${id}`, { url, method: 'PATCH', token, email, body: data });
 }
 
-export async function deleteWorkspace(token: string, id: string): Promise<unknown> {
-  return request(`/api/v3/meta/workspaces/${id}`, { method: 'DELETE', token });
+export async function deleteWorkspace(url: string, token: string, id: string, email?: string): Promise<unknown> {
+  return request(`/api/v3/meta/workspaces/${id}`, { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
@@ -156,50 +155,63 @@ export async function deleteWorkspace(token: string, id: string): Promise<unknow
 // ---------------------------------------------------------------------------
 
 export async function listWorkspaceUsers(
+  url: string,
   token: string,
   wsId: string,
+  email?: string,
 ): Promise<{ list: WorkspaceUser[] }> {
-  // No v3 GET list endpoint for workspace members — use v1
-  return request(`/api/v1/workspaces/${wsId}/users`, { token });
+  return request(`/api/v1/workspaces/${wsId}/users`, { url, token, email });
 }
 
 /** Invite user to workspace. Uses v1 (v3 requires feature_api_member_management, EE only). */
 export async function inviteToWorkspace(
+  url: string,
   token: string,
   wsId: string,
-  email: string,
+  inviteEmail: string,
   role: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/workspaces/${wsId}/invitations`, {
+    url,
     method: 'POST',
     token,
-    body: { email, roles: role },
+    email,
+    body: { email: inviteEmail, roles: role },
   });
 }
 
 /** Update workspace member role. Uses v1. */
 export async function updateWorkspaceMember(
+  url: string,
   token: string,
   wsId: string,
   userId: string,
   role: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/workspaces/${wsId}/users/${userId}`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: { roles: role },
   });
 }
 
 /** Remove workspace member. Uses v1. */
 export async function removeWorkspaceMember(
+  url: string,
   token: string,
   wsId: string,
   userId: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/workspaces/${wsId}/users/${userId}`, {
+    url,
     method: 'DELETE',
     token,
+    email,
   });
 }
 
@@ -207,32 +219,36 @@ export async function removeWorkspaceMember(
 // Bases (v3)
 // ---------------------------------------------------------------------------
 
-export async function listBases(token: string, wsId: string): Promise<{ list: Base[] }> {
-  return request(`/api/v3/meta/workspaces/${wsId}/bases`, { token });
+export async function listBases(url: string, token: string, wsId: string, email?: string): Promise<{ list: Base[] }> {
+  return request(`/api/v3/meta/workspaces/${wsId}/bases`, { url, token, email });
 }
 
-export async function createBase(token: string, wsId: string, title: string): Promise<Base> {
+export async function createBase(url: string, token: string, wsId: string, title: string, email?: string): Promise<Base> {
   return request(`/api/v3/meta/workspaces/${wsId}/bases`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: { title },
   });
 }
 
-export async function getBase(token: string, baseId: string): Promise<Base> {
-  return request(`/api/v3/meta/bases/${baseId}`, { token });
+export async function getBase(url: string, token: string, baseId: string, email?: string): Promise<Base> {
+  return request(`/api/v3/meta/bases/${baseId}`, { url, token, email });
 }
 
 export async function updateBase(
+  url: string,
   token: string,
   baseId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}`, { method: 'PATCH', token, body: data });
+  return request(`/api/v3/meta/bases/${baseId}`, { url, method: 'PATCH', token, email, body: data });
 }
 
-export async function deleteBase(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}`, { method: 'DELETE', token });
+export async function deleteBase(url: string, token: string, baseId: string, email?: string): Promise<unknown> {
+  return request(`/api/v3/meta/bases/${baseId}`, { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
@@ -240,39 +256,51 @@ export async function deleteBase(token: string, baseId: string): Promise<unknown
 // ---------------------------------------------------------------------------
 
 export async function inviteBaseMember(
+  url: string,
   token: string,
   baseId: string,
-  email: string,
+  inviteEmail: string,
   role: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/members`, {
+    url,
     method: 'POST',
     token,
-    body: [{ email, base_role: role }],
+    email,
+    body: [{ email: inviteEmail, base_role: role }],
   });
 }
 
 export async function updateBaseMember(
+  url: string,
   token: string,
   baseId: string,
   userId: string,
   role: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/members`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: { user_id: userId, base_role: role },
   });
 }
 
 export async function removeBaseMember(
+  url: string,
   token: string,
   baseId: string,
   userId: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/members`, {
+    url,
     method: 'DELETE',
     token,
+    email,
     body: { user_id: userId },
   });
 }
@@ -281,85 +309,101 @@ export async function removeBaseMember(
 // Tables (v3)
 // ---------------------------------------------------------------------------
 
-export async function listTables(token: string, baseId: string): Promise<{ list: Table[] }> {
-  return request(`/api/v3/meta/bases/${baseId}/tables`, { token });
+export async function listTables(url: string, token: string, baseId: string, email?: string): Promise<{ list: Table[] }> {
+  return request(`/api/v3/meta/bases/${baseId}/tables`, { url, token, email });
 }
 
 export async function createTable(
+  url: string,
   token: string,
   baseId: string,
   title: string,
   fields: Array<{ title: string; type: string; [k: string]: unknown }>,
+  email?: string,
 ): Promise<Table> {
   return request(`/api/v3/meta/bases/${baseId}/tables`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: { title, fields },
   });
 }
 
-export async function getTable(token: string, baseId: string, tableId: string): Promise<Table> {
-  return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}`, { token });
+export async function getTable(url: string, token: string, baseId: string, tableId: string, email?: string): Promise<Table> {
+  return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}`, { url, token, email });
 }
 
 export async function updateTable(
+  url: string,
   token: string,
   baseId: string,
   tableId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: data,
   });
 }
 
-export async function deleteTable(token: string, baseId: string, tableId: string): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}`, { method: 'DELETE', token });
+export async function deleteTable(url: string, token: string, baseId: string, tableId: string, email?: string): Promise<unknown> {
+  return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}`, { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
 // Fields / Columns (v3)
 // ---------------------------------------------------------------------------
 
-export async function listFields(token: string, baseId: string, tableId: string): Promise<Column[]> {
-  const table = await getTable(token, baseId, tableId);
+export async function listFields(url: string, token: string, baseId: string, tableId: string, email?: string): Promise<Column[]> {
+  const table = await getTable(url, token, baseId, tableId, email);
   return table.fields || table.columns || [];
 }
 
-export async function getField(token: string, baseId: string, fieldId: string): Promise<Column> {
-  return request(`/api/v3/meta/bases/${baseId}/fields/${fieldId}`, { token });
+export async function getField(url: string, token: string, baseId: string, fieldId: string, email?: string): Promise<Column> {
+  return request(`/api/v3/meta/bases/${baseId}/fields/${fieldId}`, { url, token, email });
 }
 
 export async function createField(
+  url: string,
   token: string,
   baseId: string,
   tableId: string,
   field: { title: string; type: string; [k: string]: unknown },
+  email?: string,
 ): Promise<Column> {
   return request(`/api/v3/meta/bases/${baseId}/tables/${tableId}/fields`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: field,
   });
 }
 
 export async function updateField(
+  url: string,
   token: string,
   baseId: string,
   fieldId: string,
   field: Record<string, unknown>,
+  email?: string,
 ): Promise<Column> {
   return request(`/api/v3/meta/bases/${baseId}/fields/${fieldId}`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: field,
   });
 }
 
-export async function deleteField(token: string, baseId: string, fieldId: string): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/fields/${fieldId}`, { method: 'DELETE', token });
+export async function deleteField(url: string, token: string, baseId: string, fieldId: string, email?: string): Promise<unknown> {
+  return request(`/api/v3/meta/bases/${baseId}/fields/${fieldId}`, { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
@@ -375,75 +419,83 @@ const VIEW_CREATE_OPS: Record<string, string> = {
 };
 
 export async function listViews(
+  url: string,
   token: string,
   wsId: string,
   baseId: string,
   tableId: string,
+  email?: string,
 ): Promise<{ list: View[] }> {
-  return iGet(token, wsId, baseId, 'viewList', { tableId }) as Promise<{ list: View[] }>;
+  return iGet(url, token, wsId, baseId, 'viewList', { tableId }, email) as Promise<{ list: View[] }>;
 }
 
 export async function createView(
+  url: string,
   token: string,
   wsId: string,
   baseId: string,
   tableId: string,
   title: string,
   type: string = 'grid',
+  email?: string,
 ): Promise<View> {
   if (!VALID_VIEW_TYPES.includes(type)) {
     throw new Error(`Unknown view type: ${type}. Use: ${VALID_VIEW_TYPES.join(', ')}`);
   }
   const op = VIEW_CREATE_OPS[type];
-  return iPost(token, wsId, baseId, op, { title }, { tableId }) as Promise<View>;
+  return iPost(url, token, wsId, baseId, op, { title }, { tableId }, email) as Promise<View>;
 }
 
 export async function getView(
+  url: string,
   token: string,
   wsId: string,
   baseId: string,
   tableId: string,
   viewId: string,
+  email?: string,
 ): Promise<View> {
-  // No v1/v2 GET endpoint for a single view; v3 requires EE.
-  // Use internal viewList and filter by viewId.
-  const { list } = await listViews(token, wsId, baseId, tableId);
+  const { list } = await listViews(url, token, wsId, baseId, tableId, email);
   const view = list.find((v) => v.id === viewId);
   if (!view) throw new Error(`View ${viewId} not found in table ${tableId}`);
   return view;
 }
 
 export async function updateView(
+  url: string,
   token: string,
   wsId: string,
   baseId: string,
   viewId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewUpdate', { view: data }, { viewId });
+  return iPost(url, token, wsId, baseId, 'viewUpdate', { view: data }, { viewId }, email);
 }
 
-export async function deleteView(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewDelete', {}, { viewId });
+export async function deleteView(url: string, token: string, wsId: string, baseId: string, viewId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewDelete', {}, { viewId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // View Columns (internal)
 // ---------------------------------------------------------------------------
 
-export async function listViewColumns(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'viewColumnList', { viewId });
+export async function listViewColumns(url: string, token: string, wsId: string, baseId: string, viewId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'viewColumnList', { viewId }, email);
 }
 
 export async function updateViewColumns(
+  url: string,
   token: string,
   wsId: string,
   baseId: string,
   viewId: string,
   columnId: string,
   data: unknown,
+  email?: string,
 ): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewColumnUpdate', { column: data }, { viewId, columnId });
+  return iPost(url, token, wsId, baseId, 'viewColumnUpdate', { column: data }, { viewId, columnId }, email);
 }
 
 // ---------------------------------------------------------------------------
@@ -451,61 +503,79 @@ export async function updateViewColumns(
 // ---------------------------------------------------------------------------
 
 export async function listFilters(
+  url: string,
   token: string,
   baseId: string,
   viewId: string,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/filters`, { token });
+  return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/filters`, { url, token, email });
 }
 
 export async function createFilter(
+  url: string,
   token: string,
   baseId: string,
   viewId: string,
   filter: unknown,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/filters`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: filter,
   });
 }
 
 export async function updateFilter(
+  url: string,
   token: string,
   baseId: string,
   viewId: string,
   filter: unknown,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/filters`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: filter,
   });
 }
 
 export async function replaceFilters(
+  url: string,
   token: string,
   baseId: string,
   viewId: string,
   filters: unknown,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/filters`, {
+    url,
     method: 'PUT',
     token,
+    email,
     body: filters,
   });
 }
 
 export async function deleteFilter(
+  url: string,
   token: string,
   baseId: string,
   viewId: string,
   filterId: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/filters`, {
+    url,
     method: 'DELETE',
     token,
+    email,
     body: { id: filterId },
   });
 }
@@ -515,48 +585,62 @@ export async function deleteFilter(
 // ---------------------------------------------------------------------------
 
 export async function listSorts(
+  url: string,
   token: string,
   baseId: string,
   viewId: string,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`, { token });
+  return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`, { url, token, email });
 }
 
 export async function createSort(
+  url: string,
   token: string,
   baseId: string,
   viewId: string,
   sort: { field_id: string; direction?: 'asc' | 'desc' },
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: sort,
   });
 }
 
 export async function updateSort(
+  url: string,
   token: string,
   baseId: string,
   viewId: string,
   sort: { id: string; field_id?: string; direction?: 'asc' | 'desc' },
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: sort,
   });
 }
 
 export async function deleteSort(
+  url: string,
   token: string,
   baseId: string,
   viewId: string,
   sortId: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/meta/bases/${baseId}/views/${viewId}/sorts`, {
+    url,
     method: 'DELETE',
     token,
+    email,
     body: { id: sortId },
   });
 }
@@ -566,55 +650,63 @@ export async function deleteSort(
 // ---------------------------------------------------------------------------
 
 export async function listComments(
+  url: string,
   token: string,
   baseId: string,
   tableId: string,
   rowId: string | number,
+  email?: string,
 ): Promise<unknown> {
-  const wsId = await resolveWsId(token, baseId);
-  return iGet(token, wsId, baseId, 'commentList', {
+  const wsId = await resolveWsId(url, token, baseId, email);
+  return iGet(url, token, wsId, baseId, 'commentList', {
     row_id: String(rowId),
     fk_model_id: tableId,
-  });
+  }, email);
 }
 
 export async function createComment(
+  url: string,
   token: string,
   baseId: string,
   tableId: string,
   rowId: string | number,
   comment: string,
+  email?: string,
 ): Promise<unknown> {
-  const wsId = await resolveWsId(token, baseId);
-  return iPost(token, wsId, baseId, 'commentRow', {
+  const wsId = await resolveWsId(url, token, baseId, email);
+  return iPost(url, token, wsId, baseId, 'commentRow', {
     comment,
     row_id: String(rowId),
     fk_model_id: tableId,
-  });
+  }, undefined, email);
 }
 
 export async function updateComment(
+  url: string,
   token: string,
   baseId: string,
   commentId: string,
   comment: string,
+  email?: string,
 ): Promise<unknown> {
-  const wsId = await resolveWsId(token, baseId);
-  return iPost(token, wsId, baseId, 'commentUpdate', {
+  const wsId = await resolveWsId(url, token, baseId, email);
+  return iPost(url, token, wsId, baseId, 'commentUpdate', {
     commentId,
     comment,
-  });
+  }, undefined, email);
 }
 
 export async function deleteComment(
+  url: string,
   token: string,
   baseId: string,
   commentId: string,
+  email?: string,
 ): Promise<unknown> {
-  const wsId = await resolveWsId(token, baseId);
-  return iPost(token, wsId, baseId, 'commentDelete', {
+  const wsId = await resolveWsId(url, token, baseId, email);
+  return iPost(url, token, wsId, baseId, 'commentDelete', {
     commentId,
-  });
+  }, undefined, email);
 }
 
 // ---------------------------------------------------------------------------
@@ -622,45 +714,57 @@ export async function deleteComment(
 // ---------------------------------------------------------------------------
 
 export async function listLinks(
+  url: string,
   token: string,
   base: string,
   table: string,
   columnId: string,
   rowId: string | number,
   params?: { limit?: number; offset?: number },
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/data/${base}/${table}/links/${columnId}/${rowId}`, {
+    url,
     token,
+    email,
     params: params as Record<string, string | number | undefined>,
   });
 }
 
 export async function linkRecords(
+  url: string,
   token: string,
   base: string,
   table: string,
   columnId: string,
   rowId: string | number,
   ids: (string | number)[],
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/data/${base}/${table}/links/${columnId}/${rowId}`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: ids,
   });
 }
 
 export async function unlinkRecords(
+  url: string,
   token: string,
   base: string,
   table: string,
   columnId: string,
   rowId: string | number,
   ids: (string | number)[],
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/data/${base}/${table}/links/${columnId}/${rowId}`, {
+    url,
     method: 'DELETE',
     token,
+    email,
     body: ids,
   });
 }
@@ -670,16 +774,20 @@ export async function unlinkRecords(
 // ---------------------------------------------------------------------------
 
 export async function uploadAttachment(
+  url: string,
   token: string,
   base: string,
   table: string,
   recordId: string | number,
   columnId: string,
   data: { contentType: string; file: string; filename: string },
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/data/${base}/${table}/records/${recordId}/fields/${columnId}/upload`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: data,
   });
 }
@@ -688,51 +796,55 @@ export async function uploadAttachment(
 // API Tokens (v1)
 // ---------------------------------------------------------------------------
 
-export async function listTokens(token: string): Promise<unknown> {
-  return request('/api/v1/tokens', { token });
+export async function listTokens(url: string, token: string, email?: string): Promise<unknown> {
+  return request('/api/v1/tokens', { url, token, email });
 }
 
-export async function createToken(token: string, title: string): Promise<unknown> {
-  return request('/api/v1/tokens', { method: 'POST', token, body: { description: title } });
+export async function createToken(url: string, token: string, title: string, email?: string): Promise<unknown> {
+  return request('/api/v1/tokens', { url, method: 'POST', token, email, body: { description: title } });
 }
 
-export async function deleteToken(token: string, tokenId: string): Promise<unknown> {
-  return request(`/api/v1/tokens/${tokenId}`, { method: 'DELETE', token });
+export async function deleteToken(url: string, token: string, tokenId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/tokens/${tokenId}`, { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
 // Scripts (internal — EE only, v3 requires feature_api_script_management)
 // ---------------------------------------------------------------------------
 
-export async function listScripts(token: string, wsId: string, baseId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'listScripts');
+export async function listScripts(url: string, token: string, wsId: string, baseId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'listScripts', undefined, email);
 }
 
-export async function getScript(token: string, wsId: string, baseId: string, scriptId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'getScript', { id: scriptId });
+export async function getScript(url: string, token: string, wsId: string, baseId: string, scriptId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'getScript', { id: scriptId }, email);
 }
 
 export async function createScript(
+  url: string,
   token: string,
   wsId: string,
   baseId: string,
   script: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'createScript', script);
+  return iPost(url, token, wsId, baseId, 'createScript', script, undefined, email);
 }
 
 export async function updateScript(
+  url: string,
   token: string,
   wsId: string,
   baseId: string,
   scriptId: string,
   script: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'updateScript', { ...script, id: scriptId });
+  return iPost(url, token, wsId, baseId, 'updateScript', { ...script, id: scriptId }, undefined, email);
 }
 
-export async function deleteScript(token: string, wsId: string, baseId: string, scriptId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'deleteScript', {}, { scriptId });
+export async function deleteScript(url: string, token: string, wsId: string, baseId: string, scriptId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'deleteScript', {}, { scriptId }, email);
 }
 
 // ---------------------------------------------------------------------------
@@ -749,90 +861,113 @@ export interface ListRecordsParams {
 }
 
 export async function listRecords(
+  url: string,
   token: string,
   base: string,
   table: string,
   params?: ListRecordsParams,
+  email?: string,
 ): Promise<RecordList> {
   return request(`/api/v3/data/${base}/${table}/records`, {
+    url,
     token,
+    email,
     params: params as Record<string, string | number | undefined>,
   });
 }
 
 export async function getRecord(
+  url: string,
   token: string,
   base: string,
   table: string,
   rowId: string | number,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v3/data/${base}/${table}/records/${rowId}`, { token });
+  return request(`/api/v3/data/${base}/${table}/records/${rowId}`, { url, token, email });
 }
 
 export async function createRecord(
+  url: string,
   token: string,
   base: string,
   table: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  // v3 wraps field data inside { fields: {...} }; typecast=true auto-creates missing select options
   return request(`/api/v3/data/${base}/${table}/records?typecast=true`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: { fields: data },
   });
 }
 
 export async function createRecords(
+  url: string,
   token: string,
   base: string,
   table: string,
   data: Record<string, unknown>[],
+  email?: string,
 ): Promise<unknown> {
-  // v3 bulk: array of { fields: {...} }; typecast=true auto-creates missing select options
   return request(`/api/v3/data/${base}/${table}/records?typecast=true`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: data.map((d) => ({ fields: d })),
   });
 }
 
 export async function updateRecord(
+  url: string,
   token: string,
   base: string,
   table: string,
   id: string | number,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  // v3: { id, fields: {...} }
   return request(`/api/v3/data/${base}/${table}/records`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: { id, fields: data },
   });
 }
 
 export async function deleteRecord(
+  url: string,
   token: string,
   base: string,
   table: string,
   rowId: string | number,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v3/data/${base}/${table}/records`, {
+    url,
     method: 'DELETE',
     token,
+    email,
     body: { id: rowId },
   });
 }
 
 export async function countRecords(
+  url: string,
   token: string,
   base: string,
   table: string,
   where?: string,
+  email?: string,
 ): Promise<CountResponse> {
   return request(`/api/v3/data/${base}/${table}/count`, {
+    url,
     token,
+    email,
     params: where ? { where } : undefined,
   });
 }
@@ -856,954 +991,810 @@ export async function countRecords(
 
 /** Generic internal API helper. Calls /api/v2/internal/:wsId/:baseId with the given operation. */
 export async function internal(
+  url: string,
   token: string,
   wsId: string,
   baseId: string,
   operation: string,
   opts: { method?: string; body?: unknown; params?: Record<string, string | number | string[] | undefined> } = {},
+  email?: string,
 ): Promise<unknown> {
   const { method = 'POST', body, params } = opts;
   return request(`/api/v2/internal/${wsId}/${baseId}`, {
+    url,
     method,
     token,
+    email,
     body,
     params: { operation, ...params },
   });
 }
 
-/** Resolve workspace ID for a base — checks state cache first, then fetches via API */
-async function resolveWsId(token: string, baseId: string): Promise<string> {
-  const state = readState();
-  const cached = state?.baseWorkspaces?.[baseId];
+// In-memory base→workspace cache (not persisted)
+export const baseWsCache = new Map<string, string>();
+
+/** Resolve workspace ID for a base — checks in-memory cache first, then fetches via API */
+export async function resolveWsId(url: string, token: string, baseId: string, email?: string): Promise<string> {
+  const cached = baseWsCache.get(baseId);
   if (cached) return cached;
 
-  // Fetch base to get workspace_id
-  const base = (await getBase(token, baseId)) as Record<string, unknown>;
-  const wsId = base?.workspace_id as string;
+  const base = await getBase(url, token, baseId, email);
+  const wsId = base?.workspace_id;
   if (!wsId) throw new Error(`Could not resolve workspace for base ${baseId}`);
 
-  // Cache in state
-  if (state) {
-    if (!state.baseWorkspaces) state.baseWorkspaces = {};
-    state.baseWorkspaces[baseId] = wsId;
-    writeState(state);
-  }
-
+  baseWsCache.set(baseId, wsId);
   return wsId;
 }
 
 /** Internal GET shorthand */
 function iGet(
-  token: string, wsId: string, baseId: string, op: string,
+  url: string, token: string, wsId: string, baseId: string, op: string,
   params?: Record<string, string | number | string[] | undefined>,
+  email?: string,
 ): Promise<unknown> {
-  return internal(token, wsId, baseId, op, { method: 'GET', params });
+  return internal(url, token, wsId, baseId, op, { method: 'GET', params }, email);
 }
 
 /** Internal POST shorthand */
 function iPost(
-  token: string, wsId: string, baseId: string, op: string,
+  url: string, token: string, wsId: string, baseId: string, op: string,
   body?: unknown, params?: Record<string, string | number | string[] | undefined>,
+  email?: string,
 ): Promise<unknown> {
-  return internal(token, wsId, baseId, op, { method: 'POST', body, params });
+  return internal(url, token, wsId, baseId, op, { method: 'POST', body, params }, email);
 }
 
 /** Exported wrapper for iPost (used by init.ts for dashboard creation) */
 export function iPostExported(
-  token: string, wsId: string, baseId: string, op: string,
+  url: string, token: string, wsId: string, baseId: string, op: string,
   body?: unknown, params?: Record<string, string | number | string[] | undefined>,
+  email?: string,
 ): Promise<unknown> {
-  return iPost(token, wsId, baseId, op, body, params);
+  return iPost(url, token, wsId, baseId, op, body, params, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Tables & Columns
 // ---------------------------------------------------------------------------
 
-/** Get table with accessible views */
-export function tableGet(token: string, wsId: string, baseId: string, tableId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'tableGet', { tableId });
+export function tableGet(url: string, token: string, wsId: string, baseId: string, tableId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'tableGet', { tableId }, email);
 }
 
-/** Update a table (title, meta, etc.) */
-export function tableUpdate(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'tableUpdate', body, { tableId });
+export function tableUpdate(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'tableUpdate', body, { tableId }, email);
 }
 
-/** Delete a table */
-export function tableDelete(token: string, wsId: string, baseId: string, tableId: string, opts?: { forceDeleteRelations?: boolean }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'tableDelete', opts, { tableId });
+export function tableDelete(url: string, token: string, wsId: string, baseId: string, tableId: string, opts?: { forceDeleteRelations?: boolean }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'tableDelete', opts, { tableId }, email);
 }
 
-/** Reorder a table within its base */
-export function tableReorder(token: string, wsId: string, baseId: string, tableId: string, order: number): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'tableReorder', { order }, { tableId });
+export function tableReorder(url: string, token: string, wsId: string, baseId: string, tableId: string, order: number, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'tableReorder', { order }, { tableId }, email);
 }
 
-/** Get sample data for a table (used by hooks) */
-export function tableSampleData(token: string, wsId: string, baseId: string, tableId: string, opts?: { hookOperation?: string; version?: string; event?: string }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'tableSampleData', { tableId, ...opts });
+export function tableSampleData(url: string, token: string, wsId: string, baseId: string, tableId: string, opts?: { hookOperation?: string; version?: string; event?: string }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'tableSampleData', { tableId, ...opts }, email);
 }
 
-/** Get hash of column definitions for change detection */
-export function columnsHash(token: string, wsId: string, baseId: string, tableId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'columnsHash', { tableId });
+export function columnsHash(url: string, token: string, wsId: string, baseId: string, tableId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'columnsHash', { tableId }, email);
 }
 
-/** Add a column to a table */
-export function columnAdd(token: string, wsId: string, baseId: string, tableId: string, column: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'columnAdd', column, { tableId });
+export function columnAdd(url: string, token: string, wsId: string, baseId: string, tableId: string, column: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'columnAdd', column, { tableId }, email);
 }
 
-/** Update a column */
-export function columnUpdate(token: string, wsId: string, baseId: string, columnId: string, column: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'columnUpdate', column, { columnId });
+export function columnUpdate(url: string, token: string, wsId: string, baseId: string, columnId: string, column: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'columnUpdate', column, { columnId }, email);
 }
 
-/** Delete a column */
-export function columnDelete(token: string, wsId: string, baseId: string, columnId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'columnDelete', undefined, { columnId });
+export function columnDelete(url: string, token: string, wsId: string, baseId: string, columnId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'columnDelete', undefined, { columnId }, email);
 }
 
-/** Set a column as the display/primary column */
-export function columnSetAsPrimary(token: string, wsId: string, baseId: string, columnId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'columnSetAsPrimary', undefined, { columnId });
+export function columnSetAsPrimary(url: string, token: string, wsId: string, baseId: string, columnId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'columnSetAsPrimary', undefined, { columnId }, email);
 }
 
-/** Bulk column operations (add/update/delete multiple columns) */
-export function columnsBulk(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'columnsBulk', body, { tableId });
+export function columnsBulk(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'columnsBulk', body, { tableId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Views
 // ---------------------------------------------------------------------------
 
-/** List views for a table */
-export function viewList(token: string, wsId: string, baseId: string, tableId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'viewList', { tableId });
+export function viewList(url: string, token: string, wsId: string, baseId: string, tableId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'viewList', { tableId }, email);
 }
 
-/** Update a view's properties */
-export function viewUpdate(token: string, wsId: string, baseId: string, viewId: string, view: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewUpdate', view, { viewId });
+export function viewUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, view: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewUpdate', view, { viewId }, email);
 }
 
-/** Delete a view */
-export function viewDelete(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewDelete', undefined, { viewId });
+export function viewDelete(url: string, token: string, wsId: string, baseId: string, viewId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewDelete', undefined, { viewId }, email);
 }
 
-/** List columns for a view (includes visibility, order, width) */
-export function viewColumnList(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'viewColumnList', { viewId });
+export function viewColumnList(url: string, token: string, wsId: string, baseId: string, viewId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'viewColumnList', { viewId }, email);
 }
 
-/** Update a view column (visibility, order, width) */
-export function viewColumnUpdate(token: string, wsId: string, baseId: string, viewId: string, columnId: string, column: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewColumnUpdate', column, { viewId, columnId });
+export function viewColumnUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, columnId: string, column: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewColumnUpdate', column, { viewId, columnId }, email);
 }
 
-/** Add a column to a view */
-export function viewColumnCreate(token: string, wsId: string, baseId: string, viewId: string, column: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewColumnCreate', column, { viewId });
+export function viewColumnCreate(url: string, token: string, wsId: string, baseId: string, viewId: string, column: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewColumnCreate', column, { viewId }, email);
 }
 
-/** Show all hidden columns in a view */
-export function showAllColumns(token: string, wsId: string, baseId: string, viewId: string, ignoreIds?: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'showAllColumns', undefined, { viewId, ignoreIds });
+export function showAllColumns(url: string, token: string, wsId: string, baseId: string, viewId: string, ignoreIds?: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'showAllColumns', undefined, { viewId, ignoreIds }, email);
 }
 
-/** Hide all columns in a view */
-export function hideAllColumns(token: string, wsId: string, baseId: string, viewId: string, ignoreIds?: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'hideAllColumns', undefined, { viewId, ignoreIds });
+export function hideAllColumns(url: string, token: string, wsId: string, baseId: string, viewId: string, ignoreIds?: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'hideAllColumns', undefined, { viewId, ignoreIds }, email);
 }
 
-/** Update a grid view column (width, etc.) */
-export function gridColumnUpdate(token: string, wsId: string, baseId: string, gridViewColumnId: string, grid: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'gridColumnUpdate', grid, { gridViewColumnId });
+export function gridColumnUpdate(url: string, token: string, wsId: string, baseId: string, gridViewColumnId: string, grid: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'gridColumnUpdate', grid, { gridViewColumnId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: View Creation
 // ---------------------------------------------------------------------------
 
-/** Create a grid view */
-export function gridViewCreate(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'gridViewCreate', body, { tableId });
+export function gridViewCreate(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'gridViewCreate', body, { tableId }, email);
 }
 
-/** Create a form view */
-export function formViewCreate(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'formViewCreate', body, { tableId });
+export function formViewCreate(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'formViewCreate', body, { tableId }, email);
 }
 
-/** Create a gallery view */
-export function galleryViewCreate(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'galleryViewCreate', body, { tableId });
+export function galleryViewCreate(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'galleryViewCreate', body, { tableId }, email);
 }
 
-/** Create a kanban view */
-export function kanbanViewCreate(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'kanbanViewCreate', body, { tableId });
+export function kanbanViewCreate(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'kanbanViewCreate', body, { tableId }, email);
 }
 
-/** Create a map view */
-export function mapViewCreate(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'mapViewCreate', body, { tableId });
+export function mapViewCreate(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'mapViewCreate', body, { tableId }, email);
 }
 
-/** Create a calendar view */
-export function calendarViewCreate(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'calendarViewCreate', body, { tableId });
+export function calendarViewCreate(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'calendarViewCreate', body, { tableId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: View Configs
 // ---------------------------------------------------------------------------
 
-/** Get form view config */
-export function formViewGet(token: string, wsId: string, baseId: string, formViewId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'formViewGet', { formViewId });
+export function formViewGet(url: string, token: string, wsId: string, baseId: string, formViewId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'formViewGet', { formViewId }, email);
 }
 
-/** Update form view config */
-export function formViewUpdate(token: string, wsId: string, baseId: string, viewId: string, form: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'formViewUpdate', form, { viewId });
+export function formViewUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, form: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'formViewUpdate', form, { viewId }, email);
 }
 
-/** Update a form column */
-export function formColumnUpdate(token: string, wsId: string, baseId: string, formColumnId: string, column: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'formColumnUpdate', column, { formColumnId });
+export function formColumnUpdate(url: string, token: string, wsId: string, baseId: string, formColumnId: string, column: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'formColumnUpdate', column, { formColumnId }, email);
 }
 
-/** Update gallery view config */
-export function galleryViewUpdate(token: string, wsId: string, baseId: string, viewId: string, gallery: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'galleryViewUpdate', gallery, { viewId });
+export function galleryViewUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, gallery: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'galleryViewUpdate', gallery, { viewId }, email);
 }
 
-/** Update kanban view config */
-export function kanbanViewUpdate(token: string, wsId: string, baseId: string, viewId: string, kanban: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'kanbanViewUpdate', kanban, { viewId });
+export function kanbanViewUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, kanban: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'kanbanViewUpdate', kanban, { viewId }, email);
 }
 
-/** Update grid view config */
-export function gridViewUpdate(token: string, wsId: string, baseId: string, viewId: string, grid: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'gridViewUpdate', grid, { viewId });
+export function gridViewUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, grid: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'gridViewUpdate', grid, { viewId }, email);
 }
 
-/** Get map view config */
-export function mapViewGet(token: string, wsId: string, baseId: string, mapViewId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'mapViewGet', { mapViewId });
+export function mapViewGet(url: string, token: string, wsId: string, baseId: string, mapViewId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'mapViewGet', { mapViewId }, email);
 }
 
-/** Update map view config */
-export function mapViewUpdate(token: string, wsId: string, baseId: string, viewId: string, map: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'mapViewUpdate', map, { viewId });
+export function mapViewUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, map: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'mapViewUpdate', map, { viewId }, email);
 }
 
-/** Update calendar view config */
-export function calendarViewUpdate(token: string, wsId: string, baseId: string, viewId: string, calendar: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'calendarViewUpdate', calendar, { viewId });
+export function calendarViewUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, calendar: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'calendarViewUpdate', calendar, { viewId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Row Colors
 // ---------------------------------------------------------------------------
 
-/** Get row color configuration for a view */
-export function viewRowColorInfo(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'viewRowColorInfo', { viewId });
+export function viewRowColorInfo(url: string, token: string, wsId: string, baseId: string, viewId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'viewRowColorInfo', { viewId }, email);
 }
 
-/** Add a row color condition */
-export function viewRowColorConditionAdd(token: string, wsId: string, baseId: string, viewId: string, body: { color: string; is_set_as_background?: boolean; nc_order?: number; filter?: unknown }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewRowColorConditionAdd', body, { viewId });
+export function viewRowColorConditionAdd(url: string, token: string, wsId: string, baseId: string, viewId: string, body: { color: string; is_set_as_background?: boolean; nc_order?: number; filter?: unknown }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewRowColorConditionAdd', body, { viewId }, email);
 }
 
-/** Update a row color condition */
-export function viewRowColorConditionUpdate(token: string, wsId: string, baseId: string, viewId: string, rowColorConditionId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewRowColorConditionUpdate', body, { viewId, rowColorConditionId });
+export function viewRowColorConditionUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, rowColorConditionId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewRowColorConditionUpdate', body, { viewId, rowColorConditionId }, email);
 }
 
-/** Delete a row color condition */
-export function viewRowColorConditionDelete(token: string, wsId: string, baseId: string, viewId: string, rowColorConditionId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewRowColorConditionDelete', undefined, { viewId, rowColorConditionId });
+export function viewRowColorConditionDelete(url: string, token: string, wsId: string, baseId: string, viewId: string, rowColorConditionId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewRowColorConditionDelete', undefined, { viewId, rowColorConditionId }, email);
 }
 
-/** Set row color by a select field */
-export function viewRowColorSelectAdd(token: string, wsId: string, baseId: string, viewId: string, body: { fk_column_id: string; is_set_as_background?: boolean }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewRowColorSelectAdd', body, { viewId });
+export function viewRowColorSelectAdd(url: string, token: string, wsId: string, baseId: string, viewId: string, body: { fk_column_id: string; is_set_as_background?: boolean }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewRowColorSelectAdd', body, { viewId }, email);
 }
 
-/** Remove all row color info from a view */
-export function viewRowColorInfoDelete(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'viewRowColorInfoDelete', undefined, { viewId });
+export function viewRowColorInfoDelete(url: string, token: string, wsId: string, baseId: string, viewId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'viewRowColorInfoDelete', undefined, { viewId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Filters
 // ---------------------------------------------------------------------------
 
-/** List filters for a view */
-export function iFilterList(token: string, wsId: string, baseId: string, viewId: string, includeAllFilters?: boolean): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'filterList', { viewId, includeAllFilters: includeAllFilters ? 'true' : undefined });
+export function iFilterList(url: string, token: string, wsId: string, baseId: string, viewId: string, includeAllFilters?: boolean, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'filterList', { viewId, includeAllFilters: includeAllFilters ? 'true' : undefined }, email);
 }
 
-/** List children of a filter group */
-export function filterChildrenList(token: string, wsId: string, baseId: string, filterId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'filterChildrenList', { filterId });
+export function filterChildrenList(url: string, token: string, wsId: string, baseId: string, filterId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'filterChildrenList', { filterId }, email);
 }
 
-/** Create a filter on a view */
-export function iFilterCreate(token: string, wsId: string, baseId: string, viewId: string, filter: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'filterCreate', filter, { viewId });
+export function iFilterCreate(url: string, token: string, wsId: string, baseId: string, viewId: string, filter: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'filterCreate', filter, { viewId }, email);
 }
 
-/** Update a filter */
-export function iFilterUpdate(token: string, wsId: string, baseId: string, filterId: string, filter: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'filterUpdate', filter, { filterId });
+export function iFilterUpdate(url: string, token: string, wsId: string, baseId: string, filterId: string, filter: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'filterUpdate', filter, { filterId }, email);
 }
 
-/** Delete a filter */
-export function iFilterDelete(token: string, wsId: string, baseId: string, filterId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'filterDelete', undefined, { filterId });
+export function iFilterDelete(url: string, token: string, wsId: string, baseId: string, filterId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'filterDelete', undefined, { filterId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Sorts
 // ---------------------------------------------------------------------------
 
-/** List sorts for a view */
-export function iSortList(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'sortList', { viewId });
+export function iSortList(url: string, token: string, wsId: string, baseId: string, viewId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'sortList', { viewId }, email);
 }
 
-/** Create a sort on a view */
-export function iSortCreate(token: string, wsId: string, baseId: string, viewId: string, sort: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'sortCreate', sort, { viewId });
+export function iSortCreate(url: string, token: string, wsId: string, baseId: string, viewId: string, sort: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'sortCreate', sort, { viewId }, email);
 }
 
-/** Update a sort */
-export function iSortUpdate(token: string, wsId: string, baseId: string, sortId: string, sort: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'sortUpdate', sort, { sortId });
+export function iSortUpdate(url: string, token: string, wsId: string, baseId: string, sortId: string, sort: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'sortUpdate', sort, { sortId }, email);
 }
 
-/** Delete a sort */
-export function iSortDelete(token: string, wsId: string, baseId: string, sortId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'sortDelete', undefined, { sortId });
+export function iSortDelete(url: string, token: string, wsId: string, baseId: string, sortId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'sortDelete', undefined, { sortId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Hooks
 // ---------------------------------------------------------------------------
 
-/** List hooks for a table */
-export function hookList(token: string, wsId: string, baseId: string, tableId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'hookList', { tableId });
+export function hookList(url: string, token: string, wsId: string, baseId: string, tableId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'hookList', { tableId }, email);
 }
 
-/** Create a hook on a table */
-export function hookCreate(token: string, wsId: string, baseId: string, tableId: string, hook: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'hookCreate', hook, { tableId });
+export function hookCreate(url: string, token: string, wsId: string, baseId: string, tableId: string, hook: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'hookCreate', hook, { tableId }, email);
 }
 
-/** Update a hook */
-export function hookUpdate(token: string, wsId: string, baseId: string, hookId: string, hook: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'hookUpdate', hook, { hookId });
+export function hookUpdate(url: string, token: string, wsId: string, baseId: string, hookId: string, hook: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'hookUpdate', hook, { hookId }, email);
 }
 
-/** Delete a hook */
-export function hookDelete(token: string, wsId: string, baseId: string, hookId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'hookDelete', undefined, { hookId });
+export function hookDelete(url: string, token: string, wsId: string, baseId: string, hookId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'hookDelete', undefined, { hookId }, email);
 }
 
-/** Test a hook by sending a sample payload */
-export function hookTest(token: string, wsId: string, baseId: string, tableId: string, hookTest: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'hookTest', hookTest, { tableId });
+export function hookTest(url: string, token: string, wsId: string, baseId: string, tableId: string, hookTest: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'hookTest', hookTest, { tableId }, email);
 }
 
-/** Trigger a hook for a specific row */
-export function hookTrigger(token: string, wsId: string, baseId: string, hookId: string, rowId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'hookTrigger', undefined, { hookId, rowId });
+export function hookTrigger(url: string, token: string, wsId: string, baseId: string, hookId: string, rowId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'hookTrigger', undefined, { hookId, rowId }, email);
 }
 
-/** List hook execution logs */
-export function hookLogList(token: string, wsId: string, baseId: string, hookId: string, params?: { limit?: number; offset?: number }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'hookLogList', { hookId, ...params });
+export function hookLogList(url: string, token: string, wsId: string, baseId: string, hookId: string, params?: { limit?: number; offset?: number }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'hookLogList', { hookId, ...params }, email);
 }
 
-/** List filters attached to a hook */
-export function hookFilterList(token: string, wsId: string, baseId: string, hookId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'hookFilterList', { hookId });
+export function hookFilterList(url: string, token: string, wsId: string, baseId: string, hookId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'hookFilterList', { hookId }, email);
 }
 
-/** Create a filter on a hook */
-export function hookFilterCreate(token: string, wsId: string, baseId: string, hookId: string, filter: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'hookFilterCreate', filter, { hookId });
+export function hookFilterCreate(url: string, token: string, wsId: string, baseId: string, hookId: string, filter: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'hookFilterCreate', filter, { hookId }, email);
 }
 
-/** Get sample payload for hook testing */
-export function hookSamplePayload(token: string, wsId: string, baseId: string, tableId: string, opts?: { hookOperation?: string; version?: string; event?: string }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'hookSamplePayload', { tableId, ...opts });
+export function hookSamplePayload(url: string, token: string, wsId: string, baseId: string, tableId: string, opts?: { hookOperation?: string; version?: string; event?: string }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'hookSamplePayload', { tableId, ...opts }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Shared Views
 // ---------------------------------------------------------------------------
 
-/** Create a shared view (makes a view publicly accessible via UUID) */
-export function shareViewCreate(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'shareView', undefined, { viewId });
+export function shareViewCreate(url: string, token: string, wsId: string, baseId: string, viewId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'shareView', undefined, { viewId }, email);
 }
 
-/** Update shared view settings (password, etc.) */
-export function shareViewUpdate(token: string, wsId: string, baseId: string, viewId: string, sharedView: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'shareViewUpdate', sharedView, { viewId });
+export function shareViewUpdate(url: string, token: string, wsId: string, baseId: string, viewId: string, sharedView: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'shareViewUpdate', sharedView, { viewId }, email);
 }
 
-/** Delete a shared view (revoke public access) */
-export function shareViewDelete(token: string, wsId: string, baseId: string, viewId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'shareViewDelete', undefined, { viewId });
+export function shareViewDelete(url: string, token: string, wsId: string, baseId: string, viewId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'shareViewDelete', undefined, { viewId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Data Operations
 // ---------------------------------------------------------------------------
 
-/** List records from a table/view (internal path, supports server caching) */
-export function dataList(token: string, wsId: string, baseId: string, tableId: string, opts?: { viewId?: string; limit?: number; offset?: number; where?: string; sort?: string; fields?: string; includeSortAndFilterColumns?: boolean }): Promise<unknown> {
+export function dataList(url: string, token: string, wsId: string, baseId: string, tableId: string, opts?: { viewId?: string; limit?: number; offset?: number; where?: string; sort?: string; fields?: string; includeSortAndFilterColumns?: boolean }, email?: string): Promise<unknown> {
   const { includeSortAndFilterColumns, ...rest } = opts || {};
-  return iGet(token, wsId, baseId, 'dataList', {
+  return iGet(url, token, wsId, baseId, 'dataList', {
     tableId,
     includeSortAndFilterColumns: includeSortAndFilterColumns ? 'true' : undefined,
     ...rest,
-  });
+  }, email);
 }
 
-/** Insert a single record */
-export function dataInsert(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string; undo?: boolean }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'dataInsert', body, { tableId, viewId: opts?.viewId, undo: opts?.undo ? 'true' : undefined });
+export function dataInsert(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string; undo?: boolean }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'dataInsert', body, { tableId, viewId: opts?.viewId, undo: opts?.undo ? 'true' : undefined }, email);
 }
 
-/** Update a record */
-export function dataUpdate(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'dataUpdate', body, { tableId, viewId: opts?.viewId });
+export function dataUpdate(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'dataUpdate', body, { tableId, viewId: opts?.viewId }, email);
 }
 
-/** Delete a record */
-export function dataDelete(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'dataDelete', body, { tableId, viewId: opts?.viewId });
+export function dataDelete(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'dataDelete', body, { tableId, viewId: opts?.viewId }, email);
 }
 
-/** Export view data as CSV/JSON (returns a job) */
-export function dataExport(token: string, wsId: string, baseId: string, viewId: string, exportAs: string, options?: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'dataExport', { exportAs, options }, { viewId });
+export function dataExport(url: string, token: string, wsId: string, baseId: string, viewId: string, exportAs: string, options?: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'dataExport', { exportAs, options }, { viewId }, email);
 }
 
-/** Aggregate data for a table/view (count, sum, avg, etc.) */
-export function dataAggregate(token: string, wsId: string, baseId: string, tableId: string, opts?: { viewId?: string; [k: string]: unknown }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'dataAggregate', { tableId, ...opts });
+export function dataAggregate(url: string, token: string, wsId: string, baseId: string, tableId: string, opts?: { viewId?: string; [k: string]: unknown }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'dataAggregate', { tableId, ...opts }, email);
 }
 
-/** Bulk data list with POST body config */
-export function bulkDataList(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'bulkDataList', body, { tableId, viewId: opts?.viewId });
+export function bulkDataList(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'bulkDataList', body, { tableId, viewId: opts?.viewId }, email);
 }
 
-/** Bulk aggregate with POST body config */
-export function bulkAggregate(token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'bulkAggregate', body, { tableId, viewId: opts?.viewId });
+export function bulkAggregate(url: string, token: string, wsId: string, baseId: string, tableId: string, body: Record<string, unknown>, opts?: { viewId?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'bulkAggregate', body, { tableId, viewId: opts?.viewId }, email);
 }
 
-/** Bulk delete all matching records */
-export function bulkDataDeleteAll(token: string, wsId: string, baseId: string, tableId: string, opts?: { viewId?: string; where?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'bulkDataDeleteAll', undefined, { tableId, ...opts });
+export function bulkDataDeleteAll(url: string, token: string, wsId: string, baseId: string, tableId: string, opts?: { viewId?: string; where?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'bulkDataDeleteAll', undefined, { tableId, ...opts }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Nested / Linked Data
 // ---------------------------------------------------------------------------
 
-/** List nested (linked) records for a row+column */
-export function nestedDataList(token: string, wsId: string, baseId: string, tableId: string, rowId: string, columnId: string, opts?: { viewId?: string; limit?: number; offset?: number }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'nestedDataList', { tableId, rowId, columnId, ...opts });
+export function nestedDataList(url: string, token: string, wsId: string, baseId: string, tableId: string, rowId: string, columnId: string, opts?: { viewId?: string; limit?: number; offset?: number }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'nestedDataList', { tableId, rowId, columnId, ...opts }, email);
 }
 
-/** Link records in a link column */
-export function nestedDataLink(token: string, wsId: string, baseId: string, tableId: string, rowId: string, columnId: string, refRowIds: unknown[], opts?: { viewId?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'nestedDataLink', refRowIds, { tableId, rowId, columnId, viewId: opts?.viewId });
+export function nestedDataLink(url: string, token: string, wsId: string, baseId: string, tableId: string, rowId: string, columnId: string, refRowIds: unknown[], opts?: { viewId?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'nestedDataLink', refRowIds, { tableId, rowId, columnId, viewId: opts?.viewId }, email);
 }
 
-/** Unlink records from a link column */
-export function nestedDataUnlink(token: string, wsId: string, baseId: string, tableId: string, rowId: string, columnId: string, refRowIds: unknown[], opts?: { viewId?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'nestedDataUnlink', refRowIds, { tableId, rowId, columnId, viewId: opts?.viewId });
+export function nestedDataUnlink(url: string, token: string, wsId: string, baseId: string, tableId: string, rowId: string, columnId: string, refRowIds: unknown[], opts?: { viewId?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'nestedDataUnlink', refRowIds, { tableId, rowId, columnId, viewId: opts?.viewId }, email);
 }
 
-/** Copy/paste or delete all linked data for a column */
-export function nestedDataListCopyPasteOrDeleteAll(token: string, wsId: string, baseId: string, tableId: string, columnId: string, data: unknown, opts?: { viewId?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'nestedDataListCopyPasteOrDeleteAll', data, { tableId, columnId, viewId: opts?.viewId });
+export function nestedDataListCopyPasteOrDeleteAll(url: string, token: string, wsId: string, baseId: string, tableId: string, columnId: string, data: unknown, opts?: { viewId?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'nestedDataListCopyPasteOrDeleteAll', data, { tableId, columnId, viewId: opts?.viewId }, email);
 }
 
-/** List linked records for a link column (with caching) */
-export function linkDataList(token: string, wsId: string, baseId: string, columnId: string, opts?: { tableId?: string; viewId?: string; rowId?: string; limit?: number; offset?: number }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'linkDataList', { columnId, ...opts });
+export function linkDataList(url: string, token: string, wsId: string, baseId: string, columnId: string, opts?: { tableId?: string; viewId?: string; rowId?: string; limit?: number; offset?: number }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'linkDataList', { columnId, ...opts }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Comments
 // ---------------------------------------------------------------------------
 
-/** List comments for a row */
-export function commentList(token: string, wsId: string, baseId: string, fk_model_id: string, row_id: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'commentList', { fk_model_id, row_id });
+export function commentList(url: string, token: string, wsId: string, baseId: string, fk_model_id: string, row_id: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'commentList', { fk_model_id, row_id }, email);
 }
 
-/** Get comment counts for multiple rows. Pass row IDs as array. */
-export function commentCount(token: string, wsId: string, baseId: string, fk_model_id: string, ids: string[]): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'commentCount', { fk_model_id, ids });
+export function commentCount(url: string, token: string, wsId: string, baseId: string, fk_model_id: string, ids: string[], email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'commentCount', { fk_model_id, ids }, email);
 }
 
-/** Add a comment to a row */
-export function commentRow(token: string, wsId: string, baseId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'commentRow', body);
+export function commentRow(url: string, token: string, wsId: string, baseId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'commentRow', body, undefined, email);
 }
 
-/** Update a comment */
-export function iCommentUpdate(token: string, wsId: string, baseId: string, commentId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'commentUpdate', { commentId, ...body });
+export function iCommentUpdate(url: string, token: string, wsId: string, baseId: string, commentId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'commentUpdate', { commentId, ...body }, undefined, email);
 }
 
-/** Delete a comment */
-export function iCommentDelete(token: string, wsId: string, baseId: string, commentId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'commentDelete', { commentId });
+export function iCommentDelete(url: string, token: string, wsId: string, baseId: string, commentId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'commentDelete', { commentId }, undefined, email);
 }
 
-/** Resolve a comment (EE) */
-export function commentResolve(token: string, wsId: string, baseId: string, commentId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'commentResolve', { commentId });
+export function commentResolve(url: string, token: string, wsId: string, baseId: string, commentId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'commentResolve', { commentId }, undefined, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Extensions
 // ---------------------------------------------------------------------------
 
-/** List extensions for the base */
-export function extensionList(token: string, wsId: string, baseId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'extensionList');
+export function extensionList(url: string, token: string, wsId: string, baseId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'extensionList', undefined, email);
 }
 
-/** Get a single extension by ID */
-export function extensionRead(token: string, wsId: string, baseId: string, extensionId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'extensionRead', { extensionId });
+export function extensionRead(url: string, token: string, wsId: string, baseId: string, extensionId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'extensionRead', { extensionId }, email);
 }
 
-/** Create an extension */
-export function extensionCreate(token: string, wsId: string, baseId: string, extension: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'extensionCreate', extension);
+export function extensionCreate(url: string, token: string, wsId: string, baseId: string, extension: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'extensionCreate', extension, undefined, email);
 }
 
-/** Update an extension */
-export function extensionUpdate(token: string, wsId: string, baseId: string, extensionId: string, extension: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'extensionUpdate', extension, { extensionId });
+export function extensionUpdate(url: string, token: string, wsId: string, baseId: string, extensionId: string, extension: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'extensionUpdate', extension, { extensionId }, email);
 }
 
-/** Delete an extension */
-export function extensionDelete(token: string, wsId: string, baseId: string, extensionId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'extensionDelete', undefined, { extensionId });
+export function extensionDelete(url: string, token: string, wsId: string, baseId: string, extensionId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'extensionDelete', undefined, { extensionId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Sync Sources
 // ---------------------------------------------------------------------------
 
-/** List sync sources for a base */
-export function syncSourceList(token: string, wsId: string, baseId: string, sourceId?: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'syncSourceList', sourceId ? { sourceId } : undefined);
+export function syncSourceList(url: string, token: string, wsId: string, baseId: string, sourceId?: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'syncSourceList', sourceId ? { sourceId } : undefined, email);
 }
 
-/** Create a sync source */
-export function syncSourceCreate(token: string, wsId: string, baseId: string, sourceId: string, payload: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'syncSourceCreate', payload, { sourceId });
+export function syncSourceCreate(url: string, token: string, wsId: string, baseId: string, sourceId: string, payload: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'syncSourceCreate', payload, { sourceId }, email);
 }
 
-/** Update a sync source */
-export function syncSourceUpdate(token: string, wsId: string, baseId: string, syncId: string, payload: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'syncSourceUpdate', payload, { syncId });
+export function syncSourceUpdate(url: string, token: string, wsId: string, baseId: string, syncId: string, payload: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'syncSourceUpdate', payload, { syncId }, email);
 }
 
-/** Delete a sync source */
-export function syncSourceDelete(token: string, wsId: string, baseId: string, syncId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'syncSourceDelete', undefined, { syncId });
+export function syncSourceDelete(url: string, token: string, wsId: string, baseId: string, syncId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'syncSourceDelete', undefined, { syncId }, email);
 }
 
-/** Trigger an Airtable import job */
-export function atImportTrigger(token: string, wsId: string, baseId: string, syncId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'atImportTrigger', undefined, { syncId });
+export function atImportTrigger(url: string, token: string, wsId: string, baseId: string, syncId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'atImportTrigger', undefined, { syncId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Dependencies & Audit
 // ---------------------------------------------------------------------------
 
-/** Check dependencies before deleting an entity */
-export function checkDependency(token: string, wsId: string, baseId: string, body: { entityType: string; entityId: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'checkDependency', body);
+export function checkDependency(url: string, token: string, wsId: string, baseId: string, body: { entityType: string; entityId: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'checkDependency', body, undefined, email);
 }
 
-/** List audit trail for a record */
-export function recordAuditList(token: string, wsId: string, baseId: string, fk_model_id: string, row_id: string, cursor?: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'recordAuditList', { fk_model_id, row_id, cursor });
+export function recordAuditList(url: string, token: string, wsId: string, baseId: string, fk_model_id: string, row_id: string, cursor?: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'recordAuditList', { fk_model_id, row_id, cursor }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: MCP Tokens
 // ---------------------------------------------------------------------------
 
-/** List MCP tokens for the base */
-export function mcpList(token: string, wsId: string, baseId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'mcpList');
+export function mcpList(url: string, token: string, wsId: string, baseId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'mcpList', undefined, email);
 }
 
-/** Get a single MCP token */
-export function mcpGet(token: string, wsId: string, baseId: string, tokenId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'mcpGet', { tokenId });
+export function mcpGet(url: string, token: string, wsId: string, baseId: string, tokenId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'mcpGet', { tokenId }, email);
 }
 
-/** List all MCP tokens for the current user (org-scoped) */
-export function mcpRootList(token: string, wsId: string, baseId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'mcpRootList');
+export function mcpRootList(url: string, token: string, wsId: string, baseId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'mcpRootList', undefined, email);
 }
 
-/** Create an MCP token */
-export function mcpCreate(token: string, wsId: string, baseId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'mcpCreate', body);
+export function mcpCreate(url: string, token: string, wsId: string, baseId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'mcpCreate', body, undefined, email);
 }
 
-/** Update (regenerate) an MCP token */
-export function mcpUpdate(token: string, wsId: string, baseId: string, tokenId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'mcpUpdate', { tokenId, ...body });
+export function mcpUpdate(url: string, token: string, wsId: string, baseId: string, tokenId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'mcpUpdate', { tokenId, ...body }, undefined, email);
 }
 
-/** Delete an MCP token */
-export function mcpDelete(token: string, wsId: string, baseId: string, tokenId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'mcpDelete', { tokenId });
+export function mcpDelete(url: string, token: string, wsId: string, baseId: string, tokenId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'mcpDelete', { tokenId }, undefined, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: OAuth Clients (org-scoped)
 // ---------------------------------------------------------------------------
 
-/** List OAuth clients */
-export function oAuthClientList(token: string, wsId: string, baseId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'oAuthClientList');
+export function oAuthClientList(url: string, token: string, wsId: string, baseId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'oAuthClientList', undefined, email);
 }
 
-/** Get an OAuth client by ID */
-export function oAuthClientGet(token: string, wsId: string, baseId: string, clientId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'oAuthClientGet', { clientId });
+export function oAuthClientGet(url: string, token: string, wsId: string, baseId: string, clientId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'oAuthClientGet', { clientId }, email);
 }
 
-/** Create an OAuth client */
-export function oAuthClientCreate(token: string, wsId: string, baseId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'oAuthClientCreate', body);
+export function oAuthClientCreate(url: string, token: string, wsId: string, baseId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'oAuthClientCreate', body, undefined, email);
 }
 
-/** Update an OAuth client */
-export function oAuthClientUpdate(token: string, wsId: string, baseId: string, clientId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'oAuthClientUpdate', body, { clientId });
+export function oAuthClientUpdate(url: string, token: string, wsId: string, baseId: string, clientId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'oAuthClientUpdate', body, { clientId }, email);
 }
 
-/** Delete an OAuth client */
-export function oAuthClientDelete(token: string, wsId: string, baseId: string, clientId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'oAuthClientDelete', undefined, { clientId });
+export function oAuthClientDelete(url: string, token: string, wsId: string, baseId: string, clientId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'oAuthClientDelete', undefined, { clientId }, email);
 }
 
-/** Regenerate an OAuth client secret */
-export function oAuthClientRegenerateSecret(token: string, wsId: string, baseId: string, clientId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'oAuthClientRegenerateSecret', undefined, { clientId });
+export function oAuthClientRegenerateSecret(url: string, token: string, wsId: string, baseId: string, clientId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'oAuthClientRegenerateSecret', undefined, { clientId }, email);
 }
 
-/** List OAuth authorizations for the current user */
-export function oAuthAuthorizationList(token: string, wsId: string, baseId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'oAuthAuthorizationList');
+export function oAuthAuthorizationList(url: string, token: string, wsId: string, baseId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'oAuthAuthorizationList', undefined, email);
 }
 
-/** Revoke an OAuth authorization */
-export function oAuthAuthorizationRevoke(token: string, wsId: string, baseId: string, tokenId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'oAuthAuthorizationRevoke', { tokenId });
+export function oAuthAuthorizationRevoke(url: string, token: string, wsId: string, baseId: string, tokenId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'oAuthAuthorizationRevoke', { tokenId }, undefined, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: EE Filters (link/widget/rowColor)
 // ---------------------------------------------------------------------------
 
-/** List filters for a link column (EE) */
-export function linkFilterList(token: string, wsId: string, baseId: string, columnId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'linkFilterList', { columnId });
+export function linkFilterList(url: string, token: string, wsId: string, baseId: string, columnId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'linkFilterList', { columnId }, email);
 }
 
-/** List filters for a widget (EE) */
-export function widgetFilterList(token: string, wsId: string, baseId: string, widgetId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'widgetFilterList', { widgetId });
+export function widgetFilterList(url: string, token: string, wsId: string, baseId: string, widgetId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'widgetFilterList', { widgetId }, email);
 }
 
-/** Create a filter on a link column (EE) */
-export function linkFilterCreate(token: string, wsId: string, baseId: string, columnId: string, filter: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'linkFilterCreate', filter, { columnId });
+export function linkFilterCreate(url: string, token: string, wsId: string, baseId: string, columnId: string, filter: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'linkFilterCreate', filter, { columnId }, email);
 }
 
-/** Create a filter on a widget (EE) */
-export function widgetFilterCreate(token: string, wsId: string, baseId: string, widgetId: string, filter: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'widgetFilterCreate', filter, { widgetId });
+export function widgetFilterCreate(url: string, token: string, wsId: string, baseId: string, widgetId: string, filter: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'widgetFilterCreate', filter, { widgetId }, email);
 }
 
-/** Create a filter on a row color condition (EE) */
-export function rowColorConditionsFilterCreate(token: string, wsId: string, baseId: string, rowColorConditionId: string, filter: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'rowColorConditionsFilterCreate', filter, { rowColorConditionId });
+export function rowColorConditionsFilterCreate(url: string, token: string, wsId: string, baseId: string, rowColorConditionId: string, filter: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'rowColorConditionsFilterCreate', filter, { rowColorConditionId }, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Workflows (EE)
 // ---------------------------------------------------------------------------
 
-/** List workflows for the base */
-export function workflowList(token: string, wsId: string, baseId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'workflowList');
+export function workflowList(url: string, token: string, wsId: string, baseId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'workflowList', undefined, email);
 }
 
-/** Get a single workflow */
-export function workflowGet(token: string, wsId: string, baseId: string, workflowId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'workflowGet', { workflowId });
+export function workflowGet(url: string, token: string, wsId: string, baseId: string, workflowId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'workflowGet', { workflowId }, email);
 }
 
-/** List workflow executions */
-export function workflowExecutionList(token: string, wsId: string, baseId: string, workflowId: string, opts?: { limit?: number; offset?: number }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'workflowExecutionList', { workflowId, ...opts });
+export function workflowExecutionList(url: string, token: string, wsId: string, baseId: string, workflowId: string, opts?: { limit?: number; offset?: number }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'workflowExecutionList', { workflowId, ...opts }, email);
 }
 
-/** Get a single workflow execution */
-export function workflowExecutionGet(token: string, wsId: string, baseId: string, workflowId: string, executionId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'workflowExecutionGet', { workflowId, executionId });
+export function workflowExecutionGet(url: string, token: string, wsId: string, baseId: string, workflowId: string, executionId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'workflowExecutionGet', { workflowId, executionId }, email);
 }
 
-/** Get available workflow node types */
-export function workflowNodes(token: string, wsId: string, baseId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'workflowNodes');
+export function workflowNodes(url: string, token: string, wsId: string, baseId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'workflowNodes', undefined, email);
 }
 
-/** List workflow subscribers */
-export function workflowListSubscribers(token: string, wsId: string, baseId: string, workflowId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'workflowListSubscribers', { workflowId });
+export function workflowListSubscribers(url: string, token: string, wsId: string, baseId: string, workflowId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'workflowListSubscribers', { workflowId }, email);
 }
 
-/** Create a workflow */
-export function workflowCreate(token: string, wsId: string, baseId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowCreate', body);
+export function workflowCreate(url: string, token: string, wsId: string, baseId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowCreate', body, undefined, email);
 }
 
-/** Update a workflow */
-export function workflowUpdate(token: string, wsId: string, baseId: string, workflowId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowUpdate', { workflowId, ...body });
+export function workflowUpdate(url: string, token: string, wsId: string, baseId: string, workflowId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowUpdate', { workflowId, ...body }, undefined, email);
 }
 
-/** Delete a workflow */
-export function workflowDelete(token: string, wsId: string, baseId: string, workflowId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowDelete', { workflowId });
+export function workflowDelete(url: string, token: string, wsId: string, baseId: string, workflowId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowDelete', { workflowId }, undefined, email);
 }
 
-/** Duplicate a workflow */
-export function workflowDuplicate(token: string, wsId: string, baseId: string, workflowId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowDuplicate', { workflowId });
+export function workflowDuplicate(url: string, token: string, wsId: string, baseId: string, workflowId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowDuplicate', { workflowId }, undefined, email);
 }
 
-/** Execute a workflow */
-export function workflowExecute(token: string, wsId: string, baseId: string, workflowId: string, body?: { triggerData?: unknown; triggerNodeTitle?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowExecute', { workflowId, ...body });
+export function workflowExecute(url: string, token: string, wsId: string, baseId: string, workflowId: string, body?: { triggerData?: unknown; triggerNodeTitle?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowExecute', { workflowId, ...body }, undefined, email);
 }
 
-/** Fetch integration options for a workflow node */
-export function workflowNodeIntegrationFetchOptions(token: string, wsId: string, baseId: string, body: { integration: string; key: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowNodeIntegrationFetchOptions', body);
+export function workflowNodeIntegrationFetchOptions(url: string, token: string, wsId: string, baseId: string, body: { integration: string; key: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowNodeIntegrationFetchOptions', body, undefined, email);
 }
 
-/** Test a workflow node */
-export function workflowTestNode(token: string, wsId: string, baseId: string, body: { workflowId: string; nodeId: string; testTriggerData?: unknown; testMode?: string }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowTestNode', body);
+export function workflowTestNode(url: string, token: string, wsId: string, baseId: string, body: { workflowId: string; nodeId: string; testTriggerData?: unknown; testMode?: string }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowTestNode', body, undefined, email);
 }
 
-/** Publish a workflow */
-export function workflowPublish(token: string, wsId: string, baseId: string, workflowId: string, cancelPendingExecutions?: boolean): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowPublish', { workflowId, cancelPendingExecutions });
+export function workflowPublish(url: string, token: string, wsId: string, baseId: string, workflowId: string, cancelPendingExecutions?: boolean, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowPublish', { workflowId, cancelPendingExecutions }, undefined, email);
 }
 
-/** Add subscribers to a workflow */
-export function workflowAddSubscribers(token: string, wsId: string, baseId: string, workflowId: string, userIds: string[]): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowAddSubscribers', { workflowId, userIds });
+export function workflowAddSubscribers(url: string, token: string, wsId: string, baseId: string, workflowId: string, userIds: string[], email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowAddSubscribers', { workflowId, userIds }, undefined, email);
 }
 
-/** Remove a subscriber from a workflow */
-export function workflowRemoveSubscriber(token: string, wsId: string, baseId: string, subscriberId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'workflowRemoveSubscriber', { subscriberId });
+export function workflowRemoveSubscriber(url: string, token: string, wsId: string, baseId: string, subscriberId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'workflowRemoveSubscriber', { subscriberId }, undefined, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Managed Apps (EE)
 // ---------------------------------------------------------------------------
 
-/** List published apps in the store */
-export function managedAppStoreList(token: string, wsId: string, baseId: string, opts?: { category?: string; search?: string; limit?: number; offset?: number }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'managedAppStoreList', opts as Record<string, string | number | undefined>);
+export function managedAppStoreList(url: string, token: string, wsId: string, baseId: string, opts?: { category?: string; search?: string; limit?: number; offset?: number }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'managedAppStoreList', opts as Record<string, string | number | undefined>, email);
 }
 
-/** List managed apps in the workspace */
-export function managedAppList(token: string, wsId: string, baseId: string, opts?: { limit?: number; offset?: number }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'managedAppList', opts as Record<string, string | number | undefined>);
+export function managedAppList(url: string, token: string, wsId: string, baseId: string, opts?: { limit?: number; offset?: number }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'managedAppList', opts as Record<string, string | number | undefined>, email);
 }
 
-/** Get a single managed app */
-export function managedAppGet(token: string, wsId: string, baseId: string, managedAppId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'managedAppGet', { managedAppId });
+export function managedAppGet(url: string, token: string, wsId: string, baseId: string, managedAppId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'managedAppGet', { managedAppId }, email);
 }
 
-/** Get updates available for an installed managed app */
-export function managedAppGetUpdates(token: string, wsId: string, baseId: string, managedAppId: string, installedBaseId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'managedAppGetUpdates', { managedAppId, installedBaseId });
+export function managedAppGetUpdates(url: string, token: string, wsId: string, baseId: string, managedAppId: string, installedBaseId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'managedAppGetUpdates', { managedAppId, installedBaseId }, email);
 }
 
-/** List versions of a managed app */
-export function managedAppVersionsList(token: string, wsId: string, baseId: string, managedAppId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'managedAppVersionsList', { managedAppId });
+export function managedAppVersionsList(url: string, token: string, wsId: string, baseId: string, managedAppId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'managedAppVersionsList', { managedAppId }, email);
 }
 
-/** Get deployment statistics for a managed app (owner only) */
-export function managedAppDeployments(token: string, wsId: string, baseId: string, managedAppId: string): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'managedAppDeployments', { managedAppId });
+export function managedAppDeployments(url: string, token: string, wsId: string, baseId: string, managedAppId: string, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'managedAppDeployments', { managedAppId }, email);
 }
 
-/** Get deployments for a specific version (owner only) */
-export function managedAppVersionDeployments(token: string, wsId: string, baseId: string, managedAppId: string, versionId: string, opts?: { limit?: number; offset?: number }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'managedAppVersionDeployments', { managedAppId, versionId, ...opts });
+export function managedAppVersionDeployments(url: string, token: string, wsId: string, baseId: string, managedAppId: string, versionId: string, opts?: { limit?: number; offset?: number }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'managedAppVersionDeployments', { managedAppId, versionId, ...opts }, email);
 }
 
-/** Get deployment logs for a base (owner only) */
-export function managedAppDeploymentLogs(token: string, wsId: string, baseId: string, logsBaseId: string, opts?: { limit?: number; offset?: number }): Promise<unknown> {
-  return iGet(token, wsId, baseId, 'managedAppDeploymentLogs', { baseId: logsBaseId, ...opts });
+export function managedAppDeploymentLogs(url: string, token: string, wsId: string, baseId: string, logsBaseId: string, opts?: { limit?: number; offset?: number }, email?: string): Promise<unknown> {
+  return iGet(url, token, wsId, baseId, 'managedAppDeploymentLogs', { baseId: logsBaseId, ...opts }, email);
 }
 
-/** Create a managed app */
-export function managedAppCreate(token: string, wsId: string, baseId: string, body: { title: string; visibility?: string; basePayload?: unknown }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'managedAppCreate', body);
+export function managedAppCreate(url: string, token: string, wsId: string, baseId: string, body: { title: string; visibility?: string; basePayload?: unknown }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'managedAppCreate', body, undefined, email);
 }
 
-/** Update a managed app */
-export function managedAppUpdate(token: string, wsId: string, baseId: string, managedAppId: string, body: Record<string, unknown>): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'managedAppUpdate', { managedAppId, ...body });
+export function managedAppUpdate(url: string, token: string, wsId: string, baseId: string, managedAppId: string, body: Record<string, unknown>, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'managedAppUpdate', { managedAppId, ...body }, undefined, email);
 }
 
-/** Delete a managed app (soft delete, owner only) */
-export function managedAppDelete(token: string, wsId: string, baseId: string, managedAppId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'managedAppDelete', { managedAppId });
+export function managedAppDelete(url: string, token: string, wsId: string, baseId: string, managedAppId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'managedAppDelete', { managedAppId }, undefined, email);
 }
 
-/** Publish a managed app version */
-export function managedAppPublish(token: string, wsId: string, baseId: string, managedAppVersionId: string, releaseNotes?: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'managedAppPublish', { managedAppVersionId, releaseNotes });
+export function managedAppPublish(url: string, token: string, wsId: string, baseId: string, managedAppVersionId: string, releaseNotes?: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'managedAppPublish', { managedAppVersionId, releaseNotes }, undefined, email);
 }
 
-/** Create a new draft version of a managed app */
-export function managedAppCreateDraft(token: string, wsId: string, baseId: string, managedAppId: string, version: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'managedAppCreateDraft', { managedAppId, version });
+export function managedAppCreateDraft(url: string, token: string, wsId: string, baseId: string, managedAppId: string, version: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'managedAppCreateDraft', { managedAppId, version }, undefined, email);
 }
 
-/** Discard a draft version of a managed app */
-export function managedAppDiscardDraft(token: string, wsId: string, baseId: string, managedAppId: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'managedAppDiscardDraft', { managedAppId });
+export function managedAppDiscardDraft(url: string, token: string, wsId: string, baseId: string, managedAppId: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'managedAppDiscardDraft', { managedAppId }, undefined, email);
 }
 
-/** Install a managed app into a workspace */
-export function managedAppInstall(token: string, wsId: string, baseId: string, managedAppId: string, target_workspace_id: string): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'managedAppInstall', { managedAppId, target_workspace_id });
+export function managedAppInstall(url: string, token: string, wsId: string, baseId: string, managedAppId: string, target_workspace_id: string, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'managedAppInstall', { managedAppId, target_workspace_id }, undefined, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Integration Options (EE)
 // ---------------------------------------------------------------------------
 
-/** Fetch options for an integration (dropdown values for workflow node config) */
-export function integrationFetchOptions(token: string, wsId: string, baseId: string, body: { integration: string; key: string; params?: unknown }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'integrationFetchOptions', body);
+export function integrationFetchOptions(url: string, token: string, wsId: string, baseId: string, body: { integration: string; key: string; params?: unknown }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'integrationFetchOptions', body, undefined, email);
 }
 
 // ---------------------------------------------------------------------------
 // Internal: Send Record Email (EE)
 // ---------------------------------------------------------------------------
 
-/** Send a record by email to base members */
-export function sendRecordEmail(token: string, wsId: string, baseId: string, body: { tableId: string; rowId: string; emails: string[]; subject?: string; message?: string; viewId?: string; sendCopyToSelf?: boolean }): Promise<unknown> {
-  return iPost(token, wsId, baseId, 'sendRecordEmail', body);
+export function sendRecordEmail(url: string, token: string, wsId: string, baseId: string, body: { tableId: string; rowId: string; emails: string[]; subject?: string; message?: string; viewId?: string; sendCopyToSelf?: boolean }, email?: string): Promise<unknown> {
+  return iPost(url, token, wsId, baseId, 'sendRecordEmail', body, undefined, email);
 }
 
 // ===========================================================================
 // REST API Fallbacks (no internal equivalent available)
-// ===========================================================================
-// These use v2/v1 REST endpoints because no internal API operation exists
-// for these resources. Use internal operations above when available.
 // ===========================================================================
 
 // ---------------------------------------------------------------------------
 // Shared View Listing (v1) — no internal list operation available
 // ---------------------------------------------------------------------------
 
-/** List shared views for a table. Uses v1 route (no internal equivalent). baseId included for scope consistency. */
-export async function listSharedViews(token: string, baseId: string, tableId: string): Promise<unknown> {
-  return request(`/api/v1/db/meta/tables/${tableId}/share`, { token });
+export async function listSharedViews(url: string, token: string, baseId: string, tableId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/db/meta/tables/${tableId}/share`, { url, token, email });
 }
 
 // ---------------------------------------------------------------------------
 // Shared Bases (v2)
 // ---------------------------------------------------------------------------
 
-export async function getSharedBase(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v2/meta/bases/${baseId}/shared`, { token });
+export async function getSharedBase(url: string, token: string, baseId: string, email?: string): Promise<unknown> {
+  return request(`/api/v2/meta/bases/${baseId}/shared`, { url, token, email });
 }
 
-export async function createSharedBase(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v2/meta/bases/${baseId}/shared`, { method: 'POST', token });
+export async function createSharedBase(url: string, token: string, baseId: string, email?: string): Promise<unknown> {
+  return request(`/api/v2/meta/bases/${baseId}/shared`, { url, method: 'POST', token, email });
 }
 
 export async function updateSharedBase(
+  url: string,
   token: string,
   baseId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v2/meta/bases/${baseId}/shared`, { method: 'PATCH', token, body: data });
+  return request(`/api/v2/meta/bases/${baseId}/shared`, { url, method: 'PATCH', token, email, body: data });
 }
 
-export async function deleteSharedBase(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v2/meta/bases/${baseId}/shared`, { method: 'DELETE', token });
+export async function deleteSharedBase(url: string, token: string, baseId: string, email?: string): Promise<unknown> {
+  return request(`/api/v2/meta/bases/${baseId}/shared`, { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
 // Public Shared View Data (no auth needed)
 // ---------------------------------------------------------------------------
 
-export async function getSharedViewMeta(uuid: string): Promise<unknown> {
-  return request(`/api/v2/public/shared-view/${uuid}/meta`);
+export async function getSharedViewMeta(url: string, uuid: string): Promise<unknown> {
+  return request(`/api/v2/public/shared-view/${uuid}/meta`, { url });
 }
 
 export async function getSharedViewRows(
+  url: string,
   uuid: string,
   params?: Record<string, string | number | undefined>,
 ): Promise<unknown> {
-  return request(`/api/v2/public/shared-view/${uuid}/rows`, { params });
+  return request(`/api/v2/public/shared-view/${uuid}/rows`, { url, params });
 }
 
 export async function submitSharedViewRow(
+  url: string,
   uuid: string,
   data: Record<string, unknown>,
 ): Promise<unknown> {
   return request(`/api/v2/public/shared-view/${uuid}/rows`, {
+    url,
     method: 'POST',
     body: data,
   });
@@ -1814,11 +1805,13 @@ export async function submitSharedViewRow(
 // ---------------------------------------------------------------------------
 
 export async function uploadFile(
+  url: string,
   token: string,
   filePath: string,
   params?: { path?: string },
+  email?: string,
 ): Promise<unknown> {
-  const base = getBaseUrl().replace(/\/+$/, '');
+  const base = url.replace(/\/+$/, '');
   const qs = params?.path ? `?path=${encodeURIComponent(params.path)}` : '';
   const { readFileSync } = await import('node:fs');
   const { basename } = await import('node:path');
@@ -1842,13 +1835,17 @@ export async function uploadFile(
 }
 
 export async function uploadByUrl(
+  url: string,
   token: string,
   urls: Array<{ url: string; fileName?: string }>,
   params?: { path?: string },
+  email?: string,
 ): Promise<unknown> {
   return request('/api/v2/storage/upload-by-url', {
+    url,
     method: 'POST',
     token,
+    email,
     body: urls,
     params: params?.path ? { path: params.path } : undefined,
   });
@@ -1859,66 +1856,86 @@ export async function uploadByUrl(
 // ---------------------------------------------------------------------------
 
 export async function bulkInsert(
+  url: string,
   token: string,
   base: string,
   table: string,
   records: Record<string, unknown>[],
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/data/bulk/noco/${base}/${table}`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: records,
   });
 }
 
 export async function bulkUpdate(
+  url: string,
   token: string,
   base: string,
   table: string,
   records: Array<Record<string, unknown>>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/data/bulk/noco/${base}/${table}`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: records,
   });
 }
 
 export async function bulkDelete(
+  url: string,
   token: string,
   base: string,
   table: string,
   ids: Array<Record<string, unknown>>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/data/bulk/noco/${base}/${table}`, {
+    url,
     method: 'DELETE',
     token,
+    email,
     body: ids,
   });
 }
 
 export async function bulkUpdateAll(
+  url: string,
   token: string,
   base: string,
   table: string,
   body: { where?: string; fields: Record<string, unknown> },
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/data/bulk/noco/${base}/${table}/all`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body,
   });
 }
 
 export async function bulkDeleteAll(
+  url: string,
   token: string,
   base: string,
   table: string,
   body: { where?: string },
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/data/bulk/noco/${base}/${table}/all`, {
+    url,
     method: 'DELETE',
     token,
+    email,
     body,
   });
 }
@@ -1927,52 +1944,56 @@ export async function bulkDeleteAll(
 // Notifications (v1)
 // ---------------------------------------------------------------------------
 
-export async function listNotifications(token: string): Promise<unknown> {
-  return request('/api/v1/notifications', { token });
+export async function listNotifications(url: string, token: string, email?: string): Promise<unknown> {
+  return request('/api/v1/notifications', { url, token, email });
 }
 
 export async function markNotificationRead(
+  url: string,
   token: string,
   notificationId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/notifications/${notificationId}`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: data,
   });
 }
 
-export async function deleteNotification(token: string, notificationId: string): Promise<unknown> {
-  return request(`/api/v1/notifications/${notificationId}`, { method: 'DELETE', token });
+export async function deleteNotification(url: string, token: string, notificationId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/notifications/${notificationId}`, { url, method: 'DELETE', token, email });
 }
 
-export async function markAllNotificationsRead(token: string): Promise<unknown> {
-  return request('/api/v1/notifications/mark-all-read', { method: 'POST', token });
-}
-
-// ---------------------------------------------------------------------------
-// Gallery View GET (v1) — no internal GET operation; baseId for scope consistency
-// ---------------------------------------------------------------------------
-
-export async function getGalleryView(token: string, baseId: string, galleryViewId: string): Promise<unknown> {
-  return request(`/api/v1/db/meta/galleries/${galleryViewId}`, { token });
+export async function markAllNotificationsRead(url: string, token: string, email?: string): Promise<unknown> {
+  return request('/api/v1/notifications/mark-all-read', { url, method: 'POST', token, email });
 }
 
 // ---------------------------------------------------------------------------
-// Kanban View GET (v1) — no internal GET operation; baseId for scope consistency
+// Gallery View GET (v1)
 // ---------------------------------------------------------------------------
 
-export async function getKanbanView(token: string, baseId: string, kanbanViewId: string): Promise<unknown> {
-  return request(`/api/v1/db/meta/kanbans/${kanbanViewId}`, { token });
+export async function getGalleryView(url: string, token: string, baseId: string, galleryViewId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/db/meta/galleries/${galleryViewId}`, { url, token, email });
 }
 
 // ---------------------------------------------------------------------------
-// Grid Columns List (v1) — for grid-specific column data; baseId for scope consistency
+// Kanban View GET (v1)
 // ---------------------------------------------------------------------------
 
-export async function listGridColumns(token: string, baseId: string, gridViewId: string): Promise<unknown> {
-  return request(`/api/v1/db/meta/grids/${gridViewId}/grid-columns`, { token });
+export async function getKanbanView(url: string, token: string, baseId: string, kanbanViewId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/db/meta/kanbans/${kanbanViewId}`, { url, token, email });
+}
+
+// ---------------------------------------------------------------------------
+// Grid Columns List (v1)
+// ---------------------------------------------------------------------------
+
+export async function listGridColumns(url: string, token: string, baseId: string, gridViewId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/db/meta/grids/${gridViewId}/grid-columns`, { url, token, email });
 }
 
 // ---------------------------------------------------------------------------
@@ -1980,27 +2001,35 @@ export async function listGridColumns(token: string, baseId: string, gridViewId:
 // ---------------------------------------------------------------------------
 
 export async function calendarData(
+  url: string,
   token: string,
   base: string,
   table: string,
   viewName: string,
   params?: Record<string, string | number | undefined>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/calendar-data/noco/${base}/${table}/views/${viewName}`, {
+    url,
     token,
+    email,
     params,
   });
 }
 
 export async function calendarCountByDate(
+  url: string,
   token: string,
   base: string,
   table: string,
   viewName: string,
   params?: Record<string, string | number | undefined>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/calendar-data/noco/${base}/${table}/views/${viewName}/countByDate`, {
+    url,
     token,
+    email,
     params,
   });
 }
@@ -2009,44 +2038,56 @@ export async function calendarCountByDate(
 // Base Users / Collaborators (v1)
 // ---------------------------------------------------------------------------
 
-export async function listBaseUsers(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v1/db/meta/projects/${baseId}/users`, { token });
+export async function listBaseUsers(url: string, token: string, baseId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/db/meta/projects/${baseId}/users`, { url, token, email });
 }
 
 export async function inviteBaseUser(
+  url: string,
   token: string,
   baseId: string,
-  email: string,
+  inviteEmail: string,
   roles: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/meta/projects/${baseId}/users`, {
+    url,
     method: 'POST',
     token,
-    body: { email, roles },
+    email,
+    body: { email: inviteEmail, roles },
   });
 }
 
 export async function updateBaseUser(
+  url: string,
   token: string,
   baseId: string,
   userId: string,
   roles: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/meta/projects/${baseId}/users/${userId}`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: { roles },
   });
 }
 
 export async function removeBaseUser(
+  url: string,
   token: string,
   baseId: string,
   userId: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/meta/projects/${baseId}/users/${userId}`, {
+    url,
     method: 'DELETE',
     token,
+    email,
   });
 }
 
@@ -2054,64 +2095,76 @@ export async function removeBaseUser(
 // Integrations CRUD (v2 — workspace-scoped)
 // ---------------------------------------------------------------------------
 
-export async function listIntegrations(token: string, wsId: string): Promise<unknown> {
-  return request(`/api/v2/meta/workspaces/${wsId}/integrations`, { token });
+export async function listIntegrations(url: string, token: string, wsId: string, email?: string): Promise<unknown> {
+  return request(`/api/v2/meta/workspaces/${wsId}/integrations`, { url, token, email });
 }
 
-export async function getIntegration(token: string, _wsId: string, integrationId: string): Promise<unknown> {
-  return request(`/api/v2/meta/integrations/${integrationId}`, { token });
+export async function getIntegration(url: string, token: string, _wsId: string, integrationId: string, email?: string): Promise<unknown> {
+  return request(`/api/v2/meta/integrations/${integrationId}`, { url, token, email });
 }
 
 export async function createIntegration(
+  url: string,
   token: string,
   wsId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v2/meta/workspaces/${wsId}/integrations`, { method: 'POST', token, body: data });
+  return request(`/api/v2/meta/workspaces/${wsId}/integrations`, { url, method: 'POST', token, email, body: data });
 }
 
 export async function updateIntegration(
+  url: string,
   token: string,
   _wsId: string,
   integrationId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v2/meta/integrations/${integrationId}`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: data,
   });
 }
 
-export async function deleteIntegration(token: string, _wsId: string, integrationId: string): Promise<unknown> {
-  return request(`/api/v2/meta/integrations/${integrationId}`, { method: 'DELETE', token });
+export async function deleteIntegration(url: string, token: string, _wsId: string, integrationId: string, email?: string): Promise<unknown> {
+  return request(`/api/v2/meta/integrations/${integrationId}`, { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
 // Sources / Data Sources (v1)
 // ---------------------------------------------------------------------------
 
-export async function listSources(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v1/db/meta/projects/${baseId}/bases`, { token });
+export async function listSources(url: string, token: string, baseId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/db/meta/projects/${baseId}/bases`, { url, token, email });
 }
 
 export async function getSource(
+  url: string,
   token: string,
   baseId: string,
   sourceId: string,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v1/db/meta/projects/${baseId}/bases/${sourceId}`, { token });
+  return request(`/api/v1/db/meta/projects/${baseId}/bases/${sourceId}`, { url, token, email });
 }
 
 export async function updateSource(
+  url: string,
   token: string,
   baseId: string,
   sourceId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/meta/projects/${baseId}/bases/${sourceId}`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: data,
   });
 }
@@ -2120,31 +2173,39 @@ export async function updateSource(
 // Snapshots (v2 — EE)
 // ---------------------------------------------------------------------------
 
-export async function listSnapshots(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v2/meta/bases/${baseId}/snapshots`, { token });
+export async function listSnapshots(url: string, token: string, baseId: string, email?: string): Promise<unknown> {
+  return request(`/api/v2/meta/bases/${baseId}/snapshots`, { url, token, email });
 }
 
 export async function updateSnapshot(
+  url: string,
   token: string,
   baseId: string,
   snapshotId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v2/meta/bases/${baseId}/snapshots/${snapshotId}`, {
+    url,
     method: 'PATCH',
     token,
+    email,
     body: data,
   });
 }
 
 export async function deleteSnapshot(
+  url: string,
   token: string,
   baseId: string,
   snapshotId: string,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v2/meta/bases/${baseId}/snapshots/${snapshotId}`, {
+    url,
     method: 'DELETE',
     token,
+    email,
   });
 }
 
@@ -2152,42 +2213,48 @@ export async function deleteSnapshot(
 // Plugins (v1)
 // ---------------------------------------------------------------------------
 
-export async function listPlugins(token: string): Promise<unknown> {
-  return request('/api/v1/db/meta/plugins', { token });
+export async function listPlugins(url: string, token: string, email?: string): Promise<unknown> {
+  return request('/api/v1/db/meta/plugins', { url, token, email });
 }
 
-export async function getPlugin(token: string, pluginId: string): Promise<unknown> {
-  return request(`/api/v1/db/meta/plugins/${pluginId}`, { token });
+export async function getPlugin(url: string, token: string, pluginId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/db/meta/plugins/${pluginId}`, { url, token, email });
 }
 
 export async function updatePlugin(
+  url: string,
   token: string,
   pluginId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v1/db/meta/plugins/${pluginId}`, { method: 'PATCH', token, body: data });
+  return request(`/api/v1/db/meta/plugins/${pluginId}`, { url, method: 'PATCH', token, email, body: data });
 }
 
-export async function testPlugin(token: string, data: Record<string, unknown>): Promise<unknown> {
-  return request('/api/v1/db/meta/plugins/test', { method: 'POST', token, body: data });
+export async function testPlugin(url: string, token: string, data: Record<string, unknown>, email?: string): Promise<unknown> {
+  return request('/api/v1/db/meta/plugins/test', { url, method: 'POST', token, email, body: data });
 }
 
 // ---------------------------------------------------------------------------
 // Model Visibilities / UI ACL (v1)
 // ---------------------------------------------------------------------------
 
-export async function getVisibilityRules(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v1/db/meta/projects/${baseId}/visibility-rules`, { token });
+export async function getVisibilityRules(url: string, token: string, baseId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/db/meta/projects/${baseId}/visibility-rules`, { url, token, email });
 }
 
 export async function setVisibilityRules(
+  url: string,
   token: string,
   baseId: string,
   rules: unknown,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/meta/projects/${baseId}/visibility-rules`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: rules,
   });
 }
@@ -2197,51 +2264,59 @@ export async function setVisibilityRules(
 // ---------------------------------------------------------------------------
 
 export async function listOrgUsers(
+  url: string,
   token: string,
   orgId: string,
   params?: Record<string, string | number | undefined>,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v2/orgs/${orgId}/users`, { token, params });
+  return request(`/api/v2/orgs/${orgId}/users`, { url, token, email, params });
 }
 
 export async function createOrgUser(
+  url: string,
   token: string,
   orgId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v2/orgs/${orgId}/users`, { method: 'POST', token, body: data });
+  return request(`/api/v2/orgs/${orgId}/users`, { url, method: 'POST', token, email, body: data });
 }
 
 export async function updateOrgUser(
+  url: string,
   token: string,
   orgId: string,
   userId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v2/orgs/${orgId}/user/${userId}`, { method: 'PATCH', token, body: data });
+  return request(`/api/v2/orgs/${orgId}/user/${userId}`, { url, method: 'PATCH', token, email, body: data });
 }
 
-export async function deleteOrgUser(token: string, orgId: string, userId: string): Promise<unknown> {
-  return request(`/api/v2/orgs/${orgId}/user/${userId}`, { method: 'DELETE', token });
+export async function deleteOrgUser(url: string, token: string, orgId: string, userId: string, email?: string): Promise<unknown> {
+  return request(`/api/v2/orgs/${orgId}/user/${userId}`, { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
 // Org Tokens (v1)
 // ---------------------------------------------------------------------------
 
-export async function listOrgTokens(token: string): Promise<unknown> {
-  return request('/api/v1/tokens', { token });
+export async function listOrgTokens(url: string, token: string, email?: string): Promise<unknown> {
+  return request('/api/v1/tokens', { url, token, email });
 }
 
 export async function createOrgToken(
+  url: string,
   token: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request('/api/v1/tokens', { method: 'POST', token, body: data });
+  return request('/api/v1/tokens', { url, method: 'POST', token, email, body: data });
 }
 
-export async function deleteOrgToken(token: string, tokenId: string): Promise<unknown> {
-  return request(`/api/v1/tokens/${tokenId}`, { method: 'DELETE', token });
+export async function deleteOrgToken(url: string, token: string, tokenId: string, email?: string): Promise<unknown> {
+  return request(`/api/v1/tokens/${tokenId}`, { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
@@ -2249,46 +2324,50 @@ export async function deleteOrgToken(token: string, tokenId: string): Promise<un
 // ---------------------------------------------------------------------------
 
 export async function listJobs(
+  url: string,
   token: string,
   baseId: string,
   filter?: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request(`/api/v2/jobs/${baseId}`, { method: 'POST', token, body: filter || {} });
+  return request(`/api/v2/jobs/${baseId}`, { url, method: 'POST', token, email, body: filter || {} });
 }
 
 // ---------------------------------------------------------------------------
 // Swagger / API Docs
 // ---------------------------------------------------------------------------
 
-export async function getSwagger(token: string, baseId: string): Promise<unknown> {
-  return request(`/api/v3/meta/bases/${baseId}/swagger.json`, { token });
+export async function getSwagger(url: string, token: string, baseId: string, email?: string): Promise<unknown> {
+  return request(`/api/v3/meta/bases/${baseId}/swagger.json`, { url, token, email });
 }
 
 // ---------------------------------------------------------------------------
 // App Info / Utils
 // ---------------------------------------------------------------------------
 
-export async function appInfo(token: string): Promise<unknown> {
-  return request('/api/v1/db/meta/nocodb/info', { token });
+export async function appInfo(url: string, token: string, email?: string): Promise<unknown> {
+  return request('/api/v1/db/meta/nocodb/info', { url, token, email });
 }
 
 export async function testConnection(
+  url: string,
   token: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request('/api/v1/db/meta/connection/test', { method: 'POST', token, body: data });
+  return request('/api/v1/db/meta/connection/test', { url, method: 'POST', token, email, body: data });
 }
 
 // ---------------------------------------------------------------------------
 // Cache Admin (v1)
 // ---------------------------------------------------------------------------
 
-export async function getCache(token: string): Promise<unknown> {
-  return request('/api/v1/db/meta/cache', { token });
+export async function getCache(url: string, token: string, email?: string): Promise<unknown> {
+  return request('/api/v1/db/meta/cache', { url, token, email });
 }
 
-export async function clearCache(token: string): Promise<unknown> {
-  return request('/api/v1/db/meta/cache', { method: 'DELETE', token });
+export async function clearCache(url: string, token: string, email?: string): Promise<unknown> {
+  return request('/api/v1/db/meta/cache', { url, method: 'DELETE', token, email });
 }
 
 // ---------------------------------------------------------------------------
@@ -2296,10 +2375,12 @@ export async function clearCache(token: string): Promise<unknown> {
 // ---------------------------------------------------------------------------
 
 export async function updateProfile(
+  url: string,
   token: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
-  return request('/api/v2/meta/user/profile', { method: 'PATCH', token, body: data });
+  return request('/api/v2/meta/user/profile', { url, method: 'PATCH', token, email, body: data });
 }
 
 // ---------------------------------------------------------------------------
@@ -2307,14 +2388,18 @@ export async function updateProfile(
 // ---------------------------------------------------------------------------
 
 export async function createSqlView(
+  url: string,
   token: string,
   baseId: string,
   sourceId: string,
   data: Record<string, unknown>,
+  email?: string,
 ): Promise<unknown> {
   return request(`/api/v1/db/meta/projects/${baseId}/bases/${sourceId}/sqlView`, {
+    url,
     method: 'POST',
     token,
+    email,
     body: data,
   });
 }

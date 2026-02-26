@@ -1,6 +1,5 @@
-import type { State } from '../../lib/types.js';
-import { ROLES, TEST_USERS, WORKSPACE_ROLES } from '../../lib/types.js';
-import { readState, writeState, getBaseUrl, storeCredential, normalizeEmail } from '../../lib/state.js';
+import { ROLES, TEST_USERS, WORKSPACE_ROLES, normalizeEmail } from '../../lib/types.js';
+import { storeCredential, getCredential } from '../../lib/credentials.js';
 import * as api from '../../lib/api.js';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -23,16 +22,16 @@ function loadDataFile(name: string): Record<string, unknown>[] {
 // Ensure all 5 test users exist (try signin, fallback to signup)
 // ---------------------------------------------------------------------------
 
-export async function ensureUsers(): Promise<void> {
+export async function ensureUsers(url: string): Promise<void> {
   for (const role of ROLES) {
     const { email, password } = TEST_USERS[role];
     try {
-      const res = await api.signin(email, password);
-      storeCredential(email, password, res.token);
+      const res = await api.signin(url, email, password);
+      storeCredential(url, email, password, res.token);
     } catch {
       try {
-        const res = await api.signup(email, password);
-        storeCredential(email, password, res.token);
+        const res = await api.signup(url, email, password);
+        storeCredential(url, email, password, res.token);
       } catch (e) {
         throw new Error(`Failed to signin/signup ${role} (${email}): ${e}`);
       }
@@ -45,12 +44,14 @@ export async function ensureUsers(): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export async function ensureWorkspace(
+  url: string,
   ownerToken: string,
+  ownerEmail?: string,
 ): Promise<{ id: string; title: string }> {
-  const { list } = await api.listWorkspaces(ownerToken);
+  const { list } = await api.listWorkspaces(url, ownerToken, ownerEmail);
   const existing = list.find((ws) => ws.title === WORKSPACE_TITLE);
   if (existing) return { id: existing.id, title: existing.title };
-  const ws = await api.createWorkspace(ownerToken, WORKSPACE_TITLE);
+  const ws = await api.createWorkspace(url, ownerToken, WORKSPACE_TITLE, ownerEmail);
   return { id: ws.id, title: ws.title };
 }
 
@@ -59,10 +60,12 @@ export async function ensureWorkspace(
 // ---------------------------------------------------------------------------
 
 export async function ensureRoles(
+  url: string,
   ownerToken: string,
   wsId: string,
+  ownerEmail?: string,
 ): Promise<void> {
-  const { list } = await api.listWorkspaceUsers(ownerToken, wsId);
+  const { list } = await api.listWorkspaceUsers(url, ownerToken, wsId, ownerEmail);
   const invitedEmails = new Set(list.map((u) => u.email));
 
   for (const role of ROLES) {
@@ -71,15 +74,15 @@ export async function ensureRoles(
     if (invitedEmails.has(email)) continue;
 
     try {
-      await api.inviteToWorkspace(ownerToken, wsId, email, WORKSPACE_ROLES[role]);
+      await api.inviteToWorkspace(url, ownerToken, wsId, email, WORKSPACE_ROLES[role], ownerEmail);
     } catch (e) {
       throw new Error(`Failed to invite ${role} (${email}): ${e}`);
     }
 
     // Accept by re-signing in as the invited user (refreshes their workspace list)
     try {
-      const res = await api.signin(email, password);
-      storeCredential(email, password, res.token);
+      const res = await api.signin(url, email, password);
+      storeCredential(url, email, password, res.token);
     } catch {
       // Token already exists from ensureUsers, invitation will take effect on next use
     }
@@ -122,24 +125,28 @@ function toV3Payload(f: FieldDef): { title: string; type: string; [k: string]: u
 
 /** Create a field, return its id. Throws on failure. */
 async function addField(
+  url: string,
   token: string,
   baseId: string,
   tableId: string,
   f: FieldDef,
+  email?: string,
 ): Promise<string> {
-  const col = await api.createField(token, baseId, tableId, toV3Payload(f));
+  const col = await api.createField(url, token, baseId, tableId, toV3Payload(f), email);
   return col.id;
 }
 
 /** Try to create a field; swallow errors for non-critical computed fields. */
 async function tryAddField(
+  url: string,
   token: string,
   baseId: string,
   tableId: string,
   f: FieldDef,
+  email?: string,
 ): Promise<string | null> {
   try {
-    return await addField(token, baseId, tableId, f);
+    return await addField(url, token, baseId, tableId, f, email);
   } catch (e) {
     process.stderr.write(`[warn] skipping field "${f.title}" (${f.type}): ${(e as Error).message}\n`);
     return null;
@@ -173,16 +180,18 @@ function preprocessRecords(
 
 /** Bulk insert records in chunks via v1 bulk API (no 10-record limit) */
 async function bulkInsertRecords(
+  url: string,
   token: string,
   baseId: string,
   tableId: string,
   records: Record<string, unknown>[],
+  email?: string,
   chunkSize = 100,
 ): Promise<number> {
   let inserted = 0;
   for (let i = 0; i < records.length; i += chunkSize) {
     const chunk = records.slice(i, i + chunkSize);
-    await api.bulkInsert(token, baseId, tableId, chunk);
+    await api.bulkInsert(url, token, baseId, tableId, chunk, email);
     inserted += chunk.length;
   }
   return inserted;
@@ -192,7 +201,6 @@ async function bulkInsertRecords(
 // Field definitions — matching develop.nocopod.com wmjhal84
 // ---------------------------------------------------------------------------
 
-// Fields in the all-types.json data file (these MUST exist before insert)
 const ALLTYPES_DATA_FIELDS: FieldDef[] = [
   { title: 'fNumber', type: 'Number' },
   { title: 'fDecimal', type: 'Decimal', options: { precision: 3 } },
@@ -220,14 +228,12 @@ const ALLTYPES_DATA_FIELDS: FieldDef[] = [
   { title: 'Tags', type: 'MultiSelect', options: { choices: ['jan', 'feb', 'mar', 'apr'] } },
 ];
 
-// Fields that have no data — created after record insert
 const ALLTYPES_EMPTY_FIELDS: FieldDef[] = [
   { title: 'fAttachment', type: 'Attachment' },
   { title: 'fGeometry', type: 'Geometry' },
   { title: 'fUser', type: 'User' },
 ];
 
-// System-like display fields
 const ALLTYPES_SYSTEM_FIELDS: FieldDef[] = [
   { title: 'fCreatedAt', type: 'CreatedTime' },
   { title: 'fLastModifiedAt', type: 'LastModifiedTime' },
@@ -280,109 +286,109 @@ if (query.records.length > 0) {
 // ---------------------------------------------------------------------------
 
 async function createAllTypesTable(
+  url: string,
   token: string,
   wsId: string,
   baseId: string,
+  email?: string,
 ): Promise<{ tableId: string; fieldIds: Record<string, string>; recordCount: number }> {
-  // Create table (gets auto "Id" field; PV will be set to fFormula later)
-  const table = (await api.createTable(token, baseId, 'AllTypes', [])) as any;
+  const table = (await api.createTable(url, token, baseId, 'AllTypes', [], email)) as any;
   const tableId: string = table.id;
   const fieldIds: Record<string, string> = {};
 
-  // Map auto-created fields
   for (const f of table.fields ?? []) {
     fieldIds[f.title] = f.id;
   }
 
-  // Phase 1: Create data fields (needed before record insert)
+  // Phase 1: Create data fields
   for (const f of ALLTYPES_DATA_FIELDS) {
-    fieldIds[f.title] = await addField(token, baseId, tableId, f);
+    fieldIds[f.title] = await addField(url, token, baseId, tableId, f, email);
   }
 
-  // Set fNumber as display value (matches reference)
+  // Set fNumber as display value
   if (fieldIds['fNumber']) {
-    await api.columnSetAsPrimary(token, wsId, baseId, fieldIds['fNumber']);
+    await api.columnSetAsPrimary(url, token, wsId, baseId, fieldIds['fNumber'], email);
   }
 
-  // Phase 2: Insert records (convert numeric Duration values to strings)
+  // Phase 2: Insert records
   const rawRecords = loadDataFile('all-types.json');
   const records = preprocessRecords(rawRecords, ['fDuration']);
-  const recordCount = await bulkInsertRecords(token, baseId, tableId, records);
+  const recordCount = await bulkInsertRecords(url, token, baseId, tableId, records, email);
 
   // Phase 3: Non-data basic fields
   for (const f of ALLTYPES_EMPTY_FIELDS) {
-    const id = await tryAddField(token, baseId, tableId, f);
+    const id = await tryAddField(url, token, baseId, tableId, f, email);
     if (id) fieldIds[f.title] = id;
   }
 
-  // Phase 4: Button field (v3 uses options.type="formula" + options.formula)
-  const btnId = await tryAddField(token, baseId, tableId, {
+  // Phase 4: Button field
+  const btnId = await tryAddField(url, token, baseId, tableId, {
     title: 'fButton', type: 'Button',
     options: { type: 'formula', formula: '"www.google.com"' },
-  });
+  }, email);
   if (btnId) fieldIds['fButton'] = btnId;
 
   // Phase 5: System-like fields
   for (const f of ALLTYPES_SYSTEM_FIELDS) {
-    const id = await tryAddField(token, baseId, tableId, f);
+    const id = await tryAddField(url, token, baseId, tableId, f, email);
     if (id) fieldIds[f.title] = id;
   }
 
-  // Phase 6: Barcode & QrCode (reference fNumber)
+  // Phase 6: Barcode & QrCode
   const fNumberId = fieldIds['fNumber'];
   if (fNumberId) {
-    const barcodeId = await tryAddField(token, baseId, tableId, {
+    const barcodeId = await tryAddField(url, token, baseId, tableId, {
       title: 'fBarcode', type: 'Barcode',
       options: { barcode_value_field_id: fNumberId },
-    });
+    }, email);
     if (barcodeId) fieldIds['fBarcode'] = barcodeId;
 
-    const qrId = await tryAddField(token, baseId, tableId, {
+    const qrId = await tryAddField(url, token, baseId, tableId, {
       title: 'fQRCode', type: 'QrCode',
       options: { qrcode_value_field_id: fNumberId },
-    });
+    }, email);
     if (qrId) fieldIds['fQRCode'] = qrId;
   }
 
   // Phase 7: Formula
-  const formulaId = await tryAddField(token, baseId, tableId, {
+  const formulaId = await tryAddField(url, token, baseId, tableId, {
     title: 'fFormula', type: 'Formula',
     options: { formula: '{fNumber}+{fDecimal}' },
-  });
+  }, email);
   if (formulaId) fieldIds['fFormula'] = formulaId;
 
   // Phase 8: Self-referencing Links
-  const mmLinksId = await tryAddField(token, baseId, tableId, {
+  const mmLinksId = await tryAddField(url, token, baseId, tableId, {
     title: 'mmLinks', type: 'Links',
     options: { related_table_id: tableId, relation_type: 'mm' },
-  });
+  }, email);
   if (mmLinksId) fieldIds['mmLinks'] = mmLinksId;
 
-  const hmLinksId = await tryAddField(token, baseId, tableId, {
+  const hmLinksId = await tryAddField(url, token, baseId, tableId, {
     title: 'hmLinks', type: 'Links',
     options: { related_table_id: tableId, relation_type: 'hm' },
-  });
+  }, email);
   if (hmLinksId) fieldIds['hmLinks'] = hmLinksId;
 
-  // Phase 9: Lookup & Rollup (depend on hmLinks)
+  // Phase 9: Lookup & Rollup
   if (hmLinksId && fNumberId) {
-    const lookupId = await tryAddField(token, baseId, tableId, {
+    const lookupId = await tryAddField(url, token, baseId, tableId, {
       title: 'fLookup', type: 'Lookup',
       options: { related_field_id: hmLinksId, related_table_lookup_field_id: fNumberId },
-    });
+    }, email);
     if (lookupId) fieldIds['fLookup'] = lookupId;
 
     const fDecimalId = fieldIds['fDecimal'];
     if (fDecimalId) {
-      const rollupId = await tryAddField(token, baseId, tableId, {
+      const rollupId = await tryAddField(url, token, baseId, tableId, {
         title: 'fRollup', type: 'Rollup',
         options: { related_field_id: hmLinksId, related_table_rollup_field_id: fDecimalId, rollup_function: 'count' },
-      });
+      }, email);
       if (rollupId) fieldIds['fRollup'] = rollupId;
     }
   }
 
-  // Phase 10: Create views (9 additional views — default grid already exists)
+  // Phase 10: Create views
   const views = [
     { title: 'Show system fields', type: 'grid' },
     { title: 'Group By', type: 'grid' },
@@ -396,7 +402,7 @@ async function createAllTypesTable(
   ];
   for (const v of views) {
     try {
-      await api.createView(token, wsId, baseId, tableId, v.title, v.type);
+      await api.createView(url, token, wsId, baseId, tableId, v.title, v.type, email);
     } catch (e) {
       process.stderr.write(`[warn] skipping view "${v.title}": ${(e as Error).message}\n`);
     }
@@ -406,103 +412,104 @@ async function createAllTypesTable(
 }
 
 // ---------------------------------------------------------------------------
-// Financial table creator (shared schema for Financial Sample, Webhook, Permissions)
+// Financial table creator
 // ---------------------------------------------------------------------------
 
 async function createFinancialTable(
+  url: string,
   token: string,
   baseId: string,
   title: string,
   records: Record<string, unknown>[],
+  email?: string,
 ): Promise<{ tableId: string; fieldIds: Record<string, string>; recordCount: number }> {
-  // Create table with "Segment" as display value (pv) — matches reference
-  const table = (await api.createTable(token, baseId, title, [
+  const table = (await api.createTable(url, token, baseId, title, [
     { title: 'Segment', type: 'SingleLineText', pv: true },
-  ])) as any;
+  ], email)) as any;
   const tableId: string = table.id;
   const fieldIds: Record<string, string> = {};
 
-  // Map auto-created fields (Id + Segment PV)
   for (const f of table.fields ?? []) {
     fieldIds[f.title] = f.id;
   }
 
-  // Add remaining fields (skip Segment — already created as PV)
   for (const f of FINANCIAL_FIELDS) {
     if (f.title === 'Segment') continue;
-    fieldIds[f.title] = await addField(token, baseId, tableId, f);
+    fieldIds[f.title] = await addField(url, token, baseId, tableId, f, email);
   }
 
-  const recordCount = await bulkInsertRecords(token, baseId, tableId, records);
+  const recordCount = await bulkInsertRecords(url, token, baseId, tableId, records, email);
   return { tableId, fieldIds, recordCount };
 }
 
 // ---------------------------------------------------------------------------
-// ensureSampleData — creates fresh replica of wmjhal84
+// ensureSampleData
 // ---------------------------------------------------------------------------
 
-export async function ensureSampleData(): Promise<unknown> {
-  const state = readState();
-  if (!state) throw new Error('Not initialized. Run init first.');
+export async function ensureSampleData(url: string): Promise<unknown> {
   const ownerEmail = normalizeEmail('owner@agent.test');
-  const ownerCred = state.credentials[ownerEmail];
-  if (!ownerCred) throw new Error('No owner credential. Run init first.');
-  const token = ownerCred.token;
-  const wsId = state.workspace?.id;
-  if (!wsId) throw new Error('No workspace. Run init first.');
+  const cred = getCredential(url, ownerEmail);
+  if (!cred) throw new Error('No owner credential. Run init first.');
+  const token = cred.token;
+
+  // Discover workspace
+  const { list: workspaces } = await api.listWorkspaces(url, token, ownerEmail);
+  const ws = workspaces.find((w) => w.title === WORKSPACE_TITLE);
+  if (!ws) throw new Error('No "Agent Workspace" found. Run init first.');
+  const wsId = ws.id;
 
   // Delete ALL existing bases in workspace (clean slate)
-  const { list: existingBases } = await api.listBases(token, wsId);
+  const { list: existingBases } = await api.listBases(url, token, wsId, ownerEmail);
   for (const b of existingBases) {
-    await api.deleteBase(token, b.id);
+    await api.deleteBase(url, token, b.id, ownerEmail);
   }
 
   // Create fresh "Getting Started" base
-  const base = await api.createBase(token, wsId, 'Getting Started');
+  const base = await api.createBase(url, token, wsId, 'Getting Started', ownerEmail);
   const baseId: string = base.id;
 
   // Create empty "Private" base
-  await api.createBase(token, wsId, 'Private');
+  await api.createBase(url, token, wsId, 'Private', ownerEmail);
 
   const result: Record<string, unknown> = { baseId, tables: {} as Record<string, unknown> };
 
-  // 1. AllTypes — 42 fields, 110 records, 10 views
-  const allTypes = await createAllTypesTable(token, wsId, baseId);
+  // 1. AllTypes
+  const allTypes = await createAllTypesTable(url, token, wsId, baseId, ownerEmail);
   (result.tables as any).AllTypes = allTypes;
 
-  // Load financial records (shared across 3 tables — 700 rows each)
+  // Load financial records
   const financialRecords = loadDataFile('financial-sample.json');
 
-  // 2. Financial Sample — 17 fields, 700 records
-  const finSample = await createFinancialTable(token, baseId, 'Financial Sample', financialRecords);
+  // 2. Financial Sample
+  const finSample = await createFinancialTable(url, token, baseId, 'Financial Sample', financialRecords, ownerEmail);
   (result.tables as any)['Financial Sample'] = finSample;
 
-  // 3. Webhook — 17 fields, 700 records (reference has 0 hooks)
-  const webhook = await createFinancialTable(token, baseId, 'Webhook', financialRecords);
+  // 3. Webhook
+  const webhook = await createFinancialTable(url, token, baseId, 'Webhook', financialRecords, ownerEmail);
   (result.tables as any).Webhook = webhook;
 
-  // 4. Permissions — 17 fields, 700 records
-  const permissions = await createFinancialTable(token, baseId, 'Permissions', financialRecords);
+  // 4. Permissions
+  const permissions = await createFinancialTable(url, token, baseId, 'Permissions', financialRecords, ownerEmail);
   (result.tables as any).Permissions = permissions;
 
-  // 5. Dashboard — 1 empty dashboard
+  // 5. Dashboard
   try {
-    await api.iPostExported(token, wsId, baseId, 'dashboardCreate', { title: 'Dashboard' });
+    await api.iPostExported(url, token, wsId, baseId, 'dashboardCreate', { title: 'Dashboard' }, undefined, ownerEmail);
     (result as any).dashboard = true;
   } catch (e) {
     process.stderr.write(`[warn] skipping dashboard: ${(e as Error).message}\n`);
   }
 
-  // 6. Scripts — 3 scripts with boilerplate content
+  // 6. Scripts
   const scriptNames = ['Script', 'Script-1', 'Script-2'];
   for (const title of scriptNames) {
     try {
-      await api.createScript(token, wsId, baseId, {
+      await api.createScript(url, token, wsId, baseId, {
         title,
         script: SCRIPT_BOILERPLATE,
         config: {},
         meta: {},
-      });
+      }, ownerEmail);
     } catch (e) {
       process.stderr.write(`[warn] skipping script "${title}": ${(e as Error).message}\n`);
     }
@@ -516,50 +523,24 @@ export async function ensureSampleData(): Promise<unknown> {
 // Main init orchestrator
 // ---------------------------------------------------------------------------
 
-export async function init(url?: string): Promise<State> {
-  const existingState = readState();
+export async function init(url: string): Promise<{ url: string; workspace: { id: string; title: string } }> {
   const ownerEmail = normalizeEmail('owner@agent.test');
 
-  // If already initialized, skip — run only once
-  if (existingState?.workspace?.id && existingState?.credentials[ownerEmail]) {
-    return existingState;
-  }
+  await ensureUsers(url);
 
-  const resolvedUrl = url || process.env.NOCODB_URL || getBaseUrl();
+  const cred = getCredential(url, ownerEmail);
+  if (!cred) throw new Error('Owner credential missing after ensureUsers.');
+  const ownerToken = cred.token;
 
-  const state: State = {
-    url: resolvedUrl,
-    credentials: existingState?.credentials || {},
-    defaultUser: existingState?.defaultUser || null,
-    workspace: existingState?.workspace || null,
-    updatedAt: new Date().toISOString(),
-  };
-  writeState(state);
+  const workspace = await ensureWorkspace(url, ownerToken, ownerEmail);
 
-  await ensureUsers();
-
-  // Re-read state after ensureUsers (storeCredential wrote it)
-  const refreshedState = readState()!;
-  const ownerToken = refreshedState.credentials[ownerEmail]?.token;
-  if (!ownerToken) throw new Error('Owner credential missing after ensureUsers.');
-
-  const workspace = await ensureWorkspace(ownerToken);
-  refreshedState.workspace = workspace;
-  refreshedState.defaultUser = ownerEmail;
-  writeState(refreshedState);
-
-  await ensureRoles(ownerToken, workspace.id);
-
-  // Re-set defaultUser to owner (ensureRoles may have changed it via storeCredential)
-  const finalState = readState()!;
-  finalState.defaultUser = ownerEmail;
-  writeState(finalState);
+  await ensureRoles(url, ownerToken, workspace.id, ownerEmail);
 
   // Remove auto-created bases on fresh workspace (clean slate for sample-data)
-  const { list: bases } = await api.listBases(ownerToken, workspace.id);
+  const { list: bases } = await api.listBases(url, ownerToken, workspace.id, ownerEmail);
   for (const b of bases) {
-    await api.deleteBase(ownerToken, b.id);
+    await api.deleteBase(url, ownerToken, b.id, ownerEmail);
   }
 
-  return readState()!;
+  return { url, workspace };
 }

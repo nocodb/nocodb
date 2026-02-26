@@ -25,7 +25,12 @@ function parseFlags(args: string[]): Record<string, string> {
 
 async function main() {
   const flags = parseFlags(process.argv.slice(2));
-  const result = await init(flags.url);
+  const url = flags.url;
+  if (!url) {
+    process.stdout.write(JSON.stringify({ error: '--url is required (e.g. --url=http://localhost:8080)' }) + '\n');
+    process.exit(1);
+  }
+  const result = await init(url);
   process.stdout.write(JSON.stringify(result, null, 2) + '\n');
 }
 

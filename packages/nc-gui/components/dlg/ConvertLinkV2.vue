@@ -29,6 +29,8 @@ const reloadDataHook = inject(ReloadViewDataHookInj, undefined)
 
 const isConverting = ref(false)
 
+const deleteFkColumn = ref(false)
+
 const colOptions = computed(() => props.column?.colOptions as LinkToAnotherRecordType | undefined)
 
 const currentTypeName = computed(() => {
@@ -60,7 +62,7 @@ async function handleConvert() {
     await $api.internal.postOperation(
       meta.value.fk_workspace_id!,
       meta.value.base_id!,
-      { operation: 'convertLinkToV2', columnId: props.column.id },
+      { operation: 'convertLinkToV2', columnId: props.column.id, deleteFkColumn: String(deleteFkColumn.value) },
       {},
     )
 
@@ -116,6 +118,16 @@ async function handleConvert() {
           <span class="text-nc-content-gray-subtle">{{ currentTypeName }}</span>
           <GeneralIcon icon="arrowRight" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
           <span class="font-medium">{{ newTypeName }}</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 py-2">
+        <NcSwitch v-model:checked="deleteFkColumn" size="small" data-testid="nc-convert-link-v2-delete-fk" />
+        <div class="flex flex-col">
+          <span class="text-sm">{{ $t('msg.info.convertLinkV2DeleteFkColumn') }}</span>
+          <span v-if="!deleteFkColumn" class="text-xs text-nc-content-gray-muted">
+            {{ $t('msg.info.convertLinkV2KeepFkColumnHint') }}
+          </span>
         </div>
       </div>
 

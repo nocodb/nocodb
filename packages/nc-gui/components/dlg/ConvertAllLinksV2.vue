@@ -28,6 +28,8 @@ const reloadDataHook = inject(ReloadViewDataHookInj, undefined)
 
 const isConverting = ref(false)
 
+const deleteFkColumn = ref(false)
+
 const v1LinkColumns = computed(() => {
   return (meta.value?.columns ?? []).filter((c) => {
     if (!isLinksOrLTAR(c)) return false
@@ -55,7 +57,7 @@ async function handleConvertAll() {
     const result = await $api.internal.postOperation(
       meta.value.fk_workspace_id!,
       meta.value.base_id!,
-      { operation: 'convertAllLinksToV2', tableId: meta.value.id },
+      { operation: 'convertAllLinksToV2', tableId: meta.value.id, deleteFkColumn: String(deleteFkColumn.value) },
       {},
     )
 
@@ -112,6 +114,16 @@ async function handleConvertAll() {
         <div v-for="col in v1LinkColumns" :key="col.id" class="flex items-center gap-2 text-sm py-1">
           <span class="font-medium truncate max-w-40">{{ col.title }}</span>
           <span class="text-nc-content-gray-muted text-xs">({{ typeLabel((col.colOptions as LinkToAnotherRecordType)?.type) }})</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 py-2">
+        <NcSwitch v-model:checked="deleteFkColumn" size="small" data-testid="nc-convert-all-links-v2-delete-fk" />
+        <div class="flex flex-col">
+          <span class="text-sm">{{ $t('msg.info.convertLinkV2DeleteFkColumn') }}</span>
+          <span v-if="!deleteFkColumn" class="text-xs text-nc-content-gray-muted">
+            {{ $t('msg.info.convertLinkV2KeepFkColumnHint') }}
+          </span>
         </div>
       </div>
 

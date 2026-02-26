@@ -2617,7 +2617,9 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
-      "convertLinkV2Description": "This will create a junction table and migrate existing linked data. The foreign key column will be kept as a regular data column.",
+      "convertLinkV2Description": "This will create a junction table and migrate existing linked data.",
+      "convertLinkV2DeleteFkColumn": "Delete the foreign key column after conversion",
+      "convertLinkV2KeepFkColumnHint": "The FK column will be kept as a regular data column",
       "convertLinkV2Warning": "This operation cannot be undone.",
       "convertLinkV2Success": "Link column converted successfully",
       "convertAllLinksV2Success": "Converted {converted} link column(s). {skipped} skipped.",

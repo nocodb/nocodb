@@ -5642,6 +5642,7 @@ export class ColumnsService implements IColumnsService {
     context: NcContext,
     param: {
       columnId: string;
+      deleteFkColumn?: boolean;
       req: NcRequest;
     },
   ) {
@@ -5914,6 +5915,34 @@ export class ColumnsService implements IColumnsService {
         fkDropped = true;
       }
 
+      // Drop old FK column from data DB if requested
+      if (param.deleteFkColumn && fkColumn.uidt === UITypes.ForeignKey) {
+        const tableUpdateBody = {
+          ...childTable,
+          tn: childTable.table_name,
+          originalColumns: childTable.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+            cno: c.column_name,
+          })),
+          columns: childTable.columns.map((c) => {
+            if (c.id === fkColumn.id) {
+              return {
+                ...c,
+                cn: c.column_name,
+                cno: c.column_name,
+                altered: Altered.DELETE_COLUMN,
+              };
+            } else {
+              (c as any).cn = c.column_name;
+            }
+            return c;
+          }),
+        };
+
+        await sqlMgr.sqlOpPlus(childSource, 'tableUpdate', tableUpdateBody);
+      }
+
       // PG indexes on junction FK columns
       if (source.type === 'pg') {
         await this.createColumnIndex(context, {
@@ -6084,16 +6113,27 @@ export class ColumnsService implements IColumnsService {
           },
         );
 
-        // Convert old FK column to regular type
+        // Handle old FK column metadata
         if (fkColumn.uidt === UITypes.ForeignKey) {
-          const newUidt = determineRegularUidt(fkColumn.dt);
-          await ncMeta.metaUpdate(
-            childRefContext.workspace_id,
-            childRefContext.base_id,
-            MetaTable.COLUMNS,
-            { uidt: newUidt },
-            fkColumn.id,
-          );
+          if (param.deleteFkColumn) {
+            // Delete FK column metadata
+            await ncMeta.metaDelete(
+              childRefContext.workspace_id,
+              childRefContext.base_id,
+              MetaTable.COLUMNS,
+              fkColumn.id,
+            );
+          } else {
+            // Convert FK column to regular type
+            const newUidt = determineRegularUidt(fkColumn.dt);
+            await ncMeta.metaUpdate(
+              childRefContext.workspace_id,
+              childRefContext.base_id,
+              MetaTable.COLUMNS,
+              { uidt: newUidt },
+              fkColumn.id,
+            );
+          }
         }
 
         await ncMeta.commit();
@@ -6115,11 +6155,19 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (fkColumn.uidt === UITypes.ForeignKey) {
-        await NocoCache.update(
-          childRefContext,
-          `${CacheScope.COLUMN}:${fkColumn.id}`,
-          { uidt: determineRegularUidt(fkColumn.dt) },
-        );
+        if (param.deleteFkColumn) {
+          await NocoCache.deepDel(
+            childRefContext,
+            `${CacheScope.COLUMN}:${fkColumn.id}`,
+            CacheDelDirection.CHILD_TO_PARENT,
+          );
+        } else {
+          await NocoCache.update(
+            childRefContext,
+            `${CacheScope.COLUMN}:${fkColumn.id}`,
+            { uidt: determineRegularUidt(fkColumn.dt) },
+          );
+        }
       }
 
       await View.clearSingleQueryCache(context, parentTable.id);
@@ -6177,6 +6225,7 @@ export class ColumnsService implements IColumnsService {
     context: NcContext,
     param: {
       tableId: string;
+      deleteFkColumn?: boolean;
       req: NcRequest;
     },
   ) {
@@ -6220,6 +6269,7 @@ export class ColumnsService implements IColumnsService {
       try {
         await this.convertLinkToV2(context, {
           columnId: col.id,
+          deleteFkColumn: param.deleteFkColumn,
           req: param.req,
         });
         converted++;

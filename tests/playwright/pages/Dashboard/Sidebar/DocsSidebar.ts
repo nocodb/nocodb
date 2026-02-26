@@ -58,7 +58,7 @@ export class DocsSidebarPage extends BasePage {
       await this.waitForResponse({
         uiAction: () => addPageBtn.click(),
         httpMethodsToMatch: ['POST'],
-        requestUrlPathToMatch: `api/v1/docs/page`,
+        requestUrlPathToMatch: `operation=docCreate`,
       });
     }
 
@@ -106,7 +106,7 @@ export class DocsSidebarPage extends BasePage {
     await this.waitForResponse({
       uiAction: () => node.getByTestId('sidebar-doc-title').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `api/v1/docs/page`,
+      requestUrlPathToMatch: `operation=docGet`,
     });
 
     await this.sidebar.dashboard.docs.openedPage.waitForRender();

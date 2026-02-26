@@ -1866,7 +1866,6 @@ export class AppHooksListenerService
       case AppEvents.GALLERY_UPDATE:
       case AppEvents.KANBAN_UPDATE:
       case AppEvents.LIST_UPDATE:
-      case AppEvents.OUTLINE_UPDATE:
       case AppEvents.MAP_UPDATE:
       case AppEvents.VIEW_UPDATE:
         {

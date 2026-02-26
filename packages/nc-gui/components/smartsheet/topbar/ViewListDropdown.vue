@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { isMobileMode } = useGlobal()
 
@@ -259,13 +259,19 @@ async function onOpenModal({
                   </NcTooltip>
                 </template>
                 <a-menu-item
-                  v-if="isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+                  v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
                   data-testid="topbar-view-create-map"
                   @click="blockMapView ? showUpgradeToUseMapView() : onOpenModal({ type: ViewTypes.MAP })"
                 >
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
+                    <PaymentUpgradeBadge
+                      v-if="isEeUI && blockMapView"
+                      :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
+                      :plan-title="PlanTitles.BUSINESS"
+                      class="ml-auto"
+                    />
                   </div>
                 </a-menu-item>
 

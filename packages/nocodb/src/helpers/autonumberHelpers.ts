@@ -8,10 +8,12 @@ import sortV2 from '~/db/sortV2';
 /**
  * Resets a PostgreSQL BIGSERIAL sequence to MAX(column) after a backfill.
  * This ensures new inserts continue from the correct next value.
+ *
+ * @param tnPath - Schema-qualified table path from baseModel.tnPath (e.g. "myschema.mytable")
  */
 export async function resetPgSequence(
   knex: any,
-  tableName: string,
+  tnPath: string,
   colName: string,
 ): Promise<void> {
   await knex.raw(
@@ -19,7 +21,7 @@ export async function resetPgSequence(
       pg_get_serial_sequence(?, ?),
       (SELECT COALESCE(MAX(??) , 0) FROM ??)
     )`,
-    [tableName, colName, colName, tableName],
+    [tnPath, colName, colName, tnPath],
   );
 }
 
@@ -59,27 +61,27 @@ export async function backfillAutoNumber(
   const pkColumn = model.primaryKeys?.[0]?.column_name;
 
   const knex = await NcConnectionMgrv2.get(source);
-  const tableName = model.table_name;
   const colName = column.column_name;
+
+  // Build BaseModelSqlv2 to get the schema-qualified table path via getTnPath
+  // (same pattern as nc_job_005_order_column)
+  const baseModel = await Model.getBaseModelSQL(context, {
+    id: model.id,
+    dbDriver: knex,
+    source,
+  });
+  const tnPath = baseModel.tnPath;
 
   if (pkColumn) {
     if (viewId) {
-      await backfillWithViewOrder(
-        context,
-        model,
-        column,
-        source,
-        knex,
-        viewId,
-        pkColumn,
-      );
+      await backfillWithViewOrder(baseModel, column, tnPath, viewId, pkColumn);
     } else {
-      await backfillDefaultOrder(knex, tableName, colName, pkColumn);
+      await backfillDefaultOrder(knex, tnPath, colName, pkColumn);
     }
   }
 
   // Reset PG sequence so new inserts continue from MAX+1
-  await resetPgSequence(knex, tableName, colName);
+  await resetPgSequence(knex, tnPath, colName);
 }
 
 /**
@@ -89,13 +91,13 @@ export async function backfillAutoNumber(
  * Single atomic UPDATE — no row-by-row loops.
  *
  * SQL (PG):
- *   UPDATE "t" t SET "col" = s.rn
- *   FROM (SELECT "pk", ROW_NUMBER() OVER (ORDER BY "pk" ASC) rn FROM "t") s
+ *   UPDATE "myschema"."t" t SET "col" = s.rn
+ *   FROM (SELECT "pk", ROW_NUMBER() OVER (ORDER BY "pk" ASC) rn FROM "myschema"."t") s
  *   WHERE t."pk" = s."pk"
  */
 async function backfillDefaultOrder(
   knex: any,
-  tableName: string,
+  tnPath: string,
   colName: string,
   pkColumn: string,
 ): Promise<void> {
@@ -103,7 +105,7 @@ async function backfillDefaultOrder(
     `UPDATE ?? t SET ?? = s.rn
      FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s
      WHERE t.?? = s.??`,
-    [tableName, colName, pkColumn, pkColumn, tableName, pkColumn, pkColumn],
+    [tnPath, colName, pkColumn, pkColumn, tnPath, pkColumn, pkColumn],
   );
 }
 
@@ -118,30 +120,21 @@ async function backfillDefaultOrder(
  * 4. Batch UPDATE: matching rows get 1..N, non-matching get N+1..M
  */
 async function backfillWithViewOrder(
-  context: NcContext,
-  model: Model,
+  baseModel: any,
   _column: Column,
-  source: Source,
-  knex: any,
+  tnPath: string,
   viewId: string,
   pkColumn: string,
 ): Promise<void> {
-  const tableName = model.table_name;
+  const knex = baseModel.dbDriver;
   const colName = _column.column_name;
 
   // Fetch view filters and sorts
-  const filters = await Filter.rootFilterList(context, { viewId });
-  const sorts = await Sort.list(context, { viewId });
-
-  // Build a BaseModelSqlv2 instance for conditionV2/sortV2
-  const baseModel = await Model.getBaseModelSQL(context, {
-    id: model.id,
-    dbDriver: knex,
-    source,
-  });
+  const filters = await Filter.rootFilterList(baseModel.context, { viewId });
+  const sorts = await Sort.list(baseModel.context, { viewId });
 
   // Query 1: matching rows (satisfying view filter), ordered by view sort
-  const matchingQb = knex(tableName).select(pkColumn);
+  const matchingQb = knex(tnPath).select(pkColumn);
   if (filters?.length) {
     await conditionV2(
       baseModel,
@@ -162,7 +155,7 @@ async function backfillWithViewOrder(
   const matchingPkSet = new Set(matchingRows.map((r) => r[pkColumn]));
 
   // Query 2: non-matching rows — all rows not in matching set, ordered by view sort
-  const nonMatchingQb = knex(tableName)
+  const nonMatchingQb = knex(tnPath)
     .select(pkColumn)
     .whereNotIn(pkColumn, [...matchingPkSet]);
   if (sorts?.length) {
@@ -194,7 +187,7 @@ async function backfillWithViewOrder(
       `UPDATE ?? SET ?? = vals.val
        FROM (VALUES ${valueParts}) AS vals(pk_col, val)
        WHERE ??.?? = vals.pk_col`,
-      [tableName, colName, ...valueBindings, tableName, pkColumn],
+      [tnPath, colName, ...valueBindings, tnPath, pkColumn],
     );
   }
 }

@@ -5108,8 +5108,8 @@ export class ColumnsService implements IColumnsService {
           relationType === RelationTypes.ONE_TO_ONE
             ? UITypes.LinkToAnotherRecord
             : isLinks
-              ? UITypes.Links
-              : UITypes.LinkToAnotherRecord,
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
         type: relationType,
 
         fk_model_id: table.id,
@@ -5159,8 +5159,8 @@ export class ColumnsService implements IColumnsService {
           revType === RelationTypes.ONE_TO_ONE
             ? UITypes.LinkToAnotherRecord
             : isLinks
-              ? UITypes.Links
-              : UITypes.LinkToAnotherRecord,
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
         type: revType,
         version: isMMLike ? 2 : 1,
 

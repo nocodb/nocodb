@@ -17282,7 +17282,6 @@
             "QrCode": "#/components/schemas/FieldTypeQrCode",
             "Links": "#/components/schemas/FieldTypeLinks",
             "LinkToAnotherRecord": "#/components/schemas/FieldTypeLinkToAnotherRecord",
-            "LinkToAnotherRecordV2": "#/components/schemas/FieldTypeLinkToAnotherRecord",
             "Lookup": "#/components/schemas/FieldTypeLookup",
             "Rollup": "#/components/schemas/FieldTypeRollup",
             "ID": "#/components/schemas/FieldTypeID",

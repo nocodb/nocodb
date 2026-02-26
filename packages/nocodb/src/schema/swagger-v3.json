@@ -19,7 +19,8 @@
         "Fields",
         "View Filters",
         "View Sorts",
-        "Scripts"
+        "Scripts",
+        "Dashboards"
       ]
     },
     {
@@ -3734,6 +3735,249 @@
           "200": {
             "description": "Script deleted."
           }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards": {
+      "get": {
+        "summary": "List Dashboards",
+        "description": "Retrieve a list of dashboards in the specified base.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboards-list",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of dashboards retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardList"
+                }
+              }
+            }
+          },
+          "404": { "description": "Base not found." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}": {
+      "get": {
+        "summary": "Get Dashboard",
+        "description": "Retrieve details of a specific dashboard. Optionally include widgets by setting the `includeWidgets` query parameter to `true`.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-read",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "includeWidgets",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "boolean" },
+            "description": "Set to `true` to include widgets in the response."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard details retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardGetResponse"
+                }
+              }
+            }
+          },
+          "404": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/data": {
+      "get": {
+        "summary": "Get Dashboard Data",
+        "description": "Retrieve data for all widgets in the specified dashboard. Returns a map of widget IDs to their data.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-data-read",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard data retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardDataResponse"
+                }
+              }
+            }
+          },
+          "404": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets": {
+      "get": {
+        "summary": "List Widgets",
+        "description": "Retrieve a list of widgets in the specified dashboard.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widgets-list",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of widgets retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetList"
+                }
+              }
+            }
+          },
+          "404": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets/{widget_id}": {
+      "get": {
+        "summary": "Get Widget",
+        "description": "Retrieve details of a specific widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-read",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "widget_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the widget."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget details retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetRead"
+                }
+              }
+            }
+          },
+          "404": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets/{widget_id}/data": {
+      "get": {
+        "summary": "Get Widget Data",
+        "description": "Retrieve data for a specific widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-data-read",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "widget_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the widget."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget data retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Widget data. Structure varies by widget type."
+                }
+              }
+            }
+          },
+          "404": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
         }
       }
     },
@@ -11229,6 +11473,182 @@
           "created_at",
           "updated_at"
         ]
+      },
+      "DashboardListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the dashboard."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the dashboard."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the dashboard."
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Unique identifier for the base."
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace."
+          },
+          "order": {
+            "type": ["number", "null"],
+            "description": "Display order of the dashboard."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata for the dashboard."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the dashboard was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the dashboard was last updated."
+          },
+          "created_by": {
+            "type": "string",
+            "description": "User ID of the dashboard creator."
+          },
+          "owned_by": {
+            "type": "string",
+            "description": "User ID of the dashboard owner."
+          }
+        },
+        "required": ["id", "title", "base_id", "workspace_id", "created_at", "updated_at"]
+      },
+      "DashboardList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardListItem"
+            }
+          }
+        },
+        "required": ["list"]
+      },
+      "DashboardGetResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/DashboardListItem"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "widgets": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WidgetRead"
+                },
+                "description": "List of widgets. Only included when `includeWidgets=true`."
+              }
+            }
+          }
+        ]
+      },
+      "DashboardDataResponse": {
+        "type": "object",
+        "properties": {
+          "widgets": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Map of widget IDs to their data."
+          }
+        },
+        "required": ["widgets"]
+      },
+      "WidgetRead": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the widget."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "dashboard_id": {
+            "type": "string",
+            "description": "Unique identifier for the parent dashboard."
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the widget."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the widget."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata for the widget."
+          },
+          "order": {
+            "type": ["number", "null"],
+            "description": "Display order of the widget."
+          },
+          "position": {
+            "type": ["object", "null"],
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" }
+            },
+            "description": "Position and size of the widget on the dashboard grid."
+          },
+          "model_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          },
+          "error": {
+            "type": "boolean",
+            "description": "Whether the widget has a configuration error."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the widget was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the widget was last updated."
+          }
+        },
+        "required": ["id", "title", "dashboard_id", "type", "created_at", "updated_at"]
+      },
+      "WidgetList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WidgetRead"
+            }
+          }
+        },
+        "required": ["list"]
       },
       "ApiTokenV3": {
         "type": "object",

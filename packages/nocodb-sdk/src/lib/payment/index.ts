@@ -65,6 +65,7 @@ export enum PlanFeatureTypes {
   FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
   FEATURE_TEAM_MANAGEMENT = 'feature_team_management',
   FEATURE_API_SCRIPT_MANAGEMENT = 'feature_api_script_management',
+  FEATURE_API_DASHBOARD_V3 = 'feature_api_dashboard_v3',
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
@@ -299,6 +300,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: 'to use team management.',
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
   [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: 'to use script api.',
+  [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: 'to use dashboard api.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',

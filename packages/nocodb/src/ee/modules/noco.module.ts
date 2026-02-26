@@ -66,6 +66,10 @@ import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 import { ScriptsV3Controller } from '~/controllers/v3/scripts-v3.controller';
 import { ScriptsV3Service } from '~/services/v3/scripts-v3.service';
 
+/* Dashboards V3 */
+import { DashboardsV3Controller } from '~/controllers/v3/dashboards-v3.controller';
+import { DashboardsV3Service } from '~/services/v3/dashboards-v3.service';
+
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
@@ -188,6 +192,9 @@ export const nocoModuleEeMetadata = {
     ScriptsService,
     ScriptsV3Service,
 
+    /* Dashboards V3 */
+    DashboardsV3Service,
+
     /* Managed Apps */
     ManagedAppService,
 
@@ -269,6 +276,8 @@ export const nocoModuleEeMetadata = {
     BaseMembersV3Controller,
 
     ScriptsV3Controller,
+
+    DashboardsV3Controller,
 
     Datav3Controller,
 

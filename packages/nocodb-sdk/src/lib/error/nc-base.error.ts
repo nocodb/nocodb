@@ -18,16 +18,6 @@ export class NotFound extends NcBaseError {}
 
 export class SsoError extends NcBaseError {}
 
-export class LicenseRequired extends NcBaseError {
-  public operation: string;
-  public code = 'LICENSE_REQUIRED';
-
-  constructor(operation: string) {
-    super(`The "${operation}" feature requires an Enterprise license.`);
-    this.operation = operation;
-  }
-}
-
 export class MetaError extends NcBaseError {
   constructor(param: { message: string; sql: string }) {
     super(param.message);

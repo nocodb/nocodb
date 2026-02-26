@@ -953,4 +953,17 @@ export class NcErrorBase {
       ...args,
     });
   }
+
+  licenseRequired(feature?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_REQUIRED, {
+      params: feature || '',
+      ...args,
+    });
+  }
+
+  licenseSuspended(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_SUSPENDED, {
+      ...args,
+    });
+  }
 }

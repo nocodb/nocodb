@@ -1,6 +1,8 @@
 import { NcErrorType } from '~/lib/globals';
 
 export class NcBaseError extends Error {
+  priorityError = false;
+
   constructor(message: string) {
     super(message);
   }
@@ -91,6 +93,7 @@ export type NcErrorArgs = {
   params?: string | string[];
   customMessage?: string | ((...args: string[]) => string);
   details?: any;
+  priorityError?: boolean;
 };
 
 export class NcBaseErrorv2 extends NcBaseError {
@@ -108,5 +111,8 @@ export class NcBaseErrorv2 extends NcBaseError {
     this.error = error;
     this.code = code;
     this.details = args?.details;
+    if (args?.priorityError !== undefined) {
+      this.priorityError = args.priorityError;
+    }
   }
 }

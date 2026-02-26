@@ -46,7 +46,7 @@ export class NcErrorCodexManager {
 
   generateError(error: NcErrorType, args?: NcErrorArgs) {
     const errorHelper = this.errorCodexMap[error];
-    const { params, customMessage, details } = args || {};
+    const { params, customMessage, details, priorityError } = args || {};
 
     if (!errorHelper) {
       return {
@@ -66,7 +66,8 @@ export class NcErrorCodexManager {
     }
 
     return new NcBaseErrorv2(message, errorHelper.code, error, {
-      details: details,
+      details,
+      priorityError,
     });
   }
 }

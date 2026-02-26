@@ -326,6 +326,7 @@ export class NcErrorBase {
 
   internalServerError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_INTERNAL_SERVER, {
+      priorityError: true,
       params: message,
       ...args,
     });
@@ -696,7 +697,9 @@ export class NcErrorBase {
   }
 
   metaError(param: { message: string; sql: string }): never {
-    throw new MetaError(param);
+    const error = new MetaError(param);
+    error.priorityError = true;
+    throw error;
   }
 
   notFound(message = 'Not found'): never {
@@ -731,6 +734,7 @@ export class NcErrorBase {
   }
   storageFileCreateError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_STORAGE_FILE_CREATE, {
+      priorityError: true,
       params: message,
       ...args,
     });
@@ -738,6 +742,7 @@ export class NcErrorBase {
 
   storageFileReadError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_STORAGE_FILE_READ, {
+      priorityError: true,
       params: message,
       ...args,
     });
@@ -745,6 +750,7 @@ export class NcErrorBase {
 
   storageFileDeleteError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_STORAGE_FILE_DELETE, {
+      priorityError: true,
       params: message,
       ...args,
     });
@@ -752,6 +758,7 @@ export class NcErrorBase {
 
   storageFileStreamError(message: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_STORAGE_FILE_STREAM, {
+      priorityError: true,
       params: message,
       ...args,
     });
@@ -853,6 +860,7 @@ export class NcErrorBase {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_SUBSCRIPTION_CREATE_FAILED,
       {
+        priorityError: true,
         params: message,
         ...args,
       }

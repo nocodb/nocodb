@@ -465,6 +465,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
             :selected-workspace-id="modalState.selectedWorkspaceId"
             :base-count="baseCount"
             :can-create-workspace="canCreateWorkspace"
+            :base-list-all-ws-map="baseListAllWsMap"
             @select="onSelectWorkspace"
             @create="onCreateWorkspace"
           />

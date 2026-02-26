@@ -6,6 +6,7 @@ const props = defineProps<{
   selectedWorkspaceId: string | null
   baseCount: number
   canCreateWorkspace: boolean
+  baseListAllWsMap?: Map<string, { plan_title: string | null }>
 }>()
 
 const emit = defineEmits<{
@@ -30,7 +31,7 @@ const workspaceOptions = computed<NcListItemType[]>(() => {
   return props.workspaces.map((ws) => ({
     value: ws.id!,
     label: ws.title || '',
-    ncItemExtra: ws.payment?.plan?.title || 'Free',
+    ncItemExtra: ws.payment?.plan?.title || props.baseListAllWsMap?.get(ws.id!)?.plan_title || 'Free',
   }))
 })
 
@@ -58,7 +59,9 @@ const onCreateWorkspace = () => {
             {{ selectedWorkspace?.title || t('objects.workspace') }}
           </div>
           <div class="flex items-center gap-2 text-xs text-nc-content-gray-muted">
-            <span>{{ selectedWorkspace?.payment?.plan?.title || 'Free' }}</span>
+            <span>{{
+              selectedWorkspace?.payment?.plan?.title || baseListAllWsMap?.get(selectedWorkspace?.id!)?.plan_title || 'Free'
+            }}</span>
             <span class="w-1 h-1 rounded-full bg-nc-content-gray-muted" />
             <span>{{ baseCount }} {{ baseCount !== 1 ? $t('objects.projects') : $t('objects.project') }}</span>
           </div>

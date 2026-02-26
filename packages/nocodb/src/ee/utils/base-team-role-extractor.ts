@@ -54,10 +54,14 @@ export async function extractUserBaseTeamRoles(
       return { roles: null, teams };
     }
 
+    // Use workspace-only context for Team lookups (teams are workspace-scoped,
+    // avoid cache key mismatch when called from a base-scoped context)
+    const teamCtx = { workspace_id: context.workspace_id, base_id: null } as NcContext;
+
     // Load team details for user's teams to get paths
     const userTeams: { id: string; path: string; teamRole: string }[] = [];
     for (const assignment of userTeamAssignments) {
-      const team = await Team.get(context, assignment.resource_id);
+      const team = await Team.get(teamCtx, assignment.resource_id);
       if (team?.path) {
         userTeams.push({
           id: team.id,
@@ -84,7 +88,7 @@ export async function extractUserBaseTeamRoles(
       const assignedTeamId = assignment.principal_ref_id;
 
       // Load the assigned team to get its path
-      const assignedTeam = await Team.get(context, assignedTeamId);
+      const assignedTeam = await Team.get(teamCtx, assignedTeamId);
       if (!assignedTeam?.path) continue;
 
       // Check if user matches via direct membership or ancestor relationship

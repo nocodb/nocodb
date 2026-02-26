@@ -1930,6 +1930,264 @@ export default function () {
     });
 
     // ---------------------------------------------------------------
+    // Spec §3.2: RLS with team hierarchy — descendant expansion
+    // ---------------------------------------------------------------
+
+    describe('Spec §3.2: RLS with team hierarchy', () => {
+      let baseId: string;
+      let tableId: string;
+      let rlsFeatureMock: any;
+
+      async function setupBaseAndTable() {
+        const { createProject } = await import('../../../factory/base');
+        const base = await createProject(context);
+        baseId = base.id;
+
+        const { createTable } = await import('../../../factory/table');
+        const table = await createTable(context, base);
+        tableId = table.id;
+      }
+
+      /**
+       * Helper: create an RLS policy with team subject
+       */
+      async function createRlsPolicy(
+        teamId: string,
+        title: string,
+        hierarchyScope?: 'self_only' | 'self_and_descendants',
+      ) {
+        const subjects: any[] = [
+          {
+            type: 'team',
+            id: teamId,
+            ...(hierarchyScope ? { hierarchy_scope: hierarchyScope } : {}),
+          },
+        ];
+
+        const res = await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'rlsPolicyCreate' })
+          .send({
+            fk_model_id: tableId,
+            title,
+            subjects,
+          });
+
+        return res;
+      }
+
+      /**
+       * Helper: set subjects on an existing RLS policy
+       */
+      async function setRlsSubjects(
+        policyId: string,
+        subjects: any[],
+      ) {
+        const res = await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'rlsPolicySetSubjects' })
+          .send({
+            policyId,
+            subjects,
+          });
+
+        return res;
+      }
+
+      /**
+       * Helper: get an RLS policy
+       */
+      async function getRlsPolicy(policyId: string) {
+        const res = await request(context.app)
+          .get(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'rlsPolicyGet', policyId });
+
+        return res;
+      }
+
+      /**
+       * Helper: list RLS policies for a table
+       */
+      async function listRlsPolicies() {
+        const res = await request(context.app)
+          .get(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'rlsPolicyList', tableId });
+
+        return res;
+      }
+
+      /**
+       * Helper: delete an RLS policy
+       */
+      async function deleteRlsPolicy(policyId: string) {
+        return request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'rlsPolicyDelete' })
+          .send({ policyId });
+      }
+
+      beforeEach(async function () {
+        this.timeout(120000);
+        await setupBaseAndTable();
+
+        // Enable RLS feature on plan
+        rlsFeatureMock = await overridePlan({
+          workspace_id: workspaceId,
+          features: {
+            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
+            [PlanFeatureTypes.FEATURE_RLS]: true,
+          },
+          limits: {
+            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
+            [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
+          },
+        });
+      });
+
+      afterEach(async () => {
+        await rlsFeatureMock?.restore?.();
+      });
+
+      it('should create RLS policy with team subject (default: self_and_descendants)', async () => {
+        const res = await createRlsPolicy(engineeringId, 'Eng Policy');
+        expect(res.status).to.equal(200);
+        expect(res.body).to.have.property('id');
+        expect(res.body.title).to.equal('Eng Policy');
+
+        // Verify subjects include the team
+        expect(res.body.subjects).to.be.an('array').with.length(1);
+        expect(res.body.subjects[0]).to.have.property('type', 'team');
+        expect(res.body.subjects[0]).to.have.property('id', engineeringId);
+      });
+
+      it('should create RLS policy with hierarchy_scope = self_only', async () => {
+        const res = await createRlsPolicy(
+          engineeringId,
+          'Eng Self Only',
+          'self_only',
+        );
+        expect(res.status).to.equal(200);
+
+        const getRes = await getRlsPolicy(res.body.id);
+        expect(getRes.status).to.equal(200);
+        expect(getRes.body.subjects).to.be.an('array').with.length(1);
+        expect(getRes.body.subjects[0]).to.have.property(
+          'hierarchy_scope',
+          'self_only',
+        );
+      });
+
+      it('should update subjects with hierarchy_scope via setSubjects', async () => {
+        // Create policy with default scope
+        const createRes = await createRlsPolicy(
+          engineeringId,
+          'Eng Update Scope',
+        );
+        expect(createRes.status).to.equal(200);
+
+        // Update to self_only
+        const updateRes = await setRlsSubjects(createRes.body.id, [
+          { type: 'team', id: engineeringId, hierarchy_scope: 'self_only' },
+        ]);
+        expect(updateRes.status).to.equal(200);
+
+        // Verify
+        const getRes = await getRlsPolicy(createRes.body.id);
+        expect(getRes.body.subjects[0]).to.have.property(
+          'hierarchy_scope',
+          'self_only',
+        );
+
+        // Update back to self_and_descendants
+        await setRlsSubjects(createRes.body.id, [
+          {
+            type: 'team',
+            id: engineeringId,
+            hierarchy_scope: 'self_and_descendants',
+          },
+        ]);
+
+        const getRes2 = await getRlsPolicy(createRes.body.id);
+        expect(getRes2.body.subjects[0]).to.have.property(
+          'hierarchy_scope',
+          'self_and_descendants',
+        );
+      });
+
+      it('should list RLS policies for a table', async () => {
+        await createRlsPolicy(engineeringId, 'Policy A');
+        await createRlsPolicy(frontendId, 'Policy B');
+
+        const listRes = await listRlsPolicies();
+        expect(listRes.status).to.equal(200);
+
+        const policies = Array.isArray(listRes.body)
+          ? listRes.body
+          : listRes.body.list || [];
+        expect(policies.length).to.be.at.least(2);
+
+        const titles = policies.map((p: any) => p.title);
+        expect(titles).to.include('Policy A');
+        expect(titles).to.include('Policy B');
+      });
+
+      it('should delete an RLS policy', async () => {
+        const createRes = await createRlsPolicy(
+          salesId,
+          'Policy To Delete',
+        );
+        expect(createRes.status).to.equal(200);
+        const policyId = createRes.body.id;
+
+        const deleteRes = await deleteRlsPolicy(policyId);
+        expect(deleteRes.status).to.equal(200);
+
+        // Verify it's gone
+        const getRes = await getRlsPolicy(policyId);
+        expect(getRes.status).to.not.equal(200);
+      });
+
+      it('should support multiple team subjects on a single policy', async () => {
+        const createRes = await createRlsPolicy(
+          engineeringId,
+          'Multi-team Policy',
+        );
+        expect(createRes.status).to.equal(200);
+
+        // Set multiple team subjects with different scopes
+        const updateRes = await setRlsSubjects(createRes.body.id, [
+          { type: 'team', id: engineeringId },
+          {
+            type: 'team',
+            id: salesId,
+            hierarchy_scope: 'self_only',
+          },
+        ]);
+        expect(updateRes.status).to.equal(200);
+
+        const getRes = await getRlsPolicy(createRes.body.id);
+        expect(getRes.body.subjects).to.be.an('array').with.length(2);
+
+        const engSubject = getRes.body.subjects.find(
+          (s: any) => s.id === engineeringId,
+        );
+        const salesSubject = getRes.body.subjects.find(
+          (s: any) => s.id === salesId,
+        );
+        expect(engSubject).to.exist;
+        expect(salesSubject).to.have.property(
+          'hierarchy_scope',
+          'self_only',
+        );
+      });
+    });
+
+    // ---------------------------------------------------------------
     // Spec §13: User in multiple teams at different levels
     // ---------------------------------------------------------------
 

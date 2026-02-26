@@ -10,11 +10,11 @@ const isLocked = inject(IsLockedInj, ref(false))
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isPublic = inject(IsPublicInj, ref(false))
 const clone = rfdc()
-const { eventBus, isOutline } = useSmartsheetStoreOrThrow()
+const { eventBus, isList } = useSmartsheetStoreOrThrow()
 
-const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
-const isOutlineConfigured = computed(
-  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const isListConfigured = computed(
+  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
 )
 const { getMetaByKey } = useMetas()
 
@@ -47,10 +47,10 @@ const isRestrictedEditor = computed(() => isLocked.value || !canSyncSort.value)
 const isPersonalViewNonOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value))
 
 const displayedSorts = computed(() => {
-  if (!isOutline.value || !isOutlineConfigured.value || !outlineViewStore?.selectedLevelId.value) {
+  if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevelId.value) {
     return sorts.value
   }
-  return sorts.value.filter((s) => s.fk_level_id === outlineViewStore!.selectedLevelId.value)
+  return sorts.value.filter((s) => s.fk_level_id === listViewStore!.selectedLevelId.value)
 })
 
 const displayedExistingSorts = computed(() => displayedSorts.value.filter((s) => s.id))
@@ -77,10 +77,10 @@ onBeforeUnmount(() => {
 })
 
 const levelTableColumns = computed(() => {
-  if (!isOutline.value || !isOutlineConfigured.value || !outlineViewStore?.selectedLevel.value) {
+  if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevel.value) {
     return meta.value?.columns || []
   }
-  const level = outlineViewStore.selectedLevel.value
+  const level = listViewStore.selectedLevel.value
   if (level.fk_model_id === meta.value?.id) {
     return meta.value?.columns || []
   }
@@ -150,8 +150,8 @@ const addSort = (column: ColumnType) => {
 
   const createdSort = sorts.value[sorts.value.length - 1]
 
-  if (isOutline.value && outlineViewStore?.selectedLevelId.value) {
-    createdSort.fk_level_id = outlineViewStore.selectedLevelId.value
+  if (isList.value && listViewStore?.selectedLevelId.value) {
+    createdSort.fk_level_id = listViewStore.selectedLevelId.value
   }
 
   saveOrUpdate(createdSort, sorts.value.length - 1)
@@ -230,13 +230,13 @@ watch(
         }"
       >
         <div
-          v-if="isOutline && isOutlineConfigured"
+          v-if="isList && isListConfigured"
           :class="{
             'max-w-64': !displayedSorts.length && !isPersonalViewNonOwner,
           }"
           class="px-2 py-2 border-b-1"
         >
-          <SmartsheetToolbarOutlineLevelSelector />
+          <SmartsheetToolbarListLevelSelector />
         </div>
         <SmartsheetToolbarCreateSort
           v-if="!displayedSorts.length && !isPersonalViewNonOwner"
@@ -481,7 +481,7 @@ watch(
               </template>
             </NcDropdown>
             <LazyGeneralCopyFromAnotherViewActionBtn
-              v-if="view && !isOutline"
+              v-if="view && !isList"
               :view="view"
               :default-options="[ViewSettingOverrideOptions.SORT]"
               @open="open = false"
@@ -500,7 +500,7 @@ watch(
           class="flex items-center justify-end empty:hidden pl-3 pr-2 py-1.5 border-t-1 border-nc-border-gray-medium"
         >
           <LazyGeneralCopyFromAnotherViewActionBtn
-            v-if="!isOutline"
+            v-if="!isList"
             :view="view"
             :default-options="[ViewSettingOverrideOptions.SORT]"
             @open="open = false"

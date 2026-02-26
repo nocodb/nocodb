@@ -1,7 +1,7 @@
 /**
  * Hit-test element tracked during rendering.
  */
-export interface OutlineCanvasElement {
+export interface ListCanvasElement {
   type: 'row' | 'chevron' | 'header' | 'addRow' | 'expandRow' | 'cell'
   rowIndex: number
   x: number
@@ -14,7 +14,7 @@ export interface OutlineCanvasElement {
   parentPk?: string | number
 }
 
-export interface OutlineActiveCell {
+export interface ListActiveCell {
   rowIndex: number
   depth: number
   column: CanvasGridColumn

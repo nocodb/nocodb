@@ -9,7 +9,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar, isOutline, isForm, isViewOperationsAllowed, allFilters } =
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters } =
   useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
@@ -102,17 +102,17 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
           <SmartsheetToolbarStackedBy v-if="isKanban" />
 
-          <SmartsheetToolbarOutlineSetLevels v-if="isOutline" />
+          <SmartsheetToolbarListSetLevels v-if="isList" />
 
-          <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap || isOutline" :show-system-fields="false" />
+          <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap || isList" :show-system-fields="false" />
 
-          <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isOutline" />
+          <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isList" />
 
           <SmartsheetToolbarGroupByMenu v-if="isGrid" />
 
-          <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isOutline" />
+          <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isList" />
 
-          <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && (isGrid || isGallery || isKanban || isOutline)" />
+          <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && (isGrid || isGallery || isKanban || isList)" />
 
           <SmartsheetToolbarBulkAction
             v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"
@@ -128,7 +128,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
       <SmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
 
       <template v-if="!isMobileMode">
-        <SmartsheetToolbarRowHeight v-if="(isGrid || isOutline) && isViewOperationsAllowed" />
+        <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed" />
 
         <template v-if="!isCalendar">
           <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
@@ -147,7 +147,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
       <SmartsheetToolbarCalendarActiveView v-if="isCalendar" />
 
       <SmartsheetToolbarSearchData
-        v-if="isGrid || isGallery || isKanban || isOutline"
+        v-if="isGrid || isGallery || isKanban || isList"
         :class="{
           'shrink': !isMobileMode,
           'w-full': isMobileMode,

@@ -170,7 +170,7 @@ export function useViewFilters(
     ? { showSystemFields: ref(false), fieldsMap: ref({}), metaColumnById: computed(() => ({} as Record<string, ColumnType>)) }
     : useViewColumnsOrThrow()
 
-  // Use metaColumnById (includes outline view level table columns) with fallback to meta.columns
+  // Use metaColumnById (includes list view level table columns) with fallback to meta.columns
   const allMetaColumns = computed(() => {
     if (isLink) return meta.value?.columns || []
     const byId = _metaColumnById.value

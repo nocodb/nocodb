@@ -36,20 +36,20 @@ const { canUpdateViewMeta } = useViewColumnsOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
-const { isOutline } = useSmartsheetStoreOrThrow()
+const { isList } = useSmartsheetStoreOrThrow()
 
-const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 
-const isOutlineConfigured = computed(
-  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+const isListConfigured = computed(
+  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
 )
 
 const open = ref(false)
 
-const viewType = computed(() => (isOutline.value ? ViewTypes.OUTLINE : ViewTypes.GRID))
+const viewType = computed(() => (isList.value ? ViewTypes.LIST : ViewTypes.GRID))
 
 const currentRowHeight = computed(() => {
-  if (isOutline.value) {
+  if (isList.value) {
     return (view.value?.view as ListType)?.row_height
   }
   return (view.value?.view as GridType)?.row_height
@@ -95,16 +95,16 @@ const updateRowHeight = async (rh: number, undo = false) => {
 
 const wrapHeaders = computed({
   get: () => {
-    if (!isOutline.value || !outlineViewStore?.selectedLevel.value) return false
-    return !!outlineViewStore.selectedLevel.value.wrap_headers
+    if (!isList.value || !listViewStore?.selectedLevel.value) return false
+    return !!listViewStore.selectedLevel.value.wrap_headers
   },
   set: async (val: boolean) => {
-    if (isLocked.value || !view.value?.id || !isOutline.value || !outlineViewStore?.selectedLevel.value) return
+    if (isLocked.value || !view.value?.id || !isList.value || !listViewStore?.selectedLevel.value) return
 
-    const updatedLevels = outlineViewStore.levels.value.map((l) =>
-      l.id === outlineViewStore!.selectedLevel.value?.id ? { ...l, wrap_headers: val } : { ...l },
+    const updatedLevels = listViewStore.levels.value.map((l) =>
+      l.id === listViewStore!.selectedLevel.value?.id ? { ...l, wrap_headers: val } : { ...l },
     )
-    await outlineViewStore.saveLevelConfiguration({ levels: updatedLevels })
+    await listViewStore.saveLevelConfiguration({ levels: updatedLevels })
   },
 })
 
@@ -158,9 +158,9 @@ useMenuCloseOnEsc(open)
             />
           </div>
         </div>
-        <!--        <template v-if="isOutline">
+        <!--        <template v-if="isList">
           <div class="border-t border-nc-border-gray-medium">
-            <SmartsheetToolbarOutlineLevelSelector v-if="isOutlineConfigured" class="py-2" />
+            <SmartsheetToolbarListLevelSelector v-if="isListConfigured" class="py-2" />
             <div class="flex items-center px-2">
               <NcSwitch v-model:checked="wrapHeaders" size="small" class="nc-switch" :disabled="isLocked">
                 <div class="text-sm text-nc-content-gray">

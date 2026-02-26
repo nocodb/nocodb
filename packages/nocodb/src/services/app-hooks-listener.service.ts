@@ -165,7 +165,7 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
       case AppEvents.CALENDAR_UPDATE:
       case AppEvents.GALLERY_UPDATE:
       case AppEvents.KANBAN_UPDATE:
-      case AppEvents.OUTLINE_UPDATE:
+      case AppEvents.LIST_UPDATE:
       case AppEvents.VIEW_UPDATE:
         break;
       case AppEvents.FORM_DELETE:
@@ -182,9 +182,9 @@ export class AppHooksListenerService implements OnModuleInit, OnModuleDestroy {
         break;
       case AppEvents.CALENDAR_DELETE:
         break;
-      case AppEvents.OUTLINE_CREATE:
+      case AppEvents.LIST_CREATE:
         break;
-      case AppEvents.OUTLINE_DELETE:
+      case AppEvents.LIST_DELETE:
         break;
 
       case AppEvents.FILTER_CREATE:

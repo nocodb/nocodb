@@ -1,9 +1,9 @@
-import type { OutlineViewLevelType } from 'nocodb-sdk';
+import type { ListViewLevelType } from 'nocodb-sdk';
 
-export default class OutlineViewLevel implements OutlineViewLevelType {
+export default class ListViewLevel implements ListViewLevelType {
   id: string;
 
-  constructor(data: OutlineViewLevel) {
+  constructor(data: ListViewLevel) {
     Object.assign(this, data);
   }
 

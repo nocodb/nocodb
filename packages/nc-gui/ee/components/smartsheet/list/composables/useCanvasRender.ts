@@ -1,7 +1,7 @@
-import type { ColumnType, OutlineViewLevelType, TableType } from 'nocodb-sdk'
+import type { ColumnType, ListViewLevelType, TableType } from 'nocodb-sdk'
 import { parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
 import { getSafe2DContext } from '~/components/smartsheet/grid/canvas/utils/safeCanvas'
-import type { OutlineCanvasElement } from './types'
+import type { ListCanvasElement } from './types'
 import {
   ADD_ROW_HEIGHT,
   CELL_PADDING,
@@ -12,7 +12,7 @@ import {
   INDENT_PER_DEPTH,
   SUB_HEADER_HEIGHT,
 } from './constants'
-import type { OutlineViewRow } from '~/composables/useOutlineViewStore'
+import type { ListViewRow } from '~/composables/useListViewStore'
 
 type GetColorFn = (cssVar: string, darkCssVar?: string, opacity?: number) => string
 
@@ -67,15 +67,15 @@ export function useCanvasRender({
   scrollTop: Ref<number>
   headerRowHeight: ComputedRef<number>
   rowHeight: ComputedRef<number>
-  cachedRows: Ref<Map<number, OutlineViewRow>>
+  cachedRows: Ref<Map<number, ListViewRow>>
   rowSlice: ComputedRef<{ start: number; end: number }>
   slotHeight: ComputedRef<number>
   totalRows: Ref<number>
   hoverRow: Ref<{ rowIndex: number }>
   mousePosition: { x: number; y: number }
-  elementMap: Ref<OutlineCanvasElement[]>
+  elementMap: Ref<ListCanvasElement[]>
   isCollapsed: (depth: number, pk: string) => boolean
-  displayLevels: ComputedRef<OutlineViewLevelType[]>
+  displayLevels: ComputedRef<ListViewLevelType[]>
   getColumnsForDepth: (depth: number) => CanvasGridColumn[]
   getColor: GetColorFn
   meta: Ref<TableType | undefined>
@@ -388,7 +388,7 @@ export function useCanvasRender({
 
   function renderRow(
     ctx: CanvasRenderingContext2D,
-    row: OutlineViewRow,
+    row: ListViewRow,
     rowIndex: number,
     screenY: number,
     depth: number,

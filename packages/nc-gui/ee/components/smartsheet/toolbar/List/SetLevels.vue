@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType, OutlineViewLevelType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, ListViewLevelType, TableType } from 'nocodb-sdk'
 import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 const meta = inject(MetaInj, ref())
@@ -15,13 +15,13 @@ const isToolbarIconMode = inject(
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-const { levels, saveLevelConfiguration, showEmptyParents, updateViewMeta, isLoading } = useOutlineViewStoreOrThrow()
+const { levels, saveLevelConfiguration, showEmptyParents, updateViewMeta, isLoading } = useListViewStoreOrThrow()
 
 const open = ref(false)
 
 useMenuCloseOnEsc(open)
 
-const localLevels = ref<Partial<OutlineViewLevelType>[]>([])
+const localLevels = ref<Partial<ListViewLevelType>[]>([])
 
 watch(open, (val) => {
   if (val) {
@@ -98,7 +98,7 @@ async function save() {
 
   try {
     const cleanedLevels = localLevels.value.map((l) => {
-      const clean: Partial<OutlineViewLevelType> = {
+      const clean: Partial<ListViewLevelType> = {
         level: l.level,
         fk_model_id: l.fk_model_id,
       }
@@ -110,7 +110,7 @@ async function save() {
     })
 
     await saveLevelConfiguration({
-      levels: cleanedLevels as OutlineViewLevelType[],
+      levels: cleanedLevels as ListViewLevelType[],
     })
 
     await nextTick()
@@ -158,17 +158,17 @@ const isDirty = computed(() => {
     v-if="!isPublic"
     v-model:visible="open"
     :trigger="['click']"
-    overlay-class-name="nc-dropdown-outline-set-levels-menu overflow-hidden"
+    overlay-class-name="nc-dropdown-list-set-levels-menu overflow-hidden"
     class="!xs:hidden"
   >
-    <NcTooltip :disabled="!isToolbarIconMode" class="nc-outline-set-levels-btn">
+    <NcTooltip :disabled="!isToolbarIconMode" class="nc-list-set-levels-btn">
       <template #title>
         {{ $t('title.setLevels') }}
       </template>
 
       <NcButton
-        v-e="['c:outline:set-levels']"
-        class="nc-outline-set-levels-menu-btn nc-toolbar-btn !border-0 !h-7 group"
+        v-e="['c:list:set-levels']"
+        class="nc-list-set-levels-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
         :show-as-disabled="isLocked"

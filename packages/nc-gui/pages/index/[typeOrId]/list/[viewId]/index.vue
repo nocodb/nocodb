@@ -38,7 +38,7 @@ onMounted(() => {
 
 <template>
   <div v-if="showPassword">
-    <LazySharedViewAskPassword v-model="showPassword" :view-type="ViewTypes.OUTLINE" />
+    <LazySharedViewAskPassword v-model="showPassword" :view-type="ViewTypes.LIST" />
   </div>
-  <LazySharedViewOutline v-else />
+  <LazySharedViewList v-else />
 </template>

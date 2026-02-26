@@ -203,9 +203,9 @@ export enum AppEvents {
   GALLERY_DELETE = 'gallery.delete',
   GALLERY_DUPLICATE = 'gallery.duplicate',
 
-  OUTLINE_CREATE = 'outline.create',
-  OUTLINE_UPDATE = 'outline.update',
-  OUTLINE_DELETE = 'outline.delete',
+  LIST_CREATE = 'list.create',
+  LIST_UPDATE = 'list.update',
+  LIST_DELETE = 'list.delete',
 
   BASE_DUPLICATE_START = 'base.duplicate.start',
   BASE_DUPLICATE_COMPLETE = 'base.duplicate.complete',

@@ -42,7 +42,7 @@ import { ActionManager } from '~/components/smartsheet/grid/canvas/loaders/Actio
 
 const CLEANUP_INTERVAL = 1000
 
-export function useOutlineCellRenderer(params: {
+export function useListCellRenderer(params: {
   spriteLoader: SpriteLoader
   triggerRefreshCanvas: () => void
   setCursor: SetCursorType

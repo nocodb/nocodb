@@ -91,9 +91,9 @@ import { DashboardsService } from '~/services/dashboards.service';
 import { RecordTemplatesController } from '~/controllers/record-templates.controller';
 import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
 
-/* Outline View */
-import { OutlinesService } from '~/ee/services/outlines.service';
-import { OutlineDatasService } from '~/ee/services/outline-datas.service';
+/* List View */
+import { ListsService } from '~/ee/services/lists.service';
+import { ListDatasService } from '~/ee/services/list-datas.service';
 
 import { ActionsService } from '~/services/actions.service';
 
@@ -183,9 +183,9 @@ export const nocoModuleEeMetadata = {
     /* Record Templates */
     RecordTemplatesService,
 
-    /* Outline View */
-    OutlinesService,
-    OutlineDatasService,
+    /* List View */
+    ListsService,
+    ListDatasService,
 
     ActionsService,
 
@@ -262,7 +262,7 @@ export const nocoModuleEeMetadata = {
   exports: [
     ScriptsService,
     WorkflowsService,
-    OutlinesService,
+    ListsService,
     WorkflowSubscribersService,
     'WorkflowExecutionService',
     DashboardsService,

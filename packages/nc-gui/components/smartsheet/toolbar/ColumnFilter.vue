@@ -150,24 +150,24 @@ const {
   isForm,
   eventBus,
   allFilters: smartsheetAllFilters,
-  isOutline,
+  isList,
 } = widget.value || workflow.value || rlsPolicyId?.value
   ? {
       nestedFilters: ref([]),
       isForm: ref(false),
       eventBus: null,
       allFilters: ref([]),
-      isOutline: ref(false),
+      isList: ref(false),
     }
   : useSmartsheetStoreOrThrow()
 
-const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
-const isOutlineConfigured = computed(
-  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const isListConfigured = computed(
+  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
 )
 
 const levelId = computed(() =>
-  isOutline.value && isOutlineConfigured.value ? outlineViewStore?.selectedLevelId.value : undefined,
+  isList.value && isListConfigured.value ? listViewStore?.selectedLevelId.value : undefined,
 )
 
 const { getMetaByKey } = useMetas()
@@ -175,8 +175,8 @@ const { getMetaByKey } = useMetas()
 const currentFilters = modelValue.value || (!link.value && !webHook.value && !workflow.value && nestedFilters.value) || []
 
 const columns = computed(() => {
-  if (isOutline.value && isOutlineConfigured.value && outlineViewStore?.selectedLevel.value) {
-    const level = outlineViewStore.selectedLevel.value
+  if (isList.value && isListConfigured.value && listViewStore?.selectedLevel.value) {
+    const level = listViewStore.selectedLevel.value
     if (level.fk_model_id && level.fk_model_id !== meta.value?.id) {
       const tableMeta = getMetaByKey(meta.value?.base_id, level.fk_model_id)
       return tableMeta?.columns || []
@@ -1536,7 +1536,7 @@ defineExpose({
               </NcButton>
 
               <NcTooltip
-                v-if="!filter.readOnly && !readOnly && isEeUI && isViewFilter && !filter.is_group && !webHook && !link && !widget && !isOutline"
+                v-if="!filter.readOnly && !readOnly && isEeUI && isViewFilter && !filter.is_group && !webHook && !link && !widget && !isList"
               >
                 <template #title>
                   {{ getPinTooltip(filter) }}

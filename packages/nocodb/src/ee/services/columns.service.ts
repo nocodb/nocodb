@@ -49,8 +49,8 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
-import OutlineViewLevel from '~/models/OutlineViewLevel';
-import OutlineViewColumn from '~/models/OutlineViewColumn';
+import ListViewLevel from '~/models/ListViewLevel';
+import ListViewColumn from '~/models/ListViewColumn';
 
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {
@@ -140,9 +140,9 @@ export class ColumnsService extends ColumnsServiceCE {
 
     const result = await super.columnAdd(context, param);
 
-    // insertColumnToAllViews already handles levels whose outline view is on param.tableId.
-    // Here we handle levels from outline views on OTHER tables that reference param.tableId.
-    const allLevels = await OutlineViewLevel.listByModelId(context, param.tableId);
+    // insertColumnToAllViews already handles levels whose list view is on param.tableId.
+    // Here we handle levels from list views on OTHER tables that reference param.tableId.
+    const allLevels = await ListViewLevel.listByModelId(context, param.tableId);
     if (allLevels.length) {
       // Views already processed by insertColumnToAllViews (views on this table)
       const viewsOnThisTable = await View.list(context, param.tableId);
@@ -159,12 +159,12 @@ export class ColumnsService extends ColumnsServiceCE {
         );
         if (insertedColumn) {
           for (const level of unhandledLevels) {
-            const order = await OutlineViewColumn.getNextOrderForLevel(
+            const order = await ListViewColumn.getNextOrderForLevel(
               context,
               level.fk_view_id,
               level.id,
             );
-            await OutlineViewColumn.insert(context, {
+            await ListViewColumn.insert(context, {
               fk_view_id: level.fk_view_id,
               fk_column_id: insertedColumn.id,
               fk_level_id: level.id,

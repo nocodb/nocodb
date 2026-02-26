@@ -20,20 +20,20 @@ const activeView = inject(ActiveViewInj, ref())
 
 const meta = inject(MetaInj, ref())
 
-const { isOutline } = useSmartsheetStoreOrThrow()
+const { isList } = useSmartsheetStoreOrThrow()
 
-const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
-const isOutlineConfigured = computed(() => outlineViewStore?.isConfigured.value ?? false)
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const isListConfigured = computed(() => listViewStore?.isConfigured.value ?? false)
 
 const { getMetaByKey } = useMetas()
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
 const levelTableColumns = computed(() => {
-  if (!isOutline.value || !isOutlineConfigured.value || !outlineViewStore?.selectedLevel.value) {
+  if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevel.value) {
     return meta.value?.columns || []
   }
-  const level = outlineViewStore.selectedLevel.value
+  const level = listViewStore.selectedLevel.value
   if (level.fk_model_id === meta.value?.id) {
     return meta.value?.columns || []
   }

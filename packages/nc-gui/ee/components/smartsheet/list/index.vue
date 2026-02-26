@@ -10,7 +10,7 @@ import {
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
 import Scroller from '~/components/smartsheet/grid/canvas/components/Scroller.vue'
 import Tooltip from '~/components/smartsheet/grid/canvas/components/Tooltip.vue'
-import { useCanvasOutline } from './composables/useCanvasOutline'
+import { useCanvasListView } from './composables/useCanvasListView'
 
 const { meta, view } = useSmartsheetStoreOrThrow()
 const { metas, getMeta } = useMetas()
@@ -20,9 +20,9 @@ const route = useRoute()
 const router = useRouter()
 
 const rowHeightEnum = computed(() => {
-  const outlineView = view.value?.view as OutlineType | undefined
-  if (outlineView?.row_height !== undefined) {
-    switch (outlineView.row_height) {
+  const listView = view.value?.view as ListType | undefined
+  if (listView?.row_height !== undefined) {
+    switch (listView.row_height) {
       case 0:
         return 1
       case 1:
@@ -70,7 +70,7 @@ const { floatingStyles } = useFloating(targetReference, tooltipRef, {
   middleware: [offset(8), flip(), shift({ padding: 5 })],
 })
 
-const { isConfigured } = useOutlineViewStoreOrThrow()
+const { isConfigured } = useListViewStoreOrThrow()
 
 const {
   canvasRef,
@@ -86,7 +86,7 @@ const {
   onAddRow,
   activeCell,
   cachedRows,
-} = useCanvasOutline({
+} = useCanvasListView({
   scrollLeft,
   scrollTop,
   width,
@@ -106,7 +106,7 @@ reloadViewDataHook.on(() => {
   resetAndReload()
 })
 
-const { displayLevels } = useOutlineViewStoreOrThrow()
+const { displayLevels } = useListViewStoreOrThrow()
 
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
@@ -340,12 +340,12 @@ async function savePendingCell() {
 </script>
 
 <template>
-  <div ref="wrapperRef" class="flex flex-col w-full h-full nc-outline-view-wrapper bg-nc-bg-gray-extralight">
+  <div ref="wrapperRef" class="flex flex-col w-full h-full nc-list-view-wrapper bg-nc-bg-gray-extralight">
     <div v-if="!isConfigured" class="flex flex-col items-center justify-center h-full gap-6 p-8">
       <GeneralIcon class="text-nc-content-orange-dark w-16 h-16" icon="alertTriangleSolid" />
       <div class="text-xl font-semibold text-nc-content-gray">Hierarchy Not Configured</div>
       <div class="text-sm text-nc-content-gray-muted">
-        Use <span class="font-medium text-nc-content-gray">Set Levels</span> in the toolbar to configure your outline view
+        Use <span class="font-medium text-nc-content-gray">Set Levels</span> in the toolbar to configure your list view
         hierarchy.
       </div>
     </div>
@@ -399,7 +399,7 @@ async function savePendingCell() {
           <div
             v-if="activeCell && activeCellRow"
             :style="activeCellStyle"
-            class="nc-outline-active-cell pointer-events-auto rounded bg-nc-bg-default"
+            class="nc-list-active-cell pointer-events-auto rounded bg-nc-bg-default"
           >
             <SmartsheetRow :row="activeCellRow">
               <template #default>
@@ -460,7 +460,7 @@ async function savePendingCell() {
 :deep(.custom-scrollbar-track.horizontal) {
   bottom: 4px;
 }
-.nc-outline-active-cell {
+.nc-list-active-cell {
   box-shadow: 0px 0px 1px rgba(0, 0, 0, 0.32), 0px 0px 3px rgba(0, 0, 0, 0.11), 0px 1px 4px rgba(0, 0, 0, 0.12);
   border: 1px solid var(--nc-border-gray-medium);
   display: flex;

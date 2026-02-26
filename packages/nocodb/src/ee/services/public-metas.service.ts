@@ -17,7 +17,7 @@ import { ViewRowColorService } from './view-row-color.service';
 import type { NcContext } from '~/interface/config';
 import type { CalendarRange, FormView, FormViewColumn, View } from '~/models';
 import { Base, Column, Dashboard, Model, Permission, Workspace } from '~/models';
-import OutlineViewLevel from '~/models/OutlineViewLevel';
+import ListViewLevel from '~/models/ListViewLevel';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
 
@@ -48,9 +48,9 @@ export class PublicMetasService extends PublicMetasServiceCE {
       );
     }
 
-    // Outline view: load level table metas and merge level table columns into view.model.columns
-    if (view.type === ViewTypes.OUTLINE) {
-      const levels = await OutlineViewLevel.list(context, view.id);
+    // List view: load level table metas and merge level table columns into view.model.columns
+    if (view.type === ViewTypes.LIST) {
+      const levels = await ListViewLevel.list(context, view.id);
       const relatedMetas = view.relatedMetas || {};
       for (const level of levels) {
         if (level.fk_model_id && !relatedMetas[level.fk_model_id]) {

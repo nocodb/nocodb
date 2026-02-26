@@ -19,7 +19,7 @@ import { HooksService } from '~/services/hooks.service';
 import { FormsService } from '~/services/forms.service';
 import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
-import { OutlineDatasService } from '~/ee/services/outline-datas.service';
+import { ListDatasService } from '~/ee/services/list-datas.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
 
@@ -40,7 +40,7 @@ export class UiGetOperations
     protected hooksService: HooksService,
     protected formsService: FormsService,
     protected mapsService: MapsService,
-    protected outlineDatasService: OutlineDatasService,
+    protected listDatasService: ListDatasService,
     protected commentsService: CommentsService,
     protected syncService: SyncService,
     protected extensionsService: ExtensionsService,
@@ -92,17 +92,17 @@ export class UiGetOperations
             widgetId: req.query.widgetId as string,
           }),
         );
-      case 'outlineViewDataCount':
+      case 'listViewDataCount':
       {
         context.cache = true;
-        return await this.outlineDatasService.outlineViewCount(context, {
+        return await this.listDatasService.listViewCount(context, {
           viewId: req.query.viewId as string,
           query: req.query,
         });
       }
-      case 'outlineViewDataList':
+      case 'listViewDataList':
         context.cache = true;
-        return await this.outlineDatasService.outlineViewData(context, {
+        return await this.listDatasService.listViewData(context, {
           viewId: req.query.viewId as string,
           query: req.query,
         });

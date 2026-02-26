@@ -1,8 +1,8 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTable(MetaTable.OUTLINE_VIEW, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.OUTLINE_VIEW, (table) => {
     table.string('fk_view_id', 20);
 
     table.string('base_id', 20);
@@ -26,7 +26,7 @@ const up = async (knex: Knex) => {
     table.primary(['base_id', 'fk_view_id']);
   });
 
-  await knex.schema.createTable(MetaTable.OUTLINE_VIEW_COLUMNS, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.OUTLINE_VIEW_COLUMNS, (table) => {
     table.string('id', 20);
 
     table.string('base_id', 20);
@@ -52,7 +52,7 @@ const up = async (knex: Knex) => {
     table.primary(['base_id', 'id']);
   });
 
-  await knex.schema.createTable(MetaTable.OUTLINE_VIEW_LEVELS, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.OUTLINE_VIEW_LEVELS, (table) => {
     table.string('id', 20);
 
     table.string('fk_view_id', 20);
@@ -81,7 +81,7 @@ const up = async (knex: Knex) => {
   });
 
   // Add indexes — matching pattern from calendar/grid/kanban view tables
-  await knex.schema.alterTable(MetaTable.OUTLINE_VIEW, (table) => {
+  await knex.schema.alterTable(MetaTableOldV2.OUTLINE_VIEW, (table) => {
     table.index(
       ['base_id', 'fk_workspace_id'],
       'nc_outline_view_v2_base_id_fk_workspace_id_index',
@@ -89,7 +89,7 @@ const up = async (knex: Knex) => {
     table.index(['fk_view_id'], 'nc_outline_view_v2_fk_view_id_index');
   });
 
-  await knex.schema.alterTable(MetaTable.OUTLINE_VIEW_COLUMNS, (table) => {
+  await knex.schema.alterTable(MetaTableOldV2.OUTLINE_VIEW_COLUMNS, (table) => {
     table.index(
       ['base_id', 'fk_workspace_id'],
       'nc_outline_view_columns_v2_base_id_fk_workspace_id_index',
@@ -101,7 +101,7 @@ const up = async (knex: Knex) => {
     table.index(['fk_view_id'], 'nc_outline_view_columns_v2_fk_view_id_index');
   });
 
-  await knex.schema.alterTable(MetaTable.OUTLINE_VIEW_LEVELS, (table) => {
+  await knex.schema.alterTable(MetaTableOldV2.OUTLINE_VIEW_LEVELS, (table) => {
     table.index(
       ['base_id', 'fk_workspace_id'],
       'nc_outline_view_levels_v2_base_id_fk_workspace_id_index',
@@ -129,9 +129,9 @@ const down = async (knex: Knex) => {
     table.dropIndex([], 'nc_sort_v2_fk_level_id_index');
     table.dropColumn('fk_level_id');
   });
-  await knex.schema.dropTable(MetaTable.OUTLINE_VIEW_LEVELS);
-  await knex.schema.dropTable(MetaTable.OUTLINE_VIEW_COLUMNS);
-  await knex.schema.dropTable(MetaTable.OUTLINE_VIEW);
+  await knex.schema.dropTable(MetaTableOldV2.OUTLINE_VIEW_LEVELS);
+  await knex.schema.dropTable(MetaTableOldV2.OUTLINE_VIEW_COLUMNS);
+  await knex.schema.dropTable(MetaTableOldV2.OUTLINE_VIEW);
 };
 
 export { up, down };

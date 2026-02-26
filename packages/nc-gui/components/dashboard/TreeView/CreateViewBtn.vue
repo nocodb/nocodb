@@ -14,7 +14,7 @@ const alignLeftLevel = toRef(props, 'alignLeftLevel')
 
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
-const { isOutlineViewEnabled } = storeToRefs(viewsStore)
+const { isListViewEnabled } = storeToRefs(viewsStore)
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
@@ -189,20 +189,20 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <template v-if="isOutlineViewEnabled">
-          <NcTooltip :title="$t('tooltip.outlineViewOnlyPg')" :disabled="isPgSource" placement="right">
+        <template v-if="isListViewEnabled">
+          <NcTooltip :title="$t('tooltip.listViewOnlyPg')" :disabled="isPgSource" placement="right">
             <NcMenuItem
               :disabled="!isPgSource"
-              data-testid="sidebar-view-create-outline"
-              @click="isPgSource && onOpenModal({ type: ViewTypes.OUTLINE })"
+              data-testid="sidebar-view-create-list"
+              @click="isPgSource && onOpenModal({ type: ViewTypes.LIST })"
             >
               <div class="item">
                 <div class="item-inner">
-                  <GeneralViewIcon :meta="{ type: ViewTypes.OUTLINE }" :class="{ '!opacity-50': !isPgSource }" />
-                  <div>{{ $t('objects.viewType.outline') }}</div>
+                  <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" :class="{ '!opacity-50': !isPgSource }" />
+                  <div>{{ $t('objects.viewType.list') }}</div>
                 </div>
 
-                <GeneralLoader v-if="toBeCreateType === ViewTypes.OUTLINE && isViewListLoading" />
+                <GeneralLoader v-if="toBeCreateType === ViewTypes.LIST && isViewListLoading" />
                 <GeneralIcon v-else class="plus" icon="plus" :class="{ '!text-current': !isPgSource }" />
               </div>
             </NcMenuItem>

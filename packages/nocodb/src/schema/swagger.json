@@ -22844,7 +22844,7 @@
           },
           "fk_level_id": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to Outline View Level"
+            "description": "Foreign Key to List View Level"
           }
         },
         "readOnly": true,
@@ -23163,7 +23163,7 @@
           },
           "fk_level_id": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to Outline View Level"
+            "description": "Foreign Key to List View Level"
           }
         },
         "readOnly": true
@@ -27681,7 +27681,7 @@
           },
           "fk_level_id": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to Outline View Level"
+            "description": "Foreign Key to List View Level"
           }
         },
         "x-stoplight": {
@@ -27798,7 +27798,7 @@
           },
           "fk_level_id": {
             "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to Outline View Level"
+            "description": "Foreign Key to List View Level"
           }
         },
         "x-stoplight": {
@@ -28965,7 +28965,7 @@
                 "$ref": "#/components/schemas/Calendar"
               },
               {
-                "$ref": "#/components/schemas/Outline"
+                "$ref": "#/components/schemas/List"
               }
             ],
             "description": "Associated View Model"
@@ -30298,9 +30298,9 @@
           }
         }
       },
-      "OutlineViewLevel": {
-        "description": "Model for Outline View Level",
-        "title": "OutlineViewLevel Model",
+      "ListViewLevel": {
+        "description": "Model for List View Level",
+        "title": "ListViewLevel Model",
         "type": "object",
         "properties": {
           "id": {
@@ -30341,9 +30341,9 @@
           }
         }
       },
-      "Outline": {
-        "description": "Model for Outline View",
-        "title": "Outline Model",
+      "List": {
+        "description": "Model for List View",
+        "title": "List Model",
         "type": "object",
         "properties": {
           "source_id": {
@@ -30353,7 +30353,7 @@
           "columns": {
             "description": "Columns in this view",
             "items": {
-              "$ref": "#/components/schemas/OutlineColumn"
+              "$ref": "#/components/schemas/ListColumn"
             },
             "type": "array"
           },
@@ -30378,7 +30378,7 @@
             "type": "boolean"
           },
           "title": {
-            "description": "Title of Outline View",
+            "description": "Title of List View",
             "type": "string"
           },
           "show_empty_parents": {
@@ -30386,7 +30386,7 @@
             "description": "Show empty parent sections"
           },
           "row_height": {
-            "description": "Row height for this outline view",
+            "description": "Row height for this list view",
             "type": "number"
           },
           "fk_prefix_column_id": {
@@ -30394,17 +30394,17 @@
             "description": "Foreign Key to Prefix Column"
           },
           "levels": {
-            "description": "Levels configuration for this outline view",
+            "description": "Levels configuration for this list view",
             "items": {
-              "$ref": "#/components/schemas/OutlineViewLevel"
+              "$ref": "#/components/schemas/ListViewLevel"
             },
             "type": "array"
           }
         }
       },
-      "OutlineColumn": {
-        "description": "Model for Outline Column",
-        "title": "OutlineColumn Model",
+      "ListColumn": {
+        "description": "Model for List Column",
+        "title": "ListColumn Model",
         "type": "object",
         "properties": {
           "source_id": {
@@ -30424,7 +30424,7 @@
             "type": "string"
           },
           "id": {
-            "description": "Unique ID of Outline Column",
+            "description": "Unique ID of List Column",
             "type": "string"
           },
           "order": {
@@ -30445,9 +30445,9 @@
           }
         }
       },
-      "OutlineUpdateReq": {
-        "description": "Model for Outline View Update Request",
-        "title": "OutlineUpdateReq Model",
+      "ListUpdateReq": {
+        "description": "Model for List View Update Request",
+        "title": "ListUpdateReq Model",
         "type": "object",
         "properties": {
           "meta": {
@@ -30459,7 +30459,7 @@
             "description": "Show empty parent sections"
           },
           "row_height": {
-            "description": "Row height for this outline view",
+            "description": "Row height for this list view",
             "type": "number"
           },
           "fk_prefix_column_id": {
@@ -30467,17 +30467,17 @@
             "description": "Foreign Key to Prefix Column"
           },
           "levels": {
-            "description": "Levels configuration for this outline view",
+            "description": "Levels configuration for this list view",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/OutlineViewLevelReq"
+              "$ref": "#/components/schemas/ListViewLevelReq"
             }
           }
         }
       },
-      "OutlineViewLevelReq": {
-        "description": "Model for Outline View Level Request",
-        "title": "OutlineViewLevelReq Model",
+      "ListViewLevelReq": {
+        "description": "Model for List View Level Request",
+        "title": "ListViewLevelReq Model",
         "type": "object",
         "required": [
           "level",

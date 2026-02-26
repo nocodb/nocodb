@@ -5,7 +5,7 @@ import type { UserType, WidgetType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Permission, View, Model } from '~/models';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
-import { OutlinesService } from '~/services/outlines.service';
+import { ListsService } from '~/services/lists.service';
 import { type User, WorkspaceUser } from '~/models';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { CalendarsService } from '~/services/calendars.service';
@@ -55,7 +55,7 @@ export class ImportService extends ImportServiceCE {
     protected dashboardService: DashboardsService,
     protected permissionsService: PermissionsService,
     protected workflowService: WorkflowsService,
-    protected outlinesService: OutlinesService,
+    protected listsService: ListsService,
   ) {
     super(
       tablesService,
@@ -85,7 +85,7 @@ export class ImportService extends ImportServiceCE {
     user: UserType,
     req: NcRequest,
   ): Promise<View> {
-    if (vw.type !== ViewTypes.OUTLINE) {
+    if (vw.type !== ViewTypes.LIST) {
       return super.createView(context, idMap, md, vw, views, user, req);
     }
 
@@ -106,9 +106,9 @@ export class ImportService extends ImportServiceCE {
       meta: level.meta,
     }));
 
-    const oview = await this.outlinesService.outlineViewCreate(context, {
+    const oview = await this.listsService.listViewCreate(context, {
       tableId: md.id,
-      outline: vw as ViewCreateReqType,
+      list: vw as ViewCreateReqType,
       ownedBy: (vw as any).owned_by,
       user: user as any,
       req,
@@ -116,9 +116,9 @@ export class ImportService extends ImportServiceCE {
 
     // Apply levels if there are more than the default level 0
     if (processedLevels.length > 0) {
-      await this.outlinesService.outlineViewUpdate(context, {
-        outlineViewId: oview.id,
-        outline: { levels: processedLevels } as any,
+      await this.listsService.listViewUpdate(context, {
+        listViewId: oview.id,
+        list: { levels: processedLevels } as any,
         req,
       });
     }

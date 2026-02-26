@@ -147,9 +147,9 @@ export const OPERATION_SCOPES = {
   managedAppVersionDeployments: 'base',
   managedAppDeploymentLogs: 'base',
 
-  // Outline View
-  outlineViewDataList: 'base',
-  outlineViewDataCount: 'base',
-  outlineViewCreate: 'base',
-  outlineViewUpdate: 'base',
+  // List View
+  listViewDataList: 'base',
+  listViewDataCount: 'base',
+  listViewCreate: 'base',
+  listViewUpdate: 'base',
 } as const;

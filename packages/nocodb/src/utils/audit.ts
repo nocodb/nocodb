@@ -555,7 +555,7 @@ export const extractViewRelatedProps = async ({
     result.fk_prefix_column_id = undefined;
   }
 
-  // extract outline view level column references
+  // extract list view level column references
   if (Array.isArray(view.levels) && view.levels.length) {
     result.levels = await Promise.all(
       view.levels.map(

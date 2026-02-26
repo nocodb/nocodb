@@ -1,7 +1,7 @@
-import type { OutlineType, OutlineViewLevelType, TableType, ViewType } from 'nocodb-sdk'
+import type { ListType, ListViewLevelType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
-export interface OutlineViewRow {
+export interface ListViewRow {
   __nc_depth: number
   __nc_pk: string | number
   __nc_parent_id: string | null
@@ -10,28 +10,28 @@ export interface OutlineViewRow {
   [key: string]: any
 }
 
-const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
+const [useProvideListViewStore, useListViewStore] = useInjectionState(
   (meta: Ref<TableType | undefined>, viewMeta: Ref<ViewType | undefined>) => {
     const { updateViewMeta: _updateViewMeta } = useViewsStore()
     const selectedLevelId = ref<string | null>(null)
 
     const viewId = computed(() => viewMeta.value?.id)
 
-    const outlineMetaData = computed<OutlineType | undefined>(() => {
-      return viewMeta.value?.view as OutlineType | undefined
+    const listMetaData = computed<ListType | undefined>(() => {
+      return viewMeta.value?.view as ListType | undefined
     })
 
-    const levels = computed<OutlineViewLevelType[]>(() => {
-      return outlineMetaData.value?.levels || []
+    const levels = computed<ListViewLevelType[]>(() => {
+      return listMetaData.value?.levels || []
     })
 
     const isConfigured = computed(() => levels.value.length >= 1)
 
     const showEmptyParents = computed(() => {
-      return outlineMetaData.value?.show_empty_parents !== false
+      return listMetaData.value?.show_empty_parents !== false
     })
 
-    const selectedLevel = computed<OutlineViewLevelType | undefined>(() => {
+    const selectedLevel = computed<ListViewLevelType | undefined>(() => {
       if (!selectedLevelId.value) return levels.value[0]
       return levels.value.find((l) => l.id === selectedLevelId.value)
     })
@@ -80,11 +80,11 @@ const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
       return collapsedParents.value[depth]?.includes(pk) ?? false
     }
 
-    async function saveLevelConfiguration(config: { levels: OutlineViewLevelType[] }) {
+    async function saveLevelConfiguration(config: { levels: ListViewLevelType[] }) {
       if (!viewId.value) return
 
       try {
-        await _updateViewMeta(viewId.value, ViewTypes.OUTLINE, {
+        await _updateViewMeta(viewId.value, ViewTypes.LIST, {
           levels: config.levels,
         })
       } catch (e) {
@@ -93,11 +93,11 @@ const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
     }
 
     /** Update view meta (show_empty_parents, etc.) */
-    async function updateViewMeta(updates: Partial<OutlineType>) {
+    async function updateViewMeta(updates: Partial<ListType>) {
       if (!viewId.value) return
 
       try {
-        await _updateViewMeta(viewId.value, ViewTypes.OUTLINE, updates)
+        await _updateViewMeta(viewId.value, ViewTypes.LIST, updates)
       } catch (e) {
         throw e
       }
@@ -131,7 +131,7 @@ const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
       selectedLevelId,
       selectedLevel,
       setSelectedLevel,
-      outlineMetaData,
+      listMetaData,
       displayLevels,
       modelIdToDepth,
       depthToLevelId,
@@ -142,15 +142,15 @@ const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
       updateViewMeta,
     }
   },
-  'outlineView',
+  'listView',
 )
 
-export { useProvideOutlineViewStore, useOutlineViewStore }
+export { useProvideListViewStore, useListViewStore }
 
-export function useOutlineViewStoreOrThrow() {
-  const state = useOutlineViewStore()
+export function useListViewStoreOrThrow() {
+  const state = useListViewStore()
 
-  if (!state) throw new Error('Please call `useProvideOutlineViewStore` on the appropriate parent component')
+  if (!state) throw new Error('Please call `useProvideListViewStore` on the appropriate parent component')
 
   return state
 }

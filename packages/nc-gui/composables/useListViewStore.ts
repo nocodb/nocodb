@@ -1,6 +1,6 @@
 import type { TableType, ViewType } from 'nocodb-sdk'
 
-export interface OutlineViewRow {
+export interface ListViewRow {
   __nc_depth: number
   __nc_pk: string | number
   __nc_parent_id: string | null
@@ -9,7 +9,7 @@ export interface OutlineViewRow {
   [key: string]: any
 }
 
-const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
+const [useProvideListViewStore, useListViewStore] = useInjectionState(
   (_meta: Ref<TableType | undefined>, _viewMeta: Ref<ViewType | undefined>) => {
     return {
       levels: computed(() => []),
@@ -18,7 +18,7 @@ const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
       selectedLevelId: ref<string | null>(null),
       selectedLevel: computed(() => undefined),
       setSelectedLevel: (_levelId: string | null) => {},
-      outlineMetaData: computed(() => undefined),
+      listMetaData: computed(() => undefined),
       displayLevels: computed(() => []),
       modelIdToDepth: computed(() => ({})),
       depthToLevelId: computed(() => ({})),
@@ -29,15 +29,15 @@ const [useProvideOutlineViewStore, useOutlineViewStore] = useInjectionState(
       updateViewMeta: async (_updates: Record<string, any>) => {},
     }
   },
-  'outlineView',
+  'listView',
 )
 
-export { useProvideOutlineViewStore, useOutlineViewStore }
+export { useProvideListViewStore, useListViewStore }
 
-export function useOutlineViewStoreOrThrow() {
-  const state = useOutlineViewStore()
+export function useListViewStoreOrThrow() {
+  const state = useListViewStore()
 
-  if (!state) throw new Error('Please call `useProvideOutlineViewStore` on the appropriate parent component')
+  if (!state) throw new Error('Please call `useProvideListViewStore` on the appropriate parent component')
 
   return state
 }

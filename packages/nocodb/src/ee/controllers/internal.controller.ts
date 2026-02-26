@@ -552,6 +552,7 @@ export class InternalController extends InternalControllerCE {
         return await this.teamsV3Service.teamDelete(context, {
           workspaceOrOrgId: workspaceId,
           teamId: payload.teamId,
+          force: payload.force,
           req,
         });
       case 'teamMove':

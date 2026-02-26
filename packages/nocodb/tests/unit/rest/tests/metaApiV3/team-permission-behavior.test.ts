@@ -3,6 +3,7 @@ import request from 'supertest';
 import { expect } from 'chai';
 import {
   PlanFeatureTypes,
+  PlanLimitTypes,
   ProjectRoles,
   UITypes,
   WorkspaceUserRoles,
@@ -12,7 +13,7 @@ import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
 import { createUser } from '../../../factory/user';
 import { createProject } from '../../../factory/base';
-import { overrideFeature } from '../../../utils/plan.utils';
+import { overridePlan } from '../../../utils/plan.utils';
 
 // Test team role permission behavior and inheritance
 export default function () {
@@ -37,10 +38,14 @@ export default function () {
       const base = await createProject(context);
       baseId = base.id;
 
-      featureMock = await overrideFeature({
+      featureMock = await overridePlan({
         workspace_id: workspaceId,
-        feature: `${PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT}`,
-        allowed: true,
+        features: {
+          [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
+        },
+        limits: {
+          [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
+        },
       });
 
       // Create a test user

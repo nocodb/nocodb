@@ -58,6 +58,17 @@ const {
   showUserSelector,
 } = usePermissionSelector(baseRef, permissionSelectorConfig, currentValue)
 
+// Build hierarchy scope map for team subjects
+const teamHierarchyScopes = computed(() => {
+  const scopes: Record<string, 'self_only' | 'self_and_descendants'> = {}
+  for (const user of _selectedUsers.value) {
+    if (user.type === 'team' && user.hierarchy_scope) {
+      scopes[user.id] = user.hierarchy_scope
+    }
+  }
+  return scopes
+})
+
 // Filter permission options based on minimum role requirement
 const permissionOptions = computed(() => {
   if (!props.config.permission) return allPermissionOptions.value
@@ -292,6 +303,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           :entity-title="config.entityTitle"
           :readonly="props.readonly"
           :hint="isTableVisibility ? null : $t('msg.permissionHintMsg')"
+          :team-hierarchy-scopes="teamHierarchyScopes"
           @save="handleUserSelectorSave"
         />
       </template>

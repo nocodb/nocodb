@@ -9,6 +9,7 @@ const props = defineProps<{
   permission?: PermissionKey
   readonly?: boolean
   hint?: string
+  teamHierarchyScopes?: Record<string, 'self_only' | 'self_and_descendants'>
 }>()
 
 const emits = defineEmits(['update:selectedUsers', 'save'])
@@ -92,6 +93,40 @@ async function calculateVisibleUsers() {
   hiddenCount.value = selectedUsersList.value.length - count
 }
 
+// Toggle hierarchy scope for a team and save immediately
+const toggleTeamScope = (teamId: string) => {
+  const currentScope = props.teamHierarchyScopes?.[teamId] || 'self_and_descendants'
+  const newScope = currentScope === 'self_and_descendants' ? 'self_only' : 'self_and_descendants'
+
+  // Build users with the toggled scope and emit save
+  const selectedIds = Array.from(selectedUsers.value)
+  const users: PermissionSelectorUser[] = []
+
+  for (const id of selectedIds) {
+    const team = baseTeams.value.find((team) => team.team_id === id)
+    if (team) {
+      users.push({
+        id: team.team_id,
+        display_name: team.team_title,
+        type: 'team',
+        hierarchy_scope: id === teamId ? newScope : props.teamHierarchyScopes?.[team.team_id],
+      })
+    } else {
+      const user = baseUsers.value.find((user) => user.id === id)
+      if (user) {
+        users.push({
+          id: user.id,
+          email: user.email,
+          display_name: user.display_name,
+          type: 'user',
+        })
+      }
+    }
+  }
+
+  emits('save', { selectedUsers: users })
+}
+
 // Handle save
 const handleSave = async () => {
   const selectedIds = Array.from(selectedUsers.value)
@@ -107,6 +142,7 @@ const handleSave = async () => {
         id: team.team_id,
         display_name: team.team_title,
         type: 'team',
+        hierarchy_scope: props.teamHierarchyScopes?.[team.team_id],
       })
     } else {
       // It's a user
@@ -223,6 +259,26 @@ watch(selectedUsersList, () => {
                 <span :class="{ '!opacity-50': selectedBelowMinimumRoleUsers.includes(user?.id ?? '') && !user?.isTeam }">
                   {{ user?.isTeam ? user.display_name : extractUserDisplayNameOrEmail(user) }}
                 </span>
+              </NcTooltip>
+              <NcTooltip v-if="user?.isTeam && !readonly">
+                <template #title>
+                  {{
+                    teamHierarchyScopes?.[user.id] === 'self_only'
+                      ? 'This team only — click to include sub-teams'
+                      : 'Includes sub-teams — click to match this team only'
+                  }}
+                </template>
+                <NcButton
+                  type="text"
+                  size="xs"
+                  class="!h-4 !w-4 !min-w-0"
+                  @click.stop="toggleTeamScope(user.id)"
+                >
+                  <GeneralIcon
+                    :icon="teamHierarchyScopes?.[user.id] === 'self_only' ? 'ncUser' : 'ncUsers'"
+                    class="w-2.5 h-2.5"
+                  />
+                </NcButton>
               </NcTooltip>
             </span>
           </a-tag>

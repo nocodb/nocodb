@@ -261,13 +261,17 @@ const handleLeaveTeam = (team: TeamV3V3Type) => {
 }
 
 const handleDeleteTeam = (team: TeamV3V3Type) => {
+  const teamHasChildren = hasChildren(team.id)
+
   handleConfirm({
-    title: t('objects.teams.confirmDeleteTeamTitle'),
-    content: t('objects.teams.confirmDeleteTeamSubtitle'),
+    title: teamHasChildren ? t('objects.teams.confirmDeleteTeamWithChildrenTitle') : t('objects.teams.confirmDeleteTeamTitle'),
+    content: teamHasChildren
+      ? t('objects.teams.confirmDeleteTeamWithChildrenSubtitle')
+      : t('objects.teams.confirmDeleteTeamSubtitle'),
     okText: t('activity.deleteTeam'),
     cancelText: t('labels.cancel'),
     okCallback: async () => {
-      await workspaceStore.deleteTeam(activeWorkspaceId.value!, team.id)
+      await workspaceStore.deleteTeam(activeWorkspaceId.value!, team.id, teamHasChildren ? true : undefined)
     },
   })
 }

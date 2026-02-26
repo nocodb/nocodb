@@ -496,11 +496,7 @@ onMounted(() => {
       </div>
 
       <div class="flex flex-col gap-0 divide-y divide-nc-border-gray-light">
-        <div
-          v-for="member in inheritedMembers"
-          :key="member.user_id"
-          class="flex items-center justify-between py-3 px-1"
-        >
+        <div v-for="member in inheritedMembers" :key="member.user_id" class="flex items-center justify-between py-3 px-1">
           <NcUserInfo :user="member" class="min-w-20 flex-1 overflow-hidden" />
           <NcBadge size="sm" color="gray" :border="true" class="text-captionSm text-nc-content-gray-muted flex-none ml-3">
             {{ $t('labels.inheritedFrom', { team: member.inherited_from_team_title }) }}

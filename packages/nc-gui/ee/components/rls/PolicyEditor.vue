@@ -226,6 +226,17 @@ const handleSubjectToggle = (option: NcListItemType) => {
   }
 }
 
+const toggleTeamHierarchyScope = (index: number) => {
+  const subject = subjects.value[index]
+  if (subject?.type !== 'team') return
+
+  const current = subject.hierarchy_scope || 'self_and_descendants'
+  subjects.value[index] = {
+    ...subject,
+    hierarchy_scope: current === 'self_and_descendants' ? 'self_only' : 'self_and_descendants',
+  }
+}
+
 const showFilterSection = computed(() => {
   if (!policy.value?.is_default) return true
   return defaultBehavior.value === 'condition'
@@ -288,18 +299,38 @@ const showFilterSection = computed(() => {
           <div class="w-[calc(100%_-_24px)] flex items-center gap-1.5 flex-wrap">
             <template v-if="subjects.length">
               <div
-                v-for="subject in subjects"
+                v-for="(subject, idx) in subjects"
                 :key="`${subject.type}-${subject.id}`"
                 class="flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-lg border text-xs"
                 :class="subjectTypeColors[subject.type]"
               >
                 <GeneralIcon :icon="(subjectTypeIcons[subject.type] as any)" class="w-3 h-3 flex-none" />
                 <span class="truncate max-w-32">{{ getSubjectDisplayLabel(subject) }}</span>
+                <NcTooltip v-if="subject.type === 'team'">
+                  <template #title>
+                    {{
+                      subject.hierarchy_scope === 'self_only'
+                        ? 'This team only — click to include sub-teams'
+                        : 'Includes sub-teams — click to match this team only'
+                    }}
+                  </template>
+                  <NcButton
+                    type="text"
+                    size="xs"
+                    class="!h-4 !w-4 !min-w-0"
+                    @click.stop="toggleTeamHierarchyScope(idx)"
+                  >
+                    <GeneralIcon
+                      :icon="subject.hierarchy_scope === 'self_only' ? 'ncUser' : 'ncUsers'"
+                      class="w-2.5 h-2.5"
+                    />
+                  </NcButton>
+                </NcTooltip>
                 <NcButton
                   type="text"
                   size="xs"
                   class="!h-4 !w-4 !min-w-0"
-                  @click.stop="handleRemoveSubject(subjects.indexOf(subject))"
+                  @click.stop="handleRemoveSubject(idx)"
                 >
                   <GeneralIcon icon="close" class="w-2.5 h-2.5" />
                 </NcButton>

@@ -626,39 +626,19 @@ export default class User extends UserCE implements UserType {
       }
     }
 
-    // Merge workspace roles: take the highest role across direct assignment and team roles (additive)
+    // Workspace roles: direct assignment overrides team roles
+    // If user has a direct workspace role, use it; otherwise fall back to team roles
     let finalWorkspaceRoles: Record<string, boolean> | null = null;
-    if (workspaceRoles || teamRoles) {
-      const allRoleKeys = [
-        ...Object.keys(workspaceRoles || {}),
-        ...Object.keys(teamRoles || {}),
-      ];
-
-      if (allRoleKeys.length > 0) {
-        // Find the highest role using OrderedWorkspaceRoles (index 0 = highest)
-        let highestIndex = OrderedWorkspaceRoles.length;
-        let highestRole: string | null = null;
-
-        for (const role of allRoleKeys) {
-          const idx = OrderedWorkspaceRoles.indexOf(
-            role as WorkspaceUserRoles,
-          );
-          if (idx !== -1 && idx < highestIndex) {
-            highestIndex = idx;
-            highestRole = role;
-          }
-        }
-
-        finalWorkspaceRoles = highestRole
-          ? { [highestRole]: true }
-          : workspaceRoles || teamRoles;
-      }
+    if (workspaceRoles && Object.keys(workspaceRoles).length > 0) {
+      finalWorkspaceRoles = workspaceRoles;
+    } else if (teamRoles && Object.keys(teamRoles).length > 0) {
+      finalWorkspaceRoles = teamRoles;
     }
 
     // Apply role priority hierarchy for base roles:
     // 1. Direct base role (highest priority)
     // 2. Role inherited from base-team
-    // 3. Role inherited from merged workspace role (direct + team, highest wins)
+    // 3. Role inherited from workspace role (direct overrides team)
 
     let finalBaseRoles = baseRoles;
 

@@ -24,6 +24,7 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/ncError';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
+import { isUserInTeamOrDescendants } from '~/ee/utils/team-subject-matcher';
 
 export default class Permission {
   id: string;
@@ -41,6 +42,7 @@ export default class Permission {
   subjects?: {
     type: 'user' | 'team';
     id: string;
+    hierarchy_scope?: 'self_only' | 'self_and_descendants';
   }[];
 
   constructor(permission: Permission) {
@@ -51,14 +53,15 @@ export default class Permission {
     ncMeta = Noco.ncMeta,
     subjectTypeField: string,
     subjectIdField: string,
+    hierarchyScopeField: string,
   ) {
     const { knex, knexConnection } = ncMeta;
     const client = knexConnection.client.config.client;
 
     const exprMap = {
-      pg: `json_build_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
-      mysql2: `JSON_OBJECT('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
-      sqlite3: `json_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
+      pg: `json_build_object('type', ${subjectTypeField}, 'id', ${subjectIdField}, 'hierarchy_scope', ${hierarchyScopeField})`,
+      mysql2: `JSON_OBJECT('type', ${subjectTypeField}, 'id', ${subjectIdField}, 'hierarchy_scope', ${hierarchyScopeField})`,
+      sqlite3: `json_object('type', ${subjectTypeField}, 'id', ${subjectIdField}, 'hierarchy_scope', ${hierarchyScopeField})`,
     };
 
     // fallback to mysql2 query
@@ -119,6 +122,7 @@ export default class Permission {
         ncMeta,
         `${MetaTable.PERMISSION_SUBJECTS}.subject_type`,
         `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
+        `${MetaTable.PERMISSION_SUBJECTS}.hierarchy_scope`,
       );
 
       const jsonArrayAggExpr = this.getJsonArrayAggExpression(
@@ -203,6 +207,7 @@ export default class Permission {
         ncMeta,
         `${MetaTable.PERMISSION_SUBJECTS}.subject_type`,
         `${MetaTable.PERMISSION_SUBJECTS}.subject_id`,
+        `${MetaTable.PERMISSION_SUBJECTS}.hierarchy_scope`,
       );
 
       const jsonArrayAggExpr = this.getJsonArrayAggExpression(
@@ -416,7 +421,7 @@ export default class Permission {
   public static async setSubjects(
     context: NcContext,
     permissionId: string,
-    subjects: { type: 'user' | 'team'; id: string }[],
+    subjects: { type: 'user' | 'team'; id: string; hierarchy_scope?: string }[],
     ncMeta = Noco.ncMeta,
   ) {
     const permission = await this.get(context, permissionId, ncMeta);
@@ -435,6 +440,16 @@ export default class Permission {
           (existing) =>
             existing.type === subject.type && existing.id === subject.id,
         ),
+    );
+
+    // Find subjects to update (exist but hierarchy_scope changed)
+    const subjectsToUpdate = subjects.filter((subject) =>
+      existingSubjects.some(
+        (existing) =>
+          existing.type === subject.type &&
+          existing.id === subject.id &&
+          existing.hierarchy_scope !== subject.hierarchy_scope,
+      ),
     );
 
     const subjectsToRemove = existingSubjects.filter(
@@ -478,10 +493,26 @@ export default class Permission {
           fk_permission_id: permissionId,
           subject_type: subject.type,
           subject_id: subject.id,
+          hierarchy_scope: subject.hierarchy_scope || null,
           fk_workspace_id: context.workspace_id,
           base_id: context.base_id,
         })),
         true,
+      );
+    }
+
+    // Update existing subjects where hierarchy_scope changed
+    for (const subject of subjectsToUpdate) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.PERMISSION_SUBJECTS,
+        { hierarchy_scope: subject.hierarchy_scope || null },
+        {
+          fk_permission_id: permissionId,
+          subject_type: subject.type,
+          subject_id: subject.id,
+        },
       );
     }
 
@@ -623,7 +654,7 @@ export default class Permission {
         return true;
       }
 
-      // Check if user is a member of any team in subjects
+      // Check if user is a member of any team in subjects (with descendant expansion)
       if (permissionObj.subjects) {
         const teamSubjects = permissionObj.subjects.filter(
           (subject) => subject.type === 'team',
@@ -631,15 +662,14 @@ export default class Permission {
 
         if (teamSubjects.length > 0) {
           for (const teamSubject of teamSubjects) {
-            const assignment = await PrincipalAssignment.get(
+            const matched = await isUserInTeamOrDescendants(
               context,
-              ResourceType.TEAM,
-              teamSubject.id,
-              PrincipalType.USER,
               user.id,
+              teamSubject.id,
+              teamSubject.hierarchy_scope,
             );
 
-            if (assignment) {
+            if (matched) {
               return true;
             }
           }

@@ -54,11 +54,11 @@ import { ApiTokensV3Controller } from '~/controllers/v3/api-tokens-v3.controller
 import { ApiTokensV3Service } from '~/services/v3/api-tokens-v3.service';
 
 /* Workspace Teams V3 */
-// import { WorkspaceTeamsV3Controller } from '~/controllers/v3/workspace-teams-v3.controller';
+import { WorkspaceTeamsV3Controller } from '~/controllers/v3/workspace-teams-v3.controller';
 import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 
 /* Base Teams V3 */
-// import { BaseTeamsV3Controller } from '~/controllers/v3/base-teams-v3.controller';
+import { BaseTeamsV3Controller } from '~/controllers/v3/base-teams-v3.controller';
 import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 
 /* Scripts V3 */
@@ -273,11 +273,10 @@ export const nocoModuleEeMetadata = {
     /* Record Templates */
     RecordTemplatesController,
 
-    // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
-    // /* Workspace Teams V3 */
-    // WorkspaceTeamsV3Controller,
-    // /* Base Teams V3 */
-    // BaseTeamsV3Controller,
+    // Workspace/Base team assignment controllers — enabled only in test mode
+    ...(process.env.NODE_ENV === 'test'
+      ? [WorkspaceTeamsV3Controller, BaseTeamsV3Controller]
+      : []),
 
     ...nocoModuleMetadata.controllers,
   ],

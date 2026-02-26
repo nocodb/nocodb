@@ -2,14 +2,15 @@ import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type Filter from '~/models/Filter';
 import RlsPolicy from '~/ee/models/RlsPolicy';
-import { PrincipalType, ResourceType } from '~/utils/globals';
-import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
+import { isUserInTeamOrDescendants } from '~/ee/utils/team-subject-matcher';
 
 export interface RlsUserContext {
   id: string;
   email?: string;
   roles?: string; // comma-separated base roles
-  teams?: string[]; // team IDs
+  teams?: string[]; // direct team IDs the user belongs to
+  teamsWithDescendants?: string[]; // all team IDs including descendants of user's teams
+  teamDescendantMemberUserIds?: string[]; // user IDs of members across user's teams + descendants
 }
 
 export interface RlsResolutionResult {
@@ -26,6 +27,8 @@ const DYNAMIC_PLACEHOLDERS = {
   '{currentUser.email}': (user: RlsUserContext) => user.email || '',
   '{currentUser.roles}': (user: RlsUserContext) => user.roles || '',
   '{currentUser.teams}': (user: RlsUserContext) => user.teams?.join(',') || '',
+  '{currentUser.teamWithDescendantMembers}': (user: RlsUserContext) =>
+    user.teamDescendantMemberUserIds?.join(',') || '',
 };
 
 /**
@@ -50,19 +53,21 @@ async function userMatchesSubjects(
 
       case 'team':
         {
-          // Check if user belongs to the team
+          // Fast path: check direct membership via pre-loaded teams
           if (user.teams?.includes(subject.id)) {
             return true;
           }
-          // Also check via principal assignment if teams not pre-loaded
-          const assignment = await PrincipalAssignment.get(
+
+          // Full check with descendant expansion via DB
+          // isUserInTeamOrDescendants expands the SUBJECT team to include its descendants,
+          // then checks if the user is a member of any of them.
+          const matched = await isUserInTeamOrDescendants(
             context,
-            ResourceType.TEAM,
-            subject.id,
-            PrincipalType.USER,
             user.id,
+            subject.id,
+            subject.hierarchy_scope,
           );
-          if (assignment) {
+          if (matched) {
             return true;
           }
         }

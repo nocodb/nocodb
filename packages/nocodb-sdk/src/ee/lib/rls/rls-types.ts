@@ -1,8 +1,13 @@
 import type { FilterType } from '~/lib/Api';
 
+import type { SubjectHierarchyScope } from '~/lib/permission';
+
+export type { SubjectHierarchyScope };
+
 export interface RlsPolicySubjectType {
   type: 'user' | 'team' | 'role';
   id: string; // User ID, team ID, or role string (e.g., 'editor', 'viewer')
+  hierarchy_scope?: SubjectHierarchyScope; // Only meaningful for 'team' type. Default: 'self_and_descendants'
 }
 
 export type RlsDefaultBehavior = 'show_all' | 'deny_all' | 'condition';

@@ -776,7 +776,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  async function deleteTeam(workspaceId: string, teamId: string) {
+  async function deleteTeam(workspaceId: string, teamId: string, force?: boolean) {
     if (!isTeamsEnabled.value) return
 
     try {
@@ -788,12 +788,26 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
         {
           teamId,
+          ...(force ? { force: true } : {}),
         },
       )) as TeamV3V3Type
 
       $e('a:team:delete')
 
       if (!res) return
+
+      // If force deleted, reparent children locally to the deleted team's parent
+      if (force) {
+        const deletedTeam = teams.value.find((t) => t.id === teamId)
+        const parentId = (deletedTeam as any)?.fk_parent_team_id || null
+
+        teams.value = teams.value.map((t) => {
+          if ((t as any).fk_parent_team_id === teamId) {
+            return { ...t, fk_parent_team_id: parentId }
+          }
+          return t
+        })
+      }
 
       teams.value = teams.value.filter((t) => t.id !== teamId)
 

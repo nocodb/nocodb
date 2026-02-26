@@ -5073,14 +5073,21 @@ export class ColumnsService implements IColumnsService {
         };
       }
 
-      const revType = getRevType(
-        (param.column as Pick<LinkToAnotherColumnReqType, 'type'>)
-          .type as RelationTypes,
-      );
-
-      const relationType = (
+      // Normalize V1 types to V2 equivalents when using junction table
+      // HM with junction table is effectively OM, BT with junction table is effectively MO
+      let normalizedType = (
         param.column as Pick<LinkToAnotherColumnReqType, 'type'>
       ).type as RelationTypes;
+      if (isMMLike) {
+        if (normalizedType === RelationTypes.HAS_MANY) {
+          normalizedType = RelationTypes.ONE_TO_MANY;
+        } else if (normalizedType === RelationTypes.BELONGS_TO) {
+          normalizedType = RelationTypes.MANY_TO_ONE;
+        }
+      }
+
+      const revType = getRevType(normalizedType);
+      const relationType = normalizedType;
 
       // Use singular for ONE_TO_ONE and MANY_TO_ONE, plural for others
       const defaultTitle = [
@@ -5096,8 +5103,14 @@ export class ColumnsService implements IColumnsService {
           param.column.title ?? defaultTitle,
         ),
 
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: (param.column as Pick<LinkToAnotherColumnReqType, 'type'>).type,
+        // OO always uses LinkToAnotherRecord (same as V1 createOOColumn)
+        uidt:
+          relationType === RelationTypes.ONE_TO_ONE
+            ? UITypes.LinkToAnotherRecord
+            : isLinks
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
+        type: relationType,
 
         fk_model_id: table.id,
 
@@ -5141,14 +5154,13 @@ export class ColumnsService implements IColumnsService {
           ],
           reverseDefaultTitle,
         ),
-        // BT reverse column should always be LinkToAnotherRecord (not Links)
-        // to match V1 behavior where BT doesn't show count/rollup
+        // OO always uses LinkToAnotherRecord (same as V1 createOOColumn)
         uidt:
-          revType === RelationTypes.BELONGS_TO
+          revType === RelationTypes.ONE_TO_ONE
             ? UITypes.LinkToAnotherRecord
             : isLinks
-              ? UITypes.Links
-              : UITypes.LinkToAnotherRecord,
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
         type: revType,
         version: isMMLike ? 2 : 1,
 

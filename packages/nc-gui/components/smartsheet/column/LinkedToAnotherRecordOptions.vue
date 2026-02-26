@@ -229,14 +229,17 @@ const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.val
 
 const isLtarV2Enabled = computed(() => isFeatureEnabled(FEATURE_FLAG.LTAR_V2))
 
-// Set version based on feature flag and relation type
+// Set version based on feature flag and uidt
+// Links (V1 UI) always sends version=1; LinkToAnotherRecord (V2 UI) sends version=2
 watch(
-  [() => vModel.value.type, isLtarV2Enabled],
+  [() => vModel.value.type, () => vModel.value.uidt, isLtarV2Enabled],
   () => {
     if (isEdit.value) return
 
-    if (isLtarV2Enabled.value) {
+    if (isLtarV2Enabled.value && vModel.value.uidt === UITypes.LinkToAnotherRecord) {
       vModel.value.version = LinksVersion.V2
+    } else if (vModel.value.uidt === UITypes.Links) {
+      vModel.value.version = LinksVersion.V1
     } else {
       delete vModel.value.version
     }

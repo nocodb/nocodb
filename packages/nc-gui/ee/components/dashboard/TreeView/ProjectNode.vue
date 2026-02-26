@@ -617,10 +617,8 @@ defineExpose({
             :data-testid="`nc-sidebar-base-title-${base.title}`"
           >
             <div
-              class="flex items-center"
-              :class="{
-                'mr-1': !isProjectHeader,
-              }"
+              v-if="!isProjectHeader"
+              class="flex items-center mr-1"
               @click="onProjectClick(base)"
               @mouseenter="showNodeTooltip = false"
               @mouseleave="showNodeTooltip = true"
@@ -638,7 +636,6 @@ defineExpose({
                     :type="base?.type"
                     :model-value="parseProp(base.meta).iconColor"
                     size="small"
-                    :icon-class="isProjectHeader ? 'h-6 w-6' : ''"
                     :readonly="
                       (base?.type && base?.type !== 'database') || !isUIAllowed('baseRename') || isProjectNodeContextMenuOpen
                     "

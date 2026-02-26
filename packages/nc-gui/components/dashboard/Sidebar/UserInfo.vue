@@ -23,6 +23,10 @@ const copyBtnRef = ref()
 
 const { isMobileMode } = useGlobal()
 
+const { isChatWootEnabled } = useProvideChatwoot()
+
+const { isModalVisible: isChatVisible } = useChatWoot()
+
 const { $e } = useNuxtApp()
 
 const logout = async () => {
@@ -66,6 +70,21 @@ const openExperimentationMenu = () => {
 }
 
 const accountUrl = computed(() => '/account/profile')
+
+const toggleChatSupport = () => {
+  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
+    return
+  }
+  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
+  window.$chatwoot.toggle(toggleText)
+  isMenuOpen.value = false
+}
+
+const supportCopyBtnRef = ref()
+
+const copySupportEmail = () => {
+  supportCopyBtnRef.value?.copyContent?.('support@nocodb.com')
+}
 
 const copyEmail = () => {
   if (!user?.value?.email) return
@@ -270,20 +289,51 @@ const openKeyboardShortcutDialog = () => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
-              <NcMenuItem
-                v-e="['c:user:keyboard-shortcuts']"
-                data-testid="nc-sidebar-keyboard-shortcuts"
-                @click="openKeyboardShortcutDialog"
-              >
-                <GeneralIcon icon="ncKeyboard" class="menu-icon" />
-                <div class="flex items-center justify-between flex-1">
-                  <span class="menu-btn"> {{ $t('title.keyboardShortcut') }} </span>
-                  <span class="flex items-center gap-0.5 text-nc-content-gray-muted ml-1">
-                    <kbd class="nc-user-menu-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
-                    <kbd class="nc-user-menu-kbd">/</kbd>
-                  </span>
-                </div>
-              </NcMenuItem>
+              <NcSubMenu class="py-0" variant="medium">
+                <template #title>
+                  <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
+                  <span class="menu-btn">{{ $t('general.help') }}</span>
+                </template>
+                <a
+                  v-e="['c:nocodb:docs-open']"
+                  href="https://nocodb.com/docs/product-docs"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="file" class="h-4 w-4" />
+                    <span class="menu-btn">{{ $t('title.docs') }}</span>
+                  </NcMenuItem>
+                </a>
+                <a
+                  v-e="['c:nocodb:forum-open']"
+                  href="https://community.nocodb.com"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="ncDiscordForum" class="h-4 w-4" />
+                    <span class="menu-btn">{{ $t('title.forum') }}</span>
+                  </NcMenuItem>
+                </a>
+                <NcMenuItem v-if="isChatWootEnabled" @click="toggleChatSupport">
+                  <GeneralIcon icon="ncSupportAgent" class="h-4 w-4" />
+                  <span class="menu-btn">{{ $t('labels.chatWithNocoDBSupport') }}</span>
+                </NcMenuItem>
+                <NcDivider v-if="isEeUI" />
+                <NcMenuItem v-if="isEeUI" v-e="['c:nocodb:contact-us-mail-copy']" @click="copySupportEmail">
+                  <GeneralIcon icon="ncMail" class="h-4 w-4" />
+                  <span class="menu-btn">support@nocodb.com</span>
+                  <GeneralCopyButton
+                    ref="supportCopyBtnRef"
+                    type="secondary"
+                    content="support@nocodb.com"
+                    :show-toast="false"
+                  />
+                </NcMenuItem>
+              </NcSubMenu>
               <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens">
                 <NcMenuItem>
                   <GeneralIcon icon="ncKey2" class="menu-icon mt-0.5" />

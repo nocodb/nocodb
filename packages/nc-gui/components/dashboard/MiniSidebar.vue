@@ -129,10 +129,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     <div class="flex flex-col items-center">
       <!-- Base color icon at top-left -->
       <DashboardMiniSidebarItemWrapper v-if="isBaseOpen && openedProject" size="small" show-in-mobile>
-        <div class="min-h-9 sticky top-0 bg-nc-bg-gray-minisidebar flex items-center justify-center">
+        <div class="h-[var(--topbar-height)] sticky top-0 bg-nc-bg-gray-minisidebar flex items-center justify-center">
           <GeneralProjectIcon
             :color="baseIconColor"
-            class="h-5 w-5"
+            class="h-5.5 w-5.5"
           />
         </div>
       </DashboardMiniSidebarItemWrapper>
@@ -157,9 +157,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
       <!-- Data / Workflows / Agents tabs -->
       <template v-if="isBaseOpen">
-        <div class="px-2 my-1 w-full">
-          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
-        </div>
         <DashboardMiniSidebarItemWrapper v-for="tab in miniSidebarTabs" :key="tab.key">
           <NcTooltip :title="tab.label" placement="right" hide-on-click :arrow="false">
             <div
@@ -182,68 +179,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
             </div>
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
-        <div class="px-2 my-1 w-full">
-          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
-        </div>
       </template>
 
-      <DashboardMiniSidebarItemWrapper>
-        <NcTooltip placement="right" hide-on-click :arrow="false">
-          <template #title>
-            <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
-          </template>
-          <div
-            v-e="['c:quick-actions']"
-            class="nc-mini-sidebar-btn-full-width"
-            data-testid="nc-sidebar-cmd-k-btn"
-            @click="setActiveCmdView('cmd-k')"
-          >
-            <div class="nc-mini-sidebar-btn">
-              <GeneralIcon icon="search" class="h-4 w-4" />
-            </div>
-          </div>
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
-      <DashboardMiniSidebarItemWrapper>
-        <NcTooltip placement="right" hide-on-click :arrow="false">
-          <template #title>
-            <div class="flex items-center gap-1">{{ $t('labels.recentViews') }} {{ renderCmdOrCtrlKey(true) }} L</div>
-          </template>
-          <div
-            v-e="['c:quick-actions']"
-            class="nc-mini-sidebar-btn-full-width"
-            data-testid="nc-sidebar-cmd-l-btn"
-            @click="setActiveCmdView('cmd-l')"
-          >
-            <div class="nc-mini-sidebar-btn">
-              <MdiClockOutline class="h-4 w-4" />
-            </div>
-          </div>
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
-      <DashboardMiniSidebarItemWrapper>
-        <NcTooltip placement="right" hide-on-click :arrow="false">
-          <template #title>
-            <div class="flex items-center gap-1">{{ $t('labels.searchDocumentation') }} {{ renderCmdOrCtrlKey(true) }} J</div>
-          </template>
-          <div
-            v-e="['c:quick-actions']"
-            class="nc-mini-sidebar-btn-full-width"
-            data-testid="nc-sidebar-cmd-j-btn"
-            @click="setActiveCmdView('cmd-j')"
-          >
-            <div class="nc-mini-sidebar-btn">
-              <GeneralIcon icon="ncFile" class="h-4 w-4" />
-            </div>
-          </div>
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
-      <div
-        v-if="(!isMobileMode || isEeUI) && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"
-        class="px-2 my-2 w-full"
-      >
-        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
-      </div>
+    </div>
+    <div class="flex flex-col items-center">
       <DashboardMiniSidebarItemWrapper
         v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
         :show-in-mobile="isEeUI"
@@ -295,76 +234,20 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
-      <div v-if="!isMobileMode" class="px-2 w-full">
-        <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
-      </div>
-      <DashboardMiniSidebarItemWrapper v-if="isTemplatesFeatureEnabled">
-        <NcTooltip :title="$t('general.templates')" placement="right" hide-on-click :arrow="false">
-          <div
-            v-e="['c:templates']"
-            class="nc-mini-sidebar-btn-full-width"
-            data-testid="nc-sidebar-templates-btn"
-            @click="navigateToTemplates"
-          >
-            <div
-              class="nc-mini-sidebar-btn"
-              :class="{
-                active: isTemplatesPageOpened,
-              }"
-            >
-              <GeneralIcon icon="globe" class="h-4 w-4" />
-            </div>
-          </div>
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
 
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
           <NotificationMenu />
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
-    </div>
-    <div class="flex flex-col items-center">
-      <DashboardMiniSidebarItemWrapper>
-        <DashboardMiniSidebarTheme />
-      </DashboardMiniSidebarItemWrapper>
 
-      <DashboardMiniSidebarItemWrapper>
-        <NcTooltip :title="$t('general.help')" placement="right" hide-on-click :arrow="false">
-          <DashboardMiniSidebarHelp />
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
       <template v-if="!isMobileMode">
-        <!--   Disabled for now since feed is not actively maintained -->
-        <!--
-        <DashboardMiniSidebarItemWrapper>
-          <NcTooltip
-            v-if="appInfo.feedEnabled"
-            :title="`${$t('title.whatsNew')}!`"
-            placement="right"
-            hide-on-click
-            :arrow="false"
-          >
-            <DashboardSidebarFeed />
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper> -->
-        <DashboardMiniSidebarItemWrapper v-if="isChatWootEnabled">
-          <NcTooltip :title="`${$t('labels.chatWithNocoDBSupport')}!`" placement="right" hide-on-click :arrow="false">
-            <DashboardSidebarChatSupport />
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
-        <div class="px-2 w-full">
-          <NcDivider class="!my-2 !border-nc-border-gray-dark" />
-        </div>
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
             <DashboardMiniSidebarCreateNewActionMenu />
           </NcTooltip>
         </DashboardMiniSidebarItemWrapper>
       </template>
-      <div v-else class="px-2 w-full">
-        <NcDivider class="!my-2 !border-nc-border-gray-dark" />
-      </div>
 
       <DashboardSidebarUserInfo />
     </div>

@@ -21,6 +21,8 @@ const { isMobileMode } = useGlobal()
 
 const { commandPalette } = useCommandPalette()
 
+const { setActiveCmdView } = useCommand()
+
 const showSidebarBtn = computed(() => {
   if (isMobileMode.value) {
     return allowHideLeftSidebarForCurrentRoute.value || !!(activeViewTitleOrId.value && activeTableId.value)
@@ -42,6 +44,25 @@ const openSearch = () => {
       </div>
 
       <div class="flex items-center gap-0.5">
+        <NcTooltip
+          class="flex"
+          placement="bottom"
+          hide-on-click
+        >
+          <template #title>
+            <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
+          </template>
+          <NcButton
+            v-e="['c:quick-actions']"
+            type="text"
+            size="small"
+            class="!text-nc-content-gray-muted !hover:text-nc-content-gray !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
+            data-testid="nc-sidebar-search-btn"
+            @click="setActiveCmdView('cmd-k')"
+          >
+            <GeneralIcon icon="search" class="!text-current" />
+          </NcButton>
+        </NcTooltip>
         <NcTooltip
           class="flex"
           :class="{

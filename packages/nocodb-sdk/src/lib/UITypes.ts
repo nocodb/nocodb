@@ -535,6 +535,25 @@ export function isMMOrMMLike(
   return false;
 }
 
+// Returns true for V2 relations that have single-record semantics
+// (MO, OO, BT) — they use junction tables but should return one record, not an array
+export function isBtLikeV2Junction(
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any; type?: RelationTypes },
+): boolean {
+  if (typeof col === 'object' && isLinksOrLTAR(col) && col.colOptions) {
+    const opts = col.colOptions as LinkToAnotherRecordType;
+    if (opts.version !== LinksVersion.V2) return false;
+    return [
+      RelationTypes.MANY_TO_ONE,
+      RelationTypes.ONE_TO_ONE,
+      RelationTypes.BELONGS_TO,
+    ].includes(opts.type as RelationTypes);
+  }
+  return false;
+}
+
 export function isSelfLinkCol(
   col: ColumnType & { colOptions: unknown }
 ): boolean {

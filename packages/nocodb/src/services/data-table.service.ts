@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  isBtLikeV2Junction,
   isLinksOrLTAR,
+  isMMOrMMLike,
   ncIsNumber,
   RelationTypes,
   ViewTypes,
@@ -488,7 +490,22 @@ export class DataTableService {
     }
     let data: any[];
     let count: number;
-    if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+
+    // V2 single-target relations (MO/OO) — junction table with LIMIT 1
+    if (isBtLikeV2Junction(column)) {
+      data = await baseModel.mmRead(
+        {
+          colId: column.id,
+          parentId: param.rowId,
+        },
+        listArgs as any,
+      );
+      data = await nocoExecute(ast, data, {}, listArgs);
+      return data;
+    }
+
+    // V2 multi-target (OM/MM) and V1 MM — array via junction table
+    if (isMMOrMMLike(column)) {
       data = await baseModel.mmList(
         {
           colId: column.id,

@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import {
   ButtonActionsType,
   extractFilterFromXwhere,
+  isBtLikeV2Junction,
   isMMOrMMLike,
   NcApiVersion,
   NcDataErrorCodes,
@@ -192,7 +193,8 @@ export class MySqlDBQueryClient
           switch (relType) {
             case RelationTypes.MANY_TO_MANY:
               {
-                result.isArray = true;
+                const isSingleTargetV2 = isBtLikeV2Junction(column);
+                result.isArray = !isSingleTargetV2;
                 const alias1 = getAlias();
                 const alias2 = getAlias();
                 const alias3 = getAlias();
@@ -258,8 +260,8 @@ export class MySqlDBQueryClient
                     ]),
                   )
                   .select(knex.raw('??.*', [alias2]))
-                  .limit(+listArgs.limit)
-                  .offset(+listArgs.offset);
+                  .limit(isSingleTargetV2 ? 1 : +listArgs.limit)
+                  .offset(isSingleTargetV2 ? 0 : +listArgs.offset);
 
                 // apply filters on nested query
                 await conditionV2(
@@ -312,6 +314,7 @@ export class MySqlDBQueryClient
                            alias: alias3,
                            columns: fields,
                            title: getAs(column),
+                           ...(isSingleTargetV2 ? { isBtOrOo: true } : {}),
                          }),
                        )
                        .toQuery()}) as ?? ON true`,
@@ -664,6 +667,8 @@ export class MySqlDBQueryClient
 
           let refBaseModel: BaseModelSqlv2;
 
+          const lookupIsSingleTargetV2 = isBtLikeV2Junction(relationColumn);
+
           const relType = isMMLike
             ? RelationTypes.MANY_TO_MANY
             : relationColumn.colOptions.type;
@@ -671,7 +676,7 @@ export class MySqlDBQueryClient
           switch (relType) {
             case RelationTypes.MANY_TO_MANY:
               {
-                result.isArray = true;
+                result.isArray = !lookupIsSingleTargetV2;
 
                 const alias1 = getAlias();
                 const alias4 = getAlias();
@@ -741,6 +746,10 @@ export class MySqlDBQueryClient
                     sanitize(mmParentColumn.column_name),
                   ]),
                 );
+
+                if (lookupIsSingleTargetV2) {
+                  relQb.limit(1);
+                }
               }
               break;
             case RelationTypes.BELONGS_TO:

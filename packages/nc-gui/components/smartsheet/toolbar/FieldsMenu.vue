@@ -62,6 +62,8 @@ const isFieldsMenuReadOnly = computed(() => {
 
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const showConvertAllLinksV2Modal = ref(false)
 
 const v1LinkColumns = computed(() => {
@@ -1112,7 +1114,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             size="small"
             type="text"
             data-testid="nc-fields-convert-all-links-v2"
-            @click="showConvertAllLinksV2Modal = true"
+            @click="open = false; showConvertAllLinksV2Modal = true"
           >
             <GeneralIcon icon="ncArrowUpCircle" class="!w-4 !h-4 mr-1.5 opacity-80" />
             <span>{{ t('labels.convertAllLegacyLinks') }} ({{ v1LinkColumns.length }})</span>

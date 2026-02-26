@@ -30,6 +30,7 @@ export {
   isLTARType,
   isLinkV2,
   isMMOrMMLike,
+  isBtLikeV2Junction,
   isSelfLinkCol,
   isCreatedOrLastModifiedTimeCol,
   isCreatedOrLastModifiedByCol,

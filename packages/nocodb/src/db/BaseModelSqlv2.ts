@@ -1430,6 +1430,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
   }
 
+  public async mmRead(
+    param: {
+      colId: string;
+      parentId: any;
+    },
+    args: { fieldsSet?: Set<string> } = {},
+  ) {
+    return relationDataFetcher({ baseModel: this, logger }).mmRead(param, args);
+  }
+
   async multipleHmListCount({ colId, ids }) {
     return relationDataFetcher({
       baseModel: this,

@@ -1,6 +1,7 @@
 import {
   CircularRefContext,
   ClientType,
+  isBtLikeV2Junction,
   isMMOrMMLike,
   RelationTypes,
   UITypes,
@@ -156,7 +157,8 @@ export const lookupOrLtarBuilder =
               model: parentModel,
               dbDriver: baseModelSqlv2.dbDriver,
             });
-            isArray = true;
+            const isSingleTargetV2 = isBtLikeV2Junction(relationCol);
+            isArray = !isSingleTargetV2;
             const mmModel = await relation.getMMModel(context);
             const mmParentColumn = await relation.getMMParentColumn(context);
             const mmChildColumn = await relation.getMMChildColumn(context);
@@ -189,6 +191,11 @@ export const lookupOrLtarBuilder =
                   }.${childColumn.column_name}`,
                 ]),
               );
+
+            if (isSingleTargetV2) {
+              selectQb.limit(1);
+            }
+
             lookupColumn = lookupColumn ?? parentModel.displayValue;
 
             await extractLinkRelFiltersAndApply({

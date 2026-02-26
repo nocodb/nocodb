@@ -136,6 +136,8 @@ export class UiPostOperations
     'extensionDelete' as const,
     'listViewCreate' as const,
     'listViewUpdate' as const,
+    'convertLinkToV2' as const,
+    'convertAllLinksToV2' as const,
   ];
   httpMethod = 'POST' as const;
 

@@ -3,6 +3,7 @@ import { PGDBQueryClient as PGDBQueryClientCE } from 'src/dbQueryClient/pg';
 import {
   ButtonActionsType,
   extractFilterFromXwhere,
+  isBtLikeV2Junction,
   isMMOrMMLike,
   NcDataErrorCodes,
   parseProp,
@@ -202,7 +203,8 @@ export class PGDBQueryClient
           switch (relType) {
             case RelationTypes.MANY_TO_MANY:
               {
-                result.isArray = true;
+                const isSingleTargetV2 = isBtLikeV2Junction(column);
+                result.isArray = !isSingleTargetV2;
                 const alias1 = getAlias();
                 const alias2 = getAlias();
                 const alias3 = getAlias();
@@ -279,8 +281,8 @@ export class PGDBQueryClient
                     ]),
                   )
                   .select(knex.raw('??.*', [alias2]))
-                  .limit(+listArgs.limit + 1)
-                  .offset(+listArgs.offset);
+                  .limit(isSingleTargetV2 ? 1 : +listArgs.limit + 1)
+                  .offset(isSingleTargetV2 ? 0 : +listArgs.offset);
 
                 // apply filters on nested query
                 await conditionV2(
@@ -333,6 +335,7 @@ export class PGDBQueryClient
                              alias: alias3,
                              columns: fields,
                              title: getAs(column),
+                             ...(isSingleTargetV2 ? { isBtOrOo: true } : {}),
                            }),
                          )
                          .toQuery()
@@ -675,10 +678,12 @@ export class PGDBQueryClient
             ? RelationTypes.MANY_TO_MANY
             : relationColumn.colOptions.type;
 
+          const lookupIsSingleTargetV2 = isBtLikeV2Junction(relationColumn);
+
           switch (relType) {
             case RelationTypes.MANY_TO_MANY:
               {
-                result.isArray = true;
+                result.isArray = !lookupIsSingleTargetV2;
 
                 const alias1 = getAlias();
                 const alias4 = getAlias();
@@ -745,6 +750,10 @@ export class PGDBQueryClient
                     sanitize(mmParentColumn.column_name),
                   ]),
                 );
+
+                if (lookupIsSingleTargetV2) {
+                  relQb.limit(1);
+                }
               }
               break;
             case RelationTypes.BELONGS_TO:

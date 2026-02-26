@@ -311,6 +311,99 @@ export const relationDataFetcher = (param: {
       });
     },
 
+    // Like mmList but returns a single record (for V2 MO/OO — single-target relations via junction table)
+    async mmRead(
+      {
+        colId,
+        parentId,
+      }: {
+        colId: string;
+        parentId: any;
+      },
+      args: { fieldsSet?: Set<string> } = {},
+    ) {
+      const relColumn = (
+        await baseModel.model.getColumns(baseModel.context)
+      ).find((c) => c.id === colId);
+
+      const relColOptions = (await relColumn.getColOptions(
+        baseModel.context,
+      )) as LinkToAnotherRecordColumn;
+
+      const context = baseModel.context;
+      const { refContext, mmContext } = relColOptions.getRelContext(context);
+
+      const mmTable = await relColOptions.getMMModel(context);
+      const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
+        model: mmTable,
+        dbDriver: baseModel.dbDriver,
+      });
+      const vtn = mmBaseModel.getTnPath(mmTable);
+      const vcn = (await relColOptions.getMMChildColumn(mmContext)).column_name;
+      const vrcn = (await relColOptions.getMMParentColumn(mmContext))
+        .column_name;
+      const rcn = (await relColOptions.getParentColumn(refContext)).column_name;
+      const cn = (await relColOptions.getChildColumn(context)).column_name;
+      const refTable = await (
+        await relColOptions.getParentColumn(refContext)
+      ).getModel(refContext);
+      const table = await (
+        await relColOptions.getChildColumn(context)
+      ).getModel(baseModel.context);
+      await table.getColumns(context);
+      const refBaseModel = await Model.getBaseModelSQL(refContext, {
+        dbDriver: baseModel.dbDriver,
+        model: refTable,
+      });
+
+      const refTn = refBaseModel.getTnPath(refTable);
+      const tn = baseModel.getTnPath(table);
+      const rtn = refTn;
+
+      const qb = baseModel
+        .dbDriver(rtn)
+        .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
+        .whereIn(
+          `${vtn}.${vcn}`,
+          baseModel
+            .dbDriver(tn)
+            .select(cn)
+            .where(_wherePk(table.primaryKeys, parentId)),
+        )
+        .limit(1);
+
+      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        baseModel.context,
+        refTable.id,
+        baseModel.context.user,
+      ));
+
+      await refBaseModel.selectObject({
+        qb,
+        fieldsSet: args.fieldsSet,
+        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+      });
+
+      const child = await refBaseModel.execAndParse(
+        qb,
+        await refTable.getColumns(refContext),
+        { first: true },
+      );
+
+      if (!child) return null;
+
+      const proto = await refBaseModel.getProto();
+      child.__proto__ = proto;
+
+      const result = await postProcessData(refContext, {
+        data: [child],
+        model: refTable,
+        query: args,
+      });
+
+      return result?.[0] ?? null;
+    },
+
     async multipleHmListCount({ colId, ids }) {
       try {
         // const { cn } = baseModel.hasManyRelations.find(({ tn }) => tn === child) || {};

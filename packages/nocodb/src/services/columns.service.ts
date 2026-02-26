@@ -77,6 +77,7 @@ import {
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
+import getColumnUiType from '~/helpers/getColumnUiType';
 import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
@@ -5883,17 +5884,36 @@ export class ColumnsService implements IColumnsService {
       const junctionTnPath = baseModel.getTnPath(aTn);
       const childTnPath = baseModel.getTnPath(childTable.table_name);
 
-      await dbDriver(junctionTnPath)
-        .insert(
-          dbDriver(childTnPath)
-            .select(
-              dbDriver.ref(fkColumn.column_name).as(columnName),
-              dbDriver.ref(childPK.column_name).as(refColumnName),
-            )
-            .whereNotNull(fkColumn.column_name),
-        );
+      // Fetch FK data from child table, then insert into junction with
+      // explicit column mapping to avoid any positional ambiguity.
+      // columnName = {parentTable}_id → holds parent PK values (from fkColumn)
+      // refColumnName = {childTable}_id → holds child PK values
+      const fkRows = await baseModel.execAndParse(
+        dbDriver(childTnPath)
+          .select(fkColumn.column_name, childPK.column_name)
+          .whereNotNull(fkColumn.column_name),
+        null,
+        { raw: true },
+      );
 
-      // Remove old FK constraint from child table
+      if (fkRows.length) {
+        // Batch insert in chunks to avoid exceeding query size limits
+        const BATCH_SIZE = 1000;
+        for (let i = 0; i < fkRows.length; i += BATCH_SIZE) {
+          const batch = fkRows.slice(i, i + BATCH_SIZE);
+          await dbDriver(junctionTnPath).insert(
+            batch.map((row) => ({
+              [columnName]: row[fkColumn.column_name],
+              [refColumnName]: row[childPK.column_name],
+            })),
+          );
+        }
+      }
+
+      // Remove old FK constraint and indexes from child table.
+      // Always drop indexes on the FK column — even when keeping it — so
+      // that a later manual deletion of the column doesn't fail on SQLite
+      // (SQLite errors on DROP COLUMN if an index still references it).
       if (!isVirtual) {
         try {
           await sqlMgr.sqlOpPlus(childSource, 'relationDelete', {
@@ -5903,17 +5923,33 @@ export class ColumnsService implements IColumnsService {
             parentColumn: parentPK.column_name,
             foreignKeyName: hmColOptions.fk_index_name,
           });
-          fkDropped = true;
         } catch (e) {
           Logger.warn(
             `Failed to drop FK constraint during V1→V2 migration: ${e.message}`,
           );
-          // Continue - the constraint may not exist or may have been already removed
-          fkDropped = true;
         }
-      } else {
-        fkDropped = true;
       }
+
+      // Drop indexes on the FK column (handles both virtual index and
+      // real FK index that relationDelete may not have removed)
+      const fkIndexes =
+        (
+          await sqlMgr.sqlOp(childSource, 'indexList', {
+            tn: childTable.table_name,
+          })
+        )?.data?.list ?? [];
+
+      for (const index of fkIndexes) {
+        if (index.cn !== fkColumn.column_name) continue;
+        await sqlMgr.sqlOpPlus(childSource, 'indexDelete', {
+          ...index,
+          tn: childTable.table_name,
+          columns: [fkColumn.column_name],
+          indexName: index.key_name,
+        });
+      }
+
+      fkDropped = true;
 
       // Drop old FK column from data DB if requested
       if (param.deleteFkColumn && fkColumn.uidt === UITypes.ForeignKey) {
@@ -6125,7 +6161,7 @@ export class ColumnsService implements IColumnsService {
             );
           } else {
             // Convert FK column to regular type
-            const newUidt = determineRegularUidt(fkColumn.dt);
+            const newUidt = getColumnUiType(source, fkColumn);
             await ncMeta.metaUpdate(
               childRefContext.workspace_id,
               childRefContext.base_id,
@@ -6165,7 +6201,7 @@ export class ColumnsService implements IColumnsService {
           await NocoCache.update(
             childRefContext,
             `${CacheScope.COLUMN}:${fkColumn.id}`,
-            { uidt: determineRegularUidt(fkColumn.dt) },
+            { uidt: getColumnUiType(source, fkColumn) },
           );
         }
       }
@@ -6174,7 +6210,7 @@ export class ColumnsService implements IColumnsService {
       await View.clearSingleQueryCache(childRefContext, childTable.id);
 
       // Emit events
-      this.appHooksService.emit(AppEvents.COLUMN_UPDATE, {
+      (this.appHooksService as any).emit(AppEvents.COLUMN_UPDATE, {
         table: parentTable,
         column: hmColumn,
         req: param.req,

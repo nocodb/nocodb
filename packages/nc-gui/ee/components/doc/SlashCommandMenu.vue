@@ -185,22 +185,23 @@ defineExpose({ onKeyDown })
 </template>
 
 <style>
-/* Non-scoped — mounted outside Nuxt via createApp */
+/* Non-scoped — mounted outside Nuxt via createApp.
+ * Uses CSS variables (--nc-*) so colors adapt to dark mode. */
 .nc-slash-menu {
-  background: white;
+  background: var(--nc-bg-default);
   border-radius: 8px;
   padding: 4px 0;
   min-width: 200px;
   max-height: 320px;
   overflow-y: auto;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--nc-border-gray-medium);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .nc-slash-menu-divider {
   height: 1px;
-  background: #e5e7eb;
+  background: var(--nc-border-gray-medium);
   margin: 4px 12px;
 }
 
@@ -208,7 +209,7 @@ defineExpose({ onKeyDown })
   padding: 4px 14px 2px;
   font-size: 11px;
   font-weight: 600;
-  color: #9ca3af;
+  color: var(--nc-content-gray-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   user-select: none;
@@ -224,20 +225,20 @@ defineExpose({ onKeyDown })
 }
 
 .nc-slash-menu-item.is-selected {
-  background-color: #3366ff;
+  background-color: var(--nc-fill-primary);
 }
 
 .nc-slash-menu-item.is-selected .nc-slash-menu-label {
-  color: white;
+  color: var(--nc-content-inverted-primary);
 }
 
 .nc-slash-menu-item.is-selected .nc-slash-menu-icon {
-  color: white;
+  color: var(--nc-content-inverted-primary);
 }
 
 /* Only override stroke on icons that use currentColor (non-brand icons) */
 .nc-slash-menu-item.is-selected .nc-slash-menu-icon svg[stroke="currentColor"] {
-  stroke: white;
+  stroke: var(--nc-content-inverted-primary);
 }
 
 .nc-slash-menu-icon {
@@ -245,7 +246,7 @@ defineExpose({ onKeyDown })
   align-items: center;
   justify-content: center;
   width: 20px;
-  color: #1f2937;
+  color: var(--nc-content-gray);
   flex-shrink: 0;
 }
 
@@ -257,7 +258,7 @@ defineExpose({ onKeyDown })
 .nc-slash-menu-label {
   font-size: 13px;
   font-weight: 400;
-  color: #1f2937;
+  color: var(--nc-content-gray);
   line-height: 1;
 }
 
@@ -281,13 +282,13 @@ defineExpose({ onKeyDown })
   outline: none;
   font-size: 13px;
   font-family: inherit;
-  color: #1f2937;
+  color: var(--nc-content-gray);
   background: transparent;
   padding: 4px 0;
   min-width: 0;
 }
 
 .nc-slash-input::placeholder {
-  color: #9ca3af;
+  color: var(--nc-content-gray-muted);
 }
 </style>

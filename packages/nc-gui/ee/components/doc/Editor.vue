@@ -1463,9 +1463,9 @@ onBeforeUnmount(() => {
   }
 }
 
-// Subtitle (created by / updated by) — match Outline's muted slate
+// Subtitle (created by / updated by)
 .nc-doc-subtitle {
-  color: #9BA6B2;
+  color: var(--nc-content-gray-muted);
 }
 
 // Title placeholder — lighter than muted to feel like a watermark
@@ -1487,7 +1487,18 @@ onBeforeUnmount(() => {
   min-height: 200px;
   font-size: 0.95rem;
   line-height: 1.7;
-  color: #1f2937;
+  color: var(--nc-content-gray);
+
+  ::selection {
+    background: color-mix(in srgb, var(--nc-fill-primary) 35%, transparent);
+  }
+
+  // Dark mode: pastel highlight backgrounds are barely visible on dark bg.
+  // Use dark text so the coloured mark creates readable contrast (like Notion).
+  // Hardcoded because all semantic text tokens map to light colours in dark mode.
+  html.dark & mark[data-color] {
+    color: #1f2937;
+  }
 
   > * + * {
     margin-top: 0.75em;
@@ -1500,13 +1511,13 @@ onBeforeUnmount(() => {
   // when the cursor is in the title input or elsewhere outside the editor.
   h1, h2, h3 {
     position: relative;
-    color: #111827;
+    color: var(--nc-content-gray-emphasis);
 
     &::before {
       position: absolute;
       right: 100%;
       margin-right: 0.5em;
-      color: #9BA6B2;
+      color: var(--nc-content-gray-muted);
       font-size: 12px;
       font-weight: 500;
     }
@@ -1554,7 +1565,7 @@ onBeforeUnmount(() => {
   p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
     float: left;
-    color: #d1d5db;
+    color: var(--nc-content-gray-disabled);
     pointer-events: none;
     height: 0;
   }
@@ -1641,15 +1652,15 @@ onBeforeUnmount(() => {
 
   // Blockquote
   blockquote {
-    border-left: 3px solid #d1d5db;
+    border-left: 3px solid var(--nc-border-gray-medium);
     padding-left: 1em;
-    color: #6b7280;
+    color: var(--nc-content-gray-subtle2);
     margin: 0.75em 0;
   }
 
   // Code
   code {
-    background-color: #f3f4f6;
+    background-color: var(--nc-bg-gray-light);
     border-radius: 0.25em;
     padding: 0.15em 0.3em;
     font-size: 0.875em;
@@ -1741,13 +1752,13 @@ onBeforeUnmount(() => {
   // Horizontal rule
   hr {
     border: none;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--nc-border-gray-medium);
     margin: 1.5em 0;
   }
 
   // Links
   a {
-    color: #2563eb;
+    color: var(--nc-content-brand);
     text-decoration: underline;
   }
 
@@ -1826,7 +1837,7 @@ onBeforeUnmount(() => {
       right: 0;
       top: 0;
       bottom: 0;
-      background: rgba(59, 130, 246, 0.08);
+      background: color-mix(in srgb, var(--nc-fill-primary) 25%, transparent);
       pointer-events: none;
       z-index: 2;
     }
@@ -1843,17 +1854,17 @@ onBeforeUnmount(() => {
     align-items: center;
     gap: 10px;
     padding: 8px 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--nc-border-gray-medium);
     border-radius: 8px;
-    background: #fafafa;
+    background: var(--nc-bg-gray-extralight);
     cursor: pointer;
     transition: border-color 0.15s, box-shadow 0.15s;
     max-width: 320px;
     position: relative;
 
     &:hover {
-      border-color: #d1d5db;
-      background: #f5f5f5;
+      border-color: var(--nc-bg-gray-dark);
+      background: var(--nc-bg-gray-light);
 
       .nc-file-attachment-delete {
         opacity: 1;
@@ -1861,8 +1872,8 @@ onBeforeUnmount(() => {
     }
 
     &.nc-file-attachment-selected {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 1px #3b82f6;
+      border-color: var(--nc-fill-primary);
+      box-shadow: 0 0 0 1px var(--nc-fill-primary);
     }
 
     &.nc-file-attachment-uploading {
@@ -1893,7 +1904,7 @@ onBeforeUnmount(() => {
   .nc-file-attachment-name {
     font-size: 13px;
     font-weight: 500;
-    color: #374151;
+    color: var(--nc-content-gray);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1901,14 +1912,14 @@ onBeforeUnmount(() => {
 
   .nc-file-attachment-size {
     font-size: 11px;
-    color: #9ca3af;
+    color: var(--nc-content-gray-muted);
     line-height: 1.3;
   }
 
   .nc-file-attachment-delete {
     flex-shrink: 0;
     opacity: 0;
-    color: #9ca3af;
+    color: var(--nc-content-gray-muted);
     cursor: pointer;
     padding: 2px;
     border-radius: 4px;
@@ -1918,7 +1929,7 @@ onBeforeUnmount(() => {
     transition: opacity 0.15s, color 0.15s;
 
     &:hover {
-      color: #ef4444;
+      color: var(--nc-content-red-dark);
     }
   }
 
@@ -1935,14 +1946,14 @@ onBeforeUnmount(() => {
 
   .nc-embed-card {
     position: relative;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--nc-border-gray-medium);
     border-radius: 8px;
     overflow: hidden;
     background: #000;
     transition: border-color 0.15s, box-shadow 0.15s;
 
     &:hover {
-      border-color: #d1d5db;
+      border-color: var(--nc-bg-gray-dark);
 
       .nc-embed-delete {
         opacity: 1;
@@ -1950,8 +1961,8 @@ onBeforeUnmount(() => {
     }
 
     &.nc-embed-selected {
-      border-color: #3b82f6;
-      box-shadow: 0 0 0 1px #3b82f6;
+      border-color: var(--nc-fill-primary);
+      box-shadow: 0 0 0 1px var(--nc-fill-primary);
     }
   }
 
@@ -2028,8 +2039,8 @@ onBeforeUnmount(() => {
 
     // Each callout type: background color, border, and icon via CSS data URI
     &.nc-callout-note {
-      background: #eff6ff;
-      border-left-color: #3b82f6;
+      background: var(--nc-bg-coloured-blue);
+      border-left-color: var(--nc-content-blue-medium);
 
       .nc-callout-icon {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E");
@@ -2037,8 +2048,8 @@ onBeforeUnmount(() => {
     }
 
     &.nc-callout-warning {
-      background: #fffbeb;
-      border-left-color: #f59e0b;
+      background: var(--nc-bg-coloured-yellow);
+      border-left-color: var(--nc-content-yellow-medium);
 
       .nc-callout-icon {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23f59e0b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
@@ -2046,8 +2057,8 @@ onBeforeUnmount(() => {
     }
 
     &.nc-callout-tip {
-      background: #f0fdf4;
-      border-left-color: #22c55e;
+      background: var(--nc-bg-coloured-green);
+      border-left-color: var(--nc-content-green-medium);
 
       .nc-callout-icon {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 20h10'/%3E%3Cpath d='M10 20c5.5-2.5.8-6.4 3-10'/%3E%3Cpath d='M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z'/%3E%3Cpath d='M14.1 6a7 7 0 0 0-1.1-3c1.9.5 3.3 1.6 4.4 3.1a12.3 12.3 0 0 1 2 5.6c-2-.8-3.5-1.8-4.5-3.2a9 9 0 0 1-.8-2.5z'/%3E%3C/svg%3E");
@@ -2055,8 +2066,8 @@ onBeforeUnmount(() => {
     }
 
     &.nc-callout-important {
-      background: #fef2f2;
-      border-left-color: #ef4444;
+      background: var(--nc-bg-coloured-red);
+      border-left-color: var(--nc-content-red-medium);
 
       .nc-callout-icon {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");

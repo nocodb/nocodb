@@ -221,7 +221,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
   }
 
   &.is-selected .nc-doc-image-container {
-    outline: 2px solid #3366ff;
+    outline: 2px solid var(--nc-fill-primary);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -243,7 +243,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
 .nc-doc-image-skeleton {
   width: 300px;
   height: 200px;
-  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background: linear-gradient(90deg, var(--nc-bg-gray-light) 25%, var(--nc-bg-gray-medium) 50%, var(--nc-bg-gray-light) 75%);
   background-size: 200% 100%;
   border-radius: 4px;
   animation: nc-shimmer 1.5s infinite;
@@ -259,8 +259,8 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
   position: absolute;
   width: 12px;
   height: 12px;
-  background: white;
-  border: 2px solid #3366ff;
+  background: var(--nc-bg-default);
+  border: 2px solid var(--nc-fill-primary);
   border-radius: 2px;
   z-index: 5;
 
@@ -287,8 +287,8 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
   align-items: center;
   gap: 2px;
   padding: 4px;
-  background: white;
-  border: 1px solid #d1d5db;
+  background: var(--nc-bg-default);
+  border: 1px solid var(--nc-border-gray-medium);
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   z-index: 20;
@@ -305,33 +305,33 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
   background: transparent;
   border-radius: 4px;
   cursor: pointer;
-  color: #6b7280;
+  color: var(--nc-content-gray-subtle2);
   transition: all 0.15s;
 
   &:hover {
-    background: #f3f4f6;
-    color: #1f2937;
+    background: var(--nc-bg-gray-light);
+    color: var(--nc-content-gray);
   }
 
   &.active {
-    background: #eff6ff;
-    color: #3366ff;
+    background: var(--nc-bg-brand);
+    color: var(--nc-fill-primary);
   }
 }
 
 .nc-doc-image-toolbar-delete {
-  color: #ef4444;
+  color: var(--nc-content-red-medium);
 
   &:hover {
-    background: #fef2f2;
-    color: #dc2626;
+    background: var(--nc-bg-coloured-red);
+    color: var(--nc-content-red-dark);
   }
 }
 
 .nc-doc-image-toolbar-divider {
   width: 1px;
   height: 20px;
-  background: #e5e7eb;
+  background: var(--nc-border-gray-medium);
   margin: 0 2px;
 }
 </style>

@@ -294,6 +294,11 @@ const openKeyboardShortcutDialog = () => {
                   <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
                   <span class="menu-btn">{{ $t('general.help') }}</span>
                 </template>
+
+                <!-- Resources -->
+                <div class="px-3 pt-2 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
+                  Resources
+                </div>
                 <a
                   v-e="['c:nocodb:docs-open']"
                   href="https://nocodb.com/docs/product-docs"
@@ -303,9 +308,28 @@ const openKeyboardShortcutDialog = () => {
                 >
                   <NcMenuItem>
                     <GeneralIcon icon="file" class="h-4 w-4" />
-                    <span class="menu-btn">{{ $t('title.docs') }}</span>
+                    <span class="menu-btn">Documentation</span>
                   </NcMenuItem>
                 </a>
+                <a
+                  v-e="['c:nocodb:api-docs-open']"
+                  href="https://data-apis-v2.nocodb.com"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="ncCode" class="h-4 w-4" />
+                    <span class="menu-btn">APIs</span>
+                  </NcMenuItem>
+                </a>
+
+                <NcDivider />
+
+                <!-- Community -->
+                <div class="px-3 pt-2 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
+                  Community
+                </div>
                 <a
                   v-e="['c:nocodb:forum-open']"
                   href="https://community.nocodb.com"
@@ -315,14 +339,44 @@ const openKeyboardShortcutDialog = () => {
                 >
                   <NcMenuItem>
                     <GeneralIcon icon="ncDiscordForum" class="h-4 w-4" />
-                    <span class="menu-btn">{{ $t('title.forum') }}</span>
+                    <span class="menu-btn">Forum</span>
                   </NcMenuItem>
                 </a>
+                <a
+                  v-e="['c:nocodb:youtube-open']"
+                  href="https://www.youtube.com/@NocoDB"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="ncYoutube" class="h-4 w-4" />
+                    <span class="menu-btn">Youtube</span>
+                  </NcMenuItem>
+                </a>
+                <a
+                  v-e="['c:nocodb:twitter-open']"
+                  href="https://twitter.com/nocodb"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="ncTwitter" class="h-4 w-4" />
+                    <span class="menu-btn">X</span>
+                  </NcMenuItem>
+                </a>
+
+                <NcDivider />
+
+                <!-- Contact Support -->
+                <div class="px-3 pt-2 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
+                  Contact Support
+                </div>
                 <NcMenuItem v-if="isChatWootEnabled" @click="toggleChatSupport">
                   <GeneralIcon icon="ncSupportAgent" class="h-4 w-4" />
                   <span class="menu-btn">{{ $t('labels.chatWithNocoDBSupport') }}</span>
                 </NcMenuItem>
-                <NcDivider v-if="isEeUI" />
                 <NcMenuItem v-if="isEeUI" v-e="['c:nocodb:contact-us-mail-copy']" @click="copySupportEmail">
                   <GeneralIcon icon="ncMail" class="h-4 w-4" />
                   <span class="menu-btn">support@nocodb.com</span>
@@ -333,6 +387,25 @@ const openKeyboardShortcutDialog = () => {
                     :show-toast="false"
                   />
                 </NcMenuItem>
+
+                <NcDivider />
+
+                <!-- What's New -->
+                <div class="px-3 pt-2 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
+                  What's New
+                </div>
+                <a
+                  v-e="['c:nocodb:changelog-open']"
+                  href="https://nocodb.com/changelog"
+                  target="_blank"
+                  class="!underline-transparent"
+                  rel="noopener"
+                >
+                  <NcMenuItem>
+                    <GeneralIcon icon="ncList" class="h-4 w-4" />
+                    <span class="menu-btn">Changelog</span>
+                  </NcMenuItem>
+                </a>
               </NcSubMenu>
               <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens">
                 <NcMenuItem>

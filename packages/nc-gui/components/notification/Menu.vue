@@ -13,7 +13,8 @@ const isDropdownOpen = ref(false)
     <NcDropdown
       v-model:visible="isDropdownOpen"
       overlay-class-name="!shadow-none"
-      :placement="isMiniSidebar ? 'right' : 'bottomRight'"
+      :placement="isMiniSidebar ? 'rightBottom' : 'bottomRight'"
+      :overlay-style="isMiniSidebar ? { marginLeft: '8px' } : {}"
       :trigger="['click']"
     >
       <div

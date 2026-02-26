@@ -49,7 +49,7 @@ const baseIconColor = computed(() => {
 
 const miniSidebarTabs = computed(() => [
   { key: 'data' as const, icon: 'table', activeIcon: 'ncTableFilled', label: 'Data' },
-  { key: 'automation' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Workflows' },
+  { key: 'automation' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
   { key: 'agents' as const, icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
 ])
 
@@ -58,6 +58,22 @@ const { isUIAllowed } = useRoles()
 const { setActiveCmdView } = useCommand()
 
 const { isChatWootEnabled } = useProvideChatwoot()
+
+const { isModalVisible: isChatVisible } = useChatWoot()
+
+const supportCopyBtnRef = ref()
+
+const toggleChatSupport = () => {
+  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
+    return
+  }
+  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
+  window.$chatwoot.toggle(toggleText)
+}
+
+const copySupportEmail = () => {
+  supportCopyBtnRef.value?.copyContent?.('support@nocodb.com')
+}
 
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
@@ -157,97 +173,84 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
       <!-- Data / Workflows / Agents tabs -->
       <template v-if="isBaseOpen">
-        <DashboardMiniSidebarItemWrapper v-for="tab in miniSidebarTabs" :key="tab.key">
-          <NcTooltip :title="tab.label" placement="right" hide-on-click :arrow="false">
-            <div
-              v-e="[`c:sidebar:minitab:${tab.key}`]"
-              class="nc-mini-sidebar-btn-full-width"
-              :data-testid="`nc-mini-sidebar-tab-${tab.key}`"
-              @click="activeSidebarTab = tab.key"
-            >
-              <div
-                class="nc-mini-sidebar-btn"
-                :class="{
-                  active: activeSidebarTab === tab.key,
-                }"
-              >
-                <GeneralIcon
-                  :icon="activeSidebarTab === tab.key ? tab.activeIcon : tab.icon"
-                  class="h-4 w-4"
-                />
-              </div>
-            </div>
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
+        <div
+          v-for="tab in miniSidebarTabs"
+          :key="tab.key"
+          v-e="[`c:sidebar:minitab:${tab.key}`]"
+          class="nc-mini-sidebar-labeled-btn"
+          :class="{ active: activeSidebarTab === tab.key }"
+          :data-testid="`nc-mini-sidebar-tab-${tab.key}`"
+          @click="activeSidebarTab = tab.key"
+        >
+          <GeneralIcon
+            :icon="activeSidebarTab === tab.key ? tab.activeIcon : tab.icon"
+            class="h-4.5 w-4.5"
+          />
+          <span class="nc-mini-sidebar-label">{{ tab.label }}</span>
+        </div>
       </template>
+
+      <!-- Notifications (below agents) -->
+      <div class="nc-mini-sidebar-labeled-item">
+        <NotificationMenu />
+        <span class="nc-mini-sidebar-label">Activity</span>
+      </div>
+
+      <!-- Divider -->
+      <div class="w-8 border-t border-nc-border-gray-medium my-1"></div>
+
+      <!-- Admin menu (Settings + Integrations) -->
+      <NcDropdown
+        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations')"
+        placement="rightBottom"
+        :arrow="false"
+      >
+        <div
+          class="nc-mini-sidebar-labeled-btn"
+          :class="{ active: isWorkspaceSettingsPageOpened || isIntegrationsPageOpened }"
+          data-testid="nc-sidebar-admin-btn"
+        >
+          <GeneralIcon icon="ncSettings" class="h-4.5 w-4.5" />
+          <span class="nc-mini-sidebar-label">Admin</span>
+        </div>
+        <template #overlay>
+          <NcMenu>
+            <NcMenuItem
+              v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
+              v-e="['c:team:settings']"
+              data-testid="nc-sidebar-team-settings-btn"
+              @click="navigateToSettings"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+                <span>{{ isEeUI ? `${$t('objects.workspace')} ${$t('labels.settings')}` : $t('title.teamAndSettings') }}</span>
+              </div>
+            </NcMenuItem>
+            <NcMenuItem
+              v-if="isUIAllowed('workspaceIntegrations')"
+              v-e="['c:integrations']"
+              data-testid="nc-sidebar-integrations-btn"
+              @click="navigateToIntegrations"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="integration" class="h-4 w-4" />
+                <span>{{ $t('general.integrations') }}</span>
+              </div>
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
 
     </div>
-    <div class="flex flex-col items-center">
-      <DashboardMiniSidebarItemWrapper
-        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
-        :show-in-mobile="isEeUI"
-      >
-        <NcTooltip
-          :title="isEeUI ? `${$t('objects.workspace')} ${$t('labels.settings')}` : $t('title.teamAndSettings')"
-          placement="right"
-          hide-on-click
-          :arrow="false"
-        >
-          <div
-            v-e="['c:team:settings']"
-            class="nc-mini-sidebar-btn-full-width"
-            data-testid="nc-sidebar-team-settings-btn"
-            @click="navigateToSettings"
-          >
-            <div
-              class="nc-mini-sidebar-btn"
-              :class="{
-                active: isWorkspaceSettingsPageOpened,
-              }"
-            >
-              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
-            </div>
-          </div>
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
-      <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceIntegrations')">
-        <NcTooltip
-          :title="isEeUI ? `${$t('objects.workspace')} ${$t('general.integrations')}` : $t('general.integrations')"
-          placement="right"
-          hide-on-click
-          :arrow="false"
-        >
-          <div
-            v-e="['c:integrations']"
-            class="nc-mini-sidebar-btn-full-width"
-            data-testid="nc-sidebar-integrations-btn"
-            @click="navigateToIntegrations"
-          >
-            <div
-              class="nc-mini-sidebar-btn"
-              :class="{
-                active: isIntegrationsPageOpened,
-              }"
-            >
-              <GeneralIcon icon="integration" class="h-4 w-4" />
-            </div>
-          </div>
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
+    <div class="flex flex-col items-center pb-2">
+      <!-- Theme toggle (Light / Dark / System) -->
+      <div class="nc-mini-sidebar-labeled-item">
+        <DashboardMiniSidebarTheme />
+        <span class="nc-mini-sidebar-label">Theme</span>
+      </div>
 
-      <DashboardMiniSidebarItemWrapper>
-        <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
-          <NotificationMenu />
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
-
-      <template v-if="!isMobileMode">
-        <DashboardMiniSidebarItemWrapper>
-          <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
-            <DashboardMiniSidebarCreateNewActionMenu />
-          </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
-      </template>
+      <!-- Divider -->
+      <div class="w-8 border-t border-nc-border-gray-medium my-1"></div>
 
       <DashboardSidebarUserInfo />
     </div>
@@ -303,6 +306,40 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     &.hovered {
       @apply bg-nc-bg-gray-medium;
     }
+  }
+
+  .nc-mini-sidebar-labeled-btn {
+    @apply w-full flex flex-col items-center justify-center gap-0.5 py-2 cursor-pointer text-nc-content-gray-muted transition-all duration-200;
+
+    &:hover:not(.active) {
+      @apply bg-nc-bg-gray-medium;
+    }
+
+    &.active {
+      @apply !text-nc-content-brand;
+    }
+  }
+
+  .nc-mini-sidebar-labeled-item {
+    @apply w-full flex flex-col items-center justify-center gap-1 py-2 text-nc-content-gray-muted;
+
+    .nc-mini-sidebar-btn-full-width {
+      @apply !h-auto !w-auto !p-0;
+    }
+
+    .nc-mini-sidebar-btn {
+      @apply !h-auto !w-auto !p-0;
+    }
+
+    .nc-button {
+      @apply !h-auto !min-h-0 !p-0;
+    }
+  }
+
+  .nc-mini-sidebar-label {
+    @apply text-[10px] leading-tight select-none;
+    font-weight: 600;
+    letter-spacing: 0.01em;
   }
 }
 </style>

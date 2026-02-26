@@ -72,7 +72,7 @@ const v1LinkColumns = computed(() => {
     if (!isLinksOrLTAR(c)) return false
     const opts = c.colOptions as LinkToAnotherRecordType | undefined
     if (!opts) return false
-    return opts.version !== 2 && opts.type !== 'mm'
+    return opts.version !== 2
   })
 })
 

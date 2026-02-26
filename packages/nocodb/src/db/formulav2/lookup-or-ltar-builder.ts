@@ -248,7 +248,9 @@ export const lookupOrLtarBuilder =
           dbDriver: baseModelSqlv2.dbDriver,
         });
 
-        let relationType = relation.type;
+        let relationType = isMMOrMMLike(relationCol)
+          ? RelationTypes.MANY_TO_MANY
+          : relation.type;
 
         if (relationType === RelationTypes.ONE_TO_ONE) {
           relationType = relationCol.meta?.bt
@@ -301,7 +303,8 @@ export const lookupOrLtarBuilder =
             }
             break;
           case RelationTypes.MANY_TO_MANY: {
-            isArray = true;
+            const nestedIsSingleTargetV2 = isBtLikeV2Junction(relationCol);
+            isArray = !nestedIsSingleTargetV2;
             const mmModel = await relation.getMMModel(mmContext);
             const mmParentColumn = await relation.getMMParentColumn(mmContext);
             const mmChildColumn = await relation.getMMChildColumn(mmContext);

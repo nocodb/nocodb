@@ -1,4 +1,4 @@
-import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol } from 'nocodb-sdk'
+import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol, isBtLikeV2Junction } from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -278,7 +278,11 @@ export function useGridCellHandler(params: {
         }
       }
     }
-    const cellType = cellTypesRegistry.get(column.uidt!)
+    // V2 MO/OO Links render as single-record (BT-like) via LtarCellRenderer
+    const cellType =
+      column.uidt === UITypes.Links && isBtLikeV2Junction(column)
+        ? cellTypesRegistry.get(UITypes.LinkToAnotherRecord)
+        : cellTypesRegistry.get(column.uidt!)
 
     const cellRenderStore = getCellRenderStore(`${column.id}-${pk}`)
 
@@ -432,7 +436,11 @@ export function useGridCellHandler(params: {
     path: Array<number>
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
-    const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
+    const columnObj = ctx.column.columnObj
+    const cellHandler =
+      columnObj.uidt === UITypes.Links && isBtLikeV2Junction(columnObj)
+        ? cellTypesRegistry.get(UITypes.LinkToAnotherRecord)
+        : cellTypesRegistry.get(columnObj.uidt)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
     canvasCellEvents.keyboardKey = ''
@@ -471,7 +479,11 @@ export function useGridCellHandler(params: {
     pk: any
     path: Array<number>
   }) => {
-    const cellHandler = cellTypesRegistry.get(ctx.column.columnObj!.uidt!)
+    const keyDownColumnObj = ctx.column.columnObj!
+    const cellHandler =
+      keyDownColumnObj.uidt === UITypes.Links && isBtLikeV2Junction(keyDownColumnObj)
+        ? cellTypesRegistry.get(UITypes.LinkToAnotherRecord)
+        : cellTypesRegistry.get(keyDownColumnObj.uidt!)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
     canvasCellEvents.keyboardKey = ctx.e.key
@@ -510,7 +522,11 @@ export function useGridCellHandler(params: {
   }) => {
     if (!ctx.column?.columnObj?.uidt) return
 
-    const cellHandler = cellTypesRegistry.get(ctx.column.columnObj.uidt)
+    const hoverColumnObj = ctx.column.columnObj
+    const cellHandler =
+      hoverColumnObj.uidt === UITypes.Links && isBtLikeV2Junction(hoverColumnObj)
+        ? cellTypesRegistry.get(UITypes.LinkToAnotherRecord)
+        : cellTypesRegistry.get(hoverColumnObj.uidt)
 
     const cellRenderStore = getCellRenderStore(`${ctx.column.id}-${ctx.pk}`)
     canvasCellEvents.keyboardKey = ''

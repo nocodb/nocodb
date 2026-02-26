@@ -5,6 +5,7 @@ import {
   UITypes,
   dateFormats,
   hideExtraFieldsMetaKey,
+  isBtLikeV2Junction,
   isDateOrDateTimeCol,
   isLinkV2,
   isLinksOrLTAR,
@@ -123,7 +124,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return (
         colOptions.value?.type === RelationTypes.MANY_TO_ONE ||
         colOptions.value?.type === RelationTypes.BELONGS_TO ||
-        colOptions.value?.type === RelationTypes.ONE_TO_ONE
+        colOptions.value?.type === RelationTypes.ONE_TO_ONE ||
+        isBtLikeV2Junction(column.value)
       )
     })
 

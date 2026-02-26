@@ -95,6 +95,7 @@ import {
   KanbanView,
   Model,
   Permission,
+  RollupColumn,
   Script,
   Source,
   User,
@@ -5665,10 +5666,9 @@ export class ColumnsService implements IColumnsService {
       NcError.badRequest('Column is already V2');
     }
 
+    // MM already has junction tables — just update version metadata
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-      NcError.badRequest(
-        'Many-to-Many relations already use junction tables and do not need conversion',
-      );
+      return this.convertMMToV2(context, { column, colOptions, req: param.req });
     }
 
     // Phase 1: Normalize to parent side (HM or parent-OO)
@@ -6056,44 +6056,46 @@ export class ColumnsService implements IColumnsService {
         true,
       );
 
+      // Check before starting transaction — needed after commit too
+      const isLinksColumn = hmColumn.uidt === UITypes.Links;
+
       // ── Phase B: Meta transaction ──
       // Only pure meta operations (metaDelete/metaInsert2/metaUpdate)
       // that accept ncMeta go here — no data-DB or indirect meta queries.
+      // Compute V2 types and cross-base props before the transaction
+      const isOO = hmColOptions.type === RelationTypes.ONE_TO_ONE;
+      const hmNewType = isOO
+        ? RelationTypes.ONE_TO_ONE
+        : RelationTypes.ONE_TO_MANY;
+      const btNewType = isOO
+        ? RelationTypes.ONE_TO_ONE
+        : RelationTypes.MANY_TO_ONE;
+
+      let crossBaseLinkProps: Record<string, string> = {};
+      let refCrossBaseLinkProps: Record<string, string> = {};
+
+      if (hmColOptions.fk_related_base_id) {
+        crossBaseLinkProps = {
+          fk_related_base_id: hmColOptions.fk_related_base_id,
+          fk_mm_base_id: assocModel.base_id,
+          fk_related_source_id:
+            hmColOptions.fk_related_source_id || childTable.source_id,
+          fk_mm_source_id: assocModel.source_id,
+        };
+        refCrossBaseLinkProps = {
+          fk_related_base_id: context.base_id,
+          fk_mm_base_id: assocModel.base_id,
+          fk_related_source_id: parentTable.source_id,
+          fk_mm_source_id: assocModel.source_id,
+        };
+      }
+
       const ncMeta = await (
         Noco.ncMeta as MetaService
       ).startTransaction();
 
       try {
-        // Update column metadata: HM → OM (or OO)
-        const isOO = hmColOptions.type === RelationTypes.ONE_TO_ONE;
-        const hmNewType = isOO
-          ? RelationTypes.ONE_TO_ONE
-          : RelationTypes.ONE_TO_MANY;
-        const btNewType = isOO
-          ? RelationTypes.ONE_TO_ONE
-          : RelationTypes.MANY_TO_ONE;
-
-        // Cross-base link props
-        let crossBaseLinkProps: Record<string, string> = {};
-        let refCrossBaseLinkProps: Record<string, string> = {};
-
-        if (hmColOptions.fk_related_base_id) {
-          crossBaseLinkProps = {
-            fk_related_base_id: hmColOptions.fk_related_base_id,
-            fk_mm_base_id: assocModel.base_id,
-            fk_related_source_id:
-              hmColOptions.fk_related_source_id || childTable.source_id,
-            fk_mm_source_id: assocModel.source_id,
-          };
-          refCrossBaseLinkProps = {
-            fk_related_base_id: context.base_id,
-            fk_mm_base_id: assocModel.base_id,
-            fk_related_source_id: parentTable.source_id,
-            fk_mm_source_id: assocModel.source_id,
-          };
-        }
-
-        // Delete old + insert new HM col_relations
+        // Delete old HM col_relations
         await ncMeta.metaDelete(
           context.workspace_id,
           context.base_id,
@@ -6101,25 +6103,38 @@ export class ColumnsService implements IColumnsService {
           { fk_column_id: hmColumn.id },
         );
 
-        await ncMeta.metaInsert2(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.COL_RELATIONS,
-          {
-            fk_column_id: hmColumn.id,
-            type: hmNewType,
-            fk_child_column_id: parentPK.id,
-            fk_parent_column_id: childPK.id,
-            fk_mm_model_id: assocModel.id,
-            fk_mm_child_column_id: parentCol.id,
-            fk_mm_parent_column_id: childCol.id,
-            fk_related_model_id: hmColOptions.fk_related_model_id,
-            fk_target_view_id: hmColOptions.fk_target_view_id,
-            virtual: isVirtual,
-            version: LinksVersion.V2,
-            ...crossBaseLinkProps,
-          },
-        );
+        if (isLinksColumn) {
+          // Links column → convert to Rollup in-place (preserves filters/sorts/group-by)
+          // A new V2 LTAR column will be created after the transaction commits.
+          await ncMeta.metaUpdate(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COLUMNS,
+            { uidt: UITypes.Rollup },
+            hmColumn.id,
+          );
+        } else {
+          // Plain LinkToAnotherRecord → convert in-place to V2
+          await ncMeta.metaInsert2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_RELATIONS,
+            {
+              fk_column_id: hmColumn.id,
+              type: hmNewType,
+              fk_child_column_id: parentPK.id,
+              fk_parent_column_id: childPK.id,
+              fk_mm_model_id: assocModel.id,
+              fk_mm_child_column_id: parentCol.id,
+              fk_mm_parent_column_id: childCol.id,
+              fk_related_model_id: hmColOptions.fk_related_model_id,
+              fk_target_view_id: hmColOptions.fk_target_view_id,
+              virtual: isVirtual,
+              version: LinksVersion.V2,
+              ...crossBaseLinkProps,
+            },
+          );
+        }
 
         // Delete old + insert new BT col_relations
         await ncMeta.metaDelete(
@@ -6178,6 +6193,62 @@ export class ColumnsService implements IColumnsService {
         throw metaError;
       }
 
+      // ── Phase C: Post-transaction operations ──
+      // Column.insert and RollupColumn.insert use Noco.ncMeta internally.
+
+      if (isLinksColumn) {
+        // Compute column_order: place new LTAR column right after the original
+        let columnOrder: { order: number; view_id: string | null } | undefined;
+        const defaultView = (
+          await View.list(context, parentTable.id)
+        )?.[0];
+        if (defaultView) {
+          const viewColumns = await View.getColumns(
+            context,
+            defaultView.id,
+          );
+          const origViewCol = viewColumns.find(
+            (vc) => (vc as any).fk_column_id === hmColumn.id,
+          );
+          if (origViewCol) {
+            columnOrder = {
+              order: (origViewCol as any).order + 0.5,
+              view_id: null,
+            };
+          }
+        }
+
+        // Create new V2 LTAR column
+        const newLtarCol = await Column.insert(context, {
+          fk_model_id: hmColumn.fk_model_id,
+          title: getUniqueColumnAliasName(
+            await parentTable.getColumns(context),
+            hmColumn.title,
+          ),
+          uidt: UITypes.Links,
+          type: hmNewType,
+          version: LinksVersion.V2,
+          fk_child_column_id: parentPK.id,
+          fk_parent_column_id: childPK.id,
+          fk_mm_model_id: assocModel.id,
+          fk_mm_child_column_id: parentCol.id,
+          fk_mm_parent_column_id: childCol.id,
+          fk_related_model_id: hmColOptions.fk_related_model_id,
+          fk_target_view_id: hmColOptions.fk_target_view_id,
+          virtual: isVirtual,
+          column_order: columnOrder,
+          ...crossBaseLinkProps,
+        });
+
+        // Create COL_ROLLUP metadata linking the original column to the new LTAR
+        await RollupColumn.insert(context, {
+          fk_column_id: hmColumn.id,
+          fk_relation_column_id: newLtarCol.id,
+          fk_rollup_column_id: childPK.id,
+          rollup_function: 'count',
+        });
+      }
+
       // Clear caches after successful commit
       await NocoCache.deepDel(
         context,
@@ -6189,6 +6260,15 @@ export class ColumnsService implements IColumnsService {
         `${CacheScope.COL_RELATION}:${btColumn.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
+
+      if (isLinksColumn) {
+        // Clear column cache so it re-reads as Rollup
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.COLUMN}:${hmColumn.id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
 
       if (fkColumn.uidt === UITypes.ForeignKey) {
         if (param.deleteFkColumn) {
@@ -6254,6 +6334,193 @@ export class ColumnsService implements IColumnsService {
   }
 
   /**
+   * Convert a V1 MM column to V2. MM already has a junction table,
+   * so we only need to update version metadata. For Links MM columns,
+   * convert the original to Rollup and create a new V2 LTAR column.
+   */
+  async convertMMToV2(
+    context: NcContext,
+    param: {
+      column: Column;
+      colOptions: LinkToAnotherRecordColumn;
+      req: NcRequest;
+    },
+  ) {
+    const { column, colOptions } = param;
+
+    const sourceTable = await Model.getWithInfo(context, {
+      id: column.fk_model_id,
+    });
+
+    // Find paired MM column on the related table
+    const { refContext } = colOptions.getRelContext(context);
+    const relatedTable = await colOptions.getRelatedTable(refContext);
+    const relatedColumns = await relatedTable.getColumns(refContext);
+
+    let pairedColumn: Column | undefined;
+
+    for (const c of relatedColumns) {
+      if (!isLinksOrLTAR(c.uidt)) continue;
+      if (c.id === column.id) continue;
+      const opts =
+        await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
+      if (
+        opts.type === RelationTypes.MANY_TO_MANY &&
+        opts.fk_mm_model_id === colOptions.fk_mm_model_id &&
+        opts.fk_related_model_id === sourceTable.id
+      ) {
+        pairedColumn = c;
+        break;
+      }
+    }
+
+    const isLinksColumn = column.uidt === UITypes.Links;
+
+    // Meta transaction: update version on both sides
+    const ncMeta = await (
+      Noco.ncMeta as MetaService
+    ).startTransaction();
+
+    try {
+      if (isLinksColumn) {
+        // Links MM → convert to Rollup in-place
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COLUMNS,
+          { uidt: UITypes.Rollup },
+          column.id,
+        );
+
+        // Delete old COL_RELATIONS (Rollup doesn't use it)
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_RELATIONS,
+          { fk_column_id: column.id },
+        );
+      } else {
+        // Plain LinkToAnotherRecord MM → update version in-place
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_RELATIONS,
+          { version: LinksVersion.V2 },
+          { fk_column_id: column.id },
+        );
+      }
+
+      // Update version on paired side
+      if (pairedColumn) {
+        await ncMeta.metaUpdate(
+          refContext.workspace_id,
+          refContext.base_id,
+          MetaTable.COL_RELATIONS,
+          { version: LinksVersion.V2 },
+          { fk_column_id: pairedColumn.id },
+        );
+      }
+
+      await ncMeta.commit();
+    } catch (metaError) {
+      await ncMeta.rollback();
+      throw metaError;
+    }
+
+    // Post-transaction: create new LTAR + Rollup metadata for Links columns
+    if (isLinksColumn) {
+      const sourcePK = sourceTable.primaryKey;
+      const relatedPK = relatedTable.primaryKey;
+
+      // Compute column_order: place new LTAR after the original
+      let columnOrder: { order: number; view_id: string | null } | undefined;
+      const defaultView = (
+        await View.list(context, sourceTable.id)
+      )?.[0];
+      if (defaultView) {
+        const viewColumns = await View.getColumns(
+          context,
+          defaultView.id,
+        );
+        const origViewCol = viewColumns.find(
+          (vc) => (vc as any).fk_column_id === column.id,
+        );
+        if (origViewCol) {
+          columnOrder = {
+            order: (origViewCol as any).order + 0.5,
+            view_id: null,
+          };
+        }
+      }
+
+      // Create new V2 LTAR column
+      const newLtarCol = await Column.insert(context, {
+        fk_model_id: column.fk_model_id,
+        title: getUniqueColumnAliasName(
+          await sourceTable.getColumns(context),
+          column.title,
+        ),
+        uidt: UITypes.Links,
+        type: RelationTypes.MANY_TO_MANY,
+        version: LinksVersion.V2,
+        fk_child_column_id: colOptions.fk_child_column_id,
+        fk_parent_column_id: colOptions.fk_parent_column_id,
+        fk_mm_model_id: colOptions.fk_mm_model_id,
+        fk_mm_child_column_id: colOptions.fk_mm_child_column_id,
+        fk_mm_parent_column_id: colOptions.fk_mm_parent_column_id,
+        fk_related_model_id: colOptions.fk_related_model_id,
+        fk_target_view_id: colOptions.fk_target_view_id,
+        virtual: colOptions.virtual,
+        column_order: columnOrder,
+      });
+
+      // Create COL_ROLLUP metadata linking the original column to the new LTAR
+      await RollupColumn.insert(context, {
+        fk_column_id: column.id,
+        fk_relation_column_id: newLtarCol.id,
+        fk_rollup_column_id: relatedPK.id,
+        rollup_function: 'count',
+      });
+
+      // Clear column cache so it re-reads as Rollup
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.COLUMN}:${column.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
+
+    // Clear relation caches
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.COL_RELATION}:${column.id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+    if (pairedColumn) {
+      await NocoCache.deepDel(
+        refContext,
+        `${CacheScope.COL_RELATION}:${pairedColumn.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
+
+    await View.clearSingleQueryCache(context, sourceTable.id);
+    await View.clearSingleQueryCache(refContext, relatedTable.id);
+
+    // Emit events
+    (this.appHooksService as any).emit(AppEvents.COLUMN_UPDATE, {
+      table: sourceTable,
+      column,
+      req: param.req,
+      context,
+      columnId: column.id,
+      columns: await sourceTable.getColumns(context),
+    });
+
+    return sourceTable;
+  }
+
+  /**
    * Convert all V1 LTAR columns in a table to V2 (junction-table-based).
    * Automatically deduplicates HM/BT pairs so each relation is only converted once.
    */
@@ -6284,7 +6551,6 @@ export class ColumnsService implements IColumnsService {
         await col.getColOptions<LinkToAnotherRecordColumn>(context);
 
       if (opts.version === LinksVersion.V2) continue;
-      if (opts.type === RelationTypes.MANY_TO_MANY) continue;
 
       // Create a unique key for the pair based on parent/child column IDs
       const pairKey = [opts.fk_parent_column_id, opts.fk_child_column_id]

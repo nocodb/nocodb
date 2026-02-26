@@ -19,7 +19,7 @@ const onCreateDoc = async () => {
 </script>
 
 <template>
-  <div>
+  <div data-testid="nc-docs-sidebar-pages-list">
     <!-- Empty state: no create permission -->
     <div
       v-if="!baseDocs.length && !isUIAllowed('docCreate')"
@@ -34,6 +34,7 @@ const onCreateDoc = async () => {
         v-if="!baseDocs.length && isUIAllowed('docCreate')"
         class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
         role="button"
+        data-testid="nc-docs-sidebar-add-page"
         @click="onCreateDoc"
       >
         <div class="nc-project-home-section-item">

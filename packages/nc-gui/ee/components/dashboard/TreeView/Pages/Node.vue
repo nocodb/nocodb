@@ -292,6 +292,7 @@ function onStopEdit() {
               '!visible !opacity-100': isDropdownOpen,
             }"
             class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100) nc-sidebar-doc-node-context-btn"
+            data-testid="docs-sidebar-page-options"
             size="xxsmall"
             type="text"
             @mouseenter="showNodeTooltip = false"

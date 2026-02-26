@@ -1193,7 +1193,7 @@ onBeforeUnmount(() => {
       <!-- Title -->
       <div class="nc-doc-editor-header pt-12 pb-4">
         <div class="nc-doc-title-row flex items-center">
-          <div class="nc-doc-editor-icon-wrapper flex-shrink-0">
+          <div class="nc-doc-editor-icon-wrapper flex-shrink-0" data-testid="nc-doc-opened-page-icon-picker">
             <LazyGeneralEmojiPicker
               :key="doc?.meta?.icon"
               :clearable="true"
@@ -1216,6 +1216,7 @@ onBeforeUnmount(() => {
             v-model="title"
             :readonly="!isEditable"
             class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
+            data-testid="docs-page-title"
             :placeholder="$t('general.untitled')"
             @blur="onTitleBlur"
             @keydown="onTitleKeydown"
@@ -1237,7 +1238,7 @@ onBeforeUnmount(() => {
       </div>
 
       <!-- Editor — always mounted so ProseMirror view stays attached -->
-      <div class="nc-doc-editor-body pb-48 relative" @click="onEditorBodyClick">
+      <div class="nc-doc-editor-body pb-48 relative" data-testid="docs-page-content" @click="onEditorBodyClick">
         <template v-if="editor">
           <!-- Bubble menu: appears on text selection (including inside table cells) -->
           <BubbleMenu

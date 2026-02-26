@@ -36,7 +36,7 @@ onBeforeRouteLeave(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full w-full">
+  <div class="flex flex-col h-full w-full" data-testid="docs-opened-page">
     <LazyDocEditor v-if="docId" :doc-id="docId" />
   </div>
 </template>

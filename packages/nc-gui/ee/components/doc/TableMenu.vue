@@ -355,12 +355,12 @@ onBeforeUnmount(() => {
             <div class="nc-table-col-toolbar">
               <!-- Insert -->
               <NcTooltip :title="$t('labels.insertColumnLeft')">
-                <NcButton icon-only size="xsmall" type="text" @click="onColumnAction(cIdx, 'insertBefore')">
+                <NcButton icon-only size="xsmall" type="text" data-testid="nc-docs-table-column-insert-left" @click="onColumnAction(cIdx, 'insertBefore')">
                   <template #icon><GeneralIcon icon="ncInsertColumnLeft" /></template>
                 </NcButton>
               </NcTooltip>
               <NcTooltip :title="$t('labels.insertColumnRight')">
-                <NcButton icon-only size="xsmall" type="text" @click="onColumnAction(cIdx, 'insertAfter')">
+                <NcButton icon-only size="xsmall" type="text" data-testid="nc-docs-table-column-insert-right" @click="onColumnAction(cIdx, 'insertAfter')">
                   <template #icon><GeneralIcon icon="ncInsertColumnRight" /></template>
                 </NcButton>
               </NcTooltip>
@@ -388,7 +388,7 @@ onBeforeUnmount(() => {
 
               <!-- Delete -->
               <NcTooltip :title="$t('labels.deleteColumn')">
-                <NcButton icon-only size="xsmall" type="text" class="!text-red-500 !hover:text-red-600" @click="onColumnAction(cIdx, 'delete')">
+                <NcButton icon-only size="xsmall" type="text" class="!text-red-500 !hover:text-red-600" data-testid="nc-docs-table-column-delete" @click="onColumnAction(cIdx, 'delete')">
                   <template #icon><GeneralIcon icon="delete" /></template>
                 </NcButton>
               </NcTooltip>
@@ -422,12 +422,12 @@ onBeforeUnmount(() => {
           <template #overlay>
             <div class="nc-table-row-toolbar">
               <NcTooltip v-if="rIdx > 0" :title="$t('labels.insertRowAbove')" placement="right">
-                <NcButton icon-only size="xsmall" type="text" @click="onRowAction(rIdx, 'insertBefore')">
+                <NcButton icon-only size="xsmall" type="text" data-testid="nc-docs-table-row-insert-above" @click="onRowAction(rIdx, 'insertBefore')">
                   <template #icon><GeneralIcon icon="ncChevronUp" /></template>
                 </NcButton>
               </NcTooltip>
               <NcTooltip :title="$t('labels.insertRowBelow')" placement="right">
-                <NcButton icon-only size="xsmall" type="text" @click="onRowAction(rIdx, 'insertAfter')">
+                <NcButton icon-only size="xsmall" type="text" data-testid="nc-docs-table-row-insert-below" @click="onRowAction(rIdx, 'insertAfter')">
                   <template #icon><GeneralIcon icon="ncChevronDown" /></template>
                 </NcButton>
               </NcTooltip>
@@ -435,7 +435,7 @@ onBeforeUnmount(() => {
               <div class="nc-table-row-toolbar-divider" />
 
               <NcTooltip :title="$t('labels.deleteRow')" placement="right">
-                <NcButton icon-only size="xsmall" type="text" class="!text-red-500 !hover:text-red-600" @click="onRowAction(rIdx, 'delete')">
+                <NcButton icon-only size="xsmall" type="text" class="!text-red-500 !hover:text-red-600" data-testid="nc-docs-table-row-delete" @click="onRowAction(rIdx, 'delete')">
                   <template #icon><GeneralIcon icon="delete" /></template>
                 </NcButton>
               </NcTooltip>

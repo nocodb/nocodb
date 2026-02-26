@@ -21,7 +21,7 @@ const originalUrl = computed(() => props.node.attrs.url || '')
 </script>
 
 <template>
-  <NodeViewWrapper class="nc-embed-wrapper" data-drag-handle>
+  <NodeViewWrapper class="nc-embed-wrapper" data-drag-handle data-testid="nc-doc-embed">
     <div
       class="nc-embed-card"
       :class="{ 'nc-embed-selected': selected }"

@@ -50,18 +50,6 @@ export class DocsOpenedPagePage extends BasePage {
     await expect.poll(() => this.get().getByTestId('docs-page-title').inputValue()).toBe(title);
   }
 
-  async verifyPageOutlineOpened({ isOpened }: { isOpened: boolean }) {
-    if (isOpened) {
-      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toBeVisible();
-      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toHaveAttribute('aria-expanded', 'true');
-      await expect(this.rootPage.getByTestId('docs-page-outline-content')).toBeVisible();
-    } else {
-      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toBeVisible();
-      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toHaveAttribute('aria-expanded', 'false');
-      await expect(this.rootPage.getByTestId('docs-page-outline-content')).not.toBeVisible();
-    }
-  }
-
   async verifyOpenedPageVisible() {
     await expect(this.get()).toBeVisible();
   }
@@ -82,27 +70,6 @@ export class DocsOpenedPagePage extends BasePage {
     });
   }
 
-  async verifyTitleEmoji({ emoji }: { emoji: string }) {
-    await expect(
-      this.get().getByTestId('docs-page-title-wrapper').getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
-    ).toBeVisible();
-  }
-
-  async verifyChildPage({ title }: { title: string }) {
-    await this.get()
-      .locator('.docs-page-child-pages')
-      .locator(`.docs-page-child-page >> text=${title}`)
-      .scrollIntoViewIfNeeded();
-
-    await expect(
-      this.get().locator('.docs-page-child-pages').locator(`.docs-page-child-page >> text=${title}`)
-    ).toBeVisible();
-  }
-
-  async verifyChildPagesNotVisible() {
-    await expect(this.get().locator('.docs-page-child-pages')).not.toBeVisible();
-  }
-
   async verifyTitleIsReadOnly({ editable }: { editable: boolean }) {
     await expect(this.get().getByTestId('docs-page-title')).toBeEditable({
       editable: editable,
@@ -114,43 +81,5 @@ export class DocsOpenedPagePage extends BasePage {
       'contenteditable',
       editable ? 'true' : 'false'
     );
-  }
-
-  async togglePageOutline() {
-    await this.rootPage.getByTestId('docs-page-outline-toggle').click();
-  }
-
-  async verifyPageOutline({ pages }: { pages: { title: string; active?: boolean; level?: number }[] }) {
-    for (let index = 0; index < pages.length; index++) {
-      const { title, active, level } = pages[index];
-      await expect(this.rootPage.getByTestId(`docs-page-outline-subheading-${index}`)).toHaveText(title);
-
-      if (active) {
-        await expect(this.rootPage.getByTestId(`docs-page-outline-subheading-${index}`)).toHaveAttribute(
-          'aria-current',
-          'page'
-        );
-      }
-
-      if (level) {
-        await expect(this.rootPage.getByTestId(`docs-page-outline-subheading-${index}`)).toHaveAttribute(
-          'aria-level',
-          level.toString()
-        );
-      }
-    }
-  }
-
-  async verifyBreadcrumb({ pages }: { pages: { title: string; emoji?: string }[] }) {
-    for (let index = 0; index < pages.length; index++) {
-      const { title, emoji } = pages[index];
-      await expect(this.get().getByTestId(`nc-doc-page-breadcrumb-${index}`)).toHaveText(title);
-
-      if (emoji) {
-        await expect(
-          this.get().getByTestId(`nc-doc-page-breadcrumb-${index}`).getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
-        ).toBeVisible();
-      }
-    }
   }
 }

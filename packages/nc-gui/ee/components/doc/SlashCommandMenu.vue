@@ -148,7 +148,7 @@ defineExpose({ onKeyDown })
 
 <template>
   <!-- Input mode: inline URL input replacing the menu -->
-  <div v-if="inputMode" class="nc-slash-menu nc-slash-input-mode">
+  <div v-if="inputMode" class="nc-slash-menu nc-docs-command-list nc-slash-input-mode" data-testid="nc-docs-command-list">
     <div class="nc-slash-input-row">
       <!-- SAFETY: icon is always a trusted SVG string from SlashCommand.ts — never user input -->
       <span class="nc-slash-menu-icon" v-html="pendingItem?.icon" />
@@ -156,6 +156,7 @@ defineExpose({ onKeyDown })
         ref="inputRef"
         v-model="inputValue"
         class="nc-slash-input"
+        data-testid="nc-docs-command-list-link-input"
         :placeholder="pendingItem?.inputPlaceholder || $t('placeholder.enterUrl')"
         @keydown.enter.prevent="submitInput"
         @keydown.escape.prevent="cancelInput"
@@ -164,7 +165,7 @@ defineExpose({ onKeyDown })
   </div>
 
   <!-- Normal menu mode -->
-  <div v-else-if="items.length" ref="menuRef" class="nc-slash-menu">
+  <div v-else-if="items.length" ref="menuRef" class="nc-slash-menu nc-docs-command-list" data-testid="nc-docs-command-list">
     <template v-for="(group, gIdx) in groupedItems" :key="group.group">
       <div v-if="gIdx > 0" class="nc-slash-menu-divider" />
       <div class="nc-slash-menu-group-label">{{ group.group }}</div>
@@ -173,6 +174,7 @@ defineExpose({ onKeyDown })
         :key="entry.item.title"
         class="nc-slash-menu-item"
         :class="{ 'is-selected': entry.globalIndex === selectedIndex }"
+        :data-testid="`nc-docs-command-list-item-${entry.item.title}`"
         @click="selectItem(entry.globalIndex)"
         @mouseenter="selectedIndex = entry.globalIndex"
       >

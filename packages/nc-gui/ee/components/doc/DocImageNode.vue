@@ -168,6 +168,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
         :alt="node.attrs.alt || ''"
         :title="node.attrs.title || ''"
         class="nc-doc-image"
+        data-testid="nc-doc-image"
         draggable="false"
       />
 

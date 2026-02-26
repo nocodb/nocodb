@@ -22,6 +22,10 @@ const { loadViews } = useViewsStore()
 
 const viewSectionsStore = useViewSectionsStore()
 
+const { DEFAULT_SECTION_ID } = viewSectionsStore
+
+const { pendingExpandSectionId } = storeToRefs(viewSectionsStore)
+
 const sections = computed(() => {
   if (!table.value.base_id || !table.value.id) return []
   return viewSectionsStore.getSections(table.value.base_id, table.value.id)
@@ -40,9 +44,6 @@ const isDefaultSource = computed(() => {
   if (!source.value) return false
   return isDefaultBase(source.value)
 })
-
-/** Virtual section ID for the default folder that holds unassigned views */
-const DEFAULT_SECTION_ID = '__default__'
 
 /** Expanded sections state stored in localStorage */
 const expandedSections = ref<Record<string, boolean>>({})
@@ -274,11 +275,7 @@ async function onDeleteSection() {
 async function onCreateSection() {
   if (!table.value.id || !table.value.base_id) return
   try {
-    const lastOrder = Math.max(
-      ...sections.value.map((s) => s.order || 0),
-      ...getTopLevelViews().map((v) => v.order || 0),
-      0,
-    )
+    const lastOrder = Math.max(...sections.value.map((s) => s.order || 0), ...getTopLevelViews().map((v) => v.order || 0), 0)
     const section = await viewSectionsStore.createSection(table.value.base_id, table.value.id, {
       title: viewSectionsStore.getNextSectionTitle(table.value.base_id, table.value.id),
       order: lastOrder + 1,
@@ -292,6 +289,15 @@ async function onCreateSection() {
     message.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+/** Auto-expand section when a view is moved into it */
+watch(pendingExpandSectionId, (sectionId) => {
+  if (sectionId) {
+    expandedSections.value[sectionId] = true
+    saveExpandedSections()
+    viewSectionsStore.clearPendingExpand()
+  }
+})
 
 /** Load sections and init expanded state on table change */
 watch(
@@ -349,12 +355,7 @@ watch(
     <template v-if="showDefaultFolder">
       <!-- Real sections sortable container (only real sections, not default) -->
       <div ref="sectionsRef" class="nc-views-sections flex flex-col w-full">
-        <div
-          v-for="section of sortedSections"
-          :key="section.id"
-          :data-id="section.id"
-          class="w-full"
-        >
+        <div v-for="section of sortedSections" :key="section.id" :data-id="section.id" class="w-full">
           <DashboardTreeViewViewsSectionNode
             :section="section"
             :is-expanded="!!expandedSections[section.id!]"
@@ -396,7 +397,11 @@ watch(
         />
         <DashboardTreeViewViewsList
           v-if="expandedSections[DEFAULT_SECTION_ID] || getActiveViewForSection(DEFAULT_SECTION_ID).length"
-          :section-views="expandedSections[DEFAULT_SECTION_ID] ? getViewsInSection(DEFAULT_SECTION_ID) : getActiveViewForSection(DEFAULT_SECTION_ID)"
+          :section-views="
+            expandedSections[DEFAULT_SECTION_ID]
+              ? getViewsInSection(DEFAULT_SECTION_ID)
+              : getActiveViewForSection(DEFAULT_SECTION_ID)
+          "
           :hide-create-view-btn="true"
           :is-in-section="true"
         />

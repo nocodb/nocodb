@@ -24,6 +24,8 @@ const { updateView } = viewsStore
 
 const viewSectionsStore = useViewSectionsStore()
 
+const { DEFAULT_SECTION_ID } = viewSectionsStore
+
 const sections = computed(() => {
   if (!table.value.base_id || !table.value.id) return []
   return viewSectionsStore.getSections(table.value.base_id, table.value.id)
@@ -38,6 +40,8 @@ async function onMoveToSection(sectionId: string | null) {
     await updateView(view.value.id, {
       fk_view_section_id: sectionId,
     } as Partial<ViewType>)
+
+    viewSectionsStore.requestSectionExpand(sectionId ?? DEFAULT_SECTION_ID)
 
     $e('a:view:move-to-section', { sectionId })
   } catch (e: any) {
@@ -64,6 +68,7 @@ async function onMoveToNewSection() {
         fk_view_section_id: section.id,
       } as Partial<ViewType>)
 
+      viewSectionsStore.requestSectionExpand(section.id)
       $e('a:view:move-to-new-section')
     }
   } catch (e: any) {

@@ -2,6 +2,9 @@ import { type ViewSectionType } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 
 export const useViewSectionsStore = defineStore('viewSections', () => {
+  /** Virtual section ID for views not assigned to any real section */
+  const DEFAULT_SECTION_ID = '__default__'
+
   const { $api } = useNuxtApp()
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
@@ -13,6 +16,17 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
   // State
   const sectionsByTable = ref<Map<string, ViewSectionType[]>>(new Map())
+
+  /** Section ID that should be expanded on next render (set after move-to-section) */
+  const pendingExpandSectionId = ref<string | null>(null)
+
+  const requestSectionExpand = (sectionId: string) => {
+    pendingExpandSectionId.value = sectionId
+  }
+
+  const clearPendingExpand = () => {
+    pendingExpandSectionId.value = null
+  }
 
   // Reverse index: sectionId -> table key for O(1) lookups
   const sectionTableIndex = ref<Map<string, string>>(new Map())
@@ -233,8 +247,11 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   }
 
   return {
+    DEFAULT_SECTION_ID,
+
     // State
     sectionsByTable,
+    pendingExpandSectionId,
 
     // Getters
     getSections,
@@ -246,6 +263,8 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     deleteSection,
     reorderSection,
     getNextSectionTitle,
+    requestSectionExpand,
+    clearPendingExpand,
   }
 })
 

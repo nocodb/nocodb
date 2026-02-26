@@ -5,6 +5,8 @@ const { modelValue } = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
+const { t } = useI18n()
+
 const dialogShow = computed({
   get: () => modelValue,
   set: (v) => emit('update:modelValue', v),
@@ -15,27 +17,43 @@ const shortcutList = [
     title: 'General',
     shortcuts: [
       {
-        keys: ['ALT', 'T'],
+        keys: [renderCmdOrCtrlKey(), '/'],
+        behaviour: 'Open keyboard shortcuts',
+      },
+      {
+        keys: [renderCmdOrCtrlKey(), 'K'],
+        behaviour: 'Open quick navigation',
+      },
+      {
+        keys: [renderCmdOrCtrlKey(), 'J'],
+        behaviour: 'Search in docs',
+      },
+      {
+        keys: [renderCmdOrCtrlKey(), 'L'],
+        behaviour: 'Open recent views',
+      },
+      {
+        keys: [renderAltOrOptlKey(), 'T'],
         behaviour: 'Insert new table',
       },
       {
-        keys: ['ALT', 'R'],
+        keys: [renderAltOrOptlKey(), 'R'],
         behaviour: 'Insert new row',
       },
       {
-        keys: ['ALT', 'C'],
+        keys: [renderAltOrOptlKey(), 'C'],
         behaviour: 'Insert new column',
       },
       {
-        keys: ['ALT', 'F'],
+        keys: [renderAltOrOptlKey(), 'F'],
         behaviour: 'Toggle fullscreen mode',
       },
       {
-        keys: ['ALT', 'I'],
+        keys: [renderAltOrOptlKey(), 'I'],
         behaviour: 'Invite a member to team',
       },
       {
-        keys: ['ALT', ','],
+        keys: [renderAltOrOptlKey(), ','],
         behaviour: 'Open Team & Settings',
       },
     ],
@@ -229,43 +247,55 @@ const shortcutList = [
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    :class="{ active: dialogShow }"
-    width="max(30vw, 600px)"
-    class="p-2"
-    :footer="null"
-    :wrap-class-name="`nc-modal-keyboard-shortcuts ${dialogShow ? 'active' : ''}`"
-    @keydown.esc="dialogShow = false"
-  >
-    <template #title> {{ $t('title.keyboardShortcut') }} </template>
-    <a-list
-      v-for="(shortcutItem, shortcutItemIdx) of shortcutList"
-      :key="shortcutItemIdx"
-      class="nc-shortcut-list !mb-5"
-      size="small"
-      bordered
-      :data-source="shortcutItem.shortcuts"
-    >
-      <template #header>
-        <div class="font-bold">{{ shortcutItem.title }}</div>
-      </template>
-      <template #renderItem="{ item }">
-        <a-list-item>
-          <span class="inline-block">
-            <kbd
-              v-for="(key, keyIdx) of item.keys"
-              :key="keyIdx"
-              class="ml-[1px] mr-[1px] px-[8px] py-[3px] border-b-[3px] uppercase border-1 border-solid border-primary border-opacity-50 rounded"
+  <NcModal v-model:visible="dialogShow" size="md" :show-separator="false" closable>
+    <div class="flex flex-col h-full">
+      <div class="flex items-center gap-2 pb-3 border-b-1 border-nc-border-gray-medium flex-none">
+        <GeneralIcon icon="keyboard" class="w-5 h-5 text-nc-content-gray-subtle" />
+        <h3 class="text-base font-semibold text-nc-content-gray m-0">
+          {{ $t('title.keyboardShortcut') }}
+        </h3>
+      </div>
+
+      <div class="flex-1 overflow-y-auto nc-scrollbar-thin mt-3 -mr-2 pr-2">
+        <div v-for="(section, sectionIdx) of shortcutList" :key="sectionIdx" class="mb-4 last:mb-0">
+          <div class="text-bodySm font-semibold text-nc-content-gray-subtle mb-2 uppercase tracking-wide">
+            {{ section.title }}
+          </div>
+          <div class="flex flex-col rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
+            <div
+              v-for="(item, itemIdx) of section.shortcuts"
+              :key="itemIdx"
+              class="flex items-center justify-between py-2 px-3 gap-4"
+              :class="{ 'border-t-1 border-nc-border-gray-light': itemIdx > 0 }"
             >
-              {{ key }}
-            </kbd>
-          </span>
-          <span class="inline-block text-right">
-            {{ item.behaviour }}
-          </span>
-        </a-list-item>
-      </template>
-    </a-list>
-  </a-modal>
+              <span class="text-bodySm text-nc-content-gray-subtle2">
+                {{ item.behaviour }}
+              </span>
+              <span class="flex items-center gap-1 flex-none">
+                <kbd
+                  v-for="(key, keyIdx) of item.keys"
+                  :key="keyIdx"
+                  class="nc-kbd"
+                >
+                  {{ key }}
+                </kbd>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </NcModal>
 </template>
+
+<style lang="scss" scoped>
+.nc-kbd {
+  @apply inline-flex items-center justify-center
+    min-w-6 h-6 px-1.5
+    text-[11px] font-medium leading-none
+    text-nc-content-gray-subtle
+    bg-nc-bg-gray-light
+    border-1 border-nc-border-gray-medium border-b-2
+    rounded-md;
+}
+</style>

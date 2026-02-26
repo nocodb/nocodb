@@ -4,7 +4,9 @@ import { expect } from 'chai';
 import {
   PlanFeatureTypes,
   PlanLimitTypes,
+  ProjectRoles,
   TeamUserRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
@@ -1343,6 +1345,655 @@ export default function () {
             expect(engDetail.inherited_members).to.have.length(0);
           }
         });
+      });
+    });
+
+    // ---------------------------------------------------------------
+    // Spec §3.4: Upward Cascade for Base Roles
+    //
+    // When a child team is assigned a base role, parent team members
+    // inherit that role through upward cascade. Children do NOT inherit
+    // parent roles downward.
+    // ---------------------------------------------------------------
+
+    describe('Spec §3.4: Upward Base Role Cascade', () => {
+      let baseId: string;
+
+      /**
+       * Helper: get user's resolved roles
+       */
+      async function getUserRoles(
+        token: string,
+        _baseId: string,
+      ): Promise<any> {
+        const res = await request(context.app)
+          .get(`/api/v1/auth/user/me?base_id=${_baseId}`)
+          .set('xc-auth', token)
+          .expect(200);
+        return res.body;
+      }
+
+      beforeEach(async function () {
+        this.timeout(120000);
+
+        // Create a base
+        const { createProject } = await import('../../../factory/base');
+        const base = await createProject(context);
+        baseId = base.id;
+
+        // Give all test users workspace access so they pass middleware
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+          .set('xc-token', context.xc_token)
+          .send(
+            [engUser.id, feUser.id, beUser.id, webUser.id, salesUser.id].map(
+              (userId) => ({
+                user_id: userId,
+                workspace_role: WorkspaceUserRoles.VIEWER,
+              }),
+            ),
+          )
+          .expect(200);
+      });
+
+      it('parent team member should inherit base role from child team (upward cascade)', async () => {
+        // Assign Frontend team to base with Editor role
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: frontendId, base_role: ProjectRoles.EDITOR })
+          .expect(200);
+
+        // feUser (direct Frontend member) should get Editor
+        const feRoles = await getUserRoles(feToken, baseId);
+        expect(feRoles.base_roles).to.have.property(ProjectRoles.EDITOR, true);
+
+        // engUser (Engineering = parent of Frontend) should ALSO get Editor (upward cascade)
+        const engRoles = await getUserRoles(engToken, baseId);
+        expect(engRoles.base_roles).to.have.property(
+          ProjectRoles.EDITOR,
+          true,
+        );
+      });
+
+      it('child team member should NOT inherit base role from parent team (no downward cascade)', async () => {
+        // Assign Engineering team to base with Creator role
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: engineeringId, base_role: ProjectRoles.CREATOR })
+          .expect(200);
+
+        // engUser (direct Engineering member) should get Creator
+        const engRoles = await getUserRoles(engToken, baseId);
+        expect(engRoles.base_roles).to.have.property(
+          ProjectRoles.CREATOR,
+          true,
+        );
+
+        // feUser (Frontend = child of Engineering) should NOT get Creator
+        // They only have workspace Viewer role → mapped to base viewer
+        const feRoles = await getUserRoles(feToken, baseId);
+        expect(feRoles.base_roles).to.not.have.property(ProjectRoles.CREATOR);
+      });
+
+      it('sibling team member should NOT inherit base role (sibling isolation)', async () => {
+        // Assign Frontend to base with Editor
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: frontendId, base_role: ProjectRoles.EDITOR })
+          .expect(200);
+
+        // beUser (Backend = sibling of Frontend under Engineering) should NOT get Editor
+        const beRoles = await getUserRoles(beToken, baseId);
+        expect(beRoles.base_roles).to.not.have.property(ProjectRoles.EDITOR);
+      });
+
+      it('grandparent should inherit highest role from any descendant', async () => {
+        // Assign Web Team to base with Editor
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: webTeamId, base_role: ProjectRoles.EDITOR })
+          .expect(200);
+
+        // Assign Backend to base with Creator
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: backendId, base_role: ProjectRoles.CREATOR })
+          .expect(200);
+
+        // engUser (Engineering = parent of both branches) should get Creator (highest)
+        const engRoles = await getUserRoles(engToken, baseId);
+        expect(engRoles.base_roles).to.have.property(
+          ProjectRoles.CREATOR,
+          true,
+        );
+      });
+
+      it('spec §2.3 Jack scenario: API Team member gets NO access from parent Backend assignment', async () => {
+        // Create API Team under Backend
+        const apiTeamId = await createTeam('API Team', backendId);
+        const jackResult = await createUser(context, {
+          email: 'jack-h@test.com',
+        });
+        await addMember(apiTeamId, jackResult.user.id);
+
+        // Give Jack workspace viewer access
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+          .set('xc-token', context.xc_token)
+          .send([
+            {
+              user_id: jackResult.user.id,
+              workspace_role: WorkspaceUserRoles.VIEWER,
+            },
+          ])
+          .expect(200);
+
+        // Assign Backend to base with Creator
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: backendId, base_role: ProjectRoles.CREATOR })
+          .expect(200);
+
+        // Jack (API Team, child of Backend) should NOT get Creator — no downward cascade
+        const jackRoles = await getUserRoles(jackResult.token, baseId);
+        expect(jackRoles.base_roles).to.not.have.property(
+          ProjectRoles.CREATOR,
+        );
+      });
+    });
+
+    // ---------------------------------------------------------------
+    // Spec §4.1: Multi-Layer Access (base role + table perm + RLS)
+    //
+    // Tests the complete resolution combining base roles, table
+    // permissions, and permission subject expansion direction.
+    //
+    // The key insight: upward cascade applies to roles, but permission
+    // subjects expand DOWNWARD. An ancestor team member does NOT match
+    // a descendant team's permission subject.
+    // ---------------------------------------------------------------
+
+    describe('Spec §4.1: Multi-Layer Access', () => {
+      let baseId: string;
+      let tableId: string;
+
+      beforeEach(async function () {
+        this.timeout(120000);
+
+        // Create base + table
+        const { createProject } = await import('../../../factory/base');
+        const base = await createProject(context);
+        baseId = base.id;
+
+        const { createTable } = await import('../../../factory/table');
+        const table = await createTable(context, base);
+        tableId = table.id;
+
+        // Give all users workspace access
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+          .set('xc-token', context.xc_token)
+          .send(
+            [engUser.id, feUser.id, beUser.id, webUser.id, salesUser.id].map(
+              (userId) => ({
+                user_id: userId,
+                workspace_role: WorkspaceUserRoles.EDITOR,
+              }),
+            ),
+          )
+          .expect(200);
+      });
+
+      it('ancestor team member gets base role via upward cascade BUT not permission subject match', async () => {
+        // Setup: Assign Frontend team to base with Editor
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: frontendId, base_role: ProjectRoles.EDITOR })
+          .expect(200);
+
+        // Set TABLE_RECORD_ADD permission with Frontend as subject (self_and_descendants)
+        await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'setPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: 'TABLE_RECORD_ADD',
+            granted_type: 'user',
+            subjects: [{ type: 'team', id: frontendId }],
+          })
+          .expect(200);
+
+        // feUser (Frontend member) → has Editor role + matches permission → can add records
+        const feRes = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', feToken)
+          .send({ Title: 'fe-record' });
+        expect(feRes.status).to.be.oneOf([200, 201]);
+
+        // webUser (Web Team = descendant of Frontend) → matches permission (downward expansion)
+        const webRes = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', webToken)
+          .send({ Title: 'web-record' });
+        expect(webRes.status).to.be.oneOf([200, 201]);
+
+        // engUser (Engineering = PARENT of Frontend) → gets Editor via upward cascade
+        // BUT does NOT match TABLE_RECORD_ADD permission (ancestor, not descendant)
+        const engRes = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', engToken)
+          .send({ Title: 'eng-record' });
+        expect(engRes.status).to.be.oneOf([401, 403]);
+
+        // Cleanup
+        await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'dropPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: 'TABLE_RECORD_ADD',
+          });
+      });
+
+      it('permission subject with self_only blocks both ancestors AND descendants', async () => {
+        // Set TABLE_RECORD_ADD with Frontend (self_only)
+        await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'setPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: 'TABLE_RECORD_ADD',
+            granted_type: 'user',
+            subjects: [
+              {
+                type: 'team',
+                id: frontendId,
+                hierarchy_scope: 'self_only',
+              },
+            ],
+          })
+          .expect(200);
+
+        // feUser (direct Frontend member) → allowed
+        const feRes = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', feToken)
+          .send({ Title: 'fe-self-only' });
+        expect(feRes.status).to.be.oneOf([200, 201]);
+
+        // webUser (descendant) → BLOCKED (self_only)
+        const webRes = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', webToken)
+          .send({ Title: 'web-self-only' });
+        expect(webRes.status).to.be.oneOf([401, 403]);
+
+        // engUser (ancestor) → BLOCKED (ancestors never match permission subjects)
+        const engRes = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', engToken)
+          .send({ Title: 'eng-self-only' });
+        expect(engRes.status).to.be.oneOf([401, 403]);
+
+        // Cleanup
+        await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'dropPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: 'TABLE_RECORD_ADD',
+          });
+      });
+    });
+
+    // ---------------------------------------------------------------
+    // Spec §4.2: Upward cascade with two branches
+    //
+    // Diana (Frontend) should get Editor from Web Team (child) but
+    // NOT Creator from Backend (sibling). Alice (Engineering) gets
+    // both, taking the highest (Creator).
+    // ---------------------------------------------------------------
+
+    describe('Spec §4.2: Multi-branch base role resolution', () => {
+      let baseId: string;
+
+      async function getUserRoles(
+        token: string,
+        _baseId: string,
+      ): Promise<any> {
+        const res = await request(context.app)
+          .get(`/api/v1/auth/user/me?base_id=${_baseId}`)
+          .set('xc-auth', token)
+          .expect(200);
+        return res.body;
+      }
+
+      beforeEach(async function () {
+        this.timeout(120000);
+
+        const { createProject } = await import('../../../factory/base');
+        const base = await createProject(context);
+        baseId = base.id;
+
+        // Give users workspace viewer so they can access things
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+          .set('xc-token', context.xc_token)
+          .send(
+            [engUser.id, feUser.id, beUser.id, webUser.id].map((userId) => ({
+              user_id: userId,
+              workspace_role: WorkspaceUserRoles.VIEWER,
+            })),
+          )
+          .expect(200);
+
+        // Assign Web Team → Editor on base
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: webTeamId, base_role: ProjectRoles.EDITOR })
+          .expect(200);
+
+        // Assign Backend → Creator on base
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: backendId, base_role: ProjectRoles.CREATOR })
+          .expect(200);
+      });
+
+      it('Diana (Frontend member) should get Editor from Web Team but NOT Creator from Backend', async () => {
+        const feRoles = await getUserRoles(feToken, baseId);
+
+        // Frontend is parent of Web Team → inherits Editor (upward cascade)
+        expect(feRoles.base_roles).to.have.property(
+          ProjectRoles.EDITOR,
+          true,
+        );
+
+        // Frontend is NOT parent of Backend (sibling) → should NOT get Creator
+        expect(feRoles.base_roles).to.not.have.property(ProjectRoles.CREATOR);
+      });
+
+      it('Alice (Engineering member) should get Creator (highest from all descendants)', async () => {
+        const engRoles = await getUserRoles(engToken, baseId);
+
+        // Engineering is parent of Frontend AND Backend → inherits both roles
+        // Highest wins: Creator > Editor
+        expect(engRoles.base_roles).to.have.property(
+          ProjectRoles.CREATOR,
+          true,
+        );
+      });
+
+      it('Eve (Web Team member) should get Editor (direct assignment)', async () => {
+        const webRoles = await getUserRoles(webToken, baseId);
+        expect(webRoles.base_roles).to.have.property(
+          ProjectRoles.EDITOR,
+          true,
+        );
+      });
+
+      it('Hank (Backend member) should get Creator (direct assignment)', async () => {
+        const beRoles = await getUserRoles(beToken, baseId);
+        expect(beRoles.base_roles).to.have.property(
+          ProjectRoles.CREATOR,
+          true,
+        );
+      });
+    });
+
+    // ---------------------------------------------------------------
+    // Spec §13: Moving a team with active permissions
+    //
+    // After reparenting a team, permission checks should reflect the
+    // new hierarchy. A user who matched via descendant expansion of
+    // the old parent should lose access if the team is moved elsewhere.
+    // ---------------------------------------------------------------
+
+    describe('Spec §13: Moving a team affects permissions', () => {
+      let baseId: string;
+      let tableId: string;
+
+      beforeEach(async function () {
+        this.timeout(120000);
+
+        const { createProject } = await import('../../../factory/base');
+        const base = await createProject(context);
+        baseId = base.id;
+
+        const { createTable } = await import('../../../factory/table');
+        const table = await createTable(context, base);
+        tableId = table.id;
+
+        // Restore Web Team under Frontend before each test (in case a previous test moved it)
+        await moveTeam(webTeamId, frontendId);
+
+        // Give webUser workspace editor, salesUser workspace viewer
+        // (salesUser needs a lower workspace role so we can test upward cascade granting higher base role)
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+          .set('xc-token', context.xc_token)
+          .send([
+            {
+              user_id: webUser.id,
+              workspace_role: WorkspaceUserRoles.EDITOR,
+            },
+            {
+              user_id: salesUser.id,
+              workspace_role: WorkspaceUserRoles.VIEWER,
+            },
+          ])
+          .expect(200);
+      });
+
+      it('moving Web Team from Frontend to Sales should change permission matching', async () => {
+        // Set TABLE_RECORD_ADD with Engineering subject (self_and_descendants)
+        // This expands to: Engineering, Frontend, Web Team, Backend
+        await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'setPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: 'TABLE_RECORD_ADD',
+            granted_type: 'user',
+            subjects: [{ type: 'team', id: engineeringId }],
+          })
+          .expect(200);
+
+        // webUser (Web Team, descendant of Engineering) → should be allowed
+        const webBefore = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', webToken)
+          .send({ Title: 'web-before-move' });
+        expect(webBefore.status).to.be.oneOf([200, 201]);
+
+        // Move Web Team from Frontend to Sales (no longer under Engineering)
+        const moveRes = await moveTeam(webTeamId, salesId);
+        expect(moveRes.status).to.equal(200);
+
+        // webUser should now be BLOCKED — Web Team is under Sales, not Engineering
+        const webAfter = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', webToken)
+          .send({ Title: 'web-after-move' });
+        expect(webAfter.status).to.be.oneOf([401, 403]);
+
+        // Cleanup
+        await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'dropPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: 'TABLE_RECORD_ADD',
+          });
+      });
+
+      it('moving Web Team to Sales should make it match Sales permission subject', async () => {
+        // Set TABLE_RECORD_ADD with Sales subject (self_and_descendants)
+        await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'setPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: 'TABLE_RECORD_ADD',
+            granted_type: 'user',
+            subjects: [{ type: 'team', id: salesId }],
+          })
+          .expect(200);
+
+        // webUser (Web Team, under Engineering) → should NOT match Sales subject
+        const webBefore = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', webToken)
+          .send({ Title: 'web-before-move-sales' });
+        expect(webBefore.status).to.be.oneOf([401, 403]);
+
+        // Move Web Team from Frontend to Sales
+        const moveRes = await moveTeam(webTeamId, salesId);
+        expect(moveRes.status).to.equal(200);
+
+        // webUser should now be ALLOWED — Web Team is now descendant of Sales
+        const webAfter = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', webToken)
+          .send({ Title: 'web-after-move-sales' });
+        expect(webAfter.status).to.be.oneOf([200, 201]);
+
+        // Cleanup
+        await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'dropPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: 'TABLE_RECORD_ADD',
+          });
+      });
+
+      it('moving a team should update base role cascade accordingly', async () => {
+        // Assign Web Team to base with Editor
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: webTeamId, base_role: ProjectRoles.EDITOR })
+          .expect(200);
+
+        // salesUser already has workspace EDITOR from beforeEach — that's fine,
+        // they should NOT have base-level Editor via team cascade (Sales is unrelated to Web Team)
+
+        // salesUser (Sales, unrelated to Web Team) → should NOT have Editor
+        const salesBefore = await request(context.app)
+          .get(`/api/v1/auth/user/me?base_id=${baseId}`)
+          .set('xc-auth', salesToken)
+          .expect(200);
+        expect(salesBefore.body.base_roles).to.not.have.property(
+          ProjectRoles.EDITOR,
+        );
+
+        // Move Web Team from Frontend to Sales
+        const moveRes = await moveTeam(webTeamId, salesId);
+        expect(moveRes.status).to.equal(200);
+
+        // salesUser (Sales, now PARENT of Web Team) → should inherit Editor (upward cascade)
+        const salesAfter = await request(context.app)
+          .get(`/api/v1/auth/user/me?base_id=${baseId}`)
+          .set('xc-auth', salesToken)
+          .expect(200);
+        expect(salesAfter.body.base_roles).to.have.property(
+          ProjectRoles.EDITOR,
+          true,
+        );
+      });
+    });
+
+    // ---------------------------------------------------------------
+    // Spec §13: User in multiple teams at different levels
+    // ---------------------------------------------------------------
+
+    describe('Spec §13: User in multiple teams at different levels', () => {
+      let baseId: string;
+
+      async function getUserRoles(
+        token: string,
+        _baseId: string,
+      ): Promise<any> {
+        const res = await request(context.app)
+          .get(`/api/v1/auth/user/me?base_id=${_baseId}`)
+          .set('xc-auth', token)
+          .expect(200);
+        return res.body;
+      }
+
+      beforeEach(async function () {
+        this.timeout(120000);
+
+        const { createProject } = await import('../../../factory/base');
+        const base = await createProject(context);
+        baseId = base.id;
+
+        // Give engUser workspace viewer
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+          .set('xc-token', context.xc_token)
+          .send([
+            {
+              user_id: engUser.id,
+              workspace_role: WorkspaceUserRoles.VIEWER,
+            },
+          ])
+          .expect(200);
+      });
+
+      it('user in both Engineering AND Web Team should get highest role from all matching paths', async () => {
+        // engUser is already in Engineering. Also add to Web Team.
+        await addMember(webTeamId, engUser.id);
+
+        // Assign Web Team to base with Viewer
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: webTeamId, base_role: ProjectRoles.VIEWER })
+          .expect(200);
+
+        // Assign Backend to base with Creator
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${baseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: backendId, base_role: ProjectRoles.CREATOR })
+          .expect(200);
+
+        // engUser is in Engineering (ancestor of both) + Web Team (direct)
+        // From Engineering membership: inherits Viewer (Web Team) + Creator (Backend) → highest = Creator
+        // From Web Team membership: gets Viewer directly
+        // Combined highest = Creator
+        const engRoles = await getUserRoles(engToken, baseId);
+        expect(engRoles.base_roles).to.have.property(
+          ProjectRoles.CREATOR,
+          true,
+        );
       });
     });
   });

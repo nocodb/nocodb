@@ -187,6 +187,9 @@ export enum MetaTableOldV2 {
   WORKFLOWS = 'nc_workflows',
   WORKFLOW_EXECUTIONS = 'nc_workflow_executions',
   SCRIPTS = 'nc_scripts',
+  OUTLINE_VIEW = 'nc_outline_view_v2',
+  OUTLINE_VIEW_COLUMNS = 'nc_outline_view_columns_v2',
+  OUTLINE_VIEW_LEVELS = 'nc_outline_view_levels_v2',
 }
 
 export const orderedMetaTables = [

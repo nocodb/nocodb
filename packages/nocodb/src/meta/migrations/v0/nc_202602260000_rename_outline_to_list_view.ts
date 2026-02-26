@@ -1,42 +1,48 @@
 import type { Knex } from 'knex';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  // Rename outline view tables to list view tables
-  if (await knex.schema.hasTable('nc_outline_view_v2')) {
-    await knex.schema.renameTable('nc_outline_view_v2', 'nc_list_view_v2');
-  }
-
-  if (await knex.schema.hasTable('nc_outline_view_columns_v2')) {
+  if (await knex.schema.hasTable(MetaTableOldV2.OUTLINE_VIEW)) {
     await knex.schema.renameTable(
-      'nc_outline_view_columns_v2',
-      'nc_list_view_columns_v2',
+      MetaTableOldV2.OUTLINE_VIEW,
+      MetaTable.LIST_VIEW,
     );
   }
 
-  if (await knex.schema.hasTable('nc_outline_view_levels_v2')) {
+  if (await knex.schema.hasTable(MetaTableOldV2.OUTLINE_VIEW_COLUMNS)) {
     await knex.schema.renameTable(
-      'nc_outline_view_levels_v2',
-      'nc_list_view_levels_v2',
+      MetaTableOldV2.OUTLINE_VIEW_COLUMNS,
+      MetaTable.LIST_VIEW_COLUMNS,
+    );
+  }
+
+  if (await knex.schema.hasTable(MetaTableOldV2.OUTLINE_VIEW_LEVELS)) {
+    await knex.schema.renameTable(
+      MetaTableOldV2.OUTLINE_VIEW_LEVELS,
+      MetaTable.LIST_VIEW_LEVELS,
     );
   }
 };
 
 const down = async (knex: Knex) => {
-  if (await knex.schema.hasTable('nc_list_view_v2')) {
-    await knex.schema.renameTable('nc_list_view_v2', 'nc_outline_view_v2');
-  }
-
-  if (await knex.schema.hasTable('nc_list_view_columns_v2')) {
+  if (await knex.schema.hasTable(MetaTable.LIST_VIEW)) {
     await knex.schema.renameTable(
-      'nc_list_view_columns_v2',
-      'nc_outline_view_columns_v2',
+      MetaTable.LIST_VIEW,
+      MetaTableOldV2.OUTLINE_VIEW,
     );
   }
 
-  if (await knex.schema.hasTable('nc_list_view_levels_v2')) {
+  if (await knex.schema.hasTable(MetaTable.LIST_VIEW_COLUMNS)) {
     await knex.schema.renameTable(
-      'nc_list_view_levels_v2',
-      'nc_outline_view_levels_v2',
+      MetaTable.LIST_VIEW_COLUMNS,
+      MetaTableOldV2.OUTLINE_VIEW_COLUMNS,
+    );
+  }
+
+  if (await knex.schema.hasTable(MetaTable.LIST_VIEW_LEVELS)) {
+    await knex.schema.renameTable(
+      MetaTable.LIST_VIEW_LEVELS,
+      MetaTableOldV2.OUTLINE_VIEW_LEVELS,
     );
   }
 };

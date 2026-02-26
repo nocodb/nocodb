@@ -13,7 +13,7 @@
  * NOTE: This component is mounted via Vue's `createApp` (outside Nuxt),
  * so all imports must be explicit — no auto-imports available.
  */
-import { ref, watch, nextTick, computed } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import type { SlashCommandItem } from './SlashCommand'
 
 const props = defineProps<{
@@ -239,7 +239,7 @@ defineExpose({ onKeyDown })
 }
 
 /* Only override stroke on icons that use currentColor (non-brand icons) */
-.nc-slash-menu-item.is-selected .nc-slash-menu-icon svg[stroke="currentColor"] {
+.nc-slash-menu-item.is-selected .nc-slash-menu-icon svg[stroke='currentColor'] {
   stroke: var(--nc-content-inverted-primary);
 }
 

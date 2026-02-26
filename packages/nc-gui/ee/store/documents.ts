@@ -1,4 +1,3 @@
-import { defineStore } from 'pinia'
 import type { DocumentType } from 'nocodb-sdk'
 
 /**
@@ -174,6 +173,10 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     }
   }
 
+  const setActiveDocumentId = (id: string | undefined) => {
+    activeDocumentId.value = id
+  }
+
   const deleteDocument = async (baseId: string, docId: string) => {
     if (!activeWorkspaceId.value) return false
 
@@ -230,10 +233,6 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     }
-  }
-
-  const setActiveDocumentId = (id: string | undefined) => {
-    activeDocumentId.value = id
   }
 
   // --- URL slug sync (mirrors Script store pattern) ---

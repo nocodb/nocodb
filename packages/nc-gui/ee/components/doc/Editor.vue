@@ -1,29 +1,23 @@
 <script setup lang="ts">
-import { useEditor, EditorContent, BubbleMenu } from '@tiptap/vue-3'
+import type { Editor } from '@tiptap/vue-3'
+import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TaskList from '@tiptap/extension-task-list'
-import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
+import TableRow from '@tiptap/extension-table-row'
+import { marked } from 'marked'
 import { DocHighlightExtension } from './DocHighlightExtension'
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
 import { DocEmbedExtension } from './DocEmbedExtension'
 import { DocCodeBlockExtension } from './DocCodeBlockExtension'
 import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
-import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
-import TableRow from '@tiptap/extension-table-row'
-import { marked } from 'marked'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
-import { useDocumentImageUpload } from '~/ee/composables/useDocumentImageUpload'
-import { useDocumentFileUpload } from '~/ee/composables/useDocumentFileUpload'
-import { useDocumentAutoSave } from '~/ee/composables/useDocumentAutoSave'
-import { useDocEditorLinks } from '~/ee/composables/useDocEditorLinks'
-import { useDocumentExport } from '~/ee/composables/useDocumentExport'
-import type { DocumentType } from 'nocodb-sdk'
-import { timeAgo } from '~/utils/datetimeUtils'
+import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
+import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 
 const props = defineProps<{
   docId: string
@@ -69,6 +63,37 @@ const resolveUserLabel = (userId?: string) => {
 
 const titleInput = useTemplateRef('titleInput')
 
+// --- Composables (declared before useEditor so callbacks can reference them) ---
+
+const editor = shallowRef<Editor | undefined>()
+
+const { doc, title, lastSavedTitle, isSaving, isLoaded, debouncedSave, loadAndSetDoc, flushOnUnmount, activeDocument } =
+  useDocumentAutoSave({ editor, activeProjectId, isEditable })
+
+const {
+  pasteLinkMenu,
+  dismissPasteLinkMenu,
+  keepAsLink,
+  convertToEmbed,
+  isLinkInputMode,
+  linkInputUrl,
+  linkInputRef,
+  openLinkInput,
+  applyLink,
+  cancelLinkInput,
+  linkEditUrl,
+  isLinkEditVisible,
+  linkEditInputRef,
+  checkLinkMark,
+  onLinkEditChange,
+  deleteLinkEdit,
+  openLinkExternal,
+  showRichTextMenu,
+  onSelectionUpdate,
+} = useDocEditorLinks({ editor, isEditable })
+
+const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
+
 /**
  * Detect whether plain text looks like markdown by checking for common patterns.
  * We only trigger markdown parsing when there's strong evidence — at least one
@@ -97,7 +122,7 @@ const looksLikeMarkdown = (text: string): boolean => {
   return false
 }
 
-const editor = useEditor({
+const _tiptapEditor = useEditor({
   editable: isEditable.value,
   extensions: [
     StarterKit.configure({
@@ -144,9 +169,7 @@ const editor = useEditor({
             // Check if a block exists right after the table
             if ($afterTable.nodeAfter) {
               // Move cursor to start of the next block
-              view.dispatch(state.tr.setSelection(
-                state.selection.constructor.near(state.doc.resolve(tableEndPos + 1))
-              ))
+              view.dispatch(state.tr.setSelection(state.selection.constructor.near(state.doc.resolve(tableEndPos + 1))))
             } else {
               // No block after table — insert an empty paragraph and focus it
               const paragraph = state.schema.nodes.paragraph.create()
@@ -213,7 +236,7 @@ const editor = useEditor({
       }
       return true
     },
-    handlePaste(view, event) {
+    handlePaste(_view, event) {
       // Check for pasted image files (e.g. screenshot from clipboard)
       const files = Array.from(event.clipboardData?.files || [])
       const images = files.filter((f) => f.type.startsWith('image/'))
@@ -238,11 +261,14 @@ const editor = useEditor({
           if (ed) {
             // Insert URL as linked text
             const from = ed.state.selection.from
-            ed.chain().focus().insertContent({
-              type: 'text',
-              text: pastedUrl,
-              marks: [{ type: 'link', attrs: { href: pastedUrl } }],
-            }).run()
+            ed.chain()
+              .focus()
+              .insertContent({
+                type: 'text',
+                text: pastedUrl,
+                marks: [{ type: 'link', attrs: { href: pastedUrl } }],
+              })
+              .run()
             const to = ed.state.selection.from
 
             // Position popup below the pasted link (viewport coords for fixed positioning)
@@ -293,45 +319,15 @@ const editor = useEditor({
   },
 })
 
-// --- Composables ---
-
-const {
-  doc,
-  title,
-  lastSavedTitle,
-  isSaving,
-  isLoaded,
-  isSettingContent,
-  save,
-  debouncedSave,
-  loadAndSetDoc,
-  flushOnUnmount,
-  activeDocument,
-} = useDocumentAutoSave({ editor, activeProjectId, isEditable })
-
-const {
-  pasteLinkMenu,
-  dismissPasteLinkMenu,
-  keepAsLink,
-  convertToEmbed,
-  isLinkInputMode,
-  linkInputUrl,
-  linkInputRef,
-  openLinkInput,
-  applyLink,
-  cancelLinkInput,
-  linkEditUrl,
-  isLinkEditVisible,
-  linkEditInputRef,
-  checkLinkMark,
-  onLinkEditChange,
-  deleteLinkEdit,
-  openLinkExternal,
-  showRichTextMenu,
-  onSelectionUpdate,
-} = useDocEditorLinks({ editor, isEditable })
-
-const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
+// Sync the Tiptap-managed editor ref into our manually created ref
+// so composables (declared above) can access the editor instance reactively.
+watch(
+  _tiptapEditor,
+  (e) => {
+    editor.value = e
+  },
+  { immediate: true },
+)
 
 // --- Derived state ---
 
@@ -606,10 +602,7 @@ onBeforeUnmount(() => {
               <GeneralIcon class="text-nc-content-gray-subtle" icon="copy" />
               {{ $t('labels.copyDocumentId') }}
             </NcMenuItem>
-            <NcMenuItem
-              v-if="isUIAllowed('documentCreate')"
-              @click="onDuplicatePage"
-            >
+            <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
               <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
               {{ $t('labels.duplicateDocument') }}
             </NcMenuItem>
@@ -630,11 +623,7 @@ onBeforeUnmount(() => {
               </NcMenuItem>
             </NcSubMenu>
             <NcDivider />
-            <NcMenuItem
-              v-if="isUIAllowed('documentDelete')"
-              class="!text-red-500 !hover:bg-red-50"
-              @click="onDeletePage"
-            >
+            <NcMenuItem v-if="isUIAllowed('documentDelete')" class="!text-red-500 !hover:bg-red-50" @click="onDeletePage">
               <GeneralIcon icon="delete" />
               {{ $t('labels.deleteDocument') }}
             </NcMenuItem>
@@ -658,10 +647,7 @@ onBeforeUnmount(() => {
               @emoji-selected="updateDocumentIcon($event)"
             >
               <template #default>
-                <GeneralIcon
-                  class="nc-doc-editor-icon-default text-nc-content-gray-subtle2 !text-2xl"
-                  icon="ncFileText"
-                />
+                <GeneralIcon class="nc-doc-editor-icon-default text-nc-content-gray-subtle2 !text-2xl" icon="ncFileText" />
               </template>
             </LazyGeneralEmojiPicker>
           </div>
@@ -720,7 +706,16 @@ onBeforeUnmount(() => {
                   size="small"
                   type="text"
                   :disabled="!linkInputUrl.trim()"
-                  @click="() => { if (linkInputUrl.trim()) window.open(linkInputUrl.trim().startsWith('http') ? linkInputUrl.trim() : `https://${linkInputUrl.trim()}`, '_blank', 'noopener,noreferrer') }"
+                  @click="
+                    () => {
+                      if (linkInputUrl.trim())
+                        window.open(
+                          linkInputUrl.trim().startsWith('http') ? linkInputUrl.trim() : `https://${linkInputUrl.trim()}`,
+                          '_blank',
+                          'noopener,noreferrer',
+                        )
+                    }
+                  "
                 >
                   <GeneralIcon icon="externalLink" />
                 </NcButton>
@@ -731,7 +726,12 @@ onBeforeUnmount(() => {
                   size="small"
                   type="text"
                   class="!hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
-                  @click="() => { linkInputUrl = ''; applyLink() }"
+                  @click="
+                    () => {
+                      linkInputUrl = ''
+                      applyLink()
+                    }
+                  "
                 >
                   <GeneralIcon icon="close" />
                 </NcButton>
@@ -784,7 +784,10 @@ onBeforeUnmount(() => {
                 class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
                 placeholder="Enter a link"
                 @change="onLinkEditChange"
-                @keydown.enter.prevent="($event.target as HTMLInputElement)?.blur(); editor?.commands.focus()"
+                @keydown.enter.prevent="
+                  ;($event.target as HTMLInputElement)?.blur()
+                  editor?.commands.focus()
+                "
                 @keydown.escape.prevent="editor?.commands.focus()"
               />
               <NcTooltip placement="top">
@@ -811,17 +814,12 @@ onBeforeUnmount(() => {
 
           <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->
           <DocTableMenu v-if="isEditable" :editor="editor" />
-
         </template>
       </div>
     </div>
 
     <!-- Delete page modal — matches table delete styling -->
-    <GeneralDeleteModal
-      v-model:visible="isDeleteModalOpen"
-      entity-name="Page"
-      :on-delete="confirmDeletePage"
-    >
+    <GeneralDeleteModal v-model:visible="isDeleteModalOpen" entity-name="Page" :on-delete="confirmDeletePage">
       <template #entity-preview>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle">
           <GeneralIcon icon="ncFileText" class="text-nc-content-gray-subtle" />
@@ -840,17 +838,39 @@ onBeforeUnmount(() => {
       <div
         v-if="pasteLinkMenu.visible"
         class="nc-paste-link-menu"
-        :style="{ top: pasteLinkMenu.top + 'px', left: pasteLinkMenu.left + 'px' }"
+        :style="{ top: `${pasteLinkMenu.top}px`, left: `${pasteLinkMenu.left}px` }"
       >
         <div class="nc-paste-link-item" @click="keepAsLink">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 text-nc-content-gray-subtle">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="flex-shrink-0 text-nc-content-gray-subtle"
+          >
             <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
           </svg>
           <span>{{ $t('general.keepAsLink') }}</span>
         </div>
         <div class="nc-paste-link-item" @click="convertToEmbed">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 text-nc-content-gray-subtle">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="flex-shrink-0 text-nc-content-gray-subtle"
+          >
             <rect x="2" y="3" width="20" height="14" rx="2" />
             <polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none" />
           </svg>
@@ -970,7 +990,9 @@ onBeforeUnmount(() => {
   // sit on the same baseline regardless of heading font size.
   // Only visible when the editor is focused (ProseMirror-focused) — hidden
   // when the cursor is in the title input or elsewhere outside the editor.
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     position: relative;
     color: var(--nc-content-gray-emphasis);
 
@@ -1010,9 +1032,18 @@ onBeforeUnmount(() => {
 
   // Show H1/H2/H3 labels only when editor is focused
   &.ProseMirror-focused {
-    h1::before { content: 'H1'; top: calc(1.625em * 1.3 - 12px - 2px); }
-    h2::before { content: 'H2'; top: calc(1.3em * 1.35 - 12px - 2px); }
-    h3::before { content: 'H3'; top: calc(1.125em * 1.4 - 12px - 2px); }
+    h1::before {
+      content: 'H1';
+      top: calc(1.625em * 1.3 - 12px - 2px);
+    }
+    h2::before {
+      content: 'H2';
+      top: calc(1.3em * 1.35 - 12px - 2px);
+    }
+    h3::before {
+      content: 'H3';
+      top: calc(1.125em * 1.4 - 12px - 2px);
+    }
 
     // Hide heading labels when inside a blockquote
     blockquote h1::before,
@@ -1224,7 +1255,8 @@ onBeforeUnmount(() => {
   }
 
   // Strikethrough — grey text and line (like Outline)
-  s, del {
+  s,
+  del {
     color: var(--nc-content-gray-disabled);
     text-decoration-color: var(--nc-content-gray-disabled);
   }
@@ -1302,7 +1334,6 @@ onBeforeUnmount(() => {
       pointer-events: none;
       z-index: 2;
     }
-
   }
 
   // File attachment cards

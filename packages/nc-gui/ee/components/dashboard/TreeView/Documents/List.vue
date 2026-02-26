@@ -44,10 +44,7 @@ const onCreateDocument = async () => {
       </div>
 
       <!-- Document list (shown when documents exist) -->
-      <div
-        v-else-if="baseDocuments.length"
-        class="nc-documents-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar"
-      >
+      <div v-else-if="baseDocuments.length" class="nc-documents-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar">
         <DashboardTreeViewDocumentsNode
           v-for="doc of baseDocuments"
           :key="doc.id"

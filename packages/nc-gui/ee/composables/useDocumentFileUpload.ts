@@ -8,10 +8,9 @@
  *   then swaps to permanent path once uploaded
  */
 import type { Editor } from '@tiptap/core'
-import useAttachment from '~/composables/useAttachment'
 
 export function useDocumentFileUpload() {
-  const { batchUploadFiles, getPossibleAttachmentSrc } = useAttachment()
+  const { batchUploadFiles } = useAttachment()
 
   const isUploading = ref(false)
 

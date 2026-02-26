@@ -52,13 +52,10 @@ export const CalloutExtension = Node.create({
     return [
       'div',
       mergeAttributes(HTMLAttributes, {
-        class: `nc-callout nc-callout-${type}`,
+        'class': `nc-callout nc-callout-${type}`,
         'data-callout-type': type,
       }),
-      [
-        'div',
-        { class: 'nc-callout-icon', contenteditable: 'false' },
-      ],
+      ['div', { class: 'nc-callout-icon', contenteditable: 'false' }],
       ['div', { class: 'nc-callout-content' }, 0],
     ]
   },

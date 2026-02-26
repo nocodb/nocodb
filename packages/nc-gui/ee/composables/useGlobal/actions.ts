@@ -295,9 +295,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       ? `/workflows/${workflowId}${toReadableUrlSlug([workflowTitle]) ? `/${toReadableUrlSlug([workflowTitle])}` : ''}`
       : ''
 
-    const docPath = docId
-      ? `/docs/${docId}${toReadableUrlSlug([docTitle]) ? `/${toReadableUrlSlug([docTitle])}` : ''}`
-      : ''
+    const docPath = docId ? `/docs/${docId}${toReadableUrlSlug([docTitle]) ? `/${toReadableUrlSlug([docTitle])}` : ''}` : ''
 
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''
     const workspaceId = _workspaceId || 'app'

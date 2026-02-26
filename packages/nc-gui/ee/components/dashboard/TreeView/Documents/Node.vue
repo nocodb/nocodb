@@ -304,8 +304,8 @@ function onStopEdit() {
             <NcMenu :data-testid="`sidebar-doc-context-menu-list-${doc.title}`" class="!min-w-62.5" variant="small">
               <NcMenuItemCopyId
                 v-if="doc"
-                v-e="['c:document:copy-id']"
                 :id="doc.id"
+                v-e="['c:document:copy-id']"
                 tooltip="Click to copy Document ID"
                 :label="`DOCUMENT ID: ${doc.id}`"
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
@@ -349,11 +349,7 @@ function onStopEdit() {
       </template>
     </div>
 
-    <GeneralDeleteModal
-      v-model:visible="isDeleteModalVisible"
-      :entity-name="$t('objects.document')"
-      :on-delete="confirmDelete"
-    >
+    <GeneralDeleteModal v-model:visible="isDeleteModalVisible" :entity-name="$t('objects.document')" :on-delete="confirmDelete">
       <template #entity-preview>
         <div class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle">
           <GeneralIcon icon="ncFileText" class="text-nc-content-gray-subtle" />

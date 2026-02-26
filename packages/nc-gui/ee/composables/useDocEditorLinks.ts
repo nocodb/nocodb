@@ -8,13 +8,7 @@ import { CellSelection } from '@tiptap/pm/tables'
  * - Link edit bubble menu (for clicking on existing links)
  * - Rich text bubble menu visibility logic
  */
-export function useDocEditorLinks({
-  editor,
-  isEditable,
-}: {
-  editor: Ref<Editor | undefined>
-  isEditable: Ref<boolean>
-}) {
+export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor | undefined>; isEditable: Ref<boolean> }) {
   // --- Paste link embed menu ---
   const pasteLinkMenu = ref<{
     visible: boolean
@@ -39,12 +33,7 @@ export function useDocEditorLinks({
     const { from, to, embedUrl, url, platform } = pasteLinkMenu.value
     const ed = editor.value
     if (ed) {
-      ed.chain()
-        .focus()
-        .setTextSelection({ from, to })
-        .deleteSelection()
-        .insertEmbed({ src: embedUrl, url, platform })
-        .run()
+      ed.chain().focus().setTextSelection({ from, to }).deleteSelection().insertEmbed({ src: embedUrl, url, platform }).run()
     }
     dismissPasteLinkMenu()
   }
@@ -66,7 +55,10 @@ export function useDocEditorLinks({
     const { from, to } = ed.state.selection
     linkSelectionRange.value = { from, to }
 
-    const linkMark = ed.state.doc.resolve(from).marks().find((m: any) => m.type.name === 'link')
+    const linkMark = ed.state.doc
+      .resolve(from)
+      .marks()
+      .find((m: any) => m.type.name === 'link')
     linkInputUrl.value = linkMark?.attrs?.href || ''
 
     isLinkInputSuppressSelectionReset.value = true
@@ -163,12 +155,7 @@ export function useDocEditorLinks({
         ? { from: $from.pos - $from.nodeBefore.nodeSize, to: $from.pos }
         : { from: $from.pos, to: $from.pos + ($from.nodeAfter?.nodeSize || 0) }
 
-      ed.chain()
-        .setTextSelection(range)
-        .extendMarkRange('link')
-        .setLink({ href })
-        .setTextSelection($from.pos)
-        .run()
+      ed.chain().setTextSelection(range).extendMarkRange('link').setLink({ href }).setTextSelection($from.pos).run()
     }
   }
 
@@ -194,7 +181,11 @@ export function useDocEditorLinks({
     const { selection } = e.state
     if (selection instanceof CellSelection) return false
     // Hide for image / file attachment selections — they have their own UI
-    if (selection.node?.type.name === 'image' || selection.node?.type.name === 'fileAttachment' || selection.node?.type.name === 'embed')
+    if (
+      selection.node?.type.name === 'image' ||
+      selection.node?.type.name === 'fileAttachment' ||
+      selection.node?.type.name === 'embed'
+    )
       return false
     return !selection.empty
   }

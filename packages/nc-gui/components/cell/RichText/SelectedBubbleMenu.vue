@@ -276,18 +276,24 @@ const closeTextArea = () => {
         :disabled="editor.isActive('codeBlock')"
         @click="showHighlightPicker = !showHighlightPicker"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <path d="m9 11-6 6v3h9l3-3" />
           <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
         </svg>
       </NcButton>
     </NcTooltip>
     <!-- Colour swatch dropdown — anchored to bubble-menu via position:absolute -->
-    <div
-      v-if="embedMode && showHighlightPicker"
-      class="nc-highlight-dropdown"
-      @mousedown.prevent
-    >
+    <div v-if="embedMode && showHighlightPicker" class="nc-highlight-dropdown" @mousedown.prevent>
       <div class="nc-highlight-grid">
         <button
           v-for="h in highlightColors"
@@ -300,11 +306,7 @@ const closeTextArea = () => {
         />
       </div>
       <!-- "Clear" only shown when a highlight is active on the selection -->
-      <button
-        v-if="activeHighlightColor"
-        class="nc-highlight-clear"
-        @click="applyHighlight(activeHighlightColor)"
-      >
+      <button v-if="activeHighlightColor" class="nc-highlight-clear" @click="applyHighlight(activeHighlightColor)">
         {{ $t('general.clear') }}
       </button>
     </div>

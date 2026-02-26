@@ -23,7 +23,7 @@ export const DocHighlightExtension = Mark.create({
           // Validate color to prevent CSS injection via crafted ProseMirror JSON
           const safe = /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[a-zA-Z]+)$/.test(attrs.color)
           if (!safe) return {}
-          return { 'data-color': attrs.color, style: `background-color: ${attrs.color}` }
+          return { 'data-color': attrs.color, 'style': `background-color: ${attrs.color}` }
         },
       },
     }

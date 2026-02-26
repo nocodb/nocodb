@@ -28,13 +28,17 @@ const onExpand = async () => {
 // is set (by the route component) before this watcher is created.
 // No isUIAllowed gate here — the backend enforces ACL; the frontend gate on
 // onExpand is sufficient for the expand/collapse interaction.
-watch(activeDocumentId, () => {
-  loadDocuments({ baseId: baseId.value })
+watch(
+  activeDocumentId,
+  () => {
+    loadDocuments({ baseId: baseId.value })
 
-  if (activeDocument.value?.base_id === openedProject.value?.id) {
-    isExpanded.value = true
-  }
-}, { immediate: true })
+    if (activeDocument.value?.base_id === openedProject.value?.id) {
+      isExpanded.value = true
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

@@ -19,11 +19,7 @@ import TableHeader from '@tiptap/extension-table-header'
 
 export const DocTable = Table.extend({
   renderHTML({ HTMLAttributes }) {
-    return [
-      'table',
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
-      ['tbody', 0],
-    ]
+    return ['table', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes), ['tbody', 0]]
   },
 })
 

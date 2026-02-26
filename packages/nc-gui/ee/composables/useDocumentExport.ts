@@ -3,13 +3,7 @@ import type { Editor } from '@tiptap/vue-3'
 /**
  * Download helpers for exporting document content as Markdown, HTML, or PDF.
  */
-export function useDocumentExport({
-  editor,
-  title,
-}: {
-  editor: Ref<Editor | undefined>
-  title: Ref<string>
-}) {
+export function useDocumentExport({ editor, title }: { editor: Ref<Editor | undefined>; title: Ref<string> }) {
   /** Escape HTML special characters to prevent XSS in generated HTML documents. */
   const escapeHtml = (str: string) =>
     str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -68,13 +62,11 @@ export function useDocumentExport({
         case 'pre':
           return `\`\`\`\n${children}\n\`\`\`\n\n`
         case 'blockquote':
-          return (
-            children
-              .split('\n')
-              .filter(Boolean)
-              .map((l) => `> ${l}`)
-              .join('\n') + '\n\n'
-          )
+          return `${children
+            .split('\n')
+            .filter(Boolean)
+            .map((l) => `> ${l}`)
+            .join('\n')}\n\n`
         case 'hr':
           return '---\n\n'
         case 'a':
@@ -82,17 +74,13 @@ export function useDocumentExport({
         case 'img':
           return `![${el.getAttribute('alt') || ''}](${el.getAttribute('src') || ''})`
         case 'ul':
-          return (
-            Array.from(el.children)
-              .map((li) => `- ${convert(li).trim()}`)
-              .join('\n') + '\n\n'
-          )
+          return `${Array.from(el.children)
+            .map((li) => `- ${convert(li).trim()}`)
+            .join('\n')}\n\n`
         case 'ol':
-          return (
-            Array.from(el.children)
-              .map((li, i) => `${i + 1}. ${convert(li).trim()}`)
-              .join('\n') + '\n\n'
-          )
+          return `${Array.from(el.children)
+            .map((li, i) => `${i + 1}. ${convert(li).trim()}`)
+            .join('\n')}\n\n`
         case 'li':
           return children
         case 'table': {

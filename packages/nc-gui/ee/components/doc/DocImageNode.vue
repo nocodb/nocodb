@@ -9,7 +9,6 @@
  * - Floating toolbar (alignment + delete) on selection
  */
 import { NodeViewWrapper } from '@tiptap/vue-3'
-import { useDocumentImageUpload } from '~/ee/composables/useDocumentImageUpload'
 
 const props = defineProps<{
   node: any
@@ -39,10 +38,7 @@ const resolveSrc = () => {
 // Resolve on mount and when attrs change
 onMounted(resolveSrc)
 
-watch(
-  () => [props.node.attrs.path, props.node.attrs.src],
-  resolveSrc,
-)
+watch(() => [props.node.attrs.path, props.node.attrs.src], resolveSrc)
 
 // --- Alignment ---
 const alignClass = computed(() => {
@@ -68,22 +64,6 @@ const resizeStartWidth = ref(0)
 
 const MIN_WIDTH = 100
 
-const onResizeStart = (e: MouseEvent) => {
-  e.preventDefault()
-  e.stopPropagation()
-
-  isResizing.value = true
-  resizeStartX.value = e.clientX
-
-  // Get current rendered width of the image
-  if (imageRef.value) {
-    resizeStartWidth.value = imageRef.value.getBoundingClientRect().width
-  }
-
-  document.addEventListener('mousemove', onResizeMove)
-  document.addEventListener('mouseup', onResizeEnd)
-}
-
 const onResizeMove = (e: MouseEvent) => {
   if (!isResizing.value) return
 
@@ -103,6 +83,22 @@ const onResizeEnd = () => {
   document.removeEventListener('mouseup', onResizeEnd)
 }
 
+const onResizeStart = (e: MouseEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+
+  isResizing.value = true
+  resizeStartX.value = e.clientX
+
+  // Get current rendered width of the image
+  if (imageRef.value) {
+    resizeStartWidth.value = imageRef.value.getBoundingClientRect().width
+  }
+
+  document.addEventListener('mousemove', onResizeMove)
+  document.addEventListener('mouseup', onResizeEnd)
+}
+
 // Clean up on unmount
 onBeforeUnmount(() => {
   document.removeEventListener('mousemove', onResizeMove)
@@ -114,11 +110,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
 </script>
 
 <template>
-  <NodeViewWrapper
-    class="nc-doc-image-wrapper"
-    :class="[alignClass, { 'is-selected': selected }]"
-    as="div"
-  >
+  <NodeViewWrapper class="nc-doc-image-wrapper" :class="[alignClass, { 'is-selected': selected }]" as="div">
     <!-- Floating toolbar -->
     <div v-if="showToolbar" class="nc-doc-image-toolbar" contenteditable="false">
       <button
@@ -127,7 +119,12 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
         title="Align left"
         @click="setAlign('left')"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10" /><line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="14" x2="3" y2="14" /><line x1="17" y1="18" x2="3" y2="18" /></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="17" y1="10" x2="3" y2="10" />
+          <line x1="21" y1="6" x2="3" y2="6" />
+          <line x1="21" y1="14" x2="3" y2="14" />
+          <line x1="17" y1="18" x2="3" y2="18" />
+        </svg>
       </button>
       <button
         class="nc-doc-image-toolbar-btn"
@@ -135,7 +132,12 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
         title="Align center"
         @click="setAlign('center')"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="10" x2="6" y2="10" /><line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="14" x2="3" y2="14" /><line x1="18" y1="18" x2="6" y2="18" /></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="10" x2="6" y2="10" />
+          <line x1="21" y1="6" x2="3" y2="6" />
+          <line x1="21" y1="14" x2="3" y2="14" />
+          <line x1="18" y1="18" x2="6" y2="18" />
+        </svg>
       </button>
       <button
         class="nc-doc-image-toolbar-btn"
@@ -143,15 +145,19 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
         title="Align right"
         @click="setAlign('right')"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="10" x2="7" y2="10" /><line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="14" x2="3" y2="14" /><line x1="21" y1="18" x2="7" y2="18" /></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="21" y1="10" x2="7" y2="10" />
+          <line x1="21" y1="6" x2="3" y2="6" />
+          <line x1="21" y1="14" x2="3" y2="14" />
+          <line x1="21" y1="18" x2="7" y2="18" />
+        </svg>
       </button>
       <div class="nc-doc-image-toolbar-divider" />
-      <button
-        class="nc-doc-image-toolbar-btn nc-doc-image-toolbar-delete"
-        title="Delete image"
-        @click="deleteNode"
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
+      <button class="nc-doc-image-toolbar-btn nc-doc-image-toolbar-delete" title="Delete image" @click="deleteNode">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
       </button>
     </div>
 
@@ -251,8 +257,12 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
 }
 
 @keyframes nc-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 // --- Resize handles ---

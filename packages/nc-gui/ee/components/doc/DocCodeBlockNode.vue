@@ -8,14 +8,14 @@
  * - Copy-to-clipboard button
  * - Toolbar visible on hover
  */
-import { NodeViewWrapper, NodeViewContent } from '@tiptap/vue-3'
+import { NodeViewContent, NodeViewWrapper } from '@tiptap/vue-3'
 import {
-  POPULAR_LANGUAGES,
   ALL_LANGUAGES,
+  type CodeBlockLanguage,
   PLAIN_TEXT,
+  POPULAR_LANGUAGES,
   getLanguageLabel,
   matchesSearch,
-  type CodeBlockLanguage,
 } from './DocCodeBlockLanguages'
 
 const props = defineProps<{
@@ -35,13 +35,13 @@ const currentLanguage = computed(() => props.node.attrs.language || '')
 
 const currentLanguageLabel = computed(() => getLanguageLabel(currentLanguage.value))
 
+// --- Dropdown ---
+const isDropdownOpen = ref(false)
+
 const setLanguage = (lang: CodeBlockLanguage) => {
   props.updateAttributes({ language: lang.id || null })
   isDropdownOpen.value = false
 }
-
-// --- Dropdown ---
-const isDropdownOpen = ref(false)
 
 const searchQuery = ref('')
 
@@ -129,19 +129,11 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
 </script>
 
 <template>
-  <NodeViewWrapper
-    class="nc-code-block-wrapper"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
-  >
+  <NodeViewWrapper class="nc-code-block-wrapper" @mouseenter="isHovered = true" @mouseleave="isHovered = false">
     <!-- Toolbar: language selector + copy button -->
     <div v-show="showToolbar" class="nc-code-block-toolbar" contenteditable="false">
       <!-- Language selector -->
-      <NcDropdown
-        v-model:visible="isDropdownOpen"
-        placement="bottomRight"
-        overlay-class-name="nc-code-block-lang-dropdown"
-      >
+      <NcDropdown v-model:visible="isDropdownOpen" placement="bottomRight" overlay-class-name="nc-code-block-lang-dropdown">
         <button class="nc-code-block-lang-trigger" data-testid="nc-code-block-lang-selector">
           <span class="nc-code-block-lang-label">{{ currentLanguageLabel }}</span>
           <GeneralIcon icon="arrowDown" class="nc-code-block-lang-chevron" />
@@ -193,11 +185,7 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
                   @click="setLanguage(lang)"
                 >
                   <span>{{ lang.label }}</span>
-                  <GeneralIcon
-                    v-if="currentLanguage === lang.id"
-                    icon="check"
-                    class="nc-code-block-lang-check"
-                  />
+                  <GeneralIcon v-if="currentLanguage === lang.id" icon="check" class="nc-code-block-lang-check" />
                 </button>
               </template>
 
@@ -212,11 +200,7 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
                   @click="setLanguage(lang)"
                 >
                   <span>{{ lang.label }}</span>
-                  <GeneralIcon
-                    v-if="currentLanguage === lang.id"
-                    icon="check"
-                    class="nc-code-block-lang-check"
-                  />
+                  <GeneralIcon v-if="currentLanguage === lang.id" icon="check" class="nc-code-block-lang-check" />
                 </button>
               </template>
 

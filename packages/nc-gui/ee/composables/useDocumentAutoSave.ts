@@ -95,15 +95,17 @@ export function useDocumentAutoSave({
     return new Promise((resolve, reject) => {
       if (editor.value) return resolve()
 
+      let unwatch: (() => void) | undefined
+
       const timeout = setTimeout(() => {
-        unwatch()
+        unwatch?.()
         reject(new Error('Editor failed to initialize within 5 seconds'))
       }, 5000)
 
-      const unwatch = watch(editor, (val) => {
+      unwatch = watch(editor, (val) => {
         if (val) {
           clearTimeout(timeout)
-          unwatch()
+          unwatch?.()
           resolve()
         }
       })
@@ -141,7 +143,7 @@ export function useDocumentAutoSave({
     if (loaded) {
       doc.value = loaded
       // Treat "Untitled" as empty — it's the server default, not a user-provided name
-      title.value = loaded.title === 'Untitled' ? '' : (loaded.title || '')
+      title.value = loaded.title === 'Untitled' ? '' : loaded.title || ''
       lastSavedTitle.value = loaded.title || 'Untitled'
 
       const parsed = parseContent(loaded.content)

@@ -11,7 +11,7 @@
 import { Extension } from '@tiptap/core'
 import Suggestion from '@tiptap/suggestion'
 import type { Editor, Range } from '@tiptap/core'
-import { createApp, ref, h } from 'vue'
+import { createApp, h, ref } from 'vue'
 import tippy from 'tippy.js'
 import type { Instance as TippyInstance } from 'tippy.js'
 import SlashCommandMenu from './SlashCommandMenu.vue'
@@ -39,25 +39,51 @@ const svg = (d: string, vb = '0 0 24 24') =>
 const icons = {
   h1: svg('<path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17 12l3-2v8"/>'),
   h2: svg('<path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M21 18h-4c0-4 4-3 4-6 0-1.5-2-2.5-4-1"/>'),
-  h3: svg('<path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17.5 10.5c1.7-1 3.5 0 3.5 1.5a2 2 0 0 1-2 2"/><path d="M17 17.5c2 1.5 4 .3 4-1.5a2 2 0 0 0-2-2"/>'),
-  bulletList: svg('<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>'),
-  numberedList: svg('<line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>'),
-  taskList: svg('<rect x="3" y="5" width="4" height="4" rx="1"/><line x1="11" y1="7" x2="21" y2="7"/><rect x="3" y="15" width="4" height="4" rx="1"/><line x1="11" y1="17" x2="21" y2="17"/><path d="M4 16l1.5 1.5L7 15.5"/>'),
-  quote: svg('<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/>'),
+  h3: svg(
+    '<path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17.5 10.5c1.7-1 3.5 0 3.5 1.5a2 2 0 0 1-2 2"/><path d="M17 17.5c2 1.5 4 .3 4-1.5a2 2 0 0 0-2-2"/>',
+  ),
+  bulletList: svg(
+    '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+  ),
+  numberedList: svg(
+    '<line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>',
+  ),
+  taskList: svg(
+    '<rect x="3" y="5" width="4" height="4" rx="1"/><line x1="11" y1="7" x2="21" y2="7"/><rect x="3" y="15" width="4" height="4" rx="1"/><line x1="11" y1="17" x2="21" y2="17"/><path d="M4 16l1.5 1.5L7 15.5"/>',
+  ),
+  quote: svg(
+    '<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/>',
+  ),
   code: svg('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>'),
-  table: svg('<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>'),
-  image: svg('<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>'),
+  table: svg(
+    '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>',
+  ),
+  image: svg(
+    '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+  ),
   divider: svg('<line x1="5" y1="12" x2="19" y2="12"/>'),
-  file: svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>'),
+  file: svg(
+    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>',
+  ),
   // Callout icons — black versions for slash menu (colored versions live in CalloutExtension)
   note: svg('<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'),
-  warning: svg('<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'),
-  tip: svg('<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1-3c1.9.5 3.3 1.6 4.4 3.1a12.3 12.3 0 0 1 2 5.6c-2-.8-3.5-1.8-4.5-3.2a9 9 0 0 1-.8-2.5z"/>'),
-  important: svg('<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>'),
+  warning: svg(
+    '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+  ),
+  tip: svg(
+    '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1-3c1.9.5 3.3 1.6 4.4 3.1a12.3 12.3 0 0 1 2 5.6c-2-.8-3.5-1.8-4.5-3.2a9 9 0 0 1-.8-2.5z"/>',
+  ),
+  important: svg(
+    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+  ),
   // Date/time icons
-  calendar: svg('<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>'),
+  calendar: svg(
+    '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  ),
   clock: svg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
-  calendarClock: svg('<path d="M3 10h18"/><path d="M16 2v4"/><path d="M8 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M12 14l2 2 2-2"/><path d="M12 10v4"/>'),
+  calendarClock: svg(
+    '<path d="M3 10h18"/><path d="M16 2v4"/><path d="M8 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M12 14l2 2 2-2"/><path d="M12 10v4"/>',
+  ),
   // Embed icons — colored brand logos (raw SVG, no stroke helper)
   youtube: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#FF0000"/><polygon points="7 5.5 13 9 7 12.5" fill="white"/></svg>`,
   vimeo: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#1AB7EA"/><path d="M13.5 7.2c-.05 1.1-.82 2.6-2.3 4.52-1.53 2-2.83 3-3.9 3-.66 0-1.22-.61-1.67-1.83l-.91-3.35c-.34-1.22-.7-1.83-1.08-1.83-.08 0-.37.17-.87.52l-.52-.67c.55-.48 1.09-.97 1.62-1.45.73-.63 1.27-.96 1.64-.99.86-.08 1.39.51 1.59 1.77.22 1.36.37 2.2.45 2.53.25 1.14.53 1.71.83 1.71.23 0 .59-.37 1.06-1.1.47-.74.72-1.3.75-1.69.07-.64-.18-.96-.75-.96-.27 0-.54.06-.82.18.54-1.78 1.58-2.65 3.12-2.6 1.14.04 1.68.78 1.62 2.22z" fill="white"/></svg>`,
@@ -236,7 +262,7 @@ export const slashCommandItems: SlashCommandItem[] = [
   // — Date & Time —
   {
     title: 'Current date',
-    description: 'Insert today\'s date',
+    description: "Insert today's date",
     icon: icons.calendar,
     group: 'Date & Time',
     command: (editor, range) => {
@@ -276,22 +302,62 @@ function embedCommands(): SlashCommandItem[] {
     { title: 'YouTube', description: 'Embed a YouTube video', icon: icons.youtube, placeholder: 'Paste a YouTube link...' },
     { title: 'Vimeo', description: 'Embed a Vimeo video', icon: icons.vimeo, placeholder: 'Paste a Vimeo link...' },
     { title: 'Loom', description: 'Embed a Loom recording', icon: icons.loom, placeholder: 'Paste a Loom link...' },
-    { title: 'Spotify', description: 'Embed a Spotify track or playlist', icon: icons.spotify, placeholder: 'Paste a Spotify link...' },
-    { title: 'SoundCloud', description: 'Embed a SoundCloud track', icon: icons.soundcloud, placeholder: 'Paste a SoundCloud link...' },
+    {
+      title: 'Spotify',
+      description: 'Embed a Spotify track or playlist',
+      icon: icons.spotify,
+      placeholder: 'Paste a Spotify link...',
+    },
+    {
+      title: 'SoundCloud',
+      description: 'Embed a SoundCloud track',
+      icon: icons.soundcloud,
+      placeholder: 'Paste a SoundCloud link...',
+    },
     { title: 'Figma', description: 'Embed a Figma design', icon: icons.figma, placeholder: 'Paste a Figma link...' },
-    { title: 'Google Docs', description: 'Embed a Google Doc, Sheet, or Slide', icon: icons.google, placeholder: 'Paste a Google Docs link...' },
-    { title: 'Google Drive', description: 'Embed a Google Drive folder', icon: icons.googleDrive, placeholder: 'Paste a Google Drive link...' },
+    {
+      title: 'Google Docs',
+      description: 'Embed a Google Doc, Sheet, or Slide',
+      icon: icons.google,
+      placeholder: 'Paste a Google Docs link...',
+    },
+    {
+      title: 'Google Drive',
+      description: 'Embed a Google Drive folder',
+      icon: icons.googleDrive,
+      placeholder: 'Paste a Google Drive link...',
+    },
     { title: 'Twitter / X', description: 'Embed a tweet', icon: icons.twitter, placeholder: 'Paste a Twitter / X link...' },
     { title: 'CodePen', description: 'Embed a CodePen', icon: icons.codepen, placeholder: 'Paste a CodePen link...' },
     { title: 'GitHub Gist', description: 'Embed a GitHub Gist', icon: icons.github, placeholder: 'Paste a Gist link...' },
     { title: 'Behance', description: 'Embed a Behance project', icon: icons.behance, placeholder: 'Paste a Behance link...' },
-    { title: 'Dailymotion', description: 'Embed a Dailymotion video', icon: icons.dailymotion, placeholder: 'Paste a Dailymotion link...' },
+    {
+      title: 'Dailymotion',
+      description: 'Embed a Dailymotion video',
+      icon: icons.dailymotion,
+      placeholder: 'Paste a Dailymotion link...',
+    },
     { title: 'Notion', description: 'Embed a Notion page', icon: icons.notion, placeholder: 'Paste a Notion link...' },
     { title: 'TED', description: 'Embed a TED talk', icon: icons.ted, placeholder: 'Paste a TED link...' },
     { title: 'JSFiddle', description: 'Embed a JSFiddle', icon: icons.jsfiddle, placeholder: 'Paste a JSFiddle link...' },
-    { title: 'StackBlitz', description: 'Embed a StackBlitz project', icon: icons.stackblitz, placeholder: 'Paste a StackBlitz link...' },
-    { title: 'CodeSandbox', description: 'Embed a CodeSandbox', icon: icons.codesandbox, placeholder: 'Paste a CodeSandbox link...' },
-    { title: 'NocoDB View', description: 'Embed a shared NocoDB view', icon: icons.nocodb, placeholder: 'Paste a NocoDB shared view link...' },
+    {
+      title: 'StackBlitz',
+      description: 'Embed a StackBlitz project',
+      icon: icons.stackblitz,
+      placeholder: 'Paste a StackBlitz link...',
+    },
+    {
+      title: 'CodeSandbox',
+      description: 'Embed a CodeSandbox',
+      icon: icons.codesandbox,
+      placeholder: 'Paste a CodeSandbox link...',
+    },
+    {
+      title: 'NocoDB View',
+      description: 'Embed a shared NocoDB view',
+      icon: icons.nocodb,
+      placeholder: 'Paste a NocoDB shared view link...',
+    },
   ]
 
   return embeds.map((e) => ({
@@ -328,9 +394,7 @@ export const SlashCommandExtension = Extension.create({
         allowSpaces: false,
         startOfLine: false,
         items: ({ query }: { query: string }) => {
-          return slashCommandItems.filter((item) =>
-            item.title.toLowerCase().includes(query.toLowerCase()),
-          )
+          return slashCommandItems.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()))
         },
         render: () => {
           let popup: TippyInstance | undefined
@@ -354,7 +418,9 @@ export const SlashCommandExtension = Extension.create({
                   return h(SlashCommandMenu, {
                     items: itemsRef.value,
                     command: (item: SlashCommandItem) => commandRef.value?.(item),
-                    ref: (ref: any) => { menuRef = ref },
+                    ref: (ref: any) => {
+                      menuRef = ref
+                    },
                   })
                 },
               })

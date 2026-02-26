@@ -10,7 +10,6 @@
  * - Delete button on hover/selection
  */
 import { NodeViewWrapper } from '@tiptap/vue-3'
-import { formatFileSize } from '~/utils/attachmentUtils'
 
 const props = defineProps<{
   node: any
@@ -132,10 +131,7 @@ const onDownload = () => {
       @click="onDownload"
     >
       <!-- File type badge -->
-      <div
-        class="nc-file-attachment-badge"
-        :style="{ backgroundColor: badgeColor.bg, color: badgeColor.text }"
-      >
+      <div class="nc-file-attachment-badge" :style="{ backgroundColor: badgeColor.bg, color: badgeColor.text }">
         {{ fileExtLabel }}
       </div>
 
@@ -155,12 +151,18 @@ const onDownload = () => {
       </div>
 
       <!-- Delete button (on hover) -->
-      <div
-        v-else-if="editor?.isEditable"
-        class="nc-file-attachment-delete"
-        @click.stop="deleteNode"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div v-else-if="editor?.isEditable" class="nc-file-attachment-delete" @click.stop="deleteNode">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>

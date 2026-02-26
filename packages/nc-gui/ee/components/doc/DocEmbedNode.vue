@@ -16,16 +16,11 @@ const props = defineProps<{
 }>()
 
 const embedSrc = computed(() => props.node.attrs.src || '')
-const platform = computed(() => props.node.attrs.platform || '')
-const originalUrl = computed(() => props.node.attrs.url || '')
 </script>
 
 <template>
   <NodeViewWrapper class="nc-embed-wrapper" data-drag-handle data-testid="nc-doc-embed">
-    <div
-      class="nc-embed-card"
-      :class="{ 'nc-embed-selected': selected }"
-    >
+    <div class="nc-embed-card" :class="{ 'nc-embed-selected': selected }">
       <!-- 16:9 responsive iframe container -->
       <div class="nc-embed-iframe-wrapper">
         <iframe
@@ -39,12 +34,18 @@ const originalUrl = computed(() => props.node.attrs.url || '')
       </div>
 
       <!-- Delete button — floating top-right on hover -->
-      <button
-        v-if="editor?.isEditable"
-        class="nc-embed-delete"
-        @click.stop="deleteNode"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <button v-if="editor?.isEditable" class="nc-embed-delete" @click.stop="deleteNode">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          width="14"
+          height="14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
           <line x1="18" y1="6" x2="6" y2="18" />
           <line x1="6" y1="6" x2="18" y2="18" />
         </svg>

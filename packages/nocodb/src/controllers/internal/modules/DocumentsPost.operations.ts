@@ -64,7 +64,12 @@ export class DocumentsPostOperations
         if (!payload?.docId) {
           NcError.badRequest('Missing required parameter: docId');
         }
-        return await this.documentsService.reorder(context, payload.docId, payload, req);
+        return await this.documentsService.reorder(
+          context,
+          payload.docId,
+          { order: payload.order, ...(('parent_id' in payload) && { parent_id: payload.parent_id }) },
+          req,
+        );
       }
     }
   }

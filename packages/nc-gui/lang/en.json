@@ -1193,6 +1193,8 @@
     "deleteDocument": "Delete document",
     "noDocuments": "No documents",
     "newDocument": "New document",
+    "newSubDocument": "New sub-document",
+    "moveToRoot": "Move to root",
     "copyOfDocument": "Copy of {title}",
     "deleteTable": "Delete table",
     "insertColumnLeft": "Insert column left",

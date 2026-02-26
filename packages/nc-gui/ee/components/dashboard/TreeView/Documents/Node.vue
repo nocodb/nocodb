@@ -3,9 +3,14 @@ import type { DocumentType } from 'nocodb-sdk'
 
 interface Props {
   doc: DocumentType
+  depth?: number
+  hasChildren?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  depth: 0,
+  hasChildren: false,
+})
 
 const { $e } = useNuxtApp()
 const { t } = useI18n()
@@ -13,8 +18,17 @@ const { t } = useI18n()
 const { isMobileMode, ncNavigateTo } = useGlobal()
 const { isUIAllowed } = useRoles()
 const documentsStore = useDocumentsStore()
-const { updateDocument, deleteDocument, createDocument, loadDocument } = documentsStore
-const { activeDocumentId } = storeToRefs(documentsStore)
+const {
+  updateDocument,
+  deleteDocument,
+  createDocument,
+  loadDocument,
+  expandDocument,
+  toggleCollapse,
+  moveDocument,
+  isLoadingChildren,
+} = documentsStore
+const { activeDocumentId, expandedDocIds } = storeToRefs(documentsStore)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -36,6 +50,49 @@ const showNodeTooltip = ref(true)
 // Declare before usage in handleOnClick
 const { meta: metaKey, control } = useMagicKeys()
 const isMacOs = isMac()
+
+const indentStyle = computed(() => ({
+  paddingLeft: `${props.depth * 24}px`,
+}))
+
+// Show chevron if either the tree node has loaded children OR the API says children exist
+const showChevron = computed(() => props.hasChildren || !!props.doc.has_children)
+
+const collapsed = computed(() => !expandedDocIds.value.has(props.doc.id!))
+
+const loadingChildren = computed(() => (props.doc.id ? isLoadingChildren(props.doc.id) : false))
+
+const onToggleCollapse = async () => {
+  if (!props.doc.id) return
+  const baseId = base.value?.id || props.doc.base_id
+  if (!baseId) return
+
+  if (collapsed.value) {
+    // Expand — lazy-loads children if not yet fetched, then un-collapses
+    await expandDocument(baseId, props.doc.id)
+  } else {
+    toggleCollapse(props.doc.id)
+  }
+}
+
+const onCreateSubDocument = async () => {
+  isDropdownOpen.value = false
+  if (!base.value?.id || !props.doc.id) return
+  await createDocument(base.value.id, { parent_id: props.doc.id })
+}
+
+const onMoveToRoot = async () => {
+  isDropdownOpen.value = false
+  if (!base.value?.id || !props.doc.id) return
+
+  // Place at the end of root-level documents
+  const { documents: allDocuments } = storeToRefs(documentsStore)
+  const baseDocuments = allDocuments.value.get(base.value.id) || []
+  const rootDocs = baseDocuments.filter((d) => !d.parent_id)
+  const maxOrder = rootDocs.reduce((max, d) => Math.max(max, d.order || 0), 0)
+
+  await moveDocument(base.value.id, props.doc.id, null, maxOrder + 1)
+}
 
 const navigateToDocument = () => {
   if (isEditing.value) return
@@ -136,6 +193,7 @@ const onDuplicate = async () => {
   await createDocument(base.value.id, {
     title: t('labels.copyOfDocument', { title: fullDoc.title || t('general.untitled') }),
     content: fullDoc.content,
+    parent_id: props.doc.parent_id,
   })
 }
 
@@ -216,15 +274,33 @@ function onStopEdit() {
 
 <template>
   <div
-    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !rounded-md !pr-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    :style="indentStyle"
     :data-testid="`view-sidebar-doc-${doc.title}`"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
-    <div v-e="['a:document:open']" class="text-sm flex items-center w-full gap-1" data-testid="doc-item">
+    <div v-e="['a:document:open']" class="text-sm flex items-center w-full gap-0.5" data-testid="doc-item">
+      <!-- Chevron — always visible (Notion pattern) -->
+      <div
+        class="nc-doc-chevron flex-none flex items-center justify-center w-5 h-5 rounded-sm cursor-pointer hover:bg-nc-bg-gray-medium"
+        :class="{ 'opacity-0 pointer-events-none': !showChevron }"
+        @click.stop="onToggleCollapse"
+        @dblclick.stop
+      >
+        <GeneralLoader v-if="loadingChildren" size="auto" class="!w-3.5 !h-3.5" />
+        <GeneralIcon
+          v-else
+          icon="chevronRight"
+          class="nc-doc-chevron-icon text-nc-content-gray-muted !text-[14px] transform transition-transform duration-150"
+          :class="{ '!rotate-90': !collapsed && showChevron }"
+        />
+      </div>
+
+      <!-- Document icon / emoji -->
       <div
         v-e="['c:document:emoji-picker']"
-        class="flex min-w-6"
+        class="flex-none flex items-center"
         @mouseenter="showNodeTooltip = false"
         @mouseleave="showNodeTooltip = true"
         @click.stop
@@ -330,6 +406,24 @@ function onStopEdit() {
               >
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
                 {{ $t('labels.duplicateDocument') }}
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isUIAllowed('documentCreate')"
+                v-e="['c:document:create-sub']"
+                :data-testid="`sidebar-doc-create-sub-${doc.title}`"
+                @click="onCreateSubDocument"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="plus" />
+                {{ $t('labels.newSubDocument') }}
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="doc.parent_id && isUIAllowed('documentUpdate')"
+                v-e="['c:document:move-to-root']"
+                :data-testid="`sidebar-doc-move-root-${doc.title}`"
+                @click="onMoveToRoot"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="arrowUp" />
+                {{ $t('labels.moveToRoot') }}
               </NcMenuItem>
               <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />

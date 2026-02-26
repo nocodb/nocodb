@@ -1,10 +1,18 @@
 import type { DocumentType } from 'nocodb-sdk'
 
+export interface DocTreeNode {
+  doc: DocumentType
+  children: DocTreeNode[]
+}
+
 /**
  * Pinia store for Documents.
  *
  * Manages a per-base list of documents, tracks the active document for editor routing,
  * and provides CRUD + reorder operations via the internal API.
+ *
+ * Uses lazy loading (Notion pattern): root docs are fetched initially, children
+ * are loaded on-demand when the user expands a parent node.
  */
 export const useDocumentsStore = defineStore('documentsStore', () => {
   const { $api, $e } = useNuxtApp()
@@ -18,15 +26,50 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
   const { activeProjectId } = storeToRefs(basesStore)
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  // State
+  // State — flat list per base, tree built client-side from parent_id references
   const documents = ref<Map<string, DocumentType[]>>(new Map())
   const activeDocumentId = ref<string>()
   const isLoadingDocuments = ref(false)
+  // Tracks which docs are expanded (children visible). Starts empty = all collapsed.
+  const expandedDocIds = ref<Set<string>>(new Set())
+
+  // Track which parent IDs have been loaded (lazy loading)
+  // 'root:{baseId}' = root docs loaded for that base
+  // '{docId}' = children of that doc loaded
+  const loadedParentIds = ref<Set<string>>(new Set())
+  const loadingParentIds = ref<Set<string>>(new Set())
 
   // Computed
   const activeDocuments = computed(() => {
     if (!activeProjectId.value) return []
     return documents.value.get(activeProjectId.value) || []
+  })
+
+  const documentTree = computed<DocTreeNode[]>(() => {
+    const docs = activeDocuments.value
+    if (!docs.length) return []
+
+    // Group by parent_id
+    const childrenMap = new Map<string | null, DocumentType[]>()
+    for (const doc of docs) {
+      const parentKey = doc.parent_id ?? null
+      const group = childrenMap.get(parentKey) || []
+      group.push(doc)
+      childrenMap.set(parentKey, group)
+    }
+
+    // Build tree recursively from roots (parent_id = null)
+    const buildLevel = (parentId: string | null): DocTreeNode[] => {
+      const siblings = childrenMap.get(parentId) || []
+      return siblings
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map((doc) => ({
+          doc,
+          children: buildLevel(doc.id!),
+        }))
+    }
+
+    return buildLevel(null)
   })
 
   const activeDocument = computed(() => {
@@ -36,15 +79,16 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
   })
 
   // Actions
-  const loadDocuments = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    const existingDocuments = documents.value.get(baseId)
 
-    // Return cached list immediately without toggling isLoadingDocuments —
-    // avoids a flash of loading state when navigating between documents.
-    // Use .length check: an empty array is truthy in JS and would
-    // prevent re-fetching when another user has since created documents.
-    if (existingDocuments?.length && !force) {
-      return existingDocuments
+  /**
+   * Load root documents for a base (parent_id = null).
+   * This is the initial load — children are fetched lazily on expand.
+   */
+  const loadDocuments = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
+    const rootKey = `root:${baseId}`
+
+    if (!force && loadedParentIds.value.has(rootKey)) {
+      return documents.value.get(baseId) || []
     }
 
     try {
@@ -52,10 +96,12 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
 
       const response = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
         operation: 'documentList',
+        parent_id: 'null',
       })) as DocumentType[]
 
       if (ncIsArray(response)) {
         documents.value.set(baseId, response)
+        loadedParentIds.value.add(rootKey)
         return response
       } else {
         return []
@@ -67,6 +113,61 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       isLoadingDocuments.value = false
     }
   }
+
+  /**
+   * Load children of a specific document (lazy load on expand).
+   * Fetched children are merged into the flat document list.
+   */
+  const loadChildren = async (baseId: string, parentDocId: string) => {
+    if (loadedParentIds.value.has(parentDocId)) return
+    if (loadingParentIds.value.has(parentDocId)) return
+
+    try {
+      loadingParentIds.value.add(parentDocId)
+
+      const children = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+        operation: 'documentList',
+        parent_id: parentDocId,
+      })) as DocumentType[]
+
+      if (ncIsArray(children)) {
+        const baseDocuments = documents.value.get(baseId) || []
+
+        // Merge children into flat list (avoid duplicates)
+        const existingIds = new Set(baseDocuments.map((d) => d.id))
+        for (const child of children) {
+          if (!existingIds.has(child.id)) {
+            baseDocuments.push(child)
+          }
+        }
+
+        documents.value.set(baseId, baseDocuments)
+      }
+
+      loadedParentIds.value.add(parentDocId)
+    } catch (e) {
+      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
+    } finally {
+      loadingParentIds.value.delete(parentDocId)
+    }
+  }
+
+  /**
+   * Expand a document node — loads children if not yet fetched, then un-collapses.
+   */
+  const expandDocument = async (baseId: string, docId: string) => {
+    // Load children if not yet loaded
+    await loadChildren(baseId, docId)
+
+    // Mark as expanded
+    if (!expandedDocIds.value.has(docId)) {
+      expandedDocIds.value.add(docId)
+      expandedDocIds.value = new Set(expandedDocIds.value)
+    }
+  }
+
+  /** Check if children are currently being fetched for a doc */
+  const isLoadingChildren = (docId: string) => loadingParentIds.value.has(docId)
 
   const loadDocument = async (docId: string, showLoader = true) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return null
@@ -114,6 +215,20 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       const baseDocuments = documents.value.get(baseId) || []
       baseDocuments.push(created)
       documents.value.set(baseId, baseDocuments)
+
+      // If creating a sub-document, mark the parent as having children and auto-expand
+      if (payload?.parent_id) {
+        const parent = baseDocuments.find((d) => d.id === payload.parent_id)
+        if (parent) {
+          parent.has_children = true
+        }
+
+        // Auto-expand so the new child is visible (Notion pattern)
+        if (!expandedDocIds.value.has(payload.parent_id)) {
+          expandedDocIds.value.add(payload.parent_id)
+          expandedDocIds.value = new Set(expandedDocIds.value)
+        }
+      }
 
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
@@ -183,12 +298,41 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     try {
       await $api.internal.postOperation(activeWorkspaceId.value, baseId, { operation: 'documentDelete' }, { docId })
 
+      // Collect all loaded descendant IDs for local removal (backend cascade soft-deletes them)
+      const idsToRemove = new Set<string>([docId])
+      const collectDescendants = (parentId: string) => {
+        const baseDocuments = documents.value.get(baseId) || []
+        for (const d of baseDocuments) {
+          if (d.parent_id === parentId && d.id && !idsToRemove.has(d.id)) {
+            idsToRemove.add(d.id)
+            collectDescendants(d.id)
+          }
+        }
+      }
+      collectDescendants(docId)
+
       const baseDocuments = documents.value.get(baseId) || []
-      const filtered = baseDocuments.filter((d) => d.id !== docId)
+
+      // Update parent's has_children before removing
+      const deletedDoc = baseDocuments.find((d) => d.id === docId)
+      if (deletedDoc?.parent_id) {
+        const parent = baseDocuments.find((d) => d.id === deletedDoc.parent_id)
+        if (parent) {
+          const remainingSiblings = baseDocuments.some((d) => d.parent_id === deletedDoc.parent_id && !idsToRemove.has(d.id!))
+          parent.has_children = remainingSiblings
+        }
+      }
+
+      const filtered = baseDocuments.filter((d) => !idsToRemove.has(d.id!))
       documents.value.set(baseId, filtered)
 
-      // If the deleted document was active, navigate away
-      if (activeDocumentId.value === docId) {
+      // Clean up loaded parent tracking for removed docs
+      for (const id of idsToRemove) {
+        loadedParentIds.value.delete(id)
+      }
+
+      // If the deleted document (or any descendant) was active, navigate away
+      if (activeDocumentId.value && idsToRemove.has(activeDocumentId.value)) {
         setActiveDocumentId(undefined)
         ncNavigateTo({
           workspaceId: activeWorkspaceId.value,
@@ -234,6 +378,109 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       return null
     }
   }
+
+  const toggleCollapse = (docId: string) => {
+    if (expandedDocIds.value.has(docId)) {
+      expandedDocIds.value.delete(docId)
+    } else {
+      expandedDocIds.value.add(docId)
+    }
+    // Trigger reactivity
+    expandedDocIds.value = new Set(expandedDocIds.value)
+  }
+
+  const isCollapsed = (docId: string) => !expandedDocIds.value.has(docId)
+
+  const moveDocument = async (baseId: string, docId: string, parentId: string | null, order: number) => {
+    if (!activeWorkspaceId.value) return null
+
+    const baseDocuments = documents.value.get(baseId) || []
+    const existing = baseDocuments.find((d) => d.id === docId)
+    if (!existing) return null
+
+    // Save old values for rollback
+    const oldParentId = existing.parent_id
+    const oldOrder = existing.order
+
+    // Optimistic local update — Vue re-renders immediately from new state,
+    // preventing duplicates that occur when SortableJS DOM and Vue VDOM disagree.
+    existing.parent_id = parentId
+    existing.order = order
+
+    if (parentId) {
+      const newParent = baseDocuments.find((d) => d.id === parentId)
+      if (newParent) newParent.has_children = true
+
+      // Auto-expand the target parent so the nested child is visible (Notion pattern)
+      if (!expandedDocIds.value.has(parentId)) {
+        expandedDocIds.value.add(parentId)
+        expandedDocIds.value = new Set(expandedDocIds.value)
+      }
+    }
+
+    // Update old parent's has_children (may no longer have children)
+    if (oldParentId && oldParentId !== parentId) {
+      const oldParent = baseDocuments.find((d) => d.id === oldParentId)
+      if (oldParent) {
+        const remainingChildren = baseDocuments.some((d) => d.parent_id === oldParentId && d.id !== docId)
+        oldParent.has_children = remainingChildren
+      }
+    }
+
+    try {
+      const updated = (await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        baseId,
+        { operation: 'documentReorder' },
+        { docId, order, parent_id: parentId },
+      )) as DocumentType
+
+      $e('a:document:move')
+      return updated
+    } catch (e) {
+      // Rollback on failure
+      existing.parent_id = oldParentId
+      existing.order = oldOrder
+      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
+      return null
+    }
+  }
+
+  // Auto-expand: when navigating to a doc, expand it (if it has children) and all its ancestors
+  watch(activeDocumentId, async (newId) => {
+    if (!newId || !activeProjectId.value) return
+
+    const baseId = activeProjectId.value
+    const baseDocs = documents.value.get(baseId) || []
+    let changed = false
+
+    // Expand the active doc if it has children
+    const doc = baseDocs.find((d) => d.id === newId)
+    if (doc?.has_children && !expandedDocIds.value.has(newId)) {
+      await loadChildren(baseId, newId)
+      expandedDocIds.value.add(newId)
+      changed = true
+    }
+
+    // Expand all ancestors so the active doc is visible in the sidebar
+    let parentId: string | null | undefined = doc?.parent_id
+    while (parentId) {
+      if (!expandedDocIds.value.has(parentId)) {
+        expandedDocIds.value.add(parentId)
+        changed = true
+      }
+      // Ensure parent's children are loaded
+      if (!loadedParentIds.value.has(parentId)) {
+        await loadChildren(baseId, parentId)
+      }
+      const parent = baseDocs.find((d) => d.id === parentId)
+      parentId = parent?.parent_id
+    }
+
+    if (changed) {
+      expandedDocIds.value = new Set(expandedDocIds.value)
+    }
+  })
 
   // --- URL slug sync (mirrors Script store pattern) ---
 
@@ -288,13 +535,23 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     isLoadingDocuments,
     activeDocuments,
     activeDocument,
+    documentTree,
+    expandedDocIds,
+    loadedParentIds,
+    loadingParentIds,
+    toggleCollapse,
+    isCollapsed,
+    expandDocument,
+    isLoadingChildren,
     setActiveDocumentId,
     loadDocuments,
+    loadChildren,
     loadDocument,
     createDocument,
     updateDocument,
     deleteDocument,
     reorderDocument,
+    moveDocument,
   }
 })
 

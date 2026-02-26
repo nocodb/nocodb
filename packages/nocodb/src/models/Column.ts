@@ -343,13 +343,14 @@ export default class Column<T = any> implements ColumnType {
       }
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
-        // V1 for hm/bt or oo without junction table (always V1, not overridable)
-        // For other types, use caller-provided version or default to V2
+        // V1 for hm/bt/oo without junction table (always V1, not overridable)
+        // If junction table exists (fk_mm_model_id), use caller version or default V2
         const isV1Heuristic =
-          [RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(
+          !column.fk_mm_model_id &&
+          ([RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(
             column.type,
           ) ||
-          (column.type === RelationTypes.ONE_TO_ONE && !column.fk_mm_model_id);
+          column.type === RelationTypes.ONE_TO_ONE);
 
         const version: number = isV1Heuristic
           ? LinksVersion.V1

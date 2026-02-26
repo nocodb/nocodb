@@ -5141,7 +5141,14 @@ export class ColumnsService implements IColumnsService {
           ],
           reverseDefaultTitle,
         ),
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
+        // BT reverse column should always be LinkToAnotherRecord (not Links)
+        // to match V1 behavior where BT doesn't show count/rollup
+        uidt:
+          revType === RelationTypes.BELONGS_TO
+            ? UITypes.LinkToAnotherRecord
+            : isLinks
+              ? UITypes.Links
+              : UITypes.LinkToAnotherRecord,
         type: revType,
         version: isMMLike ? 2 : 1,
 

@@ -1652,7 +1652,7 @@ onBeforeUnmount(() => {
 
   // Blockquote
   blockquote {
-    border-left: 3px solid var(--nc-border-gray-medium);
+    border-left: 3px solid var(--nc-bg-gray-extra-dark);
     padding-left: 1em;
     color: var(--nc-content-gray-subtle2);
     margin: 0.75em 0;
@@ -1660,7 +1660,7 @@ onBeforeUnmount(() => {
 
   // Code
   code {
-    background-color: var(--nc-bg-gray-light);
+    background-color: var(--nc-bg-gray-medium);
     border-radius: 0.25em;
     padding: 0.15em 0.3em;
     font-size: 0.875em;

@@ -53,7 +53,7 @@ const navigateToProjectPage = () => {
 
 const navigateToSettings = () => {
   if (isEeUI && !appInfo.value?.ee) {
-    navigateTo('/account/users/list')
+    navigateTo(appInfo.value?.isOnPrem ? '/admin?tab=users-list' : '/account/users/list')
     return
   }
 

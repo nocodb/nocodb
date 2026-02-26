@@ -60,7 +60,6 @@ export default class Noco extends NocoEE {
         this.ee = false;
         // ensure default workspace exists when running without license
         await verifyDefaultWorkspace();
-        logger.log('License key removed — switched to CE mode');
         return false;
       }
 

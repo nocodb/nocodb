@@ -223,12 +223,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const navigateToWorkspaceSettings = async (_?: string, cmdOrCtrl?: boolean) => {
+    const target = appInfo.value.isOnPrem ? '/admin?tab=users-list' : '/account/users'
     if (cmdOrCtrl) {
-      await navigateTo('#/account/users', {
+      await navigateTo(`#${target}`, {
         open: navigateToBlankTargetOpenOption,
       })
     } else {
-      await navigateTo('/account/users')
+      await navigateTo(target)
     }
   }
 

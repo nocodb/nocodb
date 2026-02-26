@@ -13,7 +13,7 @@ const { t } = useI18n()
 
 const { dashboardUrl } = useDashboard()
 
-const { user: loggedInUser } = useGlobal()
+const { user: loggedInUser, appInfo } = useGlobal()
 
 const { copy } = useCopy()
 
@@ -288,7 +288,7 @@ const userRoleOptions = [
                 </div>
                 <NcSelect
                   v-else-if="el.id !== loggedInUser?.id"
-                  v-show="!isEeUI"
+                  v-show="!isEeUI || (appInfo.isOnPrem && !appInfo.ee)"
                   v-model:value="el.roles"
                   class="w-55 nc-user-roles"
                   :dropdown-match-select-width="false"

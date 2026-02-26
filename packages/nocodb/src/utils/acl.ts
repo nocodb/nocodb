@@ -47,6 +47,9 @@ const permissionScopes = {
     // Misc
     'commandPalette',
     'baseListAll',
+    'instanceAdminStats',
+    'instanceAdminWorkspaces',
+    'instanceAdminBases',
     'testConnection',
     'genericGPT',
     'duplicateSharedBase',
@@ -657,6 +660,9 @@ const permissionDescriptions: Record<string, string> = {
 
   commandPalette: 'access the command palette',
   baseListAll: 'list all workspaces and bases',
+  instanceAdminStats: 'view instance admin statistics',
+  instanceAdminWorkspaces: 'list all workspaces in instance admin',
+  instanceAdminBases: 'list all bases in instance admin',
   testConnection: 'test connection to a service',
   genericGPT: 'use generic GPT functionality',
 

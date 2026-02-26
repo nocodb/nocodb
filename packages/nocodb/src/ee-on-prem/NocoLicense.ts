@@ -467,7 +467,7 @@ export default class NocoLicense {
    * For on-premise, we charge per instance (not per workspace)
    * A user is counted once if they have any seat-consuming role anywhere in the instance
    */
-  private static async calculateGlobalSeatCount(
+  public static async calculateGlobalSeatCount(
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
     const seatUsersMap = new Map<string, true>();

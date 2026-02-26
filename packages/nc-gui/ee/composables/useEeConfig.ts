@@ -633,7 +633,7 @@ export const useEeConfig = createSharedComposable(() => {
       'okText': t('upgrade.enterLicense'),
       'onOk': () => {
         toggleDialog()
-        navigateTo('/account/license')
+        navigateTo(appInfo.value.isOnPrem ? '/admin?tab=license' : '/account/license')
       },
       'cancelText': t('general.close'),
       'onCancel': toggleDialog,

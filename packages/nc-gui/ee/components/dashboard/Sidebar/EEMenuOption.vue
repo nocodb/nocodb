@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import type { Api } from 'nocodb-sdk'
+import { type Api, OrgUserRoles } from 'nocodb-sdk'
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, orgRoles } = useRoles()
 
-const { user } = useGlobal()
+const { user, appInfo } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
@@ -25,7 +25,12 @@ const migrateWorkspace = async () => {
 </script>
 
 <template>
-  <template v-if="activeWorkspace?.fk_org_id">
+  <template v-if="appInfo.isOnPrem && orgRoles?.[OrgUserRoles.SUPER_ADMIN]">
+    <nuxt-link v-e="['c:user:admin-panel']" to="/admin" class="!no-underline" data-testid="nc-sidebar-instance-admin-panel">
+      <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
+    </nuxt-link>
+  </template>
+  <template v-else-if="!appInfo.isOnPrem && activeWorkspace?.fk_org_id">
     <nuxt-link
       v-if="isUIAllowed('orgAdminPanel')"
       v-e="['c:user:admin-panel']"
@@ -37,7 +42,7 @@ const migrateWorkspace = async () => {
     </nuxt-link>
   </template>
   <div
-    v-else-if="isUIAllowed('moveWorkspaceToOrg') && user?.featureFlags?.upgradeOrg"
+    v-else-if="!appInfo.isOnPrem && isUIAllowed('moveWorkspaceToOrg') && user?.featureFlags?.upgradeOrg"
     v-e="['c:user:upgrade-workspace-to-org']"
     data-testid="nc-sidebar-upgrade-workspace-to-org"
     @click="migrateWorkspace"

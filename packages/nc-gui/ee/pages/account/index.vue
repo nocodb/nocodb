@@ -125,6 +125,7 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
+                v-if="!appInfo.isOnPrem"
                 key="tokens"
                 :class="{
                   active: $route.params.page === 'mcp',
@@ -153,6 +154,7 @@ onMounted(() => {
                 </div>
               </NcMenuItem> -->
               <NcMenuItem
+                v-if="!appInfo.isOnPrem"
                 key="external-integrations"
                 :class="{
                   active: $route.params.page === 'external-integrations',
@@ -167,7 +169,7 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isSetupPageAllowed"
+                v-if="isSetupPageAllowed && !appInfo.isOnPrem"
                 key="profile"
                 class="item"
                 :class="{
@@ -194,7 +196,7 @@ onMounted(() => {
               </NcMenuItem>
 
               <NcMenuItem
-                v-if="isUIAllowed('ssoSettings')"
+                v-if="isUIAllowed('ssoSettings') && !appInfo.isOnPrem"
                 key="authentication"
                 :class="{
                   active: $route.params.page === 'authentication',
@@ -211,23 +213,22 @@ onMounted(() => {
               </NcMenuItem>
 
               <NcMenuItem
-                v-if="isUIAllowed('superAdminSetup') && appInfo.isOnPrem"
-                key="license"
+                v-if="appInfo.isOnPrem && !appInfo.disableEmailAuth"
+                key="password-reset"
                 :class="{
-                  active: $route.params.page === 'license',
+                  active: $route.params.nestedPage === 'password-reset',
                 }"
                 class="item"
-                @click="navigateTo('/account/license')"
+                @click="navigateTo('/account/users/password-reset')"
               >
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="ncKey2" class="h-4 w-4 flex-none" />
-
-                  <div class="select-none">{{ $t('title.license') }}</div>
+                  <div class="select-none">{{ $t('title.resetPasswordMenu') }}</div>
                 </div>
               </NcMenuItem>
 
               <a-sub-menu
-                v-if="!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')"
+                v-if="(!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')) && !appInfo.isOnPrem"
                 key="users"
                 class="!bg-nc-bg-gray-sidebar !my-0"
               >
@@ -247,7 +248,7 @@ onMounted(() => {
                 </template>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement') && (!isEeUI || appInfo.isOnPrem)"
+                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI && !appInfo.isOnPrem"
                   key="list"
                   :class="{
                     active: $route.params.nestedPage === 'list',
@@ -268,7 +269,7 @@ onMounted(() => {
                   <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
                 </NcMenuItem>
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings') && (!isEeUI || appInfo.isOnPrem)"
+                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI && !appInfo.isOnPrem"
                   key="settings"
                   :class="{
                     active: $route.params.nestedPage === 'settings',

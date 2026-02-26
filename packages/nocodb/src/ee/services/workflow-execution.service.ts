@@ -33,8 +33,8 @@ import type {
 import type { Graph } from '~/services/workflows/graphHelpers';
 import {
   getPlanTitleFromContext,
+  getRequiredPlanForNode,
   isNodeAvailableForPlan,
-  WorkflowNodePlanRequirements,
 } from '~/helpers/workflowNodeHelpers';
 import { BaseUser, Column, Integration, User, Workflow } from '~/models';
 import { DataV3Service } from '~/services/v3/data-v3.service';
@@ -310,7 +310,7 @@ export class WorkflowExecutionService {
             definition.id,
             userPlanTitle,
           );
-          const requiredPlan = WorkflowNodePlanRequirements[definition.id];
+          const requiredPlan = getRequiredPlanForNode(definition.id);
 
           nodes.push({
             ...definition,

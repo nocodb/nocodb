@@ -38,7 +38,8 @@ Run this to find all emails used by commits whose author name resembles the user
 
 ```bash
 USERNAME="${1:-ncRaju}"
-git log --format="%an <%ae>" develop..HEAD \
+FORK_POINT=$(git merge-base HEAD origin/develop)
+git log --format="%an <%ae>" ${FORK_POINT}..HEAD \
   | sort -u \
   | grep -i "${USERNAME}"
 ```
@@ -47,8 +48,8 @@ This may return zero, one, or multiple matches. Handle each case:
 
 - **0 matches** — widen search: try matching just the first 4+ chars of the username against author names, and also try searching by `nc`-stripped version (e.g. `ncRaju` → `Raju`):
   ```bash
-  STRIPPED=$(echo "${USERNAME}" | sed 's/^nc//I')
-  git log --format="%an <%ae>" develop..HEAD | sort -u | grep -i "${STRIPPED}"
+  STRIPPED=$(echo "${USERNAME}" | sed 's/^nc//')
+  git log --format="%an <%ae>" ${FORK_POINT}..HEAD | sort -u | grep -i "${STRIPPED}"
   ```
 - **1 match** — use that email automatically, report it to the user
 - **2+ matches** — show all matches and use `AskUserQuestion` to let the user pick which email(s) to rewrite
@@ -62,27 +63,34 @@ Once resolved, set `TARGET_EMAIL` and proceed.
 ```
 /fix-cla
   → Phase 0: Resolve arg (username → email, or use email directly)
-  → Phase 1: Detect current branch + base branch
+  → Phase 1: Detect current branch + compute fork point
   → Phase 2: Find unsigned commits (filter by TARGET_EMAIL)
   → Phase 3: Show summary, ask for confirmation
-  → Phase 4: Rewrite with git filter-branch
-  → Phase 5: Verify, show results
+  → Phase 4: Create backup branch, rewrite with git filter-branch
+  → Phase 5: Verify fork point preserved + results
   → Phase 6: Remind to force push
 ```
 
-## Phase 1: Detect Branch
+## Phase 1: Detect Branch + Fork Point
 
 ```bash
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-BASE=develop
 ```
 
 If an explicit branch was passed as arg 2, checkout that branch first.
 
+**CRITICAL — always use the actual fork point as the rewrite range, not `develop..HEAD`.**
+
+Using `develop..HEAD` is dangerous: if any TARGET_EMAIL commits were merged into develop before the branch was rebased, they exist in BOTH develop and the branch. Rewriting them (changing their SHA) breaks the shared history, shifting the fork point far back and causing a massive PR diff explosion.
+
+```bash
+FORK_POINT=$(git merge-base HEAD origin/develop)
+```
+
 ## Phase 2: Find Unsigned Commits
 
 ```bash
-git log --format="%h %an <%ae> %s" ${BASE}..HEAD | grep "${TARGET_EMAIL}"
+git log --format="%h %an <%ae> %s" ${FORK_POINT}..HEAD | grep "${TARGET_EMAIL}"
 ```
 
 Count the matches. If 0 → report "No commits from ${TARGET_EMAIL} found on this branch. CLA should be clean." and stop.
@@ -97,6 +105,7 @@ CURRENT_EMAIL=$(git config user.email)
 ## Phase 3: Confirm
 
 Show the user:
+
 - Branch being fixed
 - Resolved target: `{name} <{TARGET_EMAIL}>` (include original username arg if it was a username)
 - Replacement identity: `{CURRENT_NAME} <{CURRENT_EMAIL}>`
@@ -104,19 +113,26 @@ Show the user:
 - First 5 commit subjects
 
 Use `AskUserQuestion` with options:
+
 - **Rewrite commits (local only)** — proceed, no push
 - **Cancel** — abort
 
-## Phase 4: Rewrite
+## Phase 4: Backup + Rewrite
 
-Clear any leftover filter-branch backup refs before running:
+Create a backup branch before touching anything:
+
+```bash
+git branch ${BRANCH}-backup-pre-cla $(git rev-parse HEAD)
+```
+
+Clear any leftover filter-branch backup refs:
 
 ```bash
 git for-each-ref --format="%(refname)" refs/original/ \
   | while read ref; do git update-ref -d "$ref"; done
 ```
 
-Then rewrite:
+Rewrite using `FORK_POINT..HEAD`:
 
 ```bash
 FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch --env-filter "
@@ -128,18 +144,26 @@ if [ \"\$GIT_COMMITTER_EMAIL\" = \"${TARGET_EMAIL}\" ]; then
     export GIT_COMMITTER_NAME=\"${CURRENT_NAME}\"
     export GIT_COMMITTER_EMAIL=\"${CURRENT_EMAIL}\"
 fi
-" -- ${BASE}..HEAD
+" -- ${FORK_POINT}..HEAD
 ```
 
 ## Phase 5: Verify
 
-After rewrite, run:
+After rewrite, confirm the fork point is unchanged:
 
 ```bash
-git log --format="%h %an <%ae>" ${BASE}..HEAD | sort -u
+NEW_FORK=$(git merge-base HEAD origin/develop)
 ```
 
-Confirm no commits remain from `TARGET_EMAIL`. Show the unique authors list.
+If `NEW_FORK != FORK_POINT` → something went wrong. Warn the user and suggest restoring from the backup branch.
+
+Also confirm no ncRaju commits remain and show the diff stat:
+
+```bash
+git log --format="%h %an <%ae>" ${NEW_FORK}..HEAD | sort -u
+git log --format="%an <%ae>" ${NEW_FORK}..HEAD | grep "${TARGET_EMAIL}" | wc -l
+git diff --stat ${NEW_FORK}..HEAD | tail -3
+```
 
 ## Phase 6: Remind to Push
 
@@ -147,6 +171,7 @@ Output a clear message:
 
 ```
 ✅ Done. All commits from <original arg> (<TARGET_EMAIL>) have been rewritten to <CURRENT_NAME> <CURRENT_EMAIL>.
+   Backup preserved at: {BRANCH}-backup-pre-cla
 
 Since history was rewritten, force push is required:
 
@@ -158,8 +183,10 @@ After pushing, trigger the CLA bot to re-check by posting a comment on the PR:
 
 ## Rules
 
+- **Always use `FORK_POINT..HEAD` (merge-base), never `develop..HEAD`** — this is the most critical rule
+- Always create a backup branch before rewriting
 - Never push automatically — always leave that to the user
-- Never rewrite commits that are already on `develop` (use `develop..HEAD` range)
-- Always clear `refs/original/` backup refs before running `filter-branch` to avoid "backup already exists" errors
+- Always clear `refs/original/` backup refs before running `filter-branch`
+- After rewrite, always verify the fork point didn't change — if it did, the rewrite was wrong
 - If `git filter-branch` fails, report the error and suggest using `git filter-repo` as an alternative
 - If the branch is `develop` or `main`, refuse and explain why

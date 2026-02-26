@@ -624,7 +624,15 @@ export default class Filter implements FilterType {
     const cachedList = await NocoCache.getList(
       context,
       CacheScope.FILTER_EXP,
-      [parentColId || viewId || hookId || linkColId || widgetId || rlsPolicyId || buttonColId],
+      [
+        parentColId ||
+          viewId ||
+          hookId ||
+          linkColId ||
+          widgetId ||
+          rlsPolicyId ||
+          buttonColId,
+      ],
       {
         key: 'order',
       },
@@ -1440,11 +1448,7 @@ export default class Filter implements FilterType {
     buttonColId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const filter = await this.getFilterObject(
-      context,
-      { buttonColId },
-      ncMeta,
-    );
+    const filter = await this.getFilterObject(context, { buttonColId }, ncMeta);
 
     const deleteRecursively = async (filter) => {
       if (!filter) return;

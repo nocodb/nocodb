@@ -569,7 +569,8 @@ export default class View implements ViewType {
           ]);
           if (filterProps.fk_level_id) {
             filterProps.fk_level_id =
-              levelIdMap.get(filterProps.fk_level_id) || filterProps.fk_level_id;
+              levelIdMap.get(filterProps.fk_level_id) ||
+              filterProps.fk_level_id;
           }
           const createdFilter = await Filter.insert(
             context,

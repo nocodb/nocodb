@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ViewTypes, WorkspaceUserRoles } from 'nocodb-sdk';
 import { ImportService as ImportServiceCE } from 'src/modules/jobs/jobs/export-import/import.service';
-import type { UserType, WidgetType, ViewCreateReqType } from 'nocodb-sdk';
+import type { UserType, ViewCreateReqType, WidgetType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { Permission, View, Model } from '~/models';
+import type { Model, Permission, View } from '~/models';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { ListsService } from '~/services/lists.service';
 import { type User, WorkspaceUser } from '~/models';

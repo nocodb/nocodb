@@ -60,6 +60,7 @@ export async function getBaseListAll(
           id: row.workspace_id,
           title: row.workspace_title,
           meta: parseMetaProp(row, 'workspace_meta'),
+          plan_title: null,
           bases: [],
         };
         wsMap.set(row.workspace_id, ws);

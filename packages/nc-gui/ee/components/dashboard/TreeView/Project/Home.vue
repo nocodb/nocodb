@@ -5,7 +5,9 @@ import Data from '../Data/index.vue'
 const router = useRouter()
 const route = router.currentRoute
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const sidebarStore = useSidebarStore()
+
+const { isLeftSidebarOpen, activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
@@ -32,18 +34,6 @@ const { isMobileMode, appInfo } = useGlobal()
 const { isDark } = useTheme()
 
 const projectNodeRef = ref()
-
-type SidebarTab = 'home' | 'data' | 'automation' | 'agents'
-
-const activeTab = ref<SidebarTab>('home')
-
-const sidebarTabs = computed<{ key: SidebarTab; icon: string; activeIcon: string; label: string }[]>(() => [
-  { key: 'home', icon: 'home1', activeIcon: 'ncHomeFilled', label: 'Home' },
-  { key: 'data', icon: 'table', activeIcon: 'ncTableFilled', label: 'Data' },
-  { key: 'automation', icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Workflows' },
-  { key: 'agents', icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
-])
-
 
 // If only base is open, i.e in case of docs, base view is open and not the page view
 const baseViewOpen = computed(() => {
@@ -99,10 +89,6 @@ const hasTableCreatePermission = computed(() => {
   })
 })
 
-const onTabClick = (tab: SidebarTab) => {
-  activeTab.value = tab
-  if (tab === 'home') openBaseHomePage()
-}
 </script>
 
 <template>
@@ -130,34 +116,6 @@ const onTabClick = (tab: SidebarTab) => {
 
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
-
-      <!-- Tab Bar -->
-      <div v-if="!isSharedBase" class="nc-sidebar-tab-bar flex items-center px-1 border-b-1 border-nc-border-gray-medium">
-        <button
-          v-for="(tab, index) in sidebarTabs"
-          :key="tab.key"
-          v-e="[`c:sidebar:tab:${tab.key}`]"
-          class="nc-sidebar-tab-btn relative flex items-center gap-1.5 py-1.5 cursor-pointer border-none bg-transparent transition-colors duration-150 px-2.5"
-          :class="[
-            {
-              'text-nc-content-brand font-semibold': activeTab === tab.key,
-              'text-nc-content-gray-muted hover:text-nc-content-gray-subtle': activeTab !== tab.key,
-            },
-            index === 0 ? '!pl-3' : '',
-          ]"
-          :data-testid="`nc-sidebar-tab-${tab.key}`"
-          @click="onTabClick(tab.key)"
-        >
-          <div class="w-4 h-4 flex items-center justify-center flex-none">
-            <GeneralIcon :icon="activeTab === tab.key ? tab.activeIcon : tab.icon" class="!h-3.5 !w-3.5" />
-          </div>
-          <span class="text-[13px] leading-none">{{ tab.label }}</span>
-          <div
-            v-if="activeTab === tab.key"
-            class="absolute bottom-0 left-1 right-1 h-0.5 rounded-t-full bg-nc-content-brand"
-          />
-        </button>
-      </div>
 
       <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
@@ -191,24 +149,18 @@ const onTabClick = (tab: SidebarTab) => {
       </div>
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
-      <!-- Home tab: show both Data + Automation -->
-      <template v-if="activeTab === 'home'">
-        <Data :base-id="base.id" hide-header />
-        <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header hide-create-button />
-      </template>
-
-      <!-- Data tab: show only Data -->
-      <template v-else-if="activeTab === 'data'">
+      <!-- Data tab -->
+      <template v-if="activeSidebarTab === 'data'">
         <Data :base-id="base.id" hide-header />
       </template>
 
-      <!-- Automation tab: show only Automation -->
-      <template v-else-if="activeTab === 'automation'">
+      <!-- Automation/Workflows tab -->
+      <template v-else-if="activeSidebarTab === 'automation'">
         <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header hide-create-button />
       </template>
 
       <!-- Agents tab: placeholder -->
-      <template v-else-if="activeTab === 'agents'">
+      <template v-else-if="activeSidebarTab === 'agents'">
         <div class="flex items-center justify-center h-32 text-nc-content-gray-muted text-bodySm">
           {{ $t('general.comingSoon') }}
         </div>

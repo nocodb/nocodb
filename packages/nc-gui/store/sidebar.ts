@@ -100,6 +100,10 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
+  type SidebarTab = 'data' | 'automation' | 'agents'
+
+  const activeSidebarTab = ref<SidebarTab>('data')
+
   const toggleFullScreenState = () => {
     if (isFullScreen.value) {
       isLeftSidebarOpen.value = true
@@ -147,6 +151,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     isFullScreen,
     toggleFullScreenState,
     allowHideLeftSidebarForCurrentRoute,
+    activeSidebarTab,
   }
 })
 

@@ -27,9 +27,31 @@ const {
   isTemplatesFeatureEnabled,
 } = workspaceStore
 
-const { basesList } = storeToRefs(useBases())
+const basesStore = useBases()
+
+const { basesList, openedProject } = storeToRefs(basesStore)
 
 const { isSharedBase } = storeToRefs(useBase())
+
+const sidebarStore = useSidebarStore()
+
+const { activeSidebarTab } = storeToRefs(sidebarStore)
+
+const isBaseOpen = computed(() => {
+  return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
+})
+
+const baseIconColor = computed(() => {
+  if (!openedProject.value) return undefined
+  const meta = parseProp(openedProject.value.meta)
+  return meta.iconColor
+})
+
+const miniSidebarTabs = computed(() => [
+  { key: 'data' as const, icon: 'table', activeIcon: 'ncTableFilled', label: 'Data' },
+  { key: 'automation' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Workflows' },
+  { key: 'agents' as const, icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
+])
 
 const { isUIAllowed } = useRoles()
 
@@ -105,7 +127,18 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 <template>
   <div class="nc-mini-sidebar" data-testid="nc-mini-sidebar">
     <div class="flex flex-col items-center">
-      <DashboardMiniSidebarItemWrapper size="small" show-in-mobile>
+      <!-- Base color icon at top-left -->
+      <DashboardMiniSidebarItemWrapper v-if="isBaseOpen && openedProject" size="small" show-in-mobile>
+        <div class="min-h-9 sticky top-0 bg-nc-bg-gray-minisidebar flex items-center justify-center">
+          <GeneralProjectIcon
+            :color="baseIconColor"
+            class="h-5 w-5"
+          />
+        </div>
+      </DashboardMiniSidebarItemWrapper>
+
+      <!-- Workspace selector (when no base open) -->
+      <DashboardMiniSidebarItemWrapper v-if="!isBaseOpen" size="small" show-in-mobile>
         <div
           class="min-h-9 sticky top-0 bg-nc-bg-gray-minisidebar"
           :class="{
@@ -121,6 +154,38 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </NcTooltip>
         </div>
       </DashboardMiniSidebarItemWrapper>
+
+      <!-- Data / Workflows / Agents tabs -->
+      <template v-if="isBaseOpen">
+        <div class="px-2 my-1 w-full">
+          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        </div>
+        <DashboardMiniSidebarItemWrapper v-for="tab in miniSidebarTabs" :key="tab.key">
+          <NcTooltip :title="tab.label" placement="right" hide-on-click :arrow="false">
+            <div
+              v-e="[`c:sidebar:minitab:${tab.key}`]"
+              class="nc-mini-sidebar-btn-full-width"
+              :data-testid="`nc-mini-sidebar-tab-${tab.key}`"
+              @click="activeSidebarTab = tab.key"
+            >
+              <div
+                class="nc-mini-sidebar-btn"
+                :class="{
+                  active: activeSidebarTab === tab.key,
+                }"
+              >
+                <GeneralIcon
+                  :icon="activeSidebarTab === tab.key ? tab.activeIcon : tab.icon"
+                  class="h-4 w-4"
+                />
+              </div>
+            </div>
+          </NcTooltip>
+        </DashboardMiniSidebarItemWrapper>
+        <div class="px-2 my-1 w-full">
+          <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+        </div>
+      </template>
 
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip placement="right" hide-on-click :arrow="false">

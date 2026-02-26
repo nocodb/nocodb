@@ -72,29 +72,6 @@ EE code lives in `ee/` subdirectories that mirror CE structure. This applies acr
 
 CRITICAL: EE `globals.ts` completely overrides CE — it does NOT inherit. When adding MetaTable/CacheScope entries in CE, you MUST also add them in `src/ee/utils/globals.ts` or values resolve to `undefined` at runtime.
 
-### EE-specific frontend components — split, don't duplicate
-
-**Never copy an entire CE component into `ee/` just because it needs EE additions.** Instead, split the CE component into smaller sub-components and only put the EE-specific parts in `ee/`. This applies broadly — menu items, panels, toolbar sections, sidebar nodes, form fields, etc.
-
-**Pattern:**
-
-1. **Extract** the EE-specific UI into its own sub-component (e.g. `ViewActionMenu/MoveToSection.vue`).
-2. **CE stub** at `components/path/SubFeature.vue` — same Props/Emits interface, template is `<NcSpanHidden />` (renders nothing).
-3. **EE implementation** at `ee/components/path/SubFeature.vue` — full EE logic, stores, payment gating, telemetry.
-4. **CE parent** uses `v-if="isEeUI"` to include it:
-   ```html
-   <PathSubFeature v-if="isEeUI" :view="view" :table="table" @close-modal="..." />
-   ```
-
-`isEeUI` is auto-imported globally (`utils/ncUtils.ts` → `false` in CE, `ee/utils/eeUtils.ts` → `true` in EE). The CE parent never imports from `ee/` — the build overlay resolves the correct file automatically.
-
-**When to apply this pattern:**
-- Adding EE-only menu items / toolbar buttons / sidebar actions to an existing CE component
-- Any EE-specific section inside a shared layout (panel, tab, column, row)
-- Replacing a growing EE-override file that's mostly CE code with one small extracted sub-component
-
-Example: `components/smartsheet/toolbar/ViewActionMenu/MoveToSection.vue` (CE stub) + `ee/components/smartsheet/toolbar/ViewActionMenu/MoveToSection.vue` (EE impl) — previously a full EE copy of the entire ViewActionMenu.
-
 ## Type Safety Flow
 
 1. Define types in `nocodb-sdk` first (in `src/lib/` — do NOT manually edit `Api.ts`, it's auto-generated from swagger)

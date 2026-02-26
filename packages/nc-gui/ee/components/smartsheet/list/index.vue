@@ -8,6 +8,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
+import { useCanvasOutline } from './composables/useCanvasOutline'
 import Scroller from '~/components/smartsheet/grid/canvas/components/Scroller.vue'
 import Tooltip from '~/components/smartsheet/grid/canvas/components/Tooltip.vue'
 import { useCanvasListView } from './composables/useCanvasListView'

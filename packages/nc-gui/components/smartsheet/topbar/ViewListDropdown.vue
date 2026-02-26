@@ -21,15 +21,15 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const isOpen = ref<boolean>(false)
 
+const activeSource = computed(() => {
+  return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
+})
+
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
 
 const isSyncedTable = computed(() => (activeTable.value as TableType)?.synced)
 
 const isPgSource = computed(() => activeSource.value?.type === 'pg')
-
-const activeSource = computed(() => {
-  return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
-})
 
 /**
  * Handles navigation to a selected view.

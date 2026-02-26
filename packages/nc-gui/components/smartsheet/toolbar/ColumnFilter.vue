@@ -1547,7 +1547,9 @@ defineExpose({
                   size="small"
                   :disabled="!canPinFilter(filter) || isLockedView"
                   class="nc-filter-item-pin-btn self-center"
-                  @click.stop="blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, getFilterIndex(filter))"
+                  @click.stop="
+                    blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, getFilterIndex(filter))
+                  "
                 >
                   <GeneralIcon
                     :icon="parseProp(filter.meta)?.pinned ? 'ncPinOff' : 'ncPin'"

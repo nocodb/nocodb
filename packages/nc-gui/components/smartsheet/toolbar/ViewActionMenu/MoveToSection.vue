@@ -9,7 +9,7 @@ interface Props {
 
 defineProps<Props>()
 
-const emits = defineEmits(['closeModal'])
+defineEmits(['closeModal'])
 </script>
 
 <template>

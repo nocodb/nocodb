@@ -11,9 +11,9 @@ const { appInfo } = useGlobal()
 
 const { isEEFeatureBlocked, showUpgradeToUseSSO } = useEeConfig()
 
-const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+const showLicenseTab = computed(() => isEeUI)
 
-const isNotCloud = computed(() => !appInfo.value.isCloud)
+const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 provide(IsAdminPanelInj, ref(true))
 
@@ -31,24 +31,31 @@ type AdminTab =
   | 'settings'
   | 'mcp'
 
-const validTabs: AdminTab[] = [
-  'dashboard',
-  'workspaces',
-  'bases',
-  'setup',
-  'external-integrations',
-  'authentication',
-  'license',
-  'users-list',
-  'settings',
-  'mcp',
-]
+const validTabs = computed<AdminTab[]>(() => {
+  const tabs: AdminTab[] = [
+    'dashboard',
+    'workspaces',
+    'bases',
+    'setup',
+    'external-integrations',
+    'authentication',
+    'users-list',
+    'settings',
+    'mcp',
+  ]
 
-const initialTab = validTabs.includes(route.query.tab as AdminTab) ? (route.query.tab as AdminTab) : 'dashboard'
+  if (showLicenseTab.value) {
+    tabs.push('license')
+  }
+
+  return tabs
+})
+
+const initialTab = validTabs.value.includes(route.query.tab as AdminTab) ? (route.query.tab as AdminTab) : 'dashboard'
 
 const activeTab = ref<AdminTab>(initialTab)
 
-const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || !appInfo.value.isCloud))
+const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup'))
 
 const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
 
@@ -60,11 +67,11 @@ watchEffect(() => {
 
 const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 
-// Guard: redirect if not on-prem super admin
+// Guard: redirect if not super admin
 watch(
-  [isSuperAdmin, isNotCloud],
+  isSuperAdmin,
   () => {
-    if (!isSuperAdmin.value || !isNotCloud.value) {
+    if (!isSuperAdmin.value) {
       navigateTo('/')
     }
   },
@@ -74,7 +81,7 @@ watch(
 
 <template>
   <NuxtLayout>
-    <div v-if="isSuperAdmin && isNotCloud" class="mx-auto h-full">
+    <div v-if="isSuperAdmin" class="mx-auto h-full">
       <div class="h-full flex">
         <!-- Side tabs -->
         <div class="h-full bg-nc-bg-gray-sidebar nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
@@ -229,6 +236,7 @@ watch(
 
             <!-- System -->
             <NcMenuItem
+              v-if="showLicenseTab"
               key="license"
               :class="{ active: activeTab === 'license' }"
               class="item"

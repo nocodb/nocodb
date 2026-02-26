@@ -35,6 +35,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { acquireLock, releaseLock } from '~/helpers/lockHelpers';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import NocoSocket from '~/socket/NocoSocket';
@@ -56,6 +57,14 @@ export class PaymentService {
     protected readonly nocoJobsService: NocoJobsService,
     protected readonly telemetryService: TelemetryService,
   ) {}
+
+  private clearBaseListCacheForEntity(
+    workspaceOrOrg: NonNullable<Awaited<ReturnType<typeof getWorkspaceOrOrg>>>,
+  ) {
+    if (workspaceOrOrg.entity !== 'workspace') return;
+
+    cleanCommandPaletteCache(workspaceOrOrg.id).catch(() => {});
+  }
 
   async getPlans() {
     return await Plan.list();
@@ -274,6 +283,7 @@ export class PaymentService {
 
     await this.migrateDb(workspaceOrOrg.id, transaction);
     await this.reseatSubscriptionImmediate(workspaceOrOrg.id, ncMeta);
+    this.clearBaseListCacheForEntity(workspaceOrOrg);
 
     return subscription;
   }
@@ -1708,6 +1718,8 @@ export class PaymentService {
         );
       }
 
+      this.clearBaseListCacheForEntity(workspaceOrOrg);
+
       return existingSubscription;
     }
 
@@ -2340,6 +2352,8 @@ export class PaymentService {
               },
             );
           }
+
+          this.clearBaseListCacheForEntity(workspaceOrOrg);
           break;
         }
 
@@ -2422,6 +2436,8 @@ export class PaymentService {
               },
             );
           }
+
+          this.clearBaseListCacheForEntity(workspaceOrOrg);
 
           this.logger.log(
             `Subscription ${event.type} processed for ${workspaceOrOrgId}.`,

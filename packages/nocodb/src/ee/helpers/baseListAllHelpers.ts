@@ -1,4 +1,5 @@
 import {
+  PlanTitles,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
@@ -13,6 +14,7 @@ export interface BaseListAllResult {
     id: string;
     title: string;
     meta: Record<string, any>;
+    plan_title: PlanTitles | null;
     bases: {
       id: string;
       title: string;
@@ -40,6 +42,7 @@ export async function getBaseListAll(
         'ws.id as workspace_id',
         'ws.title as workspace_title',
         'ws.meta as workspace_meta',
+        'p.title as plan_title',
         'b.id as base_id',
         'b.title as base_title',
         'b.meta as base_meta',
@@ -70,6 +73,20 @@ export async function getBaseListAll(
           `wu.fk_user_id`,
         );
       })
+      .leftJoin(`${MetaTable.SUBSCRIPTIONS} as sub`, function () {
+        this.on(function () {
+          this.on(`sub.fk_workspace_id`, `=`, `ws.id`).orOn(
+            `sub.fk_org_id`,
+            `=`,
+            `ws.fk_org_id`,
+          );
+        }).andOnIn(`sub.status`, ['active', 'trialing', 'incomplete', 'past_due']);
+      })
+      .leftJoin(
+        `${MetaTable.PLANS} as p`,
+        `p.id`,
+        `sub.fk_plan_id`,
+      )
       .where('wu.fk_user_id', userId)
       .andWhere(function () {
         this.where('ws.deleted', false).orWhereNull('ws.deleted');
@@ -95,6 +112,7 @@ export async function getBaseListAll(
           id: row.workspace_id,
           title: row.workspace_title,
           meta: parseMetaProp(row, 'workspace_meta'),
+          plan_title: row.plan_title ?? null,
           bases: [],
         };
         wsMap.set(row.workspace_id, ws);
@@ -116,7 +134,7 @@ export async function getBaseListAll(
     };
 
     await NocoCache.set('root', key, cached);
-    // Append to the same lists command palette uses so cleanup piggybacks.
+
     // Register in every workspace's list so any workspace change invalidates this cache.
     for (const wsId of wsMap.keys()) {
       await NocoCache.set('root', `${CacheScope.CMD_PALETTE}:ws:${wsId}`, [

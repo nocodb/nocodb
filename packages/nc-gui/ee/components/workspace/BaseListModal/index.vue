@@ -43,6 +43,7 @@ interface BaseListAllData {
     id: string
     title: string
     meta: Record<string, any>
+    plan_title: string | null
     bases: {
       id: string
       title: string
@@ -71,7 +72,13 @@ const loadBaseListAll = async () => {
   }
 }
 
-const loadBaseListAllDebounced = useDebounceFn(loadBaseListAll, 300)
+const baseListAllWsMap = computed(() => {
+  const map = new Map<string, { plan_title: string | null }>()
+  for (const ws of baseListAllData.value?.workspaces ?? []) {
+    map.set(ws.id, { plan_title: ws.plan_title })
+  }
+  return map
+})
 
 // Provide base actions to child components
 const closeModal = () => {
@@ -106,24 +113,15 @@ const handleKeydown = (e: KeyboardEvent) => {
 useEventListener(window, 'resize', onResize)
 useEventListener(window, 'keydown', handleKeydown)
 
-// Reset state when modal opens
+// Reset state when modal opens and load baseListAll index upfront
 watch(visible, (isVisible) => {
   if (isVisible) {
     modalState.selectedWorkspaceId = activeWorkspaceId.value || workspacesList.value[0]?.id || null
     modalState.searchQuery = ''
     modalState.activeFilter = 'all'
+    loadBaseListAll()
   }
 })
-
-// Load cross-workspace index only when searching (debounced).
-// Do NOT clear baseListAllData on empty query — stale data is harmless (both computeds
-// early-return on empty query) and keeping it stable prevents flicker when re-typing.
-watch(
-  () => modalState.searchQuery,
-  (query) => {
-    if (query) loadBaseListAllDebounced()
-  },
-)
 
 watch(
   searchInputRef,
@@ -411,7 +409,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
           size="large"
         >
           <template #prefix>
-            <div v-if="isBaseListAllLoading && modalState.searchQuery" class="h-4 w-4 mr-1">
+            <div v-if="isBaseListAllLoading" class="h-4 w-4 mr-1">
               <GeneralLoader size="regular" />
             </div>
 
@@ -435,6 +433,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               :workspace="workspace"
               :is-selected="modalState.selectedWorkspaceId === workspace.id"
               :base-count="workspace.id === modalState.selectedWorkspaceId ? baseCount : undefined"
+              :plan-title="baseListAllWsMap.get(workspace.id)?.plan_title"
               @select="onSelectWorkspace"
             />
           </div>
@@ -466,6 +465,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
             :selected-workspace-id="modalState.selectedWorkspaceId"
             :base-count="baseCount"
             :can-create-workspace="canCreateWorkspace"
+            :base-list-all-ws-map="baseListAllWsMap"
             @select="onSelectWorkspace"
             @create="onCreateWorkspace"
           />

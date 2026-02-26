@@ -4648,6 +4648,394 @@
         }
       }
     },
+
+    "/api/v3/meta/bases/{base_id}/workflows": {
+      "get": {
+        "summary": "List Workflows",
+        "description": "Retrieve a list of workflows associated with a specific base.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflows-list",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow list retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowList"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Workflow",
+        "description": "Create a new workflow within the specified base.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-create",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowCreateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workflow created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowGetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}": {
+      "get": {
+        "summary": "Get Workflow",
+        "description": "Retrieve the details of a specific workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-read",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowGetResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Workflow",
+        "description": "Update the workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-update",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowUpdateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workflow updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowGetResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Workflow",
+        "description": "Delete the workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-delete",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow deleted."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/duplicate": {
+      "post": {
+        "summary": "Duplicate Workflow",
+        "description": "Create a copy of the workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-duplicate",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow duplicated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowGetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/publish": {
+      "post": {
+        "summary": "Publish Workflow",
+        "description": "Publish draft changes of the workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-publish",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow published.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowGetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/execute": {
+      "post": {
+        "summary": "Execute Workflow",
+        "description": "Manually trigger a workflow execution.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-execute",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowExecuteReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workflow execution queued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Job identifier for the execution"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions": {
+      "get": {
+        "summary": "List Workflow Executions",
+        "description": "Retrieve a list of executions for a specific workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-execution-list",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          },
+          {
+            "schema": { "type": "integer", "default": 25 },
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of executions to return."
+          },
+          {
+            "schema": { "type": "integer", "default": 0 },
+            "name": "offset",
+            "in": "query",
+            "description": "Number of executions to skip."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Execution list retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowExecutionList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions/{execution_id}": {
+      "get": {
+        "summary": "Get Workflow Execution",
+        "description": "Retrieve the details of a specific workflow execution.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-execution-read",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "execution_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the execution."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Execution retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowExecutionGetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v3/data/{baseId}/{tableId}/records": {
       "parameters": [
         {
@@ -14703,6 +15091,312 @@
             "description": "Regular expression pattern (for regex validator type)."
           }
         }
+      },
+
+      "WorkflowList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workflow"
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the workflow"
+                },
+                "description": {
+                  "type": ["string", "null"],
+                  "description": "Description of the workflow"
+                },
+                "base_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the base"
+                },
+                "workspace_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workspace"
+                },
+                "enabled": {
+                  "type": "boolean",
+                  "description": "Whether the workflow is enabled"
+                },
+                "order": {
+                  "type": "number",
+                  "description": "Display order of the workflow"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp when the workflow was created"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp when the workflow was last updated"
+                },
+                "created_by": {
+                  "type": "string",
+                  "description": "User ID of the creator"
+                },
+                "updated_by": {
+                  "type": "string",
+                  "description": "User ID of the last updater"
+                }
+              },
+              "required": ["id", "title", "base_id", "workspace_id"]
+            }
+          }
+        },
+        "required": ["list"]
+      },
+      "WorkflowGetResponse": {
+        "description": "Workflow with full details including nodes and edges",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the workflow"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the workflow"
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the workflow"
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Unique identifier for the base"
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the workflow is enabled"
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Workflow node definitions"
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Connections between workflow nodes"
+          },
+          "draft": {
+            "type": "object",
+            "description": "Draft configuration with unpublished changes"
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata of the workflow"
+          },
+          "order": {
+            "type": "number",
+            "description": "Display order of the workflow"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workflow was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workflow was last updated"
+          },
+          "created_by": {
+            "type": "string",
+            "description": "User ID of the creator"
+          },
+          "updated_by": {
+            "type": "string",
+            "description": "User ID of the last updater"
+          }
+        },
+        "required": ["id", "title", "base_id", "workspace_id", "created_at", "updated_at"]
+      },
+      "WorkflowCreateReq": {
+        "description": "Workflow create request body",
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the workflow."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the workflow."
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Initial workflow node definitions."
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Initial connections between nodes."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata for the workflow."
+          }
+        }
+      },
+      "WorkflowUpdateReq": {
+        "description": "Workflow update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the workflow."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the workflow."
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the workflow is enabled."
+          },
+          "nodes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Workflow node definitions."
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            },
+            "description": "Connections between workflow nodes."
+          },
+          "draft": {
+            "type": "object",
+            "description": "Draft configuration with unpublished changes."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata for the workflow."
+          },
+          "order": {
+            "type": "number",
+            "description": "Display order of the workflow."
+          }
+        }
+      },
+      "WorkflowExecuteReq": {
+        "description": "Workflow execute request body",
+        "type": "object",
+        "properties": {
+          "trigger_data": {
+            "type": "object",
+            "description": "Data to pass to the workflow trigger."
+          }
+        }
+      },
+      "WorkflowExecutionList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the execution"
+                },
+                "workflow_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workflow"
+                },
+                "status": {
+                  "type": "string",
+                  "description": "Execution status",
+                  "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"]
+                },
+                "started_at": {
+                  "type": ["string", "null"],
+                  "format": "date-time",
+                  "description": "Timestamp when the execution started"
+                },
+                "finished_at": {
+                  "type": ["string", "null"],
+                  "format": "date-time",
+                  "description": "Timestamp when the execution finished"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time",
+                  "description": "Timestamp when the execution record was created"
+                }
+              },
+              "required": ["id", "workflow_id", "status"]
+            }
+          }
+        },
+        "required": ["list"]
+      },
+      "WorkflowExecutionGetResponse": {
+        "description": "Workflow execution with full details",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the execution"
+          },
+          "workflow_id": {
+            "type": "string",
+            "description": "Unique identifier for the workflow"
+          },
+          "status": {
+            "type": "string",
+            "description": "Execution status",
+            "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"]
+          },
+          "execution_data": {
+            "type": "object",
+            "description": "Full execution state including node results"
+          },
+          "started_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Timestamp when the execution started"
+          },
+          "finished_at": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "Timestamp when the execution finished"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the execution record was created"
+          }
+        },
+        "required": ["id", "workflow_id", "status"]
       }
     },
     "responses": {

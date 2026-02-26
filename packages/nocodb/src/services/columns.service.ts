@@ -77,7 +77,6 @@ import {
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
-import getColumnUiType from '~/helpers/getColumnUiType';
 import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
@@ -5644,7 +5643,6 @@ export class ColumnsService implements IColumnsService {
     context: NcContext,
     param: {
       columnId: string;
-      deleteFkColumn?: boolean;
       req: NcRequest;
     },
   ) {
@@ -5951,8 +5949,8 @@ export class ColumnsService implements IColumnsService {
 
       fkDropped = true;
 
-      // Drop old FK column from data DB if requested
-      if (param.deleteFkColumn && fkColumn.uidt === UITypes.ForeignKey) {
+      // Drop old FK column from data DB
+      if (fkColumn.uidt === UITypes.ForeignKey) {
         const tableUpdateBody = {
           ...childTable,
           tn: childTable.table_name,
@@ -6056,8 +6054,14 @@ export class ColumnsService implements IColumnsService {
         true,
       );
 
-      // Check before starting transaction — needed after commit too
-      const isLinksColumn = hmColumn.uidt === UITypes.Links;
+      // Always convert to Rollup + new LTAR for all link column types
+      // This preserves the original column ID (for formulas/filters/sorts)
+      // and creates a new V2 LTAR column showing actual related records
+      const isLinksColumn = isLinksOrLTAR(hmColumn.uidt);
+
+      Logger.log(
+        `[convertLinkToV2] hmColumn.id=${hmColumn.id}, hmColumn.uidt=${hmColumn.uidt}, isLinksColumn=${isLinksColumn}`,
+      );
 
       // ── Phase B: Meta transaction ──
       // Only pure meta operations (metaDelete/metaInsert2/metaUpdate)
@@ -6106,6 +6110,9 @@ export class ColumnsService implements IColumnsService {
         if (isLinksColumn) {
           // Links column → convert to Rollup in-place (preserves filters/sorts/group-by)
           // A new V2 LTAR column will be created after the transaction commits.
+          Logger.log(
+            `[convertLinkToV2] Converting hmColumn ${hmColumn.id} (${hmColumn.uidt}) to Rollup`,
+          );
           await ncMeta.metaUpdate(
             context.workspace_id,
             context.base_id,
@@ -6164,27 +6171,14 @@ export class ColumnsService implements IColumnsService {
           },
         );
 
-        // Handle old FK column metadata
+        // Delete old FK column metadata
         if (fkColumn.uidt === UITypes.ForeignKey) {
-          if (param.deleteFkColumn) {
-            // Delete FK column metadata
-            await ncMeta.metaDelete(
-              childRefContext.workspace_id,
-              childRefContext.base_id,
-              MetaTable.COLUMNS,
-              fkColumn.id,
-            );
-          } else {
-            // Convert FK column to regular type
-            const newUidt = getColumnUiType(source, fkColumn);
-            await ncMeta.metaUpdate(
-              childRefContext.workspace_id,
-              childRefContext.base_id,
-              MetaTable.COLUMNS,
-              { uidt: newUidt },
-              fkColumn.id,
-            );
-          }
+          await ncMeta.metaDelete(
+            childRefContext.workspace_id,
+            childRefContext.base_id,
+            MetaTable.COLUMNS,
+            fkColumn.id,
+          );
         }
 
         await ncMeta.commit();
@@ -6225,7 +6219,7 @@ export class ColumnsService implements IColumnsService {
             await parentTable.getColumns(context),
             hmColumn.title,
           ),
-          uidt: UITypes.Links,
+          uidt: UITypes.LinkToAnotherRecord,
           type: hmNewType,
           version: LinksVersion.V2,
           fk_child_column_id: parentPK.id,
@@ -6247,6 +6241,10 @@ export class ColumnsService implements IColumnsService {
           fk_rollup_column_id: childPK.id,
           rollup_function: 'count',
         });
+
+        Logger.log(
+          `[convertLinkToV2] Phase C complete: newLtarCol.id=${newLtarCol.id}, title=${newLtarCol.title}, uidt=${newLtarCol.uidt}. Original ${hmColumn.id} is now Rollup.`,
+        );
       }
 
       // Clear caches after successful commit
@@ -6262,28 +6260,21 @@ export class ColumnsService implements IColumnsService {
       );
 
       if (isLinksColumn) {
-        // Clear column cache so it re-reads as Rollup
-        await NocoCache.deepDel(
+        // Update column cache entry to reflect new Rollup uidt
+        // (deepDel would remove it from the list cache, making it disappear from table metadata)
+        await NocoCache.update(
           context,
           `${CacheScope.COLUMN}:${hmColumn.id}`,
-          CacheDelDirection.CHILD_TO_PARENT,
+          { uidt: UITypes.Rollup },
         );
       }
 
       if (fkColumn.uidt === UITypes.ForeignKey) {
-        if (param.deleteFkColumn) {
-          await NocoCache.deepDel(
-            childRefContext,
-            `${CacheScope.COLUMN}:${fkColumn.id}`,
-            CacheDelDirection.CHILD_TO_PARENT,
-          );
-        } else {
-          await NocoCache.update(
-            childRefContext,
-            `${CacheScope.COLUMN}:${fkColumn.id}`,
-            { uidt: getColumnUiType(source, fkColumn) },
-          );
-        }
+        await NocoCache.deepDel(
+          childRefContext,
+          `${CacheScope.COLUMN}:${fkColumn.id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
       }
 
       await View.clearSingleQueryCache(context, parentTable.id);
@@ -6374,7 +6365,8 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    const isLinksColumn = column.uidt === UITypes.Links;
+    // Always convert to Rollup + new LTAR for all link column types
+    const isLinksColumn = isLinksOrLTAR(column.uidt);
 
     // Meta transaction: update version on both sides
     const ncMeta = await (
@@ -6460,7 +6452,7 @@ export class ColumnsService implements IColumnsService {
           await sourceTable.getColumns(context),
           column.title,
         ),
-        uidt: UITypes.Links,
+        uidt: UITypes.LinkToAnotherRecord,
         type: RelationTypes.MANY_TO_MANY,
         version: LinksVersion.V2,
         fk_child_column_id: colOptions.fk_child_column_id,
@@ -6482,11 +6474,12 @@ export class ColumnsService implements IColumnsService {
         rollup_function: 'count',
       });
 
-      // Clear column cache so it re-reads as Rollup
-      await NocoCache.deepDel(
+      // Update column cache entry to reflect new Rollup uidt
+      // (deepDel would remove it from the list cache, making it disappear from table metadata)
+      await NocoCache.update(
         context,
         `${CacheScope.COLUMN}:${column.id}`,
-        CacheDelDirection.CHILD_TO_PARENT,
+        { uidt: UITypes.Rollup },
       );
     }
 
@@ -6520,69 +6513,6 @@ export class ColumnsService implements IColumnsService {
     return sourceTable;
   }
 
-  /**
-   * Convert all V1 LTAR columns in a table to V2 (junction-table-based).
-   * Automatically deduplicates HM/BT pairs so each relation is only converted once.
-   */
-  async convertAllLinksToV2(
-    context: NcContext,
-    param: {
-      tableId: string;
-      deleteFkColumn?: boolean;
-      req: NcRequest;
-    },
-  ) {
-    const table = await Model.getWithInfo(context, { id: param.tableId });
-
-    if (!table) {
-      NcError.tableNotFound(param.tableId);
-    }
-
-    const columns = await table.getColumns(context);
-
-    // Collect V1 LTAR columns, preferring HM side to avoid duplicates
-    const columnsToConvert: Column[] = [];
-    const processedPairs = new Set<string>();
-
-    for (const col of columns) {
-      if (!isLinksOrLTAR(col.uidt)) continue;
-
-      const opts =
-        await col.getColOptions<LinkToAnotherRecordColumn>(context);
-
-      if (opts.version === LinksVersion.V2) continue;
-
-      // Create a unique key for the pair based on parent/child column IDs
-      const pairKey = [opts.fk_parent_column_id, opts.fk_child_column_id]
-        .sort()
-        .join(':');
-
-      if (processedPairs.has(pairKey)) continue;
-      processedPairs.add(pairKey);
-
-      columnsToConvert.push(col);
-    }
-
-    let converted = 0;
-    let skipped = 0;
-    const errors: string[] = [];
-
-    for (const col of columnsToConvert) {
-      try {
-        await this.convertLinkToV2(context, {
-          columnId: col.id,
-          deleteFkColumn: param.deleteFkColumn,
-          req: param.req,
-        });
-        converted++;
-      } catch (e) {
-        errors.push(`${col.title}: ${e.message}`);
-        skipped++;
-      }
-    }
-
-    return { converted, skipped, errors };
-  }
 }
 
 export { reuseOrSave };

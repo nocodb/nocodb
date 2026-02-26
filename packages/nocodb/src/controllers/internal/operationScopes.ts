@@ -155,5 +155,4 @@ export const OPERATION_SCOPES = {
 
   // LTAR V2 conversion
   convertLinkToV2: 'base',
-  convertAllLinksToV2: 'base',
 } as const;

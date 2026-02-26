@@ -137,7 +137,6 @@ export class UiPostOperations
     'listViewCreate' as const,
     'listViewUpdate' as const,
     'convertLinkToV2' as const,
-    'convertAllLinksToV2' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -211,15 +210,8 @@ export class UiPostOperations
       case 'convertLinkToV2':
         return await this.columnsService.convertLinkToV2(context, {
           columnId: req.query.columnId,
-          deleteFkColumn: req.query.deleteFkColumn === 'true',
           req,
         });
-      case 'convertAllLinksToV2':
-        return await this.columnsService.convertAllLinksToV2(context, {
-          tableId: req.query.tableId,
-          deleteFkColumn: req.query.deleteFkColumn === 'true',
-          req,
-        }) as any;
       case 'viewUpdate':
         return await this.viewsService.viewUpdate(context, {
           viewId: req.query.viewId,

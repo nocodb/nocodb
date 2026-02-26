@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, columnTypeName, isLinksOrLTAR } from 'nocodb-sdk'
+import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 interface Props {
   visible?: boolean
@@ -29,28 +29,17 @@ const reloadDataHook = inject(ReloadViewDataHookInj, undefined)
 
 const isConverting = ref(false)
 
-const deleteFkColumn = ref(false)
-
 const colOptions = computed(() => props.column?.colOptions as LinkToAnotherRecordType | undefined)
 
-const currentTypeName = computed(() => {
-  if (!colOptions.value?.type) return ''
-  const typeMap: Record<string, string> = {
-    hm: 'Has Many',
-    bt: 'Belongs To',
-    oo: 'One to One',
-  }
-  return typeMap[colOptions.value.type] || colOptions.value.type
-})
+const isMM = computed(() => colOptions.value?.type === RelationTypes.MANY_TO_MANY)
 
-const newTypeName = computed(() => {
-  if (!colOptions.value?.type) return ''
-  const typeMap: Record<string, string> = {
-    hm: 'One to Many',
-    bt: 'Many to One',
-    oo: 'One to One (V2)',
-  }
-  return typeMap[colOptions.value.type] || colOptions.value.type
+const isParentSide = computed(() => {
+  if (!colOptions.value?.type) return false
+  return (
+    colOptions.value.type === RelationTypes.HAS_MANY ||
+    colOptions.value.type === RelationTypes.MANY_TO_MANY ||
+    (colOptions.value.type === RelationTypes.ONE_TO_ONE && !props.column?.meta?.bt)
+  )
 })
 
 async function handleConvert() {
@@ -62,7 +51,7 @@ async function handleConvert() {
     await $api.internal.postOperation(
       meta.value.fk_workspace_id!,
       meta.value.base_id!,
-      { operation: 'convertLinkToV2', columnId: props.column.id, deleteFkColumn: String(deleteFkColumn.value) },
+      { operation: 'convertLinkToV2', columnId: props.column.id },
       {},
     )
 
@@ -99,39 +88,34 @@ async function handleConvert() {
     </template>
 
     <div class="flex flex-col" @click.stop>
-      <div class="text-nc-content-gray mb-3">
-        <div class="flex items-start gap-2">
-          <GeneralIcon icon="alertTriangle" class="flex-none h-5 w-5 mt-0.5 text-nc-content-yellow-medium" />
-          <div class="flex flex-col gap-1.5">
-            <p class="text-sm">{{ $t('msg.info.convertLinkV2Description') }}</p>
-            <p class="text-sm font-semibold">{{ $t('msg.info.convertLinkV2Warning') }}</p>
-          </div>
-        </div>
-      </div>
-
       <div v-if="column" class="bg-nc-bg-gray-light rounded-lg p-3 mb-3">
         <div class="flex items-center gap-2 text-sm">
           <span class="text-nc-content-gray-subtle">{{ $t('objects.field') }}:</span>
           <span class="font-medium">{{ column.title }}</span>
         </div>
-        <div class="flex items-center gap-2 text-sm mt-1">
-          <span class="text-nc-content-gray-subtle">{{ currentTypeName }}</span>
-          <GeneralIcon icon="arrowRight" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
-          <span class="font-medium">{{ newTypeName }}</span>
-        </div>
       </div>
 
-      <div class="flex items-center gap-2 py-2">
-        <NcSwitch v-model:checked="deleteFkColumn" size="small" data-testid="nc-convert-link-v2-delete-fk" />
-        <div class="flex flex-col">
-          <span class="text-sm">{{ $t('msg.info.convertLinkV2DeleteFkColumn') }}</span>
-          <span v-if="!deleteFkColumn" class="text-xs text-nc-content-gray-muted">
-            {{ $t('msg.info.convertLinkV2KeepFkColumnHint') }}
-          </span>
-        </div>
+      <div class="text-nc-content-gray text-sm flex flex-col gap-2 mb-3">
+        <p>{{ $t('msg.info.convertLinkV2Description') }}</p>
+
+        <template v-if="isParentSide">
+          <ul class="list-disc pl-5 flex flex-col gap-1 text-nc-content-gray-subtle2">
+            <li>
+              <span class="font-medium text-nc-content-gray">{{ column?.title }}</span>
+              {{ $t('msg.info.convertLinkV2OriginalBecomesRollup') }}
+            </li>
+            <li>{{ $t('msg.info.convertLinkV2NewLtarCreated') }}</li>
+            <li v-if="!isMM">{{ $t('msg.info.convertLinkV2FkColumnRemoved') }}</li>
+          </ul>
+        </template>
       </div>
 
-      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
+      <div class="flex items-start gap-2 mb-3">
+        <GeneralIcon icon="alertTriangle" class="flex-none h-4 w-4 mt-0.5 text-nc-content-yellow-medium" />
+        <p class="text-xs text-nc-content-gray-muted">{{ $t('msg.info.convertLinkV2Warning') }}</p>
+      </div>
+
+      <div class="flex flex-row gap-x-2 pt-2.5 justify-end border-t-1 border-nc-border-gray-medium">
         <NcButton size="small" type="secondary" :disabled="isConverting" @click="visible = false">
           {{ $t('general.cancel') }}
         </NcButton>

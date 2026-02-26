@@ -852,7 +852,6 @@
   },
   "title": {
     "convertLegacyLink": "Convert Legacy Link",
-    "convertAllLegacyLinks": "Convert All Legacy Links",
     "versionHistory": "Version History",
     "versionDeployments": "Version Deployments",
     "forkToDraft": "Fork to Draft",
@@ -1337,7 +1336,6 @@
     "editTableDescription": "Edit table description",
     "editFieldDescription": "Edit field description",
     "convertToNewLink": "Convert to new link format",
-    "convertAllLegacyLinks": "Convert all legacy links",
     "legacyLinkColumn": "Legacy link column",
     "urlFormula": "URL Formula",
     "visibilityCondition": "Visibility condition",
@@ -2617,12 +2615,12 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
-      "convertLinkV2Description": "This will create a junction table and migrate existing linked data.",
-      "convertLinkV2DeleteFkColumn": "Delete the foreign key column after conversion",
-      "convertLinkV2KeepFkColumnHint": "The FK column will be kept as a regular data column",
+      "convertLinkV2Description": "This will convert the link to use a junction table internally, keeping all existing linked data intact.",
+      "convertLinkV2OriginalBecomesRollup": "will become a Rollup showing the linked record count (preserves existing formulas, filters, and sorts)",
+      "convertLinkV2NewLtarCreated": "A new Link field will be created next to it, showing the actual linked records",
+      "convertLinkV2FkColumnRemoved": "The foreign key column on the child table will be removed",
       "convertLinkV2Warning": "This operation cannot be undone.",
-      "convertLinkV2Success": "Link column converted successfully",
-      "convertAllLinksV2Success": "Converted {converted} link column(s). {skipped} skipped.",
+      "convertLinkV2Success": "Column converted successfully",
       "recordTemplatesDesc": "Create reusable templates to quickly add records with pre-filled field values",
       "noTemplates": "No templates yet",
       "noTemplatesDesc": "Create a template to quickly add records with pre-filled values",

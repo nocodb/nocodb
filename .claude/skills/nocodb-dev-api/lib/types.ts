@@ -27,22 +27,24 @@ export interface Credential {
   token: string;
 }
 
-// Persisted state
-export interface State {
-  url: string;
-  credentials: Record<string, Credential>;   // email → {email, password, token}
-  defaultUser: string | null;                 // email of last signed-in user
-  workspace: { id: string; title: string } | null;
-  baseWorkspaces?: Record<string, string>;    // baseId → wsId cache
+// Credential store — keyed by "host:port|email"
+export type CredentialKey = string;
+export interface CredentialStore {
+  credentials: Record<CredentialKey, Credential>;
   updatedAt: string;
 }
 
-// Legacy state shape (for auto-migration)
-export interface LegacyState {
-  url: string;
-  tokens: Partial<Record<Role, string>>;
-  workspace: { id: string; title: string } | null;
-  updatedAt: string;
+/** Normalize email: lowercase + trim */
+export function normalizeEmail(email: string): string {
+  return email.toLowerCase().trim();
+}
+
+/** Build a credential key from a URL and email: "host:port|email" */
+export function credentialKey(url: string, email: string): CredentialKey {
+  const parsed = new URL(url);
+  const host = parsed.hostname;
+  const port = parsed.port || (parsed.protocol === 'https:' ? '443' : '80');
+  return `${host}:${port}|${normalizeEmail(email)}`;
 }
 
 // API response types (lightweight — only fields we actually use)
@@ -73,6 +75,7 @@ export interface Base {
   id: string;
   title: string;
   type?: string;
+  workspace_id?: string;
   created_at?: string;
 }
 

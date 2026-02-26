@@ -18,7 +18,7 @@ import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import Widget from '~/models/Widget';
-import OutlineViewLevel from '~/models/OutlineViewLevel';
+import ListViewLevel from '~/models/ListViewLevel';
 import { Model } from '~/models';
 import RlsPolicy from '~/models/RlsPolicy';
 import { stringifyMetaProp } from '~/utils/modelUtils';
@@ -159,7 +159,7 @@ export default class Filter extends FilterCE implements FilterType {
         }
         model = await Model.get(context, widget.fk_model_id, ncMeta);
       } else if (filter.fk_level_id) {
-        const level = await OutlineViewLevel.get(
+        const level = await ListViewLevel.get(
           context,
           filter.fk_level_id,
           ncMeta,

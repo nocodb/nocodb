@@ -68,8 +68,8 @@ export class UiGetOperations
     'syncSourceList' as const,
     'extensionList' as const,
     'extensionRead' as const,
-    'outlineViewDataList' as const,
-    'outlineViewDataCount' as const
+    'listViewDataList' as const,
+    'listViewDataCount' as const
   ];
   httpMethod = 'GET' as const;
 

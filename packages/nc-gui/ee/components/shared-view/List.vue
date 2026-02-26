@@ -7,7 +7,7 @@ const { loadProject } = useBase()
 
 const { isLocked } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
 
-useProvideOutlineViewStore(meta, sharedView)
+useProvideListViewStore(meta, sharedView)
 
 const reloadEventHook = createEventHook()
 
@@ -36,7 +36,7 @@ if (signedIn.value) {
 <template>
   <div class="nc-container flex flex-col h-full">
     <LazySmartsheetToolbar show-full-screen-toggle />
-    <SmartsheetOutline />
+    <SmartsheetList />
   </div>
 </template>
 

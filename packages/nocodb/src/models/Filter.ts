@@ -9,7 +9,7 @@ import Model from '~/models/Model';
 import Column from '~/models/Column';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
-import OutlineViewLevel from '~/models/OutlineViewLevel';
+import ListViewLevel from '~/models/ListViewLevel';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -164,7 +164,7 @@ export default class Filter implements FilterType {
           ncMeta,
         );
       } else if (filter.fk_level_id) {
-        const level = await OutlineViewLevel.get(
+        const level = await ListViewLevel.get(
           context,
           filter.fk_level_id,
           ncMeta,

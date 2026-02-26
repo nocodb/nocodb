@@ -2,7 +2,7 @@ import type { ColumnType, FormulaType, GridColumnType, LinkToAnotherRecordType, 
 import { PermissionEntity, PermissionKey, UITypes, isLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { SpriteLoader } from '~/components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
-import type { OutlineActiveCell, OutlineCanvasElement } from './types'
+import type { ListActiveCell, ListCanvasElement } from './types'
 import {
   ADD_ROW_HEIGHT,
   BOTTOM_PADDING,
@@ -10,18 +10,18 @@ import {
   DEPTH_DECREASE_GAP,
   DEPTH_INCREASE_GAP,
   INDENT_PER_DEPTH,
-  OUTLINE_HEADER_HEIGHT,
-  OUTLINE_ROW_HEIGHT,
+  LIST_HEADER_HEIGHT,
+  LIST_ROW_HEIGHT,
   SUB_HEADER_HEIGHT,
 } from './constants'
 import { useCanvasRender } from './useCanvasRender'
 import { useColumnResize } from './useColumnResize'
-import { useOutlineDataFetch } from './useDataFetch'
-import { useOutlineCellRenderer } from './useOutlineCellRenderer'
+import { useListDataFetch } from './useDataFetch'
+import { useListCellRenderer } from './useListCellRenderer'
 import { stringifyFilterOrSortArr } from '~/utils/dataUtils'
-import type { OutlineViewRow } from '~/composables/useOutlineViewStore'
+import type { ListViewRow } from '~/composables/useListViewStore'
 
-export function useCanvasOutline({
+export function useCanvasListView({
   scrollLeft,
   scrollTop,
   width,
@@ -38,7 +38,7 @@ export function useCanvasOutline({
   const { $api } = useNuxtApp()
 
   const { levels, displayLevels, isCollapsed, toggleCollapse, depthToLevelId, collapsedParents, isConfigured, selectedLevelId } =
-    useOutlineViewStoreOrThrow()
+    useListViewStoreOrThrow()
 
   const { meta, view, nestedFilters, sorts } = useSmartsheetStoreOrThrow()
   const {
@@ -69,26 +69,26 @@ export function useCanvasOutline({
   }
   const { isRowColouringEnabled, getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
-  const headerRowHeight = computed(() => OUTLINE_HEADER_HEIGHT)
+  const headerRowHeight = computed(() => LIST_HEADER_HEIGHT)
 
   const rowHeight = computed(() => {
-    const outlineView = view.value?.view as any
-    const rh = outlineView?.row_height
+    const listView = view.value?.view as any
+    const rh = listView?.row_height
     if (rh !== undefined) {
       const enumVal = [1, 2, 4, 6][rh] ?? 1
-      return rowHeightInPx[`${enumVal}`] ?? OUTLINE_ROW_HEIGHT
+      return rowHeightInPx[`${enumVal}`] ?? LIST_ROW_HEIGHT
     }
-    return OUTLINE_ROW_HEIGHT
+    return LIST_ROW_HEIGHT
   })
 
-  const elementMap = ref<OutlineCanvasElement[]>([])
+  const elementMap = ref<ListCanvasElement[]>([])
   const hoverRow = ref<{ rowIndex: number }>({ rowIndex: -1 })
-  const activeCell = ref<OutlineActiveCell | null>(null)
+  const activeCell = ref<ListActiveCell | null>(null)
   const stickyHeaderDepth = ref(0)
 
   const viewId = computed(() => view.value?.id)
 
-  const cachedRows = ref(new Map<number, OutlineViewRow>())
+  const cachedRows = ref(new Map<number, ListViewRow>())
   const chunkStates = ref<Array<'loading' | 'loaded' | undefined>>([])
   const totalRows = ref(0)
   const levelCounts = ref<Record<string, number>>({})
@@ -136,7 +136,7 @@ export function useCanvasOutline({
     }
   }
 
-  const { renderCell, handleCellClick, handleCellHover, imageLoader, actionManager } = useOutlineCellRenderer({
+  const { renderCell, handleCellClick, handleCellHover, imageLoader, actionManager } = useListCellRenderer({
     spriteLoader,
     triggerRefreshCanvas: () => triggerRefreshCanvas(),
     setCursor,
@@ -157,7 +157,7 @@ export function useCanvasOutline({
   const sharedViewPassword = inject(SharedViewPasswordInj, ref(''))
 
   function buildDraftFilterSortParams() {
-    // For outline view, filters and sorts must be level-scoped (fk_level_id).
+    // For list view, filters and sorts must be level-scoped (fk_level_id).
     // If a draft entry lacks fk_level_id, fall back to the currently selected level.
     const fallbackLevelId = selectedLevelId.value
 
@@ -201,7 +201,7 @@ export function useCanvasOutline({
     return { filterArrJson, sortArrJson }
   }
 
-  async function loadPage(params: { offset: number; limit: number; collapsed: string }): Promise<OutlineViewRow[]> {
+  async function loadPage(params: { offset: number; limit: number; collapsed: string }): Promise<ListViewRow[]> {
     let response: any
 
     const { filterArrJson, sortArrJson } = buildDraftFilterSortParams()
@@ -229,7 +229,7 @@ export function useCanvasOutline({
       if (!workspaceId || !baseId || !viewId.value) return []
 
       const query: Record<string, any> = {
-        operation: 'outlineViewDataList',
+        operation: 'listViewDataList',
         viewId: viewId.value,
         limit: params.limit,
         offset: params.offset,
@@ -281,7 +281,7 @@ export function useCanvasOutline({
     if (!workspaceId || !baseId || !viewId.value) return { totalRows: 0, counts: {} }
 
     const query: Record<string, any> = {
-      operation: 'outlineViewDataCount',
+      operation: 'listViewDataCount',
       viewId: viewId.value,
     }
     if (params.collapsed) query.collapsed = params.collapsed
@@ -295,7 +295,7 @@ export function useCanvasOutline({
     }
   }
 
-  const { fetchCount, updateVisibleRows, resetAndReload } = useOutlineDataFetch({
+  const { fetchCount, updateVisibleRows, resetAndReload } = useListDataFetch({
     viewId,
     cachedRows,
     chunkStates,
@@ -611,7 +611,7 @@ export function useCanvasOutline({
   watch(rowSlice, (slice) => updateVisibleRows(slice))
   watch(collapsedJson, () => resetAndReload())
 
-  function findElementAt(x: number, y: number, type?: OutlineCanvasElement['type']): OutlineCanvasElement | null {
+  function findElementAt(x: number, y: number, type?: ListCanvasElement['type']): ListCanvasElement | null {
     for (let i = elementMap.value.length - 1; i >= 0; i--) {
       const el = elementMap.value[i]
       if (type && el.type !== type) continue
@@ -679,7 +679,7 @@ export function useCanvasOutline({
     if (startResize(e)) return
   }
 
-  const expandRowHook = createEventHook<{ row: OutlineViewRow; depth: number }>()
+  const expandRowHook = createEventHook<{ row: ListViewRow; depth: number }>()
   const addRowHook = createEventHook<{ depth: number; parentPk?: string | number }>()
 
   async function handleCanvasClick(e: MouseEvent) {

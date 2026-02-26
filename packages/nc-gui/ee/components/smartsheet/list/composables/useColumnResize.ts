@@ -7,7 +7,7 @@ export interface HeaderContext {
 }
 
 /**
- * Column resize for the outline view canvas.
+ * Column resize for the list view canvas.
  * Works on both root header and sub-headers via `resolveHeader`.
  */
 export function useColumnResize(

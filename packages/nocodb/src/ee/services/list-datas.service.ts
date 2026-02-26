@@ -3,7 +3,7 @@ import { NcApiVersion, RelationTypes, ViewTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { XKnex } from '~/db/CustomKnex';
 import { Filter, Model, Sort, Source, View } from '~/models';
-import OutlineViewLevel from '~/models/OutlineViewLevel';
+import ListViewLevel from '~/models/ListViewLevel';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -14,10 +14,10 @@ import { PGDBQueryClient } from '~/ee/dbQueryClient/pg';
 import { getAliasGenerator } from '~/utils';
 
 @Injectable()
-export class OutlineDatasService {
-  protected logger = new Logger(OutlineDatasService.name);
+export class ListDatasService {
+  protected logger = new Logger(ListDatasService.name);
 
-  async outlineViewCount(
+  async listViewCount(
     context: NcContext,
     param: { viewId: string; query: any },
   ) {
@@ -25,11 +25,11 @@ export class OutlineDatasService {
 
     const view = await View.get(context, viewId);
     if (!view) NcError.get(context).viewNotFound(viewId);
-    if (view.type !== ViewTypes.OUTLINE)
-      NcError.get(context).badRequest('Not an outline view');
+    if (view.type !== ViewTypes.LIST)
+      NcError.get(context).badRequest('Not a list view');
 
     // 1. Load levels (sorted by level ASC: 1=leaf, N=top) and reverse for display order
-    const levels = await OutlineViewLevel.list(context, view.id);
+    const levels = await ListViewLevel.list(context, view.id);
     if (!levels.length) {
       return { totalRows: 0, counts: {} };
     }
@@ -328,7 +328,7 @@ export class OutlineDatasService {
     };
   }
 
-  async outlineViewData(
+  async listViewData(
     context: NcContext,
     param: { viewId: string; query: any },
   ) {
@@ -338,11 +338,11 @@ export class OutlineDatasService {
 
     const view = await View.get(context, viewId);
     if (!view) NcError.get(context).viewNotFound(viewId);
-    if (view.type !== ViewTypes.OUTLINE)
-      NcError.get(context).badRequest('Not an outline view');
+    if (view.type !== ViewTypes.LIST)
+      NcError.get(context).badRequest('Not a list view');
 
     // 1. Load levels (sorted by level ASC: 1=leaf, N=top) and reverse for display order
-    const levels = await OutlineViewLevel.list(context, view.id);
+    const levels = await ListViewLevel.list(context, view.id);
     if (!levels.length) {
       return { list: [], pageInfo: { offset, limit, totalRows: 0 } };
     }

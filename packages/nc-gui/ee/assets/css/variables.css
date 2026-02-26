@@ -437,7 +437,7 @@
   --color-view-icon-gallery: #fc3ac6;
   --color-view-icon-map: blue;
   --color-view-icon-kanban: #ff9052;
-  --color-view-icon-outline: #27d665;
+  --color-view-icon-list: #27d665;
   --color-view-icon-view: blue;
 }
 
@@ -856,7 +856,7 @@
   --color-view-icon-gallery: #ff66da;
   --color-view-icon-map: #6ab5ff;
   --color-view-icon-kanban: #ffad70;
-  --color-view-icon-outline: #27d665;
+  --color-view-icon-list: #27d665;
   --color-view-icon-view: #6ab5ff;
 }
 

@@ -145,7 +145,7 @@ import type {
   IntegrationEvent,
   IntegrationUpdateEvent,
   KanbanViewUpdateEvent,
-  OutlineViewUpdateEvent,
+  ListViewUpdateEvent,
   MetaDiffEvent,
   ModelRoleVisibilityEvent,
   OrgUserInviteEvent,
@@ -1864,7 +1864,7 @@ export class AppHooksListenerService
       case AppEvents.CALENDAR_UPDATE:
       case AppEvents.GALLERY_UPDATE:
       case AppEvents.KANBAN_UPDATE:
-      case AppEvents.OUTLINE_UPDATE:
+      case AppEvents.LIST_UPDATE:
       case AppEvents.VIEW_UPDATE:
         {
           const param = data as
@@ -1873,7 +1873,7 @@ export class AppHooksListenerService
             | GalleryViewUpdateEvent
             | CalendarViewUpdateEvent
             | KanbanViewUpdateEvent
-            | OutlineViewUpdateEvent
+            | ListViewUpdateEvent
             | ViewUpdateEvent;
           const type: string = viewTypeAlias[param.view.type];
 
@@ -1929,13 +1929,13 @@ export class AppHooksListenerService
                 context: param.context,
               });
               break;
-            case AppEvents.OUTLINE_UPDATE:
+            case AppEvents.LIST_UPDATE:
               next = await extractViewRelatedProps({
-                view: (param as OutlineViewUpdateEvent).outlineView,
+                view: (param as ListViewUpdateEvent).listView,
                 context: param.context,
               });
               prev = await extractViewRelatedProps({
-                view: (param as OutlineViewUpdateEvent).oldOutlineView,
+                view: (param as ListViewUpdateEvent).oldListView,
                 context: param.context,
               });
               break;
@@ -2289,7 +2289,7 @@ export class AppHooksListenerService
         }
         break;
 
-      case AppEvents.OUTLINE_CREATE:
+      case AppEvents.LIST_CREATE:
         {
           const param = data as ViewCreateEvent;
 
@@ -2300,7 +2300,7 @@ export class AppHooksListenerService
                 details: {
                   view_title: param.view.title,
                   view_id: param.view.id,
-                  view_type: 'outline',
+                  view_type: 'list',
                   ...extractNonSystemProps(
                     await extractViewRelatedProps(param),
                     ['title', 'type', 'id', 'fk_mode_id', 'owned_by', 'show'],
@@ -2316,7 +2316,7 @@ export class AppHooksListenerService
           );
         }
         break;
-      case AppEvents.OUTLINE_DELETE:
+      case AppEvents.LIST_DELETE:
         {
           const param = data as ViewDeleteEvent;
 
@@ -2327,7 +2327,7 @@ export class AppHooksListenerService
                 details: {
                   view_title: param.view.title,
                   view_id: param.view.id,
-                  view_type: 'outline',
+                  view_type: 'list',
                   view_owner_id: param.owner?.id,
                   view_owner_email: param.owner?.email,
                   ...extractNonSystemProps(

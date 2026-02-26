@@ -13,7 +13,7 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const viewsStore = useViewsStore()
 
-const { activeView, views, isOutlineViewEnabled } = storeToRefs(viewsStore)
+const { activeView, views, isListViewEnabled } = storeToRefs(viewsStore)
 
 const { navigateToView, onOpenViewCreateModal } = viewsStore
 
@@ -240,16 +240,16 @@ async function onOpenModal({
                     {{ $t('objects.viewType.calendar') }}
                   </div>
                 </a-menu-item>
-                <template v-if="isOutlineViewEnabled">
-                  <NcTooltip :title="$t('tooltip.outlineViewOnlyPg')" :disabled="isPgSource" placement="right">
+                <template v-if="isListViewEnabled">
+                  <NcTooltip :title="$t('tooltip.listViewOnlyPg')" :disabled="isPgSource" placement="right">
                     <a-menu-item
                       :disabled="!isPgSource"
-                      data-testid="topbar-view-create-outline"
-                      @click="isPgSource && onOpenModal({ type: ViewTypes.OUTLINE })"
+                      data-testid="topbar-view-create-list"
+                      @click="isPgSource && onOpenModal({ type: ViewTypes.LIST })"
                     >
                       <div class="nc-viewlist-submenu-popup-item" :class="{ 'opacity-50': !isPgSource }">
-                        <GeneralViewIcon :meta="{ type: ViewTypes.OUTLINE }" />
-                        {{ $t('objects.viewType.outline') }}
+                        <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                        {{ $t('objects.viewType.list') }}
                       </div>
                     </a-menu-item>
                   </NcTooltip>

@@ -71,7 +71,7 @@ import type {
   IntegrationEvent,
   IntegrationUpdateEvent,
   KanbanViewUpdateEvent,
-  OutlineViewUpdateEvent,
+  ListViewUpdateEvent,
   MetaDiffEvent,
   ModelRoleVisibilityEvent,
   OrgUserInviteEvent,
@@ -605,7 +605,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.GALLERY_CREATE
       | AppEvents.KANBAN_CREATE
       | AppEvents.MAP_CREATE
-      | AppEvents.OUTLINE_CREATE,
+      | AppEvents.LIST_CREATE,
     data: ViewCreateEvent,
   ): void;
   emit(
@@ -616,7 +616,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.GALLERY_DELETE
       | AppEvents.KANBAN_DELETE
       | AppEvents.MAP_DELETE
-      | AppEvents.OUTLINE_DELETE,
+      | AppEvents.LIST_DELETE,
     data: ViewDeleteEvent,
   ): void;
   emit(
@@ -627,7 +627,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.GALLERY_UPDATE
       | AppEvents.KANBAN_UPDATE
       | AppEvents.MAP_UPDATE
-      | AppEvents.OUTLINE_UPDATE,
+      | AppEvents.LIST_UPDATE,
     data:
       | ViewUpdateEvent
       | GridViewUpdateEvent
@@ -635,7 +635,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | KanbanViewUpdateEvent
       | CalendarViewUpdateEvent
       | FormViewUpdateEvent
-      | OutlineViewUpdateEvent,
+      | ListViewUpdateEvent,
   ): void;
   emit(
     event:

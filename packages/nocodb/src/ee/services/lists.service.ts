@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
 import type {
-  OutlineUpdateReqType,
+  ListUpdateReqType,
   UserType,
   ViewCreateReqType,
 } from 'nocodb-sdk';
@@ -9,8 +9,8 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
-import { OutlineView, Model, Source, User, View } from '~/models';
-import OutlineViewLevel from '~/models/OutlineViewLevel';
+import { ListView, Model, Source, User, View } from '~/models';
+import ListViewLevel from '~/models/ListViewLevel';
 import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
@@ -18,14 +18,14 @@ import { type ViewWebhookManager, ViewWebhookManagerBuilder } from '~/utils/view
 import type { MetaService } from '~/meta/meta.service'
 
 @Injectable()
-export class OutlinesService {
+export class ListsService {
   constructor(private readonly appHooksService: AppHooksService) {}
 
-  async outlineViewCreate(
+  async listViewCreate(
     context: NcContext,
     param: {
       tableId: string;
-      outline: ViewCreateReqType;
+      list: ViewCreateReqType;
       user: UserType;
       req: NcRequest;
       ownedBy?: string;
@@ -35,7 +35,7 @@ export class OutlinesService {
   ) {
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',
-      param.outline,
+      param.list,
     );
 
     if (context.schema_locked) {
@@ -47,19 +47,19 @@ export class OutlinesService {
     const source = await Source.get(context, model.source_id);
     if (source.type !== 'pg') {
       NcError.get(context).badRequest(
-        'Outline view is only supported for Postgres or Default source',
+        'List view is only supported for Postgres or Default source',
       );
     }
 
-    param.outline.title = param.outline.title?.trim();
+    param.list.title = param.list.title?.trim();
     const existingView = await View.getByTitleOrId(context, {
-      titleOrId: param.outline.title,
+      titleOrId: param.list.title,
       fk_model_id: param.tableId,
     });
     if (existingView) {
       NcError.get(context).duplicateAlias({
         type: 'view',
-        alias: param.outline.title,
+        alias: param.list.title,
         label: 'title',
         base: context.base_id,
         additionalTrace: {
@@ -78,9 +78,9 @@ export class OutlinesService {
 
     const { id } = await View.insertMetaOnly(context, {
       view: {
-        ...param.outline,
+        ...param.list,
         fk_model_id: param.tableId,
-        type: ViewTypes.OUTLINE,
+        type: ViewTypes.LIST,
         base_id: model.base_id,
         source_id: model.source_id,
         created_by: param.user?.id,
@@ -104,7 +104,7 @@ export class OutlinesService {
       owner = await User.get(param.ownedBy);
     }
 
-    this.appHooksService.emit(AppEvents.OUTLINE_CREATE, {
+    this.appHooksService.emit(AppEvents.LIST_CREATE, {
       view,
       req: param.req,
       owner,
@@ -132,25 +132,25 @@ export class OutlinesService {
     return view;
   }
 
-  async outlineViewUpdate(
+  async listViewUpdate(
     context: NcContext,
     param: {
-      outlineViewId: string;
-      outline: OutlineUpdateReqType;
+      listViewId: string;
+      list: ListUpdateReqType;
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
   ) {
     validatePayload(
-      'swagger.json#/components/schemas/OutlineUpdateReq',
-      param.outline,
+      'swagger.json#/components/schemas/ListUpdateReq',
+      param.list,
     );
 
-    const view = await View.get(context, param.outlineViewId);
+    const view = await View.get(context, param.listViewId);
 
     if (!view) {
-      NcError.get(context).viewNotFound(param.outlineViewId);
+      NcError.get(context).viewNotFound(param.listViewId);
     }
 
     const viewWebhookManager =
@@ -163,18 +163,18 @@ export class OutlinesService {
         ).withViewId(view.id)
       ).forUpdate();
 
-    const oldOutlineView = await OutlineView.get(context, param.outlineViewId);
+    const oldListView = await ListView.get(context, param.listViewId);
 
-    if (param.outline.levels) {
-      await OutlineViewLevel.bulkInsertOrUpdate(
+    if (param.list.levels) {
+      await ListViewLevel.bulkInsertOrUpdate(
         context,
-        param.outlineViewId,
-        param.outline.levels,
+        param.listViewId,
+        param.list.levels,
       );
     }
 
-    const { levels: _levels, ...updateData } = param.outline;
-    await OutlineView.update(context, param.outlineViewId, updateData);
+    const { levels: _levels, ...updateData } = param.list;
+    await ListView.update(context, param.listViewId, updateData);
 
     let owner = param.req.user;
 
@@ -182,10 +182,10 @@ export class OutlinesService {
       owner = await User.get(view.owned_by);
     }
 
-    this.appHooksService.emit(AppEvents.OUTLINE_UPDATE, {
+    this.appHooksService.emit(AppEvents.LIST_UPDATE, {
       view,
-      outlineView: param.outline,
-      oldOutlineView,
+      listView: param.list,
+      oldListView,
       req: param.req,
       context,
       owner,

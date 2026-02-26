@@ -1,5 +1,5 @@
-import OutlineViewCE from 'src/models/OutlineView';
-import type { BoolType, OutlineType, MetaType } from 'nocodb-sdk';
+import ListViewCE from 'src/models/ListView';
+import type { BoolType, ListType, MetaType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import View from '~/models/View';
 import Noco from '~/Noco';
@@ -11,9 +11,9 @@ import {
   prepareForResponse,
   stringifyMetaProp,
 } from '~/utils/modelUtils';
-import OutlineViewLevel from '~/models/OutlineViewLevel';
+import ListViewLevel from '~/models/ListViewLevel';
 
-export default class OutlineView extends OutlineViewCE implements OutlineType {
+export default class ListView extends ListViewCE implements ListType {
   fk_view_id: string;
   title: string;
   fk_workspace_id?: string;
@@ -23,9 +23,9 @@ export default class OutlineView extends OutlineViewCE implements OutlineType {
   show_empty_parents?: BoolType | boolean;
   row_height?: number;
   fk_prefix_column_id?: string;
-  levels?: OutlineViewLevel[];
+  levels?: ListViewLevel[];
 
-  constructor(data: OutlineView) {
+  constructor(data: ListView) {
     super(data);
     Object.assign(this, data);
   }
@@ -39,14 +39,14 @@ export default class OutlineView extends OutlineViewCE implements OutlineType {
       viewId &&
       (await NocoCache.get(
         context,
-        `${CacheScope.OUTLINE_VIEW}:${viewId}`,
+        `${CacheScope.LIST_VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
       view = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.OUTLINE_VIEW,
+        MetaTable.LIST_VIEW,
         {
           fk_view_id: viewId,
         },
@@ -54,20 +54,20 @@ export default class OutlineView extends OutlineViewCE implements OutlineType {
 
       view = prepareForResponse(view);
 
-      await NocoCache.set(context, `${CacheScope.OUTLINE_VIEW}:${viewId}`, view);
+      await NocoCache.set(context, `${CacheScope.LIST_VIEW}:${viewId}`, view);
     }
 
     if (view) {
-      const levels = await OutlineViewLevel.list(context, viewId, ncMeta);
+      const levels = await ListViewLevel.list(context, viewId, ncMeta);
       view.levels = levels;
     }
 
-    return view && new OutlineView(view);
+    return view && new ListView(view);
   }
 
   static async insert(
     context: NcContext,
-    view: Partial<OutlineView>,
+    view: Partial<ListView>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(view, [
@@ -93,7 +93,7 @@ export default class OutlineView extends OutlineViewCE implements OutlineType {
     await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW,
+      MetaTable.LIST_VIEW,
       insertObj,
       true,
     );
@@ -103,8 +103,8 @@ export default class OutlineView extends OutlineViewCE implements OutlineType {
 
   static async update(
     context: NcContext,
-    outlineViewId: string,
-    body: Partial<OutlineView>,
+    listViewId: string,
+    body: Partial<ListView>,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(body, ['meta', 'show_empty_parents', 'row_height', 'fk_prefix_column_id']);
@@ -112,25 +112,25 @@ export default class OutlineView extends OutlineViewCE implements OutlineType {
     const res = await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW,
+      MetaTable.LIST_VIEW,
       prepareForDb(updateObj),
       {
-        fk_view_id: outlineViewId,
+        fk_view_id: listViewId,
       },
     );
 
     await NocoCache.update(
       context,
-      `${CacheScope.OUTLINE_VIEW}:${outlineViewId}`,
+      `${CacheScope.LIST_VIEW}:${listViewId}`,
       prepareForResponse(updateObj),
     );
 
-    const view = await View.get(context, outlineViewId);
+    const view = await View.get(context, listViewId);
 
     await View.clearSingleQueryCache(
       context,
       view.fk_model_id,
-      [{ id: outlineViewId }],
+      [{ id: listViewId }],
       ncMeta,
     );
 

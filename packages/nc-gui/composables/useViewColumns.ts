@@ -1,4 +1,4 @@
-import type { ButtonType, ColumnType, GridColumnReqType, GridColumnType, MapType, OutlineType, TableType, ViewType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, GridColumnReqType, GridColumnType, ListType, MapType, TableType, ViewType } from 'nocodb-sdk'
 import { CommonAggregations, ViewLockType, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
@@ -78,9 +78,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         if (col.id) result[col.id] = col
       }
 
-      // Include level table columns for outline views (from shared metas cache)
-      if (view.value?.type === ViewTypes.OUTLINE) {
-        const levels = (view.value?.view as OutlineType)?.levels || []
+      // Include level table columns for list views (from shared metas cache)
+      if (view.value?.type === ViewTypes.LIST) {
+        const levels = (view.value?.view as ListType)?.levels || []
         for (const level of levels) {
           if (level.fk_model_id && level.fk_model_id !== meta.value?.id) {
             const tableMeta = _getMetaByKey(meta.value?.base_id, level.fk_model_id)
@@ -123,9 +123,9 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
       }, {})
 
-      // For outline views with levels, ensure metas for non-root level tables are loaded
-      if (view.value?.type === ViewTypes.OUTLINE) {
-        const levels = (view.value?.view as OutlineType)?.levels || []
+      // For list views with levels, ensure metas for non-root level tables are loaded
+      if (view.value?.type === ViewTypes.LIST) {
+        const levels = (view.value?.view as ListType)?.levels || []
 
         for (const level of levels) {
           if (level.fk_model_id && level.fk_model_id !== meta.value?.id) {
@@ -146,8 +146,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }),
       )
 
-      if (view.value?.type === ViewTypes.OUTLINE) {
-        const levels = (view.value?.view as OutlineType)?.levels || []
+      if (view.value?.type === ViewTypes.LIST) {
+        const levels = (view.value?.view as ListType)?.levels || []
         // Track existing column IDs to avoid duplicates
         // (public views already include level columns in meta.value?.columns)
         const existingColIds = new Set(allTableColumns.map(({ column }) => column.id))

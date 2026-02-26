@@ -1,5 +1,5 @@
-import OutlineViewLevelCE from 'src/models/OutlineViewLevel';
-import type { BoolType, OutlineViewLevelType, MetaType } from 'nocodb-sdk';
+import ListViewLevelCE from 'src/models/ListViewLevel';
+import type { BoolType, ListViewLevelType, MetaType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -16,9 +16,9 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 import Column from '~/models/Column';
-import OutlineViewColumn from '~/models/OutlineViewColumn';
+import ListViewColumn from '~/models/ListViewColumn';
 
-export default class OutlineViewLevel extends OutlineViewLevelCE implements OutlineViewLevelType {
+export default class ListViewLevel extends ListViewLevelCE implements ListViewLevelType {
   id: string;
   fk_view_id: string;
   level?: number;
@@ -29,7 +29,7 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
   wrap_headers?: BoolType | boolean;
   meta?: MetaType;
 
-  constructor(data: OutlineViewLevel) {
+  constructor(data: ListViewLevel) {
     super(data);
     Object.assign(this, data);
   }
@@ -43,14 +43,14 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
       levelId &&
       (await NocoCache.get(
         context,
-        `${CacheScope.OUTLINE_VIEW_LEVEL}:${levelId}`,
+        `${CacheScope.LIST_VIEW_LEVEL}:${levelId}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!level) {
       level = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.OUTLINE_VIEW_LEVELS,
+        MetaTable.LIST_VIEW_LEVELS,
         levelId,
       );
 
@@ -58,22 +58,22 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
 
       await NocoCache.set(
         context,
-        `${CacheScope.OUTLINE_VIEW_LEVEL}:${levelId}`,
+        `${CacheScope.LIST_VIEW_LEVEL}:${levelId}`,
         level,
       );
     }
 
-    return level && new OutlineViewLevel(level);
+    return level && new ListViewLevel(level);
   }
 
   static async list(
     context: NcContext,
     viewId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<OutlineViewLevel[]> {
+  ): Promise<ListViewLevel[]> {
     const cachedList = await NocoCache.getList(
       context,
-      CacheScope.OUTLINE_VIEW_LEVEL,
+      CacheScope.LIST_VIEW_LEVEL,
       [viewId],
     );
     let { list: levels } = cachedList;
@@ -82,7 +82,7 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
       levels = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
-        MetaTable.OUTLINE_VIEW_LEVELS,
+        MetaTable.LIST_VIEW_LEVELS,
         {
           condition: {
             fk_view_id: viewId,
@@ -94,7 +94,7 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
       );
       await NocoCache.setList(
         context,
-        CacheScope.OUTLINE_VIEW_LEVEL,
+        CacheScope.LIST_VIEW_LEVEL,
         [viewId],
         levels,
       );
@@ -104,33 +104,33 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
         (a.level != null ? a.level : Infinity) -
         (b.level != null ? b.level : Infinity),
     );
-    return levels?.map((l) => new OutlineViewLevel(l));
+    return levels?.map((l) => new ListViewLevel(l));
   }
 
   /**
-   * Find all levels across all outline views in the base that reference a given table.
+   * Find all levels across all list views in the base that reference a given table.
    */
   static async listByModelId(
     context: NcContext,
     modelId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<OutlineViewLevel[]> {
+  ): Promise<ListViewLevel[]> {
     const levels = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW_LEVELS,
+      MetaTable.LIST_VIEW_LEVELS,
       {
         condition: {
           fk_model_id: modelId,
         },
       },
     );
-    return levels?.map((l) => new OutlineViewLevel(prepareForResponse(l)));
+    return levels?.map((l) => new ListViewLevel(prepareForResponse(l)));
   }
 
   static async insert(
     context: NcContext,
-    level: Partial<OutlineViewLevel>,
+    level: Partial<ListViewLevel>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(level, [
@@ -151,16 +151,16 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW_LEVELS,
+      MetaTable.LIST_VIEW_LEVELS,
       insertObj,
     );
 
     return this.get(context, id, ncMeta).then(async (insertedLevel) => {
       await NocoCache.appendToList(
         context,
-        CacheScope.OUTLINE_VIEW_LEVEL,
+        CacheScope.LIST_VIEW_LEVEL,
         [level.fk_view_id],
-        `${CacheScope.OUTLINE_VIEW_LEVEL}:${id}`,
+        `${CacheScope.LIST_VIEW_LEVEL}:${id}`,
       );
       return insertedLevel;
     });
@@ -169,7 +169,7 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
   static async update(
     context: NcContext,
     levelId: string,
-    body: Partial<OutlineViewLevel>,
+    body: Partial<ListViewLevel>,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(body, [
@@ -189,14 +189,14 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
     const res = await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW_LEVELS,
+      MetaTable.LIST_VIEW_LEVELS,
       prepareForDb(updateObj),
       levelId,
     );
 
     await NocoCache.update(
       context,
-      `${CacheScope.OUTLINE_VIEW_LEVEL}:${levelId}`,
+      `${CacheScope.LIST_VIEW_LEVEL}:${levelId}`,
       prepareForResponse(updateObj),
     );
 
@@ -211,13 +211,13 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW_LEVELS,
+      MetaTable.LIST_VIEW_LEVELS,
       levelId,
     );
 
     await NocoCache.deepDel(
       context,
-      `${CacheScope.OUTLINE_VIEW_LEVEL}:${levelId}`,
+      `${CacheScope.LIST_VIEW_LEVEL}:${levelId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
   }
@@ -234,13 +234,13 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
   static async bulkInsertOrUpdate(
     context: NcContext,
     viewId: string,
-    levels: Partial<OutlineViewLevel>[],
+    levels: Partial<ListViewLevel>[],
     ncMeta = Noco.ncMeta,
-  ): Promise<OutlineViewLevel[]> {
+  ): Promise<ListViewLevel[]> {
     const existingLevels = await this.list(context, viewId, ncMeta);
 
     // Build lookup: fk_model_id → existing level
-    const oldByModelId = new Map<string, OutlineViewLevel>();
+    const oldByModelId = new Map<string, ListViewLevel>();
     for (const l of existingLevels) {
       if (l.fk_model_id) oldByModelId.set(l.fk_model_id, l);
     }
@@ -261,7 +261,7 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
     }
 
     // Process new levels: keep existing or insert new
-    const result: OutlineViewLevel[] = [];
+    const result: ListViewLevel[] = [];
     for (const level of levels) {
       const existing = level.fk_model_id
         ? oldByModelId.get(level.fk_model_id)
@@ -319,20 +319,20 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
     const levelColumns = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW_COLUMNS,
+      MetaTable.LIST_VIEW_COLUMNS,
       { condition: { fk_level_id: levelId } },
     );
     for (const col of levelColumns) {
       await NocoCache.deepDel(
         context,
-        `${CacheScope.OUTLINE_VIEW_COLUMN}:${col.id}`,
+        `${CacheScope.LIST_VIEW_COLUMN}:${col.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
     }
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW_COLUMNS,
+      MetaTable.LIST_VIEW_COLUMNS,
       { fk_level_id: levelId },
     );
 
@@ -380,7 +380,7 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
   }
 
   /**
-   * Create OutlineViewColumn entries for a level's table columns.
+   * Create ListViewColumn entries for a level's table columns.
    */
   private static async createColumnsForLevel(
     context: NcContext,
@@ -397,7 +397,7 @@ export default class OutlineViewLevel extends OutlineViewLevelCE implements Outl
 
     let order = 1;
     for (const col of columns) {
-      await OutlineViewColumn.insert(
+      await ListViewColumn.insert(
         context,
         {
           fk_view_id: viewId,

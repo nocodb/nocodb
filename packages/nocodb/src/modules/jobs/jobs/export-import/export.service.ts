@@ -474,7 +474,7 @@ export class ExportService {
                 view.view[k] = idMap.get(v as string);
                 break;
               case 'levels':
-                if (view.type === ViewTypes.OUTLINE) {
+                if (view.type === ViewTypes.LIST) {
                   view.view[k] = (v as any[]).map((level) => ({
                     level: level.level,
                     fk_model_id:

@@ -1,4 +1,4 @@
-import OutlineViewColumnCE from 'src/models/OutlineViewColumn';
+import ListViewColumnCE from 'src/models/ListViewColumn';
 import type { BoolType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
@@ -7,7 +7,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
-export default class OutlineViewColumn extends OutlineViewColumnCE {
+export default class ListViewColumn extends ListViewColumnCE {
   id: string;
   fk_view_id: string;
   fk_column_id: string;
@@ -19,7 +19,7 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
   order?: number;
   width?: string;
 
-  constructor(data: OutlineViewColumn) {
+  constructor(data: ListViewColumn) {
     super(data);
     Object.assign(this, data);
   }
@@ -33,14 +33,14 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
       columnId &&
       (await NocoCache.get(
         context,
-        `${CacheScope.OUTLINE_VIEW_COLUMN}:${columnId}`,
+        `${CacheScope.LIST_VIEW_COLUMN}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!column) {
       column = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.OUTLINE_VIEW_COLUMNS,
+        MetaTable.LIST_VIEW_COLUMNS,
         columnId,
       );
 
@@ -48,22 +48,22 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
 
       await NocoCache.set(
         context,
-        `${CacheScope.OUTLINE_VIEW_COLUMN}:${columnId}`,
+        `${CacheScope.LIST_VIEW_COLUMN}:${columnId}`,
         column,
       );
     }
 
-    return column && new OutlineViewColumn(column);
+    return column && new ListViewColumn(column);
   }
 
   static async list(
     context: NcContext,
     viewId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<OutlineViewColumn[]> {
+  ): Promise<ListViewColumn[]> {
     const cachedList = await NocoCache.getList(
       context,
-      CacheScope.OUTLINE_VIEW_COLUMN,
+      CacheScope.LIST_VIEW_COLUMN,
       [viewId],
     );
     let { list: columns } = cachedList;
@@ -72,7 +72,7 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
       columns = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
-        MetaTable.OUTLINE_VIEW_COLUMNS,
+        MetaTable.LIST_VIEW_COLUMNS,
         {
           condition: {
             fk_view_id: viewId,
@@ -84,7 +84,7 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
       );
       await NocoCache.setList(
         context,
-        CacheScope.OUTLINE_VIEW_COLUMN,
+        CacheScope.LIST_VIEW_COLUMN,
         [viewId],
         columns,
       );
@@ -94,7 +94,7 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity),
     );
-    return columns?.map((c) => new OutlineViewColumn(c));
+    return columns?.map((c) => new ListViewColumn(c));
   }
 
   static async getNextOrderForLevel(
@@ -103,7 +103,7 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
     levelId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    return ncMeta.metaGetNextOrder(MetaTable.OUTLINE_VIEW_COLUMNS, {
+    return ncMeta.metaGetNextOrder(MetaTable.LIST_VIEW_COLUMNS, {
       fk_view_id: viewId,
       fk_level_id: levelId,
     });
@@ -111,7 +111,7 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
 
   static async insert(
     context: NcContext,
-    column: Partial<OutlineViewColumn>,
+    column: Partial<ListViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(column, [
@@ -129,7 +129,7 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
       const viewRef = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.OUTLINE_VIEW,
+        MetaTable.LIST_VIEW,
         { fk_view_id: insertObj.fk_view_id },
       );
       insertObj.base_id = viewRef.base_id;
@@ -139,16 +139,16 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW_COLUMNS,
+      MetaTable.LIST_VIEW_COLUMNS,
       insertObj,
     );
 
     return this.get(context, id, ncMeta).then(async (insertedColumn) => {
       await NocoCache.appendToList(
         context,
-        CacheScope.OUTLINE_VIEW_COLUMN,
+        CacheScope.LIST_VIEW_COLUMN,
         [column.fk_view_id],
-        `${CacheScope.OUTLINE_VIEW_COLUMN}:${id}`,
+        `${CacheScope.LIST_VIEW_COLUMN}:${id}`,
       );
       return insertedColumn;
     });
@@ -157,7 +157,7 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
   static async update(
     context: NcContext,
     columnId: string,
-    body: Partial<OutlineViewColumn>,
+    body: Partial<ListViewColumn>,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = extractProps(body, [
@@ -170,14 +170,14 @@ export default class OutlineViewColumn extends OutlineViewColumnCE {
     const res = await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.OUTLINE_VIEW_COLUMNS,
+      MetaTable.LIST_VIEW_COLUMNS,
       prepareForDb(updateObj),
       columnId,
     );
 
     await NocoCache.update(
       context,
-      `${CacheScope.OUTLINE_VIEW_COLUMN}:${columnId}`,
+      `${CacheScope.LIST_VIEW_COLUMN}:${columnId}`,
       prepareForResponse(updateObj),
     );
 

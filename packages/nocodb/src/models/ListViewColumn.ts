@@ -1,7 +1,7 @@
-export default class OutlineViewColumn {
+export default class ListViewColumn {
   id: string;
 
-  constructor(data: OutlineViewColumn) {
+  constructor(data: ListViewColumn) {
     Object.assign(this, data);
   }
 

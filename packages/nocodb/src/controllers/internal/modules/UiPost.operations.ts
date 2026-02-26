@@ -134,8 +134,8 @@ export class UiPostOperations
     'extensionCreate' as const,
     'extensionUpdate' as const,
     'extensionDelete' as const,
-    'outlineViewCreate' as const,
-    'outlineViewUpdate' as const,
+    'listViewCreate' as const,
+    'listViewUpdate' as const,
   ];
   httpMethod = 'POST' as const;
 

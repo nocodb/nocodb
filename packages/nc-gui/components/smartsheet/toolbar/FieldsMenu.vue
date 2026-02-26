@@ -50,11 +50,11 @@ const {
   isLocalMode,
 } = useViewColumnsOrThrow()
 
-const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed, isOutline } = useSmartsheetStoreOrThrow()
+const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed, isList } = useSmartsheetStoreOrThrow()
 
-const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
-const isOutlineConfigured = computed(
-  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const isListConfigured = computed(
+  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
 )
 const isFieldsMenuReadOnly = computed(() => {
   return isLocked.value || !isViewOperationsAllowed.value || (isLocalMode.value && hasViewFieldDataEditPermission.value)
@@ -99,9 +99,9 @@ const localFilteredFieldList = computed(() => {
     activeView.value?.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField.value : true,
   )
 
-  // For outline view with levels configured, filter by selected level
-  if (isOutline.value && isOutlineConfigured.value && outlineViewStore?.selectedLevelId.value) {
-    const levelId = outlineViewStore.selectedLevelId.value
+  // For list view with levels configured, filter by selected level
+  if (isList.value && isListConfigured.value && listViewStore?.selectedLevelId.value) {
+    const levelId = listViewStore.selectedLevelId.value
     list = list.filter((field: any) => field.fk_level_id === levelId)
   }
 
@@ -297,10 +297,10 @@ const coverImageObjectFit = computed({
 })
 
 const getSelectedLevelId = () => {
-  if (!isOutline.value || !isOutlineConfigured.value || !outlineViewStore?.selectedLevelId.value) {
+  if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevelId.value) {
     return undefined
   }
-  return outlineViewStore.selectedLevelId.value
+  return listViewStore.selectedLevelId.value
 }
 
 const onShowAll = async () => {
@@ -359,9 +359,9 @@ const visibleFields = computed(
         return false
       }
 
-      // For outline view with levels, only include selected level's fields
-      if (isOutline.value && isOutlineConfigured.value && outlineViewStore?.selectedLevelId.value) {
-        if (field.fk_level_id !== outlineViewStore.selectedLevelId.value) {
+      // For list view with levels, only include selected level's fields
+      if (isList.value && isListConfigured.value && listViewStore?.selectedLevelId.value) {
+        if (field.fk_level_id !== listViewStore.selectedLevelId.value) {
           return false
         }
       }
@@ -515,8 +515,8 @@ const allowedPrefixTypes = new Set([
 ])
 
 const updatePrefixColumn = async (val?: string | null) => {
-  if (activeView.value?.type === ViewTypes.OUTLINE && activeView.value?.id && activeView.value?.view) {
-    await updateViewMeta(activeView.value.id, ViewTypes.OUTLINE, {
+  if (activeView.value?.type === ViewTypes.LIST && activeView.value?.id && activeView.value?.view) {
+    await updateViewMeta(activeView.value.id, ViewTypes.LIST, {
       fk_prefix_column_id: val,
     })
   }
@@ -524,7 +524,7 @@ const updatePrefixColumn = async (val?: string | null) => {
 
 const prefixColumnId = computed({
   get: () => {
-    if (activeView.value?.type !== ViewTypes.OUTLINE || !activeView.value?.view) return undefined
+    if (activeView.value?.type !== ViewTypes.LIST || !activeView.value?.view) return undefined
 
     const fk_prefix_column_id = (activeView.value.view as ListType).fk_prefix_column_id
 
@@ -553,7 +553,7 @@ const prefixColumnId = computed({
 watch(
   fields,
   (newValue) => {
-    if (!newValue || isPublic.value || activeView.value?.type !== ViewTypes.OUTLINE) return
+    if (!newValue || isPublic.value || activeView.value?.type !== ViewTypes.LIST) return
 
     const filterFields =
       newValue
@@ -787,7 +787,7 @@ const onAddColumnDropdownVisibilityChange = () => {
         </div>
 
         <!--
-        <div v-if="!isPublic && isOutline" class="flex items-center gap-2 p-2 w-80 border-b-1 border-nc-border-gray-light">
+        <div v-if="!isPublic && isList" class="flex items-center gap-2 p-2 w-80 border-b-1 border-nc-border-gray-light">
           <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.prefixField') }}</div>
 
           <div
@@ -841,8 +841,8 @@ const onAddColumnDropdownVisibilityChange = () => {
           </div>
         </div>
 -->
-        <div v-if="isOutline && isOutlineConfigured" class="px-2 py-2 border-b-1">
-          <SmartsheetToolbarOutlineLevelSelector />
+        <div v-if="isList && isListConfigured" class="px-2 py-2 border-b-1">
+          <SmartsheetToolbarListLevelSelector />
         </div>
         <div class="py-2" @click.stop>
           <a-input

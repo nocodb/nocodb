@@ -28,12 +28,12 @@ const {
   filtersFromUrlParams,
   whereQueryFromUrl,
   filtersFromUrlParamsReadableErrors,
-  isOutline,
+  isList,
 } = useSmartsheetStoreOrThrow()
 
-const outlineViewStore = isOutline.value ? useOutlineViewStoreOrThrow() : undefined
-const isOutlineConfigured = computed(
-  () => (outlineViewStore?.isConfigured.value ?? false) && (outlineViewStore?.levels.value?.length ?? 0) > 1,
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const isListConfigured = computed(
+  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
 )
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
@@ -118,14 +118,14 @@ provide(AllFiltersInj, allFilters)
 useMenuCloseOnEsc(open)
 
 const draftFilter = ref<Record<string, any>>(
-  isOutline.value && outlineViewStore?.selectedLevelId.value ? { fk_level_id: outlineViewStore.selectedLevelId.value } : {},
+  isList.value && listViewStore?.selectedLevelId.value ? { fk_level_id: listViewStore.selectedLevelId.value } : {},
 )
 const queryFilterOpen = ref(false)
 const viewFilterOpen = ref(true)
 
-if (isOutline.value && outlineViewStore) {
+if (isList.value && listViewStore) {
   watch(
-    () => outlineViewStore!.selectedLevelId.value,
+    () => listViewStore!.selectedLevelId.value,
     (levelId) => {
       draftFilter.value = levelId ? { fk_level_id: levelId } : {}
     },
@@ -152,8 +152,8 @@ const smartsheetEventListener = async (event: string, payload?: any) => {
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
     draftFilter.value = {
       fk_column_id: column.id,
-      ...(isOutline.value && outlineViewStore?.selectedLevelId.value
-        ? { fk_level_id: outlineViewStore.selectedLevelId.value }
+      ...(isList.value && listViewStore?.selectedLevelId.value
+        ? { fk_level_id: listViewStore.selectedLevelId.value }
         : {}),
     }
     open.value = true
@@ -434,8 +434,8 @@ const handleAiFilters = async (payload: {
 
     <template #overlay>
       <div :key="filterKey">
-        <div v-if="isOutline && isOutlineConfigured" class="px-2 py-2 border-b-1">
-          <SmartsheetToolbarOutlineLevelSelector />
+        <div v-if="isList && isListConfigured" class="px-2 py-2 border-b-1">
+          <SmartsheetToolbarListLevelSelector />
         </div>
         <template v-if="!isRestrictedEditor">
           <!-- EE: AI Filter Prompt — natural-language input that generates filter conditions via AI -->

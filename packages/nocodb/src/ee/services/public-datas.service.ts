@@ -8,7 +8,7 @@ import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
 import { DataOptService } from '~/services/data-opt/data-opt.service';
-import { OutlineDatasService } from '~/ee/services/outline-datas.service';
+import { ListDatasService } from '~/ee/services/list-datas.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { DatasService } from '~/services/datas.service';
 import { AttachmentsService } from '~/services/attachments.service';
@@ -22,7 +22,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
     @Inject(forwardRef(() => 'JobsService'))
     protected readonly jobsService: IJobsService,
     private readonly dataOptService: DataOptService,
-    private readonly outlineDatasService: OutlineDatasService,
+    private readonly listDatasService: ListDatasService,
     protected readonly attachmentsService: AttachmentsService,
     protected readonly publicMetasService: PublicMetasService,
   ) {
@@ -42,13 +42,13 @@ export class PublicDatasService extends PublicDatasServiceCE {
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
 
-    if (view.type === ViewTypes.OUTLINE) {
+    if (view.type === ViewTypes.LIST) {
       const base = await Base.get(context, view.base_id);
       this.publicMetasService.checkViewBaseType(view, base);
       if (view.password && view.password !== password) {
         return NcError.invalidSharedViewPassword();
       }
-      return await this.outlineDatasService.outlineViewData(context, {
+      return await this.listDatasService.listViewData(context, {
         viewId: view.id,
         query: param.query,
       });
@@ -114,13 +114,13 @@ export class PublicDatasService extends PublicDatasServiceCE {
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
 
-    if (view.type === ViewTypes.OUTLINE) {
+    if (view.type === ViewTypes.LIST) {
       const base = await Base.get(context, view.base_id);
       this.publicMetasService.checkViewBaseType(view, base);
       if (view.password && view.password !== password) {
         return NcError.invalidSharedViewPassword();
       }
-      const result = await this.outlineDatasService.outlineViewCount(context, {
+      const result = await this.listDatasService.listViewCount(context, {
         viewId: view.id,
         query: param.query,
       });

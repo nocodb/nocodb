@@ -1,9 +1,9 @@
-import type { OutlineType } from 'nocodb-sdk';
+import type { ListType } from 'nocodb-sdk';
 
-export default class OutlineView implements OutlineType {
+export default class ListView implements ListType {
   fk_view_id: string;
 
-  constructor(data: OutlineView) {
+  constructor(data: ListView) {
     Object.assign(this, data);
   }
 

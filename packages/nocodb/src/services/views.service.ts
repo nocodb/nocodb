@@ -401,8 +401,8 @@ export class ViewsService {
       deleteEvent = AppEvents.KANBAN_DELETE;
     } else if (view.type === ViewTypes.MAP) {
       deleteEvent = AppEvents.MAP_DELETE;
-    } else if (view.type === ViewTypes.OUTLINE) {
-      deleteEvent = AppEvents.OUTLINE_DELETE;
+    } else if (view.type === ViewTypes.LIST) {
+      deleteEvent = AppEvents.LIST_DELETE;
     }
 
     let owner = param.req.user;

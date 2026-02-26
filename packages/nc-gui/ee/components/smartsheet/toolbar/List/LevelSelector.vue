@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { levels, selectedLevelId, setSelectedLevel } = useOutlineViewStoreOrThrow()
+const { levels, selectedLevelId, setSelectedLevel } = useListViewStoreOrThrow()
 
 const meta = inject(MetaInj, ref())
 const { getMetaByKey } = useMetas()

@@ -1,8 +1,8 @@
 /**
- * useOutlineDataFetch — Chunked data loading for the outline view canvas.
+ * useListDataFetch — Chunked data loading for the list view canvas.
  *
- * The outline view API (`outlineViewDataList`) supports offset/limit pagination.
- * The count API (`outlineViewDataCount`) returns totalRows + per-model counts.
+ * The list view API (`listViewDataList`) supports offset/limit pagination.
+ * The count API (`listViewDataCount`) returns totalRows + per-model counts.
  *
  * Both endpoints accept a `collapsed` param (JSON) so the server
  * only returns expanded rows — collapsed subtrees are skipped server-side.
@@ -13,7 +13,7 @@
  * - Throttled API calls
  */
 
-import type { OutlineViewRow } from '~/composables/useOutlineViewStore'
+import type { ListViewRow } from '~/composables/useListViewStore'
 
 const CHUNK_SIZE = 50
 const INITIAL_LOAD_SIZE = 100
@@ -21,7 +21,7 @@ const BUFFER_SIZE = 100
 const PREFETCH_THRESHOLD = 25
 const API_THROTTLE = 500
 
-export function useOutlineDataFetch({
+export function useListDataFetch({
   viewId,
   cachedRows,
   chunkStates,
@@ -35,7 +35,7 @@ export function useOutlineDataFetch({
   /** Current view ID */
   viewId: ComputedRef<string | undefined>
   /** Row cache: index → row data */
-  cachedRows: Ref<Map<number, OutlineViewRow>>
+  cachedRows: Ref<Map<number, ListViewRow>>
   /** Chunk state tracking */
   chunkStates: Ref<Array<'loading' | 'loaded' | undefined>>
   /** Total visible row count (from count endpoint) */
@@ -45,7 +45,7 @@ export function useOutlineDataFetch({
   /** Serialized collapsed state for API calls */
   collapsedJson: ComputedRef<string>
   /** Fetch a page of data */
-  loadPage: (params: { offset: number; limit: number; collapsed: string }) => Promise<OutlineViewRow[]>
+  loadPage: (params: { offset: number; limit: number; collapsed: string }) => Promise<ListViewRow[]>
   /** Fetch total count */
   loadCount: (params: { collapsed: string }) => Promise<{ totalRows: number; counts: Record<string, number> }>
   /** Trigger canvas re-render */

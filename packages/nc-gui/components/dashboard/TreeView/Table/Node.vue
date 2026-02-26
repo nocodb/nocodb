@@ -689,7 +689,7 @@ const enabledOptions = computed(() => {
       :table-id="table.id"
       :title="table.title"
     />
-    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" />
+    <DashboardTreeViewViews v-if="isExpanded" />
   </div>
 </template>
 

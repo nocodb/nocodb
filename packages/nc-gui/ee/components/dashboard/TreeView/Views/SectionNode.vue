@@ -8,6 +8,7 @@ interface Props {
   allCollapsed: boolean
   isDefault?: boolean
   isDefaultSource?: BoolType
+  isDragging?: boolean
 }
 
 interface Emits {
@@ -207,7 +208,7 @@ const onChangeColor = (color: string) => {
       class="w-full"
       trigger="hover"
       placement="right"
-      :disabled="isEditing || isDropdownOpen || !showSectionNodeTooltip || !!isMobileMode"
+      :disabled="isEditing || isDropdownOpen || !showSectionNodeTooltip || !!isMobileMode || isDragging"
     >
       <template #title>
         <div class="flex flex-col gap-3">

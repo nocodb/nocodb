@@ -1,12 +1,4 @@
 <script setup lang="ts">
-const props = defineProps<{
-  value: any
-}>()
-
-const emit = defineEmits(['update:value'])
-
-const vModel = useVModel(props, 'value', emit)
-
 const { t } = useI18n()
 </script>
 

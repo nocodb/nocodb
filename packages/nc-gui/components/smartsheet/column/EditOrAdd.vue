@@ -247,10 +247,10 @@ const uiFilters = (t: UiTypesType) => {
   }
 
   // UUID is only supported for PostgreSQL databases
-  const showUUID = t.name !== UITypes.UUID || isPg(meta.value?.source_id)
+  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI)
 
   // AutoNumber is only supported for PostgreSQL databases
-  const showAutoNumber = t.name !== UITypes.AutoNumber || isPg(meta.value?.source_id)
+  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI)
 
   return (
     systemFiledNotEdited &&

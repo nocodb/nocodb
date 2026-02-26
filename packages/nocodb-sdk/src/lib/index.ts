@@ -49,6 +49,7 @@ export {
   ratingIconListMap,
   durationOptions,
   isReadOnlyColumn,
+  isAutoNumber,
   isDateOrDateTimeCol,
   customLinkSupportedTypes,
   UITypesSearchTerms,

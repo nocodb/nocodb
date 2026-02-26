@@ -36,6 +36,7 @@ export {
   isSpecificDBType,
   isGeometry,
   isUUID,
+  isAutoNumber,
   isUser,
   isButton,
   isAiButton,

@@ -2443,6 +2443,7 @@
     "searchRecordTemplates": "Search record templates"
   },
   "msg": {
+    "autoNumberFieldInfo": "Automatically generates a unique incremented number for each record. Values are read-only and cannot be edited.",
     "replaceVersionAndGoLive": "Replace {version} and go live",
     "discardDraftConfirmation": "This will discard all changes made in the current draft and rollback to the latest published version. This action cannot be undone.",
     "draftDiscardedSuccessfully": "Draft discarded successfully",

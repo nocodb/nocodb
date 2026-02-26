@@ -1764,7 +1764,8 @@ export class PgUi implements SqlUi {
         colProp.dt = 'timestamp';
         break;
       case 'AutoNumber':
-        colProp.dt = 'int';
+        colProp.dt = 'int8';
+        colProp.ai = true;
         break;
       case 'Barcode':
         colProp.dt = 'character varying';

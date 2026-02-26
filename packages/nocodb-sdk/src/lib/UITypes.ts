@@ -341,6 +341,7 @@ export const numericUITypes = [
   UITypes.Year,
   UITypes.Links,
   UITypes.ID,
+  UITypes.AutoNumber,
 ];
 
 export function isNumericCol(
@@ -809,6 +810,7 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
       UITypes.QrCode,
       UITypes.ForeignKey,
       UITypes.UUID,
+      UITypes.AutoNumber,
     ].includes(column.uidt as UITypes) ||
     // Check if the column is a system-generated user tracking field (CreatedBy, LastModifiedBy)
     isCreatedOrLastModifiedByCol(column) ||
@@ -820,6 +822,15 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
     (column.pk && (column.ai || parseProp(column.meta)?.ag))
   );
 };
+
+/**
+ * Determines whether a given column is an AutoNumber field.
+ *
+ * @param {ColumnType} column - The column to check.
+ * @returns {boolean} - Returns `true` if the column is an AutoNumber field.
+ */
+export const isAutoNumber = (column: ColumnType): boolean =>
+  column.uidt === UITypes.AutoNumber;
 
 /**
  * Determines whether a given column type represents a Date or DateTime field.

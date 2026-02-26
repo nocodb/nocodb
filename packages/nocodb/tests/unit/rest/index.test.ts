@@ -4,7 +4,6 @@ import authTests from './tests/auth.test';
 import orgTests from './tests/org.test';
 import baseTests from './tests/base.test';
 import columnTypeSpecificTests from './tests/columnTypeSpecific.test';
-import autoNumberTests from './tests/autoNumber.test';
 import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
 import viewRowLocalTests from './tests/viewRow-local.test';
@@ -32,6 +31,7 @@ let columnTest = () => {};
 let integrationTest = require('./tests/integration.test').default;
 let oauthDCRTest = () => {};
 let oauthTests = () => {};
+let autoNumberTests = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
@@ -43,6 +43,7 @@ if (process.env.EE === 'true') {
   columnTest = require('./tests/ee/column.test').default;
   integrationTest = require('./tests/ee/integration.test').default;
   oauthTests = require('./tests/oauth.test').default;
+  autoNumberTests = require('./tests/ee/autoNumber.test').default
 }
 
 const testVersion = ['v1', 'v2', 'v3'];

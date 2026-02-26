@@ -2,15 +2,15 @@ import 'mocha';
 import request from 'supertest';
 import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
-import init from '../../init';
-import { createProject } from '../../factory/base';
-import { createColumn, deleteColumn } from '../../factory/column';
-import { createTable } from '../../factory/table';
-import { createView } from '../../factory/view';
-import { createBulkRows, listRow } from '../../factory/row';
-import { backfillAutoNumber } from '../../../../src/helpers/autonumberHelpers';
-import { Column } from '../../../../src/models';
-import type Model from '../../../../src/models/Model';
+import init from '../../../init';
+import { createProject } from '../../../factory/base';
+import { createColumn, deleteColumn } from '../../../factory/column';
+import { createTable } from '../../../factory/table';
+import { createView } from '../../../factory/view';
+import { createBulkRows, listRow } from '../../../factory/row';
+import { backfillAutoNumber } from '../../../../../src/helpers/autonumberHelpers';
+import { Column } from '../../../../../src/models';
+import type Model from '../../../../../src/models/Model';
 import type Base from '~/models/Base';
 
 function autoNumberTests() {

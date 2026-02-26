@@ -444,6 +444,13 @@ export class AppHooksService {
       | AppEvents.RECORD_TEMPLATE_USE,
     data: any,
   ): void;
+  emit(
+    event:
+      | AppEvents.DOCUMENT_CREATE
+      | AppEvents.DOCUMENT_UPDATE
+      | AppEvents.DOCUMENT_DELETE,
+    data: any,
+  ): void;
 
   emit(event, data): void {
     this.eventEmitter.emit(event, data);

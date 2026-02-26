@@ -3,20 +3,20 @@ import { useTitle } from '@vueuse/core'
 
 const route = useRoute()
 
-const docsStore = useDocsStore()
+const documentsStore = useDocumentsStore()
 const basesStore = useBases()
 
 const { openedProject } = storeToRefs(basesStore)
-const { activeDoc } = storeToRefs(docsStore)
+const { activeDocument } = storeToRefs(documentsStore)
 
 const docId = computed(() => route.params.docId as string)
 
-// Set activeDocId when route changes
+// Set activeDocumentId when route changes
 watch(
   docId,
   (id) => {
     if (id) {
-      docsStore.setActiveDocId(id)
+      documentsStore.setActiveDocumentId(id)
     }
   },
   { immediate: true },
@@ -24,14 +24,14 @@ watch(
 
 // Update browser tab title reactively
 const pageTitle = computed(() => {
-  if (!activeDoc.value?.title) return ''
-  return `${activeDoc.value.title} | ${openedProject.value?.title ?? ''}`
+  if (!activeDocument.value?.title) return ''
+  return `${activeDocument.value.title} | ${openedProject.value?.title ?? ''}`
 })
 useTitle(pageTitle)
 
-// Clear activeDocId when leaving the page
+// Clear activeDocumentId when leaving the page
 onBeforeRouteLeave(() => {
-  docsStore.setActiveDocId(undefined)
+  documentsStore.setActiveDocumentId(undefined)
 })
 </script>
 

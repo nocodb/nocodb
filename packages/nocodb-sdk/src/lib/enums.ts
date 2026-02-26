@@ -296,9 +296,9 @@ export enum AppEvents {
   CHAT_MESSAGE_CREATE = 'chat.message.create',
   CHAT_TOOL_EXECUTE = 'chat.tool.execute',
 
-  DOC_CREATE = 'doc.create',
-  DOC_UPDATE = 'doc.update',
-  DOC_DELETE = 'doc.delete',
+  DOCUMENT_CREATE = 'document.create',
+  DOCUMENT_UPDATE = 'document.update',
+  DOCUMENT_DELETE = 'document.delete',
 }
 
 export enum ClickhouseTables {

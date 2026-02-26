@@ -1,7 +1,7 @@
 /**
- * Composable for uploading images in the doc editor.
+ * Composable for uploading images in the document editor.
  *
- * Wraps useAttachment with doc-specific logic:
+ * Wraps useAttachment with document-specific logic:
  * - Opens a native file picker filtered to images
  * - Uploads via NocoDB's storage API
  * - Inserts an image node into the Tiptap editor with instant blob preview,
@@ -10,7 +10,7 @@
 import type { Editor } from '@tiptap/core'
 import useAttachment from '~/composables/useAttachment'
 
-export function useDocImageUpload() {
+export function useDocumentImageUpload() {
   const { batchUploadFiles, getPossibleAttachmentSrc } = useAttachment()
 
   const isUploading = ref(false)

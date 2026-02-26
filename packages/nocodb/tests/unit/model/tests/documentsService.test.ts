@@ -2,13 +2,13 @@ import 'mocha';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject } from '../../factory/base';
-import { createDoc } from '../../factory/doc';
+import { createDocument } from '../../factory/document';
 import type { INestApplication } from '@nestjs/common';
 import type Base from '~/models/Base';
-import { DocsService } from '~/services/docs.service';
-import Doc from '~/models/Doc';
+import { DocumentsService } from '~/services/documents.service';
+import Document from '~/models/Document';
 
-function docsServiceTests() {
+function documentsServiceTests() {
   let context;
   let ctx: {
     workspace_id: string;
@@ -16,7 +16,7 @@ function docsServiceTests() {
   };
   let base: Base;
   let nestApp: INestApplication;
-  let docsService: DocsService;
+  let documentsService: DocumentsService;
 
   const mockReq = (user?: any) =>
     ({
@@ -25,26 +25,26 @@ function docsServiceTests() {
     }) as any;
 
   beforeEach(async function () {
-    console.time('#### docsServiceTests');
+    console.time('#### documentsServiceTests');
     context = await init();
     base = await createProject(context);
     nestApp = context.nestApp;
-    docsService = nestApp.get(DocsService);
+    documentsService = nestApp.get(DocumentsService);
 
     ctx = {
       workspace_id: base.fk_workspace_id,
       base_id: base.id,
     };
-    console.timeEnd('#### docsServiceTests');
+    console.timeEnd('#### documentsServiceTests');
   });
 
-  // ── DocsService.list ────────────────────────────────────────
+  // ── DocumentsService.list ────────────────────────────────────────
 
   describe('list', () => {
-    it('should return docs without content (lite)', async () => {
-      await createDoc(ctx, { title: 'Service List Test' });
+    it('should return documents without content (lite)', async () => {
+      await createDocument(ctx, { title: 'Service List Test' });
 
-      const list = await docsService.list(ctx, base.id);
+      const list = await documentsService.list(ctx, base.id);
 
       expect(list).to.be.an('array').with.lengthOf(1);
       expect(list[0].title).to.equal('Service List Test');
@@ -53,21 +53,21 @@ function docsServiceTests() {
     });
   });
 
-  // ── DocsService.get ─────────────────────────────────────────
+  // ── DocumentsService.get ─────────────────────────────────────────
 
   describe('get', () => {
-    it('should return full doc with content', async () => {
-      const doc = await createDoc(ctx, { title: 'Get Test' });
+    it('should return full document with content', async () => {
+      const doc = await createDocument(ctx, { title: 'Get Test' });
 
-      const fetched = await docsService.get(ctx, doc.id);
+      const fetched = await documentsService.get(ctx, doc.id);
 
       expect(fetched.title).to.equal('Get Test');
       expect(fetched.content).to.be.an('object');
     });
 
-    it('should throw for non-existent doc', async () => {
+    it('should throw for non-existent document', async () => {
       try {
-        await docsService.get(ctx, 'nonexistent_id');
+        await documentsService.get(ctx, 'nonexistent_id');
         expect.fail('should have thrown');
       } catch (e) {
         expect(e.message).to.include('not found');
@@ -75,11 +75,11 @@ function docsServiceTests() {
     });
   });
 
-  // ── DocsService.create ──────────────────────────────────────
+  // ── DocumentsService.create ──────────────────────────────────────
 
   describe('create', () => {
-    it('should create a doc with title and content', async () => {
-      const doc = await docsService.create(
+    it('should create a document with title and content', async () => {
+      const doc = await documentsService.create(
         ctx,
         {
           title: 'Created via Service',
@@ -88,14 +88,14 @@ function docsServiceTests() {
         mockReq(context.user),
       );
 
-      expect(doc).to.be.an.instanceOf(Doc);
+      expect(doc).to.be.an.instanceOf(Document);
       expect(doc.title).to.equal('Created via Service');
       expect(doc.version).to.equal(1);
       expect(doc.base_id).to.equal(base.id);
     });
 
     it('should default to empty ProseMirror doc when no content', async () => {
-      const doc = await docsService.create(
+      const doc = await documentsService.create(
         ctx,
         { title: 'No Content' },
         mockReq(context.user),
@@ -108,7 +108,7 @@ function docsServiceTests() {
     });
 
     it('should trim whitespace-only title to Untitled', async () => {
-      const doc = await docsService.create(
+      const doc = await documentsService.create(
         ctx,
         { title: '   ' },
         mockReq(context.user),
@@ -125,7 +125,7 @@ function docsServiceTests() {
       };
 
       try {
-        await docsService.create(ctx, { title: 'Big', content: largeContent }, mockReq(context.user));
+        await documentsService.create(ctx, { title: 'Big', content: largeContent }, mockReq(context.user));
         expect.fail('should have thrown');
       } catch (e) {
         expect(e.message).to.include('maximum size');
@@ -133,13 +133,13 @@ function docsServiceTests() {
     });
   });
 
-  // ── DocsService.update ──────────────────────────────────────
+  // ── DocumentsService.update ──────────────────────────────────────
 
   describe('update', () => {
     it('should update title and bump version', async () => {
-      const doc = await createDoc(ctx, { title: 'V1' });
+      const doc = await createDocument(ctx, { title: 'V1' });
 
-      const updated = await docsService.update(
+      const updated = await documentsService.update(
         ctx,
         doc.id,
         { title: 'V2', version: doc.version },
@@ -151,10 +151,10 @@ function docsServiceTests() {
     });
 
     it('should reject stale version (optimistic concurrency)', async () => {
-      const doc = await createDoc(ctx, { title: 'Concurrent' });
+      const doc = await createDocument(ctx, { title: 'Concurrent' });
 
       // First update succeeds
-      await docsService.update(
+      await documentsService.update(
         ctx,
         doc.id,
         { title: 'Update 1', version: doc.version },
@@ -163,7 +163,7 @@ function docsServiceTests() {
 
       // Second update with the original (now stale) version should fail
       try {
-        await docsService.update(
+        await documentsService.update(
           ctx,
           doc.id,
           { title: 'Update 2', version: doc.version },
@@ -176,10 +176,10 @@ function docsServiceTests() {
     });
 
     it('should reject update without version', async () => {
-      const doc = await createDoc(ctx);
+      const doc = await createDocument(ctx);
 
       try {
-        await docsService.update(
+        await documentsService.update(
           ctx,
           doc.id,
           { title: 'No Version' } as any,
@@ -192,14 +192,14 @@ function docsServiceTests() {
     });
 
     it('should reject oversized content on update', async () => {
-      const doc = await createDoc(ctx);
+      const doc = await createDocument(ctx);
       const largeContent = {
         type: 'doc',
         content: [{ type: 'text', text: 'x'.repeat(6 * 1024 * 1024) }],
       };
 
       try {
-        await docsService.update(
+        await documentsService.update(
           ctx,
           doc.id,
           { content: largeContent, version: doc.version },
@@ -211,9 +211,9 @@ function docsServiceTests() {
       }
     });
 
-    it('should throw for non-existent doc', async () => {
+    it('should throw for non-existent document', async () => {
       try {
-        await docsService.update(
+        await documentsService.update(
           ctx,
           'nonexistent_id',
           { title: 'Ghost', version: 1 },
@@ -226,22 +226,22 @@ function docsServiceTests() {
     });
   });
 
-  // ── DocsService.delete ──────────────────────────────────────
+  // ── DocumentsService.delete ──────────────────────────────────────
 
   describe('delete', () => {
-    it('should delete a doc', async () => {
-      const doc = await createDoc(ctx, { title: 'To Delete' });
+    it('should delete a document', async () => {
+      const doc = await createDocument(ctx, { title: 'To Delete' });
 
-      const result = await docsService.delete(ctx, doc.id, mockReq(context.user));
+      const result = await documentsService.delete(ctx, doc.id, mockReq(context.user));
       expect(result).to.equal(true);
 
-      const fetched = await Doc.get(ctx, doc.id);
+      const fetched = await Document.get(ctx, doc.id);
       expect(fetched).to.be.undefined;
     });
 
-    it('should throw for non-existent doc', async () => {
+    it('should throw for non-existent document', async () => {
       try {
-        await docsService.delete(ctx, 'nonexistent_id', mockReq(context.user));
+        await documentsService.delete(ctx, 'nonexistent_id', mockReq(context.user));
         expect.fail('should have thrown');
       } catch (e) {
         expect(e.message).to.include('not found');
@@ -249,23 +249,23 @@ function docsServiceTests() {
     });
   });
 
-  // ── DocsService.reorder ─────────────────────────────────────
+  // ── DocumentsService.reorder ─────────────────────────────────────
 
   describe('reorder', () => {
     it('should update order without bumping version', async () => {
-      const doc = await createDoc(ctx);
+      const doc = await createDocument(ctx);
 
-      await docsService.reorder(ctx, doc.id, { order: 50.5 });
+      await documentsService.reorder(ctx, doc.id, { order: 50.5 });
 
-      const fetched = await Doc.get(ctx, doc.id);
+      const fetched = await Document.get(ctx, doc.id);
       expect(fetched.order).to.equal(50.5);
       // Reorder does not bump version
       expect(fetched.version).to.equal(doc.version);
     });
 
-    it('should throw for non-existent doc', async () => {
+    it('should throw for non-existent document', async () => {
       try {
-        await docsService.reorder(ctx, 'nonexistent_id', { order: 1 });
+        await documentsService.reorder(ctx, 'nonexistent_id', { order: 1 });
         expect.fail('should have thrown');
       } catch (e) {
         expect(e.message).to.include('not found');
@@ -275,5 +275,5 @@ function docsServiceTests() {
 }
 
 export default function () {
-  describe('DocsService', docsServiceTests);
+  describe('DocumentsService', documentsServiceTests);
 }

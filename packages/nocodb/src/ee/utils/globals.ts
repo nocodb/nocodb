@@ -463,7 +463,7 @@ export enum CacheScope {
   RLS_POLICY = 'rlsPolicy',
   VIEW_SECTION = 'viewSection',
   CHAT_SESSION = 'chatSession',
-  DOC = 'doc',
+  DOCUMENT = 'document',
 }
 
 export const RootScopeTables = {

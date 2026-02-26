@@ -1,4 +1,4 @@
-export interface DocType {
+export interface DocumentType {
   id?: string;
   base_id?: string;
   fk_workspace_id?: string;
@@ -13,3 +13,6 @@ export interface DocType {
   created_at?: string;
   updated_at?: string;
 }
+
+/** @deprecated Use DocumentType instead */
+export type DocType = DocumentType;

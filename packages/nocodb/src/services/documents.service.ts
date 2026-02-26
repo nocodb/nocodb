@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import type { DocType } from 'nocodb-sdk';
+import type { DocumentType } from 'nocodb-sdk';
 import { AppEvents } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { Doc } from '~/models';
+import { Document } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 /**
- * Service layer for Pages (internally "Docs").
+ * Service layer for Documents.
  *
- * Pages are base-scoped rich-text documents stored as ProseMirror JSON.
- * Each page belongs to exactly one base and uses optimistic concurrency
+ * Documents are base-scoped rich-text documents stored as ProseMirror JSON.
+ * Each document belongs to exactly one base and uses optimistic concurrency
  * via a `version` counter to prevent lost writes.
  */
 // 5 MB — generous limit for ProseMirror JSON content.
@@ -18,30 +18,30 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 const MAX_DOC_CONTENT_SIZE = 5 * 1024 * 1024;
 
 @Injectable()
-export class DocsService {
+export class DocumentsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
 
   /**
-   * List all pages in a base (lightweight — excludes content).
-   * Use `get()` to fetch full content for a single page.
+   * List all documents in a base (lightweight — excludes content).
+   * Use `get()` to fetch full content for a single document.
    */
   async list(context: NcContext, baseId: string) {
-    return await Doc.listLite(context, baseId);
+    return await Document.listLite(context, baseId);
   }
 
-  /** Fetch a single page with full content (ProseMirror JSON). */
+  /** Fetch a single document with full content (ProseMirror JSON). */
   async get(context: NcContext, docId: string) {
-    const doc = await Doc.get(context, docId);
+    const doc = await Document.get(context, docId);
     if (!doc) {
-      NcError.notFound('Page not found');
+      NcError.notFound('Document not found');
     }
     return doc;
   }
 
-  /** Create a new page. Defaults to an empty ProseMirror doc if no content provided. */
+  /** Create a new document. Defaults to an empty ProseMirror doc if no content provided. */
   async create(
     context: NcContext,
-    payload: Partial<DocType>,
+    payload: Partial<DocumentType>,
     req: NcRequest,
   ) {
     payload.fk_workspace_id = context.workspace_id;
@@ -56,7 +56,7 @@ export class DocsService {
       const contentSize = Buffer.byteLength(JSON.stringify(payload.content), 'utf8');
       if (contentSize > MAX_DOC_CONTENT_SIZE) {
         NcError.badRequest(
-          `Page content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,
+          `Document content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,
         );
       }
     }
@@ -69,9 +69,9 @@ export class DocsService {
       };
     }
 
-    const doc = await Doc.insert(context, payload);
+    const doc = await Document.insert(context, payload);
 
-    this.appHooksService.emit(AppEvents.DOC_CREATE, {
+    this.appHooksService.emit(AppEvents.DOCUMENT_CREATE, {
       context,
       req,
       doc,
@@ -81,28 +81,28 @@ export class DocsService {
     return doc;
   }
 
-  /** Update a page. Requires `version` for optimistic concurrency control. */
+  /** Update a document. Requires `version` for optimistic concurrency control. */
   async update(
     context: NcContext,
     docId: string,
-    payload: Partial<DocType>,
+    payload: Partial<DocumentType>,
     req: NcRequest,
   ) {
-    const existing = await Doc.get(context, docId);
+    const existing = await Document.get(context, docId);
     if (!existing) {
-      NcError.notFound('Page not found');
+      NcError.notFound('Document not found');
     }
 
     // Optimistic concurrency: reject stale writes.
     // Version is mandatory to prevent silent overwrites by API consumers
     // that omit it.
     if (payload.version === undefined || payload.version === null) {
-      NcError.badRequest('version is required for page updates');
+      NcError.badRequest('version is required for document updates');
     }
 
     if (payload.version !== existing.version) {
       NcError.badRequest(
-        'Page has been modified by another user. Please reload and try again.',
+        'Document has been modified by another user. Please reload and try again.',
       );
     }
 
@@ -111,7 +111,7 @@ export class DocsService {
       const contentSize = Buffer.byteLength(JSON.stringify(payload.content), 'utf8');
       if (contentSize > MAX_DOC_CONTENT_SIZE) {
         NcError.badRequest(
-          `Page content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,
+          `Document content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,
         );
       }
     }
@@ -123,9 +123,9 @@ export class DocsService {
       payload.title = payload.title?.trim() || 'Untitled';
     }
 
-    const doc = await Doc.update(context, docId, payload);
+    const doc = await Document.update(context, docId, payload);
 
-    this.appHooksService.emit(AppEvents.DOC_UPDATE, {
+    this.appHooksService.emit(AppEvents.DOCUMENT_UPDATE, {
       context,
       req,
       doc,
@@ -135,16 +135,16 @@ export class DocsService {
     return doc;
   }
 
-  /** Permanently delete a page and remove it from cache. */
+  /** Permanently delete a document and remove it from cache. */
   async delete(context: NcContext, docId: string, req: NcRequest) {
-    const doc = await Doc.get(context, docId);
+    const doc = await Document.get(context, docId);
     if (!doc) {
-      NcError.notFound('Page not found');
+      NcError.notFound('Document not found');
     }
 
-    await Doc.delete(context, docId);
+    await Document.delete(context, docId);
 
-    this.appHooksService.emit(AppEvents.DOC_DELETE, {
+    this.appHooksService.emit(AppEvents.DOCUMENT_DELETE, {
       context,
       req,
       doc,
@@ -155,7 +155,7 @@ export class DocsService {
   }
 
   /**
-   * Update page sort order.
+   * Update document sort order.
    *
    * Intentionally does NOT bump `version` — reorder is a metadata-only
    * change that shouldn't conflict with concurrent content edits. The
@@ -169,11 +169,11 @@ export class DocsService {
     docId: string,
     payload: { order: number },
   ) {
-    const doc = await Doc.get(context, docId);
+    const doc = await Document.get(context, docId);
     if (!doc) {
-      NcError.notFound('Page not found');
+      NcError.notFound('Document not found');
     }
 
-    return await Doc.update(context, docId, { order: payload.order });
+    return await Document.update(context, docId, { order: payload.order });
   }
 }

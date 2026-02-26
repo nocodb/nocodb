@@ -137,9 +137,9 @@ const rolePermissions = {
       groupBySync: true,
       viewFieldEdit: true,
 
-      // Docs (Pages) — creators can create and delete pages
-      docCreate: true,
-      docDelete: true,
+      // Documents — creators can create and delete documents
+      documentCreate: true,
+      documentDelete: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -161,9 +161,9 @@ const rolePermissions = {
       // Extensions
       extensionUpdate: true,
 
-      // Docs (Pages) — editors can update and reorder, but NOT create/delete
-      docUpdate: true,
-      docReorder: true,
+      // Documents — editors can update and reorder, but NOT create/delete
+      documentUpdate: true,
+      documentReorder: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -188,9 +188,9 @@ const rolePermissions = {
       // Extensions
       extensionList: true,
 
-      // Docs (Pages) — read-only for viewers
-      docList: true,
-      docGet: true,
+      // Documents — read-only for viewers
+      documentList: true,
+      documentGet: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

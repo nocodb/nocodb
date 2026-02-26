@@ -1,13 +1,13 @@
 import { defineStore } from 'pinia'
-import type { DocType } from 'nocodb-sdk'
+import type { DocumentType } from 'nocodb-sdk'
 
 /**
- * Pinia store for Pages (internally "Docs").
+ * Pinia store for Documents.
  *
- * Manages a per-base list of docs, tracks the active doc for editor routing,
+ * Manages a per-base list of documents, tracks the active document for editor routing,
  * and provides CRUD + reorder operations via the internal API.
  */
-export const useDocsStore = defineStore('docsStore', () => {
+export const useDocumentsStore = defineStore('documentsStore', () => {
   const { $api, $e } = useNuxtApp()
   const { t } = useI18n()
   const router = useRouter()
@@ -20,43 +20,43 @@ export const useDocsStore = defineStore('docsStore', () => {
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   // State
-  const docs = ref<Map<string, DocType[]>>(new Map())
-  const activeDocId = ref<string>()
-  const isLoadingDocs = ref(false)
+  const documents = ref<Map<string, DocumentType[]>>(new Map())
+  const activeDocumentId = ref<string>()
+  const isLoadingDocuments = ref(false)
 
   // Computed
-  const activeDocs = computed(() => {
+  const activeDocuments = computed(() => {
     if (!activeProjectId.value) return []
-    return docs.value.get(activeProjectId.value) || []
+    return documents.value.get(activeProjectId.value) || []
   })
 
-  const activeDoc = computed(() => {
-    if (!activeDocId.value || !activeProjectId.value) return null
-    const baseDocs = docs.value.get(activeProjectId.value) || []
-    return baseDocs.find((d) => d.id === activeDocId.value) || null
+  const activeDocument = computed(() => {
+    if (!activeDocumentId.value || !activeProjectId.value) return null
+    const baseDocuments = documents.value.get(activeProjectId.value) || []
+    return baseDocuments.find((d) => d.id === activeDocumentId.value) || null
   })
 
   // Actions
-  const loadDocs = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    const existingDocs = docs.value.get(baseId)
+  const loadDocuments = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
+    const existingDocuments = documents.value.get(baseId)
 
-    // Return cached list immediately without toggling isLoadingDocs —
-    // avoids a flash of loading state when navigating between docs.
+    // Return cached list immediately without toggling isLoadingDocuments —
+    // avoids a flash of loading state when navigating between documents.
     // Use .length check: an empty array is truthy in JS and would
-    // prevent re-fetching when another user has since created pages.
-    if (existingDocs?.length && !force) {
-      return existingDocs
+    // prevent re-fetching when another user has since created documents.
+    if (existingDocuments?.length && !force) {
+      return existingDocuments
     }
 
     try {
-      isLoadingDocs.value = true
+      isLoadingDocuments.value = true
 
       const response = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
-        operation: 'docList',
-      })) as DocType[]
+        operation: 'documentList',
+      })) as DocumentType[]
 
       if (ncIsArray(response)) {
-        docs.value.set(baseId, response)
+        documents.value.set(baseId, response)
         return response
       } else {
         return []
@@ -65,22 +65,22 @@ export const useDocsStore = defineStore('docsStore', () => {
       ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
     } finally {
-      isLoadingDocs.value = false
+      isLoadingDocuments.value = false
     }
   }
 
-  const loadDoc = async (docId: string, showLoader = true) => {
+  const loadDocument = async (docId: string, showLoader = true) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return null
 
     try {
       if (showLoader) {
-        isLoadingDocs.value = true
+        isLoadingDocuments.value = true
       }
 
       const doc = (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
-        operation: 'docGet',
+        operation: 'documentGet',
         docId,
-      })) as DocType
+      })) as DocumentType
 
       return doc
     } catch (e) {
@@ -92,29 +92,29 @@ export const useDocsStore = defineStore('docsStore', () => {
       return null
     } finally {
       if (showLoader) {
-        isLoadingDocs.value = false
+        isLoadingDocuments.value = false
       }
     }
   }
 
-  const createDoc = async (baseId: string, payload?: Partial<DocType>) => {
+  const createDocument = async (baseId: string, payload?: Partial<DocumentType>) => {
     if (!activeWorkspaceId.value) return null
 
     try {
       const created = (await $api.internal.postOperation(
         activeWorkspaceId.value,
         baseId,
-        { operation: 'docCreate' },
+        { operation: 'documentCreate' },
         payload || {},
-      )) as DocType
+      )) as DocumentType
 
       if (!created?.id) {
-        throw new Error(t('msg.failedToCreatePage'))
+        throw new Error(t('msg.failedToCreateDocument'))
       }
 
-      const baseDocs = docs.value.get(baseId) || []
-      baseDocs.push(created)
-      docs.value.set(baseId, baseDocs)
+      const baseDocuments = documents.value.get(baseId) || []
+      baseDocuments.push(created)
+      documents.value.set(baseId, baseDocuments)
 
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
@@ -124,7 +124,7 @@ export const useDocsStore = defineStore('docsStore', () => {
       })
 
       await refreshCommandPalette()
-      $e('a:doc:create')
+      $e('a:document:create')
 
       return created
     } catch (e) {
@@ -133,25 +133,25 @@ export const useDocsStore = defineStore('docsStore', () => {
     }
   }
 
-  const updateDoc = async (baseId: string, docId: string, updates: Partial<DocType>) => {
+  const updateDocument = async (baseId: string, docId: string, updates: Partial<DocumentType>) => {
     if (!activeWorkspaceId.value) return null
 
     try {
       const updated = (await $api.internal.postOperation(
         activeWorkspaceId.value,
         baseId,
-        { operation: 'docUpdate' },
+        { operation: 'documentUpdate' },
         { ...updates, docId },
-      )) as DocType
+      )) as DocumentType
 
-      // Patch the existing doc in place to avoid replacing the entire array
+      // Patch the existing document in place to avoid replacing the entire array
       // which would trigger reactivity on every sidebar node during auto-save.
       // Only sidebar-visible fields (version, timestamps, title) are synced —
       // `content` and `meta` are intentionally NOT patched here because the
       // sidebar list doesn't use them (listLite excludes content), and the
       // editor maintains its own copy via the Tiptap document model.
-      const baseDocs = docs.value.get(baseId) || []
-      const existing = baseDocs.find((d) => d.id === docId)
+      const baseDocuments = documents.value.get(baseId) || []
+      const existing = baseDocuments.find((d) => d.id === docId)
 
       if (existing) {
         existing.version = updated.version
@@ -165,7 +165,7 @@ export const useDocsStore = defineStore('docsStore', () => {
         }
       }
 
-      $e('a:doc:update')
+      $e('a:document:update')
 
       return updated
     } catch (e) {
@@ -174,19 +174,19 @@ export const useDocsStore = defineStore('docsStore', () => {
     }
   }
 
-  const deleteDoc = async (baseId: string, docId: string) => {
+  const deleteDocument = async (baseId: string, docId: string) => {
     if (!activeWorkspaceId.value) return false
 
     try {
-      await $api.internal.postOperation(activeWorkspaceId.value, baseId, { operation: 'docDelete' }, { docId })
+      await $api.internal.postOperation(activeWorkspaceId.value, baseId, { operation: 'documentDelete' }, { docId })
 
-      const baseDocs = docs.value.get(baseId) || []
-      const filtered = baseDocs.filter((d) => d.id !== docId)
-      docs.value.set(baseId, filtered)
+      const baseDocuments = documents.value.get(baseId) || []
+      const filtered = baseDocuments.filter((d) => d.id !== docId)
+      documents.value.set(baseId, filtered)
 
-      // If the deleted doc was active, navigate away
-      if (activeDocId.value === docId) {
-        setActiveDocId(undefined)
+      // If the deleted document was active, navigate away
+      if (activeDocumentId.value === docId) {
+        setActiveDocumentId(undefined)
         ncNavigateTo({
           workspaceId: activeWorkspaceId.value,
           baseId,
@@ -194,7 +194,7 @@ export const useDocsStore = defineStore('docsStore', () => {
       }
 
       await refreshCommandPalette()
-      $e('a:doc:delete')
+      $e('a:document:delete')
 
       return true
     } catch (e) {
@@ -203,28 +203,28 @@ export const useDocsStore = defineStore('docsStore', () => {
     }
   }
 
-  const reorderDoc = async (baseId: string, docId: string, order: number) => {
+  const reorderDocument = async (baseId: string, docId: string, order: number) => {
     if (!activeWorkspaceId.value) return null
 
     try {
       const updated = (await $api.internal.postOperation(
         activeWorkspaceId.value,
         baseId,
-        { operation: 'docReorder' },
+        { operation: 'documentReorder' },
         { docId, order },
-      )) as DocType
+      )) as DocumentType
 
-      const baseDocs = docs.value.get(baseId) || []
-      const index = baseDocs.findIndex((d) => d.id === docId)
+      const baseDocuments = documents.value.get(baseId) || []
+      const index = baseDocuments.findIndex((d) => d.id === docId)
 
       if (index !== -1) {
-        baseDocs[index].order = order
+        baseDocuments[index].order = order
         // Re-sort by order
-        baseDocs.sort((a, b) => (a.order || 0) - (b.order || 0))
-        docs.value.set(baseId, [...baseDocs])
+        baseDocuments.sort((a, b) => (a.order || 0) - (b.order || 0))
+        documents.value.set(baseId, [...baseDocuments])
       }
 
-      $e('a:doc:reorder')
+      $e('a:document:reorder')
       return updated
     } catch (e) {
       ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
@@ -232,36 +232,36 @@ export const useDocsStore = defineStore('docsStore', () => {
     }
   }
 
-  const setActiveDocId = (id: string | undefined) => {
-    activeDocId.value = id
+  const setActiveDocumentId = (id: string | undefined) => {
+    activeDocumentId.value = id
   }
 
   // --- URL slug sync (mirrors Script store pattern) ---
 
-  const activeDocUrlSlug = computed(() => {
+  const activeDocumentUrlSlug = computed(() => {
     return route.params.slugs?.[0] || ''
   })
 
-  const activeDocReadableUrlSlug = computed(() => {
-    if (!activeDoc.value) return ''
+  const activeDocumentReadableUrlSlug = computed(() => {
+    if (!activeDocument.value) return ''
 
-    return toReadableUrlSlug([activeDoc.value.title])
+    return toReadableUrlSlug([activeDocument.value.title])
   })
 
   /**
-   * Keeps the browser URL slug in sync with the doc's readable slug.
+   * Keeps the browser URL slug in sync with the document's readable slug.
    * Triggers only when:
    * - The current browser URL slug is missing, OR
-   * - The browser URL slug does not match the doc's readable slug.
+   * - The browser URL slug does not match the document's readable slug.
    */
   watch(
-    [activeDocReadableUrlSlug, activeDocUrlSlug],
-    ([newActiveDocReadableUrlSlug, newActiveDocUrlSlug]) => {
-      if (!newActiveDocReadableUrlSlug || newActiveDocUrlSlug === newActiveDocReadableUrlSlug) return
+    [activeDocumentReadableUrlSlug, activeDocumentUrlSlug],
+    ([newActiveDocumentReadableUrlSlug, newActiveDocumentUrlSlug]) => {
+      if (!newActiveDocumentReadableUrlSlug || newActiveDocumentUrlSlug === newActiveDocumentReadableUrlSlug) return
 
       const slugs = (route.params.slugs as string[]) || []
 
-      const newSlug = [newActiveDocReadableUrlSlug]
+      const newSlug = [newActiveDocumentReadableUrlSlug]
 
       if (slugs.length > 1) {
         newSlug.push(...slugs.slice(1))
@@ -284,21 +284,21 @@ export const useDocsStore = defineStore('docsStore', () => {
   )
 
   return {
-    docs,
-    activeDocId,
-    isLoadingDocs,
-    activeDocs,
-    activeDoc,
-    setActiveDocId,
-    loadDocs,
-    loadDoc,
-    createDoc,
-    updateDoc,
-    deleteDoc,
-    reorderDoc,
+    documents,
+    activeDocumentId,
+    isLoadingDocuments,
+    activeDocuments,
+    activeDocument,
+    setActiveDocumentId,
+    loadDocuments,
+    loadDocument,
+    createDocument,
+    updateDocument,
+    deleteDocument,
+    reorderDocument,
   }
 })
 
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useDocsStore as any, import.meta.hot))
+  import.meta.hot.accept(acceptHMRUpdate(useDocumentsStore as any, import.meta.hot))
 }

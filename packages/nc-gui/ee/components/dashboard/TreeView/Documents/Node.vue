@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import type { DocType } from 'nocodb-sdk'
+import type { DocumentType } from 'nocodb-sdk'
 
 interface Props {
-  doc: DocType
+  doc: DocumentType
 }
 
 const props = defineProps<Props>()
@@ -14,9 +14,9 @@ const { isMobileMode, ncNavigateTo } = useGlobal()
 const { isUIAllowed } = useRoles()
 const { showConfirmModal } = useNcConfirmModal()
 
-const docsStore = useDocsStore()
-const { updateDoc, deleteDoc, createDoc, loadDoc } = docsStore
-const { activeDocId } = storeToRefs(docsStore)
+const documentsStore = useDocumentsStore()
+const { updateDocument, deleteDocument, createDocument, loadDocument } = documentsStore
+const { activeDocumentId } = storeToRefs(documentsStore)
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
@@ -28,7 +28,7 @@ const isEditing = ref(false)
 const isDropdownOpen = ref(false)
 const _title = ref('')
 
-/** Helper to check if editing was disabled before the doc navigation timeout triggers */
+/** Helper to check if editing was disabled before the document navigation timeout triggers */
 const isStopped = ref(false)
 
 // Controls whether the NcTooltip is active — disabled while
@@ -39,7 +39,7 @@ const showNodeTooltip = ref(true)
 const { meta: metaKey, control } = useMagicKeys()
 const isMacOs = isMac()
 
-const navigateToDoc = () => {
+const navigateToDocument = () => {
   if (isEditing.value) return
 
   ncNavigateTo({
@@ -51,7 +51,7 @@ const navigateToDoc = () => {
 }
 
 const onClick = useDebounceFn(() => {
-  navigateToDoc()
+  navigateToDocument()
 }, 250)
 
 const handleOnClick = () => {
@@ -61,7 +61,7 @@ const handleOnClick = () => {
 
   // Cmd/Ctrl-click navigates immediately (skips debounce)
   if (cmdOrCtrl) {
-    navigateToDoc()
+    navigateToDocument()
   } else {
     onClick()
   }
@@ -74,15 +74,15 @@ const focusInput = () => {
   })
 }
 
-/** Enable editing doc name on dbl click */
+/** Enable editing document name on dbl click */
 const onDblClick = () => {
   if (isMobileMode.value) return
-  if (!isUIAllowed('docUpdate')) return
+  if (!isUIAllowed('documentUpdate')) return
 
   if (!isEditing.value) {
     isEditing.value = true
     _title.value = props.doc.title || ''
-    $e('c:doc:rename')
+    $e('c:document:rename')
 
     nextTick(() => {
       focusInput()
@@ -90,7 +90,7 @@ const onDblClick = () => {
   }
 }
 
-/** Rename a doc */
+/** Rename a document */
 const onRename = async () => {
   isDropdownOpen.value = false
   if (!isEditing.value) return
@@ -109,7 +109,7 @@ const onRename = async () => {
   }
 
   if (base.value?.id) {
-    await updateDoc(base.value.id, props.doc.id!, { title: _title.value, version: props.doc.version })
+    await updateDocument(base.value.id, props.doc.id!, { title: _title.value, version: props.doc.version })
   }
 
   onStopEdit()
@@ -121,9 +121,9 @@ const onDelete = () => {
   isDropdownOpen.value = false
 
   showConfirmModal({
-    title: t('msg.deletePageConfirm', { title: props.doc.title || t('general.untitled') }),
+    title: t('msg.deleteDocumentConfirm', { title: props.doc.title || t('general.untitled') }),
     okCallback: async () => {
-      await deleteDoc(base.value!.id!, props.doc.id!)
+      await deleteDocument(base.value!.id!, props.doc.id!)
     },
   })
 }
@@ -132,17 +132,17 @@ const onDuplicate = async () => {
   isDropdownOpen.value = false
   if (!base.value?.id || !props.doc.id) return
 
-  // Load full doc content, then create a copy
-  const fullDoc = await loadDoc(props.doc.id, false)
+  // Load full document content, then create a copy
+  const fullDoc = await loadDocument(props.doc.id, false)
   if (!fullDoc) return
 
-  await createDoc(base.value.id, {
-    title: t('labels.copyOfPage', { title: fullDoc.title || t('general.untitled') }),
+  await createDocument(base.value.id, {
+    title: t('labels.copyOfDocument', { title: fullDoc.title || t('general.untitled') }),
     content: fullDoc.content,
   })
 }
 
-const updateDocIcon = async (icon: string) => {
+const updateDocumentIcon = async (icon: string) => {
   if (!props.doc?.id || !base.value?.id) return
   try {
     const updatedMeta = {
@@ -150,12 +150,12 @@ const updateDocIcon = async (icon: string) => {
       icon,
     }
 
-    await updateDoc(base.value.id, props.doc.id, {
+    await updateDocument(base.value.id, props.doc.id, {
       meta: updatedMeta,
       version: props.doc.version,
     })
 
-    $e('a:doc:icon:sidebar', { icon })
+    $e('a:document:icon:sidebar', { icon })
   } catch (e: any) {
     ncMessage.error(await extractSdkResponseErrorMsg(e))
   }
@@ -183,14 +183,14 @@ onKeyStroke('Enter', (event) => {
 })
 
 const onRenameMenuClick = () => {
-  if (isMobileMode.value || !isUIAllowed('docUpdate')) return
+  if (isMobileMode.value || !isUIAllowed('documentUpdate')) return
 
   isDropdownOpen.value = false
 
   if (!isEditing.value) {
     isEditing.value = true
     _title.value = props.doc.title || ''
-    $e('c:doc:rename')
+    $e('c:document:rename')
 
     nextTick(() => {
       focusInput()
@@ -198,14 +198,14 @@ const onRenameMenuClick = () => {
   }
 }
 
-/** Cancel renaming doc */
+/** Cancel renaming document */
 function onCancel() {
   if (!isEditing.value) return
 
   onStopEdit()
 }
 
-/** Stop editing doc name, timeout makes sure that doc navigation (click trigger) does not pick up before stop is done */
+/** Stop editing document name, timeout makes sure that document navigation (click trigger) does not pick up before stop is done */
 function onStopEdit() {
   isStopped.value = true
   isEditing.value = false
@@ -224,9 +224,9 @@ function onStopEdit() {
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
-    <div v-e="['a:doc:open']" class="text-sm flex items-center w-full gap-1" data-testid="doc-item">
+    <div v-e="['a:document:open']" class="text-sm flex items-center w-full gap-1" data-testid="doc-item">
       <div
-        v-e="['c:doc:emoji-picker']"
+        v-e="['c:document:emoji-picker']"
         class="flex min-w-6"
         @mouseenter="showNodeTooltip = false"
         @mouseleave="showNodeTooltip = true"
@@ -237,15 +237,15 @@ function onStopEdit() {
           :key="doc?.meta?.icon"
           :clearable="true"
           :emoji="doc?.meta?.icon"
-          :readonly="isMobileMode || !isUIAllowed('docUpdate')"
-          class="nc-doc-icon"
+          :readonly="isMobileMode || !isUIAllowed('documentUpdate')"
+          class="nc-document-icon"
           size="small"
-          @emoji-selected="updateDocIcon($event)"
+          @emoji-selected="updateDocumentIcon($event)"
         >
           <template #default>
             <GeneralIcon
-              :class="activeDocId === doc.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
-              class="nc-doc-icon w-4 text-nc-content-gray-subtle !text-[16px]"
+              :class="activeDocumentId === doc.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+              class="nc-document-icon w-4 text-nc-content-gray-subtle !text-[16px]"
               icon="ncFileText"
             />
           </template>
@@ -257,7 +257,7 @@ function onStopEdit() {
         ref="input"
         v-model:value="_title"
         :class="{
-          'font-semibold !text-nc-content-brand-disabled': activeDocId === doc.id,
+          'font-semibold !text-nc-content-brand-disabled': activeDocumentId === doc.id,
         }"
         :style="{
           fontWeight: 'inherit',
@@ -275,7 +275,7 @@ function onStopEdit() {
         <template #title> {{ doc.title || $t('general.untitled') }}</template>
         <div
           :class="{
-            'font-semibold text-nc-content-brand-disabled': activeDocId === doc.id,
+            'font-semibold text-nc-content-brand-disabled': activeDocumentId === doc.id,
           }"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           data-testid="sidebar-doc-title"
@@ -287,7 +287,7 @@ function onStopEdit() {
       <template v-if="!isEditing">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton
-            v-e="['c:doc:option']"
+            v-e="['c:document:option']"
             :class="{
               '!visible !opacity-100': isDropdownOpen,
             }"
@@ -307,43 +307,43 @@ function onStopEdit() {
             <NcMenu :data-testid="`sidebar-doc-context-menu-list-${doc.title}`" class="!min-w-62.5" variant="small">
               <NcMenuItemCopyId
                 v-if="doc"
-                v-e="['c:doc:copy-id']"
+                v-e="['c:document:copy-id']"
                 :id="doc.id"
-                tooltip="Click to copy Page ID"
-                :label="`PAGE ID: ${doc.id}`"
+                tooltip="Click to copy Document ID"
+                :label="`DOCUMENT ID: ${doc.id}`"
                 :data-testid="`sidebar-doc-copy-id-${doc.title}`"
               />
-              <template v-if="isUIAllowed('docUpdate')">
+              <template v-if="isUIAllowed('documentUpdate')">
                 <NcDivider />
                 <NcMenuItem
-                  v-e="['c:doc:rename']"
+                  v-e="['c:document:rename']"
                   :data-testid="`sidebar-doc-rename-${doc.title}`"
-                  class="nc-doc-rename"
+                  class="nc-document-rename"
                   @click="onRenameMenuClick"
                 >
                   <GeneralIcon class="text-nc-content-gray-subtle" icon="rename" />
-                  {{ $t('labels.renamePage') }}
+                  {{ $t('labels.renameDocument') }}
                 </NcMenuItem>
               </template>
               <NcMenuItem
-                v-if="isUIAllowed('docCreate')"
-                v-e="['c:doc:duplicate']"
+                v-if="isUIAllowed('documentCreate')"
+                v-e="['c:document:duplicate']"
                 :data-testid="`sidebar-doc-duplicate-${doc.title}`"
                 @click="onDuplicate"
               >
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
-                {{ $t('labels.duplicatePage') }}
+                {{ $t('labels.duplicateDocument') }}
               </NcMenuItem>
-              <template v-if="isUIAllowed('docDelete')">
+              <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />
                 <NcMenuItem
-                  v-e="['c:doc:delete']"
+                  v-e="['c:document:delete']"
                   :data-testid="`sidebar-doc-delete-${doc.title}`"
                   class="!text-red-500 !hover:bg-red-50"
                   @click="onDelete"
                 >
                   <GeneralIcon icon="delete" />
-                  {{ $t('labels.deletePage') }}
+                  {{ $t('labels.deleteDocument') }}
                 </NcMenuItem>
               </template>
             </NcMenu>

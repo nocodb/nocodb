@@ -15,10 +15,10 @@ test.describe('Docs — Editor Content', () => {
     });
     dashboard = new DashboardPage(page, context.base);
 
-    // Create a page to work with in each test
-    await dashboard.sidebar.docsSidebar.createPage({
+    // Create a document to work with in each test
+    await dashboard.sidebar.docsSidebar.createDocument({
       baseTitle: context.base.title,
-      title: 'Editor Test Page',
+      title: 'Editor Test Document',
     });
 
     await dashboard.docs.openedPage.waitForRender();

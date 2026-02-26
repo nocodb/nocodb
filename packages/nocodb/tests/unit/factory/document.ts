@@ -1,7 +1,7 @@
 import type { NcContext } from 'nocodb-sdk';
-import Doc from '~/models/Doc';
+import Document from '~/models/Document';
 
-interface DocArgs {
+interface DocumentArgs {
   title?: string;
   content?: Record<string, any>;
   meta?: Record<string, any>;
@@ -10,20 +10,20 @@ interface DocArgs {
   updated_by?: string;
 }
 
-const defaultDocContent = {
+const defaultDocumentContent = {
   type: 'doc',
   content: [{ type: 'paragraph' }],
 };
 
-const createDoc = async (
+const createDocument = async (
   ctx: NcContext,
-  docArgs: DocArgs = {},
+  docArgs: DocumentArgs = {},
 ) => {
-  return await Doc.insert(ctx, {
+  return await Document.insert(ctx, {
     base_id: ctx.base_id,
     fk_workspace_id: ctx.workspace_id,
-    title: docArgs.title ?? 'Test Doc',
-    content: docArgs.content ?? defaultDocContent,
+    title: docArgs.title ?? 'Test Document',
+    content: docArgs.content ?? defaultDocumentContent,
     meta: docArgs.meta ?? {},
     parent_id: docArgs.parent_id ?? null,
     created_by: docArgs.created_by ?? 'test-user',
@@ -31,4 +31,4 @@ const createDoc = async (
   });
 };
 
-export { createDoc, defaultDocContent };
+export { createDocument, defaultDocumentContent };

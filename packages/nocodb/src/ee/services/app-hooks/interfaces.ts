@@ -6,7 +6,7 @@ import type {
 import type {
   BaseType,
   DashboardType,
-  DocType,
+  DocumentType,
   IntegrationType,
   PlanFeatureTypes,
   PlanLimitTypes,
@@ -401,18 +401,18 @@ export interface ChatSessionDeleteEvent extends NcBaseEvent {
   sessionId: string;
 }
 
-export interface DocCreateEvent extends NcBaseEvent {
-  doc: DocType;
+export interface DocumentCreateEvent extends NcBaseEvent {
+  doc: DocumentType;
   user: UserType;
 }
 
-export interface DocUpdateEvent extends NcBaseEvent {
-  doc: DocType;
+export interface DocumentUpdateEvent extends NcBaseEvent {
+  doc: DocumentType;
   user: UserType;
 }
 
-export interface DocDeleteEvent extends NcBaseEvent {
-  doc: DocType;
+export interface DocumentDeleteEvent extends NcBaseEvent {
+  doc: DocumentType;
   user: UserType;
 }
 

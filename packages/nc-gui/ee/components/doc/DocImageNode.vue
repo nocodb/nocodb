@@ -9,7 +9,7 @@
  * - Floating toolbar (alignment + delete) on selection
  */
 import { NodeViewWrapper } from '@tiptap/vue-3'
-import { useDocImageUpload } from '~/ee/composables/useDocImageUpload'
+import { useDocumentImageUpload } from '~/ee/composables/useDocumentImageUpload'
 
 const props = defineProps<{
   node: any
@@ -19,7 +19,7 @@ const props = defineProps<{
   editor: any
 }>()
 
-const { resolveImageSrc } = useDocImageUpload()
+const { resolveImageSrc } = useDocumentImageUpload()
 
 // --- Resolved image source ---
 const resolvedSrc = ref('')

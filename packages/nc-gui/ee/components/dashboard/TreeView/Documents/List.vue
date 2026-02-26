@@ -7,14 +7,14 @@ const baseId = toRef(props, 'baseId')
 
 const { isUIAllowed } = useRoles()
 
-const docsStore = useDocsStore()
-const { createDoc } = docsStore
-const { activeDocId, docs: allDocs } = storeToRefs(docsStore)
+const documentsStore = useDocumentsStore()
+const { createDocument } = documentsStore
+const { activeDocumentId, documents: allDocuments } = storeToRefs(documentsStore)
 
-const baseDocs = computed(() => allDocs.value.get(baseId.value) ?? [])
+const baseDocuments = computed(() => allDocuments.value.get(baseId.value) ?? [])
 
-const onCreateDoc = async () => {
-  await createDoc(baseId.value)
+const onCreateDocument = async () => {
+  await createDocument(baseId.value)
 }
 </script>
 
@@ -22,42 +22,42 @@ const onCreateDoc = async () => {
   <div data-testid="nc-docs-sidebar-pages-list">
     <!-- Empty state: no create permission -->
     <div
-      v-if="!baseDocs.length && !isUIAllowed('docCreate')"
+      v-if="!baseDocuments.length && !isUIAllowed('documentCreate')"
       class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
     >
-      {{ $t('labels.noPages') }}
+      {{ $t('labels.noDocuments') }}
     </div>
 
     <template v-else>
-      <!-- Empty state: show "+ New page" CTA only when no pages exist -->
+      <!-- Empty state: show "+ New document" CTA only when no documents exist -->
       <div
-        v-if="!baseDocs.length && isUIAllowed('docCreate')"
+        v-if="!baseDocuments.length && isUIAllowed('documentCreate')"
         class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
         role="button"
         data-testid="nc-docs-sidebar-add-page"
-        @click="onCreateDoc"
+        @click="onCreateDocument"
       >
         <div class="nc-project-home-section-item">
           <GeneralIcon icon="plus" />
-          <div>{{ $t('labels.newPage') }}</div>
+          <div>{{ $t('labels.newDocument') }}</div>
         </div>
       </div>
 
-      <!-- Page list (shown when docs exist) -->
+      <!-- Document list (shown when documents exist) -->
       <div
-        v-else-if="baseDocs.length"
-        class="nc-pages-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar"
+        v-else-if="baseDocuments.length"
+        class="nc-documents-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar"
       >
-        <DashboardTreeViewPagesNode
-          v-for="doc of baseDocs"
+        <DashboardTreeViewDocumentsNode
+          v-for="doc of baseDocuments"
           :key="doc.id"
           :data-id="doc.id"
           :data-order="doc.order"
           :data-title="doc.title"
           :doc="doc"
-          class="nc-page-item nc-tree-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+          class="nc-document-item nc-tree-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
           :class="{
-            active: activeDocId === doc.id,
+            active: activeDocumentId === doc.id,
           }"
         />
       </div>
@@ -66,7 +66,7 @@ const onCreateDoc = async () => {
 </template>
 
 <style lang="scss">
-.nc-pages-menu {
+.nc-documents-menu {
   .active {
     @apply !bg-primary-selected dark:!bg-nc-bg-gray-medium font-medium;
   }

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import Automation from '../Automation/index.vue'
 import Data from '../Data/index.vue'
-import Pages from '../Pages/index.vue'
+import Documents from '../Documents/index.vue'
 
 const sidebarStore = useSidebarStore()
 
@@ -14,7 +14,7 @@ const workflowStore = useWorkflowStore()
 const { openNewWorkflowModal } = workflowStore
 const { openNewScriptModal } = useScriptStore()
 const { openNewDashboardModal } = useDashboardStore()
-const { createDoc } = useDocsStore()
+const { createDocument } = useDocumentsStore()
 
 const base = inject(ProjectInj)!
 
@@ -95,7 +95,7 @@ const hasTableCreatePermission = computed(() => {
                 @empty-script="openNewScriptModal({ baseId: base.id })"
                 @empty-workflow="openNewWorkflowModal({ baseId: base.id })"
                 @empty-dashboard="openNewDashboardModal({ baseId: base.id })"
-                @empty-page="createDoc(base.id!)"
+                @empty-page="createDocument(base.id!)"
               />
             </template>
           </NcDropdown>
@@ -108,9 +108,9 @@ const hasTableCreatePermission = computed(() => {
         <Data :base-id="base.id" hide-header />
       </template>
 
-      <!-- Pages/Docs tab -->
+      <!-- Documents tab -->
       <template v-else-if="activeSidebarTab === 'docs'">
-        <Pages v-if="!isSharedBase && !isMobileMode" :base-id="base.id" />
+        <Documents v-if="!isSharedBase && !isMobileMode" :base-id="base.id" />
       </template>
 
       <!-- Automation/Workflows tab -->

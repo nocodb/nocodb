@@ -71,9 +71,9 @@ import { CellSelection } from '@tiptap/pm/tables'
 import { marked } from 'marked'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
-import { useDocImageUpload } from '~/ee/composables/useDocImageUpload'
-import { useDocFileUpload } from '~/ee/composables/useDocFileUpload'
-import type { DocType } from 'nocodb-sdk'
+import { useDocumentImageUpload } from '~/ee/composables/useDocumentImageUpload'
+import { useDocumentFileUpload } from '~/ee/composables/useDocumentFileUpload'
+import type { DocumentType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/datetimeUtils'
 
 // Override Table to remove <colgroup> from renderHTML.  The default Tiptap Table
@@ -131,9 +131,9 @@ const props = defineProps<{
 
 const docId = toRef(props, 'docId')
 
-const docsStore = useDocsStore()
-const { loadDoc, updateDoc, deleteDoc, createDoc } = docsStore
-const { activeDoc } = storeToRefs(docsStore)
+const documentsStore = useDocumentsStore()
+const { loadDocument, updateDocument, deleteDocument, createDocument } = documentsStore
+const { activeDocument } = storeToRefs(documentsStore)
 
 const basesStore = useBases()
 const { activeProjectId, basesUser } = storeToRefs(basesStore)
@@ -142,13 +142,13 @@ const { $e } = useNuxtApp()
 const { user } = useGlobal()
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
-const { openFilePicker, uploadAndInsert } = useDocImageUpload()
-const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocFileUpload()
+const { openFilePicker, uploadAndInsert } = useDocumentImageUpload()
+const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
 
 const base = inject(ProjectInj, ref())
 
-/** Whether the current user can edit page content (Editor+ role). */
-const isEditable = computed(() => isUIAllowed('docUpdate'))
+/** Whether the current user can edit document content (Editor+ role). */
+const isEditable = computed(() => isUIAllowed('documentUpdate'))
 
 // Resolve created_by user ID to display name
 const idUserMap = computed<Record<string, any>>(() => {
@@ -178,7 +178,7 @@ const updatedAgo = computed(() => {
   return timeAgo(ts)
 })
 
-const doc = ref<DocType | null>(null)
+const doc = ref<DocumentType | null>(null)
 const title = ref('')
 const lastSavedTitle = ref('')
 const isSaving = ref(false)
@@ -397,7 +397,7 @@ const save = async () => {
       return
     }
 
-    const updated = await updateDoc(activeProjectId.value, doc.value.id!, {
+    const updated = await updateDocument(activeProjectId.value, doc.value.id!, {
       title: effectiveTitle,
       content,
       version: doc.value.version,
@@ -411,7 +411,7 @@ const save = async () => {
       lastSavedTitle.value = effectiveTitle
     }
   } catch (_e) {
-    // Error already surfaced by store's updateDoc via message.error
+    // Error already surfaced by store's updateDocumentvia message.error
   } finally {
     isSaving.value = false
   }
@@ -745,7 +745,7 @@ const loadAndSetDoc = async (id: string) => {
   }
 
   isLoaded.value = false
-  const loaded = await loadDoc(id)
+  const loaded = await loadDocument(id)
 
   if (loaded) {
     doc.value = loaded
@@ -796,7 +796,7 @@ watch(
 // Sync external title changes (e.g. sidebar rename) into the editor's local title ref.
 // Skip when the editor itself initiated the change (isSaving) or when loading a new doc.
 watch(
-  () => activeDoc.value?.title,
+  () => activeDocument.value?.title,
   (storeTitle) => {
     if (!storeTitle || isSaving.value || !isLoaded.value) return
 
@@ -822,8 +822,8 @@ const onTitleBlur = () => {
   if (doc.value && effectiveTitle !== doc.value.title) {
     doc.value.title = effectiveTitle
   }
-  if (activeDoc.value && effectiveTitle !== activeDoc.value.title) {
-    activeDoc.value.title = effectiveTitle
+  if (activeDocument.value && effectiveTitle !== activeDocument.value.title) {
+    activeDocument.value.title = effectiveTitle
   }
 
   // Compare against last-saved title to decide whether to persist.
@@ -841,10 +841,10 @@ const debouncedTitleSync = useDebounceFn(() => {
   if (!isLoaded.value || !doc.value) return
 
   const effectiveTitle = title.value || 'Untitled'
-  if (effectiveTitle !== activeDoc.value?.title) {
+  if (effectiveTitle !== activeDocument.value?.title) {
     doc.value.title = effectiveTitle
-    if (activeDoc.value) {
-      activeDoc.value.title = effectiveTitle
+    if (activeDocument.value) {
+      activeDocument.value.title = effectiveTitle
     }
   }
   // Trigger a save if the title differs from what was last persisted
@@ -897,10 +897,10 @@ const onDuplicatePage = async () => {
   isPageMenuOpen.value = false
   if (!base.value?.id || !doc.value?.id) return
 
-  const fullDoc = await loadDoc(doc.value.id, false)
+  const fullDoc = await loadDocument(doc.value.id, false)
   if (!fullDoc) return
 
-  await createDoc(base.value.id, {
+  await createDocument(base.value.id, {
     title: t('labels.copyOfPage', { title: fullDoc.title || t('general.untitled') }),
     content: fullDoc.content,
   })
@@ -915,10 +915,10 @@ const onDeletePage = () => {
 
 const confirmDeletePage = async () => {
   if (!base.value?.id || !doc.value?.id) return
-  await deleteDoc(base.value.id, doc.value.id)
+  await deleteDocument(base.value.id, doc.value.id)
 }
 
-const updateDocIcon = async (icon: string) => {
+const updateDocumentIcon = async (icon: string) => {
   if (!doc.value?.id || !base.value?.id) return
   try {
     doc.value.meta = {
@@ -926,7 +926,7 @@ const updateDocIcon = async (icon: string) => {
       icon,
     }
 
-    const updated = await updateDoc(base.value.id, doc.value.id, {
+    const updated = await updateDocument(base.value.id, doc.value.id, {
       meta: doc.value.meta,
       version: doc.value.version,
     })
@@ -1121,7 +1121,7 @@ onBeforeUnmount(() => {
         // Editor state is empty and title unchanged — do not persist
       } else {
         // Fire-and-forget is acceptable here — content is already captured
-        updateDoc(baseId, docId, { title: docTitle, content, version })
+        updateDocument(baseId, docId, { title: docTitle, content, version })
       }
     }
   }
@@ -1150,14 +1150,14 @@ onBeforeUnmount(() => {
           <NcMenu variant="small" class="!min-w-52">
             <NcMenuItem @click="onCopyPageId">
               <GeneralIcon class="text-nc-content-gray-subtle" icon="copy" />
-              {{ $t('labels.copyPageId') }}
+              {{ $t('labels.copyDocumentId') }}
             </NcMenuItem>
             <NcMenuItem
-              v-if="isUIAllowed('docCreate')"
+              v-if="isUIAllowed('documentCreate')"
               @click="onDuplicatePage"
             >
               <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
-              {{ $t('labels.duplicatePage') }}
+              {{ $t('labels.duplicateDocument') }}
             </NcMenuItem>
             <NcDivider />
             <NcSubMenu key="download" variant="small">
@@ -1177,12 +1177,12 @@ onBeforeUnmount(() => {
             </NcSubMenu>
             <NcDivider />
             <NcMenuItem
-              v-if="isUIAllowed('docDelete')"
+              v-if="isUIAllowed('documentDelete')"
               class="!text-red-500 !hover:bg-red-50"
               @click="onDeletePage"
             >
               <GeneralIcon icon="delete" />
-              {{ $t('labels.deletePage') }}
+              {{ $t('labels.deleteDocument') }}
             </NcMenuItem>
           </NcMenu>
         </template>
@@ -1198,10 +1198,10 @@ onBeforeUnmount(() => {
               :key="doc?.meta?.icon"
               :clearable="true"
               :emoji="doc?.meta?.icon"
-              :readonly="!isUIAllowed('docUpdate')"
+              :readonly="!isUIAllowed('documentUpdate')"
               class="nc-doc-editor-icon"
               size="large"
-              @emoji-selected="updateDocIcon($event)"
+              @emoji-selected="updateDocumentIcon($event)"
             >
               <template #default>
                 <GeneralIcon

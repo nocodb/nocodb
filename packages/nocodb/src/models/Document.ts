@@ -1,4 +1,4 @@
-import type { DocType, NcContext } from 'nocodb-sdk';
+import type { DocumentType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -12,14 +12,14 @@ import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 /**
- * Data model for Pages (table: nc_docs_v2).
+ * Data model for Documents (table: nc_docs_v2).
  *
- * Pages store rich-text content as ProseMirror JSON in the `content` column.
+ * Documents store rich-text content as ProseMirror JSON in the `content` column.
  * JSON fields (content, meta) are stringified for DB storage and parsed on read
- * via `parseDoc()`. Cache invalidation uses `del` on update (not `update`) to
+ * via `parseDocument()`. Cache invalidation uses `del` on update (not `update`) to
  * avoid storing stringified JSON in the cache layer.
  */
-export default class Doc implements DocType {
+export default class Document implements DocumentType {
   id: string;
   base_id: string;
   fk_workspace_id: string;
@@ -34,7 +34,7 @@ export default class Doc implements DocType {
   created_at: string;
   updated_at: string;
 
-  constructor(doc: Doc | DocType) {
+  constructor(doc: Document | DocumentType) {
     Object.assign(this, doc);
   }
 
@@ -43,7 +43,7 @@ export default class Doc implements DocType {
     docId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const key = `${CacheScope.DOC}:${docId}`;
+    const key = `${CacheScope.DOCUMENT}:${docId}`;
     let doc = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
 
     if (!doc) {
@@ -61,10 +61,10 @@ export default class Doc implements DocType {
 
     // Always parse — cache may contain stringified content from update()
     if (doc) {
-      doc = this.parseDoc(doc);
+      doc = this.parseDocument(doc);
     }
 
-    return doc && new Doc(doc);
+    return doc && new Document(doc);
   }
 
   public static async list(
@@ -72,7 +72,7 @@ export default class Doc implements DocType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.DOC, [
+    const cachedList = await NocoCache.getList(context, CacheScope.DOCUMENT, [
       baseId,
     ]);
     let { list: docList } = cachedList;
@@ -94,7 +94,7 @@ export default class Doc implements DocType {
 
       await NocoCache.setList(
         context,
-        CacheScope.DOC,
+        CacheScope.DOCUMENT,
         [baseId],
         docList,
         ['id'],
@@ -102,14 +102,14 @@ export default class Doc implements DocType {
     }
 
     // Parse stringified JSON fields — DB rows and cache entries may
-    // contain content/meta as strings. parseDoc is idempotent on
+    // contain content/meta as strings. parseDocument is idempotent on
     // already-parsed objects.
-    return docList.map((doc) => new Doc(this.parseDoc(doc)));
+    return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
   /**
    * Lightweight list for sidebar/list views — excludes `content` to
-   * avoid transferring large ProseMirror JSON payloads for every page.
+   * avoid transferring large ProseMirror JSON payloads for every document.
    * Full content is fetched separately via `get()` when opening the editor.
    *
    * Unlike `list()`, this queries DB directly with a fields list to
@@ -152,12 +152,12 @@ export default class Doc implements DocType {
       },
     );
 
-    return docList.map((doc) => new Doc(this.parseDoc(doc)));
+    return docList.map((doc) => new Document(this.parseDocument(doc)));
   }
 
   public static async insert(
     context: NcContext,
-    doc: Partial<DocType>,
+    doc: Partial<DocumentType>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj: Record<string, any> = extractProps(doc, [
@@ -186,16 +186,16 @@ export default class Doc implements DocType {
     const id = insertResult?.id;
 
     if (!id) {
-      NcError.badRequest('Failed to create page');
+      NcError.badRequest('Failed to create document');
     }
 
     const res = await this.get(context, id, ncMeta);
 
     if (res) {
-      const key = `${CacheScope.DOC}:${id}`;
+      const key = `${CacheScope.DOCUMENT}:${id}`;
       await NocoCache.appendToList(
         context,
-        CacheScope.DOC,
+        CacheScope.DOCUMENT,
         [context.base_id],
         key,
       );
@@ -207,7 +207,7 @@ export default class Doc implements DocType {
   public static async update(
     context: NcContext,
     docId: string,
-    doc: Partial<DocType>,
+    doc: Partial<DocumentType>,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj: Record<string, any> = extractProps(doc, [
@@ -232,7 +232,7 @@ export default class Doc implements DocType {
     // Invalidate cache — updateObj contains stringified JSON fields
     // that would corrupt the cache if written directly.
     // The subsequent get() will re-fetch from DB and cache the parsed result.
-    const key = `${CacheScope.DOC}:${docId}`;
+    const key = `${CacheScope.DOCUMENT}:${docId}`;
     await NocoCache.del(context, key);
 
     return await this.get(context, docId, ncMeta);
@@ -251,7 +251,7 @@ export default class Doc implements DocType {
     );
 
     // Remove from both individual cache and parent list
-    const key = `${CacheScope.DOC}:${docId}`;
+    const key = `${CacheScope.DOCUMENT}:${docId}`;
     await NocoCache.deepDel(
       context,
       key,
@@ -268,7 +268,7 @@ export default class Doc implements DocType {
    * and skips already-parsed objects (checks `typeof field === 'string'`),
    * making this safe to call on both raw DB rows and cached entries.
    */
-  private static parseDoc(doc: any): any {
+  private static parseDocument(doc: any): any {
     if (!doc) return doc;
     return prepareForResponse(doc, ['meta', 'content']);
   }

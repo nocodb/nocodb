@@ -246,7 +246,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <!-- Theme toggle (Light / Dark / System) -->
       <div class="nc-mini-sidebar-labeled-item">
         <DashboardMiniSidebarTheme />
-        <span class="nc-mini-sidebar-label">Theme</span>
+        <span class="nc-mini-sidebar-label">Mode</span>
       </div>
 
       <!-- Divider -->

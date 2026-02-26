@@ -15,7 +15,6 @@ function documentTests() {
   let base: Base;
 
   beforeEach(async function () {
-    console.time('#### documentTests');
     context = await init();
     base = await createProject(context);
 
@@ -23,7 +22,6 @@ function documentTests() {
       workspace_id: base.fk_workspace_id,
       base_id: base.id,
     };
-    console.timeEnd('#### documentTests');
   });
 
   // ── Document.insert ──────────────────────────────────────────────

@@ -146,6 +146,8 @@ export class MetaService {
       [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
       [MetaTable.CHAT_SESSIONS]: 'cs',
       [MetaTable.CHAT_MESSAGES]: 'cm',
+      [MetaTable.RECORD_TEMPLATES]: 'rt',
+      [MetaTable.AUTOMATION_SUBSCRIBERS]: 'as',
       [MetaTable.DOCS]: 'doc',
     };
 

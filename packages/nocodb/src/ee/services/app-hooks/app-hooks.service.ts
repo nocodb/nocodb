@@ -472,6 +472,20 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: ChatSessionDeleteEvent) => void,
   ): () => void;
 
+  // Document Events
+  on(
+    event: AppEvents.DOCUMENT_CREATE,
+    listener: (data: DocumentCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_UPDATE,
+    listener: (data: DocumentUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_DELETE,
+    listener: (data: DocumentDeleteEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }

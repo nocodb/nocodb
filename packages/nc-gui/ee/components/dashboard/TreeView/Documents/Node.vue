@@ -12,8 +12,6 @@ const { t } = useI18n()
 
 const { isMobileMode, ncNavigateTo } = useGlobal()
 const { isUIAllowed } = useRoles()
-const { showConfirmModal } = useNcConfirmModal()
-
 const documentsStore = useDocumentsStore()
 const { updateDocument, deleteDocument, createDocument, loadDocument } = documentsStore
 const { activeDocumentId } = storeToRefs(documentsStore)
@@ -115,17 +113,16 @@ const onRename = async () => {
   onStopEdit()
 }
 
+const isDeleteModalVisible = ref(false)
+
 const onDelete = () => {
-  if (!base.value?.id) return
-
   isDropdownOpen.value = false
+  isDeleteModalVisible.value = true
+}
 
-  showConfirmModal({
-    title: t('msg.deleteDocumentConfirm', { title: props.doc.title || t('general.untitled') }),
-    okCallback: async () => {
-      await deleteDocument(base.value!.id!, props.doc.id!)
-    },
-  })
+const confirmDelete = async () => {
+  if (!base.value?.id || !props.doc.id) return
+  await deleteDocument(base.value.id, props.doc.id)
 }
 
 const onDuplicate = async () => {
@@ -351,5 +348,23 @@ function onStopEdit() {
         </NcDropdown>
       </template>
     </div>
+
+    <GeneralDeleteModal
+      v-model:visible="isDeleteModalVisible"
+      :entity-name="$t('objects.document')"
+      :on-delete="confirmDelete"
+    >
+      <template #entity-preview>
+        <div class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle">
+          <GeneralIcon icon="ncFileText" class="text-nc-content-gray-subtle" />
+          <div
+            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+          >
+            {{ doc.title || $t('general.untitled') }}
+          </div>
+        </div>
+      </template>
+    </GeneralDeleteModal>
   </div>
 </template>

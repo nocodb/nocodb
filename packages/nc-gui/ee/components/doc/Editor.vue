@@ -5,125 +5,25 @@ import Underline from '@tiptap/extension-underline'
 import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TaskList from '@tiptap/extension-task-list'
-import { Mark, mergeAttributes } from '@tiptap/core'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
-
-/**
- * Inline Highlight mark — lightweight alternative to @tiptap/extension-highlight.
- * Renders <mark data-color="…" style="background-color:…"> around selected text.
- * Supports multiple colours via the `color` attribute (multicolor mode).
- *
- * Commands exposed on the editor chain:
- *   .setHighlight({ color })   — apply highlight to current selection
- *   .unsetHighlight()          — remove highlight from current selection
- */
-const Highlight = Mark.create({
-  name: 'highlight',
-
-  addAttributes() {
-    return {
-      color: {
-        default: null,
-        // Read colour from data-attr first, fall back to inline style (for pasted HTML)
-        parseHTML: (el: HTMLElement) => el.getAttribute('data-color') || el.style.backgroundColor || null,
-        renderHTML: (attrs: Record<string, any>) => {
-          if (!attrs.color) return {}
-          // Validate color to prevent CSS injection via crafted ProseMirror JSON
-          const safe = /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|[a-zA-Z]+)$/.test(attrs.color)
-          if (!safe) return {}
-          return { 'data-color': attrs.color, style: `background-color: ${attrs.color}` }
-        },
-      },
-    }
-  },
-
-  parseHTML() {
-    return [{ tag: 'mark' }]
-  },
-
-  renderHTML({ HTMLAttributes }) {
-    return ['mark', mergeAttributes(HTMLAttributes), 0]
-  },
-
-  addCommands() {
-    return {
-      setHighlight:
-        (attributes?: { color?: string }) =>
-        ({ commands }: any) =>
-          commands.setMark('highlight', attributes),
-      unsetHighlight:
-        () =>
-        ({ commands }: any) =>
-          commands.unsetMark('highlight'),
-    }
-  },
-})
+import { DocHighlightExtension } from './DocHighlightExtension'
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
 import { DocEmbedExtension } from './DocEmbedExtension'
 import { DocCodeBlockExtension } from './DocCodeBlockExtension'
+import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
-import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
-import TableCell from '@tiptap/extension-table-cell'
-import TableHeader from '@tiptap/extension-table-header'
-import { CellSelection } from '@tiptap/pm/tables'
 import { marked } from 'marked'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
 import { useDocumentImageUpload } from '~/ee/composables/useDocumentImageUpload'
 import { useDocumentFileUpload } from '~/ee/composables/useDocumentFileUpload'
+import { useDocumentAutoSave } from '~/ee/composables/useDocumentAutoSave'
+import { useDocEditorLinks } from '~/ee/composables/useDocEditorLinks'
+import { useDocumentExport } from '~/ee/composables/useDocumentExport'
 import type { DocumentType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/datetimeUtils'
-
-// Override Table to remove <colgroup> from renderHTML.  The default Tiptap Table
-// includes a <colgroup> with <col> elements sized from each cell's colwidth attr.
-// ProseMirror only patches the content-hole (<tbody>), so the <colgroup> goes stale
-// after add/delete-column operations, leaving ghost columns that show as empty space.
-// Since we use CSS table-layout:fixed + width:100% for equal columns, <colgroup> is
-// unnecessary.
-const DocTable = Table.extend({
-  renderHTML({ HTMLAttributes }) {
-    return [
-      'table',
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes),
-      ['tbody', 0],
-    ]
-  },
-})
-
-// Override TableCell & TableHeader to ignore colwidth — we use CSS table-layout:fixed
-// for equal columns instead of pixel widths (which go stale on column add/delete).
-// Both also support a textAlign attribute for column-level alignment.
-const cellTextAlignAttr = {
-  default: 'left',
-  parseHTML: (el: HTMLElement) => el.style.textAlign || el.getAttribute('data-text-align') || 'left',
-  renderHTML: (attrs: Record<string, any>) => {
-    const align = attrs.textAlign
-    if (!align || align === 'left') return {}
-    if (!/^(left|center|right)$/.test(align)) return {}
-    return { style: `text-align: ${align}` }
-  },
-}
-
-const DocTableCell = TableCell.extend({
-  addAttributes() {
-    return {
-      ...TableCell.config.addAttributes?.call(this),
-      colwidth: { default: null, renderHTML: () => ({}) },
-      textAlign: cellTextAlignAttr,
-    }
-  },
-})
-const DocTableHeader = TableHeader.extend({
-  addAttributes() {
-    return {
-      ...TableHeader.config.addAttributes?.call(this),
-      colwidth: { default: null, renderHTML: () => ({}) },
-      textAlign: cellTextAlignAttr,
-    }
-  },
-})
 
 const props = defineProps<{
   docId: string
@@ -131,12 +31,11 @@ const props = defineProps<{
 
 const docId = toRef(props, 'docId')
 
-const documentsStore = useDocumentsStore()
-const { loadDocument, updateDocument, deleteDocument, createDocument } = documentsStore
-const { activeDocument } = storeToRefs(documentsStore)
-
 const basesStore = useBases()
 const { activeProjectId, basesUser } = storeToRefs(basesStore)
+
+const documentsStore = useDocumentsStore()
+const { createDocument, deleteDocument, loadDocument, updateDocument } = documentsStore
 
 const { $e } = useNuxtApp()
 const { user } = useGlobal()
@@ -168,264 +67,7 @@ const resolveUserLabel = (userId?: string) => {
   return u.display_name || u.email || ''
 }
 
-const createdByLabel = computed(() => resolveUserLabel(doc.value?.created_by))
-
-const updatedByLabel = computed(() => resolveUserLabel(doc.value?.updated_by))
-
-const updatedAgo = computed(() => {
-  const ts = doc.value?.updated_at
-  if (!ts) return ''
-  return timeAgo(ts)
-})
-
-const doc = ref<DocumentType | null>(null)
-const title = ref('')
-const lastSavedTitle = ref('')
-const isSaving = ref(false)
-const isLoaded = ref(false)
 const titleInput = useTemplateRef('titleInput')
-
-const saveTimeout = ref<NodeJS.Timeout>()
-
-// Guard: suppress onUpdate saves while we're programmatically loading content
-// into the editor (setContent triggers onUpdate, which would queue a no-op save).
-const isSettingContent = ref(false)
-
-// --- Paste link embed menu ---
-const pasteLinkMenu = ref<{
-  visible: boolean
-  url: string
-  platform: string
-  embedUrl: string
-  from: number
-  to: number
-  top: number
-  left: number
-}>({ visible: false, url: '', platform: '', embedUrl: '', from: 0, to: 0, top: 0, left: 0 })
-
-const dismissPasteLinkMenu = () => {
-  pasteLinkMenu.value.visible = false
-}
-
-const keepAsLink = () => {
-  dismissPasteLinkMenu()
-}
-
-const convertToEmbed = () => {
-  const { from, to, embedUrl, url, platform } = pasteLinkMenu.value
-  const ed = editor.value
-  if (ed) {
-    ed.chain()
-      .focus()
-      .setTextSelection({ from, to })
-      .deleteSelection()
-      .insertEmbed({ src: embedUrl, url, platform })
-      .run()
-  }
-  dismissPasteLinkMenu()
-}
-
-// --- Link input inside bubble menu ---
-const isLinkInputMode = ref(false)
-const linkInputUrl = ref('')
-const linkInputRef = ref<HTMLInputElement>()
-// Snapshot the selection range so we can re-apply after the input steals focus
-const linkSelectionRange = ref<{ from: number; to: number } | null>(null)
-// Suppress onSelectionUpdate reset while our code is manipulating the selection
-const isLinkInputSuppressSelectionReset = ref(false)
-
-const openLinkInput = () => {
-  const ed = editor.value
-  if (!ed) return
-
-  // If selected text is already a link, prefill the URL
-  const { from, to } = ed.state.selection
-  linkSelectionRange.value = { from, to }
-
-  const linkMark = ed.state.doc.resolve(from).marks().find((m: any) => m.type.name === 'link')
-  linkInputUrl.value = linkMark?.attrs?.href || ''
-
-  isLinkInputSuppressSelectionReset.value = true
-  isLinkInputMode.value = true
-  nextTick(() => {
-    linkInputRef.value?.focus()
-    linkInputRef.value?.select()
-    // Re-enable selection reset after the focus change settles
-    nextTick(() => {
-      isLinkInputSuppressSelectionReset.value = false
-    })
-  })
-}
-
-const applyLink = () => {
-  const ed = editor.value
-  if (!ed || !linkSelectionRange.value) return
-
-  isLinkInputSuppressSelectionReset.value = true
-
-  const { from, to } = linkSelectionRange.value
-  let href = linkInputUrl.value.trim()
-
-  if (href) {
-    // Auto-prepend https:// if no protocol
-    if (!/^[a-zA-Z]+:\/\//.test(href) && !href.startsWith('/')) {
-      href = `https://${href}`
-    }
-    ed.chain().focus().setTextSelection({ from, to }).setLink({ href }).run()
-  } else {
-    ed.chain().focus().setTextSelection({ from, to }).unsetLink().run()
-  }
-
-  isLinkInputMode.value = false
-  linkInputUrl.value = ''
-  linkSelectionRange.value = null
-  nextTick(() => {
-    isLinkInputSuppressSelectionReset.value = false
-  })
-}
-
-const cancelLinkInput = () => {
-  isLinkInputSuppressSelectionReset.value = true
-  isLinkInputMode.value = false
-  linkInputUrl.value = ''
-  if (linkSelectionRange.value) {
-    editor.value?.chain().focus().setTextSelection(linkSelectionRange.value).run()
-  }
-  linkSelectionRange.value = null
-  nextTick(() => {
-    isLinkInputSuppressSelectionReset.value = false
-  })
-}
-
-// --- Link options bubble menu (for clicking on existing links) ---
-const linkEditUrl = ref('')
-const linkEditMark = ref<any>(null)
-const isLinkEditVisible = ref(false)
-const linkEditInputRef = ref<HTMLInputElement>()
-
-const checkLinkMark = ({ editor: e }: { editor: any }) => {
-  if (!e.view.editable) return false
-
-  const { selection } = e.state
-  const isTextSelected = selection.from !== selection.to
-  if (isTextSelected) return false
-
-  const activeNode = selection.$from?.nodeBefore || selection.$from?.nodeAfter
-  const linkMark = activeNode?.marks?.find((m: any) => m.type.name === 'link')
-  if (!linkMark) {
-    isLinkEditVisible.value = false
-    return false
-  }
-
-  linkEditMark.value = linkMark
-  linkEditUrl.value = linkMark.attrs?.href || ''
-  isLinkEditVisible.value = true
-  return true
-}
-
-const onLinkEditChange = () => {
-  const ed = editor.value
-  if (!ed) return
-
-  let href = linkEditUrl.value.trim()
-  if (href && !/^[a-zA-Z]+:\/\//.test(href) && !href.startsWith('/')) {
-    href = `https://${href}`
-  }
-
-  if (href) {
-    // Find the range of the link mark around the cursor
-    const { $from } = ed.state.selection
-    const linkMarkType = ed.schema.marks.link
-    const range = $from.nodeBefore
-      ? { from: $from.pos - $from.nodeBefore.nodeSize, to: $from.pos }
-      : { from: $from.pos, to: $from.pos + ($from.nodeAfter?.nodeSize || 0) }
-
-    ed.chain()
-      .setTextSelection(range)
-      .extendMarkRange('link')
-      .setLink({ href })
-      .setTextSelection($from.pos)
-      .run()
-  }
-}
-
-const deleteLinkEdit = () => {
-  const ed = editor.value
-  if (!ed) return
-  ed.chain().focus().extendMarkRange('link').unsetLink().run()
-  isLinkEditVisible.value = false
-}
-
-const openLinkExternal = () => {
-  if (linkEditUrl.value) {
-    window.open(linkEditUrl.value, '_blank', 'noopener,noreferrer')
-  }
-}
-
-/** Show rich text bubble menu on any non-empty text selection (including inside table cells),
- *  but NOT on multi-cell CellSelection or image NodeSelection (those have their own UI). */
-const showRichTextMenu = ({ editor: e }: { editor: any }) => {
-  if (!isEditable.value) return false
-  // Keep bubble menu visible while link input is open
-  if (isLinkInputMode.value) return true
-  const { selection } = e.state
-  if (selection instanceof CellSelection) return false
-  // Hide for image / file attachment selections — they have their own UI
-  if (selection.node?.type.name === 'image' || selection.node?.type.name === 'fileAttachment' || selection.node?.type.name === 'embed') return false
-  return !selection.empty
-}
-
-/** Persist current editor state + title to the backend. */
-const save = async () => {
-  if (!isEditable.value) return
-  if (!doc.value || !activeProjectId.value || !editor.value) return
-
-  isSaving.value = true
-  try {
-    const content = editor.value.getJSON()
-
-    // Guard: skip saving if editor state is empty AND the title hasn't changed.
-    // This prevents data loss from transient editor state corruption (e.g. paste bugs)
-    // while still allowing title-only saves on pages with empty bodies.
-    const nodeCount = content?.content?.length ?? 0
-    const firstType = content?.content?.[0]?.type
-    const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
-    const effectiveTitle = title.value || 'Untitled'
-    const titleChanged = effectiveTitle !== lastSavedTitle.value
-    if (isEmptyDoc && !titleChanged) {
-      isSaving.value = false
-      return
-    }
-
-    const updated = await updateDocument(activeProjectId.value, doc.value.id!, {
-      title: effectiveTitle,
-      content,
-      version: doc.value.version,
-    })
-
-    // Advance local doc fields to match server response
-    if (updated) {
-      doc.value.version = updated.version
-      doc.value.updated_at = updated.updated_at
-      doc.value.updated_by = updated.updated_by
-      lastSavedTitle.value = effectiveTitle
-    }
-  } catch (_e) {
-    // Error already surfaced by store's updateDocumentvia message.error
-  } finally {
-    isSaving.value = false
-  }
-}
-
-const debouncedSave = () => {
-  // Skip saves triggered by programmatic setContent during page load
-  if (isSettingContent.value) return
-
-  if (saveTimeout.value) {
-    clearTimeout(saveTimeout.value)
-  }
-  saveTimeout.value = setTimeout(save, 2000)
-}
 
 /**
  * Detect whether plain text looks like markdown by checking for common patterns.
@@ -464,14 +106,14 @@ const editor = useEditor({
     }),
     DocCodeBlockExtension,
     Underline,
-    Highlight,
+    DocHighlightExtension,
     Link.configure({ openOnClick: false }),
     Placeholder.configure({ placeholder: t('placeholder.docEditor') }),
     DocImageExtension,
     TaskList,
     TaskItem.configure({ nested: true }),
     // resizable: false — disables columnResizing plugin (its TableView causes crashes).
-    // DocTable also strips <colgroup> from renderHTML (see definition above).
+    // DocTable also strips <colgroup> from renderHTML (see DocTableExtensions.ts).
     DocTable.configure({ resizable: false }),
     TableRow,
     DocTableCell,
@@ -647,14 +289,60 @@ const editor = useEditor({
     debouncedSave()
   },
   onSelectionUpdate: () => {
-    // Dismiss link input when user changes selection (clicks elsewhere, arrows, etc.)
-    // But not when our own code is manipulating the selection (applyLink, openLinkInput)
-    if (isLinkInputMode.value && !isLinkInputSuppressSelectionReset.value) {
-      isLinkInputMode.value = false
-      linkInputUrl.value = ''
-      linkSelectionRange.value = null
-    }
+    onSelectionUpdate()
   },
+})
+
+// --- Composables ---
+
+const {
+  doc,
+  title,
+  lastSavedTitle,
+  isSaving,
+  isLoaded,
+  isSettingContent,
+  save,
+  debouncedSave,
+  loadAndSetDoc,
+  flushOnUnmount,
+  activeDocument,
+} = useDocumentAutoSave({ editor, activeProjectId, isEditable })
+
+const {
+  pasteLinkMenu,
+  dismissPasteLinkMenu,
+  keepAsLink,
+  convertToEmbed,
+  isLinkInputMode,
+  linkInputUrl,
+  linkInputRef,
+  openLinkInput,
+  applyLink,
+  cancelLinkInput,
+  linkEditUrl,
+  isLinkEditVisible,
+  linkEditInputRef,
+  checkLinkMark,
+  onLinkEditChange,
+  deleteLinkEdit,
+  openLinkExternal,
+  showRichTextMenu,
+  onSelectionUpdate,
+} = useDocEditorLinks({ editor, isEditable })
+
+const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
+
+// --- Derived state ---
+
+const createdByLabel = computed(() => resolveUserLabel(doc.value?.created_by))
+
+const updatedByLabel = computed(() => resolveUserLabel(doc.value?.updated_by))
+
+const updatedAgo = computed(() => {
+  const ts = doc.value?.updated_at
+  if (!ts) return ''
+  return timeAgo(ts)
 })
 
 // Register the slash command upload triggers once the editor is available.
@@ -693,92 +381,6 @@ watch(isEditable, (val) => {
   }
 })
 
-/**
- * Wait for the Tiptap editor to be available.
- * `useEditor` creates the Editor instance inside `onMounted`, so
- * `editor.value` is `undefined` during setup and the first immediate
- * watch execution. This helper polls via `nextTick` until the editor
- * exists (typically resolves after the first mount tick).
- */
-const waitForEditor = (): Promise<void> => {
-  return new Promise((resolve, reject) => {
-    if (editor.value) return resolve()
-
-    const timeout = setTimeout(() => {
-      unwatch()
-      reject(new Error('Editor failed to initialize within 5 seconds'))
-    }, 5000)
-
-    const unwatch = watch(editor, (val) => {
-      if (val) {
-        clearTimeout(timeout)
-        unwatch()
-        resolve()
-      }
-    })
-  })
-}
-
-/**
- * Parse content from the API response into a Tiptap-compatible JSON object.
- * The backend should return parsed JSON, but we defensively handle string
- * values in case of cache inconsistencies.
- */
-const parseContent = (content: unknown): Record<string, any> | null => {
-  if (!content) return null
-  if (typeof content === 'object') return content as Record<string, any>
-  if (typeof content === 'string') {
-    try {
-      return JSON.parse(content)
-    } catch {
-      return null
-    }
-  }
-  return null
-}
-
-const loadAndSetDoc = async (id: string) => {
-  // Flush any pending save for the *previous* page before switching
-  if (saveTimeout.value) {
-    clearTimeout(saveTimeout.value)
-    await save()
-  }
-
-  isLoaded.value = false
-  const loaded = await loadDocument(id)
-
-  if (loaded) {
-    doc.value = loaded
-    // Treat "Untitled" as empty — it's the server default, not a user-provided name
-    title.value = loaded.title === 'Untitled' ? '' : (loaded.title || '')
-    lastSavedTitle.value = loaded.title || 'Untitled'
-
-    const parsed = parseContent(loaded.content)
-    if (parsed) {
-      // useEditor creates the instance in onMounted — wait for it on first load
-      await waitForEditor()
-
-      // Suppress onUpdate → debouncedSave while loading content programmatically
-      isSettingContent.value = true
-      editor.value!.commands.setContent(parsed)
-
-      // Wait a tick for ProseMirror to finish its transaction cycle
-      // before re-enabling user-edit saves
-      await nextTick()
-      isSettingContent.value = false
-    }
-  }
-  isLoaded.value = true
-
-  // Auto-focus the title input on new (untitled) pages so the user
-  // can immediately start typing a name (only for users who can edit)
-  if (!title.value && isEditable.value) {
-    nextTick(() => {
-      ;(titleInput.value as HTMLInputElement)?.focus()
-    })
-  }
-}
-
 // Re-load doc when navigating between pages.
 // Watch both docId AND activeProjectId — on a full page reload, activeProjectId
 // may not be available yet when docId resolves from route params. Without this,
@@ -788,6 +390,14 @@ watch(
   async ([newId, newBaseId]) => {
     if (newId && newBaseId) {
       await loadAndSetDoc(newId)
+
+      // Auto-focus the title input on new (untitled) pages so the user
+      // can immediately start typing a name (only for users who can edit)
+      if (!title.value && isEditable.value) {
+        nextTick(() => {
+          ;(titleInput.value as HTMLInputElement)?.focus()
+        })
+      }
     }
   },
   { immediate: true },
@@ -942,151 +552,19 @@ const updateDocumentIcon = async (icon: string) => {
   }
 }
 
-// --- Download helpers ---
-/** Escape HTML special characters to prevent XSS in generated HTML documents. */
-const escapeHtml = (str: string) =>
-  str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-
-const fileName = computed(() => (title.value || 'Untitled').replace(/[/\\?%*:|"<>]/g, '-'))
-
-const downloadFile = (content: string, ext: string, mimeType: string) => {
-  const blob = new Blob([content], { type: mimeType })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `${fileName.value}.${ext}`
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
-/** Convert an HTML string to markdown using DOM traversal. */
-const htmlToMarkdown = (html: string): string => {
-  const div = document.createElement('div')
-  div.innerHTML = html
-
-  const convert = (node: Node): string => {
-    if (node.nodeType === Node.TEXT_NODE) return node.textContent || ''
-
-    if (node.nodeType !== Node.ELEMENT_NODE) return ''
-    const el = node as HTMLElement
-    const tag = el.tagName.toLowerCase()
-    const children = Array.from(el.childNodes).map(convert).join('')
-
-    switch (tag) {
-      case 'h1': return `# ${children}\n\n`
-      case 'h2': return `## ${children}\n\n`
-      case 'h3': return `### ${children}\n\n`
-      case 'p': return `${children}\n\n`
-      case 'br': return '\n'
-      case 'strong': case 'b': return `**${children}**`
-      case 'em': case 'i': return `*${children}*`
-      case 'u': return children
-      case 's': case 'del': return `~~${children}~~`
-      case 'code':
-        // Inline code vs code inside pre
-        if (el.parentElement?.tagName.toLowerCase() === 'pre') return children
-        return `\`${children}\``
-      case 'pre': return `\`\`\`\n${children}\n\`\`\`\n\n`
-      case 'blockquote': return children.split('\n').filter(Boolean).map((l) => `> ${l}`).join('\n') + '\n\n'
-      case 'hr': return '---\n\n'
-      case 'a': return `[${children}](${el.getAttribute('href') || ''})`
-      case 'img': return `![${el.getAttribute('alt') || ''}](${el.getAttribute('src') || ''})`
-      case 'ul':
-        return Array.from(el.children).map((li) => `- ${convert(li).trim()}`).join('\n') + '\n\n'
-      case 'ol':
-        return Array.from(el.children).map((li, i) => `${i + 1}. ${convert(li).trim()}`).join('\n') + '\n\n'
-      case 'li': return children
-      case 'table': {
-        const rows = Array.from(el.querySelectorAll('tr'))
-        if (!rows.length) return ''
-        const toRow = (row: Element) =>
-          Array.from(row.querySelectorAll('td, th')).map((c) => convert(c).trim())
-        const headerCells = toRow(rows[0])
-        const separator = headerCells.map(() => '---')
-        const body = rows.slice(1).map((r) => `| ${toRow(r).join(' | ')} |`).join('\n')
-        return `| ${headerCells.join(' | ')} |\n| ${separator.join(' | ')} |\n${body}\n\n`
-      }
-      default: return children
-    }
-  }
-
-  return Array.from(div.childNodes).map(convert).join('').replace(/\n{3,}/g, '\n\n').trim()
-}
-
 const onDownloadMarkdown = () => {
   isPageMenuOpen.value = false
-  if (!editor.value) return
-  const md = `# ${title.value || 'Untitled'}\n\n${htmlToMarkdown(editor.value.getHTML())}`
-  downloadFile(md, 'md', 'text/markdown;charset=utf-8')
+  downloadMarkdown()
 }
 
 const onDownloadHTML = () => {
   isPageMenuOpen.value = false
-  if (!editor.value) return
-  const safeTitle = escapeHtml(title.value || 'Untitled')
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>${safeTitle}</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; color: #1f2937; line-height: 1.7; }
-  h1 { font-size: 2em; margin-bottom: 0.5em; }
-  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-  td, th { border: 1px solid #d1d5db; padding: 8px 12px; text-align: left; }
-  th { background: #f3f4f6; font-weight: 600; }
-  blockquote { border-left: 3px solid #d1d5db; padding-left: 1em; color: #6b7280; }
-  code { background: #f3f4f6; border-radius: 4px; padding: 2px 6px; font-size: 0.9em; }
-  pre { background: #1f2937; color: #f9fafb; border-radius: 8px; padding: 16px; overflow-x: auto; }
-  pre code { background: none; padding: 0; color: inherit; }
-  hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
-  a { color: #2563eb; }
-</style>
-</head>
-<body>
-<h1>${safeTitle}</h1>
-${editor.value.getHTML()}
-</body>
-</html>`
-  downloadFile(html, 'html', 'text/html;charset=utf-8')
+  downloadHTML()
 }
 
 const onDownloadPDF = () => {
   isPageMenuOpen.value = false
-  if (!editor.value) return
-  const safeTitle = escapeHtml(title.value || 'Untitled')
-  // Open a print-ready window with styled content, then trigger print-to-PDF
-  const html = `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>${safeTitle}</title>
-<style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 700px; margin: 0 auto; padding: 40px 20px; color: #1f2937; line-height: 1.7; font-size: 14px; }
-  h1 { font-size: 1.8em; margin-bottom: 0.5em; }
-  table { border-collapse: collapse; width: 100%; margin: 1em 0; }
-  td, th { border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; }
-  th { background: #f3f4f6; font-weight: 600; }
-  blockquote { border-left: 3px solid #d1d5db; padding-left: 1em; color: #6b7280; }
-  code { background: #f3f4f6; border-radius: 4px; padding: 2px 6px; font-size: 0.9em; }
-  pre { background: #1f2937; color: #f9fafb; border-radius: 8px; padding: 16px; overflow-x: auto; }
-  pre code { background: none; padding: 0; color: inherit; }
-  hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
-  a { color: #2563eb; text-decoration: underline; }
-  @media print { body { padding: 0; } }
-</style>
-</head>
-<body>
-<h1>${safeTitle}</h1>
-${editor.value.getHTML()}
-<script>window.onload = function() { window.print(); }<\/script>
-</body>
-</html>`
-  const printWindow = window.open('', '_blank')
-  if (printWindow) {
-    printWindow.document.write(html)
-    printWindow.document.close()
-  }
+  downloadPDF()
 }
 
 // Dismiss paste-link menu on click outside
@@ -1100,31 +578,7 @@ onMounted(() => document.addEventListener('click', onDocClick, true))
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true))
 
 onBeforeUnmount(() => {
-  // Flush any pending save before the editor is destroyed.
-  // Capture content synchronously BEFORE destroy() tears down ProseMirror,
-  // then fire the async save with the captured snapshot.
-  if (saveTimeout.value) {
-    clearTimeout(saveTimeout.value)
-    if (isEditable.value && doc.value && activeProjectId.value && editor.value) {
-      const content = editor.value.getJSON()
-      const docId = doc.value.id!
-      const version = doc.value.version
-      const docTitle = title.value || 'Untitled'
-      const baseId = activeProjectId.value
-
-      // Guard: skip saving empty doc on unmount unless title changed
-      const nodeCount = content?.content?.length ?? 0
-      const firstType = content?.content?.[0]?.type
-      const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
-      const titleChanged = docTitle !== lastSavedTitle.value
-      if (isEmptyDoc && !titleChanged) {
-        // Editor state is empty and title unchanged — do not persist
-      } else {
-        // Fire-and-forget is acceptable here — content is already captured
-        updateDocument(baseId, docId, { title: docTitle, content, version })
-      }
-    }
-  }
+  flushOnUnmount()
   editor.value?.destroy()
 })
 </script>

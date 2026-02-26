@@ -191,6 +191,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseRecordTemplates = (..._args: any[]) => {}
 
+  const blockViewSections = computed(() => true)
+
+  const showUpgradeToUseViewSections = (..._args: any[]) => {}
+
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
 
   return {
@@ -283,5 +287,7 @@ export const useEeConfig = createSharedComposable(() => {
     showSandboxPlanLimitExceededModal,
     blockRecordTemplates,
     showUpgradeToUseRecordTemplates,
+    blockViewSections,
+    showUpgradeToUseViewSections,
   }
 })

@@ -3,6 +3,7 @@ import type { TableType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { ModelStat } from '~/models';
 import Noco from '~/Noco';
+import ViewSection from '~/ee/models/ViewSection';
 
 export default class Model extends ModelCE implements TableType {
   public static castType(data: Model): Model {
@@ -14,6 +15,8 @@ export default class Model extends ModelCE implements TableType {
     ncMeta = Noco.ncMeta,
     force = false,
   ): Promise<boolean> {
+    await ViewSection.deleteByModelId(context, this.id, ncMeta);
+
     const result = await super.delete(context, ncMeta, force);
 
     await ModelStat.delete(context, this.fk_workspace_id, this.id, ncMeta);

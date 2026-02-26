@@ -936,7 +936,7 @@ a {
 
 .nc-button.ant-btn.nc-sidebar-node-btn:not(.nc-sidebar-expand):not(.nc-sidebar-view-node-context-btn):not(
     .nc-sidebar-script-node-context-btn
-  ) {
+  ):not(.nc-sidebar-section-node-context-btn) {
   @apply hidden group-hover:(inline-block);
 }
 

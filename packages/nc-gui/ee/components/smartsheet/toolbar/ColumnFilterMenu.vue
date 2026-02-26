@@ -152,9 +152,7 @@ const smartsheetEventListener = async (event: string, payload?: any) => {
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
     draftFilter.value = {
       fk_column_id: column.id,
-      ...(isList.value && listViewStore?.selectedLevelId.value
-        ? { fk_level_id: listViewStore.selectedLevelId.value }
-        : {}),
+      ...(isList.value && listViewStore?.selectedLevelId.value ? { fk_level_id: listViewStore.selectedLevelId.value } : {}),
     }
     open.value = true
   }

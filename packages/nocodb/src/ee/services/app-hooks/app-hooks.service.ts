@@ -33,6 +33,9 @@ import type {
   UserSigninEvent,
   UserSignupEvent,
   ViewEvent,
+  ViewSectionCreateEvent,
+  ViewSectionDeleteEvent,
+  ViewSectionUpdateEvent,
   WelcomeEvent,
   WorkflowCreateEvent,
   WorkflowDeleteEvent,
@@ -782,6 +785,19 @@ export class AppHooksService extends ApppHookServiceCE {
       | AppEvents.SCIM_USER_REACTIVATE
       | AppEvents.SCIM_USER_DELETE,
     data: ScimUserEvent,
+  ): void;
+
+  emit(
+    event: AppEvents.VIEW_SECTION_CREATE,
+    data: ViewSectionCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.VIEW_SECTION_UPDATE,
+    data: ViewSectionUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.VIEW_SECTION_DELETE,
+    data: ViewSectionDeleteEvent,
   ): void;
 
   emit(event, data): void {

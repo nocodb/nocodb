@@ -342,6 +342,14 @@ defineOptions({
             })
           }}
         </NcMenuItem>
+
+        <SmartsheetToolbarViewActionMenuMoveToSection
+          v-if="isEeUI"
+          :view="view"
+          :table="table"
+          :in-sidebar="inSidebar"
+          @close-modal="emits('closeModal')"
+        />
       </template>
 
       <SmartsheetToolbarNotAllowedTooltip

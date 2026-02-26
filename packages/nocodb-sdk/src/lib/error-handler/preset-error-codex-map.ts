@@ -100,6 +100,10 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Widget '${id}' not found`,
     code: 404,
   },
+  [NcErrorType.ERR_VIEW_SECTION_NOT_FOUND]: {
+    message: (id: string) => `View section '${id}' not found`,
+    code: 404,
+  },
   [NcErrorType.ERR_DASHBOARD_NOT_FOUND]: {
     message: (id: string) => `Dashboard '${id}' not found`,
     code: 404,

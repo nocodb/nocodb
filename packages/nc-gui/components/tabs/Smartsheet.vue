@@ -35,8 +35,10 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && getMetaByKey(activeProjectId.value, viewId)
 })
 
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, xWhere, eventBus } =
-  useProvideSmartsheetStore(activeView, meta)
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, xWhere, eventBus } = useProvideSmartsheetStore(
+  activeView,
+  meta,
+)
 
 useViewRowColorProvider({ view: activeView, eventBus })
 

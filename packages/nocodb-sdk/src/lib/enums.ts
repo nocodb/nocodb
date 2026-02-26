@@ -279,6 +279,10 @@ export enum AppEvents {
   RLS_POLICY_CREATE = 'rls_policy.create',
   RLS_POLICY_UPDATE = 'rls_policy.update',
   RLS_POLICY_DELETE = 'rls_policy.delete',
+
+  VIEW_SECTION_CREATE = 'viewSection.create',
+  VIEW_SECTION_UPDATE = 'viewSection.update',
+  VIEW_SECTION_DELETE = 'viewSection.delete',
 }
 
 export enum ClickhouseTables {

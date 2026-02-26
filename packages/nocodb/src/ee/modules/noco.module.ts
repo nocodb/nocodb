@@ -95,6 +95,9 @@ import { RecordTemplatesService } from '~/services/record-templates/record-templ
 import { ListsService } from '~/ee/services/lists.service';
 import { ListDatasService } from '~/ee/services/list-datas.service';
 
+/* View Sections */
+import { ViewSectionsService } from '~/ee/services/view-sections.service';
+
 import { ActionsService } from '~/services/actions.service';
 
 /* SCIM */
@@ -186,6 +189,9 @@ export const nocoModuleEeMetadata = {
     /* List View */
     ListsService,
     ListDatasService,
+
+    /* View Sections */
+    ViewSectionsService,
 
     ActionsService,
 

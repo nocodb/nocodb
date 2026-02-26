@@ -8,6 +8,10 @@ const props = defineProps<{
   source: Source
 }>()
 
+const emits = defineEmits<{
+  (event: 'createSection'): void
+}>()
+
 const { $e } = useNuxtApp()
 
 const alignLeftLevel = toRef(props, 'alignLeftLevel')
@@ -105,6 +109,11 @@ async function onOpenModal({
     tableId: table.value.id!,
     sourceId: table.value?.source_id,
   })
+}
+
+function onCreateSection() {
+  isOpen.value = false
+  emits('createSection')
 }
 </script>
 
@@ -208,6 +217,14 @@ async function onOpenModal({
             </NcMenuItem>
           </NcTooltip>
         </template>
+
+        <template v-if="isEeUI">
+          <!-- Section -->
+          <NcDivider />
+
+          <DashboardTreeViewCreateViewBtnSectionMenu @create-section="onCreateSection" />
+        </template>
+
         <template v-if="isAiFeaturesEnabled">
           <NcDivider />
           <NcTooltip :title="`Auto suggest views for ${table?.title || 'the current table'}`" placement="right">
@@ -226,23 +243,21 @@ async function onOpenModal({
   </NcDropdown>
 </template>
 
-<style lang="scss" scoped>
-.item {
-  @apply flex flex-row items-center w-36 justify-between;
-}
-
-.item-inner {
-  @apply flex flex-row items-center gap-x-1.75;
-}
-
-.plus {
-  @apply text-nc-content-gray-muted;
-}
-</style>
-
 <style lang="scss">
 .nc-view-create-dropdown {
   @apply !max-w-43 !min-w-43;
+
+  .item {
+    @apply flex flex-row items-center w-36 justify-between;
+  }
+
+  .item-inner {
+    @apply flex flex-row items-center gap-x-1.75;
+  }
+
+  .plus {
+    @apply text-nc-content-gray-muted;
+  }
 }
 
 .nc-view-create-dropdown-left-1 {

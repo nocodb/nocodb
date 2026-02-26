@@ -250,8 +250,7 @@ watch(
             class="px-1.5 py-0.5 rounded text-[11px] font-medium cursor-pointer transition-colors truncate"
             :class="{
               'bg-nc-bg-brand text-nc-content-brand': listViewStore.selectedLevelId.value === level.id,
-              'text-nc-content-gray-muted hover:bg-nc-bg-gray-medium':
-                listViewStore.selectedLevelId.value !== level.id,
+              'text-nc-content-gray-muted hover:bg-nc-bg-gray-medium': listViewStore.selectedLevelId.value !== level.id,
             }"
             @click="listViewStore.setSelectedLevel(level.id ?? null)"
           >

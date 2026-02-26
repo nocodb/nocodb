@@ -11,6 +11,7 @@ import type {
   PlanLimitTypes,
   ScriptType,
   UserType,
+  ViewSectionType,
   WidgetType,
   WorkflowType,
   WorkspaceType,
@@ -194,6 +195,21 @@ export interface WidgetDuplicateEvent extends NcBaseEvent {
   error?: string;
   sourceWidget: WidgetType;
   destWidget: WidgetType;
+  user: UserType;
+}
+
+export interface ViewSectionCreateEvent extends NcBaseEvent {
+  viewSection: ViewSectionType;
+  user: UserType;
+}
+
+export interface ViewSectionUpdateEvent extends NcBaseEvent {
+  viewSection: ViewSectionType;
+  user: UserType;
+}
+
+export interface ViewSectionDeleteEvent extends NcBaseEvent {
+  viewSection: ViewSectionType;
   user: UserType;
 }
 

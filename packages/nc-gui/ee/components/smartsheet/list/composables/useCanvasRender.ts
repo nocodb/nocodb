@@ -1,6 +1,4 @@
 import type { ColumnType, ListViewLevelType, TableType } from 'nocodb-sdk'
-import { parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
-import { getSafe2DContext } from '~/components/smartsheet/grid/canvas/utils/safeCanvas'
 import type { ListCanvasElement } from './types'
 import {
   ADD_ROW_HEIGHT,
@@ -12,6 +10,8 @@ import {
   INDENT_PER_DEPTH,
   SUB_HEADER_HEIGHT,
 } from './constants'
+import { parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
+import { getSafe2DContext } from '~/components/smartsheet/grid/canvas/utils/safeCanvas'
 import type { ListViewRow } from '~/composables/useListViewStore'
 
 type GetColorFn = (cssVar: string, darkCssVar?: string, opacity?: number) => string

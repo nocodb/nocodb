@@ -117,6 +117,7 @@ export enum MetaTable {
   RECORD_TEMPLATES = 'nc_record_templates',
   RLS_POLICIES = 'nc_rls_policies',
   RLS_POLICY_SUBJECTS = 'nc_rls_policy_subjects',
+  VIEW_SECTIONS = 'nc_view_sections',
 }
 
 export const BaseRelatedMetaTables = [
@@ -362,6 +363,7 @@ export enum CacheScope {
   SCIM_CONFIG = 'scimConfig',
   RECORD_TEMPLATE = 'recordTemplate',
   RLS_POLICY = 'rlsPolicy',
+  VIEW_SECTION = 'viewSection',
 }
 
 export enum CacheGetType {

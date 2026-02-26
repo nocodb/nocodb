@@ -268,6 +268,7 @@ const legacyLimitAndFeatures = {
   [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
   [PlanFeatureTypes.FEATURE_RLS]: true,
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 5,
+  [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,
 };
 
 export const FreePlan = Plan.prepare({

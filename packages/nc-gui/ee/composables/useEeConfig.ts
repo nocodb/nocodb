@@ -298,6 +298,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES)
   })
 
+  const blockViewSections = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_VIEW_SECTIONS)
+  })
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -1459,6 +1463,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseViewSections = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockViewSections.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseViewSections'),
+      content: t('upgrade.upgradeToUseViewSectionsSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_VIEW_SECTIONS,
+      requiredPlan: PlanTitles.BUSINESS,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -1557,5 +1584,7 @@ export const useEeConfig = createSharedComposable(() => {
     showSandboxPlanLimitExceededModal,
     blockRecordTemplates,
     showUpgradeToUseRecordTemplates,
+    blockViewSections,
+    showUpgradeToUseViewSections,
   }
 })

@@ -243,16 +243,21 @@ const shortcutList = [
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" size="md" :show-separator="false" closable wrap-class-name="nc-modal-keyboard-shortcuts">
+  <NcModal v-model:visible="dialogShow" size="md" :show-separator="false" wrap-class-name="nc-modal-keyboard-shortcuts">
     <div class="flex flex-col h-full">
-      <div class="flex items-center gap-2 pb-3 border-b-1 border-nc-border-gray-medium flex-none">
-        <GeneralIcon icon="keyboard" class="w-5 h-5 text-nc-content-gray-subtle" />
-        <h3 class="text-base font-semibold text-nc-content-gray m-0">
+      <!-- Header -->
+      <div class="p-2 w-full flex items-center gap-2 border-b-1 border-nc-border-gray-medium flex-none">
+        <GeneralIcon icon="keyboard" class="w-5 h-5 text-nc-content-gray-subtle ml-1" />
+        <h3 class="flex-1 text-base font-semibold text-nc-content-gray m-0">
           {{ $t('title.keyboardShortcut') }}
         </h3>
+        <NcButton size="small" type="text" @click="dialogShow = false">
+          <GeneralIcon icon="close" />
+        </NcButton>
       </div>
 
-      <div class="flex-1 overflow-y-auto nc-scrollbar-thin mt-3 -mr-2 pr-2">
+      <!-- Content -->
+      <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 -mr-2 pr-2">
         <div v-for="(section, sectionIdx) of shortcutList" :key="sectionIdx" class="mb-4 last:mb-0">
           <div class="text-bodySm font-semibold text-nc-content-gray-subtle mb-2 uppercase tracking-wide">
             {{ section.title }}

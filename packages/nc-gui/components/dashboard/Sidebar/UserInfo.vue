@@ -274,11 +274,15 @@ const openKeyboardShortcutDialog = () => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
-              <NcMenuItem v-e="['c:user:keyboard-shortcuts']" data-testid="nc-sidebar-keyboard-shortcuts" @click="openKeyboardShortcutDialog">
+              <NcMenuItem
+                v-e="['c:user:keyboard-shortcuts']"
+                data-testid="nc-sidebar-keyboard-shortcuts"
+                @click="openKeyboardShortcutDialog"
+              >
                 <GeneralIcon icon="keyboard" class="menu-icon mt-0.5" />
                 <div class="flex items-center justify-between flex-1">
                   <span class="menu-btn"> {{ $t('title.keyboardShortcut') }} </span>
-                  <span class="flex items-center gap-0.5 text-nc-content-gray-muted">
+                  <span class="flex items-center gap-0.5 text-nc-content-gray-muted ml-1">
                     <kbd class="nc-user-menu-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
                     <kbd class="nc-user-menu-kbd">/</kbd>
                   </span>

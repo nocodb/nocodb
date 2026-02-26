@@ -243,11 +243,17 @@ const shortcutList = [
 </script>
 
 <template>
-  <NcModal v-model:visible="dialogShow" size="md" :show-separator="false" wrap-class-name="nc-modal-keyboard-shortcuts">
+  <NcModal
+    v-model:visible="dialogShow"
+    size="lg"
+    width="min(calc(100vw - 32px), 640px)"
+    :show-separator="false"
+    wrap-class-name="nc-modal-keyboard-shortcuts"
+  >
     <div class="flex flex-col h-full">
       <!-- Header -->
       <div class="p-2 w-full flex items-center gap-2 border-b-1 border-nc-border-gray-medium flex-none">
-        <GeneralIcon icon="keyboard" class="w-5 h-5 text-nc-content-gray-subtle ml-1" />
+        <GeneralIcon icon="keyboard" class="text-xl text-nc-content-gray-subtle ml-1" />
         <h3 class="flex-1 text-base font-semibold text-nc-content-gray m-0">
           {{ $t('title.keyboardShortcut') }}
         </h3>
@@ -257,9 +263,9 @@ const shortcutList = [
       </div>
 
       <!-- Content -->
-      <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 -mr-2 pr-2">
+      <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4">
         <div v-for="(section, sectionIdx) of shortcutList" :key="sectionIdx" class="mb-4 last:mb-0">
-          <div class="text-bodySm font-semibold text-nc-content-gray-subtle mb-2 uppercase tracking-wide">
+          <div class="text-bodyBold font-semibold text-nc-content-gray-subtle mb-2 uppercase tracking-wide">
             {{ section.title }}
           </div>
           <div class="flex flex-col rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">
@@ -269,15 +275,11 @@ const shortcutList = [
               class="flex items-center justify-between py-2 px-3 gap-4"
               :class="{ 'border-t-1 border-nc-border-gray-light': itemIdx > 0 }"
             >
-              <span class="text-bodySm text-nc-content-gray-subtle2">
+              <span class="text-bodyDefaultSm text-nc-content-gray-subtle2">
                 {{ item.behaviour }}
               </span>
               <span class="flex items-center gap-1 flex-none">
-                <kbd
-                  v-for="(key, keyIdx) of item.keys"
-                  :key="keyIdx"
-                  class="nc-kbd"
-                >
+                <kbd v-for="(key, keyIdx) of item.keys" :key="keyIdx" class="nc-kbd">
                   {{ key }}
                 </kbd>
               </span>

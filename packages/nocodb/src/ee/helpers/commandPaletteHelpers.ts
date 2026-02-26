@@ -327,3 +327,18 @@ export async function cleanCommandPaletteCacheForUser(userId: string) {
     ]);
   }
 }
+
+export async function cleanCommandPaletteCacheForOrg(orgId: string) {
+  const keys = await NocoCache.get(
+    'root',
+    `${CacheScope.CMD_PALETTE}:org:${orgId}`,
+    CacheGetType.TYPE_ARRAY,
+  );
+
+  if (keys) {
+    await NocoCache.del('root', [
+      ...keys,
+      `${CacheScope.CMD_PALETTE}:org:${orgId}`,
+    ]);
+  }
+}

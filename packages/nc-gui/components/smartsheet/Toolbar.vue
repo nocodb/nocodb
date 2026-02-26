@@ -112,7 +112,9 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
           <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isList" />
 
-          <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && (isGrid || isGallery || isKanban || isList)" />
+          <SmartsheetToolbarRowColorFilterDropdown
+            v-if="!isPublic && !isSharedBase && (isGrid || isGallery || isKanban || isList)"
+          />
 
           <SmartsheetToolbarBulkAction
             v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"

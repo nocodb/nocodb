@@ -8,10 +8,9 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
-import { useCanvasOutline } from './composables/useCanvasOutline'
+import { useCanvasListView } from './composables/useCanvasListView'
 import Scroller from '~/components/smartsheet/grid/canvas/components/Scroller.vue'
 import Tooltip from '~/components/smartsheet/grid/canvas/components/Tooltip.vue'
-import { useCanvasListView } from './composables/useCanvasListView'
 
 const { meta, view } = useSmartsheetStoreOrThrow()
 const { metas, getMeta } = useMetas()
@@ -346,8 +345,7 @@ async function savePendingCell() {
       <GeneralIcon class="text-nc-content-orange-dark w-16 h-16" icon="alertTriangleSolid" />
       <div class="text-xl font-semibold text-nc-content-gray">Hierarchy Not Configured</div>
       <div class="text-sm text-nc-content-gray-muted">
-        Use <span class="font-medium text-nc-content-gray">Set Levels</span> in the toolbar to configure your list view
-        hierarchy.
+        Use <span class="font-medium text-nc-content-gray">Set Levels</span> in the toolbar to configure your list view hierarchy.
       </div>
     </div>
 

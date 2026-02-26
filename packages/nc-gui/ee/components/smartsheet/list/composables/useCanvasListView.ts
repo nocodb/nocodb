@@ -1,7 +1,5 @@
 import type { ColumnType, FormulaType, GridColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, UITypes, isLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { SpriteLoader } from '~/components/smartsheet/grid/canvas/loaders/SpriteLoader'
-import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
 import type { ListActiveCell, ListCanvasElement } from './types'
 import {
   ADD_ROW_HEIGHT,
@@ -18,6 +16,8 @@ import { useCanvasRender } from './useCanvasRender'
 import { useColumnResize } from './useColumnResize'
 import { useListDataFetch } from './useDataFetch'
 import { useListCellRenderer } from './useListCellRenderer'
+import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '~/components/smartsheet/grid/canvas/utils/cell'
+import { SpriteLoader } from '~/components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import { stringifyFilterOrSortArr } from '~/utils/dataUtils'
 import type { ListViewRow } from '~/composables/useListViewStore'
 

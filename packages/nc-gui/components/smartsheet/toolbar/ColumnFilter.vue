@@ -166,9 +166,7 @@ const isListConfigured = computed(
   () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
 )
 
-const levelId = computed(() =>
-  isList.value && isListConfigured.value ? listViewStore?.selectedLevelId.value : undefined,
-)
+const levelId = computed(() => (isList.value && isListConfigured.value ? listViewStore?.selectedLevelId.value : undefined))
 
 const { getMetaByKey } = useMetas()
 
@@ -1536,7 +1534,17 @@ defineExpose({
               </NcButton>
 
               <NcTooltip
-                v-if="!filter.readOnly && !readOnly && isEeUI && isViewFilter && !filter.is_group && !webHook && !link && !widget && !isList"
+                v-if="
+                  !filter.readOnly &&
+                  !readOnly &&
+                  isEeUI &&
+                  isViewFilter &&
+                  !filter.is_group &&
+                  !webHook &&
+                  !link &&
+                  !widget &&
+                  !isList
+                "
               >
                 <template #title>
                   {{ getPinTooltip(filter) }}

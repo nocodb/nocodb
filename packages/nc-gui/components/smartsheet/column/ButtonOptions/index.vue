@@ -34,6 +34,8 @@ const { getMeta } = useMetas()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
+const { getPlanTitle } = useEeConfig()
+
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk } =
   useColumnCreateStoreOrThrow()
 
@@ -395,8 +397,6 @@ const handleUpdateActionType = () => {
   vModel.value.formula_raw = ''
 }
 
-const { blockButtonVisibility, showUpgradeToUseButtonVisibility } = useEeConfig()
-
 const filterRef = ref()
 
 const isFilterSectionOpen = ref(false)
@@ -591,44 +591,47 @@ onUnmounted(() => {
       v-model:selected-script="selectedScript"
     />
 
-    <div v-if="isEeUI" class="nc-button-filter-section mt-2">
-      <div
-        class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
-        @click="blockButtonVisibility ? showUpgradeToUseButtonVisibility() : (isFilterSectionOpen = !isFilterSectionOpen)"
-      >
-        <GeneralIcon
-          icon="arrowDown"
-          class="transform transition-transform duration-150 !w-4 !h-4"
-          :class="{ '-rotate-90': !isFilterSectionOpen || blockButtonVisibility }"
-        />
-        <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
-        <PaymentUpgradeBadge
-          v-if="blockButtonVisibility"
-          :plan-title="PlanTitles.BUSINESS"
-          :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY"
-        />
-        <span
-          v-else-if="filtersCount > 0"
-          class="bg-brand-50 text-brand-500 rounded-full px-1.5 text-xs min-w-4.5 h-4.5 flex items-center justify-center"
-        >
-          {{ filtersCount }}
-        </span>
-      </div>
-      <div v-if="isFilterSectionOpen && !blockButtonVisibility" class="mt-2 overflow-x-auto nc-scrollbar-thin">
-        <SmartsheetToolbarColumnFilter
-          ref="filterRef"
-          v-model="vModel.filters"
-          :auto-save="false"
-          :is-button="true"
-          :button-col-id="vModel.id"
-          :show-loading="false"
-          :show-dynamic-condition="false"
-          :hide-checkbox="true"
-          class="!min-w-full !pl-0"
-          @update:filters-length="filtersCount = $event"
-        />
-      </div>
-    </div>
+    <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
+      <template #default="{ click }">
+        <div class="nc-button-filter-section mt-2">
+          <div
+            class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+            @click="click(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY, () => (isFilterSectionOpen = !isFilterSectionOpen))"
+          >
+            <GeneralIcon
+              icon="arrowDown"
+              class="transform transition-transform duration-150 !w-4 !h-4"
+              :class="{ '-rotate-90': !isFilterSectionOpen }"
+            />
+            <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
+            <PaymentUpgradeBadge
+              :plan-title="PlanTitles.BUSINESS"
+              :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY"
+              :title="$t('upgrade.upgradeToUseButtonVisibility')"
+              :content="
+                $t('upgrade.upgradeToUseButtonVisibilitySubtitle', {
+                  plan: getPlanTitle(PlanTitles.BUSINESS),
+                })
+              "
+            />
+          </div>
+          <div v-if="isFilterSectionOpen" class="mt-2 overflow-x-auto nc-scrollbar-thin">
+            <SmartsheetToolbarColumnFilter
+              ref="filterRef"
+              v-model="vModel.filters"
+              :auto-save="false"
+              :is-button="true"
+              :button-col-id="vModel.id"
+              :show-loading="false"
+              :show-dynamic-condition="false"
+              :hide-checkbox="true"
+              class="!min-w-full !pl-0"
+              @update:filters-length="filtersCount = $event"
+            />
+          </div>
+        </div>
+      </template>
+    </PaymentUpgradeBadgeProvider>
   </div>
 </template>
 

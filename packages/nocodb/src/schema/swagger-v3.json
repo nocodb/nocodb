@@ -3791,11 +3791,17 @@
             "description": "Unique identifier for the dashboard."
           },
           {
-            "name": "includeWidgets",
+            "name": "include",
             "in": "query",
             "required": false,
-            "schema": { "type": "boolean" },
-            "description": "Set to `true` to include widgets in the response."
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Include additional data. Use 'widgets' to include widget information.",
+            "example": "widgets"
           }
         ],
         "responses": {

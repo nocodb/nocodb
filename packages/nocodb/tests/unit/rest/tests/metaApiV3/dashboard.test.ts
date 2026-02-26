@@ -149,7 +149,7 @@ export default function () {
 
       const getResponse = await request(context.app)
         .get(`${API_PREFIX}/dashboards/${dashboard.id}`)
-        .query({ includeWidgets: 'true' })
+        .query({ include: 'widgets' })
         .set('xc-auth', context.token)
         .expect(200);
 

@@ -40,12 +40,14 @@ export class DashboardsV3Controller {
   async dashboardGet(
     @TenantContext() context: NcContext,
     @Param('dashboardId') dashboardId: string,
-    @Query('includeWidgets') includeWidgets: string,
+    @Query('include') include: string | string[],
   ): Promise<DashboardV3GetResponseType> {
+    const includeArr = Array.isArray(include) ? include : [include];
+
     return await this.dashboardsV3Service.dashboardGet(
       context,
       dashboardId,
-      includeWidgets === 'true',
+      includeArr.includes('widgets'),
     );
   }
 

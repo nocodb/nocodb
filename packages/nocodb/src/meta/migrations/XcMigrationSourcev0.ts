@@ -24,10 +24,10 @@ import * as nc_023_rls_policies from './v0/nc_023_rls_policies';
 import * as nc_202601010000_placeholder from './v0/nc_202601010000_placeholder';
 import * as nc_202602250000_outline_view from './v0/nc_202602250000_outline_view';
 import * as nc_202602250001_button_filter from './v0/nc_202602250001_button_filter';
-import * as nc_202602251222_map_view_columns_add_source_id from './v0/nc_202602251222_map_view_columns_add_source_id';
 import * as nc_202602260000_rename_outline_to_list_view from './v0/nc_202602260000_rename_outline_to_list_view';
 import * as nc_202602260636_view_sections from './v0/nc_202602260636_view_sections';
 import * as nc_202602251401_links_v2 from './v0/nc_202602251401_links_v2';
+import * as nc_202602261551_map_view_columns_add_source_id from './v0/nc_202602261551_map_view_columns_add_source_id';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -63,10 +63,10 @@ export default class XcMigrationSourcev0 {
       'nc_202601010000_placeholder',
       'nc_202602250000_outline_view',
       'nc_202602250001_button_filter',
-      'nc_202602251222_map_view_columns_add_source_id',
       'nc_202602260000_rename_outline_to_list_view',
       'nc_202602260636_view_sections',
       'nc_202602251401_links_v2',
+      'nc_202602261551_map_view_columns_add_source_id',
     ]);
   }
 
@@ -128,14 +128,14 @@ export default class XcMigrationSourcev0 {
         return nc_202602250000_outline_view;
       case 'nc_202602250001_button_filter':
         return nc_202602250001_button_filter;
-      case 'nc_202602251222_map_view_columns_add_source_id':
-        return nc_202602251222_map_view_columns_add_source_id;
       case 'nc_202602260000_rename_outline_to_list_view':
         return nc_202602260000_rename_outline_to_list_view;
       case 'nc_202602260636_view_sections':
         return nc_202602260636_view_sections;
       case 'nc_202602251401_links_v2':
         return nc_202602251401_links_v2;
+      case 'nc_202602261551_map_view_columns_add_source_id':
+        return nc_202602261551_map_view_columns_add_source_id;
     }
   }
 }

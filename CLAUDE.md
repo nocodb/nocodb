@@ -429,6 +429,27 @@ If you build a component that could be used in more than one place, put it in **
 
 Split by responsibility — extract repeated template blocks into sub-components, move non-trivial logic into a composable. Avoid single large `.vue` files.
 
+#### EE-specific UI — split, don't duplicate
+
+**Never copy an entire CE component into `ee/` just because it needs EE additions.** Instead, extract only the EE-specific part into its own sub-component and put that in `ee/`.
+
+**Pattern:**
+
+1. **Extract** the EE-specific UI into its own sub-component (e.g. `Feature/EeSection.vue`).
+2. **CE stub** at `components/path/EeSection.vue` — same Props/Emits interface, renders nothing (`<NcSpanHidden />`).
+3. **EE implementation** at `ee/components/path/EeSection.vue` — full EE logic, payment gating, telemetry.
+4. **CE parent** includes it with `v-if="isEeUI"`:
+   ```html
+   <FeatureEeSection v-if="isEeUI" :prop="value" @event="handler" />
+   ```
+
+`isEeUI` is auto-imported globally (`utils/ncUtils.ts` → `false` in CE, `ee/utils/eeUtils.ts` → `true` in EE). The CE parent never imports from `ee/` — the build overlay resolves the correct file automatically.
+
+**When to apply this pattern:**
+- Adding EE-only sections, buttons, or controls to an existing CE component
+- Any EE-specific block inside a shared layout (panel, tab, toolbar, sidebar, form, row, column)
+- Replacing an EE override file that duplicates most of a CE component — extract the delta instead
+
 #### Toasts / notifications — use `message`
 
 Use `message` from `ant-design-vue`. `plugins/ant.ts` patches it to point directly to `ncMessage`, so they are equivalent.

@@ -81,6 +81,14 @@ CRITICAL: EE `globals.ts` completely overrides CE — it does NOT inherit. When 
 
 To regenerate SDK from swagger: `cd packages/nocodb-sdk && pnpm run build:ee`
 
+## Error Handling — NcError
+
+All backend errors go through `NcError` (`~/helpers/catchError`). Use `NcError.get(context)` in services/controllers (version-aware), `NcError.tableNotFound(id)` in models/helpers (V1 default). Guard pattern: `if (!model) NcError.get(context).tableNotFound(id)`.
+
+Frontend: wrap API calls with `extractSdkResponseErrorMsg(e)` (legacy) or `extractSdkResponseErrorMsgv2(e)` (typed).
+
+See `.claude/skills/nc-error/SKILL.md` for full reference — error types, HTTP mappings, and adding new errors.
+
 ## Import Aliases
 
 - Backend: `~/` → `src/` (tsconfig alias), `src/` used for CE imports in EE files

@@ -26,16 +26,20 @@ export async function resetPgSequence(
 /**
  * Backfills an AutoNumber column on an existing PostgreSQL table.
  *
- * Phase 1 (no viewId): Numbers all rows sequentially ordered by created_at ASC, nc_id ASC.
+ * Uses the table's primary key as the row identifier — same approach as
+ * the order column migration (nc_job_005_order_column). If no primary key
+ * exists the backfill is skipped (sequence reset still runs).
  *
- * Phase 2 (with viewId): Numbers rows based on the view's filter and sort configuration.
+ * Phase 1 (no viewId): Numbers all rows sequentially ordered by PK ASC.
+ *
+ * Phase 2 (with viewId): Numbers rows based on the view's filter and sort.
  * Matching rows (satisfying filter) are numbered 1..N ordered by view sort.
  * Non-matching rows are numbered N+1..M ordered by view sort.
  *
  * After backfill, the PostgreSQL sequence is reset to MAX+1 so subsequent inserts continue.
  *
  * @param context - NocoDB context (workspace/base)
- * @param model - The table model
+ * @param model - The table model (columns must be loaded or will be loaded here)
  * @param column - The newly created AutoNumber column
  * @param source - The data source
  * @param viewId - Optional view ID for view-aware ordering (Phase 2)
@@ -47,14 +51,31 @@ export async function backfillAutoNumber(
   source: Source,
   viewId?: string,
 ): Promise<void> {
+  // Ensure columns are loaded so primaryKeys is populated
+  if (!model.columns) {
+    await model.getColumns(context);
+  }
+
+  const pkColumn = model.primaryKeys?.[0]?.column_name;
+
   const knex = await NcConnectionMgrv2.get(source);
   const tableName = model.table_name;
   const colName = column.column_name;
 
-  if (viewId) {
-    await backfillWithViewOrder(context, model, column, source, knex, viewId);
-  } else {
-    await backfillDefaultOrder(knex, tableName, colName);
+  if (pkColumn) {
+    if (viewId) {
+      await backfillWithViewOrder(
+        context,
+        model,
+        column,
+        source,
+        knex,
+        viewId,
+        pkColumn,
+      );
+    } else {
+      await backfillDefaultOrder(knex, tableName, colName, pkColumn);
+    }
   }
 
   // Reset PG sequence so new inserts continue from MAX+1
@@ -62,23 +83,27 @@ export async function backfillAutoNumber(
 }
 
 /**
- * Default backfill: numbers all rows ordered by created_at ASC, nc_id ASC.
- * Uses a single atomic UPDATE with ROW_NUMBER() window function (PG only).
+ * Default backfill: numbers all rows ordered by primary key ASC.
+ *
+ * Uses the same ROW_NUMBER() window function pattern as nc_job_005_order_column.
+ * Single atomic UPDATE — no row-by-row loops.
+ *
+ * SQL (PG):
+ *   UPDATE "t" t SET "col" = s.rn
+ *   FROM (SELECT "pk", ROW_NUMBER() OVER (ORDER BY "pk" ASC) rn FROM "t") s
+ *   WHERE t."pk" = s."pk"
  */
 async function backfillDefaultOrder(
   knex: any,
   tableName: string,
   colName: string,
+  pkColumn: string,
 ): Promise<void> {
   await knex.raw(
-    `UPDATE ?? SET ?? = sub.rn
-     FROM (
-       SELECT nc_id,
-         ROW_NUMBER() OVER (ORDER BY created_at ASC, nc_id ASC) AS rn
-       FROM ??
-     ) sub
-     WHERE ??.nc_id = sub.nc_id`,
-    [tableName, colName, tableName, tableName],
+    `UPDATE ?? t SET ?? = s.rn
+     FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s
+     WHERE t.?? = s.??`,
+    [tableName, colName, pkColumn, pkColumn, tableName, pkColumn, pkColumn],
   );
 }
 
@@ -87,9 +112,9 @@ async function backfillDefaultOrder(
  * ordered by view sort. Non-matching rows are numbered after, also ordered by view sort.
  *
  * Algorithm:
- * 1. Fetch ordered matching row IDs using view filter + sort
- * 2. Collect all matching IDs as a set
- * 3. Fetch all remaining row IDs (not in matching set) ordered by view sort
+ * 1. Fetch ordered matching row PKs using view filter + sort
+ * 2. Collect all matching PKs as a set
+ * 3. Fetch all remaining row PKs (not in matching set) ordered by view sort
  * 4. Batch UPDATE: matching rows get 1..N, non-matching get N+1..M
  */
 async function backfillWithViewOrder(
@@ -99,6 +124,7 @@ async function backfillWithViewOrder(
   source: Source,
   knex: any,
   viewId: string,
+  pkColumn: string,
 ): Promise<void> {
   const tableName = model.table_name;
   const colName = _column.column_name;
@@ -115,7 +141,7 @@ async function backfillWithViewOrder(
   });
 
   // Query 1: matching rows (satisfying view filter), ordered by view sort
-  const matchingQb = knex(tableName).select('nc_id');
+  const matchingQb = knex(tableName).select(pkColumn);
   if (filters?.length) {
     await conditionV2(
       baseModel,
@@ -132,23 +158,23 @@ async function backfillWithViewOrder(
   if (sorts?.length) {
     await sortV2(baseModel, sorts, matchingQb);
   }
-  const matchingRows: Array<{ nc_id: string }> = await matchingQb;
-  const matchingIdSet = new Set(matchingRows.map((r) => r.nc_id));
+  const matchingRows: Array<Record<string, unknown>> = await matchingQb;
+  const matchingPkSet = new Set(matchingRows.map((r) => r[pkColumn]));
 
   // Query 2: non-matching rows — all rows not in matching set, ordered by view sort
   const nonMatchingQb = knex(tableName)
-    .select('nc_id')
-    .whereNotIn('nc_id', [...matchingIdSet]);
+    .select(pkColumn)
+    .whereNotIn(pkColumn, [...matchingPkSet]);
   if (sorts?.length) {
     await sortV2(baseModel, sorts, nonMatchingQb);
   }
-  const nonMatchingRows: Array<{ nc_id: string }> = await nonMatchingQb;
+  const nonMatchingRows: Array<Record<string, unknown>> = await nonMatchingQb;
 
   // Assign sequential values: matching 1..N, non-matching N+1..M
   const allOrdered = [
-    ...matchingRows.map((r, i) => ({ nc_id: r.nc_id, val: i + 1 })),
+    ...matchingRows.map((r, i) => ({ pk: r[pkColumn], val: i + 1 })),
     ...nonMatchingRows.map((r, i) => ({
-      nc_id: r.nc_id,
+      pk: r[pkColumn],
       val: matchingRows.length + i + 1,
     })),
   ];
@@ -160,15 +186,15 @@ async function backfillWithViewOrder(
   for (let i = 0; i < allOrdered.length; i += BATCH_SIZE) {
     const batch = allOrdered.slice(i, i + BATCH_SIZE);
 
-    // Build VALUES list: (nc_id, val) pairs
+    // Build VALUES list: (pk, val) pairs
     const valueParts = batch.map(() => '(?, ?)').join(', ');
-    const valueBindings = batch.flatMap((r) => [r.nc_id, r.val]);
+    const valueBindings = batch.flatMap((r) => [r.pk, r.val]);
 
     await knex.raw(
       `UPDATE ?? SET ?? = vals.val
-       FROM (VALUES ${valueParts}) AS vals(nc_id, val)
-       WHERE ??.nc_id = vals.nc_id`,
-      [tableName, colName, ...valueBindings, tableName],
+       FROM (VALUES ${valueParts}) AS vals(pk_col, val)
+       WHERE ??.?? = vals.pk_col`,
+      [tableName, colName, ...valueBindings, tableName, pkColumn],
     );
   }
 }

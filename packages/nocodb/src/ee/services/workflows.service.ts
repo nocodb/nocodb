@@ -32,8 +32,8 @@ import { checkLimit, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import {
   getPlanDisplayName,
   getPlanTitleFromContext,
+  getRequiredPlanForNode,
   isNodeAvailableForPlan,
-  WorkflowNodePlanRequirements,
 } from '~/helpers/workflowNodeHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -112,7 +112,7 @@ export class WorkflowsService implements OnModuleInit {
       }
 
       if (!isNodeAvailableForPlan(nodeType, userPlanTitle)) {
-        const requiredPlan = WorkflowNodePlanRequirements[nodeType];
+        const requiredPlan = getRequiredPlanForNode(nodeType);
         const requiredPlanName = getPlanDisplayName(requiredPlan);
 
         NcError.planLimitExceeded(

@@ -42,6 +42,34 @@ export const WorkflowNodePlanRequirements: Record<string, PlanTitles> = {
 };
 
 /**
+ * Resolve the required plan for a workflow node ID
+ * Checks exact match first, then wildcard patterns (e.g., 'hubspot_crm.*')
+ * @param nodeId - The workflow node ID
+ * @returns The required PlanTitles or undefined if free
+ */
+export function getRequiredPlanForNode(
+  nodeId: string,
+): PlanTitles | undefined {
+  // Check for exact match first
+  const exactMatch = WorkflowNodePlanRequirements[nodeId];
+  if (exactMatch) return exactMatch;
+
+  // Check for wildcard patterns
+  for (const [pattern, plan] of Object.entries(
+    WorkflowNodePlanRequirements,
+  )) {
+    if (pattern.endsWith('*')) {
+      const prefix = pattern.slice(0, -1);
+      if (nodeId.startsWith(prefix)) {
+        return plan;
+      }
+    }
+  }
+
+  return undefined;
+}
+
+/**
  * Check if a workflow node is available for a given plan
  * @param nodeId - The workflow node ID (e.g., 'core.action.send_email')
  * @param userPlanTitle - The user's current plan title
@@ -53,23 +81,7 @@ export function isNodeAvailableForPlan(
 ): boolean {
   if (isDevOrTestEnvironment) return true;
 
-  // Check for exact match first
-  let requiredPlan = WorkflowNodePlanRequirements[nodeId];
-
-  // If no exact match, check for wildcard patterns
-  if (!requiredPlan) {
-    for (const [pattern, plan] of Object.entries(
-      WorkflowNodePlanRequirements,
-    )) {
-      if (pattern.endsWith('*')) {
-        const prefix = pattern.slice(0, -1);
-        if (nodeId.startsWith(prefix)) {
-          requiredPlan = plan;
-          break;
-        }
-      }
-    }
-  }
+  const requiredPlan = getRequiredPlanForNode(nodeId);
 
   // If node not in requirements map, it's free
   if (!requiredPlan) return true;

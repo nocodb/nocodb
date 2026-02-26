@@ -10,9 +10,11 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isServiceUser,
   isSystemColumn,
   isVirtualCol,
+  LinksVersion,
   LongTextAiMetaProp,
   MetaEventType,
   NcApiVersion,
@@ -65,6 +67,7 @@ import {
   deleteColumnSystemPropsFromRequest,
   generateFkName,
   getMMColumnNames,
+  getRevType,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -3654,7 +3657,11 @@ export class ColumnsService implements IColumnsService {
           );
           const custom = column.meta?.custom;
 
-          switch (relationColOpt.type) {
+          const isMMLike = isMMOrMMLike(column);
+
+          const relationType = isMMLike ? 'mm' : relationColOpt.type;
+
+          switch (relationType) {
             case 'bt':
             case 'hm':
               {
@@ -3770,7 +3777,7 @@ export class ColumnsService implements IColumnsService {
                       ncMeta,
                     );
                   if (
-                    colOpt.type === 'mm' &&
+                    isMMOrMMLike(c) &&
                     colOpt.fk_parent_column_id === childColumn.id &&
                     colOpt.fk_child_column_id === parentColumn.id &&
                     colOpt.fk_mm_model_id === relationColOpt.fk_mm_model_id &&
@@ -4594,6 +4601,14 @@ export class ColumnsService implements IColumnsService {
 
     const reuse = param.reuse ?? {};
 
+    // v2 LTAR uses junction table for all relation types (like mm)
+    // v1 is the default - v2 is only used when explicitly requested via version param
+    const isMMLike =
+      (param.column as any).version === LinksVersion.V2 ||
+      // traditional MM is always treated as MM-like regardless of version
+      (param.column as LinkToAnotherColumnReqType).type ===
+        RelationTypes.MANY_TO_MANY;
+
     // get table and refTable models
     const table = await Model.getWithInfo(context, {
       id: (param.column as LinkToAnotherColumnReqType).parentId,
@@ -4659,8 +4674,9 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (
-      (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
-      (param.column as LinkToAnotherColumnReqType).type === 'bt'
+      !isMMLike &&
+      ((param.column as LinkToAnotherColumnReqType).type === 'hm' ||
+        (param.column as LinkToAnotherColumnReqType).type === 'bt')
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
@@ -4769,7 +4785,10 @@ export class ColumnsService implements IColumnsService {
         undefined,
         param.columnWebhookManager,
       );
-    } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
+    } else if (
+      !isMMLike &&
+      (param.column as LinkToAnotherColumnReqType).type === 'oo'
+    ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
         await refTable.getColumns(refContext),
@@ -4876,7 +4895,10 @@ export class ColumnsService implements IColumnsService {
         undefined,
         param.columnWebhookManager,
       );
-    } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
+    } else if (
+      isMMLike ||
+      (param.column as LinkToAnotherColumnReqType).type === 'mm'
+    ) {
       const aTn = await getJunctionTableName(param, table, refTable);
       const aTnAlias = aTn;
 
@@ -4972,6 +4994,7 @@ export class ColumnsService implements IColumnsService {
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel1Args);
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel2Args);
       }
+
       const parentCol = (await assocModel.getColumns(context))?.find(
         (c) => c.column_name === columnName,
       );
@@ -4979,6 +5002,7 @@ export class ColumnsService implements IColumnsService {
         (c) => c.column_name === refColumnName,
       );
 
+      // todo: skip hm and bt if new type
       await createHmAndBtColumn(
         context,
         param.req,
@@ -5049,14 +5073,44 @@ export class ColumnsService implements IColumnsService {
         };
       }
 
+      // Normalize V1 types to V2 equivalents when using junction table
+      // HM with junction table is effectively OM, BT with junction table is effectively MO
+      let normalizedType = (
+        param.column as Pick<LinkToAnotherColumnReqType, 'type'>
+      ).type as RelationTypes;
+      if (isMMLike) {
+        if (normalizedType === RelationTypes.HAS_MANY) {
+          normalizedType = RelationTypes.ONE_TO_MANY;
+        } else if (normalizedType === RelationTypes.BELONGS_TO) {
+          normalizedType = RelationTypes.MANY_TO_ONE;
+        }
+      }
+
+      const revType = getRevType(normalizedType);
+      const relationType = normalizedType;
+
+      // Use singular for ONE_TO_ONE and MANY_TO_ONE, plural for others
+      const defaultTitle = [
+        RelationTypes.ONE_TO_ONE,
+        RelationTypes.MANY_TO_ONE,
+      ].includes(relationType)
+        ? singularize(refTable.title)
+        : pluralize(refTable.title);
+
       savedColumn = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
-          param.column.title ?? pluralize(refTable.title),
+          param.column.title ?? defaultTitle,
         ),
 
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
+        // OO always uses LinkToAnotherRecord (same as V1 createOOColumn)
+        uidt:
+          relationType === RelationTypes.ONE_TO_ONE
+            ? UITypes.LinkToAnotherRecord
+            : isLinks
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
+        type: relationType,
 
         fk_model_id: table.id,
 
@@ -5076,12 +5130,20 @@ export class ColumnsService implements IColumnsService {
           singular:
             param.column['meta']?.singular || singularize(refTable.title),
         },
-
+        version: isMMLike ? 2 : 1,
         // column_order and view_id if provided
         ...param.colExtra,
         // include cross base link props
         ...crossBaseLinkProps,
       });
+
+      // Use singular for ONE_TO_ONE and MANY_TO_ONE, plural for others
+      const reverseDefaultTitle = [
+        RelationTypes.ONE_TO_ONE,
+        RelationTypes.MANY_TO_ONE,
+      ].includes(revType)
+        ? singularize(table.title)
+        : pluralize(table.title);
 
       const parentRelCol = await Column.insert(refContext, {
         title: getUniqueColumnAliasName(
@@ -5090,10 +5152,17 @@ export class ColumnsService implements IColumnsService {
             // if self ref include saved column
             ...(table.id === refTable.id ? [savedColumn] : []),
           ],
-          pluralize(table.title),
+          reverseDefaultTitle,
         ),
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
+        // OO always uses LinkToAnotherRecord (same as V1 createOOColumn)
+        uidt:
+          revType === RelationTypes.ONE_TO_ONE
+            ? UITypes.LinkToAnotherRecord
+            : isLinks
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
+        type: revType,
+        version: isMMLike ? 2 : 1,
 
         // ref_db_alias
         fk_model_id: refTable.id,

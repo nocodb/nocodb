@@ -20,6 +20,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isOrderCol,
   isSelfLinkCol,
   isSystemColumn,
@@ -1748,6 +1749,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           case UITypes.Links:
           case UITypes.LinkToAnotherRecord:
             {
+              const isMMLike = isMMOrMMLike(column);
               this._columns[column.title] = column;
               const colOptions = (await column.getColOptions(
                 this.context,
@@ -1755,7 +1757,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
               const { refContext } = colOptions.getRelContext(this.context);
 
-              if (colOptions?.type === 'hm') {
+              if (colOptions?.type === 'hm' && !isMMLike) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids.length > 1) {
@@ -1802,7 +1804,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
-              } else if (colOptions.type === 'mm') {
+              } else if (colOptions.type === 'mm' || isMMLike) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids?.length > 1) {
@@ -1849,7 +1851,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
-              } else if (colOptions.type === 'bt') {
+              } else if (colOptions.type === 'bt' && !isMMLike) {
                 // @ts-ignore
                 const colOptions = (await column.getColOptions(
                   this.context,
@@ -1938,7 +1940,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                   return await readLoader.load(this?.[cCol?.title]);
                 };
-              } else if (colOptions.type === 'oo') {
+              } else if (colOptions.type === 'oo' && !isMMLike) {
                 const isBt = column.meta?.bt;
 
                 if (isBt) {
@@ -2159,7 +2161,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           this.context,
         );
 
-        switch (colOptions.type) {
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+        switch (relationType) {
           case 'mm':
             {
               const mmTable = await Model.get(
@@ -3657,7 +3660,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const { mmContext, refContext, childContext } =
           await colOptions.getParentChildContext(this.context);
 
-        switch (colOptions.type) {
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+        switch (relationType) {
           case 'mm':
             {
               const mmTable = await Model.get(

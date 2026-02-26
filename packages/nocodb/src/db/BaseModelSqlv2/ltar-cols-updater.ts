@@ -1,4 +1,4 @@
-import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -48,7 +48,7 @@ export const LTARColsUpdater = (param: {
           let existingLinks = [];
 
           profiler.log(`${col.colOptions.type} list start`);
-          if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
+          if (isMMOrMMLike(col)) {
             existingLinks = await trxBaseModel.mmList({
               colId: col.id,
               parentId: rowId,

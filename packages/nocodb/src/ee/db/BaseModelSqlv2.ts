@@ -8,6 +8,7 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isOrderCol,
   isSelfLinkCol,
   isSystemColumn,
@@ -1610,7 +1611,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           this.context,
         );
 
-        switch (colOptions.type) {
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+        switch (relationType) {
           case 'mm':
             {
               const mmTable = await Model.get(
@@ -3263,7 +3265,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const { childContext, refContext, mmContext } =
           await colOptions.getParentChildContext(this.context);
 
-        switch (colOptions.type) {
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+        switch (relationType) {
           case 'mm':
             {
               const mmTable = await Model.get(

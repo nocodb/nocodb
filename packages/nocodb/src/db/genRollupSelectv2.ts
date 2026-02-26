@@ -1,4 +1,9 @@
-import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isMMOrMMLike,
+  NcDataErrorCodes,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { CircularRefContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { Knex } from 'knex';
@@ -62,6 +67,8 @@ export default async function genRollupSelectv2(param: {
     (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
   const { parentContext, childContext, mmContext, refContext } =
     await relationColumnOption.getParentChildContext(context);
+
+  const isMMLike = isMMOrMMLike(relationColumn);
 
   const rollupColumn = columnOptions.getRollupColumn
     ? await columnOptions.getRollupColumn(refContext)
@@ -220,7 +227,11 @@ export default async function genRollupSelectv2(param: {
     profiler.log('applyFunction done');
   };
 
-  switch (relationColumnOption.type) {
+  const relationType = isMMLike
+    ? RelationTypes.MANY_TO_MANY
+    : relationColumnOption.type;
+
+  switch (relationType) {
     case RelationTypes.HAS_MANY: {
       profiler.log('Relation: ' + relationColumnOption.type);
       const queryBuilder: any = knex(

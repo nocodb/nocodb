@@ -25,7 +25,7 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
   ur?: string;
   fk_index_name?: string;
 
-  type: 'hm' | 'bt' | 'mm' | 'oo';
+  type: 'hm' | 'bt' | 'mm' | 'oo' | 'om' | 'mo';
   virtual: BoolType;
 
   mmModel?: Model;
@@ -43,6 +43,7 @@ export default class LinkToAnotherRecordColumn extends LinkToAnotherRecordColumn
   fk_related_base_id?: string;
   fk_mm_source_id?: string;
   fk_mm_base_id?: string;
+  version?: number;
 
   constructor(data: Partial<LinkToAnotherRecordColumn>) {
     super(data);

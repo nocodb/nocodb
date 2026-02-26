@@ -6,7 +6,11 @@ import {
   TableType,
 } from './Api';
 import { FormulaDataTypes } from './formula/enums';
-import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
+import {
+  LinksVersion,
+  LongTextAiMetaProp,
+  RelationTypes,
+} from '~/lib/globals';
 import { parseProp } from './helperFunctions';
 
 enum UITypes {
@@ -470,6 +474,67 @@ export function isLinksOrLTAR(
   );
 }
 
+// Alias for isLinksOrLTAR
+export const isLTARType = isLinksOrLTAR;
+
+export function isLinkV2(
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any }
+    | UITypes
+    | string,
+) {
+  // Strings and simple UIType values cannot be determined as v2 without colOptions
+  if (typeof col === 'string' || typeof col !== 'object') {
+    return false;
+  }
+
+  // Check colOptions.version if available
+  if (col.colOptions) {
+    return (
+      isLinksOrLTAR(col) &&
+      (col.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2
+    );
+  }
+
+  // Fallback: check v2-only relation types on colOptions-less objects
+  // These types only exist in v2 so their presence is definitive
+  if ('colOptions' in col && !col.colOptions) {
+    return false;
+  }
+
+  return false;
+}
+
+export function isMMOrMMLike(
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any; type?: RelationTypes },
+): boolean {
+  if (typeof col === 'object' && isLinksOrLTAR(col)) {
+    if (col.colOptions) {
+      const opts = col.colOptions as LinkToAnotherRecordType;
+      // V2 relations are all junction-table-based (MM-like)
+      if (opts.version === LinksVersion.V2) {
+        return true;
+      }
+      // Traditional MANY_TO_MANY
+      return opts.type === RelationTypes.MANY_TO_MANY;
+    }
+
+    // colOptions not loaded — check type on column root
+    // (set during column creation in the UI before colOptions exists)
+    if ('type' in col && col.type) {
+      return (
+        col.type === RelationTypes.MANY_TO_MANY ||
+        col.type === RelationTypes.ONE_TO_MANY ||
+        col.type === RelationTypes.MANY_TO_ONE
+      );
+    }
+  }
+  return false;
+}
+
 export function isSelfLinkCol(
   col: ColumnType & { colOptions: unknown }
 ): boolean {
@@ -799,3 +864,6 @@ export const customLinkSupportedTypes: UITypes[] = [
 
 // column types that are not shown in the GUI
 export const hiddenColumnTypes: UITypes[] = [UITypes.Meta];
+
+// Re-export LinksVersion from globals for backward compatibility
+export { LinksVersion } from '~/lib/globals';

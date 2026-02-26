@@ -79,6 +79,13 @@ export enum RelationTypes {
   BELONGS_TO = 'bt',
   MANY_TO_MANY = 'mm',
   ONE_TO_ONE = 'oo',
+  ONE_TO_MANY = 'om',
+  MANY_TO_ONE = 'mo',
+}
+
+export enum LinksVersion {
+  V1 = 1,
+  V2 = 2,
 }
 
 export const ExpandedFormMode = {

@@ -2,6 +2,7 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  isMMOrMMLike,
   RelationTypes,
   UITypes,
   WebhookActions,
@@ -19,10 +20,10 @@ import type {
 } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
-import type Model from '~/models/Model';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
+import type Model from '~/models/Model';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -389,7 +390,8 @@ export async function validateRollupPayload(
   }
 
   let relatedColumn: Column;
-  switch (relation.type) {
+  const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
+  switch (relationType) {
     case 'hm':
       relatedColumn = await Column.get(refContext, {
         colId: relation.fk_child_column_id,
@@ -479,7 +481,8 @@ export async function validateLookupPayload(
   }
 
   let relatedColumn: Column;
-  switch (relation.type) {
+  const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
+  switch (relationType) {
     case 'hm':
       relatedColumn = await Column.get(refContext, {
         colId: relation.fk_child_column_id,
@@ -754,4 +757,20 @@ export const deleteColumnSystemPropsFromRequest = (col: any) => {
   delete col.au;
   delete col.validate;
   delete col.system;
+};
+
+// get the reverse type of the relation
+export const getRevType = (type: RelationTypes) => {
+  switch (type) {
+    case RelationTypes.BELONGS_TO:
+      return RelationTypes.HAS_MANY;
+    case RelationTypes.HAS_MANY:
+      return RelationTypes.BELONGS_TO;
+    case RelationTypes.MANY_TO_ONE:
+      return RelationTypes.ONE_TO_MANY;
+    case RelationTypes.ONE_TO_MANY:
+      return RelationTypes.MANY_TO_ONE;
+  }
+
+  return type;
 };

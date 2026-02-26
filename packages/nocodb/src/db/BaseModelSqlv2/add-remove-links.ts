@@ -1,6 +1,8 @@
 import {
   AuditV1OperationTypes,
   isLinksOrLTAR,
+  isLinkV2,
+  isMMOrMMLike,
   ncIsNullOrUndefined,
   RelationTypes,
 } from 'nocodb-sdk';
@@ -244,7 +246,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     const childTn = childBaseModel.getTnPath(childTable);
     const parentTn = parentBaseModel.getTnPath(parentTable);
 
-    let relationType = colOptions.type;
+    let relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
     let childIds = _childIds;
 
     const relatedChildCol = getRelatedLinksColumn(
@@ -310,6 +312,11 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
+          // V2 mo/oo: child can only link to one parent — truncate to 1
+          if (isLinkV2(column) && ['mo', 'oo'].includes(colOptions.type)) {
+            childIds = childIds.slice(0, 1);
+          }
+
           validateRefIds(childIds, parentTable);
 
           const vChildCol = await colOptions.getMMChildColumn(mmContext);
@@ -401,6 +408,133 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
             // if no new links, return true
             if (!insertData.length) return true;
+          }
+
+          // V2 cardinality enforcement: remove conflicting junction rows before insert
+          if (
+            isLinkV2(column) &&
+            colOptions.type !== RelationTypes.MANY_TO_MANY
+          ) {
+            const unlinkAuditParentObj = [];
+            const unlinkAuditChildObj = [];
+
+            // mo/oo: child can only link to one parent — clear existing child links
+            if (['mo', 'oo'].includes(colOptions.type)) {
+              const childFkValue =
+                dataWrapper(row).getByColumnNameTitleOrId(childColumn);
+
+              const existing = await assocBaseModel.execAndParse(
+                baseModel
+                  .dbDriver(vTn)
+                  .select(vChildCol.column_name, vParentCol.column_name)
+                  .where(vChildCol.column_name, childFkValue),
+                null,
+                { raw: true },
+              );
+
+              if (existing.length) {
+                await assocBaseModel.execAndParse(
+                  baseModel
+                    .dbDriver(vTn)
+                    .where(vChildCol.column_name, childFkValue)
+                    .delete(),
+                  null,
+                  { raw: true },
+                );
+
+                for (const r of existing) {
+                  unlinkAuditParentObj.push({
+                    rowId: r[vParentCol.column_name],
+                    refRowId: r[vChildCol.column_name],
+                    type: colOptions.type as RelationTypes,
+                  });
+                  if (parentTable.id !== childTable.id) {
+                    unlinkAuditChildObj.push({
+                      rowId: r[vChildCol.column_name],
+                      refRowId: r[vParentCol.column_name],
+                      type: getOppositeRelationType(colOptions.type),
+                    });
+                  }
+                }
+              }
+            }
+
+            // om/oo: each parent can only be linked by one child — clear existing parent links
+            if (['om', 'oo'].includes(colOptions.type)) {
+              for (const data of insertData) {
+                const parentFkValue = data[vParentCol.column_name];
+
+                const existing = await assocBaseModel.execAndParse(
+                  baseModel
+                    .dbDriver(vTn)
+                    .select(vChildCol.column_name, vParentCol.column_name)
+                    .where(vParentCol.column_name, parentFkValue),
+                  null,
+                  { raw: true },
+                );
+
+                if (existing.length) {
+                  await assocBaseModel.execAndParse(
+                    baseModel
+                      .dbDriver(vTn)
+                      .where(vParentCol.column_name, parentFkValue)
+                      .delete(),
+                    null,
+                    { raw: true },
+                  );
+
+                  for (const r of existing) {
+                    unlinkAuditParentObj.push({
+                      rowId: r[vParentCol.column_name],
+                      refRowId: r[vChildCol.column_name],
+                      type: colOptions.type as RelationTypes,
+                    });
+                    if (parentTable.id !== childTable.id) {
+                      unlinkAuditChildObj.push({
+                        rowId: r[vChildCol.column_name],
+                        refRowId: r[vParentCol.column_name],
+                        type: getOppositeRelationType(colOptions.type),
+                      });
+                    }
+                  }
+                }
+              }
+            }
+
+            // Emit unlink audit for cascaded removals
+            if (unlinkAuditParentObj.length) {
+              baseModel.dbDriver.attachToTransaction(async () => {
+                const clone = baseModel.getNonTransactionalClone();
+                await clone.afterAddOrRemoveChild(
+                  {
+                    opType: AuditV1OperationTypes.DATA_UNLINK,
+                    model: auditConfig.parentModel,
+                    refModel: auditConfig.childModel,
+                    columnTitle: auditConfig.parentColTitle,
+                    columnId: auditConfig.parentColId,
+                    refColumnTitle: auditConfig.childColTitle,
+                    refColumnId: auditConfig.childColId,
+                    req: cookie,
+                  },
+                  unlinkAuditParentObj,
+                );
+                if (unlinkAuditChildObj.length) {
+                  await clone.afterAddOrRemoveChild(
+                    {
+                      opType: AuditV1OperationTypes.DATA_UNLINK,
+                      model: auditConfig.childModel,
+                      refModel: auditConfig.parentModel,
+                      columnTitle: auditConfig.childColTitle,
+                      columnId: auditConfig.childColId,
+                      refColumnTitle: auditConfig.parentColTitle,
+                      refColumnId: auditConfig.parentColId,
+                      req: cookie,
+                    },
+                    unlinkAuditChildObj,
+                  );
+                }
+              });
+            }
           }
 
           // todo: use bulk insert
@@ -762,7 +896,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       parentColId: string;
     };
 
-    switch (colOptions.type) {
+    const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+
+    switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
           validateRefIds(childIds, parentTable);

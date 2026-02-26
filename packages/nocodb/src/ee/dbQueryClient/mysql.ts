@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import {
   ButtonActionsType,
   extractFilterFromXwhere,
+  isMMOrMMLike,
   NcApiVersion,
   NcDataErrorCodes,
   RelationTypes,
@@ -128,6 +129,7 @@ export class MySqlDBQueryClient
     switch (column.uidt) {
       case UITypes.LinkToAnotherRecord:
         {
+          const isMMLike = isMMOrMMLike(column);
           const relatedModel = await (
             column.colOptions as LinkToAnotherRecordColumn
           ).getRelatedTable(context);
@@ -183,7 +185,11 @@ export class MySqlDBQueryClient
             throwErrorIfInvalidParams,
           );
 
-          switch (column.colOptions.type) {
+          const relType = isMMLike
+            ? RelationTypes.MANY_TO_MANY
+            : column.colOptions.type;
+
+          switch (relType) {
             case RelationTypes.MANY_TO_MANY:
               {
                 result.isArray = true;
@@ -646,6 +652,9 @@ export class MySqlDBQueryClient
             await relationColumn.getColOptions<LinkToAnotherRecordColumn>(
               context,
             );
+
+          const isMMLike = isMMOrMMLike(relationColumn);
+
           const { refContext, parentContext, childContext, mmContext } =
             await relationColOpts.getParentChildContext(context);
 
@@ -654,7 +663,12 @@ export class MySqlDBQueryClient
           const relTableAlias = getAlias();
 
           let refBaseModel: BaseModelSqlv2;
-          switch (relationColOpts.type) {
+
+          const relType = isMMLike
+            ? RelationTypes.MANY_TO_MANY
+            : relationColumn.colOptions.type;
+
+          switch (relType) {
             case RelationTypes.MANY_TO_MANY:
               {
                 result.isArray = true;

@@ -1,4 +1,4 @@
-import { RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
 import type { BoolType } from 'nocodb-sdk';
 import type Filter from '~/models/Filter';
 import type { NcContext } from '~/interface/config';
@@ -47,7 +47,7 @@ export default class LinkToAnotherRecordColumn {
   ur?: string;
   fk_index_name?: string;
 
-  type: 'hm' | 'bt' | 'mm' | 'oo';
+  type: 'hm' | 'bt' | 'mm' | 'oo' | 'om' | 'mo';
   virtual: BoolType;
 
   mmModel?: Model;
@@ -60,6 +60,7 @@ export default class LinkToAnotherRecordColumn {
   parentColumn?: Column;
 
   filter?: Filter;
+  version?: number;
 
   constructor(data: Partial<LinkToAnotherRecordColumn>) {
     Object.assign(this, {
@@ -192,6 +193,7 @@ export default class LinkToAnotherRecordColumn {
       'fk_mm_base_id',
       'fk_related_source_id',
       'fk_mm_source_id',
+      'version',
     ]);
 
     await ncMeta.metaInsert2(
@@ -306,36 +308,28 @@ export default class LinkToAnotherRecordColumn {
     let childContext = context;
     let parentContext = context;
 
-    // if hm then child belongs to the related table
-    // if oo(hm) then child belongs to the related table
-    // in these scenario overwrite context if fk_related_base_id is present
-    if (
-      this.fk_related_base_id &&
-      (this.type === RelationTypes.HAS_MANY ||
-        (this.type === RelationTypes.ONE_TO_ONE &&
-          !(
-            column ||
-            (await Column.get(context, { colId: this.fk_column_id }, ncMeta))
-          )?.meta?.bt))
-    ) {
-      childContext = refContext;
-    }
+    if (this.fk_related_base_id) {
+      const col =
+        column ||
+        (await Column.get(context, { colId: this.fk_column_id }, ncMeta));
 
-    // if mm link parent present in related table
-    // if bt then parent belongs to the related table
-    // if oo(bt) then parent belongs to the related table
-    // in these scenario overwrite context if fk_related_base_id is present
-    if (
-      this.fk_related_base_id &&
-      (this.type === RelationTypes.MANY_TO_MANY ||
-        this.type === RelationTypes.BELONGS_TO ||
-        (this.type === RelationTypes.ONE_TO_ONE &&
-          (
-            column ||
-            (await Column.get(context, { colId: this.fk_column_id }, ncMeta))
-          )?.meta?.bt))
-    ) {
-      parentContext = refContext;
+      // V2 om/mo/mm all use junction tables — parent always in related table
+      if (isMMOrMMLike(col)) {
+        parentContext = refContext;
+      } else if (this.type === RelationTypes.HAS_MANY) {
+        // hm: child (FK column) belongs to the related table
+        childContext = refContext;
+      } else if (this.type === RelationTypes.BELONGS_TO) {
+        // bt: parent (PK column) belongs to the related table
+        parentContext = refContext;
+      } else if (this.type === RelationTypes.ONE_TO_ONE) {
+        // oo: depends on which side holds the FK
+        if (col?.meta?.bt) {
+          parentContext = refContext;
+        } else {
+          childContext = refContext;
+        }
+      }
     }
 
     // propagate cache map

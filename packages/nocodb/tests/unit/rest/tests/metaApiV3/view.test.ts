@@ -379,7 +379,6 @@ export default function () {
                       type: 'minLength',
                       value: 5,
                       message: '',
-                      regex: null,
                     },
                   ],
                 },

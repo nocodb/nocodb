@@ -138,7 +138,7 @@ export class InternalController extends InternalControllerCE {
       case 'mcpList':
         return await this.mcpService.list(context, req);
       case 'mcpGet':
-        return await this.mcpService.get(context, req.query.tokenId as string);
+        return await this.mcpService.get(context, req.query.tokenId as string, req);
       case 'workspaceAuditList':
       case 'baseAuditList': {
         const { limit } = await getLimit(

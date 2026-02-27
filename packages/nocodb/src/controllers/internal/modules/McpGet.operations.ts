@@ -32,7 +32,7 @@ export class McpGetOperations
       case 'mcpList':
         return await this.mcpService.list(context, req);
       case 'mcpGet':
-        return await this.mcpService.get(context, req.query.tokenId as string);
+        return await this.mcpService.get(context, req.query.tokenId as string, req);
       case 'mcpRootList':
         return await this.mcpService.listByUserId(context, req);
     }

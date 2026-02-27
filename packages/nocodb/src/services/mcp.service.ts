@@ -41,11 +41,15 @@ export class McpTokenService {
     context: NcContext,
     tokenId: string,
     payload: Pick<MCPTokenType, 'token'>,
+    req: NcRequest,
   ) {
-    // Verify token exists
     const token = await MCPToken.get(context, tokenId);
     if (!token) {
       NcError.get(context).notFound('MCP token not found');
+    }
+
+    if (token.fk_user_id !== req.user.id) {
+      NcError.get(context).forbidden('Not authorized to modify this token');
     }
 
     payload.token = nanoid(32);
@@ -59,11 +63,15 @@ export class McpTokenService {
     };
   }
 
-  async delete(context: NcContext, tokenId: string) {
+  async delete(context: NcContext, tokenId: string, req: NcRequest) {
     const token = await MCPToken.get(context, tokenId);
 
     if (!token) {
-      NcError.notFound('MCP token not found');
+      NcError.get(context).notFound('MCP token not found');
+    }
+
+    if (token.fk_user_id !== req.user.id) {
+      NcError.get(context).forbidden('Not authorized to delete this token');
     }
 
     const success = await MCPToken.delete(context, tokenId);
@@ -74,10 +82,14 @@ export class McpTokenService {
     return true;
   }
 
-  async get(context: NcContext, tokenId: string) {
+  async get(context: NcContext, tokenId: string, req: NcRequest) {
     const token = await MCPToken.get(context, tokenId);
     if (!token) {
-      NcError.notFound('MCP token not found');
+      NcError.get(context).notFound('MCP token not found');
+    }
+
+    if (token.fk_user_id !== req.user.id) {
+      NcError.get(context).forbidden('Not authorized to access this token');
     }
 
     return {

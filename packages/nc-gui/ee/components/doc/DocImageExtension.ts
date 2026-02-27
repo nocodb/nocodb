@@ -45,6 +45,14 @@ export const DocImageExtension = Image.extend({
           return { 'data-align': attrs.align || 'center' }
         },
       },
+      caption: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-caption') || null,
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.caption) return {}
+          return { 'data-caption': attrs.caption }
+        },
+      },
     }
   },
 

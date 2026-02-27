@@ -105,6 +105,33 @@ onBeforeUnmount(() => {
   document.removeEventListener('mouseup', onResizeEnd)
 })
 
+// --- Caption ---
+const captionText = ref(props.node.attrs.caption || '')
+const captionInputRef = ref<HTMLInputElement | null>(null)
+
+const hasCaption = computed(() => !!props.node.attrs.caption)
+
+const onCaptionBlur = () => {
+  const trimmed = captionText.value.trim()
+  props.updateAttributes({ caption: trimmed || null })
+}
+
+const onCaptionKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    captionInputRef.value?.blur()
+  }
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    captionText.value = props.node.attrs.caption || ''
+    captionInputRef.value?.blur()
+  }
+}
+
+watch(() => props.node.attrs.caption, (val) => {
+  captionText.value = val || ''
+})
+
 // --- Toolbar visibility ---
 const showToolbar = computed(() => props.selected && !isResizing.value)
 </script>
@@ -207,6 +234,22 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
           }"
         />
       </template>
+
+      <!-- Caption -->
+      <input
+        v-if="selected && resolvedSrc"
+        ref="captionInputRef"
+        v-model="captionText"
+        class="nc-doc-image-caption nc-doc-image-caption-input"
+        data-testid="nc-doc-image-caption"
+        placeholder="Write a caption"
+        contenteditable="false"
+        @blur="onCaptionBlur"
+        @keydown="onCaptionKeydown"
+      />
+      <div v-else-if="hasCaption" class="nc-doc-image-caption">
+        {{ node.attrs.caption }}
+      </div>
     </div>
   </NodeViewWrapper>
 </template>
@@ -215,16 +258,17 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
 .nc-doc-image-wrapper {
   position: relative;
   display: flex;
+  flex-direction: column;
   margin: 0.75em 0;
 
   &.nc-doc-image-align-left {
-    justify-content: flex-start;
+    align-items: flex-start;
   }
   &.nc-doc-image-align-center {
-    justify-content: center;
+    align-items: center;
   }
   &.nc-doc-image-align-right {
-    justify-content: flex-end;
+    align-items: flex-end;
   }
 
   &.is-selected .nc-doc-image-container {
@@ -344,5 +388,31 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
   height: 20px;
   background: var(--nc-border-gray-medium);
   margin: 0 2px;
+}
+
+// --- Caption ---
+.nc-doc-image-caption {
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  font-style: italic;
+  color: var(--nc-content-gray-muted);
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.nc-doc-image-caption-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  cursor: text;
+
+  &::placeholder {
+    color: var(--nc-content-gray-muted);
+    font-style: italic;
+    opacity: 0.7;
+  }
 }
 </style>

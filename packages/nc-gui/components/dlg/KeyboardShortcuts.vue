@@ -5,8 +5,6 @@ const { modelValue } = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const { t } = useI18n()
-
 const dialogShow = computed({
   get: () => modelValue,
   set: (v) => emit('update:modelValue', v),

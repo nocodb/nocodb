@@ -429,9 +429,6 @@ watch(
       }"
     >
       <NcTabs v-model:active-key="projectPageTab" class="w-full" :class="{ 'hide-tabs': props.tab }">
-        <template #leftExtra>
-          <div class="w-3"></div>
-        </template>
         <a-tab-pane
           v-if="!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode"
           key="overview"
@@ -612,7 +609,7 @@ watch(
   @apply !h-full;
 }
 :deep(.ant-tabs-nav) {
-  @apply !mb-0;
+  @apply !mb-0 !pl-0;
 }
 
 .tab-title {
@@ -623,7 +620,7 @@ watch(
   }
 }
 :deep(.ant-tabs-tab) {
-  @apply pt-2 pb-3;
+  @apply pt-1.5 pb-2;
 
   & + .ant-tabs-tab {
     @apply !ml-0;

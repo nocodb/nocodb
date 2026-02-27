@@ -129,7 +129,7 @@ onBeforeMount(() => {
   @apply !pl-0;
 }
 :deep(.ant-tabs-tab) {
-  @apply pt-2 pb-3;
+  @apply pt-1.5 pb-2;
 }
 
 .ant-tabs-content-top {

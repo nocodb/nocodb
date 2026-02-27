@@ -25,6 +25,8 @@ const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
+const { $e } = useNuxtApp()
+
 const logout = async () => {
   isLoggingOut.value = true
   try {
@@ -73,6 +75,23 @@ const copyEmail = () => {
   if (!user?.value?.email) return
 
   copyBtnRef.value?.copyContent?.(user.value?.email)
+}
+
+const openKeyboardShortcutDialog = () => {
+  isMenuOpen.value = false
+  $e('a:actions:keyboard-shortcut')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgKeyboardShortcuts'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(300)
+  }
 }
 </script>
 
@@ -255,6 +274,20 @@ const copyEmail = () => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
+              <NcMenuItem
+                v-e="['c:user:keyboard-shortcuts']"
+                data-testid="nc-sidebar-keyboard-shortcuts"
+                @click="openKeyboardShortcutDialog"
+              >
+                <GeneralIcon icon="ncKeyboard" class="menu-icon" />
+                <div class="flex items-center justify-between flex-1">
+                  <span class="menu-btn"> {{ $t('title.keyboardShortcut') }} </span>
+                  <span class="flex items-center gap-0.5 text-nc-content-gray-muted ml-1">
+                    <kbd class="nc-user-menu-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
+                    <kbd class="nc-user-menu-kbd">/</kbd>
+                  </span>
+                </div>
+              </NcMenuItem>
               <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens">
                 <NcMenuItem>
                   <GeneralIcon icon="ncKey2" class="menu-icon mt-0.5" />
@@ -337,6 +370,16 @@ const copyEmail = () => {
   :deep(img) {
     @apply !cursor-pointer;
   }
+}
+
+.nc-user-menu-kbd {
+  @apply inline-flex items-center justify-center
+    min-w-4.5 h-4.5 px-1
+    text-[10px] font-medium leading-none
+    text-nc-content-gray-muted
+    bg-nc-bg-gray-light
+    border-1 border-nc-border-gray-medium
+    rounded;
 }
 
 .social-icon {

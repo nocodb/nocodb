@@ -121,6 +121,16 @@ const navigateToBaseSettings = (page: string) => {
   navigateTo(`/${wsId}/${baseId}/admin/${slug}`)
 }
 
+const activeAdminPage = computed(() => {
+  if (activeSidebarTab.value !== 'admin') return ''
+  return (route.value.params.page as string) || 'members'
+})
+
+const isAdminItemActive = (tab: string) => {
+  const slug = tabToSlug[tab] || tab
+  return activeAdminPage.value === slug
+}
+
 const navigateToWsSettingsTab = (query: Record<string, string> = {}) => {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
@@ -229,6 +239,7 @@ const navigateToIntegrations = () => {
                 v-if="isUIAllowed('newUser', { roles: baseRoles })"
                 v-e="['c:admin:base:add-user']"
                 class="nc-admin-panel-item"
+                :class="{ active: isAdminItemActive('collaborator') }"
                 @click="navigateToBaseSettings('collaborator')"
               >
                 <GeneralIcon icon="users" class="h-4 w-4 flex-none" />
@@ -238,6 +249,7 @@ const navigateToIntegrations = () => {
                 v-if="isEeUI && isTeamsEnabled"
                 v-e="['c:admin:base:add-team']"
                 class="nc-admin-panel-item"
+                :class="{ active: isAdminItemActive('collaborator') }"
                 @click="navigateToBaseSettings('collaborator')"
               >
                 <GeneralIcon icon="ncBuilding" class="h-4 w-4 flex-none" />
@@ -247,6 +259,7 @@ const navigateToIntegrations = () => {
                 v-if="isUIAllowed('sourceCreate')"
                 v-e="['c:admin:base:add-data-source']"
                 class="nc-admin-panel-item"
+                :class="{ active: isAdminItemActive('data-source') }"
                 @click="navigateToBaseSettings('data-source')"
               >
                 <GeneralIcon icon="ncDatabase" class="h-4 w-4 flex-none" />
@@ -256,6 +269,7 @@ const navigateToIntegrations = () => {
                 v-if="isEeUI && isUIAllowed('sourceCreate')"
                 v-e="['c:admin:base:permissions']"
                 class="nc-admin-panel-item"
+                :class="{ active: isAdminItemActive('permissions') }"
                 @click="navigateToBaseSettings('permissions')"
               >
                 <GeneralIcon icon="ncLock" class="h-4 w-4 flex-none" />
@@ -265,6 +279,7 @@ const navigateToIntegrations = () => {
                 v-if="isEeUI && isUIAllowed('sourceCreate')"
                 v-e="['c:admin:base:syncs']"
                 class="nc-admin-panel-item"
+                :class="{ active: isAdminItemActive('syncs') }"
                 @click="navigateToBaseSettings('syncs')"
               >
                 <GeneralIcon icon="ncZap" class="h-4 w-4 flex-none" />
@@ -273,6 +288,7 @@ const navigateToIntegrations = () => {
               <div
                 v-e="['c:admin:base:more']"
                 class="nc-admin-panel-item"
+                :class="{ active: isAdminItemActive('base-settings') }"
                 @click="navigateToBaseSettings('base-settings')"
               >
                 <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4 flex-none" />
@@ -388,6 +404,10 @@ const navigateToIntegrations = () => {
 
   &:hover {
     @apply bg-nc-bg-gray-medium text-nc-content-gray;
+  }
+
+  &.active {
+    @apply bg-primary-selected dark:bg-nc-bg-gray-medium text-nc-content-gray;
   }
 }
 </style>

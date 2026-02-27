@@ -84,32 +84,46 @@ const sqlite3 = {
       dateIN = Number(dateIN.toQuery());
     }
 
-    let dateModifier = (await fn(pt.arguments[2])).builder;
-    if (typeof dateModifier === 'object' && dateModifier.toQuery) {
-      dateModifier = dateModifier.toQuery();
+    if (pt.arguments[2].type === 'Literal') {
+      let dateModifier = (await fn(pt.arguments[2])).builder;
+      if (typeof dateModifier === 'object' && dateModifier.toQuery) {
+        dateModifier = dateModifier.toQuery();
+      }
+      const unit = validateDateAddUnit(String(dateModifier));
+      const fullModifierRaw = `${dateIN > 0 ? '+' : ''}${dateIN} ${unit}`;
+
+      return {
+        builder: knex.raw(
+          `CASE
+        WHEN :source LIKE '%:%' THEN
+          STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(:source, 'utc', ':fullModifier'))
+        ELSE
+          DATE(:source, ':fullModifier')
+        END`,
+          {
+            source,
+            fullModifier: knex.raw(fullModifierRaw),
+          },
+        ),
+      };
     }
 
-    let fullModifierRaw: string;
-    if (pt.arguments[2].type === 'Literal') {
-      const unit = validateDateAddUnit(String(dateModifier));
-      fullModifierRaw = `${dateIN > 0 ? '+' : ''}${dateIN} ${unit}`;
-    } else {
-      const safeUnit = safeDateAddUnitSQL(knex, dateModifier);
-      fullModifierRaw = `'${dateIN > 0 ? '+' : ''}${dateIN} ' || ${safeUnit}`;
-    }
+    // Dynamic unit (field reference) — build modifier as a SQL expression
+    // with proper ? bindings so knex nests the Raw correctly
+    const unitBuilder = (await fn(pt.arguments[2])).builder;
+    const safeUnit = safeDateAddUnitSQL(knex, unitBuilder);
+    const prefix = `${dateIN > 0 ? '+' : ''}${dateIN} `;
+    const fullModifier = knex.raw(`'${prefix}' || ?`, [safeUnit]);
 
     return {
       builder: knex.raw(
         `CASE
-      WHEN :source LIKE '%:%' THEN
-        STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(:source, 'utc', ':fullModifier'))
+      WHEN ? LIKE '%:%' THEN
+        STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(?, 'utc', ?))
       ELSE
-        DATE(:source, ':fullModifier')
+        DATE(?, ?)
       END`,
-        {
-          source,
-          fullModifier: knex.raw(fullModifierRaw),
-        },
+        [source, source, fullModifier, source, fullModifier],
       ),
     };
   },

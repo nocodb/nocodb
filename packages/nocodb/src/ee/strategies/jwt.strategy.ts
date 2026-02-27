@@ -45,10 +45,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
       return {
         ...jwtPayload,
-        base_roles: ProjectRoles.CREATOR,
         isAuthorized: true,
         // always treat automation user like accessing via API Token
         is_api_token: true,
+        ...([NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER].email].includes(jwtPayload.email) ? {
+          base_roles: {
+            [ProjectRoles.CREATOR]: true
+          }
+        } : ({ base_roles: (jwtPayload?.context?.user?.base_roles ?? {}) }))
       };
     }
 

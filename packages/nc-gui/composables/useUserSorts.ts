@@ -133,8 +133,8 @@ export function useUserSorts(
     let sortedData = data.sort((a, b) => {
       switch (sortsConfig.field) {
         case 'roles': {
-          const roleA = a?.roles?.split(',')[0]
-          const roleB = b?.roles?.split(',')[0]
+          const roleA = a?.effective_role || a?.roles?.split(',')[0]
+          const roleB = b?.effective_role || b?.roles?.split(',')[0]
 
           if (sortsConfig.direction === 'asc') {
             return userRoleOrder.indexOf(roleA) - userRoleOrder.indexOf(roleB)

@@ -652,15 +652,48 @@ watch(inviteDlg, (newVal) => {
               <template
                 v-if="isRoleUpdateAllowed(record) && isOwnerOrCreator && getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles as WorkspaceUserRoles)"
               >
-                <RolesSelectorV2
-                  :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
-                  :role="record.roles"
-                  :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
-                  class="cursor-pointer"
-                />
+                <div class="flex flex-col gap-1">
+                  <RolesSelectorV2
+                    :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
+                    :role="record.roles"
+                    :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
+                    :effective-role="record.effective_role"
+                    class="cursor-pointer"
+                  />
+                  <NcTooltip v-if="record.role_source?.length" placement="bottom">
+                    <template #title>
+                      <div class="text-xs">
+                        <div v-for="src in record.role_source" :key="src.team_id">
+                          {{ teamsMap[src.team_id]?.title || src.team_id }}
+                          <span class="capitalize">({{ src.role?.replace('workspace-level-', '') }})</span>
+                        </div>
+                      </div>
+                    </template>
+                    <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted cursor-help">
+                      <GeneralIcon icon="ncBuilding" class="h-3 w-3 flex-none" />
+                      <span>{{ $t('tooltip.roleInheritedFromTeam') }}</span>
+                    </div>
+                  </NcTooltip>
+                </div>
               </template>
               <template v-else>
-                <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
+                <div class="flex flex-col gap-1">
+                  <RolesBadge :border="false" :role="record.effective_role || record.roles" class="cursor-default" />
+                  <NcTooltip v-if="record.role_source?.length" placement="bottom">
+                    <template #title>
+                      <div class="text-xs">
+                        <div v-for="src in record.role_source" :key="src.team_id">
+                          {{ teamsMap[src.team_id]?.title || src.team_id }}
+                          <span class="capitalize">({{ src.role?.replace('workspace-level-', '') }})</span>
+                        </div>
+                      </div>
+                    </template>
+                    <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted cursor-help">
+                      <GeneralIcon icon="ncBuilding" class="h-3 w-3 flex-none" />
+                      <span>{{ $t('tooltip.roleInheritedFromTeam') }}</span>
+                    </div>
+                  </NcTooltip>
+                </div>
               </template>
             </div>
             <div v-if="column.key === 'created_at'">

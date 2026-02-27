@@ -11,6 +11,7 @@ import {
   HigherPlan,
   NcBaseError,
   NON_SEAT_ROLES,
+  OrderedWorkspaceRoles,
   parseProp,
   TeamUserRoles,
   WorkspaceUserRoles,
@@ -44,6 +45,7 @@ import Workspace from '~/models/Workspace';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { Team } from '~/ee/models';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
+import { extractUserTeamRoles } from '~/ee/utils/team-role-extractor';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -78,10 +80,47 @@ export class WorkspaceUsersService {
       ncMeta,
     );
 
+    const context = {
+      workspace_id: param.workspaceId,
+      base_id: '',
+    } as NcContext;
+
     for (const user of users) {
       if (seatUsersMap.has(user.fk_user_id)) {
         user.meta = parseProp(user.meta);
         user.meta.billable = true;
+      }
+
+      // Resolve effective role for users with 'inherit' role
+      if (user.roles === WorkspaceUserRoles.INHERIT) {
+        try {
+          const { roles: teamRoles, teams: matchedTeams } =
+            await extractUserTeamRoles(
+              context,
+              user.fk_user_id,
+              param.workspaceId,
+            );
+
+          if (teamRoles) {
+            // Find highest power role using OrderedWorkspaceRoles (first match = highest)
+            const effectiveRole = OrderedWorkspaceRoles.find(
+              (r) =>
+                teamRoles[r] &&
+                r !== WorkspaceUserRoles.INHERIT &&
+                r !== WorkspaceUserRoles.NO_ACCESS,
+            );
+
+            if (effectiveRole) {
+              user.effective_role = effectiveRole;
+              user.role_source = matchedTeams.map((t) => ({
+                team_id: t.team_id,
+                role: t.roles,
+              }));
+            }
+          }
+        } catch (_e) {
+          // Don't break the list if role resolution fails
+        }
       }
     }
 

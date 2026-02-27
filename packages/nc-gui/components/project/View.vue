@@ -10,13 +10,15 @@ const props = defineProps<{
 
 const { hideSidebar, isBaseSettingsFullPage } = storeToRefs(useSidebarStore())
 
-const { integrations } = useProvideIntegrationViewStore()
+const { integrations, isFromIntegrationPage, loadIntegrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
 
 const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeToRefs(basesStore)
 const { activeTable } = storeToRefs(useTablesStore())
-const { activeWorkspace, isTeamsEnabled } = storeToRefs(useWorkspace())
+const workspaceStore = useWorkspace()
+const { loadCollaborators } = workspaceStore
+const { activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -30,8 +32,20 @@ const {
   blockSync,
   showUpgradeToUseSync,
   isWsAuditEnabled,
-  isEEFeatureBlocked,
+  isPaymentEnabled,
+  getFeature,
 } = useEeConfig()
+
+const isWorkspaceSsoAvail = computed(() => {
+  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
+    return true
+  }
+  return false
+})
+
+const hasWsTeamsEditPermission = computed(() => {
+  return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
+})
 
 const currentBase = computedAsync(async () => {
   let base
@@ -169,6 +183,8 @@ watch(
         projectPageTab.value = 'mcp'
       } else if (newVal === 'snapshots' && isEeUI) {
         projectPageTab.value = 'snapshots'
+      } else if (typeof newVal === 'string' && newVal.startsWith('ws-')) {
+        projectPageTab.value = newVal
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -197,6 +213,14 @@ const tabToSlug: Record<string, string> = {
   overview: 'overview',
   mcp: 'mcp',
   snapshots: 'snapshots',
+  // Workspace settings
+  'ws-collaborators': 'ws-members',
+  'ws-teams': 'ws-teams',
+  'ws-integrations': 'ws-integrations',
+  'ws-billing': 'ws-billing',
+  'ws-audits': 'ws-audits',
+  'ws-sso': 'ws-sso',
+  'ws-settings': 'ws-settings',
 }
 
 const { t } = useI18n()
@@ -213,6 +237,14 @@ const adminPageTitle = computed(() => {
     audits: t('title.audits'),
     workflows: t('objects.workflows'),
     overview: t('general.overview'),
+    // Workspace settings
+    'ws-collaborators': t('labels.inviteUsersToWorkspace'),
+    'ws-teams': t('labels.manageTeams'),
+    'ws-integrations': t('general.integrations'),
+    'ws-billing': t('general.billing'),
+    'ws-audits': t('title.audits'),
+    'ws-sso': t('title.sso'),
+    'ws-settings': t('general.general'),
   }
   return tabTitles[projectPageTab.value] || ''
 })
@@ -265,6 +297,20 @@ watch(
      * properly when opening the create/edit source modal with the updated base.
      */
     integrations.value = []
+  },
+)
+
+// Load workspace data when navigating to workspace tabs
+watch(
+  () => projectPageTab.value,
+  (tab) => {
+    if (['ws-collaborators', 'ws-teams'].includes(tab) && activeWorkspace.value?.id) {
+      loadCollaborators({} as any, activeWorkspace.value.id)
+    }
+    if (tab === 'ws-integrations') {
+      isFromIntegrationPage.value = true
+      loadIntegrations()
+    }
   },
 )
 
@@ -527,6 +573,34 @@ watch(
             </div>
           </template>
           <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
+        </a-tab-pane>
+
+        <!-- Workspace settings tabs (rendered inline from admin sidebar, hidden from tab bar) -->
+        <a-tab-pane v-if="props.tab && props.tab.startsWith('ws-') && activeWorkspace?.id" :key="projectPageTab">
+          <template v-if="projectPageTab === 'ws-collaborators'">
+            <WorkspaceCollaboratorsList :workspace-id="activeWorkspace.id" :is-active="true" />
+          </template>
+          <template v-else-if="projectPageTab === 'ws-teams'">
+            <WorkspaceTeams :workspace-id="activeWorkspace.id" :is-active="true" />
+          </template>
+          <template v-else-if="projectPageTab === 'ws-integrations'">
+            <div class="h-full">
+              <WorkspaceIntegrationsTab show-filter />
+              <WorkspaceIntegrationsEditOrAdd />
+            </div>
+          </template>
+          <template v-else-if="projectPageTab === 'ws-billing'">
+            <PaymentBillingPage />
+          </template>
+          <template v-else-if="projectPageTab === 'ws-audits'">
+            <WorkspaceAudits />
+          </template>
+          <template v-else-if="projectPageTab === 'ws-sso'">
+            <WorkspaceSso />
+          </template>
+          <template v-else-if="projectPageTab === 'ws-settings'">
+            <WorkspaceSettings :workspace-id="activeWorkspace.id" />
+          </template>
         </a-tab-pane>
       </NcTabs>
     </div>

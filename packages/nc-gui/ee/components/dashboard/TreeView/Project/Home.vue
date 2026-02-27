@@ -14,11 +14,6 @@ const { baseUrl, navigateToProjectPage: _navigateToBaseProjectPage } = useBase()
 
 const workspaceStore = useWorkspace()
 
-const {
-  navigateToWorkspaceSettings,
-  navigateToIntegrations: _navigateToIntegrations,
-} = workspaceStore
-
 const { isTeamsEnabled } = storeToRefs(workspaceStore)
 const workflowStore = useWorkflowStore()
 
@@ -109,6 +104,14 @@ const tabToSlug: Record<string, string> = {
   overview: 'overview',
   mcp: 'mcp',
   snapshots: 'snapshots',
+  // Workspace settings
+  'ws-collaborators': 'ws-members',
+  'ws-teams': 'ws-teams',
+  'ws-integrations': 'ws-integrations',
+  'ws-billing': 'ws-billing',
+  'ws-audits': 'ws-audits',
+  'ws-sso': 'ws-sso',
+  'ws-settings': 'ws-settings',
 }
 
 const navigateToBaseSettings = (page: string) => {
@@ -131,23 +134,6 @@ const isAdminItemActive = (tab: string) => {
   return activeAdminPage.value === slug
 }
 
-const navigateToWsSettingsTab = (query: Record<string, string> = {}) => {
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  navigateToWorkspaceSettings('', cmdOrCtrl, query)
-}
-
-const navigateToSettings = () => {
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  navigateToWorkspaceSettings('', cmdOrCtrl)
-}
-
-const navigateToIntegrations = () => {
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  _navigateToIntegrations('', cmdOrCtrl)
-}
 
 </script>
 
@@ -301,7 +287,7 @@ const navigateToIntegrations = () => {
                 :class="{ active: isAdminItemActive('base-settings') }"
                 @click="navigateToBaseSettings('base-settings')"
               >
-                <GeneralIcon icon="ncSettings" class="h-4 w-4 flex-none" />
+                <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4 flex-none" />
                 <span>{{ $t('general.general') }}</span>
               </div>
             </div>
@@ -318,7 +304,8 @@ const navigateToIntegrations = () => {
               v-if="isUIAllowed('workspaceCollaborators')"
               v-e="['c:admin:ws:invite-user']"
               class="nc-admin-panel-item"
-              @click="navigateToWsSettingsTab()"
+              :class="{ active: isAdminItemActive('ws-collaborators') }"
+              @click="navigateToBaseSettings('ws-collaborators')"
             >
               <GeneralIcon icon="users" class="h-4 w-4 flex-none" />
               <span>{{ $t('labels.inviteUsersToWorkspace') }}</span>
@@ -327,28 +314,31 @@ const navigateToIntegrations = () => {
               v-if="isEeUI && isTeamsEnabled"
               v-e="['c:admin:ws:add-team']"
               class="nc-admin-panel-item"
-              @click="navigateToWsSettingsTab({ tab: 'teams' })"
+              :class="{ active: isAdminItemActive('ws-teams') }"
+              @click="navigateToBaseSettings('ws-teams')"
             >
               <GeneralIcon icon="ncBuilding" class="h-4 w-4 flex-none" />
-              <span>{{ $t('labels.addTeam') }}</span>
+              <span>{{ $t('labels.manageTeams') }}</span>
             </div>
             <div
               v-if="isUIAllowed('workspaceIntegrations')"
               v-e="['c:integrations']"
               class="nc-admin-panel-item"
-              @click="navigateToIntegrations"
+              :class="{ active: isAdminItemActive('ws-integrations') }"
+              @click="navigateToBaseSettings('ws-integrations')"
             >
               <GeneralIcon icon="integration" class="h-4 w-4 flex-none" />
               <span>{{ $t('general.integrations') }}</span>
             </div>
             <div
               v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
-              v-e="['c:admin:ws:more']"
+              v-e="['c:admin:ws:general']"
               class="nc-admin-panel-item"
-              @click="navigateToSettings"
+              :class="{ active: isAdminItemActive('ws-settings') }"
+              @click="navigateToBaseSettings('ws-settings')"
             >
               <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4 flex-none" />
-              <span>{{ $t('general.more') }}</span>
+              <span>{{ $t('general.general') }}</span>
             </div>
           </div>
         </div>

@@ -152,7 +152,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
 
     this.publicMetasService.checkViewBaseType(dashboard, base);
 
-    if (dashboard.password && dashboard.password !== password) {
+    if (!(await Dashboard.verifyPassword(dashboard, password))) {
       return NcError.invalidSharedDashboardPassword();
     }
 

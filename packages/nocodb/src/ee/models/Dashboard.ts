@@ -1,6 +1,7 @@
 import DashboardCE from 'src/models/Dashboard';
 import { ModelTypes, PlanLimitTypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import bcrypt from 'bcryptjs';
 import type { DashboardType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Widget from '~/models/Widget';
@@ -214,6 +215,11 @@ export default class Dashboard extends DashboardCE implements DashboardType {
 
     updateObj = prepareForDb(updateObj, ['meta']);
 
+    // Hash password if being set
+    if (updateObj.password) {
+      updateObj.password = await bcrypt.hash(updateObj.password, 10);
+    }
+
     // update meta
     await ncMeta.metaUpdate(
       context.workspace_id,
@@ -237,6 +243,25 @@ export default class Dashboard extends DashboardCE implements DashboardType {
     });
 
     return this.get(context, dashboardId, ncMeta);
+  }
+
+  static async verifyPassword(
+    dashboard: { password?: string },
+    inputPassword: string,
+  ): Promise<boolean> {
+    if (!dashboard.password) return true;
+    if (!inputPassword) return false;
+
+    // Support bcrypt hashed passwords
+    if (
+      dashboard.password.startsWith('$2a$') ||
+      dashboard.password.startsWith('$2b$')
+    ) {
+      return bcrypt.compare(inputPassword, dashboard.password);
+    }
+
+    // Plaintext fallback for pre-migration passwords
+    return dashboard.password === inputPassword;
   }
 
   static async delete(

@@ -1,4 +1,4 @@
-.skills
+.claude
 CLAUDE.md
 */CLAUDE.md
 packages/nocodb/src/ee

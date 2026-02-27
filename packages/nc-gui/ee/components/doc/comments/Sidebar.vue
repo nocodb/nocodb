@@ -214,7 +214,9 @@ watch(
     <div class="flex items-center justify-between px-3 py-2.5 border-b-1 border-nc-border-gray-medium flex-none">
       <div class="flex items-center gap-2">
         <span class="font-semibold text-sm text-nc-content-gray">{{ $t('general.comments') }}</span>
-        <NcBadge v-if="comments.length" :count="comments.length" class="nc-doc-comment-count" overflow-count="99" />
+        <NcBadge v-if="comments.length" color="brand" size="xs" class="nc-doc-comment-count text-[11px] font-semibold">
+          {{ comments.length > 99 ? '99+' : comments.length }}
+        </NcBadge>
       </div>
       <NcButton size="xsmall" type="text" @click="emit('close')">
         <GeneralIcon icon="close" />

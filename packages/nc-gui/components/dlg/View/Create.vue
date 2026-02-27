@@ -849,15 +849,23 @@ watch(activeBaseId, () => {
               {{ $t(`labels.${getPluralName('createListView')}`) }}
             </template>
           </template>
+          <template v-else-if="form.type === ViewTypes.MAP">
+            <template v-if="form.copy_from_id">
+              {{ $t('labels.duplicateMapView') }}
+            </template>
+            <template v-else>
+              {{ $t(`labels.${getPluralName('createMapView')}`) }}
+            </template>
+          </template>
           <template v-else-if="form.type === 'AI'">
             {{ $t('labels.createViewUsingAi') }}
           </template>
           <template v-else>
             <template v-if="form.copy_from_id">
-              {{ $t('labels.duplicateMapView') }}
+              {{ $t('labels.duplicateView') }}
             </template>
             <template v-else>
-              {{ $t('labels.duplicateView') }}
+              {{ $t('labels.createView') }}
             </template>
           </template>
         </div>

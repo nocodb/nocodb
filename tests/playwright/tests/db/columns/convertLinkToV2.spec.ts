@@ -53,30 +53,28 @@ test.describe('Convert Link to V2', () => {
 
     // Link some records via expanded form
     await dashboard.grid.cell.inCellExpand({ index: 0, columnHeader: 'CompanyOrders' });
-    await dashboard.linkRecord.select('Order-1');
+    await dashboard.linkRecord.select('Order-1', false);
     await dashboard.linkRecord.select('Order-2');
-    await dashboard.linkRecord.close();
 
     await dashboard.grid.cell.inCellExpand({ index: 1, columnHeader: 'CompanyOrders' });
     await dashboard.linkRecord.select('Order-3');
-    await dashboard.linkRecord.close();
 
     // Verify link counts before conversion
     await dashboard.grid.cell.verifyVirtualCell({
       index: 0,
       columnHeader: 'CompanyOrders',
       count: 2,
-      type: 'hm',
+      options: { singular: 'Order', plural: 'Orders' },
     });
     await dashboard.grid.cell.verifyVirtualCell({
       index: 1,
       columnHeader: 'CompanyOrders',
       count: 1,
-      type: 'hm',
+      options: { singular: 'Order', plural: 'Orders' },
     });
 
     // Open column menu and click "Convert to New Link"
-    await dashboard.grid.column.getColumnHeader('CompanyOrders').locator('.nc-ui-dt-dropdown').click();
+    await dashboard.grid.get().locator('th[data-title="CompanyOrders"] .nc-ui-dt-dropdown').click();
     await dashboard.rootPage.getByTestId('nc-column-convert-link-v2').click();
 
     // Dialog should appear — click the Convert button
@@ -91,22 +89,14 @@ test.describe('Convert Link to V2', () => {
     // Verify: original column should now be a Rollup showing count
     // The column title stays the same — "CompanyOrders"
     // It should show numeric counts: 2, 1
-    const cell0 = await dashboard.grid.cell.get({ index: 0, columnHeader: 'CompanyOrders' });
+    const cell0 = dashboard.grid.cell.get({ index: 0, columnHeader: 'CompanyOrders' });
     await expect(cell0).toContainText('2');
-    const cell1 = await dashboard.grid.cell.get({ index: 1, columnHeader: 'CompanyOrders' });
+    const cell1 = dashboard.grid.cell.get({ index: 1, columnHeader: 'CompanyOrders' });
     await expect(cell1).toContainText('1');
 
-    // Verify: a new LTAR column should have been created
-    // It should be of type LinkToAnotherRecord, not Links
-    // The title will be a variant of "CompanyOrders" (deduplicated)
-    // Check that a new column header exists after the original
-    const newColHeader = dashboard.grid.get().locator('th[data-title="CompanyOrders_2"]');
-    if (await newColHeader.isVisible()) {
-      // New LTAR column exists — verify it shows related record chips (not just a count)
-      await dashboard.grid.cell.inCellExpand({ index: 0, columnHeader: 'CompanyOrders_2' });
-      // Close the expanded form
-      await dashboard.rootPage.keyboard.press('Escape');
-    }
+    // Verify: a new LTAR column "LTAR_CompanyOrders" should have been created
+    const newColHeader = dashboard.grid.get().locator('th[data-title="LTAR_CompanyOrders"]');
+    await expect(newColHeader).toBeVisible();
   });
 
   test('Convert Many to Many link column from V1 to V2', async () => {
@@ -135,16 +125,14 @@ test.describe('Convert Link to V2', () => {
 
     // Link records
     await dashboard.grid.cell.inCellExpand({ index: 0, columnHeader: 'Enrollments' });
-    await dashboard.linkRecord.select('Math');
+    await dashboard.linkRecord.select('Math', false);
     await dashboard.linkRecord.select('Science');
-    await dashboard.linkRecord.close();
 
     await dashboard.grid.cell.inCellExpand({ index: 1, columnHeader: 'Enrollments' });
     await dashboard.linkRecord.select('Math');
-    await dashboard.linkRecord.close();
 
     // Convert to V2
-    await dashboard.grid.column.getColumnHeader('Enrollments').locator('.nc-ui-dt-dropdown').click();
+    await dashboard.grid.get().locator('th[data-title="Enrollments"] .nc-ui-dt-dropdown').click();
     await dashboard.rootPage.getByTestId('nc-column-convert-link-v2').click();
     await dashboard.rootPage.getByTestId('nc-convert-link-v2-btn').click();
 
@@ -153,9 +141,13 @@ test.describe('Convert Link to V2', () => {
     await dashboard.rootPage.waitForTimeout(2000);
 
     // Verify: original column now a Rollup with counts
-    const cell0 = await dashboard.grid.cell.get({ index: 0, columnHeader: 'Enrollments' });
+    const cell0 = dashboard.grid.cell.get({ index: 0, columnHeader: 'Enrollments' });
     await expect(cell0).toContainText('2');
-    const cell1 = await dashboard.grid.cell.get({ index: 1, columnHeader: 'Enrollments' });
+    const cell1 = dashboard.grid.cell.get({ index: 1, columnHeader: 'Enrollments' });
     await expect(cell1).toContainText('1');
+
+    // Verify: a new LTAR column "LTAR_Enrollments" should have been created
+    const newColHeader = dashboard.grid.get().locator('th[data-title="LTAR_Enrollments"]');
+    await expect(newColHeader).toBeVisible();
   });
 });

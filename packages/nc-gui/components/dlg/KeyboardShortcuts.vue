@@ -33,28 +33,24 @@ const shortcutList = [
         behaviour: 'Open recent views',
       },
       {
-        keys: [renderAltOrOptlKey(), 'T'],
-        behaviour: 'Insert new table',
-      },
-      {
-        keys: [renderAltOrOptlKey(), 'R'],
-        behaviour: 'Insert new row',
-      },
-      {
-        keys: [renderAltOrOptlKey(), 'C'],
-        behaviour: 'Insert new column',
-      },
-      {
         keys: [renderAltOrOptlKey(), 'D'],
         behaviour: 'Create new base',
+      },
+      {
+        keys: [renderAltOrOptlKey(), 'T'],
+        behaviour: 'Insert new table',
       },
       {
         keys: [renderAltOrOptlKey(), 'I'],
         behaviour: 'Open share modal',
       },
       {
-        keys: [renderAltOrOptlKey(), ','],
-        behaviour: 'Open Team & Settings',
+        keys: [renderAltOrOptlKey(), 'C'],
+        behaviour: 'Insert new column',
+      },
+      {
+        keys: [renderAltOrOptlKey(), 'R'],
+        behaviour: 'Insert new row',
       },
     ],
   },

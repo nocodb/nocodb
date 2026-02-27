@@ -16,7 +16,7 @@ const { appInfo } = useGlobal()
 const { isEEFeatureBlocked, showUpgradeToUseWorkflows } = useEeConfig()
 
 const label = computed(() => {
-  return `${t('general.create')} ${t('general.empty')} ${t('objects.workflow')}`
+  return `${t('general.create')} ${t('objects.workflow')}`
 })
 
 async function openNewWorkflowModal() {

@@ -16,7 +16,7 @@ const { appInfo } = useGlobal()
 const { isEEFeatureBlocked, showUpgradeToUseScripts } = useEeConfig()
 
 const label = computed(() => {
-  return `${t('general.create')} ${t('general.empty')} ${t('objects.script')}`
+  return `${t('general.create')} ${t('objects.script')}`
 })
 
 async function openNewScriptModal() {

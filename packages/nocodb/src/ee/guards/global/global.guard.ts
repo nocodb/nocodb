@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { extractRolesObj, PlanLimitTypes } from 'nocodb-sdk';
+import { PlanLimitTypes } from 'nocodb-sdk';
 import { lastValueFrom, Observable } from 'rxjs';
 import type { Request } from 'express';
 import type { ExecutionContext } from '@nestjs/common';
@@ -35,20 +35,6 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
         }
       } catch (e) {
         this.logger.debug(e);
-      }
-    }
-
-    if (result && !req.headers['xc-shared-base-id']) {
-      if (
-        req.path.indexOf('/user/me') === -1 &&
-        req.header('xc-preview') &&
-        ['owner', 'creator'].some((role) => req.user.roles?.[role])
-      ) {
-        return (req.user = {
-          ...req.user,
-          isAuthorized: true,
-          roles: extractRolesObj(req.header('xc-preview')),
-        });
       }
     }
 

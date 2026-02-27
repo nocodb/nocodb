@@ -139,7 +139,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
 
       <!-- Inline comment — quoted referenced text -->
       <div v-if="isInlineComment && anchorText" class="mb-1">
-        <div class="text-xs text-nc-content-gray-subtle line-clamp-2 pl-2 border-l-2 border-nc-border-brand italic rounded-sm bg-nc-bg-gray-light py-1 px-2">
+        <div class="text-xs text-nc-content-gray-subtle line-clamp-2 italic rounded-sm bg-nc-bg-gray-light py-1 px-2">
           {{ anchorText }}
         </div>
       </div>

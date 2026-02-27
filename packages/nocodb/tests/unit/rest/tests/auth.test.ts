@@ -113,11 +113,11 @@ function authTests() {
     expect(email).to.equal(defaultUserArgs.email);
   });
 
-  it('Forgot password with a non-existing email id', async () => {
+  it('Forgot password with a non-existing email id returns success', async () => {
     await request(context.app)
       .post('/api/v1/auth/password/forgot')
       .send({ email: 'nonexisting@email.com' })
-      .expect(400);
+      .expect(200);
   });
 
   // todo: fix mailer issues

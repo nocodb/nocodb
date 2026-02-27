@@ -998,6 +998,11 @@ onBeforeUnmount(() => {
     color: #1f2937;
   }
 
+  > * {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
   > * + * {
     margin-top: 9px;
   }

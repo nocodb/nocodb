@@ -116,22 +116,42 @@ const onAddInlineComment = () => {
 }
 
 // Click on inline comment mark → open sidebar and scroll to that comment
+const pendingAnchorId = ref<string | null>(null)
+
 const onEditorClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
   const commentEl = target.closest('[data-comment-id]') as HTMLElement | null
   if (!commentEl) return
 
-  const commentId = commentEl.getAttribute('data-comment-id')
-  if (!commentId) return
+  const anchorId = commentEl.getAttribute('data-comment-id')
+  if (!anchorId) return
 
-  // Find the comment that has this anchor_id
   const { comments, scrollToComment } = useDocumentComments()
-  const matchingComment = comments.value.find((c) => c.anchor_id === commentId)
-  if (!matchingComment?.id) return
+  const matchingComment = comments.value.find((c) => c.anchor_id === anchorId)
 
-  isCommentsPanelOpen.value = true
-  nextTick(() => scrollToComment(matchingComment.id!))
+  if (matchingComment?.id) {
+    // Comments already loaded — scroll directly
+    isCommentsPanelOpen.value = true
+    nextTick(() => scrollToComment(matchingComment.id!))
+  } else {
+    // Sidebar not open yet / comments not loaded — store anchor and open
+    pendingAnchorId.value = anchorId
+    isCommentsPanelOpen.value = true
+  }
 }
+
+// Resolve pending anchor once comments are loaded
+const { comments: docComments, scrollToComment: scrollToDocComment, isCommentsLoading: isDocCommentsLoading } = useDocumentComments()
+
+watch(isDocCommentsLoading, (loading, wasLoading) => {
+  if (wasLoading && !loading && pendingAnchorId.value) {
+    const match = docComments.value.find((c) => c.anchor_id === pendingAnchorId.value)
+    if (match?.id) {
+      nextTick(() => scrollToDocComment(match.id!))
+    }
+    pendingAnchorId.value = null
+  }
+})
 
 // Deep link — open comments sidebar if ?commentId= is present in URL
 const route = useRoute()

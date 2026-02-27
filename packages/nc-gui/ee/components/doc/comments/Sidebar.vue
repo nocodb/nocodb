@@ -63,8 +63,31 @@ const onCancelInlineComment = () => {
   emit('clearPendingSelection')
 }
 
+// Track editor doc version to force recompute when content changes
+const editorDocVersion = ref(0)
+
+watch(
+  () => props.editor,
+  (ed) => {
+    if (!ed) return
+    ed.on('update', () => {
+      editorDocVersion.value++
+    })
+    // Trigger initial computation
+    editorDocVersion.value++
+  },
+  { immediate: true },
+)
+
+// Also recompute when comments load (marks may already exist in editor)
+watch(() => comments.value?.length, () => {
+  editorDocVersion.value++
+})
+
 // Build a map of anchor_id → referenced text by walking editor doc marks
 const anchorTextMap = computed<Record<string, string>>(() => {
+  // eslint-disable-next-line no-unused-expressions
+  editorDocVersion.value // reactive dependency
   if (!props.editor) return {}
   const map: Record<string, string> = {}
   const { doc } = props.editor.state

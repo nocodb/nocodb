@@ -17,20 +17,20 @@ const shortcutList = [
     title: 'General',
     shortcuts: [
       {
-        keys: [renderCmdOrCtrlKey(), '/'],
-        behaviour: 'Open keyboard shortcuts',
-      },
-      {
         keys: [renderCmdOrCtrlKey(), 'K'],
         behaviour: 'Open quick navigation',
+      },
+      {
+        keys: [renderCmdOrCtrlKey(), 'L'],
+        behaviour: 'Open recent views',
       },
       {
         keys: [renderCmdOrCtrlKey(), 'J'],
         behaviour: 'Search in docs',
       },
       {
-        keys: [renderCmdOrCtrlKey(), 'L'],
-        behaviour: 'Open recent views',
+        keys: [renderCmdOrCtrlKey(), '/'],
+        behaviour: 'Open keyboard shortcuts',
       },
       {
         keys: [renderAltOrOptlKey(), 'D'],
@@ -41,10 +41,6 @@ const shortcutList = [
         behaviour: 'Insert new table',
       },
       {
-        keys: [renderAltOrOptlKey(), 'I'],
-        behaviour: 'Open share modal',
-      },
-      {
         keys: [renderAltOrOptlKey(), 'C'],
         behaviour: 'Insert new column',
       },
@@ -52,26 +48,22 @@ const shortcutList = [
         keys: [renderAltOrOptlKey(), 'R'],
         behaviour: 'Insert new row',
       },
+      {
+        keys: [renderAltOrOptlKey(), 'I'],
+        behaviour: 'Open share modal',
+      },
     ],
   },
   {
     title: 'Grid View',
     shortcuts: [
       {
-        keys: [renderAltOrOptlKey(), '←'],
-        behaviour: 'Jump to previous page in this view',
+        keys: ['←', '→', '↑', '↓'],
+        behaviour: 'General cell navigation',
       },
       {
-        keys: [renderAltOrOptlKey(), '→'],
-        behaviour: 'Jump to next page in this view',
-      },
-      {
-        keys: [renderAltOrOptlKey(), '↑'],
-        behaviour: 'Jump to first page in this view',
-      },
-      {
-        keys: [renderAltOrOptlKey(), '↓'],
-        behaviour: 'Jump to last page in this view',
+        keys: ['Tab'],
+        behaviour: 'Move to next cell horizontally; if on last cell, move to next row beginning',
       },
       {
         keys: [renderCmdOrCtrlKey(), '←'],
@@ -90,8 +82,20 @@ const shortcutList = [
         behaviour: 'Jump to last record in this column (in same page)',
       },
       {
-        keys: [renderCmdOrCtrlKey(), 'C'],
-        behaviour: 'Copy cell contents',
+        keys: [renderAltOrOptlKey(), '←'],
+        behaviour: 'Jump to previous page in this view',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '→'],
+        behaviour: 'Jump to next page in this view',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '↑'],
+        behaviour: 'Jump to first page in this view',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '↓'],
+        behaviour: 'Jump to last page in this view',
       },
       {
         keys: ['Enter'],
@@ -102,20 +106,37 @@ const shortcutList = [
         behaviour: 'Exit cell EDIT mode',
       },
       {
-        keys: ['Delete'],
-        behaviour: 'Clear cell',
-      },
-      {
         keys: ['Space'],
         behaviour: 'Expand current row',
       },
       {
-        keys: ['←', '→', '↑', '↓'],
-        behaviour: 'General cell navigation',
+        keys: [renderCmdOrCtrlKey(), 'C'],
+        behaviour: 'Copy cell contents',
       },
       {
-        keys: ['Tab'],
-        behaviour: 'Move to next cell horizontally; if on last cell, move to next row beginning',
+        keys: ['Delete'],
+        behaviour: 'Clear cell',
+      },
+    ],
+  },
+  {
+    title: 'Expanded Form',
+    shortcuts: [
+      {
+        keys: [renderAltOrOptlKey(), 'S'],
+        behaviour: 'Save current expanded form item',
+      },
+      {
+        keys: [renderAltOrOptlKey(), 'N'],
+        behaviour: 'Create a new row',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '←'],
+        behaviour: 'Switch to previous row',
+      },
+      {
+        keys: [renderAltOrOptlKey(), '→'],
+        behaviour: 'Switch to next row',
       },
     ],
   },
@@ -206,27 +227,6 @@ const shortcutList = [
       {
         keys: ['<0 ~ Max>'],
         behaviour: 'Enter number to toggle rating',
-      },
-    ],
-  },
-  {
-    title: 'Expanded Form',
-    shortcuts: [
-      {
-        keys: [renderAltOrOptlKey(), '→'],
-        behaviour: 'Switch to next row',
-      },
-      {
-        keys: [renderAltOrOptlKey(), '←'],
-        behaviour: 'Switch to previous row',
-      },
-      {
-        keys: [renderAltOrOptlKey(), 'S'],
-        behaviour: 'Save current expanded form item',
-      },
-      {
-        keys: [renderAltOrOptlKey(), 'N'],
-        behaviour: 'Create a new row',
       },
     ],
   },

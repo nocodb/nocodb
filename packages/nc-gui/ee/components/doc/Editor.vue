@@ -201,8 +201,7 @@ const _tiptapEditor = useEditor({
 
       // For headings / code blocks: convert to paragraph (strip formatting)
       if (nodeType === 'heading' || nodeType === 'codeBlock') {
-        const pos = $from.before()
-        view.dispatch(state.tr.setBlockType(pos, pos + $from.parent.nodeSize - 2, state.schema.nodes.paragraph))
+        view.dispatch(state.tr.setBlockType($from.before(), $from.after(), state.schema.nodes.paragraph))
         return true
       }
 

@@ -179,15 +179,6 @@ const shortcutList = [
     ],
   },
   {
-    title: 'Date / DateTime',
-    shortcuts: [
-      {
-        keys: [renderCmdOrCtrlKey(), ';'],
-        behaviour: 'Select current date time',
-      },
-    ],
-  },
-  {
     title: 'LinkToAnotherRecord',
     shortcuts: [
       {

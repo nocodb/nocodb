@@ -781,7 +781,7 @@ const toggleIncludeUser = async () => {
                   </div>
                 </div>
                 <div>
-                  <NcTabs v-model:activeKey="urlTabKey">
+                  <NcTabs v-model:active-key="urlTabKey">
                     <a-tab-pane key="params" :tab="$t('title.parameter')" force-render>
                       <LazyApiClientParams v-model="hookRef.notification.payload.parameters" disabled />
                     </a-tab-pane>

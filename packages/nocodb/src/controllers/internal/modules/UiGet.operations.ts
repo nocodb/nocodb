@@ -69,7 +69,7 @@ export class UiGetOperations
     'extensionList' as const,
     'extensionRead' as const,
     'listViewDataList' as const,
-    'listViewDataCount' as const
+    'listViewDataCount' as const,
   ];
   httpMethod = 'GET' as const;
 

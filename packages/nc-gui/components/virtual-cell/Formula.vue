@@ -113,6 +113,7 @@ const renderAsCell = computed(() => {
     <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
       <div
         v-if="urls"
+        v-dompurify-html="urls"
         :style="{
           'display': '-webkit-box',
           'max-width': '100%',
@@ -122,7 +123,6 @@ const renderAsCell = computed(() => {
           'word-break': 'break-all',
         }"
         @click="openLongText"
-        v-dompurify-html="urls"
       />
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />

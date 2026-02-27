@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -38,7 +39,6 @@
       ]
     },
     "typeRoots": [
-      "src/types",
       "node_modules/@types"
     ]
   },

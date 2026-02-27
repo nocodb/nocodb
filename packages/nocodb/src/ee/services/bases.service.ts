@@ -1,6 +1,6 @@
 import { promisify } from 'util';
 import { Injectable } from '@nestjs/common';
-import * as DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,

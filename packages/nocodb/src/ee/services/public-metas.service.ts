@@ -149,7 +149,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
       NcError.dashboardNotFound(param.sharedDashboardUuid);
     }
 
-    if (dashboard.password && dashboard.password !== param.password) {
+    if (!(await Dashboard.verifyPassword(dashboard, param.password))) {
       return NcError.invalidSharedDashboardPassword();
     }
 

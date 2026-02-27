@@ -232,7 +232,7 @@ const urls = replaceUrlsWithLink(result)
             width: 'min(1256px, 100vw - 124px)',
           }"
           class="nc-long-text-expanded-textarea border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight !py-1 !px-3 !text-nc-content-gray-extreme !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-nc-border-brand disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
-          v-html="urls"
+          v-dompurify-html="urls"
         ></div>
 
         <a-textarea

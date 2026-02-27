@@ -4,6 +4,24 @@ import type { MapFnArgs } from '~/db/mapFunctionName';
 import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 
+const ALLOWED_DATEADD_UNITS = new Set([
+  'day',
+  'week',
+  'month',
+  'year',
+  'hour',
+  'minute',
+  'second',
+]);
+
+export function validateDateAddUnit(raw: string): string {
+  const unit = raw.replace(/["']/g, '').trim().toLowerCase();
+  if (!ALLOWED_DATEADD_UNITS.has(unit)) {
+    NcError.badRequest(`Invalid DATEADD unit: ${unit}`);
+  }
+  return unit;
+}
+
 async function treatArgAsConditionalExp(
   args: MapFnArgs,
   argument = args.pt?.arguments?.[0],

@@ -10,6 +10,7 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import bcrypt from 'bcryptjs';
 import { Logger } from '@nestjs/common';
 import { isSupportedDisplayValueColumn } from 'nocodb-sdk';
 import type {
@@ -1517,20 +1518,40 @@ export default class View implements ViewType {
     { password }: { password: string },
     ncMeta = Noco.ncMeta,
   ) {
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : password;
+
     // set meta
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.VIEWS,
       {
-        password,
+        password: hashedPassword,
       },
       viewId,
     );
 
     await NocoCache.update(context, `${CacheScope.VIEW}:${viewId}`, {
-      password,
+      password: hashedPassword,
     });
+  }
+
+  static async verifyPassword(
+    view: { password?: string },
+    inputPassword: string,
+  ): Promise<boolean> {
+    if (!view.password) return true;
+    if (!inputPassword) return false;
+
+    // Support bcrypt hashed passwords (new) and plaintext (legacy)
+    if (view.password.startsWith('$2a$') || view.password.startsWith('$2b$')) {
+      return bcrypt.compare(inputPassword, view.password);
+    }
+
+    // Plaintext fallback for pre-migration passwords
+    return view.password === inputPassword;
   }
 
   static async sharedViewDelete(
@@ -1595,6 +1616,11 @@ export default class View implements ViewType {
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
       ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
+
+    // Hash shared view password before storage
+    if (updateObj.password) {
+      updateObj.password = await bcrypt.hash(updateObj.password, 10);
+    }
 
     if (isEE) {
       if (!updateObj?.attachment_mode_column_id) {

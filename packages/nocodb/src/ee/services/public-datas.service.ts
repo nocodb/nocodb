@@ -45,7 +45,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
     if (view.type === ViewTypes.LIST) {
       const base = await Base.get(context, view.base_id);
       this.publicMetasService.checkViewBaseType(view, base);
-      if (view.password && view.password !== password) {
+      if (!(await View.verifyPassword(view, password))) {
         return NcError.invalidSharedViewPassword();
       }
       return await this.listDatasService.listViewData(context, {
@@ -68,7 +68,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== password) {
+    if (!(await View.verifyPassword(view, password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -117,7 +117,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
     if (view.type === ViewTypes.LIST) {
       const base = await Base.get(context, view.base_id);
       this.publicMetasService.checkViewBaseType(view, base);
-      if (view.password && view.password !== password) {
+      if (!(await View.verifyPassword(view, password))) {
         return NcError.invalidSharedViewPassword();
       }
       const result = await this.listDatasService.listViewCount(context, {
@@ -152,7 +152,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
 
     this.publicMetasService.checkViewBaseType(dashboard, base);
 
-    if (dashboard.password && dashboard.password !== password) {
+    if (!(await Dashboard.verifyPassword(dashboard, password))) {
       return NcError.invalidSharedDashboardPassword();
     }
 

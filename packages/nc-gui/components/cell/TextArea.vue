@@ -530,7 +530,7 @@ useResizeObserver(inputWrapperRef, () => {
               ? `line-clamp-${rowHeightTruncateLines(localRowHeight, true)}`
               : 'py-2'
           "
-          v-html="richTextContent"
+          v-dompurify-html="richTextContent"
         ></div>
       </div>
       <!-- eslint-disable vue/use-v-on-exact -->

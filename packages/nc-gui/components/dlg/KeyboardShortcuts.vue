@@ -45,6 +45,14 @@ const shortcutList = [
         behaviour: 'Insert new column',
       },
       {
+        keys: [renderAltOrOptlKey(), 'D'],
+        behaviour: 'Create new base',
+      },
+      {
+        keys: [renderAltOrOptlKey(), 'I'],
+        behaviour: 'Open share modal',
+      },
+      {
         keys: [renderAltOrOptlKey(), ','],
         behaviour: 'Open Team & Settings',
       },

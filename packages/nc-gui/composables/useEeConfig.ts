@@ -211,7 +211,7 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isEEFeatureBlocked = computed(() => true)
 
-  const blockWorkspaceMembers = computed(() => true)
+  const blockWorkspaceMembers = computed(() => false)
 
   const showUpgradeToManageWorkspaceMembers = (..._args: any[]) => {}
 

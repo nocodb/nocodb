@@ -6055,10 +6055,9 @@ export class ColumnsService implements IColumnsService {
         true,
       );
 
-      // Always convert to Rollup + new LTAR for all link column types
-      // This preserves the original column ID (for formulas/filters/sorts)
-      // and creates a new V2 LTAR column showing actual related records
-      const isLinksColumn = isLinksOrLTAR(hmColumn.uidt);
+      // Links columns (showing count) → convert to Rollup + new LTAR
+      // LinkToAnotherRecord columns (showing records) → update in-place to V2
+      const isLinksColumn = hmColumn.uidt === UITypes.Links;
 
       Logger.log(
         `[convertLinkToV2] hmColumn.id=${hmColumn.id}, hmColumn.uidt=${hmColumn.uidt}, isLinksColumn=${isLinksColumn}`,

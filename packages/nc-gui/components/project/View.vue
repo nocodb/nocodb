@@ -8,7 +8,7 @@ const props = defineProps<{
   showEmptySkeleton?: boolean
 }>()
 
-const { hideSidebar, isBaseSettingsFullPage } = storeToRefs(useSidebarStore())
+const { hideSidebar, isBaseSettingsFullPage, activeSidebarTab } = storeToRefs(useSidebarStore())
 
 const { integrations, isFromIntegrationPage, loadIntegrations } = useProvideIntegrationViewStore()
 
@@ -236,7 +236,7 @@ const adminPageTitle = computed(() => {
     'base-settings': t('general.general'),
     audits: t('title.audits'),
     workflows: t('objects.workflows'),
-    overview: t('general.overview'),
+    overview: activeSidebarTab.value === 'automation' ? t('general.automate') : t('general.data'),
     // Workspace settings
     'ws-collaborators': t('labels.inviteUsersToWorkspace'),
     'ws-teams': t('labels.manageTeams'),
@@ -436,8 +436,8 @@ watch(
         >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__overview">
-              <GeneralIcon icon="ncMultiCircle" />
-              <div>{{ $t('general.overview') }}</div>
+              <GeneralIcon :icon="activeSidebarTab === 'automation' ? 'ncAutomation' : 'ncMultiCircle'" />
+              <div>{{ activeSidebarTab === 'automation' ? $t('general.automate') : $t('general.data') }}</div>
             </div>
           </template>
           <ProjectOverview />

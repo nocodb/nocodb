@@ -233,6 +233,17 @@ watch(isCommentsLoading, (loading, wasLoading) => {
     scrollToActiveComment()
   }
 })
+
+// Clear active comment when clicking anywhere outside a comment item
+const onDocumentClick = (e: MouseEvent) => {
+  if (!activeCommentId.value) return
+  const target = e.target as HTMLElement
+  if (target.closest('.nc-doc-comment-item')) return
+  clearActiveComment()
+}
+
+onMounted(() => document.addEventListener('click', onDocumentClick, true))
+onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, true))
 </script>
 
 <template>
@@ -266,7 +277,7 @@ watch(isCommentsLoading, (loading, wasLoading) => {
     </div>
 
     <!-- Comments list -->
-    <div v-else ref="commentsWrapperEl" class="flex flex-col flex-1 py-1 nc-scrollbar-thin overflow-y-auto" @click.self="clearActiveComment">
+    <div v-else ref="commentsWrapperEl" class="flex flex-col flex-1 py-1 nc-scrollbar-thin overflow-y-auto">
       <template v-for="(commentItem, index) of comments" :key="commentItem.id">
         <!-- Edit mode -->
         <div

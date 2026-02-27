@@ -62,7 +62,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
     @click="emit('activate')"
   >
     <div
-      class="nc-doc-comment-card border-1 border-nc-border-gray-medium bg-nc-bg-default px-3 transition-shadow hover:shadow-sm"
+      class="nc-doc-comment-card border-1 border-nc-border-gray-medium px-3 transition-all duration-150"
       :class="{
         'rounded-t-lg pt-2': isFirstInGroup,
         'rounded-b-lg pb-2': isLastInGroup,
@@ -70,7 +70,8 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         'border-b-0': !isLastInGroup,
         'py-1': !isFirstInGroup && !isLastInGroup,
         'pt-1 pb-2': !isFirstInGroup && isLastInGroup,
-        'shadow-sm': isActive,
+        'bg-nc-bg-gray-extralight': !isActive,
+        'bg-nc-bg-gray-light shadow-sm': isActive,
       }"
     >
       <!-- Header: avatar + name + time — only for first in group -->
@@ -94,64 +95,68 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
           </span>
         </div>
 
-        <!-- Actions — visible on hover -->
-        <div class="flex items-center gap-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-          <NcDropdown
-            v-if="!isEditing && (isOwner || hasEditPermission)"
-            overlay-class-name="!min-w-[140px]"
-            placement="bottomRight"
-          >
-            <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text">
-              <GeneralIcon class="text-xs" icon="threeDotVertical" />
-            </NcButton>
-            <template #overlay>
-              <NcMenu variant="small">
-                <NcMenuItem
-                  v-if="isOwner && hasEditPermission"
-                  v-e="['c:doc:comment:edit']"
-                  @click="emit('edit')"
-                >
-                  <div class="flex gap-2 items-center">
-                    <component :is="iconMap.rename" class="cursor-pointer" />
-                    {{ $t('general.edit') }}
-                  </div>
-                </NcMenuItem>
-                <template v-if="isOwner && hasEditPermission">
-                  <NcDivider />
+        <!-- Actions -->
+        <div class="flex items-center gap-0.5 flex-shrink-0">
+          <!-- Hover-only actions: menu + unresolved resolve button -->
+          <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <NcDropdown
+              v-if="!isEditing && (isOwner || hasEditPermission)"
+              overlay-class-name="!min-w-[140px]"
+              placement="bottomRight"
+            >
+              <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text">
+                <GeneralIcon class="text-xs" icon="threeDotVertical" />
+              </NcButton>
+              <template #overlay>
+                <NcMenu variant="small">
                   <NcMenuItem
-                    v-e="['c:doc:comment:delete']"
-                    danger
-                    @click="emit('delete')"
+                    v-if="isOwner && hasEditPermission"
+                    v-e="['c:doc:comment:edit']"
+                    @click="emit('edit')"
                   >
                     <div class="flex gap-2 items-center">
-                      <GeneralIcon icon="delete" class="cursor-pointer" />
-                      {{ $t('general.delete') }}
+                      <component :is="iconMap.rename" class="cursor-pointer" />
+                      {{ $t('general.edit') }}
                     </div>
                   </NcMenuItem>
-                </template>
-              </NcMenu>
-            </template>
-          </NcDropdown>
+                  <template v-if="isOwner && hasEditPermission">
+                    <NcDivider />
+                    <NcMenuItem
+                      v-e="['c:doc:comment:delete']"
+                      danger
+                      @click="emit('delete')"
+                    >
+                      <div class="flex gap-2 items-center">
+                        <GeneralIcon icon="delete" class="cursor-pointer" />
+                        {{ $t('general.delete') }}
+                      </div>
+                    </NcMenuItem>
+                  </template>
+                </NcMenu>
+              </template>
+            </NcDropdown>
 
-          <NcTooltip v-if="!comment.resolved_by && hasEditPermission">
-            <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text" @click="emit('resolve')">
-              <GeneralIcon class="text-xs" icon="checkCircle" />
-            </NcButton>
-            <template #title>{{ $t('activity.clickToResolve') }}</template>
-          </NcTooltip>
+            <NcTooltip v-if="!comment.resolved_by && hasEditPermission">
+              <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text" @click="emit('resolve')">
+                <GeneralIcon class="text-xs" icon="checkCircle" />
+              </NcButton>
+              <template #title>{{ $t('activity.clickToResolve') }}</template>
+            </NcTooltip>
+          </div>
 
-          <NcTooltip v-else-if="comment.resolved_by">
+          <!-- Resolved button — always visible, green -->
+          <NcTooltip v-if="comment.resolved_by">
             <template #title>{{ `${$t('activity.resolvedBy')} ${comment.resolved_display_name_short}` }}</template>
             <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text" @click="emit('resolve')">
-              <GeneralIcon class="text-xs rounded-full bg-nc-fill-green-dark text-white" icon="checkFill" />
+              <GeneralIcon class="text-xs text-nc-content-green-dark" icon="checkCircle" />
             </NcButton>
           </NcTooltip>
         </div>
       </div>
 
       <!-- Inline comment — quoted referenced text -->
-      <div v-if="isInlineComment && anchorText" class="mb-1.5">
-        <div class="text-xs text-nc-content-gray-subtle line-clamp-2 italic rounded-md bg-nc-bg-gray-light py-1.5 px-2">
+      <div v-if="isInlineComment && anchorText" class="mb-1.5 pl-6">
+        <div class="text-xs text-nc-content-gray-subtle line-clamp-2 italic border-l-2 border-nc-border-brand pl-2 py-0.5">
           {{ anchorText }}
         </div>
       </div>
@@ -162,14 +167,6 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         v-html="parsedHtml"
       />
 
-      <!-- Resolved badge -->
-      <div
-        v-if="comment.resolved_by"
-        class="mt-1.5 flex items-center gap-1 text-[10px] text-nc-content-green-dark"
-      >
-        <GeneralIcon icon="checkCircle" class="w-3 h-3" />
-        <span>{{ $t('general.resolved') }}</span>
-      </div>
     </div>
   </div>
 </template>
@@ -181,4 +178,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
   }
 }
 
+.nc-doc-comment-item:hover .nc-doc-comment-card {
+  @apply bg-nc-bg-gray-light;
+}
 </style>

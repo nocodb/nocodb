@@ -62,37 +62,36 @@ const mysql2 = {
       return {
         builder: knex.raw(
           `CASE
-      WHEN ${date} LIKE '%:%' THEN
-        DATE_FORMAT(DATE_ADD(${date}, INTERVAL
-        ${count} ${unit}), '%Y-%m-%d %H:%i:%s')
+      WHEN ? LIKE '%:%' THEN
+        DATE_FORMAT(DATE_ADD(?, INTERVAL ? ${unit}), '%Y-%m-%d %H:%i:%s')
       ELSE
-        DATE(DATE_ADD(${date}, INTERVAL
-        ${count} ${unit}))
+        DATE(DATE_ADD(?, INTERVAL ? ${unit}))
       END`,
+          [date, date, count, date, count],
         ),
       };
     }
 
     // Dynamic unit (field reference) — MySQL requires keyword units,
     // so branch per valid unit to prevent injection.
-    // unitExpr is passed via ? binding (parameterized), not interpolated.
+    // All dynamic values passed via ? bindings, not interpolated.
     const unitExpr = (await fn(pt.arguments[2])).builder;
     const units = [...ALLOWED_DATEADD_UNITS];
     const branches = units
       .map(
         (u) =>
           `WHEN LOWER(?) = '${u}' THEN
-        CASE WHEN ${date} LIKE '%:%' THEN
-          DATE_FORMAT(DATE_ADD(${date}, INTERVAL ${count} ${u.toUpperCase()}), '%Y-%m-%d %H:%i:%s')
+        CASE WHEN ? LIKE '%:%' THEN
+          DATE_FORMAT(DATE_ADD(?, INTERVAL ? ${u.toUpperCase()}), '%Y-%m-%d %H:%i:%s')
         ELSE
-          DATE(DATE_ADD(${date}, INTERVAL ${count} ${u.toUpperCase()}))
+          DATE(DATE_ADD(?, INTERVAL ? ${u.toUpperCase()}))
         END`,
       )
       .join('\n');
     return {
       builder: knex.raw(
         `CASE ${branches} ELSE NULL END`,
-        units.map(() => unitExpr),
+        units.flatMap(() => [unitExpr, date, date, count, date, count]),
       ),
     };
   },

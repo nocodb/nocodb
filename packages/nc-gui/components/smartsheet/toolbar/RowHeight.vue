@@ -40,7 +40,7 @@ const { isList } = useSmartsheetStoreOrThrow()
 
 const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
 
-const isListConfigured = computed(
+const _isListConfigured = computed(
   () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
 )
 
@@ -93,7 +93,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
   }
 }
 
-const wrapHeaders = computed({
+const _wrapHeaders = computed({
   get: () => {
     if (!isList.value || !listViewStore?.selectedLevel.value) return false
     return !!listViewStore.selectedLevel.value.wrap_headers
@@ -160,9 +160,9 @@ useMenuCloseOnEsc(open)
         </div>
         <!--        <template v-if="isList">
           <div class="border-t border-nc-border-gray-medium">
-            <SmartsheetToolbarListLevelSelector v-if="isListConfigured" class="py-2" />
+            <SmartsheetToolbarListLevelSelector v-if="_isListConfigured" class="py-2" />
             <div class="flex items-center px-2">
-              <NcSwitch v-model:checked="wrapHeaders" size="small" class="nc-switch" :disabled="isLocked">
+              <NcSwitch v-model:checked="_wrapHeaders" size="small" class="nc-switch" :disabled="isLocked">
                 <div class="text-sm text-nc-content-gray">
                   {{ $t('labels.wrapHeaders') || 'Wrap headers' }}
                 </div>

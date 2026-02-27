@@ -62,6 +62,8 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
+    const { setMeta, metas } = useMetas()
+
     const buttonFilterColumns = computed(() => {
       if (!meta.value?.columns) return []
       return (meta.value as TableType).columns!.filter(
@@ -97,8 +99,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
     const viewStore = useViewsStore()
 
     const { updateViewMeta } = viewStore
-
-    const { setMeta, metas } = useMetas()
 
     // save history of stack changes for undo/redo
     const moveHistory = ref<{ op: 'added' | 'removed'; pk: string; stack: string; index: number }[]>([])

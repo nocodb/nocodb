@@ -1172,11 +1172,12 @@ onBeforeUnmount(() => {
     margin: 0.75em 0;
   }
 
-  // Code
+  // Code — !important needed to override global `* { font-family: Inter }`
   code {
     background-color: var(--nc-bg-gray-medium);
     border-radius: 0.25em;
     padding: 0.15em 0.3em;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
     font-size: 0.875em;
   }
 
@@ -1252,15 +1253,6 @@ onBeforeUnmount(() => {
 
   .hljs-section {
     color: #1f6feb;
-    font-weight: bold;
-  }
-
-  .hljs-emphasis {
-    font-style: italic;
-  }
-
-  .hljs-strong {
-    font-weight: bold;
   }
 
   // Horizontal rule

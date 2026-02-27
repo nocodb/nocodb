@@ -300,6 +300,13 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
   font-size: 0.875em;
   line-height: 1.6;
 
+  // Global `* { font-family: Inter }` overrides inherited monospace on
+  // every <span> inside the code block. Force monospace on all descendants.
+  &,
+  :deep(*) {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
+  }
+
   :deep(code) {
     background: none;
     padding: 0;

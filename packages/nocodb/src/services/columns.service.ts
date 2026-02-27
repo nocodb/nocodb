@@ -5660,13 +5660,14 @@ export class ColumnsService implements IColumnsService {
     const colOptions =
       await column.getColOptions<LinkToAnotherRecordColumn>(context);
 
-    if (colOptions.version === LinksVersion.V2) {
-      NcError.badRequest('Column is already V2');
-    }
-
     // MM already has junction tables — just update version metadata
+    // Allow V2 MM Links columns through (they need Rollup + LTAR display conversion)
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
       return this.convertMMToV2(context, { column, colOptions, req: param.req });
+    }
+
+    if (colOptions.version === LinksVersion.V2) {
+      NcError.badRequest('Column is already V2');
     }
 
     // Phase 1: Normalize to parent side (HM or parent-OO)
@@ -6191,8 +6192,8 @@ export class ColumnsService implements IColumnsService {
       // Column.insert and RollupColumn.insert use Noco.ncMeta internally.
 
       if (isLinksColumn) {
-        // Compute column_order: place new LTAR column right after the original
-        let columnOrder: { order: number; view_id: string | null } | undefined;
+        // Compute column_order: place new LTAR column right after the original (Rollup)
+        let columnOrder: { order: number; view_id: string } | undefined;
         const defaultView = (
           await View.list(context, parentTable.id)
         )?.[0];
@@ -6207,17 +6208,17 @@ export class ColumnsService implements IColumnsService {
           if (origViewCol) {
             columnOrder = {
               order: (origViewCol as any).order + 0.5,
-              view_id: null,
+              view_id: defaultView.id,
             };
           }
         }
 
-        // Create new V2 LTAR column
+        // Create new V2 LTAR column with "LTAR " prefix
         const newLtarCol = await Column.insert(context, {
           fk_model_id: hmColumn.fk_model_id,
           title: getUniqueColumnAliasName(
             await parentTable.getColumns(context),
-            hmColumn.title,
+            `LTAR_${hmColumn.title}`,
           ),
           uidt: UITypes.LinkToAnotherRecord,
           type: hmNewType,
@@ -6325,9 +6326,9 @@ export class ColumnsService implements IColumnsService {
   }
 
   /**
-   * Convert a V1 MM column to V2. MM already has a junction table,
-   * so we only need to update version metadata. For Links MM columns,
-   * convert the original to Rollup and create a new V2 LTAR column.
+   * Convert an MM column to V2. MM already has a junction table,
+   * so we only need to update version metadata. For Links MM columns
+   * (V1 or V2), convert the original to Rollup and create a new V2 LTAR column.
    */
   async convertMMToV2(
     context: NcContext,
@@ -6338,6 +6339,14 @@ export class ColumnsService implements IColumnsService {
     },
   ) {
     const { column, colOptions } = param;
+
+    // V2 LTAR MM is already fully converted — nothing to do
+    if (
+      colOptions.version === LinksVersion.V2 &&
+      column.uidt === UITypes.LinkToAnotherRecord
+    ) {
+      NcError.badRequest('Column is already converted');
+    }
 
     const sourceTable = await Model.getWithInfo(context, {
       id: column.fk_model_id,
@@ -6365,8 +6374,9 @@ export class ColumnsService implements IColumnsService {
       }
     }
 
-    // Always convert to Rollup + new LTAR for all link column types
-    const isLinksColumn = isLinksOrLTAR(column.uidt);
+    // Links columns (showing count) → convert to Rollup + new LTAR (showing records)
+    // LinkToAnotherRecord columns → just update version metadata
+    const isLinksColumn = column.uidt === UITypes.Links;
 
     // Meta transaction: update version on both sides
     const ncMeta = await (
@@ -6424,8 +6434,8 @@ export class ColumnsService implements IColumnsService {
       const sourcePK = sourceTable.primaryKey;
       const relatedPK = relatedTable.primaryKey;
 
-      // Compute column_order: place new LTAR after the original
-      let columnOrder: { order: number; view_id: string | null } | undefined;
+      // Compute column_order: place new LTAR right after the original (Rollup)
+      let columnOrder: { order: number; view_id: string } | undefined;
       const defaultView = (
         await View.list(context, sourceTable.id)
       )?.[0];
@@ -6440,17 +6450,17 @@ export class ColumnsService implements IColumnsService {
         if (origViewCol) {
           columnOrder = {
             order: (origViewCol as any).order + 0.5,
-            view_id: null,
+            view_id: defaultView.id,
           };
         }
       }
 
-      // Create new V2 LTAR column
+      // Create new V2 LTAR column with "LTAR " prefix
       const newLtarCol = await Column.insert(context, {
         fk_model_id: column.fk_model_id,
         title: getUniqueColumnAliasName(
           await sourceTable.getColumns(context),
-          column.title,
+          `LTAR_${column.title}`,
         ),
         uidt: UITypes.LinkToAnotherRecord,
         type: RelationTypes.MANY_TO_MANY,

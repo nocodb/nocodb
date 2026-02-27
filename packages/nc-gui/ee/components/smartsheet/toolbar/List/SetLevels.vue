@@ -15,9 +15,11 @@ const isToolbarIconMode = inject(
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-const { levels, saveLevelConfiguration, showEmptyParents, updateViewMeta, isLoading } = useListViewStoreOrThrow()
+const { levels, saveLevelConfiguration, showEmptyParents, updateViewMeta } = useListViewStoreOrThrow()
 
 const open = ref(false)
+
+const isLoading = ref(false)
 
 useMenuCloseOnEsc(open)
 
@@ -96,6 +98,8 @@ function removeLevel(arrayIndex: number) {
 async function save() {
   if (isLocked.value) return
 
+  isLoading.value = true
+
   try {
     const cleanedLevels = localLevels.value.map((l) => {
       const clean: Partial<ListViewLevelType> = {
@@ -124,6 +128,8 @@ async function save() {
     eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading.value = false
   }
 }
 
@@ -132,7 +138,7 @@ async function toggleHideEmptySections(val: boolean) {
   await updateViewMeta({ show_empty_parents: !val })
 }
 
-const hideEmptySections = computed({
+const _hideEmptySections = computed({
   get: () => !showEmptyParents.value,
   set: (val: boolean) => {
     toggleHideEmptySections(val)
@@ -317,7 +323,7 @@ const isDirty = computed(() => {
         </NcButton>
 
         <!--        <div class="flex items-center gap-1 pt-1">
-          <NcSwitch v-model:checked="hideEmptySections" size="small" class="nc-switch" :disabled="isLocked">
+          <NcSwitch v-model:checked="_hideEmptySections" size="small" class="nc-switch" :disabled="isLocked">
             <div class="text-sm text-nc-content-gray">
               {{ $t('labels.hideEmptySections') || 'Hide empty sections' }}
             </div>

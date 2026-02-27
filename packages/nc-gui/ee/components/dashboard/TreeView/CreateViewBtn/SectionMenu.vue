@@ -5,7 +5,7 @@ const emits = defineEmits<{
   (event: 'createSection'): void
 }>()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, blockViewSections } = useEeConfig()
 </script>
 
 <template>
@@ -34,7 +34,7 @@ const { getPlanTitle } = useEeConfig()
                   })
                 "
               />
-              <GeneralIcon class="plus" icon="plus" />
+              <GeneralIcon v-if="!blockViewSections" class="plus" icon="plus" />
             </div>
           </div>
         </NcMenuItem>

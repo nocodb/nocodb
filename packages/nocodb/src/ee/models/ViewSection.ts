@@ -1,5 +1,4 @@
 import ViewSectionCE from 'src/models/ViewSection';
-import { Logger } from '@nestjs/common';
 import type { ViewSectionType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
@@ -12,8 +11,6 @@ import {
   MetaTable,
 } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
-
-const logger = new Logger('ViewSection');
 
 export default class ViewSection
   extends ViewSectionCE
@@ -98,7 +95,9 @@ export default class ViewSection
           },
         },
       );
-      sectionsList = sectionsList.map((section) => prepareForResponse(section, ['meta']));
+      sectionsList = sectionsList.map((section) =>
+        prepareForResponse(section, ['meta']),
+      );
       await NocoCache.setList(
         context,
         CacheScope.VIEW_SECTION,
@@ -156,12 +155,9 @@ export default class ViewSection
     ]);
 
     // get order value
-    insertObj.order = await ncMeta.metaGetNextOrder(
-      MetaTable.VIEW_SECTIONS,
-      {
-        fk_model_id: section.fk_model_id,
-      },
-    );
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.VIEW_SECTIONS, {
+      fk_model_id: section.fk_model_id,
+    });
 
     if (!insertObj.meta) {
       insertObj.meta = {};
@@ -193,7 +189,12 @@ export default class ViewSection
     section: Partial<ViewSection>,
     ncMeta = Noco.ncMeta,
   ) {
-    let updateObj = extractProps(section, ['title', 'order', 'meta', 'updated_by']);
+    let updateObj = extractProps(section, [
+      'title',
+      'order',
+      'meta',
+      'updated_by',
+    ]);
 
     updateObj = prepareForDb(updateObj, ['meta']);
 
@@ -247,11 +248,9 @@ export default class ViewSection
 
       // Invalidate cache for each view
       for (const view of viewsInSection) {
-        await NocoCache.update(
-          context,
-          `${CacheScope.VIEW}:${view.id}`,
-          { fk_view_section_id: null },
-        );
+        await NocoCache.update(context, `${CacheScope.VIEW}:${view.id}`, {
+          fk_view_section_id: null,
+        });
       }
     }
 

@@ -1,9 +1,9 @@
 import {
-  PlanTitles,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import type { PlanTitles } from 'nocodb-sdk';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -80,13 +80,14 @@ export async function getBaseListAll(
             `=`,
             `ws.fk_org_id`,
           );
-        }).andOnIn(`sub.status`, ['active', 'trialing', 'incomplete', 'past_due']);
+        }).andOnIn(`sub.status`, [
+          'active',
+          'trialing',
+          'incomplete',
+          'past_due',
+        ]);
       })
-      .leftJoin(
-        `${MetaTable.PLANS} as p`,
-        `p.id`,
-        `sub.fk_plan_id`,
-      )
+      .leftJoin(`${MetaTable.PLANS} as p`, `p.id`, `sub.fk_plan_id`)
       .where('wu.fk_user_id', userId)
       .andWhere(function () {
         this.where('ws.deleted', false).orWhereNull('ws.deleted');

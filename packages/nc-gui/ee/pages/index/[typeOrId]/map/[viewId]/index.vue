@@ -5,6 +5,7 @@ definePageMeta({
   public: true,
   requiresAuth: false,
   layout: 'shared-view',
+  hasSidebar: false,
   pageType: 'shared-view',
 })
 
@@ -36,10 +37,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <NuxtLayout class="flex" name="shared-view">
-    <div v-if="showPassword">
-      <LazySharedViewAskPassword v-model="showPassword" :view-type="ViewTypes.MAP" />
-    </div>
-    <LazySharedViewMap v-else />
-  </NuxtLayout>
+  <div v-if="showPassword">
+    <LazySharedViewAskPassword v-model="showPassword" :view-type="ViewTypes.MAP" />
+  </div>
+  <LazySharedViewMap v-else />
 </template>

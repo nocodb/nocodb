@@ -75,6 +75,7 @@ import type {
   IntegrationUpdateEvent,
   KanbanViewUpdateEvent,
   ListViewUpdateEvent,
+  MapViewUpdateEvent,
   MetaDiffEvent,
   ModelRoleVisibilityEvent,
   OrgUserInviteEvent,
@@ -637,6 +638,7 @@ export class AppHooksService extends ApppHookServiceCE {
       | GalleryViewUpdateEvent
       | KanbanViewUpdateEvent
       | CalendarViewUpdateEvent
+      | MapViewUpdateEvent
       | FormViewUpdateEvent
       | ListViewUpdateEvent,
   ): void;

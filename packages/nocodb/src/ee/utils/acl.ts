@@ -217,6 +217,7 @@ const permissionScopes = {
     'galleryViewGet',
     'kanbanViewGet',
     'calendarViewGet',
+    'mapViewGet',
     'gridViewUpdate',
     'formViewUpdate',
     'formColumnUpdate',
@@ -621,6 +622,7 @@ const rolePermissions:
       calendarViewGet: true,
       listViewDataList: true,
       listViewDataCount: true,
+      mapViewGet: true,
       groupedDataList: true,
 
       mmList: true,
@@ -1130,6 +1132,7 @@ const permissionDescriptions: Record<string, string> = {
   listViewUpdate: 'update list view',
   listViewDataList: 'view list view data',
   listViewDataCount: 'view list view data count',
+  mapViewGet: 'view map',
   gridViewUpdate: 'update grid view',
   formViewUpdate: 'update form view',
   formColumnUpdate: 'update form columns',

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { type TableType, viewTypeAlias } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const props = defineProps<{
   // Prop used to align the dropdown to the left in sidebar
@@ -21,6 +20,10 @@ const { loadViews, onOpenViewCreateModal } = viewsStore
 const { isListViewEnabled } = storeToRefs(viewsStore)
 
 const { isAiFeaturesEnabled } = useNocoAi()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { blockMapView, showUpgradeToUseMapView } = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -217,6 +220,26 @@ function onCreateSection() {
             </NcMenuItem>
           </NcTooltip>
         </template>
+        <NcMenuItem
+          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+          data-testid="sidebar-view-create-map"
+          @click="blockMapView ? showUpgradeToUseMapView() : onOpenModal({ type: ViewTypes.MAP })"
+        >
+          <div class="item">
+            <div class="item-inner">
+              <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
+              <div>{{ $t('objects.viewType.map') }}</div>
+            </div>
+
+            <template v-if="isEeUI && blockMapView">
+              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_MAP_VIEW" :plan-title="PlanTitles.BUSINESS" remove-click />
+            </template>
+            <template v-else>
+              <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
+              <GeneralIcon v-else class="plus" icon="plus" />
+            </template>
+          </div>
+        </NcMenuItem>
 
         <template v-if="isEeUI">
           <!-- Section -->

@@ -83,24 +83,16 @@ const [useProvideListViewStore, useListViewStore] = useInjectionState(
     async function saveLevelConfiguration(config: { levels: ListViewLevelType[] }) {
       if (!viewId.value) return
 
-      try {
-        await _updateViewMeta(viewId.value, ViewTypes.LIST, {
-          levels: config.levels,
-        })
-      } catch (e) {
-        throw e
-      }
+      await _updateViewMeta(viewId.value, ViewTypes.LIST, {
+        levels: config.levels,
+      })
     }
 
     /** Update view meta (show_empty_parents, etc.) */
     async function updateViewMeta(updates: Partial<ListType>) {
       if (!viewId.value) return
 
-      try {
-        await _updateViewMeta(viewId.value, ViewTypes.LIST, updates)
-      } catch (e) {
-        throw e
-      }
+      await _updateViewMeta(viewId.value, ViewTypes.LIST, updates)
     }
 
     watch(

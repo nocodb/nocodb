@@ -124,7 +124,7 @@ export function useCanvasListView({
         { [property]: newVal ?? null },
       )
 
-      for (const [idx, cached] of cachedRows.value) {
+      for (const [_idx, cached] of cachedRows.value) {
         if (cached.__nc_pk === row.row.__nc_pk) {
           Object.assign(cached, updatedRowData)
           break
@@ -136,7 +136,13 @@ export function useCanvasListView({
     }
   }
 
-  const { renderCell, handleCellClick, handleCellHover, imageLoader, actionManager } = useListCellRenderer({
+  const {
+    renderCell,
+    handleCellClick,
+    handleCellHover,
+    imageLoader,
+    actionManager: _actionManager,
+  } = useListCellRenderer({
     spriteLoader,
     triggerRefreshCanvas: () => triggerRefreshCanvas(),
     setCursor,
@@ -476,12 +482,6 @@ export function useCanvasListView({
     { immediate: true },
   )
 
-  const rootColumns = computed<CanvasGridColumn[]>(() => {
-    const rootLevel = displayLevels.value[0]
-    if (!rootLevel?.id) return []
-    return columnsPerLevel.value[rootLevel.id] ?? []
-  })
-
   function getColumnsForDepth(depth: number): CanvasGridColumn[] {
     const levelId = depthToLevelId.value[depth]
     if (!levelId) return []
@@ -676,7 +676,7 @@ export function useCanvasListView({
   )
 
   function handleCanvasMouseDown(e: MouseEvent) {
-    if (startResize(e)) return
+    startResize(e)
   }
 
   const expandRowHook = createEventHook<{ row: ListViewRow; depth: number }>()

@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { AppEvents, ViewTypes } from 'nocodb-sdk';
 import type { MapUpdateReqType, UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import NocoCache from '~/cache/NocoCache';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { MapView, Model, User, View } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { CacheScope } from '~/utils/globals';
-import NocoCache from '~/cache/NocoCache';
 
 @Injectable()
 export class MapsService {
@@ -89,6 +89,8 @@ export class MapsService {
       NcError.get(context).viewNotFound(param.mapViewId);
     }
 
+    const oldMapView = await MapView.get(context, param.mapViewId);
+
     await MapView.update(context, param.mapViewId, param.map);
 
     let owner = param.req.user;
@@ -99,6 +101,8 @@ export class MapsService {
 
     this.appHooksService.emit(AppEvents.MAP_UPDATE, {
       view: { ...view, ...param.map },
+      mapView: param.map,
+      oldMapView,
       oldView: view,
       req: param.req,
       context,

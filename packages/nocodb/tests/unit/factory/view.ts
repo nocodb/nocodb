@@ -37,6 +37,10 @@ const createView = async (
         return 'kanbans';
       case ViewTypes.CALENDAR:
         return 'calendars';
+      case ViewTypes.CALENDAR:
+        return 'calendars';
+      case ViewTypes.MAP:
+        return 'maps';
       default:
         throw new Error('Invalid view type');
     }

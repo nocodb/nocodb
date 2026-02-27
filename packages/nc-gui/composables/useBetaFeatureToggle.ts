@@ -236,6 +236,14 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'map_view',
+    title: 'Map View',
+    description: 'Enable map view to visualize geo data fields on an interactive map.',
+    enabled: false,
+    version: 2,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

@@ -16,7 +16,14 @@ import {
 import { ViewRowColorService } from './view-row-color.service';
 import type { NcContext } from '~/interface/config';
 import type { CalendarRange, FormView, FormViewColumn, View } from '~/models';
-import { Base, Column, Dashboard, Model, Permission, Workspace } from '~/models';
+import {
+  Base,
+  Column,
+  Dashboard,
+  Model,
+  Permission,
+  Workspace,
+} from '~/models';
 import ListViewLevel from '~/models/ListViewLevel';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';

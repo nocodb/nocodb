@@ -27,6 +27,7 @@ import * as nc_202602250001_button_filter from './v0/nc_202602250001_button_filt
 import * as nc_202602260000_rename_outline_to_list_view from './v0/nc_202602260000_rename_outline_to_list_view';
 import * as nc_202602260636_view_sections from './v0/nc_202602260636_view_sections';
 import * as nc_202602251401_links_v2 from './v0/nc_202602251401_links_v2';
+import * as nc_202602270448_map_view_columns_add_source_id from './v0/nc_202602270448_map_view_columns_add_source_id';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -65,6 +66,7 @@ export default class XcMigrationSourcev0 {
       'nc_202602260000_rename_outline_to_list_view',
       'nc_202602260636_view_sections',
       'nc_202602251401_links_v2',
+      'nc_202602270448_map_view_columns_add_source_id',
     ]);
   }
 
@@ -132,6 +134,8 @@ export default class XcMigrationSourcev0 {
         return nc_202602260636_view_sections;
       case 'nc_202602251401_links_v2':
         return nc_202602251401_links_v2;
+      case 'nc_202602270448_map_view_columns_add_source_id':
+        return nc_202602270448_map_view_columns_add_source_id;
     }
   }
 }

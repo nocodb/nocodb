@@ -30,7 +30,8 @@
                   "gallery",
                   "kanban",
                   "calendar",
-                  "form"
+                  "form",
+                  "map"
                 ],
                 "description": "Type of the view."
               },

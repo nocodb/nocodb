@@ -146,7 +146,7 @@ const shortcutList = [
     ],
   },
   {
-    title: 'SingleSelect',
+    title: 'Single Select',
     shortcuts: [
       {
         keys: ['↑'],
@@ -163,7 +163,7 @@ const shortcutList = [
     ],
   },
   {
-    title: 'MultiSelect',
+    title: 'Multi Select',
     shortcuts: [
       {
         keys: ['↑'],
@@ -180,7 +180,7 @@ const shortcutList = [
     ],
   },
   {
-    title: 'LinkToAnotherRecord',
+    title: 'Link To Another Record',
     shortcuts: [
       {
         keys: ['Tab'],
@@ -240,7 +240,7 @@ const shortcutList = [
       <!-- Content -->
       <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4">
         <div v-for="(section, sectionIdx) of shortcutList" :key="sectionIdx" class="mb-4 last:mb-0">
-          <div class="text-bodyBold font-semibold text-nc-content-gray-subtle mb-2 uppercase tracking-wide">
+          <div class="text-bodyBold font-semibold text-nc-content-gray-subtle mb-2 tracking-wide">
             {{ section.title }}
           </div>
           <div class="flex flex-col rounded-lg border-1 border-nc-border-gray-medium overflow-hidden">

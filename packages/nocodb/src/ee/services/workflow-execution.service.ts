@@ -7,6 +7,7 @@ import {
   isTriggerNode,
   NcBaseError,
   NOCO_SERVICE_USERS,
+  ProjectRoles,
   parseWorkflowVariableExpression,
   ServiceUserType,
   VariableType,
@@ -228,7 +229,10 @@ export class WorkflowExecutionService {
     const runAs: WorkflowRunAs | undefined = (workflow.meta as any)?.run_as;
 
     if (!runAs || runAs.type === 'service_account') {
-      return NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER];
+      return {
+        ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+        base_roles: { [ProjectRoles.CREATOR] : true },
+      }
     }
 
     if (runAs.type === 'role' && runAs.value) {
@@ -250,7 +254,10 @@ export class WorkflowExecutionService {
           this.logger.warn(
             `Run-as user ${runAs.value} not found in base, falling back to service account`,
           );
-          return NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER];
+          return {
+            ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+            base_roles: { [ProjectRoles.CREATOR] : true },
+          };
         }
 
         const user = await User.get(runAs.value);
@@ -260,17 +267,24 @@ export class WorkflowExecutionService {
           email: user.email,
           display_name: user.display_name,
           base_roles: { [baseUser.roles]: true },
+          token_version: user.token_version
         };
       } catch (error) {
         this.logger.warn(
           `Failed to resolve run-as user ${runAs.value}, falling back to service account`,
           error?.stack,
         );
-        return NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER];
+        return {
+          ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+          base_roles: { [ProjectRoles.CREATOR] : true },
+        }
       }
     }
 
-    return NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER];
+    return {
+      ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+      base_roles: { [ProjectRoles.CREATOR] : true },
+    }
   }
 
   public async getWorkflowNodes(context: NcContext) {

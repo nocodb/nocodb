@@ -40,7 +40,6 @@ export class DocumentCommentsService extends DocumentCommentsServiceCE {
           payload: res,
           id: comment.fk_doc_id,
         },
-        scopes: [comment.fk_doc_id],
       },
       context.socket_id,
     );

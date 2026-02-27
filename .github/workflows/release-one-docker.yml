@@ -45,16 +45,12 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       ceTag: ${{ steps.compute.outputs.ceTag }}
-      eeVersion: ${{ steps.compute.outputs.eeVersion }}
       prevTag: ${{ steps.compute.outputs.prevTag }}
     steps:
       - id: compute
         name: Compute release tags
         run: |
           CE_TAG="${{ github.event.inputs.tag }}"
-          # Derive EE version suffix from the CE tag's patch number (e.g. 0.302.3 → 3)
-          SUFFIX=$(echo "${CE_TAG}" | awk -F. '{print $NF}')
-          EE_VERSION="$(date +%Y.%m).${SUFFIX}"
           PREV_TAG="${{ github.event.inputs.prevTag }}"
 
           if [[ -z "${PREV_TAG}" ]]; then
@@ -62,11 +58,9 @@ jobs:
           fi
 
           echo "ceTag=${CE_TAG}" >> $GITHUB_OUTPUT
-          echo "eeVersion=${EE_VERSION}" >> $GITHUB_OUTPUT
           echo "prevTag=${PREV_TAG}" >> $GITHUB_OUTPUT
 
-          echo "CE Tag:      ${CE_TAG}"
-          echo "EE Version:  ${EE_VERSION}"
+          echo "CE Tag:       ${CE_TAG}"
           echo "Previous Tag: ${PREV_TAG}"
 
   # ---------------------------------------------------------------------------
@@ -114,7 +108,6 @@ jobs:
           Branch: ${{ github.ref }}
           Action ID: ${{ github.run_id }}
           CE Tag: ${{ needs.process-input.outputs.ceTag }}
-          EE Version: ${{ needs.process-input.outputs.eeVersion }}
           Date: $(date)
           EOF
           cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
@@ -147,17 +140,6 @@ jobs:
           CE_TAG="${{ needs.process-input.outputs.ceTag }}"
           sed -i "s/\"version\": \".*\"/\"version\": \"${CE_TAG}\"/g" ./packages/nocodb/package.json
           echo "Set nocodb package.json version to ${CE_TAG}"
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-
-      - name: Create and push EE version tag
-        run: |
-          EE_VERSION="${{ needs.process-input.outputs.eeVersion }}"
-          git tag -a "v${EE_VERSION}" -m "Release version ${EE_VERSION}"
-          git push origin "v${EE_VERSION}"
 
       - name: Set up Docker Buildx
         id: buildx
@@ -192,7 +174,6 @@ jobs:
           tags: |
             nocodb/nocodb:${{ needs.process-input.outputs.ceTag }}
             nocodb/nocodb:latest
-            nocodb/nocodb-ee:${{ needs.process-input.outputs.eeVersion }}
 
       # Temp fix for buildx cache
       # https://github.com/docker/build-push-action/issues/252

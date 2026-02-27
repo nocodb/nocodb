@@ -178,12 +178,16 @@ const shortcutList = [
     title: 'LinkToAnotherRecord',
     shortcuts: [
       {
-        keys: ['↑'],
+        keys: ['Tab'],
+        behaviour: 'Move to the next option',
+      },
+      {
+        keys: ['Shift', 'Tab'],
         behaviour: 'Move to the previous option',
       },
       {
-        keys: ['↓'],
-        behaviour: 'Move to the next option',
+        keys: ['Enter'],
+        behaviour: 'Select the current option',
       },
     ],
   },

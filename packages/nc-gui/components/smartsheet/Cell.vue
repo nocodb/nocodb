@@ -291,7 +291,8 @@ const showLockedOverlay = computed(() => {
     cellType.value !== 'attachment' &&
     cellType.value !== 'textarea' &&
     cellType.value !== 'ai' &&
-    cellType.value !== 'json'
+    cellType.value !== 'json' &&
+    cellType.value !== 'geoData'
   )
 })
 

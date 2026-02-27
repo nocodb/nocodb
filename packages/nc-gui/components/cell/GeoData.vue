@@ -28,6 +28,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const readonly = inject(ReadonlyInj, ref(false))
 
+const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
+
 const isExpanded = ref(false)
 
 const isLoading = ref(false)
@@ -583,7 +585,7 @@ onBeforeUnmount(() => {
         <!-- Expanded form: selectable text with copy + edit buttons -->
         <template v-if="isExpandedForm">
           <span class="nc-geodata-selectable-text" @click.stop>{{ latLongStr }}</span>
-          <div class="nc-geodata-action-icons" @click.stop>
+          <div v-if="!isLinkRecordDropdown" class="nc-geodata-action-icons" @click.stop>
             <NcTooltip>
               <template #title>{{ isCopied ? $t('general.copied') : $t('general.copy') }}</template>
               <GeneralIcon

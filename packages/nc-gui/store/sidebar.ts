@@ -98,6 +98,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const hideSidebar = ref(false)
 
+  const isBaseSettingsFullPage = ref(false)
+
   const showTopbar = ref(false)
 
   type SidebarTab = 'data' | 'automation' | 'agents'
@@ -146,6 +148,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     formRightSidebarWidthPercent,
     hideMiniSidebar,
     hideSidebar,
+    isBaseSettingsFullPage,
     showTopbar,
     miniSidebarWidth,
     isFullScreen,

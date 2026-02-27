@@ -151,10 +151,10 @@ const openKeyboardShortcutDialog = () => {
           >
             <div
               v-if="isMiniSidebar"
-              class="nc-user-icon-wrapper border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300"
+              class="nc-user-icon-wrapper border-1 w-7.5 h-7.5 flex-none rounded-full overflow-hidden transition-all duration-300"
               :class="{
-                'border-nc-gray-medium': !isMenuOpen,
-                'active border-primary shadow-selected': isMenuOpen,
+                'border-nc-border-gray-medium ring-2 ring-nc-border-gray-medium/40': !isMenuOpen,
+                'active border-primary shadow-selected ring-2 ring-primary/30': isMenuOpen,
               }"
             >
               <GeneralUserIcon :user="user" size="medium" class="!w-full !h-full !min-w-full cursor-pointer" />

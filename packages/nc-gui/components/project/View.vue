@@ -8,7 +8,7 @@ const props = defineProps<{
   showEmptySkeleton?: boolean
 }>()
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
+const { hideSidebar, isBaseSettingsFullPage } = storeToRefs(useSidebarStore())
 
 const { integrations } = useProvideIntegrationViewStore()
 
@@ -219,14 +219,52 @@ onMounted(async () => {
 })
 
 onMounted(() => {
-  hideSidebar.value = false
+  if (!isBaseSettingsFullPage.value) {
+    hideSidebar.value = false
+  }
 })
+
+onBeforeUnmount(() => {
+  if (isBaseSettingsFullPage.value) {
+    isBaseSettingsFullPage.value = false
+    hideSidebar.value = false
+  }
+})
+
+// Exit full-page mode when navigating away from a settings page
+watch(
+  () => route.value.query?.page,
+  (newPage) => {
+    if (!newPage && isBaseSettingsFullPage.value) {
+      isBaseSettingsFullPage.value = false
+      hideSidebar.value = false
+    }
+  },
+)
 </script>
 
 <template>
   <div class="h-full nc-base-view">
+    <!-- Full-page breadcrumb header (when entering base settings from admin menu) -->
+    <template v-if="isBaseSettingsFullPage && !isAdminPanel">
+      <div class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2">
+        <GeneralOpenLeftSidebarBtn v-if="isMobileMode" />
+        <div class="flex-1 nc-breadcrumb nc-no-negative-margin pl-1">
+          <div class="nc-breadcrumb-item capitalize truncate">
+            {{ currentBase?.title }}
+          </div>
+          <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
+          <h1 class="nc-breadcrumb-item active truncate">
+            {{ $t('labels.settings') }}
+          </h1>
+        </div>
+      </div>
+      <DashboardBackToBaseBreadcrumbVariant />
+    </template>
+
+    <!-- Normal topbar -->
     <div
-      v-if="!isAdminPanel"
+      v-else-if="!isAdminPanel"
       class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium"
       :class="{ 'nc-table-toolbar-mobile': isMobileMode, 'h-[var(--topbar-height)]': !isMobileMode }"
     >

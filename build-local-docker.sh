@@ -92,10 +92,10 @@ build_docker_onprem() {
 # ─── Orchestration ───────────────────────────────────────────────────
 case "$TARGET" in
   ce)
-    # build_sdk
-    # build_gui_ce
-    # build_backend_ce
-    # build_docker_ce
+    build_sdk
+    build_gui_ce
+    build_backend_ce
+    build_docker_ce
     log "Done! CE image ready: $CE_IMAGE"
     ;;
   onprem)
@@ -109,9 +109,9 @@ case "$TARGET" in
     build_sdk
 
     # Build CE
-    # build_gui_ce
-    # build_backend_ce
-    # build_docker_ce
+    build_gui_ce
+    build_backend_ce
+    build_docker_ce
 
     # Build On-Prem (rebuilds frontend + backend for EE)
     build_gui_ee

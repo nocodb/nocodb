@@ -76,7 +76,13 @@ const permissionScopes = {
     'apiTokenDelete',
 
     // User
+    'userList',
+    'userAdd',
+    'userUpdate',
+    'userDelete',
     'passwordChange',
+    'userInviteResend',
+    'generateResetUrl',
 
     // Workspace Parent
     'workspaceList',
@@ -1053,7 +1059,13 @@ const permissionDescriptions: Record<string, string> = {
   apiTokenCreate: 'create a new API token',
   apiTokenDelete: 'delete an API token',
 
+  userList: 'view list of users',
+  userAdd: 'add a new user',
+  userUpdate: 'update user details',
+  userDelete: 'delete a user',
   passwordChange: 'change your password',
+  userInviteResend: 'resend user invitation',
+  generateResetUrl: 'generate a password reset URL',
 
   workspaceList: 'view list of workspaces',
   workspaceCreate: 'create a new workspace',

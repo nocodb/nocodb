@@ -55,7 +55,11 @@ export default class WorkspaceUser {
   }
 
   static async userList(
-    workspaceId: string,
+    {
+      fk_workspace_id,
+    }: {
+      fk_workspace_id: string;
+    },
     ncMeta = Noco.ncMeta,
   ): Promise<any[]> {
     const queryBuilder = ncMeta
@@ -80,7 +84,7 @@ export default class WorkspaceUser {
         ).andOn(
           `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
           '=',
-          ncMeta.knexConnection.raw('?', [workspaceId]),
+          ncMeta.knexConnection.raw('?', [fk_workspace_id]),
         );
       })
       .whereNot(`${MetaTable.WORKSPACE_USER}.deleted`, true);

@@ -34,7 +34,7 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { appInfo } = useGlobal()
 
 const columns = computed(() => {
   const cols: NcTableColumnProps[] = [
@@ -47,7 +47,7 @@ const columns = computed(() => {
     },
   ]
 
-  if (!isEEFeatureBlocked.value) {
+  if (appInfo.value?.isOnPrem) {
     cols.push({
       key: 'workspaceName',
       title: t('labels.workspaceName'),

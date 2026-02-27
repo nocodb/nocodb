@@ -25,7 +25,10 @@ export class WorkspaceUsersService {
   ) {}
 
   async list(param: { workspaceId: string }, ncMeta = Noco.ncMeta) {
-    const users = await WorkspaceUser.userList(param.workspaceId, ncMeta);
+    const users = await WorkspaceUser.userList(
+      { fk_workspace_id: param.workspaceId },
+      ncMeta,
+    );
 
     return new PagedResponseImpl(users, {
       count: users.length,
@@ -92,7 +95,10 @@ export class WorkspaceUsersService {
 
     // Owner guard: ensure at least one owner remains
     if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
-      const owners = await WorkspaceUser.userList(param.workspaceId, ncMeta);
+      const owners = await WorkspaceUser.userList(
+        { fk_workspace_id: param.workspaceId },
+        ncMeta,
+      );
       const ownerCount = owners.filter(
         (u) => u.roles === WorkspaceUserRoles.OWNER,
       ).length;
@@ -125,7 +131,10 @@ export class WorkspaceUsersService {
 
     // Owner guard: ensure at least one owner remains
     if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
-      const owners = await WorkspaceUser.userList(param.workspaceId, ncMeta);
+      const owners = await WorkspaceUser.userList(
+        { fk_workspace_id: param.workspaceId },
+        ncMeta,
+      );
       const ownerCount = owners.filter(
         (u) => u.roles === WorkspaceUserRoles.OWNER,
       ).length;

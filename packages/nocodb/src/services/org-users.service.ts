@@ -44,7 +44,9 @@ export class OrgUsersService {
 
     // Augment with workspace roles from default workspace
     if (Noco.ncDefaultWorkspaceId) {
-      const wsUsers = await WorkspaceUser.userList(Noco.ncDefaultWorkspaceId);
+      const wsUsers = await WorkspaceUser.userList({
+        fk_workspace_id: Noco.ncDefaultWorkspaceId,
+      });
       const wsRoleMap = new Map(wsUsers.map((wu) => [wu.fk_user_id, wu.roles]));
       for (const user of users) {
         (user as any).workspace_roles = wsRoleMap.get(user.id) || null;

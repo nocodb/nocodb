@@ -240,8 +240,8 @@ const FEATURES = [
     id: 'map_view',
     title: 'Map View',
     description: 'Enable map view to visualize geo data fields on an interactive map.',
-    enabled: true,
-    version: 1,
+    enabled: false,
+    version: 2,
     isEE: true,
   },
 ] as const

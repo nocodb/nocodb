@@ -232,7 +232,7 @@ function onCreateSection() {
             </div>
 
             <template v-if="isEeUI && blockMapView">
-              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_MAP_VIEW" :plan-title="PlanTitles.BUSINESS" />
+              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_MAP_VIEW" :plan-title="PlanTitles.BUSINESS" remove-click />
             </template>
             <template v-else>
               <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />

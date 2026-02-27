@@ -267,9 +267,10 @@ async function onOpenModal({
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
                     <PaymentUpgradeBadge
-                      v-if="isEeUI && blockMapView"
+                      v-if="blockMapView"
                       :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
                       :plan-title="PlanTitles.BUSINESS"
+                      remove-click
                       class="ml-auto"
                     />
                   </div>

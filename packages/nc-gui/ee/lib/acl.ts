@@ -235,6 +235,13 @@ const rolePermissions = {
       commentEdit: true,
       commentDelete: true,
       commentResolve: true,
+
+      // Document Comments — commenters can create/update/delete/resolve + reactions
+      documentCommentCreate: true,
+      documentCommentUpdate: true,
+      documentCommentDelete: true,
+      documentCommentResolve: true,
+      documentCommentReactionToggle: true,
     },
   },
   [ProjectRoles.VIEWER]: {
@@ -256,6 +263,11 @@ const rolePermissions = {
       // Documents — read-only for viewers
       documentList: true,
       documentGet: true,
+
+      // Document Comments — read-only for viewers
+      documentCommentList: true,
+      documentCommentCount: true,
+      documentCommentReactionList: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

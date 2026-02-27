@@ -1,5 +1,6 @@
 import { ScriptType, WorkflowType } from '~/lib/Api';
 import { DashboardType, WidgetType } from '~/lib/dashboard';
+import { DocumentType } from '~/lib/Document';
 import {
   TeamCreateV3ReqType,
   TeamV3ResponseType,
@@ -81,6 +82,13 @@ export interface WorkflowExecutionPayload extends BaseSocketPayload {
   payload: any;
 }
 
+export interface DocumentPayload extends BaseSocketPayload {
+  id: string;
+  action: 'create' | 'update' | 'delete' | 'move';
+  payload: DocumentType;
+  oldParentId?: string | null;
+}
+
 export interface TeamPayload extends BaseSocketPayload {
   id: string;
   action:
@@ -104,7 +112,8 @@ export type SocketEventPayload =
   | DashboardPayload
   | WidgetPayload
   | TeamPayload
-  | ChatEventPayload;
+  | ChatEventPayload
+  | DocumentPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = SocketEventPayloadMapOSS & {
@@ -115,6 +124,7 @@ export type SocketEventPayloadMap = SocketEventPayloadMapOSS & {
   [EventType.WORKFLOW_EVENT]: WorkflowPayload;
   [EventType.WORKFLOW_EXECUTION_EVENT]: WorkflowExecutionPayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
+  [EventType.DOCUMENT_EVENT]: DocumentPayload;
 };
 
 // Helper type to get payload type for a specific event

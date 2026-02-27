@@ -19,6 +19,7 @@ export enum EventType {
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
   PRESENCE_EVENT = 'event-presence',
   CHAT_EVENT = 'event-chat',
+  DOCUMENT_EVENT = 'event-document',
 }
 
 export interface BaseSocketPayload {

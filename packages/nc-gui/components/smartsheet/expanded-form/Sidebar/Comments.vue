@@ -500,7 +500,7 @@ onBeforeUnmount(() => {
               <div v-else class="space-y-1 pl-9">
                 <div
                   class="nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
-                  v-html="parsedHtmlComments[commentItem.id]"
+                  v-dompurify-html="parsedHtmlComments[commentItem.id]"
                 ></div>
               </div>
             </div>

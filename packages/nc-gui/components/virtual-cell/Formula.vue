@@ -119,7 +119,7 @@ const renderAsCell = computed(() => {
           'word-break': 'break-all',
         }"
         @click="openLongText"
-        v-html="urls"
+        v-dompurify-html="urls"
       />
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />

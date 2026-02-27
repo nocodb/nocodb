@@ -1,0 +1,292 @@
+name: "Release : One Executables"
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "CE version tag (e.g. 0.302.0)"
+        required: true
+  workflow_call:
+    inputs:
+      tag:
+        type: string
+        required: true
+    secrets:
+      NC_GITHUB_TOKEN:
+        required: true
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: Build executables for all platforms
+  # ---------------------------------------------------------------------------
+  build-executables:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: 'pnpm'
+
+      - name: Remove use-node-version from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+
+      - name: Install dependencies
+        run: pnpm bootstrap
+
+      - name: Build nc-gui (EE) and copy to nocodb
+        env:
+          NC_ON_PREM: true
+          NUXT_CHATWOOT_WEBSITE_TOKEN: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM }}
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          cd packages/nc-gui &&
+          pnpm run generate:ee &&
+
+          # delete sourcemaps
+          find ./ee/dist/ -type f -name '*.js.map' -delete &&
+          find ./ee/dist/ -type f -name '*.css.map' -delete &&
+
+          # copy build to nocodb
+          rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
+
+      - name: Build nocodb for executables
+        run: |
+          cd packages/nocodb &&
+          EE=true pnpm exec rspack --config rspack.one-executable.config.js
+
+      - name: Update package.json version to CE tag
+        run: |
+          CE_TAG="${{ github.event.inputs.tag || inputs.tag }}"
+          sed -i "s/\"version\": \".*\"/\"version\": \"${CE_TAG}\"/g" ./packages/nocodb/package.json
+          echo "Set nocodb package.json version to ${CE_TAG}"
+
+      - name: Cache pkg modules
+        id: cache-pkg
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-pkg
+        with:
+          path: ~/.pkg-cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Install QEMU and ldid
+        run: |
+          sudo apt update
+          sudo apt install qemu binfmt-support qemu-user-static
+          git clone https://github.com/daeken/ldid.git
+          cd ./ldid
+          ./make.sh
+          sudo cp ./ldid /usr/local/bin
+
+      - name: Prepare pkg-executable directory
+        run: |
+          cd scripts/pkg-executable
+
+          # downgrade sqlite3 to 5.1.6 until build issues are resolved
+          node ../downgradeSqlite.js
+
+          # install dependencies
+          npm i
+
+          # replace npm-fetched nocodb with locally-built one
+          rm -rf node_modules/nocodb
+          mkdir -p node_modules/nocodb
+          cp ../../packages/nocodb/package.json node_modules/nocodb/
+          cp -r ../../packages/nocodb/dist node_modules/nocodb/
+          mkdir -p node_modules/nocodb/docker
+          cp -r ../../packages/nocodb/docker/nc-gui node_modules/nocodb/docker/nc-gui
+          cp -r ../../packages/nocodb/docker/public node_modules/nocodb/docker/public
+
+      - name: Build sqlite3 for all platforms
+        run: |
+          cd scripts/pkg-executable
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --fallback-to-build --target_arch=x64 --target_libc=unknown
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --fallback-to-build --target_arch=ia32 --target_libc=unknown
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --fallback-to-build --target_arch=x64 --target_libc=unknown
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --fallback-to-build --target_arch=arm64 --target_libc=unknown
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=x64 --target_libc=glibc
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=arm64 --target_libc=glibc
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=x64 --target_libc=musl
+          ./node_modules/.bin/node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --fallback-to-build --target_arch=arm64 --target_libc=musl
+
+      - name: Clean up node_modules
+        run: |
+          cd scripts/pkg-executable
+          npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**,jsdom/**" --run
+
+      - name: Build executables
+        run: |
+          cd scripts/pkg-executable
+
+          mkdir ./mac-dist
+          mkdir ./dist
+
+          npm install -g @yao-pkg/pkg
+
+          # build darwin x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=darwin sharp
+          pkg . --compress GZip -t node22-macos-x64 -o Noco-macos-x64
+          mv ./Noco-macos-x64 ./mac-dist/
+
+          # build darwin arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=darwin sharp
+          pkg . --compress GZip -t node22-macos-arm64 -o Noco-macos-arm64
+          mv ./Noco-macos-arm64 ./mac-dist/
+
+          # build linux x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=linux sharp
+          pkg . --compress GZip -t node22-linux-x64 -o Noco-linux-x64
+          mv ./Noco-linux-x64 ./dist/
+
+          # build linux arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=linux sharp
+          pkg . --compress GZip -t node22-linux-arm64 -o Noco-linux-arm64
+          mv ./Noco-linux-arm64 ./dist/
+
+          # build windows x64 executable
+          npm uninstall sharp
+          npm install --cpu=x64 --os=win32 sharp
+          pkg . --compress GZip -t node22-win-x64 -o Noco-win-x64.exe
+          mv ./Noco-win-x64.exe ./dist/
+
+          # build windows arm64 executable
+          npm uninstall sharp
+          npm install --cpu=arm64 --os=win32 sharp
+          pkg . --compress GZip -t node22-win-arm64 -o Noco-win-arm64.exe
+          mv ./Noco-win-arm64.exe ./dist/
+
+      - name: Upload Linux and Windows executables to draft release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+        with:
+          draft: true
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
+          repository: nocodb/nocodb
+          files: |
+            ./scripts/pkg-executable/dist/Noco-win-arm64.exe
+            ./scripts/pkg-executable/dist/Noco-win-x64.exe
+            ./scripts/pkg-executable/dist/Noco-linux-arm64
+            ./scripts/pkg-executable/dist/Noco-linux-x64
+
+      - name: Upload macOS artifacts for signing
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.event.inputs.tag || inputs.tag }}
+          path: scripts/pkg-executable/mac-dist
+          retention-days: 1
+
+  # ---------------------------------------------------------------------------
+  # Job 2: Sign macOS executables
+  # ---------------------------------------------------------------------------
+  sign-mac-executables:
+    runs-on: macos-latest
+    needs: build-executables
+    steps:
+      - name: Download macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ github.event.inputs.tag || inputs.tag }}
+          path: scripts/pkg-executable/mac-dist
+
+      - name: Sign macOS executables
+        run: |
+          /usr/bin/codesign --force -s - ./scripts/pkg-executable/mac-dist/Noco-macos-arm64 -v
+          /usr/bin/codesign --force -s - ./scripts/pkg-executable/mac-dist/Noco-macos-x64 -v
+
+      - name: Upload signed artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ format('{0}-signed', github.event.inputs.tag || inputs.tag) }}
+          path: scripts/pkg-executable/mac-dist
+          retention-days: 1
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Publish macOS executables and update Homebrew
+  # ---------------------------------------------------------------------------
+  publish-mac-executables-and-homebrew:
+    needs: [sign-mac-executables, build-executables]
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Download signed macOS artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ format('{0}-signed', github.event.inputs.tag || inputs.tag) }}
+          path: scripts/pkg-executable/mac-dist
+
+      - name: Checkout homebrew-nocodb
+        uses: actions/checkout@v4
+        with:
+          path: 'homebrew-nocodb'
+          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          repository: 'nocodb/homebrew-nocodb'
+          fetch-depth: 0
+
+      - name: Compress files and calculate checksum
+        id: compress
+        run: |
+          cd ./scripts/pkg-executable
+          cp ./mac-dist/Noco-macos-x64 ./mac-dist/nocodb
+          tar -czf ./mac-dist/nocodb.tar.gz ./mac-dist/nocodb
+          rm ./mac-dist/nocodb
+          echo "CHECKSUM=$(shasum -a 256 ./mac-dist/nocodb.tar.gz | awk '{print $1}')" >> $GITHUB_OUTPUT
+
+      - name: Upload macOS executables and tarball to draft release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+        with:
+          draft: true
+          tag_name: ${{ github.event.inputs.tag || inputs.tag }}
+          repository: nocodb/nocodb
+          files: |
+            ./scripts/pkg-executable/mac-dist/Noco-macos-x64
+            ./scripts/pkg-executable/mac-dist/Noco-macos-arm64
+            ./scripts/pkg-executable/mac-dist/nocodb.tar.gz
+
+      - name: Generate Homebrew formula and push
+        run: |
+          FORMULA_CLASS_STR=$(cat << EOF
+          class Nocodb < Formula
+            desc "NocoDB : Opensource smart spreadsheet"
+            homepage "https://github.com/nocodb/nocodb"
+            url "https://github.com/nocodb/nocodb/releases/download/${{ github.event.inputs.tag || inputs.tag }}/nocodb.tar.gz"
+            sha256 "${{ steps.compress.outputs.CHECKSUM }}"
+            license "MIT"
+            version "${{ github.event.inputs.tag || inputs.tag }}"
+
+            def install
+              bin.install "nocodb"
+            end
+          end
+          EOF
+          )
+
+          cd ./homebrew-nocodb
+
+          printf "$FORMULA_CLASS_STR" > ./Formula/nocodb.rb
+
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+          git commit ./Formula/nocodb.rb -m "Automatic publish"
+          git push

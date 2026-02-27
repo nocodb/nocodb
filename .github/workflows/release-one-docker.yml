@@ -1,0 +1,357 @@
+name: "Release : One Docker"
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "CE semver tag (e.g. 0.302.0)"
+        required: true
+      prevTag:
+        description: "Previous CE tag for release notes (auto-detect if empty)"
+        required: false
+      versionSuffix:
+        description: "EE version suffix — appended to YYYY.MM (e.g. 1 → 2026.02.1). Defaults to 1"
+        required: false
+        default: "1"
+      skipDocker:
+        description: "Skip Docker build"
+        required: false
+        type: choice
+        options:
+          - "false"
+          - "true"
+        default: "false"
+      skipReleaseNotes:
+        description: "Skip release notes"
+        required: false
+        type: choice
+        options:
+          - "false"
+          - "true"
+        default: "false"
+      skipExecutables:
+        description: "Skip executables build"
+        required: false
+        type: choice
+        options:
+          - "false"
+          - "true"
+        default: "false"
+
+permissions:
+  contents: write
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Job 1: Compute tags
+  # ---------------------------------------------------------------------------
+  process-input:
+    runs-on: ubuntu-22.04
+    outputs:
+      ceTag: ${{ steps.compute.outputs.ceTag }}
+      eeVersion: ${{ steps.compute.outputs.eeVersion }}
+      prevTag: ${{ steps.compute.outputs.prevTag }}
+    steps:
+      - id: compute
+        name: Compute release tags
+        run: |
+          CE_TAG="${{ github.event.inputs.tag }}"
+          SUFFIX="${{ github.event.inputs.versionSuffix || '1' }}"
+          EE_VERSION="$(date +%Y.%m).${SUFFIX}"
+          PREV_TAG="${{ github.event.inputs.prevTag }}"
+
+          if [[ -z "${PREV_TAG}" ]]; then
+            PREV_TAG=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/nocodb/nocodb/releases/latest))
+          fi
+
+          echo "ceTag=${CE_TAG}" >> $GITHUB_OUTPUT
+          echo "eeVersion=${EE_VERSION}" >> $GITHUB_OUTPUT
+          echo "prevTag=${PREV_TAG}" >> $GITHUB_OUTPUT
+
+          echo "CE Tag:      ${CE_TAG}"
+          echo "EE Version:  ${EE_VERSION}"
+          echo "Previous Tag: ${PREV_TAG}"
+
+  # ---------------------------------------------------------------------------
+  # Job 2: Build & push Docker image
+  # ---------------------------------------------------------------------------
+  build-docker:
+    needs: process-input
+    if: ${{ github.event.inputs.skipDocker != 'true' }}
+    runs-on: ubicloud-standard-4
+    env:
+      working-directory: ./packages/nocodb
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: 'pnpm'
+
+      - name: Remove use-node-version from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+
+      - name: Install dependencies
+        run: pnpm bootstrap
+
+      - name: Set release version timestamp
+        id: vars
+        run: echo "release_version=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      - name: Create nc.txt version identifier file
+        run: |
+          mkdir -p packages/nc-gui/build/${{ steps.vars.outputs.release_version }}
+          cat > packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt << EOF
+          User: ${{ github.actor }}
+          Commit: ${{ github.sha }}
+          Branch: ${{ github.ref }}
+          Action ID: ${{ github.run_id }}
+          CE Tag: ${{ needs.process-input.outputs.ceTag }}
+          EE Version: ${{ needs.process-input.outputs.eeVersion }}
+          Date: $(date)
+          EOF
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nocodb/src/public/
+          cp packages/nc-gui/build/${{ steps.vars.outputs.release_version }}/nc.txt ./packages/nc-sql-executor/src/public/nc.txt
+
+      - name: Build nc-gui (EE) and copy to nocodb
+        env:
+          NC_ON_PREM: true
+          NUXT_CHATWOOT_WEBSITE_TOKEN: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM }}
+        run: |
+          export NODE_OPTIONS="--max-old-space-size=8192"
+          cd packages/nc-gui &&
+          pnpm run generate:ee &&
+
+          # delete sourcemaps
+          find ./ee/dist/ -type f -name '*.js.map' -delete &&
+          find ./ee/dist/ -type f -name '*.css.map' -delete &&
+
+          # copy build to nocodb
+          rsync -rvzh ./ee/dist/ ../nocodb/docker/nc-gui/
+
+      - name: Build nocodb
+        run: |
+          cd packages/nocodb &&
+          EE=true pnpm exec rspack --config rspack.ee-on-prem.config.js &&
+          pnpm uninstall --save-prod nocodb-sdk knex-snowflake knex-databricks
+
+      - name: Update package.json version to CE tag
+        run: |
+          CE_TAG="${{ needs.process-input.outputs.ceTag }}"
+          sed -i "s/\"version\": \".*\"/\"version\": \"${CE_TAG}\"/g" ./packages/nocodb/package.json
+          echo "Set nocodb package.json version to ${CE_TAG}"
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+      - name: Create and push EE version tag
+        run: |
+          EE_VERSION="${{ needs.process-input.outputs.eeVersion }}"
+          git tag -a "v${EE_VERSION}" -m "Release version ${EE_VERSION}"
+          git push origin "v${EE_VERSION}"
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v2.2.1
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2.1.0
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2.1.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3.2.0
+        with:
+          file: "./packages/nocodb/src/ee-on-prem/Dockerfile-on-prem"
+          context: "./packages/nocodb"
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+          push: true
+          tags: |
+            nocodb/nocodb:${{ needs.process-input.outputs.ceTag }}
+            nocodb/nocodb:latest
+            nocodb/nocodb-ee:${{ needs.process-input.outputs.eeVersion }}
+
+      # Temp fix for buildx cache
+      # https://github.com/docker/build-push-action/issues/252
+      # https://github.com/moby/buildkit/issues/1896
+      - name: Move cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+
+  # ---------------------------------------------------------------------------
+  # Job 3: Draft release notes on CE repo
+  # ---------------------------------------------------------------------------
+  release-notes:
+    needs: [process-input, build-docker]
+    if: ${{ github.event.inputs.skipReleaseNotes != 'true' && !cancelled() && (needs.build-docker.result == 'success' || needs.build-docker.result == 'skipped') }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout CE repo
+        uses: actions/checkout@v4
+        with:
+          repository: nocodb/nocodb
+          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Get HEAD SHA
+        id: get-sha
+        run: |
+          TARGET_SHA=$(git rev-list -n 1 HEAD)
+          echo "TARGET_SHA=${TARGET_SHA}" >> $GITHUB_OUTPUT
+          echo "Target SHA: ${TARGET_SHA}"
+
+      - name: Create tag on CE repo
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.NC_GITHUB_TOKEN }}
+          script: |
+            try {
+              await github.rest.git.createRef({
+                owner: 'nocodb',
+                repo: 'nocodb',
+                ref: 'refs/tags/${{ needs.process-input.outputs.ceTag }}',
+                sha: '${{ steps.get-sha.outputs.TARGET_SHA }}'
+              });
+              console.log('Tag created successfully');
+            } catch (e) {
+              if (e.status === 422) {
+                console.log('Tag already exists — skipping');
+              } else {
+                throw e;
+              }
+            }
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+
+      - name: Generate draft release notes
+        run: |
+          npx github-release-notes@0.17.2 release \
+            --token ${{ secrets.NC_GITHUB_TOKEN }} \
+            --draft \
+            --tags ${{ needs.process-input.outputs.ceTag }}..${{ needs.process-input.outputs.prevTag }}
+
+  # ---------------------------------------------------------------------------
+  # Job 4: Build executables (calls reusable workflow)
+  # ---------------------------------------------------------------------------
+  build-executables:
+    needs: [process-input, build-docker]
+    if: ${{ github.event.inputs.skipExecutables != 'true' && !cancelled() && (needs.build-docker.result == 'success' || needs.build-docker.result == 'skipped') }}
+    uses: ./.github/workflows/release-one-executables.yml
+    with:
+      tag: ${{ needs.process-input.outputs.ceTag }}
+    secrets:
+      NC_GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+
+  # ---------------------------------------------------------------------------
+  # Job 5: PR develop → master on CE repo (COMMENTED OUT)
+  # ---------------------------------------------------------------------------
+  # pr-to-master:
+  #   needs: [process-input, build-docker]
+  #   if: ${{ !cancelled() && (needs.build-docker.result == 'success' || needs.build-docker.result == 'skipped') }}
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - name: Checkout CE repo
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: nocodb/nocodb
+  #         token: ${{ secrets.NC_GITHUB_TOKEN }}
+  #         ref: develop
+  #
+  #     - name: Create Pull Request
+  #       id: cpr
+  #       uses: repo-sync/pull-request@v2
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+  #       with:
+  #         source_branch: "develop"
+  #         destination_branch: "master"
+  #         pr_title: '${{ needs.process-input.outputs.ceTag }} Pre-release'
+  #         pr_label: 'Bot: Automerge'
+  #
+  #     - name: Automerge
+  #       uses: "pascalgn/automerge-action@v0.15.5"
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+  #         PULL_REQUEST: ${{ steps.cpr.outputs.pr_number }}
+  #         MERGE_LABELS: "Bot: Automerge"
+
+  # ---------------------------------------------------------------------------
+  # Job 6: Sync master → develop on CE repo (COMMENTED OUT)
+  # ---------------------------------------------------------------------------
+  # sync-to-develop:
+  #   needs: [process-input, pr-to-master]
+  #   runs-on: ubuntu-22.04
+  #   steps:
+  #     - name: Setup Node
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 22.12.0
+  #
+  #     - name: Setup pnpm
+  #       uses: pnpm/action-setup@v4
+  #       with:
+  #         version: 9
+  #
+  #     - name: Checkout CE repo
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: nocodb/nocodb
+  #         token: ${{ secrets.NC_GITHUB_TOKEN }}
+  #         path: nocodb
+  #
+  #     - name: Prepare GH CLI
+  #       id: gh
+  #       run: |
+  #         wget https://github.com/cli/cli/releases/download/v2.33.0/gh_2.33.0_linux_amd64.tar.gz
+  #         tar -xvf gh_2.33.0_linux_amd64.tar.gz
+  #         GH=gh_2.33.0_linux_amd64/bin/gh
+  #         echo "GH=${GH}" >> $GITHUB_OUTPUT
+  #
+  #     - name: Sync master to develop
+  #       env:
+  #         GH_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+  #       run: |
+  #         cd nocodb
+  #         git fetch --quiet --unshallow origin
+  #         git checkout master
+  #         git reset --hard origin/master
+  #         BRANCH_NAME=nc/$(git rev-list -n 1 HEAD | cut -c1-8)
+  #         git checkout -b $BRANCH_NAME
+  #         git config user.name 'github-actions[bot]'
+  #         git config user.email 'github-actions[bot]@users.noreply.github.com'
+  #         revertSDK=true node scripts/upgradeNocodbSdk.js
+  #         pnpm --filter=nocodb-sdk install --no-frozen-lockfile && pnpm --filter=nocodb-sdk run build && pnpm --filter=nocodb --filter=nc-gui --filter=playwright install --no-frozen-lockfile
+  #         git add .
+  #         git diff-index --quiet HEAD || git commit -m "chore: update sdk path"
+  #         git push origin $BRANCH_NAME
+  #         ../${{ steps.gh.outputs.GH }} pr create --title "chore: post-release sync" --body "$(echo -e "This is an automated pull request to sync the master branch to develop.\nPlease review and merge this pull request if it looks good.")" --base develop --head $BRANCH_NAME

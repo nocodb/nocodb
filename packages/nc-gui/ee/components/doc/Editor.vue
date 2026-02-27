@@ -999,7 +999,7 @@ onBeforeUnmount(() => {
   }
 
   > * + * {
-    margin-top: 0.75em;
+    margin-top: 9px;
   }
 
   // Headings — H1/H2/H3 prefix labels sit outside via absolute positioning.

@@ -16,6 +16,7 @@ import { DocCodeBlockExtension } from './DocCodeBlockExtension'
 import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
+import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 
@@ -147,6 +148,7 @@ const _tiptapEditor = useEditor({
     CalloutExtension,
     DocFileAttachmentExtension,
     DocEmbedExtension,
+    DocActiveBlockExtension,
   ],
   editorProps: {
     attributes: {
@@ -1075,6 +1077,13 @@ onBeforeUnmount(() => {
     }
   }
 
+  // Active divider — show a selection border when a horizontal rule is selected
+  hr.nc-active-block {
+    outline: 2px solid var(--nc-fill-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
   // Placeholder
   p.is-editor-empty:first-child::before {
     content: attr(data-placeholder);
@@ -1255,13 +1264,20 @@ onBeforeUnmount(() => {
     color: #1f6feb;
   }
 
-  // Horizontal rule — use padding instead of margin because the
-  // `> *` reset zeroes margins on all direct children.
+  // Horizontal rule — centered line with vertical breathing room.
+  // Uses a pseudo-element so the line sits in the vertical middle.
   hr {
     border: none;
-    border-top: 1px solid var(--nc-border-gray-medium);
-    padding-top: 0.75em;
-    padding-bottom: 0.75em;
+    height: 1.5em;
+    display: flex;
+    align-items: center;
+
+    &::after {
+      content: '';
+      display: block;
+      width: 100%;
+      border-top: 1px solid var(--nc-border-gray-medium);
+    }
   }
 
   // Links

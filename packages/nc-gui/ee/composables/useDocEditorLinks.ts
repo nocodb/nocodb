@@ -184,7 +184,8 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     if (
       selection.node?.type.name === 'image' ||
       selection.node?.type.name === 'fileAttachment' ||
-      selection.node?.type.name === 'embed'
+      selection.node?.type.name === 'embed' ||
+      selection.node?.type.name === 'horizontalRule'
     )
       return false
     return !selection.empty

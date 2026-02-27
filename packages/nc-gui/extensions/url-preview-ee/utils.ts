@@ -68,10 +68,18 @@ const matchDrive = (url: string) => {
 urlMatchers.push(['Drive', matchDrive])
 
 const FIGMA_RE =
-  /^https?:\/\/(www\.|)figma\.com\/(file|proto|design)\/([0-9a-zA-Z]{22,})(?:\/.*)?(?:\?node-id=([0-9%:A-Za-z-]+))?/
+  /^https?:\/\/(www\.|)figma\.com\/(file|proto|design|board)\/([0-9a-zA-Z]{22,})(?:\/.*)?(?:\?node-id=([0-9%:A-Za-z-]+))?/
+
+const FIGMA_COMMUNITY_RE = /^https?:\/\/(www\.|)figma\.com\/community\/file\/(\d+)(?:\/.*)?(?:\?.*)?$/
 
 const matchFigma = (url: string) => {
   try {
+    // Community files — use the Figma oEmbed-style embed
+    const communityMatch = url.match(FIGMA_COMMUNITY_RE)
+    if (communityMatch) {
+      return `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(url)}`
+    }
+
     const match = url.match(FIGMA_RE)
     if (!match) {
       return null
@@ -91,6 +99,12 @@ const matchFigma = (url: string) => {
         break
       case 'design':
         embedUrl = `https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/design/${fileId}`
+        if (nodeId) {
+          embedUrl += `/?node-id=${nodeId}`
+        }
+        break
+      case 'board':
+        embedUrl = `https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/board/${fileId}`
         if (nodeId) {
           embedUrl += `/?node-id=${nodeId}`
         }
@@ -179,8 +193,9 @@ const matchTwitter = (url: string) => {
 }
 urlMatchers.push(['Twitter', matchTwitter])
 
-// CodePen
-const CODEPEN_RE = /^https?:\/\/codepen\.io\/([^\/]+)\/pen\/([^\/]+)(?:\?.*)?$/
+// CodePen — supports both user pens and team pens
+// e.g. codepen.io/user/pen/hash or codepen.io/team/name/pen/hash
+const CODEPEN_RE = /^https?:\/\/codepen\.io\/(.+?)\/pen\/([^\/\?]+)(?:\?.*)?$/
 const matchCodePen = (url: string) => {
   try {
     const match = url.match(CODEPEN_RE)

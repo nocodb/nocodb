@@ -8,6 +8,8 @@
  * - `src`:      the embeddable URL (e.g. https://www.youtube.com/embed/xxx)
  * - `url`:      the original user-provided URL
  * - `platform`: platform name (e.g. "Youtube", "Vimeo")
+ * - `height`:   user-resized height in px (null = default 16:9 aspect)
+ * - `width`:    user-resized width as percentage 1-100 (null = 100%)
  */
 import { Node, mergeAttributes } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
@@ -41,6 +43,28 @@ export const DocEmbedExtension = Node.create({
         parseHTML: (el: HTMLElement) => el.getAttribute('data-platform') || '',
         renderHTML: (attrs: Record<string, any>) => {
           return { 'data-platform': attrs.platform || '' }
+        },
+      },
+      height: {
+        default: null,
+        parseHTML: (el: HTMLElement) => {
+          const h = el.getAttribute('data-height')
+          return h ? Number(h) : null
+        },
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.height) return {}
+          return { 'data-height': String(attrs.height) }
+        },
+      },
+      width: {
+        default: null,
+        parseHTML: (el: HTMLElement) => {
+          const w = el.getAttribute('data-width')
+          return w ? Number(w) : null
+        },
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.width) return {}
+          return { 'data-width': String(attrs.width) }
         },
       },
     }

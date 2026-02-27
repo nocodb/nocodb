@@ -1570,7 +1570,7 @@ onBeforeUnmount(() => {
   .nc-embed-iframe-wrapper {
     position: relative;
     width: 100%;
-    padding-bottom: 56.25%; // 16:9 aspect ratio
+    // padding-bottom (16:9 default) or height (user-resized) set via inline style
   }
 
   .nc-embed-iframe {
@@ -1580,6 +1580,11 @@ onBeforeUnmount(() => {
     width: 100%;
     height: 100%;
     border: none;
+
+    // User-resized embeds use static positioning (height is explicit)
+    &.nc-embed-iframe-fixed {
+      position: static;
+    }
   }
 
   // Callout (notice) blocks

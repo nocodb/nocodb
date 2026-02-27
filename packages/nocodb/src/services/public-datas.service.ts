@@ -729,14 +729,8 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
@@ -812,14 +806,8 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
@@ -894,15 +882,8 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 

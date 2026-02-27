@@ -223,6 +223,36 @@ export const useDocumentComments = createSharedComposable(() => {
     }
   }
 
+  /**
+   * Apply a realtime event to the local comments list without refetching.
+   * Called from useRealtime when a DOCUMENT_COMMENT_EVENT arrives.
+   */
+  const applyRealtimeEvent = (action: string, payload: Record<string, any>) => {
+    const commentData = payload as CommentType
+
+    if (action === 'add') {
+      // Skip if we already have this comment (e.g., the sender's own optimistic insert)
+      if (commentData.id && comments.value.some((c) => c.id === commentData.id)) return
+      // Also skip if there's a temp placeholder from the current user
+      if (commentData.created_by === user.value?.id && comments.value.some((c) => c.id?.startsWith('temp-'))) return
+
+      comments.value = [...comments.value, enrichComment(commentData)]
+    } else if (action === 'update') {
+      if (!commentData.id) return
+      comments.value = comments.value.map((c) =>
+        c.id === commentData.id ? enrichComment(commentData) : c,
+      )
+    } else if (action === 'delete') {
+      if (!commentData.id) return
+      comments.value = comments.value.filter((c) => c.id !== commentData.id)
+    } else if (action === 'resolve') {
+      if (!commentData.id) return
+      comments.value = comments.value.map((c) =>
+        c.id === commentData.id ? enrichComment(commentData) : c,
+      )
+    }
+  }
+
   const scrollToComment = (commentId: string) => {
     activeCommentId.value = commentId
   }
@@ -242,6 +272,7 @@ export const useDocumentComments = createSharedComposable(() => {
     updateComment,
     deleteComment,
     resolveComment,
+    applyRealtimeEvent,
     scrollToComment,
     clearActiveComment,
   }

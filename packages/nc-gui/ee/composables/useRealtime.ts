@@ -1052,10 +1052,9 @@ export const useRealtime = createSharedComposable(() => {
         activeDocCommentListener.value = $ncSocket.onMessage(
           `${EventType.DOCUMENT_COMMENT_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
           (_payload: DocumentCommentPayload) => {
-            // Reload comments for the active document via the shared composable
-            const { activeDocId, loadComments } = useDocumentComments()
+            const { activeDocId, applyRealtimeEvent } = useDocumentComments()
             if (activeDocId.value && _payload.id === activeDocId.value) {
-              loadComments(activeDocId.value)
+              applyRealtimeEvent(_payload.action, _payload.payload)
             }
           },
         )

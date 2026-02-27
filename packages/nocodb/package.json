@@ -87,7 +87,7 @@
     "@govtechsg/passport-openidconnect": "^1.0.3",
     "@linear/sdk": "^40.0.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
-    "@modelcontextprotocol/sdk": "^1.18.2",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@napi-rs/canvas": "^0.1.77",
     "@nest-lab/throttler-storage-redis": "^1.1.0",
     "@nestjs/bull": "^10.2.3",

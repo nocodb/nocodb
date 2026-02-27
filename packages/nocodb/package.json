@@ -174,7 +174,7 @@
     "minio": "^8.0.4",
     "mkdirp": "^2.1.6",
     "monacopilot": "^1.2.2",
-    "multer": "^2.0.1",
+    "multer": "^2.0.2",
     "mysql2": "^3.14.1",
     "nanoid": "^3.3.8",
     "nc-jsep": "^1.7.5",

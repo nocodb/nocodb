@@ -21,6 +21,16 @@ const props = defineProps<{
   command: (item: SlashCommandItem) => void
 }>()
 
+const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform)
+
+/** Map platform-agnostic shortcut tokens to display symbols */
+const formatKey = (key: string): string => {
+  if (key === 'Mod') return isMac ? '⌘' : 'Ctrl'
+  if (key === 'Alt') return isMac ? '⌥' : 'Alt'
+  if (key === 'Shift') return isMac ? '⇧' : 'Shift'
+  return key
+}
+
 const selectedIndex = ref(0)
 const menuRef = ref<HTMLElement | null>(null)
 const inputRef = ref<HTMLInputElement | null>(null)
@@ -181,6 +191,9 @@ defineExpose({ onKeyDown })
         <!-- SAFETY: icon is always a trusted SVG string from SlashCommand.ts — never user input -->
         <span class="nc-slash-menu-icon" v-html="entry.item.icon" />
         <span class="nc-slash-menu-label">{{ entry.item.title }}</span>
+        <span v-if="entry.item.shortcut" class="nc-slash-menu-shortcut">
+          <kbd v-for="(key, kIdx) in entry.item.shortcut" :key="kIdx">{{ formatKey(key) }}</kbd>
+        </span>
       </div>
     </template>
   </div>
@@ -193,7 +206,7 @@ defineExpose({ onKeyDown })
   background: var(--nc-bg-default);
   border-radius: 8px;
   padding: 4px 0;
-  min-width: 200px;
+  min-width: 280px;
   max-height: 320px;
   overflow-y: auto;
   border: 1px solid var(--nc-border-gray-medium);
@@ -262,6 +275,39 @@ defineExpose({ onKeyDown })
   font-weight: 400;
   color: var(--nc-content-gray);
   line-height: 1;
+  flex: 1;
+  min-width: 0;
+}
+
+.nc-slash-menu-shortcut {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.nc-slash-menu-shortcut kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--nc-content-gray-muted);
+  background: var(--nc-bg-gray-light);
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 3px;
+}
+
+.nc-slash-menu-item.is-selected .nc-slash-menu-shortcut kbd {
+  color: var(--nc-content-inverted-primary);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Input mode styles */

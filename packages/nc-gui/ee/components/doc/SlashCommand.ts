@@ -26,6 +26,8 @@ export interface SlashCommandItem {
   requiresInput?: boolean
   /** Placeholder text for the inline input (used when requiresInput is true) */
   inputPlaceholder?: string
+  /** Keyboard shortcut keys — platform-agnostic tokens: 'Mod' = ⌘/Ctrl, 'Alt', 'Shift', plus literal keys */
+  shortcut?: string[]
 }
 
 /**
@@ -139,6 +141,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: 'Large section heading',
     icon: icons.h1,
     group: 'Headings',
+    shortcut: ['Mod', 'Alt', '1'],
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setNode('heading', { level: 1 }).run()
     },
@@ -148,6 +151,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: 'Medium section heading',
     icon: icons.h2,
     group: 'Headings',
+    shortcut: ['Mod', 'Alt', '2'],
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setNode('heading', { level: 2 }).run()
     },
@@ -157,6 +161,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: 'Small section heading',
     icon: icons.h3,
     group: 'Headings',
+    shortcut: ['Mod', 'Alt', '3'],
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).setNode('heading', { level: 3 }).run()
     },
@@ -167,6 +172,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: 'Unordered list',
     icon: icons.bulletList,
     group: 'Lists',
+    shortcut: ['Mod', 'Shift', '8'],
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleBulletList().run()
     },
@@ -176,6 +182,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: 'Ordered list',
     icon: icons.numberedList,
     group: 'Lists',
+    shortcut: ['Mod', 'Shift', '7'],
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleOrderedList().run()
     },
@@ -185,6 +192,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: 'Checklist with toggles',
     icon: icons.taskList,
     group: 'Lists',
+    shortcut: ['Mod', 'Shift', '9'],
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleTaskList().run()
     },
@@ -195,6 +203,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: 'Quote or callout',
     icon: icons.quote,
     group: 'Blocks',
+    shortcut: ['Mod', 'Shift', 'B'],
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleBlockquote().run()
     },
@@ -204,6 +213,7 @@ export const slashCommandItems: SlashCommandItem[] = [
     description: 'Fenced code block',
     icon: icons.code,
     group: 'Blocks',
+    shortcut: ['Mod', 'Alt', 'C'],
     command: (editor, range) => {
       editor.chain().focus().deleteRange(range).toggleCodeBlock().run()
     },
@@ -469,7 +479,7 @@ export const SlashCommandExtension = Extension.create({
                 trigger: 'manual',
                 placement: 'bottom-start',
                 animation: false,
-                maxWidth: 320,
+                maxWidth: 360,
               })
             },
 

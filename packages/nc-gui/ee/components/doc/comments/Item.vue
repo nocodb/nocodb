@@ -7,6 +7,8 @@ interface Props {
   isOwner: boolean
   isHovered: boolean
   isEditing: boolean
+  isActive?: boolean
+  hasActiveComment?: boolean
   anchorText?: string
   isFirstInGroup?: boolean
   isLastInGroup?: boolean
@@ -17,6 +19,8 @@ const props = withDefaults(defineProps<Props>(), {
   isOwner: false,
   isHovered: false,
   isEditing: false,
+  isActive: false,
+  hasActiveComment: false,
   anchorText: undefined,
   isFirstInGroup: true,
   isLastInGroup: true,
@@ -26,6 +30,7 @@ const emit = defineEmits<{
   (e: 'edit'): void
   (e: 'delete'): void
   (e: 'resolve'): void
+  (e: 'activate'): void
 }>()
 
 const { comment } = toRefs(props)
@@ -48,22 +53,29 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
 
 <template>
   <div
-    class="nc-doc-comment-item group"
+    class="nc-doc-comment-item group px-3 cursor-pointer transition-opacity duration-200"
     :class="{
-      'px-3 pt-2.5': isFirstInGroup,
-      'px-3': !isFirstInGroup,
-      'pb-2.5': isLastInGroup,
-      'pb-0.5': !isLastInGroup,
+      'pt-3': isFirstInGroup,
+      'nc-doc-comment-active': isActive,
+      'opacity-40': hasActiveComment && !isActive,
     }"
+    @click="emit('activate')"
   >
-    <!-- Card wrapper — only first-in-group gets the top border radius + header -->
     <div
-      class="nc-doc-comment-card border-l-2 pl-2.5"
-      :class="isOwner ? 'border-nc-border-brand' : 'border-nc-border-gray-medium'"
+      class="nc-doc-comment-card border-1 border-nc-border-gray-medium bg-nc-bg-default px-3 transition-shadow hover:shadow-sm"
+      :class="{
+        'rounded-t-lg pt-2': isFirstInGroup,
+        'rounded-b-lg pb-2': isLastInGroup,
+        'border-t-0': !isFirstInGroup,
+        'border-b-0': !isLastInGroup,
+        'py-1': !isFirstInGroup && !isLastInGroup,
+        'pt-1 pb-2': !isFirstInGroup && isLastInGroup,
+        'shadow-sm': isActive,
+      }"
     >
       <!-- Header: avatar + name + time — only for first in group -->
-      <div v-if="isFirstInGroup" class="flex items-center justify-between mb-1">
-        <div class="flex items-center gap-1.5 min-w-0 flex-1">
+      <div v-if="isFirstInGroup" class="flex items-center justify-between mb-1.5">
+        <div class="flex items-center gap-2 min-w-0 flex-1">
           <GeneralUserIcon
             :user="{
               display_name: comment.created_display_name,
@@ -138,22 +150,22 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
       </div>
 
       <!-- Inline comment — quoted referenced text -->
-      <div v-if="isInlineComment && anchorText" class="mb-1">
-        <div class="text-xs text-nc-content-gray-subtle line-clamp-2 italic rounded-sm bg-nc-bg-gray-light py-1 px-2">
+      <div v-if="isInlineComment && anchorText" class="mb-1.5">
+        <div class="text-xs text-nc-content-gray-subtle line-clamp-2 italic rounded-md bg-nc-bg-gray-light py-1.5 px-2">
           {{ anchorText }}
         </div>
       </div>
 
       <!-- Comment body -->
       <div
-        class="nc-doc-comment-body nc-rich-text-content text-small leading-5 text-nc-content-gray"
+        class="nc-doc-comment-body nc-rich-text-content text-small leading-5 text-nc-content-gray pl-6"
         v-html="parsedHtml"
       />
 
       <!-- Resolved badge -->
       <div
         v-if="comment.resolved_by"
-        class="mt-1 flex items-center gap-1 text-[10px] text-nc-content-green-dark"
+        class="mt-1.5 flex items-center gap-1 text-[10px] text-nc-content-green-dark"
       >
         <GeneralIcon icon="checkCircle" class="w-3 h-3" />
         <span>{{ $t('general.resolved') }}</span>
@@ -168,4 +180,5 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
     @apply !m-0 !leading-5;
   }
 }
+
 </style>

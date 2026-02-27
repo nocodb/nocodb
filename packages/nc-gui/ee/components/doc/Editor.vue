@@ -115,6 +115,24 @@ const onAddInlineComment = () => {
   editor.value.commands.setTextSelection(to)
 }
 
+// Click on inline comment mark → open sidebar and scroll to that comment
+const onEditorClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  const commentEl = target.closest('[data-comment-id]') as HTMLElement | null
+  if (!commentEl) return
+
+  const commentId = commentEl.getAttribute('data-comment-id')
+  if (!commentId) return
+
+  // Find the comment that has this anchor_id
+  const { comments, scrollToComment } = useDocumentComments()
+  const matchingComment = comments.value.find((c) => c.anchor_id === commentId)
+  if (!matchingComment?.id) return
+
+  isCommentsPanelOpen.value = true
+  nextTick(() => scrollToComment(matchingComment.id!))
+}
+
 // Deep link — open comments sidebar if ?commentId= is present in URL
 const route = useRoute()
 const router = useRouter()
@@ -1015,7 +1033,7 @@ onBeforeUnmount(() => {
             </div>
           </BubbleMenu>
 
-          <EditorContent :editor="editor" />
+          <EditorContent :editor="editor" @click="onEditorClick" />
 
           <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->
           <DocTableMenu v-if="isEditable" :editor="editor" />

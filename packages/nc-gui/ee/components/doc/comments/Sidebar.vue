@@ -34,6 +34,9 @@ const {
   updateComment,
   deleteComment,
   resolveComment,
+  activeCommentId,
+  scrollToComment,
+  clearActiveComment,
 } = useDocumentComments()
 
 const hasEditPermission = computed(() => isUIAllowed('documentCommentUpdate'))
@@ -206,6 +209,30 @@ watch(
     nextTick(() => scrollComments())
   },
 )
+
+// Scroll to active comment and highlight it
+function scrollToActiveComment() {
+  const id = activeCommentId.value
+  if (!id || !commentsWrapperEl.value) return
+  nextTick(() => {
+    const el = commentsWrapperEl.value?.querySelector(`[data-comment-item-id="${id}"]`) as HTMLElement | null
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  })
+}
+
+// Scroll when activeCommentId changes (sidebar already open)
+watch(activeCommentId, (id) => {
+  if (id) scrollToActiveComment()
+})
+
+// Also scroll after comments finish loading (sidebar just opened)
+watch(isCommentsLoading, (loading, wasLoading) => {
+  if (wasLoading && !loading && activeCommentId.value) {
+    scrollToActiveComment()
+  }
+})
 </script>
 
 <template>
@@ -239,7 +266,7 @@ watch(
     </div>
 
     <!-- Comments list -->
-    <div v-else ref="commentsWrapperEl" class="flex flex-col flex-1 py-1 nc-scrollbar-thin overflow-y-auto">
+    <div v-else ref="commentsWrapperEl" class="flex flex-col flex-1 py-1 nc-scrollbar-thin overflow-y-auto" @click.self="clearActiveComment">
       <template v-for="(commentItem, index) of comments" :key="commentItem.id">
         <!-- Edit mode -->
         <div
@@ -269,11 +296,14 @@ watch(
         <!-- Display mode -->
         <DocCommentsItem
           v-else
+          :data-comment-item-id="commentItem.id"
           :comment="commentItem"
           :parsed-html="parsedHtmlComments[commentItem.id!] || ''"
           :is-owner="commentItem.created_by === user?.id"
           :is-hovered="hoveredCommentId === commentItem.id"
           :is-editing="false"
+          :is-active="activeCommentId === commentItem.id"
+          :has-active-comment="!!activeCommentId"
           :anchor-text="commentItem.anchor_id ? anchorTextMap[commentItem.anchor_id] : undefined"
           :is-first-in-group="
             index === 0 ||
@@ -291,6 +321,7 @@ watch(
           @edit="editComment(commentItem)"
           @delete="deleteComment(commentItem.id!)"
           @resolve="resolveComment(commentItem.id!)"
+          @activate="activeCommentId === commentItem.id ? clearActiveComment() : scrollToComment(commentItem.id!)"
           @mouseover="hoveredCommentId = null"
         />
       </template>

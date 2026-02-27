@@ -730,6 +730,16 @@ onBeforeUnmount(() => {
     <div class="flex flex-col flex-1 min-w-0 overflow-y-auto">
     <!-- 3-dot page context menu — pinned to top-right of editor -->
     <div class="nc-doc-page-menu">
+      <NcTooltip :title="$t('general.comments')" placement="bottom">
+        <NcButton
+          size="xsmall"
+          type="text"
+          :class="{ '!bg-nc-bg-brand-soft': isCommentsPanelOpen }"
+          @click="toggleCommentsPanel()"
+        >
+          <GeneralIcon icon="ncMessageCircle" :class="isCommentsPanelOpen ? 'text-nc-content-brand' : ''" />
+        </NcButton>
+      </NcTooltip>
       <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
         <NcButton size="xsmall" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
           <GeneralIcon icon="threeDotHorizontal" />
@@ -1133,6 +1143,9 @@ onBeforeUnmount(() => {
 
 // Page 3-dot context menu — pinned to top-right of full editor area
 .nc-doc-page-menu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   position: sticky;
   top: 0;
   align-self: flex-end;

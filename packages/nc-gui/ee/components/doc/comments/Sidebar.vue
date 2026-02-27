@@ -273,6 +273,18 @@ watch(
           :is-hovered="hoveredCommentId === commentItem.id"
           :is-editing="false"
           :anchor-text="commentItem.anchor_id ? anchorTextMap[commentItem.anchor_id] : undefined"
+          :is-first-in-group="
+            index === 0 ||
+            comments[index - 1]?.created_by !== commentItem.created_by ||
+            !!commentItem.anchor_id ||
+            !!comments[index - 1]?.anchor_id
+          "
+          :is-last-in-group="
+            index === comments.length - 1 ||
+            comments[index + 1]?.created_by !== commentItem.created_by ||
+            !!comments[index + 1]?.anchor_id ||
+            !!commentItem.anchor_id
+          "
           :class="{ 'mt-auto': index === 0 }"
           @edit="editComment(commentItem)"
           @delete="deleteComment(commentItem.id!)"

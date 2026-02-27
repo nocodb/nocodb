@@ -368,6 +368,9 @@ export class UsersService {
       token_version: randomTokenString(),
     });
 
+    // delete all refresh tokens to invalidate existing sessions
+    await UserRefreshToken.deleteAllUserToken(user.id);
+
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,
       req: param.req,

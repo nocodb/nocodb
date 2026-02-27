@@ -68,7 +68,7 @@ const titleInput = useTemplateRef('titleInput')
 
 const editor = shallowRef<Editor | undefined>()
 
-const { doc, title, lastSavedTitle, isSaving, isLoaded, debouncedSave, loadAndSetDoc, flushOnUnmount, activeDocument } =
+const { doc, title, lastSavedTitle, isSaving, isLoaded, isStale, staleUpdatedBy, debouncedSave, loadAndSetDoc, reloadDocument, flushOnUnmount, activeDocument } =
   useDocumentAutoSave({ editor, activeProjectId, isEditable })
 
 const {
@@ -405,6 +405,8 @@ const createdByLabel = computed(() => resolveUserLabel(doc.value?.created_by))
 
 const updatedByLabel = computed(() => resolveUserLabel(doc.value?.updated_by))
 
+const staleUserLabel = computed(() => resolveUserLabel(staleUpdatedBy.value))
+
 const updatedAgo = computed(() => {
   const ts = doc.value?.updated_at
   if (!ts) return ''
@@ -730,6 +732,25 @@ onBeforeUnmount(() => {
           </NcMenu>
         </template>
       </NcDropdown>
+    </div>
+
+    <div v-if="isStale" class="nc-doc-stale-banner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16 pt-4">
+      <NcAlert type="info" :closable="false" align="center">
+        <template #message>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-sm">
+              {{
+                staleUserLabel
+                  ? $t('msg.documentUpdatedByUser', { user: staleUserLabel })
+                  : $t('msg.documentUpdated')
+              }}
+            </span>
+            <NcButton size="small" type="secondary" @click="reloadDocument">
+              {{ $t('general.reload') }}
+            </NcButton>
+          </div>
+        </template>
+      </NcAlert>
     </div>
 
     <div class="nc-doc-editor-inner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16">

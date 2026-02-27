@@ -36,8 +36,33 @@ export function useDocumentAutoSave({
   // Used to allow saving empty documents when the user intentionally clears content.
   const hasUserEdited = ref(false)
 
+  /** Whether the document is stale (another user saved a newer version). */
+  const isStale = computed(() => {
+    if (!doc.value || !activeDocument.value) return false
+    if (!isLoaded.value || isSaving.value) return false
+
+    // Only stale if store version is ahead (another user saved)
+    return (activeDocument.value.version ?? 0) > (doc.value.version ?? 0)
+  })
+
+  /** The user ID of who made the remote change (for banner text). */
+  const staleUpdatedBy = computed(() => {
+    if (!isStale.value) return undefined
+    return activeDocument.value?.updated_by
+  })
+
+  /** Reload the document from the server, clearing stale state. */
+  const reloadDocument = async () => {
+    if (!doc.value?.id) return
+    // Cancel any pending save — stale content shouldn't overwrite newer version
+    if (saveTimeout.value) clearTimeout(saveTimeout.value)
+    hasUserEdited.value = false
+    await loadAndSetDoc(doc.value.id)
+  }
+
   /** Persist current editor state + title to the backend. */
   const save = async () => {
+    if (isStale.value) return
     if (!isEditable.value) return
     if (!doc.value || !activeProjectId.value || !editor.value) return
 
@@ -208,9 +233,12 @@ export function useDocumentAutoSave({
     isSaving,
     isLoaded,
     isSettingContent,
+    isStale,
+    staleUpdatedBy,
     save,
     debouncedSave,
     loadAndSetDoc,
+    reloadDocument,
     flushOnUnmount,
     activeDocument,
   }

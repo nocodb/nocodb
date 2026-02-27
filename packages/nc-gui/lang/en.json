@@ -2623,6 +2623,8 @@
     "autoNumberFieldInfo": "Automatically generates a unique incremented number for each record. Values are read-only and cannot be edited.",
     "selectAttachmentFieldDescription": "Which field would you like to upload these files to?",
     "documentIdCopied": "Document ID copied",
+    "documentUpdated": "This document has been updated. Reload to see the latest changes.",
+    "documentUpdatedByUser": "This document was updated by {user}. Reload to see the latest changes.",
     "failedToCreateDocument": "Failed to create document",
     "deleteDocumentConfirm": "Delete document \"{title}\"?",
     "embedUrlNotSupported": "URL not supported for embedding. Try a YouTube, Vimeo, or Loom link.",

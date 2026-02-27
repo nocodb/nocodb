@@ -1,45 +1,15 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "declaration": true,
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es2017",
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true,
-    "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
-    "jsx": "react",
+    "noEmit": true,
     "paths": {
-      "src/*": [
-        "src/*"
-      ],
-      "~/*": [
-        "src/*"
-      ],
-      "@/*": [
-        "src/*"
-      ],
-      "@noco-local-integrations/*": [
-        "../noco-integrations/packages/*"
-      ],
-      "@noco-local-integrations/core": [
-        "../noco-integrations/core"
-      ]
-    },
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+      "src/*": ["src/*"],
+      "~/*": ["src/ee-cloud/*", "src/ee-on-prem/*", "src/ee/*", "src/*"],
+      "@/*": ["src/ee-cloud/*", "src/ee-on-prem/*", "src/ee/*", "src/*"],
+      "@noco-local-integrations/*": ["../noco-integrations/packages/*"],
+      "@noco-local-integrations/core": ["../noco-integrations/core"]
+    }
   },
+  "include": ["src/**/*"],
+  "exclude": ["**/*.spec.ts"]
 }

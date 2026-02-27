@@ -93,6 +93,30 @@ jobs:
           ./make.sh
           sudo cp ./ldid /usr/local/bin
 
+      - name: Prepare nocodb tarball for pkg-executable
+        run: |
+          cd packages/nocodb
+
+          # Strip pnpm-specific deps (link:, workspace:) and already-bundled deps
+          # from package.json before packing, so npm can resolve the rest
+          node -e "
+            const pkg = require('./package.json');
+            for (const [k,v] of Object.entries(pkg.dependencies || {})) {
+              if (String(v).startsWith('link:') || String(v).startsWith('workspace:')) {
+                delete pkg.dependencies[k];
+              }
+            }
+            delete pkg.dependencies['nocodb-sdk'];
+            delete pkg.dependencies['knex-snowflake'];
+            delete pkg.dependencies['knex-databricks'];
+            require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
+          "
+
+          npm pack --pack-destination /tmp/
+
+          # Restore original package.json
+          git checkout -- package.json
+
       - name: Prepare pkg-executable directory
         run: |
           cd scripts/pkg-executable
@@ -100,23 +124,22 @@ jobs:
           # downgrade sqlite3 to 5.1.6 until build issues are resolved
           node ../downgradeSqlite.js
 
-          # remove nocodb from package.json so npm doesn't fetch it from registry
+          # Point nocodb dependency to the local tarball so npm installs it
+          # with all its production dependencies resolved properly
+          TARBALL=$(ls /tmp/nocodb-*.tgz | head -1)
           node -e "
             const pkg = require('./package.json');
-            delete pkg.dependencies['nocodb'];
+            pkg.dependencies['nocodb'] = '${TARBALL}';
             require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
           "
 
-          # install remaining dependencies
           npm i
 
-          # copy locally-built nocodb into node_modules
-          mkdir -p node_modules/nocodb
-          cp ../../packages/nocodb/package.json node_modules/nocodb/
-          cp -r ../../packages/nocodb/dist node_modules/nocodb/
+          # Overlay locally-built artifacts on top of the installed nocodb
+          rm -rf node_modules/nocodb/dist
+          cp -r ../../packages/nocodb/dist node_modules/nocodb/dist
           mkdir -p node_modules/nocodb/docker
           cp -r ../../packages/nocodb/docker/nc-gui node_modules/nocodb/docker/nc-gui
-          cp -r ../../packages/nocodb/docker/public node_modules/nocodb/docker/public
 
       - name: Build sqlite3 for all platforms
         run: |
@@ -133,6 +156,8 @@ jobs:
       - name: Clean up node_modules
         run: |
           cd scripts/pkg-executable
+          # Remove overrides added by downgradeSqlite.js to avoid npx conflict
+          node -e "const p=require('./package.json'); delete p.overrides; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2));"
           npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**,jsdom/**" --run
 
       - name: Build executables

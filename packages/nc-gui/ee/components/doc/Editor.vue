@@ -1528,7 +1528,11 @@ onBeforeUnmount(() => {
     border: 1px solid var(--nc-border-gray-medium);
     border-radius: 8px;
     overflow: hidden;
-    background: #000;
+    background: white;
+
+    :global(.dark) & {
+      background: black;
+    }
     transition: border-color 0.15s, box-shadow 0.15s;
 
     &:hover {

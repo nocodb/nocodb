@@ -100,11 +100,17 @@ jobs:
           # downgrade sqlite3 to 5.1.6 until build issues are resolved
           node ../downgradeSqlite.js
 
-          # install dependencies
+          # remove nocodb from package.json so npm doesn't fetch it from registry
+          node -e "
+            const pkg = require('./package.json');
+            delete pkg.dependencies['nocodb'];
+            require('fs').writeFileSync('./package.json', JSON.stringify(pkg, null, 2));
+          "
+
+          # install remaining dependencies
           npm i
 
-          # replace npm-fetched nocodb with locally-built one
-          rm -rf node_modules/nocodb
+          # copy locally-built nocodb into node_modules
           mkdir -p node_modules/nocodb
           cp ../../packages/nocodb/package.json node_modules/nocodb/
           cp -r ../../packages/nocodb/dist node_modules/nocodb/

@@ -550,6 +550,7 @@
     "keepAsLink": "Keep as link",
     "embed": "Embed",
     "downloadAs": "Download as",
+    "createdBy":"Created by",
     "updatedBy": "Updated by"
   },
   "objects": {

@@ -735,7 +735,7 @@ onBeforeUnmount(() => {
     </div>
 
     <div v-if="isStale" class="nc-doc-stale-banner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16 pt-4">
-      <NcAlert type="info" :closable="false" align="center">
+      <NcAlert type="info" :closable="false" align="center" class="!bg-nc-bg-brand">
         <template #message>
           <div class="flex items-center justify-between gap-2">
             <span class="text-sm">
@@ -785,7 +785,7 @@ onBeforeUnmount(() => {
         </div>
         <div class="nc-doc-subtitle flex items-center gap-1 mt-2 text-sm">
           <template v-if="createdByLabel">
-            <span>{{ $t('labels.createdBy') }} {{ createdByLabel }}</span>
+            <span>{{ $t('general.createdBy') }} {{ createdByLabel }}</span>
           </template>
           <template v-if="updatedByLabel && updatedAgo">
             <span v-if="createdByLabel">&middot;</span>

@@ -138,7 +138,16 @@ const _tiptapEditor = useEditor({
     Underline,
     DocHighlightExtension,
     Link.configure({ openOnClick: false }),
-    Placeholder.configure({ placeholder: t('placeholder.docEditor') }),
+    Placeholder.configure({
+      placeholder: ({ editor, node, hasAnchor }) => {
+        if (!hasAnchor) return ''
+        if (editor.isEmpty) return t('placeholder.docEditor')
+        // Non-empty doc: show a subtle hint on the focused empty paragraph
+        if (node.type.name === 'paragraph') return t('placeholder.docEditorLine')
+        return ''
+      },
+      showOnlyCurrent: true,
+    }),
     DocImageExtension,
     TaskList,
     TaskItem.configure({ nested: true }),
@@ -373,6 +382,7 @@ const _tiptapEditor = useEditor({
     // Dismiss paste-link menu on any editor content change (typing, etc.)
     if (pasteLinkMenu.value.visible) dismissPasteLinkMenu()
     debouncedSave()
+    countTasks()
   },
   onSelectionUpdate: () => {
     onSelectionUpdate()
@@ -400,6 +410,28 @@ const updatedAgo = computed(() => {
   if (!ts) return ''
   return timeAgo(ts)
 })
+
+// --- Task list progress ---
+
+const taskTotal = ref(0)
+
+const taskCompleted = ref(0)
+
+const hasTaskItems = computed(() => taskTotal.value > 0)
+
+function countTasks() {
+  if (!editor.value) return
+  let total = 0
+  let completed = 0
+  editor.value.state.doc.descendants((node) => {
+    if (node.type.name === 'taskItem') {
+      total++
+      if (node.attrs.checked) completed++
+    }
+  })
+  taskTotal.value = total
+  taskCompleted.value = completed
+}
 
 // Register the slash command upload triggers once the editor is available.
 // The slash commands call editor.storage.{type}.openUpload() which we wire here.
@@ -446,6 +478,7 @@ watch(
   async ([newId, newBaseId]) => {
     if (newId && newBaseId) {
       await loadAndSetDoc(newId)
+      nextTick(() => countTasks())
 
       // Auto-focus the title input on new (untitled) pages so the user
       // can immediately start typing a name (only for users who can edit)
@@ -741,6 +774,27 @@ onBeforeUnmount(() => {
             <span v-if="createdByLabel || updatedByLabel">&middot;</span>
             <span>{{ $t('general.saving') }}...</span>
           </template>
+          <template v-if="hasTaskItems">
+            <span>&middot;</span>
+            <span class="nc-doc-task-progress">
+              <svg width="14" height="14" viewBox="0 0 14 14">
+                <circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--nc-border-gray-medium)" stroke-width="2" />
+                <circle
+                  cx="7"
+                  cy="7"
+                  r="5.5"
+                  fill="none"
+                  stroke="var(--nc-fill-primary)"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  :stroke-dasharray="2 * Math.PI * 5.5"
+                  :stroke-dashoffset="2 * Math.PI * 5.5 * (1 - (taskTotal ? taskCompleted / taskTotal : 0))"
+                  transform="rotate(-90 7 7)"
+                />
+              </svg>
+              {{ $t('labels.taskProgress', { completed: taskCompleted, total: taskTotal }) }}
+            </span>
+          </template>
         </div>
       </div>
 
@@ -1023,6 +1077,13 @@ onBeforeUnmount(() => {
   color: var(--nc-content-gray-muted);
 }
 
+// Task list progress indicator (inline with subtitle metadata)
+.nc-doc-task-progress {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 // Title placeholder — lighter than muted to feel like a watermark
 .nc-doc-title-input::placeholder {
   color: var(--nc-content-gray-muted);
@@ -1139,8 +1200,9 @@ onBeforeUnmount(() => {
     border-radius: 2px;
   }
 
-  // Placeholder
-  p.is-editor-empty:first-child::before {
+  // Placeholder — shown on the focused empty paragraph (via Tiptap Placeholder extension)
+  p.is-empty::before,
+  p.is-editor-empty::before {
     content: attr(data-placeholder);
     float: left;
     color: var(--nc-content-gray-disabled);
@@ -1220,6 +1282,13 @@ onBeforeUnmount(() => {
           margin-bottom: 0;
         }
       }
+    }
+
+    // Checked (completed) task items — strikethrough + muted text
+    li[data-checked='true'] > div {
+      text-decoration: line-through;
+      color: var(--nc-content-gray-disabled);
+      text-decoration-color: var(--nc-content-gray-disabled);
     }
 
     // Nested task lists

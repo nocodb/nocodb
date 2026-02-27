@@ -425,6 +425,8 @@ const rolePermissions:
       integrationDelete: true,
       integrationUpdate: true,
       integrationList: true,
+      integrationStore: true,
+      integrationEndpointGet: true,
     },
   },
 };

@@ -179,6 +179,9 @@ export class IntegrationsController {
   }
 
   @Post(['/api/v2/integrations/:integrationId/store'])
+  @Acl('integrationStore', {
+    scope: 'org',
+  })
   async storeIntegration(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
@@ -211,6 +214,9 @@ export class IntegrationsController {
   }
 
   @Post(['/api/v2/integrations/:integrationId/:endpoint'])
+  @Acl('integrationEndpointGet', {
+    scope: 'org',
+  })
   async integrationEndpointGet(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,

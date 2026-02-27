@@ -32,6 +32,10 @@ export function useDocumentAutoSave({
   // into the editor (setContent triggers onUpdate, which would queue a no-op save).
   const isSettingContent = ref(false)
 
+  // Track whether a user edit has occurred since the last load/save.
+  // Used to allow saving empty documents when the user intentionally clears content.
+  const hasUserEdited = ref(false)
+
   /** Persist current editor state + title to the backend. */
   const save = async () => {
     if (!isEditable.value) return
@@ -41,15 +45,16 @@ export function useDocumentAutoSave({
     try {
       const content = editor.value.getJSON()
 
-      // Guard: skip saving if editor state is empty AND the title hasn't changed.
-      // This prevents data loss from transient editor state corruption (e.g. paste bugs)
-      // while still allowing title-only saves on pages with empty bodies.
+      // Guard: skip saving if editor state is empty AND the title hasn't changed
+      // AND no user edit has occurred. This prevents data loss from transient editor
+      // state corruption (e.g. paste bugs) while still allowing intentional clears
+      // and title-only saves on pages with empty bodies.
       const nodeCount = content?.content?.length ?? 0
       const firstType = content?.content?.[0]?.type
       const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
       const effectiveTitle = title.value || 'Untitled'
       const titleChanged = effectiveTitle !== lastSavedTitle.value
-      if (isEmptyDoc && !titleChanged) {
+      if (isEmptyDoc && !titleChanged && !hasUserEdited.value) {
         isSaving.value = false
         return
       }
@@ -66,6 +71,7 @@ export function useDocumentAutoSave({
         doc.value.updated_at = updated.updated_at
         doc.value.updated_by = updated.updated_by
         lastSavedTitle.value = effectiveTitle
+        hasUserEdited.value = false
       }
     } catch (_e) {
       // Error already surfaced by store's updateDocument via message.error
@@ -77,6 +83,8 @@ export function useDocumentAutoSave({
   const debouncedSave = () => {
     // Skip saves triggered by programmatic setContent during page load
     if (isSettingContent.value) return
+
+    hasUserEdited.value = true
 
     if (saveTimeout.value) {
       clearTimeout(saveTimeout.value)
@@ -138,6 +146,7 @@ export function useDocumentAutoSave({
     }
 
     isLoaded.value = false
+    hasUserEdited.value = false
     const loaded = await loadDocument(id)
 
     if (loaded) {
@@ -179,12 +188,12 @@ export function useDocumentAutoSave({
         const docTitle = title.value || 'Untitled'
         const baseId = activeProjectId.value
 
-        // Guard: skip saving empty doc on unmount unless title changed
+        // Guard: skip saving empty doc on unmount unless title changed or user edited
         const nodeCount = content?.content?.length ?? 0
         const firstType = content?.content?.[0]?.type
         const isEmptyDoc = nodeCount <= 1 && firstType === 'paragraph' && !content?.content?.[0]?.content
         const titleChanged = docTitle !== lastSavedTitle.value
-        if (!(isEmptyDoc && !titleChanged)) {
+        if (!(isEmptyDoc && !titleChanged && !hasUserEdited.value)) {
           // Fire-and-forget is acceptable here — content is already captured
           updateDocument(baseId, docId, { title: docTitle, content, version })
         }

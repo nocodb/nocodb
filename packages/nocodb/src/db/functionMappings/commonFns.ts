@@ -4,7 +4,7 @@ import type { MapFnArgs } from '~/db/mapFunctionName';
 import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 
-const ALLOWED_DATEADD_UNITS = new Set([
+export const ALLOWED_DATEADD_UNITS = new Set([
   'day',
   'week',
   'month',
@@ -20,6 +20,15 @@ export function validateDateAddUnit(raw: string): string {
     NcError.badRequest(`Invalid DATEADD unit: ${unit}`);
   }
   return unit;
+}
+
+// SQL-level sanitization for dynamic unit values (field references, expressions).
+// Returns a CASE expression that constrains the value to valid units at query time.
+export function safeDateAddUnitSQL(knex: Knex, unitBuilder: any): Knex.Raw {
+  const branches = [...ALLOWED_DATEADD_UNITS]
+    .map((u) => `WHEN '${u}' THEN '${u}'`)
+    .join(' ');
+  return knex.raw(`CASE LOWER(?) ${branches} ELSE 'day' END`, [unitBuilder]);
 }
 
 async function treatArgAsConditionalExp(

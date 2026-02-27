@@ -290,8 +290,6 @@ export class UsersService {
         user: user,
         req: param.req,
       });
-    } else {
-      return NcError.badRequest('Your email has not been registered.');
     }
 
     return true;

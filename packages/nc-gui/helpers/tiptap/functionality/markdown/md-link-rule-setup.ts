@@ -35,15 +35,6 @@ function mdLinkRuleSetupExt(md: MarkdownIt, { openLinkOnClick = false }: { openL
       if (relIndex < 0) {
         tokens[idx]!.attrPush(['rel', 'noopener noreferrer nofollow'])
       }
-      const onClickIndex = tokens[idx]!.attrIndex('onmousedown')
-      if (onClickIndex < 0) {
-        tokens[idx]!.attrPush(['onmousedown', '(function(event) { event.preventDefault();})(event)'])
-      }
-
-      const clickIndex = tokens[idx]!.attrIndex('onclick')
-      if (clickIndex < 0) {
-        tokens[idx]!.attrPush(['onclick', '(function(event) { window.tiptapLinkHandler?.(event);})(event)'])
-      }
     }
 
     return self.renderToken(tokens, idx, options)

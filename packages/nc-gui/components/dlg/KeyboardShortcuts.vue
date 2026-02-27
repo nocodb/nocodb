@@ -82,22 +82,6 @@ const shortcutList = [
         behaviour: 'Jump to last record in this column (in same page)',
       },
       {
-        keys: [renderAltOrOptlKey(), '←'],
-        behaviour: 'Jump to previous page in this view',
-      },
-      {
-        keys: [renderAltOrOptlKey(), '→'],
-        behaviour: 'Jump to next page in this view',
-      },
-      {
-        keys: [renderAltOrOptlKey(), '↑'],
-        behaviour: 'Jump to first page in this view',
-      },
-      {
-        keys: [renderAltOrOptlKey(), '↓'],
-        behaviour: 'Jump to last page in this view',
-      },
-      {
         keys: ['Enter'],
         behaviour: 'Switch cell in focus to EDIT mode; opens modal / picker if cell is associated with one',
       },
@@ -237,7 +221,7 @@ const shortcutList = [
   <NcModal
     v-model:visible="dialogShow"
     size="lg"
-    width="min(calc(100vw - 32px), 640px)"
+    width="min(calc(100vw - 32px), 540px)"
     :show-separator="false"
     wrap-class-name="nc-modal-keyboard-shortcuts"
   >
@@ -292,12 +276,6 @@ const shortcutList = [
 
 <style lang="scss" scoped>
 .nc-kbd {
-  @apply inline-flex items-center justify-center
-    min-w-6 h-6 px-1.5
-    text-[11px] font-medium leading-none
-    text-nc-content-gray-subtle
-    bg-nc-bg-gray-light
-    border-1 border-nc-border-gray-medium border-b-2
-    rounded-md;
+  @apply inline-flex items-center justify-center min-w-6 h-6 px-1.5 text-[12px] font-medium leading-none text-nc-content-gray-subtle bg-nc-bg-gray-light border-1 border-nc-border-gray-medium border-b-2 rounded-md;
 }
 </style>

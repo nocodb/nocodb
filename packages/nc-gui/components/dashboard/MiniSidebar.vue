@@ -280,10 +280,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
   .nc-mini-sidebar-labeled-btn,
   .nc-mini-sidebar-labeled-item {
-    @apply flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-md cursor-pointer text-nc-content-gray-muted transition-all duration-150;
+    @apply flex flex-col items-center justify-center gap-0.5 py-2 rounded-md cursor-pointer text-nc-content-gray-muted transition-all duration-150;
     width: calc(100% - 6px);
     margin-left: 3px;
     margin-right: 3px;
+
+    @media (max-width: 1279px) {
+      @apply py-2.5;
+    }
 
     &:hover:not(.active) {
       @apply bg-nc-bg-gray-medium text-nc-content-gray;
@@ -328,6 +332,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     @apply text-[10px] leading-tight select-none;
     font-weight: 600;
     letter-spacing: 0.01em;
+
+    @media (max-width: 1279px) {
+      @apply !hidden;
+    }
   }
 
   .nc-stacked-base-icon {

@@ -47,7 +47,7 @@ body {
 }
 
 :root {
-  --mini-sidebar-width: 4.5rem; /* 72px */
+  --mini-sidebar-width: 3rem; /* 48px — compact by default */
   --toolbar-height: 2.75rem;
   --topbar-height: 3rem;
   --footer-height: 2.125rem;
@@ -62,6 +62,12 @@ body {
   --ant-primary-color-hover: #5c85ff !important;
   --ant-primary-color-active: #3366ff !important;
   --ant-primary-color-outline: rgba(51, 102, 255, 0.24) !important;
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --mini-sidebar-width: 4.5rem; /* 72px — expanded with labels on large screens */
+  }
 }
 
 ::-moz-selection {

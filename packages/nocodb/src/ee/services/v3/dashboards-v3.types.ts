@@ -5,7 +5,7 @@ export type DashboardV3ListItemType = {
   base_id: string;
   workspace_id: string;
   order: number | null;
-  meta: Record<string, unknown>;
+  options: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -22,7 +22,7 @@ export type WidgetV3Type = {
   description: string | null;
   dashboard_id: string;
   type: string;
-  config: Record<string, unknown>;
+  options: Record<string, unknown>;
   meta: Record<string, unknown>;
   order: number | null;
   position: { x: number; y: number; w: number; h: number } | null;
@@ -50,14 +50,14 @@ export type DashboardV3DataResponseType = {
 export type DashboardV3CreateRequestType = {
   title: string;
   description?: string | null;
-  meta?: Record<string, unknown>;
+  options?: Record<string, unknown>;
 };
 
 export type DashboardV3UpdateRequestType = {
   title?: string;
   description?: string | null;
   order?: number;
-  meta?: Record<string, unknown>;
+  options?: Record<string, unknown>;
 };
 
 // --- Widget request types ---
@@ -66,7 +66,7 @@ export type WidgetV3CreateRequestType = {
   title: string;
   description?: string | null;
   type: string;
-  config?: Record<string, unknown>;
+  options?: Record<string, unknown>;
   meta?: Record<string, unknown>;
   position?: { x: number; y: number; w: number; h: number };
   model_id?: string;
@@ -76,7 +76,7 @@ export type WidgetV3CreateRequestType = {
 export type WidgetV3UpdateRequestType = {
   title?: string;
   description?: string | null;
-  config?: Record<string, unknown>;
+  options?: Record<string, unknown>;
   meta?: Record<string, unknown>;
   order?: number;
   position?: { x: number; y: number; w: number; h: number };

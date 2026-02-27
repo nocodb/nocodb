@@ -11913,9 +11913,9 @@
             "type": ["string", "null"],
             "description": "Description of the dashboard."
           },
-          "meta": {
+          "options": {
             "type": "object",
-            "description": "Additional metadata for the dashboard."
+            "description": "Additional options for the dashboard."
           }
         }
       },
@@ -11935,9 +11935,9 @@
             "type": "number",
             "description": "Display order of the dashboard."
           },
-          "meta": {
+          "options": {
             "type": "object",
-            "description": "Additional metadata for the dashboard."
+            "description": "Additional options for the dashboard."
           }
         }
       },
@@ -11958,9 +11958,9 @@
             "type": "string",
             "description": "Type of the widget."
           },
-          "config": {
+          "options": {
             "type": "object",
-            "description": "Configuration for the widget."
+            "description": "Options/configuration for the widget. For text widgets, formatting is nested inside appearance (e.g. { content, type, appearance: { formatting: {...}, font: {...}, color } })."
           },
           "meta": {
             "type": "object",
@@ -11998,9 +11998,9 @@
             "type": ["string", "null"],
             "description": "Description of the widget."
           },
-          "config": {
+          "options": {
             "type": "object",
-            "description": "Configuration for the widget."
+            "description": "Options/configuration for the widget. For text widgets, formatting is nested inside appearance (e.g. { content, type, appearance: { formatting: {...}, font: {...}, color } })."
           },
           "meta": {
             "type": "object",

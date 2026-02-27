@@ -16,30 +16,37 @@ import type {
 import type { Dashboard, Widget } from '~/models';
 import type { WidgetTypes } from 'nocodb-sdk';
 import { DashboardsService } from '~/services/dashboards.service';
-import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
+import {
+  ApiV3DataTransformationBuilder,
+  builderGenerator,
+} from '~/utils/api-v3-data-transformation.builder';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { validatePayload } from '~/helpers';
 
-const dashboardBuilder = builderGenerator<Dashboard, DashboardV3GetResponseType>(
-  {
-    allowed: [
-      'id',
-      'title',
-      'description',
-      'base_id',
-      'fk_workspace_id',
-      'order',
-      'meta',
-      'created_at',
-      'updated_at',
-      'created_by',
-      'owned_by',
-    ],
-    mappings: {
-      fk_workspace_id: 'workspace_id',
-    },
+const TEXT_WIDGET_TYPE = 'text';
+
+const dashboardBuilder = builderGenerator<
+  Dashboard,
+  DashboardV3GetResponseType
+>({
+  allowed: [
+    'id',
+    'title',
+    'description',
+    'base_id',
+    'fk_workspace_id',
+    'order',
+    'meta',
+    'created_at',
+    'updated_at',
+    'created_by',
+    'owned_by',
+  ],
+  mappings: {
+    fk_workspace_id: 'workspace_id',
+    meta: 'options',
   },
-);
+});
 
 const dashboardListItemBuilder = builderGenerator<
   Dashboard,
@@ -60,6 +67,7 @@ const dashboardListItemBuilder = builderGenerator<
   ],
   mappings: {
     fk_workspace_id: 'workspace_id',
+    meta: 'options',
   },
 });
 
@@ -82,21 +90,63 @@ const widgetBuilder = builderGenerator<Widget, WidgetV3Type>({
   ],
   mappings: {
     fk_dashboard_id: 'dashboard_id',
+    config: 'options',
     fk_model_id: 'model_id',
     fk_view_id: 'view_id',
   },
   booleanProps: ['error'],
+  transformFn: (data) => {
+    if (data.type !== TEXT_WIDGET_TYPE || !data.options) return data;
+
+    const { formatting, appearance, ...restOptions } = data.options as Record<
+      string,
+      any
+    >;
+
+    if (!formatting) return data;
+
+    return {
+      ...data,
+      options: {
+        ...restOptions,
+        appearance: {
+          ...(appearance || {}),
+          formatting,
+        },
+      },
+    };
+  },
 });
+
+/**
+ * Reverse transform for text widget options from v3 API request:
+ * Extracts `appearance.formatting` back to a sibling `formatting` key
+ */
+const widgetOptionsRequestBuilder = () =>
+  new ApiV3DataTransformationBuilder().customTransform(
+    (options: Record<string, unknown>) => {
+      const appearance = options?.appearance as Record<string, any> | undefined;
+
+      if (!appearance?.formatting) return options;
+
+      const { formatting, ...restAppearance } = appearance;
+
+      return {
+        ...options,
+        formatting,
+        ...(Object.keys(restAppearance).length > 0
+          ? { appearance: restAppearance }
+          : { appearance: undefined }),
+      };
+    },
+  );
 
 @Injectable()
 export class DashboardsV3Service {
   constructor(private readonly dashboardsService: DashboardsService) {}
 
   private async validateFeatureAccess(context: NcContext) {
-    await checkForFeature(
-      context,
-      PlanFeatureTypes.FEATURE_API_DASHBOARD_V3,
-    );
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_DASHBOARD_V3);
   }
 
   async dashboardList(
@@ -111,7 +161,7 @@ export class DashboardsV3Service {
     );
 
     return {
-      list: dashboardListItemBuilder().build(dashboards),
+      list: dashboardListItemBuilder().build(dashboards) as any,
     };
   }
 
@@ -130,7 +180,7 @@ export class DashboardsV3Service {
     const result = dashboardBuilder().build(dashboard);
 
     if (includeWidgets && dashboard.widgets) {
-      result.widgets = widgetBuilder().build(dashboard.widgets);
+      result.widgets = widgetBuilder().build(dashboard.widgets) as any;
     }
 
     return result;
@@ -173,14 +223,11 @@ export class DashboardsV3Service {
     );
 
     return {
-      list: widgetBuilder().build(widgets),
+      list: widgetBuilder().build(widgets) as unknown as WidgetV3Type[],
     };
   }
 
-  async widgetGet(
-    context: NcContext,
-    widgetId: string,
-  ): Promise<WidgetV3Type> {
+  async widgetGet(context: NcContext, widgetId: string): Promise<WidgetV3Type> {
     await this.validateFeatureAccess(context);
 
     const widget = await this.dashboardsService.widgetGet(context, widgetId);
@@ -215,9 +262,15 @@ export class DashboardsV3Service {
       context,
     );
 
+    const { options, ...rest } = body;
+
     const dashboard = await this.dashboardsService.dashboardCreate(
       context,
-      { ...body, base_id: baseId },
+      {
+        ...rest,
+        ...(options !== undefined && { meta: options }),
+        base_id: baseId,
+      },
       req,
     );
 
@@ -239,10 +292,15 @@ export class DashboardsV3Service {
       context,
     );
 
+    const { options: updateOptions, ...updateRest } = body;
+
     const dashboard = await this.dashboardsService.dashboardUpdate(
       context,
       dashboardId,
-      body,
+      {
+        ...updateRest,
+        ...(updateOptions !== undefined && { meta: updateOptions }),
+      },
       req,
     );
 
@@ -329,13 +387,18 @@ export class DashboardsV3Service {
   private mapWidgetRequestToInternal(
     body: WidgetV3CreateRequestType | WidgetV3UpdateRequestType,
   ): Partial<Widget> {
-    const { model_id, view_id, type, ...rest } = body as Record<
+    const { model_id, view_id, type, options, ...rest } = body as Record<
       string,
       unknown
     >;
     return {
       ...(rest as Partial<Widget>),
       ...(type !== undefined && { type: type as WidgetTypes }),
+      ...(options !== undefined && {
+        config: widgetOptionsRequestBuilder().build(
+          options as Record<string, unknown>,
+        ),
+      }),
       ...(model_id !== undefined && { fk_model_id: model_id as string }),
       ...(view_id !== undefined && { fk_view_id: view_id as string }),
     };

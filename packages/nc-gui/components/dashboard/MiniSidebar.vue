@@ -47,10 +47,12 @@ const baseIconColor = computed(() => {
   return meta.iconColor
 })
 
+const isBaseListModalOpen = ref(false)
+
 const miniSidebarTabs = computed(() => [
   { key: 'data' as const, icon: 'table', activeIcon: 'ncTableFilled', label: 'Data' },
   { key: 'automation' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
-  { key: 'agents' as const, icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
+  // { key: 'agents' as const, icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
 ])
 
 const { isUIAllowed } = useRoles()
@@ -145,11 +147,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     <div class="flex flex-col items-center">
       <!-- Base color icon at top-left -->
       <DashboardMiniSidebarItemWrapper v-if="isBaseOpen && openedProject" size="small" show-in-mobile>
-        <div class="h-[var(--topbar-height)] sticky top-0 bg-nc-bg-gray-minisidebar flex items-center justify-center">
-          <GeneralProjectIcon
-            :color="baseIconColor"
-            class="h-5.5 w-5.5"
-          />
+        <div
+          class="h-[var(--topbar-height)] sticky top-0 bg-nc-bg-gray-minisidebar flex items-center justify-center cursor-pointer"
+          @click="isBaseListModalOpen = true"
+        >
+          <div class="nc-stacked-base-icon">
+            <GeneralProjectIcon
+              :color="baseIconColor"
+              class="h-5.5 w-5.5 relative z-1"
+            />
+          </div>
         </div>
       </DashboardMiniSidebarItemWrapper>
 
@@ -254,6 +261,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
       <DashboardSidebarUserInfo />
     </div>
+
+    <WorkspaceBaseListModal v-model:visible="isBaseListModalOpen" />
   </div>
 </template>
 
@@ -340,6 +349,30 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     @apply text-[10px] leading-tight select-none;
     font-weight: 600;
     letter-spacing: 0.01em;
+  }
+
+  .nc-stacked-base-icon {
+    @apply relative;
+
+    &::before,
+    &::after {
+      content: '';
+      @apply absolute rounded-sm;
+      background: var(--nc-border-gray-medium);
+    }
+
+    &::before {
+      @apply inset-x-0.75 -bottom-0.75;
+      height: 4px;
+      border-radius: 0 0 3px 3px;
+    }
+
+    &::after {
+      @apply inset-x-1.5 -bottom-1.25;
+      height: 3px;
+      border-radius: 0 0 2px 2px;
+      opacity: 0.6;
+    }
   }
 }
 </style>

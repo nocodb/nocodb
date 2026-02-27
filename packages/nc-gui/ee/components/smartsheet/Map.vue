@@ -8,8 +8,6 @@ const route = useRoute()
 
 const { tileUrl, attribution } = useMapConfig()
 
-const popupIsOpen = ref(false)
-const popUpRow = ref<Row>()
 const fields = inject(FieldsInj, ref([]))
 
 const router = useRouter()
@@ -145,12 +143,7 @@ const addMarker = (lat: number, long: number, row: Row) => {
       className: 'nc-map-marker-tooltip',
     })
     .on('click', () => {
-      if (newMarker && isPublic.value) {
-        popUpRow.value = row
-        popupIsOpen.value = true
-      } else {
-        expandForm(row)
-      }
+      expandForm(row)
     })
   markersClusterGroupRef.value?.addLayer(newMarker)
 }
@@ -324,10 +317,6 @@ const onAddRecordClick = async () => {
 </script>
 
 <template>
-  <a-modal v-model:visible="popupIsOpen" :footer="null" centered :closable="false" @close="popupIsOpen = false">
-    <LazySmartsheetSharedMapMarkerPopup v-if="popUpRow" :fields="fields" :row="popUpRow"></LazySmartsheetSharedMapMarkerPopup>
-  </a-modal>
-
   <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
     <div id="mapContainer" ref="mapContainerRef" role="application" aria-label="Map view" class="w-full nc-h-screen">
       <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-3 right-3 p-2 z-500 cursor-default">
@@ -361,7 +350,7 @@ const onAddRecordClick = async () => {
       </NcTooltip>
     </div>
   </div>
-  <Suspense v-if="!isPublic">
+  <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
@@ -372,7 +361,7 @@ const onAddRecordClick = async () => {
       :view="view"
     />
   </Suspense>
-  <Suspense v-if="!isPublic">
+  <Suspense>
     <LazySmartsheetExpandedForm
       v-if="expandedFormOnRowIdDlg && meta?.id"
       v-model="expandedFormOnRowIdDlg"

@@ -26,31 +26,34 @@ const up = async (knex: Knex) => {
     table.primary(['base_id', 'fk_view_id']);
   });
 
-  await knex.schema.createTable(MetaTableOldV2.OUTLINE_VIEW_COLUMNS, (table) => {
-    table.string('id', 20);
+  await knex.schema.createTable(
+    MetaTableOldV2.OUTLINE_VIEW_COLUMNS,
+    (table) => {
+      table.string('id', 20);
 
-    table.string('base_id', 20);
+      table.string('base_id', 20);
 
-    table.string('source_id', 128);
+      table.string('source_id', 128);
 
-    table.string('fk_view_id', 20);
+      table.string('fk_view_id', 20);
 
-    table.string('fk_column_id', 20);
+      table.string('fk_column_id', 20);
 
-    table.string('fk_level_id', 20);
+      table.string('fk_level_id', 20);
 
-    table.boolean('show');
+      table.boolean('show');
 
-    table.float('order');
+      table.float('order');
 
-    table.string('width', 255);
+      table.string('width', 255);
 
-    table.string('fk_workspace_id', 20);
+      table.string('fk_workspace_id', 20);
 
-    table.timestamps(true, true);
+      table.timestamps(true, true);
 
-    table.primary(['base_id', 'id']);
-  });
+      table.primary(['base_id', 'id']);
+    },
+  );
 
   await knex.schema.createTable(MetaTableOldV2.OUTLINE_VIEW_LEVELS, (table) => {
     table.string('id', 20);

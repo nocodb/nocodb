@@ -48,7 +48,9 @@ export class PublicDataExportController {
     )
       NcError.notFound('Not found');
 
-    if (!(await View.verifyPassword(view, req.headers?.['xc-password'] as string))) {
+    if (
+      !(await View.verifyPassword(view, req.headers?.['xc-password'] as string))
+    ) {
       NcError.invalidSharedViewPassword();
     }
 

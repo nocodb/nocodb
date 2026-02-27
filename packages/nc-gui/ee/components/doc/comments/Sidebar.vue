@@ -46,7 +46,6 @@ const commentInputRef = ref<any>()
 const comment = ref('')
 const editCommentValue = ref<CommentType>()
 const isEditing = ref(false)
-const hoveredCommentId = ref<string | null>(null)
 
 // Extract selected text from editor when there's a pending inline selection
 const pendingSelectionText = computed(() => {
@@ -334,29 +333,16 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
           :comment="commentItem"
           :parsed-html="parsedHtmlComments[commentItem.id!] || ''"
           :is-owner="commentItem.created_by === user?.id"
-          :is-hovered="hoveredCommentId === commentItem.id"
           :is-editing="false"
           :is-active="activeCommentId === commentItem.id"
           :has-active-comment="!!activeCommentId"
           :anchor-text="commentItem.anchor_id ? anchorTextMap[commentItem.anchor_id] : undefined"
-          :is-first-in-group="
-            index === 0 ||
-            comments[index - 1]?.created_by !== commentItem.created_by ||
-            !!commentItem.anchor_id ||
-            !!comments[index - 1]?.anchor_id
-          "
-          :is-last-in-group="
-            index === comments.length - 1 ||
-            comments[index + 1]?.created_by !== commentItem.created_by ||
-            !!comments[index + 1]?.anchor_id ||
-            !!commentItem.anchor_id
-          "
           :class="{ 'mt-auto': index === 0 }"
           @edit="editComment(commentItem)"
           @delete="deleteComment(commentItem.id!)"
           @resolve="resolveComment(commentItem.id!)"
           @activate="activeCommentId === commentItem.id ? clearActiveComment() : scrollToComment(commentItem.id!)"
-          @mouseover="hoveredCommentId = null"
+
         />
       </template>
     </div>

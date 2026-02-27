@@ -5,25 +5,19 @@ interface Props {
   comment: DocCommentExtended
   parsedHtml: string
   isOwner: boolean
-  isHovered: boolean
   isEditing: boolean
   isActive?: boolean
   hasActiveComment?: boolean
   anchorText?: string
-  isFirstInGroup?: boolean
-  isLastInGroup?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   parsedHtml: '',
   isOwner: false,
-  isHovered: false,
   isEditing: false,
   isActive: false,
   hasActiveComment: false,
   anchorText: undefined,
-  isFirstInGroup: true,
-  isLastInGroup: true,
 })
 
 const emit = defineEmits<{
@@ -53,29 +47,21 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
 
 <template>
   <div
-    class="nc-doc-comment-item group px-3 cursor-pointer transition-opacity duration-200"
+    class="nc-doc-comment-item group px-3 pt-1.5 cursor-pointer transition-opacity duration-200"
     :class="{
-      'pt-3': isFirstInGroup,
-      'nc-doc-comment-active': isActive,
       'opacity-40': hasActiveComment && !isActive,
     }"
     @click="emit('activate')"
   >
     <div
-      class="nc-doc-comment-card border-1 border-nc-border-gray-medium px-3 transition-all duration-150"
+      class="nc-doc-comment-card rounded-lg border-1 border-nc-border-gray-medium px-3 py-2 transition-all duration-150"
       :class="{
-        'rounded-t-lg pt-2': isFirstInGroup,
-        'rounded-b-lg pb-2': isLastInGroup,
-        'border-t-0': !isFirstInGroup,
-        'border-b-0': !isLastInGroup,
-        'py-1': !isFirstInGroup && !isLastInGroup,
-        'pt-1 pb-2': !isFirstInGroup && isLastInGroup,
         'bg-nc-bg-gray-extralight': !isActive,
         'bg-nc-bg-gray-light shadow-sm': isActive,
       }"
     >
-      <!-- Header: avatar + name + time — only for first in group -->
-      <div v-if="isFirstInGroup" class="flex items-center justify-between mb-1.5">
+      <!-- Header: avatar + name + time + actions -->
+      <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0 flex-1">
           <GeneralUserIcon
             :user="{
@@ -166,7 +152,6 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         class="nc-doc-comment-body nc-rich-text-content text-small leading-5 text-nc-content-gray pl-6"
         v-html="parsedHtml"
       />
-
     </div>
   </div>
 </template>

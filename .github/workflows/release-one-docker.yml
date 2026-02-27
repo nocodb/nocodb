@@ -9,10 +9,6 @@ on:
       prevTag:
         description: "Previous CE tag for release notes (auto-detect if empty)"
         required: false
-      versionSuffix:
-        description: "EE version suffix — appended to YYYY.MM (e.g. 1 → 2026.02.1). Defaults to 1"
-        required: false
-        default: "1"
       skipDocker:
         description: "Skip Docker build"
         required: false
@@ -56,7 +52,8 @@ jobs:
         name: Compute release tags
         run: |
           CE_TAG="${{ github.event.inputs.tag }}"
-          SUFFIX="${{ github.event.inputs.versionSuffix || '1' }}"
+          # Derive EE version suffix from the CE tag's patch number (e.g. 0.302.3 → 3)
+          SUFFIX=$(echo "${CE_TAG}" | awk -F. '{print $NF}')
           EE_VERSION="$(date +%Y.%m).${SUFFIX}"
           PREV_TAG="${{ github.event.inputs.prevTag }}"
 

@@ -21,8 +21,13 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     left: number
   }>({ visible: false, url: '', platform: '', embedUrl: '', from: 0, to: 0, top: 0, left: 0 })
 
+  // Flag set synchronously before link insertion so checkLinkMark can suppress
+  // the link edit bubble even before the deferred pasteLinkMenu.visible = true
+  const isPasteLinkPending = ref(false)
+
   const dismissPasteLinkMenu = () => {
     pasteLinkMenu.value.visible = false
+    isPasteLinkPending.value = false
   }
 
   const keepAsLink = () => {
@@ -122,6 +127,12 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
   const checkLinkMark = ({ editor: e }: { editor: any }) => {
     if (!e.view.editable) return false
 
+    // Hide link edit bubble while paste-link embed menu is open (or about to open)
+    if (pasteLinkMenu.value.visible || isPasteLinkPending.value) {
+      isLinkEditVisible.value = false
+      return false
+    }
+
     const { selection } = e.state
     const isTextSelected = selection.from !== selection.to
     if (isTextSelected) return false
@@ -205,6 +216,7 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
   return {
     // Paste link embed
     pasteLinkMenu,
+    isPasteLinkPending,
     dismissPasteLinkMenu,
     keepAsLink,
     convertToEmbed,

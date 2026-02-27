@@ -14,7 +14,7 @@ import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
 import { DocEmbedExtension } from './DocEmbedExtension'
 import { DocCodeBlockExtension } from './DocCodeBlockExtension'
 import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
-import { SlashCommandExtension } from './SlashCommand'
+import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
@@ -73,6 +73,7 @@ const { doc, title, lastSavedTitle, isSaving, isLoaded, debouncedSave, loadAndSe
 
 const {
   pasteLinkMenu,
+  isPasteLinkPending,
   dismissPasteLinkMenu,
   keepAsLink,
   convertToEmbed,
@@ -94,6 +95,9 @@ const {
 } = useDocEditorLinks({ editor, isEditable })
 
 const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
+
+// Keyboard navigation active index for paste-link menu (declared before editor so handleKeyDown can access it)
+const pasteLinkActiveIndex = ref(0)
 
 /**
  * Detect whether plain text looks like markdown by checking for common patterns.
@@ -155,6 +159,31 @@ const _tiptapEditor = useEditor({
       class: 'nc-doc-editor-content focus:outline-none min-h-[200px]',
     },
     handleKeyDown(view, event) {
+      // Paste-link menu keyboard navigation — must be handled here
+      // (before ProseMirror) so Enter/arrows aren't consumed by the editor
+      if (pasteLinkMenu.value.visible) {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault()
+          pasteLinkActiveIndex.value = Math.min(pasteLinkActiveIndex.value + 1, 1)
+          return true
+        }
+        if (event.key === 'ArrowUp') {
+          event.preventDefault()
+          pasteLinkActiveIndex.value = Math.max(pasteLinkActiveIndex.value - 1, 0)
+          return true
+        }
+        if (event.key === 'Enter') {
+          event.preventDefault()
+          ;[keepAsLink, convertToEmbed][pasteLinkActiveIndex.value]()
+          return true
+        }
+        if (event.key === 'Escape') {
+          event.preventDefault()
+          dismissPasteLinkMenu()
+          return true
+        }
+      }
+
       const { state } = view
       const { selection } = state
       const { $from, empty } = selection
@@ -285,6 +314,10 @@ const _tiptapEditor = useEditor({
           event.preventDefault()
           const ed = editor.value
           if (ed) {
+            // Set pending flag synchronously so checkLinkMark suppresses the
+            // link edit bubble before pasteLinkMenu.visible is set in the timeout
+            isPasteLinkPending.value = true
+
             // Insert URL as linked text
             const from = ed.state.selection.from
             ed.chain()
@@ -303,6 +336,7 @@ const _tiptapEditor = useEditor({
             // Delay showing the popup so the onUpdate triggered by insertContent
             // (which dismisses the menu) fires first before we set visible=true
             setTimeout(() => {
+              isPasteLinkPending.value = false
               pasteLinkMenu.value = {
                 visible: true,
                 url: pastedUrl,
@@ -599,6 +633,13 @@ const onDocClick = (e: MouseEvent) => {
 onMounted(() => document.addEventListener('click', onDocClick, true))
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true))
 
+watch(
+  () => pasteLinkMenu.value.visible,
+  (visible) => {
+    if (visible) pasteLinkActiveIndex.value = 0
+  },
+)
+
 onBeforeUnmount(() => {
   flushOnUnmount()
   editor.value?.destroy()
@@ -866,7 +907,7 @@ onBeforeUnmount(() => {
         class="nc-paste-link-menu"
         :style="{ top: `${pasteLinkMenu.top}px`, left: `${pasteLinkMenu.left}px` }"
       >
-        <div class="nc-paste-link-item" @click="keepAsLink">
+        <div class="nc-paste-link-item" :class="{ active: pasteLinkActiveIndex === 0 }" @click="keepAsLink">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
@@ -884,8 +925,14 @@ onBeforeUnmount(() => {
           </svg>
           <span>{{ $t('general.keepAsLink') }}</span>
         </div>
-        <div class="nc-paste-link-item" @click="convertToEmbed">
+        <div class="nc-paste-link-item" :class="{ active: pasteLinkActiveIndex === 1 }" @click="convertToEmbed">
+          <span
+            v-if="embedPlatformIcons[pasteLinkMenu.platform]"
+            class="nc-paste-link-platform-icon flex-shrink-0"
+            v-html="embedPlatformIcons[pasteLinkMenu.platform]"
+          />
           <svg
+            v-else
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             width="16"
@@ -1629,8 +1676,22 @@ onBeforeUnmount(() => {
   font-size: 13px;
   color: var(--nc-content-gray);
 
-  &:hover {
+  &:hover,
+  &.active {
     background-color: var(--nc-bg-gray-light);
+  }
+}
+
+.nc-paste-link-platform-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+
+  :deep(svg) {
+    width: 16px;
+    height: 16px;
   }
 }
 </style>

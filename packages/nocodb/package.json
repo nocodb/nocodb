@@ -229,7 +229,7 @@
     "unpdf": "^1.2.1",
     "unstructured-client": "^0.16.0",
     "uuid": "^11.1.0",
-    "validator": "^13.12.0",
+    "validator": "^13.15.22",
     "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^3.25.76"
   },

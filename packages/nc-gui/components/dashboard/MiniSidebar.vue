@@ -39,11 +39,23 @@ const { navigateToProjectPage: _navigateToBaseProjectPage } = baseStore
 
 const sidebarStore = useSidebarStore()
 
-const { activeSidebarTab, isBaseSettingsFullPage, hideSidebar } = storeToRefs(sidebarStore)
+const { activeSidebarTab, isBaseSettingsFullPage, hideSidebar, adminMenuMode } = storeToRefs(sidebarStore)
 
 const { isTeamsEnabled } = storeToRefs(workspaceStore)
 
 const { baseRoles } = useRoles()
+
+const { isChatWootEnabled } = useProvideChatwoot()
+
+const { isModalVisible: isChatVisible } = useChatWoot()
+
+const toggleChatSupport = () => {
+  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
+    return
+  }
+  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
+  window.$chatwoot.toggle(toggleText)
+}
 
 const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
@@ -67,19 +79,7 @@ const { isUIAllowed } = useRoles()
 
 const { setActiveCmdView } = useCommand()
 
-const { isChatWootEnabled } = useProvideChatwoot()
-
-const { isModalVisible: isChatVisible } = useChatWoot()
-
 const supportCopyBtnRef = ref()
-
-const toggleChatSupport = () => {
-  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
-    return
-  }
-  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
-  window.$chatwoot.toggle(toggleText)
-}
 
 const copySupportEmail = () => {
   supportCopyBtnRef.value?.copyContent?.('support@nocodb.com')
@@ -135,6 +135,15 @@ const navigateToWsSettingsTab = (query: Record<string, string> = {}) => {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   navigateToWorkspaceSettings('', cmdOrCtrl, query)
+}
+
+const onTabClick = (tabKey: string) => {
+  activeSidebarTab.value = tabKey as any
+
+  if (isBaseSettingsFullPage.value) {
+    isBaseSettingsFullPage.value = false
+    hideSidebar.value = false
+  }
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -210,7 +219,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           class="nc-mini-sidebar-labeled-btn"
           :class="{ active: activeSidebarTab === tab.key }"
           :data-testid="`nc-mini-sidebar-tab-${tab.key}`"
-          @click="activeSidebarTab = tab.key"
+          @click="onTabClick(tab.key)"
         >
           <GeneralIcon
             :icon="activeSidebarTab === tab.key ? tab.activeIcon : tab.icon"
@@ -229,9 +238,9 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <!-- Divider -->
       <div class="w-8 border-t border-nc-border-gray-medium my-1"></div>
 
-      <!-- Admin menu (Base Settings + Workspace Settings) -->
+      <!-- Admin menu — dropdown mode -->
       <NcDropdown
-        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations')"
+        v-if="adminMenuMode === 'dropdown' && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations'))"
         placement="rightBottom"
         :arrow="false"
       >
@@ -371,8 +380,47 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </template>
       </NcDropdown>
 
+      <!-- Admin menu — sidebar panel mode -->
+      <div
+        v-else-if="adminMenuMode === 'sidebar' && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations'))"
+        class="nc-mini-sidebar-labeled-btn"
+        :class="{ active: activeSidebarTab === 'admin' || isWorkspaceSettingsPageOpened || isIntegrationsPageOpened || isBaseSettingsFullPage }"
+        data-testid="nc-sidebar-admin-btn"
+        @click="onTabClick('admin')"
+      >
+        <GeneralIcon icon="ncSettings" class="h-4.5 w-4.5" />
+        <span class="nc-mini-sidebar-label">Admin</span>
+      </div>
+
+      <!-- Admin mode toggle (temporary) -->
+      <NcTooltip placement="right" :arrow="false">
+        <template #title>
+          {{ adminMenuMode === 'sidebar' ? 'Switch to dropdown menu' : 'Switch to sidebar panel' }}
+        </template>
+        <div
+          class="nc-mini-sidebar-labeled-btn"
+          data-testid="nc-sidebar-admin-mode-toggle"
+          @click="adminMenuMode = adminMenuMode === 'sidebar' ? 'dropdown' : 'sidebar'"
+        >
+          <GeneralIcon :icon="adminMenuMode === 'sidebar' ? 'ncSidebar' : 'ncMenu'" class="h-4 w-4" />
+          <span class="nc-mini-sidebar-label">{{ adminMenuMode === 'sidebar' ? 'Panel' : 'Menu' }}</span>
+        </div>
+      </NcTooltip>
+
     </div>
     <div class="flex flex-col items-center pb-1">
+      <!-- Chat support -->
+      <div
+        v-if="isChatWootEnabled"
+        v-e="['c:sidebar:chat-support']"
+        class="nc-mini-sidebar-labeled-btn"
+        data-testid="nc-sidebar-chat-support-btn"
+        @click="toggleChatSupport"
+      >
+        <GeneralIcon icon="ncSupportAgent" class="h-4.5 w-4.5" />
+        <span class="nc-mini-sidebar-label">Support</span>
+      </div>
+
       <!-- Theme toggle (Light / Dark / System) -->
       <div class="nc-mini-sidebar-labeled-item">
         <DashboardMiniSidebarTheme />
@@ -440,31 +488,49 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 
-  .nc-mini-sidebar-labeled-btn {
-    @apply w-full flex flex-col items-center justify-center gap-0.5 py-2 cursor-pointer text-nc-content-gray-muted transition-all duration-200;
+  .nc-mini-sidebar-labeled-btn,
+  .nc-mini-sidebar-labeled-item {
+    @apply flex flex-col items-center justify-center gap-0.5 py-1.5 rounded-md cursor-pointer text-nc-content-gray-muted transition-all duration-150;
+    width: calc(100% - 6px);
+    margin-left: 3px;
+    margin-right: 3px;
 
     &:hover:not(.active) {
-      @apply bg-nc-bg-gray-medium;
+      @apply bg-nc-bg-gray-medium text-nc-content-gray;
     }
+  }
 
+  .nc-mini-sidebar-labeled-btn {
     &.active {
       @apply !text-nc-content-brand;
     }
   }
 
   .nc-mini-sidebar-labeled-item {
-    @apply w-full flex flex-col items-center justify-center gap-1 py-2 text-nc-content-gray-muted;
 
+    // Suppress inner button hover — outer container handles it
     .nc-mini-sidebar-btn-full-width {
       @apply !h-auto !w-auto !p-0;
+
+      &:hover .nc-mini-sidebar-btn {
+        @apply !bg-transparent;
+      }
     }
 
     .nc-mini-sidebar-btn {
-      @apply !h-auto !w-auto !p-0;
+      @apply !h-auto !w-auto !p-0 !bg-transparent;
+
+      &:hover:not(.hovered) {
+        @apply !bg-transparent;
+      }
     }
 
     .nc-button {
-      @apply !h-auto !min-h-0 !p-0;
+      @apply !h-auto !min-h-0 !p-0 !bg-transparent;
+
+      &:hover:not(.hovered) {
+        @apply !bg-transparent;
+      }
     }
   }
 

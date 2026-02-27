@@ -10,7 +10,18 @@ const sidebarStore = useSidebarStore()
 const { isLeftSidebarOpen, activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { isSharedBase } = storeToRefs(useBase())
-const { baseUrl } = useBase()
+const { baseUrl, navigateToProjectPage: _navigateToBaseProjectPage } = useBase()
+
+const { isBaseSettingsFullPage, hideSidebar } = storeToRefs(sidebarStore)
+
+const workspaceStore = useWorkspace()
+
+const {
+  navigateToWorkspaceSettings,
+  navigateToIntegrations: _navigateToIntegrations,
+} = workspaceStore
+
+const { isTeamsEnabled } = storeToRefs(workspaceStore)
 const workflowStore = useWorkflowStore()
 
 const { openNewWorkflowModal } = workflowStore
@@ -27,7 +38,7 @@ const { activeProjectId } = storeToRefs(basesStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, baseRoles } = useRoles()
 
 const { isMobileMode, appInfo } = useGlobal()
 
@@ -89,6 +100,31 @@ const hasTableCreatePermission = computed(() => {
   })
 })
 
+const navigateToBaseSettings = (page: string) => {
+  if (!base.value?.id) return
+
+  // In sidebar panel mode, just navigate — keep sidebar open
+  _navigateToBaseProjectPage({ page: page as any })
+}
+
+const navigateToWsSettingsTab = (query: Record<string, string> = {}) => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  navigateToWorkspaceSettings('', cmdOrCtrl, query)
+}
+
+const navigateToSettings = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  navigateToWorkspaceSettings('', cmdOrCtrl)
+}
+
+const navigateToIntegrations = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  _navigateToIntegrations('', cmdOrCtrl)
+}
+
 </script>
 
 <template>
@@ -117,7 +153,7 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
+      <div v-if="!isSharedBase && activeSidebarTab !== 'admin'" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
@@ -163,6 +199,118 @@ const hasTableCreatePermission = computed(() => {
       <template v-else-if="activeSidebarTab === 'agents'">
         <div class="flex items-center justify-center h-32 text-nc-content-gray-muted text-bodySm">
           {{ $t('general.comingSoon') }}
+        </div>
+      </template>
+
+      <!-- Admin panel -->
+      <template v-else-if="activeSidebarTab === 'admin'">
+        <div class="flex flex-col">
+          <!-- Base Settings Section -->
+          <template v-if="!isSharedBase">
+            <div class="px-3 pt-3 pb-1 text-xs font-semibold text-nc-content-brand uppercase tracking-wide">
+              {{ $t('labels.baseSettings') }}
+            </div>
+            <div class="flex flex-col py-1">
+              <div
+                v-if="isUIAllowed('newUser', { roles: baseRoles })"
+                v-e="['c:admin:base:add-user']"
+                class="nc-admin-panel-item"
+                @click="navigateToBaseSettings('collaborator')"
+              >
+                <GeneralIcon icon="users" class="h-4 w-4 flex-none" />
+                <span>{{ $t('labels.addUserToBase') }}</span>
+              </div>
+              <div
+                v-if="isEeUI && isTeamsEnabled"
+                v-e="['c:admin:base:add-team']"
+                class="nc-admin-panel-item"
+                @click="navigateToBaseSettings('collaborator')"
+              >
+                <GeneralIcon icon="ncBuilding" class="h-4 w-4 flex-none" />
+                <span>{{ $t('labels.addTeamToBase') }}</span>
+              </div>
+              <div
+                v-if="isUIAllowed('sourceCreate')"
+                v-e="['c:admin:base:add-data-source']"
+                class="nc-admin-panel-item"
+                @click="navigateToBaseSettings('data-source')"
+              >
+                <GeneralIcon icon="ncDatabase" class="h-4 w-4 flex-none" />
+                <span>{{ $t('labels.addDataSource') }}</span>
+              </div>
+              <div
+                v-if="isEeUI && isUIAllowed('sourceCreate')"
+                v-e="['c:admin:base:permissions']"
+                class="nc-admin-panel-item"
+                @click="navigateToBaseSettings('permissions')"
+              >
+                <GeneralIcon icon="ncLock" class="h-4 w-4 flex-none" />
+                <span>{{ $t('general.permissions') }}</span>
+              </div>
+              <div
+                v-if="isEeUI && isUIAllowed('sourceCreate')"
+                v-e="['c:admin:base:syncs']"
+                class="nc-admin-panel-item"
+                @click="navigateToBaseSettings('syncs')"
+              >
+                <GeneralIcon icon="ncZap" class="h-4 w-4 flex-none" />
+                <span>{{ $t('labels.manageSync') }}</span>
+              </div>
+              <div
+                v-e="['c:admin:base:more']"
+                class="nc-admin-panel-item"
+                @click="navigateToBaseSettings('base-settings')"
+              >
+                <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4 flex-none" />
+                <span>{{ $t('general.more') }}</span>
+              </div>
+            </div>
+
+            <div class="mx-3 border-t border-nc-border-gray-medium"></div>
+          </template>
+
+          <!-- Workspace Settings Section -->
+          <div class="px-3 pt-3 pb-1 text-xs font-semibold text-nc-content-brand uppercase tracking-wide">
+            {{ $t('objects.workspace') }} {{ $t('labels.settings') }}
+          </div>
+          <div class="flex flex-col py-1">
+            <div
+              v-if="isUIAllowed('workspaceCollaborators')"
+              v-e="['c:admin:ws:invite-user']"
+              class="nc-admin-panel-item"
+              @click="navigateToWsSettingsTab()"
+            >
+              <GeneralIcon icon="users" class="h-4 w-4 flex-none" />
+              <span>{{ $t('labels.inviteUsersToWorkspace') }}</span>
+            </div>
+            <div
+              v-if="isEeUI && isTeamsEnabled"
+              v-e="['c:admin:ws:add-team']"
+              class="nc-admin-panel-item"
+              @click="navigateToWsSettingsTab({ tab: 'teams' })"
+            >
+              <GeneralIcon icon="ncBuilding" class="h-4 w-4 flex-none" />
+              <span>{{ $t('labels.addTeam') }}</span>
+            </div>
+            <div
+              v-if="isUIAllowed('workspaceIntegrations')"
+              v-e="['c:integrations']"
+              class="nc-admin-panel-item"
+              @click="navigateToIntegrations"
+            >
+              <GeneralIcon icon="integration" class="h-4 w-4 flex-none" />
+              <span>{{ $t('general.integrations') }}</span>
+            </div>
+            <div
+              v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
+              v-e="['c:admin:ws:more']"
+              class="nc-admin-panel-item"
+              @click="navigateToSettings"
+            >
+              <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4 flex-none" />
+              <span>{{ $t('general.more') }}</span>
+            </div>
+          </div>
         </div>
       </template>
     </div>
@@ -217,6 +365,14 @@ const hasTableCreatePermission = computed(() => {
 :deep(.nc-home-create-new-btn.nc-button) {
   &:not(.active) {
     @apply hover:bg-nc-bg-brand;
+  }
+}
+
+.nc-admin-panel-item {
+  @apply flex items-center gap-2 px-3 py-1.5 mx-1 rounded-md cursor-pointer text-nc-content-gray-muted text-bodySm transition-colors duration-150;
+
+  &:hover {
+    @apply bg-nc-bg-gray-medium text-nc-content-gray;
   }
 }
 </style>

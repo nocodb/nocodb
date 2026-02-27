@@ -45,14 +45,6 @@ const shortcutList = [
         behaviour: 'Insert new column',
       },
       {
-        keys: [renderAltOrOptlKey(), 'F'],
-        behaviour: 'Toggle fullscreen mode',
-      },
-      {
-        keys: [renderAltOrOptlKey(), 'I'],
-        behaviour: 'Invite a member to team',
-      },
-      {
         keys: [renderAltOrOptlKey(), ','],
         behaviour: 'Open Team & Settings',
       },

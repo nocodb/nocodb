@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
+  extractRolesObj,
   PlanFeatureTypes,
   TeamUserRoles,
   WorkspaceUserRoles,
@@ -214,25 +215,27 @@ export class TeamsV3Service {
     }
 
     // check if the current user have access to this team
-    // user should be member of the team or workspace admin
+    // user should be member of the team or workspace owner
     const currentUserId = context.user?.id;
     if (currentUserId) {
-      const isWorkspaceAdmin =
-        !!context.user?.workspace_roles?.[WorkspaceUserRoles.OWNER];
+      const isWsOwner = !!extractRolesObj(
+        context.user?.workspace_roles,
+      )?.[WorkspaceUserRoles.OWNER];
 
-      const assignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        currentUserId,
-      );
-      const isTeamMember = assignment !== null;
-
-      if (!isTeamMember && !isWorkspaceAdmin) {
-        NcError.get(context).forbidden(
-          'You do not have access to view this team details',
+      if (!isWsOwner) {
+        const assignment = await PrincipalAssignment.get(
+          context,
+          ResourceType.TEAM,
+          param.teamId,
+          PrincipalType.USER,
+          currentUserId,
         );
+
+        if (!assignment) {
+          NcError.get(context).forbidden(
+            'You do not have access to view this team details',
+          );
+        }
       }
     }
 

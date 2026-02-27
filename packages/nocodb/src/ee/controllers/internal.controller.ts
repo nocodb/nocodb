@@ -287,6 +287,7 @@ export class InternalController extends InternalControllerCE {
           workspaceOrOrgId: workspaceId,
         });
       case 'teamGet':
+        context.user = req.user;
         return await this.teamsV3Service.teamGet(context, {
           workspaceOrOrgId: workspaceId,
           teamId: req.query.teamId as string,

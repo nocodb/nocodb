@@ -24,9 +24,11 @@ const { user } = useGlobal()
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, workspaceRoles } = useRoles()
 
 const { showUpgradeToAddMoreTeams } = useEeConfig()
+
+const isWsOwner = computed(() => !!workspaceRoles.value?.['workspace-level-owner'])
 
 const hasEditPermission = computed(() => {
   return isUIAllowed('teamCreate')
@@ -145,7 +147,7 @@ const orderBy = computed<Record<string, SordDirectionType>>({
 })
 
 const handleEditTeam = (team: TeamType) => {
-  if (!team?.id || !team?.is_member) return
+  if (!team?.id || (!team?.is_member && !isWsOwner.value)) return
 
   router.push({ query: { ...route.value.query, teamId: team.id } })
 
@@ -185,7 +187,7 @@ const columns = [
 ] as NcTableColumnProps<TeamV3V3Type>[]
 
 const customRow = (record: Record<string, any>) => ({
-  class: record.is_member ? '' : '!cursor-default',
+  class: record.is_member || isWsOwner.value ? '' : '!cursor-default',
   onClick: () => {
     $e('c:team:edit', { teamId: record.id })
 
@@ -476,10 +478,10 @@ onMounted(async () => {
                     :label="$t(`labels.teamIdColon`, { teamId: record.id })"
                   />
 
-                  <NcDivider v-if="record.is_member || hasEditPermission" />
+                  <NcDivider v-if="record.is_member || isWsOwner || hasEditPermission" />
 
                   <NcMenuItem
-                    v-if="record.is_member"
+                    v-if="record.is_member || isWsOwner"
                     v-e="['c:team:edit', { teamId: record.id }]"
                     @click="handleEditTeam(record as TeamV3V3Type)"
                   >
@@ -510,9 +512,8 @@ onMounted(async () => {
                     </NcMenuItem>
                   </NcTooltip>
                   <NcMenuItem
-                    v-if="hasEditPermission"
+                    v-if="hasEditPermission || isWsOwner"
                     v-e="['c:team:delete', { teamId: record.id }]"
-                    :disabled="!record.is_member"
                     danger
                     @click="handleDeleteTeam(record as TeamV3V3Type)"
                   >

@@ -74,6 +74,13 @@ export default class Team {
     // Set deleted to false by default
     insertObj.deleted = false;
 
+    // Validate depth limit (max 3 levels)
+    if (insertObj.depth !== undefined && insertObj.depth > 3) {
+      throw NcError.badRequest(
+        'Maximum team hierarchy depth of 3 levels exceeded',
+      );
+    }
+
     const { id } = await ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -370,6 +377,7 @@ export default class Team {
 
   /**
    * Get all descendant teams using materialized path.
+   * Excludes soft-deleted teams.
    */
   public static async getDescendants(
     context: NcContext,
@@ -390,13 +398,15 @@ export default class Team {
       },
     );
 
+    // Filter descendants: exclude the team itself, only return actual children
     return allTeams
-      .filter((t) => t.path?.startsWith(team.path + '/'))
+      .filter((t) => t.path?.startsWith(team.path + '/') && t.id !== teamId)
       .map((t) => this.castType(t));
   }
 
   /**
    * Get all ancestor teams by parsing the materialized path.
+   * Excludes soft-deleted teams.
    */
   public static async getAncestors(
     context: NcContext,
@@ -413,13 +423,30 @@ export default class Team {
 
     if (ancestorIds.length === 0) return [];
 
-    const ancestors: Team[] = [];
+    // Batch load all ancestors in a single query instead of N queries
+    const ancestors = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
+      {
+        condition: { id: { in: ancestorIds } },
+        xcCondition: {
+          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+        },
+      },
+    );
+
+    // Maintain order based on path (root first)
+    const ancestorMap = new Map(ancestors.map((a) => [a.id, a]));
+    const result: Team[] = [];
     for (const id of ancestorIds) {
-      const ancestor = await this.get(context, id, ncMeta);
-      if (ancestor) ancestors.push(ancestor);
+      const ancestor = ancestorMap.get(id);
+      if (ancestor) {
+        result.push(this.castType(ancestor));
+      }
     }
 
-    return ancestors;
+    return result;
   }
 
   /**
@@ -494,6 +521,11 @@ export default class Team {
       NcError.notFound(`Team with id ${teamId} not found`);
     }
 
+    // Validate team is not soft-deleted
+    if (team.deleted) {
+      throw NcError.badRequest('Cannot reparent a deleted team');
+    }
+
     // Compute new path and depth
     let newPath: string;
     let newDepth: number;
@@ -503,8 +535,26 @@ export default class Team {
       if (!parent) {
         NcError.notFound(`Parent team with id ${newParentId} not found`);
       }
+
+      // Validate parent is not soft-deleted
+      if (parent.deleted) {
+        throw NcError.badRequest('Cannot move team under a deleted parent');
+      }
+
+      // Validate same workspace
+      if (team.fk_workspace_id !== parent.fk_workspace_id) {
+        throw NcError.badRequest('Teams must be in the same workspace');
+      }
+
       newPath = `${parent.path}/${teamId}`;
       newDepth = parent.depth + 1;
+
+      // Validate depth limit
+      if (newDepth > 3) {
+        throw NcError.badRequest(
+          'Maximum team hierarchy depth of 3 levels exceeded',
+        );
+      }
     } else {
       newPath = `/${teamId}`;
       newDepth = 0;

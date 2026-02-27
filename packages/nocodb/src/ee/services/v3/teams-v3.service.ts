@@ -73,6 +73,29 @@ export class TeamsV3Service {
     }
   }
 
+  /**
+   * Check if a user is a workspace owner (can bypass team hierarchy ACL)
+   */
+  private async isUserWorkspaceOwner(
+    context: NcContext,
+    userId: string,
+    workspaceId: string,
+  ): Promise<boolean> {
+    if (!userId) return false;
+    try {
+      const assignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.WORKSPACE,
+        workspaceId,
+        PrincipalType.USER,
+        userId,
+      );
+      return assignment?.roles === WorkspaceUserRoles.OWNER;
+    } catch {
+      return false;
+    }
+  }
+
   async getTeamMembersCount(
     context: NcContext,
     teamId: string,
@@ -218,9 +241,9 @@ export class TeamsV3Service {
     // user should be member of the team or workspace owner
     const currentUserId = context.user?.id;
     if (currentUserId) {
-      const isWsOwner = !!extractRolesObj(
-        context.user?.workspace_roles,
-      )?.[WorkspaceUserRoles.OWNER];
+      const isWsOwner = !!extractRolesObj(context.user?.workspace_roles)?.[
+        WorkspaceUserRoles.OWNER
+      ];
 
       if (!isWsOwner) {
         const assignment = await PrincipalAssignment.get(
@@ -393,23 +416,31 @@ export class TeamsV3Service {
         );
       }
 
-      // Only managers of the parent team can create sub-teams
+      // Only managers of the parent team can create sub-teams (unless user is workspace owner)
       const userId = param.req.user?.id;
       if (userId) {
-        const parentAssignment = await PrincipalAssignment.get(
+        const isOwner = await this.isUserWorkspaceOwner(
           context,
-          ResourceType.TEAM,
-          param.team.parent_team_id,
-          PrincipalType.USER,
           userId,
+          param.workspaceOrOrgId,
         );
-        if (
-          !parentAssignment ||
-          parentAssignment.roles !== TeamUserRoles.OWNER
-        ) {
-          NcError.get(context).forbidden(
-            'Only managers of the parent team can create sub-teams',
+
+        if (!isOwner) {
+          const parentAssignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            param.team.parent_team_id,
+            PrincipalType.USER,
+            userId,
           );
+          if (
+            !parentAssignment ||
+            parentAssignment.roles !== TeamUserRoles.OWNER
+          ) {
+            NcError.get(context).forbidden(
+              'Only managers of the parent team can create sub-teams',
+            );
+          }
         }
       }
 
@@ -1341,32 +1372,41 @@ export class TeamsV3Service {
         );
       }
 
-      // Only managers of the new parent team can move teams under it
+      // Only managers of the new parent team can move teams under it (unless user is workspace owner)
       if (userId) {
-        const parentAssignment = await PrincipalAssignment.get(
+        const isOwner = await this.isUserWorkspaceOwner(
           context,
-          ResourceType.TEAM,
-          newParentId,
-          PrincipalType.USER,
           userId,
+          param.workspaceOrOrgId,
         );
-        if (
-          !parentAssignment ||
-          parentAssignment.roles !== TeamUserRoles.OWNER
-        ) {
-          NcError.get(context).forbidden(
-            'Only managers of the target parent team can move teams under it',
+
+        if (!isOwner) {
+          const parentAssignment = await PrincipalAssignment.get(
+            context,
+            ResourceType.TEAM,
+            newParentId,
+            PrincipalType.USER,
+            userId,
           );
+          if (
+            !parentAssignment ||
+            parentAssignment.roles !== TeamUserRoles.OWNER
+          ) {
+            NcError.get(context).forbidden(
+              'Only managers of the target parent team can move teams under it',
+            );
+          }
         }
       }
 
-      // Circular reference check
-      const isDescendant = await Team.isAncestor(
+      // Circular reference check: prevent moving team under one of its descendants
+      // isAncestor(ancestorId, descendantId) returns true if ancestorId is ancestor of descendantId
+      const wouldCreateCircle = await Team.isAncestor(
         context,
-        param.teamId,
-        newParentId,
+        param.teamId, // potential ancestor (team being moved)
+        newParentId, // potential descendant (new parent)
       );
-      if (isDescendant) {
+      if (wouldCreateCircle) {
         NcError.get(context).invalidRequestBody(
           'Cannot move a team under one of its own descendants (circular reference)',
         );

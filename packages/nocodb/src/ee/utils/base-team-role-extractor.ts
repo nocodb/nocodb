@@ -1,3 +1,4 @@
+import { OrderedProjectRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import Team from '~/ee/models/Team';
@@ -56,7 +57,10 @@ export async function extractUserBaseTeamRoles(
 
     // Use workspace-only context for Team lookups (teams are workspace-scoped,
     // avoid cache key mismatch when called from a base-scoped context)
-    const teamCtx = { workspace_id: context.workspace_id, base_id: null } as NcContext;
+    const teamCtx = {
+      workspace_id: context.workspace_id,
+      base_id: null,
+    } as NcContext;
 
     // Load team details for user's teams to get paths
     const userTeams: { id: string; path: string; teamRole: string }[] = [];
@@ -71,18 +75,8 @@ export async function extractUserBaseTeamRoles(
       }
     }
 
-    // Role hierarchy (higher index = higher privilege)
-    const roleHierarchy = [
-      'no-access',
-      'viewer',
-      'commenter',
-      'editor',
-      'creator',
-      'owner',
-    ];
-
     let highestRole: string | null = null;
-    let highestRoleIndex = -1;
+    let highestRoleIndex = Infinity;
 
     for (const assignment of teamAssignments) {
       const assignedTeamId = assignment.principal_ref_id;
@@ -115,31 +109,12 @@ export async function extractUserBaseTeamRoles(
         });
 
         const baseRole = assignment.roles;
-        const roleIndex = roleHierarchy.indexOf(baseRole);
+        const roleIndex = OrderedProjectRoles.indexOf(baseRole as any);
 
-        // Team managers get at least editor role
-        if (
-          matchedUserTeam.teamRole === 'manager' ||
-          matchedUserTeam.teamRole === 'owner'
-        ) {
-          if (roleIndex > highestRoleIndex) {
-            highestRole = baseRole;
-            highestRoleIndex = roleIndex;
-          }
-          // Also give them editor role if they don't have owner
-          if (
-            baseRole !== 'owner' &&
-            roleHierarchy.indexOf('editor') > highestRoleIndex
-          ) {
-            highestRole = 'editor';
-            highestRoleIndex = roleHierarchy.indexOf('editor');
-          }
-        } else {
-          // Regular member gets the base role as-is
-          if (roleIndex > highestRoleIndex) {
-            highestRole = baseRole;
-            highestRoleIndex = roleIndex;
-          }
+        // Use the team's assigned role (same for all team members)
+        if (roleIndex !== -1 && roleIndex < highestRoleIndex) {
+          highestRole = baseRole;
+          highestRoleIndex = roleIndex;
         }
       }
     }

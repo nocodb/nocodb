@@ -46,7 +46,7 @@ const isCreateTeamModalVisible = ref(false)
 
 const createTeamParentId = ref<string | null>(null)
 
-const viewMode = ref<'flat' | 'tree'>('flat')
+const viewMode = ref<'flat' | 'tree'>('tree')
 
 const expandedTeams = ref(new Set<string>())
 
@@ -290,6 +290,23 @@ watch(isCreateTeamModalVisible, (val) => {
     createTeamParentId.value = null
   }
 })
+
+// Expand all parent teams by default
+watch(
+  teams,
+  (newTeams) => {
+    if (newTeams?.length) {
+      const parentIds = new Set<string>()
+      for (const t of newTeams as any[]) {
+        if (t.fk_parent_team_id) {
+          parentIds.add(t.fk_parent_team_id)
+        }
+      }
+      expandedTeams.value = parentIds
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(async () => {
   loadSorts()

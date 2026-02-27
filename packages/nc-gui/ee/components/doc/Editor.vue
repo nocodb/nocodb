@@ -1255,11 +1255,13 @@ onBeforeUnmount(() => {
     color: #1f6feb;
   }
 
-  // Horizontal rule
+  // Horizontal rule — use padding instead of margin because the
+  // `> *` reset zeroes margins on all direct children.
   hr {
     border: none;
     border-top: 1px solid var(--nc-border-gray-medium);
-    margin: 1.5em 0;
+    padding-top: 0.75em;
+    padding-bottom: 0.75em;
   }
 
   // Links

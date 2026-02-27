@@ -122,13 +122,31 @@ const navigateToIntegrations = () => {
   _navigateToIntegrations('', cmdOrCtrl)
 }
 
+const tabToSlug: Record<string, string> = {
+  collaborator: 'members',
+  'data-source': 'data-sources',
+  permissions: 'permissions',
+  syncs: 'syncs',
+  'base-settings': 'settings',
+  audits: 'audits',
+  workflows: 'workflows',
+  overview: 'overview',
+}
+
+const getBasePath = () => {
+  const wsId = route.value.params.typeOrId
+  const baseId = route.value.params.baseId
+  return `/${wsId}/${baseId}`
+}
+
 const navigateToBaseSettings = (page: string) => {
   if (!openedProject.value?.id) return
 
   isBaseSettingsFullPage.value = true
   hideSidebar.value = true
 
-  _navigateToBaseProjectPage({ page: page as any })
+  const slug = tabToSlug[page] || page
+  navigateTo(`${getBasePath()}/admin/${slug}`)
 }
 
 const navigateToWsSettingsTab = (query: Record<string, string> = {}) => {
@@ -143,6 +161,16 @@ const onTabClick = (tabKey: string) => {
   if (isBaseSettingsFullPage.value) {
     isBaseSettingsFullPage.value = false
     hideSidebar.value = false
+  }
+
+  // Navigate to clean URL
+  const basePath = getBasePath()
+  if (tabKey === 'automation') {
+    navigateTo(`${basePath}/automate`)
+  } else if (tabKey === 'admin') {
+    navigateTo(`${basePath}/admin`)
+  } else {
+    navigateTo(basePath)
   }
 }
 

@@ -100,11 +100,25 @@ const hasTableCreatePermission = computed(() => {
   })
 })
 
+const tabToSlug: Record<string, string> = {
+  collaborator: 'members',
+  'data-source': 'data-sources',
+  permissions: 'permissions',
+  syncs: 'syncs',
+  'base-settings': 'settings',
+  audits: 'audits',
+  workflows: 'workflows',
+  overview: 'overview',
+}
+
 const navigateToBaseSettings = (page: string) => {
   if (!base.value?.id) return
 
-  // In sidebar panel mode, just navigate — keep sidebar open
-  _navigateToBaseProjectPage({ page: page as any })
+  // In sidebar panel mode, navigate to clean URL — keep sidebar open
+  const wsId = route.value.params.typeOrId
+  const baseId = route.value.params.baseId
+  const slug = tabToSlug[page] || page
+  navigateTo(`/${wsId}/${baseId}/admin/${slug}`)
 }
 
 const navigateToWsSettingsTab = (query: Record<string, string> = {}) => {

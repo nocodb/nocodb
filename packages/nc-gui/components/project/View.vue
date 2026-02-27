@@ -127,6 +127,9 @@ const projectPageTab = computed({
 watch(
   () => route.value.query?.page,
   async (newVal, oldVal) => {
+    // When tab is controlled by route path (admin pages), skip query-based logic
+    if (props.tab) return
+
     if (!('baseId' in route.value.params)) return
     // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
 
@@ -182,10 +185,23 @@ const { navigateToProjectPage } = useBase()
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
 
+  // Don't navigate when tab is controlled by route path (admin pages)
+  if (props.tab) return
+
   navigateToProjectPage({
     page: projectPageTab.value as any,
   })
 })
+
+// Sync tab prop changes (e.g., navigating between admin sub-pages)
+watch(
+  () => props.tab,
+  (newTab) => {
+    if (newTab) {
+      projectPageTab.value = newTab
+    }
+  },
+)
 
 watch(
   () => [currentBase.value?.id, currentBase.value?.title],

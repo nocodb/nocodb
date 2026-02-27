@@ -3,6 +3,8 @@ import dayjs from 'dayjs'
 
 const { t } = useI18n()
 
+const isAdminSidebar = inject<Ref<boolean>>('isAdminSidebar', ref(false))
+
 const newTokenInputRef = ref()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook') // Using 'Webhook' as the sort type since 'MCPToken' isn't defined
@@ -156,23 +158,18 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
   </div>
 
   <div class="flex flex-col w-full">
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-      {{ $t('title.mcpServer') }}
-    </div>
-
-    <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
-      {{ $t('labels.mcpSubText') }}
-    </div>
-
-    <div class="flex items-center mt-6 gap-5">
+    <div class="flex items-center justify-end">
       <NcButton
         :disabled="isUnsavedMCPTokenPending"
-        type="secondary"
+        type="primary"
         data-testid="add-new-mcp-token"
         size="small"
         @click="addNewMcpToken"
       >
-        {{ $t('labels.newMCPEndpoint') }}
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="plus" />
+          {{ $t('labels.newMCPEndpoint') }}
+        </div>
       </NcButton>
     </div>
 
@@ -182,7 +179,7 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
       header-row-height="44px"
       row-height="44px"
       :data="sortedMcpTokens"
-      class="h-full mt-5"
+      class="h-full mt-4"
       body-row-class-name="nc-base-settings-mcp-token-item group no-border-last"
       @row-click="handleOpenTokenModal"
     >

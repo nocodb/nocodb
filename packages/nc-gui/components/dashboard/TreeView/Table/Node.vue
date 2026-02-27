@@ -453,15 +453,15 @@ const enabledOptions = computed(() => {
                       {{ $t('general.changeIcon') }}
                     </template>
 
-                    <component :is="iconMap.ncZap" v-if="table?.synced" class="nc-table-icon w-4 text-sm !text-nc-gray-600/75" />
+                    <component :is="iconMap.ncZap" v-if="table?.synced" class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted" />
 
                     <component
                       :is="iconMap.table"
                       v-else-if="table.type === 'table'"
-                      class="nc-table-icon w-4 text-sm !text-nc-gray-600/75"
+                      class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
                     />
 
-                    <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-gray-600/75" />
+                    <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-content-gray-muted" />
                   </NcTooltip>
                 </template>
               </LazyGeneralEmojiPicker>
@@ -487,7 +487,7 @@ const enabledOptions = computed(() => {
         >
           <template #title>{{ table.title }}</template>
           <span
-            class="text-nc-content-gray-subtle"
+            :class="openedTableId === table.id ? 'text-nc-content-gray' : 'text-nc-content-gray-muted'"
             :data-testid="`nc-tbl-title-${table.title}`"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onRenameMenuClick(table)"

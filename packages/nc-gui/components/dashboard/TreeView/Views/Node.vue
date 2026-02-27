@@ -287,7 +287,7 @@ watch(isDropdownOpen, async () => {
 
 <template>
   <div
-    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-[13px] !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-muted text-[13px] !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray) cursor-pointer"
     :class="{
       '!pl-7.5 !xs:(pl-6.5)': isDefaultBaseLocal && !isInSection,
       '!pl-14': !isDefaultBaseLocal && !isInSection,

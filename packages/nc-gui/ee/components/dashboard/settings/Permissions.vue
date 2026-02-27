@@ -265,7 +265,7 @@ watch(
           <template v-if="column.key === 'name'">
             <div
               v-if="record.type === 'table'"
-              class="w-full flex items-center gap-3 max-w-full text-nc-content-gray"
+              class="w-full flex items-center gap-3 max-w-full text-nc-content-gray-subtle"
               data-testid="permissions-table-name"
             >
               <GeneralTableIcon :meta="(record as TableType)" class="flex-none h-4 w-4 !text-nc-content-gray-subtle" />
@@ -392,3 +392,23 @@ watch(
     :table-id="selectedTableForPermissions"
   />
 </template>
+
+<style lang="scss" scoped>
+.nc-base-permissions {
+  :deep(thead th) {
+    font-size: 13px !important;
+  }
+
+  :deep(tbody td) {
+    font-size: 13px !important;
+  }
+
+  :deep(tbody td .font-medium) {
+    font-size: 13px !important;
+  }
+
+  :deep(.font-weight-600) {
+    @apply !font-medium;
+  }
+}
+</style>

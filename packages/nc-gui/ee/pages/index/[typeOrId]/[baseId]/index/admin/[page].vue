@@ -10,6 +10,8 @@ const slugToTab: Record<string, string> = {
   audits: 'audits',
   workflows: 'workflows',
   overview: 'overview',
+  mcp: 'mcp',
+  snapshots: 'snapshots',
 }
 
 const tab = computed(() => slugToTab[route.params.page as string] || 'collaborator')

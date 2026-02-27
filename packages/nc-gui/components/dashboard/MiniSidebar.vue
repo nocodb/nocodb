@@ -17,33 +17,15 @@ const {
   isWorkspaceSettingsPageOpened,
   isIntegrationsPageOpened,
   isWorkspacesLoading,
-  isTemplatesPageOpened,
 } = storeToRefs(workspaceStore)
-
-const {
-  navigateToWorkspaceSettings,
-  navigateToIntegrations: _navigateToIntegrations,
-  navigateToTemplates: _navigateToTemplates,
-  isTemplatesFeatureEnabled,
-} = workspaceStore
 
 const basesStore = useBases()
 
 const { basesList, openedProject } = storeToRefs(basesStore)
 
-const baseStore = useBase()
-
-const { isSharedBase } = storeToRefs(baseStore)
-
-const { navigateToProjectPage: _navigateToBaseProjectPage } = baseStore
-
 const sidebarStore = useSidebarStore()
 
-const { activeSidebarTab, isBaseSettingsFullPage, hideSidebar, adminMenuMode } = storeToRefs(sidebarStore)
-
-const { isTeamsEnabled } = storeToRefs(workspaceStore)
-
-const { baseRoles } = useRoles()
+const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
@@ -77,14 +59,6 @@ const miniSidebarTabs = computed(() => [
 
 const { isUIAllowed } = useRoles()
 
-const { setActiveCmdView } = useCommand()
-
-const supportCopyBtnRef = ref()
-
-const copySupportEmail = () => {
-  supportCopyBtnRef.value?.copyContent?.('support@nocodb.com')
-}
-
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
     return
@@ -99,69 +73,14 @@ const navigateToProjectPage = () => {
   navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: baseToNavigate?.id })
 }
 
-const navigateToSettings = () => {
-  if (isEeUI && !appInfo.value?.ee && !appInfo.value?.isOnPrem) {
-    navigateTo('/account/users/list')
-    return
-  }
-
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  navigateToWorkspaceSettings('', cmdOrCtrl)
-}
-
-const navigateToTemplates = () => {
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  _navigateToTemplates('', cmdOrCtrl)
-}
-
-const navigateToIntegrations = () => {
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  _navigateToIntegrations('', cmdOrCtrl)
-}
-
-const tabToSlug: Record<string, string> = {
-  collaborator: 'members',
-  'data-source': 'data-sources',
-  permissions: 'permissions',
-  syncs: 'syncs',
-  'base-settings': 'settings',
-  audits: 'audits',
-  workflows: 'workflows',
-  overview: 'overview',
-}
-
 const getBasePath = () => {
   const wsId = route.value.params.typeOrId
   const baseId = route.value.params.baseId
   return `/${wsId}/${baseId}`
 }
 
-const navigateToBaseSettings = (page: string) => {
-  if (!openedProject.value?.id) return
-
-  isBaseSettingsFullPage.value = true
-  hideSidebar.value = true
-
-  const slug = tabToSlug[page] || page
-  navigateTo(`${getBasePath()}/admin/${slug}`)
-}
-
-const navigateToWsSettingsTab = (query: Record<string, string> = {}) => {
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  navigateToWorkspaceSettings('', cmdOrCtrl, query)
-}
-
 const onTabClick = (tabKey: string) => {
   activeSidebarTab.value = tabKey as any
-
-  if (isBaseSettingsFullPage.value) {
-    isBaseSettingsFullPage.value = false
-    hideSidebar.value = false
-  }
 
   // Navigate to clean URL
   const basePath = getBasePath()
@@ -266,174 +185,17 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <!-- Divider -->
       <div class="w-8 border-t border-nc-border-gray-medium my-1"></div>
 
-      <!-- Admin menu — dropdown mode -->
-      <NcDropdown
-        v-if="adminMenuMode === 'dropdown' && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations'))"
-        placement="rightBottom"
-        :arrow="false"
-      >
-        <div
-          class="nc-mini-sidebar-labeled-btn"
-          :class="{ active: isWorkspaceSettingsPageOpened || isIntegrationsPageOpened || isBaseSettingsFullPage }"
-          data-testid="nc-sidebar-admin-btn"
-        >
-          <GeneralIcon icon="ncSettings" class="h-4.5 w-4.5" />
-          <span class="nc-mini-sidebar-label">Admin</span>
-        </div>
-        <template #overlay>
-          <NcMenu variant="small">
-            <!-- Base Settings Section -->
-            <template v-if="isBaseOpen && openedProject && !isSharedBase">
-              <NcMenuItemLabel>
-                <span class="normal-case">{{ $t('labels.baseSettings') }}</span>
-              </NcMenuItemLabel>
-              <NcMenuItem
-                v-if="isUIAllowed('newUser', { roles: baseRoles })"
-                v-e="['c:admin:base:add-user']"
-                data-testid="nc-admin-base-add-user"
-                @click="navigateToBaseSettings('collaborator')"
-              >
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="users" class="h-4 w-4" />
-                  <span>{{ $t('labels.addUserToBase') }}</span>
-                </div>
-              </NcMenuItem>
-              <NcMenuItem
-                v-if="isEeUI && isTeamsEnabled"
-                v-e="['c:admin:base:add-team']"
-                data-testid="nc-admin-base-add-team"
-                @click="navigateToBaseSettings('collaborator')"
-              >
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
-                  <span>{{ $t('labels.addTeamToBase') }}</span>
-                </div>
-              </NcMenuItem>
-              <NcMenuItem
-                v-if="isUIAllowed('sourceCreate')"
-                v-e="['c:admin:base:add-data-source']"
-                data-testid="nc-admin-base-add-data-source"
-                @click="navigateToBaseSettings('data-source')"
-              >
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncDatabase" class="h-4 w-4" />
-                  <span>{{ $t('labels.addDataSource') }}</span>
-                </div>
-              </NcMenuItem>
-              <NcMenuItem
-                v-if="isEeUI && isUIAllowed('sourceCreate')"
-                v-e="['c:admin:base:permissions']"
-                data-testid="nc-admin-base-permissions"
-                @click="navigateToBaseSettings('permissions')"
-              >
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncLock" class="h-4 w-4" />
-                  <span>{{ $t('general.permissions') }}</span>
-                </div>
-              </NcMenuItem>
-              <NcMenuItem
-                v-if="isEeUI && isUIAllowed('sourceCreate')"
-                v-e="['c:admin:base:syncs']"
-                data-testid="nc-admin-base-syncs"
-                @click="navigateToBaseSettings('syncs')"
-              >
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncZap" class="h-4 w-4" />
-                  <span>{{ $t('labels.manageSync') }}</span>
-                </div>
-              </NcMenuItem>
-              <NcMenuItem
-                v-e="['c:admin:base:more']"
-                data-testid="nc-admin-base-more"
-                @click="navigateToBaseSettings('base-settings')"
-              >
-                <div class="flex items-center gap-2">
-                  <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4" />
-                  <span>{{ $t('general.more') }}</span>
-                </div>
-              </NcMenuItem>
-
-              <NcDivider />
-            </template>
-
-            <!-- Workspace Settings Section -->
-            <NcMenuItemLabel>
-              <span class="normal-case">{{ $t('objects.workspace') }} {{ $t('labels.settings') }}</span>
-            </NcMenuItemLabel>
-            <NcMenuItem
-              v-if="isUIAllowed('workspaceCollaborators')"
-              v-e="['c:admin:ws:invite-user']"
-              data-testid="nc-admin-ws-invite-user"
-              @click="navigateToWsSettingsTab()"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="users" class="h-4 w-4" />
-                <span>{{ $t('labels.inviteUsersToWorkspace') }}</span>
-              </div>
-            </NcMenuItem>
-            <NcMenuItem
-              v-if="isEeUI && isTeamsEnabled"
-              v-e="['c:admin:ws:add-team']"
-              data-testid="nc-admin-ws-add-team"
-              @click="navigateToWsSettingsTab({ tab: 'teams' })"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
-                <span>{{ $t('labels.addTeam') }}</span>
-              </div>
-            </NcMenuItem>
-            <NcMenuItem
-              v-if="isUIAllowed('workspaceIntegrations')"
-              v-e="['c:integrations']"
-              data-testid="nc-sidebar-integrations-btn"
-              @click="navigateToIntegrations"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="integration" class="h-4 w-4" />
-                <span>{{ $t('general.integrations') }}</span>
-              </div>
-            </NcMenuItem>
-            <NcMenuItem
-              v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
-              v-e="['c:admin:ws:more']"
-              data-testid="nc-admin-ws-more"
-              @click="navigateToSettings"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4" />
-                <span>{{ $t('general.more') }}</span>
-              </div>
-            </NcMenuItem>
-          </NcMenu>
-        </template>
-      </NcDropdown>
-
-      <!-- Admin menu — sidebar panel mode -->
+      <!-- Admin menu -->
       <div
-        v-else-if="adminMenuMode === 'sidebar' && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations'))"
+        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations')"
         class="nc-mini-sidebar-labeled-btn"
-        :class="{ active: activeSidebarTab === 'admin' || isWorkspaceSettingsPageOpened || isIntegrationsPageOpened || isBaseSettingsFullPage }"
+        :class="{ active: activeSidebarTab === 'admin' || isWorkspaceSettingsPageOpened || isIntegrationsPageOpened }"
         data-testid="nc-sidebar-admin-btn"
         @click="onTabClick('admin')"
       >
         <GeneralIcon icon="ncSettings" class="h-4.5 w-4.5" />
         <span class="nc-mini-sidebar-label">Admin</span>
       </div>
-
-      <!-- Admin mode toggle (temporary) -->
-      <NcTooltip placement="right" :arrow="false">
-        <template #title>
-          {{ adminMenuMode === 'sidebar' ? 'Switch to dropdown menu' : 'Switch to sidebar panel' }}
-        </template>
-        <div
-          class="nc-mini-sidebar-labeled-btn"
-          data-testid="nc-sidebar-admin-mode-toggle"
-          @click="adminMenuMode = adminMenuMode === 'sidebar' ? 'dropdown' : 'sidebar'"
-        >
-          <GeneralIcon :icon="adminMenuMode === 'sidebar' ? 'ncSidebar' : 'ncMenu'" class="h-4 w-4" />
-          <span class="nc-mini-sidebar-label">{{ adminMenuMode === 'sidebar' ? 'Panel' : 'Menu' }}</span>
-        </div>
-      </NcTooltip>
 
     </div>
     <div class="flex flex-col items-center pb-1">

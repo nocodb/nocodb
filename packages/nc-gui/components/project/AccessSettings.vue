@@ -41,6 +41,8 @@ const { orgId, org } = storeToRefs(orgStore)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const isAdminSidebar = inject<Ref<boolean>>('isAdminSidebar', ref(false))
+
 const { $api, $eventBus } = useNuxtApp()
 
 const { t } = useI18n()
@@ -633,20 +635,6 @@ onBeforeUnmount(() => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              size="small"
-              :type="isTeamsEnabled ? 'secondary' : 'primary'"
-              :disabled="isLoading"
-              data-testid="nc-add-member-btn"
-              :text-color="isTeamsEnabled ? 'primary' : undefined"
-              @click="isInviteModalVisible = true"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                {{ $t('activity.addMembers') }}
-              </div>
-            </NcButton>
-
-            <NcButton
               v-if="isTeamsEnabled && !isAdminPanel"
               v-e="['c:base:team-add']"
               size="small"
@@ -666,6 +654,19 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncBuilding" />
                 {{ $t('labels.addTeams') }}
+              </div>
+            </NcButton>
+
+            <NcButton
+              size="small"
+              type="primary"
+              :disabled="isLoading"
+              data-testid="nc-add-member-btn"
+              @click="isInviteModalVisible = true"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="plus" class="h-4 w-4" />
+                {{ $t('activity.addMembers') }}
               </div>
             </NcButton>
           </div>

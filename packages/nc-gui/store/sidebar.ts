@@ -110,8 +110,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const activeSidebarTab = ref<SidebarTab>('data')
 
-  const adminMenuMode = ref<'sidebar' | 'dropdown'>('dropdown')
-
   const toggleFullScreenState = () => {
     if (isFullScreen.value) {
       isLeftSidebarOpen.value = true
@@ -161,7 +159,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     toggleFullScreenState,
     allowHideLeftSidebarForCurrentRoute,
     activeSidebarTab,
-    adminMenuMode,
   }
 })
 

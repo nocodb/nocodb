@@ -165,6 +165,10 @@ watch(
         projectPageTab.value = 'audits'
       } else if (newVal === 'workflows' && isWorkflowsTabVisible.value) {
         projectPageTab.value = 'workflows'
+      } else if (newVal === 'mcp') {
+        projectPageTab.value = 'mcp'
+      } else if (newVal === 'snapshots' && isEeUI) {
+        projectPageTab.value = 'snapshots'
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -191,7 +195,27 @@ const tabToSlug: Record<string, string> = {
   audits: 'audits',
   workflows: 'workflows',
   overview: 'overview',
+  mcp: 'mcp',
+  snapshots: 'snapshots',
 }
+
+const { t } = useI18n()
+
+const adminPageTitle = computed(() => {
+  const tabTitles: Record<string, string> = {
+    collaborator: t('labels.addUserToBase'),
+    permissions: t('labels.dataPermissions'),
+    mcp: t('title.mcpServer'),
+    syncs: t('labels.manageSyncs'),
+    snapshots: t('labels.manageSnapshots'),
+    'data-source': t('labels.addDataSource'),
+    'base-settings': t('general.general'),
+    audits: t('title.audits'),
+    workflows: t('objects.workflows'),
+    overview: t('general.overview'),
+  }
+  return tabTitles[projectPageTab.value] || ''
+})
 
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
@@ -243,6 +267,10 @@ watch(
     integrations.value = []
   },
 )
+
+const isAdminSidebar = computed(() => !!props.tab)
+
+provide('isAdminSidebar', isAdminSidebar)
 
 onMounted(async () => {
   await until(() => !!currentBase.value?.id).toBeTruthy()
@@ -304,37 +332,44 @@ watch(
       <div class="flex-1 max-w-full md:max-w-[calc(100%_-_100px)] flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
         <div v-if="!showEmptySkeleton" class="flex flex-row items-center h-full gap-x-2 px-2 min-w-0">
-          <GeneralProjectIcon
-            :color="parseProp(currentBase?.meta).iconColor"
-            :type="currentBase?.type"
-            :managed-app="{
-              managed_app_master: currentBase?.managed_app_master,
-              managed_app_id: currentBase?.managed_app_id,
-            }"
-            class="h-6 w-6 md:(h-4 w-4) flex-none"
-          />
-          <NcTooltip
-            class="flex font-bold text-base md:text-sm capitalize truncate max-w-150 text-nc-content-gray"
-            show-on-truncate-only
-          >
-            <template #title> {{ currentBase?.title }}</template>
-            <span class="truncate">
-              {{ currentBase?.title }}
+          <template v-if="props.tab">
+            <span class="font-semibold text-sm text-nc-content-gray truncate">
+              {{ adminPageTitle }}
             </span>
-          </NcTooltip>
-          <NcBadge
-            v-if="isPrivateBase"
-            size="xs"
-            class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
-            color="gray"
-            :border="false"
-          >
-            <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />
-            {{ $t('general.private') }}
-          </NcBadge>
+          </template>
+          <template v-else>
+            <GeneralProjectIcon
+              :color="parseProp(currentBase?.meta).iconColor"
+              :type="currentBase?.type"
+              :managed-app="{
+                managed_app_master: currentBase?.managed_app_master,
+                managed_app_id: currentBase?.managed_app_id,
+              }"
+              class="h-6 w-6 md:(h-4 w-4) flex-none"
+            />
+            <NcTooltip
+              class="flex font-bold text-base md:text-sm capitalize truncate max-w-150 text-nc-content-gray"
+              show-on-truncate-only
+            >
+              <template #title> {{ currentBase?.title }}</template>
+              <span class="truncate">
+                {{ currentBase?.title }}
+              </span>
+            </NcTooltip>
+            <NcBadge
+              v-if="isPrivateBase"
+              size="xs"
+              class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
+              color="gray"
+              :border="false"
+            >
+              <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />
+              {{ $t('general.private') }}
+            </NcBadge>
+          </template>
         </div>
       </div>
-      <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
+      <div v-if="!showEmptySkeleton && !isMobileMode && !props.tab" class="flex items-center gap-2">
         <SmartsheetTopbarManagedAppStatus />
         <SmartsheetTopbarSandboxStatus />
         <LazyGeneralShareProject />
@@ -347,7 +382,7 @@ watch(
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <NcTabs v-model:active-key="projectPageTab" class="w-full">
+      <NcTabs v-model:active-key="projectPageTab" class="w-full" :class="{ 'hide-tabs': props.tab }">
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
@@ -462,11 +497,33 @@ watch(
           <WorkspaceAudits v-if="currentBase?.id && projectPageTab === 'audits'" :base-id="currentBase?.id" />
           <div v-else>&nbsp;</div>
         </a-tab-pane>
+        <a-tab-pane v-if="isUIAllowed('manageMCP') && base.id && !isMobileMode" key="mcp">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__mcp">
+              <GeneralIcon icon="mcp" />
+              <div>{{ $t('title.mcpServer') }}</div>
+            </div>
+          </template>
+          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseMCP />
+          </div>
+        </a-tab-pane>
+        <a-tab-pane v-if="isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot') && base.id && !isMobileMode" key="snapshots">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__snapshots">
+              <GeneralIcon icon="camera" />
+              <div>{{ $t('general.snapshots') }}</div>
+            </div>
+          </template>
+          <div class="p-6 h-full max-h-full overflow-auto nc-scrollbar-thin">
+            <DashboardSettingsBaseSnapshots />
+          </div>
+        </a-tab-pane>
         <a-tab-pane v-if="!isSharedBase && !isMobileMode" key="base-settings">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__base-settings">
               <GeneralIcon icon="ncSettings" />
-              <div>{{ $t('activity.settings') }}</div>
+              <div>{{ $t('general.general') }}</div>
             </div>
           </template>
           <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
@@ -485,10 +542,18 @@ watch(
 }
 
 .tab-title {
-  @apply flex flex-row items-center gap-x-2 px-2 py-[1px];
+  @apply flex flex-row items-center gap-x-1.5 px-1 py-[1px] text-[13px];
+
+  :deep(svg) {
+    @apply h-3.5 w-3.5 !text-current;
+  }
 }
 :deep(.ant-tabs-tab) {
   @apply pt-2 pb-3;
+
+  & + .ant-tabs-tab {
+    @apply !ml-0;
+  }
 }
 :deep(.ant-tabs-content) {
   &:not(:has(.nc-project-overview-tab-content.ant-tabs-tabpane-active)) {
@@ -498,5 +563,11 @@ watch(
 
 .tab-info {
   @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
+}
+
+.hide-tabs {
+  :deep(.ant-tabs-nav) {
+    @apply !hidden;
+  }
 }
 </style>

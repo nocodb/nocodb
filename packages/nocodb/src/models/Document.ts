@@ -14,7 +14,10 @@ import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 /**
  * Data model for Documents (table: nc_docs_v2).
  *
- * Documents store rich-text content as ProseMirror JSON in the `content` column.
+ * Document metadata lives in `nc_docs_v2` (via ncMeta) while content
+ * (ProseMirror JSON) lives in `nc_doc_content_v2` (via ncDocsContent).
+ * When `NC_DOCS_DB` is not set, both resolve to the same meta connection.
+ *
  * JSON fields (content, meta) are stringified for DB storage and parsed on read
  * via `parseDocument()`. Cache invalidation uses `del` on update (not `update`) to
  * avoid storing stringified JSON in the cache layer.
@@ -61,8 +64,16 @@ export default class Document implements DocumentType {
       }
     }
 
-    // Always parse — cache may contain stringified content from update()
+    // Fetch content separately from content service
     if (doc) {
+      const contentRow = await Noco.ncDocsContent.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.DOC_CONTENT,
+        { fk_doc_id: docId },
+        ['content'],
+      );
+      doc.content = contentRow?.content;
       doc = this.parseDocument(doc);
     }
 
@@ -133,17 +144,21 @@ export default class Document implements DocumentType {
       'updated_by',
     ]);
 
+    // Extract content before inserting metadata
+    const content = insertObj.content;
+    delete insertObj.content;
+
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.DOCS, {
       base_id: context.base_id,
       parent_id: insertObj.parent_id ?? null,
     });
 
-    // Stringify JSON fields (content + meta) for DB storage
+    // Insert metadata (without content) into DOCS table
     const insertResult = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
       MetaTable.DOCS,
-      prepareForDb(insertObj, ['meta', 'content']),
+      prepareForDb(insertObj, ['meta']),
     );
 
     const id = insertResult?.id;
@@ -151,6 +166,15 @@ export default class Document implements DocumentType {
     if (!id) {
       NcError.badRequest('Failed to create document');
     }
+
+    // Insert content into separate DOC_CONTENT table
+    await Noco.ncDocsContent.metaInsert2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOC_CONTENT,
+      prepareForDb({ fk_doc_id: id, content }, ['content']),
+      true, // ignoreIdGeneration — fk_doc_id is the PK
+    );
 
     // Mark parent as having children
     if (insertObj.parent_id) {
@@ -188,14 +212,31 @@ export default class Document implements DocumentType {
       'updated_by',
     ]);
 
-    // Stringify JSON fields (content + meta) for DB storage
-    await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.DOCS,
-      prepareForDb(updateObj, ['meta', 'content']),
-      docId,
-    );
+    // Extract content for separate update
+    const content = updateObj.content;
+    delete updateObj.content;
+
+    // Update metadata (without content) in DOCS table
+    if (Object.keys(updateObj).length > 0) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.DOCS,
+        prepareForDb(updateObj, ['meta']),
+        docId,
+      );
+    }
+
+    // Update content in separate DOC_CONTENT table if provided
+    if (content !== undefined) {
+      await Noco.ncDocsContent.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.DOC_CONTENT,
+        prepareForDb({ content }, ['content']),
+        { fk_doc_id: docId },
+      );
+    }
 
     // Invalidate cache — updateObj contains stringified JSON fields
     // that would corrupt the cache if written directly.
@@ -211,6 +252,14 @@ export default class Document implements DocumentType {
     docId: string,
     ncMeta = Noco.ncMeta,
   ) {
+    // Delete content row first
+    await Noco.ncDocsContent.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOC_CONTENT,
+      { fk_doc_id: docId },
+    );
+
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,

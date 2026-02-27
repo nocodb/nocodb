@@ -123,6 +123,7 @@ export enum MetaTable {
   CHAT_SESSIONS = 'nc_chat_sessions',
   CHAT_MESSAGES = 'nc_chat_messages',
   DOCS = 'nc_docs_v2',
+  DOC_CONTENT = 'nc_doc_content_v2',
 }
 
 export const BaseRelatedMetaTables = [
@@ -185,6 +186,7 @@ export const BaseRelatedMetaTables = [
   MetaTable.RLS_POLICY_SUBJECTS,
   MetaTable.VIEW_SECTIONS,
   MetaTable.DOCS,
+  MetaTable.DOC_CONTENT,
 ];
 
 export const orderedMetaTables = [
@@ -286,6 +288,7 @@ export const orderedMetaTables = [
   MetaTable.CUSTOM_URLS,
   MetaTable.MCP_TOKENS,
   MetaTable.DOCS,
+  MetaTable.DOC_CONTENT,
   MetaTable.MODELS,
 
   // Dashboard / Widget
@@ -464,6 +467,7 @@ export enum CacheScope {
   VIEW_SECTION = 'viewSection',
   CHAT_SESSION = 'chatSession',
   DOCUMENT = 'document',
+  DOC_CONTENT = 'docContent',
 }
 
 export const RootScopeTables = {

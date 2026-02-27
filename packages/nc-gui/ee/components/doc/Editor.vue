@@ -206,6 +206,24 @@ const _tiptapEditor = useEditor({
         return true
       }
 
+      // Paragraph at the very start of a callout / blockquote:
+      // unwrap the wrapper, keeping all its children as siblings.
+      // ProseMirror's default joinBackward can't lift when the wrapper
+      // would be left empty (content: 'block+'), so we handle it here.
+      if (nodeType === 'paragraph') {
+        for (let d = $from.depth - 1; d >= 1; d--) {
+          const ancestor = $from.node(d)
+          if (ancestor.type.name === 'callout' || ancestor.type.name === 'blockquote') {
+            if (d === $from.depth - 1 && $from.index(d) === 0) {
+              const pos = $from.before(d)
+              view.dispatch(state.tr.replaceWith(pos, pos + ancestor.nodeSize, ancestor.content))
+              return true
+            }
+            break
+          }
+        }
+      }
+
       return false
     },
     handleDrop(view, event, _slice, moved) {

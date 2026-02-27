@@ -4,6 +4,7 @@ import type { MetaService } from '~/meta/meta.service';
 import { NcLogger } from '~/utils/logger/NcLogger';
 import { AuditService } from '~/meta/audit.service';
 import { ChatMessagesService } from '~/meta/chat-messages.service';
+import { DocsContentService } from '~/meta/docs-content.service';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
 export default class Noco extends NocoCE {
@@ -64,6 +65,28 @@ export default class Noco extends NocoCE {
     }
   }
 
+  public static async prepareDocsContentService() {
+    if (process.env.NC_DOCS_DB) {
+      const docsContentConfig = await NcConfig.create({
+        meta: {
+          metaUrl: process.env.NC_DOCS_DB,
+        },
+      });
+      Noco._ncDocsContent = new DocsContentService(docsContentConfig);
+
+      const migrateContent =
+        !(await Noco.ncDocsContent.knexConnection.schema.hasTable(
+          MetaTable.DOC_CONTENT,
+        ));
+
+      await Noco.ncDocsContent.init();
+
+      if (migrateContent) {
+        await this.migrateDocsContentFromMeta();
+      }
+    }
+  }
+
   private static async migrateChatMessagesFromMeta() {
     const batchSize = 500;
     let offset = 0;
@@ -91,6 +114,62 @@ export default class Noco extends NocoCE {
       offset += batchSize;
 
       if (batch.length < batchSize) {
+        hasMoreRecords = false;
+      }
+    }
+  }
+
+  private static async migrateDocsContentFromMeta() {
+    // Only migrate if nc_docs_v2 has a content column (pre-split schema)
+    const hasContentCol = await Noco.ncMeta.knexConnection.schema.hasColumn(
+      MetaTable.DOCS,
+      'content',
+    );
+    if (!hasContentCol) return;
+
+    const batchSize = 500;
+    let offset = 0;
+    let processedCount = 0;
+    let hasMoreRecords = true;
+
+    while (hasMoreRecords) {
+      const batch = await Noco.ncMeta
+        .knexConnection(MetaTable.DOCS)
+        .select('id', 'base_id', 'fk_workspace_id', 'content')
+        .whereNotNull('content')
+        .orderBy('id', 'asc')
+        .limit(batchSize)
+        .offset(offset);
+
+      if (batch.length === 0) {
+        hasMoreRecords = false;
+        break;
+      }
+
+      const contentRows = batch.map((row) => ({
+        fk_doc_id: row.id,
+        base_id: row.base_id,
+        fk_workspace_id: row.fk_workspace_id,
+        content: row.content,
+      }));
+
+      if (contentRows.length > 0) {
+        await Noco.ncDocsContent
+          .knexConnection(MetaTable.DOC_CONTENT)
+          .insert(contentRows);
+      }
+
+      processedCount += batch.length;
+      offset += batchSize;
+
+      if (processedCount % 10000 === 0) {
+        console.log(`Migrated ${processedCount} document content records...`);
+      }
+
+      if (batch.length < batchSize) {
+        console.log(
+          `Migration of doc content completed. Migrated ${processedCount} records.`,
+        );
         hasMoreRecords = false;
       }
     }

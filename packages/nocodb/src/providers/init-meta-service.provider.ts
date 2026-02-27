@@ -111,6 +111,7 @@ export const InitMetaServiceProvider: FactoryProvider = {
 
     await Noco.prepareAuditService();
     await Noco.prepareChatMessagesService();
+    await Noco.prepareDocsContentService();
 
     if (!instanceConfig) {
       NcDebug.log('Inserting instance config');

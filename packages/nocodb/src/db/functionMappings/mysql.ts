@@ -1,5 +1,8 @@
 import dayjs from 'dayjs';
-import commonFns, { validateDateAddUnit } from './commonFns';
+import commonFns, {
+  ALLOWED_DATEADD_UNITS,
+  validateDateAddUnit,
+} from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
@@ -49,19 +52,47 @@ const mysql2 = {
     };
   },
   DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
-    const unit = validateDateAddUnit(
-      String((await fn(pt.arguments[2])).builder),
-    );
+    const date = (await fn(pt.arguments[0])).builder;
+    const count = (await fn(pt.arguments[1])).builder;
+
+    if (pt.arguments[2].type === 'Literal') {
+      const unit = validateDateAddUnit(
+        String((await fn(pt.arguments[2])).builder),
+      );
+      return {
+        builder: knex.raw(
+          `CASE
+      WHEN ${date} LIKE '%:%' THEN
+        DATE_FORMAT(DATE_ADD(${date}, INTERVAL
+        ${count} ${unit}), '%Y-%m-%d %H:%i:%s')
+      ELSE
+        DATE(DATE_ADD(${date}, INTERVAL
+        ${count} ${unit}))
+      END`,
+        ),
+      };
+    }
+
+    // Dynamic unit (field reference) — MySQL requires keyword units,
+    // so branch per valid unit to prevent injection.
+    // unitExpr is passed via ? binding (parameterized), not interpolated.
+    const unitExpr = (await fn(pt.arguments[2])).builder;
+    const units = [...ALLOWED_DATEADD_UNITS];
+    const branches = units
+      .map(
+        (u) =>
+          `WHEN LOWER(?) = '${u}' THEN
+        CASE WHEN ${date} LIKE '%:%' THEN
+          DATE_FORMAT(DATE_ADD(${date}, INTERVAL ${count} ${u.toUpperCase()}), '%Y-%m-%d %H:%i:%s')
+        ELSE
+          DATE(DATE_ADD(${date}, INTERVAL ${count} ${u.toUpperCase()}))
+        END`,
+      )
+      .join('\n');
     return {
       builder: knex.raw(
-        `CASE
-      WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
-        DATE_FORMAT(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
-        ${(await fn(pt.arguments[1])).builder} ${unit}), '%Y-%m-%d %H:%i:%s')
-      ELSE
-        DATE(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
-        ${(await fn(pt.arguments[1])).builder} ${unit}))
-      END`,
+        `CASE ${branches} ELSE NULL END`,
+        units.map(() => unitExpr),
       ),
     };
   },

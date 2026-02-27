@@ -1,6 +1,9 @@
 import dayjs from 'dayjs';
 import { convertToTargetFormat, getDateFormat } from 'nocodb-sdk';
-import commonFns, { validateDateAddUnit } from './commonFns';
+import commonFns, {
+  safeDateAddUnitSQL,
+  validateDateAddUnit,
+} from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
@@ -85,9 +88,16 @@ const sqlite3 = {
     if (typeof dateModifier === 'object' && dateModifier.toQuery) {
       dateModifier = dateModifier.toQuery();
     }
-    dateModifier = validateDateAddUnit(String(dateModifier));
 
-    const fullModifier = `${dateIN > 0 ? '+' : ''}${dateIN} ${dateModifier}`;
+    let fullModifierRaw: string;
+    if (pt.arguments[2].type === 'Literal') {
+      const unit = validateDateAddUnit(String(dateModifier));
+      fullModifierRaw = `${dateIN > 0 ? '+' : ''}${dateIN} ${unit}`;
+    } else {
+      const safeUnit = safeDateAddUnitSQL(knex, dateModifier);
+      fullModifierRaw = `'${dateIN > 0 ? '+' : ''}${dateIN} ' || ${safeUnit}`;
+    }
+
     return {
       builder: knex.raw(
         `CASE
@@ -98,7 +108,7 @@ const sqlite3 = {
       END`,
         {
           source,
-          fullModifier: knex.raw(fullModifier),
+          fullModifier: knex.raw(fullModifierRaw),
         },
       ),
     };

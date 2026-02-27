@@ -428,7 +428,7 @@ watch(
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <NcTabs v-model:active-key="projectPageTab" class="w-full" :class="{ 'hide-tabs': props.tab }">
+      <NcTabs v-model:active-key="projectPageTab" class="w-full" :class="{ 'hide-tabs': props.tab || projectPageTab === 'overview' }">
         <a-tab-pane
           v-if="!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode"
           key="overview"

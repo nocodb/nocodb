@@ -69,10 +69,12 @@ const onCreateBaseClick = () => {
   <div
     class="nc-all-tables-view p-6 nc-scrollbar-thin"
     :style="{
-      height: 'calc(100vh - var(--topbar-height) - 44px)',
+      height: 'calc(100vh - var(--topbar-height))',
     }"
   >
-    <div class="text-subHeading2 text-nc-content-gray mb-5">{{ $t('labels.actions') }}</div>
+    <div class="text-subHeading2 text-nc-content-gray mb-5">
+      {{ activeSidebarTab === 'automation' ? $t('general.automate') : $t('general.data') }} {{ $t('labels.actions') }}
+    </div>
 
     <div
       class="flex flex-row gap-6 flex-wrap max-w-[1000px]"

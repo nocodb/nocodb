@@ -194,6 +194,7 @@ const onDuplicate = async () => {
     title: t('labels.copyOfDocument', { title: fullDoc.title || t('general.untitled') }),
     content: fullDoc.content,
     parent_id: props.doc.parent_id,
+    meta: fullDoc.meta,
   })
 }
 

@@ -25,6 +25,188 @@ import { validatePayload } from '~/helpers';
 
 const TEXT_WIDGET_TYPE = 'text';
 
+// --- Manual key mapping helpers ---
+
+/**
+ * Renames specific keys in a flat object (one level only, no recursion).
+ * Keys not in the map pass through unchanged.
+ */
+function renameKeys(
+  obj: Record<string, any>,
+  keyMap: Record<string, string>,
+): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    result[keyMap[key] ?? key] = value;
+  }
+  return result;
+}
+
+function invertMapping(map: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(Object.entries(map).map(([k, v]) => [v, k]));
+}
+
+// Mapping tables: camelCase → snake_case (per nesting level)
+
+const CONFIG_KEYS: Record<string, string> = {
+  chartType: 'chart_type',
+  dataSource: 'data_source',
+  allowFullscreen: 'allow_fullscreen',
+};
+
+const DATA_KEYS: Record<string, string> = {
+  xAxis: 'x_axis',
+  yAxis: 'y_axis',
+};
+
+const CATEGORY_AXIS_KEYS: Record<string, string> = {
+  orderBy: 'order_by',
+  categoryLimit: 'category_limit',
+  includeEmptyRecords: 'include_empty_records',
+  includeOthers: 'include_others',
+  sortBy: 'sort_by',
+};
+
+const Y_AXIS_KEYS: Record<string, string> = {
+  startAtZero: 'start_at_zero',
+  groupBy: 'group_by',
+};
+
+const APPEARANCE_KEYS: Record<string, string> = {
+  showCountInLegend: 'show_count_in_legend',
+  showPercentageOnChart: 'show_percentage_on_chart',
+  showValueInChart: 'show_value_in_chart',
+  legendPosition: 'legend_position',
+  colorSchema: 'color_schema',
+  customColorSchema: 'custom_color_schema',
+  smoothLines: 'smooth_lines',
+  plotDataPoints: 'plot_data_points',
+  showValue: 'show_value',
+};
+
+const PERMISSIONS_KEYS: Record<string, string> = {
+  allowUserToPrint: 'allow_user_to_print',
+  allowUsersToViewRecords: 'allow_users_to_view_records',
+};
+
+const FORMATTING_KEYS: Record<string, string> = {
+  horizontalAlign: 'horizontal_align',
+  verticalAlign: 'vertical_align',
+};
+
+const FONT_KEYS: Record<string, string> = {
+  lineHeight: 'line_height',
+};
+
+/**
+ * Convert widget config from internal camelCase to API snake_case.
+ * Explicit per-level key renaming — no recursive case transformation.
+ */
+function mapConfigToSnakeCase(
+  config: Record<string, any>,
+): Record<string, any> {
+  if (!config) return config;
+
+  const result = renameKeys(config, CONFIG_KEYS);
+
+  if (result.data && typeof result.data === 'object') {
+    const data = renameKeys(result.data, DATA_KEYS);
+
+    if (data.category && typeof data.category === 'object') {
+      data.category = renameKeys(data.category, CATEGORY_AXIS_KEYS);
+    }
+    if (data.x_axis && typeof data.x_axis === 'object') {
+      data.x_axis = renameKeys(data.x_axis, CATEGORY_AXIS_KEYS);
+    }
+    if (data.y_axis && typeof data.y_axis === 'object') {
+      data.y_axis = renameKeys(data.y_axis, Y_AXIS_KEYS);
+    }
+
+    result.data = data;
+  }
+
+  if (result.appearance && typeof result.appearance === 'object') {
+    const appearance = renameKeys(result.appearance, APPEARANCE_KEYS);
+
+    if (appearance.formatting && typeof appearance.formatting === 'object') {
+      appearance.formatting = renameKeys(
+        appearance.formatting,
+        FORMATTING_KEYS,
+      );
+    }
+    if (appearance.font && typeof appearance.font === 'object') {
+      appearance.font = renameKeys(appearance.font, FONT_KEYS);
+    }
+
+    result.appearance = appearance;
+  }
+
+  if (result.permissions && typeof result.permissions === 'object') {
+    result.permissions = renameKeys(result.permissions, PERMISSIONS_KEYS);
+  }
+
+  return result;
+}
+
+/**
+ * Convert widget config from API snake_case to internal camelCase.
+ * Explicit per-level key renaming — no recursive case transformation.
+ */
+function mapConfigToCamelCase(
+  config: Record<string, any>,
+): Record<string, any> {
+  if (!config) return config;
+
+  const result = renameKeys(config, invertMapping(CONFIG_KEYS));
+
+  if (result.data && typeof result.data === 'object') {
+    const data = renameKeys(result.data, invertMapping(DATA_KEYS));
+
+    if (data.category && typeof data.category === 'object') {
+      data.category = renameKeys(
+        data.category,
+        invertMapping(CATEGORY_AXIS_KEYS),
+      );
+    }
+    if (data.xAxis && typeof data.xAxis === 'object') {
+      data.xAxis = renameKeys(data.xAxis, invertMapping(CATEGORY_AXIS_KEYS));
+    }
+    if (data.yAxis && typeof data.yAxis === 'object') {
+      data.yAxis = renameKeys(data.yAxis, invertMapping(Y_AXIS_KEYS));
+    }
+
+    result.data = data;
+  }
+
+  if (result.appearance && typeof result.appearance === 'object') {
+    const appearance = renameKeys(
+      result.appearance,
+      invertMapping(APPEARANCE_KEYS),
+    );
+
+    if (appearance.formatting && typeof appearance.formatting === 'object') {
+      appearance.formatting = renameKeys(
+        appearance.formatting,
+        invertMapping(FORMATTING_KEYS),
+      );
+    }
+    if (appearance.font && typeof appearance.font === 'object') {
+      appearance.font = renameKeys(appearance.font, invertMapping(FONT_KEYS));
+    }
+
+    result.appearance = appearance;
+  }
+
+  if (result.permissions && typeof result.permissions === 'object') {
+    result.permissions = renameKeys(
+      result.permissions,
+      invertMapping(PERMISSIONS_KEYS),
+    );
+  }
+
+  return result;
+}
+
 const dashboardBuilder = builderGenerator<
   Dashboard,
   DashboardV3GetResponseType
@@ -96,25 +278,36 @@ const widgetBuilder = builderGenerator<Widget, WidgetV3Type>({
   },
   booleanProps: ['error'],
   transformFn: (data) => {
-    if (data.type !== TEXT_WIDGET_TYPE || !data.options) return data;
+    let result = data;
 
-    const { formatting, appearance, ...restOptions } = data.options as Record<
-      string,
-      any
-    >;
+    // Text widget: move formatting into appearance
+    if (result.type === TEXT_WIDGET_TYPE && result.options) {
+      const { formatting, appearance, ...restOptions } =
+        result.options as Record<string, any>;
 
-    if (!formatting) return data;
+      if (formatting) {
+        result = {
+          ...result,
+          options: {
+            ...restOptions,
+            appearance: {
+              ...(appearance || {}),
+              formatting,
+            },
+          },
+        };
+      }
+    }
 
-    return {
-      ...data,
-      options: {
-        ...restOptions,
-        appearance: {
-          ...(appearance || {}),
-          formatting,
-        },
-      },
-    };
+    // Convert camelCase config keys to snake_case for API response
+    if (result.options && typeof result.options === 'object') {
+      result = {
+        ...result,
+        options: mapConfigToSnakeCase(result.options as Record<string, any>),
+      };
+    }
+
+    return result;
   },
 });
 
@@ -123,8 +316,13 @@ const widgetBuilder = builderGenerator<Widget, WidgetV3Type>({
  * Extracts `appearance.formatting` back to a sibling `formatting` key
  */
 const widgetOptionsRequestBuilder = () =>
-  new ApiV3DataTransformationBuilder().customTransform(
-    (options: Record<string, unknown>) => {
+  new ApiV3DataTransformationBuilder()
+    // First: convert snake_case request keys to internal camelCase
+    .customTransform((options: Record<string, unknown>) => {
+      return mapConfigToCamelCase(options as Record<string, any>);
+    })
+    // Second: text widget — extract formatting from appearance
+    .customTransform((options: Record<string, unknown>) => {
       const appearance = options?.appearance as Record<string, any> | undefined;
 
       if (!appearance?.formatting) return options;
@@ -138,8 +336,7 @@ const widgetOptionsRequestBuilder = () =>
           ? { appearance: restAppearance }
           : { appearance: undefined }),
       };
-    },
-  );
+    });
 
 @Injectable()
 export class DashboardsV3Service {

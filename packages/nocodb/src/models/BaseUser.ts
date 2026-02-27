@@ -241,20 +241,33 @@ export default class BaseUser {
           `${MetaTable.USERS}.meta`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
+          `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
         );
 
       const joinClause = strict_in_record ? 'innerJoin' : 'leftJoin';
-      queryBuilder[joinClause](MetaTable.PROJECT_USERS, function () {
-        this.on(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          `${MetaTable.USERS}.id`,
-        ).andOn(
-          `${MetaTable.PROJECT_USERS}.base_id`,
-          '=',
-          ncMeta.knex.raw('?', [base_id]),
-        );
-      });
+      queryBuilder
+        .innerJoin(MetaTable.WORKSPACE_USER, function () {
+          this.on(
+            `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+            '=',
+            ncMeta.knex.raw('?', [context.workspace_id]),
+          );
+        })
+        [joinClause](MetaTable.PROJECT_USERS, function () {
+          this.on(
+            `${MetaTable.PROJECT_USERS}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.PROJECT_USERS}.base_id`,
+            '=',
+            ncMeta.knex.raw('?', [base_id]),
+          );
+        });
 
       baseUsers = await queryBuilder;
 

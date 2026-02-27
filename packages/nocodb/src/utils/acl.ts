@@ -1,7 +1,20 @@
-import { OrgUserRoles, ProjectRoles, SourceRestriction } from 'nocodb-sdk';
+import {
+  OrgUserRoles,
+  ProjectRoles,
+  SourceRestriction,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
+  workspace: [
+    WorkspaceUserRoles.NO_ACCESS,
+    WorkspaceUserRoles.VIEWER,
+    WorkspaceUserRoles.COMMENTER,
+    WorkspaceUserRoles.EDITOR,
+    WorkspaceUserRoles.CREATOR,
+    WorkspaceUserRoles.OWNER,
+  ],
   base: [
     ProjectRoles.VIEWER,
     ProjectRoles.COMMENTER,
@@ -23,11 +36,7 @@ const permissionScopes = {
     'oAuthAuthorizationRevoke',
     'oAuthClientRegenerateSecret',
 
-    // Base
-    'baseList',
-    'baseCreate',
-
-    // User
+    // User (SUPER_ADMIN only via '*')
     'userList',
     'userAdd',
     'userUpdate',
@@ -42,7 +51,6 @@ const permissionScopes = {
     'pluginTest',
     'pluginRead',
     'pluginUpdate',
-    'webhookPluginList',
 
     // Misc
     'commandPalette',
@@ -50,19 +58,33 @@ const permissionScopes = {
     'instanceAdminStats',
     'instanceAdminWorkspaces',
     'instanceAdminBases',
-    'testConnection',
-    'genericGPT',
-    'duplicateSharedBase',
 
     // Cache
     'cacheGet',
     'cacheDelete',
 
-    // TODO: add ACL with base scope
+    'notification',
+
+    // oAuth
+    'oAuthClientList',
+    'oAuthClientCreate',
+    'oAuthClientUpdate',
+    'oAuthClientDelete',
+    'oAuthClientGet',
+
+    'mcpRootList',
+
+    'getUserProfile',
+  ],
+  workspace: [
+    // Base operations
+    'baseList',
+    'baseCreate',
+    'testConnection',
+
+    // Upload
     'upload',
     'uploadViaURL',
-
-    'notification',
 
     // Integration
     'integrationGet',
@@ -73,19 +95,19 @@ const permissionScopes = {
     'integrationStore',
     'integrationEndpointGet',
 
+    // Misc
+    'duplicateSharedBase',
+    'webhookPluginList',
+    'genericGPT',
+
     // AI
     'aiSchema',
 
-    // OauthClients
-    'oAuthClientList',
-    'oAuthClientCreate',
-    'oAuthClientUpdate',
-    'oAuthClientDelete',
-    'oAuthClientGet',
-
-    'mcpRootList',
-
-    'getUserProfile',
+    // Workspace user ops (internal, not exposed as CE API)
+    'workspaceUserList',
+    'workspaceInvite',
+    'workspaceUserUpdate',
+    'workspaceUserDelete',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -114,9 +136,9 @@ const permissionScopes = {
     'galleryViewUpdate',
     'kanbanViewUpdate',
     'mapViewUpdate',
-    'calendarViewUpdate',
     'calendarViewGet',
     'mapViewGet',
+    'calendarViewUpdate',
     'groupedDataList',
     'mmList',
     'hmList',
@@ -221,13 +243,90 @@ const permissionScopes = {
 
 const rolePermissions:
   | Record<
-      Exclude<OrgUserRoles, OrgUserRoles.SUPER_ADMIN> | ProjectRoles | 'guest',
+      | Exclude<OrgUserRoles, OrgUserRoles.SUPER_ADMIN>
+      | ProjectRoles
+      | WorkspaceUserRoles
+      | 'guest',
       { include?: Record<string, boolean>; exclude?: Record<string, boolean> }
     >
   | Record<OrgUserRoles.SUPER_ADMIN, string> = {
   guest: {},
   [OrgUserRoles.SUPER_ADMIN]: '*',
 
+  // ── Org roles — common user permissions (noop, collapsed below) ──
+  [OrgUserRoles.VIEWER]: {
+    include: {
+      apiTokenList: true,
+      apiTokenCreate: true,
+      apiTokenDelete: true,
+      passwordChange: true,
+      commandPalette: true,
+      baseListAll: true,
+      notification: true,
+
+      // oAuth
+      oAuthClientList: true,
+      oAuthClientCreate: true,
+      oAuthClientUpdate: true,
+      oAuthClientDelete: true,
+      oAuthClientGet: true,
+      oAuthAuthorizationList: true,
+      oAuthAuthorizationRevoke: true,
+      oAuthClientRegenerateSecret: true,
+
+      mcpRootList: true,
+      getUserProfile: true,
+    },
+  },
+  [OrgUserRoles.CREATOR]: {
+    include: {
+      isPluginActive: true,
+    },
+  },
+
+  // ── Workspace roles ──
+  [WorkspaceUserRoles.NO_ACCESS]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.VIEWER]: {
+    include: {
+      baseList: true,
+      workspaceUserList: true,
+      workspaceInvite: true,
+    },
+  },
+  [WorkspaceUserRoles.COMMENTER]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.EDITOR]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.CREATOR]: {
+    include: {
+      baseCreate: true,
+      testConnection: true,
+      upload: true,
+      uploadViaURL: true,
+      duplicateSharedBase: true,
+      webhookPluginList: true,
+      genericGPT: true,
+      integrationGet: true,
+      integrationCreate: true,
+      integrationDelete: true,
+      integrationUpdate: true,
+      integrationList: true,
+      integrationStore: true,
+      integrationEndpointGet: true,
+      aiSchema: true,
+      workspaceUserUpdate: true,
+      workspaceUserDelete: true,
+    },
+  },
+  [WorkspaceUserRoles.OWNER]: {
+    exclude: {},
+  },
+
+  // ── Base roles (unchanged) ──
   [ProjectRoles.VIEWER]: {
     include: {
       formViewGet: true,
@@ -384,56 +483,6 @@ const rolePermissions:
       createBase: true,
     },
   },
-  [OrgUserRoles.VIEWER]: {
-    include: {
-      apiTokenList: true,
-      apiTokenCreate: true,
-      apiTokenDelete: true,
-      passwordChange: true,
-      baseList: true,
-      testConnection: true,
-      isPluginActive: true,
-      commandPalette: true,
-      baseListAll: true,
-      notification: true,
-
-      // oAuth
-      oAuthClientList: true,
-      oAuthClientCreate: true,
-      oAuthClientUpdate: true,
-      oAuthClientDelete: true,
-      oAuthClientGet: true,
-      oAuthAuthorizationList: true,
-      oAuthAuthorizationRevoke: true,
-      oAuthClientRegenerateSecret: true,
-
-      //mcp List Root
-      mcpRootList: true,
-      getUserProfile: true,
-    },
-  },
-  [OrgUserRoles.CREATOR]: {
-    include: {
-      userList: true,
-      userAdd: true,
-      userUpdate: true,
-      userDelete: true,
-      generateResetUrl: true,
-      webhookPluginList: true,
-      userInviteResend: true,
-      upload: true,
-      uploadViaURL: true,
-      baseCreate: true,
-      duplicateSharedBase: true,
-      integrationGet: true,
-      integrationCreate: true,
-      integrationDelete: true,
-      integrationUpdate: true,
-      integrationList: true,
-      integrationStore: true,
-      integrationEndpointGet: true,
-    },
-  },
 };
 
 // VALIDATIONS
@@ -586,6 +635,9 @@ Object.values(rolePermissions).forEach((role) => {
   }
 });
 
+// Collapse org roles — VIEWER gets same as CREATOR (EE pattern)
+rolePermissions[OrgUserRoles.VIEWER] = rolePermissions[OrgUserRoles.CREATOR];
+
 // Excluded permissions for source restrictions
 // `true` means permission is restricted and `false`/missing means permission is allowed
 export const sourceRestrictions = {
@@ -644,7 +696,6 @@ const permissionDescriptions: Record<string, string> = {
 
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',
-
   apiTokenDelete: 'delete an API token',
 
   passwordChange: 'change your password',
@@ -672,6 +723,11 @@ const permissionDescriptions: Record<string, string> = {
   notification: 'send notifications',
 
   // workspace permissions
+  workspaceUserList: 'view list of users in the workspace',
+  workspaceInvite: 'invite users to the workspace',
+  workspaceUserUpdate: 'update workspace user details',
+  workspaceUserDelete: 'remove a user from the workspace',
+
   integrationCreate: 'create a new integration',
   integrationDelete: 'delete an integration',
   integrationUpdate: 'update integration details',
@@ -782,6 +838,13 @@ const permissionDescriptions: Record<string, string> = {
 
 // Human-readable descriptions for roles
 const roleDescriptions: Record<string, string> = {
+  // Workspace roles
+  [WorkspaceUserRoles.NO_ACCESS]: 'No Access',
+  [WorkspaceUserRoles.VIEWER]: 'Viewer',
+  [WorkspaceUserRoles.COMMENTER]: 'Commenter',
+  [WorkspaceUserRoles.EDITOR]: 'Editor',
+  [WorkspaceUserRoles.CREATOR]: 'Creator',
+  [WorkspaceUserRoles.OWNER]: 'Owner',
   // Base roles
   [ProjectRoles.VIEWER]: 'Viewer',
   [ProjectRoles.COMMENTER]: 'Commenter',

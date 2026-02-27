@@ -23,7 +23,7 @@ const selectedKeys = computed(() => [
     : $route.params.nestedPage ?? $route.params.page,
 ])
 
-const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
+const openKeys = ref([])
 
 const logout = async () => {
   await signOut({
@@ -171,55 +171,19 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   </NcTooltip>
                 </div>
               </NcMenuItem>
-              <a-sub-menu key="users" class="!bg-nc-bg-gray-sidebar !my-0">
-                <template #icon>
-                  <GeneralIcon icon="ncUsers" class="!h- !w-4" />
-                </template>
-                <template #title>{{ $t('objects.users') }}</template>
-
-                <template #expandIcon="{ isOpen }">
-                  <NcButton type="text" size="xxsmall" class="">
-                    <GeneralIcon
-                      icon="chevronRight"
-                      class="flex-none cursor-pointer transform transition-transform duration-200 text-[20px]"
-                      :class="{ '!rotate-90': isOpen }"
-                    />
-                  </NcButton>
-                </template>
-
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI && !isSuperAdmin"
-                  key="list"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'list',
-                  }"
-                  @click="navigateTo('/account/users/list')"
-                >
-                  <span class="ml-4">{{ $t('title.userManagement') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  key="password-reset"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'password-reset',
-                  }"
-                  @click="navigateTo('/account/users/password-reset')"
-                >
-                  <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI && !isSuperAdmin"
-                  key="settings"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'settings',
-                  }"
-                  @click="navigateTo('/account/users/settings')"
-                >
-                  <span class="ml-4">{{ $t('activity.settings') }}</span>
-                </NcMenuItem>
-              </a-sub-menu>
+              <NcMenuItem
+                key="password-reset"
+                class="item"
+                :class="{
+                  active: $route.params.nestedPage === 'password-reset',
+                }"
+                @click="navigateTo('/account/users/password-reset')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncLock" class="!h-4 !w-4" />
+                  <div class="select-none">{{ $t('title.resetPasswordMenu') }}</div>
+                </div>
+              </NcMenuItem>
             </NcMenu>
           </div>
 

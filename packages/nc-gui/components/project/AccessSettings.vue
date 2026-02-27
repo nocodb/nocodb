@@ -732,7 +732,7 @@ onBeforeUnmount(() => {
                 <RolesSelectorV2
                   :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
                   :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
-                  :inherit="isEeUI && getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
+                  :inherit="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
                   :inherit-source="getInheritanceInfo(record)?.source"
                   :effective-role="getInheritanceInfo(record)?.effectiveRole"
                   :show-inherit="!!getInheritanceInfo(record)"
@@ -745,10 +745,7 @@ onBeforeUnmount(() => {
                     :border="false"
                     :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
                   />
-                  <div
-                    v-if="isEeUI && getInheritanceInfo(record)"
-                    class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
-                  >
+                  <div v-if="getInheritanceInfo(record)" class="flex items-center gap-1 text-xs text-nc-content-gray-muted">
                     <GeneralIcon icon="role_inherit" class="h-3 w-3" />
                     <span>{{
                       getInheritanceInfo(record)?.source === 'team'

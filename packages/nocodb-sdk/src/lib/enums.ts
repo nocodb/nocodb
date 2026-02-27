@@ -1,6 +1,8 @@
 export enum OrgUserRoles {
   SUPER_ADMIN = 'super',
+  /** @deprecated Noop for permissions — use workspace roles instead. Kept only for DB storage backward compat. */
   CREATOR = 'org-level-creator',
+  /** @deprecated Noop for permissions — use workspace roles instead. Kept only for DB storage backward compat. */
   VIEWER = 'org-level-viewer',
 }
 

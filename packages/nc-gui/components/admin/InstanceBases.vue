@@ -34,28 +34,38 @@ const orderBy = computed<Record<string, SordDirectionType>>({
   },
 })
 
-const columns = [
-  {
-    key: 'title',
-    title: t('general.name'),
-    minWidth: 288,
-    dataIndex: 'title',
-    showOrderBy: true,
-  },
-  {
-    key: 'workspaceName',
-    title: t('labels.workspaceName'),
-    minWidth: 260,
-  },
-  {
+const { isEEFeatureBlocked } = useEeConfig()
+
+const columns = computed(() => {
+  const cols: NcTableColumnProps[] = [
+    {
+      key: 'title',
+      title: t('general.name'),
+      minWidth: 288,
+      dataIndex: 'title',
+      showOrderBy: true,
+    },
+  ]
+
+  if (!isEEFeatureBlocked.value) {
+    cols.push({
+      key: 'workspaceName',
+      title: t('labels.workspaceName'),
+      minWidth: 260,
+    })
+  }
+
+  cols.push({
     key: 'memberCount',
     title: t('labels.numberOfMembers'),
     minWidth: 170,
     width: 170,
     dataIndex: 'memberCount',
     showOrderBy: true,
-  },
-] as NcTableColumnProps[]
+  })
+
+  return cols
+})
 
 const customRow = (base: Record<string, any>) => ({
   onClick: () => {

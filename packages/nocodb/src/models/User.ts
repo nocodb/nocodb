@@ -18,6 +18,7 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
+import WorkspaceUser from '~/models/WorkspaceUser';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { normalizeEmail } from '~/utils/emailUtils';
@@ -451,13 +452,24 @@ export default class User implements UserType {
       }
     });
 
+    let workspaceRoles: Record<string, boolean> | null = null;
+
+    if (args.workspaceId) {
+      const wsUser = await WorkspaceUser.get(args.workspaceId, user.id, ncMeta);
+      if (wsUser?.roles) {
+        workspaceRoles = extractRolesObj(wsUser.roles);
+      }
+    }
+
     return {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
       base_roles: baseRoles ? baseRoles : null,
+      workspace_roles: workspaceRoles,
     } as UserType & {
       roles: Record<string, boolean>;
       base_roles: Record<string, boolean>;
+      workspace_roles: Record<string, boolean>;
     };
   }
 

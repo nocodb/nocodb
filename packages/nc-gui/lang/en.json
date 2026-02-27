@@ -607,6 +607,7 @@
       "viewer": "Viewer",
       "inherit": "Inherit",
       "noaccess": "No Access",
+      "admin": "Admin",
       "superAdmin": "Super Admin",
       "orgLevelOwner": "Organization Level Owner",
       "orgLevelCreator": "Organization Level Creator",

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { OrgUserRoles } from 'nocodb-sdk'
-import type { OrgUserReqType, RequestParams, UserType } from 'nocodb-sdk'
+import type { RequestParams, UserType } from 'nocodb-sdk'
 
 const { api, isLoading } = useApi()
 
@@ -13,7 +12,7 @@ const { t } = useI18n()
 
 const { dashboardUrl } = useDashboard()
 
-const { user: loggedInUser, appInfo } = useGlobal()
+const { user: loggedInUser } = useGlobal()
 
 const { copy } = useCopy()
 
@@ -70,25 +69,6 @@ onMounted(() => {
   loadUsers()
   loadSorts()
 })
-
-const updateRole = async (userId: string, roles: string) => {
-  try {
-    await api.orgUsers.update(userId, {
-      roles,
-    } as OrgUserReqType)
-    message.success(t('msg.success.roleUpdated'))
-
-    users.value.forEach((user) => {
-      if (user.id === userId) {
-        user.roles = roles
-      }
-    })
-
-    $e('a:org-user:role-updated', { role: roles })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
 
 const deleteModalInfo = ref<UserType | null>(null)
 
@@ -193,14 +173,6 @@ const columns = [
     showOrderBy: true,
   },
   {
-    key: 'role',
-    title: t('general.access'),
-    basis: '30%',
-    minWidth: 272,
-    dataIndex: 'roles',
-    showOrderBy: true,
-  },
-  {
     key: 'action',
     title: t('labels.actions'),
     width: 110,
@@ -208,19 +180,6 @@ const columns = [
     justify: 'justify-end',
   },
 ] as NcTableColumnProps[]
-
-const userRoleOptions = [
-  {
-    title: 'objects.roleType.orgLevelCreator',
-    subtitle: 'msg.info.roles.orgCreator',
-    value: OrgUserRoles.CREATOR,
-  },
-  {
-    title: 'objects.roleType.orgLevelViewer',
-    subtitle: 'msg.info.roles.orgViewer',
-    value: OrgUserRoles.VIEWER,
-  },
-]
 </script>
 
 <template>
@@ -267,7 +226,7 @@ const userRoleOptions = [
             class="h-[calc(100%-58px)] max-w-250 mt-6"
           >
             <template #bodyCell="{ column, record: el }">
-              <div v-if="column.key === 'email'" class="w-full">
+              <div v-if="column.key === 'email'" class="w-full flex items-center gap-2">
                 <NcTooltip v-if="el.display_name" class="truncate max-w-full">
                   <template #title>
                     {{ el.email }}
@@ -281,53 +240,17 @@ const userRoleOptions = [
                   </template>
                   {{ el.email }}
                 </NcTooltip>
-              </div>
-              <template v-if="column.key === 'role'">
-                <div v-if="el?.roles?.includes('super')" class="font-weight-bold" data-rec="true">
-                  {{ $t('labels.superAdmin') }}
-                </div>
-                <NcSelect
-                  v-else-if="el.id !== loggedInUser?.id"
-                  v-show="!isEeUI"
-                  v-model:value="el.roles"
-                  class="w-55 nc-user-roles"
-                  :dropdown-match-select-width="false"
-                  dropdown-class-name="max-w-64"
-                  @change="updateRole(el.id, el.roles as string)"
+
+                <NcBadge
+                  v-if="el.roles?.includes('super')"
+                  :border="false"
+                  color="purple"
+                  class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  data-rec="true"
                 >
-                  <a-select-option
-                    v-for="(option, idx) of userRoleOptions"
-                    :key="idx"
-                    class="nc-users-list-role-option"
-                    :value="option.value"
-                  >
-                    <div class="w-full flex items-start gap-1">
-                      <div class="flex-1">
-                        <NcTooltip show-on-truncate-only class="truncate" data-rec="true">
-                          <template #title>
-                            {{ $t(option.title) }}
-                          </template>
-                          {{ $t(option.title) }}
-                        </NcTooltip>
-
-                        <div class="nc-select-hide-item text-nc-content-gray-muted text-xs whitespace-normal" data-rec="true">
-                          {{ $t(option.subtitle) }}
-                        </div>
-                      </div>
-
-                      <GeneralIcon
-                        v-if="el.roles === option.value"
-                        id="nc-selected-item-icon"
-                        icon="check"
-                        class="w-4 h-4 text-primary"
-                      />
-                    </div>
-                  </a-select-option>
-                </NcSelect>
-                <div v-else class="font-weight-bold" data-rec="true">
-                  {{ $t(`objects.roleType.orgLevelCreator`) }}
-                </div>
-              </template>
+                  {{ $t('objects.roleType.admin') }}
+                </NcBadge>
+              </div>
               <div v-if="column.key === 'action'" class="flex items-center gap-2">
                 <NcDropdown :trigger="['click']" placement="bottomRight">
                   <NcButton size="xsmall" type="ghost">

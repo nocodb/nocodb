@@ -28,6 +28,7 @@ import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
+import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
@@ -274,6 +275,14 @@ export class BaseUsersService {
               roles: OrgUserRoles.VIEWER,
               token_version: randomTokenString(),
             },
+            ncMeta,
+          );
+
+          // Ensure user exists in default workspace with NO_ACCESS —
+          // role management happens at workspace or base level
+          await ensureUserInDefaultWorkspace(
+            user.id,
+            WorkspaceUserRoles.NO_ACCESS,
             ncMeta,
           );
 

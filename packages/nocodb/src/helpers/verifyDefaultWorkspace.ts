@@ -160,9 +160,14 @@ export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
  * Ensures a user has a workspace_user entry in the default workspace.
  * Used for non-first signups and org-user invites (CE + on-prem).
  * Cloud EE manages workspace membership via its own EE service — skip there.
+ *
+ * @param userId - The user ID to ensure membership for
+ * @param role - Workspace role to assign (default: NO_ACCESS — preserves existing behavior)
+ * @param ncMeta - Meta service instance
  */
 export const ensureUserInDefaultWorkspace = async (
   userId: string,
+  role: WorkspaceUserRoles = WorkspaceUserRoles.NO_ACCESS,
   ncMeta = Noco.ncMeta,
 ) => {
   // Cloud EE manages workspace membership via its own service
@@ -181,7 +186,7 @@ export const ensureUserInDefaultWorkspace = async (
       {
         fk_workspace_id: Noco.ncDefaultWorkspaceId,
         fk_user_id: userId,
-        roles: WorkspaceUserRoles.NO_ACCESS,
+        roles: role,
       },
       true,
     );

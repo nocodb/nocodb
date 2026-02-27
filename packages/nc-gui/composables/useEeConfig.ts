@@ -209,7 +209,7 @@ export const useEeConfig = createSharedComposable(() => {
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseMapView = (..._args: any[]) => {}
 
-  const isEEFeatureBlocked = computed(() => false)
+  const isEEFeatureBlocked = computed(() => true)
 
   const blockWorkspaceMembers = computed(() => true)
 

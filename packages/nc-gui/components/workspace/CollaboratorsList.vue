@@ -2,6 +2,7 @@
 import {
   HigherPlan,
   OrderedWorkspaceRoles,
+  OrgUserRoles,
   type PlanLimitExceededDetailsType,
   PlanLimitTypes,
   PlanTitles,
@@ -19,7 +20,7 @@ const route = router.currentRoute
 
 const { $e } = useNuxtApp()
 
-const { workspaceRoles } = useRoles()
+const { workspaceRoles, orgRoles } = useRoles()
 
 const { user, isMobileMode, appInfo } = useGlobal()
 
@@ -248,14 +249,20 @@ const onConfirmRoleChangeConfirmationModal = () => {
   updateCollaborator(userRoleUpdateInfo.value.collab, userRoleUpdateInfo.value.roles!, userRoleUpdateInfo.value.overrideBaseRole)
 }
 
+const isSuperAdmin = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
 const isOwnerOrCreator = computed(() => {
-  return workspaceRoles.value?.[WorkspaceUserRoles.OWNER] || workspaceRoles.value?.[WorkspaceUserRoles.CREATOR]
+  return (
+    isSuperAdmin.value || workspaceRoles.value?.[WorkspaceUserRoles.OWNER] || workspaceRoles.value?.[WorkspaceUserRoles.CREATOR]
+  )
 })
 
 const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
-  const currentRoleIndex = OrderedWorkspaceRoles.findIndex(
-    (role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role),
-  )
+  // Super admin can assign all workspace roles (treated as owner)
+  const currentRoleIndex = isSuperAdmin.value
+    ? 0
+    : OrderedWorkspaceRoles.findIndex((role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role))
+
   if (currentRoleIndex === -1) return []
   const roles = OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
 

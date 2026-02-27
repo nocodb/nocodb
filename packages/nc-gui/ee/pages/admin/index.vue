@@ -156,16 +156,15 @@ watch(
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="isUIAllowed('ssoSettings')"
+              v-if="isUIAllowed('ssoSettings') && !isEEFeatureBlocked"
               key="authentication"
               :class="{ active: activeTab === 'authentication' }"
               class="item"
-              @click="isEEFeatureBlocked ? showUpgradeToUseSSO() : (activeTab = 'authentication')"
+              @click="activeTab = 'authentication'"
             >
               <div class="flex items-center space-x-2">
                 <component :is="iconMap.ncLock" />
                 <div class="select-none text-sm">{{ $t('title.sso') }}</div>
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
               </div>
             </NcMenuItem>
 
@@ -191,6 +190,7 @@ watch(
             </NcMenuItem>
 
             <NcMenuItem
+              v-if="!isEEFeatureBlocked"
               key="external-integrations"
               :class="{ active: activeTab === 'external-integrations' }"
               class="item"

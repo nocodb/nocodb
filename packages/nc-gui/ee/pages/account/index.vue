@@ -154,6 +154,7 @@ onMounted(() => {
                 </div>
               </NcMenuItem> -->
               <NcMenuItem
+                v-if="!isEEFeatureBlocked"
                 key="external-integrations"
                 :class="{
                   active: $route.params.page === 'external-integrations',
@@ -195,13 +196,13 @@ onMounted(() => {
               </NcMenuItem>
 
               <NcMenuItem
-                v-if="isUIAllowed('ssoSettings')"
+                v-if="isUIAllowed('ssoSettings') && !isEEFeatureBlocked"
                 key="authentication"
                 :class="{
                   active: $route.params.page === 'authentication',
                 }"
                 class="item"
-                @click="isEEFeatureBlocked ? showUpgradeToUseSSO() : navigateTo('/account/authentication')"
+                @click="navigateTo('/account/authentication')"
               >
                 <div class="flex items-center space-x-2">
                   <component :is="iconMap.ncLock" />
@@ -221,7 +222,7 @@ onMounted(() => {
                 @click="navigateTo('/account/users/password-reset')"
               >
                 <div class="flex items-center space-x-2">
-                  <GeneralIcon icon="ncKey2" class="h-4 w-4 flex-none" />
+                  <GeneralIcon icon="ncLock" class="!h-4 !w-4" />
                   <div class="select-none">{{ $t('title.resetPasswordMenu') }}</div>
                 </div>
               </NcMenuItem>

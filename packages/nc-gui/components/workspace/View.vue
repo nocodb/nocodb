@@ -116,7 +116,7 @@ watch(
   async (newTab) => {
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isUIAllowed('workspaceCollaborators')) {
+    if (!isUIAllowed('workspaceCollaborators') && !isEEFeatureBlocked.value) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
@@ -277,7 +277,7 @@ onBeforeUnmount(() => {
         </template>
       </template>
 
-      <a-tab-pane key="settings" class="w-full">
+      <a-tab-pane v-if="!isEEFeatureBlocked" key="settings" class="w-full">
         <template #tab>
           <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
             <GeneralIcon icon="ncSettings" class="h-4 w-4" />

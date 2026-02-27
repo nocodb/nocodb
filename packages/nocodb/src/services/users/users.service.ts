@@ -193,7 +193,7 @@ export class UsersService {
       // Only add to default workspace for self-signups, not invites.
       // Workspace invites set the role explicitly via the invite flow;
       // org invites call ensureUserInDefaultWorkspace separately.
-      await ensureUserInDefaultWorkspace(user.id, ncMeta);
+      await ensureUserInDefaultWorkspace(user.id, undefined, ncMeta);
     }
 
     // todo: update swagger type

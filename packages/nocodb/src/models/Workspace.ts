@@ -1,4 +1,14 @@
+import Noco from '~/Noco';
+import { MetaTable, RootScopes } from '~/utils/globals';
+
 export default class Workspace {
+  id?: string;
+  title?: string;
+  fk_user_id?: string;
+  status?: number;
+  plan?: string;
+  fk_org_id?: string;
+
   constructor(workspace: any) {
     Object.assign(this, workspace);
   }
@@ -7,8 +17,17 @@ export default class Workspace {
     return undefined;
   }
 
-  public static async get(..._args: any) {
-    return null;
+  public static async get(
+    workspaceId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Workspace | null> {
+    const workspace = await ncMeta.metaGet2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE,
+      workspaceId,
+    );
+    return workspace ? new Workspace(workspace) : null;
   }
 
   public static async insert(..._args: any) {
@@ -45,8 +64,14 @@ export default class Workspace {
     return null;
   }
 
-  public static async getFirstWorkspace(..._args: any) {
-    return null;
+  public static async getFirstWorkspace(
+    ncMeta = Noco.ncMeta,
+  ): Promise<Workspace | null> {
+    const workspace = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE)
+      .orderBy('created_at', 'asc')
+      .first();
+    return workspace ? new Workspace(workspace) : null;
   }
 
   public static async getResourceStats(..._args: any) {

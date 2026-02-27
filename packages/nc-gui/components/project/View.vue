@@ -640,5 +640,9 @@ watch(
   :deep(.ant-tabs-nav) {
     @apply !hidden;
   }
+
+  :deep(.ant-tabs-content) {
+    @apply !max-w-[1100px] !mx-auto;
+  }
 }
 </style>

@@ -802,7 +802,7 @@
       "confirmDeleteTeamTitle": "Are you sure you want to delete this team?",
       "confirmDeleteTeamSubtitle": "Members may still have access to bases if they were explicitly invited or hold a role at the workspace level.",
       "confirmDeleteTeamWithChildrenTitle": "This team has sub-teams",
-      "confirmDeleteTeamWithChildrenSubtitle": "Deleting this team will move its sub-teams under the parent team. Members may still have access to bases if they were explicitly invited or hold a role at the workspace level.",
+      "confirmDeleteTeamWithChildrenSubtitle": "Deleting this team will move its sub-teams under the parent team. Members may still retain access through workspace roles or direct invitations.",
       "soleTeamOwnerTooltip": "You’re the sole owner of this team. Transfer ownership to another member before leaving.",
       "thisIsTheOnlyTeamOwnerTooltip": "This is the only owner of this team. Transfer ownership to another member before removing it.",
       "thisTeamHasOnlyOneOwnerTooltip": "This team has only one owner. You must transfer ownership before leaving.",

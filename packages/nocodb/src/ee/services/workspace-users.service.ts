@@ -12,6 +12,7 @@ import {
   NcBaseError,
   NON_SEAT_ROLES,
   parseProp,
+  TeamUserRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
@@ -357,6 +358,36 @@ export class WorkspaceUsersService {
       workspaceUser.fk_user_id !== param.req.user.id
     ) {
       NcError.badRequest('Insufficient privilege to delete workspaceUser');
+    }
+
+    // Block removal if user is the sole owner of any team in the workspace
+    const wsTeams = await Team.list(context, {
+      fk_workspace_id: workspaceId,
+    });
+
+    for (const team of wsTeams) {
+      const assignment = await PrincipalAssignment.get(
+        context,
+        ResourceType.TEAM,
+        team.id,
+        PrincipalType.USER,
+        userId,
+      );
+
+      if (assignment?.roles === TeamUserRoles.OWNER) {
+        const managersCount = await PrincipalAssignment.countByResourceAndRole(
+          context,
+          ResourceType.TEAM,
+          team.id,
+          TeamUserRoles.OWNER,
+        );
+
+        if (managersCount <= 1) {
+          NcError.badRequest(
+            `Cannot remove user — they are the sole owner of team "${team.title}". Transfer ownership first.`,
+          );
+        }
+      }
     }
 
     // Soft delete + full cleanup (base access, teams, orphan bases, seat recount, socket)

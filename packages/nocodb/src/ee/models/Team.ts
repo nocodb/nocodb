@@ -74,36 +74,11 @@ export default class Team {
     // Set deleted to false by default
     insertObj.deleted = false;
 
-    // Prepare meta for database storage
-    let preparedTeam = prepareForDb(insertObj, 'meta');
-    preparedTeam = prepareForDb(preparedTeam, 'scim_meta');
-
     const { id } = await ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.TEAMS,
-      preparedTeam,
-    );
-
-    // Get the full record with timestamps
-    const fullTeam = await ncMeta.metaGet(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.TEAMS,
-      id,
-    );
-
-    await NocoCache.set(context, `${CacheScope.TEAM}:${id}`, fullTeam);
-
-    // Use the same cache key logic as list method for consistency
-    const baseCacheKey = context.workspace_id ?? context.org_id;
-    const cacheKey = baseCacheKey; // New teams are always active (not deleted)
-
-    await NocoCache.appendToList(
-      context,
-      CacheScope.TEAM,
-      [cacheKey],
-      `${CacheScope.TEAM}:${id}`,
+      prepareForDb(insertObj, ['meta', 'scim_meta']),
     );
 
     await NocoCache.incrHashField(
@@ -113,7 +88,18 @@ export default class Team {
       1,
     );
 
-    return this.castType(fullTeam);
+    // get() → appendToList() pattern (same as Dashboard.insert)
+    const baseCacheKey = context.workspace_id ?? context.org_id;
+
+    return this.get(context, id, ncMeta).then(async (team) => {
+      await NocoCache.appendToList(
+        context,
+        CacheScope.TEAM,
+        [baseCacheKey],
+        `${CacheScope.TEAM}:${id}`,
+      );
+      return team;
+    });
   }
 
   public static async get(
@@ -130,32 +116,17 @@ export default class Team {
       ));
 
     if (!teamData) {
-      const teams = await ncMeta.metaList2(
+      teamData = await ncMeta.metaGet2(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.TEAMS,
-        {
-          condition: {
-            id: teamId,
-          },
-          xcCondition: {
-            _or: [
-              {
-                deleted: {
-                  eq: false,
-                },
-              },
-              {
-                deleted: {
-                  eq: null,
-                },
-              },
-            ],
-          },
-        },
+        { id: teamId },
       );
 
-      teamData = teams.length > 0 ? teams[0] : null;
+      // Filter out soft-deleted teams
+      if (teamData && teamData.deleted === true) {
+        teamData = null;
+      }
 
       if (teamData) {
         await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, teamData);
@@ -275,20 +246,16 @@ export default class Team {
       { id: teamId },
     );
 
-    // Get the full updated record with timestamps
-    const fullTeam = await ncMeta.metaGet(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.TEAMS,
-      teamId,
+    await NocoCache.update(
+      context,
+      `${CacheScope.TEAM}:${teamId}`,
+      preparedTeam,
     );
-
-    await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, fullTeam);
 
     // Clear all dependent caches when team is updated
     await this.clearDependentCaches(context, teamId, ncMeta);
 
-    return this.castType(fullTeam);
+    return this.get(context, teamId, ncMeta);
   }
 
   public static async softDelete(
@@ -309,6 +276,7 @@ export default class Team {
       `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+
     // Clear all dependent caches when team is soft deleted
     await this.clearDependentCaches(context, teamId, ncMeta);
 

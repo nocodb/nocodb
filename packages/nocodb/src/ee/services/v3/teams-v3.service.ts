@@ -390,6 +390,26 @@ export class TeamsV3Service {
         );
       }
 
+      // Only managers of the parent team can create sub-teams
+      const userId = param.req.user?.id;
+      if (userId) {
+        const parentAssignment = await PrincipalAssignment.get(
+          context,
+          ResourceType.TEAM,
+          param.team.parent_team_id,
+          PrincipalType.USER,
+          userId,
+        );
+        if (
+          !parentAssignment ||
+          parentAssignment.roles !== TeamUserRoles.OWNER
+        ) {
+          NcError.get(context).forbidden(
+            'Only managers of the parent team can create sub-teams',
+          );
+        }
+      }
+
       depth = (parentTeam.depth ?? 0) + 1;
 
       // Enforce max depth of 3
@@ -1270,6 +1290,17 @@ export class TeamsV3Service {
   ): Promise<TeamV3ResponseType> {
     await this.validateFeatureAccess(context);
 
+    // Validate payload has required field
+    if (
+      param.body === undefined ||
+      param.body === null ||
+      !('parent_team_id' in param.body)
+    ) {
+      NcError.get(context).invalidRequestBody(
+        'parent_team_id is required (use null to move to root)',
+      );
+    }
+
     // Fetch workspace
     const workspace = await Workspace.get(param.workspaceOrOrgId);
     if (!workspace) {
@@ -1285,6 +1316,7 @@ export class TeamsV3Service {
       NcError.get(context).teamNotFound(param.teamId);
     }
 
+    const userId = param.req.user?.id;
     const newParentId = param.body.parent_team_id;
 
     // Cannot move to self
@@ -1304,6 +1336,25 @@ export class TeamsV3Service {
         NcError.get(context).invalidRequestBody(
           'Parent team must belong to the same workspace',
         );
+      }
+
+      // Only managers of the new parent team can move teams under it
+      if (userId) {
+        const parentAssignment = await PrincipalAssignment.get(
+          context,
+          ResourceType.TEAM,
+          newParentId,
+          PrincipalType.USER,
+          userId,
+        );
+        if (
+          !parentAssignment ||
+          parentAssignment.roles !== TeamUserRoles.OWNER
+        ) {
+          NcError.get(context).forbidden(
+            'Only managers of the target parent team can move teams under it',
+          );
+        }
       }
 
       // Circular reference check

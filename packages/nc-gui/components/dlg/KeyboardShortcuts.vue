@@ -228,7 +228,7 @@ const shortcutList = [
     <div class="flex flex-col h-full">
       <!-- Header -->
       <div class="p-2 w-full flex items-center gap-2 border-b-1 border-nc-border-gray-medium flex-none">
-        <GeneralIcon icon="keyboard" class="text-xl text-nc-content-gray-subtle ml-1" />
+        <GeneralIcon icon="ncKeyboard" class="text-xl text-nc-content-gray-subtle ml-1" />
         <h3 class="flex-1 text-base font-semibold text-nc-content-gray m-0">
           {{ $t('title.keyboardShortcut') }}
         </h3>

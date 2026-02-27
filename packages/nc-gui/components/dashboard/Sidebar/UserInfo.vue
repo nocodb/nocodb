@@ -279,7 +279,7 @@ const openKeyboardShortcutDialog = () => {
                 data-testid="nc-sidebar-keyboard-shortcuts"
                 @click="openKeyboardShortcutDialog"
               >
-                <GeneralIcon icon="keyboard" class="menu-icon mt-0.5" />
+                <GeneralIcon icon="ncKeyboard" class="menu-icon" />
                 <div class="flex items-center justify-between flex-1">
                   <span class="menu-btn"> {{ $t('title.keyboardShortcut') }} </span>
                   <span class="flex items-center gap-0.5 text-nc-content-gray-muted ml-1">

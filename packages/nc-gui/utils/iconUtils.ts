@@ -817,6 +817,7 @@ import NcSupportAgent from '~icons/nc-icons-v2/support-agent'
 import NcBuilding from '~icons/nc-icons-v2/building'
 import NcExtUrlPreviewEmptyState from '~icons/nc-icons/extension-url-preview-empty-state'
 import NcClipboardType from '~icons/nc-icons-v2/clipboard-type'
+import NcKeyboardIcon from '~icons/nc-icons-v2/keyboard.svg'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1845,6 +1846,7 @@ export const iconMap = {
   'ncRecordEntersView': NcRecordEntersView,
   'ncExtUrlPreviewEmptyState': h(NcExtUrlPreviewEmptyState, { stroke: 'transparent' }),
   'ncClipboardType': NcClipboardType,
+  'ncKeyboard': NcKeyboardIcon,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4643,6 +4645,10 @@ export const searchableMap = {
   ncClipboardType: {
     icon: NcClipboardType,
     keywords: ['clipboard', 'type', 'copy', 'paste'],
+  },
+  ncKeyboard: {
+    icon: NcKeyboardIcon,
+    keywords: ['keyboard', 'type', 'input', 'keys', 'shortcut'],
   },
 }
 

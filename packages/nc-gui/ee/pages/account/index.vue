@@ -31,7 +31,7 @@ const selectedKeys = computed(() => {
   return [$route.params.nestedPage ?? $route.params.page]
 })
 
-const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isOnPrem))
+const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || !appInfo.value.isCloud))
 
 const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
 
@@ -125,7 +125,7 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="!appInfo.isOnPrem"
+                v-if="appInfo.isCloud"
                 key="tokens"
                 :class="{
                   active: $route.params.page === 'mcp',
@@ -154,7 +154,7 @@ onMounted(() => {
                 </div>
               </NcMenuItem> -->
               <NcMenuItem
-                v-if="!appInfo.isOnPrem"
+                v-if="appInfo.isCloud"
                 key="external-integrations"
                 :class="{
                   active: $route.params.page === 'external-integrations',
@@ -169,7 +169,7 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isSetupPageAllowed && !appInfo.isOnPrem"
+                v-if="isSetupPageAllowed && appInfo.isCloud"
                 key="profile"
                 class="item"
                 :class="{
@@ -196,7 +196,7 @@ onMounted(() => {
               </NcMenuItem>
 
               <NcMenuItem
-                v-if="isUIAllowed('ssoSettings') && !appInfo.isOnPrem"
+                v-if="isUIAllowed('ssoSettings') && appInfo.isCloud"
                 key="authentication"
                 :class="{
                   active: $route.params.page === 'authentication',
@@ -213,7 +213,7 @@ onMounted(() => {
               </NcMenuItem>
 
               <NcMenuItem
-                v-if="appInfo.isOnPrem && !appInfo.disableEmailAuth"
+                v-if="!appInfo.isCloud && !appInfo.disableEmailAuth"
                 key="password-reset"
                 :class="{
                   active: $route.params.nestedPage === 'password-reset',
@@ -228,7 +228,7 @@ onMounted(() => {
               </NcMenuItem>
 
               <a-sub-menu
-                v-if="(!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')) && !appInfo.isOnPrem"
+                v-if="(!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')) && appInfo.isCloud"
                 key="users"
                 class="!bg-nc-bg-gray-sidebar !my-0"
               >
@@ -248,7 +248,7 @@ onMounted(() => {
                 </template>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI && !appInfo.isOnPrem"
+                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI && appInfo.isCloud"
                   key="list"
                   :class="{
                     active: $route.params.nestedPage === 'list',
@@ -269,7 +269,7 @@ onMounted(() => {
                   <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
                 </NcMenuItem>
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI && !appInfo.isOnPrem"
+                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI && appInfo.isCloud"
                   key="settings"
                   :class="{
                     active: $route.params.nestedPage === 'settings',

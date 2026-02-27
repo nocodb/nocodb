@@ -1,15 +1,19 @@
 <script lang="ts" setup>
+import { OrgUserRoles } from 'nocodb-sdk'
+
 definePageMeta({
   hideHeader: true,
 })
 
 const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, orgRoles } = useRoles()
 
 const $route = useRoute()
 
 const { appInfo, signedIn, signOut } = useGlobal()
+
+const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const selectedKeys = computed(() => [
   /^\/account\/users\/?$/.test($route.fullPath)
@@ -73,7 +77,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
               <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
               <NcMenuItem
-                v-if="isSetupPageAllowed"
+                v-if="isSetupPageAllowed && !isSuperAdmin"
                 key="profile"
                 class="item"
                 :class="{
@@ -128,6 +132,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 </div>
               </NcMenuItem>
               <NcMenuItem
+                v-if="!isSuperAdmin"
                 key="tokens"
                 :class="{
                   active: $route.params.page === 'mcp',
@@ -183,7 +188,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 </template>
 
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
+                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI && !isSuperAdmin"
                   key="list"
                   class="text-xs item"
                   :class="{
@@ -204,7 +209,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
                 </NcMenuItem>
                 <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI"
+                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI && !isSuperAdmin"
                   key="settings"
                   class="text-xs item"
                   :class="{

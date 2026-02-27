@@ -67,9 +67,7 @@ const openExperimentationMenu = () => {
   isExperimentalFeatureModalOpen.value = true
 }
 
-const accountUrl = computed(() => {
-  return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
-})
+const accountUrl = computed(() => '/account/profile')
 
 const copyEmail = () => {
   if (!user?.value?.email) return

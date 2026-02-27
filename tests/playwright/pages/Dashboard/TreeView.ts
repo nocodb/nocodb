@@ -475,6 +475,8 @@ export class TreeViewPage extends BasePage {
     await contextMenu.locator(`.ant-dropdown-menu-item:has-text("Rename")`).click();
 
     const baseNodeInput = (await this.getProject({ title: param.title })).locator('input');
+    await baseNodeInput.waitFor();
+
     await baseNodeInput.clear();
     await baseNodeInput.fill(param.newTitle);
     await baseNodeInput.press('Enter');

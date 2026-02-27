@@ -18,7 +18,10 @@ import {
 import Column from '~/models/Column';
 import ListViewColumn from '~/models/ListViewColumn';
 
-export default class ListViewLevel extends ListViewLevelCE implements ListViewLevelType {
+export default class ListViewLevel
+  extends ListViewLevelCE
+  implements ListViewLevelType
+{
   id: string;
   fk_view_id: string;
   level?: number;

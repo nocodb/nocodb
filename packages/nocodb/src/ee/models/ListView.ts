@@ -107,7 +107,12 @@ export default class ListView extends ListViewCE implements ListType {
     body: Partial<ListView>,
     ncMeta = Noco.ncMeta,
   ) {
-    const updateObj = extractProps(body, ['meta', 'show_empty_parents', 'row_height', 'fk_prefix_column_id']);
+    const updateObj = extractProps(body, [
+      'meta',
+      'show_empty_parents',
+      'row_height',
+      'fk_prefix_column_id',
+    ]);
 
     const res = await ncMeta.metaUpdate(
       context.workspace_id,

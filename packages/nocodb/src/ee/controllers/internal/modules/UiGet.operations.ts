@@ -92,8 +92,7 @@ export class UiGetOperations
             widgetId: req.query.widgetId as string,
           }),
         );
-      case 'listViewDataCount':
-      {
+      case 'listViewDataCount': {
         context.cache = true;
         return await this.listDatasService.listViewCount(context, {
           viewId: req.query.viewId as string,

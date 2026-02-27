@@ -11,9 +11,7 @@ import { ViewSectionsService } from '~/ee/services/view-sections.service';
 export class ViewSectionPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
 {
-  constructor(
-    private readonly viewSectionsService: ViewSectionsService,
-  ) {}
+  constructor(private readonly viewSectionsService: ViewSectionsService) {}
 
   operations = [
     'viewSectionCreate' as const,

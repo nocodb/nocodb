@@ -7,8 +7,8 @@ import {
   isTriggerNode,
   NcBaseError,
   NOCO_SERVICE_USERS,
-  ProjectRoles,
   parseWorkflowVariableExpression,
+  ProjectRoles,
   ServiceUserType,
   VariableType,
   WorkflowExpressionParser,
@@ -231,8 +231,8 @@ export class WorkflowExecutionService {
     if (!runAs || runAs.type === 'service_account') {
       return {
         ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
-        base_roles: { [ProjectRoles.CREATOR] : true },
-      }
+        base_roles: { [ProjectRoles.CREATOR]: true },
+      };
     }
 
     if (runAs.type === 'role' && runAs.value) {
@@ -256,7 +256,7 @@ export class WorkflowExecutionService {
           );
           return {
             ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
-            base_roles: { [ProjectRoles.CREATOR] : true },
+            base_roles: { [ProjectRoles.CREATOR]: true },
           };
         }
 
@@ -277,15 +277,15 @@ export class WorkflowExecutionService {
         );
         return {
           ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
-          base_roles: { [ProjectRoles.CREATOR] : true },
-        }
+          base_roles: { [ProjectRoles.CREATOR]: true },
+        };
       }
     }
 
     return {
       ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
-      base_roles: { [ProjectRoles.CREATOR] : true },
-    }
+      base_roles: { [ProjectRoles.CREATOR]: true },
+    };
   }
 
   public async getWorkflowNodes(context: NcContext) {

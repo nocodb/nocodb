@@ -327,4 +327,3 @@ export async function cleanCommandPaletteCacheForUser(userId: string) {
     ]);
   }
 }
-

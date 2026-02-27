@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type {
   ViewSectionCreateReqType,
   ViewSectionType,
   ViewSectionUpdateReqType,
 } from 'nocodb-sdk';
-import { PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Model, ViewSection } from '~/models';
 import { NcError } from '~/helpers/catchError';

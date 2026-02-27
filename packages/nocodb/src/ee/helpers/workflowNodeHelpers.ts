@@ -47,17 +47,13 @@ export const WorkflowNodePlanRequirements: Record<string, PlanTitles> = {
  * @param nodeId - The workflow node ID
  * @returns The required PlanTitles or undefined if free
  */
-export function getRequiredPlanForNode(
-  nodeId: string,
-): PlanTitles | undefined {
+export function getRequiredPlanForNode(nodeId: string): PlanTitles | undefined {
   // Check for exact match first
   const exactMatch = WorkflowNodePlanRequirements[nodeId];
   if (exactMatch) return exactMatch;
 
   // Check for wildcard patterns
-  for (const [pattern, plan] of Object.entries(
-    WorkflowNodePlanRequirements,
-  )) {
+  for (const [pattern, plan] of Object.entries(WorkflowNodePlanRequirements)) {
     if (pattern.endsWith('*')) {
       const prefix = pattern.slice(0, -1);
       if (nodeId.startsWith(prefix)) {

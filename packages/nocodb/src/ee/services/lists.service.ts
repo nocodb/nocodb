@@ -6,6 +6,7 @@ import type {
   ViewCreateReqType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -14,8 +15,10 @@ import ListViewLevel from '~/models/ListViewLevel';
 import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
-import { type ViewWebhookManager, ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager'
-import type { MetaService } from '~/meta/meta.service'
+import {
+  type ViewWebhookManager,
+  ViewWebhookManagerBuilder,
+} from '~/utils/view-webhook-manager';
 
 @Injectable()
 export class ListsService {

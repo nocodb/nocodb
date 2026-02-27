@@ -153,7 +153,9 @@ export class ColumnsService extends ColumnsServiceCE {
       );
 
       if (unhandledLevels.length) {
-        const tableMeta = await Model.getWithInfo(context, { id: param.tableId });
+        const tableMeta = await Model.getWithInfo(context, {
+          id: param.tableId,
+        });
         const insertedColumn = tableMeta.columns?.find(
           (c) => c.title === (param.column as ColumnReqType).title,
         );

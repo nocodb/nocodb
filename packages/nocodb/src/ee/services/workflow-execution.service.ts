@@ -266,8 +266,9 @@ export class WorkflowExecutionService {
           id: user.id,
           email: user.email,
           display_name: user.display_name,
+          roles: user.roles,
           base_roles: { [baseUser.roles]: true },
-          token_version: user.token_version
+          token_version: user.token_version,
         };
       } catch (error) {
         this.logger.warn(
@@ -447,6 +448,11 @@ export class WorkflowExecutionService {
                 {
                   ...resolvedUser,
                   extra: {
+                    // Top-level fields for EE JWT strategy (real user path)
+                    // Without these, SSO enforcement blocks workflow-generated tokens
+                    workspace_id: context.workspace_id,
+                    org_id: context.org_id,
+                    // Service user context validation (nested)
                     context: {
                       base_id: context.base_id,
                       workspace_id: context.workspace_id,

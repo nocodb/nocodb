@@ -38,7 +38,7 @@
     "mysql": "^2.18.1",
     "parse-database-url": "^0.3.0",
     "pg": "^8.12.0",
-    "sqlite3": "5.1.6"
+    "sqlite3": "5.1.7"
   },
   "devDependencies": {
     "@types/figlet": "^1.5.8",

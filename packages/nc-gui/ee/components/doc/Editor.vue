@@ -664,7 +664,7 @@ onBeforeUnmount(() => {
               @emoji-selected="updateDocumentIcon($event)"
             >
               <template #default>
-                <GeneralIcon class="nc-doc-editor-icon-default text-nc-content-gray-subtle2 !text-2xl" icon="ncFileText" />
+                <GeneralIcon class="nc-doc-editor-icon-default text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
               </template>
             </LazyGeneralEmojiPicker>
           </div>

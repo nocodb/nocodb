@@ -188,6 +188,8 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
       selection.node?.type.name === 'horizontalRule'
     )
       return false
+    // Hide inside code blocks — formatting doesn't apply to code
+    if (selection.$from.parent.type.name === 'codeBlock') return false
     return !selection.empty
   }
 

@@ -185,6 +185,13 @@ const _tiptapEditor = useEditor({
         return false
       }
 
+      // Tab inside a code block: insert 2 spaces for indentation
+      if (event.key === 'Tab' && $from.parent.type.name === 'codeBlock') {
+        event.preventDefault()
+        view.dispatch(state.tr.insertText('  ', $from.pos, selection.to))
+        return true
+      }
+
       if (event.key !== 'Backspace') return false
 
       // Only handle when cursor is collapsed (no selection range)
@@ -703,7 +710,7 @@ onBeforeUnmount(() => {
           <BubbleMenu
             :editor="editor"
             :update-delay="250"
-            :tippy-options="{ duration: 100, maxWidth: 600 }"
+            :tippy-options="{ duration: 100, maxWidth: 'none' }"
             :should-show="showRichTextMenu"
           >
             <!-- Link URL input mode — replaces the formatting toolbar -->
@@ -916,9 +923,10 @@ onBeforeUnmount(() => {
 
 // Wrapper for formatting toolbar + link button
 .nc-doc-editor-body .nc-doc-bubble-toolbar {
-  @apply flex items-center bg-nc-bg-default rounded-lg pr-1;
+  @apply flex items-center bg-nc-bg-default rounded-lg px-1;
   border: 1px solid var(--nc-border-gray-medium);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 
   > .bubble-menu.embed-mode {
     @apply !rounded-lg !rounded-r-none;

@@ -132,6 +132,26 @@ watch(() => props.node.attrs.caption, (val) => {
   captionText.value = val || ''
 })
 
+// --- Download ---
+const downloadImage = async () => {
+  if (!resolvedSrc.value) return
+  try {
+    const response = await fetch(resolvedSrc.value)
+    const blob = await response.blob()
+    const blobUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = props.node.attrs.alt || 'image'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(blobUrl)
+  } catch {
+    // Fallback: open in new tab if fetch fails (e.g. CORS)
+    window.open(resolvedSrc.value, '_blank')
+  }
+}
+
 // --- Toolbar visibility ---
 const showToolbar = computed(() => props.selected && !isResizing.value)
 </script>
@@ -177,6 +197,14 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
           <line x1="21" y1="6" x2="3" y2="6" />
           <line x1="21" y1="14" x2="3" y2="14" />
           <line x1="21" y1="18" x2="7" y2="18" />
+        </svg>
+      </button>
+      <div class="nc-doc-image-toolbar-divider" />
+      <button class="nc-doc-image-toolbar-btn" title="Download image" @click="downloadImage">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
         </svg>
       </button>
       <div class="nc-doc-image-toolbar-divider" />

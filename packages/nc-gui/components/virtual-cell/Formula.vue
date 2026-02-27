@@ -40,8 +40,11 @@ const openLongText = (event: MouseEvent) => {
   if (!isStringDataType.value) return
 
   const target = event.target as HTMLElement
-  if (target.tagName === 'A') {
+  const anchor = target.closest('a') as HTMLAnchorElement | null
+  if (anchor?.href) {
+    event.preventDefault()
     event.stopPropagation()
+    confirmPageLeavingRedirect(anchor.href, '_blank')
     return
   }
 

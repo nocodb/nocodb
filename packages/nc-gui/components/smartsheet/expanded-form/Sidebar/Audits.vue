@@ -161,6 +161,7 @@ function isV0Audit(audit: AuditType) {
                 v-if="audit.details"
                 v-dompurify-html="audit.details"
                 class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3"
+                @click="handleDompurifyLinkClick"
               ></div>
               <div v-else class="rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y py-2 px-3">
                 {{ audit.description }}

@@ -499,8 +499,9 @@ onBeforeUnmount(() => {
 
               <div v-else class="space-y-1 pl-9">
                 <div
-                  class="nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
                   v-dompurify-html="parsedHtmlComments[commentItem.id]"
+                  class="nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
+                  @click="handleDompurifyLinkClick"
                 ></div>
               </div>
             </div>

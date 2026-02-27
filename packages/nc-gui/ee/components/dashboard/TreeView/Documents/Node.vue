@@ -52,7 +52,7 @@ const { meta: metaKey, control } = useMagicKeys()
 const isMacOs = isMac()
 
 const indentStyle = computed(() => ({
-  paddingLeft: `${props.depth * 24}px`,
+  paddingLeft: `${8 + props.depth * 24}px`,
 }))
 
 // Show chevron if either the tree node has loaded children OR the API says children exist

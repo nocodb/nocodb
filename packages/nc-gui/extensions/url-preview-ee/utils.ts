@@ -67,6 +67,60 @@ const matchDrive = (url: string) => {
 }
 urlMatchers.push(['Drive', matchDrive])
 
+// Google Maps — place, coordinates, search, and short links
+const GOOGLE_MAPS_PLACE_COORDS_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/place\/[^\/]+\/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+)z/
+const GOOGLE_MAPS_PLACE_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/place\/([^\/\?@]+)/
+const GOOGLE_MAPS_AT_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+)z/
+const GOOGLE_MAPS_SEARCH_PATH_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/search\/([^\/\?]+)/
+const GOOGLE_MAPS_QUERY_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps.*[\?&]q=([^&]+)/
+const GOOGLE_MAPS_SHORT_RE = /^https?:\/\/(goo\.gl\/maps\/|maps\.app\.goo\.gl\/)/
+
+const matchGoogleMaps = (url: string) => {
+  try {
+    // Place URL with lat/lng/zoom
+    const placeCoordsMatch = url.match(GOOGLE_MAPS_PLACE_COORDS_RE)
+    if (placeCoordsMatch) {
+      const [, , lat, lng, zoom] = placeCoordsMatch
+      return `https://maps.google.com/maps?q=${lat},${lng}&z=${zoom}&output=embed`
+    }
+
+    // Place URL without coordinates — use the place name as query
+    const placeMatch = url.match(GOOGLE_MAPS_PLACE_RE)
+    if (placeMatch) {
+      return `https://maps.google.com/maps?q=${placeMatch[2]}&output=embed`
+    }
+
+    // Coordinates-only URL
+    const atMatch = url.match(GOOGLE_MAPS_AT_RE)
+    if (atMatch) {
+      const [, , lat, lng, zoom] = atMatch
+      return `https://maps.google.com/maps?q=${lat},${lng}&z=${zoom}&output=embed`
+    }
+
+    // Query parameter (supports ?q= anywhere in the URL)
+    const queryMatch = url.match(GOOGLE_MAPS_QUERY_RE)
+    if (queryMatch) {
+      return `https://maps.google.com/maps?q=${queryMatch[2]}&output=embed`
+    }
+
+    // Search path
+    const searchMatch = url.match(GOOGLE_MAPS_SEARCH_PATH_RE)
+    if (searchMatch) {
+      return `https://maps.google.com/maps?q=${searchMatch[2]}&output=embed`
+    }
+
+    // Short links — pass through as-is (Google redirects work in iframes)
+    if (GOOGLE_MAPS_SHORT_RE.test(url)) {
+      return url
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+urlMatchers.push(['Google Maps', matchGoogleMaps])
+
 const FIGMA_RE =
   /^https?:\/\/(www\.|)figma\.com\/(file|proto|design|board)\/([0-9a-zA-Z]{22,})(?:\/.*)?(?:\?node-id=([0-9%:A-Za-z-]+))?/
 

@@ -104,6 +104,7 @@ const icons = {
   stackblitz: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#1389FD"/><polygon points="10 3 5 10 8.5 10 8 15 13 8 9.5 8 10 3" fill="white"/></svg>`,
   codesandbox: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#151515"/><path d="M14 11.5V6.5L9 3.5 4 6.5v5l5 3 5-3z" stroke="white" stroke-width=".8" fill="none"/><path d="M4 6.5l5 3 5-3M9 9.5v5.5M6.5 5l5 3" stroke="white" stroke-width=".8" fill="none"/></svg>`,
   nocodb: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"><path d="M6 10.8676L8.75329 13.6226V17.9842H6V10.8676ZM17.5645 5.01046V17.535C17.5645 17.7921 17.3548 18 17.0977 18C16.9744 18 16.8563 17.9525 16.7683 17.8644L6 8.15303V5.40504C6 5.14785 6.20787 4.94 6.46505 4.94H6.48972C6.61303 4.94 6.7328 4.98933 6.81911 5.07564L14.8094 12.009V5.01046H17.5645Z" fill="url(#ncg1)"/><path fill-rule="evenodd" clip-rule="evenodd" d="M3 0C1.34315 0 0 1.34315 0 3V21C0 22.6569 1.34315 24 3 24H21C22.6569 24 24 22.6569 24 21V3C24 1.34315 22.6569 0 21 0H3ZM3.63333 2.13333C2.8049 2.13333 2.13333 2.8049 2.13333 3.63333V20.3667C2.13333 21.1951 2.8049 21.8667 3.63333 21.8667H20.3667C21.1951 21.8667 21.8667 21.1951 21.8667 20.3667V3.63333C21.8667 2.8049 21.1951 2.13333 20.3667 2.13333H3.63333Z" fill="url(#ncg2)"/><defs><linearGradient id="ncg1" x1="11.7814" y1="0.543214" x2="11.7814" y2="21.6612" gradientUnits="userSpaceOnUse"><stop stop-color="#4351E8"/><stop offset="1" stop-color="#2A1EA5"/></linearGradient><linearGradient id="ncg2" x1="4.82267" y1="19.1431" x2="26.7035" y2="-2.6331" gradientUnits="userSpaceOnUse"><stop stop-color="#4351E8"/><stop offset="1" stop-color="#2A1EA5"/></linearGradient></defs></svg>`,
+  googlemaps: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#F4F4F4"/><path d="M9 3C6.79 3 5 4.79 5 7c0 3.13 4 8 4 8s4-4.87 4-8c0-2.21-1.79-4-4-4zm0 5.5A1.5 1.5 0 1 1 9 5.5a1.5 1.5 0 0 1 0 3z" fill="#EA4335"/></svg>`,
 }
 
 /** Maps platform names returned by getEmbedURL() → brand icon SVG strings */
@@ -128,6 +129,7 @@ export const embedPlatformIcons: Record<string, string> = {
   StackBlitz: icons.stackblitz,
   CodeSandbox: icons.codesandbox,
   NocoDB: icons.nocodb,
+  'Google Maps': icons.googlemaps,
 }
 
 export const slashCommandItems: SlashCommandItem[] = [
@@ -375,6 +377,12 @@ function embedCommands(): SlashCommandItem[] {
       description: 'Embed a CodeSandbox',
       icon: icons.codesandbox,
       placeholder: 'Paste a CodeSandbox link...',
+    },
+    {
+      title: 'Google Maps',
+      description: 'Embed a Google Map',
+      icon: icons.googlemaps,
+      placeholder: 'Paste a Google Maps link...',
     },
     {
       title: 'NocoDB View',

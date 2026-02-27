@@ -160,6 +160,15 @@ export const OPERATION_SCOPES = {
   managedAppVersionDeployments: 'base',
   managedAppDeploymentLogs: 'base',
 
+  // Document Comments
+  documentCommentList: 'base',
+  documentCommentCount: 'base',
+  documentCommentCreate: 'base',
+  documentCommentUpdate: 'base',
+  documentCommentDelete: 'base',
+  documentCommentReactionToggle: 'base',
+  documentCommentReactionList: 'base',
+
   // List View
   listViewDataList: 'base',
   listViewDataCount: 'base',

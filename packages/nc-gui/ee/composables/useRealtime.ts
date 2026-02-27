@@ -1,5 +1,5 @@
 import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView, isVirtualCol } from 'nocodb-sdk'
-import type { DashboardPayload, DocumentPayload, MetaPayload, ScriptPayload, WidgetPayload, WorkflowPayload } from 'nocodb-sdk'
+import type { DashboardPayload, DocumentCommentPayload, DocumentPayload, MetaPayload, ScriptPayload, WidgetPayload, WorkflowPayload } from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 export const useRealtime = createSharedComposable(() => {
@@ -58,6 +58,7 @@ export const useRealtime = createSharedComposable(() => {
   const activeWidgetListener = ref<string | null>(null)
   const activeTeamListener = ref<string | null>(null)
   const activeDocumentListener = ref<string | null>(null)
+  const activeDocCommentListener = ref<string | null>(null)
 
   const handleBaseMetaEvent = (event: MetaPayload) => {
     if (event.action === 'source_create') {
@@ -1042,6 +1043,22 @@ export const useRealtime = createSharedComposable(() => {
             handleDocumentEvent(payload, activeBaseId.value)
           },
         )
+
+        // Handle document comment events — reload comments for active document
+        if (activeDocCommentListener.value) {
+          $ncSocket.offMessage(activeDocCommentListener.value)
+        }
+
+        activeDocCommentListener.value = $ncSocket.onMessage(
+          `${EventType.DOCUMENT_COMMENT_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+          (_payload: DocumentCommentPayload) => {
+            // Reload comments for the active document via the shared composable
+            const { activeDocId, loadComments } = useDocumentComments()
+            if (activeDocId.value && _payload.id === activeDocId.value) {
+              loadComments(activeDocId.value)
+            }
+          },
+        )
       }
     },
     { immediate: true },
@@ -1056,6 +1073,7 @@ export const useRealtime = createSharedComposable(() => {
       activeWidgetListener.value,
       activeTeamListener.value,
       activeDocumentListener.value,
+      activeDocCommentListener.value,
     ]
       .filter(Boolean)
       .forEach((channel) => {

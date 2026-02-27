@@ -20,6 +20,9 @@ import type {
   DocumentCreateEvent,
   DocumentDeleteEvent,
   DocumentUpdateEvent,
+  DocumentCommentCreateEvent,
+  DocumentCommentUpdateEvent,
+  DocumentCommentDeleteEvent,
   RlsPolicyDeleteEvent,
   RlsPolicyUpdateEvent,
   SandboxCreateEvent,
@@ -486,6 +489,20 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: DocumentDeleteEvent) => void,
   ): () => void;
 
+  // Document Comment Events
+  on(
+    event: AppEvents.DOCUMENT_COMMENT_CREATE,
+    listener: (data: DocumentCommentCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_COMMENT_UPDATE,
+    listener: (data: DocumentCommentUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_COMMENT_DELETE,
+    listener: (data: DocumentCommentDeleteEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -811,6 +828,19 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.DOCUMENT_CREATE, data: DocumentCreateEvent): void;
   emit(event: AppEvents.DOCUMENT_UPDATE, data: DocumentUpdateEvent): void;
   emit(event: AppEvents.DOCUMENT_DELETE, data: DocumentDeleteEvent): void;
+
+  emit(
+    event: AppEvents.DOCUMENT_COMMENT_CREATE,
+    data: DocumentCommentCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.DOCUMENT_COMMENT_UPDATE,
+    data: DocumentCommentUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.DOCUMENT_COMMENT_DELETE,
+    data: DocumentCommentDeleteEvent,
+  ): void;
 
   emit(
     event: AppEvents.RECORD_TEMPLATE_CREATE,

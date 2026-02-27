@@ -7,6 +7,8 @@ import { OAuthPostOperations } from '~/controllers/internal/modules/OAuthPost.op
 import { DependencyPostOperations } from '~/controllers/internal/modules/DependencyPost.operations';
 import { DocumentsGetOperations } from '~/controllers/internal/modules/DocumentsGet.operations';
 import { DocumentsPostOperations } from '~/controllers/internal/modules/DocumentsPost.operations';
+import { DocumentCommentsGetOperations } from '~/controllers/internal/modules/DocumentCommentsGet.operations';
+import { DocumentCommentsPostOperations } from 'src/controllers/internal/modules/DocumentCommentsPost.operations';
 import { UiGetOperations } from '~/controllers/internal/modules/UiGet.operations';
 import { UiPostOperations } from '~/controllers/internal/modules/UiPost.operations';
 import { BaseListAllGetOperations } from '~/controllers/internal/modules/BaseListAllGet.operations';
@@ -22,6 +24,8 @@ export const InternalApiModules = [
   DependencyPostOperations,
   DocumentsGetOperations,
   DocumentsPostOperations,
+  DocumentCommentsGetOperations,
+  DocumentCommentsPostOperations,
   UiGetOperations,
   UiPostOperations,
   BaseListAllGetOperations,

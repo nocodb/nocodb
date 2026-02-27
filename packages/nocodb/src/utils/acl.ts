@@ -252,6 +252,15 @@ const permissionScopes = {
     'documentDelete',
     'documentReorder',
 
+    // Document Comments
+    'documentCommentList',
+    'documentCommentCount',
+    'documentCommentCreate',
+    'documentCommentUpdate',
+    'documentCommentDelete',
+    'documentCommentReactionToggle',
+    'documentCommentReactionList',
+
     // etc
     'fetchViaUrl',
   ],
@@ -429,6 +438,11 @@ const rolePermissions:
       // Documents — read-only for viewers
       documentList: true,
       documentGet: true,
+
+      // Document Comments — read-only for viewers
+      documentCommentList: true,
+      documentCommentCount: true,
+      documentCommentReactionList: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -436,6 +450,12 @@ const rolePermissions:
       commentRow: true,
       commentUpdate: true,
       commentDelete: true,
+
+      // Document Comments — commenters can create/update/delete + reactions
+      documentCommentCreate: true,
+      documentCommentUpdate: true,
+      documentCommentDelete: true,
+      documentCommentReactionToggle: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -884,6 +904,14 @@ const permissionDescriptions: Record<string, string> = {
   documentUpdate: 'update a document',
   documentDelete: 'delete a document',
   documentReorder: 'reorder documents',
+
+  documentCommentList: 'view document comments',
+  documentCommentCount: 'view document comment count',
+  documentCommentCreate: 'comment on a document',
+  documentCommentUpdate: 'update document comments',
+  documentCommentDelete: 'delete document comments',
+  documentCommentReactionToggle: 'react to document comments',
+  documentCommentReactionList: 'view document comment reactions',
 };
 
 // Human-readable descriptions for roles

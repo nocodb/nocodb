@@ -4,6 +4,7 @@ import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Document } from '~/models';
+import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
@@ -178,6 +179,9 @@ export class DocumentsService {
     }
 
     await Document.softDelete(context, docId);
+
+    // Cascade: soft-delete all comments for this document
+    await Comment.deleteDocComments(context, docId);
 
     this.appHooksService.emit(AppEvents.DOCUMENT_DELETE, {
       context,

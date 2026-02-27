@@ -416,4 +416,22 @@ export interface DocumentDeleteEvent extends NcBaseEvent {
   user: UserType;
 }
 
+export interface DocumentCommentCreateEvent extends NcBaseEvent {
+  comment: Record<string, any>;
+  user: UserType;
+  docId: string;
+}
+
+export interface DocumentCommentUpdateEvent extends NcBaseEvent {
+  comment: Record<string, any>;
+  user: UserType;
+  docId: string;
+}
+
+export interface DocumentCommentDeleteEvent extends NcBaseEvent {
+  comment: Record<string, any>;
+  user: UserType;
+  docId: string;
+}
+
 export * from 'src/services/app-hooks/interfaces';

@@ -20,6 +20,7 @@ export enum EventType {
   PRESENCE_EVENT = 'event-presence',
   CHAT_EVENT = 'event-chat',
   DOCUMENT_EVENT = 'event-document',
+  DOCUMENT_COMMENT_EVENT = 'event-document-comment',
 }
 
 export interface BaseSocketPayload {
@@ -55,6 +56,12 @@ export interface DataPayload extends BaseSocketPayload {
 export interface CommentPayload extends BaseSocketPayload {
   id: string; // rowId
   action: 'add' | 'update' | 'delete';
+  payload: Record<string, any>;
+}
+
+export interface DocumentCommentPayload extends BaseSocketPayload {
+  id: string; // docId
+  action: 'add' | 'update' | 'delete' | 'resolve';
   payload: Record<string, any>;
 }
 
@@ -232,6 +239,7 @@ export type SocketEventPayload =
   | DataPayload
   | MetaPayload
   | CommentPayload
+  | DocumentCommentPayload
   | NotificationPayload
   | PresencePayload
   | ChatEventPayload;
@@ -245,6 +253,7 @@ export type SocketEventPayloadMap = {
   [EventType.META_EVENT]: MetaPayload;
   [EventType.USER_EVENT]: UserEventPayload;
   [EventType.COMMENT_EVENT]: CommentPayload;
+  [EventType.DOCUMENT_COMMENT_EVENT]: DocumentCommentPayload;
   [EventType.PRESENCE_EVENT]: PresencePayload;
   [EventType.CHAT_EVENT]: ChatEventPayload;
   [key: string]: BaseSocketPayload;

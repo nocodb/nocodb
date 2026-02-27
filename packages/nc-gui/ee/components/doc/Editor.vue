@@ -9,6 +9,7 @@ import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
 import { marked } from 'marked'
 import { DocHighlightExtension } from './DocHighlightExtension'
+import { DocCommentMarkExtension } from './DocCommentMarkExtension'
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
 import { DocEmbedExtension } from './DocEmbedExtension'
@@ -96,6 +97,38 @@ const {
 
 const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
 
+// --- Comments sidebar state ---
+const isCommentsPanelOpen = ref(false)
+const pendingInlineCommentSelection = ref<{ from: number; to: number } | null>(null)
+
+const toggleCommentsPanel = () => {
+  isCommentsPanelOpen.value = !isCommentsPanelOpen.value
+}
+
+const onAddInlineComment = () => {
+  if (!editor.value) return
+  const { from, to } = editor.value.state.selection
+  if (from === to) return // no selection
+  pendingInlineCommentSelection.value = { from, to }
+  isCommentsPanelOpen.value = true
+  // Collapse selection to dismiss the BubbleMenu
+  editor.value.commands.setTextSelection(to)
+}
+
+// Deep link — open comments sidebar if ?commentId= is present in URL
+const route = useRoute()
+const router = useRouter()
+
+onMounted(() => {
+  const commentId = route.query.commentId as string | undefined
+  if (commentId) {
+    isCommentsPanelOpen.value = true
+    // Remove commentId from query after opening
+    const { commentId: _, ...query } = route.query
+    router.replace({ query })
+  }
+})
+
 // Keyboard navigation active index for paste-link menu (declared before editor so handleKeyDown can access it)
 const pasteLinkActiveIndex = ref(0)
 
@@ -137,6 +170,7 @@ const _tiptapEditor = useEditor({
     DocCodeBlockExtension,
     Underline,
     DocHighlightExtension,
+    DocCommentMarkExtension,
     Link.configure({ openOnClick: false }),
     Placeholder.configure({
       placeholder: ({ editor, node, hasAnchor }) => {
@@ -691,7 +725,9 @@ onBeforeUnmount(() => {
     Keep the editor mounted across page switches to avoid detaching
     ProseMirror's view from the DOM. Content is swapped via setContent.
   -->
-  <div v-else class="nc-doc-editor flex flex-col h-full w-full overflow-y-auto">
+  <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden">
+    <!-- Editor scroll area — shrinks when sidebar is open -->
+    <div class="flex flex-col flex-1 min-w-0 overflow-y-auto">
     <!-- 3-dot page context menu — pinned to top-right of editor -->
     <div class="nc-doc-page-menu">
       <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
@@ -707,6 +743,10 @@ onBeforeUnmount(() => {
             <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
               <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
               {{ $t('labels.duplicateDocument') }}
+            </NcMenuItem>
+            <NcMenuItem v-e="['c:doc:comments:toggle']" @click="toggleCommentsPanel(); isPageMenuOpen = false">
+              <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMessageCircle" />
+              {{ $t('general.comments') }}
             </NcMenuItem>
             <NcDivider />
             <NcSubMenu key="download" variant="small">
@@ -906,6 +946,19 @@ onBeforeUnmount(() => {
                   <GeneralIcon icon="link2" />
                 </NcButton>
               </NcTooltip>
+              <NcTooltip placement="top">
+                <template #title>{{ $t('tooltip.addComment') }}</template>
+                <NcButton
+                  v-if="isEditable"
+                  size="small"
+                  type="text"
+                  data-testid="nc-doc-comment-add-btn"
+                  @mousedown.prevent
+                  @click="onAddInlineComment"
+                >
+                  <GeneralIcon icon="comment" />
+                </NcButton>
+              </NcTooltip>
             </div>
           </BubbleMenu>
 
@@ -1026,6 +1079,18 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </Teleport>
+    </div>
+
+    <!-- Comments sidebar — slides in from the right alongside editor -->
+    <DocCommentsSidebar
+      v-if="isCommentsPanelOpen"
+      :doc-id="docId"
+      :base-id="base?.id"
+      :editor="editor"
+      :pending-selection="pendingInlineCommentSelection"
+      @close="isCommentsPanelOpen = false"
+      @clear-pending-selection="pendingInlineCommentSelection = null"
+    />
   </div>
 </template>
 
@@ -1791,6 +1856,19 @@ onBeforeUnmount(() => {
   :deep(svg) {
     width: 16px;
     height: 16px;
+  }
+}
+
+// Document comment marks
+.nc-doc-comment-mark {
+  background-color: rgba(var(--rgb-color-brand-100), 0.4);
+  border-bottom: 2px solid rgb(var(--rgb-color-brand-300));
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover,
+  &.active {
+    background-color: rgba(var(--rgb-color-brand-200), 0.6);
   }
 }
 </style>

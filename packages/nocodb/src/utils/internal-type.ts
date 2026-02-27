@@ -77,6 +77,7 @@ export type InternalPOSTResponseType = Promise<
   | Sort
   | Hook
   | Extension
+  | { added: boolean; reaction: any }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

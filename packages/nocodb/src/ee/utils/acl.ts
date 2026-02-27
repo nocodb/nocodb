@@ -377,6 +377,16 @@ const permissionScopes = {
     'documentDelete',
     'documentReorder',
 
+    // Document Comments
+    'documentCommentList',
+    'documentCommentCount',
+    'documentCommentCreate',
+    'documentCommentUpdate',
+    'documentCommentDelete',
+    'documentCommentResolve',
+    'documentCommentReactionToggle',
+    'documentCommentReactionList',
+
     'viewRowColorInfo',
     'viewRowColorConditionAdd',
     'viewRowColorConditionUpdate',
@@ -711,6 +721,11 @@ const rolePermissions:
       documentList: true,
       documentGet: true,
 
+      // Document Comments — read-only for viewers
+      documentCommentList: true,
+      documentCommentCount: true,
+      documentCommentReactionList: true,
+
       viewRowColorInfo: true,
 
       // Dashboard
@@ -738,6 +753,13 @@ const rolePermissions:
       commentUpdate: true,
       commentResolve: true,
       commentDelete: true,
+
+      // Document Comments — commenters can create/update/delete/resolve + reactions
+      documentCommentCreate: true,
+      documentCommentUpdate: true,
+      documentCommentDelete: true,
+      documentCommentResolve: true,
+      documentCommentReactionToggle: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -1288,6 +1310,15 @@ const permissionDescriptions: Record<string, string> = {
   documentUpdate: 'update a document',
   documentDelete: 'delete a document',
   documentReorder: 'reorder documents',
+
+  documentCommentList: 'view document comments',
+  documentCommentCount: 'view document comment count',
+  documentCommentCreate: 'comment on a document',
+  documentCommentUpdate: 'update document comments',
+  documentCommentDelete: 'delete document comments',
+  documentCommentResolve: 'resolve document comments',
+  documentCommentReactionToggle: 'react to document comments',
+  documentCommentReactionList: 'view document comment reactions',
 
   dashboardList: 'view list of dashboards',
   dashboardGet: 'view dashboard details',

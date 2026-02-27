@@ -299,6 +299,10 @@ export enum AppEvents {
   DOCUMENT_CREATE = 'document.create',
   DOCUMENT_UPDATE = 'document.update',
   DOCUMENT_DELETE = 'document.delete',
+
+  DOCUMENT_COMMENT_CREATE = 'document.comment.create',
+  DOCUMENT_COMMENT_UPDATE = 'document.comment.update',
+  DOCUMENT_COMMENT_DELETE = 'document.comment.delete',
 }
 
 export enum ClickhouseTables {

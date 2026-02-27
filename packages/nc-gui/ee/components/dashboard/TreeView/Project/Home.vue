@@ -221,7 +221,7 @@ const navigateToIntegrations = () => {
         <div class="flex flex-col">
           <!-- Base Settings Section -->
           <template v-if="!isSharedBase">
-            <div class="px-3 pt-3 pb-1 text-xs font-semibold text-nc-content-brand uppercase tracking-wide">
+            <div class="px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide" style="font-size: 13px">
               {{ $t('labels.baseSettings') }}
             </div>
             <div class="flex flex-col py-1">
@@ -284,7 +284,7 @@ const navigateToIntegrations = () => {
           </template>
 
           <!-- Workspace Settings Section -->
-          <div class="px-3 pt-3 pb-1 text-xs font-semibold text-nc-content-brand uppercase tracking-wide">
+          <div class="px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide" style="font-size: 13px">
             {{ $t('objects.workspace') }} {{ $t('labels.settings') }}
           </div>
           <div class="flex flex-col py-1">
@@ -383,7 +383,8 @@ const navigateToIntegrations = () => {
 }
 
 .nc-admin-panel-item {
-  @apply flex items-center gap-2 px-3 py-1.5 mx-1 rounded-md cursor-pointer text-nc-content-gray-muted text-bodySm transition-colors duration-150;
+  @apply flex items-center gap-2 px-3 py-1.5 mx-1 rounded-md cursor-pointer text-nc-content-gray-muted transition-colors duration-150;
+  font-size: 13px;
 
   &:hover {
     @apply bg-nc-bg-gray-medium text-nc-content-gray;

@@ -1,5 +1,5 @@
 <script setup lang="ts"></script>
 
 <template>
-  <ProjectView />
+  <ProjectView tab="collaborator" />
 </template>

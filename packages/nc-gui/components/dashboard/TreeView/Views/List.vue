@@ -507,7 +507,7 @@ const filteredViews = computed(() => {
   }
 
   .active {
-    @apply !bg-primary-selected dark:!bg-nc-bg-gray-medium font-medium;
+    @apply !bg-primary-selected dark:!bg-nc-bg-gray-medium font-normal;
   }
 }
 </style>

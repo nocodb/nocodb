@@ -323,7 +323,7 @@ const deleteScript = () => {
 
 <template>
   <div
-    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-[13px] !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :data-testid="`view-sidebar-script-${vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
@@ -394,7 +394,7 @@ const deleteScript = () => {
           ref="input"
           v-model:value="_title"
           :class="{
-            'font-semibold !text-nc-content-brand-disabled': activeScriptId === vModel.id,
+            'font-medium !text-nc-content-brand-disabled': activeScriptId === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -412,7 +412,7 @@ const deleteScript = () => {
           <template #title> {{ vModel.title }}</template>
           <div
             :class="{
-              'font-semibold text-nc-content-brand-disabled': activeScriptId === vModel.id,
+              'font-medium text-nc-content-brand-disabled': activeScriptId === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             data-testid="sidebar-script-title"

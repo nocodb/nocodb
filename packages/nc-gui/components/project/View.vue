@@ -182,11 +182,28 @@ watch(
 
 const { navigateToProjectPage } = useBase()
 
+const tabToSlug: Record<string, string> = {
+  collaborator: 'members',
+  'data-source': 'data-sources',
+  permissions: 'permissions',
+  syncs: 'syncs',
+  'base-settings': 'settings',
+  audits: 'audits',
+  workflows: 'workflows',
+  overview: 'overview',
+}
+
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
 
-  // Don't navigate when tab is controlled by route path (admin pages)
-  if (props.tab) return
+  // When tab is controlled by route path (admin pages), navigate to clean URL
+  if (props.tab) {
+    const slug = tabToSlug[projectPageTab.value] || projectPageTab.value
+    const wsId = route.value.params.typeOrId
+    const baseId = route.value.params.baseId
+    navigateTo(`/${wsId}/${baseId}/admin/${slug}`)
+    return
+  }
 
   navigateToProjectPage({
     page: projectPageTab.value as any,
@@ -335,7 +352,7 @@ watch(
           <div class="w-3"></div>
         </template>
         <a-tab-pane
-          v-if="!isAdminPanel && isOverviewTabVisible && !isMobileMode"
+          v-if="!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode"
           key="overview"
           class="nc-project-overview-tab-content"
         >

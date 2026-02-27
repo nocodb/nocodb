@@ -214,7 +214,7 @@ const groupColWidth = computed(() => {
 // Label for the "Grouped by" sidebar header
 const groupByFieldLabel = computed(() => {
   if (!groupBy.value?.length) return ''
-  if (groupBy.value.length > 1) return `${groupBy.value.length} fields`
+  if (groupBy.value.length > 1) return t('msg.timelineGroupByFields', { count: groupBy.value.length })
   const colId = groupBy.value[0]?.fk_column_id
   if (!colId) return ''
   const col = meta.value?.columns?.find((c) => c.id === colId)
@@ -246,9 +246,9 @@ const recordCountLabel = computed(() => {
   const total = totalRecordCount.value
   const noDate = recordsWithoutDates.value
   if (noDate > 0) {
-    return `${total} records · ${noDate} without dates`
+    return t('msg.timelineRecordsCountWithMissing', { total, noDate })
   }
-  return total > 0 ? `${total} records` : ''
+  return total > 0 ? t('msg.timelineRecordsCount', { total }) : ''
 })
 </script>
 
@@ -256,10 +256,10 @@ const recordCountLabel = computed(() => {
   <template v-if="isMobileMode">
     <div class="pl-6 pr-[120px] py-6 bg-nc-bg-default flex-col justify-start items-start gap-2.5 inline-flex">
       <div class="text-nc-content-gray-muted text-5xl font-semibold leading-16">
-        {{ t('labels.availableInDesktop') || 'Available in Desktop' }}
+        {{ $t('labels.availableInDesktop') }}
       </div>
       <div class="text-nc-content-gray-muted text-base font-medium leading-normal">
-        {{ t('msg.timelineViewNotSupportedOnMobile') || 'Timeline view is not supported on mobile.' }}
+        {{ $t('msg.timelineViewNotSupportedOnMobile') }}
       </div>
     </div>
   </template>
@@ -376,12 +376,12 @@ const recordCountLabel = computed(() => {
         <NcTooltip v-if="recordCountLabel && !isGroupBy" class="ml-1">
           <template #title>
             <span v-if="recordsWithoutDates > 0">
-              {{ recordsWithoutDates }} record{{ recordsWithoutDates !== 1 ? 's' : '' }} missing date fields and not shown on timeline
+              {{ $t('msg.timelineRecordsMissingDates', { count: recordsWithoutDates }, recordsWithoutDates) }}
             </span>
-            <span v-else>Total records loaded (max 400)</span>
+            <span v-else>{{ $t('msg.timelineTotalRecordsLoaded', { max: 400 }) }}</span>
           </template>
           <span
-            class="text-[11px] text-nc-content-gray-muted font-medium px-1.5 py-0.5 rounded-md bg-nc-bg-gray-medium"
+            class="text-[11px] text-nc-content-gray-muted font-medium px-1.5 py-0.5 rounded-md bg-nc-bg-gray-medium truncate"
             :class="{ 'text-nc-content-orange-medium bg-nc-bg-orange-light': recordsWithoutDates > 0 }"
             data-testid="nc-timeline-record-count"
           >

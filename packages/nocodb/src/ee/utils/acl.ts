@@ -624,6 +624,7 @@ const rolePermissions:
       galleryViewGet: true,
       kanbanViewGet: true,
       calendarViewGet: true,
+      timelineViewGet: true,
       listViewDataList: true,
       listViewDataCount: true,
       mapViewGet: true,
@@ -761,6 +762,7 @@ const rolePermissions:
       kanbanViewUpdate: true,
       mapViewUpdate: true,
       calendarViewUpdate: true,
+      timelineViewUpdate: true,
       listViewUpdate: true,
 
       // Row color operations for personal views (middleware handles ownership check)
@@ -1132,6 +1134,9 @@ const permissionDescriptions: Record<string, string> = {
   galleryViewGet: 'view gallery',
   kanbanViewGet: 'view Kanban board',
   calendarViewGet: 'view calendar',
+  timelineViewGet: 'view timeline',
+  timelineViewCreate: 'create timeline view',
+  timelineViewUpdate: 'update timeline view',
   listViewCreate: 'create list view',
   listViewUpdate: 'update list view',
   listViewDataList: 'view list view data',

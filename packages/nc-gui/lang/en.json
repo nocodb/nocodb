@@ -1611,6 +1611,8 @@
     "createMapViewPlural": "Create Map View(s)",
     "createCalendarView": "Create Calendar View",
     "createCalendarViewPlural": "Create Calendar View(s)",
+    "createTimelineView": "Create Timeline View",
+    "createTimelineViewPlural": "Create Timeline View(s)",
     "createViewUsingAi": "Create View(s) using NocoAI",
     "viewName": "View name",
     "automationName": "Automation name",

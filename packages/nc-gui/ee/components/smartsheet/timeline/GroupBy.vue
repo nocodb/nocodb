@@ -2,9 +2,8 @@
 import type { ColumnType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import type { Row as RowType } from '#imports'
-import { shouldRenderCell } from '../../../utils/groupbyUtils'
+import { shouldRenderCell } from '~/utils/groupbyUtils'
 import GroupBy from './GroupBy.vue'
-import GroupByLabel from '../grid/GroupByLabel.vue'
 import type { Group } from '~/lib/types'
 
 const props = defineProps<{
@@ -167,10 +166,7 @@ onMounted(async () => {
 <template>
   <div class="h-full overflow-y-auto">
     <!-- CSS Grid layout: left sidebar (group labels) + right timeline area -->
-    <div
-      class="nc-timeline-group-grid"
-      :style="{ display: 'grid', gridTemplateColumns: `${GROUP_SIDEBAR_WIDTH}px 1fr` }"
-    >
+    <div class="nc-timeline-group-grid" :style="{ display: 'grid', gridTemplateColumns: `${GROUP_SIDEBAR_WIDTH}px 1fr` }">
       <template v-for="grp of group?.children ?? []" :key="grp.key">
         <!-- #13: Left cell: group label — min-h matches right cell when collapsed -->
         <div
@@ -221,7 +217,7 @@ onMounted(async () => {
                 class="flex min-w-0 flex-wrap"
               >
                 <template v-for="(val, ind) of parseKey(grp)" :key="ind">
-                  <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
+                  <SmartsheetGridGroupByLabel v-if="val" :column="grp.column" :model-value="val" />
                   <span v-else class="text-nc-content-gray-muted text-sm">No mapped value</span>
                 </template>
               </div>
@@ -261,9 +257,7 @@ onMounted(async () => {
         </div>
 
         <!-- #16: Right cell: timeline content — with expand/collapse transition -->
-        <div
-          class="border-b border-nc-border-gray-medium overflow-hidden"
-        >
+        <div class="border-b border-nc-border-gray-medium overflow-hidden">
           <div v-if="isExpanded(String(grp.key))">
             <!-- Leaf group: render timeline grid -->
             <SmartsheetTimelineGrid

@@ -52,10 +52,11 @@ const getIconComponent = (iconName: string) => {
         </div>
 
         <div class="relative">
-          <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-nc-content-gray-muted pointer-events-none">
-            <GeneralIcon icon="search" class="w-4 h-4" />
-          </div>
-          <a-input v-model:value="searchQuery" placeholder="Search icons..." class="nc-input nc-input-md nc-input-shadow" />
+          <a-input v-model:value="searchQuery" placeholder="Search icons..." class="nc-input nc-input-md nc-input-shadow">
+            <template #prefix>
+              <GeneralIcon icon="search" class="w-4 h-4 text-nc-content-gray-muted" />
+            </template>
+          </a-input>
         </div>
       </div>
     </div>

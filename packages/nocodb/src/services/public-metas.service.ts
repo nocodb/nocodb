@@ -44,7 +44,7 @@ export class PublicMetasService {
 
     if (!view) NcError.get(context).viewNotFound(param.sharedViewUuid);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       NcError.get(context).invalidSharedViewPassword();
     }
 

@@ -103,7 +103,7 @@ export class CalendarDatasService {
       NcError.get(context).notFound('View is not a calendar view');
     }
 
-    if (view.password && view.password !== password) {
+    if (!(await View.verifyPassword(view, password))) {
       return NcError.get(context).invalidSharedViewPassword();
     }
 
@@ -137,7 +137,7 @@ export class CalendarDatasService {
       NcError.get(context).notFound('View is not a calendar view');
     }
 
-    if (view.password && view.password !== password) {
+    if (!(await View.verifyPassword(view, password))) {
       return NcError.get(context).invalidSharedViewPassword();
     }
 

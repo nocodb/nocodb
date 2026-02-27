@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { convertToTargetFormat, getDateFormat } from 'nocodb-sdk';
-import commonFns from './commonFns';
+import commonFns, { validateDateAddUnit } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
@@ -83,8 +83,9 @@ const sqlite3 = {
 
     let dateModifier = (await fn(pt.arguments[2])).builder;
     if (typeof dateModifier === 'object' && dateModifier.toQuery) {
-      dateModifier = dateModifier.toQuery().replace(/["']/g, '');
+      dateModifier = dateModifier.toQuery();
     }
+    dateModifier = validateDateAddUnit(String(dateModifier));
 
     const fullModifier = `${dateIN > 0 ? '+' : ''}${dateIN} ${dateModifier}`;
     return {

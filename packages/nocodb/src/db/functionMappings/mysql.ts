@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import commonFns from './commonFns';
+import commonFns, { validateDateAddUnit } from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
@@ -49,19 +49,18 @@ const mysql2 = {
     };
   },
   DATEADD: async ({ fn, knex, pt }: MapFnArgs) => {
+    const unit = validateDateAddUnit(
+      String((await fn(pt.arguments[2])).builder),
+    );
     return {
       builder: knex.raw(
         `CASE
       WHEN ${(await fn(pt.arguments[0])).builder} LIKE '%:%' THEN
         DATE_FORMAT(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
-        ${(await fn(pt.arguments[1])).builder} ${String(
-          (await fn(pt.arguments[2])).builder,
-        ).replace(/["']/g, '')}), '%Y-%m-%d %H:%i:%s')
+        ${(await fn(pt.arguments[1])).builder} ${unit}), '%Y-%m-%d %H:%i:%s')
       ELSE
         DATE(DATE_ADD(${(await fn(pt.arguments[0])).builder}, INTERVAL
-        ${(await fn(pt.arguments[1])).builder} ${String(
-          (await fn(pt.arguments[2])).builder,
-        ).replace(/["']/g, '')}))
+        ${(await fn(pt.arguments[1])).builder} ${unit}))
       END`,
       ),
     };

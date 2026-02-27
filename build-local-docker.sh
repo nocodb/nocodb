@@ -86,7 +86,7 @@ build_docker_ce() {
 build_docker_onprem() {
   log "Building Docker image: $ONPREM_IMAGE"
   cd "$NOCODB_DIR"
-  docker build -f src/ee-on-prem/Dockerfile-on-prem -t "$ONPREM_IMAGE" .
+  docker build -f src/ee-on-prem/Dockerfile-on-prem.local -t "$ONPREM_IMAGE" .
 }
 
 # ─── Orchestration ───────────────────────────────────────────────────

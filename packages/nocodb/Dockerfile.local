@@ -40,6 +40,10 @@ RUN pnpm install --prod --shamefully-hoist \
     && rm -rf ./node_modules/sqlite3/deps \
     && chmod +x /usr/src/appEntry/start.sh
 
+# Replace nc-lib-gui dist with the freshly built frontend
+RUN rm -rf ./node_modules/nc-lib-gui/lib/dist \
+    && cp -r ./docker/nc-gui ./node_modules/nc-lib-gui/lib/dist
+
 ########
 # Runner
 ########

@@ -154,7 +154,6 @@ onMounted(() => {
                 </div>
               </NcMenuItem> -->
               <NcMenuItem
-                v-if="appInfo.isCloud"
                 key="external-integrations"
                 :class="{
                   active: $route.params.page === 'external-integrations',
@@ -196,7 +195,7 @@ onMounted(() => {
               </NcMenuItem>
 
               <NcMenuItem
-                v-if="isUIAllowed('ssoSettings') && appInfo.isCloud"
+                v-if="isUIAllowed('ssoSettings')"
                 key="authentication"
                 :class="{
                   active: $route.params.page === 'authentication',

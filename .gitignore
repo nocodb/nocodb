@@ -113,3 +113,4 @@ antd.variable.css
 .claude/skills/nocodb-dev-api/.credentials.json
 /.claude/worktrees/
 .playwright-mcp
+.playwright-cli

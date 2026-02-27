@@ -676,7 +676,7 @@ const onDeleteColumn = () => {
       v-if="
         isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
         isLinksOrLTAR(column) &&
-        column.colOptions?.version !== 2 &&
+        (column.colOptions?.version !== 2 || column.uidt === UITypes.Links) &&
         isUIAllowed('fieldAlter') &&
         !isSqlView
       "

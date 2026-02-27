@@ -6094,9 +6094,46 @@ export class ColumnsService implements IColumnsService {
         };
       }
 
+      // Pre-compute column_order before the transaction (requires meta queries
+      // that would deadlock on SQLite inside a transaction)
+      let columnOrder: { order: number; view_id: string } | undefined;
+      let newLtarTitle: string | undefined;
+
+      if (isLinksColumn) {
+        const defaultView = (
+          await View.list(context, parentTable.id)
+        )?.[0];
+        if (defaultView) {
+          const viewColumns = await View.getColumns(
+            context,
+            defaultView.id,
+          );
+          const origViewCol = viewColumns.find(
+            (vc) => (vc as any).fk_column_id === hmColumn.id,
+          );
+          if (origViewCol) {
+            columnOrder = {
+              order: (origViewCol as any).order + 0.5,
+              view_id: defaultView.id,
+            };
+          }
+        }
+
+        newLtarTitle = getUniqueColumnAliasName(
+          await parentTable.getColumns(context),
+          `LTAR_${hmColumn.title}`,
+        );
+      }
+
+      // ── Phase B: Meta transaction ──
+      // All meta operations run inside a single transaction so that a failure
+      // in Column.insert or RollupColumn.insert rolls back the entire batch
+      // (uidt change, col_relations, new LTAR column, rollup metadata).
       const ncMeta = await (
         Noco.ncMeta as MetaService
       ).startTransaction();
+
+      let newLtarCol: Column | undefined;
 
       try {
         // Delete old HM col_relations
@@ -6109,7 +6146,6 @@ export class ColumnsService implements IColumnsService {
 
         if (isLinksColumn) {
           // Links column → convert to Rollup in-place (preserves filters/sorts/group-by)
-          // A new V2 LTAR column will be created after the transaction commits.
           Logger.log(
             `[convertLinkToV2] Converting hmColumn ${hmColumn.id} (${hmColumn.uidt}) to Rollup`,
           );
@@ -6181,70 +6217,51 @@ export class ColumnsService implements IColumnsService {
           );
         }
 
+        // Create new LTAR column + Rollup metadata inside the same transaction
+        // so that a failure here rolls back everything (uidt, col_relations, etc.)
+        if (isLinksColumn) {
+          newLtarCol = await Column.insert(
+            context,
+            {
+              fk_model_id: hmColumn.fk_model_id,
+              title: newLtarTitle,
+              uidt: UITypes.LinkToAnotherRecord,
+              type: hmNewType,
+              version: LinksVersion.V2,
+              fk_child_column_id: parentPK.id,
+              fk_parent_column_id: childPK.id,
+              fk_mm_model_id: assocModel.id,
+              fk_mm_child_column_id: parentCol.id,
+              fk_mm_parent_column_id: childCol.id,
+              fk_related_model_id: hmColOptions.fk_related_model_id,
+              fk_target_view_id: hmColOptions.fk_target_view_id,
+              virtual: isVirtual,
+              column_order: columnOrder,
+              ...crossBaseLinkProps,
+            },
+            ncMeta,
+          );
+
+          await RollupColumn.insert(
+            context,
+            {
+              fk_column_id: hmColumn.id,
+              fk_relation_column_id: newLtarCol.id,
+              fk_rollup_column_id: childPK.id,
+              rollup_function: 'count',
+            },
+            ncMeta,
+          );
+
+          Logger.log(
+            `[convertLinkToV2] newLtarCol.id=${newLtarCol.id}, title=${newLtarCol.title}. Original ${hmColumn.id} is now Rollup.`,
+          );
+        }
+
         await ncMeta.commit();
       } catch (metaError) {
         await ncMeta.rollback();
         throw metaError;
-      }
-
-      // ── Phase C: Post-transaction operations ──
-      // Column.insert and RollupColumn.insert use Noco.ncMeta internally.
-
-      if (isLinksColumn) {
-        // Compute column_order: place new LTAR column right after the original (Rollup)
-        let columnOrder: { order: number; view_id: string } | undefined;
-        const defaultView = (
-          await View.list(context, parentTable.id)
-        )?.[0];
-        if (defaultView) {
-          const viewColumns = await View.getColumns(
-            context,
-            defaultView.id,
-          );
-          const origViewCol = viewColumns.find(
-            (vc) => (vc as any).fk_column_id === hmColumn.id,
-          );
-          if (origViewCol) {
-            columnOrder = {
-              order: (origViewCol as any).order + 0.5,
-              view_id: defaultView.id,
-            };
-          }
-        }
-
-        // Create new V2 LTAR column with "LTAR " prefix
-        const newLtarCol = await Column.insert(context, {
-          fk_model_id: hmColumn.fk_model_id,
-          title: getUniqueColumnAliasName(
-            await parentTable.getColumns(context),
-            `LTAR_${hmColumn.title}`,
-          ),
-          uidt: UITypes.LinkToAnotherRecord,
-          type: hmNewType,
-          version: LinksVersion.V2,
-          fk_child_column_id: parentPK.id,
-          fk_parent_column_id: childPK.id,
-          fk_mm_model_id: assocModel.id,
-          fk_mm_child_column_id: parentCol.id,
-          fk_mm_parent_column_id: childCol.id,
-          fk_related_model_id: hmColOptions.fk_related_model_id,
-          fk_target_view_id: hmColOptions.fk_target_view_id,
-          virtual: isVirtual,
-          column_order: columnOrder,
-          ...crossBaseLinkProps,
-        });
-
-        // Create COL_ROLLUP metadata linking the original column to the new LTAR
-        await RollupColumn.insert(context, {
-          fk_column_id: hmColumn.id,
-          fk_relation_column_id: newLtarCol.id,
-          fk_rollup_column_id: childPK.id,
-          rollup_function: 'count',
-        });
-
-        Logger.log(
-          `[convertLinkToV2] Phase C complete: newLtarCol.id=${newLtarCol.id}, title=${newLtarCol.title}, uidt=${newLtarCol.uidt}. Original ${hmColumn.id} is now Rollup.`,
-        );
       }
 
       // Clear caches after successful commit
@@ -6377,10 +6394,43 @@ export class ColumnsService implements IColumnsService {
     // LinkToAnotherRecord columns → just update version metadata
     const isLinksColumn = column.uidt === UITypes.Links;
 
-    // Meta transaction: update version on both sides
+    // Pre-compute column_order and title before the transaction
+    let mmColumnOrder: { order: number; view_id: string } | undefined;
+    let mmNewLtarTitle: string | undefined;
+
+    if (isLinksColumn) {
+      const defaultView = (
+        await View.list(context, sourceTable.id)
+      )?.[0];
+      if (defaultView) {
+        const viewColumns = await View.getColumns(
+          context,
+          defaultView.id,
+        );
+        const origViewCol = viewColumns.find(
+          (vc) => (vc as any).fk_column_id === column.id,
+        );
+        if (origViewCol) {
+          mmColumnOrder = {
+            order: (origViewCol as any).order + 0.5,
+            view_id: defaultView.id,
+          };
+        }
+      }
+
+      mmNewLtarTitle = getUniqueColumnAliasName(
+        await sourceTable.getColumns(context),
+        `LTAR_${column.title}`,
+      );
+    }
+
+    // Meta transaction: all meta operations in a single transaction so that
+    // a failure in Column.insert or RollupColumn.insert rolls back everything
     const ncMeta = await (
       Noco.ncMeta as MetaService
     ).startTransaction();
+
+    let mmNewLtarCol: Column | undefined;
 
     try {
       if (isLinksColumn) {
@@ -6422,67 +6472,50 @@ export class ColumnsService implements IColumnsService {
         );
       }
 
+      // Create new LTAR column + Rollup metadata inside the same transaction
+      if (isLinksColumn) {
+        const relatedPK = relatedTable.primaryKey;
+
+        mmNewLtarCol = await Column.insert(
+          context,
+          {
+            fk_model_id: column.fk_model_id,
+            title: mmNewLtarTitle,
+            uidt: UITypes.LinkToAnotherRecord,
+            type: RelationTypes.MANY_TO_MANY,
+            version: LinksVersion.V2,
+            fk_child_column_id: colOptions.fk_child_column_id,
+            fk_parent_column_id: colOptions.fk_parent_column_id,
+            fk_mm_model_id: colOptions.fk_mm_model_id,
+            fk_mm_child_column_id: colOptions.fk_mm_child_column_id,
+            fk_mm_parent_column_id: colOptions.fk_mm_parent_column_id,
+            fk_related_model_id: colOptions.fk_related_model_id,
+            fk_target_view_id: colOptions.fk_target_view_id,
+            virtual: colOptions.virtual,
+            column_order: mmColumnOrder,
+          },
+          ncMeta,
+        );
+
+        await RollupColumn.insert(
+          context,
+          {
+            fk_column_id: column.id,
+            fk_relation_column_id: mmNewLtarCol.id,
+            fk_rollup_column_id: relatedPK.id,
+            rollup_function: 'count',
+          },
+          ncMeta,
+        );
+      }
+
       await ncMeta.commit();
     } catch (metaError) {
       await ncMeta.rollback();
       throw metaError;
     }
 
-    // Post-transaction: create new LTAR + Rollup metadata for Links columns
     if (isLinksColumn) {
-      const sourcePK = sourceTable.primaryKey;
-      const relatedPK = relatedTable.primaryKey;
-
-      // Compute column_order: place new LTAR right after the original (Rollup)
-      let columnOrder: { order: number; view_id: string } | undefined;
-      const defaultView = (
-        await View.list(context, sourceTable.id)
-      )?.[0];
-      if (defaultView) {
-        const viewColumns = await View.getColumns(
-          context,
-          defaultView.id,
-        );
-        const origViewCol = viewColumns.find(
-          (vc) => (vc as any).fk_column_id === column.id,
-        );
-        if (origViewCol) {
-          columnOrder = {
-            order: (origViewCol as any).order + 0.5,
-            view_id: defaultView.id,
-          };
-        }
-      }
-
-      // Create new V2 LTAR column with "LTAR " prefix
-      const newLtarCol = await Column.insert(context, {
-        fk_model_id: column.fk_model_id,
-        title: getUniqueColumnAliasName(
-          await sourceTable.getColumns(context),
-          `LTAR_${column.title}`,
-        ),
-        uidt: UITypes.LinkToAnotherRecord,
-        type: RelationTypes.MANY_TO_MANY,
-        version: LinksVersion.V2,
-        fk_child_column_id: colOptions.fk_child_column_id,
-        fk_parent_column_id: colOptions.fk_parent_column_id,
-        fk_mm_model_id: colOptions.fk_mm_model_id,
-        fk_mm_child_column_id: colOptions.fk_mm_child_column_id,
-        fk_mm_parent_column_id: colOptions.fk_mm_parent_column_id,
-        fk_related_model_id: colOptions.fk_related_model_id,
-        fk_target_view_id: colOptions.fk_target_view_id,
-        virtual: colOptions.virtual,
-        column_order: columnOrder,
-      });
-
-      // Create COL_ROLLUP metadata linking the original column to the new LTAR
-      await RollupColumn.insert(context, {
-        fk_column_id: column.id,
-        fk_relation_column_id: newLtarCol.id,
-        fk_rollup_column_id: relatedPK.id,
-        rollup_function: 'count',
-      });
-
       // Update column cache entry to reflect new Rollup uidt
       // (deepDel would remove it from the list cache, making it disappear from table metadata)
       await NocoCache.update(

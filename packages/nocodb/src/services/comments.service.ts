@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType } from 'nocodb-sdk';
-import DOMPurify from 'isomorphic-dompurify';
 import { Base, Model } from '../models';
 import type {
   CommentReqType,
@@ -32,11 +31,6 @@ export class CommentsService {
     },
   ) {
     validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
-
-    // Sanitize comment HTML to prevent stored XSS
-    if (param.body.comment) {
-      param.body.comment = DOMPurify.sanitize(param.body.comment);
-    }
 
     const res = await Comment.insert(context, {
       ...param.body,
@@ -178,12 +172,8 @@ export class CommentsService {
       NcError.get(context).unauthorized('Unauthorized access');
     }
 
-    const sanitizedComment = param.body.comment
-      ? DOMPurify.sanitize(param.body.comment)
-      : param.body.comment;
-
     const res = await Comment.update(context, param.commentId, {
-      comment: sanitizedComment,
+      comment: param.body.comment,
     });
 
     const model = await Model.getByIdOrName(context, {

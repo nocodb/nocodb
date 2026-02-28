@@ -29,7 +29,6 @@ type AdminTab =
   | 'license'
   | 'users-list'
   | 'settings'
-  | 'mcp'
 
 const validTabs = computed<AdminTab[]>(() => {
   const tabs: AdminTab[] = [
@@ -41,7 +40,6 @@ const validTabs = computed<AdminTab[]>(() => {
     'authentication',
     'users-list',
     'settings',
-    'mcp',
   ]
 
   if (showLicenseTab.value) {
@@ -211,18 +209,6 @@ watch(
             </NcMenuItem>
 
             <NcMenuItem
-              key="mcp"
-              :class="{ active: activeTab === 'mcp' }"
-              class="item"
-              @click="activeTab = 'mcp'"
-            >
-              <div class="flex items-center space-x-2">
-                <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
-                <div class="select-none">{{ $t('title.mcpServer') }}</div>
-              </div>
-            </NcMenuItem>
-
-            <NcMenuItem
               v-if="isUIAllowed('superAdminAppSettings')"
               key="settings"
               :class="{ active: activeTab === 'settings' }"
@@ -264,7 +250,6 @@ watch(
               <AccountLicense v-else-if="activeTab === 'license'" />
               <AccountUserList v-else-if="activeTab === 'users-list'" />
               <AccountSignupSettings v-else-if="activeTab === 'settings'" />
-              <AccountMcp v-else-if="activeTab === 'mcp'" />
             </div>
           </div>
         </div>

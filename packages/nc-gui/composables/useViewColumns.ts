@@ -211,9 +211,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
       }
 
-      const colsData: GridColumnType[] = (isPublic ? view.value?.columns : fields.value) ?? []
-
-      gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
+      // Use fields columns to populate gridViewCols
+      gridViewCols.value = fields.value.reduce<Record<string, GridColumnType>>(
         (o, col) => ({
           ...o,
           [col.fk_column_id as string]: col,

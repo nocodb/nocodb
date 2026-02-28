@@ -18,7 +18,7 @@
         "./src/*"
       ],
       "@noco-local-integrations/*": [
-        "../noco-integrations/packages/*",
+        "../noco-integrations/packages/*"
       ],
       "@noco-local-integrations/core": [
         "../noco-integrations/core"
@@ -27,5 +27,13 @@
     "typeRoots": [
       "./node_modules/@types"
     ]
-  }
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./src/ee-on-prem",
+    "./src/**/*.spec.ts",
+    "./src/ee/daos/**"
+  ]
 }

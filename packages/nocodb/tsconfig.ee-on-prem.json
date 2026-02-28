@@ -27,5 +27,13 @@
     "typeRoots": [
       "./node_modules/@types"
     ]
-  }
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": [
+    "./src/ee-cloud",
+    "./src/**/*.spec.ts",
+    "./src/ee/daos/**"
+  ]
 }

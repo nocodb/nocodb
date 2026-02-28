@@ -1,11 +1,14 @@
 {
-  "extends": ["./.nuxt/tsconfig.json", "./ee/.nuxt/tsconfig.json"],
+  /* Extend only EE .nuxt tsconfig — it already includes ../../** which covers
+     all CE sources. Extending both causes the TS server to scan everything twice. */
+  "extends": "./ee/.nuxt/tsconfig.json",
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,
-    "incremental": false,
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo",
     "skipLibCheck": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "noUnusedLocals": false,
     "strictNullChecks": true,
@@ -19,5 +22,5 @@
       "@nuxt/image"
     ]
   },
-  "exclude": ["node_modules", "dist", ".output", "**/node_modules/*", "**/dist/*", "**/.output/*"]
+  "exclude": ["node_modules", "dist", ".output", "test", "**/node_modules", "**/dist", "**/.output"]
 }

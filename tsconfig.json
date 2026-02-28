@@ -1,0 +1,19 @@
+{
+  /* Root tsconfig — "solution" style: no files of its own.
+     Without "files": [], TS creates a catch-all project that includes the ENTIRE repo,
+     causing every file to belong to 2+ projects and forcing VS Code's TS server
+     to reload when switching between files. */
+  "include": [],
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "exclude": [
+    "node_modules",
+    "packages/noco-integrations",
+    "packages/noco-integrations-v2"
+  ]
+}

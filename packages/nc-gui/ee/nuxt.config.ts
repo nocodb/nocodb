@@ -164,7 +164,15 @@ export default defineNuxtConfig({
         ignoreTryCatch: true,
       },
       minify: true,
-      rollupOptions: {},
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('/nocodb-sdk/')) {
+              return 'nocodb-sdk'
+            }
+          },
+        },
+      },
     },
     plugins: [
       vueI18n({

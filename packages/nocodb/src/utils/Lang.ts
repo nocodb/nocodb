@@ -1,4 +1,4 @@
-import osLocale from 'os-locale';
+import { osLocaleSync } from 'os-locale';
 import english from './english.json';
 import translated from './translated.json';
 
@@ -15,8 +15,7 @@ for (const { symbol, text } of [english, ...translated].sort((a: any, b: any) =>
 
 const dummy: any = new Date();
 const offset: any = -dummy.getTimezoneOffset();
-// @ts-ignore
-const locale: string = offset === 330 ? 'en-IN' : osLocale.sync();
+const locale: string = offset === 330 ? 'en-IN' : osLocaleSync();
 
 enum STR {
   SLOGAN,

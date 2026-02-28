@@ -1,6 +1,5 @@
 import {
   type BoolType,
-  type FormDefinition,
   integrationCategoryNeedDefault,
   IntegrationsType,
   type IntegrationType,
@@ -10,7 +9,7 @@ import { Logger } from '@nestjs/common';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type {
-  IntegrationManifest,
+  IntegrationEntry,
   IntegrationWrapper,
 } from '@noco-local-integrations/core';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -34,22 +33,7 @@ import Integrations from '~/integrations';
 
 const logger = new Logger('Integration');
 export default class Integration implements IntegrationType {
-  public static availableIntegrations: {
-    type: IntegrationsType;
-    sub_type: string;
-    form?: FormDefinition;
-    wrapper?: typeof IntegrationWrapper;
-    manifest?: {
-      title?: string;
-      value?: string;
-      icon?: string;
-      description?: string;
-      expose?: string[];
-      order?: number;
-      hidden?: boolean;
-    };
-    packageManifest?: IntegrationManifest;
-  }[] = Integrations;
+  public static availableIntegrations: IntegrationEntry[] = Integrations;
 
   id?: string;
   fk_workspace_id?: string;

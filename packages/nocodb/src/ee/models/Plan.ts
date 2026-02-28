@@ -299,6 +299,7 @@ export const FreePlan = Plan.prepare({
     [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 1000,
     [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 15,
     [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 0,
+    [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]: false,
     ...(!process.env.NC_STRIPE_SECRET_KEY ? legacyLimitAndFeatures : {}),
     ...(process.env.NODE_ENV === 'test'
       ? {

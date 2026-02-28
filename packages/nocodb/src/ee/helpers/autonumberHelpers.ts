@@ -17,9 +17,9 @@ async function resetPgSequence(
   await knex.raw(
     `SELECT setval(
       pg_get_serial_sequence(:tnVal, :colVal),
-      COALESCE((SELECT MAX(:col:) FROM :tn:), 0)
+      COALESCE((SELECT MAX(:colId:) FROM :tnId:), 0)
     )`,
-    { tn: tnPath, col: colName, tnVal: tnPath, colVal: colName },
+    { tnVal: tnPath, colVal: colName, colId: colName, tnId: tnPath },
   );
 }
 

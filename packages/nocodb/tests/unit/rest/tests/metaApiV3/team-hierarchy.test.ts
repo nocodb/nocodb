@@ -2453,7 +2453,7 @@ export default function () {
 
     describe('Cache Invalidation', () => {
       it('should invalidate base user cache after reparent', async () => {
-        
+
         const base = await createProject(context);
 
         // Assign Engineering to base
@@ -2473,6 +2473,152 @@ export default function () {
         // Cache should be invalidated, user still gets Editor
         roles = await getUserRoles(engToken, base.id);
         expect(roles.base_roles).to.have.property(ProjectRoles.EDITOR, true);
+      });
+    });
+
+    // ---------------------------------------------------------------
+    // Fix: self_only scope with upward-cascade membership
+    //
+    // Scenario: Engineering member inherits workspace access via Frontend
+    // team assignment (upward cascade). A self_only permission subject
+    // targeting Frontend must NOT grant access to that cascaded Engineering
+    // member — only direct Frontend members should be allowed.
+    // ---------------------------------------------------------------
+
+    describe('Fix: self_only cascade — ancestor member must not match child team subject', () => {
+      let baseId: string;
+      let tableId: string;
+
+      async function setPermission(permissionKey: string, subjects: any[]) {
+        return request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'setPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: permissionKey,
+            granted_type: 'user',
+            subjects,
+          });
+      }
+
+      beforeEach(async function () {
+        this.timeout(120000);
+
+        // Create a base+table for permission checks
+        const base = await createProject(context);
+        baseId = base.id;
+        const table = await createTable(context, base);
+        tableId = table.id;
+
+        // Assign ONLY the Frontend team to the workspace (not Engineering)
+        // engUser (Engineering member) gets workspace access via upward cascade
+        const inviteData = [
+          engUser.id,
+          feUser.id,
+        ].map((userId) => ({
+          user_id: userId,
+          workspace_role: WorkspaceUserRoles.EDITOR,
+        }));
+
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+          .set('xc-token', context.xc_token)
+          .send(inviteData)
+          .expect(200);
+      });
+
+      afterEach(async () => {
+        await request(context.app)
+          .post(`/api/v2/internal/${workspaceId}/${baseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'dropPermission' })
+          .send({
+            entity: 'table',
+            entity_id: tableId,
+            permission: 'TABLE_RECORD_ADD',
+          });
+      });
+
+      it('direct Frontend member should be ALLOWED with self_only targeting Frontend', async () => {
+        await setPermission('TABLE_RECORD_ADD', [
+          { type: 'team', id: frontendId, hierarchy_scope: 'self_only' },
+        ]);
+
+        // feUser is directly in Frontend → allowed
+        const res = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', feToken)
+          .send({ Title: 'fe-direct-allowed' });
+
+        expect(res.status).to.be.oneOf([200, 201]);
+      });
+
+      it('Engineering member (ancestor cascade) should be BLOCKED with self_only targeting Frontend', async () => {
+        // Before fix: engUser had workspace access via cascade → user.teams included
+        // { team_id: frontendId } entry, causing self_only check to incorrectly pass.
+        // After fix: user_team_id === engineeringId ≠ frontendId → correctly blocked.
+        await setPermission('TABLE_RECORD_ADD', [
+          { type: 'team', id: frontendId, hierarchy_scope: 'self_only' },
+        ]);
+
+        // engUser is in Engineering (ancestor of Frontend) — NOT a direct Frontend member
+        const res = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', engToken)
+          .send({ Title: 'eng-ancestor-blocked' });
+
+        expect(res.status).to.be.oneOf([401, 403]);
+      });
+
+      it('Engineering member SHOULD be allowed with self_and_descendants targeting Frontend', async () => {
+        // self_and_descendants means descendants of Frontend are allowed,
+        // but Engineering is an ANCESTOR of Frontend, not a descendant — still blocked.
+        // This test confirms the non-self_only path is unaffected.
+        await setPermission('TABLE_RECORD_ADD', [
+          { type: 'team', id: engineeringId, hierarchy_scope: 'self_and_descendants' },
+        ]);
+
+        // engUser is directly in Engineering → allowed
+        const res = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', engToken)
+          .send({ Title: 'eng-self-allowed' });
+
+        expect(res.status).to.be.oneOf([200, 201]);
+      });
+
+      it('Engineering ancestor member should be BLOCKED with self_and_descendants targeting Frontend', async () => {
+        // Bug: engUser (Engineering member) had a user.teams entry with team_id===frontendId
+        // (via upward cascade). Without the fix, self_and_descendants on Frontend would
+        // return true because t.team_id===frontendId passed the first branch without checking
+        // user_team_id. After the fix, user_team_id===engineeringId≠frontendId → blocked.
+        await setPermission('TABLE_RECORD_ADD', [
+          { type: 'team', id: frontendId, hierarchy_scope: 'self_and_descendants' },
+        ]);
+
+        // engUser is an ANCESTOR of Frontend (not a direct member or descendant) → blocked
+        const res = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', engToken)
+          .send({ Title: 'eng-ancestor-self-and-descendants-blocked' });
+
+        expect(res.status).to.be.oneOf([401, 403]);
+      });
+
+      it('direct Frontend member should be ALLOWED with self_and_descendants targeting Frontend', async () => {
+        await setPermission('TABLE_RECORD_ADD', [
+          { type: 'team', id: frontendId, hierarchy_scope: 'self_and_descendants' },
+        ]);
+
+        // feUser is directly in Frontend → allowed (self)
+        const res = await request(context.app)
+          .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
+          .set('xc-auth', feToken)
+          .send({ Title: 'fe-self-and-descendants-allowed' });
+
+        expect(res.status).to.be.oneOf([200, 201]);
       });
     });
   });

@@ -971,6 +971,243 @@ export default function () {
       });
     });
 
+    describe('Fix: self_only hierarchy scope with TABLE_VISIBILITY', () => {
+      /**
+       * Scenario:
+       *   Engineering (root team)
+       *   └── Frontend (child of Engineering)
+       *
+       * Frontend team is assigned to the base (Editor role).
+       * engUser is a member of Engineering — they get base access via
+       * upward cascade (ancestor of assigned team).
+       * feUser is a direct member of Frontend.
+       *
+       * TABLE_VISIBILITY set with subject: { type: 'team', id: frontendId, self_only }
+       *
+       * Expected:
+       *   feUser  → ALLOWED (direct Frontend member)
+       *   engUser → BLOCKED (cascaded via Engineering, NOT a direct Frontend member)
+       */
+
+      let visBaseId: string;
+      let visTableId: string;
+      let featureMock: any;
+      let engineeringId: string;
+      let frontendId: string;
+      let engUser: any;
+      let engToken: string;
+      let feUser: any;
+      let feToken: string;
+
+      beforeEach(async function () {
+        this.timeout(120000);
+
+        featureMock = await overridePlan({
+          workspace_id: context.fk_workspace_id,
+          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
+          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 10 },
+        });
+
+        // Create a fresh base + table for this test suite (isolated from outer tableId)
+        const base = await createProject(context);
+        visBaseId = base.id;
+
+        const tableRes = await request(context.app)
+          .post(`/api/v1/db/meta/projects/${visBaseId}/tables`)
+          .set('xc-token', ownerToken)
+          .send({
+            table_name: 'vis_test_table',
+            title: 'Vis Test Table',
+            columns: [{ title: 'Title', uidt: UITypes.SingleLineText }],
+          })
+          .expect(200);
+        visTableId = tableRes.body.id;
+
+        // Create hierarchy: Engineering → Frontend
+        const engRes = await request(context.app)
+          .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+          .set('xc-token', context.xc_token)
+          .send({ title: 'Engineering-vis', icon: '🔧', badge_color: '#000000' })
+          .expect(200);
+        engineeringId = engRes.body.id;
+
+        const feRes = await request(context.app)
+          .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'Frontend-vis',
+            icon: '💻',
+            badge_color: '#111111',
+            parent_team_id: engineeringId,
+          })
+          .expect(200);
+        frontendId = feRes.body.id;
+
+        // Create test users
+        engUser = await createUser(
+          { app: context.app },
+          { email: 'eng-vis@test.com', password: 'A1234abh2@dsad' },
+        );
+        feUser = await createUser(
+          { app: context.app },
+          { email: 'fe-vis@test.com', password: 'A1234abh2@dsad' },
+        );
+
+        // Add engUser to Engineering, feUser to Frontend
+        await request(context.app)
+          .post(
+            `/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${engineeringId}/members`,
+          )
+          .set('xc-token', context.xc_token)
+          .send([{ user_id: engUser.user.id, team_role: 'member' }])
+          .expect(200);
+
+        await request(context.app)
+          .post(
+            `/api/v3/meta/workspaces/${context.fk_workspace_id}/teams/${frontendId}/members`,
+          )
+          .set('xc-token', context.xc_token)
+          .send([{ user_id: feUser.user.id, team_role: 'member' }])
+          .expect(200);
+
+        // Assign Frontend team to the base with Editor role.
+        // Engineering member (ancestor) inherits base access via upward cascade.
+        await request(context.app)
+          .post(`/api/v3/meta/bases/${visBaseId}/invites`)
+          .set('xc-token', context.xc_token)
+          .send({ team_id: frontendId, base_role: ProjectRoles.EDITOR })
+          .expect(200);
+
+        // Create API tokens for each user
+        engToken = (
+          await request(context.app)
+            .post('/api/v1/tokens/')
+            .set('xc-auth', engUser.token)
+            .expect(200)
+        ).body.token;
+
+        feToken = (
+          await request(context.app)
+            .post('/api/v1/tokens/')
+            .set('xc-auth', feUser.token)
+            .expect(200)
+        ).body.token;
+      });
+
+      afterEach(async () => {
+        await featureMock?.restore?.();
+        await request(context.app)
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${visBaseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'dropPermission' })
+          .send({
+            entity: PermissionEntity.TABLE,
+            entity_id: visTableId,
+            permission: PermissionKey.TABLE_VISIBILITY,
+          });
+      });
+
+      it('direct Frontend member should see table with self_only visibility', async () => {
+        // Set TABLE_VISIBILITY to team subject with self_only scope
+        await request(context.app)
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${visBaseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'setPermission' })
+          .send({
+            entity: PermissionEntity.TABLE,
+            entity_id: visTableId,
+            permission: PermissionKey.TABLE_VISIBILITY,
+            granted_type: PermissionGrantedType.USER,
+            subjects: [
+              { type: 'team', id: frontendId, hierarchy_scope: 'self_only' },
+            ],
+          })
+          .expect(200);
+
+        // feUser is directly in Frontend → should see the table
+        const tables = await request(context.app)
+          .get(`/api/v1/db/meta/projects/${visBaseId}/tables`)
+          .set('xc-token', feToken)
+          .expect(200);
+
+        expect(tables.body.list).to.satisfy((list: any[]) =>
+          list.some((t) => t.id === visTableId),
+        );
+      });
+
+      it('Engineering member (upward cascade) should NOT see table with self_only on Frontend', async () => {
+        // Before fix: engUser had { team_id: frontendId } in user.teams (from upward cascade),
+        // causing self_only check to pass incorrectly.
+        // After fix: user_team_id === engineeringId ≠ frontendId → correctly blocked.
+        await request(context.app)
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${visBaseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'setPermission' })
+          .send({
+            entity: PermissionEntity.TABLE,
+            entity_id: visTableId,
+            permission: PermissionKey.TABLE_VISIBILITY,
+            granted_type: PermissionGrantedType.USER,
+            subjects: [
+              { type: 'team', id: frontendId, hierarchy_scope: 'self_only' },
+            ],
+          })
+          .expect(200);
+
+        // engUser is in Engineering (ancestor of Frontend) — NOT a direct Frontend member
+        const tables = await request(context.app)
+          .get(`/api/v1/db/meta/projects/${visBaseId}/tables`)
+          .set('xc-token', engToken)
+          .expect(200);
+
+        expect(tables.body.list).to.not.satisfy((list: any[]) =>
+          list.some((t) => t.id === visTableId),
+        );
+      });
+
+      it('Engineering member should see table with self_and_descendants on Engineering', async () => {
+        // self_and_descendants on Engineering → Engineering + all descendants allowed
+        await request(context.app)
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${visBaseId}`)
+          .set('xc-token', context.xc_token)
+          .query({ operation: 'setPermission' })
+          .send({
+            entity: PermissionEntity.TABLE,
+            entity_id: visTableId,
+            permission: PermissionKey.TABLE_VISIBILITY,
+            granted_type: PermissionGrantedType.USER,
+            subjects: [
+              {
+                type: 'team',
+                id: engineeringId,
+                hierarchy_scope: 'self_and_descendants',
+              },
+            ],
+          })
+          .expect(200);
+
+        // engUser is directly in Engineering → should see the table (self)
+        const engTables = await request(context.app)
+          .get(`/api/v1/db/meta/projects/${visBaseId}/tables`)
+          .set('xc-token', engToken)
+          .expect(200);
+
+        expect(engTables.body.list).to.satisfy((list: any[]) =>
+          list.some((t) => t.id === visTableId),
+        );
+
+        // feUser is in Frontend (descendant of Engineering) → should also see the table
+        const feTables = await request(context.app)
+          .get(`/api/v1/db/meta/projects/${visBaseId}/tables`)
+          .set('xc-token', feToken)
+          .expect(200);
+
+        expect(feTables.body.list).to.satisfy((list: any[]) =>
+          list.some((t) => t.id === visTableId),
+        );
+      });
+    });
+
     describe.skip('Team Permissions with Table Visibility', () => {
       // TODO: Re-enable when it's clear on workspace / base team controller
       let teamId: string;

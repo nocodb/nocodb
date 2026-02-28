@@ -127,19 +127,16 @@ export const usePermissions = () => {
             }
 
             if (subject.type === 'team') {
-              const userTeams: { team_id: string; path?: string; user_team_id?: string }[] =
-                (user.value as any)?.teams ?? []
+              const userTeams: { team_id: string; path?: string; user_team_id?: string }[] = (user.value as any)?.teams ?? []
 
               return userTeams.some((t) => {
                 if (t.team_id === subject.id) {
-                  // For self_only: the user must be a DIRECT member of the subject team.
-                  // user_team_id is the user's actual direct team that caused this workspace entry.
-                  // If user_team_id !== subject.id, this entry was created via upward cascade
-                  // (e.g. Engineering member inheriting Frontend team's workspace role) — not a direct match.
-                  if (subject.hierarchy_scope === 'self_only') {
-                    return t.user_team_id === subject.id
-                  }
-                  return true
+                  // user_team_id is the user's actual direct team.
+                  // t.team_id can equal subject.id via upward cascade even when the user
+                  // is only an ancestor (parent) of the subject team — not a direct member.
+                  // So we must verify the user was directly added to this team.
+                  // Descendant members are handled by the path segment check below.
+                  return t.user_team_id === subject.id
                 }
 
                 // For self_and_descendants: check if user is in a descendant team of the subject

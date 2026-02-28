@@ -15,8 +15,6 @@ const props = withDefaults(
 
 const { isUIAllowed } = useRoles()
 
-const { orgRoles } = useRoles()
-
 const { baseCreateMode } = storeToRefs(useBases())
 
 const baseStore = useBase()
@@ -34,7 +32,7 @@ onMounted(() => {
 
 <template>
   <NcButton
-    v-if="isUIAllowed('baseCreate', { roles: orgRoles }) && !isSharedBase"
+    v-if="isUIAllowed('baseCreate') && !isSharedBase"
     v-e="['c:base:create']"
     :type="type"
     data-testid="nc-sidebar-create-base-btn"

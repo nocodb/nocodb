@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { NO_SCOPE, ProjectRoles } from 'nocodb-sdk'
+import { NO_SCOPE, OrgUserRoles, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean

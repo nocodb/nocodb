@@ -123,7 +123,7 @@ export class DocsSidebarPage extends BasePage {
     await this.rootPage.getByTestId(`sidebar-doc-delete-${title}`).click();
 
     // Confirm deletion in the confirm modal
-    await this.rootPage.locator('.nc-modal-confirm-ok-btn').click();
+    await this.rootPage.getByTestId('nc-delete-modal-delete-btn').click();
 
     await this.rootPage.waitForTimeout(300);
   }

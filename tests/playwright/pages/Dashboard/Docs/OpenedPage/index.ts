@@ -23,6 +23,8 @@ export class DocsOpenedPagePage extends BasePage {
   async waitForRender() {
     await this.get().waitFor({ state: 'visible' });
     await this.get().getByTestId('docs-page-title').waitFor({ state: 'visible' });
+    // Also wait for the ProseMirror editor to mount
+    await this.get().getByTestId('docs-page-content').locator('.ProseMirror').waitFor({ state: 'visible' });
     await this.get()
       .getByTestId('docs-page-title')
       .elementHandle()
@@ -36,7 +38,7 @@ export class DocsOpenedPagePage extends BasePage {
 
     await this.get().getByTestId('docs-page-title').click();
 
-    await this.get().getByTestId('docs-page-title').press('Meta+A');
+    await this.get().getByTestId('docs-page-title').press('ControlOrMeta+A');
     await this.get().getByTestId('docs-page-title').press('Backspace');
 
     await this.waitForResponse({
@@ -58,13 +60,15 @@ export class DocsOpenedPagePage extends BasePage {
     await this.get().getByTestId('nc-doc-opened-page-icon-picker').hover();
     await this.get().getByTestId('nc-doc-opened-page-icon-picker').click();
 
-    await this.rootPage.getByTestId('nc-emoji-filter').last().type(emoji);
+    // emoji-mart-vue-fast renders its own search input
+    const emojiSearch = this.rootPage.locator('.emoji-mart-search input').last();
+    await emojiSearch.waitFor({ state: 'visible' });
+    await emojiSearch.fill(emoji);
 
     await this.rootPage.waitForTimeout(500);
 
     await this.waitForResponse({
-      uiAction: () =>
-        this.rootPage.getByTestId('nc-emoji-container').last().locator(`.nc-emoji-item >> svg`).first().click(),
+      uiAction: () => this.rootPage.locator('.emoji-mart-category .emoji-mart-emoji').first().click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `operation=documentUpdate`,
     });

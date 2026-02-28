@@ -50,6 +50,9 @@ export class TiptapPage extends BasePage {
    * Clicks the last paragraph if no index specified.
    */
   async openCommandMenu({ index }: { index?: number } = {}) {
+    // Ensure editor is editable before interacting
+    await expect(this.get()).toHaveAttribute('contenteditable', 'true');
+
     let paragraph: Locator;
     if (index !== undefined) {
       paragraph = this.getNodeByIndex(index);
@@ -64,7 +67,7 @@ export class TiptapPage extends BasePage {
 
     await this.rootPage.waitForTimeout(400);
 
-    await this.rootPage.keyboard.press('/');
+    await this.rootPage.keyboard.type('/');
 
     await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'visible' });
   }
@@ -98,6 +101,8 @@ export class TiptapPage extends BasePage {
 
     if (!noVerify) {
       await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'hidden' });
+      // Brief wait for the editor to process the command and update the DOM
+      await this.rootPage.waitForTimeout(200);
     }
   }
 
@@ -314,7 +319,7 @@ export class TiptapPage extends BasePage {
     await this.openedPage.waitForRender();
     await this.get().click();
     await this.rootPage.waitForTimeout(300);
-    await this.rootPage.keyboard.press('Meta+A');
+    await this.rootPage.keyboard.press('ControlOrMeta+A');
     await this.rootPage.keyboard.press('Backspace');
     await this.rootPage.waitForTimeout(300);
   }

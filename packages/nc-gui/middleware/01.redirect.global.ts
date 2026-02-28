@@ -1,16 +1,4 @@
-// Map old ?page= tab names to new /admin/{slug} paths
-const pageToSlug: Record<string, string> = {
-  collaborator: 'members',
-  'data-source': 'data-sources',
-  permissions: 'permissions',
-  syncs: 'syncs',
-  'base-settings': 'settings',
-  audits: 'audits',
-  workflows: 'workflows',
-  overview: 'overview',
-  mcp: 'mcp',
-  snapshots: 'snapshots',
-}
+import { baseAdminTabToSlug } from '~/utils/adminRouteUtils'
 
 export default defineNuxtRouteMiddleware(async (to) => {
   // Get the query params from the URL
@@ -74,7 +62,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       return navigateTo(`/${to.params.typeOrId}/${to.params.baseId}/admin/mcp`, { replace: true })
     }
 
-    const slug = pageToSlug[page]
+    const slug = baseAdminTabToSlug[page]
 
     if (slug) {
       // Forward remaining query params (excluding page and tab)

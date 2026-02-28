@@ -93,28 +93,6 @@ const hasTableCreatePermission = computed(() => {
   })
 })
 
-const tabToSlug: Record<string, string> = {
-  // Base settings
-  collaborator: 'members',
-  'data-source': 'data-sources',
-  permissions: 'permissions',
-  syncs: 'syncs',
-  'base-settings': 'settings',
-  audits: 'audits',
-  workflows: 'workflows',
-  overview: 'overview',
-  mcp: 'mcp',
-  snapshots: 'snapshots',
-  // Workspace settings (ws-level route: /{wsId}/admin/ws-*)
-  'ws-collaborators': 'ws-members',
-  'ws-teams': 'ws-teams',
-  'ws-integrations': 'ws-integrations',
-  'ws-billing': 'ws-billing',
-  'ws-audits': 'ws-audits',
-  'ws-sso': 'ws-sso',
-  'ws-settings': 'ws-settings',
-}
-
 const resolveBaseId = () => {
   if (route.value.params.baseId) return route.value.params.baseId as string
   if (base.value?.id) return base.value.id
@@ -129,13 +107,13 @@ const navigateToBaseSettings = (page: string) => {
   if (!baseId) return
 
   const wsId = route.value.params.typeOrId
-  const slug = tabToSlug[page] || page
+  const slug = adminTabToSlug[page] || page
   navigateTo(`/${wsId}/${baseId}/admin/${slug}`)
 }
 
 const navigateToWsSettings = (page: string) => {
   const wsId = route.value.params.typeOrId
-  const slug = tabToSlug[page] || page
+  const slug = adminTabToSlug[page] || page
   navigateTo(`/${wsId}/admin/${slug}`)
 }
 
@@ -145,13 +123,12 @@ const activeAdminPage = computed(() => {
 })
 
 const isAdminItemActive = (tab: string) => {
-  const slug = tabToSlug[tab] || tab
+  const slug = adminTabToSlug[tab] || tab
   return activeAdminPage.value === slug
 }
 
 const isWsAdminItemActive = (tab: string) => {
-  const slug = tabToSlug[tab] || tab
-  // Check both ws-level route and base-level fallback
+  const slug = adminTabToSlug[tab] || tab
   return activeAdminPage.value === slug
 }
 

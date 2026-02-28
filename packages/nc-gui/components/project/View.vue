@@ -202,27 +202,6 @@ watch(
 
 const { navigateToProjectPage } = useBase()
 
-const tabToSlug: Record<string, string> = {
-  collaborator: 'members',
-  'data-source': 'data-sources',
-  permissions: 'permissions',
-  syncs: 'syncs',
-  'base-settings': 'settings',
-  audits: 'audits',
-  workflows: 'workflows',
-  overview: 'overview',
-  mcp: 'mcp',
-  snapshots: 'snapshots',
-  // Workspace settings
-  'ws-collaborators': 'ws-members',
-  'ws-teams': 'ws-teams',
-  'ws-integrations': 'ws-integrations',
-  'ws-billing': 'ws-billing',
-  'ws-audits': 'ws-audits',
-  'ws-sso': 'ws-sso',
-  'ws-settings': 'ws-settings',
-}
-
 const { t } = useI18n()
 
 const adminPageTitle = computed(() => {
@@ -254,7 +233,7 @@ watch(projectPageTab, () => {
 
   // When tab is controlled by route path (admin pages), navigate to clean URL
   if (props.tab) {
-    const slug = tabToSlug[projectPageTab.value] || projectPageTab.value
+    const slug = adminTabToSlug[projectPageTab.value] || projectPageTab.value
     const wsId = route.value.params.typeOrId
 
     // Workspace-level settings → /{wsId}/admin/ws-*

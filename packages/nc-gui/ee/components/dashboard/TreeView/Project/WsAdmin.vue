@@ -12,19 +12,9 @@ const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { isUIAllowed } = useRoles()
 
-const tabToSlug: Record<string, string> = {
-  'ws-collaborators': 'ws-members',
-  'ws-teams': 'ws-teams',
-  'ws-integrations': 'ws-integrations',
-  'ws-billing': 'ws-billing',
-  'ws-audits': 'ws-audits',
-  'ws-sso': 'ws-sso',
-  'ws-settings': 'ws-settings',
-}
-
 const navigateToWsSettings = (page: string) => {
   const wsId = route.value.params.typeOrId
-  const slug = tabToSlug[page] || page
+  const slug = wsAdminTabToSlug[page] || page
   navigateTo(`/${wsId}/admin/${slug}`)
 }
 
@@ -33,7 +23,7 @@ const activeAdminPage = computed(() => {
 })
 
 const isWsAdminItemActive = (tab: string) => {
-  const slug = tabToSlug[tab] || tab
+  const slug = wsAdminTabToSlug[tab] || tab
   return activeAdminPage.value === slug
 }
 

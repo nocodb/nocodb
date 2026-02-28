@@ -33,7 +33,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: 'expandRecord', row: RowType, state?: Record<string, any>): void
   (event: 'navigateTo', date: dayjs.Dayjs): void
+  (event: 'update:group', value: Group): void
 }>()
+
+const vGroup = useVModel(props, 'group', emit)
 
 const { isDark, getColor } = useTheme()
 
@@ -95,13 +98,13 @@ const toggleGroup = async (grp: any) => {
 
 // Auto-expand all groups and load data when children become available
 watch(
-  () => props.group?.children,
+  () => vGroup.value?.children,
   (children) => {
     if (!children) return
 
     // If this is the root group, check if we have a completely new set of children
     // (different grouping configuration). If so, reset tracking state.
-    if (props.group.root && children.length > 0) {
+    if (vGroup.value.root && children.length > 0) {
       const currentKeys = new Set(children.map((g) => String(g.key)))
       const hasNewKeys = Array.from(currentKeys).some((k) => !seenKeys.has(k))
       const hasOldKeys = Array.from(seenKeys).some((k) => !currentKeys.has(k))
@@ -140,10 +143,10 @@ watch(
 )
 
 const reloadViewDataHandler = () => {
-  if (props.group.nested) {
-    _loadGroups({}, props.group)
+  if (vGroup.value.nested) {
+    _loadGroups({}, vGroup.value)
   } else {
-    _loadGroupData(props.group, true)
+    _loadGroupData(vGroup.value, true)
   }
 }
 
@@ -157,8 +160,8 @@ onBeforeUnmount(async () => {
 
 // Root auto-load: if root has no children, load groups
 onMounted(async () => {
-  if (props.group.root === true && !props.group?.children?.length) {
-    await _loadGroups({}, props.group)
+  if (vGroup.value.root === true && !vGroup.value?.children?.length) {
+    await _loadGroups({}, vGroup.value)
   }
 })
 </script>
@@ -167,7 +170,7 @@ onMounted(async () => {
   <div class="h-full overflow-y-auto">
     <!-- CSS Grid layout: left sidebar (group labels) + right timeline area -->
     <div class="nc-timeline-group-grid" :style="{ display: 'grid', gridTemplateColumns: `${GROUP_SIDEBAR_WIDTH}px 1fr` }">
-      <template v-for="grp of group?.children ?? []" :key="grp.key">
+      <template v-for="grp of vGroup?.children ?? []" :key="grp.key">
         <!-- #13: Left cell: group label — min-h matches right cell when collapsed -->
         <div
           class="nc-timeline-group-label border-b border-r border-nc-border-gray-medium px-3 py-2 bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight transition-colors"
@@ -299,13 +302,13 @@ onMounted(async () => {
 
     <!-- Pagination for root group -->
     <LazySmartsheetPagination
-      v-if="group.root && group.paginationData"
-      v-model:pagination-data="group.paginationData"
+      v-if="vGroup.root && vGroup.paginationData"
+      v-model:pagination-data="vGroup.paginationData"
       align-count-on-right
       custom-label="groups"
       align-left
       show-api-timing
-      :change-page="(p: number) => groupWrapperChangePage(p, group)"
+      :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
       :hide-sidebars="true"
     />
   </div>

@@ -24,6 +24,8 @@ const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded, isViewActions
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { isEEFeatureBlocked } = useEeConfig()
+
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
 const topbarBreadcrumbItemWidth = computed(() => {
@@ -80,7 +82,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <NcButton
           v-if="
-            (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            ((isEeUI && !isEEFeatureBlocked) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
             !activeScriptId &&
             !activeDashboardId &&

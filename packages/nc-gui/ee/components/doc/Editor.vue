@@ -1016,7 +1016,11 @@ onBeforeUnmount(() => {
                 :editor="editor"
                 embed-mode
                 hide-mention
-                :hidden-options="[RichTextBubbleMenuOptions.link]"
+                :hidden-options="[
+                  RichTextBubbleMenuOptions.link,
+                  RichTextBubbleMenuOptions.image,
+                  RichTextBubbleMenuOptions.table,
+                ]"
               />
               <NcTooltip placement="top">
                 <template #title>{{ $t('general.link') }}</template>
@@ -1189,17 +1193,29 @@ onBeforeUnmount(() => {
 }
 
 // Doc editor bubble menu — override embed-mode's transparent/no-shadow defaults
+// and tighten horizontal spacing to keep the toolbar compact.
 .nc-doc-editor-body .bubble-menu.embed-mode,
 .nc-doc-editor-body .nc-doc-bubble-toolbar .bubble-menu.embed-mode {
-  @apply !rounded-lg !rounded-r-none;
+  @apply !rounded-lg !rounded-r-none !gap-x-0;
   border: 1px solid var(--nc-border-gray-medium) !important;
   border-right: 0 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+
+  // Shrink buttons from 32px (small) to 28px for a tighter toolbar
+  .nc-button.ant-btn {
+    @apply !h-7 !min-w-7 !px-1 !py-0.5 !mt-0;
+  }
+
+  // Reduce divider height to match smaller buttons
+  .divider {
+    @apply !h-6;
+  }
 }
 
 // Wrapper for formatting toolbar + link button
 .nc-doc-editor-body .nc-doc-bubble-toolbar {
-  @apply flex items-center bg-nc-bg-default rounded-lg px-1;
+  @apply flex items-center bg-nc-bg-default rounded-lg px-0.5 py-0.5;
+  gap: 0;
   border: 1px solid var(--nc-border-gray-medium);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   // overflow: visible so the highlight color picker dropdown (positioned

@@ -27,7 +27,7 @@ const baseRole = inject(ProjectRoleInj)!
 
 const basesStore = useBases()
 
-const { activeProjectId } = storeToRefs(basesStore)
+const { activeProjectId, basesList } = storeToRefs(basesStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -94,6 +94,7 @@ const hasTableCreatePermission = computed(() => {
 })
 
 const tabToSlug: Record<string, string> = {
+  // Base settings
   collaborator: 'members',
   'data-source': 'data-sources',
   permissions: 'permissions',
@@ -104,7 +105,7 @@ const tabToSlug: Record<string, string> = {
   overview: 'overview',
   mcp: 'mcp',
   snapshots: 'snapshots',
-  // Workspace settings
+  // Workspace settings (ws-level route: /{wsId}/admin/ws-*)
   'ws-collaborators': 'ws-members',
   'ws-teams': 'ws-teams',
   'ws-integrations': 'ws-integrations',
@@ -114,13 +115,28 @@ const tabToSlug: Record<string, string> = {
   'ws-settings': 'ws-settings',
 }
 
+const resolveBaseId = () => {
+  if (route.value.params.baseId) return route.value.params.baseId as string
+  if (base.value?.id) return base.value.id
+
+  const lastVisitedBaseId = ncLastVisitedBase().get()
+  const resolved = basesList.value.find((b) => b.id === lastVisitedBaseId) || basesList.value[0]
+  return resolved?.id
+}
+
 const navigateToBaseSettings = (page: string) => {
-  if (!base.value?.id) return
+  const baseId = resolveBaseId()
+  if (!baseId) return
 
   const wsId = route.value.params.typeOrId
-  const baseId = route.value.params.baseId
   const slug = tabToSlug[page] || page
   navigateTo(`/${wsId}/${baseId}/admin/${slug}`)
+}
+
+const navigateToWsSettings = (page: string) => {
+  const wsId = route.value.params.typeOrId
+  const slug = tabToSlug[page] || page
+  navigateTo(`/${wsId}/admin/${slug}`)
 }
 
 const activeAdminPage = computed(() => {
@@ -130,6 +146,12 @@ const activeAdminPage = computed(() => {
 
 const isAdminItemActive = (tab: string) => {
   const slug = tabToSlug[tab] || tab
+  return activeAdminPage.value === slug
+}
+
+const isWsAdminItemActive = (tab: string) => {
+  const slug = tabToSlug[tab] || tab
+  // Check both ws-level route and base-level fallback
   return activeAdminPage.value === slug
 }
 
@@ -293,8 +315,8 @@ const isAdminItemActive = (tab: string) => {
             v-if="isUIAllowed('workspaceCollaborators')"
             v-e="['c:admin:ws:invite-user']"
             icon="users"
-            :active="isAdminItemActive('ws-collaborators')"
-            @click="navigateToBaseSettings('ws-collaborators')"
+            :active="isWsAdminItemActive('ws-collaborators')"
+            @click="navigateToWsSettings('ws-collaborators')"
           >
             {{ $t('labels.inviteUsersToWorkspace') }}
           </NcSidebarMenuItem>
@@ -302,8 +324,8 @@ const isAdminItemActive = (tab: string) => {
             v-if="isEeUI && isTeamsEnabled"
             v-e="['c:admin:ws:add-team']"
             icon="ncBuilding"
-            :active="isAdminItemActive('ws-teams')"
-            @click="navigateToBaseSettings('ws-teams')"
+            :active="isWsAdminItemActive('ws-teams')"
+            @click="navigateToWsSettings('ws-teams')"
           >
             {{ $t('labels.manageTeams') }}
           </NcSidebarMenuItem>
@@ -311,8 +333,8 @@ const isAdminItemActive = (tab: string) => {
             v-if="isUIAllowed('workspaceIntegrations')"
             v-e="['c:integrations']"
             icon="integration"
-            :active="isAdminItemActive('ws-integrations')"
-            @click="navigateToBaseSettings('ws-integrations')"
+            :active="isWsAdminItemActive('ws-integrations')"
+            @click="navigateToWsSettings('ws-integrations')"
           >
             {{ $t('general.integrations') }}
           </NcSidebarMenuItem>
@@ -320,8 +342,8 @@ const isAdminItemActive = (tab: string) => {
             v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
             v-e="['c:admin:ws:general']"
             icon="ncMoreHorizontal"
-            :active="isAdminItemActive('ws-settings')"
-            @click="navigateToBaseSettings('ws-settings')"
+            :active="isWsAdminItemActive('ws-settings')"
+            @click="navigateToWsSettings('ws-settings')"
           >
             {{ $t('general.general') }}
           </NcSidebarMenuItem>

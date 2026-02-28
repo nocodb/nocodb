@@ -42,6 +42,29 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return
   }
 
+  // Redirect old workspace settings/integrations routes to new ws-level admin paths
+  if (to.name === 'index-typeOrId-settings') {
+    const wsId = to.params.typeOrId as string
+    const tab = (to.query.tab as string) || 'settings'
+    const slugMap: Record<string, string> = {
+      settings: 'ws-settings',
+      collaborator: 'ws-members',
+      billing: 'ws-billing',
+      audits: 'ws-audits',
+      sso: 'ws-sso',
+    }
+    return navigateTo(`/${wsId}/admin/${slugMap[tab] || 'ws-settings'}`, { replace: true })
+  }
+
+  if (to.name === 'index-typeOrId-integrations') {
+    return navigateTo(`/${to.params.typeOrId}/admin/ws-integrations`, { replace: true })
+  }
+
+  // Redirect old base-level ws-* admin pages to ws-level
+  if (to.params.baseId && to.params.page && typeof to.params.page === 'string' && to.params.page.startsWith('ws-')) {
+    return navigateTo(`/${to.params.typeOrId}/admin/${to.params.page}`, { replace: true })
+  }
+
   // Redirect old ?page= query param routes to new /admin/{slug} paths
   const page = to.query.page as string | undefined
 

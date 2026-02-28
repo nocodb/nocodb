@@ -11,13 +11,8 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const workspaceStore = useWorkspace()
 
-const {
-  activeWorkspaceId,
-  activeWorkspace,
-  isWorkspaceSettingsPageOpened,
-  isIntegrationsPageOpened,
-  isWorkspacesLoading,
-} = storeToRefs(workspaceStore)
+const { activeWorkspaceId, activeWorkspace, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading } =
+  storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
@@ -26,6 +21,8 @@ const { basesList, openedProject } = storeToRefs(basesStore)
 const sidebarStore = useSidebarStore()
 
 const { activeSidebarTab } = storeToRefs(sidebarStore)
+
+const { selectedTheme } = useTheme()
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
@@ -43,16 +40,29 @@ const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
 })
 
+const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-admin-page')
+
+// Resolve a base for icon display when not on a base route (e.g. ws-admin)
+const resolvedProject = computed(() => {
+  if (openedProject.value) return openedProject.value
+  if (!isWsAdminRoute.value) return undefined
+
+  const lastVisitedBaseId = ncLastVisitedBase().get()
+  return basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
+})
+
 const baseIconColor = computed(() => {
-  if (!openedProject.value) return undefined
-  const meta = parseProp(openedProject.value.meta)
+  if (!resolvedProject.value) return undefined
+  const meta = parseProp(resolvedProject.value.meta)
   return meta.iconColor
 })
+
+const showBaseIcon = computed(() => (isBaseOpen.value && openedProject.value) || (isWsAdminRoute.value && resolvedProject.value))
 
 const isBaseListModalOpen = ref(false)
 
 const miniSidebarTabs = computed(() => [
-  { key: 'data' as const, icon: 'table', activeIcon: 'ncTableFilled', label: 'Data' },
+  { key: 'data' as const, icon: 'ncTableOutline', activeIcon: 'ncTableFilled', label: 'Data' },
   { key: 'automation' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
   // { key: 'agents' as const, icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
 ])
@@ -73,21 +83,39 @@ const navigateToProjectPage = () => {
   navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: baseToNavigate?.id })
 }
 
+const hasAvailableBases = computed(() => !!basesList.value?.length)
+
 const getBasePath = () => {
-  const wsId = route.value.params.typeOrId
+  const wsId = route.value.params.typeOrId || activeWorkspaceId.value
   const baseId = route.value.params.baseId
-  return `/${wsId}/${baseId}`
+  if (baseId) return `/${wsId}/${baseId}`
+
+  // Resolve a base from last visited or first available
+  const lastVisitedBaseId = ncLastVisitedBase().get()
+  const resolvedBase = basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
+  return resolvedBase?.id ? `/${wsId}/${resolvedBase.id}` : ''
 }
 
 const onTabClick = (tabKey: string) => {
   activeSidebarTab.value = tabKey as any
 
+  if (tabKey === 'admin') {
+    // If a base is open, navigate to base admin; otherwise ws-level admin
+    if (isBaseOpen.value) {
+      navigateTo(`${getBasePath()}/admin`)
+    } else {
+      const wsId = route.value.params.typeOrId || activeWorkspaceId.value
+      navigateTo(`/${wsId}/admin/ws-members`)
+    }
+    return
+  }
+
   // Navigate to clean URL
   const basePath = getBasePath()
+  if (!basePath) return
+
   if (tabKey === 'automation') {
     navigateTo(`${basePath}/automate`)
-  } else if (tabKey === 'admin') {
-    navigateTo(`${basePath}/admin`)
   } else {
     navigateTo(basePath)
   }
@@ -125,22 +153,19 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   <div class="nc-mini-sidebar" data-testid="nc-mini-sidebar">
     <div class="flex flex-col items-center w-full">
       <!-- Base color icon at top-left -->
-      <DashboardMiniSidebarItemWrapper v-if="isBaseOpen && openedProject" size="small" show-in-mobile>
+      <DashboardMiniSidebarItemWrapper v-if="showBaseIcon" size="small" show-in-mobile>
         <div
           class="h-[var(--topbar-height)] sticky top-0 bg-nc-bg-gray-minisidebar flex items-center justify-center cursor-pointer"
           @click="isBaseListModalOpen = true"
         >
           <div class="nc-stacked-base-icon">
-            <GeneralProjectIcon
-              :color="baseIconColor"
-              class="h-5.5 w-5.5 relative z-1"
-            />
+            <GeneralProjectIcon :color="baseIconColor" class="h-5.5 w-5.5 relative z-1" />
           </div>
         </div>
       </DashboardMiniSidebarItemWrapper>
 
-      <!-- Workspace selector (when no base open) -->
-      <DashboardMiniSidebarItemWrapper v-if="!isBaseOpen" size="small" show-in-mobile>
+      <!-- Workspace selector (when no base open and not on ws-admin with resolved base) -->
+      <DashboardMiniSidebarItemWrapper v-if="!showBaseIcon" size="small" show-in-mobile>
         <div
           class="min-h-9 sticky top-0 bg-nc-bg-gray-minisidebar"
           :class="{
@@ -158,64 +183,52 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </DashboardMiniSidebarItemWrapper>
 
       <!-- Data / Workflows / Agents tabs -->
-      <template v-if="isBaseOpen">
-        <div
-          v-for="tab in miniSidebarTabs"
-          :key="tab.key"
-          v-e="[`c:sidebar:minitab:${tab.key}`]"
-          class="nc-mini-sidebar-labeled-btn"
-          :class="{ active: activeSidebarTab === tab.key }"
-          :data-testid="`nc-mini-sidebar-tab-${tab.key}`"
-          @click="onTabClick(tab.key)"
-        >
-          <GeneralIcon
-            :icon="activeSidebarTab === tab.key ? tab.activeIcon : tab.icon"
-            class="h-4.5 w-4.5"
-          />
-          <span class="nc-mini-sidebar-label">{{ tab.label }}</span>
-        </div>
-      </template>
+      <DashboardMiniSidebarItem
+        v-for="tab in miniSidebarTabs"
+        :key="tab.key"
+        v-e="[`c:sidebar:minitab:${tab.key}`]"
+        :icon="tab.icon"
+        :active-icon="tab.activeIcon"
+        :label="tab.label"
+        :active="activeSidebarTab === tab.key"
+        :disabled="!hasAvailableBases"
+        :data-testid="`nc-mini-sidebar-tab-${tab.key}`"
+        @click="onTabClick(tab.key)"
+      />
 
-      <!-- Notifications (below agents) -->
-      <div class="nc-mini-sidebar-labeled-item">
+      <!-- Notifications -->
+      <DashboardMiniSidebarItem variant="item" label="Activity" tooltip="Activity">
         <NotificationMenu />
-        <span class="nc-mini-sidebar-label">Activity</span>
-      </div>
+      </DashboardMiniSidebarItem>
 
       <!-- Divider -->
       <div class="w-8 border-t border-nc-border-gray-medium my-1"></div>
 
       <!-- Admin menu -->
-      <div
+      <DashboardMiniSidebarItem
         v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations')"
-        class="nc-mini-sidebar-labeled-btn"
-        :class="{ active: activeSidebarTab === 'admin' || isWorkspaceSettingsPageOpened || isIntegrationsPageOpened }"
+        icon="ncSettings"
+        label="Admin"
+        :active="activeSidebarTab === 'admin' || isWorkspaceSettingsPageOpened || isIntegrationsPageOpened"
         data-testid="nc-sidebar-admin-btn"
         @click="onTabClick('admin')"
-      >
-        <GeneralIcon icon="ncSettings" class="h-4.5 w-4.5" />
-        <span class="nc-mini-sidebar-label">Admin</span>
-      </div>
-
+      />
     </div>
     <div class="flex flex-col items-center pb-1 w-full">
       <!-- Chat support -->
-      <div
+      <DashboardMiniSidebarItem
         v-if="isChatWootEnabled"
         v-e="['c:sidebar:chat-support']"
-        class="nc-mini-sidebar-labeled-btn"
+        icon="ncSupportAgent"
+        label="Support"
         data-testid="nc-sidebar-chat-support-btn"
         @click="toggleChatSupport"
-      >
-        <GeneralIcon icon="ncSupportAgent" class="h-4.5 w-4.5" />
-        <span class="nc-mini-sidebar-label">Support</span>
-      </div>
+      />
 
-      <!-- Theme toggle (Light / Dark / System) -->
-      <div class="nc-mini-sidebar-labeled-item">
+      <!-- Theme toggle -->
+      <DashboardMiniSidebarItem variant="item" :tooltip="`Appearance (beta): ${selectedTheme}`" hide-on-click-disabled>
         <DashboardMiniSidebarTheme />
-        <span class="nc-mini-sidebar-label">Mode</span>
-      </div>
+      </DashboardMiniSidebarItem>
 
       <!-- Divider -->
       <div class="w-8 border-t border-nc-border-gray-medium my-1"></div>
@@ -284,13 +297,18 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     width: calc(100% - 6px);
     margin-left: 3px;
     margin-right: 3px;
+    min-height: 34px;
 
     @media (max-width: 1279px) {
       @apply py-2.5;
     }
 
-    &:hover:not(.active) {
+    &:hover:not(.active):not(.disabled) {
       @apply bg-nc-bg-gray-medium text-nc-content-gray;
+    }
+
+    &.disabled {
+      @apply opacity-40 cursor-not-allowed;
     }
   }
 
@@ -301,7 +319,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 
   .nc-mini-sidebar-labeled-item {
-
     // Suppress inner button hover — outer container handles it
     .nc-mini-sidebar-btn-full-width {
       @apply !h-auto !w-auto !p-0;
@@ -335,7 +352,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     font-weight: 600;
     letter-spacing: 0.01em;
 
-    @media (max-width: 1279px) {
+    @media (max-width: 1440px) {
       @apply !hidden;
     }
   }

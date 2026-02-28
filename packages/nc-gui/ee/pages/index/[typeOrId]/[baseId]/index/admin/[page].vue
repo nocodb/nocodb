@@ -12,14 +12,6 @@ const slugToTab: Record<string, string> = {
   overview: 'overview',
   mcp: 'mcp',
   snapshots: 'snapshots',
-  // Workspace settings (rendered inline in base admin)
-  'ws-members': 'ws-collaborators',
-  'ws-teams': 'ws-teams',
-  'ws-integrations': 'ws-integrations',
-  'ws-billing': 'ws-billing',
-  'ws-audits': 'ws-audits',
-  'ws-sso': 'ws-sso',
-  'ws-settings': 'ws-settings',
 }
 
 const tab = computed(() => slugToTab[route.params.page as string] || 'collaborator')

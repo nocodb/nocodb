@@ -47,6 +47,19 @@ const openedBase = computed(() => {
   return basesList.value.find((b) => b.id === activeProjectId.value)
 })
 
+const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-admin-page')
+
+// On ws-admin routes without a baseId, resolve a base from last visited or first available
+const resolvedBaseForAdmin = computed(() => {
+  if (openedBase.value) return openedBase.value
+  if (!isWsAdminRoute.value) return undefined
+
+  const lastVisitedBaseId = ncLastVisitedBase().get()
+  return basesList.value.find((b) => b.id === lastVisitedBaseId) || basesList.value[0]
+})
+
+const effectiveBase = computed(() => openedBase.value || resolvedBaseForAdmin.value)
+
 const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main'; value?: any }>({})
 
 const setMenuContext = (type: 'base' | 'base' | 'table' | 'main', value?: any) => {
@@ -362,14 +375,11 @@ useEventListener(document, 'contextmenu', handleContext, true)
 
 <template>
   <div class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch nc-treeview-container-active-base">
-    <template v-if="activeProjectId && openedBase?.id && !openedBase.isLoading">
-      <div
-        v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
-        class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-      >
+    <template v-if="effectiveBase?.id && !effectiveBase.isLoading">
+      <div class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
         <ProjectWrapper
-          :base-role="openedBase?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
-          :base="openedBase"
+          :base-role="effectiveBase?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
+          :base="effectiveBase"
         >
           <DashboardTreeViewProjectHome>
             <template #footer>
@@ -378,10 +388,10 @@ useEventListener(document, 'contextmenu', handleContext, true)
           </DashboardTreeViewProjectHome>
         </ProjectWrapper>
       </div>
-      <DashboardTreeViewProjectListSkeleton v-else />
 
       <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
+
     <div v-else-if="isProjectsLoaded && !isProjectsLoading && !basesList.length" class="nc-treeview-empty-state">
       <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBasesFound')" class="!mb-1" />
 

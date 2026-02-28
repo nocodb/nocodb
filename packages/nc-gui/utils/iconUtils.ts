@@ -347,6 +347,7 @@ import NcEdit2Icon from '~icons/nc-icons-v2/edit-2.svg'
 import NcCornerLeftUpIcon from '~icons/nc-icons-v2/corner-left-up.svg'
 import NcHomeIcon from '~icons/nc-icons-v2/home.svg'
 import NcHomeFilledIcon from '~icons/nc-icons-v2/home-filled.svg'
+import NcTableOutlineIcon from '~icons/nc-icons-v2/table-outline.svg'
 import NcTableFilledIcon from '~icons/nc-icons-v2/table-filled.svg'
 import NcAutomationsFilledIcon from '~icons/nc-icons-v2/automations-filled.svg'
 import NcGitlabIcon from '~icons/nc-icons-v2/gitlab.svg'
@@ -1412,6 +1413,7 @@ export const iconMap = {
   'ncCornerLeftUp': NcCornerLeftUpIcon,
   'ncHome': NcHomeIcon,
   'ncHomeFilled': h(NcHomeFilledIcon, { stroke: 'transparent' }),
+  'ncTableOutline': NcTableOutlineIcon,
   'ncTableFilled': h(NcTableFilledIcon, { stroke: 'transparent' }),
   'ncAutomationsFilled': h(NcAutomationsFilledIcon, { stroke: 'transparent' }),
   'ncGitlab': NcGitlabIcon,

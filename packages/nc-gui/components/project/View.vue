@@ -256,8 +256,14 @@ watch(projectPageTab, () => {
   if (props.tab) {
     const slug = tabToSlug[projectPageTab.value] || projectPageTab.value
     const wsId = route.value.params.typeOrId
-    const baseId = route.value.params.baseId
-    navigateTo(`/${wsId}/${baseId}/admin/${slug}`)
+
+    // Workspace-level settings → /{wsId}/admin/ws-*
+    if (slug.startsWith('ws-')) {
+      navigateTo(`/${wsId}/admin/${slug}`)
+    } else {
+      const baseId = route.value.params.baseId
+      navigateTo(`/${wsId}/${baseId}/admin/${slug}`)
+    }
     return
   }
 
@@ -319,6 +325,12 @@ const isAdminSidebar = computed(() => !!props.tab)
 provide('isAdminSidebar', isAdminSidebar)
 
 onMounted(async () => {
+  // For ws-* tabs, we don't need a base — just set the tab immediately
+  if (props.tab?.startsWith('ws-')) {
+    projectPageTab.value = props.tab
+    return
+  }
+
   await until(() => !!currentBase.value?.id).toBeTruthy()
   if (props.tab) {
     projectPageTab.value = props.tab

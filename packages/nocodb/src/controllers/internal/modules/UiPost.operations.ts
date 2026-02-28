@@ -136,6 +136,7 @@ export class UiPostOperations
     'extensionDelete' as const,
     'listViewCreate' as const,
     'listViewUpdate' as const,
+    'convertLinkToV2' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -206,6 +207,11 @@ export class UiPostOperations
           payload,
           req,
         );
+      case 'convertLinkToV2':
+        return await this.columnsService.convertLinkToV2(context, {
+          columnId: req.query.columnId,
+          req,
+        });
       case 'viewUpdate':
         return await this.viewsService.viewUpdate(context, {
           viewId: req.query.viewId,

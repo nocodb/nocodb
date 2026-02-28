@@ -6,6 +6,7 @@ import {
   LongTextAiMetaProp,
   NcErrorType,
   UITypes,
+  isBtLikeV2Junction,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { getColumnName } from 'src/helpers/dbHelpers';
@@ -166,6 +167,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       case UITypes.Rollup:
       case UITypes.Links:
+        if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {
+          aliasToColumn[col.id] = lookupOrLtarBuilder({
+            ...params,
+            column: col,
+            _formulaQueryBuilder,
+            knex,
+          });
+          break;
+        }
         aliasToColumn[col.id] = async ({
           tableAlias,
           parentColumns: parentColumns,

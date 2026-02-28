@@ -1102,6 +1102,7 @@ const onAddColumnDropdownVisibilityChange = () => {
       </div>
     </template>
   </NcDropdown>
+
 </template>
 
 <style lang="scss" scoped>

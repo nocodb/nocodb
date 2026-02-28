@@ -1,4 +1,4 @@
-import { ButtonActionsType, UITypes } from 'nocodb-sdk';
+import { ButtonActionsType, isBtLikeV2Junction, UITypes } from 'nocodb-sdk';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import type { ColumnType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
@@ -401,8 +401,11 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
         case UITypes.Rollup:
         case UITypes.Links:
-          if (column.uidt === UITypes.Links && linksAsLtar) {
-            // When linksAsLtar is enabled, treat Links like LTAR —
+          if (
+            column.uidt === UITypes.Links &&
+            (linksAsLtar || isBtLikeV2Junction(column))
+          ) {
+            // When linksAsLtar is enabled or V2 MO/OO (single-record) —
             // skip the rollup count select so getProto resolves nested data under column.title
             break;
           }

@@ -102,6 +102,8 @@ onBeforeMount(() => {
 
 const editDescription = toRef(props, 'editDescription')
 
+const showConvertLinkV2Modal = ref(false)
+
 const { getMeta } = useMetas()
 
 const { t } = useI18n()
@@ -1280,18 +1282,24 @@ const unique = computed({
                       }"
                     >
                       {{ UITypesName[opt.name] }}
-                      <span
+                      <NcTooltip
                         v-if="
                           isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
                           isEdit &&
                           column &&
                           column.uidt === UITypes.LinkToAnotherRecord &&
                           opt.name === UITypes.LinkToAnotherRecord &&
-                          column.colOptions?.version !== 2
+                          column.colOptions?.version !== 2 &&
+                          column.colOptions?.type !== 'mm'
                         "
-                        class="!text-xs !text-nc-content-brand-hover"
-                        >(Legacy)</span
+                        :title="$t('labels.convertToNewLink')"
                       >
+                        <span
+                          class="!text-xs !text-nc-content-brand-hover cursor-pointer hover:underline"
+                          @click.stop="showConvertLinkV2Modal = true"
+                          >(Legacy)</span
+                        >
+                      </NcTooltip>
                     </div>
 
                     <div v-if="searchBasisInfoMap[opt.name]" class="flex-1 flex">
@@ -1674,6 +1682,8 @@ const unique = computed({
         </template>
       </template>
     </a-form>
+
+    <LazyDlgConvertLinkV2 v-model:visible="showConvertLinkV2Modal" :column="column" @converted="emit('cancel')" />
   </div>
 </template>
 

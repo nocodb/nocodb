@@ -1,4 +1,5 @@
 import {
+  isBtLikeV2Junction,
   isMMOrMMLike,
   NcDataErrorCodes,
   RelationTypes,
@@ -354,6 +355,11 @@ export default async function genRollupSelectv2(param: {
         baseModel: parentBaseModel,
         context: parentBaseModel.context,
       });
+
+      // V2 MO/OO: single-record semantics — limit to 1 row
+      if (isBtLikeV2Junction(relationColumn)) {
+        qb.limit(1);
+      }
 
       await applyFunction(qb);
       profiler.end();

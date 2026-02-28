@@ -857,6 +857,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "convertLegacyLink": "Convert Legacy Link",
     "versionHistory": "Version History",
     "versionDeployments": "Version Deployments",
     "forkToDraft": "Fork to Draft",
@@ -1340,6 +1341,8 @@
     "editDescription": "Edit description",
     "editTableDescription": "Edit table description",
     "editFieldDescription": "Edit field description",
+    "convertToNewLink": "Convert to new link format",
+    "legacyLinkColumn": "Legacy link column",
     "urlFormula": "URL Formula",
     "visibilityCondition": "Visibility condition",
     "selectIcon": "none",
@@ -2630,6 +2633,12 @@
       "youCanOnlyUploadMaxLimitFilesAtATimePlural": "You can only upload {limit} {type} files at a time"
     },
     "info": {
+      "convertLinkV2Description": "This will convert the link to use a junction table internally, keeping all existing linked data intact.",
+      "convertLinkV2OriginalBecomesRollup": "will become a Rollup showing the linked record count (preserves existing formulas, filters, and sorts)",
+      "convertLinkV2NewLtarCreated": "A new Link field will be created next to it, showing the actual linked records",
+      "convertLinkV2FkColumnRemoved": "The foreign key column on the child table will be removed",
+      "convertLinkV2Warning": "This operation cannot be undone.",
+      "convertLinkV2Success": "Column converted successfully",
       "recordTemplatesDesc": "Create reusable templates to quickly add records with pre-filled field values",
       "noTemplates": "No templates yet",
       "noTemplatesDesc": "Create a template to quickly add records with pre-filled values",

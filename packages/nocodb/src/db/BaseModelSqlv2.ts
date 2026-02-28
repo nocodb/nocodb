@@ -17,6 +17,7 @@ import {
   extractFilterFromXwhere,
   isAIPromptCol,
   isAttachment,
+  isBtLikeV2Junction,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -1430,6 +1431,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
   }
 
+  public async mmRead(
+    param: {
+      colId: string;
+      parentId: any;
+    },
+    args: { fieldsSet?: Set<string> } = {},
+  ) {
+    return relationDataFetcher({ baseModel: this, logger }).mmRead(param, args);
+  }
+
   async multipleHmListCount({ colId, ids }) {
     return relationDataFetcher({
       baseModel: this,
@@ -1801,6 +1812,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 ] = async function (args): Promise<any> {
                   (listLoader as any).args = args;
                   return listLoader.load(
+                    getCompositePkValue(self.model.primaryKeys, this),
+                  );
+                };
+              } else if (isMMLike && isBtLikeV2Junction(column)) {
+                // V2 MO/OO: single-record — return object (like BT)
+                const readLoader = new DataLoader(
+                  async (ids: string[]) => {
+                    return Promise.all(
+                      ids.map((id) =>
+                        this.mmRead(
+                          { parentId: id, colId: column.id },
+                          (readLoader as any).args,
+                        ),
+                      ),
+                    );
+                  },
+                  {
+                    cache: false,
+                  },
+                );
+
+                const self: BaseModelSqlv2 = this;
+                proto[column.title] = async function (args?: any) {
+                  (readLoader as any).args = args;
+                  return await readLoader.load(
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };

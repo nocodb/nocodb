@@ -1,4 +1,4 @@
-import { isAIPromptCol, UITypes } from 'nocodb-sdk';
+import { isAIPromptCol, isBtLikeV2Junction, UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { ButtonColumn, FormulaColumn, RollupColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -50,18 +50,29 @@ export default async function sortV2(
       case UITypes.Rollup:
       case UITypes.Links:
         {
-          const builder = (
-            await genRollupSelectv2({
+          // V2 MO/OO: single-record — sort by display value (like BT/Lookup)
+          if (column.uidt === UITypes.Links && isBtLikeV2Junction(column)) {
+            const selectQb = await generateLookupSelectQuery({
               baseModelSqlv2,
-              knex,
-              columnOptions: (await column.getColOptions(
-                context,
-              )) as RollupColumn,
+              column,
               alias,
-            })
-          ).builder;
+              model,
+            });
+            qb.orderBy(selectQb?.builder, sort.direction || 'asc', nulls);
+          } else {
+            const builder = (
+              await genRollupSelectv2({
+                baseModelSqlv2,
+                knex,
+                columnOptions: (await column.getColOptions(
+                  context,
+                )) as RollupColumn,
+                alias,
+              })
+            ).builder;
 
-          qb.orderBy(builder, sort.direction || 'asc', nulls);
+            qb.orderBy(builder, sort.direction || 'asc', nulls);
+          }
         }
         break;
       case UITypes.Formula:

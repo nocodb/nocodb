@@ -1,6 +1,7 @@
 import type { Source } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { isMysqlVersionSupported } from '~/services/data-opt/mysql-helpers';
+import Noco from '~/Noco';
 
 export default async function canUseOptimisedQuery(
   context: NcContext,
@@ -12,6 +13,8 @@ export default async function canUseOptimisedQuery(
     disableOptimization: boolean;
   },
 ) {
+  if (!Noco.isEE()) return false;
+
   return (
     // disable mysql single query for now until we fix performance issues related to the mysql
     // use DEBUG_MYSQL_OPTIMIZED

@@ -28,7 +28,7 @@ const loadLicense = async () => {
 const setLicense = async () => {
   try {
     await api.orgLicense.set({ key: key.value })
-    message.success(t('success.licenseKeyUpdated'))
+    message.success(t('msg.success.licenseKeyUpdated'))
     await loadAppInfo()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

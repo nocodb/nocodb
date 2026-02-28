@@ -38,14 +38,11 @@ export class AccountUsersPage extends BasePage {
     return this.accountPage.get().locator(`[data-testid="nc-super-user-list"]`);
   }
 
-  async invite({ email, role }: { email: string; role: string }) {
+  async invite({ email }: { email: string }) {
     email = this.prefixEmail(email);
 
     await this.inviteUserBtn.click();
     await this.inviteUserModal.locator(`input[placeholder="E-mail"]`).fill(email);
-    await this.inviteUserModal.locator(`.nc-user-roles`).click();
-    const userRoleModal = this.rootPage.locator(`.nc-dropdown-user-role`);
-    await userRoleModal.locator(`.nc-role-option:has-text("${role}")`).click();
     const inviteAction = () => this.inviteUserModal.locator(`button:has-text("Invite")`).click();
     await this.waitForResponse({
       uiAction: inviteAction,
@@ -81,14 +78,6 @@ export class AccountUsersPage extends BasePage {
     await userRow.waitFor({ state: 'visible' });
 
     return userRow.first();
-  }
-
-  async updateRole({ email, role }: { email: string; role: string }) {
-    const userRow = await this.getUserRow({ email });
-    await userRow.locator('.nc-user-roles').click();
-    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).waitFor();
-    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).last().click();
-    await this.rootPage.locator(`.nc-users-list-role-option`).last().waitFor({ state: 'hidden' });
   }
 
   async inviteMore() {

@@ -46,6 +46,8 @@ export class AccountSetupPage extends BasePage {
     await this.setupListPage.getPluginItem(plugin).click();
     await this.setupConfigPage.fillForm(config);
     await this.setupConfigPage.save();
+    // Wait for save to complete — the app navigates away from the config page after a successful save
+    await this.rootPage.getByTestId('nc-setup-config').waitFor({ state: 'detached' });
   }
 
   async confirmReset() {

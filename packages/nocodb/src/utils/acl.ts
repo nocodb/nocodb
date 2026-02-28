@@ -290,11 +290,12 @@ const rolePermissions:
 
   // ── Workspace roles ──
   [WorkspaceUserRoles.NO_ACCESS]: {
-    include: {},
+    include: {
+      baseList: true,
+    },
   },
   [WorkspaceUserRoles.VIEWER]: {
     include: {
-      baseList: true,
       workspaceUserList: true,
       workspaceInvite: true,
     },

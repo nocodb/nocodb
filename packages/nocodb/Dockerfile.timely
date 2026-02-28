@@ -1,4 +1,3 @@
-# syntax=docker/dockerfile:1.5
 # Use Buildx cross-compilation
 
 ####################

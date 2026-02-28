@@ -17,12 +17,12 @@
  * TipTap commands listed below.
  *
  * Commands exposed:
- *   setSearchQuery(q)                        — update the search term
- *   setSearchOptions({ caseSensitive?, regex? }) — toggle flags
- *   nextMatch()  / prevMatch()               — cycle active match + scroll
- *   replaceCurrent(text)                     — replace active match
- *   replaceAll(text)                         — replace all matches (single undo step)
- *   clearSearch()                            — reset state, remove decorations
+ *   setSearchQuery(q)                            — update the search term
+ *   setSearchOptions({ caseSensitive?, regex? })  — toggle flags
+ *   nextMatch()  / prevMatch()                    — cycle active match + scroll
+ *   replaceCurrent(text)                          — replace active match
+ *   replaceAll(text)                              — replace all matches (single undo step)
+ *   clearSearch()                                 — reset state, remove decorations
  */
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey } from '@tiptap/pm/state'
@@ -47,6 +47,8 @@ interface SearchState {
 }
 
 // ── Plugin key (exported for DocSearchReplace.vue to read state) ─────────
+// The key is a singleton — safe to share across editor instances because
+// ProseMirror uses it only as a lookup token, not to store state.
 
 export const searchPluginKey = new PluginKey<SearchState>('docSearch')
 
@@ -98,6 +100,8 @@ function findMatches(doc: ProseMirrorNode, query: string, caseSensitive: boolean
       // contribute to the searchable text of the block.
     })
 
+    if (!segments.length) return
+
     // Concatenate all segments into one string for regex matching
     const blockText = segments.map((s) => s.text).join('')
 
@@ -125,6 +129,10 @@ function findMatches(doc: ProseMirrorNode, query: string, caseSensitive: boolean
         matches.push({ from, to })
       }
     }
+
+    // Stop descending into this textblock's children — we've already
+    // processed all text content via node.forEach above.
+    return false
   })
 
   return matches
@@ -158,78 +166,82 @@ type SearchMeta =
   | { type: 'prevMatch' }
   | { type: 'clear' }
 
-// ── ProseMirror plugin ───────────────────────────────────────────────────
+// ── Factory: creates a fresh ProseMirror plugin per editor instance ──────
+// Must NOT be a module-level singleton — each TipTap editor needs its own
+// plugin instance so plugin state is independent across editor lifecycles.
 
-const searchPlugin = new Plugin<SearchState>({
-  key: searchPluginKey,
+function createSearchPlugin() {
+  return new Plugin<SearchState>({
+    key: searchPluginKey,
 
-  state: {
-    init(): SearchState {
-      return { ...DEFAULT_STATE }
-    },
-
-    apply(tr: Transaction, prevState: SearchState, _oldEditorState: EditorState, newEditorState: EditorState): SearchState {
-      const meta = tr.getMeta(searchPluginKey) as SearchMeta | undefined
-
-      // Clear → full reset (called when the search bar closes)
-      if (meta?.type === 'clear') {
+    state: {
+      init(): SearchState {
         return { ...DEFAULT_STATE }
-      }
+      },
 
-      let state = { ...prevState }
-      let needRescan = false
+      apply(tr: Transaction, prevState: SearchState, _oldEditorState: EditorState, newEditorState: EditorState): SearchState {
+        const meta = tr.getMeta(searchPluginKey) as SearchMeta | undefined
 
-      // Query changed → rescan from scratch, reset active index
-      if (meta?.type === 'setQuery') {
-        state.query = meta.query
-        state.activeIndex = 0
-        needRescan = true
-      }
-
-      // Options changed (case sensitivity, regex) → rescan
-      if (meta?.type === 'setOptions') {
-        if (meta.caseSensitive !== undefined) state.caseSensitive = meta.caseSensitive
-        if (meta.regex !== undefined) state.regex = meta.regex
-        state.activeIndex = 0
-        needRescan = true
-      }
-
-      // Doc changed while a search is active → rescan to keep matches in sync
-      if (tr.docChanged && state.query) {
-        needRescan = true
-      }
-
-      if (needRescan) {
-        state.matches = findMatches(newEditorState.doc, state.query, state.caseSensitive, state.regex)
-        // Clamp activeIndex in case matches shrank (e.g. after a replace)
-        if (state.matches.length > 0) {
-          state.activeIndex = Math.min(state.activeIndex, state.matches.length - 1)
-        } else {
-          state.activeIndex = 0
+        // Clear → full reset (called when the search bar closes)
+        if (meta?.type === 'clear') {
+          return { ...DEFAULT_STATE }
         }
-      }
 
-      // Navigate — cycle through matches (wraps around)
-      if (meta?.type === 'nextMatch' && state.matches.length > 0) {
-        state.activeIndex = (state.activeIndex + 1) % state.matches.length
-      }
+        let state = { ...prevState }
+        let needRescan = false
 
-      if (meta?.type === 'prevMatch' && state.matches.length > 0) {
-        state.activeIndex = (state.activeIndex - 1 + state.matches.length) % state.matches.length
-      }
+        // Query changed → rescan from scratch, reset active index
+        if (meta?.type === 'setQuery') {
+          state.query = meta.query
+          state.activeIndex = 0
+          needRescan = true
+        }
 
-      return state
+        // Options changed (case sensitivity, regex) → rescan
+        if (meta?.type === 'setOptions') {
+          if (meta.caseSensitive !== undefined) state.caseSensitive = meta.caseSensitive
+          if (meta.regex !== undefined) state.regex = meta.regex
+          state.activeIndex = 0
+          needRescan = true
+        }
+
+        // Doc changed while a search is active → rescan to keep matches in sync
+        if (tr.docChanged && state.query) {
+          needRescan = true
+        }
+
+        if (needRescan) {
+          state.matches = findMatches(newEditorState.doc, state.query, state.caseSensitive, state.regex)
+          // Clamp activeIndex in case matches shrank (e.g. after a replace)
+          if (state.matches.length > 0) {
+            state.activeIndex = Math.min(state.activeIndex, state.matches.length - 1)
+          } else {
+            state.activeIndex = 0
+          }
+        }
+
+        // Navigate — cycle through matches (wraps around)
+        if (meta?.type === 'nextMatch' && state.matches.length > 0) {
+          state.activeIndex = (state.activeIndex + 1) % state.matches.length
+        }
+
+        if (meta?.type === 'prevMatch' && state.matches.length > 0) {
+          state.activeIndex = (state.activeIndex - 1 + state.matches.length) % state.matches.length
+        }
+
+        return state
+      },
     },
-  },
 
-  props: {
-    decorations(editorState: EditorState) {
-      const state = searchPluginKey.getState(editorState)
-      if (!state) return DecorationSet.empty
-      return buildDecorations(editorState.doc, state)
+    props: {
+      decorations(editorState: EditorState) {
+        const state = searchPluginKey.getState(editorState)
+        if (!state) return DecorationSet.empty
+        return buildDecorations(editorState.doc, state)
+      },
     },
-  },
-})
+  })
+}
 
 // ── TipTap command type augmentation ─────────────────────────────────────
 
@@ -253,7 +265,9 @@ export const DocSearchExtension = Extension.create({
   name: 'docSearch',
 
   addProseMirrorPlugins() {
-    return [searchPlugin]
+    // Fresh plugin per editor instance — avoids stale state across HMR or
+    // editor re-creation when navigating between documents.
+    return [createSearchPlugin()]
   },
 
   addCommands() {

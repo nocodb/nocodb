@@ -1202,7 +1202,9 @@ onBeforeUnmount(() => {
   @apply flex items-center bg-nc-bg-default rounded-lg px-1;
   border: 1px solid var(--nc-border-gray-medium);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  // overflow: visible so the highlight color picker dropdown (positioned
+  // absolutely below the toolbar) is not clipped.
+  overflow: visible;
 
   > .bubble-menu.embed-mode {
     @apply !rounded-lg !rounded-r-none;
@@ -1372,6 +1374,19 @@ onBeforeUnmount(() => {
   hr.nc-active-block {
     outline: 2px solid var(--nc-fill-primary);
     outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  // Search match highlight decorations (DocSearchExtension).
+  // ProseMirror Decoration.inline creates <span> elements with these classes.
+  // Inactive matches are yellow; the active/current match is orange.
+  .nc-search-match {
+    background: rgba(255, 212, 0, 0.4);
+    border-radius: 2px;
+  }
+
+  .nc-search-match-active {
+    background: rgba(255, 150, 0, 0.6);
     border-radius: 2px;
   }
 
@@ -1964,19 +1979,6 @@ onBeforeUnmount(() => {
   &.nc-doc-comment-mark-flash {
     animation: comment-mark-flash 1.5s ease-out forwards;
   }
-}
-
-// Search match highlight decorations (DocSearchExtension).
-// Inactive matches are yellow; the active/current match is orange.
-// These classes are applied as ProseMirror inline decorations.
-.nc-search-match {
-  background: rgba(255, 212, 0, 0.4);
-  border-radius: 2px;
-}
-
-.nc-search-match-active {
-  background: rgba(255, 150, 0, 0.5);
-  border-radius: 2px;
 }
 
 // The page menu (3-dot + comments) occupies the same top-right corner

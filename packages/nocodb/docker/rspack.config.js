@@ -40,7 +40,7 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json'],
     tsConfig: {
-      configFile: resolve('tsconfig.ce.json'),
+      configFile: resolve('tsconfig.json'),
     },
   },
   output: {

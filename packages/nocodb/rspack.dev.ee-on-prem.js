@@ -10,14 +10,14 @@ module.exports = {
       ...baseConfig.resolve.alias,
     },
     tsConfig: {
-      configFile: resolve('tsconfig.ee-on-prem.json'),
+      configFile: resolve('src/ee-on-prem/tsconfig.json'),
     },
   },
   plugins: [
     ...baseConfig.plugins.slice(0, -1),
     new TsCheckerRspackPlugin({
       typescript: {
-        configFile: join('tsconfig.ee-on-prem.json'),
+        configFile: join('src/ee-on-prem/tsconfig.json'),
       },
     }),
   ],

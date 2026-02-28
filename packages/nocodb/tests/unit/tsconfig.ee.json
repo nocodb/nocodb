@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.ee.json",
+  "extends": "../../src/ee/tsconfig.json",
   "compilerOptions": {
     "skipLibCheck": true,
     "composite": true,

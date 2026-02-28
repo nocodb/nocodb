@@ -1,17 +1,19 @@
 {
-  "extends": "./tsconfig.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "baseUrl": "./",
+    "outDir": "../../dist",
+    "baseUrl": "../../",
     "paths": {
       "src/*": [
         "./src/*"
       ],
       "~/*": [
+        "./src/ee-on-prem/*",
         "./src/ee/*",
         "./src/*"
       ],
       "@/*": [
+        "./src/ee-on-prem/*",
         "./src/ee/*",
         "./src/*"
       ],
@@ -21,18 +23,8 @@
       "@noco-local-integrations/core": [
         "../noco-integrations/core"
       ]
-    },
-    "typeRoots": [
-      "./node_modules/@types"
-    ]
+    }
   },
-  "include": [
-    "./src/**/*"
-  ],
-  "exclude": [
-    "./src/ee-on-prem",
-    "./src/ee-cloud",
-    "./src/**/*.spec.ts",
-    "./src/ee/daos/**"
-  ]
+  "include": ["../../src/**/*"],
+  "exclude": ["../../src/ee-cloud", "../../src/**/*.spec.ts", "../../src/ee/daos/**"]
 }

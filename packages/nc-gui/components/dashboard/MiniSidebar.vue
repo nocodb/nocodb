@@ -123,7 +123,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div class="nc-mini-sidebar" data-testid="nc-mini-sidebar">
-    <div class="flex flex-col items-center">
+    <div class="flex flex-col items-center w-full">
       <!-- Base color icon at top-left -->
       <DashboardMiniSidebarItemWrapper v-if="isBaseOpen && openedProject" size="small" show-in-mobile>
         <div
@@ -198,7 +198,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </div>
 
     </div>
-    <div class="flex flex-col items-center pb-1">
+    <div class="flex flex-col items-center pb-1 w-full">
       <!-- Chat support -->
       <div
         v-if="isChatWootEnabled"
@@ -314,7 +314,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     .nc-mini-sidebar-btn {
       @apply !h-auto !w-auto !p-0 !bg-transparent;
 
-      &:hover:not(.hovered) {
+      &:hover,
+      &.hovered {
         @apply !bg-transparent;
       }
     }
@@ -322,7 +323,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     .nc-button {
       @apply !h-auto !min-h-0 !p-0 !bg-transparent;
 
-      &:hover:not(.hovered) {
+      &:hover,
+      &.hovered {
         @apply !bg-transparent;
       }
     }

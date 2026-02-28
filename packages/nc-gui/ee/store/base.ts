@@ -355,7 +355,12 @@ export const useBase = defineStore('baseStore', () => {
     const workspaceId = workspaceStore.activeWorkspaceId
     const basUrl = `/${workspaceId}/${id}`
 
-    return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
+    if (projectPage) {
+      const slug = pageToSlug[projectPage] || projectPage
+      return `${basUrl}/admin/${slug}`
+    }
+
+    return basUrl
   }
 
   // Load managed app info and current version
@@ -412,6 +417,19 @@ export const useBase = defineStore('baseStore', () => {
     },
   )
 
+  const pageToSlug: Record<string, string> = {
+    collaborator: 'members',
+    'data-source': 'data-sources',
+    permissions: 'permissions',
+    syncs: 'syncs',
+    'base-settings': 'settings',
+    audits: 'audits',
+    workflows: 'workflows',
+    overview: 'overview',
+    mcp: 'mcp',
+    snapshots: 'snapshots',
+  }
+
   const navigateToProjectPage = async ({
     page,
     action,
@@ -419,25 +437,12 @@ export const useBase = defineStore('baseStore', () => {
     page: 'overview' | 'collaborator' | 'data-source' | 'permissions'
     action?: string
   }) => {
-    // await router.push({
-    //   name: 'index-typeOrId-baseId-index-index',
-    //   params: {
-    //     typeOrId: route.value.params.typeOrId,
-    //     baseId: route.value.params.baseId,
-    //   },
-    //   query: {
-    //     page,
-    //   },
-    // })
+    const wsId = route.value.params.typeOrId
+    const bId = route.value.params.baseId
+    const slug = pageToSlug[page] || page
+    const query = action ? { action } : undefined
 
-    navigateToProject({
-      workspaceId: route.value.params.typeOrId,
-      baseId: route.value.params.baseId,
-      query: {
-        page,
-        ...(action ? { action } : {}),
-      },
-    })
+    navigateTo({ path: `/${wsId}/${bId}/admin/${slug}`, query })
   }
 
   return {

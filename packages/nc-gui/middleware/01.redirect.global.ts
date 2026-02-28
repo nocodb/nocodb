@@ -1,4 +1,18 @@
-export default defineNuxtRouteMiddleware(async () => {
+// Map old ?page= tab names to new /admin/{slug} paths
+const pageToSlug: Record<string, string> = {
+  collaborator: 'members',
+  'data-source': 'data-sources',
+  permissions: 'permissions',
+  syncs: 'syncs',
+  'base-settings': 'settings',
+  audits: 'audits',
+  workflows: 'workflows',
+  overview: 'overview',
+  mcp: 'mcp',
+  snapshots: 'snapshots',
+}
+
+export default defineNuxtRouteMiddleware(async (to) => {
   // Get the query params from the URL
   const params = new URLSearchParams(window.location.search)
 
@@ -25,5 +39,27 @@ export default defineNuxtRouteMiddleware(async () => {
 
     // Redirect to the combined URL
     window.location.href = url
+    return
   }
+
+  // Redirect old ?page= query param routes to new /admin/{slug} paths
+  const page = to.query.page as string | undefined
+
+  if (page && to.params.baseId) {
+    // Special case: ?page=base-settings&tab=mcp → /admin/mcp
+    if (page === 'base-settings' && to.query.tab === 'mcp') {
+      return navigateTo(`/${to.params.typeOrId}/${to.params.baseId}/admin/mcp`, { replace: true })
+    }
+
+    const slug = pageToSlug[page]
+
+    if (slug) {
+      // Forward remaining query params (excluding page and tab)
+      const { page: _, tab: __, ...rest } = to.query
+      const query = Object.keys(rest).length ? rest : undefined
+
+      return navigateTo({ path: `/${to.params.typeOrId}/${to.params.baseId}/admin/${slug}`, query }, { replace: true })
+    }
+  }
+
 })

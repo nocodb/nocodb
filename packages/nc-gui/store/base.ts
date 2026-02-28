@@ -273,7 +273,16 @@ export const useBase = defineStore('baseStore', () => {
 
     const basUrl = `/nc/${id}`
 
-    return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
+    if (projectPage) {
+      const slug: Record<string, string> = {
+        collaborator: 'members',
+        'data-source': 'data-sources',
+        'base-settings': 'settings',
+      }
+      return `${basUrl}/admin/${slug[projectPage] || projectPage}`
+    }
+
+    return basUrl
   }
 
   const loadManagedApp = async () => {}

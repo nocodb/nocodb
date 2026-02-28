@@ -452,7 +452,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
       </div>
 
       <!-- Main Content -->
-      <div class="flex flex-1 min-h-0">
+      <div class="flex flex-1 min-h-0 flex-row-reverse">
         <!-- Left Panel - Workspaces (hidden on compact view) -->
         <div v-if="!isCompactView" class="nc-workspace-panel w-[320px] border-r border-nc-border-gray-medium flex flex-col">
           <div class="px-3 pt-3 pb-1 text-xs font-medium text-nc-content-gray-muted tracking-wide">

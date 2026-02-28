@@ -100,7 +100,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   const onOpenSettings = async (base: NcProject) => {
     closeModal()
     const workspaceId = base.fk_workspace_id || route.params.typeOrId
-    await navigateTo(`/${workspaceId}/${base.id}?page=base-settings`)
+    await navigateTo(`/${workspaceId}/${base.id}/admin/settings`)
   }
 
   const onDelete = (base: NcProject) => {

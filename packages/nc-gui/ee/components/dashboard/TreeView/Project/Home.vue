@@ -117,7 +117,6 @@ const tabToSlug: Record<string, string> = {
 const navigateToBaseSettings = (page: string) => {
   if (!base.value?.id) return
 
-  // In sidebar panel mode, navigate to clean URL — keep sidebar open
   const wsId = route.value.params.typeOrId
   const baseId = route.value.params.baseId
   const slug = tabToSlug[page] || page
@@ -214,133 +213,118 @@ const isAdminItemActive = (tab: string) => {
 
       <!-- Admin panel -->
       <template v-else-if="activeSidebarTab === 'admin'">
-        <div class="flex flex-col">
-          <!-- Base Settings Section -->
-          <template v-if="!isSharedBase">
-            <div class="px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide" style="font-size: 13px">
-              {{ $t('labels.baseSettings') }}
-            </div>
-            <div class="flex flex-col py-1">
-              <div
-                v-if="isUIAllowed('newUser', { roles: baseRoles })"
-                v-e="['c:admin:base:add-user']"
-                class="nc-admin-panel-item"
-                :class="{ active: isAdminItemActive('collaborator') }"
-                @click="navigateToBaseSettings('collaborator')"
-              >
-                <GeneralIcon icon="users" class="h-4 w-4 flex-none" />
-                <span>{{ $t('labels.addUserToBase') }}</span>
-              </div>
-              <div
-                v-if="isEeUI && isUIAllowed('sourceCreate')"
-                v-e="['c:admin:base:permissions']"
-                class="nc-admin-panel-item"
-                :class="{ active: isAdminItemActive('permissions') }"
-                @click="navigateToBaseSettings('permissions')"
-              >
-                <GeneralIcon icon="ncLock" class="h-4 w-4 flex-none" />
-                <span>{{ $t('labels.dataPermissions') }}</span>
-              </div>
-              <div
-                v-if="isUIAllowed('manageMCP')"
-                v-e="['c:admin:base:mcp']"
-                class="nc-admin-panel-item"
-                :class="{ active: isAdminItemActive('mcp') }"
-                @click="navigateToBaseSettings('mcp')"
-              >
-                <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
-                <span>{{ $t('title.mcpServer') }}</span>
-              </div>
-              <div
-                v-if="isEeUI && isUIAllowed('sourceCreate')"
-                v-e="['c:admin:base:syncs']"
-                class="nc-admin-panel-item"
-                :class="{ active: isAdminItemActive('syncs') }"
-                @click="navigateToBaseSettings('syncs')"
-              >
-                <GeneralIcon icon="ncZap" class="h-4 w-4 flex-none" />
-                <span>{{ $t('labels.manageSyncs') }}</span>
-              </div>
-              <div
-                v-if="isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot')"
-                v-e="['c:admin:base:snapshots']"
-                class="nc-admin-panel-item"
-                :class="{ active: isAdminItemActive('snapshots') }"
-                @click="navigateToBaseSettings('snapshots')"
-              >
-                <GeneralIcon icon="camera" class="h-4 w-4 flex-none" />
-                <span>{{ $t('labels.manageSnapshots') }}</span>
-              </div>
-              <div
-                v-if="isUIAllowed('sourceCreate')"
-                v-e="['c:admin:base:add-data-source']"
-                class="nc-admin-panel-item"
-                :class="{ active: isAdminItemActive('data-source') }"
-                @click="navigateToBaseSettings('data-source')"
-              >
-                <GeneralIcon icon="ncDatabase" class="h-4 w-4 flex-none" />
-                <span>{{ $t('labels.addDataSource') }}</span>
-              </div>
-              <div
-                v-e="['c:admin:base:more']"
-                class="nc-admin-panel-item"
-                :class="{ active: isAdminItemActive('base-settings') }"
-                @click="navigateToBaseSettings('base-settings')"
-              >
-                <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4 flex-none" />
-                <span>{{ $t('general.general') }}</span>
-              </div>
-            </div>
+        <!-- Base Settings Section -->
+        <div v-if="!isSharedBase" class="nc-project-home-section">
+          <div class="nc-admin-section-header">
+            {{ $t('labels.baseSettings') }}
+          </div>
+          <NcSidebarMenuItem
+            v-if="isUIAllowed('newUser', { roles: baseRoles })"
+            v-e="['c:admin:base:add-user']"
+            icon="users"
+            :active="isAdminItemActive('collaborator')"
+            @click="navigateToBaseSettings('collaborator')"
+          >
+            {{ $t('labels.addUserToBase') }}
+          </NcSidebarMenuItem>
+          <NcSidebarMenuItem
+            v-if="isEeUI && isUIAllowed('sourceCreate')"
+            v-e="['c:admin:base:permissions']"
+            icon="ncLock"
+            :active="isAdminItemActive('permissions')"
+            @click="navigateToBaseSettings('permissions')"
+          >
+            {{ $t('labels.dataPermissions') }}
+          </NcSidebarMenuItem>
+          <NcSidebarMenuItem
+            v-if="isUIAllowed('manageMCP')"
+            v-e="['c:admin:base:mcp']"
+            icon="mcp"
+            :active="isAdminItemActive('mcp')"
+            @click="navigateToBaseSettings('mcp')"
+          >
+            {{ $t('title.mcpServer') }}
+          </NcSidebarMenuItem>
+          <NcSidebarMenuItem
+            v-if="isEeUI && isUIAllowed('sourceCreate')"
+            v-e="['c:admin:base:syncs']"
+            icon="ncZap"
+            :active="isAdminItemActive('syncs')"
+            @click="navigateToBaseSettings('syncs')"
+          >
+            {{ $t('labels.manageSyncs') }}
+          </NcSidebarMenuItem>
+          <NcSidebarMenuItem
+            v-if="isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot')"
+            v-e="['c:admin:base:snapshots']"
+            icon="camera"
+            :active="isAdminItemActive('snapshots')"
+            @click="navigateToBaseSettings('snapshots')"
+          >
+            {{ $t('labels.manageSnapshots') }}
+          </NcSidebarMenuItem>
+          <NcSidebarMenuItem
+            v-if="isUIAllowed('sourceCreate')"
+            v-e="['c:admin:base:add-data-source']"
+            icon="ncDatabase"
+            :active="isAdminItemActive('data-source')"
+            @click="navigateToBaseSettings('data-source')"
+          >
+            {{ $t('labels.addDataSource') }}
+          </NcSidebarMenuItem>
+          <NcSidebarMenuItem
+            v-e="['c:admin:base:more']"
+            icon="ncMoreHorizontal"
+            :active="isAdminItemActive('base-settings')"
+            @click="navigateToBaseSettings('base-settings')"
+          >
+            {{ $t('general.general') }}
+          </NcSidebarMenuItem>
+        </div>
 
-            <div class="mx-3 border-t border-nc-border-gray-medium"></div>
-          </template>
+        <div v-if="!isSharedBase" class="mx-3 border-t border-nc-border-gray-medium"></div>
 
-          <!-- Workspace Settings Section -->
-          <div class="px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide" style="font-size: 13px">
+        <!-- Workspace Settings Section -->
+        <div class="nc-project-home-section">
+          <div class="nc-admin-section-header">
             {{ $t('objects.workspace') }} {{ $t('labels.settings') }}
           </div>
-          <div class="flex flex-col py-1">
-            <div
-              v-if="isUIAllowed('workspaceCollaborators')"
-              v-e="['c:admin:ws:invite-user']"
-              class="nc-admin-panel-item"
-              :class="{ active: isAdminItemActive('ws-collaborators') }"
-              @click="navigateToBaseSettings('ws-collaborators')"
-            >
-              <GeneralIcon icon="users" class="h-4 w-4 flex-none" />
-              <span>{{ $t('labels.inviteUsersToWorkspace') }}</span>
-            </div>
-            <div
-              v-if="isEeUI && isTeamsEnabled"
-              v-e="['c:admin:ws:add-team']"
-              class="nc-admin-panel-item"
-              :class="{ active: isAdminItemActive('ws-teams') }"
-              @click="navigateToBaseSettings('ws-teams')"
-            >
-              <GeneralIcon icon="ncBuilding" class="h-4 w-4 flex-none" />
-              <span>{{ $t('labels.manageTeams') }}</span>
-            </div>
-            <div
-              v-if="isUIAllowed('workspaceIntegrations')"
-              v-e="['c:integrations']"
-              class="nc-admin-panel-item"
-              :class="{ active: isAdminItemActive('ws-integrations') }"
-              @click="navigateToBaseSettings('ws-integrations')"
-            >
-              <GeneralIcon icon="integration" class="h-4 w-4 flex-none" />
-              <span>{{ $t('general.integrations') }}</span>
-            </div>
-            <div
-              v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
-              v-e="['c:admin:ws:general']"
-              class="nc-admin-panel-item"
-              :class="{ active: isAdminItemActive('ws-settings') }"
-              @click="navigateToBaseSettings('ws-settings')"
-            >
-              <GeneralIcon icon="ncMoreHorizontal" class="h-4 w-4 flex-none" />
-              <span>{{ $t('general.general') }}</span>
-            </div>
-          </div>
+          <NcSidebarMenuItem
+            v-if="isUIAllowed('workspaceCollaborators')"
+            v-e="['c:admin:ws:invite-user']"
+            icon="users"
+            :active="isAdminItemActive('ws-collaborators')"
+            @click="navigateToBaseSettings('ws-collaborators')"
+          >
+            {{ $t('labels.inviteUsersToWorkspace') }}
+          </NcSidebarMenuItem>
+          <NcSidebarMenuItem
+            v-if="isEeUI && isTeamsEnabled"
+            v-e="['c:admin:ws:add-team']"
+            icon="ncBuilding"
+            :active="isAdminItemActive('ws-teams')"
+            @click="navigateToBaseSettings('ws-teams')"
+          >
+            {{ $t('labels.manageTeams') }}
+          </NcSidebarMenuItem>
+          <NcSidebarMenuItem
+            v-if="isUIAllowed('workspaceIntegrations')"
+            v-e="['c:integrations']"
+            icon="integration"
+            :active="isAdminItemActive('ws-integrations')"
+            @click="navigateToBaseSettings('ws-integrations')"
+          >
+            {{ $t('general.integrations') }}
+          </NcSidebarMenuItem>
+          <NcSidebarMenuItem
+            v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
+            v-e="['c:admin:ws:general']"
+            icon="ncMoreHorizontal"
+            :active="isAdminItemActive('ws-settings')"
+            @click="navigateToBaseSettings('ws-settings')"
+          >
+            {{ $t('general.general') }}
+          </NcSidebarMenuItem>
         </div>
       </template>
     </div>
@@ -398,16 +382,8 @@ const isAdminItemActive = (tab: string) => {
   }
 }
 
-.nc-admin-panel-item {
-  @apply flex items-center gap-2 px-3 py-1.5 mx-1 rounded-md cursor-pointer text-nc-content-gray-muted transition-colors duration-150;
+.nc-admin-section-header {
+  @apply px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
   font-size: 13px;
-
-  &:hover {
-    @apply bg-nc-bg-gray-medium text-nc-content-gray;
-  }
-
-  &.active {
-    @apply bg-primary-selected dark:bg-nc-bg-gray-medium text-nc-content-gray;
-  }
 }
 </style>

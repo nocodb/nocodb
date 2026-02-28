@@ -61,6 +61,32 @@ const comment = ref('')
 const editCommentValue = ref<CommentType>()
 const isEditing = ref(false)
 
+// Filter state — all default to false (show everything)
+const isFilterOpen = ref(false)
+const filterUnresolvedOnly = ref(false)
+const filterMyCommentsOnly = ref(false)
+const filterInlineOnly = ref(false)
+
+const hasActiveFilters = computed(
+  () => filterUnresolvedOnly.value || filterMyCommentsOnly.value || filterInlineOnly.value,
+)
+
+const filteredThreadedComments = computed(() => {
+  let threads = threadedComments.value
+  if (filterUnresolvedOnly.value) {
+    threads = threads.filter((t) => !t.resolved_by)
+  }
+  if (filterMyCommentsOnly.value) {
+    threads = threads.filter(
+      (t) => t.created_by === user.value?.id || t.replies?.some((r) => r.created_by === user.value?.id),
+    )
+  }
+  if (filterInlineOnly.value) {
+    threads = threads.filter((t) => !!t.anchor_id)
+  }
+  return threads
+})
+
 // Extract selected text from editor when there's a pending inline selection
 const pendingSelectionText = computed(() => {
   if (!props.pendingSelection || !props.editor) return ''
@@ -376,9 +402,54 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
           {{ comments.length > 99 ? '99+' : comments.length }}
         </NcBadge>
       </div>
-      <NcButton size="xsmall" type="text" data-testid="nc-doc-comments-close-btn" @click="emit('close')">
-        <GeneralIcon icon="close" />
-      </NcButton>
+      <div class="flex items-center gap-0.5">
+        <!-- Filter dropdown -->
+        <NcDropdown v-model:visible="isFilterOpen" :trigger="['click']" placement="bottomRight">
+          <NcButton
+            size="xsmall"
+            type="text"
+            data-testid="nc-doc-comments-filter-btn"
+            :class="{ '!text-nc-content-brand': hasActiveFilters }"
+          >
+            <div class="relative">
+              <GeneralIcon icon="ncFilter" />
+              <div
+                v-if="hasActiveFilters"
+                class="bg-primary w-1.25 h-1.25 rounded-full absolute -top-0.5 -right-0.5"
+              />
+            </div>
+          </NcButton>
+          <template #overlay>
+            <div class="flex flex-col py-1.5 px-1 min-w-[180px]" @click.stop>
+              <div
+                class="flex items-center justify-between gap-3 px-2 py-1.5 rounded-md hover:bg-nc-bg-gray-light cursor-pointer"
+                @click="filterUnresolvedOnly = !filterUnresolvedOnly"
+              >
+                <span class="text-sm text-nc-content-gray">{{ $t('labels.unresolved') }}</span>
+                <GeneralIcon v-if="filterUnresolvedOnly" icon="check" class="text-nc-content-brand" />
+              </div>
+              <div
+                class="flex items-center justify-between gap-3 px-2 py-1.5 rounded-md hover:bg-nc-bg-gray-light cursor-pointer"
+                @click="filterMyCommentsOnly = !filterMyCommentsOnly"
+              >
+                <span class="text-sm text-nc-content-gray">{{ $t('labels.myComments') }}</span>
+                <GeneralIcon v-if="filterMyCommentsOnly" icon="check" class="text-nc-content-brand" />
+              </div>
+              <div
+                class="flex items-center justify-between gap-3 px-2 py-1.5 rounded-md hover:bg-nc-bg-gray-light cursor-pointer"
+                @click="filterInlineOnly = !filterInlineOnly"
+              >
+                <span class="text-sm text-nc-content-gray">{{ $t('labels.inlineComments') }}</span>
+                <GeneralIcon v-if="filterInlineOnly" icon="check" class="text-nc-content-brand" />
+              </div>
+            </div>
+          </template>
+        </NcDropdown>
+        <!-- Close button -->
+        <NcButton size="xsmall" type="text" data-testid="nc-doc-comments-close-btn" @click="emit('close')">
+          <GeneralIcon icon="close" />
+        </NcButton>
+      </div>
     </div>
 
     <!-- Loading state -->
@@ -396,9 +467,19 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
       </div>
     </div>
 
+    <!-- Filtered empty state — comments exist but all hidden by filters -->
+    <div v-else-if="filteredThreadedComments.length === 0" class="flex flex-col my-1 text-center justify-center flex-1 overflow-hidden">
+      <div class="text-3xl text-nc-content-gray-subtle">
+        <GeneralIcon icon="ncFilter" />
+      </div>
+      <div class="font-medium my-4 text-nc-content-gray-muted text-sm">
+        {{ $t('msg.noMatchingComments') }}
+      </div>
+    </div>
+
     <!-- Comments list -->
     <div v-else ref="commentsWrapperEl" class="flex flex-col flex-1 py-1 nc-scrollbar-thin overflow-y-auto">
-      <template v-for="(threadItem, index) of threadedComments" :key="threadItem.id">
+      <template v-for="(threadItem, index) of filteredThreadedComments" :key="threadItem.id">
         <div
           class="nc-doc-thread-card mx-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight transition-all duration-150"
           :class="{

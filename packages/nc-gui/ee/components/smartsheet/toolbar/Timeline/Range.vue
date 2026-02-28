@@ -189,63 +189,63 @@ const initialViewMode = computed({
             <!-- End Date -->
             <div class="w-full space-y-2">
               <NcButton
-                    v-if="selectedToCol === null"
-                    size="small"
-                    data-testid="nc-timeline-range-add-end-date"
-                    type="text"
-                    :shadow="false"
-                    :disabled="isLocked"
-                    @click="selectedToCol = undefined"
-                  >
-                    <div class="flex gap-2 items-center">
-                      <component :is="iconMap.plus" class="h-4 w-4" />
-                      {{ $t('activity.endDate') }}
-                    </div>
-                  </NcButton>
+                v-if="selectedToCol === null"
+                size="small"
+                data-testid="nc-timeline-range-add-end-date"
+                type="text"
+                :shadow="false"
+                :disabled="isLocked"
+                @click="selectedToCol = undefined"
+              >
+                <div class="flex gap-2 items-center">
+                  <component :is="iconMap.plus" class="h-4 w-4" />
+                  {{ $t('activity.endDate') }}
+                </div>
+              </NcButton>
 
-                  <template v-else>
-                    <div class="flex gap-2 items-center">
-                      {{ $t('activity.withEndDate') }}
-                    </div>
-                    <div class="flex">
-                      <a-select
-                        v-model:value="selectedToCol"
-                        class="nc-select-shadow w-full flex-1 !rounded-lg"
-                        allow-clear
-                        :disabled="!selectedFromCol || isLocked"
-                        :placeholder="$t('placeholder.notSelected')"
-                        data-testid="nc-timeline-range-to-field-select"
-                        dropdown-class-name="!rounded-lg"
-                        @change="saveRange"
-                        @click.stop
-                      >
-                        <template #suffixIcon>
-                          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-                        </template>
-                        <a-select-option
-                          v-for="col in dateColumns.filter((c) => c.id !== selectedFromCol)"
-                          :key="col.id"
-                          :value="col.id"
-                        >
-                          <div class="w-full flex gap-2 items-center justify-between" :title="col.title">
-                            <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                              <SmartsheetHeaderIcon :column="col" />
-                              <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                                <template #title>{{ col.title }}</template>
-                                <template #default>{{ col.title }}</template>
-                              </NcTooltip>
-                            </div>
-                            <GeneralIcon
-                              v-if="col.id === selectedToCol"
-                              id="nc-selected-item-icon"
-                              icon="check"
-                              class="flex-none text-primary w-4 h-4"
-                            />
-                          </div>
-                        </a-select-option>
-                      </a-select>
-                    </div>
-                  </template>
+              <template v-else>
+                <div class="flex gap-2 items-center">
+                  {{ $t('activity.withEndDate') }}
+                </div>
+                <div class="flex">
+                  <a-select
+                    v-model:value="selectedToCol"
+                    class="nc-select-shadow w-full flex-1 !rounded-lg"
+                    allow-clear
+                    :disabled="!selectedFromCol || isLocked"
+                    :placeholder="$t('placeholder.notSelected')"
+                    data-testid="nc-timeline-range-to-field-select"
+                    dropdown-class-name="!rounded-lg"
+                    @change="saveRange"
+                    @click.stop
+                  >
+                    <template #suffixIcon>
+                      <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                    </template>
+                    <a-select-option
+                      v-for="col in dateColumns.filter((c) => c.id !== selectedFromCol)"
+                      :key="col.id"
+                      :value="col.id"
+                    >
+                      <div class="w-full flex gap-2 items-center justify-between" :title="col.title">
+                        <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                          <SmartsheetHeaderIcon :column="col" />
+                          <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                            <template #title>{{ col.title }}</template>
+                            <template #default>{{ col.title }}</template>
+                          </NcTooltip>
+                        </div>
+                        <GeneralIcon
+                          v-if="col.id === selectedToCol"
+                          id="nc-selected-item-icon"
+                          icon="check"
+                          class="flex-none text-primary w-4 h-4"
+                        />
+                      </div>
+                    </a-select-option>
+                  </a-select>
+                </div>
+              </template>
             </div>
           </div>
 

@@ -1301,96 +1301,94 @@ watch(activeBaseId, () => {
                 </a-select>
               </div>
               <div class="w-full space-y-2">
-                    <NcButton
-                      v-if="range.fk_to_column_id === null"
-                      size="small"
-                      type="text"
-                      @click="range.fk_to_column_id = undefined"
-                    >
-                      <div class="flex items-center gap-1">
-                        <component :is="iconMap.plus" class="h-4 w-4" />
-                        {{ $t('activity.endDate') }}
-                      </div>
-                    </NcButton>
-
-                    <template v-else>
-                      <div class="flex gap-2 items-center text-nc-content-gray-subtle">
-                        {{ $t('activity.withEndDate') }}
-                      </div>
-
-                      <div class="flex">
-                        <a-select
-                          v-model:value="range.fk_to_column_id"
-                          class="nc-select-shadow w-full flex-1"
-                          allow-clear
-                          show-search
-                          :disabled="isMetaLoading"
-                          :loading="isMetaLoading"
-                          :placeholder="$t('placeholder.notSelected')"
-                          data-testid="nc-timeline-range-to-field-select"
-                          dropdown-class-name="!rounded-lg"
-                          @click.stop
-                        >
-                          <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
-
-                          <a-select-option
-                            v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
-                              // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
-                              // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
-                              const firstRange = viewSelectFieldOptions.find(
-                                (f) => f.value === form.timeline_range[0].fk_from_column_id,
-                              )
-                              // First ensure the data type matches
-                              const dataTypeMatches = firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
-
-                              // If no match in data type, return false
-                              if (!dataTypeMatches) return false
-
-                              // If first range has a timezone configured, ensure this option has the same timezone
-                              const firstRangeColumn = meta?.columns?.find(
-                                (c) => c.id === form.timeline_range[0].fk_from_column_id,
-                              )
-                              const optionColumn = meta?.columns?.find((c) => c.id === f.value)
-                              return optionColumn?.meta?.timezone === firstRangeColumn.meta.timezone
-                            })"
-                            :key="id"
-                            :value="option.value"
-                          >
-                            <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
-                              <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
-                                <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
-
-                                <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
-                                  <template #title>
-                                    {{ option.label }}
-                                  </template>
-                                  <template #default>{{ option.label }}</template>
-                                </NcTooltip>
-                              </div>
-                              <GeneralIcon
-                                v-if="option.value === range.fk_from_column_id"
-                                id="nc-selected-item-icon"
-                                icon="check"
-                                class="flex-none text-primary w-4 h-4"
-                              />
-                            </div>
-                          </a-select-option>
-                        </a-select>
-                      </div>
-                      <NcButton
-                        v-if="index !== 0"
-                        size="small"
-                        type="secondary"
-                        @click="
-                          () => {
-                            form.timeline_range = form.timeline_range.filter((_, i) => i !== index)
-                          }
-                        "
-                      >
-                        <component :is="iconMap.close" />
-                      </NcButton>
-                    </template>
+                <NcButton
+                  v-if="range.fk_to_column_id === null"
+                  size="small"
+                  type="text"
+                  @click="range.fk_to_column_id = undefined"
+                >
+                  <div class="flex items-center gap-1">
+                    <component :is="iconMap.plus" class="h-4 w-4" />
+                    {{ $t('activity.endDate') }}
                   </div>
+                </NcButton>
+
+                <template v-else>
+                  <div class="flex gap-2 items-center text-nc-content-gray-subtle">
+                    {{ $t('activity.withEndDate') }}
+                  </div>
+
+                  <div class="flex">
+                    <a-select
+                      v-model:value="range.fk_to_column_id"
+                      class="nc-select-shadow w-full flex-1"
+                      allow-clear
+                      show-search
+                      :disabled="isMetaLoading"
+                      :loading="isMetaLoading"
+                      :placeholder="$t('placeholder.notSelected')"
+                      data-testid="nc-timeline-range-to-field-select"
+                      dropdown-class-name="!rounded-lg"
+                      @click.stop
+                    >
+                      <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
+
+                      <a-select-option
+                        v-for="(option, id) in [...viewSelectFieldOptions].filter((f) => {
+                          // If the fk_from_column_id of first range is Date, then all the other ranges should be Date
+                          // If the fk_from_column_id of first range is DateTime, then all the other ranges should be DateTime
+                          const firstRange = viewSelectFieldOptions.find(
+                            (f) => f.value === form.timeline_range[0].fk_from_column_id,
+                          )
+                          // First ensure the data type matches
+                          const dataTypeMatches = firstRange?.uidt === f.uidt && f.value !== range.fk_from_column_id
+
+                          // If no match in data type, return false
+                          if (!dataTypeMatches) return false
+
+                          // If first range has a timezone configured, ensure this option has the same timezone
+                          const firstRangeColumn = meta?.columns?.find((c) => c.id === form.timeline_range[0].fk_from_column_id)
+                          const optionColumn = meta?.columns?.find((c) => c.id === f.value)
+                          return optionColumn?.meta?.timezone === firstRangeColumn.meta.timezone
+                        })"
+                        :key="id"
+                        :value="option.value"
+                      >
+                        <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                          <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
+                            <SmartsheetHeaderIcon v-if="option.col" :column="option.col" />
+
+                            <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                              <template #title>
+                                {{ option.label }}
+                              </template>
+                              <template #default>{{ option.label }}</template>
+                            </NcTooltip>
+                          </div>
+                          <GeneralIcon
+                            v-if="option.value === range.fk_from_column_id"
+                            id="nc-selected-item-icon"
+                            icon="check"
+                            class="flex-none text-primary w-4 h-4"
+                          />
+                        </div>
+                      </a-select-option>
+                    </a-select>
+                  </div>
+                  <NcButton
+                    v-if="index !== 0"
+                    size="small"
+                    type="secondary"
+                    @click="
+                      () => {
+                        form.timeline_range = form.timeline_range.filter((_, i) => i !== index)
+                      }
+                    "
+                  >
+                    <component :is="iconMap.close" />
+                  </NcButton>
+                </template>
+              </div>
             </div>
           </template>
         </template>

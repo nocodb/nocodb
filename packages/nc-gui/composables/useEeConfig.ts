@@ -178,7 +178,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseTimelineView = (..._args: any[]) => {}
 
-
   const showUpgradeToUseAiPromptField = (..._args: any[]) => {}
 
   const showUpgradeToUseAiButtonField = (..._args: any[]) => {}

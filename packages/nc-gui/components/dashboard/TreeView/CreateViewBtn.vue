@@ -270,7 +270,7 @@ function onCreateSection() {
             </div>
 
             <template v-if="blockTimelineView">
-              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW" :plan-title="PlanTitles.PLUS" remove-click />
+              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW" :plan-title="PlanTitles.BUSINESS" remove-click />
             </template>
             <template v-else>
               <GeneralLoader v-if="toBeCreateType === ViewTypes.TIMELINE && isViewListLoading" />

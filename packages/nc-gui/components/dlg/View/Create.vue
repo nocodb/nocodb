@@ -97,7 +97,7 @@ const workspaceStore = useWorkspace()
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
 
-const { blockCalendarRange, blockTimelineRange, getPlanTitle } = useEeConfig()
+const { blockCalendarRange, getPlanTitle } = useEeConfig()
 
 const viewStore = useViewsStore()
 
@@ -1300,43 +1300,22 @@ watch(activeBaseId, () => {
                   </a-select-option>
                 </a-select>
               </div>
-              <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE">
-                <template #default="{ click }">
-                  <div class="w-full space-y-2">
+              <div class="w-full space-y-2">
                     <NcButton
                       v-if="range.fk_to_column_id === null"
                       size="small"
                       type="text"
-                      @click="click(PlanFeatureTypes.FEATURE_TIMELINE_RANGE, () => (range.fk_to_column_id = undefined))"
+                      @click="range.fk_to_column_id = undefined"
                     >
                       <div class="flex items-center gap-1">
                         <component :is="iconMap.plus" class="h-4 w-4" />
                         {{ $t('activity.endDate') }}
                       </div>
-                      <PaymentUpgradeBadge
-                        class="ml-2"
-                        :limit-or-feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
-                        :content="
-                          $t('upgrade.upgradeToUseTimelineRangeSubtitle', {
-                            plan: getPlanTitle(PlanTitles.PLUS),
-                          })
-                        "
-                        :feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
-                      />
                     </NcButton>
 
                     <template v-else>
                       <div class="flex gap-2 items-center text-nc-content-gray-subtle">
                         {{ $t('activity.withEndDate') }}
-                        <PaymentUpgradeBadge
-                          :limit-or-feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
-                          :content="
-                            $t('upgrade.upgradeToUseTimelineRangeSubtitle', {
-                              plan: getPlanTitle(PlanTitles.PLUS),
-                            })
-                          "
-                          :feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
-                        />
                       </div>
 
                       <div class="flex">
@@ -1345,7 +1324,7 @@ watch(activeBaseId, () => {
                           class="nc-select-shadow w-full flex-1"
                           allow-clear
                           show-search
-                          :disabled="isMetaLoading || blockTimelineRange"
+                          :disabled="isMetaLoading"
                           :loading="isMetaLoading"
                           :placeholder="$t('placeholder.notSelected')"
                           data-testid="nc-timeline-range-to-field-select"
@@ -1412,8 +1391,6 @@ watch(activeBaseId, () => {
                       </NcButton>
                     </template>
                   </div>
-                </template>
-              </PaymentUpgradeBadgeProvider>
             </div>
           </template>
         </template>

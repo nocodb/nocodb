@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, UITypes } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 
 const meta = inject(MetaInj, ref())
 
-const { blockTimelineRange, getPlanTitle } = useEeConfig()
 const activeView = inject(ActiveViewInj, ref())
 const IsPublic = inject(IsPublicInj, ref(false))
 const isLocked = inject(IsLockedInj, ref(false))
@@ -189,55 +188,31 @@ const initialViewMode = computed({
 
             <!-- End Date -->
             <div class="w-full space-y-2">
-              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE">
-                <template #default="{ click }">
-                  <NcButton
+              <NcButton
                     v-if="selectedToCol === null"
                     size="small"
                     data-testid="nc-timeline-range-add-end-date"
                     type="text"
                     :shadow="false"
                     :disabled="isLocked"
-                    @click="
-                      click(PlanFeatureTypes.FEATURE_TIMELINE_RANGE, () => {
-                        selectedToCol = undefined
-                      })
-                    "
+                    @click="selectedToCol = undefined"
                   >
                     <div class="flex gap-2 items-center">
                       <component :is="iconMap.plus" class="h-4 w-4" />
                       {{ $t('activity.endDate') }}
-                      <PaymentUpgradeBadge
-                        :limit-or-feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
-                        :content="
-                          $t('upgrade.upgradeToUseTimelineRangeSubtitle', {
-                            plan: getPlanTitle(PlanTitles.PLUS),
-                          })
-                        "
-                        :feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
-                      />
                     </div>
                   </NcButton>
 
                   <template v-else>
                     <div class="flex gap-2 items-center">
                       {{ $t('activity.withEndDate') }}
-                      <PaymentUpgradeBadge
-                        :limit-or-feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
-                        :content="
-                          $t('upgrade.upgradeToUseTimelineRangeSubtitle', {
-                            plan: getPlanTitle(PlanTitles.PLUS),
-                          })
-                        "
-                        :feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
-                      />
                     </div>
                     <div class="flex">
                       <a-select
                         v-model:value="selectedToCol"
                         class="nc-select-shadow w-full flex-1 !rounded-lg"
                         allow-clear
-                        :disabled="!selectedFromCol || isLocked || blockTimelineRange"
+                        :disabled="!selectedFromCol || isLocked"
                         :placeholder="$t('placeholder.notSelected')"
                         data-testid="nc-timeline-range-to-field-select"
                         dropdown-class-name="!rounded-lg"
@@ -271,8 +246,6 @@ const initialViewMode = computed({
                       </a-select>
                     </div>
                   </template>
-                </template>
-              </PaymentUpgradeBadgeProvider>
             </div>
           </div>
 

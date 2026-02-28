@@ -213,10 +213,6 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
   })
 
-  const blockTimelineRange = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_RANGE)
-  })
-
   const blockTableAndFieldPermissions = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
   })
@@ -1083,27 +1079,11 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseTimelineView'),
       content: t('upgrade.upgradeToUseTimelineViewSubtitle', {
-        plan: PlanTitles.PLUS,
+        plan: PlanTitles.BUSINESS,
       }),
       callback,
-      requiredPlan: PlanTitles.PLUS,
+      requiredPlan: PlanTitles.BUSINESS,
       limitOrFeature: PlanFeatureTypes.FEATURE_TIMELINE_VIEW,
-    })
-
-    return true
-  }
-
-  const showUpgradeToUseTimelineRange = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockTimelineRange.value) return
-
-    handleUpgradePlan({
-      title: t('upgrade.upgradeToUseTimelineRange'),
-      content: t('upgrade.upgradeToUseTimelineRangeSubtitle', {
-        plan: PlanTitles.PLUS,
-      }),
-      callback,
-      requiredPlan: PlanTitles.PLUS,
-      limitOrFeature: PlanFeatureTypes.FEATURE_TIMELINE_RANGE,
     })
 
     return true
@@ -1656,8 +1636,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCalendarRange,
     blockTimelineView,
     showUpgradeToUseTimelineView,
-    blockTimelineRange,
-    showUpgradeToUseTimelineRange,
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,

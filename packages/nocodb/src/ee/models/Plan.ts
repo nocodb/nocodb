@@ -271,7 +271,6 @@ const legacyLimitAndFeatures = {
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: false,
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: false,
-  [PlanFeatureTypes.FEATURE_TIMELINE_RANGE]: false,
 };
 
 export const FreePlan = Plan.prepare({

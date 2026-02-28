@@ -216,8 +216,6 @@
     "upgradeToEnableUniqueSubtitle": "Upgrade to the {plan} plan to enable unique constraint.",
     "upgradeToUseTimelineView": "Upgrade to use timeline view",
     "upgradeToUseTimelineViewSubtitle": "Upgrade to the {plan} plan to visualize records on a timeline.",
-    "upgradeToUseTimelineRange": "Upgrade to visualize records in a timeline range",
-    "upgradeToUseTimelineRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a timeline range.",
     "upgradeToUseSandbox": "Upgrade to use Sandboxes",
     "upgradeToUseSandboxSubtitle": "Sandboxes are available on the {plan} plan and above.",
     "upgradeToUseRecordTemplates": "Upgrade to use record templates",

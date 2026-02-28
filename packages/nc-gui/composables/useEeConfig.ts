@@ -73,8 +73,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockTimelineView = computed(() => true)
 
-  const blockTimelineRange = computed(() => true)
-
   const blockAddNewScript = computed(() => true)
 
   const showUserMayChargeAlert = computed(() => false)
@@ -180,7 +178,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseTimelineView = (..._args: any[]) => {}
 
-  const showUpgradeToUseTimelineRange = (..._args: any[]) => {}
 
   const showUpgradeToUseAiPromptField = (..._args: any[]) => {}
 
@@ -280,8 +277,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCalendarRange,
     blockTimelineView,
     showUpgradeToUseTimelineView,
-    blockTimelineRange,
-    showUpgradeToUseTimelineRange,
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,

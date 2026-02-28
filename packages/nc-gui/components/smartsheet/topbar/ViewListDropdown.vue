@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { isMobileMode } = useGlobal()
 
@@ -21,7 +21,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { blockMapView, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
+const { showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 

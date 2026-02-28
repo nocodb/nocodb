@@ -10,6 +10,11 @@ export interface DocCommentExtended extends CommentType {
   resolved_by_meta?: Record<string, any>
 }
 
+/** Top-level comment with its single-level replies grouped together for rendering. */
+export interface ThreadedComment extends DocCommentExtended {
+  replies: DocCommentExtended[]
+}
+
 /**
  * Composable for document-level comments.
  *
@@ -37,6 +42,43 @@ export const useDocumentComments = createSharedComposable(() => {
   const isCommentsLoading = ref(false)
   const activeCommentId = ref<string | null>(null)
   const activeDocId = ref<string | null>(null)
+  const replyingTo = ref<DocCommentExtended | null>(null)
+
+  // Group flat comments into single-level threads: top-level parents with their replies.
+  // Orphaned replies (parent deleted) are silently excluded from the UI.
+  const threadedComments = computed<ThreadedComment[]>(() => {
+    const topLevel = comments.value.filter((c) => !c.parent_comment_id)
+    const replyMap = new Map<string, DocCommentExtended[]>()
+
+    for (const c of comments.value) {
+      if (c.parent_comment_id) {
+        const list = replyMap.get(c.parent_comment_id) || []
+        list.push(c)
+        replyMap.set(c.parent_comment_id, list)
+      }
+    }
+
+    return topLevel.map((c) => ({
+      ...c,
+      replies: replyMap.get(c.id!) || [],
+    }))
+  })
+
+  const setReplyingTo = (comment: DocCommentExtended) => {
+    // Always reply to the root parent (single-level threading)
+    if (comment.parent_comment_id) {
+      const parent = comments.value.find((c) => c.id === comment.parent_comment_id)
+      if (parent) {
+        replyingTo.value = parent
+        return
+      }
+    }
+    replyingTo.value = comment
+  }
+
+  const clearReplyingTo = () => {
+    replyingTo.value = null
+  }
 
   const baseUsers = computed(() => {
     if (!activeProjectId.value) return []
@@ -171,9 +213,13 @@ export const useDocumentComments = createSharedComposable(() => {
     const original = comments.value.find((c) => c.id === commentId)
     if (!original) return
 
+    // Snapshot removed items (parent + its replies) so we can revert on failure
+    const removedReplies = comments.value.filter((c) => c.parent_comment_id === commentId)
+
     try {
-      // Optimistic delete
-      comments.value = comments.value.filter((c) => c.id !== commentId)
+      // Optimistic delete — also removes child replies to keep UI consistent.
+      // Backend cascade-deletes replies; this mirrors that behavior optimistically.
+      comments.value = comments.value.filter((c) => c.id !== commentId && c.parent_comment_id !== commentId)
 
       await $api.internal.postOperation(
         activeWorkspaceId.value!,
@@ -182,8 +228,8 @@ export const useDocumentComments = createSharedComposable(() => {
         { commentId },
       )
     } catch (e: any) {
-      // Revert on failure
-      comments.value = [...comments.value, original]
+      // Revert parent and its replies on failure
+      comments.value = [...comments.value, original, ...removedReplies]
       message.error(await extractSdkResponseErrorMsg(e))
     }
   }
@@ -267,6 +313,10 @@ export const useDocumentComments = createSharedComposable(() => {
     activeCommentId,
     activeDocId,
     parsedHtmlComments,
+    threadedComments,
+    replyingTo,
+    setReplyingTo,
+    clearReplyingTo,
     loadComments,
     saveComment,
     updateComment,

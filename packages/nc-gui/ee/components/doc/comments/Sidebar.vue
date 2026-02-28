@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CommentType, TableType } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
+import type { DocCommentExtended } from '~/composables/useDocumentComments'
 
 interface Props {
   docId: string
@@ -29,6 +30,10 @@ const {
   comments,
   isCommentsLoading,
   parsedHtmlComments,
+  threadedComments,
+  replyingTo,
+  setReplyingTo,
+  clearReplyingTo,
   loadComments,
   saveComment,
   updateComment,
@@ -40,6 +45,15 @@ const {
 } = useDocumentComments()
 
 const hasEditPermission = computed(() => isUIAllowed('documentCommentUpdate'))
+
+// When a comment in a thread is active (clicked from editor anchor), highlight the
+// entire thread (parent + all replies). Resolves reply → parent so the whole group lights up.
+const activeThreadId = computed(() => {
+  if (!activeCommentId.value) return null
+  const active = comments.value.find((c) => c.id === activeCommentId.value)
+  if (!active) return null
+  return active.parent_comment_id || active.id
+})
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 const commentInputRef = ref<any>()
@@ -62,17 +76,82 @@ const onCancelInlineComment = () => {
   emit('clearPendingSelection')
 }
 
-// Track editor doc version to force recompute when content changes
+const replyInputRef = ref<any>()
+const replyText = ref('')
+const isReplyFocused = ref(false)
+const isCommentFocused = ref(false)
+
+/** Strip trailing `<br />` tags and newlines that TipTap appends before save. */
+function stripTrailingBreaks(val: string): string {
+  let result = val
+  while (result.endsWith('<br />') || result.endsWith('\n')) {
+    if (result.endsWith('<br />')) result = result.slice(0, -6)
+    else result = result.slice(0, -1)
+  }
+  return result
+}
+
+/** Build an optimistic comment object for immediate UI display before the API responds. */
+function createOptimisticComment(text: string, extra: Partial<DocCommentExtended> = {}): DocCommentExtended {
+  return {
+    id: `temp-${Date.now()}`,
+    comment: text,
+    created_at: new Date().toISOString(),
+    created_by: user.value?.id,
+    created_by_email: user.value?.email,
+    created_display_name: user.value?.display_name ?? '',
+    created_display_name_short: user.value?.display_name ?? extractNameFromEmail(user.value?.email),
+    created_by_meta: user.value?.meta ?? '',
+    ...extra,
+  }
+}
+
+const onReply = (commentItem: DocCommentExtended) => {
+  setReplyingTo(commentItem)
+  replyText.value = ''
+}
+
+const onCancelReply = () => {
+  clearReplyingTo()
+  replyText.value = ''
+  isReplyFocused.value = false
+}
+
+const onSaveReply = async () => {
+  if (!replyText.value.trim() || !replyingTo.value?.id) return
+
+  const val = stripTrailingBreaks(replyText.value)
+  const parentCommentId = replyingTo.value.id
+
+  comments.value = [...comments.value, createOptimisticComment(val, { parent_comment_id: parentCommentId })]
+
+  replyText.value = ''
+  clearReplyingTo()
+
+  await nextTick()
+  scrollComments()
+
+  await saveComment(val, null, parentCommentId)
+
+  await nextTick()
+  scrollComments()
+}
+
+// Track editor doc version to force anchorTextMap recompute when content changes.
+// ProseMirror doc changes aren't reactive — this counter bridges the gap.
 const editorDocVersion = ref(0)
+let editorUpdateHandler: (() => void) | null = null
 
 watch(
   () => props.editor,
-  (ed) => {
+  (ed, oldEd) => {
+    // Clean up listener from previous editor instance
+    if (oldEd && editorUpdateHandler) {
+      oldEd.off('update', editorUpdateHandler)
+    }
     if (!ed) return
-    ed.on('update', () => {
-      editorDocVersion.value++
-    })
-    // Trigger initial computation
+    editorUpdateHandler = () => { editorDocVersion.value++ }
+    ed.on('update', editorUpdateHandler)
     editorDocVersion.value++
   },
   { immediate: true },
@@ -83,10 +162,11 @@ watch(() => comments.value?.length, () => {
   editorDocVersion.value++
 })
 
-// Build a map of anchor_id → referenced text by walking editor doc marks
+// Build a map of anchor_id → referenced text by walking ProseMirror doc marks.
+// Used to show the quoted text snippet on inline (anchor-based) comments.
 const anchorTextMap = computed<Record<string, string>>(() => {
   // eslint-disable-next-line no-unused-expressions
-  editorDocVersion.value // reactive dependency
+  editorDocVersion.value // reactive dependency — triggers recompute when editor content changes
   if (!props.editor) return {}
   const map: Record<string, string> = {}
   const { doc } = props.editor.state
@@ -138,12 +218,7 @@ function scrollComments() {
 const onSaveComment = async () => {
   if (!comment.value.trim()) return
 
-  // Strip trailing <br /> and newlines
-  let val = comment.value
-  while (val.endsWith('<br />') || val.endsWith('\n')) {
-    if (val.endsWith('<br />')) val = val.slice(0, -6)
-    else val = val.slice(0, -2)
-  }
+  const val = stripTrailingBreaks(comment.value)
 
   // If there's a pending text selection, create an inline comment with anchor mark
   let anchorId: string | null = null
@@ -154,33 +229,20 @@ const onSaveComment = async () => {
     emit('clearPendingSelection')
   }
 
-  // Optimistic insert
-  comments.value = [
-    ...comments.value,
-    {
-      id: `temp-${Date.now()}`,
-      comment: val,
-      anchor_id: anchorId,
-      created_at: new Date().toISOString(),
-      created_by: user.value?.id,
-      created_by_email: user.value?.email,
-      created_display_name: user.value?.display_name ?? '',
-      created_display_name_short: user.value?.display_name ?? extractNameFromEmail(user.value?.email),
-      created_by_meta: user.value?.meta ?? '',
-    },
-  ]
+  comments.value = [...comments.value, createOptimisticComment(val, { anchor_id: anchorId })]
 
   const tempComment = val
   comment.value = ''
   commentInputRef.value?.setEditorContent('', true)
 
-  await nextTick(() => scrollComments())
+  await nextTick()
+  scrollComments()
 
   await saveComment(tempComment, anchorId)
-  await nextTick(() => {
-    scrollComments()
-    commentInputRef.value?.focusEditor?.()
-  })
+
+  await nextTick()
+  scrollComments()
+  commentInputRef.value?.focusEditor?.()
 }
 
 function editComment(commentItem: CommentType) {
@@ -198,11 +260,7 @@ const editValue = computed({
 async function onEditComment() {
   if (!isEditing.value || !editCommentValue.value?.comment) return
 
-  let val = editCommentValue.value.comment
-  while (val.endsWith('<br />') || val.endsWith('\n')) {
-    if (val.endsWith('<br />')) val = val.slice(0, -6)
-    else val = val.slice(0, -2)
-  }
+  const val = stripTrailingBreaks(editCommentValue.value.comment)
 
   const tempComment = { ...editCommentValue.value, comment: val }
   isEditing.value = false
@@ -211,20 +269,26 @@ async function onEditComment() {
   await updateComment(tempComment.id!, tempComment.comment!)
 }
 
-function onCancelEdit(e: KeyboardEvent) {
+function cancelEdit() {
   if (!isEditing.value) return
-  e.preventDefault()
-  e.stopPropagation()
   editCommentValue.value = undefined
   isEditing.value = false
 }
 
+function onCancelEdit(e: KeyboardEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  cancelEdit()
+}
+
+// Stop propagation for all keys except Escape so the doc editor doesn't capture them
 const handleKeyPress = (event: KeyboardEvent) => {
   if (event.key !== 'Escape') {
     event.stopPropagation()
   }
 }
 
+// Auto-scroll to bottom when new comments are added
 watch(
   () => comments.value?.length,
   () => {
@@ -232,7 +296,6 @@ watch(
   },
 )
 
-// Scroll to active comment and highlight it
 function scrollToActiveComment() {
   const id = activeCommentId.value
   if (!id || !commentsWrapperEl.value) return
@@ -244,19 +307,25 @@ function scrollToActiveComment() {
   })
 }
 
-// Scroll when activeCommentId changes (sidebar already open)
+// Scroll when activeCommentId changes (sidebar already open, user clicked an anchor in editor)
 watch(activeCommentId, (id) => {
   if (id) scrollToActiveComment()
 })
 
-// Also scroll after comments finish loading (sidebar just opened)
+// After comments finish loading (sidebar just opened): scroll to active comment or focus input
 watch(isCommentsLoading, (loading, wasLoading) => {
-  if (wasLoading && !loading && activeCommentId.value) {
-    scrollToActiveComment()
+  if (wasLoading && !loading) {
+    if (activeCommentId.value) {
+      scrollToActiveComment()
+    } else {
+      nextTick(() => {
+        commentInputRef.value?.focusEditor?.()
+      })
+    }
   }
 })
 
-// Clear active comment when clicking anywhere outside a comment item
+// Clear active comment highlight when clicking anywhere outside a comment card
 const onDocumentClick = (e: MouseEvent) => {
   if (!activeCommentId.value) return
   const target = e.target as HTMLElement
@@ -269,16 +338,17 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
 </script>
 
 <template>
-  <div class="nc-doc-comments-sidebar flex flex-col border-l-1 border-nc-border-gray-medium bg-nc-bg-default">
+  <div class="nc-doc-comments-sidebar flex flex-col border-l-1 border-nc-border-gray-medium bg-nc-bg-default overflow-hidden" data-testid="nc-doc-comments-sidebar">
     <!-- Header -->
     <div class="flex items-center justify-between px-3 py-2.5 border-b-1 border-nc-border-gray-medium flex-none">
       <div class="flex items-center gap-2">
         <span class="font-semibold text-sm text-nc-content-gray">{{ $t('general.comments') }}</span>
+        <!-- NOTE: counts all comments including replies. Consider showing only top-level thread count. -->
         <NcBadge v-if="comments.length" color="brand" size="xs" class="nc-doc-comment-count text-[11px] font-semibold">
           {{ comments.length > 99 ? '99+' : comments.length }}
         </NcBadge>
       </div>
-      <NcButton size="xsmall" type="text" @click="emit('close')">
+      <NcButton size="xsmall" type="text" data-testid="nc-doc-comments-close-btn" @click="emit('close')">
         <GeneralIcon icon="close" />
       </NcButton>
     </div>
@@ -300,56 +370,157 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
 
     <!-- Comments list -->
     <div v-else ref="commentsWrapperEl" class="flex flex-col flex-1 py-1 nc-scrollbar-thin overflow-y-auto">
-      <template v-for="(commentItem, index) of comments" :key="commentItem.id">
-        <!-- Edit mode -->
+      <template v-for="(threadItem, index) of threadedComments" :key="threadItem.id">
+        <!-- Edit mode (top-level) — replaces the display card while editing -->
         <div
-          v-if="commentItem.id === editCommentValue?.id && hasEditPermission"
+          v-if="threadItem.id === editCommentValue?.id && hasEditPermission"
           :class="{ 'mt-auto': index === 0 }"
-          class="px-3 py-2"
+          class="px-3 pt-1.5 pb-1"
         >
-          <SmartsheetExpandedFormRichComment
-            v-model:value="editValue"
-            autofocus
-            autofocus-to-end
-            :hide-options="false"
-            class="expanded-form-comment-edit-input cursor-text !py-2 !px-2 !m-0 w-full !border-1 !border-nc-border-gray-medium !rounded-lg !bg-nc-bg-default !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
-            @save="onEditComment"
-            @keydown.esc="onCancelEdit"
-            @keydown="handleKeyPress"
-            @blur="
-              () => {
-                editCommentValue = undefined
-                isEditing = false
-              }
-            "
-            @keydown.enter.exact.prevent="onEditComment"
-          />
+          <div class="nc-doc-comment-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-comment-box-focused">
+            <SmartsheetExpandedFormRichComment
+              v-model:value="editValue"
+              autofocus
+              autofocus-to-end
+              :hide-options="true"
+              :show-bubble-menu="true"
+              class="expanded-form-comment-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+              @save="onEditComment"
+              @keydown.esc="onCancelEdit"
+              @keydown="handleKeyPress"
+            />
+            <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
+              <NcTooltip>
+                <!-- mousedown.prevent keeps focus in the editor so blur doesn't fire before click -->
+                <NcButton size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="cancelEdit">
+                  <GeneralIcon icon="close" class="text-xs" />
+                </NcButton>
+                <template #title>{{ $t('general.cancel') }}</template>
+              </NcTooltip>
+              <NcTooltip>
+                <NcButton size="xsmall" type="primary" :disabled="!editValue.trim()" @mousedown.prevent @click="onEditComment">
+                  <GeneralIcon icon="ncSendAlt" />
+                </NcButton>
+                <template #title>{{ $t('general.save') }}</template>
+              </NcTooltip>
+            </div>
+          </div>
         </div>
 
-        <!-- Display mode -->
+        <!-- Display mode (top-level) -->
         <DocCommentsItem
           v-else
-          :data-comment-item-id="commentItem.id"
-          :comment="commentItem"
-          :parsed-html="parsedHtmlComments[commentItem.id!] || ''"
-          :is-owner="commentItem.created_by === user?.id"
-          :is-editing="false"
-          :is-active="activeCommentId === commentItem.id"
+          :data-comment-item-id="threadItem.id"
+          :comment="threadItem"
+          :parsed-html="parsedHtmlComments[threadItem.id!] || ''"
+          :is-owner="threadItem.created_by === user?.id"
+          :is-active="activeThreadId === threadItem.id"
           :has-active-comment="!!activeCommentId"
-          :anchor-text="commentItem.anchor_id ? anchorTextMap[commentItem.anchor_id] : undefined"
+          :anchor-text="threadItem.anchor_id ? anchorTextMap[threadItem.anchor_id] : undefined"
           :class="{ 'mt-auto': index === 0 }"
-          @edit="editComment(commentItem)"
-          @delete="deleteComment(commentItem.id!)"
-          @resolve="resolveComment(commentItem.id!)"
-          @activate="activeCommentId === commentItem.id ? clearActiveComment() : scrollToComment(commentItem.id!)"
-
+          @edit="editComment(threadItem)"
+          @delete="deleteComment(threadItem.id!)"
+          @resolve="resolveComment(threadItem.id!)"
+          @activate="activeCommentId === threadItem.id ? clearActiveComment() : scrollToComment(threadItem.id!)"
+          @reply="onReply(threadItem)"
         />
+
+        <!-- Replies (single-level — nested under their parent thread) -->
+        <template v-for="replyItem of threadItem.replies" :key="replyItem.id">
+          <!-- Edit mode (reply) -->
+          <div
+            v-if="replyItem.id === editCommentValue?.id && hasEditPermission"
+            class="pl-9 pr-3 pt-0.5 pb-1"
+          >
+            <div class="nc-doc-reply-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-reply-box-focused">
+              <SmartsheetExpandedFormRichComment
+                v-model:value="editValue"
+                autofocus
+                autofocus-to-end
+                :hide-options="true"
+                :show-bubble-menu="true"
+                class="expanded-form-comment-reply-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[120px]"
+                @save="onEditComment"
+                @keydown.esc="onCancelEdit"
+                @keydown="handleKeyPress"
+              />
+              <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
+                <NcTooltip>
+                  <NcButton size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="cancelEdit">
+                    <GeneralIcon icon="close" class="text-xs" />
+                  </NcButton>
+                  <template #title>{{ $t('general.cancel') }}</template>
+                </NcTooltip>
+                <NcTooltip>
+                  <NcButton size="xsmall" type="primary" :disabled="!editValue.trim()" @mousedown.prevent @click="onEditComment">
+                    <GeneralIcon icon="ncSendAlt" />
+                  </NcButton>
+                  <template #title>{{ $t('general.save') }}</template>
+                </NcTooltip>
+              </div>
+            </div>
+          </div>
+
+          <!-- Display mode (reply) -->
+          <DocCommentsItem
+            v-else
+            :data-comment-item-id="replyItem.id"
+            :comment="replyItem"
+            :parsed-html="parsedHtmlComments[replyItem.id!] || ''"
+            :is-owner="replyItem.created_by === user?.id"
+            :is-active="activeThreadId === threadItem.id"
+            :has-active-comment="!!activeCommentId"
+            :is-reply="true"
+            @edit="editComment(replyItem)"
+            @delete="deleteComment(replyItem.id!)"
+            @resolve="resolveComment(replyItem.id!)"
+            @activate="activeCommentId === replyItem.id ? clearActiveComment() : scrollToComment(replyItem.id!)"
+            @reply="onReply(replyItem)"
+          />
+        </template>
+
+        <!-- Inline reply input — appears below the thread when user clicks reply -->
+        <div v-if="replyingTo?.id === threadItem.id && hasEditPermission" class="nc-doc-reply-inline pl-9 pr-3 pt-1.5 pb-1">
+          <div
+            class="nc-doc-reply-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden"
+            :class="{ 'nc-doc-reply-box-focused': isReplyFocused }"
+          >
+            <SmartsheetExpandedFormRichComment
+              ref="replyInputRef"
+              v-model:value="replyText"
+              autofocus
+              :hide-options="true"
+              :show-bubble-menu="true"
+              :placeholder="`${$t('activity.addReply')}...`"
+              class="expanded-form-comment-reply-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[120px]"
+              @keydown="handleKeyPress"
+              @save="onSaveReply"
+              @keydown.esc.prevent="onCancelReply"
+              @focus="isReplyFocused = true"
+              @blur="isReplyFocused = false"
+            />
+            <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
+              <NcTooltip>
+                <NcButton v-e="['c:doc:comment:reply:cancel']" size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="onCancelReply">
+                  <GeneralIcon icon="close" class="text-xs" />
+                </NcButton>
+                <template #title>{{ $t('general.cancel') }}</template>
+              </NcTooltip>
+              <NcTooltip>
+                <NcButton v-e="['c:doc:comment:reply:save']" size="xsmall" type="primary" :disabled="!replyText.trim()" @mousedown.prevent @click="onSaveReply">
+                  <GeneralIcon icon="ncSendAlt" />
+                </NcButton>
+                <template #title>{{ $t('general.reply') }}</template>
+              </NcTooltip>
+            </div>
+          </div>
+        </div>
       </template>
     </div>
 
-    <!-- Comment input — pinned at bottom -->
+    <!-- Comment input — pinned at bottom of sidebar -->
     <div v-if="hasEditPermission && !isCommentsLoading" class="px-3 pb-3 pt-2 border-t-1 border-nc-border-gray-medium flex-none">
-      <!-- Quoted text snippet for inline comments -->
+      <!-- Quoted text snippet for inline (anchor-based) comments -->
       <div v-if="pendingSelectionText" class="nc-doc-comment-quote mb-2 flex items-start gap-2">
         <div class="flex-1 min-w-0">
           <div class="nc-doc-comment-quote-text text-small text-nc-content-gray-subtle line-clamp-3">
@@ -361,16 +532,32 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
         </NcButton>
       </div>
 
-      <SmartsheetExpandedFormRichComment
-        ref="commentInputRef"
-        v-model:value="comment"
-        :hide-options="false"
-        :placeholder="`${$t('general.comment')}...`"
-        class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg w-full bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
-        @keydown="handleKeyPress"
-        @save="onSaveComment"
-        @keydown.enter.exact.prevent="onSaveComment"
-      />
+      <div
+        class="nc-doc-comment-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden"
+        :class="{ 'nc-doc-comment-box-focused': isCommentFocused }"
+      >
+        <SmartsheetExpandedFormRichComment
+          ref="commentInputRef"
+          v-model:value="comment"
+          :hide-options="true"
+          :show-bubble-menu="true"
+          :placeholder="`${$t('general.comment')}...`"
+          class="expanded-form-comment-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
+          data-testid="nc-doc-comment-input"
+          @keydown="handleKeyPress"
+          @save="onSaveComment"
+          @focus="isCommentFocused = true"
+          @blur="isCommentFocused = false"
+        />
+        <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
+          <NcTooltip>
+            <NcButton v-e="['c:doc:comment:save']" size="xsmall" type="primary" :disabled="!comment.trim()" @mousedown.prevent @click="onSaveComment" data-testid="nc-doc-comment-save-btn">
+              <GeneralIcon icon="ncSendAlt" />
+            </NcButton>
+            <template #title>{{ $t('general.comment') }}</template>
+          </NcTooltip>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -378,24 +565,14 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
 <style lang="scss" scoped>
 .nc-doc-comments-sidebar {
   width: 320px;
-  position: sticky;
-  top: 0;
+  flex-shrink: 0;
   height: 100vh;
   height: 100dvh;
-  flex-shrink: 0;
 }
 
 :deep(.expanded-form-comment-input) {
   @apply transition-all duration-150 min-h-8;
   box-shadow: none;
-  &:focus,
-  &:focus-within {
-    @apply min-h-16 !bg-nc-bg-default border-nc-border-brand;
-    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
-  }
-  &::placeholder {
-    @apply !text-gray-400;
-  }
 }
 
 .nc-doc-comment-quote {
@@ -406,7 +583,19 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
   }
 }
 
-:deep(.expanded-form-comment-edit-input .nc-comment-rich-editor) {
-  @apply bg-nc-bg-default;
+.nc-doc-reply-box,
+.nc-doc-comment-box {
+  @apply bg-nc-bg-default transition-all duration-150;
+
+  &.nc-doc-reply-box-focused,
+  &.nc-doc-comment-box-focused {
+    @apply border-nc-border-brand;
+    box-shadow: 0px 0px 0px 2px rgba(51, 102, 255, 0.24);
+  }
+}
+
+:deep(.expanded-form-comment-reply-input) {
+  @apply min-h-7;
+  box-shadow: none;
 }
 </style>

@@ -3,6 +3,7 @@ import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
+import { RichTextBubbleMenuOptions } from '#imports'
 import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
 import { HardBreak, Italic, Link, Paragraph, Strike, UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions'
@@ -10,6 +11,7 @@ import { HardBreak, Italic, Link, Paragraph, Strike, UserMention, UserMentionLis
 const props = withDefaults(
   defineProps<{
     hideOptions?: boolean
+    showBubbleMenu?: boolean
     value?: string | null
     readOnly?: boolean
     syncValueChange?: boolean
@@ -20,6 +22,7 @@ const props = withDefaults(
   }>(),
   {
     hideOptions: true,
+    showBubbleMenu: false,
   },
 )
 
@@ -57,6 +60,15 @@ const vModel = computed({
 const mentionUsers = computed(() => {
   return baseUsers.value.filter((user) => user.deleted !== true)
 })
+
+const bubbleMenuHiddenOptions = [
+  RichTextBubbleMenuOptions.blockQuote,
+  RichTextBubbleMenuOptions.bulletList,
+  RichTextBubbleMenuOptions.numberedList,
+  RichTextBubbleMenuOptions.taskList,
+  RichTextBubbleMenuOptions.image,
+  RichTextBubbleMenuOptions.table,
+]
 
 const getTiptapExtensions = () => {
   const extensions = [
@@ -338,6 +350,13 @@ defineExpose({
         :is-comment="true"
         :is-form-field="true"
         @blur="isFocused = false"
+      />
+
+      <CellRichTextSelectedBubbleMenuPopup
+        v-if="editor && showBubbleMenu"
+        :editor="editor"
+        :is-form-field="true"
+        :hidden-options="bubbleMenuHiddenOptions"
       />
 
       <EditorContent

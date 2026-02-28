@@ -5,19 +5,19 @@ interface Props {
   comment: DocCommentExtended
   parsedHtml: string
   isOwner: boolean
-  isEditing: boolean
   isActive?: boolean
   hasActiveComment?: boolean
   anchorText?: string
+  isReply?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   parsedHtml: '',
   isOwner: false,
-  isEditing: false,
   isActive: false,
   hasActiveComment: false,
   anchorText: undefined,
+  isReply: false,
 })
 
 const emit = defineEmits<{
@@ -25,6 +25,7 @@ const emit = defineEmits<{
   (e: 'delete'): void
   (e: 'resolve'): void
   (e: 'activate'): void
+  (e: 'reply'): void
 }>()
 
 const { comment } = toRefs(props)
@@ -36,6 +37,7 @@ const { isUIAllowed } = useRoles()
 const hasEditPermission = computed(() => isUIAllowed('documentCommentUpdate'))
 
 const createdByLabel = computed(() => {
+  // Matches existing pattern in EntryComment.vue, Sidebar/Comments.vue etc.
   if (comment.value.created_by === user.value?.id) return 'You'
   if (comment.value.created_display_name_short?.trim()) return comment.value.created_display_name_short
   if (comment.value.created_by_email) return comment.value.created_by_email
@@ -47,10 +49,13 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
 
 <template>
   <div
-    class="nc-doc-comment-item group px-3 pt-1.5 cursor-pointer transition-opacity duration-200"
+    class="nc-doc-comment-item group cursor-pointer transition-opacity duration-200"
     :class="{
       'opacity-40': hasActiveComment && !isActive,
+      'pl-9 pr-3 pt-0.5': isReply,
+      'px-3 pt-1.5': !isReply,
     }"
+    :data-testid="`nc-doc-comment-item${isReply ? '-reply' : ''}`"
     @click="emit('activate')"
   >
     <div
@@ -83,10 +88,10 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
 
         <!-- Actions -->
         <div class="flex items-center gap-0.5 flex-shrink-0">
-          <!-- Hover-only actions: menu + unresolved resolve button -->
+          <!-- Hover-only actions: 3-dot menu, reply, resolve (unresolved only) -->
           <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
             <NcDropdown
-              v-if="!isEditing && (isOwner || hasEditPermission)"
+              v-if="isOwner || hasEditPermission"
               overlay-class-name="!min-w-[140px]"
               placement="bottomRight"
             >
@@ -122,7 +127,15 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
               </template>
             </NcDropdown>
 
-            <NcTooltip v-if="!comment.resolved_by && hasEditPermission">
+            <NcTooltip v-if="hasEditPermission">
+              <NcButton v-e="['c:doc:comment:reply']" class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text" @click.stop="emit('reply')">
+                <GeneralIcon class="text-xs" icon="ncCornerDownLeft" />
+              </NcButton>
+              <template #title>{{ $t('general.reply') }}</template>
+            </NcTooltip>
+
+            <!-- Resolve button (unresolved state) — only on top-level comments, not replies -->
+            <NcTooltip v-if="!isReply && !comment.resolved_by && hasEditPermission">
               <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text" @click="emit('resolve')">
                 <GeneralIcon class="text-xs" icon="checkCircle" />
               </NcButton>
@@ -130,8 +143,8 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
             </NcTooltip>
           </div>
 
-          <!-- Resolved button — always visible, green -->
-          <NcTooltip v-if="comment.resolved_by">
+          <!-- Resolved badge — always visible (green checkmark), only on top-level comments -->
+          <NcTooltip v-if="!isReply && comment.resolved_by">
             <template #title>{{ `${$t('activity.resolvedBy')} ${comment.resolved_display_name_short}` }}</template>
             <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text" @click="emit('resolve')">
               <GeneralIcon class="text-xs text-nc-content-green-dark" icon="checkCircle" />
@@ -140,14 +153,14 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         </div>
       </div>
 
-      <!-- Inline comment — quoted referenced text -->
+      <!-- Inline comment — quoted referenced text from the document -->
       <div v-if="isInlineComment && anchorText" class="mb-1.5 pl-6">
         <div class="text-xs text-nc-content-gray-subtle line-clamp-2 italic border-l-2 border-nc-border-brand pl-2 py-0.5">
           {{ anchorText }}
         </div>
       </div>
 
-      <!-- Comment body -->
+      <!-- Comment body (rendered markdown/HTML) -->
       <div
         class="nc-doc-comment-body nc-rich-text-content text-small leading-5 text-nc-content-gray pl-6"
         v-html="parsedHtml"

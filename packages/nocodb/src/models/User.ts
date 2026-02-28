@@ -2,10 +2,11 @@ import {
   extractRolesObj,
   IconType,
   ncIsObject,
+  OrgUserRoles,
   ProjectRoles,
   type UserType,
-  type WorkspaceUserRoles,
   WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { MetaType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -429,6 +430,18 @@ export default class User implements UserType {
 
     if (!user) NcError.userNotFound(userId);
 
+    // Super admin is treated as owner of all workspaces and bases
+    if (extractRolesObj(user.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+      return {
+        ...sanitiseUserObj(user),
+        roles: extractRolesObj(user.roles),
+        workspace_roles: args.workspaceId
+          ? { [WorkspaceUserRoles.OWNER]: true }
+          : null,
+        base_roles: args.baseId ? { [ProjectRoles.OWNER]: true } : null,
+      } as any;
+    }
+
     const baseRoles = await new Promise((resolve) => {
       if (args.baseId) {
         BaseUser.get(context, args.baseId, user.id, ncMeta).then(
@@ -457,7 +470,12 @@ export default class User implements UserType {
     let workspaceRoles: Record<string, boolean> | null = null;
 
     if (args.workspaceId) {
-      const wsUser = await WorkspaceUser.get(args.workspaceId, user.id, {}, ncMeta);
+      const wsUser = await WorkspaceUser.get(
+        args.workspaceId,
+        user.id,
+        {},
+        ncMeta,
+      );
       if (wsUser?.roles) {
         workspaceRoles = extractRolesObj(wsUser.roles);
       }

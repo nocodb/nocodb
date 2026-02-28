@@ -18,7 +18,7 @@ import {
   RootScopes,
 } from '~/utils/globals';
 import { Base, BaseUser, OrgUser, WorkspaceUser } from '~/models';
-import { isOnPrem, sanitiseUserObj } from '~/utils';
+import { isCloud, sanitiseUserObj } from '~/utils';
 import { normalizeEmail } from '~/utils/emailUtils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
@@ -480,8 +480,8 @@ export default class User extends UserCE implements UserType {
 
     if (!user) NcError.userNotFound(userId);
 
-    // On-prem: super admin is treated as owner of all workspaces and bases
-    if (isOnPrem && extractRolesObj(user.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+    // Super admin is treated as owner of all workspaces and bases (except cloud)
+    if (!isCloud && extractRolesObj(user.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
       return {
         ...sanitiseUserObj(user),
         roles: extractRolesObj(user.roles),
@@ -489,12 +489,8 @@ export default class User extends UserCE implements UserType {
           args.workspaceId || context.workspace_id
             ? { [WorkspaceUserRoles.OWNER]: true }
             : null,
-        base_roles: args.baseId
-          ? { [ProjectRoles.OWNER]: true }
-          : null,
-        org_roles: args.orgId
-          ? { [OrgUserRoles.SUPER_ADMIN]: true }
-          : null,
+        base_roles: args.baseId ? { [ProjectRoles.OWNER]: true } : null,
+        org_roles: args.orgId ? { [OrgUserRoles.SUPER_ADMIN]: true } : null,
         teams: [],
         base_teams: [],
       } as any;

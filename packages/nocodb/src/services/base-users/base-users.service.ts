@@ -545,6 +545,12 @@ export class BaseUsersService {
    * This considers both base roles and workspace roles.
    */
   protected isOldRoleIsOwner(targetUser, base: Base) {
+    // Super admins get OWNER via override, not from an actual base role —
+    // don't treat them as a real base owner for the single-owner guard
+    if (extractRolesObj(targetUser.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+      return false;
+    }
+
     // Check if a base role is defined and if it includes the OWNER role.
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);

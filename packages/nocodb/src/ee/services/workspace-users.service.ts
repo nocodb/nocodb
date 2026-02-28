@@ -956,6 +956,18 @@ export class WorkspaceUsersService {
         ncMeta,
       );
       isUserCreated = true;
+    } else if (user.invite_token) {
+      // User exists but never completed signup — refresh their invite token
+      // so the new invite URL is valid
+      await User.update(
+        user.id,
+        {
+          invite_token,
+          invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+        ncMeta,
+      );
+      isUserCreated = true;
     }
 
     emailUserMap?.set(email, user);

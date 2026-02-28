@@ -170,6 +170,7 @@ enum AuditV1OperationTypes {
   TEAM_CREATE = 'TEAM_CREATE',
   TEAM_UPDATE = 'TEAM_UPDATE',
   TEAM_DELETE = 'TEAM_DELETE',
+  TEAM_MOVE = 'TEAM_MOVE',
   TEAM_MEMBER_ADD = 'TEAM_MEMBER_ADD',
   TEAM_MEMBER_UPDATE = 'TEAM_MEMBER_UPDATE',
   TEAM_MEMBER_DELETE = 'TEAM_MEMBER_DELETE',
@@ -1205,6 +1206,16 @@ export interface TeamDeletePayload {
   workspace_title?: string;
   base_title?: string;
   meta?: any;
+}
+
+export interface TeamMovePayload {
+  team_id: string;
+  team_title: string;
+  old_parent_team_id?: string | null;
+  old_parent_team_title?: string | null;
+  new_parent_team_id?: string | null;
+  new_parent_team_title?: string | null;
+  workspace_title?: string;
 }
 
 export interface TeamMemberAddPayload {

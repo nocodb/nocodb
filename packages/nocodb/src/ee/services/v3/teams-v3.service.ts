@@ -1426,6 +1426,11 @@ export class TeamsV3Service {
       }
     }
 
+    // Fetch old parent before reparenting for audit
+    const oldParentTeam = team.fk_parent_team_id
+      ? await Team.get(context, team.fk_parent_team_id)
+      : null;
+
     // Perform the reparent
     await Team.reparent(context, param.teamId, newParentId);
 
@@ -1462,6 +1467,10 @@ export class TeamsV3Service {
       context,
       req: param.req,
       team: updatedTeam,
+      oldParentTeam: oldParentTeam ?? null,
+      newParentTeam: newParentId
+        ? await Team.get(context, newParentId)
+        : null,
       workspace,
     });
 

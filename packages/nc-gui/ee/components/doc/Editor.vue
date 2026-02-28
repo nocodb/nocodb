@@ -1285,9 +1285,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 4px;
   position: absolute;
-  top: 0;
+  top: 8px;
   right: 12px;
-  height: 53px;
   z-index: 20;
 }
 

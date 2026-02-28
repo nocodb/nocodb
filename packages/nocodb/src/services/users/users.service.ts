@@ -17,7 +17,7 @@ import {
   ensureUserInDefaultWorkspace,
   verifyDefaultWorkspace,
 } from '~/helpers/verifyDefaultWorkspace';
-import { isEE, T } from '~/utils';
+import { isEE, isOnPrem, T } from '~/utils';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
@@ -180,7 +180,9 @@ export class UsersService {
     );
 
     // if first user and super admin, create a base
-    if (isFirstUser && !isEE) {
+    // On unlicensed on-prem (EE build), @EEOnly() falls back to this CE code,
+    // so on-prem also needs workspace + base creation here.
+    if (isFirstUser && (!isEE || isOnPrem)) {
       await verifyDefaultWorkspace(user, ncMeta);
 
       // todo: update swagger type

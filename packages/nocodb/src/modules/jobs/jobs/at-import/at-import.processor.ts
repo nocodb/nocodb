@@ -1741,7 +1741,7 @@ export class AtImportProcessor {
       const _perfStart = recordPerfStart();
 
       ncCreatedProjectSchema = await this.basesService.baseCreate({
-        base: { title: projName },
+        base: { title: projName, fk_workspace_id: context.workspace_id },
         user: { id: syncDB.user.id },
         req,
       });

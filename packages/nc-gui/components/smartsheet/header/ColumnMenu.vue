@@ -682,8 +682,10 @@ const onDeleteColumn = () => {
       "
       data-testid="nc-column-convert-link-v2"
       @click="
-        isOpen = false
-        showConvertLinkV2Modal = true
+        () => {
+          isOpen = false
+          showConvertLinkV2Modal = true
+        }
       "
     >
       <div class="nc-column-convert-v2 nc-header-menu-item">

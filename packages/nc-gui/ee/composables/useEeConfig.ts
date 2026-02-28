@@ -1562,8 +1562,15 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseMapView = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockMapView.value) return
+  const showUpgradeToUseMapView = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockMapView.value) {
+      successCallback?.()
+
+      return
+    }
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseMapView'),

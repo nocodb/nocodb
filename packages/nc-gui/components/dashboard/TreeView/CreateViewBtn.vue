@@ -23,7 +23,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { blockMapView, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
+const { blockMapView, blockTimelineView, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -221,9 +221,18 @@ function onCreateSection() {
           </NcTooltip>
         </template>
         <NcMenuItem
-          v-if="isEeUI && isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
           data-testid="sidebar-view-create-map"
-          @click="blockMapView ? showUpgradeToUseMapView() : onOpenModal({ type: ViewTypes.MAP })"
+          @click="
+            () => {
+              isOpen = false
+              showUpgradeToUseMapView({
+                successCallback: () => {
+                  onOpenModal({ type: ViewTypes.MAP })
+                },
+              })
+            }
+          "
         >
           <div class="item">
             <div class="item-inner">
@@ -231,7 +240,7 @@ function onCreateSection() {
               <div>{{ $t('objects.viewType.map') }}</div>
             </div>
 
-            <template v-if="isEeUI && blockMapView">
+            <template v-if="blockMapView">
               <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_MAP_VIEW" :plan-title="PlanTitles.BUSINESS" remove-click />
             </template>
             <template v-else>
@@ -241,19 +250,32 @@ function onCreateSection() {
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
+          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
           data-testid="sidebar-view-create-timeline"
-          @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
+          @click="
+            () => {
+              isOpen = false
+              showUpgradeToUseTimelineView({
+                successCallback: () => {
+                  onOpenModal({ type: ViewTypes.TIMELINE })
+                },
+              })
+            }
+          "
         >
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
               <div>{{ $t('objects.viewType.timeline') }}</div>
-              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW" />
             </div>
 
-            <GeneralLoader v-if="toBeCreateType === ViewTypes.TIMELINE && isViewListLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
+            <template v-if="blockTimelineView">
+              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW" :plan-title="PlanTitles.PLUS" remove-click />
+            </template>
+            <template v-else>
+              <GeneralLoader v-if="toBeCreateType === ViewTypes.TIMELINE && isViewListLoading" />
+              <GeneralIcon v-else class="plus" icon="plus" />
+            </template>
           </div>
         </NcMenuItem>
 
@@ -261,7 +283,7 @@ function onCreateSection() {
           <!-- Section -->
           <NcDivider />
 
-          <DashboardTreeViewCreateViewBtnSectionMenu @create-section="onCreateSection" />
+          <DashboardTreeViewCreateViewBtnSectionMenu @create-section="onCreateSection" @close="isOpen = false" />
         </template>
 
         <template v-if="isAiFeaturesEnabled">

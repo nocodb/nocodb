@@ -261,18 +261,11 @@ async function onOpenModal({
                 <a-menu-item
                   v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
                   data-testid="topbar-view-create-map"
-                  @click="blockMapView ? showUpgradeToUseMapView() : onOpenModal({ type: ViewTypes.MAP })"
+                  @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
                 >
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
-                    <PaymentUpgradeBadge
-                      v-if="blockMapView"
-                      :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
-                      :plan-title="PlanTitles.BUSINESS"
-                      remove-click
-                      class="ml-auto"
-                    />
                   </div>
                 </a-menu-item>
                 <a-menu-item

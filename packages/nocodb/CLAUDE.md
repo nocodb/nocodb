@@ -21,6 +21,47 @@ src/
 
 Multi-tenancy via `NcContext` parameter passed through all services.
 
+## Deployment Modes
+
+Three deployment modes with different backend builds. See root CLAUDE.md for the full overview.
+
+### Build Targets
+
+| Mode | Command | `~/` resolution | Entry point |
+|------|---------|-----------------|-------------|
+| **CE** | `pnpm watch:run:pg` | `src/*` | `src/run/docker.ts` |
+| **EE (local dev)** | `pnpm watch:run:pg:ee` | `src/ee/*` → `src/*` | `src/ee/run/docker.ts` |
+| **On-Prem** | `pnpm watch:run:pg:ee-on-prem` | `src/ee-on-prem/*` → `src/ee/*` → `src/*` | `src/ee/run/docker.ts` |
+| **Cloud** | `pnpm watch:run:pg:ee-cloud` | `src/ee-cloud/*` → `src/ee/*` → `src/*` | `src/ee/run/docker.ts` |
+
+`watch:run:pg:ee` is the **default for local development** — it runs the shared EE layer without license validation or cloud services. On-Prem and Cloud extend this base with their own overrides.
+
+### Runtime Constants
+
+Each tier exports constants selected by tsconfig path resolution at build time:
+
+| Constant | CE (`src/utils/constants.ts`) | EE (`src/ee/utils/index.ts`) | On-Prem (`src/ee-on-prem/utils/index.ts`) | Cloud (`src/ee-cloud/utils/index.ts`) |
+|----------|------|----|---------|----|
+| `isEE` | `false` | `true` | `true` | `true` |
+| `isOnPrem` | `false` | `false` | `true` | `false` |
+| `isCloud` | `false` | `false` | `false` | `true` |
+
+`Noco.isEE()` — runtime check used in `appInfo`. On-Prem overrides this based on license validation (`NocoLicense.isEE`).
+
+### Feature Gating
+
+| Mode | Mechanism |
+|------|-----------|
+| CE | EE code excluded from build — no runtime guard needed |
+| On-Prem | `LicenseGuard` on EE endpoints; `Noco.isEE()` for runtime checks; `NocoLicense.init()` validates JWT + heartbeat |
+| Cloud | `checkForFeature()` / `checkLimit()` from `ee/helpers/paymentHelpers.ts` — reads workspace plan |
+
+### License (On-Prem only)
+
+`src/ee-on-prem/NocoLicense.ts` — validates license JWT on startup, heartbeats every 24h, 30-day grace period for offline. License states: `active` (EE enabled), `expired`/`suspended`/`revoked`/none (falls back to CE mode). License key set via `NC_LICENSE_KEY` env var or stored in `nc_store` table (set via admin UI).
+
+`Noco.loadEEState()` re-validates when license is changed at runtime (admin panel).
+
 ## Adding a New API Endpoint
 
 Use the **internal controller pattern** — do NOT create direct controller files (legacy).

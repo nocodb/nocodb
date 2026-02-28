@@ -4,6 +4,47 @@ import Team from '~/ee/models/Team';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 
 /**
+ * Get all teams the user is a DIRECT member of, with their materialized paths.
+ *
+ * Unlike extractUserTeamRoles (which only returns workspace-assigned teams),
+ * this returns every team the user explicitly belongs to — regardless of
+ * whether that team is assigned to any workspace or base.
+ *
+ * Used by the frontend for permission subject matching (self_only /
+ * self_and_descendants) so it can mirror what the backend computes via
+ * isUserInTeamOrDescendants() without making extra API calls.
+ *
+ * @param context - NocoDB context
+ * @param userId  - User ID
+ * @returns Array of { team_id, path } for all teams the user belongs to directly
+ */
+export async function extractUserDirectTeams(
+  context: NcContext,
+  userId: string,
+): Promise<{ team_id: string; path: string }[]> {
+  try {
+    const assignments = await PrincipalAssignment.list(context, {
+      principal_type: PrincipalType.USER,
+      principal_ref_id: userId,
+      resource_type: ResourceType.TEAM,
+    });
+
+    const result: { team_id: string; path: string }[] = [];
+
+    for (const assignment of assignments) {
+      const team = await Team.get(context, assignment.resource_id);
+      if (team?.path) {
+        result.push({ team_id: team.id, path: team.path });
+      }
+    }
+
+    return result;
+  } catch {
+    return [];
+  }
+}
+
+/**
  * Extract workspace roles for a user from teams in a workspace.
  *
  * With hierarchy support (upward cascade):

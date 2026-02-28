@@ -127,26 +127,22 @@ export const usePermissions = () => {
             }
 
             if (subject.type === 'team') {
-              const userTeams: { team_id: string; path?: string; user_team_id?: string }[] = (user.value as any)?.teams ?? []
+              // direct_teams: every team the user was explicitly added to, with their paths.
+              // Unlike user.teams (which only covers workspace-assigned teams + cascade),
+              // direct_teams is exhaustive — it covers all memberships regardless of assignment.
+              const directTeams: { team_id: string; path: string }[] = (user.value as any)?.direct_teams ?? []
 
-              return userTeams.some((t) => {
-                if (t.team_id === subject.id) {
-                  // user_team_id is the user's actual direct team.
-                  // t.team_id can equal subject.id via upward cascade even when the user
-                  // is only an ancestor (parent) of the subject team — not a direct member.
-                  // So we must verify the user was directly added to this team.
-                  // Descendant members are handled by the path segment check below.
-                  return t.user_team_id === subject.id
-                }
+              // self_only: user must be a direct member of exactly the subject team
+              if (subject.hierarchy_scope === 'self_only') {
+                return directTeams.some((t) => t.team_id === subject.id)
+              }
 
-                // For self_and_descendants: check if user is in a descendant team of the subject
-                // A team is a descendant if its path contains the subject team id as an ancestor segment
-                if (subject.hierarchy_scope !== 'self_only' && t.path) {
-                  const pathSegments = t.path.split('/').filter(Boolean)
-                  return pathSegments.includes(subject.id)
-                }
-
-                return false
+              // self_and_descendants (default when no scope): user must be in the subject
+              // team OR in any descendant team (a team whose path contains subject.id as a segment)
+              return directTeams.some((t) => {
+                if (t.team_id === subject.id) return true
+                const segments = t.path.split('/').filter(Boolean)
+                return segments.includes(subject.id)
               })
             }
 

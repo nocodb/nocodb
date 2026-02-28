@@ -362,20 +362,20 @@ const recordCountLabel = computed(() => {
         </div>
 
         <!-- #3 + #15: Record count badge -->
-        <NcTooltip v-if="recordCountLabel && !isGroupBy" class="ml-1">
+        <NcTooltip
+          v-if="recordCountLabel && !isGroupBy"
+          class="ml-1 text-[11px] text-nc-content-gray-muted font-medium px-1.5 py-0.5 rounded-md bg-nc-bg-gray-medium truncate"
+          :class="{ 'text-nc-content-orange-medium bg-nc-bg-orange-light': recordsWithoutDates > 0 }"
+          data-testid="nc-timeline-record-count"
+        >
           <template #title>
             <span v-if="recordsWithoutDates > 0">
               {{ $t('msg.timelineRecordsMissingDates', { count: recordsWithoutDates }, recordsWithoutDates) }}
             </span>
             <span v-else>{{ $t('msg.timelineTotalRecordsLoaded', { max: 400 }) }}</span>
           </template>
-          <span
-            class="text-[11px] text-nc-content-gray-muted font-medium px-1.5 py-0.5 rounded-md bg-nc-bg-gray-medium truncate"
-            :class="{ 'text-nc-content-orange-medium bg-nc-bg-orange-light': recordsWithoutDates > 0 }"
-            data-testid="nc-timeline-record-count"
-          >
-            {{ recordCountLabel }}
-          </span>
+
+          {{ recordCountLabel }}
         </NcTooltip>
 
         <div class="flex-1" />

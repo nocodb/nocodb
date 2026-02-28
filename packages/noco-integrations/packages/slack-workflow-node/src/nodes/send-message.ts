@@ -174,15 +174,13 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
           do {
             const response = await client.conversations.list({
               types: 'public_channel,private_channel',
+              exclude_archived: true,
               limit: 1000,
               cursor,
             });
 
             channels.push(...(response.channels || []));
             cursor = response.response_metadata?.next_cursor || undefined;
-
-            // On initial load (no search), return first page only
-            if (!query) break;
           } while (cursor);
 
           return channels;
@@ -197,10 +195,6 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         return filtered.map((channel: any) => ({
           label: `#${channel.name}`,
           value: channel.id,
-          ncItemDisabled: channel.is_archived,
-          ncItemTooltip: channel.is_archived
-            ? 'This channel is archived'
-            : undefined,
         }));
       }
 
@@ -217,9 +211,6 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
 
             members.push(...(response.members || []));
             cursor = response.response_metadata?.next_cursor || undefined;
-
-            // On initial load (no search), return first page only
-            if (!query) break;
           } while (cursor);
 
           return members;
@@ -235,7 +226,6 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         return filtered.map((user: any) => ({
           label: user.real_name || user.name,
           value: user.id,
-          ncItemDisabled: user.deleted,
         }));
       }
 

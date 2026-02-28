@@ -294,6 +294,9 @@ export const useEeConfig = createSharedComposable(() => {
   // UUID is available on all cloud plans + self-hosted EE — never blocked in EE
   const blockUuidField = computed(() => false)
 
+  // AutoNumber is available on all cloud plans + self-hosted EE — never blocked in EE
+  const blockAutoNumberField = computed(() => false)
+
   const blockRecordTemplates = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES)
   })
@@ -1389,6 +1392,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseAutoNumberField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAutoNumberField.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseAutoNumberField'),
+      content: t('upgrade.upgradeToUseAutoNumberFieldSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseSync = ({
     callback,
     successCallback,
@@ -1596,10 +1614,12 @@ export const useEeConfig = createSharedComposable(() => {
     blockRls,
     blockUnique,
     blockUuidField,
+    blockAutoNumberField,
     showUpgradeToUseUnique,
     showUpgradeToUseSync,
     showUpgradeToUseRls,
     showUpgradeToUseUuidField,
+    showUpgradeToUseAutoNumberField,
     blockAddNewSandbox,
     showSandboxPlanLimitExceededModal,
     blockRecordTemplates,

@@ -105,6 +105,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockMapView = computed(() => true)
 
+  // AutoNumber field is EE-only — always blocked in CE
+  const blockAutoNumberField = computed(() => true)
+
   const calculatePrice = (..._args: any[]) => {}
 
   const getLimit = (..._args: any[]) => {}
@@ -188,6 +191,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseUnique = (..._args: any[]) => {}
 
   const showUpgradeToUseUuidField = (..._args: any[]) => {}
+
+  const showUpgradeToUseAutoNumberField = (..._args: any[]) => {}
 
   const blockRecordTemplates = computed(() => false)
 
@@ -283,9 +288,11 @@ export const useEeConfig = createSharedComposable(() => {
     blockSync,
     blockUnique,
     blockUuidField,
+    blockAutoNumberField,
     showUpgradeToUseSync,
     showUpgradeToUseUnique,
     showUpgradeToUseUuidField,
+    showUpgradeToUseAutoNumberField,
     blockAddNewSandbox,
     showSandboxPlanLimitExceededModal,
     blockRecordTemplates,

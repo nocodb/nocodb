@@ -79,8 +79,8 @@ export enum PlanFeatureTypes {
   FEATURE_UNIQUE = 'feature_unique',
   FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
   FEATURE_PINNED_FILTER = 'feature_pinned_filter',
-  // EE-only UUID field type — gated by plan feature flag
   FEATURE_UUID_FIELD = 'feature_uuid_field',
+  FEATURE_AUTONUMBER_FIELD = 'feature_autonumber_field',
   FEATURE_RECORD_TEMPLATES = 'feature_record_templates',
   FEATURE_RLS = 'feature_rls',
   FEATURE_VIEW_SECTIONS = 'feature_view_sections',
@@ -314,6 +314,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]: 'to enable or disable individual filters.',
   [PlanFeatureTypes.FEATURE_PINNED_FILTER]: 'to pin filters to the toolbar.',
   [PlanFeatureTypes.FEATURE_UUID_FIELD]: 'to use UUID fields.',
+  [PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD]: 'to use AutoNumber fields.',
   [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: 'to use record templates.',
   [PlanFeatureTypes.FEATURE_RLS]: 'to use row-level security.',
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into sections.',

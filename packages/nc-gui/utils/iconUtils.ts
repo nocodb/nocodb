@@ -174,6 +174,7 @@ import NcCellLinks from '~icons/nc-icons/cell-link'
 import NcCellLongText from '~icons/nc-icons/cell-longtext'
 import NcCellLookup from '~icons/nc-icons/cell-lookup'
 import NcCellMultiSelect from '~icons/nc-icons/cell-multiselect'
+import NcCellAutoNumber from '~icons/nc-icons/cell-auto-number'
 import NcCellNumber from '~icons/nc-icons/cell-number'
 import NcCellPercent from '~icons/nc-icons/cell-percentage'
 import NcCellPhone from '~icons/nc-icons/cell-phone'
@@ -1002,6 +1003,7 @@ export const iconMap = {
   'cellLongText': NcCellLongText,
   'cellLookup': NcCellLookup,
   'cellMultiSelect': NcCellMultiSelect,
+  'cellAutoNumber': NcCellAutoNumber,
   'cellNumber': NcCellNumber,
   'cellPercent': NcCellPercent,
   'cellPhone': NcCellPhone,

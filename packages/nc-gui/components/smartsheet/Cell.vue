@@ -205,6 +205,7 @@ const cellType = computed(() => {
   if (isTextArea(column.value)) return 'textarea'
   if (isGeoData(column.value)) return 'geoData'
   if (isUUID(column.value)) return 'uuid'
+  if (isAutoNumber(column.value)) return 'integer'
   if (isBoolean(column.value, abstractType.value)) return 'checkbox'
   if (isAttachment(column.value)) return 'attachment'
   if (isSingleSelect(column.value)) return 'singleSelect'
@@ -236,6 +237,9 @@ const showNullComponent = computed(() => {
 
 const showReadonlyField = computed(() => {
   if (column.value.readonly) return true
+
+  // AutoNumber values are always read-only (DB-managed sequence)
+  if (isAutoNumber(column.value)) return true
 
   switch (cellType.value) {
     case 'currency': {

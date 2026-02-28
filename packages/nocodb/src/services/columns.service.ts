@@ -118,6 +118,7 @@ import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 import { validateColumnInternalMeta } from '~/types/column-internal-meta';
+import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -2198,8 +2199,24 @@ export class ColumnsService implements IColumnsService {
         }
       }
 
+      // Block AutoNumber conversion on non-PG sources
+      if (
+        colBody.uidt === UITypes.AutoNumber &&
+        column.uidt !== UITypes.AutoNumber &&
+        source.type !== 'pg'
+      ) {
+        NcError.get(context).badRequest(
+          'AutoNumber field type is supported only for PostgreSQL databases',
+        );
+      }
+
       const originalCdf = colBody.cdf;
       colBody = await getColumnPropsFromUIDT(colBody, source);
+
+      // AutoNumber columns are read-only — prevent manual updates via data API
+      if (colBody.uidt === UITypes.AutoNumber) {
+        colBody.readonly = true;
+      }
 
       if (
         typeof colBody.cdf !== 'undefined' &&
@@ -2222,6 +2239,15 @@ export class ColumnsService implements IColumnsService {
           });
         },
       });
+
+      // After converting to AutoNumber, backfill existing rows + reset sequence
+      if (
+        colBody.uidt === UITypes.AutoNumber &&
+        column.uidt !== UITypes.AutoNumber
+      ) {
+        const savedCol = await Column.get(context, { colId: column.id });
+        await backfillAutoNumber(context, table, savedCol, source);
+      }
     }
 
     const DATE_TIME_TYPES = [
@@ -3048,6 +3074,60 @@ export class ColumnsService implements IColumnsService {
           });
         }
         break;
+      case UITypes.AutoNumber: {
+        // AutoNumber is only supported for PostgreSQL
+        if (source.type !== 'pg') {
+          NcError.get(context).badRequest(
+            'AutoNumber field type is supported only for PostgreSQL databases',
+          );
+        }
+
+        // Get column properties from UI type (sets dt='int8', ai=true → BIGSERIAL on PG)
+        colBody = await getColumnPropsFromUIDT(colBody, source);
+        // AutoNumber is read-only — prevent manual updates via data API
+        colBody.readonly = true;
+
+        // Create the physical column in the database
+        const tableUpdateBodyAN = {
+          ...table,
+          tn: table.table_name,
+          originalColumns: table.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+          })),
+          columns: [
+            ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
+            {
+              ...colBody,
+              cn: colBody.column_name,
+              altered: Altered.NEW_COLUMN,
+            },
+          ],
+        };
+
+        const sqlMgrAN = await reuseOrSave('sqlMgr', reuse, async () =>
+          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
+        );
+        await sqlMgrAN.sqlOpPlus(source, 'tableUpdate', tableUpdateBodyAN);
+
+        // Save column metadata
+        savedColumn = await Column.insert(context, {
+          ...colBody,
+          fk_model_id: table.id,
+        });
+
+        // Backfill existing rows with sequential values + reset PG sequence.
+        await backfillAutoNumber(
+          context,
+          table,
+          savedColumn,
+          source,
+          (colBody as any).view_id,
+        );
+
+        break;
+      }
+
       default:
         {
           // Preserve original cdf before getColumnPropsFromUIDT potentially overwrites it

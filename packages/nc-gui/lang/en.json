@@ -197,6 +197,10 @@
     "upgradeToUseAiButtonFieldSubtitle": "Upgrade to the {plan} plan to let AI Button use record data with NocoAI to fill multiple fields automatically.",
     "upgradeToUseColourField": "Upgrade to use Colour fields",
     "upgradeToUseColourFieldSubtitle": "Upgrade to the {plan} plan to use Colour fields to store and display colour values with a visual picker.",
+    "upgradeToUseUuidField": "Upgrade to use UUID fields",
+    "upgradeToUseUuidFieldSubtitle": "Upgrade to the {plan} plan to use UUID fields to auto-generate unique identifiers.",
+    "upgradeToUseAutoNumberField": "Upgrade to use AutoNumber fields",
+    "upgradeToUseAutoNumberFieldSubtitle": "Upgrade to the {plan} plan to use AutoNumber fields to auto-generate sequential numbers.",
     "upgradeToAccessCopyViewConfigFromAnotherViewSubtitle": "Upgrade to the {plan} plan to access copy view configuration from another view feature.",
     "upgradeToUseTeams": "Upgrade to use teams",
     "upgradeToUseTeamsSubtitle": "Upgrade to the {plan} plan to use teams to group users and manage their access to workspaces and bases.",
@@ -2443,6 +2447,7 @@
     "searchRecordTemplates": "Search record templates"
   },
   "msg": {
+    "autoNumberFieldInfo": "Automatically generates a unique incremented number for each record. Values are read-only and cannot be edited.",
     "replaceVersionAndGoLive": "Replace {version} and go live",
     "discardDraftConfirmation": "This will discard all changes made in the current draft and rollback to the latest published version. This action cannot be undone.",
     "draftDiscardedSuccessfully": "Draft discarded successfully",

@@ -247,7 +247,10 @@ const uiFilters = (t: UiTypesType) => {
   }
 
   // UUID is only supported for PostgreSQL databases
-  const showUUID = t.name !== UITypes.UUID || isPg(meta.value?.source_id)
+  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI)
+
+  // AutoNumber is only supported for PostgreSQL databases
+  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI)
 
   return (
     systemFiledNotEdited &&
@@ -259,7 +262,8 @@ const uiFilters = (t: UiTypesType) => {
     showColourField &&
     showLTAR &&
     formulaColumnTypeValid &&
-    showUUID
+    showUUID &&
+    showAutoNumber
   )
 }
 
@@ -1365,6 +1369,7 @@ const unique = computed({
         <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
         <SmartsheetColumnTimeOptions v-if="formState.uidt === UITypes.Time" v-model:value="formState" />
         <SmartsheetColumnNumberOptions v-if="formState.uidt === UITypes.Number" v-model:value="formState" />
+        <SmartsheetColumnAutoNumberOptions v-if="formState.uidt === UITypes.AutoNumber" v-model:value="formState" />
         <SmartsheetColumnDecimalOptions v-if="formState.uidt === UITypes.Decimal" v-model:value="formState" />
         <SmartsheetColumnDateTimeOptions
           v-if="[UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(formState.uidt)"
@@ -1425,6 +1430,7 @@ const unique = computed({
                 !isVirtualCol(formState) &&
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
                 !isUUID(formState) &&
+                !isAutoNumber(formState) &&
                 isEeUI
               "
               class="flex"
@@ -1503,7 +1509,8 @@ const unique = computed({
                 !isDatabricks(meta?.source_id) &&
                 formState.unique &&
                 !isAI(formState) &&
-                !isUUID(formState)
+                !isUUID(formState) &&
+                !isAutoNumber(formState)
               "
               title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
               placement="right"
@@ -1522,7 +1529,8 @@ const unique = computed({
                 !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
                 !isDatabricks(meta?.source_id) &&
                 !isAI(formState) &&
-                !isUUID(formState)
+                !isUUID(formState) &&
+                !isAutoNumber(formState)
               "
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"

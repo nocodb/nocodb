@@ -75,6 +75,10 @@ const uiTypes: UiTypesType[] = [
     icon: iconMap.cellNumber,
   },
   {
+    name: UITypes.AutoNumber,
+    icon: iconMap.cellAutoNumber,
+  },
+  {
     name: UITypes.Decimal,
     icon: iconMap.cellDecimal,
   },

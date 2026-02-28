@@ -253,6 +253,15 @@ const FEATURES = [
     isEE: true,
     isEngineering: true,
   },
+  {
+    id: 'presence_visibility_toggle',
+    title: 'Presence Visibility Toggle',
+    description: 'Allow users to hide their own presence from other collaborators.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

@@ -90,8 +90,23 @@ export const usePresence = createSharedComposable(() => {
   let announceTimeout: ReturnType<typeof setTimeout> | null = null
   let unsubReconnect: (() => void) | null = null
 
+  const presenceEnabled = useLocalStorage('nc-presence-enabled', true)
+
+  const followingUserId = ref<string | null>(null)
+
+  const follow = (userId: string) => {
+    followingUserId.value = userId
+  }
+
+  const unfollow = () => {
+    followingUserId.value = null
+  }
+
+  const followedCollab = computed(() => (followingUserId.value ? collaborators.value.get(followingUserId.value) ?? null : null))
+
+  // ── Emit helpers ──────────────────────────────────────────────────────────
   const sendAnnounce = () => {
-    if (!user.value?.id) return
+    if (!user.value?.id || !presenceEnabled.value) return
     const { pageType, resourceId, viewId } = currentLocation.value
     $ncSocket.emit('presence:update', {
       action: 'announce',
@@ -106,7 +121,7 @@ export const usePresence = createSharedComposable(() => {
   }
 
   const sendHeartbeat = () => {
-    if (!user.value?.id) return
+    if (!user.value?.id || !presenceEnabled.value) return
     const { pageType, resourceId, viewId } = currentLocation.value
     $ncSocket.emit('presence:update', {
       action: 'heartbeat',
@@ -115,6 +130,15 @@ export const usePresence = createSharedComposable(() => {
     })
   }
 
+  const sendLeave = () => {
+    if (!currentEventKey.value || !user.value?.id) return
+    $ncSocket.emit('presence:update', {
+      action: 'leave',
+      user: { id: user.value.id },
+    })
+  }
+
+  // ── Presence event handler ────────────────────────────────────────────────
   const handlePresenceEvent = (payload: PresencePayload) => {
     if (!payload?.action) return
     if ('user' in payload && (payload as { user?: { id?: string } }).user?.id === user.value?.id) return
@@ -139,7 +163,9 @@ export const usePresence = createSharedComposable(() => {
     }
 
     if (payload.action === 'leave') {
-      collaborators.value.delete((payload as PresenceLeavePayload).user.id)
+      const userId = (payload as PresenceLeavePayload).user.id
+      collaborators.value.delete(userId)
+      if (followingUserId.value === userId) unfollow()
       return
     }
 
@@ -147,10 +173,13 @@ export const usePresence = createSharedComposable(() => {
       const p = payload as PresenceLocationChangePayload
       const existing = collaborators.value.get(p.user.id)
       if (existing) {
-        if (p.resource.id !== undefined) existing.resourceId = p.resource.id
-        if (p.resource.viewId !== undefined) existing.viewId = p.resource.viewId
-        if (p.resource.type !== undefined) existing.pageType = p.resource.type as PresencePageType
-        existing.lastSeen = Date.now()
+        collaborators.value.set(p.user.id, {
+          ...existing,
+          ...(p.resource.id !== undefined && { resourceId: p.resource.id }),
+          ...(p.resource.viewId !== undefined && { viewId: p.resource.viewId }),
+          ...(p.resource.type !== undefined && { pageType: p.resource.type as PresencePageType }),
+          lastSeen: Date.now(),
+        })
       }
       return
     }
@@ -171,11 +200,13 @@ export const usePresence = createSharedComposable(() => {
     })
   }
 
+  // ── Heartbeat / stale cleanup ─────────────────────────────────────────────
   const cleanupStale = () => {
     const now = Date.now()
     for (const [userId, collab] of collaborators.value) {
       if (now - collab.lastSeen > PRESENCE_TIMEOUT) {
         collaborators.value.delete(userId)
+        if (followingUserId.value === userId) followingUserId.value = null
       }
     }
   }
@@ -208,6 +239,18 @@ export const usePresence = createSharedComposable(() => {
     document.addEventListener('visibilitychange', handleVisibilityChange)
   }
 
+  // ── Watch presenceEnabled toggle ──────────────────────────────────────────
+  watch(presenceEnabled, (enabled) => {
+    if (enabled) {
+      sendAnnounce()
+      startHeartbeat()
+    } else {
+      sendLeave()
+      stopHeartbeat()
+    }
+  })
+
+  // ── Room join / leave ─────────────────────────────────────────────────────
   const joinRoom = (wsId: string, bId: string) => {
     const eventKey = `${EventType.PRESENCE_EVENT}:${wsId}:${bId}`
     currentEventKey.value = eventKey
@@ -235,14 +278,7 @@ export const usePresence = createSharedComposable(() => {
     }
     stopHeartbeat()
     collaborators.value.clear()
-
-    if (currentEventKey.value && user.value?.id) {
-      $ncSocket.emit('presence:update', {
-        action: 'leave',
-        user: { id: user.value.id },
-      })
-    }
-
+    sendLeave()
     currentEventKey.value = null
   }
 
@@ -270,7 +306,7 @@ export const usePresence = createSharedComposable(() => {
   })
 
   const activeCollaborators = computed(() =>
-    Array.from(collaborators.value.values()).sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    Array.from(collaborators.value.values()).sort((a, b) => (a.displayName ?? '').localeCompare(b.displayName ?? '')),
   )
 
   tryOnScopeDispose(() => {
@@ -284,5 +320,5 @@ export const usePresence = createSharedComposable(() => {
     }
   })
 
-  return { activeCollaborators }
+  return { activeCollaborators, presenceEnabled, followingUserId, followedCollab, follow, unfollow }
 })

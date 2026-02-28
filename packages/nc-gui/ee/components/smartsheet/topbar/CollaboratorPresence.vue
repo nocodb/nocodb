@@ -2,7 +2,9 @@
 import { PresencePageType } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 
-const { activeCollaborators } = usePresence()
+const { activeCollaborators, presenceEnabled, followingUserId, followedCollab, follow, unfollow } = usePresence()
+const { isFeatureEnabled } = useBetaFeatureToggle()
+const canTogglePresence = computed(() => isFeatureEnabled(FEATURE_FLAG.PRESENCE_VISIBILITY_TOGGLE))
 const { baseTables } = storeToRefs(useTablesStore())
 const { viewsByTable } = storeToRefs(useViewsStore())
 const { dashboards } = storeToRefs(useDashboardStore())
@@ -88,7 +90,6 @@ const navigateToCollaborator = (collab: (typeof activeCollaborators.value)[numbe
     return
   }
 
-  // TABLE (default) — resourceId is tableId
   if (!collab.resourceId) return
   const tables = baseTables.value.get(baseId.value!) || []
   if (!tables.find((t) => t.id === collab.resourceId)) {
@@ -97,16 +98,43 @@ const navigateToCollaborator = (collab: (typeof activeCollaborators.value)[numbe
   }
   ncNavigateTo({ workspaceId: activeWorkspaceId.value, baseId: baseId.value, tableId: collab.resourceId, viewId: collab.viewId })
 }
+
+const hasAccess = (collab: (typeof activeCollaborators.value)[number]) => {
+  if (!collab.resourceId) return false
+  if (collab.pageType === PresencePageType.DASHBOARD) {
+    return !!dashboards.value.get(baseId.value!)?.find((d) => d.id === collab.resourceId || d.uuid === collab.resourceId)
+  }
+  if (collab.pageType === PresencePageType.AUTOMATION) {
+    return !!activeBaseWorkflows.value.find((w) => w.id === collab.resourceId)
+  }
+  if (collab.pageType === PresencePageType.SCRIPT) {
+    return !!activeBaseScripts.value.find((s) => s.id === collab.resourceId)
+  }
+  return !!(baseTables.value.get(baseId.value!) || []).find((t) => t.id === collab.resourceId)
+}
+
+const toggleFollow = (collab: (typeof activeCollaborators.value)[number]) => {
+  if (followingUserId.value === collab.userId) {
+    unfollow()
+  } else {
+    follow(collab.userId)
+    navigateToCollaborator(collab)
+  }
+}
+
+watch(followedCollab, (collab) => {
+  if (!collab || !hasAccess(collab)) return
+  navigateToCollaborator(collab)
+})
 </script>
 
 <template>
   <div
-    v-if="isEeUI && activeCollaborators.length"
+    v-if="isEeUI && (activeCollaborators.length || canTogglePresence)"
     role="group"
-    :aria-label="`${activeCollaborators.length} collaborator${activeCollaborators.length === 1 ? '' : 's'} in this base`"
-    class="nc-presence-group flex items-center pl-1 mr-0.5 border-r-1 border-nc-border-gray-medium pr-2.5"
+    class="nc-presence-group flex items-center gap-1 pl-1 mr-0.5 border-r-1 border-nc-border-gray-medium pr-2.5"
   >
-    <div class="flex items-center -space-x-1.5">
+    <div v-if="presenceEnabled && activeCollaborators.length" class="flex items-center -space-x-1.5">
       <NcTooltip
         v-for="(collab, index) in visibleCollaborators"
         :key="collab.userId"
@@ -114,10 +142,28 @@ const navigateToCollaborator = (collab: (typeof activeCollaborators.value)[numbe
         :style="{ zIndex: MAX_VISIBLE - index }"
       >
         <template #title>
-          <div>
+          <div class="flex flex-col gap-1 min-w-28">
             <div class="text-bodySm capitalize">{{ extractUserDisplayNameOrEmail(toUserProp(collab)) }}</div>
-            <div v-if="getLocationLabel(collab)" class="text-[10px] text-gray-400 leading-tight mt-1">
-              Viewing: {{ getLocationLabel(collab) }}
+            <div v-if="getLocationLabel(collab)" class="text-[10px] text-gray-400 leading-tight">
+              {{ getLocationLabel(collab) }}
+            </div>
+            <div class="flex items-center gap-1 mt-0.5">
+              <NcButton
+                size="xsmall"
+                type="text"
+                class="!h-5 !px-1.5 !text-[10px] nc-presence-btn"
+                @click="navigateToCollaborator(collab)"
+              >
+                Go there
+              </NcButton>
+              <NcButton
+                size="xsmall"
+                :type="followingUserId === collab.userId ? 'primary' : 'text'"
+                class="!h-5 !px-1.5 !text-[10px] nc-presence-follow-btn"
+                @click="toggleFollow(collab)"
+              >
+                {{ followingUserId === collab.userId ? 'Following' : 'Follow' }}
+              </NcButton>
             </div>
           </div>
         </template>
@@ -125,6 +171,7 @@ const navigateToCollaborator = (collab: (typeof activeCollaborators.value)[numbe
           :user="toUserProp(collab)"
           size="medium"
           class="ring-2 cursor-pointer"
+          :class="{ 'ring-offset-1': followingUserId === collab.userId }"
           :style="{ '--tw-ring-color': collab.color }"
           :aria-label="`${collab.displayName} is in this base`"
           tabindex="0"
@@ -152,17 +199,37 @@ const navigateToCollaborator = (collab: (typeof activeCollaborators.value)[numbe
         </div>
       </NcTooltip>
     </div>
+    <NcTooltip v-if="canTogglePresence">
+      <template #title>
+        {{ presenceEnabled ? 'Hide my presence' : 'Show my presence' }}
+      </template>
+      <NcButton
+        size="xsmall"
+        type="text"
+        class="!w-6 !h-6 !p-0"
+        :aria-label="presenceEnabled ? 'Hide my presence' : 'Show my presence'"
+        @click="presenceEnabled = !presenceEnabled"
+      >
+        <GeneralIcon :icon="presenceEnabled ? 'ncEye' : 'ncEyeOff'" class="w-3.5 h-3.5 text-nc-content-gray-subtle" />
+      </NcButton>
+    </NcTooltip>
   </div>
 </template>
 
 <style scoped>
-/* Smooth enter/exit for individual avatars joining or leaving */
 .nc-presence-avatar {
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-/* Smooth width change when avatar count changes */
 .nc-presence-group {
   transition: width 0.2s ease, opacity 0.2s ease;
+}
+
+.nc-presence-btn:not(:hover) {
+  color: var(--nc-content-inverted-primary) !important;
+}
+
+.nc-presence-follow-btn:not(:hover) {
+  color: var(--nc-content-inverted-primary) !important;
 }
 </style>

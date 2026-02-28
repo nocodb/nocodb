@@ -713,7 +713,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     }
 
     async function loadAggCommentsCount(formattedData: Array<Row>) {
-      if (!isUIAllowed('commentCount') || isPublic.value) return
+      if (!isUIAllowed('commentCount') || isPublic) return
 
       const ids = formattedData
         .filter(({ rowMeta: { new: isNew } }) => !isNew)

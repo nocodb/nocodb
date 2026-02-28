@@ -170,11 +170,11 @@ const saveGroupBy = async () => {
 
     $e('a:group-by:update', { groupBy: _groupBy.value, local: true })
 
-    // When transitioning from grouped to non-grouped, wait for Vue to unmount
-    // the grouped component and mount the normal grid before emitting reload
-    if (newLocalGroupBy.length === 0) {
-      await nextTick()
-    }
+    // Wait for Vue to propagate localGroupBy changes through the component tree
+    // so that child components (e.g. CanvasTable) have updated props before the
+    // reload handler runs. Without this, the canvas handler sees stale isGroupBy
+    // state and takes the wrong (non-grouped) code path.
+    await nextTick()
 
     eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
   }

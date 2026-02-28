@@ -211,9 +211,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
       }
 
-      const colsData: GridColumnType[] = (isPublic.value ? view.value?.columns : fields.value) ?? []
-
-      gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
+      // Use fields columns to populate gridViewCols
+      gridViewCols.value = fields.value.reduce<Record<string, GridColumnType>>(
         (o, col) => ({
           ...o,
           [col.fk_column_id as string]: col,
@@ -648,7 +647,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
       try {
         // sync with server if allowed
-        if (!isPublic.value && canEditViewFields.value && gridViewCols.value[id]?.id) {
+        if (!isPublic && canEditViewFields.value && gridViewCols.value[id]?.id) {
           const colId = gridViewCols.value[id].id
 
           // Route to the correct backend operation based on view type

@@ -830,7 +830,7 @@ onBeforeUnmount(() => {
     </Transition>
 
     <!-- 3-dot page context menu — floats at top-right, outside scroll flow -->
-    <div class="nc-doc-page-menu" :class="{ 'nc-doc-page-menu-search-open': isSearchOpen }">
+    <div class="nc-doc-page-menu">
       <NcTooltip :title="$t('general.comments')" placement="bottom">
         <NcButton
           size="xsmall"
@@ -889,6 +889,7 @@ onBeforeUnmount(() => {
     <DocSearchReplace
       v-if="isSearchOpen && editor"
       ref="searchBarRef"
+      class="nc-doc-search-below-sticky"
       :editor="editor"
       @close="isSearchOpen = false"
     />
@@ -1320,6 +1321,11 @@ onBeforeUnmount(() => {
 .nc-doc-sticky-slide-leave-to {
   transform: translateY(-100%);
   opacity: 0;
+}
+
+// Push search bar below sticky header when it's visible
+.nc-doc-search-bar.nc-doc-search-below-sticky {
+  top: 46px !important;
 }
 
 // Icon positioned to the left, outside the content bounds on large screens.
@@ -2089,11 +2095,6 @@ onBeforeUnmount(() => {
   }
 }
 
-// The page menu (3-dot + comments) occupies the same top-right corner
-// as the search bar. Hide it when search is open to avoid overlap.
-.nc-doc-page-menu-search-open {
-  display: none;
-}
 
 @keyframes comment-mark-flash {
   0% {

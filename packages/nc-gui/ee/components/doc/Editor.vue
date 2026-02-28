@@ -18,6 +18,7 @@ import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
+import { DocSearchExtension } from './DocSearchExtension'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 
@@ -96,6 +97,12 @@ const {
 } = useDocEditorLinks({ editor, isEditable })
 
 const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
+
+// --- Search & Replace bar state (Cmd/Ctrl+F) ---
+// The bar is rendered inside the editor's relative wrapper and uses
+// DocSearchExtension (ProseMirror plugin) for match finding + decorations.
+const isSearchOpen = ref(false)
+const searchBarRef = ref<{ focusSearch: () => void } | null>(null)
 
 // --- Comments sidebar state ---
 const isCommentsPanelOpen = ref(false)
@@ -234,12 +241,16 @@ const _tiptapEditor = useEditor({
     DocFileAttachmentExtension,
     DocEmbedExtension,
     DocActiveBlockExtension,
+    DocSearchExtension,
   ],
   editorProps: {
     attributes: {
       class: 'nc-doc-editor-content focus:outline-none min-h-[200px]',
     },
     handleKeyDown(view, event) {
+      // Note: Cmd/Ctrl+F is handled by a document-level keydown listener
+      // (onDocKeydown) so it works even when the editor isn't focused.
+
       // Paste-link menu keyboard navigation — must be handled here
       // (before ProseMirror) so Enter/arrows aren't consumed by the editor
       if (pasteLinkMenu.value.visible) {
@@ -740,6 +751,21 @@ const onDocClick = (e: MouseEvent) => {
 onMounted(() => document.addEventListener('click', onDocClick, true))
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true))
 
+// Intercept Cmd/Ctrl+F at document level so it works even when the editor
+// doesn't have focus (e.g. cursor is in the title input or page body).
+const onDocKeydown = (e: KeyboardEvent) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+    e.preventDefault()
+    if (isSearchOpen.value) {
+      nextTick(() => searchBarRef.value?.focusSearch())
+    } else {
+      isSearchOpen.value = true
+    }
+  }
+}
+onMounted(() => document.addEventListener('keydown', onDocKeydown, true))
+onBeforeUnmount(() => document.removeEventListener('keydown', onDocKeydown, true))
+
 watch(
   () => pasteLinkMenu.value.visible,
   (visible) => {
@@ -767,7 +793,7 @@ onBeforeUnmount(() => {
     <!-- Editor area — relative wrapper for floating menu + scroll content -->
     <div class="relative flex-1 min-w-0 h-full overflow-hidden">
     <!-- 3-dot page context menu — floats at top-right, outside scroll flow -->
-    <div class="nc-doc-page-menu">
+    <div class="nc-doc-page-menu" :class="{ 'nc-doc-page-menu-search-open': isSearchOpen }">
       <NcTooltip :title="$t('general.comments')" placement="bottom">
         <NcButton
           size="xsmall"
@@ -821,6 +847,14 @@ onBeforeUnmount(() => {
         </template>
       </NcDropdown>
     </div>
+
+    <!-- Search & Replace bar — floats at top-right above editor content -->
+    <DocSearchReplace
+      v-if="isSearchOpen && editor"
+      ref="searchBarRef"
+      :editor="editor"
+      @close="isSearchOpen = false"
+    />
 
     <!-- Scroll area for editor content -->
     <div class="flex flex-col h-full overflow-y-auto">
@@ -1930,6 +1964,25 @@ onBeforeUnmount(() => {
   &.nc-doc-comment-mark-flash {
     animation: comment-mark-flash 1.5s ease-out forwards;
   }
+}
+
+// Search match highlight decorations (DocSearchExtension).
+// Inactive matches are yellow; the active/current match is orange.
+// These classes are applied as ProseMirror inline decorations.
+.nc-search-match {
+  background: rgba(255, 212, 0, 0.4);
+  border-radius: 2px;
+}
+
+.nc-search-match-active {
+  background: rgba(255, 150, 0, 0.5);
+  border-radius: 2px;
+}
+
+// The page menu (3-dot + comments) occupies the same top-right corner
+// as the search bar. Hide it when search is open to avoid overlap.
+.nc-doc-page-menu-search-open {
+  display: none;
 }
 
 @keyframes comment-mark-flash {

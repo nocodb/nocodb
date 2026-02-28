@@ -296,14 +296,18 @@ watch(
   },
 )
 
+/** Scroll the comments wrapper so the active comment is centered — without using
+ *  scrollIntoView which can bubble up and scroll outer ancestors, causing layout shifts. */
 function scrollToActiveComment() {
   const id = activeCommentId.value
   if (!id || !commentsWrapperEl.value) return
   nextTick(() => {
     const el = commentsWrapperEl.value?.querySelector(`[data-comment-item-id="${id}"]`) as HTMLElement | null
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    }
+    if (!el) return
+    const container = commentsWrapperEl.value!
+    const elTop = el.offsetTop - container.offsetTop
+    const scrollTarget = elTop - (container.clientHeight - el.offsetHeight) / 2
+    container.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' })
   })
 }
 

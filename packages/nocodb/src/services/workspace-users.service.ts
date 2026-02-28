@@ -40,6 +40,7 @@ export class WorkspaceUsersService {
       workspaceId: string;
       userId: string;
       roles: WorkspaceUserRoles;
+      siteUrl?: string;
       req: NcRequest;
     },
     ncMeta = Noco.ncMeta,
@@ -47,6 +48,7 @@ export class WorkspaceUsersService {
     const workspaceUser = await WorkspaceUser.get(
       param.workspaceId,
       param.userId,
+      {},
       ncMeta,
     );
 
@@ -117,51 +119,6 @@ export class WorkspaceUsersService {
     return workspaceUser;
   }
 
-  async delete(
-    param: { workspaceId: string; userId: string; req: NcRequest },
-    ncMeta = Noco.ncMeta,
-  ) {
-    const workspaceUser = await WorkspaceUser.get(
-      param.workspaceId,
-      param.userId,
-      ncMeta,
-    );
-
-    if (!workspaceUser) NcError.userNotFound(param.userId);
-
-    // Owner guard: ensure at least one owner remains
-    if (workspaceUser.roles === WorkspaceUserRoles.OWNER) {
-      const owners = await WorkspaceUser.userList(
-        { fk_workspace_id: param.workspaceId },
-        ncMeta,
-      );
-      const ownerCount = owners.filter(
-        (u) => u.roles === WorkspaceUserRoles.OWNER,
-      ).length;
-      if (ownerCount <= 1) {
-        NcError.badRequest('At least one owner should be there');
-      }
-    }
-
-    // Role power check: can't delete someone with higher role (super admin bypasses)
-    const isSuperAdmin =
-      param.req.user?.roles &&
-      extractRolesObj(param.req.user.roles)[OrgUserRoles.SUPER_ADMIN];
-
-    if (
-      !isSuperAdmin &&
-      getWorkspaceRolePower({
-        workspace_roles: extractRolesObj(workspaceUser.roles),
-      }) > getWorkspaceRolePower(param.req.user)
-    ) {
-      NcError.badRequest('Insufficient privilege to delete user');
-    }
-
-    await WorkspaceUser.softDelete(param.workspaceId, param.userId, ncMeta);
-
-    return true;
-  }
-
   async invite(
     param: {
       workspaceId: string;
@@ -205,7 +162,7 @@ export class WorkspaceUsersService {
       NcError.badRequest('Insufficient privilege to invite with this role');
     }
 
-    const workspace = await Workspace.get(workspaceId, ncMeta);
+    const workspace = await Workspace.get(workspaceId, false, ncMeta);
     if (!workspace) NcError.workspaceNotFound(workspaceId);
 
     // Parse emails
@@ -249,14 +206,31 @@ export class WorkspaceUsersService {
       const existingWsUser = await WorkspaceUser.get(
         workspaceId,
         user.id,
+        {},
         ncMeta,
       );
 
       if (existingWsUser) {
-        error.push({
-          email: emailAddr,
-          msg: `${emailAddr} already exists in this workspace`,
-        });
+        // If user was pre-created with NO_ACCESS (e.g. from migration), upgrade their role
+        if (existingWsUser.roles === WorkspaceUserRoles.NO_ACCESS) {
+          await WorkspaceUser.update(
+            workspaceId,
+            user.id,
+            { roles: roles || WorkspaceUserRoles.VIEWER },
+            ncMeta,
+          );
+
+          // Clear BASE_USER cache for all bases in workspace since workspace_roles changed
+          await WorkspaceUser.clearBaseUserCacheForWorkspace(
+            workspaceId,
+            ncMeta,
+          );
+        } else {
+          error.push({
+            email: emailAddr,
+            msg: `${emailAddr} already exists in this workspace`,
+          });
+        }
         continue;
       }
 

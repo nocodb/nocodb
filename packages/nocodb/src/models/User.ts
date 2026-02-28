@@ -4,6 +4,8 @@ import {
   ncIsObject,
   ProjectRoles,
   type UserType,
+  type WorkspaceUserRoles,
+  WorkspaceRolesToProjectRoles,
 } from 'nocodb-sdk';
 import type { MetaType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -455,16 +457,34 @@ export default class User implements UserType {
     let workspaceRoles: Record<string, boolean> | null = null;
 
     if (args.workspaceId) {
-      const wsUser = await WorkspaceUser.get(args.workspaceId, user.id, ncMeta);
+      const wsUser = await WorkspaceUser.get(args.workspaceId, user.id, {}, ncMeta);
       if (wsUser?.roles) {
         workspaceRoles = extractRolesObj(wsUser.roles);
+      }
+    }
+
+    // If no explicit base role, inherit from workspace role
+    let effectiveBaseRoles = baseRoles;
+    if (!effectiveBaseRoles && workspaceRoles) {
+      const wsRoleStr = Object.keys(workspaceRoles).find(
+        (k) => workspaceRoles[k],
+      ) as WorkspaceUserRoles | undefined;
+      if (wsRoleStr) {
+        const projectRole = WorkspaceRolesToProjectRoles[wsRoleStr];
+        if (
+          projectRole &&
+          projectRole !== ProjectRoles.NO_ACCESS &&
+          projectRole !== ProjectRoles.INHERIT
+        ) {
+          effectiveBaseRoles = extractRolesObj(projectRole);
+        }
       }
     }
 
     return {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
-      base_roles: baseRoles ? baseRoles : null,
+      base_roles: effectiveBaseRoles ? effectiveBaseRoles : null,
       workspace_roles: workspaceRoles,
     } as UserType & {
       roles: Record<string, boolean>;

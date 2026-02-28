@@ -1,6 +1,12 @@
 import Noco from '~/Noco';
-import { MetaTable, RootScopes } from '~/utils/globals';
+import {
+  CacheDelDirection,
+  CacheScope,
+  MetaTable,
+  RootScopes,
+} from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
+import NocoCache from '~/cache/NocoCache';
 
 export default class WorkspaceUser {
   fk_workspace_id?: string;
@@ -37,6 +43,7 @@ export default class WorkspaceUser {
   static async get(
     workspaceId: string,
     userId: string,
+    _options: { include_deleted?: boolean } = {},
     ncMeta = Noco.ncMeta,
   ): Promise<WorkspaceUser | null> {
     const wsUser = await ncMeta.metaGet2(
@@ -113,11 +120,14 @@ export default class WorkspaceUser {
   ) {
     const updateObj = extractProps(data, ['roles']);
 
-    return await ncMeta
+    await ncMeta
       .knexConnection(MetaTable.WORKSPACE_USER)
       .where('fk_workspace_id', workspaceId)
       .where('fk_user_id', userId)
       .update(updateObj);
+
+    // Clear BASE_USER cache since workspace_roles is included in base user data
+    await this.clearBaseUserCacheForWorkspace(workspaceId, ncMeta);
   }
 
   static async softDelete(
@@ -125,7 +135,7 @@ export default class WorkspaceUser {
     userId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    return await ncMeta
+    await ncMeta
       .knexConnection(MetaTable.WORKSPACE_USER)
       .where('fk_workspace_id', workspaceId)
       .where('fk_user_id', userId)
@@ -133,6 +143,48 @@ export default class WorkspaceUser {
         deleted: true,
         deleted_at: new Date().toISOString(),
       });
+
+    await this.clearBaseUserCacheForWorkspace(workspaceId, ncMeta);
+  }
+
+  static async softDeleteByUser(userId: string, ncMeta = Noco.ncMeta) {
+    const entries = await ncMeta
+      .knexConnection(MetaTable.WORKSPACE_USER)
+      .where('fk_user_id', userId)
+      .whereNot('deleted', true)
+      .select('fk_workspace_id');
+
+    await ncMeta
+      .knexConnection(MetaTable.WORKSPACE_USER)
+      .where('fk_user_id', userId)
+      .update({
+        deleted: true,
+        deleted_at: new Date().toISOString(),
+      });
+
+    for (const entry of entries) {
+      await this.clearBaseUserCacheForWorkspace(
+        entry.fk_workspace_id,
+        ncMeta,
+      );
+    }
+  }
+
+  static async clearBaseUserCacheForWorkspace(
+    workspaceId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const { default: Base } = await import('~/models/Base');
+    const bases = await Base.list(null, ncMeta);
+    for (const base of bases) {
+      if (base.fk_workspace_id === workspaceId) {
+        await NocoCache.deepDel(
+          { workspace_id: workspaceId, base_id: base.id },
+          `${CacheScope.BASE_USER}:${base.id}:list`,
+          CacheDelDirection.PARENT_TO_CHILD,
+        );
+      }
+    }
   }
 
   static async clearCache(..._args: any[]) {}

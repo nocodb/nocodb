@@ -17,7 +17,14 @@ import { validatePayload } from '~/helpers';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { BaseUser, PresignedUrl, SyncSource, User } from '~/models';
+import {
+  ApiToken,
+  BaseUser,
+  PresignedUrl,
+  SyncSource,
+  User,
+  UserRefreshToken,
+} from '~/models';
 import WorkspaceUser from '~/models/WorkspaceUser';
 
 import Noco from '~/Noco';
@@ -142,6 +149,15 @@ export class OrgUsersService {
 
       // delete sync source entry
       await SyncSource.deleteByUserId(param.userId, ncMeta);
+
+      // delete workspace user entries (with cache invalidation)
+      await WorkspaceUser.softDeleteByUser(param.userId, ncMeta);
+
+      // delete refresh tokens
+      await UserRefreshToken.deleteAllUserToken(param.userId, ncMeta);
+
+      // delete api tokens (with cache invalidation)
+      await ApiToken.deleteByUser(param.userId, ncMeta);
 
       // delete user
       await User.delete(param.userId, ncMeta);

@@ -75,16 +75,17 @@ const permissionScopes = {
     'mcpRootList',
 
     'getUserProfile',
-  ],
-  workspace: [
-    // Base operations
-    'baseList',
-    'baseCreate',
-    'testConnection',
 
-    // Upload
+    // Connection + upload (matches EE org scope)
+    'testConnection',
     'upload',
     'uploadViaURL',
+    'genericGPT',
+  ],
+  workspace: [
+    // Base operations (workspace scope — unified CE/EE model)
+    'baseList',
+    'baseCreate',
 
     // Integration
     'integrationGet',
@@ -98,7 +99,6 @@ const permissionScopes = {
     // Misc
     'duplicateSharedBase',
     'webhookPluginList',
-    'genericGPT',
 
     // AI
     'aiSchema',
@@ -262,6 +262,7 @@ const rolePermissions:
       passwordChange: true,
       commandPalette: true,
       baseListAll: true,
+      testConnection: true,
       notification: true,
 
       // oAuth
@@ -280,7 +281,10 @@ const rolePermissions:
   },
   [OrgUserRoles.CREATOR]: {
     include: {
+      upload: true,
+      uploadViaURL: true,
       isPluginActive: true,
+      genericGPT: true,
     },
   },
 
@@ -304,12 +308,8 @@ const rolePermissions:
   [WorkspaceUserRoles.CREATOR]: {
     include: {
       baseCreate: true,
-      testConnection: true,
-      upload: true,
-      uploadViaURL: true,
       duplicateSharedBase: true,
       webhookPluginList: true,
-      genericGPT: true,
       integrationGet: true,
       integrationCreate: true,
       integrationDelete: true,

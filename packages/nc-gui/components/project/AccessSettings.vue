@@ -91,19 +91,20 @@ const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(
 const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
   let filteredRoles = roles
 
-  if (!record?.isTeam || !isEeUI) {
-    filteredRoles = roles.filter((r) => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
-  } else {
-    // Allow INHERIT for teams at base level, but filter out OWNER
+  if (record?.isTeam && isEeUI) {
+    // EE teams: allow INHERIT, filter out OWNER
     filteredRoles = roles.filter((r) => r !== ProjectRoles.OWNER)
-  }
+  } else if (isEeUI) {
+    // EE non-team: INHERIT only if teams enabled
+    filteredRoles = roles.filter((r) => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
 
-  // Show INHERIT only if current base-level role is not INHERIT or null/undefined
-  // base_roles is the explicit base-level role (not inherited from workspace)
-  const currentBaseRole = record?.base_roles
-  if (!currentBaseRole || currentBaseRole === ProjectRoles.INHERIT) {
-    filteredRoles = filteredRoles.filter((r) => r !== ProjectRoles.INHERIT)
+    // In EE: hide INHERIT if user is already inheriting (no explicit base role)
+    const currentBaseRole = record?.base_roles
+    if (!currentBaseRole || currentBaseRole === ProjectRoles.INHERIT) {
+      filteredRoles = filteredRoles.filter((r) => r !== ProjectRoles.INHERIT)
+    }
   }
+  // CE: always keep INHERIT visible — workspace role inheritance is supported
 
   return filteredRoles
 }
@@ -207,13 +208,15 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         })
       }
     } else {
-      // When role is INHERIT, delete the base user entry
+      // When role is INHERIT, delete the base user entry (if exists)
       if (roles === ProjectRoles.INHERIT) {
-        await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        // Only remove if user has an explicit base role to remove
+        if (currentCollaborator.base_roles) {
+          await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        }
         if (
           currentCollaborator.workspace_roles &&
-          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] &&
-          isEeUI
+          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
         ) {
           currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
         } else {
@@ -221,11 +224,12 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         }
         currentCollaborator.base_roles = null
       } else if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
-        await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        if (currentCollaborator.base_roles) {
+          await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        }
         if (
           currentCollaborator.workspace_roles &&
-          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
-          isEeUI
+          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles
         ) {
           currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
         } else {

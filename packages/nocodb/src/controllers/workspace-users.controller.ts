@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   Param,
   Patch,
@@ -42,22 +41,7 @@ export class WorkspaceUsersController {
       workspaceId,
       userId,
       roles: body.roles,
-      req,
-    });
-  }
-
-  @Delete('/api/v1/workspaces/:workspaceId/users/:workspaceUserId')
-  @Acl('workspaceUserDelete', {
-    scope: 'workspace',
-  })
-  async delete(
-    @Param('workspaceId') workspaceId: string,
-    @Param('workspaceUserId') workspaceUserId: string,
-    @Req() req: NcRequest,
-  ) {
-    return await this.workspaceUsersService.delete({
-      workspaceId,
-      userId: workspaceUserId,
+      siteUrl: req.ncSiteUrl,
       req,
     });
   }

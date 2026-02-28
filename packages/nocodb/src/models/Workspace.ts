@@ -19,7 +19,9 @@ export default class Workspace {
 
   public static async get(
     workspaceId: string,
+    _force?: boolean,
     ncMeta = Noco.ncMeta,
+    _withStats?: boolean,
   ): Promise<Workspace | null> {
     const workspace = await ncMeta.metaGet2(
       RootScopes.WORKSPACE,

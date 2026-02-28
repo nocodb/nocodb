@@ -692,7 +692,7 @@ watch(inviteDlg, (newVal) => {
                     />
 
                     <template
-                      v-if="isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member)"
+                      v-if="isEeUI && (isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member))"
                     >
                       <NcDivider />
 

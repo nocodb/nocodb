@@ -28,6 +28,7 @@ export interface TeamV3ResponseType {
   created_at?: string;
   updated_at?: string;
   is_member?: boolean; // Whether the current logged-in user is a member of the team
+  is_owner?: boolean; // Whether the current logged-in user is an owner of the team
   fk_parent_team_id?: string | null;
   depth?: number;
   path?: string;

@@ -121,22 +121,40 @@ export const usePermissions = () => {
       // Check if user exists in subjects array
       return (
         permissionObj.subjects?.some(
-          (subject: { type: string; id: string }) =>
-            (subject.type === 'user' && subject.id === user.value?.id) ||
-            (subject.type === 'team' && user.value?.teams?.some((t) => t.team_id === subject.id)),
-        ) || false
-      )
-    }
+          (subject: { type: string; id: string; hierarchy_scope?: 'self_only' | 'self_and_descendants' }) => {
+            if (subject.type === 'user') {
+              return subject.id === user.value?.id
+            }
 
-    if (permissionObj.granted_type === PermissionGrantedType.USER) {
-      // In shared form user is anonymous, but in form builder user role is present so we have to treat it as shared form
-      if (options?.isFormView) return false
-      // Check if user exists in subjects array
-      return (
-        permissionObj.subjects?.some(
-          (subject: { type: string; id: string }) =>
-            (subject.type === 'user' && subject.id === user.value?.id) ||
-            (subject.type === 'team' && user.value?.teams?.some((t) => t.team_id === subject.id)),
+            if (subject.type === 'team') {
+              const userTeams: { team_id: string; path?: string; user_team_id?: string }[] =
+                (user.value as any)?.teams ?? []
+
+              return userTeams.some((t) => {
+                if (t.team_id === subject.id) {
+                  // For self_only: the user must be a DIRECT member of the subject team.
+                  // user_team_id is the user's actual direct team that caused this workspace entry.
+                  // If user_team_id !== subject.id, this entry was created via upward cascade
+                  // (e.g. Engineering member inheriting Frontend team's workspace role) — not a direct match.
+                  if (subject.hierarchy_scope === 'self_only') {
+                    return t.user_team_id === subject.id
+                  }
+                  return true
+                }
+
+                // For self_and_descendants: check if user is in a descendant team of the subject
+                // A team is a descendant if its path contains the subject team id as an ancestor segment
+                if (subject.hierarchy_scope !== 'self_only' && t.path) {
+                  const pathSegments = t.path.split('/').filter(Boolean)
+                  return pathSegments.includes(subject.id)
+                }
+
+                return false
+              })
+            }
+
+            return false
+          },
         ) || false
       )
     }

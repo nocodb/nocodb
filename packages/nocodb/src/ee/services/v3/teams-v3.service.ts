@@ -167,8 +167,9 @@ export class TeamsV3Service {
           this.getTeamOwners(context, team.id),
         ]);
 
-        // Check if current user is a member of this team
+        // Check if current user is a member/owner of this team
         let isMember = false;
+        let isOwner = false;
         if (currentUserId) {
           const assignment = await PrincipalAssignment.get(
             context,
@@ -178,6 +179,7 @@ export class TeamsV3Service {
             currentUserId,
           );
           isMember = assignment !== null;
+          isOwner = assignment?.roles === TeamUserRoles.OWNER;
         }
 
         return {
@@ -186,6 +188,7 @@ export class TeamsV3Service {
           managers_count: managersCount,
           managers: managers,
           is_member: isMember,
+          is_owner: isOwner,
         };
       }),
     );
@@ -206,6 +209,7 @@ export class TeamsV3Service {
         created_at: team.created_at,
         updated_at: team.updated_at,
         is_member: team.is_member,
+        is_owner: team.is_owner,
         fk_parent_team_id: team.fk_parent_team_id || null,
         depth: team.depth ?? 0,
         path: team.path || undefined,
@@ -543,6 +547,7 @@ export class TeamsV3Service {
       created_at: team.created_at,
       updated_at: team.updated_at,
       is_member: isMember,
+      is_owner: isMember, // creator is always added as owner
       fk_parent_team_id: team.fk_parent_team_id || null,
       depth: team.depth ?? 0,
       path: team.path || undefined,
@@ -1271,6 +1276,7 @@ export class TeamsV3Service {
       ]);
 
       let isMember = false;
+      let isOwner = false;
       if (currentUserId) {
         const assignment = await PrincipalAssignment.get(
           context,
@@ -1280,6 +1286,7 @@ export class TeamsV3Service {
           currentUserId,
         );
         isMember = assignment !== null;
+        isOwner = assignment?.roles === TeamUserRoles.OWNER;
       }
 
       const meta = parseMetaProp(node) ?? {};
@@ -1301,6 +1308,7 @@ export class TeamsV3Service {
         created_at: node.created_at,
         updated_at: node.updated_at,
         is_member: isMember,
+        is_owner: isOwner,
         fk_parent_team_id: node.fk_parent_team_id || null,
         depth: node.depth ?? 0,
         path: node.path || undefined,

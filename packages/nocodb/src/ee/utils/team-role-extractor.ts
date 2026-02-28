@@ -23,9 +23,19 @@ export async function extractUserTeamRoles(
   workspaceId: string,
 ): Promise<{
   roles: Record<string, boolean> | null;
-  teams: { team_id: string; roles: string; path?: string }[];
+  teams: {
+    team_id: string;
+    roles: string;
+    path?: string;
+    user_team_id?: string;
+  }[];
 }> {
-  const teams: { team_id: string; roles: string; path?: string }[] = [];
+  const teams: {
+    team_id: string;
+    roles: string;
+    path?: string;
+    user_team_id?: string;
+  }[] = [];
 
   try {
     // Get all team assignments for this workspace
@@ -87,10 +97,20 @@ export async function extractUserTeamRoles(
       }
 
       if (matched) {
+        // Find which of the user's teams caused the match
+        const matchingUserTeam = userTeams.find((ut) => {
+          if (ut.id === assignedTeamId) return true;
+          return assignedTeam.path.startsWith(ut.path + '/');
+        });
+
         teams.push({
           team_id: assignedTeamId,
           roles: assignment.roles,
           path: assignedTeam.path,
+          // user_team_id is the user's actual direct team that caused this match.
+          // Used by frontend self_only scope checks to distinguish direct membership
+          // from upward-cascade membership (e.g. Engineering member cascading into Frontend).
+          user_team_id: matchingUserTeam?.id,
         });
         workspaceRoles.push(assignment.roles);
       }

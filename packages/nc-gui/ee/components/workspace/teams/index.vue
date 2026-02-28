@@ -506,7 +506,7 @@ onMounted(async () => {
                     {{ $t('general.edit') }}
                   </NcMenuItem>
                   <NcMenuItem
-                    v-if="hasEditPermission && (record.depth ?? 0) < 3"
+                    v-if="(record.is_owner || isWsOwner) && (record.depth ?? 0) < 3"
                     v-e="['c:team:add-sub-team', { teamId: record.id }]"
                     @click="handleCreateSubTeam(record as TeamV3V3Type)"
                   >

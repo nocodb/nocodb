@@ -594,7 +594,7 @@ export default class User extends UserCE implements UserType {
         }
       }) as Promise<{
         roles?: Record<string, boolean> | null;
-        teams?: { team_id: string; roles: string; path?: string }[];
+        teams?: { team_id: string; roles: string; path?: string; user_team_id?: string }[];
       }>,
       // extract base-team roles for base
       new Promise((resolve) => {

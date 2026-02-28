@@ -320,11 +320,11 @@ async function onOpenModal({
   @apply !rounded-lg border-1 border-nc-border-gray-medium;
 
   .ant-menu.ant-menu-sub {
-    @apply p-2 !rounded-lg !shadow-lg shadow-nc-border-gray-medium;
+    @apply p-1 !rounded-lg !shadow-lg shadow-nc-border-gray-medium;
   }
 
   .ant-menu-item {
-    @apply h-auto min-h-8 !my-0 text-sm !leading-5 py-1.5 px-2 hover:!bg-nc-bg-gray-light cursor-pointer rounded-md;
+    @apply h-auto min-h-7 !my-0 text-sm !leading-5 py-1 px-2 hover:!bg-nc-bg-gray-light cursor-pointer rounded-md;
 
     .ant-menu-title-content {
       @apply w-full px-0;

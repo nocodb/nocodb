@@ -48,6 +48,14 @@ export default class Audit extends AuditCE {
       .where('row_id', row_id)
       .orderBy('id', 'desc');
 
+    if (!Noco.isEE()) {
+      query.where(
+        'created_at',
+        '>=',
+        dayjs().subtract(7, 'days').toISOString(),
+      );
+    }
+
     if (id) {
       query.where('id', '<', id);
     }
@@ -147,6 +155,14 @@ export default class Audit extends AuditCE {
 
     if (type) {
       query.where('op_type', 'in', type);
+    }
+
+    if (!Noco.isEE()) {
+      query.where(
+        'created_at',
+        '>=',
+        dayjs().subtract(7, 'days').toISOString(),
+      );
     }
 
     if (startDate) {

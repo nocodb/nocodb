@@ -18,6 +18,12 @@ module.exports = {
     new TsCheckerRspackPlugin({
       typescript: {
         configFile: join('src/ee-on-prem/tsconfig.json'),
+        mode: 'write-tsbuildinfo',
+        configOverwrite: {
+          compilerOptions: {
+            tsBuildInfoFile: resolve('node_modules/.cache/ee-on-prem.tsbuildinfo'),
+          },
+        },
       },
     }),
   ],

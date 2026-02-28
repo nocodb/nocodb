@@ -13,7 +13,6 @@
     "lib": ["es2019"],
     "baseUrl": "./",
     "incremental": true,
-    "tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo",
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,

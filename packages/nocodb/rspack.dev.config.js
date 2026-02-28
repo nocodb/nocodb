@@ -92,6 +92,12 @@ const baseDevConfig = {
     new TsCheckerRspackPlugin({
       typescript: {
         configFile: resolve('tsconfig.json'),
+        mode: 'write-tsbuildinfo',
+        configOverwrite: {
+          compilerOptions: {
+            tsBuildInfoFile: resolve('node_modules/.cache/ce.tsbuildinfo'),
+          },
+        },
       },
     }),
   ],

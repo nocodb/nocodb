@@ -765,7 +765,7 @@ onBeforeUnmount(() => {
   -->
   <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden">
     <!-- Editor area — relative wrapper for floating menu + scroll content -->
-    <div class="relative flex-1 min-w-0">
+    <div class="relative flex-1 min-w-0 h-full overflow-hidden">
     <!-- 3-dot page context menu — floats at top-right, outside scroll flow -->
     <div class="nc-doc-page-menu">
       <NcTooltip :title="$t('general.comments')" placement="bottom">
@@ -1148,6 +1148,10 @@ onBeforeUnmount(() => {
 <style lang="scss">
 .nc-doc-editor {
   background: var(--nc-bg-default);
+  // Definite height so inner overflow-y-auto activates and only the editor content scrolls.
+  // The h-full chain breaks at a-layout-content — this bypasses it.
+  height: 100vh;
+  height: 100dvh;
 }
 
 // Doc editor bubble menu — override embed-mode's transparent/no-shadow defaults

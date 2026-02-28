@@ -64,7 +64,7 @@ const baseDevConfig = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
     tsConfig: {
-      configFile: resolve('tsconfig.ce.json'),
+      configFile: resolve('tsconfig.json'),
     },
     alias: {
       '@noco-local-integrations': resolve(__dirname, '../noco-integrations/packages'),
@@ -91,7 +91,7 @@ const baseDevConfig = {
     }),
     new TsCheckerRspackPlugin({
       typescript: {
-        configFile: resolve('tsconfig.ce.json'),
+        configFile: resolve('tsconfig.json'),
       },
     }),
   ],

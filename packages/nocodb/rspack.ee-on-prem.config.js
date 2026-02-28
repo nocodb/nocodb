@@ -73,7 +73,7 @@ module.exports = {
   resolve: {
     extensions: ['.tsx', '.ts', '.js', '.json', '.node'],
     tsConfig: {
-      configFile: resolve('./tsconfig.ee-on-prem.json'),
+      configFile: resolve('./src/ee-on-prem/tsconfig.json'),
     },
     alias: {
       '@noco-local-integrations': resolve(__dirname, '../noco-integrations/packages'),
@@ -107,7 +107,7 @@ module.exports = {
     ),
     new TsCheckerRspackPlugin({
       typescript: {
-        configFile: resolve('./tsconfig.ee-on-prem.json'),
+        configFile: resolve('./src/ee-on-prem/tsconfig.json'),
       },
     }),
   ],

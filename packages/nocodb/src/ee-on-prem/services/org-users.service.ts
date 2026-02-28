@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { OrgUsersService as OrgUsersServiceEE } from 'src/ee/services/org-users.service';
+import { OrgUsersService as OrgUsersServiceCE } from 'src/services/org-users.service';
 
 @Injectable()
-export class OrgUsersService extends OrgUsersServiceEE {}
+export class OrgUsersService extends OrgUsersServiceCE {}

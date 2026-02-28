@@ -312,7 +312,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAutoNumberField = computed(() => false)
 
   const blockRecordTemplates = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES)
+    return isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_RECORD_TEMPLATES))
   })
 
   const blockViewSections = computed(() => {

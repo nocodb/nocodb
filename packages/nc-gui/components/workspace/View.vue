@@ -250,12 +250,13 @@ onBeforeUnmount(() => {
           </a-tab-pane>
         </template>
 
-        <template v-if="isEeUI && !props.workspaceId && isWsAuditEnabled && isUIAllowed('workspaceAuditList')">
+        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList')">
           <a-tab-pane key="audits" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
                 <GeneralIcon icon="audit" class="h-4 w-4" />
                 {{ $t('title.audits') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => isWsAuditEnabled" remove-click />
               </div>
             </template>
             <WorkspaceAudits v-if="isWsAuditEnabled" />

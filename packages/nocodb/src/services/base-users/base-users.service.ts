@@ -435,7 +435,6 @@ export class BaseUsersService {
       {
         user,
         baseId: param.baseId,
-        workspaceId: base.fk_workspace_id,
       },
       ncMeta,
     );

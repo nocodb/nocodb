@@ -22,5 +22,5 @@
       "@nuxt/image"
     ]
   },
-  "exclude": ["node_modules", "dist", ".output", "**/node_modules/*", "**/dist/*", "**/.output/*"]
+  "exclude": ["node_modules", "dist", ".output", "test", "**/node_modules", "**/dist", "**/.output"]
 }

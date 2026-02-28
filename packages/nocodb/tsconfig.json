@@ -25,13 +25,13 @@
     "jsx": "react",
     "paths": {
       "src/*": ["src/*"],
-      "~/*": ["src/*"],
-      "@/*": ["src/*"],
+      "~/*": ["src/ee/*", "src/*"],
+      "@/*": ["src/ee/*", "src/*"],
       "@noco-local-integrations/*": ["../noco-integrations/packages/*"],
       "@noco-local-integrations/core": ["../noco-integrations/core"]
     },
     "typeRoots": ["node_modules/@types"]
   },
   "include": ["src/**/*"],
-  "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]
+  "exclude": ["src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]
 }

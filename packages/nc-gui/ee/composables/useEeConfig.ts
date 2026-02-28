@@ -302,7 +302,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockUnique = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE)
+    return isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE))
   })
 
   // UUID is available on all cloud plans + self-hosted EE — never blocked in EE

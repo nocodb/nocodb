@@ -28,6 +28,7 @@ import {
 import ListViewLevel from '~/models/ListViewLevel';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
+import { isOnPrem } from '~/utils/constants';
 
 @Injectable()
 export class PublicMetasService extends PublicMetasServiceCE {
@@ -238,10 +239,12 @@ export class PublicMetasService extends PublicMetasServiceCE {
       workspace,
     );
 
-    const isUrlRedirectionEnabled = await getFeature(
-      PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION,
-      workspace,
-    );
+    const isUrlRedirectionEnabled =
+      isOnPrem ||
+      (await getFeature(
+        PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION,
+        workspace,
+      ));
 
     const isFieldValidationEnabled = await getFeature(
       PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,

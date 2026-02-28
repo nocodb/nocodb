@@ -5,8 +5,6 @@ definePageMeta({
   hideHeader: true,
 })
 
-const { isUIAllowed } = useRoles()
-
 const $route = useRoute()
 
 const { appInfo, signedIn, signOut } = useGlobal()
@@ -16,34 +14,15 @@ const workspaceStore = useWorkspace()
 const { workspacesList } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { isPaymentEnabled, isEEFeatureBlocked, showUpgradeToUseSSO } = useEeConfig()
+const { isPaymentEnabled } = useEeConfig()
 
 const filteredWorkspaces = computed(() => workspacesList.value.filter((w) => w.roles === WorkspaceUserRoles.OWNER))
 
 const loadingWorkspaces = ref(false)
 
-const selectedKeys = computed(() => {
-  if (/^\/account\/users\/?$/.test($route.fullPath)) {
-    if (isUIAllowed('superAdminUserManagement')) return ['list']
-    if (!appInfo.value.disableEmailAuth) return ['settings']
-    return ['tokens']
-  }
-  return [$route.params.nestedPage ?? $route.params.page]
-})
+const selectedKeys = computed(() => [$route.params.nestedPage ?? $route.params.page])
 
-const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || !appInfo.value.isCloud))
-
-const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
-
-watchEffect(() => {
-  if (isSetupPageAllowed.value) {
-    loadSetupApps()
-  }
-})
-
-const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
-
-const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
+const openKeys = ref([])
 
 const logout = async () => {
   await signOut({
@@ -125,8 +104,7 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="appInfo.isCloud"
-                key="tokens"
+                key="mcp"
                 :class="{
                   active: $route.params.page === 'mcp',
                 }"
@@ -139,22 +117,7 @@ onMounted(() => {
                   <div class="select-none">{{ $t('title.mcpServer') }}</div>
                 </div>
               </NcMenuItem>
-              <!--              <NcMenuItem
-                key="oauth"
-                :class="{
-                  active: $route.params.page === 'oauth-clients',
-                }"
-                class="item"
-                @click="navigateTo('/account/oauth-clients')"
-              >
-                <div class="flex items-center space-x-2">
-                  <GeneralIcon icon="ncLock" class="h-4 w-4 flex-none" />
-
-                  <div class="select-none">{{ $t('title.oauthClients') }}</div>
-                </div>
-              </NcMenuItem> -->
               <NcMenuItem
-                v-if="!isEEFeatureBlocked"
                 key="external-integrations"
                 :class="{
                   active: $route.params.page === 'external-integrations',
@@ -169,50 +132,6 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isSetupPageAllowed && appInfo.isCloud"
-                key="profile"
-                class="item"
-                :class="{
-                  active: $route.path?.startsWith('/account/setup'),
-                }"
-                @click="navigateTo('/account/setup')"
-              >
-                <div class="flex items-center space-x-2 w-full">
-                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
-
-                  <div class="select-none">
-                    {{ $t('labels.setup') }}
-                  </div>
-                  <span class="flex-grow" />
-                  <NcTooltip v-if="isPending">
-                    <template #title>
-                      <span>
-                        {{ $t('activity.pending') }}
-                      </span>
-                    </template>
-                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
-                  </NcTooltip>
-                </div>
-              </NcMenuItem>
-
-              <NcMenuItem
-                v-if="isUIAllowed('ssoSettings') && !isEEFeatureBlocked"
-                key="authentication"
-                :class="{
-                  active: $route.params.page === 'authentication',
-                }"
-                class="item"
-                @click="navigateTo('/account/authentication')"
-              >
-                <div class="flex items-center space-x-2">
-                  <component :is="iconMap.ncLock" />
-
-                  <div class="select-none text-sm">{{ $t('title.sso') }}</div>
-                  <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
-                </div>
-              </NcMenuItem>
-
-              <NcMenuItem
                 v-if="!appInfo.isCloud && !appInfo.disableEmailAuth"
                 key="password-reset"
                 :class="{
@@ -226,60 +145,6 @@ onMounted(() => {
                   <div class="select-none">{{ $t('title.resetPasswordMenu') }}</div>
                 </div>
               </NcMenuItem>
-
-              <a-sub-menu
-                v-if="(!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')) && appInfo.isCloud"
-                key="users"
-                class="!bg-nc-bg-gray-sidebar !my-0"
-              >
-                <template #icon>
-                  <GeneralIcon icon="ncUsers" class="!h-4 !w-4" />
-                </template>
-                <template #title>{{ $t('objects.users') }}</template>
-
-                <template #expandIcon="{ isOpen }">
-                  <NcButton type="text" size="xxsmall" class="">
-                    <GeneralIcon
-                      icon="chevronRight"
-                      class="flex-none cursor-pointer transform transition-transform duration-200 text-[20px]"
-                      :class="{ '!rotate-90': isOpen }"
-                    />
-                  </NcButton>
-                </template>
-
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI && appInfo.isCloud"
-                  key="list"
-                  :class="{
-                    active: $route.params.nestedPage === 'list',
-                  }"
-                  class="text-xs item"
-                  @click="navigateTo('/account/users/list')"
-                >
-                  <span class="ml-4">{{ $t('title.userManagement') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  key="password-reset"
-                  :class="{
-                    active: $route.params.nestedPage === 'password-reset',
-                  }"
-                  class="text-xs item"
-                  @click="navigateTo('/account/users/password-reset')"
-                >
-                  <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI && appInfo.isCloud"
-                  key="settings"
-                  :class="{
-                    active: $route.params.nestedPage === 'settings',
-                  }"
-                  class="text-xs item"
-                  @click="navigateTo('/account/users/settings')"
-                >
-                  <span class="ml-4">{{ $t('activity.settings') }}</span>
-                </NcMenuItem>
-              </a-sub-menu>
 
               <NcDivider class="!mt-0" />
 

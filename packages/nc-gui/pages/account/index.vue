@@ -1,27 +1,13 @@
 <script lang="ts" setup>
-import { OrgUserRoles } from 'nocodb-sdk'
-
 definePageMeta({
   hideHeader: true,
 })
 
-const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
-
-const { isUIAllowed, orgRoles } = useRoles()
-
 const $route = useRoute()
 
-const { appInfo, signedIn, signOut } = useGlobal()
+const { signedIn, signOut } = useGlobal()
 
-const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
-
-const selectedKeys = computed(() => [
-  /^\/account\/users\/?$/.test($route.fullPath)
-    ? isUIAllowed('superAdminUserManagement')
-      ? 'list'
-      : 'settings'
-    : $route.params.nestedPage ?? $route.params.page,
-])
+const selectedKeys = computed(() => [$route.params.nestedPage ?? $route.params.page])
 
 const openKeys = ref([])
 
@@ -30,16 +16,6 @@ const logout = async () => {
     redirectToSignin: true,
   })
 }
-
-const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isOnPrem))
-
-watchEffect(() => {
-  if (isSetupPageAllowed.value) {
-    loadSetupApps()
-  }
-})
-
-const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 </script>
 
 <template>
@@ -76,32 +52,6 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
               <NcDivider class="!mt-0" />
 
               <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
-              <NcMenuItem
-                v-if="isSetupPageAllowed && !isSuperAdmin"
-                key="profile"
-                class="item"
-                :class="{
-                  active: $route.path?.startsWith('/account/setup'),
-                }"
-                @click="navigateTo('/account/setup')"
-              >
-                <div class="flex items-center space-x-2 w-full">
-                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
-
-                  <div class="select-none">
-                    {{ $t('labels.setup') }}
-                  </div>
-                  <span class="flex-grow" />
-                  <NcTooltip v-if="isPending">
-                    <template #title>
-                      <span>
-                        {{ $t('activity.pending') }}
-                      </span>
-                    </template>
-                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
-                  </NcTooltip>
-                </div>
-              </NcMenuItem>
 
               <NcMenuItem
                 key="profile"
@@ -132,8 +82,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="!isSuperAdmin"
-                key="tokens"
+                key="mcp"
                 :class="{
                   active: $route.params.page === 'mcp',
                 }"
@@ -144,31 +93,6 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
 
                   <div class="select-none">{{ $t('title.mcpServer') }}</div>
-                </div>
-              </NcMenuItem>
-              <NcMenuItem
-                v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
-                key="apps"
-                class="item w-full"
-                :class="{
-                  active: $route.params.page === 'apps',
-                }"
-                @click="navigateTo('/account/apps')"
-              >
-                <div class="flex items-center gap-2 w-full">
-                  <component :is="iconMap.appStore" />
-
-                  <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
-                  <span class="flex-grow" />
-                  <NcTooltip>
-                    <template #title>
-                      <span>
-                        App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of
-                        the plugins here will be moved to integrations.
-                      </span>
-                    </template>
-                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
-                  </NcTooltip>
                 </div>
               </NcMenuItem>
               <NcMenuItem

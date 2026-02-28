@@ -18,6 +18,8 @@ const selectedUsers = useVModel(props, 'selectedUsers', emits)
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { getColor } = useTheme()
 
 const { isTeamsEnabled } = storeToRefs(useWorkspace())
@@ -264,8 +266,8 @@ watch(selectedUsersList, () => {
                 <template #title>
                   {{
                     teamHierarchyScopes?.[user.id] === 'self_only'
-                      ? 'This team only — click to include sub-teams'
-                      : 'Includes sub-teams — click to match this team only'
+                      ? t('tooltip.teamScopeThisOnly')
+                      : t('tooltip.teamScopeIncludesSubTeams')
                   }}
                 </template>
                 <NcButton

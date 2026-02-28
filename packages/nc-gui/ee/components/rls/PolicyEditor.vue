@@ -310,8 +310,8 @@ const showFilterSection = computed(() => {
                   <template #title>
                     {{
                       subject.hierarchy_scope === 'self_only'
-                        ? 'This team only — click to include sub-teams'
-                        : 'Includes sub-teams — click to match this team only'
+                        ? t('tooltip.teamScopeThisOnly')
+                        : t('tooltip.teamScopeIncludesSubTeams')
                     }}
                   </template>
                   <NcButton

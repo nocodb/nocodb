@@ -4,9 +4,9 @@ import { MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   // Add hierarchy columns to teams table
   await knex.schema.alterTable(MetaTable.TEAMS, (table) => {
-    table.string('fk_parent_team_id', 20).nullable().defaultTo(null);
+    table.string('fk_parent_team_id', 20)
     table.integer('depth').defaultTo(0);
-    table.text('path').nullable();
+    table.text('path')
     table.index('fk_parent_team_id', 'nc_teams_parent_idx');
   });
 
@@ -20,12 +20,12 @@ const up = async (knex: Knex) => {
 
   // Add hierarchy_scope to permission subjects for team descendant expansion
   await knex.schema.alterTable(MetaTable.PERMISSION_SUBJECTS, (table) => {
-    table.string('hierarchy_scope', 30).nullable().defaultTo(null);
+    table.string('hierarchy_scope', 30)
   });
 
   // Add hierarchy_scope to RLS policy subjects for team descendant expansion
   await knex.schema.alterTable(MetaTable.RLS_POLICY_SUBJECTS, (table) => {
-    table.string('hierarchy_scope', 30).nullable().defaultTo(null);
+    table.string('hierarchy_scope', 30)
   });
 };
 

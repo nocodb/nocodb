@@ -392,6 +392,7 @@ export default class Team {
       RootScopes.ROOT,
       MetaTable.TEAMS,
       {
+        condition: { fk_workspace_id: team.fk_workspace_id },
         xcCondition: {
           _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
         },
@@ -429,9 +430,11 @@ export default class Team {
       RootScopes.ROOT,
       MetaTable.TEAMS,
       {
-        condition: { id: { in: ancestorIds } },
         xcCondition: {
-          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+          _and: [
+            { id: { in: ancestorIds } },
+            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+          ],
         },
       },
     );

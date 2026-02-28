@@ -833,7 +833,7 @@ onBeforeUnmount(() => {
     <div class="nc-doc-page-menu">
       <NcTooltip :title="$t('general.comments')" placement="bottom">
         <NcButton
-          size="xsmall"
+          size="small"
           type="text"
           :class="{ '!bg-nc-bg-brand-soft': isCommentsPanelOpen }"
           @click="toggleCommentsPanel()"
@@ -842,7 +842,7 @@ onBeforeUnmount(() => {
         </NcButton>
       </NcTooltip>
       <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
-        <NcButton size="xsmall" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
+        <NcButton size="small" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
           <GeneralIcon icon="threeDotHorizontal" />
         </NcButton>
         <template #overlay>
@@ -1285,8 +1285,9 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 4px;
   position: absolute;
-  top: 12px;
+  top: 0;
   right: 12px;
+  height: 53px;
   z-index: 20;
 }
 
@@ -1299,7 +1300,7 @@ onBeforeUnmount(() => {
   z-index: 19;
   display: flex;
   align-items: center;
-  padding: 10px 80px 10px 24px;
+  padding: 12px 80px 12px 24px;
   background: color-mix(in srgb, var(--nc-bg-default) 85%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--nc-border-gray-medium);
@@ -1325,7 +1326,7 @@ onBeforeUnmount(() => {
 
 // Push search bar below sticky header when it's visible
 .nc-doc-search-bar.nc-doc-search-below-sticky {
-  top: 46px !important;
+  top: 56px !important;
 }
 
 // Icon positioned to the left, outside the content bounds on large screens.

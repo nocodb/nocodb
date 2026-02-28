@@ -3,8 +3,6 @@ const { stats, isLoading, fetchStats } = useInstanceAdmin()
 
 const { appInfo } = useGlobal()
 
-const { isEEFeatureBlocked } = useEeConfig()
-
 const instanceName = computed(() => {
   try {
     return appInfo.value.ncSiteUrl ? new URL(appInfo.value.ncSiteUrl).hostname : 'NocoDB'
@@ -46,7 +44,7 @@ onMounted(async () => {
             </span>
           </div>
           <div class="flex border-1 rounded-lg border-nc-border-gray-medium">
-            <div v-if="!isEEFeatureBlocked" class="w-1/4 px-4 border-r-1 py-3">
+            <div v-if="isEeUI" class="w-1/4 px-4 border-r-1 py-3">
               <div class="text-[40px] font-semibold">{{ isLoading ? '-' : stats.totalWorkspaces }}</div>
               <div class="text-nc-content-gray-subtle2 mt-2">
                 {{ $t('labels.workspaces') }}

@@ -106,6 +106,134 @@
             }
           }
         ]
+      },
+      "WidgetCreateReq": {
+        "description": "Widget create request body",
+        "type": "object",
+        "required": ["title", "type"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["chart", "metric", "gauge", "text", "table", "iframe"],
+            "description": "Type of the widget."
+          },
+          "options": {
+            "type": "object",
+            "description": "Widget configuration. Structure depends on widget type."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Additional metadata for the widget."
+          },
+          "position": {
+            "type": "object",
+            "description": "Position and size of the widget on the dashboard grid.",
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" }
+            }
+          },
+          "model_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "type": { "const": "chart" } }, "required": ["type"] },
+            "then": {
+              "properties": {
+                "options": {
+                  "oneOf": [
+                    { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
+                    { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
+                    { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
+                    { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+                    { "$ref": "#/components/schemas/WidgetOptionsScatterChart" }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": { "properties": { "type": { "const": "metric" } }, "required": ["type"] },
+            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsMetric" } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "gauge" } }, "required": ["type"] },
+            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsGauge" } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] },
+            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsText" } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "table" } }, "required": ["type"] },
+            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsTable" } } }
+          },
+          {
+            "if": { "properties": { "type": { "const": "iframe" } }, "required": ["type"] },
+            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsIframe" } } }
+          }
+        ]
+      },
+      "WidgetUpdateReq": {
+        "description": "Widget update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "options": {
+            "type": "object",
+            "description": "Widget configuration. Structure depends on widget type."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Additional metadata for the widget."
+          },
+          "order": {
+            "type": "number",
+            "description": "Display order of the widget."
+          },
+          "position": {
+            "type": "object",
+            "description": "Position and size of the widget on the dashboard grid.",
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" },
+              "w": { "type": "number" },
+              "h": { "type": "number" }
+            }
+          },
+          "model_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          }
+        }
       }
     }
   }

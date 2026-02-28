@@ -270,6 +270,7 @@ const legacyLimitAndFeatures = {
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 5,
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: false,
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: false,
+  [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: false,
 };
 
 export const FreePlan = Plan.prepare({

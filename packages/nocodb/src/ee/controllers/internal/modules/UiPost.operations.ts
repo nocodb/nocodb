@@ -23,6 +23,8 @@ import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { TimelineColumnsService } from '~/services/timeline-columns.service';
+import { TimelinesService } from '~/services/timelines.service';
 import { CommentsService } from '~/services/comments.service';
 import { ListsService } from '~/ee/services/lists.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -54,6 +56,8 @@ export class UiPostOperations
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
     protected listsService: ListsService,
+    protected timelineColumnsService: TimelineColumnsService,
+    protected timelinesService: TimelinesService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
     protected syncService: SyncService,
@@ -146,6 +150,25 @@ export class UiPostOperations
         return await this.listsService.listViewUpdate(context, {
           listViewId: req.query.viewId,
           list: payload,
+          req,
+        });
+      case 'timelineColumnUpdate':
+        return await this.timelineColumnsService.timelineColumnUpdate(context, {
+          timelineViewColumnId: req.query.timelineViewColumnId,
+          timeline: payload,
+          req,
+        });
+      case 'timelineViewCreate':
+        return await this.timelinesService.timelineViewCreate(context, {
+          timeline: payload,
+          tableId: req.query.tableId,
+          user: req.user,
+          req,
+        });
+      case 'timelineViewUpdate':
+        return await this.timelinesService.timelineViewUpdate(context, {
+          timelineViewId: req.query.viewId,
+          timeline: payload,
           req,
         });
     }

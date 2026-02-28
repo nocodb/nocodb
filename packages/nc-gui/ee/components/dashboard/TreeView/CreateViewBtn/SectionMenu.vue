@@ -3,6 +3,7 @@ import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const emits = defineEmits<{
   (event: 'createSection'): void
+  (event: 'close'): void
 }>()
 
 const { getPlanTitle, blockViewSections } = useEeConfig()
@@ -15,7 +16,12 @@ const { getPlanTitle, blockViewSections } = useEeConfig()
         <NcMenuItem
           data-testid="sidebar-view-create-section"
           inner-class="w-full"
-          @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => emits('createSection'))"
+          @click="
+            () => {
+              emits('close')
+              click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => emits('createSection'))
+            }
+          "
         >
           <div class="item">
             <div class="item-inner">

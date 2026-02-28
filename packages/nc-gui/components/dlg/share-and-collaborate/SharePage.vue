@@ -311,6 +311,9 @@ function sharedViewUrl(withPrefill = true) {
     case ViewTypes.LIST:
       viewType = 'list'
       break
+    case ViewTypes.TIMELINE:
+      viewType = 'timeline'
+      break
     default:
       viewType = 'view'
   }

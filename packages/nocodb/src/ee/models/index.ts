@@ -41,6 +41,9 @@ export { default as Widget } from './Widget';
 export { default as ListView } from './ListView';
 export { default as ListViewColumn } from './ListViewColumn';
 export { default as ListViewLevel } from './ListViewLevel';
+export { default as TimelineView } from './TimelineView';
+export { default as TimelineRange } from './TimelineRange';
+export { default as TimelineViewColumn } from './TimelineViewColumn';
 
 // Teams-related models
 export { default as Team } from './Team';

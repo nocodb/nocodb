@@ -649,15 +649,15 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       try {
         // sync with server if allowed
         if (!isPublic.value && canEditViewFields.value && gridViewCols.value[id]?.id) {
-          await $api.internal.postOperation(
-            view.value!.fk_workspace_id!,
-            view.value!.base_id!,
-            {
-              operation: 'gridColumnUpdate',
-              gridViewColumnId: gridViewCols.value[id].id,
-            },
-            props,
-          )
+          const colId = gridViewCols.value[id].id
+
+          // Route to the correct backend operation based on view type
+          const operationParams =
+            view.value?.type === ViewTypes.TIMELINE
+              ? { operation: 'timelineColumnUpdate' as const, timelineViewColumnId: colId }
+              : { operation: 'gridColumnUpdate' as const, gridViewColumnId: colId }
+
+          await $api.internal.postOperation(view.value!.fk_workspace_id!, view.value!.base_id!, operationParams, props)
         }
 
         if (gridViewCols.value?.[id]) {

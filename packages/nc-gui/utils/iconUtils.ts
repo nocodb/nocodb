@@ -603,6 +603,8 @@ import NcFormViewIcon from '~icons/nc-icons/form'
 import NcGalleryViewIcon from '~icons/nc-icons/gallery'
 import NcKanbanViewIcon from '~icons/nc-icons/kanban'
 import NcCalendarViewIcon from '~icons/nc-icons/calendar'
+import NcTimelineViewIcon from '~icons/nc-icons/timeline'
+import NcMapViewIcon from '~icons/nc-icons/map'
 import NcPuzzleSolid from '~icons/nc-icons/puzzle-solid'
 import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
 
@@ -972,10 +974,12 @@ import NcKeyboardIcon from '~icons/nc-icons-v2/keyboard'
 
 export const iconMap = {
   'calendar': NcCalendarViewIcon,
+  'timeline': NcTimelineViewIcon,
   'grid': NcGridViewIcon,
   'form': NcFormViewIcon,
   'gallery': NcGalleryViewIcon,
   'kanban': NcKanbanViewIcon,
+  'map': NcMapViewIcon,
 
   'strike': NcStrike,
   'atSign': NcAtSign,
@@ -1203,7 +1207,7 @@ export const iconMap = {
   // grid: h('span', { class: 'material-symbols' }, 'grid_view'),
   // gallery: h('span', { class: 'material-symbols' }, 'image'),
   // form: h('span', { class: 'material-symbols' }, 'article'),
-  'map': h('span', { class: 'material-symbols' }, 'map'),
+  // 'map': NcMapViewIcon,
   // kanban: h('span', { class: 'material-symbols' }, 'view_kanban'),
   'view': h('span', { class: 'material-symbols' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols' }, 'height'),

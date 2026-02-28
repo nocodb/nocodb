@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { LinksVersion, RelationTypes, UITypes, isBtLikeV2Junction } from 'nocodb-sdk'
+import { LinksVersion, RelationTypes, isBtLikeV2Junction } from 'nocodb-sdk'
 import { BelongsToCellRenderer } from './BelongsTo'
 import { HasManyCellRenderer } from './HasMany'
 import { ManyToManyCellRenderer } from './ManyToMany'

@@ -1,4 +1,12 @@
-import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol, isBtLikeV2Junction } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type TableType,
+  UITypes,
+  type UserType,
+  type ViewType,
+  isAIPromptCol,
+  isBtLikeV2Junction,
+} from 'nocodb-sdk'
 import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'

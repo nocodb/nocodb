@@ -209,6 +209,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CALENDAR_RANGE)
   })
 
+  const blockTimelineView = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
+  })
+
   const blockTableAndFieldPermissions = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
   })
@@ -1062,6 +1066,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseTimelineView = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockTimelineView.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseTimelineView'),
+      content: t('upgrade.upgradeToUseTimelineViewSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.BUSINESS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TIMELINE_VIEW,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseRowColoring = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockRowColoring.value) return
 
@@ -1430,8 +1457,15 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseRecordTemplates = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockRecordTemplates.value) return
+  const showUpgradeToUseRecordTemplates = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockRecordTemplates.value) {
+      successCallback?.()
+
+      return
+    }
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseRecordTemplates'),
@@ -1508,8 +1542,15 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseMapView = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockMapView.value) return
+  const showUpgradeToUseMapView = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockMapView.value) {
+      successCallback?.()
+
+      return
+    }
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseMapView'),
@@ -1593,6 +1634,8 @@ export const useEeConfig = createSharedComposable(() => {
     blockAddNewDashboard,
     blockCalendarRange,
     showUpgradeToUseCalendarRange,
+    blockTimelineView,
+    showUpgradeToUseTimelineView,
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,

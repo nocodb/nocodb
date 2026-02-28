@@ -681,7 +681,12 @@ const onDeleteColumn = () => {
         !isSqlView
       "
       data-testid="nc-column-convert-link-v2"
-      @click="isOpen = false; showConvertLinkV2Modal = true"
+      @click="
+        () => {
+          isOpen = false
+          showConvertLinkV2Modal = true
+        }
+      "
     >
       <div class="nc-column-convert-v2 nc-header-menu-item">
         <GeneralIcon icon="ncArrowUpCircle" class="opacity-80" />

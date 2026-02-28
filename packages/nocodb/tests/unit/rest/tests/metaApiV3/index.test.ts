@@ -9,6 +9,7 @@ import errorHandlingMetaTestsV3 from './error-handling/index.test';
 import workspaceUsersTest from './workspaceUsers.test';
 import scriptsTestV3 from './scripts.test';
 import tableVisibilityPermissionsTestV3 from './table-visibility-permissions.test';
+import timelineTestV3 from './timeline.test';
 import { isEE } from '../../../utils/helpers';
 // import teamPermissionsTestV3 from './team-permissions.test';
 // import teamPermissionBehaviorTestV3 from './team-permission-behavior.test';
@@ -29,6 +30,7 @@ export default runOnSet(2, function () {
   workspaceUsersTest();
   scriptsTestV3();
   tableVisibilityPermissionsTestV3();
+  timelineTestV3();
   // teamPermissionsTestV3();
   // teamPermissionBehaviorTestV3();
   // teamsTestV3();

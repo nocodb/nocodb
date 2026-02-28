@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, ViewLockType, ViewSettingOverrideOptions, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import {
+  RelationTypes,
+  UITypes,
+  ViewLockType,
+  ViewSettingOverrideOptions,
+  ViewTypes,
+  isLinksOrLTAR,
+  isSystemColumn,
+} from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
@@ -409,7 +417,12 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           <!-- Add Sub Group button -->
           <div v-if="!isPersonalViewNonOwner" class="flex items-center justify-between mt-2 empty:hidden">
             <NcDropdown
-              v-if="availableColumns.length && fieldsToGroupBy.length > totalGroupByCount && totalGroupByCount < groupByLimit"
+              v-if="
+                availableColumns.length &&
+                fieldsToGroupBy.length > totalGroupByCount &&
+                totalGroupByCount < groupByLimit &&
+                !(view?.type === ViewTypes.TIMELINE && totalGroupByCount >= 1)
+              "
               v-model:visible="showCreateGroupBy"
               :trigger="['click']"
               overlay-class-name="nc-toolbar-dropdown"

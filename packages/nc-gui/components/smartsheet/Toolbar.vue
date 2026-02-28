@@ -9,7 +9,7 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters } =
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isList, isForm, isViewOperationsAllowed, allFilters, isTimeline } =
   useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
@@ -37,7 +37,11 @@ const { width } = useElementSize(containerRef)
 const router = useRouter()
 
 const disableToolbar = computed(
-  () => router.currentRoute.value.query?.disableToolbar === 'true' || (isCalendar.value && isMobileMode.value) || isForm.value,
+  () =>
+    router.currentRoute.value.query?.disableToolbar === 'true' ||
+    (isCalendar.value && isMobileMode.value) ||
+    isTimeline.value ||
+    isForm.value,
 )
 
 const isTab = computed(() => {

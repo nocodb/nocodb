@@ -253,7 +253,7 @@ const rolePermissions:
 
       galleryViewGet: true,
       kanbanViewGet: true,
-      groupedDataList: true,
+        groupedDataList: true,
       calendarViewGet: true,
       mapViewGet: true,
 

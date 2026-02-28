@@ -180,7 +180,7 @@ For significant architectural or design decisions (not small implementation deta
 |-------|-----------|
 | Cast with `as unknown` or `as any` to work around type errors | Fix the type system properly (update the interface/type definition) |
 | Create new abstractions when similar ones exist | Search for existing patterns first, ask if unsure |
-| Use `console.log` / `console.error` in production code | Use `Logger` (backend) or remove (frontend) |
+| Use `console.log` in production code | Use `Logger` (backend) or remove (frontend if not required) |
 | Add `TODO` without a linked issue | Include issue reference or remove before PR |
 
 ## Frontend Patterns

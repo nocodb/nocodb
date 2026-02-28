@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import type dayjs from 'dayjs'
+import GroupBy from './GroupBy.vue'
 import type { Row as RowType } from '#imports'
 import { shouldRenderCell } from '~/utils/groupbyUtils'
-import GroupBy from './GroupBy.vue'
 import type { Group } from '~/lib/types'
 
 const props = defineProps<{

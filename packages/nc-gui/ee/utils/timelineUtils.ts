@@ -25,11 +25,7 @@ export function getVisibleDates(centerDate: dayjs.Dayjs, zoom: 'week' | 'month')
 /**
  * Calculate bar left offset in pixels
  */
-export function getBarPosition(
-  startDate: dayjs.Dayjs,
-  firstVisibleDate: dayjs.Dayjs,
-  colWidth: number,
-): number {
+export function getBarPosition(startDate: dayjs.Dayjs, firstVisibleDate: dayjs.Dayjs, colWidth: number): number {
   const offset = startDate.diff(firstVisibleDate, 'day')
   return Math.max(offset * colWidth, 0)
 }
@@ -37,11 +33,7 @@ export function getBarPosition(
 /**
  * Calculate bar width in pixels
  */
-export function getBarWidth(
-  startDate: dayjs.Dayjs,
-  endDate: dayjs.Dayjs,
-  colWidth: number,
-): number {
+export function getBarWidth(startDate: dayjs.Dayjs, endDate: dayjs.Dayjs, colWidth: number): number {
   const duration = endDate.diff(startDate, 'day') + 1
   return Math.max(duration * colWidth - 4, 20) // minimum 20px
 }

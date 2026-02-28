@@ -1,7 +1,7 @@
 import dayjs from 'dayjs'
 import type { ColumnType, TableType, TimelineType, ViewType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { computed, reactive, ref, watch, type ComputedRef, type Ref } from 'vue'
+import { type ComputedRef, type Ref, computed, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
@@ -122,15 +122,9 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       return timelineMetaData.value.timeline_range
         .map((range: any) => {
           // Get the from column
-          const fromCol = (meta.value?.columns ?? []).find(
-            (col) => col.id === range.fk_from_column_id,
-          )
+          const fromCol = (meta.value?.columns ?? []).find((col) => col.id === range.fk_from_column_id)
           // Get the to column (optional)
-          const toCol = range.fk_to_column_id
-            ? (meta.value?.columns ?? []).find(
-                (col) => col.id === range.fk_to_column_id,
-              )
-            : null
+          const toCol = range.fk_to_column_id ? (meta.value?.columns ?? []).find((col) => col.id === range.fk_to_column_id) : null
 
           if (!fromCol) return null
 
@@ -188,17 +182,14 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       if (!timelineRange.value?.length) return 0
       const range = timelineRange.value[0]
       return formattedData.value.filter((row) => {
-        const fromVal = row.row?.[range.fk_from_col?.title!]
+        const fromVal = range.fk_from_col?.title ? row.row?.[range.fk_from_col.title] : undefined
         return !fromVal || !dayjs(fromVal).isValid()
       }).length
     })
 
     // Data loading
     const loadTimelineData = async () => {
-      if (
-        ((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) ||
-        !timelineRange.value?.length
-      )
+      if (((!base?.value?.id || !meta.value?.id || !viewMeta.value?.id) && !isPublic.value) || !timelineRange.value?.length)
         return
 
       isTimelineDataLoading.value = true
@@ -318,9 +309,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     // Find a row in formattedData by primary key
     const findRowInState = (rowData: Record<string, any>) => {
       const pk = extractPkFromRow(rowData, meta.value?.columns as ColumnType[])
-      return formattedData.value.find(
-        (r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) === pk,
-      )
+      return formattedData.value.find((r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) === pk)
     }
 
     // Update a row property (used for drag-to-resize)
@@ -329,13 +318,10 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       try {
         const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
 
-        const updateObj = property.reduce(
-          (acc: Record<string, string>, curr) => {
-            acc[curr] = toUpdate.row[curr]
-            return acc
-          },
-          {},
-        )
+        const updateObj = property.reduce((acc: Record<string, string>, curr) => {
+          acc[curr] = toUpdate.row[curr]
+          return acc
+        }, {})
 
         const updatedRowData = await $api.dbViewRow.update(
           NOCO,

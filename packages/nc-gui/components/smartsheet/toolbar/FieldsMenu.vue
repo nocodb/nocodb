@@ -87,7 +87,12 @@ onBeforeUnmount(() => {
 })
 
 const gridDisplayValueField = computed(() => {
-  if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR && activeView.value?.type !== ViewTypes.TIMELINE) return null
+  if (
+    activeView.value?.type !== ViewTypes.GRID &&
+    activeView.value?.type !== ViewTypes.CALENDAR &&
+    activeView.value?.type !== ViewTypes.TIMELINE
+  )
+    return null
 
   const pvCol = Object.values(metaColumnById.value)?.find((col) => col?.pv)
 
@@ -96,7 +101,9 @@ const gridDisplayValueField = computed(() => {
 
 const localFilteredFieldList = computed(() => {
   let list = filteredFieldList.value.filter((el) =>
-    activeView.value?.type !== ViewTypes.CALENDAR && activeView.value?.type !== ViewTypes.TIMELINE ? el !== gridDisplayValueField.value : true,
+    activeView.value?.type !== ViewTypes.CALENDAR && activeView.value?.type !== ViewTypes.TIMELINE
+      ? el !== gridDisplayValueField.value
+      : true,
   )
 
   // For list view with levels configured, filter by selected level
@@ -970,7 +977,10 @@ const onAddColumnDropdownVisibilityChange = () => {
                           </NcTooltip>
                         </div>
 
-                        <div v-if="activeView.type === ViewTypes.CALENDAR || activeView.type === ViewTypes.TIMELINE" class="flex mr-2">
+                        <div
+                          v-if="activeView.type === ViewTypes.CALENDAR || activeView.type === ViewTypes.TIMELINE"
+                          class="flex mr-2"
+                        >
                           <NcButton
                             :class="{
                               '!text-nc-content-brand !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200': field.bold,
@@ -1102,7 +1112,6 @@ const onAddColumnDropdownVisibilityChange = () => {
       </div>
     </template>
   </NcDropdown>
-
 </template>
 
 <style lang="scss" scoped>

@@ -50,15 +50,8 @@ const {
 } = useTimelineViewStoreOrThrow()
 
 // Group-by support (provided by parent Smartsheet.vue via useProvideViewGroupBy)
-const {
-  isGroupBy,
-  rootGroup,
-  groupBy,
-  loadGroups,
-  loadGroupData,
-  loadGroupPage,
-  groupWrapperChangePage,
-} = useViewGroupByOrThrow()
+const { isGroupBy, rootGroup, groupBy, loadGroups, loadGroupData, loadGroupPage, groupWrapperChangePage } =
+  useViewGroupByOrThrow()
 
 const { isViewDataLoading, isPaginationLoading } = storeToRefs(useViewsStore())
 
@@ -119,9 +112,7 @@ const onNewRecord = (startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
     row[range.fk_to_col.title] = endDate.format(updateFormat.value)
   }
 
-  expandRecord(
-    { row, oldRow: {}, rowMeta: { new: true } },
-  )
+  expandRecord({ row, oldRow: {}, rowMeta: { new: true } })
 }
 
 // Floating "+" button — create a new record with start date set to the median visible date
@@ -142,9 +133,7 @@ const onFloatingNewRecord = () => {
     row[range.fk_to_col.title] = medianDate.format(updateFormat.value)
   }
 
-  expandRecord(
-    { row, oldRow: {}, rowMeta: { new: true } },
-  )
+  expandRecord({ row, oldRow: {}, rowMeta: { new: true } })
 }
 
 const reloadData = async () => {
@@ -483,7 +472,13 @@ const recordCountLabel = computed(() => {
                       'text-nc-content-gray-muted': !isToday(date),
                     }"
                   >
-                    {{ zoomLevel === 'month' ? date.format('dd').charAt(0) : zoomLevel === 'week' ? date.format('ddd') : date.format('dddd') }}
+                    {{
+                      zoomLevel === 'month'
+                        ? date.format('dd').charAt(0)
+                        : zoomLevel === 'week'
+                        ? date.format('ddd')
+                        : date.format('dddd')
+                    }}
                   </span>
                   <span
                     class="text-[11px] font-normal leading-tight"

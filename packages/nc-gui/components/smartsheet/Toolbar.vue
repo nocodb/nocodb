@@ -37,7 +37,11 @@ const { width } = useElementSize(containerRef)
 const router = useRouter()
 
 const disableToolbar = computed(
-  () => router.currentRoute.value.query?.disableToolbar === 'true' || (isCalendar.value && isMobileMode.value) || isTimeline.value || isForm.value,
+  () =>
+    router.currentRoute.value.query?.disableToolbar === 'true' ||
+    (isCalendar.value && isMobileMode.value) ||
+    isTimeline.value ||
+    isForm.value,
 )
 
 const isTab = computed(() => {

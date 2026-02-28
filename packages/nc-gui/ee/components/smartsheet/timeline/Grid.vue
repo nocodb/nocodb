@@ -23,19 +23,11 @@ const emit = defineEmits<{
   (event: 'navigateTo', date: dayjs.Dayjs): void
 }>()
 
-const { t } = useI18n()
-
-const meta = inject(MetaInj, ref())
-
 const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
-const {
-  updateRowProperty,
-  updateFormat,
-  formattedData: storeFormattedData,
-} = useTimelineViewStoreOrThrow()
+const { updateRowProperty, updateFormat } = useTimelineViewStoreOrThrow()
 
 // Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
 const fields = inject(FieldsInj, ref())
@@ -45,17 +37,14 @@ const { fields: viewFields } = useViewColumnsOrThrow()
 
 // Build a lookup: columnId → { bold, italic, underline }
 const fieldStyles = computed(() => {
-  return (viewFields.value ?? []).reduce(
-    (acc, field) => {
-      acc[field.fk_column_id!] = {
-        bold: !!field.bold,
-        italic: !!field.italic,
-        underline: !!field.underline,
-      }
-      return acc
-    },
-    {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>,
-  )
+  return (viewFields.value ?? []).reduce((acc, field) => {
+    acc[field.fk_column_id!] = {
+      bold: !!field.bold,
+      italic: !!field.italic,
+      underline: !!field.underline,
+    }
+    return acc
+  }, {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>)
 })
 
 // Extract row color styles (from Colour toolbar config)
@@ -134,20 +123,19 @@ const useDebouncedRowUpdate = useDebounceFn((row: RowType, updateProperty: strin
   updateRowProperty(row, updateProperty, undo)
 }, 500)
 
-// --- Resize event handlers ---
-
-const onResizeStart = (direction: 'left' | 'right', event: MouseEvent, record: RowType) => {
-  if (!isUIAllowed('dataEdit')) return
-  if (record.rowMeta?.range?.is_readonly) return
-
-  resizeInProgress.value = true
-  resizeDirection.value = direction
-  resizeRecord.value = record
-  hoverColIndex.value = null
-
-  document.addEventListener('mousemove', onResize)
-  document.addEventListener('mouseup', onResizeEnd)
+// Parse date from row for a given column
+const parseDate = (row: RowType, col: ColumnType | undefined | null) => {
+  if (!col?.title) return null
+  const val = row.row?.[col.title]
+  if (!val) return null
+  const d = dayjs(val)
+  return d.isValid() ? d : null
 }
+
+// --- Hover date hairline ---
+const hoverColIndex = ref<number | null>(null)
+
+// --- Resize event handlers ---
 
 const onResize = (event: MouseEvent) => {
   if (!resizeRecord.value || !gridBodyRef.value) return
@@ -190,9 +178,7 @@ const onResize = (event: MouseEvent) => {
     if (newEndDate.isBefore(ogStartDate, 'day')) {
       newEndDate = ogStartDate.clone().endOf('day')
     }
-    resizeRecord.value.row[toCol.title] = isDateOnly
-      ? newEndDate.format('YYYY-MM-DD')
-      : newEndDate.format(dateFormat)
+    resizeRecord.value.row[toCol.title] = isDateOnly ? newEndDate.format('YYYY-MM-DD') : newEndDate.format(dateFormat)
     updateProperty = [toCol.title]
   } else if (resizeDirection.value === 'left' && fromCol?.title) {
     // Resizing start date
@@ -202,9 +188,7 @@ const onResize = (event: MouseEvent) => {
     if (newStartDate.isAfter(effectiveEnd, 'day')) {
       newStartDate = effectiveEnd.clone()
     }
-    resizeRecord.value.row[fromCol.title] = isDateOnly
-      ? newStartDate.format('YYYY-MM-DD')
-      : newStartDate.format(dateFormat)
+    resizeRecord.value.row[fromCol.title] = isDateOnly ? newStartDate.format('YYYY-MM-DD') : newStartDate.format(dateFormat)
     updateProperty = [fromCol.title]
   } else {
     return
@@ -232,6 +216,19 @@ const onResizeEnd = () => {
   }, 50)
 }
 
+const onResizeStart = (direction: 'left' | 'right', event: MouseEvent, record: RowType) => {
+  if (!isUIAllowed('dataEdit')) return
+  if (record.rowMeta?.range?.is_readonly) return
+
+  resizeInProgress.value = true
+  resizeDirection.value = direction
+  resizeRecord.value = record
+  hoverColIndex.value = null
+
+  document.addEventListener('mousemove', onResize)
+  document.addEventListener('mouseup', onResizeEnd)
+}
+
 // --- Drag-to-move event handlers (#1) ---
 
 const getDayIndexFromEvent = (event: MouseEvent): number => {
@@ -241,6 +238,66 @@ const getDayIndexFromEvent = (event: MouseEvent): number => {
   const relativeX = event.clientX - left + scrollLeft
   const dayIndex = Math.floor(relativeX / colWidth.value)
   return Math.max(0, Math.min(dayIndex, props.visibleDates.length - 1))
+}
+
+const onDrag = (event: MouseEvent) => {
+  if (!dragRecord.value || !gridBodyRef.value) return
+
+  const range = props.timelineRange[0]
+  if (!range) return
+
+  const fromCol = range.fk_from_col
+  const toCol = range.fk_to_col
+
+  const currentDayIdx = getDayIndexFromEvent(event)
+  const dayDelta = currentDayIdx - dragStartDayIndex.value
+
+  if (dayDelta === 0) return
+
+  const ogStartDate = parseDate(dragRecord.value, fromCol)
+  const ogEndDate = toCol ? parseDate(dragRecord.value, toCol) : null
+
+  if (!ogStartDate) return
+
+  const isDateOnly = fromCol.uidt === UITypes.Date
+  const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
+
+  // Shift both start and end by the delta
+  const newStart = ogStartDate.add(dayDelta, 'day')
+  dragRecord.value.row[fromCol.title!] = isDateOnly ? newStart.format('YYYY-MM-DD') : newStart.format(dateFormat)
+
+  const updateProperty = [fromCol.title!]
+
+  if (toCol?.title && ogEndDate) {
+    const newEnd = ogEndDate.add(dayDelta, 'day')
+    dragRecord.value.row[toCol.title] = isDateOnly ? newEnd.format('YYYY-MM-DD') : newEnd.format(dateFormat)
+    updateProperty.push(toCol.title)
+  }
+
+  // Update the reference day index so delta is always relative
+  dragStartDayIndex.value = currentDayIdx
+
+  useDebouncedRowUpdate(dragRecord.value, updateProperty, false)
+}
+
+const onDragEnd = () => {
+  $e('c:timeline:drag-record')
+  dragInProgress.value = false
+  dragRecord.value = null
+  isDragReady.value = false
+  if (dragTimeout) {
+    clearTimeout(dragTimeout)
+    dragTimeout = null
+  }
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', onDragEnd)
+
+  // Suppress click after drag
+  justFinishedResize.value = true
+  if (resizeCooldownTimer) clearTimeout(resizeCooldownTimer)
+  resizeCooldownTimer = setTimeout(() => {
+    justFinishedResize.value = false
+  }, 50)
 }
 
 const onDragStart = (event: MouseEvent, record: RowType) => {
@@ -273,68 +330,56 @@ const onDragStart = (event: MouseEvent, record: RowType) => {
   document.addEventListener('mouseup', earlyRelease)
 }
 
-const onDrag = (event: MouseEvent) => {
-  if (!dragRecord.value || !gridBodyRef.value) return
+// --- Drag-to-create: click and drag on empty grid to create a record with date range ---
+const dragCreateActive = ref(false)
+const dragCreateStartIdx = ref<number | null>(null)
+const dragCreateEndIdx = ref<number | null>(null)
+const dragCreateLaneIdx = ref<number | null>(null)
 
-  const range = props.timelineRange[0]
-  if (!range) return
+const dragCreateRange = computed(() => {
+  if (dragCreateStartIdx.value === null || dragCreateEndIdx.value === null) return null
+  const minIdx = Math.min(dragCreateStartIdx.value, dragCreateEndIdx.value)
+  const maxIdx = Math.max(dragCreateStartIdx.value, dragCreateEndIdx.value)
+  return { minIdx, maxIdx }
+})
 
-  const fromCol = range.fk_from_col
-  const toCol = range.fk_to_col
+// Compute the pixel-based style for the dotted rectangle overlay
+const dragCreateStyle = computed(() => {
+  const range = dragCreateRange.value
+  if (!range || dragCreateLaneIdx.value === null) return null
+  const left = range.minIdx * colWidth.value
+  const width = (range.maxIdx - range.minIdx + 1) * colWidth.value
+  const top = dragCreateLaneIdx.value * ROW_HEIGHT + 4 // 4px top inset (matches bar top-1 = 4px)
+  const height = ROW_HEIGHT - 8 // matches bar height
+  return { left: `${left}px`, width: `${width}px`, top: `${top}px`, height: `${height}px` }
+})
 
-  const currentDayIdx = getDayIndexFromEvent(event)
-  const dayDelta = currentDayIdx - dragStartDayIndex.value
-
-  if (dayDelta === 0) return
-
-  const ogStartDate = parseDate(dragRecord.value, fromCol)
-  const ogEndDate = toCol ? parseDate(dragRecord.value, toCol) : null
-
-  if (!ogStartDate) return
-
-  const isDateOnly = fromCol.uidt === UITypes.Date
-  const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
-
-  // Shift both start and end by the delta
-  const newStart = ogStartDate.add(dayDelta, 'day')
-  dragRecord.value.row[fromCol.title!] = isDateOnly
-    ? newStart.format('YYYY-MM-DD')
-    : newStart.format(dateFormat)
-
-  const updateProperty = [fromCol.title!]
-
-  if (toCol?.title && ogEndDate) {
-    const newEnd = ogEndDate.add(dayDelta, 'day')
-    dragRecord.value.row[toCol.title] = isDateOnly
-      ? newEnd.format('YYYY-MM-DD')
-      : newEnd.format(dateFormat)
-    updateProperty.push(toCol.title)
-  }
-
-  // Update the reference day index so delta is always relative
-  dragStartDayIndex.value = currentDayIdx
-
-  useDebouncedRowUpdate(dragRecord.value, updateProperty, false)
+const onDragCreateMove = (event: MouseEvent) => {
+  if (!dragCreateActive.value || !gridBodyRef.value) return
+  const dayIdx = getDayIndexFromEvent(event)
+  dragCreateEndIdx.value = dayIdx
+  // Lane stays locked to where the user initially clicked
 }
 
-const onDragEnd = () => {
-  $e('c:timeline:drag-record')
-  dragInProgress.value = false
-  dragRecord.value = null
-  isDragReady.value = false
-  if (dragTimeout) {
-    clearTimeout(dragTimeout)
-    dragTimeout = null
-  }
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', onDragEnd)
+const onDragCreateEnd = () => {
+  document.removeEventListener('mousemove', onDragCreateMove)
+  document.removeEventListener('mouseup', onDragCreateEnd)
 
-  // Suppress click after drag
-  justFinishedResize.value = true
-  if (resizeCooldownTimer) clearTimeout(resizeCooldownTimer)
-  resizeCooldownTimer = setTimeout(() => {
-    justFinishedResize.value = false
-  }, 50)
+  if (!dragCreateActive.value) return
+
+  const range = dragCreateRange.value
+  if (range) {
+    const startDate = props.visibleDates[range.minIdx]
+    const endDate = props.visibleDates[range.maxIdx]
+    if (startDate && endDate) {
+      emit('newRecord', startDate, endDate)
+    }
+  }
+
+  dragCreateActive.value = false
+  dragCreateStartIdx.value = null
+  dragCreateEndIdx.value = null
+  dragCreateLaneIdx.value = null
 }
 
 // Whether any interaction (resize or drag) is happening
@@ -431,15 +476,6 @@ const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>
 
   return lanes.map((lane) => lane.records)
 })
-
-// Parse date from row for a given column
-const parseDate = (row: RowType, col: ColumnType | undefined | null) => {
-  if (!col?.title) return null
-  const val = row.row?.[col.title]
-  if (!val) return null
-  const d = dayjs(val)
-  return d.isValid() ? d : null
-}
 
 // Get bar position and width for a record
 const getBarStyle = (row: RowType) => {
@@ -648,30 +684,6 @@ const navigateToNext = () => {
   if (closestDate) emit('navigateTo', closestDate)
 }
 
-// --- Drag-to-create: click and drag on empty grid to create a record with date range ---
-const dragCreateActive = ref(false)
-const dragCreateStartIdx = ref<number | null>(null)
-const dragCreateEndIdx = ref<number | null>(null)
-const dragCreateLaneIdx = ref<number | null>(null)
-
-const dragCreateRange = computed(() => {
-  if (dragCreateStartIdx.value === null || dragCreateEndIdx.value === null) return null
-  const minIdx = Math.min(dragCreateStartIdx.value, dragCreateEndIdx.value)
-  const maxIdx = Math.max(dragCreateStartIdx.value, dragCreateEndIdx.value)
-  return { minIdx, maxIdx }
-})
-
-// Compute the pixel-based style for the dotted rectangle overlay
-const dragCreateStyle = computed(() => {
-  const range = dragCreateRange.value
-  if (!range || dragCreateLaneIdx.value === null) return null
-  const left = range.minIdx * colWidth.value
-  const width = (range.maxIdx - range.minIdx + 1) * colWidth.value
-  const top = dragCreateLaneIdx.value * ROW_HEIGHT + 4 // 4px top inset (matches bar top-1 = 4px)
-  const height = ROW_HEIGHT - 8 // matches bar height
-  return { left: `${left}px`, width: `${width}px`, top: `${top}px`, height: `${height}px` }
-})
-
 const getLaneIndexFromEvent = (event: MouseEvent): number => {
   if (!gridBodyRef.value) return 0
   const { top } = gridBodyRef.value.getBoundingClientRect()
@@ -687,7 +699,13 @@ const onGridBodyMouseDown = (event: MouseEvent) => {
   if (event.button !== 0) return
   // Don't start drag-to-create if clicking on a bar
   const target = event.target as HTMLElement
-  if (target.closest('.nc-timeline-bar') || target.closest('.nc-timeline-resize-handle') || target.closest('.nc-timeline-nav-arrow') || target.closest('.nc-timeline-nav-btn')) return
+  if (
+    target.closest('.nc-timeline-bar') ||
+    target.closest('.nc-timeline-resize-handle') ||
+    target.closest('.nc-timeline-nav-arrow') ||
+    target.closest('.nc-timeline-nav-btn')
+  )
+    return
 
   const dayIdx = getDayIndexFromEvent(event)
   const laneIdx = getLaneIndexFromEvent(event)
@@ -698,34 +716,6 @@ const onGridBodyMouseDown = (event: MouseEvent) => {
 
   document.addEventListener('mousemove', onDragCreateMove)
   document.addEventListener('mouseup', onDragCreateEnd)
-}
-
-const onDragCreateMove = (event: MouseEvent) => {
-  if (!dragCreateActive.value || !gridBodyRef.value) return
-  const dayIdx = getDayIndexFromEvent(event)
-  dragCreateEndIdx.value = dayIdx
-  // Lane stays locked to where the user initially clicked
-}
-
-const onDragCreateEnd = () => {
-  document.removeEventListener('mousemove', onDragCreateMove)
-  document.removeEventListener('mouseup', onDragCreateEnd)
-
-  if (!dragCreateActive.value) return
-
-  const range = dragCreateRange.value
-  if (range) {
-    const startDate = props.visibleDates[range.minIdx]
-    const endDate = props.visibleDates[range.maxIdx]
-    if (startDate && endDate) {
-      emit('newRecord', startDate, endDate)
-    }
-  }
-
-  dragCreateActive.value = false
-  dragCreateStartIdx.value = null
-  dragCreateEndIdx.value = null
-  dragCreateLaneIdx.value = null
 }
 
 // #21: Keyboard navigation between bars
@@ -761,9 +751,7 @@ const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, ba
 
   event.preventDefault()
   // Focus the target bar
-  const targetEl = gridBodyRef.value?.querySelector(
-    `[data-lane="${targetLane}"][data-bar="${targetBar}"]`,
-  ) as HTMLElement | null
+  const targetEl = gridBodyRef.value?.querySelector(`[data-lane="${targetLane}"][data-bar="${targetBar}"]`) as HTMLElement | null
   targetEl?.focus()
 }
 
@@ -777,9 +765,6 @@ const onBodyScroll = (event: Event) => {
     headerScrollRef.value.scrollLeft = target.scrollLeft
   }
 }
-
-// --- Hover date hairline ---
-const hoverColIndex = ref<number | null>(null)
 
 const onGridMouseMove = (event: MouseEvent) => {
   if (resizeInProgress.value || dragInProgress.value) return
@@ -814,11 +799,6 @@ const onGridMouseLeave = () => {
   hoverColIndex.value = null
 }
 
-const hoverDate = computed(() => {
-  if (hoverColIndex.value === null) return null
-  return props.visibleDates[hoverColIndex.value] ?? null
-})
-
 const hoverLineLeft = computed(() => {
   if (hoverColIndex.value === null) return 0
   return hoverColIndex.value * colWidth.value + colWidth.value / 2
@@ -826,15 +806,13 @@ const hoverLineLeft = computed(() => {
 </script>
 
 <template>
-  <div class="relative flex flex-col h-full overflow-hidden" :style="{ minHeight: (hasRecordsBefore || hasRecordsAfter) && !swimlanes.length ? `${ROW_HEIGHT}px` : undefined }">
+  <div
+    class="relative flex flex-col h-full overflow-hidden"
+    :style="{ minHeight: (hasRecordsBefore || hasRecordsAfter) && !swimlanes.length ? `${ROW_HEIGHT}px` : undefined }"
+  >
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
-      <div
-        ref="headerScrollRef"
-        class="overflow-x-hidden"
-        @mousemove="onHeaderMouseMove"
-        @mouseleave="onGridMouseLeave"
-      >
+      <div ref="headerScrollRef" class="overflow-x-hidden" @mousemove="onHeaderMouseMove" @mouseleave="onGridMouseLeave">
         <div
           class="flex bg-nc-bg-default border-b border-nc-border-gray-medium"
           :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%' }"
@@ -858,7 +836,13 @@ const hoverLineLeft = computed(() => {
                 'text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
               }"
             >
-              {{ zoomLevel === 'month' ? date.format('dd').charAt(0) : zoomLevel === 'week' ? date.format('ddd') : date.format('dddd') }}
+              {{
+                zoomLevel === 'month'
+                  ? date.format('dd').charAt(0)
+                  : zoomLevel === 'week'
+                  ? date.format('ddd')
+                  : date.format('dddd')
+              }}
             </span>
             <span
               class="text-[11px] leading-tight"
@@ -885,16 +869,13 @@ const hoverLineLeft = computed(() => {
       @mousemove="onGridMouseMove"
       @mouseleave="onGridMouseLeave"
     >
-      <div
-        class="relative"
-        :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%', minHeight: '100%' }"
-      >
+      <div class="relative" :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%', minHeight: '100%' }">
         <!-- Background layer: grid lines, weekend shading, today line — fills full height -->
         <div class="absolute inset-0 pointer-events-none">
           <!-- Weekend backgrounds -->
           <div
             v-for="(date, dateIdx) in visibleDates"
-            :key="'bg-' + date.format('YYYY-MM-DD')"
+            :key="`bg-${date.format('YYYY-MM-DD')}`"
             class="absolute top-0 bottom-0"
             :class="{ 'bg-nc-bg-gray-extralight': isWeekend(date) }"
             :style="{
@@ -905,7 +886,7 @@ const hoverLineLeft = computed(() => {
           <!-- Grid lines (vertical) -->
           <div
             v-for="(date, dateIdx) in visibleDates"
-            :key="'line-' + date.format('YYYY-MM-DD')"
+            :key="`line-${date.format('YYYY-MM-DD')}`"
             class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
             :style="{ left: `${(dateIdx + 1) * colWidth}px` }"
           />
@@ -956,7 +937,8 @@ const hoverLineLeft = computed(() => {
                   'cursor-grab': !isInteracting && canResize,
                   'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
                   'z-100 shadow-lg': isInteracting && interactionRecord === record,
-                  'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray': !getRowColorStyle(record).rowBgColor?.backgroundColor,
+                  'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray':
+                    !getRowColorStyle(record).rowBgColor?.backgroundColor,
                   'rounded-l-md': isStartVisible(record),
                   'rounded-r-md': isEndVisible(record),
                 }"
@@ -978,9 +960,11 @@ const hoverLineLeft = computed(() => {
                 <div
                   v-if="isStartVisible(record)"
                   class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
-                  :style="getRowColorStyle(record).rowLeftBorderColor?.backgroundColor
-                    ? getRowColorStyle(record).rowLeftBorderColor
-                    : { backgroundColor: 'var(--color-gray-900, #101015)' }"
+                  :style="
+                    getRowColorStyle(record).rowLeftBorderColor?.backgroundColor
+                      ? getRowColorStyle(record).rowLeftBorderColor
+                      : { backgroundColor: 'var(--color-gray-900, #101015)' }
+                  "
                 />
                 <!-- Left resize handle (start date) — offset past the accent -->
                 <div
@@ -1078,10 +1062,7 @@ const hoverLineLeft = computed(() => {
     </div>
 
     <!-- Grid-level nav arrows — only for fully off-screen records (no bars visible) -->
-    <div
-      v-if="hasRecordsBefore"
-      class="absolute left-1 inset-y-0 z-10 flex items-center pointer-events-none"
-    >
+    <div v-if="hasRecordsBefore" class="absolute left-1 inset-y-0 z-10 flex items-center pointer-events-none">
       <div
         class="nc-timeline-nav-btn flex items-center justify-center w-6 h-6 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors pointer-events-auto"
         data-testid="nc-timeline-nav-prev"
@@ -1091,10 +1072,7 @@ const hoverLineLeft = computed(() => {
       </div>
     </div>
 
-    <div
-      v-if="hasRecordsAfter"
-      class="absolute right-1 inset-y-0 z-10 flex items-center pointer-events-none"
-    >
+    <div v-if="hasRecordsAfter" class="absolute right-1 inset-y-0 z-10 flex items-center pointer-events-none">
       <div
         class="nc-timeline-nav-btn flex items-center justify-center w-6 h-6 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors pointer-events-auto"
         data-testid="nc-timeline-nav-next"
@@ -1141,7 +1119,7 @@ const hoverLineLeft = computed(() => {
 }
 
 .nc-timeline-bar:hover {
-  box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.1), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);
 }
 
 /* Hover date hairline — thin vertical line following mouse column */

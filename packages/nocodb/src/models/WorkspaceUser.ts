@@ -163,10 +163,7 @@ export default class WorkspaceUser {
       });
 
     for (const entry of entries) {
-      await this.clearBaseUserCacheForWorkspace(
-        entry.fk_workspace_id,
-        ncMeta,
-      );
+      await this.clearBaseUserCacheForWorkspace(entry.fk_workspace_id, ncMeta);
     }
   }
 

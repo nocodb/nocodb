@@ -968,25 +968,36 @@ export class WorkspaceUsersService {
     );
 
     if (workspaceUser) {
-      error?.push({
-        email,
-        msg: `${user.email} with role ${workspaceUser.roles} already exists in this base`,
-      });
-      return;
+      // If user was pre-created with NO_ACCESS (e.g. from on-prem lazy workspace addition),
+      // upgrade their role instead of rejecting the invite
+      if (workspaceUser.roles === WorkspaceUserRoles.NO_ACCESS) {
+        await WorkspaceUser.update(
+          workspace.id,
+          user.id,
+          { roles: roles || WorkspaceUserRoles.VIEWER },
+          ncMeta,
+        );
+      } else {
+        error?.push({
+          email,
+          msg: `${user.email} with role ${workspaceUser.roles} already exists in this workspace`,
+        });
+        return { postOperations: [] };
+      }
+    } else {
+      await WorkspaceUser.insert(
+        {
+          fk_workspace_id: workspace.id,
+          fk_user_id: user.id,
+          roles: roles || WorkspaceUserRoles.VIEWER,
+          invited_by: param.req?.user?.id,
+          ...(param.invitePassive
+            ? { deleted: true, deleted_at: ncMeta.now() }
+            : {}),
+        },
+        ncMeta,
+      );
     }
-
-    await WorkspaceUser.insert(
-      {
-        fk_workspace_id: workspace.id,
-        fk_user_id: user.id,
-        roles: roles || WorkspaceUserRoles.VIEWER,
-        invited_by: param.req?.user?.id,
-        ...(param.invitePassive
-          ? { deleted: true, deleted_at: ncMeta.now() }
-          : {}),
-      },
-      ncMeta,
-    );
 
     if (!param.skipEmailInvite) {
       postOperations.push(async () => {

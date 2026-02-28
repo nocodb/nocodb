@@ -8,6 +8,7 @@ import {
 } from '~/utils/globals';
 import { isOnPrem } from '~/utils';
 import Noco from '~/Noco';
+import WorkspaceUser from '~/models/WorkspaceUser';
 
 const logger = new Logger('verifyDefaultWorkspace');
 
@@ -179,16 +180,13 @@ export const ensureUserInDefaultWorkspace = async (
   if (!Noco.ncDefaultWorkspaceId) return;
 
   try {
-    await ncMeta.metaInsert2(
-      RootScopes.WORKSPACE,
-      RootScopes.WORKSPACE,
-      MetaTable.WORKSPACE_USER,
+    await WorkspaceUser.insert(
       {
         fk_workspace_id: Noco.ncDefaultWorkspaceId,
         fk_user_id: userId,
         roles: role,
       },
-      true,
+      ncMeta,
     );
   } catch {
     // Already in workspace — ignore duplicate

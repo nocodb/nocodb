@@ -760,6 +760,11 @@ export default class WorkspaceUser {
     return res;
   }
 
+  // CE stubs — only used by CE services
+  static async softDeleteByUser(..._args: any[]) {}
+
+  static async clearBaseUserCacheForWorkspace(..._args: any[]) {}
+
   static async clearCache(
     workspaceId: any,
     userId: any,

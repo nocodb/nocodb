@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, PlanFeatureTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const props = defineProps<{
   // Prop used to align the dropdown to the left in sidebar
@@ -221,7 +221,7 @@ function onCreateSection() {
           </NcTooltip>
         </template>
         <NcMenuItem
-          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+          v-if="isEeUI && isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
           data-testid="sidebar-view-create-map"
           @click="blockMapView ? showUpgradeToUseMapView() : onOpenModal({ type: ViewTypes.MAP })"
         >
@@ -243,12 +243,13 @@ function onCreateSection() {
         <NcMenuItem
           v-if="isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
           data-testid="sidebar-view-create-timeline"
-          @click="showUpgradeToUseTimelineView() || onOpenModal({ type: ViewTypes.TIMELINE })"
+          @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
         >
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
               <div>{{ $t('objects.viewType.timeline') }}</div>
+              <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW" />
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.TIMELINE && isViewListLoading" />

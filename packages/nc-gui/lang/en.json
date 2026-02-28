@@ -216,6 +216,8 @@
     "upgradeToEnableUniqueSubtitle": "Upgrade to the {plan} plan to enable unique constraint.",
     "upgradeToUseTimelineView": "Upgrade to use timeline view",
     "upgradeToUseTimelineViewSubtitle": "Upgrade to the {plan} plan to visualize records on a timeline.",
+    "upgradeToUseTimelineRange": "Upgrade to visualize records in a timeline range",
+    "upgradeToUseTimelineRangeSubtitle": "Upgrade to the {plan} plan to visualize records in a timeline range.",
     "upgradeToUseSandbox": "Upgrade to use Sandboxes",
     "upgradeToUseSandboxSubtitle": "Sandboxes are available on the {plan} plan and above.",
     "upgradeToUseRecordTemplates": "Upgrade to use record templates",
@@ -2628,6 +2630,7 @@
     "warning": {
       "webhookDelete": "Button fields relying on this webhook will be impacted",
       "calendarNoFields": "Calendar view requires a date or date time field to be setup. Try setting up a calendar view after adding a date/ date time field!",
+      "timelineNoFields": "Timeline view requires a date or date time field to be setup. Try setting up a timeline view after adding a date/ date time field!",
       "kanbanNoFields": "Kanban view requires a single select field to be setup. Try setting up a kanban view after adding a single select field!",
       "mapNoFields": "Map view requires a geo data field to be setup. Try setting up a map view after adding a geo data field!",
       "dbValid": "Ensure database validity to prevent schema loss",

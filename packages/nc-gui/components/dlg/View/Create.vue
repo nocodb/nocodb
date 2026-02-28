@@ -97,7 +97,7 @@ const workspaceStore = useWorkspace()
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
 
-const { blockCalendarRange, getPlanTitle } = useEeConfig()
+const { blockCalendarRange, blockTimelineRange, getPlanTitle } = useEeConfig()
 
 const viewStore = useViewsStore()
 
@@ -136,7 +136,7 @@ const errorMessages = {
   [ViewTypes.KANBAN]: t('msg.warning.kanbanNoFields'),
   [ViewTypes.MAP]: t('msg.warning.mapNoFields'),
   [ViewTypes.CALENDAR]: t('msg.warning.calendarNoFields'),
-  [ViewTypes.TIMELINE]: t('msg.warning.calendarNoFields'),
+  [ViewTypes.TIMELINE]: t('msg.warning.timelineNoFields'),
 }
 
 const form = reactive<Form>({
@@ -1300,14 +1300,14 @@ watch(activeBaseId, () => {
                   </a-select-option>
                 </a-select>
               </div>
-              <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE">
                 <template #default="{ click }">
                   <div class="w-full space-y-2">
                     <NcButton
                       v-if="range.fk_to_column_id === null"
                       size="small"
                       type="text"
-                      @click="click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => (range.fk_to_column_id = undefined))"
+                      @click="click(PlanFeatureTypes.FEATURE_TIMELINE_RANGE, () => (range.fk_to_column_id = undefined))"
                     >
                       <div class="flex items-center gap-1">
                         <component :is="iconMap.plus" class="h-4 w-4" />
@@ -1315,13 +1315,13 @@ watch(activeBaseId, () => {
                       </div>
                       <PaymentUpgradeBadge
                         class="ml-2"
-                        :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                        :limit-or-feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
                         :content="
-                          $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
+                          $t('upgrade.upgradeToUseTimelineRangeSubtitle', {
                             plan: getPlanTitle(PlanTitles.PLUS),
                           })
                         "
-                        :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                        :feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
                       />
                     </NcButton>
 
@@ -1329,13 +1329,13 @@ watch(activeBaseId, () => {
                       <div class="flex gap-2 items-center text-nc-content-gray-subtle">
                         {{ $t('activity.withEndDate') }}
                         <PaymentUpgradeBadge
-                          :limit-or-feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                          :limit-or-feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
                           :content="
-                            $t('upgrade.upgradeToUseCalendarRangeSubtitle', {
+                            $t('upgrade.upgradeToUseTimelineRangeSubtitle', {
                               plan: getPlanTitle(PlanTitles.PLUS),
                             })
                           "
-                          :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE"
+                          :feature="PlanFeatureTypes.FEATURE_TIMELINE_RANGE"
                         />
                       </div>
 
@@ -1345,7 +1345,7 @@ watch(activeBaseId, () => {
                           class="nc-select-shadow w-full flex-1"
                           allow-clear
                           show-search
-                          :disabled="isMetaLoading || blockCalendarRange"
+                          :disabled="isMetaLoading || blockTimelineRange"
                           :loading="isMetaLoading"
                           :placeholder="$t('placeholder.notSelected')"
                           data-testid="nc-timeline-range-to-field-select"

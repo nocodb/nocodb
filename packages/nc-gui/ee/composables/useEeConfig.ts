@@ -213,6 +213,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_VIEW)
   })
 
+  const blockTimelineRange = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TIMELINE_RANGE)
+  })
+
   const blockTableAndFieldPermissions = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
   })
@@ -1066,8 +1070,15 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseTimelineView = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockTimelineView.value) return
+  const showUpgradeToUseTimelineView = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockTimelineView.value) {
+      successCallback?.()
+
+      return
+    }
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseTimelineView'),
@@ -1077,6 +1088,22 @@ export const useEeConfig = createSharedComposable(() => {
       callback,
       requiredPlan: PlanTitles.PLUS,
       limitOrFeature: PlanFeatureTypes.FEATURE_TIMELINE_VIEW,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseTimelineRange = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockTimelineRange.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseTimelineRange'),
+      content: t('upgrade.upgradeToUseTimelineRangeSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.PLUS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TIMELINE_RANGE,
     })
 
     return true
@@ -1450,8 +1477,15 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseRecordTemplates = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockRecordTemplates.value) return
+  const showUpgradeToUseRecordTemplates = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockRecordTemplates.value) {
+      successCallback?.()
+
+      return
+    }
 
     handleUpgradePlan({
       title: t('upgrade.upgradeToUseRecordTemplates'),
@@ -1615,6 +1649,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCalendarRange,
     blockTimelineView,
     showUpgradeToUseTimelineView,
+    blockTimelineRange,
+    showUpgradeToUseTimelineRange,
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,

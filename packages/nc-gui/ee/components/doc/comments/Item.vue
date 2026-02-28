@@ -26,6 +26,7 @@ const emit = defineEmits<{
   (e: 'resolve'): void
   (e: 'activate'): void
   (e: 'reply'): void
+  (e: 'scrollToAnchor', anchorId: string): void
 }>()
 
 const { comment } = toRefs(props)
@@ -153,8 +154,12 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         </div>
       </div>
 
-      <!-- Inline comment — quoted referenced text from the document -->
-      <div v-if="isInlineComment && anchorText" class="mb-1.5 pl-6">
+      <!-- Inline comment — quoted referenced text from the document (click to scroll editor to source) -->
+      <div
+        v-if="isInlineComment && anchorText"
+        class="mb-1.5 pl-6 cursor-pointer hover:opacity-80 transition-opacity"
+        @click.stop="emit('scrollToAnchor', comment.anchor_id!)"
+      >
         <div class="text-xs text-nc-content-gray-subtle line-clamp-2 italic border-l-2 border-nc-border-brand pl-2 py-0.5">
           {{ anchorText }}
         </div>

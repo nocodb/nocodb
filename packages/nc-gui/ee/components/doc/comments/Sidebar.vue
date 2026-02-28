@@ -311,6 +311,30 @@ function scrollToActiveComment() {
   })
 }
 
+/** Scroll the editor to the comment mark and briefly flash-highlight it.
+ *  Uses DOM lookup instead of setTextSelection to avoid triggering the bubble menu. */
+function scrollEditorToAnchor(anchorId: string) {
+  if (!props.editor) return
+
+  const markEl = props.editor.view.dom.querySelector(`[data-comment-id="${anchorId}"]`) as HTMLElement | null
+  if (!markEl) return
+
+  // Find the editor's scroll container (the overflow-y-auto wrapper)
+  const scrollContainer = props.editor.view.dom.closest('.overflow-y-auto') as HTMLElement | null
+  if (!scrollContainer) return
+
+  // Center the mark in the scroll container
+  const markRect = markEl.getBoundingClientRect()
+  const containerRect = scrollContainer.getBoundingClientRect()
+  const scrollTarget = scrollContainer.scrollTop + (markRect.top - containerRect.top) - (containerRect.height - markEl.offsetHeight) / 2
+  scrollContainer.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' })
+
+  // Flash-highlight to draw attention
+  markEl.classList.remove('nc-doc-comment-mark-flash')
+  void markEl.offsetWidth // force reflow to restart animation if already present
+  markEl.classList.add('nc-doc-comment-mark-flash')
+}
+
 // Scroll when activeCommentId changes (sidebar already open, user clicked an anchor in editor)
 watch(activeCommentId, (id) => {
   if (id) scrollToActiveComment()
@@ -427,6 +451,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
           @resolve="resolveComment(threadItem.id!)"
           @activate="activeCommentId === threadItem.id ? clearActiveComment() : scrollToComment(threadItem.id!)"
           @reply="onReply(threadItem)"
+          @scroll-to-anchor="scrollEditorToAnchor"
         />
 
         <!-- Replies (single-level — nested under their parent thread) -->

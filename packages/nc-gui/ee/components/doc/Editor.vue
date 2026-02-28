@@ -1925,5 +1925,22 @@ onBeforeUnmount(() => {
   &.active {
     background-color: rgba(var(--rgb-color-brand-200), 0.6);
   }
+
+  // Flash animation when navigating from sidebar reference text click
+  &.nc-doc-comment-mark-flash {
+    animation: comment-mark-flash 1.5s ease-out forwards;
+  }
+}
+
+@keyframes comment-mark-flash {
+  0% {
+    background-color: rgba(var(--rgb-color-brand-300), 0.7);
+  }
+  40% {
+    background-color: rgba(var(--rgb-color-brand-300), 0.7);
+  }
+  100% {
+    background-color: rgba(var(--rgb-color-brand-100), 0.4);
+  }
 }
 </style>

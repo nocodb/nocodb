@@ -140,6 +140,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       }
 
       const { list, pageInfo } = await api.integration.list(
+        activeWorkspaceId.value,
         databaseOnly
           ? {
               type: IntegrationsType.Database,
@@ -305,7 +306,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         integration.title = integration.title.trim()
       }
 
-      const response = await api.integration.create(integration)
+      const response = await api.integration.create(activeWorkspaceId.value, integration)
 
       if (response && response?.id) {
         if (!loadDatasourceInfo) {
@@ -451,7 +452,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const listIntegrationByType = async (type: IntegrationsType) => {
     if (!activeWorkspaceId.value) return
 
-    const { list } = await api.integration.list({
+    const { list } = await api.integration.list(activeWorkspaceId.value, {
       type,
     })
 

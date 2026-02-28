@@ -357,7 +357,7 @@ watch(isCommentsLoading, (loading, wasLoading) => {
 const onDocumentClick = (e: MouseEvent) => {
   if (!activeCommentId.value) return
   const target = e.target as HTMLElement
-  if (target.closest('.nc-doc-comment-item')) return
+  if (target.closest('.nc-doc-thread-card') || target.closest('.nc-doc-comment-item')) return
   clearActiveComment()
 }
 
@@ -399,82 +399,32 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
     <!-- Comments list -->
     <div v-else ref="commentsWrapperEl" class="flex flex-col flex-1 py-1 nc-scrollbar-thin overflow-y-auto">
       <template v-for="(threadItem, index) of threadedComments" :key="threadItem.id">
-        <!-- Edit mode (top-level) — replaces the display card while editing -->
         <div
-          v-if="threadItem.id === editCommentValue?.id && hasEditPermission"
-          :class="{ 'mt-auto': index === 0 }"
-          class="px-3 pt-1.5 pb-1"
+          class="nc-doc-thread-card mx-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight transition-all duration-150"
+          :class="{
+            'bg-nc-bg-gray-light shadow-sm': activeThreadId === threadItem.id,
+            'opacity-40': !!activeCommentId && activeThreadId !== threadItem.id,
+            'mt-auto': index === 0,
+            'mt-1.5': index > 0,
+          }"
         >
-          <div class="nc-doc-comment-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-comment-box-focused">
-            <SmartsheetExpandedFormRichComment
-              v-model:value="editValue"
-              autofocus
-              autofocus-to-end
-              :hide-options="true"
-              :show-bubble-menu="true"
-              class="expanded-form-comment-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
-              @save="onEditComment"
-              @keydown.esc="onCancelEdit"
-              @keydown="handleKeyPress"
-            />
-            <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
-              <NcTooltip>
-                <!-- mousedown.prevent keeps focus in the editor so blur doesn't fire before click -->
-                <NcButton size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="cancelEdit">
-                  <GeneralIcon icon="close" class="text-xs" />
-                </NcButton>
-                <template #title>{{ $t('general.cancel') }}</template>
-              </NcTooltip>
-              <NcTooltip>
-                <NcButton size="xsmall" type="primary" :disabled="!editValue.trim()" @mousedown.prevent @click="onEditComment">
-                  <GeneralIcon icon="ncSendAlt" />
-                </NcButton>
-                <template #title>{{ $t('general.save') }}</template>
-              </NcTooltip>
-            </div>
-          </div>
-        </div>
-
-        <!-- Display mode (top-level) -->
-        <DocCommentsItem
-          v-else
-          :data-comment-item-id="threadItem.id"
-          :comment="threadItem"
-          :parsed-html="parsedHtmlComments[threadItem.id!] || ''"
-          :is-owner="threadItem.created_by === user?.id"
-          :is-active="activeThreadId === threadItem.id"
-          :has-active-comment="!!activeCommentId"
-          :anchor-text="threadItem.anchor_id ? anchorTextMap[threadItem.anchor_id] : undefined"
-          :class="{ 'mt-auto': index === 0 }"
-          @edit="editComment(threadItem)"
-          @delete="deleteComment(threadItem.id!)"
-          @resolve="resolveComment(threadItem.id!)"
-          @activate="activeCommentId === threadItem.id ? clearActiveComment() : scrollToComment(threadItem.id!)"
-          @reply="onReply(threadItem)"
-          @scroll-to-anchor="scrollEditorToAnchor"
-        />
-
-        <!-- Replies (single-level — nested under their parent thread) -->
-        <template v-for="replyItem of threadItem.replies" :key="replyItem.id">
-          <!-- Edit mode (reply) -->
-          <div
-            v-if="replyItem.id === editCommentValue?.id && hasEditPermission"
-            class="pl-9 pr-3 pt-0.5 pb-1"
-          >
-            <div class="nc-doc-reply-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-reply-box-focused">
+          <!-- Parent: edit mode -->
+          <div v-if="threadItem.id === editCommentValue?.id && hasEditPermission" class="p-2">
+            <div class="nc-doc-comment-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-comment-box-focused">
               <SmartsheetExpandedFormRichComment
                 v-model:value="editValue"
                 autofocus
                 autofocus-to-end
                 :hide-options="true"
                 :show-bubble-menu="true"
-                class="expanded-form-comment-reply-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[120px]"
+                class="expanded-form-comment-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[240px]"
                 @save="onEditComment"
                 @keydown.esc="onCancelEdit"
                 @keydown="handleKeyPress"
               />
               <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
                 <NcTooltip>
+                  <!-- mousedown.prevent keeps focus in the editor so blur doesn't fire before click -->
                   <NcButton size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="cancelEdit">
                     <GeneralIcon icon="close" class="text-xs" />
                   </NcButton>
@@ -490,59 +440,112 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
             </div>
           </div>
 
-          <!-- Display mode (reply) -->
+          <!-- Parent: display mode -->
           <DocCommentsItem
             v-else
-            :data-comment-item-id="replyItem.id"
-            :comment="replyItem"
-            :parsed-html="parsedHtmlComments[replyItem.id!] || ''"
-            :is-owner="replyItem.created_by === user?.id"
-            :is-active="activeThreadId === threadItem.id"
-            :has-active-comment="!!activeCommentId"
-            :is-reply="true"
-            @edit="editComment(replyItem)"
-            @delete="deleteComment(replyItem.id!)"
-            @resolve="resolveComment(replyItem.id!)"
-            @activate="activeCommentId === replyItem.id ? clearActiveComment() : scrollToComment(replyItem.id!)"
-            @reply="onReply(replyItem)"
+            :data-comment-item-id="threadItem.id"
+            :comment="threadItem"
+            :parsed-html="parsedHtmlComments[threadItem.id!] || ''"
+            :is-owner="threadItem.created_by === user?.id"
+            :anchor-text="threadItem.anchor_id ? anchorTextMap[threadItem.anchor_id] : undefined"
+            @edit="editComment(threadItem)"
+            @delete="deleteComment(threadItem.id!)"
+            @resolve="resolveComment(threadItem.id!)"
+            @activate="activeCommentId === threadItem.id ? clearActiveComment() : scrollToComment(threadItem.id!)"
+            @reply="onReply(threadItem)"
+            @scroll-to-anchor="scrollEditorToAnchor"
           />
-        </template>
 
-        <!-- Inline reply input — appears below the thread when user clicks reply -->
-        <div v-if="replyingTo?.id === threadItem.id && hasEditPermission" class="nc-doc-reply-inline pl-9 pr-3 pt-1.5 pb-1">
-          <div
-            class="nc-doc-reply-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden"
-            :class="{ 'nc-doc-reply-box-focused': isReplyFocused }"
-          >
-            <SmartsheetExpandedFormRichComment
-              ref="replyInputRef"
-              v-model:value="replyText"
-              autofocus
-              :hide-options="true"
-              :show-bubble-menu="true"
-              :placeholder="`${$t('activity.addReply')}...`"
-              class="expanded-form-comment-reply-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[120px]"
-              @keydown="handleKeyPress"
-              @save="onSaveReply"
-              @keydown.esc.prevent="onCancelReply"
-              @focus="isReplyFocused = true"
-              @blur="isReplyFocused = false"
-            />
-            <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
-              <NcTooltip>
-                <NcButton v-e="['c:doc:comment:reply:cancel']" size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="onCancelReply">
-                  <GeneralIcon icon="close" class="text-xs" />
-                </NcButton>
-                <template #title>{{ $t('general.cancel') }}</template>
-              </NcTooltip>
-              <NcTooltip>
-                <NcButton v-e="['c:doc:comment:reply:save']" size="xsmall" type="primary" :disabled="!replyText.trim()" @mousedown.prevent @click="onSaveReply">
-                  <GeneralIcon icon="ncSendAlt" />
-                </NcButton>
-                <template #title>{{ $t('general.reply') }}</template>
-              </NcTooltip>
+          <!-- Replies (single-level — nested under their parent thread) -->
+          <template v-for="replyItem of threadItem.replies" :key="replyItem.id">
+            <div class="border-t border-dashed border-nc-border-gray-medium mx-3" />
+
+            <!-- Reply: edit mode -->
+            <div v-if="replyItem.id === editCommentValue?.id && hasEditPermission" class="p-2">
+              <div class="nc-doc-reply-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-reply-box-focused">
+                <SmartsheetExpandedFormRichComment
+                  v-model:value="editValue"
+                  autofocus
+                  autofocus-to-end
+                  :hide-options="true"
+                  :show-bubble-menu="true"
+                  class="expanded-form-comment-reply-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[120px]"
+                  @save="onEditComment"
+                  @keydown.esc="onCancelEdit"
+                  @keydown="handleKeyPress"
+                />
+                <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
+                  <NcTooltip>
+                    <NcButton size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="cancelEdit">
+                      <GeneralIcon icon="close" class="text-xs" />
+                    </NcButton>
+                    <template #title>{{ $t('general.cancel') }}</template>
+                  </NcTooltip>
+                  <NcTooltip>
+                    <NcButton size="xsmall" type="primary" :disabled="!editValue.trim()" @mousedown.prevent @click="onEditComment">
+                      <GeneralIcon icon="ncSendAlt" />
+                    </NcButton>
+                    <template #title>{{ $t('general.save') }}</template>
+                  </NcTooltip>
+                </div>
+              </div>
             </div>
-          </div>
+
+            <!-- Reply: display mode -->
+            <DocCommentsItem
+              v-else
+              :data-comment-item-id="replyItem.id"
+              :comment="replyItem"
+              :parsed-html="parsedHtmlComments[replyItem.id!] || ''"
+              :is-owner="replyItem.created_by === user?.id"
+              :is-reply="true"
+              @edit="editComment(replyItem)"
+              @delete="deleteComment(replyItem.id!)"
+              @resolve="resolveComment(replyItem.id!)"
+              @activate="activeCommentId === replyItem.id ? clearActiveComment() : scrollToComment(replyItem.id!)"
+              @reply="onReply(replyItem)"
+            />
+          </template>
+
+          <!-- Inline reply input — appears below the thread when user clicks reply -->
+          <template v-if="replyingTo?.id === threadItem.id && hasEditPermission">
+            <div class="border-t border-dashed border-nc-border-gray-medium mx-3" />
+            <div class="p-2">
+              <div
+                class="nc-doc-reply-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden"
+                :class="{ 'nc-doc-reply-box-focused': isReplyFocused }"
+              >
+                <SmartsheetExpandedFormRichComment
+                  ref="replyInputRef"
+                  v-model:value="replyText"
+                  autofocus
+                  :hide-options="true"
+                  :show-bubble-menu="true"
+                  :placeholder="`${$t('activity.addReply')}...`"
+                  class="expanded-form-comment-reply-input !py-1.5 !px-2 cursor-text w-full !border-0 bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[120px]"
+                  @keydown="handleKeyPress"
+                  @save="onSaveReply"
+                  @keydown.esc.prevent="onCancelReply"
+                  @focus="isReplyFocused = true"
+                  @blur="isReplyFocused = false"
+                />
+                <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
+                  <NcTooltip>
+                    <NcButton v-e="['c:doc:comment:reply:cancel']" size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="onCancelReply">
+                      <GeneralIcon icon="close" class="text-xs" />
+                    </NcButton>
+                    <template #title>{{ $t('general.cancel') }}</template>
+                  </NcTooltip>
+                  <NcTooltip>
+                    <NcButton v-e="['c:doc:comment:reply:save']" size="xsmall" type="primary" :disabled="!replyText.trim()" @mousedown.prevent @click="onSaveReply">
+                      <GeneralIcon icon="ncSendAlt" />
+                    </NcButton>
+                    <template #title>{{ $t('general.reply') }}</template>
+                  </NcTooltip>
+                </div>
+              </div>
+            </div>
+          </template>
         </div>
       </template>
     </div>
@@ -597,6 +600,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
   flex-shrink: 0;
   height: 100vh;
   height: 100dvh;
+}
+
+.nc-doc-thread-card:hover {
+  @apply bg-nc-bg-gray-light;
 }
 
 :deep(.expanded-form-comment-input) {

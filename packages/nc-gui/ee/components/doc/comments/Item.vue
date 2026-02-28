@@ -5,8 +5,6 @@ interface Props {
   comment: DocCommentExtended
   parsedHtml: string
   isOwner: boolean
-  isActive?: boolean
-  hasActiveComment?: boolean
   anchorText?: string
   isReply?: boolean
 }
@@ -14,8 +12,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   parsedHtml: '',
   isOwner: false,
-  isActive: false,
-  hasActiveComment: false,
   anchorText: undefined,
   isReply: false,
 })
@@ -50,22 +46,10 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
 
 <template>
   <div
-    class="nc-doc-comment-item group cursor-pointer transition-opacity duration-200"
-    :class="{
-      'opacity-40': hasActiveComment && !isActive,
-      'pl-9 pr-3 pt-0.5': isReply,
-      'px-3 pt-1.5': !isReply,
-    }"
+    class="nc-doc-comment-item group px-3 py-2 cursor-pointer"
     :data-testid="`nc-doc-comment-item${isReply ? '-reply' : ''}`"
     @click="emit('activate')"
   >
-    <div
-      class="nc-doc-comment-card rounded-lg border-1 border-nc-border-gray-medium px-3 py-2 transition-all duration-150"
-      :class="{
-        'bg-nc-bg-gray-extralight': !isActive,
-        'bg-nc-bg-gray-light shadow-sm': isActive,
-      }"
-    >
       <!-- Header: avatar + name + time + actions -->
       <div class="flex items-center justify-between mb-1.5">
         <div class="flex items-center gap-2 min-w-0 flex-1">
@@ -170,7 +154,6 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         class="nc-doc-comment-body nc-rich-text-content text-small leading-5 text-nc-content-gray pl-6"
         v-html="parsedHtml"
       />
-    </div>
   </div>
 </template>
 
@@ -179,10 +162,6 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
   :deep(p) {
     @apply !m-0 !leading-5;
   }
-}
-
-.nc-doc-comment-item:hover .nc-doc-comment-card {
-  @apply bg-nc-bg-gray-light;
 }
 
 // Pop-in animation when resolve badge appears (unresolved → resolved)

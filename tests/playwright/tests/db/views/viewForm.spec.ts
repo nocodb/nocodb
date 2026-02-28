@@ -1227,7 +1227,7 @@ test.describe('Form view: field validation', () => {
         });
         await sharedForm.fieldLabel({ title: formField }).click();
 
-        await dashboard.rootPage.waitForTimeout(100);
+        await dashboard.rootPage.waitForTimeout(500);
 
         await fielConfigError.verify({ hasError: !!fieldValue.errors.length });
         for (const error of fieldValue.errors) {

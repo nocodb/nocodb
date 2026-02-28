@@ -77,7 +77,12 @@ test.describe('User roles', () => {
 
     // Step 2: Sign up as each invited user
     for (let i = 0; i < roleDb.length; i++) {
-      await accountPage.signOut();
+      // First iteration: on account page; subsequent iterations: on dashboard after signup
+      if (i === 0) {
+        await accountPage.signOut();
+      } else {
+        await dashboard.signOut();
+      }
       await accountPage.rootPage.goto(roleDb[i].url);
 
       await signupPage.signUp({

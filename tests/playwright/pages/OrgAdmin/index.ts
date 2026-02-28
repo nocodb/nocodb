@@ -28,6 +28,6 @@ export class OrgAdminPage extends BasePage {
         .first()
         .click();
     }
-    await this.rootPage.waitForNavigation({ url: /\/#\/admin\/\w+/ });
+    await this.rootPage.waitForURL(/\/#\/admin\/\w+/);
   }
 }

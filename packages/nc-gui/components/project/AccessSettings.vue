@@ -223,7 +223,7 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
           currentCollaborator.roles = ProjectRoles.NO_ACCESS
         }
         currentCollaborator.base_roles = null
-      } else if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
+      } else if (!roles) {
         if (currentCollaborator.base_roles) {
           await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
         }

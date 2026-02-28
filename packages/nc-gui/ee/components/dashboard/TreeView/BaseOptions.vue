@@ -35,9 +35,7 @@ const baseRole = computed(() => base.value?.project_role || extractBaseRoleFromW
 
 const { $e } = useNuxtApp()
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
+const { showRecordPlanLimitExceededModal, isEEFeatureBlocked } = useEeConfig()
 
 const TODOMagic = ref(false)
 
@@ -153,7 +151,7 @@ function openNocoDbImportDialog(baseId?: string) {
 const isNocoDbImportAllowed = computed(() => {
   return (
     props.showNocoDbImport &&
-    isFeatureEnabled(FEATURE_FLAG.IMPORT_FROM_NOCODB) &&
+    !isEEFeatureBlocked.value &&
     isUIAllowed('nocodbImport', { roles: baseRole.value, source: source.value })
   )
 })

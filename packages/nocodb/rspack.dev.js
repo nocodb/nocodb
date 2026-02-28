@@ -7,14 +7,14 @@ module.exports = {
   resolve: {
     ...baseConfig.resolve,
     tsConfig: {
-      configFile: resolve('tsconfig.ce.json'),
+      configFile: resolve('tsconfig.json'),
     },
   },
   plugins: [
     ...baseConfig.plugins.slice(0, -1),
     new TsCheckerRspackPlugin({
       typescript: {
-        configFile: join('tsconfig.ce.json'),
+        configFile: join('tsconfig.json'),
         mode: 'write-tsbuildinfo',
         configOverwrite: {
           compilerOptions: {

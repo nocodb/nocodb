@@ -220,7 +220,7 @@ watch(selectedUsersList, () => {
       <div class="flex items-center gap-1.5 w-full">
         <!-- Selected user tags -->
         <div v-if="selectedUsers.size === 0" class="font-medium flex-1 text-nc-content-gray-muted truncate">
-          -no users selected- (Nobody {{ permissionDescription }})
+          {{ t('msg.permissions.inlineUserSelector.noUsersSelected', { description: permissionDescription }) }}
         </div>
         <div v-else ref="containerRef" class="flex items-center flex-1 overflow-hidden">
           <!-- Show first few users as tags -->
@@ -289,7 +289,7 @@ watch(selectedUsersList, () => {
             v-if="hiddenCount > 0"
             class="flex items-center gap-1 pr-2 py-0.5 !text-caption text-nc-content-gray-subtle2 truncate"
           >
-            + {{ hiddenCount }} more
+            {{ t('msg.permissions.inlineUserSelector.moreUsers', { count: hiddenCount }) }}
           </div>
         </div>
 

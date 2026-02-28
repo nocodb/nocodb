@@ -12,6 +12,8 @@ import { isEE } from '../../../utils/helpers';
 import init from '../../../init';
 import { createUser } from '../../../factory/user';
 import { overridePlan } from '../../../utils/plan.utils';
+import { createProject } from '../../../factory/base';
+import { createTable } from '../../../factory/table';
 
 /**
  * Team Hierarchy Tests — Phase 1 & Phase 2
@@ -337,12 +339,12 @@ export default function () {
        */
       async function setupBaseAndTable() {
         // Create base
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
         baseId = base.id;
 
         // Create a table in the base
-        const { createTable } = await import('../../../factory/table');
+        
         const table = await createTable(context, base);
         tableId = table.id;
       }
@@ -778,7 +780,7 @@ export default function () {
 
       it('direct workspace role should be the resolved role (not elevated by teams)', async () => {
         // Create a base to provide workspace context for /user/me
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
 
         // Assign engUser as workspace-level-viewer directly
@@ -823,7 +825,7 @@ export default function () {
           .expect(200);
 
         // Create a base
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
 
         // Get roles with base context — should inherit editor from workspace
@@ -838,7 +840,7 @@ export default function () {
 
       it('two users with different direct roles should each get their own role', async () => {
         // Create a base to provide workspace context for /user/me
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
 
         // Assign engUser as viewer, feUser as editor
@@ -879,7 +881,7 @@ export default function () {
       });
 
       it('direct base role should take priority over workspace role fallback', async () => {
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
 
         // Give engUser workspace editor
@@ -920,9 +922,9 @@ export default function () {
         // Create an empty team (no additional members besides the creator/owner)
         const emptyTeamId = await createTeam('Empty Team');
 
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
-        const { createTable } = await import('../../../factory/table');
+        
         const table = await createTable(context, base);
 
         // Set permission with empty team as subject
@@ -974,9 +976,9 @@ export default function () {
 
       it('should handle permission with leaf team (no descendants)', async () => {
         // Web Team is a leaf — self_and_descendants should only match Web Team members
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
-        const { createTable } = await import('../../../factory/table');
+        
         const table = await createTable(context, base);
 
         // Give users workspace access
@@ -1042,9 +1044,9 @@ export default function () {
         // Add eng-member to Frontend too (so they're in both Engineering and Frontend)
         await addMember(frontendId, engUser.id);
 
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
-        const { createTable } = await import('../../../factory/table');
+        
         const table = await createTable(context, base);
 
         await request(context.app)
@@ -1112,7 +1114,7 @@ export default function () {
             )
             .set('xc-token', context.xc_token);
 
-          expect(res.status).to.be.oneOf([400, 422]);
+          expect(res.status).to.equal(400);
           expect(res.body.msg || res.body.message || '').to.include('sub-team');
         });
 
@@ -1134,9 +1136,10 @@ export default function () {
             .set('xc-token', context.xc_token)
             .expect(422);
 
-          // Web Team should still exist
+          // Web Team should still exist and be reparented to Engineering
           const webTeam = await getTeam(webTeamId);
           expect(webTeam).to.have.property('title', 'Web Team');
+          expect(webTeam).to.have.property('fk_parent_team_id', engineeringId);
 
           // Verify teams list still has Web Team but not Frontend
           const data = await listTeams();
@@ -1156,7 +1159,8 @@ export default function () {
             )
             .set('xc-token', context.xc_token);
 
-          expect(res.status).to.be.oneOf([400, 422]);
+          expect(res.status).to.equal(400);
+          expect(res.body.msg || res.body.message || '').to.include('sub-team');
 
           // Engineering should still exist
           const eng = await getTeam(engineeringId);
@@ -1168,19 +1172,28 @@ export default function () {
         it('should reject moving a parent under its own child', async () => {
           // Try to move Engineering under Frontend (Frontend is child of Engineering)
           const res = await moveTeam(engineeringId, frontendId);
-          expect(res.status).to.be.oneOf([400, 422]);
+          expect(res.status).to.equal(400);
+          expect(res.body.msg || res.body.message || '').to.include(
+            'circular reference',
+          );
         });
 
         it('should reject moving a grandparent under its grandchild', async () => {
           // Try to move Engineering under Web Team (Web Team is grandchild of Engineering)
           const res = await moveTeam(engineeringId, webTeamId);
-          expect(res.status).to.be.oneOf([400, 422]);
+          expect(res.status).to.equal(400);
+          expect(res.body.msg || res.body.message || '').to.include(
+            'circular reference',
+          );
         });
 
         it('should reject moving a parent under its own descendant (Backend)', async () => {
           // Try to move Engineering under Backend
           const res = await moveTeam(engineeringId, backendId);
-          expect(res.status).to.be.oneOf([400, 422]);
+          expect(res.status).to.equal(400);
+          expect(res.body.msg || res.body.message || '').to.include(
+            'circular reference',
+          );
         });
       });
 
@@ -1204,7 +1217,10 @@ export default function () {
             });
 
           // Should fail due to depth limit
-          expect(res.status).to.be.oneOf([400, 422]);
+          expect(res.status).to.equal(400);
+          expect(res.body.msg || res.body.message || '').to.include(
+            'depth',
+          );
         });
 
         it('should reject moving a team if it would exceed depth limit', async () => {
@@ -1217,7 +1233,8 @@ export default function () {
           const res = await moveTeam(salesChildId, webTeamId);
 
           // salesChildId at depth 3, salesGrandchildId at depth 4 — exceeds limit
-          expect(res.status).to.be.oneOf([400, 422]);
+          expect(res.status).to.equal(400);
+          expect(res.body.msg || res.body.message || '').to.include('depth');
         });
       });
 
@@ -1340,7 +1357,7 @@ export default function () {
         this.timeout(120000);
 
         // Create a base
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
         baseId = base.id;
 
@@ -1485,11 +1502,11 @@ export default function () {
         this.timeout(120000);
 
         // Create base + table
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
         baseId = base.id;
 
-        const { createTable } = await import('../../../factory/table');
+        
         const table = await createTable(context, base);
         tableId = table.id;
 
@@ -1644,7 +1661,7 @@ export default function () {
       beforeEach(async function () {
         this.timeout(120000);
 
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
         baseId = base.id;
 
@@ -1722,11 +1739,11 @@ export default function () {
       beforeEach(async function () {
         this.timeout(120000);
 
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
         baseId = base.id;
 
-        const { createTable } = await import('../../../factory/table');
+        
         const table = await createTable(context, base);
         tableId = table.id;
 
@@ -1888,11 +1905,11 @@ export default function () {
       let rlsFeatureMock: any;
 
       async function setupBaseAndTable() {
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
         baseId = base.id;
 
-        const { createTable } = await import('../../../factory/table');
+        
         const table = await createTable(context, base);
         tableId = table.id;
       }
@@ -2148,7 +2165,7 @@ export default function () {
       beforeEach(async function () {
         this.timeout(120000);
 
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
         baseId = base.id;
 
@@ -2290,7 +2307,7 @@ export default function () {
             badge_color: '#3366FF',
           });
 
-        expect(res.status).to.be.oneOf([400, 422]);
+        expect(res.status).to.equal(400);
         expect(res.body.message).to.include('depth');
       });
 
@@ -2305,7 +2322,7 @@ export default function () {
         // would put SalesL3 at depth 5 - should fail
         const res = await moveTeam(salesL1, webTeamId);
 
-        expect(res.status).to.be.oneOf([400, 422]);
+        expect(res.status).to.equal(400);
         expect(res.body.message).to.include('depth');
       });
     });
@@ -2436,7 +2453,7 @@ export default function () {
 
     describe('Cache Invalidation', () => {
       it('should invalidate base user cache after reparent', async () => {
-        const { createProject } = await import('../../../factory/base');
+        
         const base = await createProject(context);
 
         // Assign Engineering to base

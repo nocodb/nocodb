@@ -23,9 +23,9 @@ export async function extractUserTeamRoles(
   workspaceId: string,
 ): Promise<{
   roles: Record<string, boolean> | null;
-  teams: { team_id: string; roles: string }[];
+  teams: { team_id: string; roles: string; path?: string }[];
 }> {
-  const teams: { team_id: string; roles: string }[] = [];
+  const teams: { team_id: string; roles: string; path?: string }[] = [];
 
   try {
     // Get all team assignments for this workspace
@@ -90,6 +90,7 @@ export async function extractUserTeamRoles(
         teams.push({
           team_id: assignedTeamId,
           roles: assignment.roles,
+          path: assignedTeam.path,
         });
         workspaceRoles.push(assignment.roles);
       }

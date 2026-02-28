@@ -222,6 +222,70 @@ export default class WorkspaceUser {
     return workspaceUser && new WorkspaceUser(workspaceUser);
   }
 
+  /**
+   * Compute expanded team IDs for a user (direct teams + all descendant teams).
+   * Used for hierarchy-aware workspace/base access queries.
+   */
+  private static async _getExpandedTeamIds(
+    fk_user_id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string[]> {
+    // Step 1: Get all teams the user is a direct member of (with path info)
+    const userTeams = await ncMeta
+      .knex(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+      .join(`${MetaTable.TEAMS} as t`, 't.id', 'pa.resource_id')
+      .where('pa.principal_ref_id', fk_user_id)
+      .where('pa.principal_type', PrincipalType.USER)
+      .where('pa.resource_type', ResourceType.TEAM)
+      .where(function () {
+        this.where('pa.deleted', false).orWhereNull('pa.deleted');
+      })
+      .where(function () {
+        this.where('t.deleted', false).orWhereNull('t.deleted');
+      })
+      .select('t.id', 't.path', 't.fk_workspace_id');
+
+    if (userTeams.length === 0) return [];
+
+    const allTeamIds = new Set<string>();
+
+    // Group teams by workspace for efficient descendant lookup
+    const byWorkspace = new Map<string, { id: string; path: string }[]>();
+    for (const team of userTeams) {
+      allTeamIds.add(team.id);
+      if (team.path && team.fk_workspace_id) {
+        const list = byWorkspace.get(team.fk_workspace_id) ?? [];
+        list.push({ id: team.id, path: team.path });
+        byWorkspace.set(team.fk_workspace_id, list);
+      }
+    }
+
+    // Step 2: For each workspace, fetch all descendants in a single query
+    for (const [wsId, teams] of byWorkspace) {
+      if (teams.length === 0) continue;
+
+      // Build OR conditions: path LIKE 'ancestor_path/%'
+      const descendants = await ncMeta
+        .knex(MetaTable.TEAMS)
+        .where('fk_workspace_id', wsId)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        })
+        .where(function () {
+          for (const team of teams) {
+            this.orWhere('path', 'like', `${team.path}/%`);
+          }
+        })
+        .select('id');
+
+      for (const d of descendants) {
+        allTeamIds.add(d.id);
+      }
+    }
+
+    return [...allTeamIds];
+  }
+
   static async workspaceList(
     {
       fk_user_id,
@@ -231,6 +295,15 @@ export default class WorkspaceUser {
     ncMeta = Noco.ncMeta,
   ) {
     // todo: caching
+
+    // Compute expanded team IDs for hierarchy support.
+    // "Expanded" = user's direct teams + all their descendant teams.
+    // This enables upward cascade: if Engineering is a parent of Frontend, and
+    // Frontend is assigned to a workspace, Engineering members also see it.
+    const expandedTeamIds = await WorkspaceUser._getExpandedTeamIds(
+      fk_user_id,
+      ncMeta,
+    );
 
     const queryBuilder = ncMeta
       .knex(MetaTable.WORKSPACE)
@@ -309,36 +382,31 @@ export default class WorkspaceUser {
       });
 
       // Workspace access through team role - only if direct workspace role is null or INHERIT
-      this.orWhere(function () {
-        this.where(function () {
-          this.whereNull(`${MetaTable.WORKSPACE_USER}.roles`).orWhere(
-            `${MetaTable.WORKSPACE_USER}.roles`,
-            '=',
-            WorkspaceUserRoles.INHERIT,
+      // Uses expanded team IDs (direct + descendant teams) for hierarchy support.
+      if (expandedTeamIds.length > 0) {
+        this.orWhere(function () {
+          this.where(function () {
+            this.whereNull(`${MetaTable.WORKSPACE_USER}.roles`).orWhere(
+              `${MetaTable.WORKSPACE_USER}.roles`,
+              '=',
+              WorkspaceUserRoles.INHERIT,
+            );
+          }).whereIn(
+            `${MetaTable.WORKSPACE}.id`,
+            ncMeta
+              .knex(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wt`)
+              .select('wt.resource_id')
+              .where('wt.resource_type', ResourceType.WORKSPACE)
+              .where('wt.principal_type', PrincipalType.TEAM)
+              .whereIn('wt.principal_ref_id', expandedTeamIds)
+              .where(function () {
+                this.where('wt.deleted', false).orWhereNull('wt.deleted');
+              })
+              .whereNotNull('wt.roles')
+              .whereNot('wt.roles', WorkspaceUserRoles.NO_ACCESS),
           );
-        }).whereIn(
-          `${MetaTable.WORKSPACE}.id`,
-          ncMeta
-            .knex(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wt`)
-            .select('wt.resource_id')
-            .innerJoin(
-              `${MetaTable.PRINCIPAL_ASSIGNMENTS} as ut`,
-              'ut.resource_id',
-              'wt.principal_ref_id',
-            )
-            .where('wt.resource_type', ResourceType.WORKSPACE)
-            .where('wt.principal_type', PrincipalType.TEAM)
-            .where('ut.principal_type', PrincipalType.USER)
-            .where('ut.resource_type', ResourceType.TEAM)
-            .where('ut.principal_ref_id', fk_user_id)
-            .where(function () {
-              this.where('wt.deleted', false).orWhereNull('wt.deleted');
-              this.where('ut.deleted', false).orWhereNull('ut.deleted');
-            })
-            .whereNotNull('wt.roles')
-            .whereNot('wt.roles', WorkspaceUserRoles.NO_ACCESS),
-        );
-      });
+        });
+      }
 
       // Workspace access through base membership (direct base user)
       this.orWhereIn(
@@ -363,51 +431,46 @@ export default class WorkspaceUser {
 
       // Workspace access through base-level team assignments
       // Only consider team role if direct base role is null or INHERIT
-      this.orWhereIn(
-        `${MetaTable.WORKSPACE}.id`,
-        ncMeta
-          .knex(MetaTable.PROJECT)
-          .select(`${MetaTable.PROJECT}.fk_workspace_id`)
-          .innerJoin(
-            `${MetaTable.PRINCIPAL_ASSIGNMENTS} as bt`,
-            'bt.resource_id',
-            `${MetaTable.PROJECT}.id`,
-          )
-          .innerJoin(
-            `${MetaTable.PRINCIPAL_ASSIGNMENTS} as ut`,
-            'ut.resource_id',
-            'bt.principal_ref_id',
-          )
-          .leftJoin(MetaTable.PROJECT_USERS, function () {
-            this.on(
-              `${MetaTable.PROJECT_USERS}.base_id`,
-              '=',
+      // Uses expanded team IDs (direct + descendant teams) for hierarchy support.
+      if (expandedTeamIds.length > 0) {
+        this.orWhereIn(
+          `${MetaTable.WORKSPACE}.id`,
+          ncMeta
+            .knex(MetaTable.PROJECT)
+            .select(`${MetaTable.PROJECT}.fk_workspace_id`)
+            .innerJoin(
+              `${MetaTable.PRINCIPAL_ASSIGNMENTS} as bt`,
+              'bt.resource_id',
               `${MetaTable.PROJECT}.id`,
-            ).andOn(
-              `${MetaTable.PROJECT_USERS}.fk_user_id`,
-              '=',
-              ncMeta.knex.raw('?', [fk_user_id]),
-            );
-          })
-          .where(function () {
-            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhere(
-              `${MetaTable.PROJECT_USERS}.roles`,
-              '=',
-              ProjectRoles.INHERIT,
-            );
-          })
-          .where('bt.resource_type', ResourceType.BASE)
-          .where('bt.principal_type', PrincipalType.TEAM)
-          .where('ut.principal_type', PrincipalType.USER)
-          .where('ut.resource_type', ResourceType.TEAM)
-          .where('ut.principal_ref_id', fk_user_id)
-          .where(function () {
-            this.where('bt.deleted', false).orWhereNull('bt.deleted');
-            this.where('ut.deleted', false).orWhereNull('ut.deleted');
-          })
-          .whereNotNull('bt.roles')
-          .whereNot('bt.roles', ProjectRoles.NO_ACCESS),
-      );
+            )
+            .leftJoin(MetaTable.PROJECT_USERS, function () {
+              this.on(
+                `${MetaTable.PROJECT_USERS}.base_id`,
+                '=',
+                `${MetaTable.PROJECT}.id`,
+              ).andOn(
+                `${MetaTable.PROJECT_USERS}.fk_user_id`,
+                '=',
+                ncMeta.knex.raw('?', [fk_user_id]),
+              );
+            })
+            .where(function () {
+              this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhere(
+                `${MetaTable.PROJECT_USERS}.roles`,
+                '=',
+                ProjectRoles.INHERIT,
+              );
+            })
+            .where('bt.resource_type', ResourceType.BASE)
+            .where('bt.principal_type', PrincipalType.TEAM)
+            .whereIn('bt.principal_ref_id', expandedTeamIds)
+            .where(function () {
+              this.where('bt.deleted', false).orWhereNull('bt.deleted');
+            })
+            .whereNotNull('bt.roles')
+            .whereNot('bt.roles', ProjectRoles.NO_ACCESS),
+        );
+      }
     });
 
     queryBuilder.orderBy(`${MetaTable.WORKSPACE_USER}.order`, 'asc');

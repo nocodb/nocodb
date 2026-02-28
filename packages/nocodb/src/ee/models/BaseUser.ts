@@ -175,7 +175,9 @@ export default class BaseUser extends BaseUserCE {
         return this.castType(null);
       }
 
-      // Create subqueries for workspace and base team roles
+      // Create subqueries for workspace and base team roles.
+      // Joins nc_teams for path-based hierarchy: ancestor team members
+      // inherit roles assigned to descendant teams (upward cascade).
       const workspaceTeamRolesSubquery = ncMeta.knexConnection
         .select('pa.principal_ref_id as user_id')
         .select(
@@ -187,13 +189,13 @@ export default class BaseUser extends BaseUserCE {
           ),
         )
         .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.TEAMS} as pa_team`, 'pa_team.id', 'pa.resource_id')
         .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wta`, function () {
-          this.on('wta.principal_ref_id', '=', 'pa.resource_id')
-            .andOn(
-              'wta.principal_type',
-              '=',
-              ncMeta.knex.raw('?', [PrincipalType.TEAM]),
-            )
+          this.on(
+            'wta.principal_type',
+            '=',
+            ncMeta.knex.raw('?', [PrincipalType.TEAM]),
+          )
             .andOn(
               'wta.resource_type',
               '=',
@@ -210,6 +212,11 @@ export default class BaseUser extends BaseUserCE {
               ncMeta.knex.raw('?', [false]),
             );
         })
+        .join(
+          `${MetaTable.TEAMS} as wta_team`,
+          'wta_team.id',
+          'wta.principal_ref_id',
+        )
         .where(
           'pa.principal_type',
           '=',
@@ -225,6 +232,11 @@ export default class BaseUser extends BaseUserCE {
           '=',
           ncMeta.knex.raw('?', [false]),
         )
+        // Hierarchy: direct match OR user's team is ancestor of assigned team
+        .whereRaw(
+          'wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?',
+          ['/%'],
+        )
         .groupBy('pa.principal_ref_id')
         .as('wtr');
 
@@ -239,9 +251,9 @@ export default class BaseUser extends BaseUserCE {
           ),
         )
         .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.TEAMS} as pa_team`, 'pa_team.id', 'pa.resource_id')
         .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as bta`, function () {
-          this.on('bta.principal_ref_id', '=', 'pa.resource_id')
-            .andOn('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+          this.on('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
             .andOn('bta.resource_type', '=', ncMeta.knex.raw('?', ['base']))
             .andOn('bta.resource_id', '=', ncMeta.knex.raw('?', [baseId]))
             .andOn(
@@ -250,12 +262,22 @@ export default class BaseUser extends BaseUserCE {
               ncMeta.knex.raw('?', [false]),
             );
         })
+        .join(
+          `${MetaTable.TEAMS} as bta_team`,
+          'bta_team.id',
+          'bta.principal_ref_id',
+        )
         .where('pa.principal_type', '=', 'user')
         .where('pa.resource_type', '=', 'team')
         .where(
           ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
           '=',
           ncMeta.knex.raw('?', [false]),
+        )
+        // Hierarchy: direct match OR user's team is ancestor of assigned team
+        .whereRaw(
+          'bta_team.id = pa_team.id OR bta_team.path LIKE pa_team.path || ?',
+          ['/%'],
         )
         .groupBy('pa.principal_ref_id')
         .as('btr');
@@ -437,13 +459,13 @@ export default class BaseUser extends BaseUserCE {
           ),
         )
         .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.TEAMS} as pa_team`, 'pa_team.id', 'pa.resource_id')
         .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wta`, function () {
-          this.on('wta.principal_ref_id', '=', 'pa.resource_id')
-            .andOn(
-              'wta.principal_type',
-              '=',
-              ncMeta.knex.raw('?', [PrincipalType.TEAM]),
-            )
+          this.on(
+            'wta.principal_type',
+            '=',
+            ncMeta.knex.raw('?', [PrincipalType.TEAM]),
+          )
             .andOn(
               'wta.resource_type',
               '=',
@@ -460,6 +482,11 @@ export default class BaseUser extends BaseUserCE {
               ncMeta.knex.raw('?', [false]),
             );
         })
+        .join(
+          `${MetaTable.TEAMS} as wta_team`,
+          'wta_team.id',
+          'wta.principal_ref_id',
+        )
         .where(
           'pa.principal_type',
           '=',
@@ -475,6 +502,11 @@ export default class BaseUser extends BaseUserCE {
           '=',
           ncMeta.knex.raw('?', [false]),
         )
+        // Hierarchy: direct match OR user's team is ancestor of assigned team
+        .whereRaw(
+          'wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?',
+          ['/%'],
+        )
         .groupBy('pa.principal_ref_id')
         .as('wtr');
 
@@ -489,9 +521,9 @@ export default class BaseUser extends BaseUserCE {
           ),
         )
         .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.TEAMS} as pa_team`, 'pa_team.id', 'pa.resource_id')
         .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as bta`, function () {
-          this.on('bta.principal_ref_id', '=', 'pa.resource_id')
-            .andOn('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+          this.on('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
             .andOn('bta.resource_type', '=', ncMeta.knex.raw('?', ['base']))
             .andOn('bta.resource_id', '=', ncMeta.knex.raw('?', [base_id]))
             .andOn(
@@ -500,12 +532,22 @@ export default class BaseUser extends BaseUserCE {
               ncMeta.knex.raw('?', [false]),
             );
         })
+        .join(
+          `${MetaTable.TEAMS} as bta_team`,
+          'bta_team.id',
+          'bta.principal_ref_id',
+        )
         .where('pa.principal_type', '=', 'user')
         .where('pa.resource_type', '=', 'team')
         .where(
           ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
           '=',
           ncMeta.knex.raw('?', [false]),
+        )
+        // Hierarchy: direct match OR user's team is ancestor of assigned team
+        .whereRaw(
+          'bta_team.id = pa_team.id OR bta_team.path LIKE pa_team.path || ?',
+          ['/%'],
         )
         .groupBy('pa.principal_ref_id')
         .as('btr');
@@ -878,13 +920,13 @@ export default class BaseUser extends BaseUserCE {
     }
 
     try {
-      // Get workspace team roles
+      // Get workspace team roles (with hierarchy: ancestor team members inherit)
       const workspaceTeamRoles = await ncMeta.knexConnection
         .select('pa.principal_ref_id as user_id', 'wta.roles')
         .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.TEAMS} as pa_team`, 'pa_team.id', 'pa.resource_id')
         .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as wta`, function () {
-          this.on('wta.principal_ref_id', '=', 'pa.resource_id')
-            .andOn('wta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+          this.on('wta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
             .andOn(
               'wta.resource_type',
               '=',
@@ -897,6 +939,11 @@ export default class BaseUser extends BaseUserCE {
               ncMeta.knex.raw('?', [false]),
             );
         })
+        .join(
+          `${MetaTable.TEAMS} as wta_team`,
+          'wta_team.id',
+          'wta.principal_ref_id',
+        )
         .where('pa.principal_type', '=', 'user')
         .where('pa.resource_type', '=', 'team')
         .whereIn('pa.principal_ref_id', userIds)
@@ -904,15 +951,19 @@ export default class BaseUser extends BaseUserCE {
           ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
           '=',
           ncMeta.knex.raw('?', [false]),
+        )
+        .whereRaw(
+          'wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?',
+          ['/%'],
         );
 
-      // Get base team roles
+      // Get base team roles (with hierarchy: ancestor team members inherit)
       const baseTeamRoles = await ncMeta.knexConnection
         .select('pa.principal_ref_id as user_id', 'bta.roles')
         .from(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as pa`)
+        .join(`${MetaTable.TEAMS} as pa_team`, 'pa_team.id', 'pa.resource_id')
         .join(`${MetaTable.PRINCIPAL_ASSIGNMENTS} as bta`, function () {
-          this.on('bta.principal_ref_id', '=', 'pa.resource_id')
-            .andOn('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
+          this.on('bta.principal_type', '=', ncMeta.knex.raw('?', ['team']))
             .andOn('bta.resource_type', '=', ncMeta.knex.raw('?', ['base']))
             .andOn('bta.resource_id', '=', ncMeta.knex.raw('?', [baseId]))
             .andOn(
@@ -921,6 +972,11 @@ export default class BaseUser extends BaseUserCE {
               ncMeta.knex.raw('?', [false]),
             );
         })
+        .join(
+          `${MetaTable.TEAMS} as bta_team`,
+          'bta_team.id',
+          'bta.principal_ref_id',
+        )
         .where('pa.principal_type', '=', 'user')
         .where('pa.resource_type', '=', 'team')
         .whereIn('pa.principal_ref_id', userIds)
@@ -928,6 +984,10 @@ export default class BaseUser extends BaseUserCE {
           ncMeta.knex.raw('COALESCE(pa.deleted, FALSE)'),
           '=',
           ncMeta.knex.raw('?', [false]),
+        )
+        .whereRaw(
+          'bta_team.id = pa_team.id OR bta_team.path LIKE pa_team.path || ?',
+          ['/%'],
         );
 
       // Initialize map with empty arrays

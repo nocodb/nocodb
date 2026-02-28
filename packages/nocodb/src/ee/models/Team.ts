@@ -168,38 +168,28 @@ export default class Team {
     const { isNoneList } = cachedList;
 
     if (!isNoneList && !teamList.length) {
-      const condition: any = {
-        ...(fk_org_id && { fk_org_id }),
-        ...(fk_workspace_id && { fk_workspace_id }),
-      };
+      const andConditions: any[] = [];
 
-      let xcCondition: any = {};
+      if (fk_org_id) andConditions.push({ fk_org_id: { eq: fk_org_id } });
+      if (fk_workspace_id)
+        andConditions.push({ fk_workspace_id: { eq: fk_workspace_id } });
 
       if (!include_deleted) {
         // Default: exclude soft-deleted records
-        xcCondition = {
-          _or: [
-            {
-              deleted: {
-                eq: false,
-              },
-            },
-            {
-              deleted: {
-                eq: null,
-              },
-            },
-          ],
-        };
+        andConditions.push({
+          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+        });
       }
+
+      const xcCondition =
+        andConditions.length > 0 ? { _and: andConditions } : {};
 
       teamList = await ncMeta.metaList2(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.TEAMS,
         {
-          condition,
-          ...(Object.keys(xcCondition).length > 0 && { xcCondition }),
+          ...(andConditions.length > 0 && { xcCondition }),
         },
       );
 
@@ -233,13 +223,7 @@ export default class Team {
     let preparedTeam = prepareForDb(updateObj, 'meta');
     preparedTeam = prepareForDb(preparedTeam, 'scim_meta');
 
-    // get existing cache
-    const key = `${CacheScope.TEAM}:${teamId}`;
-    const existing = await NocoCache.get(
-      context,
-      key,
-      CacheGetType.TYPE_OBJECT,
-    );
+    const existing = await this.get(context, teamId, ncMeta);
 
     if (!existing) {
       NcError.notFound(`Team with id ${teamId} not found`);
@@ -387,22 +371,22 @@ export default class Team {
     const team = await this.get(context, teamId, ncMeta);
     if (!team?.path) return [];
 
-    const allTeams = await ncMeta.metaList2(
+    const descendants = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.TEAMS,
       {
-        condition: { fk_workspace_id: team.fk_workspace_id },
         xcCondition: {
-          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+          _and: [
+            { fk_workspace_id: { eq: team.fk_workspace_id } },
+            { path: { like: `${team.path}/%` } },
+            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+          ],
         },
       },
     );
 
-    // Filter descendants: exclude the team itself, only return actual children
-    return allTeams
-      .filter((t) => t.path?.startsWith(team.path + '/') && t.id !== teamId)
-      .map((t) => this.castType(t));
+    return descendants.map((t) => this.castType(t));
   }
 
   /**
@@ -465,9 +449,11 @@ export default class Team {
       RootScopes.ROOT,
       MetaTable.TEAMS,
       {
-        condition: { fk_parent_team_id: teamId },
         xcCondition: {
-          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+          _and: [
+            { fk_parent_team_id: { eq: teamId } },
+            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+          ],
         },
       },
     );
@@ -580,39 +566,38 @@ export default class Team {
 
     // Update all descendants — replace old path prefix with new path prefix
     if (oldPath) {
+      const depthDiff = newDepth - team.depth;
       const descendants = await ncMeta.metaList2(
         RootScopes.ROOT,
         RootScopes.ROOT,
         MetaTable.TEAMS,
         {
           xcCondition: {
-            _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+            _and: [
+              { path: { like: `${oldPath}/%` } },
+              { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+            ],
           },
         },
       );
 
-      const descendantIds: string[] = [];
       for (const desc of descendants) {
-        if (desc.path?.startsWith(oldPath + '/')) {
-          const updatedPath = newPath + desc.path.slice(oldPath.length);
-          const depthDiff = newDepth - team.depth;
-          await ncMeta.metaUpdate(
-            RootScopes.ROOT,
-            RootScopes.ROOT,
-            MetaTable.TEAMS,
-            {
-              path: updatedPath,
-              depth: desc.depth + depthDiff,
-            },
-            { id: desc.id },
-          );
-          descendantIds.push(desc.id);
-        }
-      }
-
-      // Clear individual caches for all updated descendants
-      for (const descId of descendantIds) {
-        await NocoCache.del(context, `${CacheScope.TEAM}:${descId}`);
+        const updatedPath = newPath + desc.path.slice(oldPath.length);
+        const updatedDepth = desc.depth + depthDiff;
+        await ncMeta.metaUpdate(
+          RootScopes.ROOT,
+          RootScopes.ROOT,
+          MetaTable.TEAMS,
+          {
+            path: updatedPath,
+            depth: updatedDepth,
+          },
+          { id: desc.id },
+        );
+        await NocoCache.update(context, `${CacheScope.TEAM}:${desc.id}`, {
+          path: updatedPath,
+          depth: updatedDepth,
+        });
       }
     }
 
@@ -733,12 +718,12 @@ export default class Team {
       RootScopes.ROOT,
       MetaTable.TEAMS,
       {
-        condition: {
-          fk_workspace_id: workspaceId,
-          scim_external_id: scimExternalId,
-        },
         xcCondition: {
-          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
+          _and: [
+            { fk_workspace_id: { eq: workspaceId } },
+            { scim_external_id: { eq: scimExternalId } },
+            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+          ],
         },
       },
     );

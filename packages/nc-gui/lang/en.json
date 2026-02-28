@@ -771,7 +771,35 @@
       "resetFieldPermissions": "Reset field permissions",
       "resetFieldPermissionsDescription": "Edit access will be set to Editors & up.",
       "confirmRevertPermissionsToDefault": "Confirm reset permissions for table - \"{tableName}\"",
-      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it."
+      "formViewFieldEditPermissionRestrictionTooltip": "This field is hidden in the form because no one has permission to edit it.",
+      "rlsPolicy": {
+        "editDefaultPolicy": "Edit Default Policy",
+        "editPolicy": "Edit Policy",
+        "policyName": "Policy Name",
+        "enterPolicyName": "Enter policy name",
+        "enabled": "Enabled",
+        "disabled": "Disabled",
+        "defaultBehavior": "Default Behavior",
+        "defaultBehaviorDescription": "Applied when no scoped policy matches the current user.",
+        "applyTo": "Apply To (Subjects)",
+        "applyToDescription": "Choose which roles, teams, or users this policy applies to.",
+        "selectSubjects": "Select roles, users, or teams...",
+        "searchSubjects": "Search roles, users, or teams...",
+        "noMatchesFound": "No matches found",
+        "showAllRows": "Show All Rows",
+        "showAllRowsDescription": "All rows are visible when no scoped policy matches.",
+        "denyAllRows": "Deny All Rows",
+        "denyAllRowsDescription": "No rows are visible when no scoped policy matches.",
+        "applyCondition": "Apply Condition",
+        "applyConditionDescription": "Apply filter conditions as the fallback.",
+        "groupRoles": "Roles",
+        "groupMembers": "Members",
+        "groupTeams": "Teams"
+      },
+      "inlineUserSelector": {
+        "noUsersSelected": "Nobody {description}",
+        "moreUsers": "+ {count} more"
+      }
     },
     "deleteAllRecordDlg": {
       "subtitle": "Are you sure you want to delete all selected {rowCount} records present in this view?",

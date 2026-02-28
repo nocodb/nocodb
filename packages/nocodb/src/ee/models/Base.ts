@@ -738,6 +738,10 @@ export default class Base extends BaseCE {
     fk_workspace_id: string,
     userId: string,
     ncMeta = Noco.ncMeta,
+    // Pre-computed set of team IDs the user belongs to, including all descendant teams
+    // via hierarchy upward-cascade (parent team members see sub-team assignments).
+    // Computed once by the caller to avoid per-level join growth.
+    expandedTeamIds: string[] = [],
   ) => {
     // On-prem: super admin sees all bases in any workspace as owner
     if (isOnPrem) {
@@ -763,6 +767,16 @@ export default class Base extends BaseCE {
     }
 
     // Todo: caching , pagination, query optimisation
+
+    // Build IN clause raw for team ID matching. Empty array → no team match.
+    const teamInRaw =
+      expandedTeamIds.length > 0
+        ? ncMeta.knex.raw(
+            `(${expandedTeamIds.map(() => '?').join(', ')})`,
+            expandedTeamIds,
+          )
+        : null;
+
     const baseListQb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
@@ -792,31 +806,9 @@ export default class Base extends BaseCE {
           ncMeta.knex.raw('?', [userId]),
         );
       })
-      // Join for team memberships (user -> team)
-      .leftJoin(
-        `${MetaTable.PRINCIPAL_ASSIGNMENTS} as user_team_assignment`,
-        function () {
-          this.on(
-            'user_team_assignment.principal_ref_id',
-            ncMeta.knex.raw('?', [userId]),
-          )
-            .andOn(
-              'user_team_assignment.principal_type',
-              ncMeta.knex.raw('?', [PrincipalType.USER]),
-            )
-            .andOn(
-              'user_team_assignment.resource_type',
-              ncMeta.knex.raw('?', [ResourceType.TEAM]),
-            )
-            .andOn(function () {
-              this.on(
-                'user_team_assignment.deleted',
-                ncMeta.knex.raw('?', [false]),
-              ).orOnNull('user_team_assignment.deleted');
-            });
-        },
-      )
-      // Join for base-level team assignments (team -> base)
+      // Join for base-level team assignments.
+      // Uses pre-computed expandedTeamIds (direct + descendant teams) so hierarchy
+      // depth never adds extra joins — just a wider IN list.
       .leftJoin(
         `${MetaTable.PRINCIPAL_ASSIGNMENTS} as base_team_assignment`,
         function () {
@@ -829,19 +821,25 @@ export default class Base extends BaseCE {
               'base_team_assignment.principal_type',
               ncMeta.knex.raw('?', [PrincipalType.TEAM]),
             )
-            .andOn(
-              'base_team_assignment.principal_ref_id',
-              'user_team_assignment.resource_id',
-            )
             .andOn(function () {
               this.on(
                 'base_team_assignment.deleted',
                 ncMeta.knex.raw('?', [false]),
               ).orOnNull('base_team_assignment.deleted');
             });
+          if (teamInRaw) {
+            this.andOn(
+              ncMeta.knex.raw(
+                `base_team_assignment.principal_ref_id IN ${teamInRaw}`,
+              ),
+            );
+          } else {
+            // No teams → never match any base team assignment
+            this.andOn(ncMeta.knex.raw('1 = 0'));
+          }
         },
       )
-      // Join for workspace-level team assignments (team -> workspace)
+      // Join for workspace-level team assignments — same expanded ID approach.
       .leftJoin(
         `${MetaTable.PRINCIPAL_ASSIGNMENTS} as workspace_team_assignment`,
         function () {
@@ -857,16 +855,21 @@ export default class Base extends BaseCE {
               'workspace_team_assignment.principal_type',
               ncMeta.knex.raw('?', [PrincipalType.TEAM]),
             )
-            .andOn(
-              'workspace_team_assignment.principal_ref_id',
-              'user_team_assignment.resource_id',
-            )
             .andOn(function () {
               this.on(
                 'workspace_team_assignment.deleted',
                 ncMeta.knex.raw('?', [false]),
               ).orOnNull('workspace_team_assignment.deleted');
             });
+          if (teamInRaw) {
+            this.andOn(
+              ncMeta.knex.raw(
+                `workspace_team_assignment.principal_ref_id IN ${teamInRaw}`,
+              ),
+            );
+          } else {
+            this.andOn(ncMeta.knex.raw('1 = 0'));
+          }
         },
       )
       .where(`${MetaTable.PROJECT}.fk_workspace_id`, fk_workspace_id)

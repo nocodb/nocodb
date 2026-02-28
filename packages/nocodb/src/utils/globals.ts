@@ -473,6 +473,7 @@ export enum CacheScope {
   TEMPLATES = 'templates',
   WORKFLOW = 'nc_workflow',
   WORKFLOW_EXECUTION = 'nc_workflow_execution',
+  PRESENCE = 'presence',
   WORKFLOW_WEBHOOK_TEST_LISTENER = 'nc_workflow_webhook_test_listener',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATION = 'installation',

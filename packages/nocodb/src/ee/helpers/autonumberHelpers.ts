@@ -16,10 +16,10 @@ async function resetPgSequence(
 ): Promise<void> {
   await knex.raw(
     `SELECT setval(
-      pg_get_serial_sequence(?, ?),
-      COALESCE((SELECT MAX(??) FROM ??), 0)
+      pg_get_serial_sequence(:tnVal, :colVal),
+      COALESCE((SELECT MAX(:col:) FROM :tn:), 0)
     )`,
-    [tnPath, colName, colName, tnPath],
+    { tn: tnPath, col: colName, tnVal: tnPath, colVal: colName },
   );
 }
 
@@ -77,10 +77,10 @@ async function backfillDefaultOrder(
   pkColumn: string,
 ): Promise<void> {
   await knex.raw(
-    `UPDATE ?? t SET ?? = s.rn
-     FROM (SELECT ??, ROW_NUMBER() OVER (ORDER BY ?? ASC) rn FROM ??) s
-     WHERE t.?? = s.??`,
-    [tnPath, colName, pkColumn, pkColumn, tnPath, pkColumn, pkColumn],
+    `UPDATE :tn: t SET :col: = s.rn
+     FROM (SELECT :pk:, ROW_NUMBER() OVER (ORDER BY :pk: ASC) rn FROM :tn:) s
+     WHERE t.:pk: = s.:pk:`,
+    { tn: tnPath, col: colName, pk: pkColumn },
   );
 }
 
@@ -133,28 +133,20 @@ async function backfillWithViewOrder(
         WITH ORDINALITY AS t(pk, rn)
       ),
       _nc_rest AS (
-        SELECT ??,
-          (ROW_NUMBER() OVER (ORDER BY ?? ASC)
+        SELECT :pk:,
+          (ROW_NUMBER() OVER (ORDER BY :pk: ASC)
             + COALESCE((SELECT MAX(rn) FROM _nc_matched), 0))::bigint AS rn
-        FROM ??
-        WHERE ?? NOT IN (SELECT pk FROM _nc_matched)
+        FROM :tn:
+        WHERE :pk: NOT IN (SELECT pk FROM _nc_matched)
       )
-      UPDATE ?? t SET ?? = _nc_all.rn
+      UPDATE :tn: t SET :col: = _nc_all.rn
       FROM (
         SELECT * FROM _nc_matched
         UNION ALL
         SELECT * FROM _nc_rest
       ) _nc_all
-      WHERE t.?? = _nc_all.pk`,
-      [
-        pkColumn,
-        pkColumn,
-        tnPath,
-        pkColumn,
-        tnPath,
-        colName,
-        pkColumn,
-      ],
+      WHERE t.:pk: = _nc_all.pk`,
+      { pk: pkColumn, tn: tnPath, col: colName },
     );
   } else {
     const sortedQb = knex(tnPath).select(pkColumn);
@@ -166,14 +158,14 @@ async function backfillWithViewOrder(
     const sortedSql = sortedQb.toQuery().replaceAll('?', '\\?');
 
     await knex.raw(
-      `UPDATE ?? t SET ?? = s.rn
+      `UPDATE :tn: t SET :col: = s.rn
        FROM (
          SELECT pk, rn::bigint
          FROM unnest(ARRAY(${sortedSql}))
          WITH ORDINALITY AS t(pk, rn)
        ) s
-       WHERE t.?? = s.pk`,
-      [tnPath, colName, pkColumn],
+       WHERE t.:pk: = s.pk`,
+      { tn: tnPath, col: colName, pk: pkColumn },
     );
   }
 }

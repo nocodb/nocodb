@@ -42,9 +42,15 @@ const validTabs: AdminTab[] = [
   'settings',
 ]
 
+const router = useRouter()
+
 const initialTab = validTabs.includes(route.query.tab as AdminTab) ? (route.query.tab as AdminTab) : 'dashboard'
 
 const activeTab = ref<AdminTab>(initialTab)
+
+watch(activeTab, (tab) => {
+  router.replace({ query: { ...route.query, tab } })
+})
 
 const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || !appInfo.value.isCloud))
 

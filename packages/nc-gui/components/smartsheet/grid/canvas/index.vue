@@ -405,6 +405,27 @@ const {
   getDataCache,
 })
 
+// File drop to create records
+const showFileDropZone = ref(false)
+const dragFileCount = ref(0)
+
+const {
+  isProcessing: isFileDropProcessing,
+  showFieldSelectDlg,
+  pendingFiles: pendingDropFiles,
+  attachmentFields,
+  handleFileDrop,
+  onFieldSelected,
+  onFieldSelectCancelled,
+} = useFileDropToCreateRecords({
+  meta,
+  callAddEmptyRow,
+  updateOrSaveRow,
+})
+
+/** Whether the table has attachment fields and data editing is allowed — gates the file drop zone */
+const canDropFilesToCreateRecords = computed(() => isDataEditAllowed.value && attachmentFields.value.length > 0)
+
 const activeCursor = ref<CursorType>('auto')
 
 function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
@@ -2708,7 +2729,26 @@ const resetAttachmentCellDropOver = () => {
 }
 
 const onDrop = (files: File[] | null) => {
-  if (!attachmentCellDropOver.value || !files?.length || !isDataEditAllowed.value) {
+  // Capture whether the bottom drop zone was showing before clearing it
+  const wasDropZoneVisible = showFileDropZone.value
+
+  showFileDropZone.value = false
+  dragFileCount.value = 0
+
+  if (!files?.length || !isDataEditAllowed.value) {
+    return
+  }
+
+  // If the bottom drop zone was visible, always create new records
+  if (wasDropZoneVisible && canDropFilesToCreateRecords.value) {
+    resetAttachmentCellDropOver()
+    handleFileDrop(Array.from(files))
+    return
+  }
+
+  // If no specific attachment cell is targeted, trigger new record creation
+  if (!attachmentCellDropOver.value) {
+    handleFileDrop(Array.from(files))
     return
   }
 
@@ -2746,6 +2786,10 @@ const onDrop = (files: File[] | null) => {
 const onOver = (_files: File[] | null, e: DragEvent) => {
   if (!isDataEditAllowed.value) return
 
+  if (e.dataTransfer?.items) {
+    dragFileCount.value = Array.from(e.dataTransfer.items).filter((item) => item.kind === 'file').length
+  }
+
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -2778,10 +2822,16 @@ const onOver = (_files: File[] | null, e: DragEvent) => {
 
   const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
 
-  // If hover column is not attachment or is readonly, skip
+  // If hover column is not attachment or is readonly, show bottom drop zone instead
   if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment || column.readonly) {
+    if (canDropFilesToCreateRecords.value) {
+      showFileDropZone.value = true
+    }
     return resetAttachmentCellDropOver()
   }
+
+  // Over a valid attachment cell — hide bottom drop zone so cell drop takes priority
+  showFileDropZone.value = false
 
   if (
     attachmentCellDropOver.value &&
@@ -2800,10 +2850,15 @@ useDropZone(canvasRef, {
   onDrop,
   onEnter: () => {
     resetAttachmentCellDropOver()
+    if (canDropFilesToCreateRecords.value) {
+      showFileDropZone.value = true
+    }
   },
   onOver,
   onLeave: () => {
     resetAttachmentCellDropOver()
+    showFileDropZone.value = false
+    dragFileCount.value = 0
   },
 })
 
@@ -2844,7 +2899,7 @@ watch(
 </script>
 
 <template>
-  <div ref="wrapperRef" class="w-full h-full">
+  <div ref="wrapperRef" class="w-full h-full relative">
     <div
       v-if="isBulkOperationInProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-nc-bg-default/30"
@@ -3176,9 +3231,22 @@ watch(
         </template>
       </PermissionsTooltip>
     </div>
+    <SmartsheetGridCanvasComponentsFileDropZone
+      v-if="isEeUI"
+      :visible="showFileDropZone && canDropFilesToCreateRecords && !isFileDropProcessing"
+      :file-count="dragFileCount"
+    />
   </div>
 
   <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
+  <DlgAttachmentFieldSelect
+    v-if="isEeUI"
+    v-model="showFieldSelectDlg"
+    :table-id="meta?.id"
+    :file-count="pendingDropFiles.length"
+    @select="onFieldSelected"
+    @cancel="onFieldSelectCancelled"
+  />
 </template>
 
 <style scoped lang="scss">

@@ -54,7 +54,9 @@ const workspaceIcon = computed(() => {
 })
 
 const workspaceColor = computed(() => {
-  const color = workspace.value ? workspace.value.meta?.color || stringToColor(workspace.value.id!) : undefined
+  const color = workspace.value
+    ? workspace.value.meta?.color || (workspace.value.id ? stringToColor(workspace.value.id) : undefined)
+    : undefined
 
   if (!props.hideLabel && workspaceIcon.value.icon) {
     switch (workspaceIcon.value.iconType) {

@@ -142,11 +142,28 @@ watch(
   { immediate: true },
 )
 
-const reloadViewDataHandler = () => {
+const reloadViewDataHandler = async () => {
   if (vGroup.value.nested) {
-    _loadGroups({}, vGroup.value)
+    // Snapshot counts before reload so we can detect which groups changed
+    const oldCounts = new Map<string, number>()
+    for (const child of vGroup.value.children ?? []) {
+      oldCounts.set(String(child.key), child.count)
+    }
+
+    await _loadGroups({}, vGroup.value)
+
+    // Only reload row data for expanded leaf groups whose count changed
+    // (the group a record left and the group it moved to)
+    const leafReloads = (vGroup.value.children ?? [])
+      .filter((child) => {
+        if (child.nested || !isExpanded(String(child.key))) return false
+        const oldCount = oldCounts.get(String(child.key))
+        return oldCount === undefined || oldCount !== child.count
+      })
+      .map((child) => _loadGroupData(child, true))
+    await Promise.all(leafReloads)
   } else {
-    _loadGroupData(vGroup.value, true)
+    await _loadGroupData(vGroup.value, true)
   }
 }
 

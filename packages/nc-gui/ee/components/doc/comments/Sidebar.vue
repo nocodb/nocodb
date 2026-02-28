@@ -523,7 +523,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
     </div>
 
     <!-- Comment input — pinned at bottom of sidebar -->
-    <div v-if="hasEditPermission && !isCommentsLoading" class="px-3 pb-3 pt-2 border-t-1 border-nc-border-gray-medium flex-none">
+    <div v-if="hasEditPermission && !isCommentsLoading" class="px-3 pb-3 pt-2 flex-none">
       <!-- Quoted text snippet for inline (anchor-based) comments -->
       <div v-if="pendingSelectionText" class="nc-doc-comment-quote mb-2 flex items-start gap-2">
         <div class="flex-1 min-w-0">

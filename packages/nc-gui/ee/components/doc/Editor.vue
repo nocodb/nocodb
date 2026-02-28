@@ -764,9 +764,9 @@ onBeforeUnmount(() => {
     ProseMirror's view from the DOM. Content is swapped via setContent.
   -->
   <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden">
-    <!-- Editor scroll area — shrinks when sidebar is open -->
-    <div class="flex flex-col flex-1 min-w-0 overflow-y-auto">
-    <!-- 3-dot page context menu — pinned to top-right of editor -->
+    <!-- Editor area — relative wrapper for floating menu + scroll content -->
+    <div class="relative flex-1 min-w-0">
+    <!-- 3-dot page context menu — floats at top-right, outside scroll flow -->
     <div class="nc-doc-page-menu">
       <NcTooltip :title="$t('general.comments')" placement="bottom">
         <NcButton
@@ -822,6 +822,8 @@ onBeforeUnmount(() => {
       </NcDropdown>
     </div>
 
+    <!-- Scroll area for editor content -->
+    <div class="flex flex-col h-full overflow-y-auto">
     <div v-if="isStale" class="nc-doc-stale-banner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16 pt-4">
       <NcAlert type="info" :closable="false" align="center" class="!bg-nc-bg-brand">
         <template #message>
@@ -1127,7 +1129,8 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </Teleport>
-    </div>
+    </div><!-- /scroll area -->
+    </div><!-- /relative wrapper -->
 
     <!-- Comments sidebar — slides in from the right alongside editor -->
     <DocCommentsSidebar
@@ -1179,18 +1182,15 @@ onBeforeUnmount(() => {
   }
 }
 
-// Page 3-dot context menu — pinned to top-right of full editor area
+// Page 3-dot context menu — floats at top-right of editor area, outside scroll flow
 .nc-doc-page-menu {
   display: flex;
   align-items: center;
   gap: 4px;
-  position: sticky;
-  top: 0;
-  align-self: flex-end;
+  position: absolute;
+  top: 12px;
+  right: 12px;
   z-index: 20;
-  padding: 12px 12px 0 0;
-  // Collapse height so it doesn't push content down
-  margin-bottom: -36px;
 }
 
 // Icon positioned to the left, outside the content bounds on large screens.

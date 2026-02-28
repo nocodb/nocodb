@@ -65,6 +65,9 @@ const resolveUserLabel = (userId?: string) => {
 }
 
 const titleInput = useTemplateRef('titleInput')
+const scrollContainerRef = ref<HTMLElement | null>(null)
+
+const isTitleVisible = ref(true)
 
 // --- Composables (declared before useEditor so callbacks can reference them) ---
 
@@ -773,6 +776,33 @@ watch(
   },
 )
 
+// --- Sticky header: show when title scrolls out of view ---
+let titleObserver: IntersectionObserver | null = null
+
+watch(
+  [titleInput, scrollContainerRef],
+  ([titleEl, scrollEl]) => {
+    titleObserver?.disconnect()
+    titleObserver = null
+
+    if (!titleEl || !scrollEl) return
+
+    titleObserver = new IntersectionObserver(
+      ([entry]) => {
+        isTitleVisible.value = entry.isIntersecting
+      },
+      { root: scrollEl, threshold: 0 },
+    )
+    titleObserver.observe(titleEl)
+  },
+  { flush: 'post' },
+)
+
+onBeforeUnmount(() => {
+  titleObserver?.disconnect()
+  titleObserver = null
+})
+
 onBeforeUnmount(() => {
   flushOnUnmount()
   editor.value?.destroy()
@@ -792,6 +822,13 @@ onBeforeUnmount(() => {
   <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden">
     <!-- Editor area — relative wrapper for floating menu + scroll content -->
     <div class="relative flex-1 min-w-0 h-full overflow-hidden">
+    <!-- Sticky title bar — appears when document title scrolls out of view -->
+    <Transition name="nc-doc-sticky-slide">
+      <div v-if="!isTitleVisible && isLoaded" class="nc-doc-sticky-header">
+        <span class="nc-doc-sticky-title truncate">{{ title || $t('general.untitled') }}</span>
+      </div>
+    </Transition>
+
     <!-- 3-dot page context menu — floats at top-right, outside scroll flow -->
     <div class="nc-doc-page-menu" :class="{ 'nc-doc-page-menu-search-open': isSearchOpen }">
       <NcTooltip :title="$t('general.comments')" placement="bottom">
@@ -857,7 +894,7 @@ onBeforeUnmount(() => {
     />
 
     <!-- Scroll area for editor content -->
-    <div class="flex flex-col h-full overflow-y-auto">
+    <div ref="scrollContainerRef" class="flex flex-col h-full overflow-y-auto">
     <div v-if="isStale" class="nc-doc-stale-banner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16 pt-4">
       <NcAlert type="info" :closable="false" align="center" class="!bg-nc-bg-brand">
         <template #message>
@@ -907,39 +944,42 @@ onBeforeUnmount(() => {
             @keydown="onTitleKeydown"
           />
         </div>
-        <div class="nc-doc-subtitle flex items-center gap-1 mt-2 text-sm">
-          <template v-if="createdByLabel">
-            <span>{{ $t('general.createdBy') }} {{ createdByLabel }}</span>
-          </template>
-          <template v-if="updatedByLabel && updatedAgo">
-            <span v-if="createdByLabel">&middot;</span>
-            <span>{{ $t('general.updatedBy') }} {{ updatedByLabel }} {{ updatedAgo }}</span>
-          </template>
-          <template v-if="isSaving">
-            <span v-if="createdByLabel || updatedByLabel">&middot;</span>
-            <span>{{ $t('general.saving') }}...</span>
-          </template>
-          <template v-if="hasTaskItems">
-            <span>&middot;</span>
-            <span class="nc-doc-task-progress">
-              <svg width="14" height="14" viewBox="0 0 14 14">
-                <circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--nc-border-gray-medium)" stroke-width="2" />
-                <circle
-                  cx="7"
-                  cy="7"
-                  r="5.5"
-                  fill="none"
-                  stroke="var(--nc-fill-primary)"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  :stroke-dasharray="2 * Math.PI * 5.5"
-                  :stroke-dashoffset="2 * Math.PI * 5.5 * (1 - (taskTotal ? taskCompleted / taskTotal : 0))"
-                  transform="rotate(-90 7 7)"
-                />
-              </svg>
-              {{ $t('labels.taskProgress', { completed: taskCompleted, total: taskTotal }) }}
-            </span>
-          </template>
+        <div class="nc-doc-subtitle flex items-center mt-2 text-sm">
+          <span v-if="updatedByLabel && updatedAgo">
+            {{ $t('general.updatedBy') }} {{ updatedByLabel }} {{ updatedAgo }}
+          </span>
+          <span v-if="isSaving">{{ $t('general.saving') }}...</span>
+          <span v-if="hasTaskItems" class="nc-doc-task-progress">
+            <svg width="14" height="14" viewBox="0 0 14 14">
+              <circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--nc-border-gray-medium)" stroke-width="2" />
+              <circle
+                cx="7"
+                cy="7"
+                r="5.5"
+                fill="none"
+                stroke="var(--nc-fill-primary)"
+                stroke-width="2"
+                stroke-linecap="round"
+                :stroke-dasharray="2 * Math.PI * 5.5"
+                :stroke-dashoffset="2 * Math.PI * 5.5 * (1 - (taskTotal ? taskCompleted / taskTotal : 0))"
+                transform="rotate(-90 7 7)"
+              />
+            </svg>
+            {{ $t('labels.taskProgress', { completed: taskCompleted, total: taskTotal }) }}
+          </span>
+          <span
+            v-e="['c:doc:comments:subtitle-toggle']"
+            class="nc-doc-subtitle-comments"
+            @click="toggleCommentsPanel()"
+          >
+            <GeneralIcon icon="ncMessageCircle" class="!w-3.5 !h-3.5" />
+            <template v-if="docComments.length">
+              {{ docComments.length }} {{ docComments.length === 1 ? $t('general.comment') : $t('general.comments') }}
+            </template>
+            <template v-else>
+              {{ $t('general.comment') }}
+            </template>
+          </span>
         </div>
       </div>
 
@@ -1249,6 +1289,39 @@ onBeforeUnmount(() => {
   z-index: 20;
 }
 
+// Sticky title header — slides in when document title scrolls out of viewport
+.nc-doc-sticky-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 19;
+  display: flex;
+  align-items: center;
+  padding: 10px 80px 10px 24px;
+  background: color-mix(in srgb, var(--nc-bg-default) 85%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--nc-border-gray-medium);
+}
+
+.nc-doc-sticky-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--nc-content-gray);
+  max-width: 100%;
+}
+
+.nc-doc-sticky-slide-enter-active,
+.nc-doc-sticky-slide-leave-active {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nc-doc-sticky-slide-enter-from,
+.nc-doc-sticky-slide-leave-to {
+  transform: translateY(-100%);
+  opacity: 0;
+}
+
 // Icon positioned to the left, outside the content bounds on large screens.
 // On small screens it sits inline with a small gap.
 .nc-doc-editor-icon-wrapper {
@@ -1265,9 +1338,14 @@ onBeforeUnmount(() => {
   }
 }
 
-// Subtitle (created by / updated by)
+// Subtitle metadata row — dot separators between items
 .nc-doc-subtitle {
   color: var(--nc-content-gray-muted);
+
+  > span + span::before {
+    content: '\00B7';
+    margin: 0 6px;
+  }
 }
 
 // Task list progress indicator (inline with subtitle metadata)
@@ -1275,6 +1353,20 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+// Comment indicator in subtitle — clickable to toggle comment sidebar
+.nc-doc-subtitle-comments {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 0 4px;
+
+  &:hover {
+    color: var(--nc-content-brand);
+  }
 }
 
 // Title placeholder — lighter than muted to feel like a watermark

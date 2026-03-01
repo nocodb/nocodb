@@ -5190,8 +5190,8 @@ export class ColumnsService implements IColumnsService {
           relationType === RelationTypes.ONE_TO_ONE
             ? UITypes.LinkToAnotherRecord
             : isLinks
-              ? UITypes.Links
-              : UITypes.LinkToAnotherRecord,
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
         type: relationType,
 
         fk_model_id: table.id,
@@ -5241,8 +5241,8 @@ export class ColumnsService implements IColumnsService {
           revType === RelationTypes.ONE_TO_ONE
             ? UITypes.LinkToAnotherRecord
             : isLinks
-              ? UITypes.Links
-              : UITypes.LinkToAnotherRecord,
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
         type: revType,
         version: isMMLike ? 2 : 1,
 
@@ -5737,13 +5737,18 @@ export class ColumnsService implements IColumnsService {
       NcError.badRequest('Column is not a Link/LTAR type');
     }
 
-    const colOptions =
-      await column.getColOptions<LinkToAnotherRecordColumn>(context);
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
 
     // MM already has junction tables — just update version metadata
     // Allow V2 MM Links columns through (they need Rollup + LTAR display conversion)
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
-      return this.convertMMToV2(context, { column, colOptions, req: param.req });
+      return this.convertMMToV2(context, {
+        column,
+        colOptions,
+        req: param.req,
+      });
     }
 
     if (colOptions.version === LinksVersion.V2) {
@@ -5778,8 +5783,9 @@ export class ColumnsService implements IColumnsService {
         if (!isLinksOrLTAR(c.uidt)) continue;
         // Skip self (self-referencing OO: both sides have same type & FK columns)
         if (c.id === column.id) continue;
-        const opts =
-          await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
+        const opts = await c.getColOptions<LinkToAnotherRecordColumn>(
+          refContext,
+        );
         if (
           opts.fk_parent_column_id === colOptions.fk_parent_column_id &&
           opts.fk_child_column_id === colOptions.fk_child_column_id &&
@@ -5812,8 +5818,9 @@ export class ColumnsService implements IColumnsService {
         if (!isLinksOrLTAR(c.uidt)) continue;
         // Skip self (self-referencing OO: both sides have same type & FK columns)
         if (c.id === column.id) continue;
-        const opts =
-          await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
+        const opts = await c.getColOptions<LinkToAnotherRecordColumn>(
+          refContext,
+        );
         if (
           opts.fk_parent_column_id === colOptions.fk_parent_column_id &&
           opts.fk_child_column_id === colOptions.fk_child_column_id &&
@@ -5876,8 +5883,10 @@ export class ColumnsService implements IColumnsService {
     const aTn = await getJunctionTableName({ base }, parentTable, childTable);
     const aTnAlias = aTn;
 
-    const { parentCn: columnName, childCn: refColumnName } =
-      getMMColumnNames(parentTable, childTable);
+    const { parentCn: columnName, childCn: refColumnName } = getMMColumnNames(
+      parentTable,
+      childTable,
+    );
 
     // ── Phase A: SQL / data-DB operations (no meta transaction) ──
     // These touch the data DB via sqlMgr and NcConnectionMgrv2, which may
@@ -6086,26 +6095,21 @@ export class ColumnsService implements IColumnsService {
       // This matches the existing MM creation pattern in columnAdd.
 
       // Insert junction table model
-      const assocModel = await Model.insert(
-        context,
-        base.id,
-        source.id,
-        {
-          table_name: aTn,
-          title: aTnAlias,
-          mm: true,
-          columns: associateTableCols,
-          user_id: (param.req as any).user?.id,
-        },
-      );
+      const assocModel = await Model.insert(context, base.id, source.id, {
+        table_name: aTn,
+        title: aTnAlias,
+        mm: true,
+        columns: associateTableCols,
+        user_id: (param.req as any).user?.id,
+      });
 
       // Get junction table columns
-      const parentCol = (
-        await assocModel.getColumns(context)
-      )?.find((c) => c.column_name === columnName);
-      const childCol = (
-        await assocModel.getColumns(context)
-      )?.find((c) => c.column_name === refColumnName);
+      const parentCol = (await assocModel.getColumns(context))?.find(
+        (c) => c.column_name === columnName,
+      );
+      const childCol = (await assocModel.getColumns(context))?.find(
+        (c) => c.column_name === refColumnName,
+      );
 
       // Create system HM/BT columns in junction table
       await createHmAndBtColumn(
@@ -6180,14 +6184,9 @@ export class ColumnsService implements IColumnsService {
       let newLtarTitle: string | undefined;
 
       if (isLinksColumn) {
-        const defaultView = (
-          await View.list(context, parentTable.id)
-        )?.[0];
+        const defaultView = (await View.list(context, parentTable.id))?.[0];
         if (defaultView) {
-          const viewColumns = await View.getColumns(
-            context,
-            defaultView.id,
-          );
+          const viewColumns = await View.getColumns(context, defaultView.id);
           const origViewCol = viewColumns.find(
             (vc) => (vc as any).fk_column_id === hmColumn.id,
           );
@@ -6209,9 +6208,7 @@ export class ColumnsService implements IColumnsService {
       // All meta operations run inside a single transaction so that a failure
       // in Column.insert or RollupColumn.insert rolls back the entire batch
       // (uidt change, col_relations, new LTAR column, rollup metadata).
-      const ncMeta = await (
-        Noco.ncMeta as MetaService
-      ).startTransaction();
+      const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
       let newLtarCol: Column | undefined;
 
@@ -6359,11 +6356,9 @@ export class ColumnsService implements IColumnsService {
       if (isLinksColumn) {
         // Update column cache entry to reflect new Rollup uidt
         // (deepDel would remove it from the list cache, making it disappear from table metadata)
-        await NocoCache.update(
-          context,
-          `${CacheScope.COLUMN}:${hmColumn.id}`,
-          { uidt: UITypes.Rollup },
-        );
+        await NocoCache.update(context, `${CacheScope.COLUMN}:${hmColumn.id}`, {
+          uidt: UITypes.Rollup,
+        });
       }
 
       if (fkColumn.uidt === UITypes.ForeignKey) {
@@ -6458,8 +6453,7 @@ export class ColumnsService implements IColumnsService {
     for (const c of relatedColumns) {
       if (!isLinksOrLTAR(c.uidt)) continue;
       if (c.id === column.id) continue;
-      const opts =
-        await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
+      const opts = await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
       if (
         opts.type === RelationTypes.MANY_TO_MANY &&
         opts.fk_mm_model_id === colOptions.fk_mm_model_id &&
@@ -6479,14 +6473,9 @@ export class ColumnsService implements IColumnsService {
     let mmNewLtarTitle: string | undefined;
 
     if (isLinksColumn) {
-      const defaultView = (
-        await View.list(context, sourceTable.id)
-      )?.[0];
+      const defaultView = (await View.list(context, sourceTable.id))?.[0];
       if (defaultView) {
-        const viewColumns = await View.getColumns(
-          context,
-          defaultView.id,
-        );
+        const viewColumns = await View.getColumns(context, defaultView.id);
         const origViewCol = viewColumns.find(
           (vc) => (vc as any).fk_column_id === column.id,
         );
@@ -6506,9 +6495,7 @@ export class ColumnsService implements IColumnsService {
 
     // Meta transaction: all meta operations in a single transaction so that
     // a failure in Column.insert or RollupColumn.insert rolls back everything
-    const ncMeta = await (
-      Noco.ncMeta as MetaService
-    ).startTransaction();
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
 
     let mmNewLtarCol: Column | undefined;
 
@@ -6598,11 +6585,9 @@ export class ColumnsService implements IColumnsService {
     if (isLinksColumn) {
       // Update column cache entry to reflect new Rollup uidt
       // (deepDel would remove it from the list cache, making it disappear from table metadata)
-      await NocoCache.update(
-        context,
-        `${CacheScope.COLUMN}:${column.id}`,
-        { uidt: UITypes.Rollup },
-      );
+      await NocoCache.update(context, `${CacheScope.COLUMN}:${column.id}`, {
+        uidt: UITypes.Rollup,
+      });
     }
 
     // Clear relation caches
@@ -6634,7 +6619,6 @@ export class ColumnsService implements IColumnsService {
 
     return sourceTable;
   }
-
 }
 
 export { reuseOrSave };

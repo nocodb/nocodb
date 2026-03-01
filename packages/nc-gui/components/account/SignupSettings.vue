@@ -50,7 +50,9 @@ loadSettings()
         </span>
       </template>
     </NcPageHeader>
-    <div class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center p-6">
+    <div
+      class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center p-6"
+    >
       <div class="flex flex-col gap-6 w-150">
         <span class="font-bold text-xl" data-rec="true">{{ $t('general.general') }}</span>
         <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
@@ -80,4 +82,3 @@ loadSettings()
     </div>
   </div>
 </template>
-

@@ -21,7 +21,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
+const { showUpgradeToUseMapView } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 

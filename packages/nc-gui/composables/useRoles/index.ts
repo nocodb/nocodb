@@ -198,9 +198,7 @@ export const useRolesShared = createSharedComposable(() => {
       }
     }
 
-    return Object.entries(checkRoles).some(([role, hasRole]) =>
-      hasPermission(role as Roles, hasRole, permission),
-    )
+    return Object.entries(checkRoles).some(([role, hasRole]) => hasPermission(role as Roles, hasRole, permission))
   }
 
   const isBaseRolesLoaded = computed(() => !!user.value?.base_roles || !!user.value?.workspace_roles)

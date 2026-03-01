@@ -1,5 +1,4 @@
-import type { BaseType, WorkspaceType } from 'nocodb-sdk'
-import { WorkspaceUserRoles } from 'nocodb-sdk'
+import type { BaseType, WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 

@@ -5,13 +5,11 @@ const props = defineProps<{
 
 const workspaceStore = useWorkspace()
 const { updateWorkspace } = workspaceStore
-const { activeWorkspace, workspaces, deletingWorkspace } = storeToRefs(workspaceStore)
+const { activeWorkspace, workspaces } = storeToRefs(workspaceStore)
 
 const { refreshCommandPalette } = useCommandPalette()
 
 const { isUIAllowed } = useRoles()
-
-const { t } = useI18n()
 
 const formValidator = ref()
 const isErrored = ref(false)

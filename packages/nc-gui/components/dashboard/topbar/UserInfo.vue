@@ -15,8 +15,6 @@ const isAuthTokenCopied = ref(false)
 
 const isLoggingOut = ref(false)
 
-const { isUIAllowed } = useRoles()
-
 const logout = async () => {
   isLoggingOut.value = true
   try {

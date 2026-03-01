@@ -5,7 +5,7 @@ interface NavItem {
   label: string
   accentColor?: string
   indicatorColor?: string
-  onClick?: (key: string) => void
+  onClick?: () => void
 }
 
 const emits = defineEmits<{
@@ -27,11 +27,28 @@ const basesStore = useBases()
 
 const { basesList, openedProject } = storeToRefs(basesStore)
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const sidebarStore = useSidebarStore()
 
 const { activeSidebarTab } = storeToRefs(sidebarStore)
 
-const { selectedTheme } = useTheme()
+const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
+
+const themeIcon = computed(
+  () =>
+    ({
+      light: 'ncSun',
+      dark: 'ncMoon',
+      system: 'ncSunMoon',
+    }[selectedTheme.value] as IconMapKey),
+)
+
+const notificationStore = useNotification()
+
+const { unreadCount } = toRefs(notificationStore)
+
+const isNotificationOpen = ref(false)
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
@@ -161,16 +178,16 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // ── Main nav items (add/remove/reorder here) ──
 const mainItems: NavItem[] = [
-  {
-    key: 'agents',
-    icon: 'ncAgent',
-    label: 'Agents',
-    accentColor: '#d4944a',
-    indicatorColor: '#c47830',
-    onClick: () => {
-      onTabClick('agents')
-    },
-  },
+  // {
+  //   key: 'agents',
+  //   icon: 'ncAgent',
+  //   label: 'Agents',
+  //   accentColor: '#d4944a',
+  //   indicatorColor: '#c47830',
+  //   onClick: () => {
+  //     onTabClick('agents')
+  //   },
+  // },
   {
     key: 'data',
     icon: 'ncTable',
@@ -195,8 +212,8 @@ const mainItems: NavItem[] = [
 
 // ── Bottom items (pushed down by margin-top: auto) ──
 const bottomItems: NavItem[] = [
-  { key: 'bookmarks', icon: 'ncBookmark', label: 'Bookmarks' },
-  { key: 'more', icon: 'ncMoreHorizontal', label: 'More' },
+  { key: 'admin', icon: 'ncSettings', label: 'Admin', onClick: () => onTabClick('admin') },
+  { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() },
 ]
 
 const onItemClick = (panel: string) => {
@@ -208,7 +225,7 @@ const onItemClick = (panel: string) => {
 <template>
   <nav class="nc-rail" data-testid="nc-mini-sidebar-v2-rail">
     <!-- Logo -->
-    <div class="nc-rail-logo" title="Home" @click="isBaseListModalOpen = true">
+    <div class="nc-rail-logo" title="Home" data-testid="nc-mini-sidebar-v2-logo" @click="isBaseListModalOpen = true">
       <GeneralProjectIcon class="!h-7 !w-7" />
     </div>
 
@@ -229,30 +246,68 @@ const onItemClick = (panel: string) => {
       @click="item.onClick?.()"
     />
 
+    <!-- Notifications -->
+    <NcDropdown
+      v-model:visible="isNotificationOpen"
+      placement="right"
+      overlay-class-name="!shadow-none"
+      :overlay-style="{ marginLeft: '8px' }"
+      :trigger="['click']"
+    >
+      <DashboardMiniSidebarV2RailItem
+        label="Activity"
+        tooltip="Activity"
+        panel-key="notification"
+        data-testid="nc-sidebar-notification-btn"
+        :active="isNotificationOpen"
+        :disable-tooltip="isNotificationOpen"
+      >
+        <template #icon>
+          <div class="relative flex items-center justify-center">
+            <span
+              v-if="unreadCount"
+              class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
+              style="background: #e75a8d"
+            />
+            <GeneralIcon icon="notification" class="nc-rail-item-icon" />
+          </div>
+        </template>
+      </DashboardMiniSidebarV2RailItem>
+      <template #overlay>
+        <NotificationCard @close="isNotificationOpen = false" />
+      </template>
+    </NcDropdown>
+
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">
+      <!-- Theme toggle -->
+      <DashboardMiniSidebarV2RailItem
+        v-if="isThemeEnabled"
+        :label="selectedTheme === 'light' ? 'Light' : selectedTheme === 'dark' ? 'Dark' : 'System'"
+        :disable-tooltip="true"
+        panel-key="theme"
+        data-testid="nc-sidebar-theme"
+        v-e="['c:nocodb:theme']"
+        @click="toggleTheme"
+      >
+        <template #icon>
+          <GeneralIcon :icon="themeIcon" class="nc-rail-item-icon" />
+        </template>
+      </DashboardMiniSidebarV2RailItem>
+
       <DashboardMiniSidebarV2RailItem
         v-for="item in bottomItems"
         :key="item.key"
         :icon="item.icon"
         :label="item.label"
         :panel-key="item.key"
+        @click="item.onClick?.()"
       />
     </div>
 
     <div class="nc-rail-divider" />
 
-    <!-- Settings with notification dot -->
-    <div class="nc-rail-admin-wrapper">
-      <DashboardMiniSidebarV2RailItem
-        icon="ncSettings"
-        label="Settings"
-        panel-key="settings"
-        :active="activePanel === 'settings'"
-        @click="onItemClick('settings')"
-      />
-      <span class="nc-notif-dot" />
-    </div>
+    <DashboardMiniSidebarCreateNewActionMenu />
 
     <!-- User Avatar -->
     <DashboardSidebarUserInfo />

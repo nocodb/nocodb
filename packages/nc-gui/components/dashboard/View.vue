@@ -223,7 +223,7 @@ const isMiniSidebarVisible = computed(() => {
 
 <template>
   <div class="h-full flex items-stretch">
-    <DashboardMiniSidebar v-if="isMiniSidebarVisible" />
+    <DashboardMiniSidebarV2 v-if="isMiniSidebarVisible" />
 
     <div
       :class="{

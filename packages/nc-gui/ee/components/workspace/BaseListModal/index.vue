@@ -452,45 +452,8 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
       </div>
 
       <!-- Main Content -->
-      <div class="flex flex-1 min-h-0 flex-row-reverse">
-        <!-- Left Panel - Workspaces (hidden on compact view) -->
-        <div v-if="!isCompactView" class="nc-workspace-panel w-[320px] border-r border-nc-border-gray-medium flex flex-col">
-          <div class="px-3 pt-3 pb-1 text-xs font-medium text-nc-content-gray-muted tracking-wide">
-            {{ $t('objects.workspaces') }}
-          </div>
-
-          <div class="flex-1 overflow-y-auto nc-scrollbar-thin flex flex-col px-2 py-1">
-            <WorkspaceBaseListModalWorkspaceNode
-              v-for="workspace in filteredWorkspaceList"
-              :key="workspace.id"
-              :workspace="workspace"
-              :is-selected="modalState.selectedWorkspaceId === workspace.id"
-              :base-count="workspace.id === modalState.selectedWorkspaceId ? baseCount : undefined"
-              :plan-title="baseListAllWsMap.get(workspace.id)?.plan_title"
-              @select="onSelectWorkspace"
-            />
-          </div>
-
-          <!-- New Workspace Button -->
-          <div v-if="canCreateWorkspace" class="px-2 py-1.5 w-full">
-            <NcButton
-              type="secondary"
-              text-color="primary"
-              full-width
-              inner-class="children:justify-center"
-              class="w-full !border-nc-border-brand justify-center"
-              @click="onCreateWorkspace"
-            >
-              <div class="flex items-center justify-center gap-2 text-center">
-                <GeneralIcon icon="plus" class="flex-none" />
-                <span class="text-sm font-medium">{{ $t('activity.newWorkspace') }}</span>
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
-              </div>
-            </NcButton>
-          </div>
-        </div>
-
-        <!-- Right Panel - Bases -->
+      <div class="flex flex-1 min-h-0">
+        <!-- Left Panel - Bases -->
         <div class="nc-bases-panel flex-1 flex flex-col min-w-0 bg-nc-bg-gray-extralight dark:bg-transparent">
           <!-- Compact View: Workspace Selector -->
           <WorkspaceBaseListModalWorkspaceSelector
@@ -625,6 +588,42 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
                 </div>
               </template>
             </template>
+          </div>
+        </div>
+
+        <!-- Right Panel - Workspaces (hidden on compact view) -->
+        <div v-if="!isCompactView" class="nc-workspace-panel w-[320px] border-r border-nc-border-gray-medium flex flex-col">
+          <div class="px-3 pt-3 pb-1 text-xs font-medium text-nc-content-gray-muted tracking-wide">
+            {{ $t('objects.workspaces') }}
+          </div>
+
+          <div class="flex-1 overflow-y-auto nc-scrollbar-thin flex flex-col px-2 py-1">
+            <WorkspaceBaseListModalWorkspaceNode
+              v-for="workspace in filteredWorkspaceList"
+              :key="workspace.id"
+              :workspace="workspace"
+              :is-selected="modalState.selectedWorkspaceId === workspace.id"
+              :base-count="workspace.id === modalState.selectedWorkspaceId ? baseCount : undefined"
+              :plan-title="baseListAllWsMap.get(workspace.id)?.plan_title"
+              @select="onSelectWorkspace"
+            />
+          </div>
+
+          <!-- New Workspace Button -->
+          <div v-if="canCreateWorkspace" class="px-2 py-1.5 w-full">
+            <NcButton
+              type="secondary"
+              text-color="primary"
+              full-width
+              inner-class="children:justify-center"
+              class="w-full !border-nc-border-brand justify-center"
+              @click="onCreateWorkspace"
+            >
+              <div class="flex items-center justify-center gap-2 text-center">
+                <GeneralIcon icon="plus" class="flex-none" />
+                <span class="text-sm font-medium">{{ $t('activity.newWorkspace') }}</span>
+              </div>
+            </NcButton>
           </div>
         </div>
       </div>

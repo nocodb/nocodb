@@ -112,7 +112,7 @@ const onMouseLeave = () => {
     @mouseleave="onMouseLeave"
   >
     <!-- Logo (uses dock-item dimensions: 48×48, matching reference .dock-item.dock-logo) -->
-    <DashboardMiniSidebarV2DockItem class="nc-dock-logo" label="Home">
+    <DashboardMiniSidebarV2DockItem class="nc-dock-logo" label="Home" data-testid="nc-mini-sidebar-v2-logo">
       <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="46" stroke="currentColor" stroke-width="6" fill="none" />
         <circle cx="50" cy="50" r="38" stroke="currentColor" stroke-width="2" fill="none" />

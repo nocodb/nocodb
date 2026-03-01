@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PlanFeatureTypes } from 'nocodb-sdk';
-import { nanoid } from 'nanoid';
+import { v4 as uuidv4 } from 'uuid';
 import type { NcContext, NcRequest, WorkflowGeneralEdge } from 'nocodb-sdk';
 import type {
   WorkflowExecutionV3GetResponseType,
@@ -406,7 +406,7 @@ export class WorkflowsV3Service {
     const nodes = this.getDraftNodes(workflow);
     const edges = this.getDraftEdges(workflow);
 
-    const nodeId = body.id || `node_${nanoid(16)}`;
+    const nodeId = uuidv4();
 
     const newNode = {
       id: nodeId,

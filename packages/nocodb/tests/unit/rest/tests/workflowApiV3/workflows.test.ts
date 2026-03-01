@@ -255,8 +255,7 @@ describe('workflowApiV3', () => {
   });
 
   describe('Node CRUD endpoints', () => {
-    const sampleNode = {
-      id: 'node_1',
+    const sampleNodeBody = {
       type: 'core.trigger.manual',
       position: { x: 0, y: 0 },
       data: { config: {}, title: 'Manual Trigger' },
@@ -272,12 +271,12 @@ describe('workflowApiV3', () => {
 
       const nodeRsp = await ncPost(
         `${workflowUrlPrefix()}/${workflowId}/nodes`,
-        sampleNode,
+        sampleNodeBody,
       );
       return { workflowId, nodeId: nodeRsp.body.id };
     }
 
-    it('Create node - with explicit id', async function () {
+    it('Create node - returns uuid id', async function () {
       const createRsp = await ncPost(workflowUrlPrefix(), {
         title: 'Create Node Workflow',
       });
@@ -285,33 +284,15 @@ describe('workflowApiV3', () => {
 
       const rsp = await ncPost(
         `${workflowUrlPrefix()}/${workflowId}/nodes`,
-        sampleNode,
+        sampleNodeBody,
       );
-      expect(rsp.body).to.have.property('id', 'node_1');
+      expect(rsp.body).to.have.property('id');
+      expect(rsp.body.id).to.be.a('string');
       expect(rsp.body).to.have.property('type', 'core.trigger.manual');
       expect(rsp.body).to.have.property('position');
       expect(rsp.body.position).to.deep.equal({ x: 0, y: 0 });
       expect(rsp.body).to.have.property('data');
       expect(rsp.body.data).to.have.property('title', 'Manual Trigger');
-    });
-
-    it('Create node - auto-generated id', async function () {
-      const createRsp = await ncPost(workflowUrlPrefix(), {
-        title: 'Auto ID Workflow',
-      });
-      const workflowId = createRsp.body.id;
-
-      const rsp = await ncPost(
-        `${workflowUrlPrefix()}/${workflowId}/nodes`,
-        {
-          type: 'core.trigger.manual',
-          position: { x: 100, y: 200 },
-          data: { config: {}, title: 'Auto Node' },
-        },
-      );
-      expect(rsp.body).to.have.property('id');
-      expect(rsp.body.id).to.be.a('string');
-      expect(rsp.body.id).to.include('node_');
     });
 
     it('Create node - with edges', async function () {
@@ -321,24 +302,37 @@ describe('workflowApiV3', () => {
       const workflowId = createRsp.body.id;
 
       // Create first node
-      await ncPost(`${workflowUrlPrefix()}/${workflowId}/nodes`, {
-        id: 'trigger_1',
-        type: 'core.trigger.manual',
-        position: { x: 0, y: 0 },
-        data: { config: {}, title: 'Trigger' },
-      });
+      const triggerRsp = await ncPost(
+        `${workflowUrlPrefix()}/${workflowId}/nodes`,
+        {
+          type: 'core.trigger.manual',
+          position: { x: 0, y: 0 },
+          data: { config: {}, title: 'Trigger' },
+        },
+      );
+      const triggerId = triggerRsp.body.id;
 
-      // Create second node with an edge connecting from the first
+      // Create second node
+      const actionRsp = await ncPost(
+        `${workflowUrlPrefix()}/${workflowId}/nodes`,
+        {
+          type: 'nocodb.action.create_record',
+          position: { x: 0, y: 200 },
+          data: { config: {}, title: 'Create Record' },
+        },
+      );
+      const actionId = actionRsp.body.id;
+
+      // Create a third node with an edge connecting trigger → action
       await ncPost(`${workflowUrlPrefix()}/${workflowId}/nodes`, {
-        id: 'action_1',
-        type: 'nocodb.action.create_record',
-        position: { x: 0, y: 200 },
-        data: { config: {}, title: 'Create Record' },
+        type: 'nocodb.action.send_email',
+        position: { x: 0, y: 400 },
+        data: { config: {}, title: 'Send Email' },
         edges: [
           {
             id: 'edge_1',
-            source: 'trigger_1',
-            target: 'action_1',
+            source: triggerId,
+            target: actionId,
             animated: false,
           },
         ],
@@ -348,10 +342,10 @@ describe('workflowApiV3', () => {
       const listRsp = await ncGet(
         `${workflowUrlPrefix()}/${workflowId}/nodes`,
       );
-      expect(listRsp.body.nodes).to.have.length(2);
+      expect(listRsp.body.nodes).to.have.length(3);
       expect(listRsp.body.edges).to.have.length(1);
-      expect(listRsp.body.edges[0]).to.have.property('source', 'trigger_1');
-      expect(listRsp.body.edges[0]).to.have.property('target', 'action_1');
+      expect(listRsp.body.edges[0]).to.have.property('source', triggerId);
+      expect(listRsp.body.edges[0]).to.have.property('target', actionId);
     });
 
     it('List nodes - empty workflow', async function () {
@@ -368,11 +362,11 @@ describe('workflowApiV3', () => {
     });
 
     it('List nodes - after adding nodes', async function () {
-      const { workflowId } = await createWorkflowWithNode();
+      const { workflowId, nodeId } = await createWorkflowWithNode();
 
       const rsp = await ncGet(`${workflowUrlPrefix()}/${workflowId}/nodes`);
       expect(rsp.body.nodes).to.have.length(1);
-      expect(rsp.body.nodes[0]).to.have.property('id', 'node_1');
+      expect(rsp.body.nodes[0]).to.have.property('id', nodeId);
     });
 
     it('Get single node', async function () {
@@ -427,39 +421,53 @@ describe('workflowApiV3', () => {
       });
       const workflowId = createRsp.body.id;
 
-      // Create two nodes and an edge
-      await ncPost(`${workflowUrlPrefix()}/${workflowId}/nodes`, {
-        id: 'trigger_1',
-        type: 'core.trigger.manual',
-        position: { x: 0, y: 0 },
-        data: { config: {}, title: 'Trigger' },
-      });
+      // Create two nodes
+      const triggerRsp = await ncPost(
+        `${workflowUrlPrefix()}/${workflowId}/nodes`,
+        {
+          type: 'core.trigger.manual',
+          position: { x: 0, y: 0 },
+          data: { config: {}, title: 'Trigger' },
+        },
+      );
+      const triggerId = triggerRsp.body.id;
 
-      await ncPost(`${workflowUrlPrefix()}/${workflowId}/nodes`, {
-        id: 'action_1',
-        type: 'nocodb.action.create_record',
-        position: { x: 0, y: 200 },
-        data: { config: {}, title: 'Create Record' },
-        edges: [
-          {
-            id: 'edge_1',
-            source: 'trigger_1',
-            target: 'action_1',
-            animated: false,
-          },
-        ],
-      });
+      const actionRsp = await ncPost(
+        `${workflowUrlPrefix()}/${workflowId}/nodes`,
+        {
+          type: 'nocodb.action.create_record',
+          position: { x: 0, y: 200 },
+          data: { config: {}, title: 'Create Record' },
+        },
+      );
+      const actionId = actionRsp.body.id;
 
-      // Delete action node — should also remove the edge
+      // Create a third node with an edge from trigger to action
+      await ncPost(
+        `${workflowUrlPrefix()}/${workflowId}/nodes`,
+        {
+          type: 'nocodb.action.send_email',
+          position: { x: 0, y: 400 },
+          data: { config: {}, title: 'Send Email' },
+          edges: [
+            {
+              id: 'edge_1',
+              source: triggerId,
+              target: actionId,
+              animated: false,
+            },
+          ],
+        },
+      );
+      // Delete trigger node — should also remove the edge (source=triggerId)
       await ncDelete(
-        `${workflowUrlPrefix()}/${workflowId}/nodes/action_1`,
+        `${workflowUrlPrefix()}/${workflowId}/nodes/${triggerId}`,
       );
 
       const listRsp = await ncGet(
         `${workflowUrlPrefix()}/${workflowId}/nodes`,
       );
-      expect(listRsp.body.nodes).to.have.length(1);
-      expect(listRsp.body.nodes[0]).to.have.property('id', 'trigger_1');
+      expect(listRsp.body.nodes).to.have.length(2);
       expect(listRsp.body.edges).to.have.length(0);
     });
 
@@ -481,23 +489,25 @@ describe('workflowApiV3', () => {
       });
       const workflowId = createRsp.body.id;
 
-      await ncPost(`${workflowUrlPrefix()}/${workflowId}/nodes`, {
-        id: 'node_1',
-        type: 'core.trigger.manual',
-        position: { x: 0, y: 0 },
-        data: { config: {}, title: 'Manual Trigger' },
-      });
+      const nodeRsp = await ncPost(
+        `${workflowUrlPrefix()}/${workflowId}/nodes`,
+        {
+          type: 'core.trigger.manual',
+          position: { x: 0, y: 0 },
+          data: { config: {}, title: 'Manual Trigger' },
+        },
+      );
 
-      return workflowId;
+      return { workflowId, nodeId: nodeRsp.body.id };
     }
 
     it('Test node - returns job id', async function () {
-      const workflowId = await createWorkflowWithTestNode();
+      const { workflowId, nodeId } = await createWorkflowWithTestNode();
 
       const rsp = await ncPost(
         `${workflowUrlPrefix()}/${workflowId}/test-node`,
         {
-          node_id: 'node_1',
+          node_id: nodeId,
         },
       );
       expect(rsp.body).to.have.property('id');
@@ -505,12 +515,12 @@ describe('workflowApiV3', () => {
     });
 
     it('Test node - with test_mode', async function () {
-      const workflowId = await createWorkflowWithTestNode();
+      const { workflowId, nodeId } = await createWorkflowWithTestNode();
 
       const rsp = await ncPost(
         `${workflowUrlPrefix()}/${workflowId}/test-node`,
         {
-          node_id: 'node_1',
+          node_id: nodeId,
           test_mode: 'sample_data',
         },
       );
@@ -519,12 +529,12 @@ describe('workflowApiV3', () => {
     });
 
     it('Test node - with test_trigger_data', async function () {
-      const workflowId = await createWorkflowWithTestNode();
+      const { workflowId, nodeId } = await createWorkflowWithTestNode();
 
       const rsp = await ncPost(
         `${workflowUrlPrefix()}/${workflowId}/test-node`,
         {
-          node_id: 'node_1',
+          node_id: nodeId,
           test_trigger_data: { key: 'value' },
         },
       );

@@ -100,7 +100,6 @@ export type WorkflowNodeV3ListResponseType = {
 };
 
 export type WorkflowNodeV3CreateReqType = {
-  id?: string;
   type: string;
   position: { x: number; y: number };
   data: Record<string, unknown>;

@@ -15,6 +15,9 @@ import sortsTestV3 from './sorts.test';
 import apiTokensTestV3 from './apiTokens.test';
 import workspaceTestV3 from './workspace.test';
 import teamHierarchyTestV3 from './team-hierarchy.test';
+import teamHierarchyMissingTestV3 from './team-hierarchy-missing.test';
+import teamHierarchyAdvancedScenariosTestV3 from './team-hierarchy-advanced-scenarios.test';
+import teamHierarchyEdgeCasesTestV3 from './team-hierarchy-edge-cases.test';
 import { isEE } from '../../../utils/helpers';
 // import teamPermissionsTestV3 from './team-permissions.test';
 import teamPermissionBehaviorTestV3 from './team-permission-behavior.test';
@@ -31,6 +34,9 @@ export default runOnSet(2, function () {
   if (isEE()) {
     uniqueConstraintTestV3();
     teamHierarchyTestV3();
+    teamHierarchyMissingTestV3();
+    teamHierarchyAdvancedScenariosTestV3();
+    teamHierarchyEdgeCasesTestV3();
     teamPermissionBehaviorTestV3();
   }
   errorHandlingMetaTestsV3();

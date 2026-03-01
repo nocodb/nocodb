@@ -57,7 +57,6 @@ export default function () {
     let webToken: string;
     let salesUser: any;
     let salesToken: string;
-
     /**
      * Helper: create a team via API
      */
@@ -138,6 +137,19 @@ export default function () {
       return res.body;
     }
 
+    async function getTeamsList(): Promise<any[]> {
+      const data = await listTeams();
+      const teams = data.list || data;
+      return Array.isArray(teams) ? teams : [];
+    }
+
+    async function getTeamFromList(teamId: string) {
+      const teams = await getTeamsList();
+      const team = teams.find((t: any) => t.id === teamId);
+      expect(team, `team ${teamId} not found in list`).to.exist;
+      return team;
+    }
+
     beforeEach(async function () {
       this.timeout(120000);
       context = await init();
@@ -210,17 +222,15 @@ export default function () {
     describe('Phase 1: Team Hierarchy', () => {
       describe('Team CRUD with hierarchy', () => {
         it('should retrieve all teams in the hierarchy', async () => {
-          const data = await listTeams();
-          const teams = data.list || data;
-          const teamArray = Array.isArray(teams) ? teams : [];
-          const titles = teamArray.map((t: any) => t.title);
+          const teams = await getTeamsList();
+          const titles = teams.map((t: any) => t.title);
 
           expect(titles).to.include('Engineering');
           expect(titles).to.include('Frontend');
           expect(titles).to.include('Backend');
           expect(titles).to.include('Web Team');
           expect(titles).to.include('Sales');
-          expect(teamArray.length).to.be.greaterThanOrEqual(5);
+          expect(teams.length).to.be.greaterThanOrEqual(5);
         });
 
         it('should retrieve team detail by ID', async () => {
@@ -234,19 +244,24 @@ export default function () {
           const child = await getTeam(childId);
           expect(child).to.have.property('title', 'QA Team');
 
-          // Verify the total team count increased
-          const data = await listTeams();
-          const teams = data.list || data;
-          const titles = (Array.isArray(teams) ? teams : []).map(
-            (t: any) => t.title,
-          );
-          expect(titles).to.include('QA Team');
+          // Verify parent, path, and presence via list endpoint
+          const qaTeam = await getTeamFromList(childId);
+          expect(qaTeam.fk_parent_team_id).to.equal(backendId);
+          expect(qaTeam.path).to.be.a('string').and.include(backendId);
         });
 
         it('should create a deeply nested team', async () => {
           const deepId = await createTeam('React Team', webTeamId);
           const deep = await getTeam(deepId);
           expect(deep).to.have.property('title', 'React Team');
+
+          // Verify nesting: parent is webTeamId, path includes full ancestor chain
+          const reactTeam = await getTeamFromList(deepId);
+          expect(reactTeam.fk_parent_team_id).to.equal(webTeamId);
+          expect(reactTeam.path).to.include(engineeringId);
+          expect(reactTeam.path).to.include(frontendId);
+          expect(reactTeam.path).to.include(webTeamId);
+          expect(reactTeam.path).to.include(deepId);
         });
       });
 
@@ -280,13 +295,19 @@ export default function () {
           const res = await moveTeam(frontendId, salesId);
           expect(res.status).to.equal(200);
 
-          // Frontend should still be accessible
-          const movedFrontend = await getTeam(frontendId);
-          expect(movedFrontend).to.have.property('title', 'Frontend');
+          // Frontend should now be under Sales
+          const frontend = await getTeamFromList(frontendId);
+          expect(frontend).to.have.property('title', 'Frontend');
+          expect(frontend.fk_parent_team_id).to.equal(salesId);
+          expect(frontend.path).to.include(salesId);
+          expect(frontend.path).to.not.include(engineeringId);
 
-          // Web Team (child of Frontend) should also still be accessible
-          const movedWebTeam = await getTeam(webTeamId);
-          expect(movedWebTeam).to.have.property('title', 'Web Team');
+          // Web Team (child of Frontend) path should update to reflect new ancestry
+          const webTeam = await getTeamFromList(webTeamId);
+          expect(webTeam).to.have.property('title', 'Web Team');
+          expect(webTeam.fk_parent_team_id).to.equal(frontendId);
+          expect(webTeam.path).to.include(salesId);
+          expect(webTeam.path).to.include(frontendId);
         });
 
         it('should move a team to root (no parent)', async () => {
@@ -294,9 +315,11 @@ export default function () {
           const res = await moveTeam(frontendId, null);
           expect(res.status).to.equal(200);
 
-          // Frontend should still be accessible
-          const rootFrontend = await getTeam(frontendId);
-          expect(rootFrontend).to.have.property('title', 'Frontend');
+          // Frontend should be a root team now
+          const frontend = await getTeamFromList(frontendId);
+          expect(frontend).to.have.property('title', 'Frontend');
+          expect(frontend.fk_parent_team_id).to.be.null;
+          expect(frontend.path).to.equal(`/${frontendId}`);
         });
       });
 
@@ -314,11 +337,8 @@ export default function () {
             .expect(422);
 
           // Other teams should still exist
-          const data = await listTeams();
-          const teams = data.list || data;
-          const titles = (Array.isArray(teams) ? teams : []).map(
-            (t: any) => t.title,
-          );
+          const teams = await getTeamsList();
+          const titles = teams.map((t: any) => t.title);
           expect(titles).to.include('Engineering');
           expect(titles).to.include('Frontend');
           expect(titles).to.not.include('Web Team');
@@ -921,7 +941,6 @@ export default function () {
       it('should handle team with no members in permission check', async () => {
         // Create an empty team (no additional members besides the creator/owner)
         const emptyTeamId = await createTeam('Empty Team');
-
         
         const base = await createProject(context);
         
@@ -931,7 +950,8 @@ export default function () {
         const res = await request(context.app)
           .post(`/api/v2/internal/${workspaceId}/${base.id}`)
           .set('xc-token', context.xc_token)
-          .query({ operation: 'setPermission' })
+          .query(
+            { operation: 'setPermission' })
           .send({
             entity: 'table',
             entity_id: table.id,
@@ -1139,14 +1159,20 @@ export default function () {
           // Web Team should still exist and be reparented to Engineering
           const webTeam = await getTeam(webTeamId);
           expect(webTeam).to.have.property('title', 'Web Team');
-          expect(webTeam).to.have.property('fk_parent_team_id', engineeringId);
+
+          // Verify reparent via team tree — Web Team should now be a direct child of Engineering
+          const tree = await getTeamTree();
+          const roots = tree.list || tree;
+          const engNode = roots.find((t: any) => t.id === engineeringId);
+          expect(engNode).to.exist;
+          const webChild = (engNode.children || []).find(
+            (c: any) => c.id === webTeamId,
+          );
+          expect(webChild).to.exist;
 
           // Verify teams list still has Web Team but not Frontend
-          const data = await listTeams();
-          const teams = data.list || data;
-          const titles = (Array.isArray(teams) ? teams : []).map(
-            (t: any) => t.title,
-          );
+          const teams = await getTeamsList();
+          const titles = teams.map((t: any) => t.title);
           expect(titles).to.include('Web Team');
           expect(titles).to.include('Engineering');
           expect(titles).to.not.include('Frontend');
@@ -1739,19 +1765,15 @@ export default function () {
       beforeEach(async function () {
         this.timeout(120000);
 
-        
+        // Root beforeEach already wiped all meta and recreated teams/users.
+        // Web Team is already under Frontend — no restore needed.
         const base = await createProject(context);
         baseId = base.id;
 
-        
         const table = await createTable(context, base);
         tableId = table.id;
 
-        // Restore Web Team under Frontend before each test (in case a previous test moved it)
-        await moveTeam(webTeamId, frontendId);
-
         // Give webUser workspace editor, salesUser workspace viewer
-        // (salesUser needs a lower workspace role so we can test upward cascade granting higher base role)
         await request(context.app)
           .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
           .set('xc-token', context.xc_token)
@@ -1771,6 +1793,7 @@ export default function () {
       it('moving Web Team from Frontend to Sales should change permission matching', async () => {
         // Set TABLE_RECORD_ADD with Engineering subject (self_and_descendants)
         // This expands to: Engineering, Frontend, Web Team, Backend
+
         await request(context.app)
           .post(`/api/v2/internal/${workspaceId}/${baseId}`)
           .set('xc-token', context.xc_token)
@@ -1802,8 +1825,12 @@ export default function () {
           .send({ Title: 'web-after-move' });
         expect(webAfter.status).to.be.oneOf([401, 403]);
 
-        // Cleanup
-        await request(context.app)
+
+        // Cleanup: move Web Team back, then drop permission
+        await moveTeam(webTeamId, frontendId).then((r) =>
+          expect(r.status).to.equal(200),
+        );
+        const tres = await request(context.app)
           .post(`/api/v2/internal/${workspaceId}/${baseId}`)
           .set('xc-token', context.xc_token)
           .query({ operation: 'dropPermission' })
@@ -1811,7 +1838,7 @@ export default function () {
             entity: 'table',
             entity_id: tableId,
             permission: 'TABLE_RECORD_ADD',
-          });
+          }).expect(200)
       });
 
       it('moving Web Team to Sales should make it match Sales permission subject', async () => {
@@ -1847,7 +1874,10 @@ export default function () {
           .send({ Title: 'web-after-move-sales' });
         expect(webAfter.status).to.be.oneOf([200, 201]);
 
-        // Cleanup
+        // Cleanup: move Web Team back, then drop permission
+        await moveTeam(webTeamId, frontendId).then((r) =>
+          expect(r.status).to.equal(200),
+        );
         await request(context.app)
           .post(`/api/v2/internal/${workspaceId}/${baseId}`)
           .set('xc-token', context.xc_token)
@@ -1856,7 +1886,8 @@ export default function () {
             entity: 'table',
             entity_id: tableId,
             permission: 'TABLE_RECORD_ADD',
-          });
+          })
+          .expect(200);
       });
 
       it('moving a team should update base role cascade accordingly', async () => {
@@ -1891,6 +1922,11 @@ export default function () {
         expect(salesAfter.body.base_roles).to.have.property(
           ProjectRoles.EDITOR,
           true,
+        );
+
+        // Cleanup: move Web Team back to Frontend
+        await moveTeam(webTeamId, frontendId).then((r) =>
+          expect(r.status).to.equal(200),
         );
       });
     });
@@ -2218,9 +2254,6 @@ export default function () {
 
     describe('Inherited Members Display', () => {
       it('should show inherited members in team detail with origin', async () => {
-        // Add engUser to Engineering (root)
-        await addMember(engineeringId, engUser.id);
-
         // Get Frontend team detail (should show engUser as inherited from Engineering)
         const teamDetail = await getTeam(frontendId);
 
@@ -2245,7 +2278,6 @@ export default function () {
 
       it('should not duplicate inherited members already in direct members', async () => {
         // Add engUser to both Engineering and Frontend
-        await addMember(engineeringId, engUser.id);
         await addMember(frontendId, engUser.id);
 
         // Get Frontend detail
@@ -2267,9 +2299,6 @@ export default function () {
       });
 
       it('should show inherited members from multiple ancestor levels', async () => {
-        // Add engUser to Engineering (grandparent of Web Team)
-        await addMember(engineeringId, engUser.id);
-
         // Get Web Team (depth 2)
         const teamDetail = await getTeam(webTeamId);
         const inherited = teamDetail.inherited_members || [];
@@ -2292,9 +2321,20 @@ export default function () {
         const l2 = await createTeam('Level2', l1);
         const l3 = await createTeam('Level3', l2);
 
-        // Verify level3 is at depth 3
-        const l3Team = await getTeam(l3);
-        expect(l3Team.depth).to.equal(3);
+        // Verify level3 is at depth 3 via tree
+        const tree = await getTeamTree();
+        const roots = tree.list || tree;
+        const findNode = (nodes: any[], id: string): any => {
+          for (const n of nodes) {
+            if (n.id === id) return n;
+            const found = findNode(n.children || [], id);
+            if (found) return found;
+          }
+          return null;
+        };
+        const l3Node = findNode(roots, l3);
+        expect(l3Node).to.exist;
+        expect(l3Node.depth).to.equal(3);
 
         // Try to create level4 (depth 4 - should fail)
         const res = await request(context.app)
@@ -2329,19 +2369,17 @@ export default function () {
 
     describe('Soft Delete Consistency', () => {
       it('should exclude soft-deleted ancestors from inherited members', async () => {
-        // Add user to Engineering
-        await addMember(engineeringId, engUser.id);
-
         // Get Frontend detail - should show inherited from Engineering
         let teamDetail = await getTeam(frontendId);
         let inherited = teamDetail.inherited_members || [];
         expect(inherited.find((m: any) => m.user_id === engUser.id)).to.exist;
 
-        // Soft delete Engineering
+        // Soft delete Engineering (force: true because it has children)
         await request(context.app)
           .delete(
             `/api/v3/meta/workspaces/${workspaceId}/teams/${engineeringId}`,
           )
+          .query({ force: true })
           .set('xc-token', context.xc_token)
           .expect(200);
 
@@ -2354,11 +2392,11 @@ export default function () {
 
       it('should exclude soft-deleted teams from getDescendants', async () => {
         // Get Engineering descendants
-        const engTeam = await getTeam(engineeringId);
+        await getTeam(engineeringId);
 
         // Delete Frontend
         await request(context.app)
-          .delete(`/api/v3/meta/workspaces/${workspaceId}/teams/${frontendId}`)
+          .delete(`/api/v3/meta/workspaces/${workspaceId}/teams/${frontendId}`).query({force: true})
           .set('xc-token', context.xc_token)
           .expect(200);
 
@@ -2401,11 +2439,23 @@ export default function () {
       });
 
       it('non-owner should not create sub-team without parent manager role', async () => {
+        // Give feUser workspace editor role (not owner)
+        await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/members`)
+          .set('xc-token', context.xc_token)
+          .send([
+            {
+              user_id: feUser.id,
+              workspace_role: WorkspaceUserRoles.EDITOR,
+            },
+          ])
+          .expect(200);
+
         // feUser is member of Frontend, NOT manager
         // Try to create sub-team under Backend (different team)
         const res = await request(context.app)
           .post(`/api/v3/meta/workspaces/${workspaceId}/teams`)
-          .set('xc-token', feToken)
+          .set('xc-auth', feToken)
           .send({
             title: 'Unauthorized Sub-Team',
             parent_team_id: backendId,
@@ -2413,9 +2463,10 @@ export default function () {
             badge_color: '#3366FF',
           });
 
-        // Should fail
-        expect(res.status).to.be.oneOf([403, 401]);
-        expect(res.body.message).to.include('manager');
+        expect(res.body.message).to.eq('Forbidden - Only managers of the parent team can create sub-teams')
+
+        // Should fail — feUser is not workspace owner and not a manager of Backend
+        expect(res.status).to.be.oneOf([403]);
       });
     });
 
@@ -2424,23 +2475,26 @@ export default function () {
         // Move Frontend from Engineering to Sales
         await moveTeam(frontendId, salesId);
 
-        const frontend = await getTeam(frontendId);
-        const sales = await getTeam(salesId);
+        const frontend = await getTeamFromList(frontendId);
+        const sales = await getTeamFromList(salesId);
 
         // Path should be: /salesId/frontendId
         expect(frontend.path).to.equal(`${sales.path}/${frontendId}`);
         expect(frontend.path).to.match(/^\/[a-z0-9_]+\/[a-z0-9_]+$/);
+
+        // Cleanup: move Frontend back
+        await moveTeam(frontendId, engineeringId);
       });
 
       it('should update all descendant paths on reparent', async () => {
         // Move Frontend (parent of Web Team) from Engineering to Sales
-        const frontendBefore = await getTeam(frontendId);
-        const webBefore = await getTeam(webTeamId);
+        const frontendBefore = await getTeamFromList(frontendId);
+        const webBefore = await getTeamFromList(webTeamId);
 
         await moveTeam(frontendId, salesId);
 
-        const frontendAfter = await getTeam(frontendId);
-        const webAfter = await getTeam(webTeamId);
+        const frontendAfter = await getTeamFromList(frontendId);
+        const webAfter = await getTeamFromList(webTeamId);
 
         // Both paths should be updated
         expect(frontendAfter.path).not.to.equal(frontendBefore.path);
@@ -2448,10 +2502,28 @@ export default function () {
 
         // Web path should start with new Frontend path
         expect(webAfter.path).to.include(frontendAfter.path);
+
+        // Cleanup: move Frontend back
+        await moveTeam(frontendId, engineeringId);
       });
     });
 
     describe('Cache Invalidation', () => {
+      async function getUserRoles(
+        token: string,
+        baseId?: string,
+      ): Promise<any> {
+        const url = baseId
+          ? `/api/v1/auth/user/me?base_id=${baseId}`
+          : `/api/v1/auth/user/me`;
+        const res = await request(context.app)
+          .get(url)
+          .set('xc-auth', token)
+          .expect(200);
+        return res.body;
+      }
+
+
       it('should invalidate base user cache after reparent', async () => {
 
         const base = await createProject(context);

@@ -237,6 +237,17 @@ export default class BaseUser extends BaseUserCE {
           'wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?',
           ['/%'],
         )
+        // Exclude soft-deleted teams
+        .where(
+          ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(wta_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
         .groupBy('pa.principal_ref_id')
         .as('wtr');
 
@@ -278,6 +289,17 @@ export default class BaseUser extends BaseUserCE {
         .whereRaw(
           'bta_team.id = pa_team.id OR bta_team.path LIKE pa_team.path || ?',
           ['/%'],
+        )
+        // Exclude soft-deleted teams
+        .where(
+          ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(bta_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
         )
         .groupBy('pa.principal_ref_id')
         .as('btr');
@@ -507,6 +529,16 @@ export default class BaseUser extends BaseUserCE {
           'wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?',
           ['/%'],
         )
+        .where(
+          ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(wta_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
         .groupBy('pa.principal_ref_id')
         .as('wtr');
 
@@ -548,6 +580,16 @@ export default class BaseUser extends BaseUserCE {
         .whereRaw(
           'bta_team.id = pa_team.id OR bta_team.path LIKE pa_team.path || ?',
           ['/%'],
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(bta_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
         )
         .groupBy('pa.principal_ref_id')
         .as('btr');
@@ -955,6 +997,16 @@ export default class BaseUser extends BaseUserCE {
         .whereRaw(
           'wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?',
           ['/%'],
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(wta_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
         );
 
       // Get base team roles (with hierarchy: ancestor team members inherit)
@@ -988,6 +1040,16 @@ export default class BaseUser extends BaseUserCE {
         .whereRaw(
           'bta_team.id = pa_team.id OR bta_team.path LIKE pa_team.path || ?',
           ['/%'],
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(pa_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
+        )
+        .where(
+          ncMeta.knex.raw('COALESCE(bta_team.deleted, FALSE)'),
+          '=',
+          ncMeta.knex.raw('?', [false]),
         );
 
       // Initialize map with empty arrays

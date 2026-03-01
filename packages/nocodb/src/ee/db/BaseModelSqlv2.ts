@@ -108,6 +108,7 @@ import Team from '~/ee/models/Team';
 import {
   getExpandedTeamIds,
   getMemberUserIdsForTeamsAndDescendants,
+  isUserInTeamOrDescendants,
 } from '~/ee/utils/team-subject-matcher';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
@@ -3805,6 +3806,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }) {
     const { entity, entityId, permission, user, req } = params;
 
+    // Base owners always bypass table-level permission restrictions
+    if (getProjectRole(user) === ProjectRoles.OWNER) {
+      return;
+    }
+
     const permissionObj = req?.permissions?.find(
       (p) =>
         p.entity === entity &&
@@ -4029,14 +4035,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
             if (subject.type === 'team') {
               try {
-                const assignment = await PrincipalAssignment.get(
+                const inTeam = await isUserInTeamOrDescendants(
                   this.context,
-                  ResourceType.TEAM,
-                  subject.id,
-                  PrincipalType.USER,
                   user.id,
+                  subject.id,
+                  subject.hierarchy_scope,
                 );
-                if (assignment) {
+                if (inTeam) {
                   matched = true;
                   break;
                 }

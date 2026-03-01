@@ -1,14 +1,13 @@
 import { expect, test } from '@playwright/test';
+import axios from 'axios';
 import { AccountPage } from '../../../pages/Account';
 import { AccountUsersPage } from '../../../pages/Account/Users';
 import { SignupPage } from '../../../pages/SignupPage';
 import setup, { unsetup } from '../../../setup';
 import { getDefaultPwd } from '../../../tests/utils/general';
-import { Api } from 'nocodb-sdk';
+import { Api, WorkspaceUserRoles } from 'nocodb-sdk';
 import { DashboardPage } from '../../../pages/Dashboard';
 import { LoginPage } from '../../../pages/LoginPage';
-import { WorkspacePage } from '../../../pages/WorkspacePage';
-import { CollaborationPage } from '../../../pages/WorkspacePage/CollaborationPage';
 let api: Api<any>;
 
 const roleDb = [
@@ -22,8 +21,6 @@ test.describe('User roles', () => {
   let signupPage: SignupPage;
   let loginPage: LoginPage;
   let dashboard: DashboardPage;
-  let workspacePage: WorkspacePage;
-  let collaborationPage: CollaborationPage;
   // @ts-ignore
   let context: any;
 
@@ -34,8 +31,6 @@ test.describe('User roles', () => {
     accountUsersPage = new AccountUsersPage(accountPage);
     signupPage = new SignupPage(accountPage.rootPage);
     loginPage = new LoginPage(accountPage.rootPage);
-    workspacePage = new WorkspacePage(page);
-    collaborationPage = workspacePage.collaboration;
 
     try {
       api = new Api({
@@ -102,11 +97,33 @@ test.describe('User roles', () => {
       withoutPrefix: true,
     });
 
-    // Step 4: Navigate to workspace settings and assign workspace-level roles
-    await dashboard.leftSidebar.clickTeamAndSettings();
+    // Step 4: Assign workspace-level roles via API
+    // Get fresh token since original was invalidated during sign-out/sign-in cycles
+    const signInRes = await axios.post('http://localhost:8080/api/v1/auth/user/signin', {
+      email: 'user@nocodb.com',
+      password: getDefaultPwd(),
+    });
+    const freshToken = signInRes.data.token;
+
+    const wsRoleMap: Record<string, string> = {
+      creator: WorkspaceUserRoles.CREATOR,
+      viewer: WorkspaceUserRoles.VIEWER,
+    };
+
+    // Get workspace ID from appInfo or context
+    const appInfoRes = await axios.get('http://localhost:8080/api/v1/meta/nocodb/info', {
+      headers: { 'xc-auth': freshToken },
+    });
+    const workspaceId = appInfoRes.data.defaultWorkspaceId || context.base?.fk_workspace_id;
 
     for (let i = 0; i < roleDb.length; i++) {
-      await collaborationPage.addUsers(accountUsersPage.prefixEmail(roleDb[i].email), roleDb[i].role);
+      const email = accountUsersPage.prefixEmail(roleDb[i].email);
+      const roles = wsRoleMap[roleDb[i].role];
+      await axios.post(
+        `http://localhost:8080/api/v1/workspaces/${workspaceId}/invitations`,
+        { email, roles },
+        { headers: { 'xc-auth': freshToken } }
+      );
     }
 
     // Step 5: Verify access — log in as each user and check "Create Base" button visibility

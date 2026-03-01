@@ -64,6 +64,9 @@ export class CollaborationPage extends BasePage {
 
     await button_addUser.click();
     await this.verifyToast({ message: 'Invitation sent successfully' });
+
+    // Wait for invite dialog to fully close (including animation)
+    await inviteModal.waitFor({ state: 'hidden' });
     await this.rootPage.waitForTimeout(500);
   }
 

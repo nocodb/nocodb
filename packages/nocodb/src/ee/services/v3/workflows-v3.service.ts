@@ -8,6 +8,7 @@ import type {
   WorkflowV3ExecuteReqType,
   WorkflowV3GetResponseType,
   WorkflowV3ListResponseType,
+  WorkflowV3TestNodeReqType,
   WorkflowV3UpdateReqType,
 } from '~/services/v3/workflows-v3.types';
 import type { Workflow, WorkflowExecution } from '~/models';
@@ -15,6 +16,7 @@ import { WorkflowsService } from '~/services/workflows.service';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { validatePayload } from '~/helpers';
 import { checkForFeature } from '~/helpers/paymentHelpers';
+import { NcError } from '~/helpers/catchError';
 
 const workflowBuilder = builderGenerator<Workflow, WorkflowV3GetResponseType>({
   allowed: [
@@ -107,6 +109,21 @@ export class WorkflowsV3Service {
     );
   }
 
+  private validateNoTestResult(
+    context: NcContext,
+    nodes?: { data?: { testResult?: unknown } }[],
+  ) {
+    if (!nodes) return;
+
+    for (const node of nodes) {
+      if (node?.data?.testResult !== undefined) {
+        NcError.get(context).invalidRequestBody(
+          'testResult is a read-only field and cannot be set via API',
+        );
+      }
+    }
+  }
+
   async workflowList(context: NcContext): Promise<WorkflowV3ListResponseType> {
     await this.validateFeatureAccess(context);
 
@@ -142,6 +159,8 @@ export class WorkflowsV3Service {
       context,
     );
 
+    this.validateNoTestResult(context, body.nodes);
+
     const workflow = await this.workflowsService.createWorkflow(
       context,
       body,
@@ -165,6 +184,9 @@ export class WorkflowsV3Service {
       true,
       context,
     );
+
+    this.validateNoTestResult(context, body.nodes);
+    this.validateNoTestResult(context, (body.draft as any)?.nodes);
 
     const workflow = await this.workflowsService.updateWorkflow(
       context,
@@ -234,6 +256,30 @@ export class WorkflowsV3Service {
       },
       req,
     );
+
+    return { id: String(result.id) };
+  }
+
+  async workflowTestNode(
+    context: NcContext,
+    id: string,
+    body: WorkflowV3TestNodeReqType,
+    req: NcRequest,
+  ): Promise<{ id: string }> {
+    await this.validateFeatureAccess(context);
+
+    validatePayload(
+      'swagger-v3.json#/components/schemas/WorkflowTestNodeReq',
+      body,
+      true,
+      context,
+    );
+
+    const result = await this.workflowsService.testExecuteNode(context, id, {
+      nodeId: body.node_id,
+      testTriggerData: body.test_trigger_data,
+      testMode: body.test_mode,
+    }, req);
 
     return { id: String(result.id) };
   }

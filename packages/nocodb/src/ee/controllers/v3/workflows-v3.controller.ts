@@ -19,6 +19,7 @@ import type {
   WorkflowV3ExecuteReqType,
   WorkflowV3GetResponseType,
   WorkflowV3ListResponseType,
+  WorkflowV3TestNodeReqType,
   WorkflowV3UpdateReqType,
 } from '~/services/v3/workflows-v3.types';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -131,6 +132,23 @@ export class WorkflowsV3Controller {
     @Request() req: NcRequest,
   ): Promise<{ id: string }> {
     return await this.workflowsV3Service.workflowExecute(
+      context,
+      workflowId,
+      body,
+      req,
+    );
+  }
+
+  @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/test-node`)
+  @HttpCode(200)
+  @Acl('workflowTestNode', { scope: 'base' })
+  async workflowTestNode(
+    @TenantContext() context: NcContext,
+    @Param('workflowId') workflowId: string,
+    @Body() body: WorkflowV3TestNodeReqType,
+    @Request() req: NcRequest,
+  ): Promise<{ id: string }> {
+    return await this.workflowsV3Service.workflowTestNode(
       context,
       workflowId,
       body,

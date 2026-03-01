@@ -59,6 +59,12 @@ export type WorkflowV3ExecuteReqType = {
   trigger_data?: Record<string, unknown>;
 };
 
+export type WorkflowV3TestNodeReqType = {
+  node_id: string;
+  test_trigger_data?: Record<string, unknown>;
+  test_mode?: 'sample_data' | 'listen_webhook' | 'trigger_event';
+};
+
 export type WorkflowExecutionV3ListItemType = {
   id: string;
   workflow_id: string;

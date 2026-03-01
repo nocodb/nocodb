@@ -4945,6 +4945,57 @@
         }
       }
     },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/test-node": {
+      "post": {
+        "summary": "Test Workflow Node",
+        "description": "Test a single workflow node in isolation. Returns a job ID that can be polled for results.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-test-node",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowTestNodeReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Test node job queued.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "Job identifier for the test execution"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions": {
       "get": {
         "summary": "List Workflow Executions",
@@ -15154,6 +15205,623 @@
         },
         "required": ["list"]
       },
+      "WorkflowNodePort": {
+        "description": "Port definition for a workflow node (input/output connection point)",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique port identifier within the node (e.g. 'true', 'false', 'body', 'output')"
+          },
+          "label": {
+            "type": "string",
+            "description": "Display label for the port (e.g. 'True', 'False', 'For Each Item')"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["input", "output"],
+            "description": "Whether this port accepts incoming or outgoing connections"
+          },
+          "order": {
+            "type": "number",
+            "description": "Display order of the port"
+          }
+        },
+        "required": ["id", "direction"]
+      },
+      "WorkflowVariableDefinition": {
+        "description": "Variable definition describing an input or output of a workflow node",
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "Expression reference key (e.g. 'fields.Title', 'meta.id')"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable display name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["string", "number", "integer", "boolean", "object", "array", "date", "datetime"],
+            "description": "Data type of the variable"
+          },
+          "groupKey": {
+            "type": "string",
+            "enum": ["meta", "fields", "iteration"],
+            "description": "Grouping category — 'meta' for system fields, 'fields' for user data, 'iteration' for loop variables"
+          },
+          "isArray": {
+            "type": "boolean",
+            "description": "Whether this variable represents an array of values"
+          },
+          "extra": {
+            "type": "object",
+            "description": "Additional metadata (entity references, icons, UI type hints)",
+            "properties": {
+              "entity_id": {
+                "type": "string",
+                "description": "ID of the referenced entity (column, table, or view)"
+              },
+              "entity": {
+                "type": "string",
+                "enum": ["column", "table", "view"],
+                "description": "Type of the referenced entity"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon identifier for display"
+              },
+              "uiType": {
+                "type": "string",
+                "description": "UI data type hint"
+              },
+              "description": {
+                "type": "string",
+                "description": "Description of the variable"
+              },
+              "port": {
+                "type": "string",
+                "description": "Port ID this variable belongs to (for multi-port nodes like If/Iterate)"
+              }
+            }
+          },
+          "children": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Nested variable definitions for object/array types"
+          }
+        },
+        "required": ["key", "name", "type"]
+      },
+      "WorkflowNodeData": {
+        "description": "Data payload of a workflow node containing its configuration and metadata",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Display title of the node"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the node"
+          },
+          "config": {
+            "type": "object",
+            "description": "Node-specific configuration. Structure varies by node type — e.g. table ID for record triggers, conditions array for If nodes, duration/unit for Delay nodes, array expression for Iterate nodes"
+          },
+          "testResult": {
+            "$ref": "#/components/schemas/WorkflowNodeExecutionResult",
+            "description": "Result from the most recent test execution of this node (only present on draft nodes)"
+          },
+          "inputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Input variable definitions for this node"
+          },
+          "outputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Output variable definitions produced by this node"
+          }
+        },
+        "required": ["title", "config"]
+      },
+      "WorkflowNode": {
+        "description": "A node in the workflow graph representing a trigger, action, or flow control operation. Node type IDs follow the pattern '{provider}.{category}.{name}' (e.g. 'nocodb.trigger.after_insert', 'core.flow.if', 'slack.send_message').",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this node within the workflow"
+          },
+          "type": {
+            "type": "string",
+            "description": "Node type identifier determining behavior and available configuration. Categories: trigger (start events), action (operations), flow (control flow). Examples: 'nocodb.trigger.after_insert', 'core.action.http', 'core.flow.if', 'core.flow.iterate', 'core.flow.delay', 'slack.send_message', 'ai.action.generate-text'",
+            "examples": [
+              "nocodb.trigger.after_insert",
+              "nocodb.trigger.after_update",
+              "nocodb.trigger.after_delete",
+              "nocodb.trigger.form_submitted",
+              "nocodb.trigger.record_enters_view",
+              "nocodb.trigger.record_matches_condition",
+              "core.trigger.webhook",
+              "core.trigger.manual",
+              "core.trigger.cron",
+              "core.flow.if",
+              "core.flow.iterate",
+              "core.flow.delay",
+              "core.flow.wait-until",
+              "core.action.http",
+              "core.action.send-email",
+              "nocodb.create_record",
+              "nocodb.update_record",
+              "nocodb.find_record",
+              "nocodb.list_records",
+              "nocodb.delete_record",
+              "nocodb.run_script",
+              "ai.action.generate-text",
+              "ai.action.generate-structured",
+              "slack.send_message",
+              "google.send_email",
+              "twilio.action.send_sms",
+              "twilio.action.call_phone",
+              "twilio.action.send_whatsapp",
+              "github.trigger",
+              "outlook.send_email",
+              "google_calendar.trigger.new_event",
+              "hubspot_crm.action.contact_create",
+              "hubspot_crm.action.deal_create"
+            ]
+          },
+          "position": {
+            "type": "object",
+            "description": "Position of the node on the workflow canvas",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "X coordinate"
+              },
+              "y": {
+                "type": "number",
+                "description": "Y coordinate"
+              }
+            },
+            "required": ["x", "y"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/WorkflowNodeData"
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle"
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle"
+          }
+        },
+        "required": ["id", "type", "position", "data"]
+      },
+      "WorkflowEdge": {
+        "description": "A directed connection between two workflow nodes defining execution flow. For conditional/loop nodes, sourcePortId determines which branch is followed.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this edge"
+          },
+          "source": {
+            "type": "string",
+            "description": "ID of the source node"
+          },
+          "target": {
+            "type": "string",
+            "description": "ID of the target node"
+          },
+          "animated": {
+            "type": "boolean",
+            "description": "Whether the edge should be animated in the UI"
+          },
+          "label": {
+            "type": "string",
+            "description": "Display label on the edge (e.g. 'True', 'False', 'For Each Item')"
+          },
+          "sourcePortId": {
+            "type": "string",
+            "description": "Output port ID on the source node. Used for branching — e.g. 'true'/'false' for If nodes, 'body'/'output' for Iterate nodes"
+          },
+          "targetPortId": {
+            "type": "string",
+            "description": "Input port ID on the target node"
+          }
+        },
+        "required": ["id", "source", "target"]
+      },
+      "WorkflowNodeExecutionResult": {
+        "description": "Result of executing a single workflow node",
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "description": "ID of the node that was executed"
+          },
+          "nodeTitle": {
+            "type": "string",
+            "description": "Title of the node at execution time"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "running", "success", "error", "skipped"],
+            "description": "Execution status of the node"
+          },
+          "input": {
+            "type": "object",
+            "description": "Interpolated input data passed to the node"
+          },
+          "output": {
+            "type": "object",
+            "description": "Output data produced by the node"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message if the node failed"
+          },
+          "startTime": {
+            "type": "number",
+            "description": "Execution start time (Unix timestamp in milliseconds)"
+          },
+          "endTime": {
+            "type": "number",
+            "description": "Execution end time (Unix timestamp in milliseconds)"
+          },
+          "nextNode": {
+            "type": "string",
+            "description": "Explicit next node title for routing (used by conditional nodes)"
+          },
+          "logs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "level": {
+                  "type": "string",
+                  "enum": ["info", "warn", "error"],
+                  "description": "Log level"
+                },
+                "message": {
+                  "type": "string",
+                  "description": "Log message"
+                },
+                "ts": {
+                  "type": "number",
+                  "description": "Timestamp of the log entry"
+                },
+                "data": {
+                  "type": "object",
+                  "description": "Additional structured log data"
+                }
+              },
+              "required": ["level", "message"]
+            },
+            "description": "Execution log entries from the node"
+          },
+          "metrics": {
+            "type": "object",
+            "description": "Execution metrics (e.g. execution time, condition count)"
+          },
+          "inputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Input variable definitions at execution time"
+          },
+          "outputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Output variable definitions at execution time"
+          },
+          "loopContext": {
+            "type": "object",
+            "description": "Loop context for iterate nodes — contains loop state, body port, and exit port",
+            "properties": {
+              "state": {
+                "type": "object",
+                "description": "Serializable loop state",
+                "properties": {
+                  "items": {
+                    "type": "array",
+                    "items": {},
+                    "description": "Array of items being iterated"
+                  },
+                  "currentIndex": {
+                    "type": "number",
+                    "description": "Current iteration index (0-based)"
+                  },
+                  "totalItems": {
+                    "type": "number",
+                    "description": "Total number of items to iterate"
+                  }
+                }
+              },
+              "bodyPort": {
+                "type": "string",
+                "description": "Port ID for the loop body (e.g. 'body')"
+              },
+              "exitPort": {
+                "type": "string",
+                "description": "Port ID for the loop exit (e.g. 'output')"
+              }
+            }
+          },
+          "isStale": {
+            "type": "boolean",
+            "description": "Whether this test result is stale (node config changed since last test)"
+          }
+        },
+        "required": ["nodeId", "nodeTitle", "status", "startTime"]
+      },
+      "WorkflowLoopData": {
+        "description": "Execution data for a single iterate/loop node across all its iterations",
+        "type": "object",
+        "properties": {
+          "nodeId": {
+            "type": "string",
+            "description": "ID of the iterate node"
+          },
+          "nodeTitle": {
+            "type": "string",
+            "description": "Title of the iterate node"
+          },
+          "totalIterations": {
+            "type": "number",
+            "description": "Total number of iterations executed"
+          },
+          "iterations": {
+            "type": "object",
+            "description": "Map of iteration index to iteration data. Each iteration contains its own nodeResults and optional nested childLoops.",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "iterationIndex": {
+                  "type": "number",
+                  "description": "0-based iteration index"
+                },
+                "nodeResults": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowNodeExecutionResult"
+                  },
+                  "description": "Node execution results within this iteration"
+                },
+                "childLoops": {
+                  "type": "object",
+                  "description": "Nested loop data for loops-within-loops",
+                  "additionalProperties": {
+                    "$ref": "#/components/schemas/WorkflowLoopData"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": ["nodeId", "nodeTitle", "totalIterations"]
+      },
+      "WorkflowExecutionData": {
+        "description": "Full execution state of a workflow run, including all node results, loop data, and pause/resume information",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Execution state ID"
+          },
+          "workflowId": {
+            "type": "string",
+            "description": "ID of the workflow being executed"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"],
+            "description": "Overall execution status"
+          },
+          "startTime": {
+            "type": "number",
+            "description": "Execution start time (Unix timestamp in milliseconds)"
+          },
+          "endTime": {
+            "type": "number",
+            "description": "Execution end time (Unix timestamp in milliseconds)"
+          },
+          "nodeResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNodeExecutionResult"
+            },
+            "description": "Ordered list of node execution results"
+          },
+          "currentNodeId": {
+            "type": "string",
+            "description": "ID of the currently executing node (when status is 'running')"
+          },
+          "triggerData": {
+            "type": "object",
+            "description": "Data that triggered the workflow execution"
+          },
+          "triggerNodeTitle": {
+            "type": "string",
+            "description": "Title of the trigger node"
+          },
+          "loops": {
+            "type": "object",
+            "description": "Loop execution data keyed by iterate node ID",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/WorkflowLoopData"
+            }
+          },
+          "pausedAt": {
+            "type": "number",
+            "description": "Timestamp when execution was paused (for delay/wait-until nodes)"
+          },
+          "resumeAt": {
+            "type": "number",
+            "description": "Timestamp when execution should resume"
+          },
+          "nextNodeId": {
+            "type": "string",
+            "description": "ID of the node to resume execution from"
+          }
+        },
+        "required": ["id", "workflowId", "status", "startTime", "nodeResults"]
+      },
+      "WorkflowDraft": {
+        "description": "Draft version of workflow nodes and edges with unpublished changes. Must be published via the publish endpoint for changes to take effect.",
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNode"
+            },
+            "description": "Draft workflow node definitions"
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "description": "Draft connections between nodes"
+          }
+        }
+      },
+      "WorkflowNodeDataRequest": {
+        "description": "Data payload for a workflow node in create/update requests. Does not accept testResult — that field is server-managed.",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Display title of the node"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the node"
+          },
+          "config": {
+            "type": "object",
+            "description": "Node-specific configuration. Structure varies by node type — e.g. table ID for record triggers, conditions array for If nodes, duration/unit for Delay nodes, array expression for Iterate nodes"
+          },
+          "inputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Input variable definitions for this node"
+          },
+          "outputVariables": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowVariableDefinition"
+            },
+            "description": "Output variable definitions produced by this node"
+          }
+        },
+        "required": ["title", "config"]
+      },
+      "WorkflowNodeRequest": {
+        "description": "A workflow node in create/update requests. Same as WorkflowNode but node data does not accept testResult.",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this node within the workflow"
+          },
+          "type": {
+            "type": "string",
+            "description": "Node type identifier determining behavior and available configuration."
+          },
+          "position": {
+            "type": "object",
+            "description": "Position of the node on the workflow canvas",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "X coordinate"
+              },
+              "y": {
+                "type": "number",
+                "description": "Y coordinate"
+              }
+            },
+            "required": ["x", "y"]
+          },
+          "data": {
+            "$ref": "#/components/schemas/WorkflowNodeDataRequest"
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle"
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle"
+          }
+        },
+        "required": ["id", "type", "position", "data"]
+      },
+      "WorkflowDraftRequest": {
+        "description": "Draft version of workflow nodes and edges for create/update requests. Node data does not accept testResult.",
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNodeRequest"
+            },
+            "description": "Draft workflow node definitions"
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "description": "Draft connections between nodes"
+          }
+        }
+      },
+      "WorkflowMeta": {
+        "description": "Workflow metadata including execution configuration",
+        "type": "object",
+        "properties": {
+          "run_as": {
+            "type": "object",
+            "description": "Execution identity — determines the permissions context under which the workflow runs",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["service_account", "role", "user"],
+                "description": "Identity type. 'service_account' runs as a system user with creator role, 'role' runs with a specified role, 'user' runs as a specific user"
+              },
+              "value": {
+                "type": "string",
+                "description": "Role name (when type='role') or user ID (when type='user'). Not required for 'service_account'"
+              }
+            },
+            "required": ["type"]
+          }
+        }
+      },
       "WorkflowGetResponse": {
         "description": "Workflow with full details including nodes and edges",
         "type": "object",
@@ -15185,24 +15853,24 @@
           "nodes": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/WorkflowNode"
             },
-            "description": "Workflow node definitions"
+            "description": "Published workflow node definitions"
           },
           "edges": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/WorkflowEdge"
             },
-            "description": "Connections between workflow nodes"
+            "description": "Published connections between workflow nodes"
           },
           "draft": {
-            "type": "object",
-            "description": "Draft configuration with unpublished changes"
+            "$ref": "#/components/schemas/WorkflowDraft",
+            "description": "Draft configuration with unpublished changes. Null when no draft exists."
           },
           "meta": {
-            "type": "object",
-            "description": "Metadata of the workflow"
+            "$ref": "#/components/schemas/WorkflowMeta",
+            "description": "Workflow metadata including execution configuration"
           },
           "order": {
             "type": "number",
@@ -15245,19 +15913,19 @@
           "nodes": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/WorkflowNodeRequest"
             },
             "description": "Initial workflow node definitions."
           },
           "edges": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/WorkflowEdge"
             },
             "description": "Initial connections between nodes."
           },
           "meta": {
-            "type": "object",
+            "$ref": "#/components/schemas/WorkflowMeta",
             "description": "Metadata for the workflow."
           }
         }
@@ -15281,23 +15949,23 @@
           "nodes": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/WorkflowNodeRequest"
             },
             "description": "Workflow node definitions."
           },
           "edges": {
             "type": "array",
             "items": {
-              "type": "object"
+              "$ref": "#/components/schemas/WorkflowEdge"
             },
             "description": "Connections between workflow nodes."
           },
           "draft": {
-            "type": "object",
+            "$ref": "#/components/schemas/WorkflowDraftRequest",
             "description": "Draft configuration with unpublished changes."
           },
           "meta": {
-            "type": "object",
+            "$ref": "#/components/schemas/WorkflowMeta",
             "description": "Metadata for the workflow."
           },
           "order": {
@@ -15313,6 +15981,26 @@
           "trigger_data": {
             "type": "object",
             "description": "Data to pass to the workflow trigger."
+          }
+        }
+      },
+      "WorkflowTestNodeReq": {
+        "description": "Workflow test node request body",
+        "type": "object",
+        "required": ["node_id"],
+        "properties": {
+          "node_id": {
+            "type": "string",
+            "description": "Unique identifier of the node to test."
+          },
+          "test_trigger_data": {
+            "type": "object",
+            "description": "Optional test data to pass to the node."
+          },
+          "test_mode": {
+            "type": "string",
+            "enum": ["sample_data", "listen_webhook", "trigger_event"],
+            "description": "Test mode. Defaults to sample_data if not specified."
           }
         }
       },
@@ -15377,8 +16065,8 @@
             "enum": ["running", "waiting", "completed", "error", "cancelled", "skipped"]
           },
           "execution_data": {
-            "type": "object",
-            "description": "Full execution state including node results"
+            "$ref": "#/components/schemas/WorkflowExecutionData",
+            "description": "Full execution state including node results, loops, and pause/resume data"
           },
           "started_at": {
             "type": ["string", "null"],

@@ -139,16 +139,13 @@ export class SidebarProjectNodeObject extends BasePage {
     }
   }
 
-  async verifyActiveProject({
-    baseTitle,
-    baseId,
-    open = false,
-  }: {
-    baseTitle: string;
-    baseId?: string;
-    open?: boolean;
-  }) {
-    if (!(await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible())) return true;
+  async verifyActiveProject({ baseTitle, open = false }: { baseTitle: string; open?: boolean }) {
+    // In shared-base/shared-view scenarios there is no mini sidebar at all — skip navigation checks.
+    // Must check both V1 (nc-mini-sidebar) and V2 (nc-mini-sidebar-v2) since V2 is now the default.
+    const hasMiniSidebar =
+      (await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible()) ||
+      (await this.sidebar.dashboard.leftSidebar.isMiniSidebarV2Visible());
+    if (!hasMiniSidebar) return true;
 
     const ncProjectHeader = this.sidebar.get().locator('.nc-project-header');
 

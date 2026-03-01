@@ -17,7 +17,11 @@ export class TreeViewPage extends BasePage {
     this.base = base;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
     this.createNewButton = this.get().locator('.nc-home-create-new-btn');
-    this.miniSidebar = this.dashboard.get().getByTestId('nc-mini-sidebar');
+    // Prefer V2 mini sidebar; fall back to V1 for shared-base scenarios where no sidebar exists
+    this.miniSidebar = this.dashboard
+      .get()
+      .locator('[data-testid="nc-mini-sidebar-v2"],[data-testid="nc-mini-sidebar"]')
+      .first();
   }
 
   get() {

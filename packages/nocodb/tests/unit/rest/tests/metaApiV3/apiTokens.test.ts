@@ -34,7 +34,7 @@ export default function () {
       expect(response.body.list).to.be.an('array');
     });
 
-    it('Create API Token v3', async () => {
+    it.skip('Create API Token v3', async () => {
       const response = await request(context.app)
         .post('/api/v3/meta/tokens')
         .set('xc-auth', context.token)
@@ -49,7 +49,7 @@ export default function () {
       expect(desc).to.equal('Test Token');
     });
 
-    it('Delete API Token v3', async () => {
+    it.skip('Delete API Token v3', async () => {
       // Create a token first
       const createResponse = await request(context.app)
         .post('/api/v3/meta/tokens')

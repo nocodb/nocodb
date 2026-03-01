@@ -15,15 +15,15 @@ import { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
   WorkflowExecutionV3GetResponseType,
   WorkflowExecutionV3ListResponseType,
-  WorkflowNodeV3CreateReqType,
+  // WorkflowNodeV3CreateReqType,
   WorkflowNodeV3ListResponseType,
   WorkflowNodeV3ResponseType,
-  WorkflowNodeV3UpdateReqType,
+  // WorkflowNodeV3UpdateReqType,
   WorkflowV3CreateReqType,
   WorkflowV3ExecuteReqType,
   WorkflowV3GetResponseType,
   WorkflowV3ListResponseType,
-  WorkflowV3TestNodeReqType,
+  // WorkflowV3TestNodeReqType,
   WorkflowV3UpdateReqType,
 } from '~/services/v3/workflows-v3.types';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -143,22 +143,23 @@ export class WorkflowsV3Controller {
     );
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/test-node`)
-  @HttpCode(200)
-  @Acl('workflowTestNode', { scope: 'base' })
-  async workflowTestNode(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-    @Body() body: WorkflowV3TestNodeReqType,
-    @Request() req: NcRequest,
-  ): Promise<{ id: string }> {
-    return await this.workflowsV3Service.workflowTestNode(
-      context,
-      workflowId,
-      body,
-      req,
-    );
-  }
+  // TODO: need to improve validation & flow first
+  // @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/test-node`)
+  // @HttpCode(200)
+  // @Acl('workflowTestNode', { scope: 'base' })
+  // async workflowTestNode(
+  //   @TenantContext() context: NcContext,
+  //   @Param('workflowId') workflowId: string,
+  //   @Body() body: WorkflowV3TestNodeReqType,
+  //   @Request() req: NcRequest,
+  // ): Promise<{ id: string }> {
+  //   return await this.workflowsV3Service.workflowTestNode(
+  //     context,
+  //     workflowId,
+  //     body,
+  //     req,
+  //   );
+  // }
 
   @Get(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/executions`)
   @Acl('workflowExecutionList', { scope: 'base' })
@@ -219,54 +220,57 @@ export class WorkflowsV3Controller {
     );
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes`)
-  @HttpCode(200)
-  @Acl('workflowUpdate', { scope: 'base' })
-  async workflowNodeCreate(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-    @Body() body: WorkflowNodeV3CreateReqType,
-    @Request() req: NcRequest,
-  ): Promise<WorkflowNodeV3ResponseType> {
-    return await this.workflowsV3Service.workflowNodeCreate(
-      context,
-      workflowId,
-      body,
-      req,
-    );
-  }
+  // TODO: need to improve validation & flow first
+  // @Post(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes`)
+  // @HttpCode(200)
+  // @Acl('workflowUpdate', { scope: 'base' })
+  // async workflowNodeCreate(
+  //   @TenantContext() context: NcContext,
+  //   @Param('workflowId') workflowId: string,
+  //   @Body() body: WorkflowNodeV3CreateReqType,
+  //   @Request() req: NcRequest,
+  // ): Promise<WorkflowNodeV3ResponseType> {
+  //   return await this.workflowsV3Service.workflowNodeCreate(
+  //     context,
+  //     workflowId,
+  //     body,
+  //     req,
+  //   );
+  // }
 
-  @Patch(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes/:nodeId`)
-  @Acl('workflowUpdate', { scope: 'base' })
-  async workflowNodeUpdate(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-    @Param('nodeId') nodeId: string,
-    @Body() body: WorkflowNodeV3UpdateReqType,
-    @Request() req: NcRequest,
-  ): Promise<WorkflowNodeV3ResponseType> {
-    return await this.workflowsV3Service.workflowNodeUpdate(
-      context,
-      workflowId,
-      nodeId,
-      body,
-      req,
-    );
-  }
+  // TODO: need to improve validation & flow first
+  // @Patch(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes/:nodeId`)
+  // @Acl('workflowUpdate', { scope: 'base' })
+  // async workflowNodeUpdate(
+  //   @TenantContext() context: NcContext,
+  //   @Param('workflowId') workflowId: string,
+  //   @Param('nodeId') nodeId: string,
+  //   @Body() body: WorkflowNodeV3UpdateReqType,
+  //   @Request() req: NcRequest,
+  // ): Promise<WorkflowNodeV3ResponseType> {
+  //   return await this.workflowsV3Service.workflowNodeUpdate(
+  //     context,
+  //     workflowId,
+  //     nodeId,
+  //     body,
+  //     req,
+  //   );
+  // }
 
-  @Delete(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes/:nodeId`)
-  @Acl('workflowUpdate', { scope: 'base' })
-  async workflowNodeDelete(
-    @TenantContext() context: NcContext,
-    @Param('workflowId') workflowId: string,
-    @Param('nodeId') nodeId: string,
-    @Request() req: NcRequest,
-  ): Promise<boolean> {
-    return await this.workflowsV3Service.workflowNodeDelete(
-      context,
-      workflowId,
-      nodeId,
-      req,
-    );
-  }
+  // TODO: need to improve validation & flow first
+  // @Delete(`${PREFIX_APIV3_METABASE}/workflows/:workflowId/nodes/:nodeId`)
+  // @Acl('workflowUpdate', { scope: 'base' })
+  // async workflowNodeDelete(
+  //   @TenantContext() context: NcContext,
+  //   @Param('workflowId') workflowId: string,
+  //   @Param('nodeId') nodeId: string,
+  //   @Request() req: NcRequest,
+  // ): Promise<boolean> {
+  //   return await this.workflowsV3Service.workflowNodeDelete(
+  //     context,
+  //     workflowId,
+  //     nodeId,
+  //     req,
+  //   );
+  // }
 }

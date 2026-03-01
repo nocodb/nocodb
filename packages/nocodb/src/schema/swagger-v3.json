@@ -4945,57 +4945,6 @@
         }
       }
     },
-    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/test-node": {
-      "post": {
-        "summary": "Test Workflow Node",
-        "description": "Test a single workflow node in isolation. Returns a job ID that can be polled for results.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "operationId": "workflow-test-node",
-        "tags": ["Workflows"],
-        "parameters": [
-          {
-            "schema": { "type": "string" },
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the base."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "workflow_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the workflow."
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkflowTestNodeReq"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Test node job queued.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string",
-                      "description": "Job identifier for the test execution"
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/executions": {
       "get": {
         "summary": "List Workflow Executions",
@@ -5121,49 +5070,6 @@
             }
           }
         }
-      },
-      "post": {
-        "summary": "Create Workflow Node",
-        "description": "Add a new node to the workflow draft. Optionally include edges connecting the new node.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "operationId": "workflow-node-create",
-        "tags": ["Workflows"],
-        "parameters": [
-          {
-            "schema": { "type": "string" },
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the base."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "workflow_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the workflow."
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkflowNodeCreateReq"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Node created.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowNodeGetResponse"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/nodes/{node_id}": {
@@ -5202,97 +5108,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkflowNodeGetResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "patch": {
-        "summary": "Update Workflow Node",
-        "description": "Update a node in the workflow draft.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "operationId": "workflow-node-update",
-        "tags": ["Workflows"],
-        "parameters": [
-          {
-            "schema": { "type": "string" },
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the base."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "workflow_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the workflow."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "node_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the node."
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/WorkflowNodeUpdateReq"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Node updated.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/WorkflowNodeGetResponse"
-                }
-              }
-            }
-          }
-        }
-      },
-      "delete": {
-        "summary": "Delete Workflow Node",
-        "description": "Delete a node and its connected edges from the workflow draft.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
-        "operationId": "workflow-node-delete",
-        "tags": ["Workflows"],
-        "parameters": [
-          {
-            "schema": { "type": "string" },
-            "name": "base_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the base."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "workflow_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the workflow."
-          },
-          {
-            "schema": { "type": "string" },
-            "name": "node_id",
-            "in": "path",
-            "required": true,
-            "description": "Unique identifier for the node."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Node deleted.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "boolean"
                 }
               }
             }

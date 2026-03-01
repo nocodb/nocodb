@@ -570,6 +570,12 @@ import NcMousePointerIcon from '~icons/nc-icons-v2/mouse-pointer.svg'
 import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
 import NcInsertColumnLeftIcon from '~icons/nc-icons-v2/insert-column-left.svg'
 import NcInsertColumnRightIcon from '~icons/nc-icons-v2/insert-column-right.svg'
+import NcInsertRowAboveIcon from '~icons/nc-icons-v2/insert-row-above.svg'
+import NcInsertRowBelowIcon from '~icons/nc-icons-v2/insert-row-below.svg'
+import NcMoveRowUpIcon from '~icons/nc-icons-v2/move-row-up.svg'
+import NcMoveRowDownIcon from '~icons/nc-icons-v2/move-row-down.svg'
+import NcMoveColumnLeftIcon from '~icons/nc-icons-v2/move-column-left.svg'
+import NcMoveColumnRightIcon from '~icons/nc-icons-v2/move-column-right.svg'
 import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
 import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
 import NcYoutube2Icon from '~icons/nc-icons/youtube2.svg'
@@ -1640,6 +1646,12 @@ export const iconMap = {
   'ncAlignLeft': NcAlignLeftIcon,
   'ncInsertColumnLeft': NcInsertColumnLeftIcon,
   'ncInsertColumnRight': NcInsertColumnRightIcon,
+  'ncInsertRowAbove': NcInsertRowAboveIcon,
+  'ncInsertRowBelow': NcInsertRowBelowIcon,
+  'ncMoveRowUp': NcMoveRowUpIcon,
+  'ncMoveRowDown': NcMoveRowDownIcon,
+  'ncMoveColumnLeft': NcMoveColumnLeftIcon,
+  'ncMoveColumnRight': NcMoveColumnRightIcon,
   'ncVerticalAlignTop': NcVerticalAlignTop,
   'ncVerticalAlignCenter': NcVerticalAlignCenter,
   'ncVerticalAlignBottom': NcVerticalAlignBottom,

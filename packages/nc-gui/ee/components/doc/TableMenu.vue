@@ -10,6 +10,7 @@
  * Uses a hover-zone div covering table + gutters so mouse stays in zone.
  */
 import type { Editor } from '@tiptap/vue-3'
+import { TextSelection } from '@tiptap/pm/state'
 
 // px — gap between adjacent handles
 
@@ -127,6 +128,139 @@ const onRowAction = (rowIndex: number, action: keyof typeof rowCommands) => {
   nextTick(() => {
     editor.value.chain().focus()[rowCommands[action]]().run()
   })
+}
+
+// --- Move row up/down by swapping adjacent tableRow nodes ---
+const onRowMove = (rowIndex: number, direction: 'up' | 'down') => {
+  const table = tableEl.value
+  if (!table || !table.isConnected || !editor.value) return
+
+  const targetIndex = direction === 'up' ? rowIndex - 1 : rowIndex + 1
+  // Don't swap with header row (index 0) or beyond bounds
+  if (targetIndex < 1 || targetIndex >= rowHandles.value.length) return
+
+  // Resolve the table node position from the DOM
+  const tablePos = editor.value.view.posAtDOM(table, 0)
+  const $table = editor.value.state.doc.resolve(tablePos)
+  let tableNodePos = -1
+  for (let d = $table.depth; d > 0; d--) {
+    if ($table.node(d).type.name === 'table') {
+      tableNodePos = $table.before(d)
+      break
+    }
+  }
+  if (tableNodePos < 0) return
+
+  const tableNode = editor.value.state.doc.nodeAt(tableNodePos)
+  if (!tableNode || tableNode.type.name !== 'table') return
+
+  // Get the two row nodes to swap
+  const rows: Array<{ node: any; offset: number }> = []
+  tableNode.forEach((child, offset) => {
+    rows.push({ node: child, offset })
+  })
+
+  if (rowIndex >= rows.length || targetIndex >= rows.length) return
+
+  const idxA = Math.min(rowIndex, targetIndex)
+  const idxB = Math.max(rowIndex, targetIndex)
+  const rowA = rows[idxA]
+  const rowB = rows[idxB]
+
+  // Build new row array with the two swapped
+  const newRows = [...rows.map((r) => r.node)]
+  newRows[idxA] = rowB.node
+  newRows[idxB] = rowA.node
+
+  // Create a new table node with swapped rows
+  const newTable = tableNode.type.create(tableNode.attrs, newRows, tableNode.marks)
+
+  const { state, dispatch } = editor.value.view
+  const tr = state.tr
+  // +1 because tableNodePos is before the table, content starts at tableNodePos
+  tr.replaceWith(tableNodePos, tableNodePos + tableNode.nodeSize, newTable)
+
+  // Place cursor in the moved row's first cell
+  const newTableNode = tr.doc.nodeAt(tableNodePos)
+  if (newTableNode) {
+    let cellPos = tableNodePos + 1 // enter table content
+    for (let i = 0; i < targetIndex; i++) {
+      cellPos += newTableNode.child(i).nodeSize
+    }
+    // Enter the row, then the first cell
+    cellPos += 1 // enter tableRow
+    cellPos += 1 // enter first cell
+    tr.setSelection(TextSelection.near(tr.doc.resolve(cellPos)))
+  }
+
+  dispatch(tr)
+
+  menuOpen.value = null
+  nextTick(() => recalcPositions())
+}
+
+// --- Move column left/right by swapping adjacent cells in every row ---
+const onColumnMove = (colIndex: number, direction: 'left' | 'right') => {
+  const table = tableEl.value
+  if (!table || !table.isConnected || !editor.value) return
+
+  const targetIndex = direction === 'left' ? colIndex - 1 : colIndex + 1
+  if (targetIndex < 0 || targetIndex >= colHandles.value.length) return
+
+  // Resolve the table node position from the DOM
+  const tablePos = editor.value.view.posAtDOM(table, 0)
+  const $table = editor.value.state.doc.resolve(tablePos)
+  let tableNodePos = -1
+  for (let d = $table.depth; d > 0; d--) {
+    if ($table.node(d).type.name === 'table') {
+      tableNodePos = $table.before(d)
+      break
+    }
+  }
+  if (tableNodePos < 0) return
+
+  const tableNode = editor.value.state.doc.nodeAt(tableNodePos)
+  if (!tableNode || tableNode.type.name !== 'table') return
+
+  // Rebuild each row with the two columns swapped
+  const newRows: any[] = []
+  tableNode.forEach((row) => {
+    const cells: any[] = []
+    row.forEach((cell) => cells.push(cell))
+
+    if (colIndex >= cells.length || targetIndex >= cells.length) {
+      newRows.push(row)
+      return
+    }
+
+    const newCells = [...cells]
+    newCells[colIndex] = cells[targetIndex]
+    newCells[targetIndex] = cells[colIndex]
+    newRows.push(row.type.create(row.attrs, newCells, row.marks))
+  })
+
+  const newTable = tableNode.type.create(tableNode.attrs, newRows, tableNode.marks)
+
+  const { state, dispatch } = editor.value.view
+  const tr = state.tr
+  tr.replaceWith(tableNodePos, tableNodePos + tableNode.nodeSize, newTable)
+
+  // Place cursor in the moved column's header cell
+  const newTableNode = tr.doc.nodeAt(tableNodePos)
+  if (newTableNode) {
+    let cellPos = tableNodePos + 1 // enter table
+    cellPos += 1 // enter first row
+    for (let c = 0; c < targetIndex; c++) {
+      cellPos += newTableNode.child(0).child(c).nodeSize
+    }
+    cellPos += 1 // enter cell
+    tr.setSelection(TextSelection.near(tr.doc.resolve(cellPos)))
+  }
+
+  dispatch(tr)
+
+  menuOpen.value = null
+  nextTick(() => recalcPositions())
 }
 
 // --- Column alignment ---
@@ -381,6 +515,32 @@ onBeforeUnmount(() => {
 
               <div class="nc-table-col-toolbar-divider" />
 
+              <!-- Move -->
+              <NcTooltip v-if="cIdx > 0" :title="$t('labels.moveColumnLeft')">
+                <NcButton
+                  icon-only
+                  size="xsmall"
+                  type="text"
+                  data-testid="nc-docs-table-column-move-left"
+                  @click="onColumnMove(cIdx, 'left')"
+                >
+                  <template #icon><GeneralIcon icon="ncMoveColumnLeft" /></template>
+                </NcButton>
+              </NcTooltip>
+              <NcTooltip v-if="cIdx < colHandles.length - 1" :title="$t('labels.moveColumnRight')">
+                <NcButton
+                  icon-only
+                  size="xsmall"
+                  type="text"
+                  data-testid="nc-docs-table-column-move-right"
+                  @click="onColumnMove(cIdx, 'right')"
+                >
+                  <template #icon><GeneralIcon icon="ncMoveColumnRight" /></template>
+                </NcButton>
+              </NcTooltip>
+
+              <div class="nc-table-col-toolbar-divider" />
+
               <!-- Align -->
               <NcTooltip :title="$t('labels.alignLeft')">
                 <NcButton icon-only size="xsmall" type="text" @click="onColumnAlign(cIdx, 'left')">
@@ -453,7 +613,7 @@ onBeforeUnmount(() => {
                   data-testid="nc-docs-table-row-insert-above"
                   @click="onRowAction(rIdx, 'insertBefore')"
                 >
-                  <template #icon><GeneralIcon icon="ncChevronUp" /></template>
+                  <template #icon><GeneralIcon icon="ncInsertRowAbove" /></template>
                 </NcButton>
               </NcTooltip>
               <NcTooltip :title="$t('labels.insertRowBelow')" placement="right">
@@ -464,9 +624,36 @@ onBeforeUnmount(() => {
                   data-testid="nc-docs-table-row-insert-below"
                   @click="onRowAction(rIdx, 'insertAfter')"
                 >
-                  <template #icon><GeneralIcon icon="ncChevronDown" /></template>
+                  <template #icon><GeneralIcon icon="ncInsertRowBelow" /></template>
                 </NcButton>
               </NcTooltip>
+
+              <template v-if="rIdx >= 1">
+                <div class="nc-table-row-toolbar-divider" />
+
+                <NcTooltip v-if="rIdx >= 2" :title="$t('labels.moveRowUp')" placement="right">
+                  <NcButton
+                    icon-only
+                    size="xsmall"
+                    type="text"
+                    data-testid="nc-docs-table-row-move-up"
+                    @click="onRowMove(rIdx, 'up')"
+                  >
+                    <template #icon><GeneralIcon icon="ncMoveRowUp" /></template>
+                  </NcButton>
+                </NcTooltip>
+                <NcTooltip v-if="rIdx < rowHandles.length - 1" :title="$t('labels.moveRowDown')" placement="right">
+                  <NcButton
+                    icon-only
+                    size="xsmall"
+                    type="text"
+                    data-testid="nc-docs-table-row-move-down"
+                    @click="onRowMove(rIdx, 'down')"
+                  >
+                    <template #icon><GeneralIcon icon="ncMoveRowDown" /></template>
+                  </NcButton>
+                </NcTooltip>
+              </template>
 
               <div class="nc-table-row-toolbar-divider" />
 

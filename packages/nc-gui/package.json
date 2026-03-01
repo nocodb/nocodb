@@ -29,6 +29,7 @@
     "generate:ee": "EE=true nuxt generate ./ee",
     "start": "node .output/server/index.mjs",
     "start:ee": "NUXT_PUBLIC_ENV=CI EE=true node ee/.output/server/index.mjs",
+    "format": "prettier --write \"**/*.{ts,vue}\" --ignore-path .gitignore",
     "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
     "test": "vitest -c test/vite.config.ts",
     "test:ui": "vitest -c test/vite.config.ts --ui",

@@ -117,20 +117,13 @@ const openKeyboardShortcutDialog = () => {
       'sticky bottom-0 bg-nc-bg-gray-minisidebar': isMiniSidebar,
     }"
   >
-    <LazyGeneralMaintenanceAlert v-if="!isMiniSidebar" />
-    <div
-      class="flex items-center"
-      :class="{
-        'justify-center h-[var(--mini-sidebar-width)]': isMiniSidebar,
-        'justify-between': !isMiniSidebar,
-      }"
-    >
+    <div class="flex items-center justify-center h-[var(--mini-sidebar-width)]">
       <NcDropdown
         v-model:visible="isMenuOpen"
         placement="topLeft"
         :overlay-class-name="`!min-w-44 md:!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
       >
-        <NcTooltip :disabled="!isMiniSidebar || isMobileMode" placement="right" hide-on-click :arrow="false">
+        <NcTooltip :disabled="isMobileMode" placement="right" hide-on-click :arrow="false">
           <template #title>
             <div>
               <div v-if="name">{{ name }}</div>
@@ -142,9 +135,7 @@ const openKeyboardShortcutDialog = () => {
           <div
             class="flex"
             :class="{
-              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-nc-bg-gray-medium rounded-lg cursor-pointer':
-                !isMiniSidebar,
-              'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
+              'nc-mini-sidebar-ws-item flex-none': isMiniSidebar,
             }"
             data-testid="nc-sidebar-userinfo"
             :data-email="user?.email"
@@ -184,46 +175,7 @@ const openKeyboardShortcutDialog = () => {
                 <span class="menu-btn"> {{ $t('general.logout') }}</span>
               </div>
             </NcMenuItem>
-            <NcDivider v-if="!isMiniSidebar" />
-            <a
-              v-if="!isMiniSidebar"
-              v-e="['c:nocodb:discord']"
-              href="https://discord.gg/c7GEYrvFtT"
-              target="_blank"
-              class="!underline-transparent"
-              rel="noopener noreferrer"
-            >
-              <NcMenuItem class="social-icon-wrapper">
-                <GeneralIcon class="social-icon" icon="ncDiscord" />
-                <span class="menu-btn"> {{ $t('labels.community.joinDiscord') }} </span>
-              </NcMenuItem>
-            </a>
-            <a
-              v-if="!isMiniSidebar"
-              v-e="['c:nocodb:reddit']"
-              href="https://www.reddit.com/r/NocoDB"
-              target="_blank"
-              class="!underline-transparent"
-              rel="noopener noreferrer"
-            >
-              <NcMenuItem class="social-icon-wrapper">
-                <GeneralIcon class="social-icon" icon="ncReddit" />
-                <span class="menu-btn"> {{ $t('labels.community.joinReddit') }} </span>
-              </NcMenuItem>
-            </a>
-            <a
-              v-if="!isMiniSidebar"
-              v-e="['c:nocodb:twitter']"
-              href="https://twitter.com/nocodb"
-              target="_blank"
-              class="!underline-transparent"
-              rel="noopener noreferrer"
-            >
-              <NcMenuItem class="social-icon-wrapper group">
-                <GeneralIcon class="social-icon text-nc-content-gray-muted group-hover:text-nc-content-gray" icon="ncTwitter" />
-                <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
-              </NcMenuItem>
-            </a>
+
             <NcDivider />
             <a-popover
               key="language"
@@ -254,37 +206,7 @@ const openKeyboardShortcutDialog = () => {
             <template v-if="!isMobileMode">
               <NcDivider />
 
-              <template v-if="!isMiniSidebar">
-                <a
-                  v-e="['c:nocodb:forum-open']"
-                  href="https://community.nocodb.com"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
-                    <span class="menu-btn"> {{ $t('title.forum') }} </span>
-                  </NcMenuItem>
-                </a>
-
-                <a
-                  v-e="['c:nocodb:docs-open']"
-                  href="https://nocodb.com/docs/product-docs"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="file" class="menu-icon mt-0.5" />
-                    <span class="menu-btn"> {{ $t('title.docs') }} </span>
-                  </NcMenuItem>
-                </a>
-
-                <NcDivider />
-              </template>
-
-              <DashboardSidebarEEMenuOption />
+              <DashboardSidebarEEMenuOption v-if="isEeUI" />
               <NcMenuItem @click="openExperimentationMenu">
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
@@ -380,12 +302,7 @@ const openKeyboardShortcutDialog = () => {
                 <NcMenuItem v-if="isEeUI" v-e="['c:nocodb:contact-us-mail-copy']" @click="copySupportEmail">
                   <GeneralIcon icon="ncMail" class="h-4 w-4" />
                   <span class="menu-btn">support@nocodb.com</span>
-                  <GeneralCopyButton
-                    ref="supportCopyBtnRef"
-                    type="secondary"
-                    content="support@nocodb.com"
-                    :show-toast="false"
-                  />
+                  <GeneralCopyButton ref="supportCopyBtnRef" type="secondary" content="support@nocodb.com" :show-toast="false" />
                 </NcMenuItem>
 
                 <NcDivider />
@@ -461,15 +378,7 @@ const openKeyboardShortcutDialog = () => {
           </NcMenu>
         </template>
       </NcDropdown>
-      <LazyNotificationMenu v-if="!isMiniSidebar" />
     </div>
-
-    <template v-if="!isMiniSidebar">
-      <template v-if="isMobileMode || appInfo.ee"></template>
-      <div v-else class="flex flex-row w-full justify-between pt-0.5 truncate">
-        <GeneralJoinCloud />
-      </div>
-    </template>
   </div>
 </template>
 

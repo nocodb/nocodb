@@ -220,7 +220,7 @@ watch(selectedUsersList, () => {
       <div class="flex items-center gap-1.5 w-full">
         <!-- Selected user tags -->
         <div v-if="selectedUsers.size === 0" class="font-medium flex-1 text-nc-content-gray-muted truncate">
-          {{ t('msg.permissions.inlineUserSelector.noUsersSelected', { description: permissionDescription }) }}
+          {{ t('objects.permissions.inlineUserSelector.noUsersSelected', { description: permissionDescription }) }}
         </div>
         <div v-else ref="containerRef" class="flex items-center flex-1 overflow-hidden">
           <!-- Show first few users as tags -->

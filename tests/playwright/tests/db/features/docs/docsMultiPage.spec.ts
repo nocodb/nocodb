@@ -19,11 +19,8 @@ async function createDocumentViaApi({
   title: string;
 }) {
   const response = await axios.post(
-    `http://localhost:8080/api/v2/internal/${workspaceId}/${baseId}`,
-    {
-      operation: 'documentCreate',
-      title,
-    },
+    `http://localhost:8080/api/v2/internal/${workspaceId}/${baseId}?operation=documentCreate`,
+    { title },
     {
       headers: { 'xc-auth': token },
     }

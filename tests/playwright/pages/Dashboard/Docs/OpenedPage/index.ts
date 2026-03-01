@@ -23,8 +23,11 @@ export class DocsOpenedPagePage extends BasePage {
   async waitForRender() {
     await this.get().waitFor({ state: 'visible' });
     await this.get().getByTestId('docs-page-title').waitFor({ state: 'visible' });
-    // Also wait for the ProseMirror editor to mount
-    await this.get().getByTestId('docs-page-content').locator('.ProseMirror').waitFor({ state: 'visible' });
+    // Wait for ProseMirror to mount AND become editable (Tiptap fully initialized)
+    await this.get()
+      .getByTestId('docs-page-content')
+      .locator('.ProseMirror[contenteditable="true"]')
+      .waitFor({ state: 'visible' });
     await this.get()
       .getByTestId('docs-page-title')
       .elementHandle()

@@ -103,6 +103,17 @@ const COLUMN_TO_FIELD_KEYS: Record<string, string> = {
   column_id: 'field_id',
 };
 
+// Pre-computed inverse mappings (snake_case → camelCase)
+const INV_CONFIG_KEYS = invertMapping(CONFIG_KEYS);
+const INV_DATA_KEYS = invertMapping(DATA_KEYS);
+const INV_CATEGORY_AXIS_KEYS = invertMapping(CATEGORY_AXIS_KEYS);
+const INV_Y_AXIS_KEYS = invertMapping(Y_AXIS_KEYS);
+const INV_APPEARANCE_KEYS = invertMapping(APPEARANCE_KEYS);
+const INV_PERMISSIONS_KEYS = invertMapping(PERMISSIONS_KEYS);
+const INV_FORMATTING_KEYS = invertMapping(FORMATTING_KEYS);
+const INV_FONT_KEYS = invertMapping(FONT_KEYS);
+const INV_COLUMN_TO_FIELD_KEYS = invertMapping(COLUMN_TO_FIELD_KEYS);
+
 /**
  * Convert widget config from internal camelCase to API snake_case.
  * Explicit per-level key renaming — no recursive case transformation.
@@ -168,26 +179,23 @@ function mapConfigToCamelCase(
 ): Record<string, any> {
   if (!config) return config;
 
-  const result = renameKeys(config, invertMapping(CONFIG_KEYS));
+  const result = renameKeys(config, INV_CONFIG_KEYS);
 
   if (result.data && typeof result.data === 'object') {
-    const data = renameKeys(result.data, invertMapping(DATA_KEYS));
+    const data = renameKeys(result.data, INV_DATA_KEYS);
 
     if (data.category && typeof data.category === 'object') {
-      data.category = renameKeys(
-        data.category,
-        invertMapping(CATEGORY_AXIS_KEYS),
-      );
+      data.category = renameKeys(data.category, INV_CATEGORY_AXIS_KEYS);
     }
     if (data.xAxis && typeof data.xAxis === 'object') {
-      data.xAxis = renameKeys(data.xAxis, invertMapping(CATEGORY_AXIS_KEYS));
-      data.xAxis = renameKeys(data.xAxis, invertMapping(COLUMN_TO_FIELD_KEYS));
+      data.xAxis = renameKeys(data.xAxis, INV_CATEGORY_AXIS_KEYS);
+      data.xAxis = renameKeys(data.xAxis, INV_COLUMN_TO_FIELD_KEYS);
     }
     if (data.yAxis && typeof data.yAxis === 'object') {
-      data.yAxis = renameKeys(data.yAxis, invertMapping(Y_AXIS_KEYS));
+      data.yAxis = renameKeys(data.yAxis, INV_Y_AXIS_KEYS);
       if (Array.isArray(data.yAxis.fields)) {
         data.yAxis.fields = data.yAxis.fields.map((f: Record<string, any>) =>
-          renameKeys(f, invertMapping(COLUMN_TO_FIELD_KEYS)),
+          renameKeys(f, INV_COLUMN_TO_FIELD_KEYS),
         );
       }
     }
@@ -196,29 +204,23 @@ function mapConfigToCamelCase(
   }
 
   if (result.appearance && typeof result.appearance === 'object') {
-    const appearance = renameKeys(
-      result.appearance,
-      invertMapping(APPEARANCE_KEYS),
-    );
+    const appearance = renameKeys(result.appearance, INV_APPEARANCE_KEYS);
 
     if (appearance.formatting && typeof appearance.formatting === 'object') {
       appearance.formatting = renameKeys(
         appearance.formatting,
-        invertMapping(FORMATTING_KEYS),
+        INV_FORMATTING_KEYS,
       );
     }
     if (appearance.font && typeof appearance.font === 'object') {
-      appearance.font = renameKeys(appearance.font, invertMapping(FONT_KEYS));
+      appearance.font = renameKeys(appearance.font, INV_FONT_KEYS);
     }
 
     result.appearance = appearance;
   }
 
   if (result.permissions && typeof result.permissions === 'object') {
-    result.permissions = renameKeys(
-      result.permissions,
-      invertMapping(PERMISSIONS_KEYS),
-    );
+    result.permissions = renameKeys(result.permissions, INV_PERMISSIONS_KEYS);
   }
 
   return result;

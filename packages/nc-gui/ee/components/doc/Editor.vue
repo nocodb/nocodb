@@ -18,6 +18,7 @@ import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
+import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
 import { DocSearchExtension } from './DocSearchExtension'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
@@ -244,6 +245,7 @@ const _tiptapEditor = useEditor({
     DocFileAttachmentExtension,
     DocEmbedExtension,
     DocActiveBlockExtension,
+    DocHeadingCollapseExtension,
     DocSearchExtension,
   ],
   editorProps: {
@@ -1416,11 +1418,16 @@ onBeforeUnmount(() => {
     margin-top: 9px;
   }
 
-  // Headings — H1/H2/H3 prefix labels sit outside via absolute positioning.
-  // Labels are bottom-aligned with the first line of heading text so they
-  // sit on the same baseline regardless of heading font size.
-  // Only visible when the editor is focused (ProseMirror-focused) — hidden
-  // when the cursor is in the title input or elsewhere outside the editor.
+  // Headings — H1/H2/H3 prefix labels and collapse chevrons sit outside
+  // via absolute positioning. Labels are bottom-aligned with the first line
+  // of heading text so they sit on the same baseline regardless of heading
+  // font size. Only visible when the editor is focused — hidden when the
+  // cursor is in the title input or elsewhere outside the editor.
+  //
+  // Three states:
+  //   Expanded + not hovered → "H1"/"H2"/"H3" text label
+  //   Expanded + hovered     → ▼ down chevron (click to collapse)
+  //   Collapsed (always)     → ▶ right chevron (click to expand)
   h1,
   h2,
   h3 {
@@ -1430,7 +1437,9 @@ onBeforeUnmount(() => {
     &::before {
       position: absolute;
       right: 100%;
-      margin-right: 0.5em;
+      // padding (not margin) so the ::before box touches the heading's left edge —
+      // eliminates the hover dead zone when moving horizontally from text to chevron.
+      padding-right: 0.5em;
       color: var(--nc-content-gray-muted);
       font-size: 12px;
       font-weight: 500;
@@ -1461,22 +1470,66 @@ onBeforeUnmount(() => {
     line-height: 1.4;
   }
 
-  // Show H1/H2/H3 labels only when editor is focused
-  &.ProseMirror-focused {
-    h1::before {
-      content: 'H1';
-      top: calc(1.625em * 1.3 - 12px - 2px);
-    }
-    h2::before {
-      content: 'H2';
-      top: calc(1.3em * 1.35 - 12px - 2px);
-    }
-    h3::before {
-      content: 'H3';
-      top: calc(1.125em * 1.4 - 12px - 2px);
-    }
+  // Collapsed heading: remove bottom margin (section is hidden)
+  h1.nc-heading-collapsed,
+  h2.nc-heading-collapsed,
+  h3.nc-heading-collapsed {
+    margin-bottom: 0;
+  }
 
-    // Hide heading labels when inside a blockquote
+  // Hidden section content
+  .nc-heading-section-hidden {
+    display: none !important;
+  }
+
+  // Chevron shared properties — 24px = 16px icon (pinned left via mask-position) + 8px gap.
+  // Base padding-right: 0.5em (from h1/h2/h3 ::before above) bridges hover to heading edge.
+  // Per-heading `top` aligns to baseline: font-size * line-height - 16px - 2px.
+  h1.nc-heading-collapsed::before,
+  h2.nc-heading-collapsed::before,
+  h3.nc-heading-collapsed::before {
+    content: '';
+    width: 24px;
+    height: 16px;
+    display: inline-block;
+    background-color: var(--nc-content-gray-muted);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor'%3E%3Cpolygon points='6,3 12,8 6,13'/%3E%3C/svg%3E");
+    mask-size: 16px 16px;
+    mask-position: left center;
+    mask-repeat: no-repeat;
+    cursor: pointer;
+  }
+  h1.nc-heading-collapsed::before { top: calc(1.625em * 1.3 - 16px - 2px); }
+  h2.nc-heading-collapsed::before { top: calc(1.3em * 1.35 - 16px - 2px); }
+  h3.nc-heading-collapsed::before { top: calc(1.125em * 1.4 - 16px - 2px); }
+
+  // --- Expanded state (editor focused): text labels + hover chevrons ---
+  &.ProseMirror-focused {
+    // Text labels — hidden for the heading with the cursor and for collapsed headings
+    h1:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before { content: 'H1'; top: calc(1.625em * 1.3 - 12px - 2px); }
+    h2:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before { content: 'H2'; top: calc(1.3em * 1.35 - 12px - 2px); }
+    h3:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before { content: 'H3'; top: calc(1.125em * 1.4 - 12px - 2px); }
+
+    // Hover: replace label with down chevron (▼)
+    h1:not(.nc-heading-collapsed):hover::before,
+    h2:not(.nc-heading-collapsed):hover::before,
+    h3:not(.nc-heading-collapsed):hover::before {
+      content: '';
+      width: 24px;
+      height: 16px;
+      display: inline-block;
+      background-color: var(--nc-content-gray-muted);
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor'%3E%3Cpolygon points='3,6 13,6 8,12'/%3E%3C/svg%3E");
+      mask-size: 16px 16px;
+      mask-position: left center;
+      mask-repeat: no-repeat;
+      cursor: pointer;
+    }
+    h1:not(.nc-heading-collapsed):hover::before { top: calc(1.625em * 1.3 - 16px - 2px); }
+    h2:not(.nc-heading-collapsed):hover::before { top: calc(1.3em * 1.35 - 16px - 2px); }
+    h3:not(.nc-heading-collapsed):hover::before { top: calc(1.125em * 1.4 - 16px - 2px); }
+
+    // Blockquotes: no collapse support
     blockquote h1::before,
     blockquote h2::before,
     blockquote h3::before {

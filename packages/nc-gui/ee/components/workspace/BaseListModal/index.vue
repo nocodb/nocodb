@@ -243,14 +243,8 @@ const displayedSections = computed(() => {
   return [{ type: filter, bases }]
 })
 
-// A specific filter is active but yields no bases in the selected workspace
-// (independent of search — shown even alongside other workspace results)
-const emptyFilterSection = computed(() => {
-  return modalState.activeFilter !== 'all' && displayedSections.value.every((section) => section.bases.length === 0)
-})
-
 const emptyFilterResult = computed(() => {
-  return displayedSections.value.every((section) => section.bases.length === 0) && !modalState.searchQuery.length
+  return displayedSections.value.every((section) => section.bases.length === 0)
 })
 
 // Other workspaces (not selected) that have matching base titles or workspace title
@@ -353,9 +347,9 @@ const otherWorkspaceSections = computed(() => {
 
 // Check if there are no search results
 const hasNoSearchResults = computed(() => {
+  if (!modalState.searchQuery) return false
   if (otherWorkspaceSections.value.length > 0) return false
-  if (workspaceBases.value.length === 0) return false
-  return displayedSections.value.length === 0 && modalState.searchQuery.length > 0
+  return displayedSections.value.every((section) => section.bases.length === 0)
 })
 
 // Workspace handlers
@@ -549,10 +543,37 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               :is-base-private="baseCheckers.private"
             />
 
-            <!-- No results for the active filter in the selected workspace -->
+            <GeneralOverlay
+              v-if="isProjectsLoading && emptyFilterResult"
+              :model-value="true"
+              inline
+              transition
+              class="!bg-opacity-15"
+              data-testid="nc-base-list-loading"
+            >
+              <div class="flex flex-col items-center justify-center h-full w-full">
+                <a-spin size="large" />
+              </div>
+            </GeneralOverlay>
+
+            <!-- No Search Results -->
             <div
-              v-if="emptyFilterSection"
-              class="flex flex-col items-center justify-center py-6 text-nc-content-gray-muted !children:my-0"
+              v-else-if="hasNoSearchResults"
+              class="h-full px-2 py-6 text-nc-content-gray-muted flex flex-col items-center justify-center gap-6 text-center"
+            >
+              <img
+                src="~assets/img/placeholder/no-search-result-found.png"
+                class="!w-[164px] flex-none"
+                alt="No search results found"
+              />
+
+              {{ $t('title.noResultsMatchedYourSearch') }}
+            </div>
+
+            <!-- Empty State -->
+            <div
+              v-else-if="emptyFilterResult"
+              class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
             >
               <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
             </div>
@@ -604,41 +625,6 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
                 </div>
               </template>
             </template>
-
-            <GeneralOverlay
-              v-if="isProjectsLoading && emptyFilterResult"
-              :model-value="true"
-              inline
-              transition
-              class="!bg-opacity-15"
-              data-testid="nc-base-list-loading"
-            >
-              <div class="flex flex-col items-center justify-center h-full w-full">
-                <a-spin size="large" />
-              </div>
-            </GeneralOverlay>
-
-            <!-- Empty State -->
-            <div
-              v-else-if="emptyFilterResult"
-              class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
-            >
-              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
-            </div>
-
-            <!-- No Search Results -->
-            <div
-              v-else-if="hasNoSearchResults"
-              class="h-full px-2 py-6 text-nc-content-gray-muted flex flex-col items-center justify-center gap-6 text-center"
-            >
-              <img
-                src="~assets/img/placeholder/no-search-result-found.png"
-                class="!w-[164px] flex-none"
-                alt="No search results found"
-              />
-
-              {{ $t('title.noResultsMatchedYourSearch') }}
-            </div>
           </div>
         </div>
       </div>

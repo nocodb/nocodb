@@ -13441,20 +13441,24 @@
       }
     },
     "/api/v2/public/oauth/client/{clientId}": {
-      "parameters": [{
-        "schema": {
-          "type": "string",
-          "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
-        },
-        "name": "clientId",
-        "in": "path",
-        "required": true,
-        "description": "Client Id"
-      }],
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "description": "Client Id"
+        }
+      ],
       "get": {
         "summary": "Get OAuth Client Information",
         "description": "Retrieve public information about an OAuth client for authorization display",
-        "tags": ["OAuth"],
+        "tags": [
+          "OAuth"
+        ],
         "responses": {
           "200": {
             "description": "OAuth client information",
@@ -13516,31 +13520,19 @@
                     },
                     "client_type": {
                       "type": "string",
-                      "enum": ["public", "confidential"],
+                      "enum": [
+                        "public",
+                        "confidential"
+                      ],
                       "description": "OAuth client type"
                     }
                   },
-                  "required": ["client_id", "client_name", "redirect_uris", "client_type"]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "OAuth client not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "string",
-                      "example": "client_not_found"
-                    },
-                    "error_description": {
-                      "type": "string",
-                      "example": "The requested OAuth client does not exist"
-                    }
-                  }
+                  "required": [
+                    "client_id",
+                    "client_name",
+                    "redirect_uris",
+                    "client_type"
+                  ]
                 }
               }
             }
@@ -13564,13 +13556,35 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "OAuth client not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "client_not_found"
+                    },
+                    "error_description": {
+                      "type": "string",
+                      "example": "The requested OAuth client does not exist"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/v2/oauth/authorize": {
       "post": {
-        "tags": ["OAuth"],
+        "tags": [
+          "OAuth"
+        ],
         "summary": "OAuth Authorization",
         "description": "Handle OAuth authorization request with user approval/denial",
         "operationId": "authorize",
@@ -13580,7 +13594,10 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["client_id", "redirect_uri"],
+                "required": [
+                  "client_id",
+                  "redirect_uri"
+                ],
                 "properties": {
                   "client_id": {
                     "type": "string",
@@ -13610,7 +13627,10 @@
                   },
                   "code_challenge_method": {
                     "type": "string",
-                    "enum": ["S256", "plain"],
+                    "enum": [
+                      "S256",
+                      "plain"
+                    ],
                     "description": "PKCE code challenge method",
                     "example": "S256"
                   }
@@ -21148,6 +21168,269 @@
           "required": false
         }
       ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users": {
+      "get": {
+        "summary": "Workspace users list",
+        "operationId": "workspace-user-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUserList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace users list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "boolean"
+          },
+          "name": "includeDeleted",
+          "in": "query"
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users/{userId}": {
+      "get": {
+        "summary": "Workspace user read",
+        "operationId": "workspace-user-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUser"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user read"
+      },
+      "patch": {
+        "summary": "Update workspace user",
+        "operationId": "workspace-user-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update workspace user"
+      },
+      "delete": {
+        "summary": "Delete workspace user",
+        "operationId": "workspace-user-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace User"
+        ],
+        "description": "Delete workspace user"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/invitations": {
+      "post": {
+        "summary": "Workspace user invite",
+        "operationId": "workspace-user-invite",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceUserInvite"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user invite"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/workspaces/{workspaceId}/integrations": {
+      "get": {
+        "summary": "List integrations",
+        "operationId": "workspace-integration-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "List integrations",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Integrations"
+            },
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeDatabaseInfo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create integration",
+        "operationId": "workspace-integration-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Create integration"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
     }
   },
   "components": {
@@ -24482,13 +24765,17 @@
             "id": "string",
             "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
             "null": null,
-            "operation": ["insert"],
+            "operation": [
+              "insert"
+            ],
             "retries": 10,
             "retry_interval": 60000,
             "timeout": 60000,
             "title": "My Webhook",
             "trigger_field": false,
-            "trigger_fields": ["c2965755662b"]
+            "trigger_fields": [
+              "c2965755662b"
+            ]
           }
         ],
         "title": "Hook Model",
@@ -24680,7 +24967,7 @@
           },
           "operation": {
             "type": "array",
-            "items" : {
+            "items": {
               "enum": [
                 "insert",
                 "update",
@@ -26825,7 +27112,10 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "enum": ["user", "team"],
+                        "enum": [
+                          "user",
+                          "team"
+                        ],
                         "description": "Type of the subject"
                       },
                       "id": {
@@ -26833,7 +27123,10 @@
                         "description": "ID of the subject"
                       }
                     },
-                    "required": ["type", "id"]
+                    "required": [
+                      "type",
+                      "id"
+                    ]
                   }
                 }
               },
@@ -30522,6 +30815,84 @@
             "description": "Wrap column headers in this level"
           }
         }
+      },
+      "WorkspaceUser": {
+        "description": "",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "fk_user_id": {
+            "type": "string"
+          },
+          "invite_accepted": {
+            "type": "boolean"
+          },
+          "invite_token": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        },
+        "title": "Workspace User",
+        "type": "object",
+        "x-internal": false
+      },
+      "WorkspaceUserInvite": {
+        "description": "",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        },
+        "title": "Workspace User Invite",
+        "type": "object",
+        "x-internal": false
+      },
+      "WorkspaceUserList": {
+        "description": "",
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceUser"
+            },
+            "type": "array"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "type": "object"
+      },
+      "IntegrationList": {
+        "description": "Model for Integration List",
+        "title": "Integration List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "description": "List of Integration Models",
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/Integration"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Pagination Info"
+          }
+        },
+        "required": [
+          "list",
+          "pageInfo"
+        ]
       }
     },
     "responses": {

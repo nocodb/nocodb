@@ -244,6 +244,15 @@ const FEATURES = [
     version: 1,
     isEE: true,
   },
+  {
+    id: 'team_hierarchy',
+    title: 'Team Hierarchy',
+    description: 'Organize the teams in nested hierarchy',
+    enabled: false,
+    version: 1,
+    isEE: true,
+    isEngineering: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

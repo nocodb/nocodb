@@ -16,7 +16,7 @@ const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { teams, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { teams, activeWorkspaceId, isTeamsHierarchyEnabled } = storeToRefs(workspaceStore)
 
 const { getTeamBreadcrumb, moveTeam, getTeamDescendantIds } = workspaceStore
 
@@ -262,7 +262,7 @@ watch(
     </a-form>
 
     <!-- Team hierarchy breadcrumb -->
-    <div v-if="breadcrumb.length > 1" class="mt-4">
+    <div v-if="breadcrumb.length > 1 && isTeamsHierarchyEnabled" class="mt-4">
       <div class="text-[13px] text-nc-content-gray mb-1">{{ $t('labels.teamHierarchy') }}</div>
       <div class="flex items-center gap-1 text-sm text-nc-content-gray-subtle flex-wrap">
         <template v-for="(crumb, idx) in breadcrumb" :key="crumb.id">
@@ -275,7 +275,7 @@ watch(
     </div>
 
     <!-- Move team -->
-    <div v-if="!readOnly" class="mt-4">
+    <div v-if="!readOnly && isTeamsHierarchyEnabled" class="mt-4">
       <div class="text-[13px] text-nc-content-gray mb-1">{{ $t('labels.parentTeam') }}</div>
       <div class="flex items-center gap-2">
         <NcSelect

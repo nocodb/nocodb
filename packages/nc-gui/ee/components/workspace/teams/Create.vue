@@ -18,7 +18,7 @@ const workspaceStore = useWorkspace()
 
 const { createTeam: _createTeam } = workspaceStore
 
-const { teams, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { teams, activeWorkspaceId, isTeamsHierarchyEnabled } = storeToRefs(workspaceStore)
 
 const inputEl = ref<HTMLInputElement>()
 
@@ -235,7 +235,7 @@ watch(vVisible, (newValue) => {
             </div>
           </a-form-item>
 
-          <a-form-item class="!mb-0">
+          <a-form-item v-if="isTeamsHierarchyEnabled" class="!mb-0">
             <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center">
               <span class="text-[13px]">
                 {{ $t('labels.parentTeam') }}

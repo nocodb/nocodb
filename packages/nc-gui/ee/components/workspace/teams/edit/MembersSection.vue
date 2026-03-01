@@ -29,7 +29,7 @@ const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { collaboratorsMap, activeWorkspaceId, editTeamDetails } = storeToRefs(workspaceStore)
+const { collaboratorsMap, activeWorkspaceId, editTeamDetails, isTeamsHierarchyEnabled } = storeToRefs(workspaceStore)
 
 const teamMembers = computed<TeamMember[]>(() => {
   return (editTeamDetails.value?.members || []).map((member) => ({
@@ -481,7 +481,7 @@ onMounted(() => {
     </NcTable>
 
     <!-- Inherited members from parent teams -->
-    <div v-if="inheritedMembers.length" class="mt-6">
+    <div v-if="inheritedMembers.length && isTeamsHierarchyEnabled" class="mt-6">
       <div class="nc-modal-teams-edit-content-section-title text-bodyBold flex items-center gap-2 mb-4">
         {{ $t('labels.inheritedMembers') }}
         <NcBadge size="xs" color="gray" :border="false" class="text-captionBold">

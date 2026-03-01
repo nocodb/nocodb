@@ -36,7 +36,8 @@ const hasEditPermission = computed(() => {
 
 const workspaceStore = useWorkspace()
 
-const { teams, isTeamsLoading, collaboratorsMap, activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
+const { teams, isTeamsLoading, collaboratorsMap, activeWorkspace, isTeamsEnabled, isTeamsHierarchyEnabled } =
+  storeToRefs(workspaceStore)
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateUserSort } = useUserSorts('Teams')
 
@@ -506,7 +507,7 @@ onMounted(async () => {
                     {{ $t('general.edit') }}
                   </NcMenuItem>
                   <NcMenuItem
-                    v-if="(record.is_owner || isWsOwner) && (record.depth ?? 0) < 3"
+                    v-if="(record.is_owner || isWsOwner) && (record.depth ?? 0) < 3 && isTeamsHierarchyEnabled"
                     v-e="['c:team:add-sub-team', { teamId: record.id }]"
                     @click="handleCreateSubTeam(record as TeamV3V3Type)"
                   >

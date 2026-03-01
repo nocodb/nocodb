@@ -669,6 +669,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isTeamsEnabled = computed(() => isEeUI)
 
+  const isTeamsHierarchyEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.TEAM_HIERARCHY))
+
   const isTeamsLoading = ref(true)
 
   const teams = ref<TeamV3V3Type[]>([])
@@ -1400,6 +1402,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     onRemoveTeamMembers,
     updateTeamMembers,
     onUpdateTeamMembers,
+    isTeamsHierarchyEnabled,
 
     // Workspace Teams
     isLoadingWorkspaceTeams,

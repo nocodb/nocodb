@@ -12021,14 +12021,14 @@
                 "type": "object",
                 "description": "X-axis (category) configuration.",
                 "properties": {
-                  "column_id": { "type": "string", "description": "X-axis grouping column." },
+                  "field_id": { "type": "string", "description": "X-axis grouping field." },
                   "sort_by": { "type": "string", "enum": ["xAxis", "yAxis"], "description": "Sort by x-axis labels or y-axis values." },
                   "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
                   "include_empty_records": { "type": "boolean" },
                   "include_others": { "type": "boolean" },
                   "category_limit": { "type": "number", "description": "Max categories (10-50)." }
                 },
-                "required": ["column_id"]
+                "required": ["field_id"]
               },
               "y_axis": {
                 "type": "object",
@@ -12037,17 +12037,17 @@
                   "start_at_zero": { "type": "boolean" },
                   "fields": {
                     "type": "array",
-                    "description": "Columns to aggregate on the y-axis.",
+                    "description": "Fields to aggregate on the y-axis.",
                     "items": {
                       "type": "object",
                       "properties": {
-                        "column_id": { "type": "string" },
+                        "field_id": { "type": "string" },
                         "aggregation": { "type": "string" }
                       },
-                      "required": ["column_id", "aggregation"]
+                      "required": ["field_id", "aggregation"]
                     }
                   },
-                  "group_by": { "type": ["string", "null"], "description": "Optional secondary grouping column ID." }
+                  "group_by": { "type": ["string", "null"], "description": "Optional secondary grouping field ID." }
                 }
               }
             }
@@ -12084,14 +12084,14 @@
               "x_axis": {
                 "type": "object",
                 "properties": {
-                  "column_id": { "type": "string" },
+                  "field_id": { "type": "string" },
                   "sort_by": { "type": "string", "enum": ["xAxis", "yAxis"] },
                   "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
                   "include_empty_records": { "type": "boolean" },
                   "include_others": { "type": "boolean" },
                   "category_limit": { "type": "number" }
                 },
-                "required": ["column_id"]
+                "required": ["field_id"]
               },
               "y_axis": {
                 "type": "object",
@@ -12102,10 +12102,10 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "column_id": { "type": "string" },
+                        "field_id": { "type": "string" },
                         "aggregation": { "type": "string" }
                       },
-                      "required": ["column_id", "aggregation"]
+                      "required": ["field_id", "aggregation"]
                     }
                   },
                   "group_by": { "type": ["string", "null"] }
@@ -12147,14 +12147,14 @@
               "x_axis": {
                 "type": "object",
                 "properties": {
-                  "column_id": { "type": "string" },
+                  "field_id": { "type": "string" },
                   "sort_by": { "type": "string", "enum": ["xAxis", "yAxis"] },
                   "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
                   "include_empty_records": { "type": "boolean" },
                   "include_others": { "type": "boolean" },
                   "category_limit": { "type": "number" }
                 },
-                "required": ["column_id"]
+                "required": ["field_id"]
               },
               "y_axis": {
                 "type": "object",
@@ -12165,10 +12165,10 @@
                     "items": {
                       "type": "object",
                       "properties": {
-                        "column_id": { "type": "string" },
+                        "field_id": { "type": "string" },
                         "aggregation": { "type": "string" }
                       },
-                      "required": ["column_id", "aggregation"]
+                      "required": ["field_id", "aggregation"]
                     }
                   },
                   "group_by": { "type": ["string", "null"] }

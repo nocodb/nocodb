@@ -98,6 +98,11 @@ const FONT_KEYS: Record<string, string> = {
   lineHeight: 'line_height',
 };
 
+// column_id → field_id mapping for v3 API (x_axis, y_axis.fields[])
+const COLUMN_TO_FIELD_KEYS: Record<string, string> = {
+  column_id: 'field_id',
+};
+
 /**
  * Convert widget config from internal camelCase to API snake_case.
  * Explicit per-level key renaming — no recursive case transformation.
@@ -117,9 +122,15 @@ function mapConfigToSnakeCase(
     }
     if (data.x_axis && typeof data.x_axis === 'object') {
       data.x_axis = renameKeys(data.x_axis, CATEGORY_AXIS_KEYS);
+      data.x_axis = renameKeys(data.x_axis, COLUMN_TO_FIELD_KEYS);
     }
     if (data.y_axis && typeof data.y_axis === 'object') {
       data.y_axis = renameKeys(data.y_axis, Y_AXIS_KEYS);
+      if (Array.isArray(data.y_axis.fields)) {
+        data.y_axis.fields = data.y_axis.fields.map((f: Record<string, any>) =>
+          renameKeys(f, COLUMN_TO_FIELD_KEYS),
+        );
+      }
     }
 
     result.data = data;
@@ -170,9 +181,15 @@ function mapConfigToCamelCase(
     }
     if (data.xAxis && typeof data.xAxis === 'object') {
       data.xAxis = renameKeys(data.xAxis, invertMapping(CATEGORY_AXIS_KEYS));
+      data.xAxis = renameKeys(data.xAxis, invertMapping(COLUMN_TO_FIELD_KEYS));
     }
     if (data.yAxis && typeof data.yAxis === 'object') {
       data.yAxis = renameKeys(data.yAxis, invertMapping(Y_AXIS_KEYS));
+      if (Array.isArray(data.yAxis.fields)) {
+        data.yAxis.fields = data.yAxis.fields.map((f: Record<string, any>) =>
+          renameKeys(f, invertMapping(COLUMN_TO_FIELD_KEYS)),
+        );
+      }
     }
 
     result.data = data;

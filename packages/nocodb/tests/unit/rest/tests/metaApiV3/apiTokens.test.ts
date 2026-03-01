@@ -34,6 +34,7 @@ export default function () {
       expect(response.body.list).to.be.an('array');
     });
 
+    // spec uncertain
     it.skip('Create API Token v3', async () => {
       const response = await request(context.app)
         .post('/api/v3/meta/tokens')

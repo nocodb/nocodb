@@ -482,8 +482,9 @@ export default class BaseUser {
 
     // If workspaceId is provided, also select workspace_role for inheritance
     if (workspaceId) {
-      qb.select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
-        .leftJoin(MetaTable.WORKSPACE_USER, function () {
+      qb.select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`).leftJoin(
+        MetaTable.WORKSPACE_USER,
+        function () {
           this.on(
             `${MetaTable.WORKSPACE_USER}.fk_user_id`,
             ncMeta.knex.raw('?', [userId]),
@@ -491,14 +492,12 @@ export default class BaseUser {
             `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
             ncMeta.knex.raw('?', [workspaceId]),
           );
-        });
+        },
+      );
     }
 
     qb.leftJoin(MetaTable.PROJECT_USERS, function () {
-      this.on(
-        `${MetaTable.PROJECT_USERS}.base_id`,
-        `${MetaTable.PROJECT}.id`,
-      );
+      this.on(`${MetaTable.PROJECT_USERS}.base_id`, `${MetaTable.PROJECT}.id`);
       this.andOn(
         `${MetaTable.PROJECT_USERS}.fk_user_id`,
         ncMeta.knex.raw('?', [userId]),
@@ -532,11 +531,7 @@ export default class BaseUser {
               '!=',
               ProjectRoles.INHERIT,
             )
-            .andWhere(
-              `${MetaTable.PROJECT_USERS}.roles`,
-              '!=',
-              'inherit',
-            );
+            .andWhere(`${MetaTable.PROJECT_USERS}.roles`, '!=', 'inherit');
         }).orWhere(function () {
           // Priority 2: no explicit base role (or INHERIT) — fall through to workspace role
           this.where(function () {
@@ -546,11 +541,7 @@ export default class BaseUser {
                 '=',
                 ProjectRoles.INHERIT,
               )
-              .orWhere(
-                `${MetaTable.PROJECT_USERS}.roles`,
-                '=',
-                'inherit',
-              );
+              .orWhere(`${MetaTable.PROJECT_USERS}.roles`, '=', 'inherit');
           })
             .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
             .andWhere(

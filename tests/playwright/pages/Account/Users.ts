@@ -70,10 +70,19 @@ export class AccountUsersPage extends BasePage {
   }
 
   async getUserRow({ email }: { email: string }) {
-    // ensure page is loaded
     email = this.prefixEmail(email);
 
     const userRow = this.get().locator(`.nc-table-row:has-text("${email}")`).first();
+
+    // If not on the current page, try next pages
+    if (!(await userRow.isVisible())) {
+      const nextBtn = this.rootPage.locator('.ant-pagination-next:not(.ant-pagination-disabled)');
+      while (await nextBtn.isVisible()) {
+        await nextBtn.click();
+        await this.rootPage.waitForTimeout(500);
+        if (await userRow.isVisible()) break;
+      }
+    }
 
     await userRow.waitFor({ state: 'visible' });
 

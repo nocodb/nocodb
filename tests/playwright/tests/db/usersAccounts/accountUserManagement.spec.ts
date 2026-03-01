@@ -127,6 +127,10 @@ test.describe('User roles', () => {
     }
 
     // Step 5: Verify access — log in as each user and check "Create Base" button visibility
+    // Each user gets their own "Default Workspace" (owner) on signup, so we must
+    // select the invited workspace in the base list modal before checking the button.
+    const invitedWsTitle = context.workspace.title;
+
     for (let i = 0; i < roleDb.length; i++) {
       await dashboard.signOut();
       await loginPage.signIn({
@@ -139,6 +143,9 @@ test.describe('User roles', () => {
 
       await dashboard.leftSidebar.verifyBaseListOpen(true);
       await dashboard.leftSidebar.openBaseListModal();
+
+      // Select the invited workspace (not the user's own default workspace)
+      await dashboard.leftSidebar.baseListModal.selectWorkspace(invitedWsTitle);
 
       if (roleDb[i].role === 'creator') {
         await expect(dashboard.leftSidebar.btn_newProject.last()).toBeVisible();

@@ -43,6 +43,7 @@ const workflowBuilder = builderGenerator<Workflow, WorkflowV3GetResponseType>({
   ],
   mappings: {
     fk_workspace_id: 'workspace_id',
+    meta: 'options',
   },
 });
 
@@ -164,9 +165,11 @@ export class WorkflowsV3Service {
       context,
     );
 
+    const { options, ...rest } = body;
+
     const workflow = await this.workflowsService.createWorkflow(
       context,
-      body,
+      { ...rest, ...(options !== undefined ? { meta: options } : {}) },
       req,
     );
 
@@ -188,10 +191,12 @@ export class WorkflowsV3Service {
       context,
     );
 
+    const { options, ...rest } = body;
+
     const workflow = await this.workflowsService.updateWorkflow(
       context,
       id,
-      body,
+      { ...rest, ...(options !== undefined ? { meta: options } : {}) },
       req,
     );
 

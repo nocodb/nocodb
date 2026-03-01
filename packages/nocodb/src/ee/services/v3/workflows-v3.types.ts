@@ -1,5 +1,13 @@
 import type { WorkflowGeneralEdge, WorkflowGeneralNode } from 'nocodb-sdk';
 
+export type WorkflowV3OptionsType = {
+  run_as?: {
+    type: 'service_account' | 'role' | 'user';
+    value?: string;
+  };
+  icon?: string;
+};
+
 export type WorkflowV3ListItemType = {
   id: string;
   title: string;
@@ -28,7 +36,7 @@ export type WorkflowV3GetResponseType = {
   nodes: WorkflowGeneralNode[];
   edges: WorkflowGeneralEdge[];
   draft: Record<string, unknown>;
-  meta: Record<string, unknown>;
+  options: WorkflowV3OptionsType;
   order: number;
   created_at: string;
   updated_at: string;
@@ -39,14 +47,14 @@ export type WorkflowV3GetResponseType = {
 export type WorkflowV3CreateReqType = {
   title: string;
   description?: string;
-  meta?: Record<string, unknown>;
+  options?: WorkflowV3OptionsType;
 };
 
 export type WorkflowV3UpdateReqType = {
   title?: string;
   description?: string;
   enabled?: boolean;
-  meta?: Record<string, unknown>;
+  options?: WorkflowV3OptionsType;
   order?: number;
 };
 

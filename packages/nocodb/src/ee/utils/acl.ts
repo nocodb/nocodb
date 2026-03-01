@@ -76,7 +76,13 @@ const permissionScopes = {
     'apiTokenDelete',
 
     // User
+    'userList',
+    'userAdd',
+    'userUpdate',
+    'userDelete',
     'passwordChange',
+    'userInviteResend',
+    'generateResetUrl',
 
     // Workspace Parent
     'workspaceList',
@@ -92,6 +98,9 @@ const permissionScopes = {
     // Misc
     'commandPalette',
     'baseListAll',
+    'instanceAdminStats',
+    'instanceAdminWorkspaces',
+    'instanceAdminBases',
     'testConnection',
     'genericGPT',
 
@@ -1050,7 +1059,13 @@ const permissionDescriptions: Record<string, string> = {
   apiTokenCreate: 'create a new API token',
   apiTokenDelete: 'delete an API token',
 
+  userList: 'view list of users',
+  userAdd: 'add a new user',
+  userUpdate: 'update user details',
+  userDelete: 'delete a user',
   passwordChange: 'change your password',
+  userInviteResend: 'resend user invitation',
+  generateResetUrl: 'generate a password reset URL',
 
   workspaceList: 'view list of workspaces',
   workspaceCreate: 'create a new workspace',
@@ -1063,6 +1078,9 @@ const permissionDescriptions: Record<string, string> = {
 
   commandPalette: 'access the command palette',
   baseListAll: 'list all workspaces and bases',
+  instanceAdminStats: 'view instance admin statistics',
+  instanceAdminWorkspaces: 'list all workspaces in instance admin',
+  instanceAdminBases: 'list all bases in instance admin',
   testConnection: 'test connection to a service',
   genericGPT: 'use generic GPT functionality',
 

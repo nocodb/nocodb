@@ -412,4 +412,15 @@ export const presetErrorCodexMap: Partial<
     message: (method: string) => `Method ${method} not allowed`,
     code: 405,
   },
+  [NcErrorType.ERR_LICENSE_REQUIRED]: {
+    message: (feature: string) =>
+      feature
+        ? `The "${feature}" feature requires an Enterprise license.`
+        : 'This feature requires an Enterprise license.',
+    code: 402,
+  },
+  [NcErrorType.ERR_LICENSE_SUSPENDED]: {
+    message: 'Your license has been suspended. Please contact support.',
+    code: 403,
+  },
 };

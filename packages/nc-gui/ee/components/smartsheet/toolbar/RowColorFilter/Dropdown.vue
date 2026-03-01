@@ -50,7 +50,7 @@ const {
   view: activeView,
 })
 
-const { showUpgradeToUseRowColoring } = useEeConfig()
+const { showUpgradeToUseRowColoring, isEEFeatureBlocked } = useEeConfig()
 
 const openLocal = ref(false)
 
@@ -121,6 +121,7 @@ watch(open, (value) => {
               {{ $t('general.colour') }}
             </span>
           </div>
+          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
           <span
             v-if="rowColoringCount"
             class="bg-nc-bg-maroon-dark group-hover:bg-nc-maroon-200 text-nc-maroon-700 nc-toolbar-btn-chip"

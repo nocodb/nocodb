@@ -7,13 +7,15 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { isUIAllowed } = useRoles()
 
-  const { ncNavigateTo } = useGlobal()
+  const { ncNavigateTo, appInfo } = useGlobal()
 
   const { t } = useI18n()
 
   const { refreshCommandPalette } = useCommandPalette()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const { showUpgradeToUseWorkflows } = useEeConfig()
 
   const router = useRouter()
 
@@ -385,8 +387,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
+  const { blockWorkflows } = useEeConfig()
+
   const loadWorkflowNodes = async () => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
+    if (blockWorkflows.value) return
+
     try {
       const response = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
         operation: 'workflowNodes',
@@ -554,6 +560,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
     scrollOnCreate?: boolean
   }) {
     if (!baseId) return
+
+    if (!appInfo.value?.ee) {
+      showUpgradeToUseWorkflows()
+      return
+    }
 
     const isDlgOpen = ref(true)
 

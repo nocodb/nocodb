@@ -314,6 +314,11 @@ export const useBases = defineStore('basesStore', () => {
     return !!(base.sources?.length && tableStore.baseTables.get(baseId) && base.permissions?.length)
   }
 
+  function setProjectsLoaded() {
+    isProjectsLoading.value = false
+    isProjectsLoaded.value = true
+  }
+
   // actions
   const loadProject = async (baseId: string, force = false) => {
     if (!force && isProjectPopulated(baseId)) return bases.value.get(baseId)
@@ -770,6 +775,7 @@ export const useBases = defineStore('basesStore', () => {
     isProjectPopulated,
     isProjectsLoading,
     isProjectsLoaded,
+    setProjectsLoaded,
     activeProjectId,
     openedProject,
     openedProjectBasesMap,

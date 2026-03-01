@@ -1,19 +1,24 @@
 import { WorkspaceUserRoles } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { User } from '~/models';
 import {
   MetaTable,
   NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
   RootScopes,
 } from '~/utils/globals';
+import { isOnPrem } from '~/utils';
 import Noco from '~/Noco';
-import { isEE } from '~/utils';
+import WorkspaceUser from '~/models/WorkspaceUser';
+
+const logger = new Logger('verifyDefaultWorkspace');
 
 export const verifyDefaultWorkspace = async (
   user?: User,
   ncMeta = Noco.ncMeta,
 ) => {
-  // if ee do not need to handle this
-  if (isEE) {
+  // Skip for cloud/pure EE — they manage workspaces via EE service.
+  // On-prem always needs a default workspace regardless of license state.
+  if (Noco.isEE() && !isOnPrem) {
     return;
   }
 
@@ -99,8 +104,8 @@ export const verifyDefaultWorkspace = async (
 };
 
 export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
-  // if ee do not need to handle this
-  if (isEE) {
+  // Skip for cloud/pure EE — on-prem always needs default workspace owner
+  if (Noco.isEE() && !isOnPrem) {
     return;
   }
 
@@ -143,11 +148,48 @@ export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
   // however if user has workspace role but not owner, we update
   else if (workspaceUser.roles !== WorkspaceUserRoles.OWNER) {
     await ncMeta
-      .knexConnection(MetaTable.WORKSPACE)
+      .knexConnection(MetaTable.WORKSPACE_USER)
       .where('fk_workspace_id', Noco.ncDefaultWorkspaceId)
       .andWhere('fk_user_id', user.id)
       .update({
         roles: WorkspaceUserRoles.OWNER,
       });
+  }
+};
+
+/**
+ * Ensures a user has a workspace_user entry in the default workspace.
+ * Used for non-first signups and org-user invites (CE + on-prem).
+ * Cloud EE manages workspace membership via its own EE service — skip there.
+ *
+ * @param userId - The user ID to ensure membership for
+ * @param role - Workspace role to assign (default: NO_ACCESS — preserves existing behavior)
+ * @param ncMeta - Meta service instance
+ */
+export const ensureUserInDefaultWorkspace = async (
+  userId: string,
+  role: WorkspaceUserRoles = WorkspaceUserRoles.NO_ACCESS,
+  ncMeta = Noco.ncMeta,
+) => {
+  // Cloud EE manages workspace membership via its own service
+  if (Noco.isEE() && !isOnPrem) return;
+
+  if (!Noco.ncDefaultWorkspaceId) {
+    await verifyDefaultWorkspace(undefined, ncMeta);
+  }
+  if (!Noco.ncDefaultWorkspaceId) return;
+
+  try {
+    await WorkspaceUser.insert(
+      {
+        fk_workspace_id: Noco.ncDefaultWorkspaceId,
+        fk_user_id: userId,
+        roles: role,
+      },
+      ncMeta,
+    );
+  } catch {
+    // Already in workspace — ignore duplicate
+    logger.debug(`User ${userId} already in default workspace`);
   }
 };

@@ -445,7 +445,11 @@ export class TreeViewPage extends BasePage {
     title = this.scopedProjectTitle({ title, context });
 
     // Ensure the base is active/open in the sidebar (opens from modal if needed)
-    await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: title, open: true });
+    await this.dashboard.sidebar.baseNode.verifyActiveProject({
+      baseTitle: title,
+      baseId: context.base.id,
+      open: true,
+    });
 
     await this.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
 

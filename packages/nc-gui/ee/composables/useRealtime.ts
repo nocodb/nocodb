@@ -5,7 +5,7 @@ import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 export const useRealtime = createSharedComposable(() => {
   const { $ncSocket, $eventBus } = useNuxtApp()
 
-  const { user, ncNavigateTo } = useGlobal()
+  const { user, ncNavigateTo, appInfo } = useGlobal()
 
   const { loadRoles } = useRoles()
 

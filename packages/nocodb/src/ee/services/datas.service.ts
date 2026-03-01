@@ -4,9 +4,10 @@ import { isLinksOrLTAR } from 'nocodb-sdk';
 import canUseOptimisedQuery from '../utils/canUseOptimisedQuery';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
-import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { View } from '~/models';
 import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
 import { Column, Filter, Model, Source } from '~/models';
@@ -21,6 +22,7 @@ export class DatasService extends DatasServiceCE {
     super();
   }
 
+  @EEOnly()
   async dataList(
     context: NcContext,
     param: (PathParams | { view?: View; model: Model }) & {
@@ -167,6 +169,7 @@ export class DatasService extends DatasServiceCE {
     return responseData;
   }
 
+  @EEOnly()
   async dataRead(
     context: NcContext,
     param: PathParams & {

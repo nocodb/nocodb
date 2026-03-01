@@ -147,6 +147,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     inviteOnlySignup: false,
     giftUrl: '',
     isOnPrem: false,
+    defaultWorkspaceId: null,
     disableGroupByAggregation: false,
     mapProvider: MapProvider.OPENSTREETMAP,
   })

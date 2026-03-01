@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { OrgUserRoles } from 'nocodb-sdk'
+
 type FilterType = 'all' | 'starred' | 'private' | 'owned' | 'managed'
 
 const props = defineProps<{
@@ -22,8 +24,12 @@ const { t } = useI18n()
 
 const { isMobileMode } = useGlobal()
 
+const { orgRoles } = useRoles()
+
 const isFilterDropdownOpen = ref(false)
 const isSearchFocused = ref(false)
+
+const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 // Filter options in priority order: Starred → Private → Managed → Owned
 const filterOptions = computed<NcListItemType[]>(() => [
@@ -35,7 +41,7 @@ const filterOptions = computed<NcListItemType[]>(() => [
         { value: 'managed', label: t('labels.managed'), icon: 'ncBox' },
       ]
     : []),
-  { value: 'owned', label: t('activity.ownedByMe'), icon: 'ncUser' },
+  ...(!isSuperAdmin.value ? [{ value: 'owned', label: t('activity.ownedByMe'), icon: 'ncUser' }] : []),
 ])
 
 const selectedFilter = computed(() => {

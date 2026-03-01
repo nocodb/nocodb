@@ -25,6 +25,8 @@ interface Props {
   featureEnabledCallback?: () => boolean
   onClickCallback?: () => void
   size?: 'xs' | 'sm' | 'md' | 'lg'
+  /** When true, renders a lock icon instead of the text badge when isEEFeatureBlocked */
+  showAsLock?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -37,7 +39,7 @@ const { disabled, removeClick } = toRefs(props)
 
 const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
 
-const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem } = useEeConfig()
+const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem, isEEFeatureBlocked } = useEeConfig()
 
 const isFeatureEnabled = computed(() => {
   if (ncIsFunction(props.featureEnabledCallback)) {
@@ -47,7 +49,9 @@ const isFeatureEnabled = computed(() => {
   return props.feature && getFeature(props.feature)
 })
 
-const activePlanMeta = computed(() => PlanMeta[props.planTitle])
+const effectivePlanTitle = computed(() => (isEEFeatureBlocked.value ? PlanTitles.ENTERPRISE : props.planTitle))
+
+const activePlanMeta = computed(() => PlanMeta[effectivePlanTitle.value])
 
 const showUpgradeModal = (e?: MouseEvent) => {
   if (e) {
@@ -56,7 +60,8 @@ const showUpgradeModal = (e?: MouseEvent) => {
     e.stopPropagation()
   }
 
-  if (isFeatureEnabled.value || !isPaymentEnabled.value) return
+  if (isFeatureEnabled.value) return
+  if (!isPaymentEnabled.value && !isOnPrem.value) return
 
   if (props.onClickCallback) {
     props.onClickCallback()
@@ -83,13 +88,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <NcTooltip v-if="!isFeatureEnabled && showAsLock && isEEFeatureBlocked" @click="showUpgradeModal">
+    <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
+    <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #c86827" />
+  </NcTooltip>
   <NcBadge
-    v-if="!isFeatureEnabled && (isPaymentEnabled || isOnPrem)"
+    v-else-if="!isFeatureEnabled && (isPaymentEnabled || isOnPrem)"
     :size="size"
     :border="false"
     class="nc-upgrade-badge cursor-pointer select-none"
     :class="[
-      `nc-upgrade-${planTitle}-badge nc-size-${size}`,
+      `nc-upgrade-${effectivePlanTitle}-badge nc-size-${size}`,
       {
         'opacity-75': disabled,
       },
@@ -101,7 +110,7 @@ onBeforeUnmount(() => {
     @click="showUpgradeModal"
   >
     <!-- <GeneralIcon  icon="ncArrowUpCircle" class="h-4 w-4 mr-1" /> -->
-    {{ getPlanTitle(planTitle) }}
+    {{ getPlanTitle(effectivePlanTitle) }}
   </NcBadge>
 </template>
 

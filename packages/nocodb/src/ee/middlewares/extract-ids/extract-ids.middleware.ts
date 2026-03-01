@@ -78,7 +78,9 @@ import {
 } from '~/helpers/paymentHelpers';
 import MCPToken from '~/models/MCPToken';
 import Widget from '~/models/Widget';
+import { isOnPrem } from '~/utils';
 import { isMuxEnabled } from '~/utils/envs';
+import Noco from '~/Noco';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 // Re-export VIEW_KEY for external consumers (previously defined here)
 export { VIEW_KEY };
@@ -540,6 +542,17 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       */
     } else {
       await this.legacyExtractIds(req);
+    }
+
+    // On-prem CE: block API access to non-default workspaces
+    if (
+      isOnPrem &&
+      !Noco.isEE() &&
+      req.ncWorkspaceId &&
+      Noco.ncDefaultWorkspaceId &&
+      req.ncWorkspaceId !== Noco.ncDefaultWorkspaceId
+    ) {
+      NcError.licenseRequired('workspaces');
     }
 
     await this.additionalValidation({ req, res, next });

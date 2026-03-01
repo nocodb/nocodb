@@ -3,7 +3,9 @@ import { FiltersService as FiltersServiceCE } from 'src/services/filters.service
 import { AppEvents, isLinksOrLTAR } from 'nocodb-sdk';
 import type { MetaService } from '~/meta/meta.service';
 import type { FilterReqType, UserType, WidgetType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import {
   type ViewWebhookManager,
   ViewWebhookManagerBuilder,
@@ -25,6 +27,7 @@ export class FiltersService extends FiltersServiceCE {
     super(appHooksService);
   }
 
+  @EEOnly()
   async filterCreate(
     context: NcContext,
     param: {

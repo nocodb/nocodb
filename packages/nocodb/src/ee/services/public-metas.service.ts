@@ -14,8 +14,9 @@ import {
   YearValidationType,
 } from 'nocodb-sdk';
 import { ViewRowColorService } from './view-row-color.service';
-import type { NcContext } from '~/interface/config';
 import type { CalendarRange, FormView, FormViewColumn, View } from '~/models';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import {
   Base,
   Column,
@@ -27,6 +28,7 @@ import {
 import ListViewLevel from '~/models/ListViewLevel';
 import { NcError } from '~/helpers/catchError';
 import { getFeature } from '~/helpers/paymentHelpers';
+import { isOnPrem } from '~/utils/constants';
 
 @Injectable()
 export class PublicMetasService extends PublicMetasServiceCE {
@@ -34,6 +36,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
     super();
   }
 
+  @EEOnly()
   async viewMetaGet(
     context: NcContext,
     param: { sharedViewUuid: string; password: string },
@@ -236,10 +239,12 @@ export class PublicMetasService extends PublicMetasServiceCE {
       workspace,
     );
 
-    const isUrlRedirectionEnabled = await getFeature(
-      PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION,
-      workspace,
-    );
+    const isUrlRedirectionEnabled =
+      isOnPrem ||
+      (await getFeature(
+        PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION,
+        workspace,
+      ));
 
     const isFieldValidationEnabled = await getFeature(
       PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,

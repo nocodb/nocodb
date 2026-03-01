@@ -76,7 +76,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
       <div class="flex flex-col gap-1 cursor-pointer">
         <RolesBadge data-testid="roles" :border="false" :role="effectiveRole || role" :size="size" clickable class="flex-none" />
         <div
-          v-if="showInherit && isEeUI && role === ProjectRoles.INHERIT && !!inherit"
+          v-if="showInherit && role === ProjectRoles.INHERIT && !!inherit"
           class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
         >
           <GeneralIcon icon="role_inherit" class="h-3 w-3" />

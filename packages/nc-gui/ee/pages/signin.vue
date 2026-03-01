@@ -28,5 +28,7 @@ onMounted(() => {
       <AuthSignin />
     </NuxtLayout>
   </template>
-  <span v-else />
+  <NuxtLayout v-else>
+    <AuthSignin />
+  </NuxtLayout>
 </template>

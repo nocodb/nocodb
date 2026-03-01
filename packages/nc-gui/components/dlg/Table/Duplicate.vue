@@ -47,7 +47,11 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { workspacesList, activeWorkspace } = useWorkspace()
 
+const { appInfo } = useGlobal()
+
 const { getFeature } = useEeConfig()
+
+const isEeActive = computed(() => isEeUI && appInfo.value?.ee)
 
 // #region target base
 const wsDropdownOpen = ref(false)
@@ -61,7 +65,7 @@ const targetTableMeta = computedAsync(async () => {
 
 const canTargetOtherBase = computed(() => {
   if (!targetTableMeta.value || (targetTableMeta.value.columns?.length ?? 0) === 0) return false
-  return isEeUI && !targetTableMeta.value.columns?.some((col) => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt!))
+  return isEeActive.value && !targetTableMeta.value.columns?.some((col) => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt!))
 })
 
 const isTargetOtherWsSufficientPlan = computed(() => {
@@ -69,7 +73,7 @@ const isTargetOtherWsSufficientPlan = computed(() => {
 })
 
 const workspaceOptions = computed(() => {
-  if (!isEeUI || !activeWorkspace) return []
+  if (!isEeActive.value || !activeWorkspace) return []
   if (!isTargetOtherWsSufficientPlan.value) return [activeWorkspace]
 
   return workspacesList.filter((ws) =>
@@ -84,7 +88,7 @@ const isTargetOtherBaseSufficientPlan = computed(() => {
 const targetBases: Ref<BaseType[]> = ref([])
 
 const refreshTargetBases = async () => {
-  if (!isEeUI || !targetWorkspace.value) {
+  if (!isEeActive.value || !targetWorkspace.value) {
     targetBases.value = []
     return
   }
@@ -294,7 +298,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div v-if="isEeUI" class="mb-5">
+      <div v-if="isEeActive" class="mb-5">
         <NcDivider divider-class="!my-5" />
 
         <div v-if="isTargetOtherWsSufficientPlan" class="text-nc-content-gray font-medium leading-5 mb-2">

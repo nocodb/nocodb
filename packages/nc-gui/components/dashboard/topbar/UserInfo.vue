@@ -52,9 +52,7 @@ onMounted(() => {
   isMounted.value = true
 })
 
-const accountUrl = computed(() => {
-  return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
-})
+const accountUrl = computed(() => '/account/profile')
 </script>
 
 <template>

@@ -27,9 +27,11 @@ import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { License } from '~/decorators/license.decorator';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
+@License('teams')
 export class TeamsV3Controller {
   constructor(protected readonly teamsV3Service: TeamsV3Service) {}
 

@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { BulkDataAliasService as BulkDataAliasServiceCE } from 'src/services/bulk-data-alias.service';
 import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
 
 @Injectable()
 export class BulkDataAliasService extends BulkDataAliasServiceCE {
   // todo: Integrate with filterArrJson bulkDataUpdateAll
+  @EEOnly()
   async bulkDataInsert(
     context: NcContext,
     param: PathParams & {

@@ -83,14 +83,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'import_from_nocodb',
-    title: 'OSS to Enterprise migration',
-    description: 'Enable import from NocoDB OSS instance to Enterprise Edition.',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
     id: 'sync_beta_feature',
     title: 'Advanced Sync Features',
     description: 'Enable sync beta features like custom sync, multi source sync, etc.',

@@ -13,6 +13,8 @@ const { $e } = useNuxtApp()
 
 const { isMobileMode } = useGlobal()
 
+const { isEEFeatureBlocked } = useEeConfig()
+
 const { isUIAllowed } = useRoles()
 
 const isScriptsCreateOrEditAllowed = computed(() => isUIAllowed('scriptCreateOrEdit'))
@@ -216,6 +218,7 @@ watchEffect(() => {
                   <div>
                     {{ $t('objects.script') }}
                   </div>
+                  <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
                 </div>
 
                 <GeneralIcon class="plus" icon="plus" />
@@ -229,6 +232,7 @@ watchEffect(() => {
                     {{ $t('objects.workflow') }}
                   </div>
                   <NcBadgeBeta />
+                  <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
                 </div>
                 <GeneralIcon class="plus" icon="plus" />
               </div>

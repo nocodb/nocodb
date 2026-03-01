@@ -2,8 +2,11 @@ import {
   extractRolesObj,
   IconType,
   ncIsObject,
+  OrgUserRoles,
   ProjectRoles,
   type UserType,
+  WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { MetaType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -18,6 +21,7 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
+import WorkspaceUser from '~/models/WorkspaceUser';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
 import { normalizeEmail } from '~/utils/emailUtils';
@@ -426,6 +430,18 @@ export default class User implements UserType {
 
     if (!user) NcError.userNotFound(userId);
 
+    // Super admin is treated as owner of all workspaces and bases
+    if (extractRolesObj(user.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+      return {
+        ...sanitiseUserObj(user),
+        roles: extractRolesObj(user.roles),
+        workspace_roles: args.workspaceId
+          ? { [WorkspaceUserRoles.OWNER]: true }
+          : null,
+        base_roles: args.baseId ? { [ProjectRoles.OWNER]: true } : null,
+      } as any;
+    }
+
     const baseRoles = await new Promise((resolve) => {
       if (args.baseId) {
         BaseUser.get(context, args.baseId, user.id, ncMeta).then(
@@ -451,13 +467,47 @@ export default class User implements UserType {
       }
     });
 
+    let workspaceRoles: Record<string, boolean> | null = null;
+
+    if (args.workspaceId) {
+      const wsUser = await WorkspaceUser.get(
+        args.workspaceId,
+        user.id,
+        {},
+        ncMeta,
+      );
+      if (wsUser?.roles) {
+        workspaceRoles = extractRolesObj(wsUser.roles);
+      }
+    }
+
+    // If no explicit base role, inherit from workspace role
+    let effectiveBaseRoles = baseRoles;
+    if (!effectiveBaseRoles && workspaceRoles) {
+      const wsRoleStr = Object.keys(workspaceRoles).find(
+        (k) => workspaceRoles[k],
+      ) as WorkspaceUserRoles | undefined;
+      if (wsRoleStr) {
+        const projectRole = WorkspaceRolesToProjectRoles[wsRoleStr];
+        if (
+          projectRole &&
+          projectRole !== ProjectRoles.NO_ACCESS &&
+          projectRole !== ProjectRoles.INHERIT
+        ) {
+          effectiveBaseRoles = extractRolesObj(projectRole);
+        }
+      }
+    }
+
     return {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
-      base_roles: baseRoles ? baseRoles : null,
+      base_roles: effectiveBaseRoles ? effectiveBaseRoles : null,
+      workspace_roles: workspaceRoles,
     } as UserType & {
       roles: Record<string, boolean>;
       base_roles: Record<string, boolean>;
+      workspace_roles: Record<string, boolean>;
     };
   }
 

@@ -1,5 +1,6 @@
 import type { HookLogType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import dayjs from 'dayjs';
 import Hook from '~/models/Hook';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -46,6 +47,18 @@ export default class HookLog implements HookLogType {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    const xcCondition: Record<string, any> = {};
+
+    if (process.env.NC_AUTOMATION_LOG_LEVEL === 'ERROR') {
+      xcCondition.error_message = { neq: null };
+    }
+
+    if (!Noco.isEE()) {
+      xcCondition.created_at = {
+        ge: dayjs().subtract(7, 'days').toISOString(),
+      };
+    }
+
     const hookLogs = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
@@ -54,13 +67,7 @@ export default class HookLog implements HookLogType {
         condition: {
           fk_hook_id: param.fk_hook_id,
         },
-        ...(process.env.NC_AUTOMATION_LOG_LEVEL === 'ERROR' && {
-          xcCondition: {
-            error_message: {
-              neq: null,
-            },
-          },
-        }),
+        ...(Object.keys(xcCondition).length && { xcCondition }),
         orderBy: {
           created_at: 'desc',
         },
@@ -142,6 +149,14 @@ export default class HookLog implements HookLogType {
       (isOnPrem && process.env.NC_AUTOMATION_LOG_LEVEL !== 'OFF')
     ) {
       qb.whereNotNull(`${MetaTable.HOOK_LOGS}.error_message`);
+    }
+
+    if (!Noco.isEE()) {
+      qb.where(
+        `${MetaTable.HOOK_LOGS}.created_at`,
+        '>=',
+        dayjs().subtract(7, 'days').toISOString(),
+      );
     }
 
     return (await qb.count('id', { as: 'count' }).first())?.count ?? 0;

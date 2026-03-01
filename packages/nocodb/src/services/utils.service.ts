@@ -498,7 +498,7 @@ export class UtilsService {
         process.env.NODE_ENV === 'test',
       ...(isEE === false
         ? {
-            ncDefaultWorkspaceId: Noco.ncDefaultWorkspaceId || null,
+            defaultWorkspaceId: Noco.ncDefaultWorkspaceId || null,
           }
         : {}),
     };

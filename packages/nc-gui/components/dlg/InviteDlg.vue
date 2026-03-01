@@ -134,6 +134,9 @@ watch(dialogShow, async (newVal) => {
         // todo: remove this check once teams are enabled by default
         if (props.isTeam || !isTeamsEnabled.value) {
           filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
+
+          // Recompute index against filteredRoles since removing INHERIT shifts positions
+          currentRoleIndex = filteredRoles.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
         }
 
         allowedRoles.value = filteredRoles.slice(currentRoleIndex)

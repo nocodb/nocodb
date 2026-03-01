@@ -23,9 +23,11 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { BaseMembersV3Service } from '~/services/v3/base-members-v3.service';
 import { checkForFeature } from '~/helpers/paymentHelpers';
+import { License } from '~/decorators/license.decorator';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
+@License('base-members')
 export class BaseMembersV3Controller {
   constructor(protected readonly baseMembersV3Service: BaseMembersV3Service) {}
 

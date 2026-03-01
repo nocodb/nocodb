@@ -329,5 +329,12 @@ export class NcError {
   static pluginTestError(message: string, args?: NcErrorArgs): never {
     return NcError._.pluginTestError(message, args);
   }
+  static licenseRequired(feature?: string, args?: NcErrorArgs): never {
+    return NcError._.licenseRequired(feature, args);
+  }
+
+  static licenseSuspended(args?: NcErrorArgs): never {
+    return NcError._.licenseSuspended(args);
+  }
   /* endregion statics */
 }

@@ -50,7 +50,7 @@ pnpm run bootstrap          # Full EE setup (installs deps + builds SDK + builds
 cd packages/nocodb-sdk && pnpm run build:ee
 
 # Backend
-cd packages/nocodb && pnpm run watch:run:pg:ee     # EE dev with hot reload
+cd packages/nocodb && pnpm run watch:run:pg:ee     # EE local dev with hot reload
 
 # Frontend
 cd packages/nc-gui && pnpm run dev:ee              # EE dev with hot reload
@@ -68,9 +68,24 @@ EE code lives in `ee/` subdirectories that mirror CE structure. This applies acr
 - EE extends CE through class inheritance — never the other way
 - CE code must work standalone without EE code
 - Never import from `ee/` in CE code
-- Backend has three EE tiers: `ee/` (shared), `ee-cloud/` (cloud-specific), `ee-on-prem/` (on-prem-specific)
+- Backend has three EE code layers: `ee/` (shared EE), `ee-cloud/` (cloud-specific), `ee-on-prem/` (on-prem-specific)
 
 CRITICAL: EE `globals.ts` completely overrides CE — it does NOT inherit. When adding MetaTable/CacheScope entries in CE, you MUST also add them in `src/ee/utils/globals.ts` or values resolve to `undefined` at runtime.
+
+## Deployment Modes
+
+Three deployment modes, four runtime states. Feature gating depends on which mode is active.
+
+| Mode | Description | `isEeUI` | `appInfo.ee` | `isEEFeatureBlocked` | `isPaymentEnabled` |
+|------|-------------|----------|-------------|----------------------|---------------------|
+| **CE** | Open-source. No workspaces, no EE features. | `false` | `false` | `true` (stub) | `false` |
+| **On-Prem (unlicensed)** | Single Docker EE without license key. EE UI visible but features locked with upgrade badges. | `true` | `false` | `true` | `false` |
+| **On-Prem (licensed)** | Single Docker EE with valid license. All EE features unlocked. | `true` | `true` | `false` | `false` |
+| **Cloud** | Hosted SaaS. EE features gated per plan via `workspace.payment.plan.meta`. | `true` | `true` | `false` | `true` |
+
+**Common mistake:** Using `!isEEFeatureBlocked` to hide UI. On-Prem unlicensed should show features with upgrade badges — not hide them. Use `isEeUI` to hide only in CE.
+
+Details: backend build targets & gating → `packages/nocodb/CLAUDE.md`; frontend gating checks → `packages/nc-gui/CLAUDE.md`.
 
 ## Type Safety Flow
 

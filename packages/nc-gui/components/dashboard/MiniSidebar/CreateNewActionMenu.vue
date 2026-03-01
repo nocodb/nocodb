@@ -27,7 +27,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
+const { isEEFeatureBlocked, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
 
 const isVisibleCreateNew = ref(false)
 
@@ -206,6 +206,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="dashboards" />
                 {{ $t('general.dashboard') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>
@@ -308,6 +309,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="ncScript" />
                 {{ $t('general.script') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
             <NcTooltip
@@ -326,6 +328,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="ncAutomation" />
                 {{ $t('general.workflow') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>

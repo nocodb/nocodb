@@ -5,7 +5,8 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   const basesStore = useBases()
   const { workspaceBasesMap, bases, isProjectsLoaded } = storeToRefs(basesStore)
 
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  const workspaceStore = useWorkspace()
+  const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const { navigateToProject, getBaseUrl } = useGlobal()
   const { $api, $e } = useNuxtApp()
@@ -134,6 +135,9 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
   }
 
   const onSelect = async (base: NcProject) => {
+    // Prevent selecting bases in locked workspaces (CE mode, non-default)
+    if (workspaceStore.isWorkspaceCeLocked(base.fk_workspace_id)) return
+
     $e('a:workspace:base:select')
     closeModal()
 
@@ -149,6 +153,9 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 
   const switchWorkspace = async (workspaceId?: string) => {
     if (!workspaceId || activeWorkspaceId.value === workspaceId) return
+
+    // Prevent navigating to locked workspaces (CE mode, non-default)
+    if (workspaceStore.isWorkspaceCeLocked(workspaceId)) return
 
     $e('a:workspace:switch')
 

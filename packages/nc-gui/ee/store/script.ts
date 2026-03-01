@@ -6,13 +6,13 @@ export const useScriptStore = defineStore('script', () => {
   const { $api, $e } = useNuxtApp()
   const router = useRouter()
   const route = useRoute()
-  const { ncNavigateTo } = useGlobal()
+  const { ncNavigateTo, appInfo } = useGlobal()
   const bases = useBases()
   const { activeProjectId } = storeToRefs(bases)
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const { showScriptPlanLimitExceededModal, updateStatLimit } = useEeConfig()
+  const { showScriptPlanLimitExceededModal, showUpgradeToUseScripts, updateStatLimit } = useEeConfig()
 
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -393,6 +393,11 @@ export const useScriptStore = defineStore('script', () => {
     scrollOnCreate?: boolean
   }) {
     if (!baseId || showScriptPlanLimitExceededModal()) return
+
+    if (!appInfo.value?.ee) {
+      showUpgradeToUseScripts()
+      return
+    }
 
     const isDlgOpen = ref(true)
 

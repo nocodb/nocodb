@@ -1,4 +1,4 @@
-import { ProjectRoles } from 'nocodb-sdk';
+import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type User from '~/models/User';
@@ -160,7 +160,22 @@ export default class BaseUser {
           `${MetaTable.USERS}.meta`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
+          `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
         );
+
+      if (context.workspace_id) {
+        queryBuilder.innerJoin(MetaTable.WORKSPACE_USER, function () {
+          this.on(
+            `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+            '=',
+            ncMeta.knex.raw('?', [context.workspace_id]),
+          );
+        });
+      }
 
       queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
         this.on(
@@ -241,20 +256,33 @@ export default class BaseUser {
           `${MetaTable.USERS}.meta`,
           `${MetaTable.PROJECT_USERS}.base_id`,
           `${MetaTable.PROJECT_USERS}.roles as roles`,
+          `${MetaTable.WORKSPACE_USER}.roles as workspace_roles`,
         );
 
       const joinClause = strict_in_record ? 'innerJoin' : 'leftJoin';
-      queryBuilder[joinClause](MetaTable.PROJECT_USERS, function () {
-        this.on(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          '=',
-          `${MetaTable.USERS}.id`,
-        ).andOn(
-          `${MetaTable.PROJECT_USERS}.base_id`,
-          '=',
-          ncMeta.knex.raw('?', [base_id]),
-        );
-      });
+      queryBuilder
+        .innerJoin(MetaTable.WORKSPACE_USER, function () {
+          this.on(
+            `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+            '=',
+            ncMeta.knex.raw('?', [context.workspace_id]),
+          );
+        })
+        [joinClause](MetaTable.PROJECT_USERS, function () {
+          this.on(
+            `${MetaTable.PROJECT_USERS}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.PROJECT_USERS}.base_id`,
+            '=',
+            ncMeta.knex.raw('?', [base_id]),
+          );
+        });
 
       baseUsers = await queryBuilder;
 
@@ -442,38 +470,108 @@ export default class BaseUser {
     params: any,
     ncMeta = Noco.ncMeta,
   ): Promise<BaseType[]> {
+    const workspaceId = params.workspaceId;
+
     // TODO implement CacheScope.USER_BASE
     const qb = ncMeta
       .knex(MetaTable.PROJECT)
       .select(`${MetaTable.PROJECT}.*`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
-      .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)
-      .leftJoin(MetaTable.PROJECT_USERS, function () {
-        this.on(
-          `${MetaTable.PROJECT_USERS}.base_id`,
-          `${MetaTable.PROJECT}.id`,
-        );
-        this.andOn(
-          `${MetaTable.PROJECT_USERS}.fk_user_id`,
-          ncMeta.knex.raw('?', [userId]),
-        );
-      })
-      .where(
+      .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`);
+
+    // If workspaceId is provided, also select workspace_role for inheritance
+    if (workspaceId) {
+      qb.select(`${MetaTable.WORKSPACE_USER}.roles as workspace_role`)
+        .leftJoin(MetaTable.WORKSPACE_USER, function () {
+          this.on(
+            `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+            ncMeta.knex.raw('?', [userId]),
+          ).andOn(
+            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+            ncMeta.knex.raw('?', [workspaceId]),
+          );
+        });
+    }
+
+    qb.leftJoin(MetaTable.PROJECT_USERS, function () {
+      this.on(
+        `${MetaTable.PROJECT_USERS}.base_id`,
+        `${MetaTable.PROJECT}.id`,
+      );
+      this.andOn(
         `${MetaTable.PROJECT_USERS}.fk_user_id`,
         ncMeta.knex.raw('?', [userId]),
-      )
+      );
+    })
       .where(function () {
         this.where(`${MetaTable.PROJECT}.deleted`, false).orWhereNull(
           `${MetaTable.PROJECT}.deleted`,
         );
       })
-      .where(function () {
+      .whereNot(`${MetaTable.PROJECT}.deleted`, true);
+
+    if (workspaceId) {
+      // Scope to workspace
+      qb.where(`${MetaTable.PROJECT}.fk_workspace_id`, workspaceId);
+
+      // Include bases where user has access via:
+      // 1. Explicit base role (not NO_ACCESS, not INHERIT)
+      // 2. OR base role is null/INHERIT and workspace role grants access
+      qb.where(function () {
+        this.where(function () {
+          // Priority 1: explicit base role that is not NO_ACCESS and not INHERIT
+          this.whereNotNull(`${MetaTable.PROJECT_USERS}.roles`)
+            .andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              ProjectRoles.NO_ACCESS,
+            )
+            .andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              ProjectRoles.INHERIT,
+            )
+            .andWhere(
+              `${MetaTable.PROJECT_USERS}.roles`,
+              '!=',
+              'inherit',
+            );
+        }).orWhere(function () {
+          // Priority 2: no explicit base role (or INHERIT) — fall through to workspace role
+          this.where(function () {
+            this.whereNull(`${MetaTable.PROJECT_USERS}.roles`)
+              .orWhere(
+                `${MetaTable.PROJECT_USERS}.roles`,
+                '=',
+                ProjectRoles.INHERIT,
+              )
+              .orWhere(
+                `${MetaTable.PROJECT_USERS}.roles`,
+                '=',
+                'inherit',
+              );
+          })
+            .whereNotNull(`${MetaTable.WORKSPACE_USER}.roles`)
+            .andWhere(
+              `${MetaTable.WORKSPACE_USER}.roles`,
+              '!=',
+              WorkspaceUserRoles.NO_ACCESS,
+            );
+        });
+      });
+    } else {
+      // Legacy behavior: require explicit PROJECT_USERS entry
+      qb.where(
+        `${MetaTable.PROJECT_USERS}.fk_user_id`,
+        ncMeta.knex.raw('?', [userId]),
+      ).where(function () {
         this.whereNull(`${MetaTable.PROJECT_USERS}.roles`).orWhereNot(
           `${MetaTable.PROJECT_USERS}.roles`,
           ProjectRoles.NO_ACCESS,
         );
       });
+    }
 
     // filter starred bases
     if (params.starred) {
@@ -496,8 +594,6 @@ export default class BaseUser {
     if (params.recent) {
       qb.orderBy(`${MetaTable.PROJECT_USERS}.updated_at`, 'desc');
     }
-
-    qb.whereNot(`${MetaTable.PROJECT}.deleted`, true);
 
     const baseList = await qb;
 

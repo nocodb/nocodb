@@ -39,6 +39,7 @@ const { getPlanTitle, blockViewSections } = useEeConfig()
                     plan: getPlanTitle(PlanTitles.BUSINESS),
                   })
                 "
+                show-as-lock
               />
               <GeneralIcon v-if="!blockViewSections" class="plus" icon="plus" />
             </div>

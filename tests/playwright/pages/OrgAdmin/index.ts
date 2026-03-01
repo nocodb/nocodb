@@ -22,8 +22,12 @@ export class OrgAdminPage extends BasePage {
     if ((await this.rootPage.getByTestId('nc-sidebar-upgrade-workspace-to-org').count()) > 0) {
       await this.rootPage.getByTestId('nc-sidebar-upgrade-workspace-to-org').first().click();
     } else {
-      await this.rootPage.getByTestId('nc-sidebar-org-admin-panel').click();
+      await this.rootPage
+        .getByTestId('nc-sidebar-org-admin-panel')
+        .or(this.rootPage.getByTestId('nc-sidebar-instance-admin-panel'))
+        .first()
+        .click();
     }
-    await this.rootPage.waitForNavigation({ url: /\/#\/admin\/\w+/ });
+    await this.rootPage.waitForURL(/\/#\/admin\/\w+/);
   }
 }

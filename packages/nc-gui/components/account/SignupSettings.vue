@@ -50,45 +50,34 @@ loadSettings()
         </span>
       </template>
     </NcPageHeader>
-    <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
-      <div class="flex flex-col items-center">
-        <div class="flex items-center gap-2">
-          <a-form-item>
-            <a-checkbox
+    <div class="nc-content-max-w flex-1 max-h-[calc(100vh_-_100px)] overflow-y-auto nc-scrollbar-thin flex flex-col items-center p-6">
+      <div class="flex flex-col gap-6 w-150">
+        <span class="font-bold text-xl" data-rec="true">{{ $t('general.general') }}</span>
+        <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <NcCheckbox
               v-model:checked="settings.invite_only_signup"
               v-e="['c:account:enable-signup']"
-              class="nc-checkbox nc-invite-only-signup-checkbox !mt-6"
-              name="virtual"
               :disabled="settings.restrict_workspace_creation"
               @change="saveSettings"
             />
-          </a-form-item>
-          <span data-rec="true" :class="{ 'text-gray-400': settings.restrict_workspace_creation }">
-            {{ $t('labels.inviteOnlySignup') }}
-          </span>
-        </div>
-        <div class="flex items-center gap-2">
-          <a-form-item>
-            <a-checkbox
+            <span data-rec="true" :class="{ 'text-nc-content-gray-muted': settings.restrict_workspace_creation }">
+              {{ $t('labels.inviteOnlySignup') }}
+            </span>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <NcCheckbox
               v-model:checked="settings.restrict_workspace_creation"
               v-e="['c:account:restrict-workspace-creation']"
-              class="nc-checkbox nc-restrict-workspace-creation-checkbox !mt-6"
-              name="virtual"
               @change="onRestrictWorkspaceCreationChange"
             />
-          </a-form-item>
-          <span data-rec="true">
-            {{ $t('labels.restrictWorkspaceCreation') }}
-          </span>
+            <span data-rec="true">
+              {{ $t('labels.restrictWorkspaceCreation') }}
+            </span>
+          </label>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-<style scoped>
-:deep(.ant-checkbox-wrapper) {
-  @apply !flex-row-reverse !flex !justify-start gap-4;
-  justify-content: flex-start;
-}
-</style>

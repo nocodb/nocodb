@@ -1,7 +1,9 @@
 import BaseCE from 'src/models/Base';
 import {
   BaseVersion,
+  extractRolesObj,
   ManagedAppVersionStatus,
+  OrgUserRoles,
   ProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
@@ -33,9 +35,11 @@ import {
   Permission,
   Sandbox,
   Source,
+  User,
   Workflow,
   Workspace,
 } from '~/models';
+import { isOnPrem } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
@@ -735,6 +739,29 @@ export default class Base extends BaseCE {
     userId: string,
     ncMeta = Noco.ncMeta,
   ) => {
+    // On-prem: super admin sees all bases in any workspace as owner
+    if (isOnPrem) {
+      const user = await User.get(userId, ncMeta);
+      if (user && extractRolesObj(user.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+        const allBases = await this.list(fk_workspace_id, ncMeta);
+        const promises = [];
+
+        const castedList = allBases.map((b) => {
+          const base = this.castType(b);
+          base.meta = parseMetaProp(base);
+          (base as any).project_role = ProjectRoles.OWNER;
+          promises.push(base.getSources(false, ncMeta));
+          if (base.managed_app_id) {
+            promises.push(Base.populateManagedAppInfo(base));
+          }
+          return base;
+        });
+
+        await Promise.all(promises);
+        return castedList;
+      }
+    }
+
     // Todo: caching , pagination, query optimisation
     const baseListQb = ncMeta
       .knex(MetaTable.PROJECT)

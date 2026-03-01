@@ -67,9 +67,7 @@ const openExperimentationMenu = () => {
   isExperimentalFeatureModalOpen.value = true
 }
 
-const accountUrl = computed(() => {
-  return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
-})
+const accountUrl = computed(() => '/account/profile')
 
 const copyEmail = () => {
   if (!user?.value?.email) return
@@ -269,7 +267,7 @@ const openKeyboardShortcutDialog = () => {
                 <NcDivider />
               </template>
 
-              <DashboardSidebarEEMenuOption v-if="isEeUI" />
+              <DashboardSidebarEEMenuOption />
               <NcMenuItem @click="openExperimentationMenu">
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>

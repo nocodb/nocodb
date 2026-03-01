@@ -1,7 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
 import type { HookReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -22,6 +24,7 @@ export class HooksService extends HooksServiceCE {
     super(appHooksService, datasService, jobsService);
   }
 
+  @EEOnly()
   async hookCreate(
     context: NcContext,
     param: {

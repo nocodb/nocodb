@@ -30,6 +30,7 @@ const {
   blockSync,
   showUpgradeToUseSync,
   isWsAuditEnabled,
+  isEEFeatureBlocked,
 } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
@@ -55,7 +56,7 @@ const { base } = storeToRefs(useBase())
 
 const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, appInfo } = useGlobal()
 
 const baseSettingsState = ref('')
 
@@ -82,7 +83,12 @@ const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList'))
 
 const isWorkflowsTabVisible = computed(
-  () => isEeUI && isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) && isUIAllowed('workflowCreateOrEdit') && !isMobileMode.value,
+  () =>
+    isEeUI &&
+    appInfo.value?.ee &&
+    isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
+    isUIAllowed('workflowCreateOrEdit') &&
+    !isMobileMode.value,
 )
 
 // Get actual workflow count
@@ -333,6 +339,7 @@ onMounted(() => {
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
               <div>{{ $t('general.permissions') }}</div>
+              <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
             </div>
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
@@ -361,6 +368,7 @@ onMounted(() => {
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
               <div>Syncs</div>
+              <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
             </div>
           </template>
           <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />

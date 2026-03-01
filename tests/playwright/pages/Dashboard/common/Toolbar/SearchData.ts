@@ -21,7 +21,7 @@ export class ToolbarSearchDataPage extends BasePage {
 
     if (searchEnableBtn) {
       await searchEnableBtn.click();
-      await this.get().waitFor({ state: 'visible' });
+      await this.get().waitFor({ state: 'visible', timeout: 10000 });
     }
 
     expect(await this.get().inputValue()).toBe(query);

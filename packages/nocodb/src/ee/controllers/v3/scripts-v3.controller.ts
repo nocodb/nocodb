@@ -21,9 +21,11 @@ import { ScriptsV3Service } from '~/services/v3/scripts-v3.service';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License('scripts')
 export class ScriptsV3Controller {
   constructor(private readonly scriptsV3Service: ScriptsV3Service) {}
 

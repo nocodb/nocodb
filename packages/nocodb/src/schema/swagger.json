@@ -27018,6 +27018,10 @@
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Base Meta"
+          },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "type": "string"
           }
         },
         "required": [

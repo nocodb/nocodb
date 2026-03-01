@@ -12,9 +12,11 @@ import { AuthGuard } from '@nestjs/passport';
 import type { DbMuxStatus } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { License } from '~/decorators/license.decorator';
 import { DbMux } from '~/models';
 
 @Controller()
+@License('db-mux')
 export class DbMuxController {
   constructor(@Inject('JobsService') protected readonly jobsService) {}
 

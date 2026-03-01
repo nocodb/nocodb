@@ -2,6 +2,7 @@
 import {
   HigherPlan,
   OrderedWorkspaceRoles,
+  OrgUserRoles,
   type PlanLimitExceededDetailsType,
   PlanLimitTypes,
   PlanTitles,
@@ -19,7 +20,7 @@ const route = router.currentRoute
 
 const { $e } = useNuxtApp()
 
-const { workspaceRoles } = useRoles()
+const { workspaceRoles, orgRoles } = useRoles()
 
 const { user, isMobileMode, appInfo } = useGlobal()
 
@@ -50,6 +51,8 @@ const {
   navigateToPricing,
   isTopBannerVisible,
   showUpgradeToUseTeams,
+  blockWorkspaceMembers,
+  showUpgradeToManageWorkspaceMembers,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -246,14 +249,20 @@ const onConfirmRoleChangeConfirmationModal = () => {
   updateCollaborator(userRoleUpdateInfo.value.collab, userRoleUpdateInfo.value.roles!, userRoleUpdateInfo.value.overrideBaseRole)
 }
 
+const isSuperAdmin = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
 const isOwnerOrCreator = computed(() => {
-  return workspaceRoles.value?.[WorkspaceUserRoles.OWNER] || workspaceRoles.value?.[WorkspaceUserRoles.CREATOR]
+  return (
+    isSuperAdmin.value || workspaceRoles.value?.[WorkspaceUserRoles.OWNER] || workspaceRoles.value?.[WorkspaceUserRoles.CREATOR]
+  )
 })
 
 const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
-  const currentRoleIndex = OrderedWorkspaceRoles.findIndex(
-    (role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role),
-  )
+  // Super admin can assign all workspace roles (treated as owner)
+  const currentRoleIndex = isSuperAdmin.value
+    ? 0
+    : OrderedWorkspaceRoles.findIndex((role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role))
+
   if (currentRoleIndex === -1) return []
   const roles = OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
 
@@ -483,11 +492,12 @@ watch(inviteDlg, (newVal) => {
               :disabled="isCollaboratorsLoading"
               data-testid="nc-add-member-btn"
               :text-color="isTeamsEnabled ? 'primary' : undefined"
-              @click="inviteDlg = true"
+              @click="blockWorkspaceMembers ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
                 {{ $t('activity.addMembers') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockWorkspaceMembers" remove-click />
               </div>
             </NcButton>
 
@@ -682,7 +692,7 @@ watch(inviteDlg, (newVal) => {
                     />
 
                     <template
-                      v-if="isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member)"
+                      v-if="isEeUI && (isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member))"
                     >
                       <NcDivider />
 

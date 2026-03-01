@@ -4,6 +4,7 @@ import {
   extractRolesObj,
   OrgUserRoles,
   PluginCategory,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
@@ -16,11 +17,20 @@ import { validatePayload } from '~/helpers';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { BaseUser, PresignedUrl, SyncSource, User } from '~/models';
+import {
+  ApiToken,
+  BaseUser,
+  PresignedUrl,
+  SyncSource,
+  User,
+  UserRefreshToken,
+} from '~/models';
+import WorkspaceUser from '~/models/WorkspaceUser';
 
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { MailEvent } from '~/interface/Mail';
+import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 
 @Injectable()
 export class OrgUsersService {
@@ -39,6 +49,17 @@ export class OrgUsersService {
 
     await PresignedUrl.signMetaIconImage(users);
 
+    // Augment with workspace roles from default workspace
+    if (Noco.ncDefaultWorkspaceId) {
+      const wsUsers = await WorkspaceUser.userList({
+        fk_workspace_id: Noco.ncDefaultWorkspaceId,
+      });
+      const wsRoleMap = new Map(wsUsers.map((wu) => [wu.fk_user_id, wu.roles]));
+      for (const user of users) {
+        (user as any).workspace_roles = wsRoleMap.get(user.id) || null;
+      }
+    }
+
     return users;
   }
 
@@ -51,6 +72,15 @@ export class OrgUsersService {
     validatePayload('swagger.json#/components/schemas/OrgUserReq', param.user);
 
     const updateBody = extractProps(param.user, ['roles']);
+
+    if (
+      updateBody.roles &&
+      ![OrgUserRoles.VIEWER, OrgUserRoles.CREATOR].includes(
+        updateBody.roles as OrgUserRoles,
+      )
+    ) {
+      NcError.badRequest('Invalid role');
+    }
 
     const user = await User.get(param.userId);
 
@@ -68,9 +98,26 @@ export class OrgUsersService {
       },
     });
 
-    return await User.update(param.userId, {
+    const result = await User.update(param.userId, {
       ...updateBody,
     });
+
+    // Also update workspace role in the default workspace
+    if (Noco.ncDefaultWorkspaceId && updateBody.roles) {
+      const wsRole =
+        updateBody.roles === OrgUserRoles.CREATOR
+          ? WorkspaceUserRoles.CREATOR
+          : WorkspaceUserRoles.VIEWER;
+      try {
+        await WorkspaceUser.update(Noco.ncDefaultWorkspaceId, param.userId, {
+          roles: wsRole,
+        });
+      } catch {
+        // User might not have a workspace entry yet — ignore
+      }
+    }
+
+    return result;
   }
 
   async userDelete(param: { userId: string }) {
@@ -102,6 +149,15 @@ export class OrgUsersService {
 
       // delete sync source entry
       await SyncSource.deleteByUserId(param.userId, ncMeta);
+
+      // delete workspace user entries (with cache invalidation)
+      await WorkspaceUser.softDeleteByUser(param.userId, ncMeta);
+
+      // delete refresh tokens
+      await UserRefreshToken.deleteAllUserToken(param.userId, ncMeta);
+
+      // delete api tokens (with cache invalidation)
+      await ApiToken.deleteByUser(param.userId, ncMeta);
 
       // delete user
       await User.delete(param.userId, ncMeta);
@@ -169,6 +225,13 @@ export class OrgUsersService {
             roles: param.user.roles || OrgUserRoles.VIEWER,
             token_version: randomTokenString(),
           });
+
+          // Add user to default workspace with NO_ACCESS —
+          // role management happens at workspace or base level, not org invite
+          await ensureUserInDefaultWorkspace(
+            user.id,
+            WorkspaceUserRoles.NO_ACCESS,
+          );
 
           const count = await User.count();
 

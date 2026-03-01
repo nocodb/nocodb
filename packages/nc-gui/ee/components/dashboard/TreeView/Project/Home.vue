@@ -27,7 +27,7 @@ const { meta: metaKey, control } = useMagicKeys()
 
 const { isUIAllowed } = useRoles()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, appInfo } = useGlobal()
 
 const { isDark } = useTheme()
 
@@ -178,7 +178,7 @@ const hasTableCreatePermission = computed(() => {
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <Data :base-id="base.id" />
-      <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" />
+      <Automation v-if="!isSharedBase && !isMobileMode && appInfo.ee" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

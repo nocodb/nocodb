@@ -390,6 +390,7 @@ defineOptions({
                       plan: getPlanTitle(PlanTitles.PLUS),
                     })
                   "
+                  show-as-lock
                   :on-click-callback="() => emits('closeModal')"
                 />
               </div>
@@ -635,6 +636,7 @@ defineOptions({
                           plan: getPlanTitle(PlanTitles.PLUS),
                         })
                       "
+                      show-as-lock
                       :on-click-callback="() => emits('closeModal')"
                     />
                   </div>

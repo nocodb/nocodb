@@ -12,7 +12,12 @@ const emit = defineEmits<{
   select: [workspaceId: string]
 }>()
 
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
+const workspaceStore = useWorkspace()
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const { appInfo } = useGlobal()
+
+const { t } = useI18n()
 
 const { switchWorkspace } = useWsBaseListActionsOrThrow()
 
@@ -20,9 +25,19 @@ const isActiveWorkspace = computed(() => {
   return activeWorkspaceId.value === props.workspace?.id
 })
 
+const isLocked = computed(() => workspaceStore.isWorkspaceCeLocked(props.workspace?.id))
+
+const isCeMode = computed(() => appInfo.value?.isOnPrem && !appInfo.value?.ee)
+
+const planLabel = computed(() => {
+  if (isCeMode.value) return t('title.communityEdition')
+  return `${props.workspace.payment?.plan?.title || 'Free'} Plan`
+})
+
 const wsNodeRef = ref<HTMLDivElement>()
 
 const onSelect = () => {
+  if (isLocked.value) return
   emit('select', props.workspace.id!)
 }
 
@@ -40,9 +55,15 @@ watch([wsNodeRef, isActiveWorkspace], () => {
 <template>
   <div
     ref="wsNodeRef"
-    :tabindex="0"
-    class="nc-workspace-node group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer my-0.5 border-1 border-transparent"
-    :class="[isSelected ? 'nc-selected-workspace-node is-selected' : 'hover:(bg-nc-bg-gray-light !border-nc-border-gray-medium)']"
+    :tabindex="isLocked ? -1 : 0"
+    class="nc-workspace-node group flex items-center gap-2 px-2 py-1.5 rounded-lg my-0.5 border-1 border-transparent"
+    :class="[
+      isLocked
+        ? 'nc-locked-workspace-node opacity-50 cursor-not-allowed'
+        : isSelected
+        ? 'nc-selected-workspace-node is-selected cursor-pointer'
+        : 'hover:(bg-nc-bg-gray-light !border-nc-border-gray-medium) cursor-pointer',
+    ]"
     @click="onSelect"
     @keydown.enter.stop="onSelect"
   >
@@ -50,34 +71,40 @@ watch([wsNodeRef, isActiveWorkspace], () => {
     <div class="flex flex-col flex-1 min-w-0">
       <div class="flex items-center gap-1">
         <NcTooltip
-          show-on-truncate-only
-          class="nc-workspace-node-title min-w-0 text-sm font-medium text-nc-content-gray-extreme truncate capitalize"
+          :show-on-truncate-only="!isLocked"
+          class="nc-workspace-node-title min-w-0 text-sm font-medium truncate capitalize"
+          :class="isLocked ? 'text-nc-content-gray-muted' : 'text-nc-content-gray-extreme'"
         >
           <template #title>
-            {{ workspace.title }}
+            {{ isLocked ? $t('title.activateLicenseToAccess') : workspace.title }}
           </template>
           {{ workspace.title }}
         </NcTooltip>
-      </div>
-      <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted mt-0.5">
-        <span class="truncate">{{ workspace.payment?.plan?.title || planTitle || 'Free' }} Plan</span>
-        <span>·</span>
-        <span class="truncate">{{ workspace.id }}</span>
-        <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" hide-on-click class="flex" placement="right">
-          <GeneralCopyButton
-            :tabindex="-1"
-            type="text"
-            size="xxsmall"
-            class="nc-workspace-id-copy-btn"
-            icon-class="!w-3 !h-3"
-            :content="workspace.id"
-            :show-toast="false"
-            @click.stop
-          />
+        <NcTooltip v-if="isLocked" :title="$t('title.activateLicenseToAccess')">
+          <GeneralIcon icon="ncLock" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
         </NcTooltip>
       </div>
+      <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted mt-0.5">
+        <span class="truncate">{{ isLocked ? $t('title.availableWithLicense') : planLabel }}</span>
+        <template v-if="!isLocked">
+          <span>·</span>
+          <span class="truncate">{{ workspace.id }}</span>
+          <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" hide-on-click class="flex" placement="right">
+            <GeneralCopyButton
+              :tabindex="-1"
+              type="text"
+              size="xxsmall"
+              class="nc-workspace-id-copy-btn"
+              icon-class="!w-3 !h-3"
+              :content="workspace.id"
+              :show-toast="false"
+              @click.stop
+            />
+          </NcTooltip>
+        </template>
+      </div>
     </div>
-    <NcTooltip v-if="workspace.roles === WorkspaceUserRoles.OWNER">
+    <NcTooltip v-if="!isLocked && workspace.roles === WorkspaceUserRoles.OWNER">
       <template #title>
         {{ $t('objects.roleType.owner') }}
       </template>
@@ -85,6 +112,7 @@ watch([wsNodeRef, isActiveWorkspace], () => {
     </NcTooltip>
 
     <GeneralIcon
+      v-if="!isLocked"
       :icon="isActiveWorkspace ? 'ncCheck' : 'arrowRight'"
       class="text-nc-content-gray-muted flex-none h-4 w-4"
       :class="{

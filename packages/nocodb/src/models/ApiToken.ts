@@ -101,6 +101,13 @@ export default class ApiToken implements ApiTokenType {
     );
   }
 
+  static async deleteByUser(userId: string, ncMeta = Noco.ncMeta) {
+    const tokens = await this.list(userId, ncMeta);
+    for (const token of tokens) {
+      await this.delete(token.id, ncMeta);
+    }
+  }
+
   static async getByToken(token, ncMeta = Noco.ncMeta) {
     let data =
       token &&

@@ -20,9 +20,11 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { NcContext } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License('views')
 export class ViewsV3Controller {
   constructor(private readonly viewsV3Service: ViewsV3Service) {}
 

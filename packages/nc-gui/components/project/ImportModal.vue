@@ -14,9 +14,7 @@ const visible = useVModel(props, 'visible', emits)
 
 const { $e } = useNuxtApp()
 
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showRecordPlanLimitExceededModal, isEEFeatureBlocked } = useEeConfig()
 
 async function openAirtableImportDialog(baseId?: string, sourceId?: string) {
   if (!baseId || !sourceId) return
@@ -142,7 +140,7 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
           <span class="ml-1 text-[13px] font-weight-700"> {{ $t('labels.excel') }} </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />
         </NcMenuItem>
-        <NcMenuItem v-if="isFeatureEnabled(FEATURE_FLAG.IMPORT_FROM_NOCODB)" @click="onClick('nocodb')">
+        <NcMenuItem v-if="isEeUI && !isEEFeatureBlocked" @click="onClick('nocodb')">
           <GeneralIcon icon="nocodb1" class="w-5 h-5" />
           <span class="ml-1 text-[13px] font-weight-700"> {{ $t('objects.syncData.nocodb') }} </span>
           <GeneralIcon icon="chevronRight" class="ml-auto text-lg" />

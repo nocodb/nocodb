@@ -25,8 +25,15 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature, blockTeamsManagement, showUpgradeToUseTeams } =
-  useEeConfig()
+const {
+  isWsAuditEnabled,
+  handleUpgradePlan,
+  isPaymentEnabled,
+  getFeature,
+  blockTeamsManagement,
+  showUpgradeToUseTeams,
+  isEEFeatureBlocked,
+} = useEeConfig()
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
@@ -109,7 +116,7 @@ watch(
   async (newTab) => {
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isUIAllowed('workspaceCollaborators')) {
+    if (!isUIAllowed('workspaceCollaborators') && !isEEFeatureBlocked.value) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
@@ -218,6 +225,7 @@ onBeforeUnmount(() => {
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
               {{ $t('general.teams') }}
+              <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
             </div>
           </template>
 
@@ -242,12 +250,13 @@ onBeforeUnmount(() => {
           </a-tab-pane>
         </template>
 
-        <template v-if="isEeUI && !props.workspaceId && isWsAuditEnabled && isUIAllowed('workspaceAuditList')">
+        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList')">
           <a-tab-pane key="audits" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
                 <GeneralIcon icon="audit" class="h-4 w-4" />
                 {{ $t('title.audits') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => isWsAuditEnabled" remove-click />
               </div>
             </template>
             <WorkspaceAudits v-if="isWsAuditEnabled" />
@@ -269,7 +278,7 @@ onBeforeUnmount(() => {
         </template>
       </template>
 
-      <a-tab-pane key="settings" class="w-full">
+      <a-tab-pane v-if="!isEEFeatureBlocked" key="settings" class="w-full">
         <template #tab>
           <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
             <GeneralIcon icon="ncSettings" class="h-4 w-4" />

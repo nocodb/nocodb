@@ -223,6 +223,7 @@ import type {
   WorkspaceUserUpdateEvent,
 } from '~/services/app-hooks/interfaces';
 import type { SelectOption } from '~/models';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { Audit, Column, User } from '~/models';
 import { columnBuilder } from '~/utils/data-transformation.builder';
 import { TelemetryService } from '~/services/telemetry.service';
@@ -355,6 +356,7 @@ export class AppHooksListenerService
     super(appHooksService, telemetryService);
   }
 
+  @EEOnly()
   protected async hookHandler({
     event,
     data,

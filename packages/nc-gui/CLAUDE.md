@@ -125,9 +125,42 @@ pnpm lint            # Lint + auto-fix
 - `ee/nuxt.config.ts` — Extends base config with `extends: ['../']`
 - Types from `nocodb-sdk` — always import from `'nocodb-sdk'`, never duplicate
 
-## Payment & Feature Gating (EE only)
+## Deployment Modes & Feature Gating
 
-`useEeConfig` (global singleton) — reads `workspace.payment.plan.meta`, exposes `block*` computeds, `getLimit()`, `getFeature()`, upgrade nav helpers, limit-exceeded modals. `usePayment` (injection state) — checkout/cancel/invoices/seat count. `useStripe` — lazy Stripe.js loader. Components in `ee/components/payment/` (BillingPage, checkout, plan-usage, invoices, upgrade banners). Pages: `checkout/[planId]`, `pricing/`, `upgrade/`. Middleware: `04.payment.global.ts` (post-checkout redirects).
+Two frontend builds: CE (`pnpm dev`) and EE (`pnpm dev:ee`). The EE frontend serves both On-Prem and Cloud backends — it reads `appInfo` flags at runtime to adapt. See root CLAUDE.md for the full overview.
+
+### Runtime Flags
+
+| Flag | Where defined | CE | On-Prem (unlicensed) | On-Prem (licensed) | Cloud |
+|------|---------------|----|----------------------|--------------------|-------|
+| `isEeUI` | Auto-imported (`utils/ncUtils.ts` → `false`, `ee/utils/eeUtils.ts` → `true`) | `false` | `true` | `true` | `true` |
+| `isEEFeatureBlocked` | `useEeConfig()` — CE stub always `true`; EE: `isOnPrem && !appInfo.ee` | `true` | `true` | `false` | `false` |
+| `isPaymentEnabled` | `useEeConfig()` — `appInfo.isCloud && !appInfo.isOnPrem` | `false` | `false` | `false` | `true` |
+
+### Which check to use
+
+| Scenario | Check | Example |
+|----------|-------|---------|
+| Hide in CE, show in all EE (even unlicensed) | `v-if="isEeUI"` | Workspace count on admin dashboard |
+| Show in EE with upgrade badge when unlicensed | `v-if="isEeUI"` + `PaymentUpgradeBadge` with `:feature-enabled-callback="() => !isEEFeatureBlocked"` | SSO tab in admin sidebar |
+| Block feature when unlicensed OR not in plan | `block*` computed from `useEeConfig()` | `blockSSO`, `blockSnapshots`, `blockRowColoring` |
+| Cloud-only plan gating | `isPaymentEnabled && !getFeature(...)` | Record limits, seat limits |
+
+**Common mistake:** Using `v-if="!isEEFeatureBlocked"` to hide UI on unlicensed On-Prem. Unlicensed features should be **visible but locked with upgrade badges** — not hidden. Only CE should hide EE features entirely (use `isEeUI`).
+
+### Payment & Billing (Cloud only)
+
+`useEeConfig` (shared composable) — reads `workspace.payment.plan.meta`, exposes `block*` computeds, `getLimit()`, `getFeature()`, upgrade nav helpers, limit-exceeded modals. `usePayment` (injection state) — checkout/cancel/invoices/seat count. `useStripe` — lazy Stripe.js loader. Components in `ee/components/payment/` (BillingPage, checkout, plan-usage, invoices, upgrade banners). Pages: `checkout/[planId]`, `pricing/`, `upgrade/`. Middleware: `04.payment.global.ts` (post-checkout redirects).
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `utils/ncUtils.ts` | CE: `isEeUI=false` |
+| `ee/utils/eeUtils.ts` | EE: `isEeUI=true` |
+| `composables/useEeConfig.ts` | CE stub — `isEEFeatureBlocked=true`, all `block*=true`, `getFeature()` returns `true` |
+| `ee/composables/useEeConfig.ts` | EE implementation — reads `appInfo` flags, plan-based gating, upgrade modals |
+| `ee/components/payment/upgrade/badge.vue` | `PaymentUpgradeBadge` — shows plan badge when feature is locked |
 
 ## Anti-Patterns
 
@@ -139,3 +172,4 @@ These are frontend-specific — see root CLAUDE.md for universal anti-patterns.
 | Skip CE placeholder for EE-only components | Create empty `<template><NcSpanHidden /></template>` CE stub |
 | Expose EE-only data to non-owner UI | Audit what's visible in UI, not just API responses |
 | Use `activeBaseId.value` in realtime event callbacks to identify which base the event belongs to | Extract `base_id` from `event.payload` — user may have navigated away before the callback fires |
+| Use `v-if="!isEEFeatureBlocked"` to hide EE features | Use `v-if="isEeUI"` to hide in CE; show with upgrade badge in EE unlicensed |

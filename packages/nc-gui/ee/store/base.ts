@@ -109,7 +109,7 @@ export const useBase = defineStore('baseStore', () => {
   // todo: refactor path param name and variable name
   const baseType = computed(() => route.value.params.typeOrId as string)
 
-  const { navigateToProject } = useGlobal()
+  const { navigateToProject, appInfo } = useGlobal()
 
   const idUserMap = computed(() => {
     return (basesStore.basesUser.get(baseId.value) || []).reduce((acc, user) => {
@@ -202,12 +202,18 @@ export const useBase = defineStore('baseStore', () => {
   // todo: add force parameter
   async function loadTables() {
     if (base.value.id) {
-      await Promise.allSettled([
-        tablesStore.loadProjectTables(base.value.id, true),
-        loadScripts({ baseId: base.value.id || baseId.value }),
-        loadDashboards({ baseId: base.value.id || baseId.value }),
-        loadWorkflows({ baseId: base.value.id || baseId.value }),
-      ])
+      const promises: Promise<any>[] = [tablesStore.loadProjectTables(base.value.id, true)]
+
+      // Only load EE features (scripts, dashboards, workflows) when licensed
+      if (appInfo.value?.ee) {
+        promises.push(
+          loadScripts({ baseId: base.value.id || baseId.value }),
+          loadDashboards({ baseId: base.value.id || baseId.value }),
+          loadWorkflows({ baseId: base.value.id || baseId.value }),
+        )
+      }
+
+      await Promise.allSettled(promises)
 
       // tables.value = basesStore.baseTableList[base.value.id]
       //   await api.dbTable.list(base.value.id, {

@@ -23,5 +23,7 @@ onMounted(() => {
       <AuthSignup />
     </NuxtLayout>
   </template>
-  <span v-else />
+  <NuxtLayout v-else>
+    <AuthSignup />
+  </NuxtLayout>
 </template>

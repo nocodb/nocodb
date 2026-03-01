@@ -7,6 +7,7 @@ import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import type { DuplicateDashboardJobData } from '~/interface/Jobs';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { Base, Model } from '~/models';
 import { Dashboard } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
@@ -217,6 +218,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
     }
   }
 
+  @EEOnly()
   async duplicateBaseJob({
     sourceBase,
     targetBase,

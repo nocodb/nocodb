@@ -70,7 +70,7 @@ export default async function init(forceReset = false, roles = 'editor') {
       .get('/api/v1/meta/nocodb/info')
       .set('xc-auth', token)
       .expect(200);
-    extra.fk_workspace_id = appInfo.body.ncDefaultWorkspaceId;
+    extra.fk_workspace_id = appInfo.body.defaultWorkspaceId;
   }
 
   const xc_token = (

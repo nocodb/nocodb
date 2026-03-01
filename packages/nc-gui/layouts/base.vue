@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const { signOut, signedIn, isLoading, user, currentVersion } = useGlobal()
+const { signOut, signedIn, isLoading, user, currentVersion, appInfo } = useGlobal()
 
 useSidebar('nc-left-sidebar', { hasSidebar: false })
 
@@ -87,7 +87,7 @@ hooks.hook('page:finish', () => {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" to="/account/users">
+                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" :to="appInfo.isCloud ? '/account/users' : '/admin?tab=users-list'">
                     <component :is="iconMap.accountCircle" class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
                       <div>Account</div>

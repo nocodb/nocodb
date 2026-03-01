@@ -266,16 +266,14 @@ async function onOpenModal({
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
-                  </div>
-                </a-menu-item>
-                <a-menu-item
-                  v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
-                  data-testid="topbar-view-create-timeline"
-                  @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
-                >
-                  <div class="nc-viewlist-submenu-popup-item">
-                    <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
-                    {{ $t('objects.viewType.timeline') }}
+                    <PaymentUpgradeBadge
+                      v-if="blockMapView"
+                      :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
+                      :plan-title="PlanTitles.BUSINESS"
+                      remove-click
+                      show-as-lock
+                      class="ml-auto"
+                    />
                   </div>
                 </a-menu-item>
 

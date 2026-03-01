@@ -12,7 +12,7 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, isEEFeatureBlocked } = useEeConfig()
 
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
@@ -97,6 +97,7 @@ watch(
           <div class="tab" data-testid="nc-permissions-tab">
             <GeneralIcon icon="ncLock" class="tab-icon" :class="{}" />
             <div>{{ $t('general.permissions') }}</div>
+            <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
           </div>
         </template>
 

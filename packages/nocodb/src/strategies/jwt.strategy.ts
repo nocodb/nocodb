@@ -4,6 +4,7 @@ import { Strategy } from 'passport-jwt';
 import { User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
 import { NcError } from '~/helpers/ncError';
+import Noco from '~/Noco';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -34,6 +35,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const userWithRoles = await User.getWithRoles(req.context, user.id, {
       user,
       baseId: req.ncBaseId,
+      workspaceId:
+        req.ncWorkspaceId || Noco.ncDefaultWorkspaceId || undefined,
     });
 
     return userWithRoles && { ...userWithRoles, isAuthorized: true };

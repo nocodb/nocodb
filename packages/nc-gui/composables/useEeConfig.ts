@@ -209,6 +209,14 @@ export const useEeConfig = createSharedComposable(() => {
   const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
   const showUpgradeToUseMapView = (..._args: any[]) => {}
 
+  const isEEFeatureBlocked = computed(() => true)
+
+  const blockWorkspaceMembers = computed(() => false)
+
+  const showUpgradeToManageWorkspaceMembers = (..._args: any[]) => {}
+
+  const showUpgradeToUseSSO = (..._args: any[]) => {}
+
   return {
     calculatePrice,
     getLimit,
@@ -307,5 +315,9 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseViewSections,
     blockMapView,
     showUpgradeToUseMapView,
+    isEEFeatureBlocked,
+    blockWorkspaceMembers,
+    showUpgradeToManageWorkspaceMembers,
+    showUpgradeToUseSSO,
   }
 })

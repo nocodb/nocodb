@@ -1,9 +1,9 @@
 import { isString } from '@vue/shared'
-import { type Roles, type RolesObj, SourceRestriction, type SourceType, type WorkspaceUserRoles } from 'nocodb-sdk'
+import { type Roles, type RolesObj, SourceRestriction, type SourceType } from 'nocodb-sdk'
 import { extractRolesObj } from 'nocodb-sdk'
 import type { MaybeRef } from 'vue'
 
-const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolean, permission: Permission | string) => {
+const hasPermission = (role: Roles, hasRole: boolean, permission: Permission | string) => {
   const rolePermission = rolePermissions[role]
 
   if (!hasRole || !rolePermission) return false
@@ -22,7 +22,8 @@ const hasPermission = (role: Exclude<Roles, WorkspaceUserRoles>, hasRole: boolea
  *
  * * `userRoles` - the roles a user has outside of bases
  * * `baseRoles` - the roles a user has in the current base (if one was loaded)
- * * `allRoles` - all roles a user has (userRoles + baseRoles)
+ * * `workspaceRoles` - the roles a user has in the current workspace
+ * * `allRoles` - all roles a user has (userRoles + workspaceRoles + baseRoles)
  * * `loadRoles` - a function to load reload user roles for scope
  */
 export const useRolesShared = createSharedComposable(() => {
@@ -35,12 +36,17 @@ export const useRolesShared = createSharedComposable(() => {
 
     orgRoles = extractRolesObj(orgRoles)
 
+    let wsRoles = user.value?.workspace_roles ?? {}
+
+    wsRoles = extractRolesObj(wsRoles)
+
     let baseRoles = user.value?.base_roles ?? {}
 
     baseRoles = extractRolesObj(baseRoles)
 
     return {
       ...orgRoles,
+      ...wsRoles,
       ...baseRoles,
     }
   })
@@ -66,7 +72,9 @@ export const useRolesShared = createSharedComposable(() => {
   })
 
   const workspaceRoles = computed<RolesObj | null>(() => {
-    return null
+    const wsRoles = user.value?.workspace_roles
+    if (!wsRoles) return null
+    return extractRolesObj(wsRoles)
   })
 
   async function loadRoles(
@@ -96,6 +104,7 @@ export const useRolesShared = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        workspace_roles: (res as any).workspace_roles,
         meta: res.meta,
       } as User
     } else if (options?.isSharedErd) {
@@ -115,6 +124,7 @@ export const useRolesShared = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        workspace_roles: (res as any).workspace_roles,
         meta: res.meta,
       } as User
     } else if (baseId) {
@@ -124,6 +134,7 @@ export const useRolesShared = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        workspace_roles: (res as any).workspace_roles,
         display_name: res.display_name,
         meta: res.meta,
       } as User
@@ -135,6 +146,7 @@ export const useRolesShared = createSharedComposable(() => {
         ...user.value,
         roles: res.roles,
         base_roles: res.base_roles,
+        workspace_roles: (res as any).workspace_roles,
         display_name: res.display_name,
         meta: res.meta,
         /**
@@ -187,7 +199,7 @@ export const useRolesShared = createSharedComposable(() => {
     }
 
     return Object.entries(checkRoles).some(([role, hasRole]) =>
-      hasPermission(role as Exclude<Roles, WorkspaceUserRoles>, hasRole, permission),
+      hasPermission(role as Roles, hasRole, permission),
     )
   }
 

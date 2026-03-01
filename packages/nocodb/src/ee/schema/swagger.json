@@ -4012,6 +4012,10 @@
           },
           "default_role": {
             "$ref": "#/components/schemas/BaseDefaultRoleEnum"
+          },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "type": "string"
           }
         },
         "required": [

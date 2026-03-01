@@ -49,6 +49,11 @@ export function addAxiosInterceptors(api: Api<any>, skipSocket = false) {
         return router.replace('/base/0')
       }
 
+      if (error.response?.status === 402) {
+        message.warning(error.response?.data?.msg || 'This feature requires an active Enterprise license.')
+        return Promise.reject(error)
+      }
+
       if (!error.response || error.response.status !== 401) {
         return Promise.reject(error)
       }

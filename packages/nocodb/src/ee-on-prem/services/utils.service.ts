@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UtilsService as UtilsServiceEE } from 'src/ee/services/utils.service';
 import type { AppConfig } from '~/interface/config';
+import Noco from '~/Noco';
 import NocoLicense from '~/NocoLicense';
 import { NC_IFRAME_WHITELIST_DOMAINS } from '~/utils/nc-config';
 
@@ -18,8 +19,8 @@ export class UtilsService extends UtilsServiceEE {
     result.isTrial = NocoLicense.isTrial();
     result.isTrialExpired = NocoLicense.isExpired;
     result.licenseExpiryTime = NocoLicense.getExpiry();
-    // result.licenseIssuedTime = NocoLicense.getIssuedTime();
     result.iframeWhitelistDomains = NC_IFRAME_WHITELIST_DOMAINS.split(',');
+    result.defaultWorkspaceId = Noco.ncDefaultWorkspaceId || null;
 
     return result;
   }

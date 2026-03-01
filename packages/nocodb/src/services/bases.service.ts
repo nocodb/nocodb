@@ -55,7 +55,10 @@ export class BasesService {
   ) {
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
       ? await Base.list()
-      : await BaseUser.getProjectsList(param.user.id, param.query);
+      : await BaseUser.getProjectsList(param.user.id, {
+          ...param.query,
+          workspaceId: Noco.ncDefaultWorkspaceId,
+        });
 
     return bases;
   }
@@ -346,6 +349,12 @@ export class BasesService {
     baseBody.slug = baseBody.title;
     // TODO: set default version to V3 after beta of v3 is over
     baseBody.version = param.base.version || BaseVersion.V2;
+
+    // Ensure workspace context: in unlicensed on-prem (EE build), @EEOnly()
+    // falls back to this CE code, but the EE Base model needs fk_workspace_id.
+    if (!baseBody.fk_workspace_id && Noco.ncDefaultWorkspaceId) {
+      baseBody.fk_workspace_id = Noco.ncDefaultWorkspaceId;
+    }
 
     const base = await Base.createProject(baseBody, ncMeta);
 

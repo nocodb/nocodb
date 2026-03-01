@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { NcRequest } from '../../interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { OrgUserReqType } from 'nocodb-sdk';
 import { NcError } from '~/helpers/catchError';
 import { OrgUser, PresignedUrl, User } from '~/models';

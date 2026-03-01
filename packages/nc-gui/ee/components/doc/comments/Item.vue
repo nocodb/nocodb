@@ -80,7 +80,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
               overlay-class-name="!min-w-[140px]"
               placement="bottomRight"
             >
-              <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text">
+              <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text" @click.stop>
                 <GeneralIcon class="text-xs" icon="threeDotVertical" />
               </NcButton>
               <template #overlay>

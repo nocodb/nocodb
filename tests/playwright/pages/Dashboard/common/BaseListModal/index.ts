@@ -66,8 +66,8 @@ export class BaseListModalPage extends BasePage {
     return this.modal.locator(`.nc-base-node[data-id="${baseId}"]`);
   }
 
-  async clickBase(baseTitle: string) {
-    const baseNode = this.getBaseNode(baseTitle);
+  async clickBase(baseTitle: string, baseId?: string) {
+    const baseNode = baseId ? this.getBaseNodeById(baseId) : this.getBaseNode(baseTitle);
     await baseNode.waitFor({ state: 'visible' });
     await baseNode.scrollIntoViewIfNeeded();
     await baseNode.click();

@@ -139,7 +139,15 @@ export class SidebarProjectNodeObject extends BasePage {
     }
   }
 
-  async verifyActiveProject({ baseTitle, open = false }: { baseTitle: string; open?: boolean }) {
+  async verifyActiveProject({
+    baseTitle,
+    baseId,
+    open = false,
+  }: {
+    baseTitle: string;
+    baseId?: string;
+    open?: boolean;
+  }) {
     if (!(await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible())) return true;
 
     const ncProjectHeader = this.sidebar.get().locator('.nc-project-header');
@@ -164,7 +172,7 @@ export class SidebarProjectNodeObject extends BasePage {
     await this.sidebar.dashboard.leftSidebar.openBaseListModal();
     await this.sidebar.dashboard.rootPage.waitForTimeout(300);
 
-    await this.sidebar.dashboard.leftSidebar.baseListModal.clickBase(baseTitle);
+    await this.sidebar.dashboard.leftSidebar.baseListModal.clickBase(baseTitle, baseId);
 
     await this.sidebar.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
 

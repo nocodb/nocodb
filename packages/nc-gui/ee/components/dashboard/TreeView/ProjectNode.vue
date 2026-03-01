@@ -458,11 +458,11 @@ watch(
 )
 
 const openBaseSettings = async (baseId: string) => {
-  await navigateTo(`/${route.value.params.typeOrId}/${baseId}/admin/settings`)
+  await navigateTo(`/${route.value.params.typeOrId}/${baseId}/settings/settings`)
 }
 
 const openMcpSettings = async (baseId: string) => {
-  await navigateTo(`/${route.value.params.typeOrId}/${baseId}/admin/mcp`)
+  await navigateTo(`/${route.value.params.typeOrId}/${baseId}/settings/mcp`)
 }
 
 const showNodeTooltip = ref(true)

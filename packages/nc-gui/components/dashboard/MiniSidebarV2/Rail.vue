@@ -68,7 +68,7 @@ const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
 })
 
-const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-admin-page')
+const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-settings-page')
 
 // Resolve a base for icon display when not on a base route (e.g. ws-admin)
 const resolvedProject = computed(() => {
@@ -127,13 +127,13 @@ const getBasePath = () => {
 const onTabClick = (tabKey: string) => {
   activeSidebarTab.value = tabKey as any
 
-  if (tabKey === 'admin') {
-    // If a base is open, navigate to base admin; otherwise ws-level admin
+  if (tabKey === 'settings') {
+    // If a base is open, navigate to base settings; otherwise ws-level settings
     if (isBaseOpen.value) {
-      navigateTo(`${getBasePath()}/admin`)
+      navigateTo(`${getBasePath()}/settings`)
     } else {
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-      navigateTo(`/${wsId}/admin/ws-members`)
+      navigateTo(`/${wsId}/settings/ws-members`)
     }
     return
   }
@@ -212,7 +212,7 @@ const mainItems: NavItem[] = [
 
 // ── Bottom items (pushed down by margin-top: auto) ──
 const bottomItems: NavItem[] = [
-  { key: 'admin', icon: 'ncSettings', label: 'Admin', onClick: () => onTabClick('admin') },
+  { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
   { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() },
 ]
 

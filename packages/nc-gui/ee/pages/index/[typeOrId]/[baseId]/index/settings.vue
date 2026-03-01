@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
-activeSidebarTab.value = 'admin'
+activeSidebarTab.value = 'settings'
 </script>
 
 <template>

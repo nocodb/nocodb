@@ -15,7 +15,7 @@ const { isUIAllowed } = useRoles()
 const navigateToWsSettings = (page: string) => {
   const wsId = route.value.params.typeOrId
   const slug = wsAdminTabToSlug[page] || page
-  navigateTo(`/${wsId}/admin/${slug}`)
+  navigateTo(`/${wsId}/settings/${slug}`)
 }
 
 const activeAdminPage = computed(() => {
@@ -27,9 +27,9 @@ const isWsAdminItemActive = (tab: string) => {
   return activeAdminPage.value === slug
 }
 
-// Ensure admin tab is active
+// Ensure settings tab is active
 onMounted(() => {
-  activeSidebarTab.value = 'admin'
+  activeSidebarTab.value = 'settings'
 })
 </script>
 

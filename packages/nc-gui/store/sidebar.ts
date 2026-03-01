@@ -24,8 +24,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const allowHideLeftSidebarForCurrentRoute = computed(() => {
     return [
       'index-typeOrId-baseId-index-index',
-      'index-typeOrId-settings',
-      'index-typeOrId-baseId-index-admin-page',
+      'index-typeOrId-settings-page',
+      'index-typeOrId-baseId-index-settings-page',
     ].includes(route.name as string)
   })
 
@@ -104,7 +104,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-  type SidebarTab = 'data' | 'automation' | 'agents' | 'admin'
+  type SidebarTab = 'data' | 'automation' | 'agents' | 'settings'
 
   const activeSidebarTab = ref<SidebarTab>('data')
 

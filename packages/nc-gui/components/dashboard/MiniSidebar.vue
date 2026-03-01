@@ -40,7 +40,7 @@ const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
 })
 
-const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-admin-page')
+const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-settings-page')
 
 // Resolve a base for icon display when not on a base route (e.g. ws-admin)
 const resolvedProject = computed(() => {
@@ -99,13 +99,13 @@ const getBasePath = () => {
 const onTabClick = (tabKey: string) => {
   activeSidebarTab.value = tabKey as any
 
-  if (tabKey === 'admin') {
-    // If a base is open, navigate to base admin; otherwise ws-level admin
+  if (tabKey === 'settings') {
+    // If a base is open, navigate to base settings; otherwise ws-level settings
     if (isBaseOpen.value) {
-      navigateTo(`${getBasePath()}/admin`)
+      navigateTo(`${getBasePath()}/settings`)
     } else {
       const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-      navigateTo(`/${wsId}/admin/ws-members`)
+      navigateTo(`/${wsId}/settings/ws-members`)
     }
     return
   }
@@ -204,14 +204,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <!-- Divider -->
       <div class="w-8 border-t border-nc-border-gray-medium my-1"></div>
 
-      <!-- Admin menu -->
+      <!-- Settings menu -->
       <DashboardMiniSidebarItem
         v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations')"
         icon="ncSettings"
-        label="Admin"
-        :active="activeSidebarTab === 'admin' || isWorkspaceSettingsPageOpened || isIntegrationsPageOpened"
-        data-testid="nc-sidebar-admin-btn"
-        @click="onTabClick('admin')"
+        label="Settings"
+        :active="activeSidebarTab === 'settings' || isWorkspaceSettingsPageOpened || isIntegrationsPageOpened"
+        data-testid="nc-sidebar-settings-btn"
+        @click="onTabClick('settings')"
       />
     </div>
     <div class="flex flex-col items-center pb-1 w-full">

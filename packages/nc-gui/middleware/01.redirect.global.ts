@@ -30,7 +30,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return
   }
 
-  // Redirect old workspace settings/integrations routes to new ws-level admin paths
+  // Redirect old workspace settings/integrations routes to new ws-level settings paths
   if (to.name === 'index-typeOrId-settings') {
     const wsId = to.params.typeOrId as string
     const tab = (to.query.tab as string) || 'settings'
@@ -41,25 +41,25 @@ export default defineNuxtRouteMiddleware(async (to) => {
       audits: 'ws-audits',
       sso: 'ws-sso',
     }
-    return navigateTo(`/${wsId}/admin/${slugMap[tab] || 'ws-settings'}`, { replace: true })
+    return navigateTo(`/${wsId}/settings/${slugMap[tab] || 'ws-settings'}`, { replace: true })
   }
 
   if (to.name === 'index-typeOrId-integrations') {
-    return navigateTo(`/${to.params.typeOrId}/admin/ws-integrations`, { replace: true })
+    return navigateTo(`/${to.params.typeOrId}/settings/ws-integrations`, { replace: true })
   }
 
-  // Redirect old base-level ws-* admin pages to ws-level
+  // Redirect old base-level ws-* settings pages to ws-level
   if (to.params.baseId && to.params.page && typeof to.params.page === 'string' && to.params.page.startsWith('ws-')) {
-    return navigateTo(`/${to.params.typeOrId}/admin/${to.params.page}`, { replace: true })
+    return navigateTo(`/${to.params.typeOrId}/settings/${to.params.page}`, { replace: true })
   }
 
-  // Redirect old ?page= query param routes to new /admin/{slug} paths
+  // Redirect old ?page= query param routes to new /settings/{slug} paths
   const page = to.query.page as string | undefined
 
   if (page && to.params.baseId) {
-    // Special case: ?page=base-settings&tab=mcp → /admin/mcp
+    // Special case: ?page=base-settings&tab=mcp → /settings/mcp
     if (page === 'base-settings' && to.query.tab === 'mcp') {
-      return navigateTo(`/${to.params.typeOrId}/${to.params.baseId}/admin/mcp`, { replace: true })
+      return navigateTo(`/${to.params.typeOrId}/${to.params.baseId}/settings/mcp`, { replace: true })
     }
 
     const slug = baseAdminTabToSlug[page]
@@ -69,7 +69,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       const { page: _, tab: __, ...rest } = to.query
       const query = Object.keys(rest).length ? rest : undefined
 
-      return navigateTo({ path: `/${to.params.typeOrId}/${to.params.baseId}/admin/${slug}`, query }, { replace: true })
+      return navigateTo({ path: `/${to.params.typeOrId}/${to.params.baseId}/settings/${slug}`, query }, { replace: true })
     }
   }
 

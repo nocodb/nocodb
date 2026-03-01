@@ -16,8 +16,8 @@ const sidebarStore = useSidebarStore()
 
 const { activeSidebarTab } = storeToRefs(sidebarStore)
 
-// Ensure admin tab is active when on ws-admin route
-activeSidebarTab.value = 'admin'
+// Ensure settings tab is active when on ws-settings route
+activeSidebarTab.value = 'settings'
 </script>
 
 <template>

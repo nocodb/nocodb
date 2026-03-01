@@ -108,17 +108,17 @@ const navigateToBaseSettings = (page: string) => {
 
   const wsId = route.value.params.typeOrId
   const slug = adminTabToSlug[page] || page
-  navigateTo(`/${wsId}/${baseId}/admin/${slug}`)
+  navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
 }
 
 const navigateToWsSettings = (page: string) => {
   const wsId = route.value.params.typeOrId
   const slug = adminTabToSlug[page] || page
-  navigateTo(`/${wsId}/admin/${slug}`)
+  navigateTo(`/${wsId}/settings/${slug}`)
 }
 
 const activeAdminPage = computed(() => {
-  if (activeSidebarTab.value !== 'admin') return ''
+  if (activeSidebarTab.value !== 'settings') return ''
   return (route.value.params.page as string) || 'members'
 })
 
@@ -161,7 +161,7 @@ const isWsAdminItemActive = (tab: string) => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <div v-if="!isSharedBase && activeSidebarTab !== 'admin'" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
+      <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
@@ -211,7 +211,7 @@ const isWsAdminItemActive = (tab: string) => {
       </template>
 
       <!-- Admin panel -->
-      <template v-else-if="activeSidebarTab === 'admin'">
+      <template v-else-if="activeSidebarTab === 'settings'">
         <!-- Base Settings Section -->
         <div v-if="!isSharedBase" class="nc-project-home-section">
           <div class="nc-admin-section-header">

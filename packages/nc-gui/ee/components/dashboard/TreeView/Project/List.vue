@@ -47,7 +47,7 @@ const openedBase = computed(() => {
   return basesList.value.find((b) => b.id === activeProjectId.value)
 })
 
-const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-admin-page')
+const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-settings-page')
 
 // On ws-admin routes without a baseId, resolve a base from last visited or first available
 const resolvedBaseForAdmin = computed(() => {

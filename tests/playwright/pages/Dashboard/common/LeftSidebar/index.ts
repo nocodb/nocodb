@@ -22,10 +22,10 @@ type MiniSidebarActionType =
  * Tab / panel keys for MiniSidebarV2 (new-sidebar-2 branch).
  *
  * Rail main items  : 'data', 'automation', 'notification'
- * Rail bottom items: 'theme', 'admin', 'support'
+ * Rail bottom items: 'theme', 'settings', 'support'
  * Dock main items  : 'agents', 'data', 'workflows', 'wiki'
  * Dock bottom items: 'bookmarks', 'more'
- * Both             : 'settings' (dock), 'admin' (rail)
+ * Both             : 'settings'
  */
 type MiniSidebarV2TabType =
   | 'data'
@@ -33,9 +33,8 @@ type MiniSidebarV2TabType =
   | 'notification'
   | 'theme'
   | 'agents'
-  | 'admin'
-  | 'support'
   | 'settings'
+  | 'support'
   | 'bookmarks'
   | 'more';
 
@@ -124,7 +123,7 @@ export class LeftSidebarPage extends BasePage {
   /**
    * Clicks a tab in MiniSidebarV2 and waits for the navigation transition.
    *
-   * @param tab - One of the MiniSidebarV2TabType keys ('data', 'automation', 'admin', …)
+   * @param tab - One of the MiniSidebarV2TabType keys ('data', 'automation', 'settings', …)
    */
   async clickMiniSidebarV2Tab(tab: MiniSidebarV2TabType): Promise<void> {
     await this.miniSidebarV2.waitFor({ state: 'visible' });
@@ -236,12 +235,12 @@ export class LeftSidebarPage extends BasePage {
   }
 
   /**
-   * Navigates to the Admin / Base Settings section via MiniSidebarV2.
+   * Navigates to the Settings / Base Settings section via MiniSidebarV2.
    * Falls back silently if V2 is not present.
    */
-  async navigateToAdminTab(): Promise<void> {
+  async navigateToSettingsTab(): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('admin');
+      await this.clickMiniSidebarV2Tab('settings');
     }
   }
 
@@ -289,9 +288,9 @@ export class LeftSidebarPage extends BasePage {
   }
 
   async clickTeamAndSettings(): Promise<void> {
-    // V2: team & settings is accessed via the 'admin' rail/dock tab
+    // V2: team & settings is accessed via the 'settings' rail/dock tab
     if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('admin');
+      await this.clickMiniSidebarV2Tab('settings');
       return;
     }
     await this.miniSidebarActionClick({
@@ -450,7 +449,7 @@ export class LeftSidebarPage extends BasePage {
    * equivalents where possible. Types with no V2 equivalent are skipped.
    *
    * V1 → V2 mapping:
-   *   teamAndSettings → admin tab ([data-panel="admin"])
+   *   teamAndSettings → settings tab ([data-panel="settings"])
    *   notification    → notification tab ([data-panel="notification"])
    *   userInfo        → [data-testid="nc-sidebar-userinfo"] (still rendered via DashboardSidebarUserInfo)
    *   cmd-k, cmd-l, cmd-j, integration, feeds → no V2 equivalent; assertion skipped
@@ -464,7 +463,7 @@ export class LeftSidebarPage extends BasePage {
   }): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
       const v2Mapping: Partial<Record<MiniSidebarActionType, MiniSidebarV2TabType | 'userInfo'>> = {
-        teamAndSettings: 'admin',
+        teamAndSettings: 'settings',
         notification: 'notification',
       };
 

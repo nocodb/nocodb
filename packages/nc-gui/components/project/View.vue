@@ -231,17 +231,17 @@ const adminPageTitle = computed(() => {
 watch(projectPageTab, () => {
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
 
-  // When tab is controlled by route path (admin pages), navigate to clean URL
+  // When tab is controlled by route path (settings pages), navigate to clean URL
   if (props.tab) {
     const slug = adminTabToSlug[projectPageTab.value] || projectPageTab.value
     const wsId = route.value.params.typeOrId
 
-    // Workspace-level settings → /{wsId}/admin/ws-*
+    // Workspace-level settings → /{wsId}/settings/ws-*
     if (slug.startsWith('ws-')) {
-      navigateTo(`/${wsId}/admin/${slug}`)
+      navigateTo(`/${wsId}/settings/${slug}`)
     } else {
       const baseId = route.value.params.baseId
-      navigateTo(`/${wsId}/${baseId}/admin/${slug}`)
+      navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
     }
     return
   }

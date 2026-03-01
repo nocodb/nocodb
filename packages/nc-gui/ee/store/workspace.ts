@@ -94,13 +94,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
   const isWorkspaceSettingsPageOpened = computed(
-    () => route.value.name === 'index-typeOrId-settings' || route.value.name === 'index-typeOrId-admin-page',
+    () => route.value.name === 'index-typeOrId-settings-page',
   )
 
   const isIntegrationsPageOpened = computed(
     () =>
       route.value.name === 'index-typeOrId-integrations' ||
-      (route.value.name === 'index-typeOrId-admin-page' && route.value.params.page === 'ws-integrations'),
+      (route.value.name === 'index-typeOrId-settings-page' && route.value.params.page === 'ws-integrations'),
   )
 
   const isTemplatesPageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-templates'))
@@ -598,7 +598,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    const path = `/${workspaceId}/admin/ws-settings`
+    const path = `/${workspaceId}/settings/ws-settings`
     if (cmdOrCtrl) {
       await navigateTo(path, { open: navigateToBlankTargetOpenOption })
     } else {
@@ -637,7 +637,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    const path = `/${workspaceId}/admin/ws-integrations`
+    const path = `/${workspaceId}/settings/ws-integrations`
     if (cmdOrCtrl) {
       await navigateTo(path, { open: navigateToBlankTargetOpenOption })
     } else {

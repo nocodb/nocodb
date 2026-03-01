@@ -16,7 +16,7 @@ const { files, reset } = useFileDialog()
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed } = useRoles()
+const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 type QuickImportTypes = 'excel' | 'json' | 'csv'
 
@@ -145,6 +145,7 @@ watch(
     () => isUIAllowed('projectOverviewTab'),
     () => route.value.query.page,
     () => route.value.query.openTable === 'true',
+    () => isBaseRolesLoaded.value,
   ],
   ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newPage, newOpenTable]) => {
     // If no tables are active or if new sidebar is not enabled then return
@@ -155,6 +156,13 @@ watch(
 
     // If page is defined or overview tab is visible then return
     if (!newIsSharedBase && (newPage || isOverviewTabVisible) && !newOpenTable) {
+      hideEmptySkeleton()
+      return
+    }
+
+    // Wait for base roles to load before auto-opening a table,
+    // since isOverviewTabVisible depends on role permissions
+    if (!isBaseRolesLoaded.value) {
       hideEmptySkeleton()
       return
     }

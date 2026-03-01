@@ -10,7 +10,8 @@ const props = defineProps<{
 
 const { hideSidebar, isBaseSettingsFullPage, activeSidebarTab } = storeToRefs(useSidebarStore())
 
-const { integrations, isFromIntegrationPage, loadIntegrations } = useProvideIntegrationViewStore()
+const { integrations, isFromIntegrationPage, loadIntegrations, activeViewTab, integrationPaginationData } =
+  useProvideIntegrationViewStore()
 
 const basesStore = useBases()
 
@@ -245,6 +246,9 @@ watch(projectPageTab, () => {
     }
     return
   }
+
+  // Overview tab is rendered inline on the base root page — no navigation needed
+  if (projectPageTab.value === 'overview') return
 
   navigateToProjectPage({
     page: projectPageTab.value as any,
@@ -572,8 +576,44 @@ watch(
             <WorkspaceTeams :workspace-id="activeWorkspace.id" :is-active="true" />
           </template>
           <template v-else-if="projectPageTab === 'ws-integrations'">
-            <div class="h-full">
-              <WorkspaceIntegrationsTab show-filter />
+            <div class="h-full flex flex-col">
+              <NcTabs v-model:active-key="activeViewTab">
+                <template #leftExtra>
+                  <div class="w-3"></div>
+                </template>
+                <a-tab-pane key="integrations" class="w-full">
+                  <template #tab>
+                    <div class="tab-title">
+                      <GeneralIcon icon="integration" />
+                      {{ $t('general.integrations') }}
+                    </div>
+                  </template>
+                  <div class="h-full">
+                    <WorkspaceIntegrationsTab show-filter />
+                  </div>
+                </a-tab-pane>
+                <a-tab-pane key="connections" class="w-full">
+                  <template #tab>
+                    <div class="tab-title">
+                      <GeneralIcon icon="gitCommit" />
+                      {{ $t('general.connections') }}
+                      <div
+                        v-if="integrationPaginationData?.totalRows"
+                        class="tab-info flex-none"
+                        :class="{
+                          'bg-primary-selected': activeViewTab === 'connections',
+                          'bg-nc-bg-gray-extralight': activeViewTab !== 'connections',
+                        }"
+                      >
+                        {{ integrationPaginationData.totalRows }}
+                      </div>
+                    </div>
+                  </template>
+                  <div class="p-6 h-full">
+                    <WorkspaceIntegrationsConnectionsTab />
+                  </div>
+                </a-tab-pane>
+              </NcTabs>
               <WorkspaceIntegrationsEditOrAdd />
             </div>
           </template>

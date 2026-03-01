@@ -131,14 +131,6 @@ watch(
 )
 
 const { shouldShow: btbShouldShow } = useBackToBase()
-
-onMounted(() => {
-  hideSidebar.value = true
-})
-
-onBeforeUnmount(() => {
-  hideSidebar.value = false
-})
 </script>
 
 <template>

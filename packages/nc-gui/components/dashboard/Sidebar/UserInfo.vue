@@ -5,6 +5,8 @@ const { user, signOut, appInfo } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
 
+const { toggleMode } = useMiniSidebarMode()
+
 const { isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
 
 const { leftSidebarState } = storeToRefs(useSidebarStore())
@@ -205,6 +207,12 @@ const openKeyboardShortcutDialog = () => {
 
             <template v-if="!isMobileMode">
               <NcDivider />
+
+              <!-- Todo: Add dock mode menu item once it is done -->
+              <!-- <NcMenuItem @click="toggleMode">
+                <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon mt-0.5" />
+                <span class="menu-btn">Dock Mode</span>
+              </NcMenuItem> -->
 
               <DashboardSidebarEEMenuOption v-if="isEeUI" />
               <NcMenuItem @click="openExperimentationMenu">

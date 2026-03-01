@@ -12,9 +12,6 @@ const { isLeftSidebarOpen, activeSidebarTab } = storeToRefs(sidebarStore)
 const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl, navigateToProjectPage: _navigateToBaseProjectPage } = useBase()
 
-const workspaceStore = useWorkspace()
-
-const { isTeamsEnabled } = storeToRefs(workspaceStore)
 const workflowStore = useWorkflowStore()
 
 const { openNewWorkflowModal } = workflowStore
@@ -27,11 +24,11 @@ const baseRole = inject(ProjectRoleInj)!
 
 const basesStore = useBases()
 
-const { activeProjectId, basesList } = storeToRefs(basesStore)
+const { activeProjectId } = storeToRefs(basesStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
-const { isUIAllowed, baseRoles } = useRoles()
+const { isUIAllowed } = useRoles()
 
 const { isMobileMode, appInfo } = useGlobal()
 
@@ -92,45 +89,6 @@ const hasTableCreatePermission = computed(() => {
     source: base.value?.sources?.[0],
   })
 })
-
-const resolveBaseId = () => {
-  if (route.value.params.baseId) return route.value.params.baseId as string
-  if (base.value?.id) return base.value.id
-
-  const lastVisitedBaseId = ncLastVisitedBase().get()
-  const resolved = basesList.value.find((b) => b.id === lastVisitedBaseId) || basesList.value[0]
-  return resolved?.id
-}
-
-const navigateToBaseSettings = (page: string) => {
-  const baseId = resolveBaseId()
-  if (!baseId) return
-
-  const wsId = route.value.params.typeOrId
-  const slug = adminTabToSlug[page] || page
-  navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
-}
-
-const navigateToWsSettings = (page: string) => {
-  const wsId = route.value.params.typeOrId
-  const slug = adminTabToSlug[page] || page
-  navigateTo(`/${wsId}/settings/${slug}`)
-}
-
-const activeAdminPage = computed(() => {
-  if (activeSidebarTab.value !== 'settings') return ''
-  return (route.value.params.page as string) || 'members'
-})
-
-const isAdminItemActive = (tab: string) => {
-  const slug = adminTabToSlug[tab] || tab
-  return activeAdminPage.value === slug
-}
-
-const isWsAdminItemActive = (tab: string) => {
-  const slug = adminTabToSlug[tab] || tab
-  return activeAdminPage.value === slug
-}
 
 
 </script>
@@ -212,119 +170,9 @@ const isWsAdminItemActive = (tab: string) => {
 
       <!-- Admin panel -->
       <template v-else-if="activeSidebarTab === 'settings'">
-        <!-- Base Settings Section -->
-        <div v-if="!isSharedBase" class="nc-project-home-section">
-          <div class="nc-admin-section-header">
-            {{ $t('labels.baseSettings') }}
-          </div>
-          <NcSidebarMenuItem
-            v-if="isUIAllowed('newUser', { roles: baseRoles })"
-            v-e="['c:admin:base:add-user']"
-            icon="users"
-            :active="isAdminItemActive('collaborator')"
-            @click="navigateToBaseSettings('collaborator')"
-          >
-            {{ $t('labels.addUserToBase') }}
-          </NcSidebarMenuItem>
-          <NcSidebarMenuItem
-            v-if="isEeUI && isUIAllowed('sourceCreate')"
-            v-e="['c:admin:base:permissions']"
-            icon="ncLock"
-            :active="isAdminItemActive('permissions')"
-            @click="navigateToBaseSettings('permissions')"
-          >
-            {{ $t('labels.dataPermissions') }}
-          </NcSidebarMenuItem>
-          <NcSidebarMenuItem
-            v-if="isUIAllowed('manageMCP')"
-            v-e="['c:admin:base:mcp']"
-            icon="mcp"
-            :active="isAdminItemActive('mcp')"
-            @click="navigateToBaseSettings('mcp')"
-          >
-            {{ $t('title.mcpServer') }}
-          </NcSidebarMenuItem>
-          <NcSidebarMenuItem
-            v-if="isEeUI && isUIAllowed('sourceCreate')"
-            v-e="['c:admin:base:syncs']"
-            icon="ncZap"
-            :active="isAdminItemActive('syncs')"
-            @click="navigateToBaseSettings('syncs')"
-          >
-            {{ $t('labels.manageSyncs') }}
-          </NcSidebarMenuItem>
-          <NcSidebarMenuItem
-            v-if="isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot')"
-            v-e="['c:admin:base:snapshots']"
-            icon="camera"
-            :active="isAdminItemActive('snapshots')"
-            @click="navigateToBaseSettings('snapshots')"
-          >
-            {{ $t('labels.manageSnapshots') }}
-          </NcSidebarMenuItem>
-          <NcSidebarMenuItem
-            v-if="isUIAllowed('sourceCreate')"
-            v-e="['c:admin:base:add-data-source']"
-            icon="ncDatabase"
-            :active="isAdminItemActive('data-source')"
-            @click="navigateToBaseSettings('data-source')"
-          >
-            {{ $t('labels.addDataSource') }}
-          </NcSidebarMenuItem>
-          <NcSidebarMenuItem
-            v-e="['c:admin:base:more']"
-            icon="ncMoreHorizontal"
-            :active="isAdminItemActive('base-settings')"
-            @click="navigateToBaseSettings('base-settings')"
-          >
-            {{ $t('general.general') }}
-          </NcSidebarMenuItem>
-        </div>
-
+        <DashboardTreeViewProjectBaseSettingsMenu v-if="!isSharedBase" />
         <div v-if="!isSharedBase" class="mx-3 border-t border-nc-border-gray-medium"></div>
-
-        <!-- Workspace Settings Section -->
-        <div class="nc-project-home-section">
-          <div class="nc-admin-section-header">
-            {{ $t('objects.workspace') }} {{ $t('labels.settings') }}
-          </div>
-          <NcSidebarMenuItem
-            v-if="isUIAllowed('workspaceCollaborators')"
-            v-e="['c:admin:ws:invite-user']"
-            icon="users"
-            :active="isWsAdminItemActive('ws-collaborators')"
-            @click="navigateToWsSettings('ws-collaborators')"
-          >
-            {{ $t('labels.inviteUsersToWorkspace') }}
-          </NcSidebarMenuItem>
-          <NcSidebarMenuItem
-            v-if="isEeUI && isTeamsEnabled"
-            v-e="['c:admin:ws:add-team']"
-            icon="ncBuilding"
-            :active="isWsAdminItemActive('ws-teams')"
-            @click="navigateToWsSettings('ws-teams')"
-          >
-            {{ $t('labels.manageTeams') }}
-          </NcSidebarMenuItem>
-          <NcSidebarMenuItem
-            v-if="isUIAllowed('workspaceIntegrations')"
-            v-e="['c:integrations']"
-            icon="integration"
-            :active="isWsAdminItemActive('ws-integrations')"
-            @click="navigateToWsSettings('ws-integrations')"
-          >
-            {{ $t('general.integrations') }}
-          </NcSidebarMenuItem>
-          <NcSidebarMenuItem
-            v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
-            v-e="['c:admin:ws:general']"
-            icon="ncMoreHorizontal"
-            :active="isWsAdminItemActive('ws-settings')"
-            @click="navigateToWsSettings('ws-settings')"
-          >
-            {{ $t('general.general') }}
-          </NcSidebarMenuItem>
-        </div>
+        <DashboardTreeViewProjectWsSettingsMenu />
       </template>
     </div>
 
@@ -381,8 +229,4 @@ const isWsAdminItemActive = (tab: string) => {
   }
 }
 
-.nc-admin-section-header {
-  @apply px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
-  font-size: 13px;
-}
 </style>

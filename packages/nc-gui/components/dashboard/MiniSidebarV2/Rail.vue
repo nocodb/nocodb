@@ -178,7 +178,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 })
 
 // ── Main nav items (add/remove/reorder here) ──
-const mainItems: NavItem[] = [
+const mainItems: NavItem[] = computed(() => [
   // {
   //   key: 'agents',
   //   icon: 'ncAgent',
@@ -195,6 +195,7 @@ const mainItems: NavItem[] = [
     label: 'Data',
     accentColor: '#7ba8f0',
     indicatorColor: '#5b8def',
+    disabled: !hasAvailableBases.value,
     onClick: () => {
       onTabClick('data')
     },
@@ -205,17 +206,17 @@ const mainItems: NavItem[] = [
     label: 'Automation',
     accentColor: '#a78bfa',
     indicatorColor: '#8b5cf6',
+    disabled: !hasAvailableBases.value,
     onClick: () => {
       onTabClick('automation')
     },
   },
-]
+  { key: 'divider', icon: 'ncDivider', label: 'divider' },
+  { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
+])
 
 // ── Bottom items (pushed down by margin-top: auto) ──
-const bottomItems: NavItem[] = [
-  { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
-  { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() },
-]
+const bottomItems: NavItem[] = [{ key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }]
 
 const onItemClick = (panel: string) => {
   activePanel.value = panel
@@ -233,19 +234,23 @@ const onItemClick = (panel: string) => {
     <div class="nc-rail-divider" />
 
     <!-- Main nav items -->
-    <DashboardMiniSidebarV2RailItem
-      v-for="item in mainItems"
-      :key="item.key"
-      :icon="item.icon"
-      :label="item.label"
-      :accent-color="item.accentColor"
-      :indicator-color="item.indicatorColor"
-      :panel-key="item.key"
-      :active="activeSidebarTab === item.key"
-      :disabled="!hasAvailableBases"
-      :disable-tooltip="true"
-      @click="item.onClick?.()"
-    />
+    <template v-for="(item, idx) of mainItems">
+      <div v-if="item.key === 'divider'" :key="`${item.key}-${idx}`" class="nc-rail-divider" />
+
+      <DashboardMiniSidebarV2RailItem
+        v-else
+        :key="idx"
+        :icon="item.icon"
+        :label="item.label"
+        :accent-color="item.accentColor"
+        :indicator-color="item.indicatorColor"
+        :panel-key="item.key"
+        :active="activeSidebarTab === item.key"
+        :disabled="item.disabled"
+        :disable-tooltip="true"
+        @click="item.onClick?.()"
+      />
+    </template>
 
     <!-- Notifications -->
     <NcDropdown

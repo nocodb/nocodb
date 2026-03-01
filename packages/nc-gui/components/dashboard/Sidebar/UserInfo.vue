@@ -209,10 +209,10 @@ const openKeyboardShortcutDialog = () => {
               <NcDivider />
 
               <!-- Todo: Add dock mode menu item once it is done -->
-              <!-- <NcMenuItem @click="toggleMode">
+              <NcMenuItem @click="toggleMode">
                 <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon mt-0.5" />
                 <span class="menu-btn">Dock Mode</span>
-              </NcMenuItem> -->
+              </NcMenuItem>
 
               <DashboardSidebarEEMenuOption v-if="isEeUI" />
               <NcMenuItem @click="openExperimentationMenu">

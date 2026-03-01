@@ -5,32 +5,141 @@ interface NavItem {
   label: string
   accentColor?: string
   indicatorColor?: string
+  disabled?: boolean
+  onClick?: () => void
 }
 
-const emits = defineEmits<{
-  (e: 'switch-panel', panel: string): void
-}>()
+const router = useRouter()
 
-const activePanel = ref('agents')
+const route = router.currentRoute
 
-// ── Main nav items (add/remove/reorder here) ──
-const mainItems: NavItem[] = [
-  { key: 'agents', icon: 'ncZap', label: 'Agents', accentColor: '#d4944a', indicatorColor: '#c47830' },
-  { key: 'data', icon: 'ncTableOutline', label: 'Data', accentColor: '#7ba8f0', indicatorColor: '#5b8def' },
-  { key: 'workflows', icon: 'ncAutomation', label: 'Workflows', accentColor: '#a78bfa', indicatorColor: '#8b5cf6' },
-  { key: 'wiki', icon: 'ncFile', label: 'Wiki', accentColor: '#5dd9ab', indicatorColor: '#10b981' },
-]
+const { navigateToProject } = useGlobal()
 
-// ── Bottom items (pushed down by margin-top: auto) ──
-const bottomItems: NavItem[] = [
-  { key: 'bookmarks', icon: 'ncBookmark', label: 'Bookmarks' },
-  { key: 'more', icon: 'ncMoreHorizontal', label: 'More' },
-]
+const workspaceStore = useWorkspace()
 
-const onItemClick = (panel: string) => {
-  activePanel.value = panel
-  emits('switch-panel', panel)
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const basesStore = useBases()
+
+const { basesList } = storeToRefs(basesStore)
+
+const sidebarStore = useSidebarStore()
+
+const { activeSidebarTab } = storeToRefs(sidebarStore)
+
+const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
+
+const themeIcon = computed(
+  () =>
+    ({
+      light: 'ncSun',
+      dark: 'ncMoon',
+      system: 'ncSunMoon',
+    }[selectedTheme.value] as IconMapKey),
+)
+
+const notificationStore = useNotification()
+
+const { unreadCount } = toRefs(notificationStore)
+
+const isNotificationOpen = ref(false)
+
+useProvideChatwoot()
+
+const { isModalVisible: isChatVisible } = useChatWoot()
+
+const toggleChatSupport = () => {
+  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
+    return
+  }
+  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
+  window.$chatwoot.toggle(toggleText)
 }
+
+const isBaseOpen = computed(() => {
+  return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
+})
+
+const isBaseListModalOpen = ref(false)
+
+const hasAvailableBases = computed(() => !!basesList.value?.length)
+
+const getBasePath = () => {
+  const wsId = route.value.params.typeOrId || activeWorkspaceId.value
+  const baseId = route.value.params.baseId
+  if (baseId) return `/${wsId}/${baseId}`
+
+  const lastVisitedBaseId = ncLastVisitedBase().get()
+  const resolvedBase = basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
+  return resolvedBase?.id ? `/${wsId}/${resolvedBase.id}` : ''
+}
+
+const onTabClick = async (tabKey: string) => {
+  if (tabKey === 'settings') {
+    activeSidebarTab.value = 'settings'
+    if (isBaseOpen.value) {
+      navigateTo(`${getBasePath()}/settings`)
+    } else {
+      const wsId = route.value.params.typeOrId || activeWorkspaceId.value
+      navigateTo(`/${wsId}/settings/ws-members`)
+    }
+    return
+  }
+
+  const basePath = getBasePath()
+  if (!basePath) return
+
+  if (tabKey === 'automation') {
+    await navigateTo(`${basePath}/automation`)
+  } else {
+    await navigateTo(basePath)
+  }
+
+  activeSidebarTab.value = tabKey as any
+}
+
+const navigateToProjectPage = () => {
+  if (route.value.name?.toString().startsWith('index-typeOrId-baseId-')) {
+    return
+  }
+
+  const lastVisitedBase = ncLastVisitedBase().get()
+
+  const baseToNavigate = lastVisitedBase
+    ? basesList.value?.find((b) => b.id === lastVisitedBase) ?? basesList.value[0]
+    : basesList.value[0]
+
+  navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: baseToNavigate?.id })
+}
+
+// ── Main nav items (same as Rail.vue) ──
+const mainItems = computed<NavItem[]>(() => [
+  {
+    key: 'data',
+    icon: 'ncTable',
+    label: 'Data',
+    accentColor: '#7ba8f0',
+    indicatorColor: '#5b8def',
+    disabled: !hasAvailableBases.value,
+    onClick: () => onTabClick('data'),
+  },
+  {
+    key: 'automation',
+    icon: 'ncAutomation',
+    label: 'Automation',
+    accentColor: '#a78bfa',
+    indicatorColor: '#8b5cf6',
+    disabled: !hasAvailableBases.value,
+    onClick: () => onTabClick('automation'),
+  },
+  { key: 'divider', icon: '', label: '' },
+  { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
+])
+
+// ── Bottom items ──
+const bottomItems = computed<NavItem[]>(() => [
+  { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() },
+])
 
 // ── Fish-eye magnification ──
 const dockRef = ref<HTMLElement>()
@@ -61,6 +170,17 @@ const setItemRef = (key: string, el: any) => {
 
 const getScale = (key: string) => {
   return itemScales.value.get(key) ?? MIN_SCALE
+}
+
+const getMagnifyStyle = (key: string) => {
+  const scale = getScale(key)
+  const margin = ((scale - 1) * 48) / 2
+  return {
+    transform: `scale(${scale})`,
+    transformOrigin: 'left center',
+    marginTop: `${margin}px`,
+    marginBottom: `${margin}px`,
+  }
 }
 
 const calculateScales = () => {
@@ -101,6 +221,33 @@ const onMouseLeave = () => {
   isHovering.value = false
   calculateScales()
 }
+
+useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
+  const isBaseSearchInput = e.target instanceof HTMLInputElement && e.target.closest('.nc-base-search-input')
+
+  if (
+    !e.altKey ||
+    (!isBaseSearchInput &&
+      (isActiveInputElementExist(e) ||
+        cmdKActive() ||
+        isCmdJActive() ||
+        isNcDropdownOpen() ||
+        isActiveElementInsideExtension() ||
+        isActiveElementInsideScriptPane() ||
+        isDrawerOrModalExist() ||
+        isExpandedFormOpenExist()))
+  ) {
+    return
+  }
+
+  switch (e.code) {
+    case 'KeyB': {
+      e.preventDefault()
+      navigateToProjectPage()
+      break
+    }
+  }
+})
 </script>
 
 <template>
@@ -111,36 +258,86 @@ const onMouseLeave = () => {
     @mousemove="onMouseMove"
     @mouseleave="onMouseLeave"
   >
-    <!-- Logo (uses dock-item dimensions: 48×48, matching reference .dock-item.dock-logo) -->
-    <DashboardMiniSidebarV2DockItem class="nc-dock-logo" label="Home" data-testid="nc-mini-sidebar-v2-logo">
-      <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="50" cy="50" r="46" stroke="currentColor" stroke-width="6" fill="none" />
-        <circle cx="50" cy="50" r="38" stroke="currentColor" stroke-width="2" fill="none" />
-        <line x1="50" y1="50" x2="50" y2="8" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
-        <line x1="50" y1="50" x2="86.4" y2="71" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
-        <line x1="50" y1="50" x2="13.6" y2="71" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
-      </svg>
+    <!-- Logo -->
+    <DashboardMiniSidebarV2DockItem
+      :ref="(el: any) => setItemRef('logo', el)"
+      class="nc-dock-logo"
+      label="Home"
+      data-testid="nc-mini-sidebar-v2-logo"
+      :scale="getScale('logo')"
+      @click="isBaseListModalOpen = true"
+    >
+      <GeneralProjectIcon class="!h-7 !w-7" />
     </DashboardMiniSidebarV2DockItem>
 
     <div class="nc-dock-separator" />
 
     <!-- Main nav items -->
-    <DashboardMiniSidebarV2DockItem
-      v-for="item in mainItems"
-      :key="item.key"
-      :ref="(el: any) => setItemRef(item.key, el)"
-      :icon="item.icon"
-      :label="item.label"
-      :accent-color="item.accentColor"
-      :indicator-color="item.indicatorColor"
-      :panel-key="item.key"
-      :active="activePanel === item.key"
-      :scale="getScale(item.key)"
-      @click="onItemClick(item.key)"
-    />
+    <template v-for="(item, idx) of mainItems">
+      <div v-if="item.key === 'divider'" :key="`${item.key}-${idx}`" class="nc-dock-separator" />
+
+      <DashboardMiniSidebarV2DockItem
+        v-else
+        :key="idx"
+        :ref="(el: any) => setItemRef(item.key, el)"
+        :icon="item.icon"
+        :label="item.label"
+        :accent-color="item.accentColor"
+        :indicator-color="item.indicatorColor"
+        :panel-key="item.key"
+        :active="activeSidebarTab === item.key"
+        :disabled="item.disabled"
+        :scale="getScale(item.key)"
+        @click="item.onClick?.()"
+      />
+    </template>
+
+    <!-- Notifications -->
+    <NcDropdown
+      v-model:visible="isNotificationOpen"
+      placement="right"
+      overlay-class-name="!shadow-none"
+      :overlay-style="{ marginLeft: '8px' }"
+      :trigger="['click']"
+    >
+      <DashboardMiniSidebarV2DockItem
+        :ref="(el: any) => setItemRef('notification', el)"
+        :label="isNotificationOpen ? undefined : 'Activity'"
+        panel-key="notification"
+        data-testid="nc-sidebar-notification-btn"
+        :active="isNotificationOpen"
+        :scale="getScale('notification')"
+      >
+        <div class="relative flex items-center justify-center">
+          <span
+            v-if="unreadCount"
+            class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
+            style="background: #e75a8d"
+          />
+          <GeneralIcon icon="notification" class="nc-dock-item-icon" />
+        </div>
+      </DashboardMiniSidebarV2DockItem>
+      <template #overlay>
+        <NotificationCard @close="isNotificationOpen = false" />
+      </template>
+    </NcDropdown>
 
     <!-- Bottom group -->
-    <div class="nc-dock-bottom-group">
+    <div class="nc-dock-bottom-group" :class="{ 'is-hovering': isHovering }">
+      <!-- Theme toggle -->
+      <DashboardMiniSidebarV2DockItem
+        v-if="isThemeEnabled"
+        :ref="(el: any) => setItemRef('theme', el)"
+        :label="selectedTheme === 'light' ? 'Light' : selectedTheme === 'dark' ? 'Dark' : 'System'"
+        panel-key="theme"
+        data-testid="nc-sidebar-theme"
+        :scale="getScale('theme')"
+        v-e="['c:nocodb:theme']"
+        @click="toggleTheme"
+      >
+        <GeneralIcon :icon="themeIcon" class="nc-dock-item-icon" />
+      </DashboardMiniSidebarV2DockItem>
+
       <DashboardMiniSidebarV2DockItem
         v-for="item in bottomItems"
         :key="item.key"
@@ -149,27 +346,30 @@ const onMouseLeave = () => {
         :label="item.label"
         :panel-key="item.key"
         :scale="getScale(item.key)"
+        @click="item.onClick?.()"
       />
     </div>
 
     <div class="nc-dock-separator" />
 
-    <!-- Settings with notification dot -->
-    <div class="nc-dock-admin-wrapper">
-      <DashboardMiniSidebarV2DockItem
-        :ref="(el: any) => setItemRef('settings', el)"
-        icon="ncSettings"
-        label="Settings"
-        panel-key="settings"
-        :active="activePanel === 'settings'"
-        :scale="getScale('settings')"
-        @click="onItemClick('settings')"
-      />
-      <span class="nc-notif-dot" />
+    <div
+      :ref="(el: any) => setItemRef('create', el)"
+      class="nc-dock-magnify-wrapper"
+      :style="getMagnifyStyle('create')"
+    >
+      <DashboardMiniSidebarCreateNewActionMenu />
     </div>
 
     <!-- User Avatar -->
-    <DashboardMiniSidebarV2UserMenu />
+    <div
+      :ref="(el: any) => setItemRef('user', el)"
+      class="nc-dock-magnify-wrapper"
+      :style="getMagnifyStyle('user')"
+    >
+      <DashboardSidebarUserInfo />
+    </div>
+
+    <WorkspaceBaseListModal v-model:visible="isBaseListModalOpen" />
   </nav>
 </template>
 
@@ -220,21 +420,21 @@ const onMouseLeave = () => {
 .nc-dock-bottom-group {
   @apply flex flex-col items-center w-full;
   margin-top: auto;
+  transition: margin-top 0.25s ease;
+
+  &.is-hovering {
+    margin-top: 0;
+  }
 }
 
-.nc-dock-admin-wrapper {
-  @apply relative flex justify-center;
+.nc-dock-magnify-wrapper {
+  @apply flex items-center justify-center flex-shrink-0;
+  will-change: transform, margin;
+  transition: transform 0.16s ease-out, margin 0.16s ease-out;
+}
 
-  .nc-notif-dot {
-    position: absolute;
-    top: 2px;
-    right: 2px;
-    width: 8px;
-    height: 8px;
-    background: #e75a8d;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    z-index: 1;
-  }
+// Remove sticky background from UserInfo in dock context
+:deep(.bg-nc-bg-gray-minisidebar) {
+  background: transparent !important;
 }
 </style>

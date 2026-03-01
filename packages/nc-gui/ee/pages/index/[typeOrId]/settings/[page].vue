@@ -22,6 +22,6 @@ activeSidebarTab.value = 'settings'
 
 <template>
   <div v-if="activeWorkspace?.id" class="h-full">
-    <ProjectView :tab="tab" />
+    <WorkspaceViewInline :tab="tab" />
   </div>
 </template>

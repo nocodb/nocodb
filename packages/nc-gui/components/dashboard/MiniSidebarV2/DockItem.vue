@@ -117,9 +117,8 @@ const itemStyle = computed(() => {
   }
 
   .nc-dock-item-icon {
-    font-size: 20px;
+    @apply h-5 w-5 flex items-center justify-center;
     color: inherit;
-    @apply flex items-center justify-center;
     pointer-events: none;
   }
 

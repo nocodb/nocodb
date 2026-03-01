@@ -6,7 +6,7 @@ import type { IInitContext, ITestContext } from '../../../init';
 
 const API_VERSION = 'v3';
 
-describe.only('workflowApiV3', () => {
+describe('workflowApiV3', () => {
   let testContext: ITestContext;
   let app: any;
   let token: string;

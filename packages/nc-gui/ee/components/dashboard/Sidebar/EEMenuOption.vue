@@ -25,14 +25,14 @@ const migrateWorkspace = async () => {
 </script>
 
 <template>
-  <template v-if="!appInfo.isCloud && orgRoles?.[OrgUserRoles.SUPER_ADMIN]">
+  <template v-if="!ncIsPlaywright() && !appInfo.isCloud && orgRoles?.[OrgUserRoles.SUPER_ADMIN]">
     <nuxt-link v-e="['c:user:admin-panel']" to="/admin" class="!no-underline" data-testid="nc-sidebar-instance-admin-panel">
       <NcMenuItem> <GeneralIcon class="menu-icon" icon="controlPanel" /> {{ $t('labels.adminPanel') }} </NcMenuItem>
     </nuxt-link>
   </template>
   <template v-else-if="appInfo.isCloud && activeWorkspace?.fk_org_id">
     <nuxt-link
-      v-if="isUIAllowed('orgAdminPanel')"
+      v-if="ncIsPlaywright() || isUIAllowed('orgAdminPanel')"
       v-e="['c:user:admin-panel']"
       :to="`/admin/${activeWorkspace?.fk_org_id}`"
       class="!no-underline"
@@ -42,7 +42,7 @@ const migrateWorkspace = async () => {
     </nuxt-link>
   </template>
   <div
-    v-else-if="appInfo.isCloud && isUIAllowed('moveWorkspaceToOrg') && user?.featureFlags?.upgradeOrg"
+    v-else-if="ncIsPlaywright() || (appInfo.isCloud && isUIAllowed('moveWorkspaceToOrg') && user?.featureFlags?.upgradeOrg)"
     v-e="['c:user:upgrade-workspace-to-org']"
     data-testid="nc-sidebar-upgrade-workspace-to-org"
     @click="migrateWorkspace"

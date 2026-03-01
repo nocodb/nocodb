@@ -630,7 +630,10 @@ export default class View implements ViewType {
         let kanbanShowLimit = 0;
         let calendarRanges: Array<string> | null = null;
 
-        if (view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE) {
+        if (
+          view.type === ViewTypes.CALENDAR ||
+          view.type === ViewTypes.TIMELINE
+        ) {
           calendarRanges = await View.getRangeColumnsAsArray(
             context,
             view_id,
@@ -2426,7 +2429,8 @@ export default class View implements ViewType {
             'base_id',
             'source_id',
             'order',
-            ...(view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE
+            ...(view.type === ViewTypes.CALENDAR ||
+            view.type === ViewTypes.TIMELINE
               ? ['bold', 'italic', 'underline']
               : []),
             ...(view.type === ViewTypes.FORM

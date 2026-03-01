@@ -7,9 +7,7 @@ definePageMeta({
 
 const { orgRoles, isUIAllowed } = useRoles()
 
-const { appInfo } = useGlobal()
-
-const { isEEFeatureBlocked, showUpgradeToUseSSO } = useEeConfig()
+const { isEEFeatureBlocked } = useEeConfig()
 
 const showLicenseTab = computed(() => isEeUI)
 

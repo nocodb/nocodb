@@ -41,10 +41,7 @@ export class TimelinesService {
     },
     ncMeta?: MetaService,
   ) {
-    await checkForFeature(
-      context,
-      PlanFeatureTypes.FEATURE_TIMELINE_VIEW,
-    );
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_TIMELINE_VIEW);
 
     validatePayload(
       'swagger.json#/components/schemas/ViewCreateReq',

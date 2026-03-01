@@ -9,7 +9,10 @@ import Noco from '~/Noco';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import TimelineRange from '~/models/TimelineRange';
 
-export default class TimelineView extends TimelineViewCE implements TimelineType {
+export default class TimelineView
+  extends TimelineViewCE
+  implements TimelineType
+{
   fk_view_id: string;
   title: string;
   fk_workspace_id?: string;

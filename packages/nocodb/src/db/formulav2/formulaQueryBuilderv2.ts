@@ -2,11 +2,11 @@ import { Logger } from '@nestjs/common';
 import {
   CircularRefContext,
   FormulaDataTypes,
+  isBtLikeV2Junction,
   JSEPNode,
   LongTextAiMetaProp,
   NcErrorType,
   UITypes,
-  isBtLikeV2Junction,
   validateFormulaAndExtractTreeWithType,
 } from 'nocodb-sdk';
 import { getColumnName } from 'src/helpers/dbHelpers';

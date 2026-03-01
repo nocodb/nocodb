@@ -23,8 +23,6 @@ const copyBtnRef = ref()
 
 const { isMobileMode } = useGlobal()
 
-const { isUIAllowed } = useRoles()
-
 const { $e } = useNuxtApp()
 
 const logout = async () => {

@@ -77,7 +77,6 @@ const onPaste = (e: ClipboardEvent) => {
 
   usersData.value.emails = extractEmail(pastedText) || pastedText
 }
-
 </script>
 
 <template>
@@ -169,7 +168,6 @@ const onPaste = (e: ClipboardEvent) => {
                     />
                   </a-form-item>
                 </div>
-
               </div>
 
               <div class="flex flex-row justify-end">

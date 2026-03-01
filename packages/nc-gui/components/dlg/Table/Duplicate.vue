@@ -65,7 +65,10 @@ const targetTableMeta = computedAsync(async () => {
 
 const canTargetOtherBase = computed(() => {
   if (!targetTableMeta.value || (targetTableMeta.value.columns?.length ?? 0) === 0) return false
-  return isEeActive.value && !targetTableMeta.value.columns?.some((col) => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt!))
+  return (
+    isEeActive.value &&
+    !targetTableMeta.value.columns?.some((col) => [UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt!))
+  )
 })
 
 const isTargetOtherWsSufficientPlan = computed(() => {

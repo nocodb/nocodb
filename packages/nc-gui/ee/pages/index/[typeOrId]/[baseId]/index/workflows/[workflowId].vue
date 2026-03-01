@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { useProvideWorkflow } from '~/composables/useWorkflow'
+const route = useRoute()
+const router = useRouter()
 
-const workflowStore = useWorkflowStore()
-
-const { activeWorkflow } = storeToRefs(workflowStore)
-
-useProvideWorkflow(activeWorkflow)
+router.replace({
+  name: 'index-typeOrId-baseId-index-automation-workflows-workflowId',
+  params: {
+    typeOrId: route.params.typeOrId,
+    baseId: route.params.baseId,
+    workflowId: route.params.workflowId,
+  },
+  query: route.query,
+})
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
-    <SmartsheetTopbar />
-    <div style="height: calc(100svh - var(--topbar-height))">
-      <SmartsheetWorkflow />
-    </div>
-  </div>
+  <NcSpanHidden />
 </template>

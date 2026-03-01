@@ -124,10 +124,9 @@ const getBasePath = () => {
   return resolvedBase?.id ? `/${wsId}/${resolvedBase.id}` : ''
 }
 
-const onTabClick = (tabKey: string) => {
-  activeSidebarTab.value = tabKey as any
-
+const onTabClick = async (tabKey: string) => {
   if (tabKey === 'settings') {
+    activeSidebarTab.value = 'settings'
     // If a base is open, navigate to base settings; otherwise ws-level settings
     if (isBaseOpen.value) {
       navigateTo(`${getBasePath()}/settings`)
@@ -138,15 +137,17 @@ const onTabClick = (tabKey: string) => {
     return
   }
 
-  // Navigate to clean URL
+  // Navigate first, then update tab — avoids stale API calls from the current page
   const basePath = getBasePath()
   if (!basePath) return
 
   if (tabKey === 'automation') {
-    navigateTo(`${basePath}/automate`)
+    await navigateTo(`${basePath}/automation`)
   } else {
-    navigateTo(basePath)
+    await navigateTo(basePath)
   }
+
+  activeSidebarTab.value = tabKey as any
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {

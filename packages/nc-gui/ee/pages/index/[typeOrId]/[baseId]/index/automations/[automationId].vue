@@ -7,7 +7,7 @@ const typeOrId = route.params.typeOrId as string
 const baseId = route.params.baseId as string
 
 router.replace({
-  name: 'index-typeOrId-baseId-index-scripts-scriptId',
+  name: 'index-typeOrId-baseId-index-automation-scripts-scriptId',
   params: {
     typeOrId,
     baseId,

@@ -5,5 +5,5 @@ activeSidebarTab.value = 'automation'
 </script>
 
 <template>
-  <ProjectView />
+  <NuxtPage />
 </template>

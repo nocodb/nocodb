@@ -39,8 +39,6 @@ export type WorkflowV3GetResponseType = {
 export type WorkflowV3CreateReqType = {
   title: string;
   description?: string;
-  nodes?: WorkflowGeneralNode[];
-  edges?: WorkflowGeneralEdge[];
   meta?: Record<string, unknown>;
 };
 
@@ -48,9 +46,6 @@ export type WorkflowV3UpdateReqType = {
   title?: string;
   description?: string;
   enabled?: boolean;
-  nodes?: WorkflowGeneralNode[];
-  edges?: WorkflowGeneralEdge[];
-  draft?: Record<string, unknown>;
   meta?: Record<string, unknown>;
   order?: number;
 };
@@ -86,4 +81,38 @@ export type WorkflowExecutionV3GetResponseType = {
   started_at: string;
   finished_at: string;
   created_at: string;
+};
+
+// --- Node types ---
+
+export type WorkflowNodeV3ResponseType = {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  data: Record<string, unknown>;
+  targetPosition: string;
+  sourcePosition: string;
+};
+
+export type WorkflowNodeV3ListResponseType = {
+  nodes: WorkflowNodeV3ResponseType[];
+  edges: WorkflowGeneralEdge[];
+};
+
+export type WorkflowNodeV3CreateReqType = {
+  id?: string;
+  type: string;
+  position: { x: number; y: number };
+  data: Record<string, unknown>;
+  targetPosition?: string;
+  sourcePosition?: string;
+  edges?: WorkflowGeneralEdge[];
+};
+
+export type WorkflowNodeV3UpdateReqType = {
+  type?: string;
+  position?: { x: number; y: number };
+  data?: Record<string, unknown>;
+  targetPosition?: string;
+  sourcePosition?: string;
 };

@@ -5087,6 +5087,219 @@
         }
       }
     },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/nodes": {
+      "get": {
+        "summary": "List Workflow Nodes",
+        "description": "Retrieve all nodes and edges of a workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-node-list",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workflow nodes and edges retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowNodeListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Workflow Node",
+        "description": "Add a new node to the workflow draft. Optionally include edges connecting the new node.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-node-create",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowNodeCreateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Node created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowNodeGetResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/workflows/{workflow_id}/nodes/{node_id}": {
+      "get": {
+        "summary": "Get Workflow Node",
+        "description": "Retrieve a single node from the workflow.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-node-read",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the node."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowNodeGetResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Workflow Node",
+        "description": "Update a node in the workflow draft.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-node-update",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the node."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowNodeUpdateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Node updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowNodeGetResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Workflow Node",
+        "description": "Delete a node and its connected edges from the workflow draft.\n\n**Note**: Workflow APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "workflow-node-delete",
+        "tags": ["Workflows"],
+        "parameters": [
+          {
+            "schema": { "type": "string" },
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the base."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "workflow_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the workflow."
+          },
+          {
+            "schema": { "type": "string" },
+            "name": "node_id",
+            "in": "path",
+            "required": true,
+            "description": "Unique identifier for the node."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v3/data/{baseId}/{tableId}/records": {
       "parameters": [
         {
@@ -15910,20 +16123,6 @@
             "type": ["string", "null"],
             "description": "Description of the workflow."
           },
-          "nodes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WorkflowNodeRequest"
-            },
-            "description": "Initial workflow node definitions."
-          },
-          "edges": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WorkflowEdge"
-            },
-            "description": "Initial connections between nodes."
-          },
           "meta": {
             "$ref": "#/components/schemas/WorkflowMeta",
             "description": "Metadata for the workflow."
@@ -15945,24 +16144,6 @@
           "enabled": {
             "type": "boolean",
             "description": "Whether the workflow is enabled."
-          },
-          "nodes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WorkflowNodeRequest"
-            },
-            "description": "Workflow node definitions."
-          },
-          "edges": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/WorkflowEdge"
-            },
-            "description": "Connections between workflow nodes."
-          },
-          "draft": {
-            "$ref": "#/components/schemas/WorkflowDraftRequest",
-            "description": "Draft configuration with unpublished changes."
           },
           "meta": {
             "$ref": "#/components/schemas/WorkflowMeta",
@@ -16001,6 +16182,169 @@
             "type": "string",
             "enum": ["sample_data", "listen_webhook", "trigger_event"],
             "description": "Test mode. Defaults to sample_data if not specified."
+          }
+        }
+      },
+      "WorkflowNodeGetResponse": {
+        "description": "A single workflow node",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the node."
+          },
+          "type": {
+            "type": "string",
+            "description": "Node type identifier."
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": { "type": "number", "description": "X coordinate." },
+              "y": { "type": "number", "description": "Y coordinate." }
+            },
+            "required": ["x", "y"],
+            "description": "Position of the node on the canvas."
+          },
+          "data": {
+            "$ref": "#/components/schemas/WorkflowNodeData",
+            "description": "Node configuration and metadata."
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle."
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle."
+          }
+        },
+        "required": ["id", "type", "position", "data"]
+      },
+      "WorkflowNodeListResponse": {
+        "description": "List of workflow nodes and edges",
+        "type": "object",
+        "properties": {
+          "nodes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowNodeGetResponse"
+            },
+            "description": "Workflow nodes."
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "description": "Connections between nodes."
+          }
+        }
+      },
+      "WorkflowNodeCreateReq": {
+        "description": "Create a new workflow node",
+        "type": "object",
+        "required": ["type", "position", "data"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Optional custom identifier. Auto-generated if omitted."
+          },
+          "type": {
+            "type": "string",
+            "description": "Node type identifier."
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": { "type": "number", "description": "X coordinate." },
+              "y": { "type": "number", "description": "Y coordinate." }
+            },
+            "required": ["x", "y"],
+            "description": "Position of the node on the canvas."
+          },
+          "data": {
+            "type": "object",
+            "description": "Node configuration and metadata.",
+            "properties": {
+              "config": {
+                "type": "object",
+                "description": "Node-specific configuration."
+              },
+              "title": {
+                "type": "string",
+                "description": "Display title for the node."
+              },
+              "description": {
+                "type": ["string", "null"],
+                "description": "Optional description."
+              }
+            }
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle. Defaults to 'top'."
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle. Defaults to 'bottom'."
+          },
+          "edges": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkflowEdge"
+            },
+            "description": "Optional edges to add along with the node."
+          }
+        }
+      },
+      "WorkflowNodeUpdateReq": {
+        "description": "Update an existing workflow node",
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Node type identifier."
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": { "type": "number", "description": "X coordinate." },
+              "y": { "type": "number", "description": "Y coordinate." }
+            },
+            "description": "Position of the node on the canvas."
+          },
+          "data": {
+            "type": "object",
+            "description": "Node configuration and metadata.",
+            "properties": {
+              "config": {
+                "type": "object",
+                "description": "Node-specific configuration."
+              },
+              "title": {
+                "type": "string",
+                "description": "Display title for the node."
+              },
+              "description": {
+                "type": ["string", "null"],
+                "description": "Optional description."
+              }
+            }
+          },
+          "targetPosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the incoming connection handle."
+          },
+          "sourcePosition": {
+            "type": "string",
+            "enum": ["top", "bottom", "left", "right"],
+            "description": "Position of the outgoing connection handle."
           }
         }
       },

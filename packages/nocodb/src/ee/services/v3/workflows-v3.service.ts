@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PlanFeatureTypes } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from 'nocodb-sdk';
+import { nanoid } from 'nanoid';
+import type { NcContext, NcRequest, WorkflowGeneralEdge } from 'nocodb-sdk';
 import type {
   WorkflowExecutionV3GetResponseType,
   WorkflowExecutionV3ListResponseType,
+  WorkflowNodeV3CreateReqType,
+  WorkflowNodeV3ListResponseType,
+  WorkflowNodeV3ResponseType,
+  WorkflowNodeV3UpdateReqType,
   WorkflowV3CreateReqType,
   WorkflowV3ExecuteReqType,
   WorkflowV3GetResponseType,
@@ -159,8 +164,6 @@ export class WorkflowsV3Service {
       context,
     );
 
-    this.validateNoTestResult(context, body.nodes);
-
     const workflow = await this.workflowsService.createWorkflow(
       context,
       body,
@@ -184,9 +187,6 @@ export class WorkflowsV3Service {
       true,
       context,
     );
-
-    this.validateNoTestResult(context, body.nodes);
-    this.validateNoTestResult(context, (body.draft as any)?.nodes);
 
     const workflow = await this.workflowsService.updateWorkflow(
       context,
@@ -275,11 +275,16 @@ export class WorkflowsV3Service {
       context,
     );
 
-    const result = await this.workflowsService.testExecuteNode(context, id, {
-      nodeId: body.node_id,
-      testTriggerData: body.test_trigger_data,
-      testMode: body.test_mode,
-    }, req);
+    const result = await this.workflowsService.testExecuteNode(
+      context,
+      id,
+      {
+        nodeId: body.node_id,
+        testTriggerData: body.test_trigger_data,
+        testMode: body.test_mode,
+      },
+      req,
+    );
 
     return { id: String(result.id) };
   }
@@ -315,5 +320,207 @@ export class WorkflowsV3Service {
     });
 
     return executionBuilder().build(execution);
+  }
+
+  // --- Node CRUD methods ---
+
+  private toNodeResponse(node: any): WorkflowNodeV3ResponseType {
+    return {
+      id: node.id,
+      type: node.type,
+      position: node.position,
+      data: node.data,
+      targetPosition: node.targetPosition,
+      sourcePosition: node.sourcePosition,
+    };
+  }
+
+  private getDraftNodes(workflow: Workflow): any[] {
+    return (workflow.draft as any)?.nodes || [];
+  }
+
+  private getDraftEdges(workflow: Workflow): WorkflowGeneralEdge[] {
+    return (workflow.draft as any)?.edges || [];
+  }
+
+  async workflowNodeList(
+    context: NcContext,
+    workflowId: string,
+  ): Promise<WorkflowNodeV3ListResponseType> {
+    await this.validateFeatureAccess(context);
+
+    const workflow = await this.workflowsService.getWorkflow(
+      context,
+      workflowId,
+    );
+
+    return {
+      nodes: this.getDraftNodes(workflow).map((n) => this.toNodeResponse(n)),
+      edges: this.getDraftEdges(workflow),
+    };
+  }
+
+  async workflowNodeGet(
+    context: NcContext,
+    workflowId: string,
+    nodeId: string,
+  ): Promise<WorkflowNodeV3ResponseType> {
+    await this.validateFeatureAccess(context);
+
+    const workflow = await this.workflowsService.getWorkflow(
+      context,
+      workflowId,
+    );
+
+    const node = this.getDraftNodes(workflow).find((n) => n.id === nodeId);
+
+    if (!node) {
+      NcError.get(context).workflowNodeNotFound(nodeId);
+    }
+
+    return this.toNodeResponse(node);
+  }
+
+  async workflowNodeCreate(
+    context: NcContext,
+    workflowId: string,
+    body: WorkflowNodeV3CreateReqType,
+    req: NcRequest,
+  ): Promise<WorkflowNodeV3ResponseType> {
+    await this.validateFeatureAccess(context);
+
+    validatePayload(
+      'swagger-v3.json#/components/schemas/WorkflowNodeCreateReq',
+      body,
+      true,
+      context,
+    );
+
+    this.validateNoTestResult(context, [body as any]);
+
+    const workflow = await this.workflowsService.getWorkflow(
+      context,
+      workflowId,
+    );
+
+    const nodes = this.getDraftNodes(workflow);
+    const edges = this.getDraftEdges(workflow);
+
+    const nodeId = body.id || `node_${nanoid(16)}`;
+
+    const newNode = {
+      id: nodeId,
+      type: body.type,
+      position: body.position,
+      data: body.data || {},
+      targetPosition: body.targetPosition || 'top',
+      sourcePosition: body.sourcePosition || 'bottom',
+    };
+
+    nodes.push(newNode);
+
+    if (body.edges?.length) {
+      edges.push(...body.edges);
+    }
+
+    await this.workflowsService.updateWorkflow(
+      context,
+      workflowId,
+      { draft: { nodes, edges } },
+      req,
+    );
+
+    return this.toNodeResponse(newNode);
+  }
+
+  async workflowNodeUpdate(
+    context: NcContext,
+    workflowId: string,
+    nodeId: string,
+    body: WorkflowNodeV3UpdateReqType,
+    req: NcRequest,
+  ): Promise<WorkflowNodeV3ResponseType> {
+    await this.validateFeatureAccess(context);
+
+    validatePayload(
+      'swagger-v3.json#/components/schemas/WorkflowNodeUpdateReq',
+      body,
+      true,
+      context,
+    );
+
+    if (body.data) {
+      this.validateNoTestResult(context, [{ data: body.data } as any]);
+    }
+
+    const workflow = await this.workflowsService.getWorkflow(
+      context,
+      workflowId,
+    );
+
+    const nodes = this.getDraftNodes(workflow);
+    const nodeIndex = nodes.findIndex((n) => n.id === nodeId);
+
+    if (nodeIndex === -1) {
+      NcError.get(context).workflowNodeNotFound(nodeId);
+    }
+
+    const existing = nodes[nodeIndex];
+
+    if (body.type !== undefined) existing.type = body.type;
+    if (body.position !== undefined) existing.position = body.position;
+    if (body.data !== undefined) existing.data = body.data;
+    if (body.targetPosition !== undefined)
+      existing.targetPosition = body.targetPosition;
+    if (body.sourcePosition !== undefined)
+      existing.sourcePosition = body.sourcePosition;
+
+    nodes[nodeIndex] = existing;
+
+    await this.workflowsService.updateWorkflow(
+      context,
+      workflowId,
+      { draft: { nodes, edges: this.getDraftEdges(workflow) } },
+      req,
+    );
+
+    return this.toNodeResponse(existing);
+  }
+
+  async workflowNodeDelete(
+    context: NcContext,
+    workflowId: string,
+    nodeId: string,
+    req: NcRequest,
+  ): Promise<boolean> {
+    await this.validateFeatureAccess(context);
+
+    const workflow = await this.workflowsService.getWorkflow(
+      context,
+      workflowId,
+    );
+
+    const nodes = this.getDraftNodes(workflow);
+    const nodeIndex = nodes.findIndex((n) => n.id === nodeId);
+
+    if (nodeIndex === -1) {
+      NcError.get(context).workflowNodeNotFound(nodeId);
+    }
+
+    nodes.splice(nodeIndex, 1);
+
+    // Remove all edges connected to this node
+    const edges = this.getDraftEdges(workflow).filter(
+      (e) => e.source !== nodeId && e.target !== nodeId,
+    );
+
+    await this.workflowsService.updateWorkflow(
+      context,
+      workflowId,
+      { draft: { nodes, edges } },
+      req,
+    );
+
+    return true;
   }
 }

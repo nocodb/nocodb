@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProjectRoles } from 'nocodb-sdk';
+import { NcApiVersion, ProjectRoles } from 'nocodb-sdk';
 import { resolveTableByName } from '../helpers';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
@@ -10,14 +10,24 @@ import Noco from '~/Noco';
 export const countRecordsTool: ChatToolDefinition = {
   name: 'count_records',
   description:
-    'Count the number of records in a table, optionally with a filter.',
+    'Count the number of records in a table, optionally filtered by a where clause. ' +
+    'Use this to answer "how many records match..." questions without fetching the actual records. ' +
+    'Much faster and cheaper than query_records + counting results manually. ' +
+    'Returns: { count: <number> }.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table to count records in (case-insensitive).',
+      ),
     where: z
       .string()
       .optional()
       .describe(
-        'Optional filter condition in NocoDB format, e.g., "(Status,eq,Active)"',
+        'Optional filter to count only matching records. ' +
+          'Format: (FieldTitle,operator,value)~and(FieldTitle,operator,value). ' +
+          'Example: (Status,eq,Active) or (CreatedAt,gt,2024-01-01)~and(Status,neq,Archived). ' +
+          'All filter operators are listed in the system prompt under "Filter Operators".',
       ),
   },
   permission: 'dataCount',
@@ -39,13 +49,11 @@ export const countRecordsTool: ChatToolDefinition = {
       query: {
         where: args.where,
       },
+      apiVersion: NcApiVersion.V3,
     });
 
     return {
       count: result.count,
-      message: `Table "${args.table_name}" has ${result.count} records${
-        args.where ? ' matching the filter' : ''
-      }.`,
     };
   },
 };

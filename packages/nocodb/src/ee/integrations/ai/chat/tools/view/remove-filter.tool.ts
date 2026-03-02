@@ -9,11 +9,14 @@ import Noco from '~/Noco';
 export const removeFilterTool: ChatToolDefinition = {
   name: 'remove_filter',
   description:
-    'Remove a filter from a view by its ID. Use list_filters first to find the filter ID.',
+    'Remove a specific filter condition from a view by its ID. ' +
+    'Call list_filters first to get the filter ID of the filter you want to remove.',
   parameters: {
     filter_id: z
       .string()
-      .describe('The ID of the filter to remove (from list_filters)'),
+      .describe(
+        'The ID of the filter to remove. Get this from list_filters — it is the "id" field in the response.',
+      ),
   },
   permission: 'filterDelete',
   scope: 'base',

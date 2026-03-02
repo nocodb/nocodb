@@ -11,59 +11,55 @@ import type { ChatToolDefinition } from '../chat-tool-registry';
 import { FiltersService } from '~/services/filters.service';
 import Noco from '~/Noco';
 
-const COMPARISON_OPS = [
-  'eq',
-  'neq',
-  'gt',
-  'ge',
-  'lt',
-  'le',
-  'like',
-  'nlike',
-  'is',
-  'isnot',
-  'in',
-  'notin',
-  'empty',
-  'notempty',
-  'null',
-  'notnull',
-  'isWithin',
-  'btw',
-  'nbtw',
-  'allof',
-  'nallof',
-  'anyof',
-  'nanyof',
-  'gb_eq',
-  'gb_null',
-  'checked',
-  'notchecked',
-] as const;
-
 export const addFilterTool: ChatToolDefinition = {
   name: 'add_filter',
   description:
-    'Add a filter condition to a view. Common operators: eq (equals), neq (not equal), gt/lt (greater/less than), like (contains), empty/notempty, null/notnull, checked/notchecked.',
+    'Add a filter condition to a view. Filters limit which records are shown in the view without deleting data. ' +
+    'Multiple filters are combined using logical_op (and/or). ' +
+    'Returns the filter_id which you can use later with remove_filter. ' +
+    'All operators are listed in the system prompt under "Filter Operators". ' +
+    'Value-less operators (blank, notblank, null, notnull, checked, notchecked) do not need a value.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table containing the view (case-insensitive).',
+      ),
     view_name: z
       .string()
       .optional()
-      .describe('The name of the view. If omitted, uses the default view.'),
-    field_name: z.string().describe('The name of the field to filter on'),
-    operator: z.enum(COMPARISON_OPS).describe('The comparison operator'),
+      .describe(
+        'The title of the view to add the filter to. If omitted, uses the first (default) view.',
+      ),
+    field_name: z
+      .string()
+      .describe(
+        'The title of the field to filter on (case-insensitive). ' +
+          'Use describe_table to see exact field names.',
+      ),
+    operator: z
+      .string()
+      .describe(
+        'The comparison operator. See system prompt "Filter Operators" for the complete list. ' +
+          'Common operators: eq (equals), neq (not equals), like (contains), gt/lt (greater/less than), ' +
+          'blank (null or empty), in (one of list), anyof (any option selected). ' +
+          'For no-value operators like blank/notblank/checked/notchecked, omit the value parameter.',
+      ),
     value: z
       .string()
       .optional()
       .describe(
-        'The filter value. Not needed for operators like empty, notempty, null, notnull, checked, notchecked.',
+        'The value to compare against. Omit for operators that do not need a value ' +
+          '(blank, notblank, null, notnull, checked, notchecked). ' +
+          'For "in" operator, use comma-separated values: "Active,Pending". ' +
+          'For "like" operator, use % as wildcard: "%search%".',
       ),
     logical_op: z
       .enum(['and', 'or'])
       .optional()
       .describe(
-        'Logical operator to combine with existing filters. Defaults to "and".',
+        'How this filter combines with existing filters on the view. ' +
+          '"and" means all filters must match; "or" means any filter can match. Default: "and".',
       ),
   },
   permission: 'filterCreate',

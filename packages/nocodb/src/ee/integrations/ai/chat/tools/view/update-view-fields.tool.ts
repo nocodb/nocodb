@@ -15,21 +15,38 @@ import Noco from '~/Noco';
 export const updateViewFieldsTool: ChatToolDefinition = {
   name: 'update_view_fields',
   description:
-    'Show or hide fields in a view. Provide a list of field changes to apply in bulk.',
+    'Show or hide fields in a view. Does not delete data — only controls visibility in this view. ' +
+    'Use list_view_fields first to see current field visibility before making changes. ' +
+    'Fields not included in this call are left unchanged.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table containing the view (case-insensitive).',
+      ),
     view_name: z
       .string()
       .optional()
-      .describe('The name of the view. If omitted, uses the default view.'),
+      .describe(
+        'The title of the view to update. If omitted, uses the first (default) view.',
+      ),
     fields: z
       .array(
         z.object({
-          field_name: z.string().describe('The name of the field'),
-          visible: z.boolean().describe('Whether the field should be visible'),
+          field_name: z
+            .string()
+            .describe(
+              'The title of the field to show/hide (case-insensitive).',
+            ),
+          visible: z
+            .boolean()
+            .describe('true to show the field in this view, false to hide it.'),
         }),
       )
-      .describe('List of fields to show or hide'),
+      .describe(
+        'List of fields to update with their desired visibility. ' +
+          'Example: [{ "field_name": "Internal Notes", "visible": false }, { "field_name": "Status", "visible": true }]',
+      ),
   },
   permission: 'viewColumnUpdate',
   scope: 'base',

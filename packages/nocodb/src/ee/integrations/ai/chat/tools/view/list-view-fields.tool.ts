@@ -10,13 +10,21 @@ import Noco from '~/Noco';
 export const listViewFieldsTool: ChatToolDefinition = {
   name: 'list_view_fields',
   description:
-    'List all fields in a view with their visibility status and display order. Use this to see which fields are shown or hidden.',
+    'List all fields in a view with their visibility status (shown/hidden) and display order. ' +
+    'Use this before update_view_fields to see which fields are currently visible. ' +
+    'Hidden fields still store data — they are just not shown in that view.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table containing the view (case-insensitive).',
+      ),
     view_name: z
       .string()
       .optional()
-      .describe('The name of the view. If omitted, uses the default view.'),
+      .describe(
+        'The title of the view to inspect. If omitted, uses the first (default) view of the table.',
+      ),
   },
   permission: 'viewColumnList',
   scope: 'base',

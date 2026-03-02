@@ -97,6 +97,19 @@ export async function resolveGridViewColumnId(
 }
 
 /**
+ * Get the primary key column title for a model.
+ * Falls back to 'Id' if no PK column is found.
+ */
+export async function getPrimaryKeyTitle(
+  context: NcContext,
+  model: Model,
+): Promise<string> {
+  const columns = await model.getColumns(context);
+  const pkCol = columns.find((c) => c.pk);
+  return pkCol?.title || 'Id';
+}
+
+/**
  * Truncate a result to prevent overly large tool responses from blowing up context.
  */
 export function truncateResult(data: any, maxLength = 4000): string {

@@ -17,13 +17,26 @@ const VIEW_TYPE_MAP: Record<string, ViewTypes> = {
 export const createViewTool: ChatToolDefinition = {
   name: 'create_view',
   description:
-    'Create a new view for a table (grid, form, gallery, kanban, or calendar).',
+    'Create a new view for a table. Each table can have multiple views of different types: ' +
+    'grid (spreadsheet-like, default), gallery (card layout), kanban (column-grouped cards), ' +
+    'form (data entry form), or calendar (date-based layout). ' +
+    'Each view has its own filters, sorts, field visibility, and group-by settings. ' +
+    'After creating a view, use add_filter, add_sort, or set_group_by to configure it.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
-    title: z.string().describe('Name for the new view'),
+    table_name: z
+      .string()
+      .describe('The title of the table to add a view to (case-insensitive).'),
+    title: z
+      .string()
+      .describe(
+        'The display name for the new view. Must be unique within the table.',
+      ),
     type: z
       .enum(['grid', 'form', 'gallery', 'kanban', 'calendar'])
-      .describe('Type of view to create'),
+      .describe(
+        'The view type: "grid" (spreadsheet), "gallery" (cards), "kanban" (grouped columns), ' +
+          '"form" (data entry), "calendar" (date-based). Most use cases want "grid".',
+      ),
   },
   permission: 'viewCreate',
   scope: 'base',

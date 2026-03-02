@@ -9,9 +9,14 @@ import Noco from '~/Noco';
 
 export const listViewsTool: ChatToolDefinition = {
   name: 'list_views',
-  description: 'List all views for a given table.',
+  description:
+    'List all views of a table with their id, title, type (grid/gallery/kanban/form/calendar), and whether they are the default view. ' +
+    'Use this before add_filter, add_sort, set_group_by, or delete_view to see which views exist ' +
+    'and to find the correct view name. The default view (is_default: true) cannot be deleted.',
   parameters: {
-    table_name: z.string().describe('The name of the table to list views for'),
+    table_name: z
+      .string()
+      .describe('The title of the table to list views for (case-insensitive).'),
   },
   permission: 'viewList',
   scope: 'base',

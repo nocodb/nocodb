@@ -10,13 +10,21 @@ import Noco from '~/Noco';
 export const listFiltersTool: ChatToolDefinition = {
   name: 'list_filters',
   description:
-    'List all active filter conditions on a view. Returns filter IDs needed for removal.',
+    "List all active filter conditions on a view. Returns each filter's id (needed for remove_filter), " +
+    'field name, operator, value, and logical_op (and/or). ' +
+    'Use this before remove_filter to find the filter ID to remove.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table containing the view (case-insensitive).',
+      ),
     view_name: z
       .string()
       .optional()
-      .describe('The name of the view. If omitted, uses the default view.'),
+      .describe(
+        'The title of the view to list filters for. If omitted, uses the first (default) view.',
+      ),
   },
   permission: 'filterList',
   scope: 'base',

@@ -3,34 +3,52 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
   Param,
   Post,
   Query,
-  Req,
-  Res,
+  Request,
   UseGuards,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { NcContext, NcRequest } from 'nocodb-sdk';
 import { ChatService } from '../services/chat.service';
-import { NcContext, NcRequest } from '~/interface/config';
-import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License('Chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  @Post(['/api/v2/chat/bases/:baseId/sessions'])
+  @Get(`${PREFIX_APIV3_METABASE}/chat/sessions`)
+  @Acl('chatSessionList', { scope: 'base' })
+  async sessionList(
+    @TenantContext() context: NcContext,
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatService.sessionList(context, { req });
+  }
+
+  @Get(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId`)
+  @Acl('chatSessionGet', { scope: 'base' })
+  async sessionGet(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatService.sessionGet(context, { sessionId, req });
+  }
+
+  @Post(`${PREFIX_APIV3_METABASE}/chat/sessions`)
   @Acl('chatSessionCreate', { scope: 'base' })
-  @HttpCode(200)
   async sessionCreate(
     @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
     @Body() body: { title?: string },
+    @Request() req: NcRequest,
   ) {
     return await this.chatService.sessionCreate(context, {
       title: body.title,
@@ -38,49 +56,24 @@ export class ChatController {
     });
   }
 
-  @Get(['/api/v2/chat/bases/:baseId/sessions'])
-  @Acl('chatSessionList', { scope: 'base' })
-  async sessionList(
-    @TenantContext() context: NcContext,
-    @Req() req: NcRequest,
-  ) {
-    return await this.chatService.sessionList(context, { req });
-  }
-
-  @Get(['/api/v2/chat/bases/:baseId/sessions/:sessionId'])
-  @Acl('chatSessionGet', { scope: 'base' })
-  async sessionGet(
-    @TenantContext() context: NcContext,
-    @Param('sessionId') sessionId: string,
-    @Req() req: NcRequest,
-  ) {
-    return await this.chatService.sessionGet(context, {
-      sessionId,
-      req,
-    });
-  }
-
-  @Delete(['/api/v2/chat/bases/:baseId/sessions/:sessionId'])
+  @Delete(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId`)
   @Acl('chatSessionDelete', { scope: 'base' })
   async sessionDelete(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
-    @Req() req: NcRequest,
+    @Request() req: NcRequest,
   ) {
-    return await this.chatService.sessionDelete(context, {
-      sessionId,
-      req,
-    });
+    return await this.chatService.sessionDelete(context, { sessionId, req });
   }
 
-  @Get(['/api/v2/chat/bases/:baseId/sessions/:sessionId/messages'])
+  @Get(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId/messages`)
   @Acl('chatMessageList', { scope: 'base' })
   async messageList(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
     @Query('limit') limit: string,
     @Query('offset') offset: string,
-    @Req() req: NcRequest,
+    @Request() req: NcRequest,
   ) {
     return await this.chatService.messageList(context, {
       sessionId,
@@ -90,45 +83,54 @@ export class ChatController {
     });
   }
 
-  @Post(['/api/v2/chat/bases/:baseId/sessions/:sessionId/messages'])
+  @Post(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId/messages`)
   @Acl('chatMessageSend', { scope: 'base' })
-  @HttpCode(200)
-  async sendMessage(
+  async messageSend(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
-    @Req() req: NcRequest,
-    @Res() res: Response,
-    @Body() body: { content: string; context?: any },
+    @Body() body: { content: string; context?: any; approvals?: Record<string, 'approved' | 'denied'> },
+    @Request() req: NcRequest,
   ) {
-    // Set SSE headers
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('X-Accel-Buffering', 'no');
-
     const stream = await this.chatService.sendMessage(context, {
       sessionId,
       body: {
         content: body.content,
         context: body.context,
+        approvals: body.approvals,
       },
       req,
     });
 
-    // Pipe the ReadableStream to the response
+    // Consume the full stream (non-streaming response)
     const reader = stream.getReader();
-    const decoder = new TextDecoder();
 
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        res.write(decoder.decode(value, { stream: true }));
-      }
-    } catch (e) {
-      // Client disconnected or stream error — silently close
-    } finally {
-      res.end();
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      const { done } = await reader.read();
+      if (done) break;
     }
+
+    // Re-fetch messages to get persisted assistant message with tool_calls
+    return await this.chatService.messageList(context, {
+      sessionId,
+      req,
+    });
+  }
+
+  @Post(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId/messages/:messageId/approve`)
+  @Acl('chatMessageSend', { scope: 'base' })
+  async approveToolCalls(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Param('messageId') messageId: string,
+    @Body() body: { decisions: Record<string, 'approved' | 'denied'> },
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatService.approveToolCalls(context, {
+      sessionId,
+      messageId,
+      decisions: body.decisions || {},
+      req,
+    });
   }
 }

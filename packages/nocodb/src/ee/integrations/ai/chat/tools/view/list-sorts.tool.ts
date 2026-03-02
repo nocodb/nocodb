@@ -10,13 +10,20 @@ import Noco from '~/Noco';
 export const listSortsTool: ChatToolDefinition = {
   name: 'list_sorts',
   description:
-    'List all sort rules on a view. Returns sort IDs needed for removal.',
+    "List all sort rules currently applied to a view. Returns each sort's id (needed for remove_sort), " +
+    'field name, and direction (asc/desc). Sorts are applied in the order shown.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table containing the view (case-insensitive).',
+      ),
     view_name: z
       .string()
       .optional()
-      .describe('The name of the view. If omitted, uses the default view.'),
+      .describe(
+        'The title of the view to list sorts for. If omitted, uses the first (default) view.',
+      ),
   },
   permission: 'sortList',
   scope: 'base',

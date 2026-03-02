@@ -3,6 +3,7 @@ import { stepCountIs, streamText } from 'ai';
 import {
   AppEvents,
   ChatMessageRole,
+  ChatToolCallStatus,
   IntegrationCategoryType,
 } from 'nocodb-sdk';
 import { ChatToolRegistry } from '../tools/chat-tool-registry';
@@ -169,11 +170,13 @@ export class ChatService {
     const model = wrapper.getModel();
 
     // 5. Get available tools
+    const approvals = body.approvals || {};
     const availableTools = this.toolRegistry.getAvailableTools(req);
     const vercelTools = this.toolRegistry.toVercelTools(
       availableTools,
       context,
       req,
+      approvals,
     );
 
     // 6. Build system prompt
@@ -183,7 +186,6 @@ export class ChatService {
       tableId: body.context?.table_id,
       viewId: body.context?.view_id,
       userRole,
-      availableToolNames: availableTools.map((t) => t.name),
       req,
     });
 
@@ -220,23 +222,51 @@ export class ChatService {
           const toolCalls = [];
           const toolResults = [];
 
+          // Build a map of toolCallId → output to detect awaiting_approval sentinels
+          const awaitingApprovalIds = new Set<string>();
+          const deniedIds = new Set<string>();
+
           for (const step of steps || []) {
-            if (step.toolCalls?.length) {
-              for (const tc of step.toolCalls) {
-                toolCalls.push({
-                  id: tc.toolCallId,
-                  name: tc.toolName,
-                  arguments: (tc as any).input,
-                  status: 'success',
-                });
-              }
-            }
             if (step.toolResults?.length) {
               for (const tr of step.toolResults) {
+                const raw = (tr as any).output;
+                if (typeof raw === 'string') {
+                  try {
+                    const parsed = JSON.parse(raw);
+                    if (parsed.__requires_approval) {
+                      awaitingApprovalIds.add(tr.toolCallId);
+                    } else if (parsed.status === 'denied') {
+                      deniedIds.add(tr.toolCallId);
+                    }
+                  } catch {
+                    // Not JSON — plain string result
+                  }
+                }
                 toolResults.push({
                   tool_call_id: tr.toolCallId,
                   output: (tr as any).output,
                   is_error: false,
+                });
+              }
+            }
+          }
+
+          for (const step of steps || []) {
+            if (step.toolCalls?.length) {
+              for (const tc of step.toolCalls) {
+                let status: ChatToolCallStatus;
+                if (awaitingApprovalIds.has(tc.toolCallId)) {
+                  status = ChatToolCallStatus.AWAITING_APPROVAL;
+                } else if (deniedIds.has(tc.toolCallId)) {
+                  status = ChatToolCallStatus.DENIED;
+                } else {
+                  status = ChatToolCallStatus.SUCCESS;
+                }
+                toolCalls.push({
+                  id: tc.toolCallId,
+                  name: tc.toolName,
+                  arguments: (tc as any).input,
+                  status,
                 });
               }
             }
@@ -285,6 +315,202 @@ export class ChatService {
     });
 
     return result.toTextStreamResponse().body;
+  }
+
+  async approveToolCalls(
+    context: NcContext,
+    params: {
+      sessionId: string;
+      messageId: string;
+      decisions: Record<string, 'approved' | 'denied'>;
+      req: NcRequest;
+    },
+  ): Promise<any[]> {
+    const { sessionId, messageId, decisions, req } = params;
+
+    // Verify session ownership
+    const session = await this.sessionGet(context, { sessionId, req });
+
+    // Load the message with awaiting_approval tool calls
+    const message = await ChatMessage.get(context, messageId);
+    if (!message) {
+      NcError.get(context).genericNotFound('Chat message', messageId);
+    }
+
+    // Execute approved tools directly; record denied tools
+    const newToolResults: Array<{
+      tool_call_id: string;
+      output: any;
+      is_error: boolean;
+    }> = [];
+
+    const updatedToolCalls = (message.tool_calls || []).map((tc) => {
+      if (tc.status !== ChatToolCallStatus.AWAITING_APPROVAL) return tc;
+      const decision = decisions[tc.id];
+      if (decision === 'approved') return { ...tc, status: ChatToolCallStatus.SUCCESS };
+      if (decision === 'denied') return { ...tc, status: ChatToolCallStatus.DENIED };
+      return tc;
+    });
+
+    for (const tc of message.tool_calls || []) {
+      if (tc.status !== ChatToolCallStatus.AWAITING_APPROVAL) continue;
+      const decision = decisions[tc.id];
+
+      if (decision === 'approved') {
+        const { result, isError } = await this.toolRegistry.executeTool(
+          context,
+          tc.name,
+          tc.arguments,
+          req,
+        );
+        newToolResults.push({
+          tool_call_id: tc.id,
+          output: isError
+            ? `ERROR: ${result}`
+            : typeof result === 'string'
+              ? result
+              : JSON.stringify(result, null, 2),
+          is_error: isError,
+        });
+      } else if (decision === 'denied') {
+        newToolResults.push({
+          tool_call_id: tc.id,
+          output: 'Operation denied by user.',
+          is_error: false,
+        });
+      }
+    }
+
+    // Replace __requires_approval synthetic results with real results.
+    // Appending would cause duplicate tool_call_id entries in history,
+    // confusing the LLM with two results for the same tool call.
+    const actedOnIds = new Set(Object.keys(decisions));
+    const keptResults = (message.tool_results || []).filter(
+      (tr) => !actedOnIds.has(tr.tool_call_id),
+    );
+
+    await ChatMessage.update(context, messageId, {
+      tool_calls: updatedToolCalls,
+      tool_results: [...keptResults, ...newToolResults],
+    });
+
+    // Continue the LLM conversation so it can respond to the tool results
+    await this.continueAfterApproval(context, { session, sessionId, req });
+
+    return this.messageList(context, { sessionId, req });
+  }
+
+  private async continueAfterApproval(
+    context: NcContext,
+    params: {
+      session: any;
+      sessionId: string;
+      req: NcRequest;
+    },
+  ): Promise<void> {
+    const { session, sessionId, req } = params;
+
+    const integration = await Integration.getCategoryDefault(
+      context,
+      IntegrationCategoryType.AI,
+    );
+    if (!integration) return;
+
+    const wrapper = integration.getIntegrationWrapper<AiIntegration>();
+    const model = wrapper.getModel();
+
+    const availableTools = this.toolRegistry.getAvailableTools(req);
+    // No pending approvals for continuation — all tools can execute freely
+    const vercelTools = this.toolRegistry.toVercelTools(
+      availableTools,
+      context,
+      req,
+      {},
+    );
+
+    const userRole = this.getUserRole(req);
+    const systemPrompt = await this.contextService.buildSystemPrompt(context, {
+      baseId: context.base_id,
+      userRole,
+      req,
+    });
+
+    const allMessages = await ChatMessage.list(context, { sessionId });
+    const coreMessages = this.contextService.buildHistoryMessages({
+      messages: allMessages,
+      summary: session.summary,
+    });
+
+    const result = streamText({
+      model,
+      system: systemPrompt,
+      messages: coreMessages,
+      tools: vercelTools,
+      stopWhen: stepCountIs(MAX_STEPS),
+      onFinish: async ({ text, usage, steps }) => {
+        try {
+          const toolCalls = [];
+          const toolResults = [];
+
+          for (const step of steps || []) {
+            if (step.toolResults?.length) {
+              for (const tr of step.toolResults) {
+                toolResults.push({
+                  tool_call_id: tr.toolCallId,
+                  output: (tr as any).output,
+                  is_error: false,
+                });
+              }
+            }
+            if (step.toolCalls?.length) {
+              for (const tc of step.toolCalls) {
+                toolCalls.push({
+                  id: tc.toolCallId,
+                  name: tc.toolName,
+                  arguments: (tc as any).input,
+                  status: ChatToolCallStatus.SUCCESS,
+                });
+              }
+            }
+          }
+
+          await ChatMessage.insert(context, {
+            fk_session_id: sessionId,
+            fk_workspace_id: context.workspace_id,
+            role: ChatMessageRole.ASSISTANT,
+            content: text,
+            tool_calls: toolCalls.length ? toolCalls : undefined,
+            tool_results: toolResults.length ? toolResults : undefined,
+            model: 'unknown',
+            input_tokens: usage?.inputTokens || 0,
+            output_tokens: usage?.outputTokens || 0,
+          });
+
+          await ChatSession.update(context, sessionId, {
+            total_input_tokens:
+              (session.total_input_tokens || 0) + (usage?.inputTokens || 0),
+            total_output_tokens:
+              (session.total_output_tokens || 0) + (usage?.outputTokens || 0),
+            message_count: (session.message_count || 0) + 1,
+          });
+
+          await integration.storeInsert(
+            context,
+            (req as any).user?.id,
+            usage as any,
+          );
+        } catch (e) {
+          this.logger.error('Failed to persist continuation response', e.stack);
+        }
+      },
+    });
+
+    // Consume stream
+    const reader = result.toTextStreamResponse().body.getReader();
+    while (true) {
+      const { done } = await reader.read();
+      if (done) break;
+    }
   }
 
   private getUserRole(req: NcRequest): string {

@@ -9,11 +9,14 @@ import Noco from '~/Noco';
 export const removeSortTool: ChatToolDefinition = {
   name: 'remove_sort',
   description:
-    'Remove a sort rule from a view by its ID. Use list_sorts first to find the sort ID.',
+    'Remove a specific sort rule from a view by its ID. ' +
+    'Call list_sorts first to get the sort ID of the sort you want to remove.',
   parameters: {
     sort_id: z
       .string()
-      .describe('The ID of the sort to remove (from list_sorts)'),
+      .describe(
+        'The ID of the sort to remove. Get this from list_sorts — it is the "id" field in the response.',
+      ),
   },
   permission: 'sortDelete',
   scope: 'base',

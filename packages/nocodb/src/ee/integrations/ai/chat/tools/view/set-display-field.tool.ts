@@ -10,12 +10,22 @@ import Noco from '~/Noco';
 export const setDisplayFieldTool: ChatToolDefinition = {
   name: 'set_display_field',
   description:
-    'Set a field as the primary display value for a table. The display field is shown when records are referenced in linked fields.',
+    'Set the primary display field (title field) for a table. The display field is the main ' +
+    'identifier shown in linked record pickers and relationship columns when records from this table ' +
+    'are referenced elsewhere. Only SingleLineText, Number, Email, URL, Date, DateTime, and similar ' +
+    'simple text-compatible fields can be set as display fields.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table to set the display field on (case-insensitive).',
+      ),
     field_name: z
       .string()
-      .describe('The name of the field to set as the display field'),
+      .describe(
+        'The title of the field to make the primary display field (case-insensitive). ' +
+          'Must be a text-compatible field (SingleLineText, Email, URL, Number, etc.).',
+      ),
   },
   permission: 'columnUpdate',
   scope: 'base',

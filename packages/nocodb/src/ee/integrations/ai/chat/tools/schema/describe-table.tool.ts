@@ -8,9 +8,16 @@ import type { ChatToolDefinition } from '../chat-tool-registry';
 export const describeTableTool: ChatToolDefinition = {
   name: 'describe_table',
   description:
-    'Get the full schema of a table including all fields, their types, and relationships.',
+    'Get the full schema of a table: all user-visible fields with their name, type, ' +
+    'required flag, display field flag, and available options for SingleSelect/MultiSelect fields. ' +
+    'Call this before creating or modifying fields, and before writing records to a table you have not ' +
+    'seen yet — it tells you exact field names, types, and option values that records must match.',
   parameters: {
-    table_name: z.string().describe('The name of the table to describe'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table to describe (case-insensitive). Use list_tables to get valid names.',
+      ),
   },
   permission: 'tableGet',
   scope: 'base',

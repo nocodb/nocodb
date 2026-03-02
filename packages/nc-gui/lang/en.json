@@ -1235,6 +1235,9 @@
     "searchDocumentation": "Search Documentation",
     "baseList": "Base List",
     "crossBase": "Link to external base",
+    "aiChat": "AI Chat",
+    "newChat": "New Chat",
+    "chatWith": "Chat with your data",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -2467,6 +2470,7 @@
     "organizeViewsIntoSections": "Organize views into collapsible sections"
   },
   "placeholder": {
+    "askAnything": "Ask anything about your data...",
     "searchWorkflows": "Search Workflows",
     "searchWorkspacesAndBases": "Search workspaces and bases...",
     "searchByTitle": "Search by title or description",
@@ -2555,6 +2559,11 @@
   },
   "msg": {
     "noActionsAvailable": "No actions available",
+    "chat": {
+      "starterDescribe": "What tables do I have?",
+      "starterRecords": "Show me the last 10 records",
+      "starterFilter": "Help me create a filter"
+    },
     "autoNumberFieldInfo": "Automatically generates a unique incremented number for each record. Values are read-only and cannot be edited.",
     "selectAttachmentFieldDescription": "Which field would you like to upload these files to?",
     "replaceVersionAndGoLive": "Replace {version} and go live",

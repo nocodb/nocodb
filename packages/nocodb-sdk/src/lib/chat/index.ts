@@ -10,6 +10,8 @@ export enum ChatToolCallStatus {
   RUNNING = 'running',
   SUCCESS = 'success',
   ERROR = 'error',
+  AWAITING_APPROVAL = 'awaiting_approval',
+  DENIED = 'denied',
 }
 
 export enum ChatStreamEventType {
@@ -72,6 +74,7 @@ export interface ChatContextType {
 export interface ChatSendMessageType {
   content: string;
   context?: ChatContextType;
+  approvals?: Record<string, 'approved' | 'denied'>;
 }
 
 export interface ChatToolDefinitionType {

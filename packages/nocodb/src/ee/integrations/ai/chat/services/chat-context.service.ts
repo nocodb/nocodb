@@ -19,11 +19,10 @@ export class ChatContextService {
       tableId?: string;
       viewId?: string;
       userRole: string;
-      availableToolNames: string[];
       req: any;
     },
   ): Promise<string> {
-    const { baseId, tableId, userRole, availableToolNames, req } = params;
+    const { baseId, tableId, userRole, req } = params;
 
     // Serialize base schema using existing AI schema service
     const serializedSchema = await this.aiSchemaService.serializeSchema(
@@ -61,12 +60,11 @@ export class ChatContextService {
     const schemaContext = schemaLines.join('\n');
 
     let currentTableContext: string | undefined;
-    if (tableId) {
-      const table = serializedSchema.tables.find((t) =>
-        serializedSchema.tables.some((st) => st.title === t.title),
-      );
-      if (table) {
-        currentTableContext = `The user is currently viewing the "${table.title}" table.`;
+    if (tableId && serializedSchema.tables?.length) {
+      // serializeSchema already filters to tableIds, so the first entry is the active table
+      const table = serializedSchema.tables[0];
+      if (table?.title) {
+        currentTableContext = `User is viewing table "${table.title}".`;
       }
     }
 
@@ -74,7 +72,6 @@ export class ChatContextService {
       schemaContext,
       currentTableContext,
       userRole,
-      availableToolNames,
     });
   }
 
@@ -118,6 +115,7 @@ export class ChatContextService {
         });
       } else if (msg.role === ChatMessageRole.ASSISTANT) {
         if (msg.tool_calls?.length) {
+          // Emit assistant message with tool-call parts
           coreMessages.push({
             role: 'assistant',
             content: msg.tool_calls.map((tc) => ({
@@ -127,6 +125,40 @@ export class ChatContextService {
               input: tc.arguments,
             })),
           });
+
+          // Emit matching tool-result messages so the provider sees complete pairs.
+          // Results are stored on the same assistant message, not as separate TOOL rows.
+          if (msg.tool_results?.length) {
+            for (const result of msg.tool_results) {
+              coreMessages.push({
+                role: 'tool',
+                content: [
+                  {
+                    type: 'tool-result' as const,
+                    toolCallId: result.tool_call_id,
+                    toolName:
+                      msg.tool_calls.find((tc) => tc.id === result.tool_call_id)
+                        ?.name || '',
+                    output: {
+                      type: 'text' as const,
+                      value:
+                        typeof result.output === 'string'
+                          ? result.output
+                          : JSON.stringify(result.output),
+                    },
+                  },
+                ],
+              });
+            }
+          }
+
+          // Emit the final text content after tool results (the AI's response after tool use)
+          if (msg.content) {
+            coreMessages.push({
+              role: 'assistant',
+              content: msg.content,
+            });
+          }
         } else {
           coreMessages.push({
             role: 'assistant',
@@ -134,6 +166,7 @@ export class ChatContextService {
           });
         }
       } else if (msg.role === ChatMessageRole.TOOL) {
+        // Standalone TOOL messages (future-proofing)
         if (msg.tool_results?.length) {
           for (const result of msg.tool_results) {
             coreMessages.push({
@@ -167,6 +200,34 @@ export class ChatContextService {
     });
 
     return coreMessages;
+  }
+
+  /**
+   * Builds the message history without appending a new user message.
+   * Used for LLM continuation after tool approvals — the last messages in
+   * the history are tool results, so the LLM responds to them directly.
+   */
+  buildHistoryMessages(params: {
+    messages: ChatMessageType[];
+    summary?: string;
+    maxHistoryTokens?: number;
+  }): ModelMessage[] {
+    const {
+      messages,
+      summary,
+      maxHistoryTokens = MAX_HISTORY_TOKENS,
+    } = params;
+
+    // Reuse buildMessages but pass an empty continuation marker so the LLM
+    // responds to the tool results rather than a new user message.
+    return this.buildMessages({
+      messages,
+      newUserMessage: '',
+      summary,
+      maxHistoryTokens,
+    }).filter(
+      (m) => !(m.role === 'user' && (m.content as string) === ''),
+    );
   }
 
   estimateTokens(text: string): number {

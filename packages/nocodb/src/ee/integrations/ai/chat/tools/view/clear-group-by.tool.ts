@@ -9,13 +9,21 @@ import Noco from '~/Noco';
 
 export const clearGroupByTool: ChatToolDefinition = {
   name: 'clear_group_by',
-  description: 'Remove all group-by settings from a view.',
+  description:
+    'Remove all group-by settings from a grid view, returning it to ungrouped flat list display. ' +
+    'Only works on grid-type views.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table containing the view (case-insensitive).',
+      ),
     view_name: z
       .string()
       .optional()
-      .describe('The name of the view. If omitted, uses the default view.'),
+      .describe(
+        'The title of the grid view to clear group-by from. If omitted, uses the first (default) view.',
+      ),
   },
   permission: 'gridColumnUpdate',
   scope: 'base',

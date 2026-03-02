@@ -37,6 +37,8 @@ const { setActiveCmdView } = useCommand()
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
+const { isPanelExpanded: isChatPanelExpanded, toggleChatPanel } = useChatPanel()
+
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
     return
@@ -256,6 +258,21 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
           <NotificationMenu />
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+
+      <DashboardMiniSidebarItemWrapper v-if="isEeUI">
+        <NcTooltip :title="$t('labels.aiChat')" placement="right" hide-on-click :arrow="false">
+          <div
+            v-e="['c:chat:toggle']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-chat-btn"
+            @click="toggleChatPanel"
+          >
+            <div class="nc-mini-sidebar-btn" :class="{ active: isChatPanelExpanded }">
+              <GeneralIcon icon="ncMessageSquare" class="h-4 w-4" />
+            </div>
+          </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
     </div>

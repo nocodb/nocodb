@@ -4,39 +4,58 @@ import { resolveTableByName, truncateResult } from '../helpers';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
-import { DataTableService } from '~/services/data-table.service';
+import { DataV3Service } from '~/services/v3/data-v3.service';
 import Noco from '~/Noco';
 
 export const queryRecordsTool: ChatToolDefinition = {
   name: 'query_records',
   description:
-    'Query records from a table with optional filtering, sorting, and pagination. Returns matching rows.',
+    'Query records from a table with optional filtering, sorting, and pagination. ' +
+    'Returns records in v3 format: each record has an "id" (the primary key value) and a "fields" object. ' +
+    'Use the "id" value directly in get_record, update_records (rows[].id), and delete_records (row_ids) — ' +
+    'never guess or construct row IDs yourself. ' +
+    'Filter syntax: (FieldTitle,operator,value)~and(FieldTitle,operator,value). ' +
+    'All filter operators are listed in the system prompt under "Filter Operators".',
   parameters: {
-    table_name: z.string().describe('The name of the table to query'),
+    table_name: z
+      .string()
+      .describe('The title of the table to query (case-insensitive).'),
     where: z
       .string()
       .optional()
       .describe(
-        'Filter condition in NocoDB format, e.g., "(Status,eq,Active)~and(Priority,eq,High)"',
+        'Filter expression. Format: (FieldTitle,operator,value)~and(FieldTitle,operator,value). ' +
+          'Operators: eq, neq, gt, lt, gte, lte, like, nlike, blank, notblank, null, notnull, ' +
+          'in, allof, anyof, btw, nbtw, is, isnot, isWithin, checked, notchecked. ' +
+          'Example: (Status,eq,Active)~and(Priority,gt,2) or (Name,like,%john%)',
       ),
     sort: z
       .string()
       .optional()
       .describe(
-        'Sort string, e.g., "-CreatedAt" for descending or "Title" for ascending',
+        'Sort as a JSON array: [{"field": "FieldTitle", "direction": "asc"}, {"field": "OtherField", "direction": "desc"}]. ' +
+          '"direction" must be "asc" or "desc". ' +
+          'Example: [{"field": "CreatedAt", "direction": "desc"}]',
       ),
     fields: z
       .string()
       .optional()
-      .describe('Comma-separated list of field names to include in results'),
+      .describe(
+        'Comma-separated list of field titles to include in the fields object. ' +
+          'If omitted, all fields are returned. Use to reduce response size for wide tables.',
+      ),
     limit: z
       .number()
       .optional()
-      .describe('Maximum number of records to return (default 25, max 100)'),
+      .describe(
+        'Maximum number of records to return. Default: 25, maximum: 100.',
+      ),
     offset: z
       .number()
       .optional()
-      .describe('Number of records to skip for pagination'),
+      .describe(
+        'Number of records to skip for pagination. Use with limit to page through large datasets.',
+      ),
   },
   permission: 'dataList',
   scope: 'base',
@@ -52,13 +71,13 @@ export const queryRecordsTool: ChatToolDefinition = {
       limit?: number;
       offset?: number;
     },
-    _req: NcRequest,
+    req: NcRequest,
   ) {
-    const dataService: DataTableService = Noco.nestApp.get(DataTableService);
+    const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);
     const model = await resolveTableByName(context, args.table_name);
     const defaultView = await model.getViews(context).then((v) => v[0]);
 
-    const result = await dataService.dataList(context, {
+    const result = await dataV3Service.dataList(context, {
       modelId: model.id,
       viewId: defaultView?.id,
       query: {
@@ -68,11 +87,9 @@ export const queryRecordsTool: ChatToolDefinition = {
         limit: String(Math.min(args.limit || 25, 100)),
         offset: String(args.offset || 0),
       },
+      req,
     });
 
-    return truncateResult({
-      records: result.list,
-      pageInfo: result.pageInfo,
-    });
+    return truncateResult(result);
   },
 };

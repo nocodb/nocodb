@@ -9,16 +9,20 @@ import { describeTableTool } from './schema/describe-table.tool';
 import { createTableTool } from './schema/create-table.tool';
 import { addFieldTool } from './schema/add-field.tool';
 import { modifyFieldTool } from './schema/modify-field.tool';
+import { deleteTableTool } from './schema/delete-table.tool';
+import { deleteFieldTool } from './schema/delete-field.tool';
+import { renameTableTool } from './schema/rename-table.tool';
 import { createViewTool } from './schema/create-view.tool';
+import { deleteViewTool } from './schema/delete-view.tool';
+import { renameViewTool } from './schema/rename-view.tool';
 import { listViewsTool } from './schema/list-views.tool';
 
 // Data tools
 import { queryRecordsTool } from './data/query-records.tool';
 import { getRecordTool } from './data/get-record.tool';
-import { createRecordTool } from './data/create-record.tool';
-import { updateRecordTool } from './data/update-record.tool';
-import { deleteRecordTool } from './data/delete-record.tool';
-import { bulkInsertTool } from './data/bulk-insert.tool';
+import { createRecordsTool } from './data/create-records.tool';
+import { updateRecordsTool } from './data/update-records.tool';
+import { deleteRecordsTool } from './data/delete-records.tool';
 import { countRecordsTool } from './data/count-records.tool';
 
 // View tools
@@ -72,17 +76,21 @@ export class ChatToolRegistry {
       listTablesTool,
       describeTableTool,
       createTableTool,
+      deleteTableTool,
+      renameTableTool,
       addFieldTool,
       modifyFieldTool,
+      deleteFieldTool,
       createViewTool,
+      deleteViewTool,
+      renameViewTool,
       listViewsTool,
       // Data tools
       queryRecordsTool,
       getRecordTool,
-      createRecordTool,
-      updateRecordTool,
-      deleteRecordTool,
-      bulkInsertTool,
+      createRecordsTool,
+      updateRecordsTool,
+      deleteRecordsTool,
       countRecordsTool,
       // View tools
       listViewFieldsTool,
@@ -135,7 +143,11 @@ export class ChatToolRegistry {
     // The controller endpoint also enforces ACL via @Acl decorator
 
     try {
-      const result = await toolDef.execute(context, args, req);
+      // Strip socket_id so realtime broadcasts reach all clients including the requester.
+      // The chat request carries the user's socket ID via xc-socket-id header, which would
+      // otherwise cause the frontend to suppress the event (assuming it originated from itself).
+      const toolContext = { ...context, socket_id: undefined };
+      const result = await toolDef.execute(toolContext, args, req);
       return { result, isError: false };
     } catch (e) {
       this.logger.error(`Tool ${toolName} failed: ${e.message}`, e.stack);
@@ -150,6 +162,7 @@ export class ChatToolRegistry {
     availableTools: ChatToolDefinition[],
     context: NcContext,
     req: NcRequest,
+    approvals: Record<string, 'approved' | 'denied'> = {},
   ): ToolSet {
     const tools: ToolSet = {};
 
@@ -157,7 +170,19 @@ export class ChatToolRegistry {
       tools[t.name] = tool({
         description: t.description,
         inputSchema: z.object(t.parameters),
-        execute: async (args: any) => {
+        execute: async (args: any, { toolCallId }: { toolCallId: string }) => {
+          // Dangerous tools require explicit approval before executing
+          if (t.isDangerous) {
+            const decision = approvals[toolCallId];
+            if (!decision) {
+              return JSON.stringify({ __requires_approval: true, toolCallId });
+            }
+            if (decision === 'denied') {
+              return JSON.stringify({ status: 'denied', message: 'Operation denied by user.' });
+            }
+            // decision === 'approved' → fall through to execute
+          }
+
           const { result, isError } = await this.executeTool(
             context,
             t.name,

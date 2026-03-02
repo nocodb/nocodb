@@ -15,26 +15,44 @@ import Noco from '~/Noco';
 export const setGroupByTool: ChatToolDefinition = {
   name: 'set_group_by',
   description:
-    'Set group-by on a grid view. Groups records by 1-3 fields. Replaces any existing group-by settings.',
+    'Set group-by fields on a grid view, which visually groups records by one, two, or three field values. ' +
+    'Only works on grid-type views — use list_views to confirm view type. ' +
+    'This REPLACES any existing group-by settings (it calls clear_group_by internally first). ' +
+    'To remove all grouping, use clear_group_by instead.',
   parameters: {
-    table_name: z.string().describe('The name of the table'),
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table containing the grid view (case-insensitive).',
+      ),
     view_name: z
       .string()
       .optional()
-      .describe('The name of the view. If omitted, uses the default view.'),
+      .describe(
+        'The title of the grid view to set group-by on. If omitted, uses the first (default) view. ' +
+          'Must be a grid view — gallery/kanban/form/calendar views do not support group-by.',
+      ),
     groups: z
       .array(
         z.object({
-          field_name: z.string().describe('The name of the field to group by'),
+          field_name: z
+            .string()
+            .describe(
+              'The title of the field to group by (case-insensitive). ' +
+                'Works best with SingleSelect, MultiSelect, Checkbox, or other low-cardinality fields.',
+            ),
           sort: z
             .enum(['asc', 'desc'])
             .optional()
-            .describe('Sort direction within the group. Defaults to "asc".'),
+            .describe('Sort order for the group headers. Default: "asc".'),
         }),
       )
       .min(1)
       .max(3)
-      .describe('Fields to group by (1-3), in order of nesting'),
+      .describe(
+        'List of 1-3 fields to group by, applied in order (primary group, secondary group, tertiary group). ' +
+          'Example: [{ "field_name": "Status", "sort": "asc" }, { "field_name": "Priority", "sort": "desc" }]',
+      ),
   },
   permission: 'gridColumnUpdate',
   scope: 'base',

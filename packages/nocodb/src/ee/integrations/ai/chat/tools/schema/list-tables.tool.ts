@@ -9,7 +9,8 @@ import Noco from '~/Noco';
 export const listTablesTool: ChatToolDefinition = {
   name: 'list_tables',
   description:
-    'List all tables in the current base with their field counts and descriptions.',
+    "List all tables in the current base. Returns each table's id, title, description, and " +
+    'column count. Use this first to discover available tables before operating on them.',
   parameters: {},
   permission: 'tableList',
   scope: 'base',

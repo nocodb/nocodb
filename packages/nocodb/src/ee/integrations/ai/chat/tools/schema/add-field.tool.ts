@@ -4,27 +4,42 @@ import { resolveTableByName } from '../helpers';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
-import { ColumnsService } from '~/services/columns.service';
+import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import Noco from '~/Noco';
 
 export const addFieldTool: ChatToolDefinition = {
   name: 'add_field',
-  description: 'Add a new field (column) to an existing table.',
+  description:
+    'Add a new field (column) to an existing table. ' +
+    'Valid types: SingleLineText, LongText, Email, URL, PhoneNumber, Number, Decimal, ' +
+    'Currency, Percent, Duration, Rating, Date, DateTime, Time, Year, SingleSelect, MultiSelect, ' +
+    'Checkbox, Attachment, JSON. ' +
+    'Use describe_table first to verify the current field names and avoid duplicates. ' +
+    'For SingleSelect and MultiSelect, pass choices as an array: [{ "title": "Option A" }, { "title": "Option B" }]. ' +
+    'Returns the created field in v3 format.',
   parameters: {
     table_name: z
       .string()
-      .describe('The name of the table to add the field to'),
-    title: z.string().describe('Name of the new field'),
-    uidt: z
+      .describe(
+        'The title of the table to add the field to (case-insensitive).',
+      ),
+    title: z
       .string()
       .describe(
-        'Field type (e.g., SingleLineText, Number, Email, SingleSelect, MultiSelect, Date, DateTime, Checkbox, Rating, URL, Currency, Duration, Percent, PhoneNumber, LongText)',
+        'The display name for the new field. Must be unique within the table.',
       ),
-    dtxp: z
+    type: z
       .string()
+      .describe(
+        'The field type. Must be one of the creatable types listed in the description. ' +
+          'Examples: "SingleLineText", "Number", "Date", "SingleSelect", "Checkbox", "Email", "Currency".',
+      ),
+    choices: z
+      .array(z.object({ title: z.string() }))
       .optional()
       .describe(
-        'For select fields, comma-separated options (e.g., "Option1,Option2,Option3")',
+        'Required for SingleSelect and MultiSelect fields. ' +
+          'Array of choice objects. Example: [{ "title": "Active" }, { "title": "Inactive" }, { "title": "Pending" }]',
       ),
   },
   permission: 'columnCreate',
@@ -33,28 +48,29 @@ export const addFieldTool: ChatToolDefinition = {
   isDangerous: false,
   async execute(
     context: NcContext,
-    args: { table_name: string; title: string; uidt: string; dtxp?: string },
+    args: {
+      table_name: string;
+      title: string;
+      type: string;
+      choices?: { title: string }[];
+    },
     req: NcRequest,
   ) {
-    const columnsService: ColumnsService = Noco.nestApp.get(ColumnsService);
+    const columnsV3Service: ColumnsV3Service =
+      Noco.nestApp.get(ColumnsV3Service);
     const model = await resolveTableByName(context, args.table_name);
 
-    const column = await columnsService.columnAdd(context, {
+    const column = await columnsV3Service.columnAdd(context, {
       tableId: model.id,
       column: {
         title: args.title,
-        uidt: args.uidt,
-        ...(args.dtxp ? { dtxp: args.dtxp } : {}),
-      } as any,
+        type: args.type as any,
+        ...(args.choices ? { choices: args.choices } : {}),
+      },
       req,
       user: (req as any).user,
     });
 
-    return {
-      id: column?.id,
-      title: args.title,
-      type: args.uidt,
-      message: `Field "${args.title}" added to table "${args.table_name}" successfully.`,
-    };
+    return column;
   },
 };

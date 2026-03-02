@@ -170,6 +170,34 @@ export default class ChatMessage
     });
   }
 
+  static async update(
+    context: NcContext,
+    messageId: string,
+    data: Partial<Pick<ChatMessage, 'tool_calls' | 'tool_results' | 'content'>>,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const updateObj = prepareForDb(
+      extractProps(data, ['tool_calls', 'tool_results', 'content']),
+      JSON_FIELDS,
+    );
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CHAT_MESSAGES,
+      updateObj,
+      { id: messageId },
+    );
+
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.CHAT_MESSAGE}:${messageId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+
+    return ChatMessage.get(context, messageId, ncMeta);
+  }
+
   static async delete(
     context: NcContext,
     messageId: string,

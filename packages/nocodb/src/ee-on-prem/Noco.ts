@@ -62,6 +62,15 @@ export default class Noco extends NocoEE {
   }
 
   /**
+   * Lightweight sync after refreshLicenseFromServer() has already
+   * fetched a fresh JWT and updated NocoLicense internal state.
+   * Only syncs the Noco.ee flag — no DB reads, no reset/init.
+   */
+  public static syncEEState(): void {
+    this.ee = NocoLicense.isEE;
+  }
+
+  /**
    * Called when license key is set/updated via UI (POST /api/v1/license).
    * Re-validates with the license server and updates runtime EE state
    * without requiring a restart.

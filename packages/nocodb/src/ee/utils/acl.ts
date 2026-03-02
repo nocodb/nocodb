@@ -115,6 +115,12 @@ const permissionScopes = {
     'notification',
     'deleteAccount',
 
+    // On-prem license management (cloud-only, user-scoped)
+    'onPremLicenseList',
+    'onPremLicenseGet',
+    'onPremLicenseCheckout',
+    'onPremLicenseManage',
+
     'globalAuditList',
 
     // oAuth
@@ -564,6 +570,12 @@ const rolePermissions:
       testConnection: true,
       notification: true,
       deleteAccount: true,
+
+      // on-prem license (cloud-only, any authenticated user)
+      onPremLicenseList: true,
+      onPremLicenseGet: true,
+      onPremLicenseCheckout: true,
+      onPremLicenseManage: true,
 
       // oauth allowed for all users
       oAuthClientList: true,
@@ -1219,6 +1231,12 @@ const permissionDescriptions: Record<string, string> = {
   uploadViaURL: 'upload files via URL',
 
   notification: 'send notifications',
+
+  // on-prem license permissions
+  onPremLicenseList: 'list your on-prem licenses',
+  onPremLicenseGet: 'view an on-prem license',
+  onPremLicenseCheckout: 'purchase an on-prem license',
+  onPremLicenseManage: 'manage on-prem license billing',
 
   // workspace permissions
   workspaceBaseList: 'view list of bases in the workspace',

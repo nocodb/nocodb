@@ -1,7 +1,11 @@
 import { NON_SEAT_ROLES, OnPremPlanTitles, PlanLimitTypes } from 'nocodb-sdk';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import NocoLicense from '~/NocoLicense';
-import { EnterprisePlan, EnterpriseStarterPlan, FreePlan } from '~/models/Plan';
+import Plan, {
+  EnterprisePlan,
+  EnterpriseStarterPlan,
+  FreePlan,
+} from '~/models/Plan';
 import Noco from '~/Noco';
 import { NcError } from '~/helpers/catchError';
 
@@ -9,6 +13,45 @@ export * from 'src/ee/helpers/paymentHelpers';
 
 export const getOnPremPlan = () => {
   try {
+    const config = NocoLicense.getConfig();
+    const planTitle = config?.plan_title;
+
+    // New JWTs carry plan_title — build plan from everything-enabled base
+    // and let the JWT config be the sole authority for restrictions.
+    // This keeps plan definitions on the license server, not in client code.
+    if (planTitle && Object.values(OnPremPlanTitles).includes(planTitle)) {
+      return Plan.prepare({
+        title: planTitle,
+        description: `On-premise ${planTitle} plan`,
+        meta: {
+          ...Plan.limitPairs(-1, false),
+          ...Plan.featurePairs(true),
+          ...config,
+        },
+        free: false,
+      });
+    }
+
+    // Legacy: JWT with config but no plan_title — infer from workspace limit
+    if (config && Object.keys(config).length > 1) {
+      const title =
+        NocoLicense.getWorkspaceLimit() === 1
+          ? OnPremPlanTitles.ENTERPRISE_STARTER
+          : OnPremPlanTitles.ENTERPRISE;
+
+      return Plan.prepare({
+        title,
+        description: 'On-premise plan',
+        meta: {
+          ...Plan.limitPairs(-1, false),
+          ...Plan.featurePairs(true),
+          ...config,
+        },
+        free: false,
+      });
+    }
+
+    // Legacy: old JWT with only limit_workspace (no full config)
     const basePlan =
       NocoLicense.getWorkspaceLimit() === 1
         ? EnterpriseStarterPlan
@@ -27,7 +70,12 @@ export const getOnPremPlan = () => {
       };
     }
 
-    return basePlan;
+    // Licensed but no config restrictions → full enterprise
+    if (NocoLicense.isEE) {
+      return basePlan;
+    }
+
+    return FreePlan;
   } catch {
     return FreePlan;
   }

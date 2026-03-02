@@ -112,8 +112,8 @@ export enum PlanTitles {
 }
 
 export enum OnPremPlanTitles {
-  ENTERPRISE_STARTER = 'EnterpriseStarter',
-  ENTERPRISE = 'Enterprise',
+  ENTERPRISE_STARTER = 'Self-hosted Starter',
+  ENTERPRISE = 'Self-hosted Enterprise',
 }
 
 export enum PlanPriceLookupKeys {
@@ -121,6 +121,13 @@ export enum PlanPriceLookupKeys {
   PLUS_YEARLY = 'plus_yearly',
   BUSINESS_MONTHLY = 'business_monthly',
   BUSINESS_YEARLY = 'business_yearly',
+}
+
+export enum OnPremPlanPriceLookupKeys {
+  STARTER_MONTHLY = 'on_prem_starter_monthly',
+  STARTER_YEARLY = 'on_prem_starter_yearly',
+  ENTERPRISE_MONTHLY = 'on_prem_enterprise_monthly',
+  ENTERPRISE_YEARLY = 'on_prem_enterprise_yearly',
 }
 
 export const LoyaltyPriceLookupKeyMap = {
@@ -212,6 +219,40 @@ export const HigherPlan = {
   [PlanTitles.PLUS]: PlanTitles.BUSINESS,
   [PlanTitles.BUSINESS]: PlanTitles.ENTERPRISE,
 } as Record<string, PlanTitles>;
+
+export const OnPremPlanMeta = {
+  [OnPremPlanTitles.ENTERPRISE_STARTER]: {
+    title: OnPremPlanTitles.ENTERPRISE_STARTER,
+    color: '#EDF9FF',
+    accent: '#AFE5FF',
+    primary: '#207399',
+    bgLight: '#EDF9FF',
+    bgDark: '#D7F2FF',
+    border: '#AFE5FF',
+    badgeBgColor: '#D7F2FF',
+    badgeTextColor: '#207399',
+  },
+  [OnPremPlanTitles.ENTERPRISE]: {
+    title: OnPremPlanTitles.ENTERPRISE,
+    color: '#FFF5EF',
+    accent: '#663B1F',
+    primary: '#C86827',
+    bgLight: '#FFF5EF',
+    bgDark: '#FEE6D6',
+    border: '#FDCDAD',
+    badgeBgColor: '#FEE6D6',
+    badgeTextColor: '#C86827',
+  },
+} as const;
+
+export const OnPremPlanOrder = {
+  [OnPremPlanTitles.ENTERPRISE_STARTER]: 0,
+  [OnPremPlanTitles.ENTERPRISE]: 1,
+};
+
+export const OnPremHigherPlan = {
+  [OnPremPlanTitles.ENTERPRISE_STARTER]: OnPremPlanTitles.ENTERPRISE,
+} as Record<string, OnPremPlanTitles>;
 
 export const GRACE_PERIOD_DURATION = 14;
 
@@ -381,6 +422,7 @@ export enum ReturnToBillingPage {
   ORG = 'org',
   ACCOUNT = 'account',
   WS = 'ws',
+  SELF_HOSTED = 'self_hosted',
 }
 
 export const PlanFeatureTypesToPlanTitles = {} as Record<

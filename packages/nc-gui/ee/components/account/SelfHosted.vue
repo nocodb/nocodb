@@ -1,0 +1,399 @@
+<script lang="ts" setup>
+import type { Stripe, StripeEmbeddedCheckout } from '@stripe/stripe-js'
+import { OnPremPlanMeta, type OnPremPlanTitles } from 'nocodb-sdk'
+
+interface CheckoutSessionResult {
+  client_secret: string
+  payment_status: string
+}
+
+type ViewState = 'list' | 'plan-select' | 'checkout' | 'success'
+
+const route = useRoute()
+const router = useRouter()
+
+const { t } = useI18n()
+
+const { $e } = useNuxtApp()
+
+const { licenses, isLoading, listLicenses, createCheckoutSession, getCheckoutSession, getCustomerPortal } =
+  useOnPremLicense()
+
+const { loadStripe } = useStripe()
+
+const viewState = ref<ViewState>('list')
+
+const stripeInstance = ref<Stripe | null>(null)
+
+const checkoutRef = ref<StripeEmbeddedCheckout | null>(null)
+
+const checkoutLoading = ref(false)
+
+const successLicense = ref<(typeof licenses.value)[0] | null>(null)
+
+const instanceUrl = computed(() => (route.query.instance_url as string) || '')
+
+const copiedKey = ref(false)
+
+const revealedKeys = ref<Set<string>>(new Set())
+
+const afterPayment = ref(!!route.query.afterPayment)
+
+const sessionId = computed(() => route.query.session_id as string)
+
+const planMeta = (title: OnPremPlanTitles) => OnPremPlanMeta[title] || null
+
+const statusLabel = (status: string) => {
+  switch (status) {
+    case 'ACTIVE':
+      return t('general.active')
+    case 'PENDING':
+      return t('activity.pending')
+    case 'SUSPENDED':
+      return t('labels.suspended')
+    default:
+      return status
+  }
+}
+
+const statusClass = (status: string) => {
+  switch (status) {
+    case 'ACTIVE':
+      return 'bg-nc-green-50 text-nc-green-700 border-nc-green-200'
+    case 'PENDING':
+      return 'bg-nc-orange-50 text-nc-orange-700 border-nc-orange-200'
+    case 'SUSPENDED':
+      return 'bg-nc-red-50 text-nc-red-700 border-nc-red-200'
+    default:
+      return 'bg-nc-gray-50 text-nc-gray-700 border-nc-gray-200'
+  }
+}
+
+const maskKey = (key: string) => {
+  if (!key) return ''
+  return `${key.slice(0, 6)}${'•'.repeat(20)}${key.slice(-4)}`
+}
+
+const toggleRevealKey = (licenseId: string) => {
+  if (revealedKeys.value.has(licenseId)) {
+    revealedKeys.value.delete(licenseId)
+  } else {
+    revealedKeys.value.add(licenseId)
+  }
+}
+
+const copyKey = async (key: string) => {
+  try {
+    await navigator.clipboard.writeText(key)
+    copiedKey.value = true
+    message.success(t('general.copied'))
+    $e('c:on-prem:license:copy-key')
+    setTimeout(() => {
+      copiedKey.value = false
+    }, 2000)
+  } catch {
+    message.error(t('msg.error.copyToClipboardError'))
+  }
+}
+
+const onBuyLicense = () => {
+  $e('c:on-prem:license:buy')
+  viewState.value = 'plan-select'
+}
+
+const onManageBilling = async () => {
+  const result = await getCustomerPortal()
+  if (result?.url) {
+    window.open(result.url, '_blank')
+  }
+}
+
+const initCheckout = async (planId: string, priceId: string) => {
+  viewState.value = 'checkout'
+  checkoutLoading.value = true
+
+  try {
+    if (!stripeInstance.value) {
+      stripeInstance.value = await loadStripe()
+    }
+
+    const session = await createCheckoutSession({
+      plan_id: planId,
+      price_id: priceId,
+      instance_url: instanceUrl.value || undefined,
+    })
+
+    checkoutRef.value = await stripeInstance.value.initEmbeddedCheckout({
+      clientSecret: (session as CheckoutSessionResult).client_secret,
+    })
+
+    await nextTick()
+    checkoutRef.value.mount('#on-prem-checkout')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+    viewState.value = 'plan-select'
+  } finally {
+    checkoutLoading.value = false
+  }
+}
+
+const backToPlanSelect = async () => {
+  await destroyCheckout()
+  viewState.value = 'plan-select'
+}
+
+const destroyCheckout = async () => {
+  if (!checkoutRef.value) return
+
+  try {
+    checkoutRef.value.unmount()
+    await checkoutRef.value.destroy()
+    checkoutRef.value = null
+    // Allow Stripe embedded checkout iframe to fully tear down before re-rendering
+    await new Promise((resolve) => setTimeout(resolve, 100))
+  } catch {
+    checkoutRef.value = null
+  }
+}
+
+const handleAfterPayment = async () => {
+  if (!sessionId.value) return
+
+  try {
+    const session = (await getCheckoutSession(sessionId.value)) as CheckoutSessionResult
+
+    if (session?.payment_status === 'paid') {
+      await listLicenses()
+
+      // Find the newly created license (most recent)
+      if (licenses.value.length > 0) {
+        successLicense.value = licenses.value[0]
+      }
+
+      viewState.value = 'success'
+      $e('a:on-prem:license:purchase')
+    } else {
+      message.error(t('msg.error.paymentFailed'))
+      viewState.value = 'list'
+    }
+  } catch {
+    viewState.value = 'list'
+  }
+
+  // Clean up query params
+  router.replace({ query: {} })
+}
+
+const backToList = async () => {
+  await destroyCheckout()
+  successLicense.value = null
+  viewState.value = 'list'
+  await listLicenses()
+}
+
+onMounted(async () => {
+  if (afterPayment.value && sessionId.value) {
+    await handleAfterPayment()
+  } else {
+    await listLicenses()
+  }
+})
+
+onBeforeUnmount(async () => {
+  await destroyCheckout()
+})
+</script>
+
+<template>
+  <div class="flex flex-col">
+    <NcPageHeader>
+      <template #icon>
+        <GeneralIcon icon="ncServer" class="flex-none !h-5 !w-5" />
+      </template>
+      <template #title>
+        {{ $t('title.selfHostedLicenses') }}
+      </template>
+    </NcPageHeader>
+    <div class="h-full overflow-y-auto nc-scrollbar-thin">
+      <div class="max-w-[800px] mx-auto mt-8 px-4 pb-16">
+        <!-- List View -->
+        <template v-if="viewState === 'list'">
+          <div class="flex items-center justify-between mb-6">
+            <div class="text-xl font-semibold">{{ $t('title.selfHostedLicenses') }}</div>
+            <NcButton
+              v-if="licenses.length > 0"
+              type="primary"
+              size="small"
+              data-testid="nc-self-hosted-buy-btn"
+              @click="onBuyLicense"
+            >
+              {{ $t('labels.buyNewLicense') }}
+            </NcButton>
+          </div>
+
+        <div v-if="isLoading" class="flex items-center justify-center py-20">
+          <GeneralLoader size="xlarge" />
+        </div>
+
+        <div v-else-if="licenses.length === 0" class="flex flex-col items-center gap-4 py-20">
+          <GeneralIcon icon="ncKey2" class="h-12 w-12 text-nc-content-gray-muted" />
+          <div class="text-sm text-nc-content-gray-subtle text-center">
+            {{ $t('labels.noSelfHostedLicenses') }}
+          </div>
+          <NcButton type="primary" size="small" @click="onBuyLicense">
+            {{ $t('labels.buyYourFirstLicense') }}
+          </NcButton>
+        </div>
+
+        <div v-else class="flex flex-col gap-4">
+          <div
+            v-for="license in licenses"
+            :key="license.id"
+            class="border border-nc-border-gray-medium rounded-xl p-5 hover:border-nc-border-gray-dark transition-colors"
+            data-testid="nc-self-hosted-license-card"
+          >
+            <div class="flex items-start justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div
+                  v-if="license.plan"
+                  class="px-2 py-0.5 rounded-md text-xs font-semibold"
+                  :style="{
+                    backgroundColor: planMeta(license.plan.title)?.badgeBgColor,
+                    color: planMeta(license.plan.title)?.badgeTextColor,
+                  }"
+                >
+                  {{ $t(`objects.paymentPlan.${license.plan.title}`) }}
+                </div>
+                <div
+                  class="px-2 py-0.5 rounded-md text-xs font-medium border"
+                  :class="statusClass(license.status)"
+                >
+                  {{ statusLabel(license.status) }}
+                </div>
+              </div>
+              <div class="text-xs text-nc-content-gray-muted">
+                {{ license.created_at ? new Date(license.created_at).toLocaleDateString() : '' }}
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 mb-3">
+              <code class="flex-1 text-xs bg-nc-bg-gray-light rounded-lg px-3 py-2 font-mono select-all break-all">
+                {{ revealedKeys.has(license.id) ? license.license_key : maskKey(license.license_key) }}
+              </code>
+              <NcButton
+                type="text"
+                size="xs"
+                :tooltip="revealedKeys.has(license.id) ? $t('general.hide') : $t('general.show')"
+                @click="toggleRevealKey(license.id)"
+              >
+                <GeneralIcon :icon="revealedKeys.has(license.id) ? 'ncEyeOff' : 'ncEye'" class="h-4 w-4" />
+              </NcButton>
+              <NcButton type="text" size="xs" :tooltip="$t('general.copy')" @click="copyKey(license.license_key)">
+                <GeneralIcon icon="ncCopy" class="h-4 w-4" />
+              </NcButton>
+            </div>
+
+            <div class="flex items-center gap-4 text-xs text-nc-content-gray-subtle">
+              <span>{{ license.licensed_to }}</span>
+              <span v-if="license.subscription">
+                {{ license.subscription.period === 'year' ? $t('labels.annual') : $t('general.monthly') }}
+              </span>
+            </div>
+          </div>
+
+          <NcDivider class="!my-4" />
+
+          <div class="flex items-center gap-3">
+            <NcButton type="secondary" size="small" @click="onManageBilling">
+              {{ $t('labels.manageBilling') }}
+            </NcButton>
+          </div>
+        </div>
+      </template>
+
+      <!-- Plan Select View -->
+      <template v-if="viewState === 'plan-select'">
+        <div class="mb-6">
+          <NcButton type="text" size="small" class="!-ml-2" @click="backToList">
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
+              {{ $t('labels.back') }}
+            </div>
+          </NcButton>
+        </div>
+
+        <div v-if="instanceUrl" class="p-3 rounded-lg bg-nc-bg-gray-light border border-nc-border-gray-medium mb-6">
+          <div class="text-xs text-nc-content-gray-subtle mb-1">{{ $t('labels.instanceUrl') }}</div>
+          <div class="text-sm font-medium break-all">{{ instanceUrl }}</div>
+        </div>
+
+        <AccountSelfHostedPlanSelector @select="initCheckout" />
+      </template>
+
+      <!-- Checkout View -->
+      <template v-if="viewState === 'checkout'">
+        <div class="mb-6">
+          <NcButton type="text" size="small" class="!-ml-2" @click="backToPlanSelect">
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
+              {{ $t('labels.back') }}
+            </div>
+          </NcButton>
+        </div>
+
+        <div v-if="checkoutLoading" class="relative min-h-[40vh]">
+          <div class="flex items-center justify-center py-20">
+            <GeneralLoader size="xlarge" />
+          </div>
+        </div>
+
+        <div v-show="!checkoutLoading" id="on-prem-checkout" class="w-full pb-10" />
+      </template>
+
+      <!-- Success View -->
+      <template v-if="viewState === 'success' && successLicense">
+        <div class="flex flex-col items-center gap-6 py-10">
+          <div class="w-16 h-16 rounded-full bg-nc-green-50 flex items-center justify-center">
+            <GeneralIcon icon="ncCheck" class="h-8 w-8 text-nc-green-600" />
+          </div>
+
+          <div class="text-center">
+            <div class="text-xl font-semibold mb-2">{{ $t('title.licenseReady') }}</div>
+            <div class="text-sm text-nc-content-gray-subtle">
+              {{ $t('labels.licenseReadyDescription') }}
+            </div>
+          </div>
+
+          <div class="w-full max-w-[560px] border border-nc-border-gray-medium rounded-xl p-6">
+            <div class="text-xs text-nc-content-gray-subtle mb-2">{{ $t('title.licenseKey') }}</div>
+            <div class="flex items-center gap-2">
+              <code
+                class="flex-1 text-sm bg-nc-bg-gray-light rounded-lg px-4 py-3 font-mono select-all break-all"
+                data-testid="nc-self-hosted-success-key"
+              >
+                {{ successLicense.license_key }}
+              </code>
+              <NcButton type="secondary" size="small" @click="copyKey(successLicense.license_key)">
+                <div class="flex items-center gap-1">
+                  <GeneralIcon :icon="copiedKey ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
+                  {{ copiedKey ? $t('general.copied') : $t('general.copy') }}
+                </div>
+              </NcButton>
+            </div>
+          </div>
+
+          <div v-if="instanceUrl" class="w-full max-w-[560px] p-4 rounded-lg bg-nc-bg-gray-light text-center">
+            <div class="text-sm text-nc-content-gray-subtle">
+              {{ $t('labels.goBackToInstance', { url: instanceUrl }) }}
+            </div>
+          </div>
+
+          <NcButton type="primary" size="small" @click="backToList">
+            {{ $t('labels.viewAllLicenses') }}
+          </NcButton>
+        </div>
+      </template>
+      </div>
+    </div>
+  </div>
+</template>

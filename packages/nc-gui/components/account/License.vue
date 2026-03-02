@@ -3,9 +3,9 @@ const { api, isLoading } = useApi()
 
 const { t } = useI18n()
 
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 
-const { appInfo, loadAppInfo } = useGlobal()
+const { appInfo, loadAppInfo, token } = useGlobal()
 
 const key = ref('')
 
@@ -17,6 +17,11 @@ const licenseStatus = computed(() => {
   if (!key.value) return 'none'
 
   return isEEActive.value ? 'active' : 'expired'
+})
+
+const buyLicenseUrl = computed(() => {
+  const instanceUrl = window.location.origin
+  return `${NC_CLOUD_URL}/#/account/self-hosted?instance_url=${encodeURIComponent(instanceUrl)}`
 })
 
 const loadLicense = async () => {
@@ -49,6 +54,40 @@ const removeLicense = async () => {
     message.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:account:license:remove')
+}
+
+const isRefreshing = ref(false)
+
+const refreshLicense = async () => {
+  isRefreshing.value = true
+  try {
+    const baseURL = $api.instance.defaults.baseURL
+
+    const result = await $fetch<{ success: boolean; status?: string }>('/api/v1/license/refresh', {
+      baseURL,
+      method: 'POST',
+      headers: {
+        'xc-auth': token.value as string,
+      },
+    })
+
+    if (result.success) {
+      message.success(t('upgrade.licenseRefreshed'))
+      await loadAppInfo()
+    } else {
+      message.error(t('upgrade.licenseRefreshFailed'))
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isRefreshing.value = false
+  }
+  $e('a:account:license:refresh')
+}
+
+const onBuyLicense = () => {
+  $e('c:account:license:buy')
+  window.open(buyLicenseUrl.value, '_blank')
 }
 
 loadLicense()
@@ -103,6 +142,36 @@ loadLicense()
           <NcButton v-if="key" type="secondary" size="small" data-testid="nc-license-remove-btn" @click="removeLicense">
             {{ $t('general.remove') }}
           </NcButton>
+          <NcButton
+            v-if="key && isEEActive"
+            v-e="['c:account:license:refresh']"
+            type="secondary"
+            size="small"
+            :loading="isRefreshing"
+            data-testid="nc-license-refresh-btn"
+            @click="refreshLicense"
+          >
+            {{ $t('upgrade.refreshLicense') }}
+          </NcButton>
+        </div>
+
+        <NcDivider class="!my-6" />
+
+        <div class="flex flex-col gap-3">
+          <div class="text-sm text-nc-content-gray-subtle">
+            {{ licenseStatus === 'none' ? $t('labels.noLicenseYet') : $t('labels.manageLicenseOnCloud') }}
+          </div>
+          <div>
+            <NcButton
+              v-e="['c:account:license:buy']"
+              type="secondary"
+              size="small"
+              data-testid="nc-license-buy-btn"
+              @click="onBuyLicense"
+            >
+              {{ licenseStatus === 'none' ? $t('labels.buyLicense') : $t('labels.manageLicense') }}
+            </NcButton>
+          </div>
         </div>
       </template>
     </div>

@@ -35,7 +35,9 @@ export default defineNuxtRouteMiddleware((to) => {
 
     let targetPath = ''
 
-    if (returnToPage === 'org') {
+    if (returnToPage === 'self_hosted') {
+      targetPath = '/account/self-hosted'
+    } else if (returnToPage === 'org') {
       targetPath = `/admin/${workspaceId}/billing`
     } else if (returnToPage === 'account') {
       targetPath = `/account/workspace/${workspaceId}/settings`

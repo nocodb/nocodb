@@ -89,14 +89,15 @@ export default class Subscription {
         `${CacheScope.SUBSCRIPTIONS_ALIAS}:${subscription.stripe_subscription_id}`,
         key,
       );
-      await NocoCache.set(
-        'root',
-        `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
-          // subscription.fk_org_id || subscription.fk_workspace_id
-          subscription.fk_org_id || subscription.fk_workspace_id
-        }`,
-        key,
-      );
+      if (subscription.fk_org_id || subscription.fk_workspace_id) {
+        await NocoCache.set(
+          'root',
+          `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
+            subscription.fk_org_id || subscription.fk_workspace_id
+          }`,
+          key,
+        );
+      }
     }
 
     return new Subscription(subscription);
@@ -208,12 +209,14 @@ export default class Subscription {
       'root',
       `${CacheScope.SUBSCRIPTIONS_ALIAS}:${subscription.stripe_subscription_id}`,
     );
-    await NocoCache.del(
-      'root',
-      `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
-        subscription.fk_org_id || subscription.fk_workspace_id
-      }`,
-    );
+    if (subscription.fk_org_id || subscription.fk_workspace_id) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.SUBSCRIPTIONS_ALIAS}:${
+          subscription.fk_org_id || subscription.fk_workspace_id
+        }`,
+      );
+    }
 
     return true;
   }

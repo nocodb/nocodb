@@ -28,4 +28,8 @@ export class OrgLcenseService {
       status: Noco.isEE() ? 'active' : 'none',
     };
   }
+
+  async licenseRefresh(): Promise<{ success: boolean; status?: string }> {
+    return { success: false, status: 'not_available' };
+  }
 }

@@ -51,4 +51,15 @@ export class OrgLcenseController {
   async licenseStatus() {
     return await this.orgLcenseService.licenseStatus();
   }
+
+  @Post('/api/v1/license/refresh')
+  @HttpCode(200)
+  @Acl('licenseSet', {
+    scope: 'org',
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
+    blockApiTokenAccess: true,
+  })
+  async licenseRefresh() {
+    return await this.orgLcenseService.licenseRefresh();
+  }
 }

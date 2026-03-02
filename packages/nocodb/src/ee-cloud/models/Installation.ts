@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import { Logger } from '@nestjs/common';
 
 import {
   CacheGetType,
@@ -53,10 +54,15 @@ const META_CONFIG: Record<string, MetaFieldConfig> = {
  * - Server-controlled license state
  */
 export default class Installation {
+  private static logger = new Logger('Installation');
+
   id: string;
 
   // Subscription relationship (optional for Stripe-based billing)
   fk_subscription_id?: string;
+
+  // User who purchased this license (cloud user ID)
+  fk_user_id?: string;
 
   // License information
   licensed_to: string; // Organization/company name
@@ -211,12 +217,36 @@ export default class Installation {
     return new Installation(installation);
   }
 
+  public static async listByUserId(
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Installation[]> {
+    const installations = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.INSTALLATIONS,
+      {
+        condition: {
+          fk_user_id: userId,
+        },
+        orderBy: {
+          created_at: 'desc',
+        },
+      },
+    );
+
+    return installations.map(
+      (i) => new Installation(prepareForResponse(i, ['meta', 'config'])),
+    );
+  }
+
   public static async insert(
     installation: Partial<Installation>,
     ncMeta = Noco.ncMeta,
   ): Promise<Installation> {
     const insertObj: Record<string, any> = extractProps(installation, [
       'fk_subscription_id',
+      'fk_user_id',
       'licensed_to',
       'license_key',
       'installed_at',
@@ -383,7 +413,7 @@ export default class Installation {
       }
     } catch (error) {
       // Log error if needed
-      console.error('Error comparing metadata:', error);
+      Installation.logger.error('Error comparing metadata', error?.stack);
     }
 
     // add last_environment_update timestamp if environment is updated

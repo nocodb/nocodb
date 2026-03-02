@@ -36,9 +36,14 @@ export default class User extends UserCE implements UserType {
   location?: string;
   website?: string;
   is_new_user?: boolean;
+  stripe_customer_id?: string;
 
   protected static castType(user: User): User {
     return user && new User(user);
+  }
+
+  static async get(userId, ncMeta = Noco.ncMeta): Promise<User> {
+    return this.castType(await super.get(userId, ncMeta));
   }
 
   public static async insert(user: Partial<User>, ncMeta = Noco.ncMeta) {
@@ -109,6 +114,7 @@ export default class User extends UserCE implements UserType {
       'website',
       'is_new_user',
       'meta',
+      'stripe_customer_id',
     ]);
 
     if (updateObj.user_name) {

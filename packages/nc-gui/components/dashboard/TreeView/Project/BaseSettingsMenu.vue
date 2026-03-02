@@ -10,11 +10,9 @@ const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const base = inject(ProjectInj)!
 
+const baseRole = inject(ProjectRoleInj)!
+
 const { isUIAllowed, baseRoles, loadRoles } = useRoles()
-
-const { user } = useGlobal()
-
-const isBaseRolesReady = computed(() => !!user.value?.base_roles)
 
 const resolveBaseId = () => {
   if (route.value.params.baseId) return route.value.params.baseId as string
@@ -44,17 +42,14 @@ const isSettingsItemActive = (tab: string) => {
   return activeSettingsPage.value === slug
 }
 
-// Load base roles if not already loaded (e.g. when landing directly on a ws-settings page)
-onMounted(async () => {
-  if (isBaseRolesReady.value) return
+// Use injected base role for immediate permission checks; load full roles in background
+const effectiveRoles = computed(() => baseRoles.value ?? baseRole.value)
 
+// Load base roles in background if not already loaded
+onMounted(() => {
   const baseId = resolveBaseId()
-  if (!baseId) return
-
-  try {
-    await loadRoles(baseId)
-  } catch {
-    // silently fail — items will stay hidden
+  if (baseId) {
+    loadRoles(baseId).catch(() => {})
   }
 })
 </script>
@@ -64,51 +59,41 @@ onMounted(async () => {
     <div class="nc-settings-section-header">
       {{ $t('labels.baseSettings') }}
     </div>
-
-    <!-- Loading skeleton -->
-    <template v-if="!isBaseRolesReady">
-      <div v-for="i in 4" :key="i" class="flex items-center gap-2 h-7 pl-3 pr-1 my-[2px]">
-        <a-skeleton-input active size="small" class="flex-1 children:(!rounded-md !h-4)" />
-      </div>
-    </template>
-
-    <template v-else>
-      <NcSidebarMenuItem
-        v-if="isUIAllowed('newUser', { roles: baseRoles })"
-        v-e="['c:admin:base:add-user']"
-        icon="users"
-        :active="isSettingsItemActive('collaborator')"
-        @click="navigateToBaseSettings('collaborator')"
-      >
-        {{ $t('labels.addUserToBase') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="isUIAllowed('manageMCP')"
-        v-e="['c:admin:base:mcp']"
-        icon="mcp"
-        :active="isSettingsItemActive('mcp')"
-        @click="navigateToBaseSettings('mcp')"
-      >
-        {{ $t('title.mcpServer') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-if="isUIAllowed('sourceCreate')"
-        v-e="['c:admin:base:add-data-source']"
-        icon="ncDatabase"
-        :active="isSettingsItemActive('data-source')"
-        @click="navigateToBaseSettings('data-source')"
-      >
-        {{ $t('labels.addDataSource') }}
-      </NcSidebarMenuItem>
-      <NcSidebarMenuItem
-        v-e="['c:admin:base:more']"
-        icon="ncMoreHorizontal"
-        :active="isSettingsItemActive('base-settings')"
-        @click="navigateToBaseSettings('base-settings')"
-      >
-        {{ $t('general.general') }}
-      </NcSidebarMenuItem>
-    </template>
+    <NcSidebarMenuItem
+      v-if="isUIAllowed('newUser', { roles: effectiveRoles })"
+      v-e="['c:admin:base:add-user']"
+      icon="users"
+      :active="isSettingsItemActive('collaborator')"
+      @click="navigateToBaseSettings('collaborator')"
+    >
+      {{ $t('labels.addUserToBase') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isUIAllowed('manageMCP', { roles: effectiveRoles })"
+      v-e="['c:admin:base:mcp']"
+      icon="mcp"
+      :active="isSettingsItemActive('mcp')"
+      @click="navigateToBaseSettings('mcp')"
+    >
+      {{ $t('title.mcpServer') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles })"
+      v-e="['c:admin:base:add-data-source']"
+      icon="ncDatabase"
+      :active="isSettingsItemActive('data-source')"
+      @click="navigateToBaseSettings('data-source')"
+    >
+      {{ $t('labels.addDataSource') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-e="['c:admin:base:more']"
+      icon="ncMoreHorizontal"
+      :active="isSettingsItemActive('base-settings')"
+      @click="navigateToBaseSettings('base-settings')"
+    >
+      {{ $t('general.general') }}
+    </NcSidebarMenuItem>
   </div>
 </template>
 

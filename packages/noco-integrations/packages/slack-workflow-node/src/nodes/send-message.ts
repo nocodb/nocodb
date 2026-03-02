@@ -69,8 +69,9 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         label: 'Channel',
         model: 'config.channelId',
         fetchOptionsKey: 'channels',
+        searchable: true,
         dependsOn: 'config.authIntegrationId',
-        placeholder: 'Select a channel',
+        placeholder: 'Search for a channel...',
         condition: {
           model: 'config.sendTo',
           value: 'channel',
@@ -87,8 +88,9 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         label: 'User',
         model: 'config.userId',
         fetchOptionsKey: 'users',
+        searchable: true,
         dependsOn: 'config.authIntegrationId',
-        placeholder: 'Select a user',
+        placeholder: 'Search for a user...',
         condition: {
           model: 'config.sendTo',
           value: 'user',
@@ -148,7 +150,10 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
     };
   }
 
-  public async fetchOptions(key: string): Promise<unknown> {
+  public async fetchOptions(
+    key: string,
+    searchQuery?: string,
+  ): Promise<unknown> {
     const authIntegrationId = this.config.authIntegrationId;
 
     if (!authIntegrationId) {
@@ -158,43 +163,70 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
     const auth =
       await this.getIntegration<SlackAuthIntegration>(authIntegrationId);
 
+    const query = searchQuery?.trim().toLowerCase();
+
     switch (key) {
       case 'channels': {
         const result = await auth.use(async (client) => {
-          const response = await client.conversations.list({
-            types: 'public_channel,private_channel',
-            limit: 1000,
-          });
+          const channels: any[] = [];
+          let cursor: string | undefined;
 
-          return response.channels || [];
+          do {
+            const response = await client.conversations.list({
+              types: 'public_channel,private_channel',
+              exclude_archived: true,
+              limit: 1000,
+              cursor,
+            });
+
+            channels.push(...(response.channels || []));
+            cursor = response.response_metadata?.next_cursor || undefined;
+          } while (cursor);
+
+          return channels;
         });
 
-        return result.map((channel: any) => ({
+        const filtered = query
+          ? result.filter((channel: any) =>
+              channel.name?.toLowerCase().includes(query),
+            )
+          : result;
+
+        return filtered.map((channel: any) => ({
           label: `#${channel.name}`,
           value: channel.id,
-          ncItemDisabled: channel.is_archived,
-          ncItemTooltip: channel.is_archived
-            ? 'This channel is archived'
-            : undefined,
         }));
       }
 
       case 'users': {
         const result = await auth.use(async (client) => {
-          const response = await client.users.list({
-            limit: 1000,
-          });
+          const members: any[] = [];
+          let cursor: string | undefined;
 
-          return response.members || [];
+          do {
+            const response = await client.users.list({
+              limit: 1000,
+              cursor,
+            });
+
+            members.push(...(response.members || []));
+            cursor = response.response_metadata?.next_cursor || undefined;
+          } while (cursor);
+
+          return members;
         });
 
-        return result
-          .filter((user: any) => !user.deleted && !user.is_bot)
-          .map((user: any) => ({
-            label: user.real_name || user.name,
-            value: user.id,
-            ncItemDisabled: user.deleted,
-          }));
+        const filtered = result.filter((user: any) => {
+          if (user.deleted || user.is_bot) return false;
+          if (!query) return true;
+          const name = (user.real_name || user.name || '').toLowerCase();
+          return name.includes(query);
+        });
+
+        return filtered.map((user: any) => ({
+          label: user.real_name || user.name,
+          value: user.id,
+        }));
       }
 
       default:

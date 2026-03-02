@@ -139,12 +139,10 @@ import {
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
-import {
-  QUERY_STRING_FIELD_ID_ON_RESULT,
-  QUERY_STRING_LINKS_AS_LTAR,
-} from '~/constants';
+import { QUERY_STRING_LINKS_AS_LTAR } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
 import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
+import { isReturnFieldsByFieldId } from '~/helpers/dataHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { isTransientError } from '~/helpers/db-error/utils';
@@ -283,7 +281,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       apiVersion,
       skipSubstitutingColumnIds:
         this.context.api_version === NcApiVersion.V3 &&
-        query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        isReturnFieldsByFieldId(query),
     });
 
     const linksAsLtar =
@@ -319,7 +317,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         apiVersion,
         skipSubstitutingColumnIds:
           this.context.api_version === NcApiVersion.V3 &&
-          query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+          isReturnFieldsByFieldId(query),
       });
     } catch (e) {
       const isTransient = isTransientError(e);

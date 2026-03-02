@@ -3887,6 +3887,14 @@
             "description": "When set to `true`, Links fields will return full linked record data (id and display value) instead of just a count. This makes Links fields behave like LinkToAnotherRecord (LTAR) fields in the response."
           },
           {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "returnFieldsByFieldId",
+            "description": "When set to `true`, the API response will use field IDs as keys in the `fields` object instead of field titles. This is useful when you need consistent field identifiers that don't change when field titles are updated.\n\nExample: `returnFieldsByFieldId=true` will return field IDs like `cagokat5f6klp7n` as keys instead of field titles like `SingleLineText`."
+          },
+          {
             "required": true,
             "$ref": "#/components/parameters/xc-token"
           }
@@ -4302,6 +4310,14 @@
             "name": "linksAsLtar",
             "in": "query",
             "description": "When set to `true`, Links fields will return full linked record data (id and display value) instead of just a count. This makes Links fields behave like LinkToAnotherRecord (LTAR) fields in the response."
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "in": "query",
+            "name": "returnFieldsByFieldId",
+            "description": "When set to `true`, the API response will use field IDs as keys in the `fields` object instead of field titles. This is useful when you need consistent field identifiers that don't change when field titles are updated.\n\nExample: `returnFieldsByFieldId=true` will return field IDs like `cagokat5f6klp7n` as keys instead of field titles like `SingleLineText`."
           },
           {
             "required": true,

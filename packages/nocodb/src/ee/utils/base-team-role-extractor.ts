@@ -62,15 +62,21 @@ export async function extractUserBaseTeamRoles(
       base_id: null,
     } as NcContext;
 
-    // Load team details for user's teams to get paths
+    // Batch-load all needed teams in one query: user's teams + base-assigned teams
+    const userTeamIds = userTeamAssignments.map((a) => a.resource_id);
+    const assignedTeamIds = teamAssignments.map((a) => a.principal_ref_id);
+    const allTeamIds = [...new Set([...userTeamIds, ...assignedTeamIds])];
+    const teamsMap = await Team.getByIds(teamCtx, allTeamIds);
+
+    // Build user's teams list from batch result
     const userTeams: { id: string; path: string; teamRole: string }[] = [];
     for (const assignment of userTeamAssignments) {
-      const team = await Team.get(teamCtx, assignment.resource_id);
+      const team = teamsMap.get(assignment.resource_id);
       if (team?.path) {
         userTeams.push({
           id: team.id,
           path: team.path,
-          teamRole: assignment.roles, // User's role within the team (member/owner)
+          teamRole: assignment.roles,
         });
       }
     }
@@ -81,8 +87,8 @@ export async function extractUserBaseTeamRoles(
     for (const assignment of teamAssignments) {
       const assignedTeamId = assignment.principal_ref_id;
 
-      // Load the assigned team to get its path
-      const assignedTeam = await Team.get(teamCtx, assignedTeamId);
+      // Get the assigned team from batch result
+      const assignedTeam = teamsMap.get(assignedTeamId);
       if (!assignedTeam?.path) continue;
 
       // Check if user matches via direct membership or ancestor relationship

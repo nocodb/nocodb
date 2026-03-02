@@ -15,6 +15,7 @@ import type { ColumnType, FilterType } from 'nocodb-sdk';
 import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
 import type { Prettify } from '~/types/utils';
+import NocoPresence from '~/socket/NocoPresence';
 import { verifyJwt } from '~/services/users/helpers';
 import { BaseUser, Model, Source, User, WorkspaceUser } from '~/models';
 import { PrincipalAssignment } from '~/ee/models';
@@ -109,6 +110,7 @@ export default class NocoSocket {
           EventType.DASHBOARD_EVENT,
           EventType.WIDGET_EVENT,
           EventType.SCRIPT_EVENT,
+          EventType.PRESENCE_EVENT,
         ].includes(eventType as EventType) &&
         userWithRole.base_roles?.[ProjectRoles.NO_ACCESS]
       ) {
@@ -141,6 +143,17 @@ export default class NocoSocket {
       // Use native Socket.IO rooms (default — no RLS)
       socket.join(event);
       this.logger.debug(`Socket ${socket.id} joined room ${event}`);
+
+      // Track presence room in socket.data for safe disconnect cleanup
+      // (socket.rooms may be cleared before disconnect handler fires).
+      // presenceRoom: single room key string — one base-scoped room per socket.
+      if (event.startsWith(EventType.PRESENCE_EVENT)) {
+        if (!socket.data.presenceRooms) socket.data.presenceRooms = new Set();
+        socket.data.presenceRooms.add(event);
+
+        // Store as the active presence room (base-level — one at a time)
+        socket.data.presenceRoom = event;
+      }
     } catch (error) {
       this.logger.error(`Error subscribing to event ${event}:`, error);
       sendConnectionError(socket, error, 'SUBSCRIBE_ERROR');
@@ -576,18 +589,26 @@ export default class NocoSocket {
       });
     });
 
+    // ── Presence ──────────────────────────────────────────────────────────────
+    NocoPresence.setupHandlers(socket);
+
     // Error handling
     socket.on('error', (error: Error) => {
       this.logger.error(`Socket error from ${socket.id}: ${error}`);
       sendConnectionError(socket, error, 'SOCKET_ERROR');
     });
 
-    // Handle disconnect — clean up RLS registry
     socket.on('disconnect', (reason: string) => {
       this.logger.debug(`Client ${socket.id} disconnected: ${reason}`);
 
       // Clean up RLS subscription registry
       RlsSubscriptionRegistry.unregisterSocket(socket.id);
+
+      // Remove from Redis and notify room members (delegated to NocoPresence).
+      // Uses socket.data.presenceRooms (not socket.rooms) to avoid the race
+      // condition where socket.rooms is cleared before the disconnect handler fires.
+      NocoPresence.handleDisconnect(socket, this.ioServer);
+
       this.clients.delete(socket.id);
 
       if (reason === 'io server disconnect') {

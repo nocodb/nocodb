@@ -1,4 +1,4 @@
-import { UserType, NotificationType } from '~/lib/Api';
+import { NotificationType, UserType } from '~/lib/Api';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -16,16 +16,15 @@ export enum EventType {
   TEAM_EVENT = 'event-team',
   WORKFLOW_EVENT = 'event-workflow',
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
+  PRESENCE_EVENT = 'event-presence',
 }
 
-// Base payload interface for all socket events
 export interface BaseSocketPayload {
   timestamp: number;
   socketId?: string;
   event?: EventType;
 }
 
-// Connection event payloads
 export interface ConnectionWelcomePayload extends BaseSocketPayload {
   message: string;
   serverInfo: {
@@ -111,14 +110,92 @@ export interface NotificationPayload extends BaseSocketPayload {
   payload: Partial<NotificationType>;
 }
 
-// Union type for all socket event payloads
+export enum PresencePageType {
+  TABLE = 'table',
+  AUTOMATION = 'automation',
+  DASHBOARD = 'dashboard',
+  SCRIPT = 'script',
+}
+
+export interface PresenceAnnouncePayload extends BaseSocketPayload {
+  action: 'announce';
+  user: {
+    id: string;
+    email: string;
+    displayName: string;
+    meta?: Record<string, any> | null;
+  };
+  resource: {
+    id: string;
+    type: PresencePageType;
+    viewId?: string;
+  };
+}
+
+export interface PresenceHeartbeatPayload extends BaseSocketPayload {
+  action: 'heartbeat';
+  user: {
+    id: string;
+  };
+  resource: {
+    id: string;
+    type: PresencePageType;
+    viewId?: string;
+  };
+}
+
+export interface PresenceLocationChangePayload extends BaseSocketPayload {
+  action: 'location-change';
+  user: {
+    id: string;
+  };
+  resource: {
+    id: string;
+    type: PresencePageType;
+    viewId?: string;
+  };
+}
+
+export interface PresenceLeavePayload extends BaseSocketPayload {
+  action: 'leave';
+  user: {
+    id: string;
+  };
+}
+
+export interface PresenceBatchPayload extends BaseSocketPayload {
+  action: 'batch';
+  users: Array<{
+    user: {
+      id: string;
+      email: string;
+      displayName: string;
+      meta?: Record<string, any> | null;
+    };
+    resource: {
+      id: string;
+      type: PresencePageType;
+      viewId?: string;
+    };
+    lastSeen: number;
+  }>;
+}
+
+export type PresencePayload =
+  | PresenceAnnouncePayload
+  | PresenceHeartbeatPayload
+  | PresenceLocationChangePayload
+  | PresenceLeavePayload
+  | PresenceBatchPayload;
+
 export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
   | DataPayload
   | MetaPayload
   | CommentPayload
-  | NotificationPayload;
+  | NotificationPayload
+  | PresencePayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
@@ -129,6 +206,7 @@ export type SocketEventPayloadMap = {
   [EventType.META_EVENT]: MetaPayload;
   [EventType.USER_EVENT]: UserEventPayload;
   [EventType.COMMENT_EVENT]: CommentPayload;
+  [EventType.PRESENCE_EVENT]: PresencePayload;
   [key: string]: BaseSocketPayload;
 };
 

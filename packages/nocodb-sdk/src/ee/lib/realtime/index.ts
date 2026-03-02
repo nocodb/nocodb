@@ -16,6 +16,13 @@ import {
   MetaPayload,
   UserEventPayload,
   NotificationPayload,
+  PresencePageType,
+  PresenceAnnouncePayload,
+  PresenceHeartbeatPayload,
+  PresenceLocationChangePayload,
+  PresenceLeavePayload,
+  PresenceBatchPayload,
+  PresencePayload,
   SocketEventPayload as SocketEventPayloadOSS,
   SocketEventPayloadMap as SocketEventPayloadMapOSS,
 } from 'src/lib/realtime';
@@ -31,6 +38,13 @@ export {
   MetaPayload,
   UserEventPayload,
   NotificationPayload,
+  PresencePageType,
+  PresenceAnnouncePayload,
+  PresenceHeartbeatPayload,
+  PresenceLocationChangePayload,
+  PresenceLeavePayload,
+  PresenceBatchPayload,
+  PresencePayload,
 };
 
 export interface DashboardPayload extends BaseSocketPayload {

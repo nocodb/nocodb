@@ -708,6 +708,16 @@ export default abstract class CacheMgr {
     });
   }
 
+  async delHashField(key: string, field: string): Promise<boolean> {
+    log(`${this.context}::delHashField: deleting hash ${key} field ${field}`);
+    return !!(await this.client.hdel(key, field));
+  }
+
+  async expireHash(key: string, ttl: number): Promise<boolean> {
+    log(`${this.context}::expireHash: setting TTL ${ttl}s on hash ${key}`);
+    return !!(await this.client.expire(key, ttl));
+  }
+
   async processPattern(
     pattern: string,
     callback: (key: string | string[]) => Promise<void>,

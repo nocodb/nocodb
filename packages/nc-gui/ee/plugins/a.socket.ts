@@ -82,7 +82,21 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   }
 
   const ncSocket = {
+    /** Returns the current socket connection ID, or null if not connected. */
     id: () => socket?.id || null,
+    /**
+     * Subscribe to a server-broadcast event channel and register a handler.
+     *
+     * Sends `event:subscribe` to the server on first call for a given channel
+     * (so the server joins the socket to the correct room). Automatically
+     * filters out echoes of events the current socket emitted itself.
+     * Returns a `listenerId` that must be passed to `offMessage` to unsubscribe.
+     *
+     * @example
+     * const id = $ncSocket.onMessage('event-data:ws1:base1:table1', (payload) => { ... })
+     * // later:
+     * $ncSocket.offMessage(id)
+     */
     onMessage: (evt: string, handler: (...args: any[]) => void) => {
       if (!socket) return
 
@@ -103,12 +117,44 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
       return listenerId
     },
+    /**
+     * Unsubscribe a handler registered with `onMessage`.
+     *
+     * @example
+     * $ncSocket.offMessage(listenerId)
+     */
     offMessage: (listenerId: string) => {
       const handler = messageHandlers.get(listenerId)
       if (handler) {
         socket.off(handler.evt, handler.handler)
         messageHandlers.delete(listenerId)
       }
+    },
+    /**
+     * Emit an event directly to the server. No room subscription is performed.
+     * Use for client-initiated events such as presence updates.
+     * No-ops if the socket is not connected.
+     *
+     * @example
+     * $ncSocket.emit('presence:update', { action: 'heartbeat', user: { id }, resource: { ... } })
+     */
+    emit: (evt: string, payload: Record<string, any>) => {
+      if (!socket?.connected) return
+      socket.emit(evt, payload)
+    },
+    /**
+     * Listen to a raw socket.io event (e.g. `'reconnect'`).
+     * Unlike `onMessage`, this does NOT subscribe to a server room or filter self-emits.
+     * Returns an unsubscribe function.
+     *
+     * @example
+     * const unsub = $ncSocket.on('reconnect', () => { ... })
+     * // later:
+     * unsub()
+     */
+    on: (evt: string, handler: (...args: any[]) => void) => {
+      socket?.on(evt, handler)
+      return () => socket?.off(evt, handler)
     },
   }
 

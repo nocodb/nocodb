@@ -148,7 +148,7 @@ export class ListIssuesNode extends WorkflowNodeIntegration<ListIssuesNodeConfig
 
     return {
       id: 'github.action.list_issues',
-      title: 'List issues',
+      title: 'List Issues',
       description: 'Retrieve a list of issues from a GitHub repository',
       icon: 'githubSolid',
       category: WorkflowNodeCategory.ACTION,

@@ -136,7 +136,7 @@ export class ListPullRequestsNode extends WorkflowNodeIntegration<ListPullReques
 
     return {
       id: 'github.action.list_pull_requests',
-      title: 'List pull requests',
+      title: 'List Pull Requests',
       description: 'Retrieve a list of pull requests from a GitHub repository',
       icon: 'githubSolid',
       category: WorkflowNodeCategory.ACTION,

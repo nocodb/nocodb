@@ -82,7 +82,7 @@ export class RemoveIssueLabelNode extends GitHubIssueLabelActionNode<RemoveIssue
 
     return {
       id: 'github.action.remove_issue_label',
-      title: 'Remove issue label',
+      title: 'Remove Issue Label',
       description: 'Remove a label from an issue in a GitHub repository',
       icon: 'githubSolid',
       category: WorkflowNodeCategory.ACTION,

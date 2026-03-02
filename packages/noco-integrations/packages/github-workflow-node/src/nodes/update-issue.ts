@@ -138,7 +138,7 @@ export class UpdateIssueNode extends WorkflowNodeIntegration<UpdateIssueNodeConf
 
     return {
       id: 'github.action.update_issue',
-      title: 'Update issue',
+      title: 'Update Issue',
       description: 'Update an existing issue in a GitHub repository',
       icon: 'githubSolid',
       category: WorkflowNodeCategory.ACTION,

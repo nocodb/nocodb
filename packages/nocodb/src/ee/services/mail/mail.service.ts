@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { RoleLabels } from 'nocodb-sdk';
-import type { WorkflowErrorDigestPayload, HookErrorDigestPayload } from '~/interface/Mail';
+import type {
+  HookErrorDigestPayload,
+  WorkflowErrorDigestPayload,
+} from '~/interface/Mail';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { MailEvent, MailParams } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';

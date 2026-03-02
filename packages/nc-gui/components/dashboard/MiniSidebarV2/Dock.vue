@@ -119,13 +119,17 @@ const mainItems = computed<NavItem[]>(() => [
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
-  {
-    key: 'automations',
-    icon: 'ncAutomation',
-    label: 'Automations',
-    disabled: !hasAvailableBases.value,
-    onClick: () => onTabClick('automations'),
-  },
+  ...(isEeUI
+    ? [
+        {
+          key: 'automations',
+          icon: 'ncAutomation',
+          label: 'Automations',
+          disabled: !hasAvailableBases.value,
+          onClick: () => onTabClick('automations'),
+        },
+      ]
+    : []),
   { key: 'divider', icon: '', label: '' },
   { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
 ])

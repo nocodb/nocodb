@@ -21,15 +21,15 @@ type MiniSidebarActionType =
 /**
  * Tab / panel keys for MiniSidebarV2 (new-sidebar-2 branch).
  *
- * Rail main items  : 'data', 'automation', 'notification'
- * Rail bottom items: 'theme', 'settings', 'support'
- * Dock main items  : 'agents', 'data', 'workflows', 'wiki'
- * Dock bottom items: 'bookmarks', 'more'
- * Both             : 'settings'
+ * Rail main items  : 'data', 'automations', 'settings'
+ * Rail bottom items: 'theme', 'support'
+ * Dock main items  : 'data', 'automations', 'settings'
+ * Dock bottom items: 'support'
+ * Both             : 'notification' (dropdown)
  */
 type MiniSidebarV2TabType =
   | 'data'
-  | 'automation'
+  | 'automations'
   | 'notification'
   | 'theme'
   | 'agents'
@@ -123,7 +123,7 @@ export class LeftSidebarPage extends BasePage {
   /**
    * Clicks a tab in MiniSidebarV2 and waits for the navigation transition.
    *
-   * @param tab - One of the MiniSidebarV2TabType keys ('data', 'automation', 'settings', …)
+   * @param tab - One of the MiniSidebarV2TabType keys ('data', 'automations', 'settings', …)
    */
   async clickMiniSidebarV2Tab(tab: MiniSidebarV2TabType): Promise<void> {
     await this.miniSidebarV2.waitFor({ state: 'visible' });
@@ -230,7 +230,7 @@ export class LeftSidebarPage extends BasePage {
    */
   async navigateToAutomationTab(): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('automation');
+      await this.clickMiniSidebarV2Tab('automations');
     }
   }
 

@@ -1,38 +1,23 @@
 <script lang="ts" setup>
 import Table from '~/components/dashboard/TreeView/Table/index.vue'
 
-const router = useRouter()
-const route = router.currentRoute
+const sidebarStore = useSidebarStore()
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { isSharedBase } = storeToRefs(useBase())
-const { baseUrl } = useBase()
-
-const base = inject(ProjectInj)!
-
-const basesStore = useBases()
-
-const { activeProjectId } = storeToRefs(basesStore)
-
-const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
+const base = inject(ProjectInj)!
+
+const baseRole = inject(ProjectRoleInj)!
+
+const { isUIAllowed } = useRoles()
+
 const { isDark } = useTheme()
 
-const { meta: metaKey, control } = useMagicKeys()
-
 const projectNodeRef = ref()
-
-// If only base is open, i.e in case of docs, base view is open and not the page view
-const baseViewOpen = computed(() => {
-  const routeNameSplit = String(route.value?.name).split('baseId-index-index')
-  if (routeNameSplit.length <= 1) return false
-
-  const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
-  return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
-})
 
 async function addNewProjectChildEntity(showSourceSelector = true) {
   if (!projectNodeRef.value) return
@@ -40,33 +25,10 @@ async function addNewProjectChildEntity(showSourceSelector = true) {
   projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
 }
 
-const openBaseHomePage = async () => {
-  if (isMobileMode.value && isLeftSidebarOpen.value && route.value.name === 'index-typeOrId-baseId-index-index') {
-    isLeftSidebarOpen.value = false
-
-    return
-  }
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  await navigateTo(
-    `${cmdOrCtrl ? '#' : ''}${baseUrl({
-      id: base.value.id!,
-      type: 'database',
-      isSharedBase: isSharedBase.value,
-      projectPage: !isUIAllowed('projectOverviewTab') || isMobileMode.value ? 'collaborator' : undefined,
-    })}`,
-    cmdOrCtrl
-      ? {
-          open: navigateToBlankTargetOpenOption,
-        }
-      : undefined,
-  )
-}
-
 const isVisibleCreateNew = ref(false)
 
 const hasTableCreatePermission = computed(() => {
-  return isUIAllowed('tableCreate', { roles: base.value.project_role, source: base.value?.sources?.[0] })
+  return isUIAllowed('tableCreate', { roles: baseRole.value, source: base.value?.sources?.[0] })
 })
 </script>
 
@@ -95,32 +57,7 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view" />
-
-      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
-        <NcButton
-          v-e="['c:base:home']"
-          type="text"
-          size="xsmall"
-          class="nc-sidebar-top-button !h-8 w-full !pl-0"
-          :centered="false"
-          :class="{
-            '!text-nc-content-brand-disabled !bg-nc-bg-brand !hover:bg-nc-bg-brand': activeProjectId === base.id && baseViewOpen,
-            '!hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle)': !(activeProjectId === base.id && baseViewOpen),
-          }"
-          data-testid="nc-sidebar-base-overview-btn"
-          @click="openBaseHomePage"
-        >
-          <div
-            class="flex items-center gap-2 pl-3 pr-1"
-            :class="{
-              'font-semibold': activeProjectId === base.id && baseViewOpen,
-            }"
-          >
-            <GeneralIcon icon="home1" class="!h-4 w-4" />
-            <div>{{ $t('general.home') }}</div>
-          </div>
-        </NcButton>
+      <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
@@ -129,12 +66,8 @@ const hasTableCreatePermission = computed(() => {
               full-width
               class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-brand !hover:(text-nc-content-brand-disabled) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
-              icon-position="right"
               data-testid="nc-home-create-new-btn"
             >
-              <template #icon>
-                <GeneralIcon icon="chevronDown" class="flex-none" />
-              </template>
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncPlusCircleSolid" />
 
@@ -154,7 +87,22 @@ const hasTableCreatePermission = computed(() => {
     </div>
 
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
-      <Table :base-id="base.id" @create-table="addNewProjectChildEntity()" />
+      <!-- Data tab -->
+      <template v-if="activeSidebarTab === 'data'">
+        <Table :base-id="base.id" @create-table="addNewProjectChildEntity()" />
+      </template>
+
+      <!-- Settings panel -->
+      <template v-else-if="activeSidebarTab === 'settings'">
+        <DashboardTreeViewProjectBaseSettingsMenu v-if="!isSharedBase" />
+        <div v-if="!isSharedBase && !isMobileMode" class="mx-3 border-t border-nc-border-gray-medium"></div>
+        <DashboardTreeViewProjectWsSettingsMenu />
+      </template>
+
+      <!-- Fallback to data -->
+      <template v-else>
+        <Table :base-id="base.id" @create-table="addNewProjectChildEntity()" />
+      </template>
     </div>
 
     <slot name="footer"> </slot>

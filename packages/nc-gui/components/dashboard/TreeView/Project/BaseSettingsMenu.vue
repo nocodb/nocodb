@@ -12,7 +12,11 @@ const base = inject(ProjectInj)!
 
 const baseRole = inject(ProjectRoleInj)!
 
+const { isMobileMode } = useGlobal()
+
 const { isUIAllowed, baseRoles, loadRoles } = useRoles()
+
+const { showUpgradeToUseTableAndFieldPermissions, showUpgradeToUseSync } = useEeConfig()
 
 const resolveBaseId = () => {
   if (route.value.params.baseId) return route.value.params.baseId as string
@@ -24,6 +28,9 @@ const resolveBaseId = () => {
 }
 
 const navigateToBaseSettings = (page: string) => {
+  if (page === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) return
+  if (page === 'syncs' && showUpgradeToUseSync()) return
+
   const baseId = resolveBaseId()
   if (!baseId) return
 
@@ -61,7 +68,7 @@ onMounted(() => {
     </div>
     <NcSidebarMenuItem
       v-if="isUIAllowed('newUser', { roles: effectiveRoles })"
-      v-e="['c:admin:base:add-user']"
+      v-e="['c:settings:base:add-user']"
       icon="users"
       :active="isSettingsItemActive('collaborator')"
       @click="navigateToBaseSettings('collaborator')"
@@ -69,8 +76,17 @@ onMounted(() => {
       {{ $t('labels.addUserToBase') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isUIAllowed('manageMCP', { roles: effectiveRoles })"
-      v-e="['c:admin:base:mcp']"
+      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:permissions']"
+      icon="ncLock"
+      :active="isSettingsItemActive('permissions')"
+      @click="navigateToBaseSettings('permissions')"
+    >
+      {{ $t('labels.dataPermissions') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isUIAllowed('manageMCP', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:mcp']"
       icon="mcp"
       :active="isSettingsItemActive('mcp')"
       @click="navigateToBaseSettings('mcp')"
@@ -78,8 +94,26 @@ onMounted(() => {
       {{ $t('title.mcpServer') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles })"
-      v-e="['c:admin:base:add-data-source']"
+      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:syncs']"
+      icon="ncZap"
+      :active="isSettingsItemActive('syncs')"
+      @click="navigateToBaseSettings('syncs')"
+    >
+      {{ $t('labels.manageSyncs') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('baseMiscSettings', { roles: effectiveRoles }) && isUIAllowed('manageSnapshot', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:snapshots']"
+      icon="camera"
+      :active="isSettingsItemActive('snapshots')"
+      @click="navigateToBaseSettings('snapshots')"
+    >
+      {{ $t('labels.manageSnapshots') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:add-data-source']"
       icon="ncDatabase"
       :active="isSettingsItemActive('data-source')"
       @click="navigateToBaseSettings('data-source')"
@@ -87,7 +121,8 @@ onMounted(() => {
       {{ $t('labels.addDataSource') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-e="['c:admin:base:more']"
+      v-if="!isMobileMode"
+      v-e="['c:settings:base:more']"
       icon="ncMoreHorizontal"
       :active="isSettingsItemActive('base-settings')"
       @click="navigateToBaseSettings('base-settings')"

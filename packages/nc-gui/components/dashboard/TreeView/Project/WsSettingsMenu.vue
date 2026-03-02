@@ -1,13 +1,42 @@
 <script lang="ts" setup>
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
+
 const router = useRouter()
 const route = router.currentRoute
+
+const workspaceStore = useWorkspace()
+const { activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
 
 const sidebarStore = useSidebarStore()
 const { activeSidebarTab } = storeToRefs(sidebarStore)
 
+const { appInfo, isMobileMode } = useGlobal()
+
 const { isUIAllowed } = useRoles()
 
+const { t } = useI18n()
+
+const { isWsAuditEnabled, isPaymentEnabled, getFeature, showUpgradeToUseTeams, handleUpgradePlan } = useEeConfig()
+
+const isWorkspaceSsoAvail = computed(() => {
+  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
+    return true
+  }
+  return false
+})
+
 const navigateToWsSettings = (page: string) => {
+  if (page === 'ws-teams' && showUpgradeToUseTeams()) return
+
+  if (page === 'ws-audits' && !isWsAuditEnabled.value) {
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToAccessWsAudit'),
+      content: t('upgrade.upgradeToAccessWsAuditSubtitle', { plan: PlanTitles.ENTERPRISE }),
+      limitOrFeature: PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE,
+    })
+    return
+  }
+
   const wsId = route.value.params.typeOrId
   const slug = wsSettingsTabToSlug[page] || page
   navigateTo(`/${wsId}/settings/${slug}`)
@@ -26,12 +55,10 @@ const isWsSettingsItemActive = (tab: string) => {
 
 <template>
   <div class="nc-project-home-section">
-    <div class="nc-settings-section-header">
-      {{ $t('objects.workspace') }} {{ $t('labels.settings') }}
-    </div>
+    <div class="nc-settings-section-header">{{ $t('objects.workspace') }} {{ $t('labels.settings') }}</div>
     <NcSidebarMenuItem
       v-if="isUIAllowed('workspaceCollaborators')"
-      v-e="['c:admin:ws:invite-user']"
+      v-e="['c:settings:ws:invite-user']"
       icon="users"
       :active="isWsSettingsItemActive('ws-collaborators')"
       @click="navigateToWsSettings('ws-collaborators')"
@@ -39,7 +66,16 @@ const isWsSettingsItemActive = (tab: string) => {
       {{ $t('labels.inviteUsersToWorkspace') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isUIAllowed('workspaceIntegrations')"
+      v-if="isEeUI && isTeamsEnabled"
+      v-e="['c:settings:ws:add-team']"
+      icon="ncBuilding"
+      :active="isWsSettingsItemActive('ws-teams')"
+      @click="navigateToWsSettings('ws-teams')"
+    >
+      {{ $t('labels.manageTeams') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isUIAllowed('workspaceIntegrations') && !isMobileMode"
       v-e="['c:integrations']"
       icon="integration"
       :active="isWsSettingsItemActive('ws-integrations')"
@@ -48,8 +84,35 @@ const isWsSettingsItemActive = (tab: string) => {
       {{ $t('general.integrations') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
-      v-e="['c:admin:ws:general']"
+      v-if="isEeUI && !activeWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling') && !isMobileMode"
+      v-e="['c:settings:ws:billing']"
+      icon="ncDollarSign"
+      :active="isWsSettingsItemActive('ws-billing')"
+      @click="navigateToWsSettings('ws-billing')"
+    >
+      {{ $t('general.billing') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('workspaceAuditList') && !isMobileMode"
+      v-e="['c:settings:ws:audits']"
+      icon="audit"
+      :active="isWsSettingsItemActive('ws-audits')"
+      @click="navigateToWsSettings('ws-audits')"
+    >
+      {{ $t('title.audits') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isWorkspaceSsoAvail && !activeWorkspace?.fk_org_id && isUIAllowed('workspaceSSO') && !isMobileMode"
+      v-e="['c:settings:ws:sso']"
+      icon="sso"
+      :active="isWsSettingsItemActive('ws-sso')"
+      @click="navigateToWsSettings('ws-sso')"
+    >
+      {{ $t('title.sso') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="!isMobileMode && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"
+      v-e="['c:settings:ws:general']"
       icon="ncMoreHorizontal"
       :active="isWsSettingsItemActive('ws-settings')"
       @click="navigateToWsSettings('ws-settings')"

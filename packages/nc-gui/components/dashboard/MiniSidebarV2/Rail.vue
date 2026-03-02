@@ -97,7 +97,7 @@ const miniSidebarTabs = computed(() => [
 const { isUIAllowed } = useRoles()
 
 const navigateToProjectPage = () => {
-  if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
+  if (route.value.name?.toString().startsWith('index-typeOrId-baseId-')) {
     return
   }
 
@@ -177,17 +177,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 })
 
 // ── Main nav items (add/remove/reorder here) ──
-const mainItems: NavItem[] = computed(() => [
-  // {
-  //   key: 'agents',
-  //   icon: 'ncAgent',
-  //   label: 'Agents',
-  //   accentColor: '#d4944a',
-  //   indicatorColor: '#c47830',
-  //   onClick: () => {
-  //     onTabClick('agents')
-  //   },
-  // },
+const mainItems = computed<NavItem[]>(() => [
   {
     key: 'data',
     icon: 'ncTable',
@@ -197,15 +187,19 @@ const mainItems: NavItem[] = computed(() => [
       onTabClick('data')
     },
   },
-  {
-    key: 'automations',
-    icon: 'ncAutomation',
-    label: 'Automations',
-    disabled: !hasAvailableBases.value,
-    onClick: () => {
-      onTabClick('automations')
-    },
-  },
+  ...(isEeUI
+    ? [
+        {
+          key: 'automations',
+          icon: 'ncAutomation',
+          label: 'Automations',
+          disabled: !hasAvailableBases.value,
+          onClick: () => {
+            onTabClick('automations')
+          },
+        },
+      ]
+    : []),
   { key: 'divider', icon: 'ncDivider', label: 'divider' },
   { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
 ])

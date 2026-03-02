@@ -137,6 +137,21 @@ const { shouldShow: btbShouldShow } = useBackToBase()
 
 // --- Inline mode (admin sidebar) ---
 
+const isAdminSidebar = computed(() => !!props.tab)
+
+provide('isAdminSidebar', isAdminSidebar)
+
+// Map ws-* tab prop to NcTabs key (e.g. 'ws-collaborators' → 'collaborators')
+const wsTabToNcTabKey: Record<string, string> = {
+  'ws-collaborators': 'collaborators',
+  'ws-teams': 'teams',
+  'ws-integrations': 'integrations',
+  'ws-billing': 'billing',
+  'ws-audits': 'audits',
+  'ws-sso': 'sso',
+  'ws-settings': 'settings',
+}
+
 const adminPageTitle = computed(() => {
   if (!props.tab) return ''
   const tabTitles: Record<string, string> = {
@@ -151,11 +166,7 @@ const adminPageTitle = computed(() => {
   return tabTitles[props.tab] || ''
 })
 
-const isAdminSidebar = computed(() => !!props.tab)
-
-provide('isAdminSidebar', isAdminSidebar)
-
-// Load workspace data when tab changes (inline mode)
+// When in admin sidebar mode, sync the props.tab to the NcTabs active key
 watch(
   () => props.tab,
   (newTab, oldTab) => {
@@ -165,6 +176,12 @@ watch(
 
     if (!newTab) return
 
+    const ncTabKey = wsTabToNcTabKey[newTab]
+    if (ncTabKey && tab.value !== ncTabKey) {
+      tab.value = ncTabKey
+    }
+
+    // Load data for specific tabs
     until(() => currentWorkspace.value?.id)
       .toMatch((v) => !!v)
       .then(async () => {
@@ -188,9 +205,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- Inline mode: render content directly without NcTabs (used from admin sidebar) -->
-  <div v-if="props.tab && currentWorkspace" class="h-full nc-base-view flex flex-col">
+  <div
+    v-if="currentWorkspace"
+    class="flex w-full flex-col nc-workspace-settings h-full overflow-hidden"
+    :class="{ 'nc-admin-sidebar-mode': isAdminSidebar }"
+  >
+    <!-- Admin sidebar mode: simple topbar with page title -->
     <div
+      v-if="isAdminSidebar"
       class="flex flex-row px-2 py-2 gap-3 w-full border-b-1 border-nc-border-gray-medium h-[var(--topbar-height)]"
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">
@@ -200,77 +222,10 @@ onBeforeUnmount(() => {
         </span>
       </div>
     </div>
-    <div
-      class="flex-1 min-h-0 nc-admin-ws-content"
-      :style="{ height: 'calc(100% - var(--topbar-height))' }"
-    >
-      <template v-if="props.tab === 'ws-collaborators'">
-        <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="true" />
-      </template>
-      <template v-else-if="props.tab === 'ws-teams'">
-        <WorkspaceTeams :workspace-id="currentWorkspace.id" :is-active="true" />
-      </template>
-      <template v-else-if="props.tab === 'ws-integrations'">
-        <div class="h-full flex flex-col">
-          <NcTabs v-model:active-key="activeViewTab">
-            <template #leftExtra>
-              <div class="w-3"></div>
-            </template>
-            <a-tab-pane key="integrations" class="w-full">
-              <template #tab>
-                <div class="tab-title">
-                  <GeneralIcon icon="integration" />
-                  {{ $t('general.integrations') }}
-                </div>
-              </template>
-              <div class="h-full">
-                <WorkspaceIntegrationsTab show-filter />
-              </div>
-            </a-tab-pane>
-            <a-tab-pane key="connections" class="w-full">
-              <template #tab>
-                <div class="tab-title">
-                  <GeneralIcon icon="gitCommit" />
-                  {{ $t('general.connections') }}
-                  <div
-                    v-if="integrationPaginationData?.totalRows"
-                    class="tab-info flex-none"
-                    :class="{
-                      'bg-primary-selected': activeViewTab === 'connections',
-                      'bg-nc-bg-gray-extralight': activeViewTab !== 'connections',
-                    }"
-                  >
-                    {{ integrationPaginationData.totalRows }}
-                  </div>
-                </div>
-              </template>
-              <div class="p-6 h-full">
-                <WorkspaceIntegrationsConnectionsTab />
-              </div>
-            </a-tab-pane>
-          </NcTabs>
-          <WorkspaceIntegrationsEditOrAdd />
-        </div>
-      </template>
-      <template v-else-if="props.tab === 'ws-billing'">
-        <PaymentBillingPage />
-      </template>
-      <template v-else-if="props.tab === 'ws-audits'">
-        <WorkspaceAudits />
-      </template>
-      <template v-else-if="props.tab === 'ws-sso'">
-        <WorkspaceSso />
-      </template>
-      <template v-else-if="props.tab === 'ws-settings'">
-        <WorkspaceSettings :workspace-id="currentWorkspace.id" />
-      </template>
-    </div>
-  </div>
 
-  <!-- Original NcTabs mode -->
-  <div v-else-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings h-full overflow-hidden">
+    <!-- Original breadcrumb mode -->
     <div
-      v-if="!props.workspaceId"
+      v-else-if="!props.workspaceId"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
     >
       <GeneralOpenLeftSidebarBtn v-if="isMobileMode && !isLeftSidebarOpen" />
@@ -328,7 +283,7 @@ onBeforeUnmount(() => {
     </template>
 
     <!-- Back-to-base full-width bar: shown between breadcrumb and tabs (breadcrumb variant only) -->
-    <DashboardBackToBaseBreadcrumbVariant />
+    <DashboardBackToBaseBreadcrumbVariant v-if="!isAdminSidebar" />
 
     <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
       <template #leftExtra>
@@ -404,6 +359,55 @@ onBeforeUnmount(() => {
         </template>
       </template>
 
+      <a-tab-pane v-if="isAdminSidebar" key="integrations" class="w-full h-full">
+        <template #tab>
+          <div class="tab-title">
+            <GeneralIcon icon="integration" class="h-4 w-4" />
+            {{ $t('general.integrations') }}
+          </div>
+        </template>
+        <div class="h-full flex flex-col">
+          <NcTabs v-model:active-key="activeViewTab">
+            <template #leftExtra>
+              <div class="w-3"></div>
+            </template>
+            <a-tab-pane key="integrations" class="w-full">
+              <template #tab>
+                <div class="tab-title">
+                  <GeneralIcon icon="integration" />
+                  {{ $t('general.integrations') }}
+                </div>
+              </template>
+              <div class="h-full">
+                <WorkspaceIntegrationsTab show-filter />
+              </div>
+            </a-tab-pane>
+            <a-tab-pane key="connections" class="w-full">
+              <template #tab>
+                <div class="tab-title">
+                  <GeneralIcon icon="gitCommit" />
+                  {{ $t('general.connections') }}
+                  <div
+                    v-if="integrationPaginationData?.totalRows"
+                    class="tab-info flex-none"
+                    :class="{
+                      'bg-primary-selected': activeViewTab === 'connections',
+                      'bg-nc-bg-gray-extralight': activeViewTab !== 'connections',
+                    }"
+                  >
+                    {{ integrationPaginationData.totalRows }}
+                  </div>
+                </div>
+              </template>
+              <div class="p-6 h-full">
+                <WorkspaceIntegrationsConnectionsTab />
+              </div>
+            </a-tab-pane>
+          </NcTabs>
+          <WorkspaceIntegrationsEditOrAdd />
+        </div>
+      </a-tab-pane>
+
       <a-tab-pane v-if="!isEEFeatureBlocked" key="settings" class="w-full">
         <template #tab>
           <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
@@ -443,8 +447,10 @@ onBeforeUnmount(() => {
   @apply flex flex-row items-center gap-x-2 py-[1px];
 }
 
-.nc-admin-ws-content {
-  @apply max-w-[1100px] mx-auto w-full text-nc-content-gray-subtle;
-  font-size: 13px;
+// Admin sidebar mode: hide only the outer tab bar (not nested sub-tabs like integrations)
+.nc-admin-sidebar-mode {
+  > :deep(.ant-tabs) > .ant-tabs-nav {
+    display: none !important;
+  }
 }
 </style>

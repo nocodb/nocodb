@@ -73,7 +73,7 @@ const onCreateBaseClick = () => {
     }"
   >
     <div class="text-subHeading2 text-nc-content-gray mb-5">
-      {{ activeSidebarTab === 'automations' ? $t('general.automate') : $t('general.data') }} {{ $t('labels.actions') }}
+      {{ activeSidebarTab === 'automations' ? $t('general.automation') : $t('general.data') }} {{ $t('labels.actions') }}
     </div>
 
     <div
@@ -115,6 +115,8 @@ const onCreateBaseClick = () => {
 
           <ProjectActionCreateEmptyDashboard />
 
+          <ProjectActionCreateNewSync :base-id="base?.id" />
+
           <NcTooltip
             v-if="isUIAllowed('sourceCreate')"
             placement="bottom"
@@ -145,7 +147,6 @@ const onCreateBaseClick = () => {
           <ProjectActionCreateEmptyWorkflow />
           <ProjectActionCreateEmptyScript />
           <ProjectActionScriptsByNocoDB />
-          <ProjectActionCreateNewSync :base-id="base?.id" />
         </template>
       </template>
     </div>

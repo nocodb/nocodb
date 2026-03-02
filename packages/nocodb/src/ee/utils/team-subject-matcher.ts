@@ -48,21 +48,17 @@ export async function isUserInTeamOrDescendants(
   // Default: self_and_descendants — check descendant teams
   const descendants = await Team.getDescendants(context, teamId);
 
-  for (const descendant of descendants) {
-    const assignment = await PrincipalAssignment.get(
-      context,
-      ResourceType.TEAM,
-      descendant.id,
-      PrincipalType.USER,
-      userId,
-    );
+  if (!descendants.length) return false;
 
-    if (assignment) {
-      return true;
-    }
-  }
+  const descendantIds = descendants.map((d) => d.id);
+  const assignments = await PrincipalAssignment.listByResourceIds(
+    context,
+    ResourceType.TEAM,
+    descendantIds,
+    { principal_type: PrincipalType.USER },
+  );
 
-  return false;
+  return assignments.some((a) => a.principal_ref_id === userId);
 }
 
 /**
@@ -106,29 +102,40 @@ export async function getMemberUserIdsForTeamsAndDescendants(
   context: NcContext,
   teamIds: string[],
 ): Promise<string[]> {
-  const allTeamIds = new Set<string>();
+  if (!teamIds.length) return [];
 
-  // Expand each team to include descendants
-  for (const teamId of teamIds) {
-    const expanded = await getExpandedTeamIds(context, teamId);
-    for (const id of expanded) {
-      allTeamIds.add(id);
+  // Batch-load all input teams to get their paths
+  const teamsMap = await Team.getByIds(context, teamIds);
+  const allTeamIds = new Set<string>(teamIds);
+
+  // Batch-expand descendants for all teams in one query
+  const teamsWithPaths = [...teamsMap.values()].filter(
+    (t): t is Team & { path: string; fk_workspace_id: string } => !!t.path,
+  );
+
+  if (teamsWithPaths.length) {
+    const descendantsMap = await Team.getDescendantsForMultiple(
+      context,
+      teamsWithPaths,
+    );
+    for (const descendants of descendantsMap.values()) {
+      for (const desc of descendants) {
+        allTeamIds.add(desc.id);
+      }
     }
   }
 
-  // Collect member user IDs from all expanded teams
+  // Fetch all member assignments in one query
+  const assignments = await PrincipalAssignment.listByResourceIds(
+    context,
+    ResourceType.TEAM,
+    [...allTeamIds],
+    { principal_type: PrincipalType.USER },
+  );
+
   const userIds = new Set<string>();
-
-  for (const teamId of allTeamIds) {
-    const assignments = await PrincipalAssignment.list(context, {
-      resource_type: ResourceType.TEAM,
-      resource_id: teamId,
-      principal_type: PrincipalType.USER,
-    });
-
-    for (const assignment of assignments) {
-      userIds.add(assignment.principal_ref_id);
-    }
+  for (const assignment of assignments) {
+    userIds.add(assignment.principal_ref_id);
   }
 
   return [...userIds];

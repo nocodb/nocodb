@@ -7,11 +7,11 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 })
 
-const { disabled } = toRefs(props)
-
 const emit = defineEmits<{
   send: [content: string]
 }>()
+
+const { disabled } = toRefs(props)
 
 const { t } = useI18n()
 

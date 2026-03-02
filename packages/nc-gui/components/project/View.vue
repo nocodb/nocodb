@@ -68,9 +68,7 @@ const chatPaneRef = ref()
 
 const { isPanelExpanded: isChatPanelExpanded, chatPanelSize } = useChatPanel()
 
-const overviewContentSize = computed(() =>
-  isChatPanelExpanded.value && chatPanelSize.value ? 100 - chatPanelSize.value : 100,
-)
+const overviewContentSize = computed(() => (isChatPanelExpanded.value && chatPanelSize.value ? 100 - chatPanelSize.value : 100))
 
 const onOverviewChatResize = (sizes: Array<{ size: number }>) => {
   if (isChatPanelExpanded.value) chatPanelSize.value = sizes[1]!.size

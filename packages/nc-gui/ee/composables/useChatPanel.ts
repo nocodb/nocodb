@@ -2,6 +2,8 @@ export const useChatPanel = createSharedComposable(() => {
   const { isPanelExpanded: isExtensionPanelExpanded } = useExtensions()
   const { isPanelExpanded: isActionPanelExpanded } = useActionPane()
 
+  const { $e } = useNuxtApp()
+
   const isPanelExpanded = ref(false)
 
   const chatPanelSize = ref(35)
@@ -14,6 +16,9 @@ export const useChatPanel = createSharedComposable(() => {
       isActionPanelExpanded.value = false
     }
     isPanelExpanded.value = !isPanelExpanded.value
+    if (isPanelExpanded.value) {
+      $e('c:chat:open')
+    }
   }
 
   // Close chat panel when other panels open

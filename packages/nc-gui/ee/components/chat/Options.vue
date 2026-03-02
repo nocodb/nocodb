@@ -62,12 +62,7 @@ const handleCustomSubmit = () => {
         :placeholder="t('placeholder.somethingElse')"
         @keydown.enter.prevent="handleCustomSubmit"
       />
-      <NcButton
-        v-if="customInput.trim()"
-        size="xxsmall"
-        type="primary"
-        @click="handleCustomSubmit"
-      >
+      <NcButton v-if="customInput.trim()" size="xxsmall" type="primary" @click="handleCustomSubmit">
         {{ t('general.send') }}
       </NcButton>
       <NcButton v-else size="xxsmall" type="text" class="!text-nc-content-gray-subtle" @click="emits('skip')">

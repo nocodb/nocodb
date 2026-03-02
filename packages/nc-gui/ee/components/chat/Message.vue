@@ -24,6 +24,8 @@ const emits = defineEmits<{
 
 const { message, content, role, isStreaming } = toRefs(props)
 
+const { t } = useI18n()
+
 const messageRole = computed(() => message.value?.role || role.value || ChatMessageRole.USER)
 const messageContent = computed(() => message.value?.content || content.value || '')
 const isUser = computed(() => messageRole.value === ChatMessageRole.USER)
@@ -42,9 +44,7 @@ const VISIBLE_DEFAULT = 2
 const showAllTools = ref(false)
 
 const hasActiveTools = computed(() =>
-  baseCalls.value.some(
-    (tc) => tc.status === ChatToolCallStatus.RUNNING || tc.status === ChatToolCallStatus.PENDING,
-  ),
+  baseCalls.value.some((tc) => tc.status === ChatToolCallStatus.RUNNING || tc.status === ChatToolCallStatus.PENDING),
 )
 
 const visibleToolCalls = computed(() => {
@@ -81,7 +81,7 @@ const renderedContent = computed(() => {
         <!-- Active tools label -->
         <div v-if="hasActiveTools" class="flex items-center gap-1.5 mb-1.5">
           <GeneralLoader :size="12" />
-          <span class="text-[11px] text-nc-content-gray-subtle">Working…</span>
+          <span class="text-[11px] text-nc-content-gray-subtle">{{ t('msg.chat.working') }}</span>
         </div>
 
         <!-- Tool call rows -->
@@ -109,9 +109,9 @@ const renderedContent = computed(() => {
                 class="w-3 h-3 transition-transform duration-200"
                 :class="{ 'rotate-180': showAllTools }"
               />
-              <span>{{ showAllTools ? 'Show less' : `+${hiddenCount} more` }}</span>
+              <span>{{ showAllTools ? t('msg.chat.showLess') : t('msg.chat.showMore', { count: hiddenCount }) }}</span>
               <span v-if="errorCount && !showAllTools" class="text-nc-content-red ml-1">
-                ({{ errorCount }} failed)
+                ({{ t('msg.chat.toolsFailed', { count: errorCount }) }})
               </span>
             </button>
           </div>
@@ -119,10 +119,7 @@ const renderedContent = computed(() => {
       </div>
 
       <!-- User message: plain text -->
-      <div
-        v-if="messageContent && isUser"
-        class="text-sm whitespace-pre-wrap break-words leading-relaxed text-white"
-      >
+      <div v-if="messageContent && isUser" class="text-sm whitespace-pre-wrap break-words leading-relaxed text-white">
         {{ messageContent }}
       </div>
 
@@ -140,7 +137,10 @@ const renderedContent = computed(() => {
           <span class="nc-chat-dot" style="animation-delay: 160ms" />
           <span class="nc-chat-dot" style="animation-delay: 320ms" />
         </div>
-        <span v-else-if="messageContent && isAssistant" class="nc-chat-cursor block w-1.5 h-3 mt-0.5 bg-nc-content-gray-muted rounded-sm" />
+        <span
+          v-else-if="messageContent && isAssistant"
+          class="nc-chat-cursor block w-1.5 h-3 mt-0.5 bg-nc-content-gray-muted rounded-sm"
+        />
       </template>
     </div>
   </div>

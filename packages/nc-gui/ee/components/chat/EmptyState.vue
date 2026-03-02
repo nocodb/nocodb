@@ -5,11 +5,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const starterPrompts = computed(() => [
-  t('msg.chat.starterDescribe'),
-  t('msg.chat.starterRecords'),
-  t('msg.chat.starterFilter'),
-])
+const starterPrompts = computed(() => [t('msg.chat.starterDescribe'), t('msg.chat.starterRecords'), t('msg.chat.starterFilter')])
 </script>
 
 <template>

@@ -20,6 +20,8 @@ const emits = defineEmits<{
 
 const { toolCall, result } = toRefs(props)
 
+const { t } = useI18n()
+
 const isExpanded = ref(false)
 
 const isSuccess = computed(() => toolCall.value.status === ChatToolCallStatus.SUCCESS)
@@ -50,10 +52,9 @@ const toolCategory = computed(() => {
   if (
     name.startsWith('query_') ||
     name.startsWith('get_') ||
-    name === 'create_record' ||
-    name === 'update_record' ||
-    name === 'delete_record' ||
-    name.startsWith('bulk_') ||
+    name.startsWith('create_record') ||
+    name.startsWith('update_record') ||
+    name.startsWith('delete_record') ||
     name.startsWith('count_')
   ) {
     return 'data'
@@ -126,7 +127,7 @@ const isResultLong = computed(() => outputLines.value.length > MAX_RESULT_LINES)
 const showFullResult = ref(false)
 const visibleOutput = computed(() => {
   if (!isResultLong.value || showFullResult.value) return formattedOutput.value
-  return outputLines.value.slice(0, MAX_RESULT_LINES).join('\n') + '\n…'
+  return `${outputLines.value.slice(0, MAX_RESULT_LINES).join('\n')}\n…`
 })
 </script>
 
@@ -137,7 +138,8 @@ const visibleOutput = computed(() => {
       'border-1 border-nc-border-red-medium bg-nc-bg-red-light': isError,
       'border-1 border-nc-border-yellow bg-nc-bg-yellow-light': isAwaitingApproval,
       'border-1 border-nc-border-gray-light bg-nc-bg-gray-extralight': isDenied,
-      'border-1 border-nc-border-gray-light bg-nc-bg-gray-extralight hover:bg-nc-bg-gray-light': !isError && !isAwaitingApproval && !isDenied,
+      'border-1 border-nc-border-gray-light bg-nc-bg-gray-extralight hover:bg-nc-bg-gray-light':
+        !isError && !isAwaitingApproval && !isDenied,
     }"
     :style="{ '--i': index }"
   >
@@ -157,11 +159,7 @@ const visibleOutput = computed(() => {
       </div>
 
       <!-- Category icon -->
-      <GeneralIcon
-        :icon="categoryIcon"
-        class="flex-none w-3.5 h-3.5"
-        :class="categoryTextColor"
-      />
+      <GeneralIcon :icon="categoryIcon" class="flex-none w-3.5 h-3.5" :class="categoryTextColor" />
 
       <!-- Tool name -->
       <span class="text-[12px] font-medium leading-none capitalize truncate" :class="categoryTextColor">
@@ -186,7 +184,7 @@ const visibleOutput = computed(() => {
           class="!text-nc-content-red-dark !h-5 !px-1.5 text-[11px] font-medium"
           @click.stop="emits('deny', toolCall.id)"
         >
-          Deny
+          {{ t('general.deny') }}
         </NcButton>
         <NcButton
           size="xxsmall"
@@ -194,7 +192,7 @@ const visibleOutput = computed(() => {
           class="!h-5 !px-2 text-[11px] font-medium"
           @click.stop="emits('approve', toolCall.id)"
         >
-          Allow
+          {{ t('general.allow') }}
         </NcButton>
       </template>
 
@@ -212,28 +210,36 @@ const visibleOutput = computed(() => {
       <div v-if="isExpanded" class="border-t-1 border-nc-border-gray-light px-2.5 py-2 space-y-2">
         <!-- Arguments -->
         <div v-if="formattedArgs" class="space-y-1">
-          <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">Input</div>
+          <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">
+            {{ t('msg.chat.toolInput') }}
+          </div>
           <pre
             class="text-[11px] leading-relaxed text-nc-content-gray-emphasis bg-nc-bg-default rounded-md p-2 overflow-x-auto nc-scrollbar-thin max-h-32"
-          >{{ formattedArgs }}</pre>
+            >{{ formattedArgs }}</pre
+          >
         </div>
 
         <!-- Result -->
         <div v-if="result" class="space-y-1">
           <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">
-            {{ isError ? 'Error' : 'Output' }}
+            {{ isError ? t('msg.chat.toolError') : t('msg.chat.toolOutput') }}
           </div>
           <div class="relative">
             <pre
               class="text-[11px] leading-relaxed rounded-md p-2 overflow-x-auto nc-scrollbar-thin"
               :class="isError ? 'bg-nc-bg-red-light text-nc-content-red' : 'bg-nc-bg-default text-nc-content-gray-emphasis'"
-            >{{ visibleOutput }}</pre>
+              >{{ visibleOutput }}</pre
+            >
             <button
               v-if="isResultLong"
               class="mt-1 text-[11px] text-nc-content-brand hover:underline"
               @click.stop="showFullResult = !showFullResult"
             >
-              {{ showFullResult ? 'Show less' : `Show ${outputLines.length - MAX_RESULT_LINES} more lines` }}
+              {{
+                showFullResult
+                  ? t('msg.chat.showLess')
+                  : t('msg.chat.showMoreLines', { count: outputLines.length - MAX_RESULT_LINES })
+              }}
             </button>
           </div>
         </div>

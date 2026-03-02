@@ -8,6 +8,8 @@ const { basesList } = storeToRefs(basesStore)
 const sidebarStore = useSidebarStore()
 const { activeSidebarTab } = storeToRefs(sidebarStore)
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const base = inject(ProjectInj)!
 
 const baseRole = inject(ProjectRoleInj)!
@@ -16,7 +18,7 @@ const { isMobileMode } = useGlobal()
 
 const { isUIAllowed, baseRoles, loadRoles } = useRoles()
 
-const { showUpgradeToUseTableAndFieldPermissions, showUpgradeToUseSync } = useEeConfig()
+const { isWsAuditEnabled, showUpgradeToUseTableAndFieldPermissions, showUpgradeToUseSync } = useEeConfig()
 
 const resolveBaseId = () => {
   if (route.value.params.baseId) return route.value.params.baseId as string
@@ -132,7 +134,17 @@ onMounted(() => {
       {{ $t('labels.addDataSource') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="!isMobileMode"
+      v-if="isEeUI && isUIAllowed('baseAuditList', { roles: effectiveRoles }) && isWsAuditEnabled.value && !isMobileMode"
+      v-e="['c:settings:base:audits']"
+      icon="audit"
+      data-testid="base-audit"
+      :active="isSettingsItemActive('audit')"
+      @click="navigateToBaseSettings('audit')"
+    >
+      {{ $t('title.audits') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="!isSharedBase && !isMobileMode"
       v-e="['c:settings:base:more']"
       icon="ncMoreHorizontal"
       data-testid="base-settings"

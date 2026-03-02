@@ -31,16 +31,7 @@ const {
   blockSync,
   showUpgradeToUseSync,
   isWsAuditEnabled,
-  isPaymentEnabled,
-  getFeature,
 } = useEeConfig()
-
-const isWorkspaceSsoAvail = computed(() => {
-  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
-    return true
-  }
-  return false
-})
 
 const currentBase = computedAsync(async () => {
   let base

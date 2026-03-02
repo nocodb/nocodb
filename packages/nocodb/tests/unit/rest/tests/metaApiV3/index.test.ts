@@ -10,8 +10,6 @@ import workspaceUsersTest from './workspaceUsers.test';
 import scriptsTestV3 from './scripts.test';
 import tableVisibilityPermissionsTestV3 from './table-visibility-permissions.test';
 import timelineTestV3 from './timeline.test';
-import apiTokensTestV3 from './apiTokens.test';
-import workspaceTestV3 from './workspace.test';
 import { isEE } from '../../../utils/helpers';
 // import teamsTestV3 from './teams.test';
 // import workspaceTeamsV3 from './workspace-teams.test';
@@ -45,11 +43,11 @@ export default runOnSet(2, function () {
     try {
       require('./filters.test').default();
       require('./sorts.test').default();
+      require('./apiTokens.test').default();
+      require('./workspace.test').default();
     } catch (e) {
       // EE test files not available in CE
     }
-    apiTokensTestV3();
-    workspaceTestV3();
   }
   // teamsTestV3();
   // workspaceTeamsV3();

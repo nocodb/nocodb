@@ -3,13 +3,8 @@ import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.HOOK_LOGS, (table) => {
-    table.timestamp('error_notified_at', { useTz: true })
-  });
-  await knex.schema.alterTable(MetaTable.HOOK_LOGS, (table) => {
-    table.index(
-      ['error', 'error_notified_at'],
-      'nc_hook_logs_error_notify_idx',
-    );
+    table.timestamp('error_notified_at', { useTz: true });
+    table.index(['error_notified_at'], 'nc_hook_logs_error_notify_idx');
   });
 
   await knex(MetaTable.HOOK_LOGS)
@@ -19,10 +14,7 @@ const up = async (knex: Knex) => {
 
 const down = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.HOOK_LOGS, (table) => {
-    table.dropIndex(
-      ['error', 'error_notified_at'],
-      'nc_hook_logs_error_notify_idx',
-    );
+    table.dropIndex(['error_notified_at'], 'nc_hook_logs_error_notify_idx');
   });
   await knex.schema.alterTable(MetaTable.HOOK_LOGS, (table) => {
     table.dropColumn('error_notified_at');

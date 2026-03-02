@@ -11,7 +11,7 @@ const up = async (knex: Knex) => {
   });
 
   // Backfill existing teams as root teams
-  const client = (knex.client as any).config?.client ?? '';
+  const client = (knex.client.config.client as string) ?? '';
   // MySQL uses CONCAT; PostgreSQL and SQLite both support || for concatenation
   const pathExpr = ['mysql', 'mysql2'].includes(client)
     ? knex.raw("CONCAT('/', id)")

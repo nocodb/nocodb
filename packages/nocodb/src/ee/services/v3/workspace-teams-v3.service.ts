@@ -456,28 +456,26 @@ export class WorkspaceTeamsV3Service {
       { principal_type: PrincipalType.USER },
     );
 
-    // Fetch base assignments for all teams sequentially
-    const baseAssignmentsByTeamId = new Map<string, any[]>();
-    for (const teamId of teamIds) {
-      const assignments = await PrincipalAssignment.list(context, {
-        resource_type: ResourceType.BASE,
-        principal_type: PrincipalType.TEAM,
-        principal_ref_id: teamId,
-      });
-      baseAssignmentsByTeamId.set(teamId, assignments);
+    // Fetch all base assignments for these teams in one query
+    const allBaseAssignments = await PrincipalAssignment.listByPrincipalIds(
+      context,
+      PrincipalType.TEAM,
+      teamIds,
+      { resource_type: ResourceType.BASE },
+    );
+    const baseAssignmentsByTeamId = new Map<
+      string,
+      typeof allBaseAssignments
+    >();
+    for (const a of allBaseAssignments) {
+      const list = baseAssignmentsByTeamId.get(a.principal_ref_id) || [];
+      list.push(a);
+      baseAssignmentsByTeamId.set(a.principal_ref_id, list);
     }
 
-    // Fetch all unique bases sequentially
-    const allBaseIds = [
-      ...new Set(
-        [...baseAssignmentsByTeamId.values()].flat().map((a) => a.resource_id),
-      ),
-    ];
-    const basesMap = new Map<string, any>();
-    for (const baseId of allBaseIds) {
-      const base = await Base.get({ ...context, base_id: baseId }, baseId);
-      if (base) basesMap.set(base.id, base);
-    }
+    // Fetch all unique bases in the workspace (Base.list is a single query)
+    const workspaceBases = await Base.list(param.workspaceId);
+    const basesMap = new Map(workspaceBases.map((b) => [b.id, b]));
 
     // Fetch owner users for email notifications
     const ownerAssignments = teamMemberAssignments.filter(

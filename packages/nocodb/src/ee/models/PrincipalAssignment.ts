@@ -417,6 +417,47 @@ export default class PrincipalAssignment {
   }
 
   /**
+   * List assignments for multiple principal IDs of the same type.
+   * Single query instead of N individual listByPrincipal calls.
+   */
+  public static async listByPrincipalIds(
+    context: NcContext,
+    principalType: PrincipalType,
+    principalRefIds: string[],
+    filter?: {
+      resource_type?: ResourceType;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<PrincipalAssignment[]> {
+    if (!principalRefIds.length) return [];
+
+    const condition: Record<string, any> = {
+      principal_type: principalType,
+    };
+
+    if (filter?.resource_type) {
+      condition.resource_type = filter.resource_type;
+    }
+
+    const assignments = await ncMeta.metaList2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.PRINCIPAL_ASSIGNMENTS,
+      {
+        condition,
+        xcCondition: {
+          _and: [
+            { principal_ref_id: { in: principalRefIds } },
+            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+          ],
+        },
+      },
+    );
+
+    return assignments.map((a) => this.castType(a));
+  }
+
+  /**
    * Lists all assignments for a specific principal
    *
    * @param context NocoDB context

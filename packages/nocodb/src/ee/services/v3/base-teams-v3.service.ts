@@ -353,6 +353,33 @@ export class BaseTeamsV3Service {
       existingBaseAssignments.map((a) => [a.principal_ref_id, a]),
     );
 
+    // Pre-fetch team member assignments and owner users for notifications
+    const teamMemberAssignments = await PrincipalAssignment.listByResourceIds(
+      context,
+      ResourceType.TEAM,
+      teamIds,
+      { principal_type: PrincipalType.USER },
+    );
+    const ownerAssignmentsByTeamId = new Map<
+      string,
+      typeof teamMemberAssignments
+    >();
+    for (const a of teamMemberAssignments) {
+      if (a.roles === TeamUserRoles.OWNER) {
+        const list = ownerAssignmentsByTeamId.get(a.resource_id) || [];
+        list.push(a);
+        ownerAssignmentsByTeamId.set(a.resource_id, list);
+      }
+    }
+    const allOwnerUserIds = [
+      ...new Set(
+        teamMemberAssignments
+          .filter((a) => a.roles === TeamUserRoles.OWNER)
+          .map((a) => a.principal_ref_id),
+      ),
+    ];
+    const ownersMap = await User.getByIds(allOwnerUserIds);
+
     for (const team of teams) {
       validatePayload(
         'swagger-v3.json#/components/schemas/BaseTeamUpdate',
@@ -460,20 +487,10 @@ export class BaseTeamsV3Service {
         updated_at: updatedAssignment.updated_at!,
       });
 
-      // Notify all team owners via email about role update
-      const teamAssignments = await PrincipalAssignment.listByResourceIds(
-        context,
-        ResourceType.TEAM,
-        [teamData.id],
-        { principal_type: PrincipalType.USER },
-      );
-      const ownerAssignments = teamAssignments.filter(
-        (a) => a.roles === TeamUserRoles.OWNER,
-      );
-      const ownerIds = ownerAssignments.map((a) => a.principal_ref_id);
-      const ownersMap = await User.getByIds(ownerIds);
+      // Notify team owners via email about role update (using pre-fetched data)
+      const teamOwners = ownerAssignmentsByTeamId.get(teamData.id) || [];
 
-      for (const ownerAssignment of ownerAssignments) {
+      for (const ownerAssignment of teamOwners) {
         const owner = ownersMap.get(ownerAssignment.principal_ref_id);
         if (owner) {
           await this.mailService.sendMail(

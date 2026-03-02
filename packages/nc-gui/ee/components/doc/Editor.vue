@@ -17,6 +17,7 @@ import { DocCodeBlockExtension } from './DocCodeBlockExtension'
 import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
+import { DocMathExtension } from './DocMathExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
 import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
 import { DocSearchExtension } from './DocSearchExtension'
@@ -272,6 +273,7 @@ const _tiptapEditor = useEditor({
       currentUser: unref(user.value),
     }),
     CalloutExtension,
+    DocMathExtension,
     DocFileAttachmentExtension,
     DocEmbedExtension,
     DocActiveBlockExtension,

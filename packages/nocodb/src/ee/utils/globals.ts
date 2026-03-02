@@ -120,6 +120,8 @@ export enum MetaTable {
   RLS_POLICIES = 'nc_rls_policies',
   RLS_POLICY_SUBJECTS = 'nc_rls_policy_subjects',
   VIEW_SECTIONS = 'nc_view_sections',
+  CHAT_SESSIONS = 'nc_chat_sessions',
+  CHAT_MESSAGES = 'nc_chat_messages',
 }
 
 export const BaseRelatedMetaTables = [
@@ -181,6 +183,8 @@ export const BaseRelatedMetaTables = [
   MetaTable.RLS_POLICIES,
   MetaTable.RLS_POLICY_SUBJECTS,
   MetaTable.VIEW_SECTIONS,
+  MetaTable.CHAT_SESSIONS,
+  MetaTable.CHAT_MESSAGES,
 ];
 
 export const orderedMetaTables = [
@@ -222,11 +226,13 @@ export const orderedMetaTables = [
   MetaTable.SSO_CLIENT_DOMAIN,
   MetaTable.SSO_CLIENT,
 
-  // Notification / Comments
+  // Notification / Comments / Chat
   MetaTable.NOTIFICATION,
   MetaTable.COMMENTS_REACTIONS,
   MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE,
   MetaTable.COMMENTS,
+  MetaTable.CHAT_MESSAGES,
+  MetaTable.CHAT_SESSIONS,
 
   // View types (children before parents)
   MetaTable.MAP_VIEW_COLUMNS,
@@ -456,6 +462,8 @@ export enum CacheScope {
   RECORD_TEMPLATE = 'recordTemplate',
   RLS_POLICY = 'rlsPolicy',
   VIEW_SECTION = 'viewSection',
+  CHAT_SESSION = 'chatSession',
+  CHAT_MESSAGE = 'chatMessage',
 }
 
 export const RootScopeTables = {

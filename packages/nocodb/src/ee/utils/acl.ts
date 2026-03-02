@@ -331,6 +331,14 @@ const permissionScopes = {
     'aiData',
     'aiBaseSchema',
 
+    // Chat
+    'chatSessionCreate',
+    'chatSessionList',
+    'chatSessionGet',
+    'chatSessionDelete',
+    'chatMessageList',
+    'chatMessageSend',
+
     // Snapshots
 
     'manageSnapshots',
@@ -702,6 +710,14 @@ const rolePermissions:
       sendRecordEmail: true,
       // Sandbox
       sandboxGet: true,
+
+      // Chat
+      chatSessionCreate: true,
+      chatSessionList: true,
+      chatSessionGet: true,
+      chatSessionDelete: true,
+      chatMessageList: true,
+      chatMessageSend: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -1306,6 +1322,14 @@ const permissionDescriptions: Record<string, string> = {
   workflowExecutionGet: 'view workflow execution details',
 
   baseAuditList: 'view audit log for a base',
+
+  // Chat
+  chatSessionCreate: 'create a chat session',
+  chatSessionList: 'list chat sessions',
+  chatSessionGet: 'view a chat session',
+  chatSessionDelete: 'delete a chat session',
+  chatMessageList: 'list chat messages',
+  chatMessageSend: 'send a chat message',
 };
 
 // Human-readable descriptions for roles

@@ -10,6 +10,7 @@ import { CustomUrlsService } from '~/services/custom-urls.service';
 
 /* Integrations */
 import { NocoAiModule } from '~/integrations/ai/module/ai.module';
+import { NocoChatModule } from '~/integrations/ai/chat/chat.module';
 import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
 
 /* Metas */
@@ -126,6 +127,7 @@ import { LicenseGuard } from '~/guards/license.guard';
 export const nocoModuleEeMetadata = {
   imports: [
     NocoAiModule,
+    NocoChatModule,
     NocoSyncModule,
     PaymentModule,
     ...nocoModuleMetadata.imports,

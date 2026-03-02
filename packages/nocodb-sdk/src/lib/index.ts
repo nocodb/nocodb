@@ -97,3 +97,4 @@ export * from '~/lib/workflow';
 export * from '~/lib/uniqueConstraintHelpers';
 export * from '~/lib/recordTemplate';
 export * from '~/lib/viewSection';
+export * from '~/lib/chat';

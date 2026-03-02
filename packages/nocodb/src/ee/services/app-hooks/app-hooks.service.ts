@@ -4,6 +4,8 @@ import type {
   BaseTeamDeleteEvent,
   BaseTeamInviteEvent,
   BaseTeamUpdateEvent,
+  ChatSessionCreateEvent,
+  ChatSessionDeleteEvent,
   ColumnEvent,
   FilterEvent,
   ProjectCreateEvent,
@@ -821,6 +823,16 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.VIEW_SECTION_DELETE,
     data: ViewSectionDeleteEvent,
+  ): void;
+
+  // Chat Events
+  emit(
+    event: AppEvents.CHAT_SESSION_CREATE,
+    data: ChatSessionCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.CHAT_SESSION_DELETE,
+    data: ChatSessionDeleteEvent,
   ): void;
 
   emit(event, data): void {

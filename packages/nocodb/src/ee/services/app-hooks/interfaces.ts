@@ -391,4 +391,13 @@ export interface RlsPolicyDeleteEvent extends NcBaseEvent {
   tableId: string;
 }
 
+// Chat Events
+export interface ChatSessionCreateEvent extends NcBaseEvent {
+  sessionId: string;
+}
+
+export interface ChatSessionDeleteEvent extends NcBaseEvent {
+  sessionId: string;
+}
+
 export * from 'src/services/app-hooks/interfaces';

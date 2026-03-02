@@ -1539,9 +1539,7 @@ export class TeamsV3Service {
       req: param.req,
       team: updatedTeam,
       oldParentTeam: oldParentTeam ?? null,
-      newParentTeam: newParentId
-        ? await Team.get(context, newParentId)
-        : null,
+      newParentTeam: newParentId ? await Team.get(context, newParentId) : null,
       workspace,
     });
 

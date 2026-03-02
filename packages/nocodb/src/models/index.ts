@@ -71,3 +71,5 @@ export { default as DependencyTracker } from './DependencyTracker';
 export { default as ViewSection } from './ViewSection';
 export { default as Widget } from './Widget';
 export { default as Workflow } from './Workflow';
+export { default as ChatSession } from './ChatSession';
+export { default as ChatMessage } from './ChatMessage';

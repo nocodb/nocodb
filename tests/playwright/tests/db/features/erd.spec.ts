@@ -44,7 +44,7 @@ test.describe('Erd', () => {
   };
 
   const openProjectErd = async () => {
-    await dashboard.leftSidebar.navigateToSettingsPage('data-source');
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('data-source');
 
     await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
 

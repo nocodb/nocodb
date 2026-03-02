@@ -125,7 +125,7 @@ export class TreeViewPage extends BasePage {
       // Just close the modal if no baseTitle is specified
       await this.dashboard.leftSidebar.closeBaseListModal();
 
-      await this.dashboard.leftSidebar.navigateToDataTab();
+      await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
     }
 
     if (sourceTitle) {
@@ -164,7 +164,7 @@ export class TreeViewPage extends BasePage {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
     }
 
-    await this.dashboard.leftSidebar.navigateToAutomationTab();
+    await this.dashboard.leftSidebar.sidebarNav.navigateToAutomationTab();
 
     const scriptNode = this.get().getByTestId(`view-sidebar-script-${title}`);
 
@@ -192,7 +192,7 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
 
     if (type === 'script') {
-      await this.dashboard.leftSidebar.navigateToAutomationTab();
+      await this.dashboard.leftSidebar.sidebarNav.navigateToAutomationTab();
 
       await this.createNewButton.click();
       await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
@@ -230,7 +230,7 @@ export class TreeViewPage extends BasePage {
     mode?: string;
     baseTitle: string;
   }) {
-    await this.dashboard.leftSidebar.navigateToDataTab();
+    await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
 
     await this.createEntity({ type: 'table', skipOpeningModal, baseTitle });
 
@@ -281,7 +281,7 @@ export class TreeViewPage extends BasePage {
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
     } else {
-      await this.dashboard.leftSidebar.navigateToDataTab();
+      await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
     }
 
     if (sourceTitle) {
@@ -303,7 +303,7 @@ export class TreeViewPage extends BasePage {
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
     } else {
-      await this.dashboard.leftSidebar.navigateToDataTab();
+      await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
     }
 
     const tableTitle = title.replace(/ /g, '');

@@ -196,11 +196,15 @@ const bottomItems: NavItem[] = [
       />
     </div>
 
-    <NcDivider class="w-8 pt-1.5 pb-1" />
+    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
 
     <!-- Main nav items -->
     <template v-for="(item, idx) of mainItems">
-      <NcDivider v-if="item.key === 'divider'" :key="`${item.key}-${idx}`" class="w-8 pt-1.5 pb-1" />
+      <NcDivider
+        v-if="item.key === 'divider'"
+        :key="`${item.key}-${idx}`"
+        class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium"
+      />
 
       <DashboardMiniSidebarV2RailItem
         v-else
@@ -275,7 +279,7 @@ const bottomItems: NavItem[] = [
       />
     </div>
 
-    <NcDivider class="!w-8 !max-w-8 pt-1.5 pb-1" />
+    <NcDivider class="!w-8 !min-w-8 !max-w-8 pt-1.5 pb-1 !border-nc-border-gray-medium" />
 
     <DashboardMiniSidebarCreateNewActionMenu />
 

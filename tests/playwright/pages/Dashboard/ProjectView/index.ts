@@ -65,7 +65,7 @@ export class ProjectViewPage extends BasePage {
   }
 
   async verifyAccess(role: string) {
-    await this.dashboard.leftSidebar.navigateToSettingsPage('collaborator');
+    await this.dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('collaborator');
 
     await this.get().waitFor({ state: 'visible' });
 
@@ -73,13 +73,25 @@ export class ProjectViewPage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
 
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
-      expect(await this.dashboard.leftSidebar.getSettingsMenuItemLocator('collaborator').isVisible()).toBeTruthy();
+      expect(
+        await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('collaborator').isVisible()
+      ).toBeTruthy();
 
-      expect(await this.dashboard.leftSidebar.getSettingsMenuItemLocator('base-settings').isVisible()).toBeTruthy();
-      expect(await this.dashboard.leftSidebar.getSettingsMenuItemLocator('data-source').isVisible()).toBeTruthy();
+      expect(
+        await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('base-settings').isVisible()
+      ).toBeTruthy();
+
+      expect(
+        await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('data-source').isVisible()
+      ).toBeTruthy();
     } else {
-      expect(await this.dashboard.leftSidebar.getSettingsMenuItemLocator('base-settings').isVisible()).toBeFalsy();
-      expect(await this.dashboard.leftSidebar.getSettingsMenuItemLocator('data-source').isVisible()).toBeFalsy();
+      expect(
+        await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('base-settings').isVisible()
+      ).toBeFalsy();
+
+      expect(
+        await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('data-source').isVisible()
+      ).toBeFalsy();
 
       expect(await this.tab_dataSources.isVisible()).toBeFalsy();
     }

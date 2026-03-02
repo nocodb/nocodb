@@ -4,6 +4,8 @@ import BasePage from '../../../Base';
 import { isEE } from '../../../../setup/db';
 import { NcContext } from '../../../../setup';
 import { BaseListModalPage } from '../BaseListModal';
+import { SidebarNavPage } from './SidebarNavPage';
+import type { SettingsMenuItem } from './SidebarNavPage';
 
 /** Action types for the original MiniSidebar (v1) */
 type MiniSidebarActionType =
@@ -17,29 +19,6 @@ type MiniSidebarActionType =
   | 'feeds'
   | 'notification'
   | 'userInfo';
-
-/** Base settings menu items (BaseSettingsMenu.vue) */
-type BaseSettingsMenuItem =
-  | 'collaborator'
-  | 'permissions'
-  | 'mcp'
-  | 'syncs'
-  | 'snapshots'
-  | 'data-source'
-  | 'base-settings';
-
-/** Workspace settings menu items (WsSettingsMenu.vue) */
-type WsSettingsMenuItem =
-  | 'ws-collaborators'
-  | 'ws-teams'
-  | 'ws-integrations'
-  | 'ws-billing'
-  | 'ws-audits'
-  | 'ws-sso'
-  | 'ws-settings';
-
-/** Any settings menu item */
-type SettingsMenuItem = BaseSettingsMenuItem | WsSettingsMenuItem;
 
 /**
  * Tab / panel keys for MiniSidebarV2 (new-sidebar-2 branch).
@@ -65,6 +44,7 @@ export class LeftSidebarPage extends BasePage {
   readonly base: any;
   readonly dashboard: DashboardPage;
   readonly baseListModal: BaseListModalPage;
+  readonly sidebarNav: SidebarNavPage;
 
   readonly btn_workspace: Locator;
   readonly btn_newProject: Locator;
@@ -89,6 +69,7 @@ export class LeftSidebarPage extends BasePage {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.baseListModal = new BaseListModalPage(dashboard);
+    this.sidebarNav = new SidebarNavPage(dashboard.rootPage);
 
     this.btn_workspace = this.get().locator('.nc-workspace-menu');
     this.btn_newProject = this.rootPage.locator('[data-testid="nc-sidebar-create-base-btn"]');
@@ -234,100 +215,8 @@ export class LeftSidebarPage extends BasePage {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // MiniSidebarV2 — navigation shortcuts
+  // MiniSidebarV2 — navigation shortcuts (delegated to SidebarNavPage)
   // ─────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Navigates to the Data section (tables/views/scripts) via MiniSidebarV2.
-   * Falls back silently if V2 is not present.
-   */
-  async navigateToDataTab(): Promise<void> {
-    if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('data');
-
-      await this.rootPage.waitForLoadState('networkidle');
-    }
-  }
-
-  /**
-   * Navigates to the Automation section via MiniSidebarV2.
-   * Falls back silently if V2 is not present.
-   */
-  async navigateToAutomationTab(): Promise<void> {
-    if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('automations');
-
-      await this.rootPage.waitForLoadState('networkidle');
-    }
-  }
-
-  /**
-   * Navigates to the Settings / Base Settings section via MiniSidebarV2.
-   * Falls back silently if V2 is not present.
-   */
-  async navigateToSettingsTab(): Promise<void> {
-    if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('settings');
-
-      await this.rootPage.waitForLoadState('networkidle');
-    }
-  }
-
-  /**
-   * Returns the locator for a settings menu item by its key.
-   * Scoped to the correct section header to avoid ambiguity
-   * (e.g. both base and workspace have a "General" item).
-   */
-  getSettingsMenuItemLocator(item: SettingsMenuItem): Locator {
-    const sidebar = this.get();
-
-    // Workspace items start with 'ws-', scope under "Workspace Settings" section
-    if (item.startsWith('ws-')) {
-      return sidebar.getByTestId(item);
-    }
-
-    // Base settings items, scope under "Base Settings" section
-    return sidebar.getByTestId(`base-${item}`);
-  }
-
-  /**
-   * Navigates to a specific settings page by clicking the settings tab
-   * (if not already active) and then clicking the target menu item.
-   *
-   * @param item - The settings menu item key
-   *
-   * @example
-   *   await leftSidebar.navigateToSettingsPage('collaborator');       // Base members
-   *   await leftSidebar.navigateToSettingsPage('ws-integrations');    // Workspace integrations
-   */
-  async navigateToSettingsPage(item: SettingsMenuItem): Promise<void> {
-    // Ensure settings tab is active
-    await this.navigateToSettingsTab();
-
-    const menuItem = this.getSettingsMenuItemLocator(item);
-
-    console.log('menu', item, menuItem);
-    await menuItem.waitFor({ state: 'visible' });
-    await menuItem.click();
-    await this.rootPage.waitForTimeout(500);
-  }
-
-  /**
-   * Verifies that a settings menu item is visible.
-   */
-  async verifySettingsMenuItemVisible(item: SettingsMenuItem): Promise<void> {
-    await this.navigateToSettingsTab();
-    const menuItem = this.getSettingsMenuItemLocator(item);
-    await expect(menuItem).toBeVisible();
-  }
-
-  /**
-   * Verifies that a settings menu item is currently active (highlighted).
-   */
-  async verifySettingsMenuItemActive(item: SettingsMenuItem): Promise<void> {
-    const menuItem = this.getSettingsMenuItemLocator(item);
-    await expect(menuItem).toHaveClass(/active/);
-  }
 
   /**
    * Opens the notification panel via MiniSidebarV2.

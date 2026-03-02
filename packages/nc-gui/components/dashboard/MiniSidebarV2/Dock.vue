@@ -273,11 +273,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       />
     </DashboardMiniSidebarV2DockItem>
 
-    <NcDivider class="w-8" />
+    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
 
     <!-- Main nav items -->
     <template v-for="(item, idx) of mainItems">
-      <NcDivider v-if="item.key === 'divider'" :key="`${item.key}-${idx}`" class="w-8" />
+      <NcDivider
+        v-if="item.key === 'divider'"
+        :key="`${item.key}-${idx}`"
+        class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium"
+      />
 
       <DashboardMiniSidebarV2DockItem
         v-else
@@ -351,7 +355,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       />
     </div>
 
-    <NcDivider class="w-8" />
+    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
 
     <div :ref="(el: any) => setItemRef('create', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('create')">
       <DashboardMiniSidebarCreateNewActionMenu />

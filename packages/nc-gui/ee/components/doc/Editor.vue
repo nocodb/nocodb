@@ -967,8 +967,9 @@ onBeforeUnmount(() => {
       </div>
     </Transition>
 
-    <!-- 3-dot page context menu — floats at top-right, outside scroll flow -->
+    <!-- Page actions — floats at top-right, outside scroll flow -->
     <div class="nc-doc-page-menu">
+      <DocPresence />
       <NcTooltip :title="$t('general.comments')" placement="bottom">
         <NcButton
           size="small"

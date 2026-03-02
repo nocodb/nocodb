@@ -125,6 +125,7 @@ export enum PresencePageType {
   AUTOMATION = 'automation',
   DASHBOARD = 'dashboard',
   SCRIPT = 'script',
+  DOCUMENT = 'document',
 }
 
 export interface PresenceAnnouncePayload extends BaseSocketPayload {

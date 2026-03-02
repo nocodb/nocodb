@@ -85,8 +85,8 @@ test.describe('Preview Mode', () => {
     // configure ACL
     // configure access control
     await dashboard.treeView.openProject({ title: context.base.title, context });
-    await dashboard.baseView.openOverview();
-    await dashboard.baseView.tab_dataSources.click();
+
+    await dashboard.leftSidebar.navigateToSettingsPage('data-source');
 
     await dataSources.openAcl({ dataSourceName: 'Default' });
     await dataSources.acl.toggle({ table: 'Language', role: 'editor' });
@@ -99,8 +99,8 @@ test.describe('Preview Mode', () => {
     await dataSources.closeDsDetailsModal();
 
     await dashboard.treeView.openProject({ title: context.base.title, context });
-    await dashboard.baseView.openOverview();
-    await dashboard.baseView.tab_dataSources.click();
+
+    await dashboard.leftSidebar.navigateToSettingsPage('data-source');
 
     await dataSources.openAcl({ dataSourceName: 'Default' });
 

@@ -124,6 +124,8 @@ export class TreeViewPage extends BasePage {
     } else {
       // Just close the modal if no baseTitle is specified
       await this.dashboard.leftSidebar.closeBaseListModal();
+
+      await this.dashboard.leftSidebar.navigateToDataTab();
     }
 
     if (sourceTitle) {
@@ -162,6 +164,8 @@ export class TreeViewPage extends BasePage {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
     }
 
+    await this.dashboard.leftSidebar.navigateToAutomationTab();
+
     const scriptNode = this.get().getByTestId(`view-sidebar-script-${title}`);
 
     await scriptNode.waitFor({ state: 'visible' });
@@ -188,6 +192,8 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
 
     if (type === 'script') {
+      await this.dashboard.leftSidebar.navigateToAutomationTab();
+
       await this.createNewButton.click();
       await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
       await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
@@ -224,6 +230,8 @@ export class TreeViewPage extends BasePage {
     mode?: string;
     baseTitle: string;
   }) {
+    await this.dashboard.leftSidebar.navigateToDataTab();
+
     await this.createEntity({ type: 'table', skipOpeningModal, baseTitle });
 
     await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
@@ -272,6 +280,8 @@ export class TreeViewPage extends BasePage {
     // Ensure the base is active/open in the sidebar (opens from modal if needed)
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    } else {
+      await this.dashboard.leftSidebar.navigateToDataTab();
     }
 
     if (sourceTitle) {
@@ -292,6 +302,8 @@ export class TreeViewPage extends BasePage {
   async deleteTable({ title, baseTitle }: { title: string; baseTitle?: string }) {
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    } else {
+      await this.dashboard.leftSidebar.navigateToDataTab();
     }
 
     const tableTitle = title.replace(/ /g, '');
@@ -319,6 +331,8 @@ export class TreeViewPage extends BasePage {
   async renameTable({ title, newTitle, baseTitle }: { title: string; newTitle: string; baseTitle?: string }) {
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    } else {
+      await this.dashboard.leftSidebar.navigateToDataTab();
     }
 
     const tableTitle = title.replace(/ /g, '');

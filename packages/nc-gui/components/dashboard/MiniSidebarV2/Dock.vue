@@ -19,7 +19,7 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
-const { basesList } = storeToRefs(basesStore)
+const { basesList, resolvedProject } = storeToRefs(basesStore)
 
 const sidebarStore = useSidebarStore()
 
@@ -254,19 +254,30 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     <DashboardMiniSidebarV2DockItem
       :ref="(el: any) => setItemRef('logo', el)"
       class="nc-dock-logo"
-      label="Home"
       data-testid="nc-mini-sidebar-v2-logo"
       :scale="getScale('logo')"
       @click="isBaseListModalOpen = true"
     >
-      <GeneralProjectIcon class="!h-7 !w-7" />
+      <GeneralProjectIcon
+        class="!h-7 !w-7"
+        :color="parseProp(resolvedProject?.meta).iconColor"
+        :type="resolvedProject?.type"
+        :managed-app="
+          resolvedProject
+            ? {
+                managed_app_master: resolvedProject?.managed_app_master,
+                managed_app_id: resolvedProject?.managed_app_id,
+              }
+            : undefined
+        "
+      />
     </DashboardMiniSidebarV2DockItem>
 
-    <div class="nc-dock-separator" />
+    <NcDivider class="w-8" />
 
     <!-- Main nav items -->
     <template v-for="(item, idx) of mainItems">
-      <div v-if="item.key === 'divider'" :key="`${item.key}-${idx}`" class="nc-dock-separator" />
+      <NcDivider v-if="item.key === 'divider'" :key="`${item.key}-${idx}`" class="w-8" />
 
       <DashboardMiniSidebarV2DockItem
         v-else
@@ -340,7 +351,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       />
     </div>
 
-    <div class="nc-dock-separator" />
+    <NcDivider class="w-8" />
 
     <div :ref="(el: any) => setItemRef('create', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('create')">
       <DashboardMiniSidebarCreateNewActionMenu />
@@ -357,18 +368,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <style lang="scss" scoped>
 .nc-dock {
-  @apply flex flex-col items-center h-full w-full overflow-visible;
+  @apply flex flex-col items-center h-full w-full overflow-visible border-r border-nc-border-gray-medium;
   padding: 14px 0;
   gap: 6px;
-  background: rgba(240, 240, 240, 0.92);
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-
-  :root[theme='dark'] & {
-    background: rgba(22, 22, 22, 0.88);
-    border-right-color: rgba(255, 255, 255, 0.08);
-  }
 }
 
 .nc-dock-logo {
@@ -383,19 +387,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   &:hover {
     opacity: 1;
     background: none !important;
-  }
-}
-
-.nc-dock-separator {
-  width: 32px;
-  height: 1px;
-  background: rgba(0, 0, 0, 0.1);
-  margin: 4px 0;
-  flex-shrink: 0;
-  align-self: center;
-
-  :root[theme='dark'] & {
-    background: rgba(255, 255, 255, 0.1);
   }
 }
 

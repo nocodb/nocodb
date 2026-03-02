@@ -72,6 +72,13 @@ export const useBases = defineStore('basesStore', () => {
     return basesMap
   })
 
+  const resolvedProject = computed(() => {
+    if (openedProject.value) return openedProject.value
+
+    const lastVisitedBaseId = ncLastVisitedBase().get()
+    return basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
+  })
+
   const isDataSourceLimitReached = computed(() => Number(openedProject.value?.sources?.length) > 9)
 
   async function getBaseUsers({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
@@ -802,6 +809,7 @@ export const useBases = defineStore('basesStore', () => {
     baseTeamAdd,
     baseTeamUpdate,
     baseTeamRemove,
+    resolvedProject,
   }
 })
 

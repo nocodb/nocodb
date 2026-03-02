@@ -15,7 +15,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { navigateToProject, isMobileMode } = useGlobal()
+const { navigateToProject } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
@@ -24,7 +24,7 @@ const { activeWorkspaceId, activeWorkspace, isWorkspaceSettingsPageOpened, isInt
 
 const basesStore = useBases()
 
-const { basesList, openedProject } = storeToRefs(basesStore)
+const { basesList, resolvedProject } = storeToRefs(basesStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -65,20 +65,6 @@ const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
 })
 
-// Resolve a base for icon display when not on a base route (e.g. ws-admin)
-const resolvedProject = computed(() => {
-  if (openedProject.value) return openedProject.value
-
-  const lastVisitedBaseId = ncLastVisitedBase().get()
-  return basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
-})
-
-const baseIconColor = computed(() => {
-  if (!resolvedProject.value) return undefined
-  const meta = parseProp(resolvedProject.value.meta)
-  return meta.iconColor
-})
-
 const isBaseListModalOpen = ref(false)
 
 const navigateToProjectPage = () => {
@@ -102,10 +88,7 @@ const getBasePath = () => {
   const baseId = route.value.params.baseId
   if (baseId) return `/${wsId}/${baseId}`
 
-  // Resolve a base from last visited or first available
-  const lastVisitedBaseId = ncLastVisitedBase().get()
-  const resolvedBase = basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
-  return resolvedBase?.id ? `/${wsId}/${resolvedBase.id}` : ''
+  return resolvedProject.value?.id ? `/${wsId}/${resolvedProject.value.id}` : ''
 }
 
 const onTabClick = async (tabKey: string) => {
@@ -201,14 +184,26 @@ const bottomItems: NavItem[] = [
   <nav class="nc-rail" data-testid="nc-mini-sidebar-v2-rail">
     <!-- Logo -->
     <div class="nc-rail-logo" title="Home" data-testid="nc-mini-sidebar-v2-logo" @click="isBaseListModalOpen = true">
-      <GeneralProjectIcon class="!h-7 !w-7" :color="baseIconColor" />
+      <GeneralProjectIcon
+        class="!h-7 !w-7"
+        :color="parseProp(resolvedProject?.meta).iconColor"
+        :type="resolvedProject?.type"
+        :managed-app="
+          resolvedProject
+            ? {
+                managed_app_master: resolvedProject?.managed_app_master,
+                managed_app_id: resolvedProject?.managed_app_id,
+              }
+            : undefined
+        "
+      />
     </div>
 
-    <div class="nc-rail-divider" />
+    <NcDivider class="w-8 pt-1.5 pb-1" />
 
     <!-- Main nav items -->
     <template v-for="(item, idx) of mainItems">
-      <div v-if="item.key === 'divider'" :key="`${item.key}-${idx}`" class="nc-rail-divider" />
+      <NcDivider v-if="item.key === 'divider'" :key="`${item.key}-${idx}`" class="w-8 pt-1.5 pb-1" />
 
       <DashboardMiniSidebarV2RailItem
         v-else
@@ -283,7 +278,7 @@ const bottomItems: NavItem[] = [
       />
     </div>
 
-    <div class="nc-rail-divider" />
+    <NcDivider class="!w-8 !max-w-8 pt-1.5 pb-1" />
 
     <DashboardMiniSidebarCreateNewActionMenu />
 
@@ -305,14 +300,6 @@ const bottomItems: NavItem[] = [
   &:hover {
     scale: 1.1;
   }
-}
-
-.nc-rail-divider {
-  @apply bg-nc-bg-gray-dark/80;
-  width: 28px;
-  height: 1px;
-  margin: 6px 0 4px;
-  flex-shrink: 0;
 }
 
 .nc-rail-bottom-group {

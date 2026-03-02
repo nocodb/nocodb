@@ -139,7 +139,15 @@ export class SidebarProjectNodeObject extends BasePage {
     }
   }
 
-  async verifyActiveProject({ baseTitle, open = false }: { baseTitle: string; open?: boolean }) {
+  async verifyActiveProject({
+    baseTitle,
+    baseId,
+    open = false,
+  }: {
+    baseTitle: string;
+    baseId?: string;
+    open?: boolean;
+  }) {
     // In shared-base/shared-view scenarios there is no mini sidebar at all — skip navigation checks.
     // Must check both V1 (nc-mini-sidebar) and V2 (nc-mini-sidebar-v2) since V2 is now the default.
     const hasMiniSidebar =

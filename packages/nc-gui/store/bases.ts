@@ -60,6 +60,13 @@ export const useBases = defineStore('basesStore', () => {
     return basesMap
   })
 
+  const resolvedProject = computed(() => {
+    if (openedProject.value) return openedProject.value
+
+    const lastVisitedBaseId = ncLastVisitedBase().get()
+    return basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
+  })
+
   const isDataSourceLimitReached = computed(() => Number(openedProject.value?.sources?.length) > 9)
 
   const workspaceStore = useWorkspace()
@@ -480,6 +487,7 @@ export const useBases = defineStore('basesStore', () => {
     baseTeamAdd,
     baseTeamUpdate,
     baseTeamRemove,
+    resolvedProject,
   }
 })
 

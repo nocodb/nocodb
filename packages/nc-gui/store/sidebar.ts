@@ -108,6 +108,38 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const activeSidebarTab = ref<SidebarTab>('data')
 
+  /** Derive the correct sidebar tab from the current route name. */
+  const routeDerivedTab = computed<SidebarTab | null>(() => {
+    const name = route.name?.toString() ?? ''
+
+    // Workspace-level settings
+    if (name === 'index-typeOrId-settings-page') return 'settings'
+
+    // Base routes — only derive tab when a baseId is present
+    if (name.startsWith('index-typeOrId-baseId-')) {
+      if (name.startsWith('index-typeOrId-baseId-index-settings')) return 'settings'
+
+      if (
+        name.startsWith('index-typeOrId-baseId-index-automations') ||
+        name.startsWith('index-typeOrId-baseId-index-automation-') ||
+        name.startsWith('index-typeOrId-baseId-index-scripts') ||
+        name.startsWith('index-typeOrId-baseId-index-workflows')
+      ) {
+        return 'automations'
+      }
+
+      return 'data'
+    }
+
+    return null
+  })
+
+  watch(routeDerivedTab, (newTab) => {
+    if (newTab !== null && activeSidebarTab.value !== newTab) {
+      activeSidebarTab.value = newTab
+    }
+  })
+
   const toggleFullScreenState = () => {
     if (isFullScreen.value) {
       isLeftSidebarOpen.value = true

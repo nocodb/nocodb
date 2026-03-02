@@ -46,8 +46,8 @@ watch(
   }
 
   &--dock {
-    width: 72px;
-    min-width: 72px;
+    width: 64px;
+    min-width: 64px;
     overflow: visible;
     border-right: none;
   }

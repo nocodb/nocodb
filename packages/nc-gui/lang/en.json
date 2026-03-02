@@ -1192,6 +1192,13 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "fullWidth": "Full width",
+    "exitFullWidth": "Exit full width",
+    "fontDefault": "Default",
+    "fontSerif": "Serif",
+    "fontMono": "Mono",
+    "wordCount": "{count} words",
+    "lastEditedBy": "Last edited by {user}",
     "copyDocumentId": "Copy document ID",
     "renameDocument": "Rename document",
     "duplicateDocument": "Duplicate document",
@@ -2332,8 +2339,6 @@
     "toggleCommentsDraw": "Toggle comments draw",
     "expandRecord": "Expand record",
     "deleteRecord": "Delete record",
-    "fullWidth": "Full width",
-    "exitFullWidth": "Exit full width",
     "markAllAsRead": "Mark all as read",
     "column": {
       "delete": "Delete Field",

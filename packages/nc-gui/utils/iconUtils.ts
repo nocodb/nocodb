@@ -373,6 +373,7 @@ import NcFileIcon from '~icons/nc-icons-v2/file.svg'
 import NcMessageCircleIcon from '~icons/nc-icons-v2/message-circle.svg'
 import NcTerminalIcon from '~icons/nc-icons-v2/terminal.svg'
 import NcMoveIcon from '~icons/nc-icons-v2/move.svg'
+import NcMoveHorizontalIcon from '~icons/nc-icons-v2/move-horizontal.svg'
 import NcMaximizeIcon from '~icons/nc-icons-v2/maximize.svg'
 import NcChevronUpIcon from '~icons/nc-icons-v2/chevron-up.svg'
 import NcArrowDownLeftIcon from '~icons/nc-icons-v2/arrow-down-left.svg'
@@ -1448,6 +1449,7 @@ export const iconMap = {
   'ncMessageCircle': NcMessageCircleIcon,
   'ncTerminal': NcTerminalIcon,
   'ncMove': NcMoveIcon,
+  'ncMoveHorizontal': NcMoveHorizontalIcon,
   'ncMaximize': NcMaximizeIcon,
   'ncChevronUp': NcChevronUpIcon,
   'ncArrowDownLeft': NcArrowDownLeftIcon,

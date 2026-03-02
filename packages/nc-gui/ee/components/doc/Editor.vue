@@ -103,6 +103,10 @@ const {
 
 const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
 
+const { copy } = useCopy()
+
+const { isCopied: isLinkCopied, performCopy: performCopyLink } = useIsCopied(2000)
+
 // --- Search & Replace bar state (Cmd/Ctrl+F) ---
 // The bar is rendered inside the editor's relative wrapper and uses
 // DocSearchExtension (ProseMirror plugin) for match finding + decorations.
@@ -509,6 +513,12 @@ const updatedAgo = computed(() => {
   return timeAgo(ts)
 })
 
+const wordCount = computed(() => {
+  const text = editor.value?.state?.doc?.textContent
+  if (!text) return 0
+  return text.split(/\s+/).filter(Boolean).length
+})
+
 // --- Task list progress ---
 
 const taskTotal = ref(0)
@@ -576,6 +586,10 @@ watch(
   async ([newId, newBaseId]) => {
     if (newId && newBaseId) {
       await loadAndSetDoc(newId)
+
+      const loadedFont = parseProp(doc.value?.meta).font
+      activeFont.value = loadedFont === 'serif' || loadedFont === 'mono' ? loadedFont : 'default'
+
       nextTick(() => countTasks())
 
       // Auto-focus the title input on new (untitled) pages so the user
@@ -682,13 +696,6 @@ const onEditorBodyClick = (e: MouseEvent) => {
 
 // --- Page context menu (3-dot) ---
 const isPageMenuOpen = ref(false)
-
-const onCopyPageId = () => {
-  if (!doc.value?.id) return
-  navigator.clipboard.writeText(doc.value.id)
-  ncMessage.info(t('msg.pageIdCopied'))
-  isPageMenuOpen.value = false
-}
 
 const onDuplicatePage = async () => {
   isPageMenuOpen.value = false
@@ -797,6 +804,47 @@ const onRemoveCover = async () => {
   } catch (e: any) {
     ncMessage.error(await extractSdkResponseErrorMsg(e))
   }
+}
+
+const isFullWidth = computed(() => parseProp(doc.value?.meta).full_width === true)
+
+const activeFont = ref<'default' | 'serif' | 'mono'>('default')
+
+const setDocFont = async (font: 'default' | 'serif' | 'mono') => {
+  if (!doc.value?.id || !base.value?.id || font === activeFont.value) return
+  activeFont.value = font
+  try {
+    doc.value.meta = { ...parseProp(doc.value.meta), font }
+    const updated = await updateDocument(base.value.id, doc.value.id, {
+      meta: doc.value.meta,
+      version: doc.value.version,
+    })
+    if (updated?.version && doc.value) doc.value.version = updated.version
+    $e('a:doc:font:change', { font })
+  } catch (e: any) {
+    ncMessage.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const onCopyPageLink = () => {
+  performCopyLink(() => copy(window.location.href))
+}
+
+const toggleFullWidth = async () => {
+  if (!doc.value?.id || !base.value?.id) return
+  const newVal = !isFullWidth.value
+  try {
+    doc.value.meta = { ...parseProp(doc.value.meta), full_width: newVal }
+    const updated = await updateDocument(base.value.id, doc.value.id, {
+      meta: doc.value.meta,
+      version: doc.value.version,
+    })
+    if (updated?.version && doc.value) doc.value.version = updated.version
+    $e('a:doc:full-width:toggle', { fullWidth: newVal })
+  } catch (e: any) {
+    ncMessage.error(await extractSdkResponseErrorMsg(e))
+  }
+  isPageMenuOpen.value = false
 }
 
 const onDownloadMarkdown = () => {
@@ -917,17 +965,43 @@ onBeforeUnmount(() => {
         </NcButton>
         <template #overlay>
           <NcMenu variant="small" class="!min-w-52">
-            <NcMenuItem @click="onCopyPageId">
-              <GeneralIcon class="text-nc-content-gray-subtle" icon="copy" />
-              {{ $t('labels.copyDocumentId') }}
+            <NcMenuItemCopyId
+              v-if="doc"
+              :id="doc.id"
+              v-e="['c:document:copy-id']"
+              tooltip="Click to copy Document ID"
+              :label="`DOCUMENT ID: ${doc.id}`"
+              data-testid="nc-doc-page-copy-id"
+            />
+            <div :key="activeFont" class="nc-doc-font-selector" data-testid="nc-doc-font-selector" @click.stop>
+              <button
+                v-for="f in (['default', 'serif', 'mono'] as const)"
+                :key="f"
+                v-e="['c:doc:font:change', { font: f }]"
+                class="nc-doc-font-option"
+                :class="{ 'nc-doc-font-option-active': activeFont === f }"
+                @click="setDocFont(f)"
+              >
+                <span class="nc-doc-font-preview" :class="`nc-doc-font-preview-${f}`">Ag</span>
+                <span class="nc-doc-font-label">{{ $t(`labels.font${f.charAt(0).toUpperCase() + f.slice(1)}`) }}</span>
+              </button>
+            </div>
+            <NcDivider />
+            <NcMenuItem v-e="['c:doc:copy-link']" @click="onCopyPageLink">
+              <GeneralIcon class="text-nc-content-gray-subtle" :icon="isLinkCopied ? 'check' : 'link'" />
+              {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
             </NcMenuItem>
             <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
               <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
-              {{ $t('labels.duplicateDocument') }}
+              {{ $t('general.duplicate') }}
             </NcMenuItem>
             <NcMenuItem v-e="['c:doc:comments:toggle']" @click="toggleCommentsPanel(); isPageMenuOpen = false">
               <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMessageCircle" />
               {{ $t('general.comments') }}
+            </NcMenuItem>
+            <NcMenuItem v-e="['c:doc:full-width:toggle']" @click="toggleFullWidth">
+              <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMoveHorizontal" />
+              {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
             </NcMenuItem>
             <NcDivider />
             <NcSubMenu key="download" variant="small">
@@ -948,8 +1022,14 @@ onBeforeUnmount(() => {
             <NcDivider />
             <NcMenuItem v-if="isUIAllowed('documentDelete')" class="!text-red-500 !hover:bg-red-50" @click="onDeletePage">
               <GeneralIcon icon="delete" />
-              {{ $t('labels.deleteDocument') }}
+              {{ $t('general.delete') }}
             </NcMenuItem>
+            <NcDivider />
+            <div class="nc-doc-menu-info">
+              <span>{{ $t('labels.wordCount', { count: wordCount }) }}</span>
+              <span v-if="updatedByLabel">{{ $t('labels.lastEditedBy', { user: updatedByLabel }) }}</span>
+              <span v-if="updatedAgo">{{ updatedAgo }}</span>
+            </div>
           </NcMenu>
         </template>
       </NcDropdown>
@@ -965,8 +1045,8 @@ onBeforeUnmount(() => {
     />
 
     <!-- Scroll area for editor content -->
-    <div ref="scrollContainerRef" class="flex flex-col h-full overflow-y-auto">
-    <div v-if="isStale" class="nc-doc-stale-banner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16 pt-4">
+    <div ref="scrollContainerRef" class="flex flex-col h-full overflow-y-auto" :class="`nc-doc-font-${activeFont}`">
+    <div v-if="isStale" class="nc-doc-stale-banner w-full mx-auto px-6 sm:px-10 lg:px-16 pt-4" :class="{ 'max-w-[900px]': !isFullWidth }">
       <NcAlert type="info" :closable="false" align="center" class="!bg-nc-bg-brand">
         <template #message>
           <div class="flex items-center justify-between gap-2">
@@ -998,7 +1078,7 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div class="nc-doc-editor-inner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16">
+    <div class="nc-doc-editor-inner w-full mx-auto px-6 sm:px-10 lg:px-16" :class="{ 'max-w-[900px]': !isFullWidth }">
       <!-- Title -->
       <div class="nc-doc-editor-header pt-12 pb-4">
         <div
@@ -2309,5 +2389,91 @@ onBeforeUnmount(() => {
   .nc-doc-editor-header:hover & {
     opacity: 1;
   }
+}
+
+// Document font variants — applied on the scroll container so title + editor inherit
+// Target element AND all descendants with * to beat the global `* { font-family: Inter }` reset
+.nc-doc-font-serif {
+  .nc-doc-title-input {
+    font-family: Georgia, 'Times New Roman', Times, serif !important;
+  }
+
+  .nc-doc-editor-content.ProseMirror,
+  .nc-doc-editor-content.ProseMirror * {
+    font-family: Georgia, 'Times New Roman', Times, serif !important;
+  }
+}
+
+.nc-doc-font-mono {
+  .nc-doc-title-input {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
+  }
+
+  .nc-doc-editor-content.ProseMirror,
+  .nc-doc-editor-content.ProseMirror * {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
+  }
+}
+
+// Font selector row in page menu
+.nc-doc-font-selector {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+}
+
+.nc-doc-font-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--nc-border-gray-medium);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: var(--nc-bg-gray-light);
+  }
+
+  &.nc-doc-font-option-active {
+    border-color: var(--nc-content-brand);
+
+    .nc-doc-font-label {
+      color: var(--nc-content-brand);
+    }
+  }
+}
+
+.nc-doc-font-preview {
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--nc-content-gray);
+
+  &.nc-doc-font-preview-serif {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+  }
+
+  &.nc-doc-font-preview-mono {
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+  }
+}
+
+.nc-doc-font-label {
+  font-size: 11px;
+  color: var(--nc-content-gray-subtle);
+}
+
+.nc-doc-menu-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--nc-content-gray-subtle2);
 }
 </style>

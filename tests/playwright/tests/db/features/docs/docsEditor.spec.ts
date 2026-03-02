@@ -205,8 +205,8 @@ test.describe('Docs — Editor Content', () => {
   test('Text formatting — bold, italic, strikethrough via keyboard shortcuts', async ({ page }) => {
     const tiptap = dashboard.docs.openedPage.tiptap;
 
-    // Type some text
-    await tiptap.get().click();
+    // Click the first paragraph to focus the editor (avoid clicking empty min-height area)
+    await tiptap.get().locator('p').first().click();
     await page.keyboard.type('bold text');
 
     // Select all text

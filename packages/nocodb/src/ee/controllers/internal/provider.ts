@@ -14,12 +14,16 @@ import { RlsGetOperations } from '~/controllers/internal/modules/RlsGet.operatio
 import { RlsPostOperations } from '~/controllers/internal/modules/RlsPost.operations';
 import { ViewSectionGetOperations } from '~/controllers/internal/modules/ViewSectionGet.operations';
 import { ViewSectionPostOperations } from '~/controllers/internal/modules/ViewSectionPost.operations';
+import { HookPostOperations } from '~/controllers/internal/modules/HookPost.operations';
+import { HookGetOperations } from '~/controllers/internal/modules/HookGet.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
   ...InternalApiModulesCE,
   WorkflowPostOperations,
   WorkflowGetOperations,
+  HookPostOperations,
+  HookGetOperations,
   UiPostOperations,
   UiGetOperations,
   IntegrationPostOperations,

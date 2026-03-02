@@ -28,6 +28,10 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const viewStore = useViewsStore()
 
+const webhooksStore = useWebhooksStore()
+
+const { pendingDeepLinkHookId, pendingDeepLinkHookTab } = storeToRefs(webhooksStore)
+
 const { activeView, openedViewsTab, activeViewTitleOrId, isViewsLoading } = storeToRefs(viewStore)
 
 const meta = computed<TableType | undefined>(() => {
@@ -259,6 +263,15 @@ const checkIfViewExists = async () => {
 
 onMounted(async () => {
   await checkIfViewExists()
+
+  const hookId = route.query.hookId as string
+  if (hookId) {
+    pendingDeepLinkHookId.value = hookId
+    pendingDeepLinkHookTab.value = (route.query.hookTab as string) || 'log'
+    if (openedViewsTab.value !== 'webhook') {
+      viewStore.onViewsTabChange('webhook')
+    }
+  }
 })
 
 watch(isViewsLoading, async () => {

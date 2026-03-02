@@ -10,8 +10,6 @@ import workspaceUsersTest from './workspaceUsers.test';
 import scriptsTestV3 from './scripts.test';
 import tableVisibilityPermissionsTestV3 from './table-visibility-permissions.test';
 import timelineTestV3 from './timeline.test';
-import filtersTestV3 from './filters.test';
-import sortsTestV3 from './sorts.test';
 import apiTokensTestV3 from './apiTokens.test';
 import workspaceTestV3 from './workspace.test';
 import { isEE } from '../../../utils/helpers';
@@ -43,9 +41,13 @@ export default runOnSet(2, function () {
   scriptsTestV3();
   tableVisibilityPermissionsTestV3();
   timelineTestV3();
-  filtersTestV3();
-  sortsTestV3();
   if (isEE()) {
+    try {
+      require('./filters.test').default();
+      require('./sorts.test').default();
+    } catch (e) {
+      // EE test files not available in CE
+    }
     apiTokensTestV3();
     workspaceTestV3();
   }

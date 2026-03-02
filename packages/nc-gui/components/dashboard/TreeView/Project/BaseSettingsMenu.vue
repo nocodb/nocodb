@@ -10,7 +10,11 @@ const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const base = inject(ProjectInj)!
 
-const { isUIAllowed, baseRoles } = useRoles()
+const { isUIAllowed, baseRoles, loadRoles } = useRoles()
+
+const { user } = useGlobal()
+
+const isBaseRolesReady = computed(() => !!user.value?.base_roles)
 
 const resolveBaseId = () => {
   if (route.value.params.baseId) return route.value.params.baseId as string
@@ -39,6 +43,20 @@ const isSettingsItemActive = (tab: string) => {
   const slug = settingsTabToSlug[tab] || tab
   return activeSettingsPage.value === slug
 }
+
+// Load base roles if not already loaded (e.g. when landing directly on a ws-settings page)
+onMounted(async () => {
+  if (isBaseRolesReady.value) return
+
+  const baseId = resolveBaseId()
+  if (!baseId) return
+
+  try {
+    await loadRoles(baseId)
+  } catch {
+    // silently fail — items will stay hidden
+  }
+})
 </script>
 
 <template>
@@ -46,41 +64,51 @@ const isSettingsItemActive = (tab: string) => {
     <div class="nc-settings-section-header">
       {{ $t('labels.baseSettings') }}
     </div>
-    <NcSidebarMenuItem
-      v-if="isUIAllowed('newUser', { roles: baseRoles })"
-      v-e="['c:admin:base:add-user']"
-      icon="users"
-      :active="isSettingsItemActive('collaborator')"
-      @click="navigateToBaseSettings('collaborator')"
-    >
-      {{ $t('labels.addUserToBase') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isUIAllowed('manageMCP')"
-      v-e="['c:admin:base:mcp']"
-      icon="mcp"
-      :active="isSettingsItemActive('mcp')"
-      @click="navigateToBaseSettings('mcp')"
-    >
-      {{ $t('title.mcpServer') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isUIAllowed('sourceCreate')"
-      v-e="['c:admin:base:add-data-source']"
-      icon="ncDatabase"
-      :active="isSettingsItemActive('data-source')"
-      @click="navigateToBaseSettings('data-source')"
-    >
-      {{ $t('labels.addDataSource') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-e="['c:admin:base:more']"
-      icon="ncMoreHorizontal"
-      :active="isSettingsItemActive('base-settings')"
-      @click="navigateToBaseSettings('base-settings')"
-    >
-      {{ $t('general.general') }}
-    </NcSidebarMenuItem>
+
+    <!-- Loading skeleton -->
+    <template v-if="!isBaseRolesReady">
+      <div v-for="i in 4" :key="i" class="flex items-center gap-2 h-7 pl-3 pr-1 my-[2px]">
+        <a-skeleton-input active size="small" class="flex-1 children:(!rounded-md !h-4)" />
+      </div>
+    </template>
+
+    <template v-else>
+      <NcSidebarMenuItem
+        v-if="isUIAllowed('newUser', { roles: baseRoles })"
+        v-e="['c:admin:base:add-user']"
+        icon="users"
+        :active="isSettingsItemActive('collaborator')"
+        @click="navigateToBaseSettings('collaborator')"
+      >
+        {{ $t('labels.addUserToBase') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="isUIAllowed('manageMCP')"
+        v-e="['c:admin:base:mcp']"
+        icon="mcp"
+        :active="isSettingsItemActive('mcp')"
+        @click="navigateToBaseSettings('mcp')"
+      >
+        {{ $t('title.mcpServer') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-if="isUIAllowed('sourceCreate')"
+        v-e="['c:admin:base:add-data-source']"
+        icon="ncDatabase"
+        :active="isSettingsItemActive('data-source')"
+        @click="navigateToBaseSettings('data-source')"
+      >
+        {{ $t('labels.addDataSource') }}
+      </NcSidebarMenuItem>
+      <NcSidebarMenuItem
+        v-e="['c:admin:base:more']"
+        icon="ncMoreHorizontal"
+        :active="isSettingsItemActive('base-settings')"
+        @click="navigateToBaseSettings('base-settings')"
+      >
+        {{ $t('general.general') }}
+      </NcSidebarMenuItem>
+    </template>
   </div>
 </template>
 

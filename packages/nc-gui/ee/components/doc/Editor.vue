@@ -22,6 +22,8 @@ import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
 import { DocSearchExtension } from './DocSearchExtension'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
+import { UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
+import { suggestion } from '~/helpers/tiptap'
 
 const props = defineProps<{
   docId: string
@@ -56,6 +58,11 @@ const idUserMap = computed<Record<string, any>>(() => {
     acc[u.email] = u
     return acc
   }, {})
+})
+
+const mentionUsers = computed(() => {
+  if (!base.value?.id) return []
+  return (basesUser.value.get(base.value.id) || []).filter((u: any) => u.deleted !== true)
 })
 
 const resolveUserLabel = (userId?: string) => {
@@ -253,6 +260,17 @@ const _tiptapEditor = useEditor({
     DocTableCell,
     DocTableHeader,
     SlashCommandExtension,
+    UserMention.configure({
+      suggestion: {
+        ...suggestion(UserMentionList),
+        items: ({ query }: { query: string }) =>
+          mentionUsers.value
+            .map((u: any) => ({ id: u.id, name: u.display_name, email: u.email, meta: u.meta }))
+            .filter((u) => searchCompare([u.name, u.email], query)),
+      },
+      users: unref(mentionUsers.value),
+      currentUser: unref(user.value),
+    }),
     CalloutExtension,
     DocFileAttachmentExtension,
     DocEmbedExtension,
@@ -2256,6 +2274,28 @@ onBeforeUnmount(() => {
       .nc-callout-icon {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
       }
+    }
+  }
+
+  // @mention pills
+  .mention {
+    font-weight: 600;
+    border-radius: 0.375rem;
+    padding: 0 0.25rem;
+    display: inline;
+
+    &.nc-current-user {
+      background: #D4F7E0;
+      color: #17803D;
+    }
+
+    &:not(.nc-current-user) {
+      background: var(--nc-bg-brand-inverted);
+      color: var(--nc-content-brand);
+    }
+
+    > span:first-child {
+      display: none;
     }
   }
 }

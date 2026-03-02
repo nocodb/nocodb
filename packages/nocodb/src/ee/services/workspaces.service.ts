@@ -844,16 +844,22 @@ export class WorkspacesService implements OnApplicationBootstrap {
 
     if (userTeamAssignments.length === 0) return [];
 
-    const allTeamIds = new Set<string>();
+    const teamIds = userTeamAssignments.map((a) => a.resource_id);
+    const allTeamIds = new Set<string>(teamIds);
 
-    for (const assignment of userTeamAssignments) {
-      allTeamIds.add(assignment.resource_id);
+    const teamsMap = await Team.getByIds(context, teamIds);
 
-      // Expand to descendants: if user is in Engineering, they also match
-      // Frontend/Backend/etc assignments (upward cascade means parent sees child assignments)
-      const team = await Team.get(context, assignment.resource_id);
-      if (team?.path) {
-        const descendants = await Team.getDescendants(context, team.id);
+    // Batch-expand descendants for all teams with paths in one query
+    const teamsWithPaths = [...teamsMap.values()].filter(
+      (t): t is Team & { path: string; fk_workspace_id: string } => !!t.path,
+    );
+
+    if (teamsWithPaths.length) {
+      const descendantsMap = await Team.getDescendantsForMultiple(
+        context,
+        teamsWithPaths,
+      );
+      for (const descendants of descendantsMap.values()) {
         for (const desc of descendants) {
           allTeamIds.add(desc.id);
         }

@@ -390,6 +390,139 @@ export default class Team {
   }
 
   /**
+   * Batch-get multiple teams by IDs in a single query.
+   * Falls back to cache for each ID first, then fetches remaining from DB.
+   */
+  public static async getByIds(
+    context: NcContext,
+    teamIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Map<string, Team>> {
+    const result = new Map<string, Team>();
+    if (!teamIds.length) return result;
+
+    const uniqueIds = [...new Set(teamIds)];
+    const uncachedIds: string[] = [];
+
+    // Check cache first for each ID
+    for (const id of uniqueIds) {
+      const cached = await NocoCache.get(
+        context,
+        `${CacheScope.TEAM}:${id}`,
+        CacheGetType.TYPE_OBJECT,
+      );
+      if (cached) {
+        result.set(id, this.castType(cached));
+      } else {
+        uncachedIds.push(id);
+      }
+    }
+
+    // Batch-fetch uncached from DB
+    if (uncachedIds.length) {
+      const rows = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.TEAMS,
+        {
+          xcCondition: {
+            _and: [
+              { fk_workspace_id: { eq: context.fk_workspace_id } }
+              { id: { in: uncachedIds } },
+              { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+            ],
+          },
+        },
+      );
+
+      for (const row of rows) {
+        await NocoCache.set(context, `${CacheScope.TEAM}:${row.id}`, row);
+        result.set(row.id, this.castType(row));
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Get descendants for multiple teams in a single query using materialized paths.
+   * Returns a map of teamId → descendant teams.
+   */
+  public static async getDescendantsForMultiple(
+    context: NcContext,
+    teams: { id: string; path: string; fk_workspace_id: string }[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Map<string, Team[]>> {
+    const result = new Map<string, Team[]>();
+    if (!teams.length) return result;
+
+    for (const team of teams) {
+      result.set(team.id, []);
+    }
+
+    const workspaceId = teams[0].fk_workspace_id;
+
+    const descendants = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
+      {
+        xcCondition: {
+          _and: [
+            { fk_workspace_id: { eq: workspaceId } },
+            { _or: teams.map((t) => ({ path: { like: `${t.path}/%` } })) },
+            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+          ],
+        },
+      },
+    );
+
+    // O(1) lookup for input teams by path
+    const teamByPath = new Map(teams.map((t) => [t.path, t]));
+
+    // Reference cache: descendant path → closest ancestor team
+    const parentRef = new Map<string, { id: string } | null>();
+
+    const resolveParent = (path: string): { id: string } | null => {
+      if (parentRef.has(path)) return parentRef.get(path)!;
+
+      let p = path.lastIndexOf('/');
+      while (p > 0) {
+        const parentPath = path.substring(0, p);
+
+        // Check cache first
+        if (parentRef.has(parentPath)) {
+          const cached = parentRef.get(parentPath)!;
+          parentRef.set(path, cached);
+          return cached;
+        }
+
+        // Check if it's one of our input teams
+        const match = teamByPath.get(parentPath);
+        if (match) {
+          parentRef.set(path, match);
+          return match;
+        }
+
+        p = path.lastIndexOf('/', p - 1);
+      }
+
+      parentRef.set(path, null);
+      return null;
+    };
+
+    for (const desc of descendants) {
+      if (!desc.path) continue;
+      const parent = resolveParent(desc.path);
+      if (parent) {
+        result.get(parent.id)!.push(this.castType(desc));
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Get all ancestor teams by parsing the materialized path.
    * Excludes soft-deleted teams.
    */

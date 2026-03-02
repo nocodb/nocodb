@@ -314,6 +314,63 @@ export default class User implements UserType {
     return this.castType(user);
   }
 
+  /**
+   * Get multiple users by IDs in a single query.
+   * Falls back to cache for each ID first, then fetches remaining from DB.
+   */
+  static async getByIds(
+    userIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Map<string, User>> {
+    const result = new Map<string, User>();
+    if (!userIds.length) return result;
+
+    const uniqueIds = [...new Set(userIds)];
+    const uncachedIds: string[] = [];
+
+    for (const id of uniqueIds) {
+      const cached = await NocoCache.get(
+        'root',
+        `${CacheScope.USER}:${id}`,
+        CacheGetType.TYPE_OBJECT,
+      );
+      if (cached && !cached.is_deleted) {
+        result.set(id, this.castType(cached));
+      } else if (!cached) {
+        uncachedIds.push(id);
+      }
+    }
+
+    if (uncachedIds.length) {
+      const rows = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.USERS,
+        {
+          xcCondition: {
+            _and: [
+              { id: { in: uncachedIds } },
+              {
+                _or: [
+                  { is_deleted: { eq: false } },
+                  { is_deleted: { eq: null } },
+                ],
+              },
+            ],
+          },
+        },
+      );
+
+      for (const row of rows) {
+        row.meta = parseMetaProp(row);
+        await NocoCache.set('root', `${CacheScope.USER}:${row.id}`, row);
+        result.set(row.id, this.castType(row));
+      }
+    }
+
+    return result;
+  }
+
   static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {
     const userRefreshToken = await UserRefreshToken.getByToken(
       refresh_token,

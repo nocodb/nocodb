@@ -291,27 +291,21 @@ export class TeamsV3Service {
       (assignment) => assignment.principal_type === PrincipalType.USER,
     );
 
-    const membersWithUsers = await Promise.all(
-      userAssignments.map(async (assignment) => {
-        const user = await User.get(assignment.principal_ref_id);
-        if (!user) {
-          return null;
-        }
-        return {
-          assignment,
-          user,
-        };
-      }),
-    );
+    // Load all direct member users in one query
+    const directUserIds = userAssignments.map((a) => a.principal_ref_id);
+    const directUsersMap = await User.getByIds(directUserIds);
 
-    // Filter out null entries and transform to v3 response format with email
-    const members = membersWithUsers
-      .filter((item) => item !== null)
-      .map(({ assignment, user }) => ({
-        user_email: user.email,
-        user_id: user.id,
-        team_role: assignment.roles as TeamUserRoles,
-      }));
+    // Filter out missing users and transform to v3 response format
+    const members = userAssignments
+      .filter((a) => directUsersMap.has(a.principal_ref_id))
+      .map((assignment) => {
+        const user = directUsersMap.get(assignment.principal_ref_id)!;
+        return {
+          user_email: user.email,
+          user_id: user.id,
+          team_role: assignment.roles as TeamUserRoles,
+        };
+      });
 
     // Load inherited members from ancestor teams (path = /rootId/.../parentId/teamId)
     const directMemberIds = new Set(members.map((m) => m.user_id));
@@ -322,32 +316,40 @@ export class TeamsV3Service {
 
     const inheritedMembers: TeamDetailV3Type['inherited_members'] = [];
 
-    for (const ancestorId of ancestorIds) {
-      const ancestorTeam = await Team.get(context, ancestorId);
-      if (!ancestorTeam) continue;
+    if (ancestorIds.length) {
+      // Load all ancestor teams + their assignments in parallel
+      const [ancestorTeamsMap, ancestorAssignments] = await Promise.all([
+        Team.getByIds(context, ancestorIds),
+        PrincipalAssignment.listByResourceIds(
+          context,
+          ResourceType.TEAM,
+          ancestorIds,
+          { principal_type: PrincipalType.USER },
+        ),
+      ]);
 
-      const ancestorAssignments = await PrincipalAssignment.listByResource(
-        context,
-        ResourceType.TEAM,
-        ancestorId,
-      );
+      // Collect all ancestor member user IDs and batch-load
+      const ancestorUserIds = ancestorAssignments
+        .map((a) => a.principal_ref_id)
+        .filter((id) => !directMemberIds.has(id));
+      const ancestorUsersMap = await User.getByIds([
+        ...new Set(ancestorUserIds),
+      ]);
 
-      const ancestorUserAssignments = ancestorAssignments.filter(
-        (a) => a.principal_type === PrincipalType.USER,
-      );
-
-      for (const assignment of ancestorUserAssignments) {
-        // Skip users already in the direct members list (no duplicate display)
+      for (const assignment of ancestorAssignments) {
         if (directMemberIds.has(assignment.principal_ref_id)) continue;
 
-        const user = await User.get(assignment.principal_ref_id);
+        const user = ancestorUsersMap.get(assignment.principal_ref_id);
         if (!user) continue;
+
+        const ancestorTeam = ancestorTeamsMap.get(assignment.resource_id);
+        if (!ancestorTeam) continue;
 
         inheritedMembers.push({
           user_email: user.email,
           user_id: user.id,
           team_role: assignment.roles as TeamUserRoles,
-          inherited_from_team_id: ancestorId,
+          inherited_from_team_id: assignment.resource_id,
           inherited_from_team_title: ancestorTeam.title,
         });
       }
@@ -493,14 +495,17 @@ export class TeamsV3Service {
 
     // Add members if provided
     if (param.team.members && param.team.members.length > 0) {
-      for (const member of param.team.members ?? []) {
-        // Verify user exists and belongs to workspace/org
-        const user = await User.get(member.user_id);
-        if (!user) {
+      // Batch-validate all users exist
+      const memberUserIds = param.team.members.map((m) => m.user_id);
+      const usersMap = await User.getByIds(memberUserIds);
+      for (const member of param.team.members) {
+        if (!usersMap.has(member.user_id)) {
           NcError.get(context).userNotFound(member.user_id);
         }
+      }
 
-        // Add user to team via principal assignment
+      // Insert all member assignments
+      for (const member of param.team.members) {
         await PrincipalAssignment.insert(context, {
           resource_type: ResourceType.TEAM,
           resource_id: teamId,
@@ -538,11 +543,18 @@ export class TeamsV3Service {
     }
 
     // Get member count for the created team
-    const [teamUsers, teamManagersCount, managers] = await Promise.all([
-      this.getTeamMembersCount(context, team.id),
-      this.getTeamOwnersCount(context, team.id),
-      this.getTeamOwners(context, team.id),
-    ]);
+    const postCreateAssignments =
+      await PrincipalAssignment.listByResourceIds(
+        context,
+        ResourceType.TEAM,
+        [team.id],
+        { principal_type: PrincipalType.USER },
+      );
+    const teamUsers = postCreateAssignments.length;
+    const managers = postCreateAssignments
+      .filter((a) => a.roles === TeamUserRoles.OWNER)
+      .map((a) => a.principal_ref_id);
+    const teamManagersCount = managers.length;
 
     // Transform to v3 response format
     const meta = parseMetaProp(team);
@@ -782,19 +794,13 @@ export class TeamsV3Service {
       }
     }
 
-    // Delete all team assignments first
-    const teamAssignments = await PrincipalAssignment.listByResource(
-      context,
-      ResourceType.TEAM,
-      param.teamId,
-    );
+    // Fetch both assignment directions in parallel
+    const [teamAssignments, teamPrincipalAssignments] = await Promise.all([
+      PrincipalAssignment.listByResource(context, ResourceType.TEAM, param.teamId),
+      PrincipalAssignment.listByPrincipal(context, PrincipalType.TEAM, param.teamId),
+    ]);
 
-    // Delete all team principal assignments
-    const teamPrincipalAssignments = await PrincipalAssignment.listByPrincipal(
-      context,
-      PrincipalType.TEAM,
-      param.teamId,
-    );
+    // Delete all assignments (sequential — each delete does soft-delete + cache clear)
     for (const assignment of [
       ...teamAssignments,
       ...teamPrincipalAssignments,
@@ -888,28 +894,38 @@ export class TeamsV3Service {
       );
     }
 
-    const addedMembers = [];
-
+    // validate: all users exist
+    const memberUserIds = param.members.map((m) => m.user_id);
+    const usersMap = await User.getByIds(memberUserIds);
     for (const member of param.members) {
-      // Check if user exists
-      const user = await User.get(member.user_id);
-      if (!user) {
+      if (!usersMap.has(member.user_id)) {
         NcError.get(context).userNotFound(member.user_id);
       }
+    }
 
-      // Check if user is already assigned to team
-      const existingAssignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        member.user_id,
-      );
-      if (existingAssignment) {
+    // check: no user is already a member
+    const existingAssignments = await PrincipalAssignment.listByResourceIds(
+      context,
+      ResourceType.TEAM,
+      [param.teamId],
+      { principal_type: PrincipalType.USER },
+    );
+    const existingMemberIds = new Set(
+      existingAssignments.map((a) => a.principal_ref_id),
+    );
+    for (const member of param.members) {
+      if (existingMemberIds.has(member.user_id)) {
         NcError.get(context).invalidRequestBody(
           `User ${member.user_id} is already a member of this team`,
         );
       }
+    }
+
+    // Insert assignments and emit events (inserts are sequential due to individual event/mail needs)
+    const addedMembers = [];
+
+    for (const member of param.members) {
+      const user = usersMap.get(member.user_id)!;
 
       const assignment = await PrincipalAssignment.insert(context, {
         resource_type: ResourceType.TEAM,
@@ -953,20 +969,15 @@ export class TeamsV3Service {
     // Recalculate seat count after adding team members
     await this.paymentService.reseatSubscription(workspace.id);
 
-    // Transform to v3 response format with email
-    const members = await Promise.all(
-      addedMembers.map(async (assignment) => {
-        const user = await this.getUserById(
-          context,
-          assignment.principal_ref_id,
-        );
-        return {
-          user_id: user.id,
-          user_email: user.email,
-          team_role: assignment.roles as TeamUserRoles,
-        };
-      }),
-    );
+    // Transform to v3 response format — reuse already-loaded users
+    const members = addedMembers.map((assignment) => {
+      const user = usersMap.get(assignment.principal_ref_id)!;
+      return {
+        user_id: user.id,
+        user_email: user.email,
+        team_role: assignment.roles as TeamUserRoles,
+      };
+    });
 
     NocoSocket.broadcastEvent(
       context,
@@ -1020,34 +1031,40 @@ export class TeamsV3Service {
       );
     }
 
-    const removedMembers = [];
-
-    for (const member of param.members) {
-      const user = await User.get(member.user_id);
-      // Check if user is assigned to team
-      const assignment = await PrincipalAssignment.get(
+    // load all users and current team assignments upfront
+    const memberUserIds = param.members.map((m) => m.user_id);
+    const [usersMap, currentAssignments] = await Promise.all([
+      User.getByIds(memberUserIds),
+      PrincipalAssignment.listByResourceIds(
         context,
         ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        member.user_id,
-      );
+        [param.teamId],
+        { principal_type: PrincipalType.USER },
+      ),
+    ]);
+
+    const assignmentsByUserId = new Map(
+      currentAssignments.map((a) => [a.principal_ref_id, a]),
+    );
+
+    // Hoist manager check outside the loop — only need to check once
+    const isTeamManager = userId
+      ? assignmentsByUserId.get(userId)?.roles === TeamUserRoles.OWNER
+      : false;
+
+    // Count current managers for last-manager protection
+    let managersCount = currentAssignments.filter(
+      (a) => a.roles === TeamUserRoles.OWNER,
+    ).length;
+
+    // Validate all members before making any changes
+    for (const member of param.members) {
+      const assignment = assignmentsByUserId.get(member.user_id);
       if (!assignment) {
         NcError.get(context).userNotFound(member.user_id);
       }
 
-      // Check permissions: team manager or user removing themselves
-      const isTeamManager = userId
-        ? (await PrincipalAssignment.get(
-            context,
-            ResourceType.TEAM,
-            param.teamId,
-            PrincipalType.USER,
-            userId,
-          ).then((a) => a?.roles === TeamUserRoles.OWNER)) || false
-        : false;
       const isSelfRemoval = userId === member.user_id;
-
       if (!isTeamManager && !isSelfRemoval) {
         NcError.get(context).forbidden(
           'Only team managers can remove members or users can remove themselves',
@@ -1056,16 +1073,21 @@ export class TeamsV3Service {
 
       // If removing the last manager, prevent it
       if (assignment!.roles === TeamUserRoles.OWNER) {
-        const managersCount = await this.getTeamOwnersCount(
-          context,
-          param.teamId,
-        );
         if (managersCount === 1) {
           NcError.get(context).invalidRequestBody(
             'Cannot remove the last manager',
           );
         }
+        managersCount--;
       }
+    }
+
+    // Execute deletions and emit events
+    const removedMembers = [];
+
+    for (const member of param.members) {
+      const user = usersMap.get(member.user_id);
+      const assignment = assignmentsByUserId.get(member.user_id)!;
 
       await PrincipalAssignment.delete(
         context,
@@ -1174,25 +1196,37 @@ export class TeamsV3Service {
       );
     }
 
-    const updatedMembers = [];
-
-    for (const member of param.members) {
-      // check user exists
-      const user = await User.get(member.user_id);
-
-      // Check if user is assigned to team
-      const assignment = await PrincipalAssignment.get(
+    // load all users and current assignments upfront
+    const memberUserIds = param.members.map((m) => m.user_id);
+    const [usersMap, currentAssignments] = await Promise.all([
+      User.getByIds(memberUserIds),
+      PrincipalAssignment.listByResourceIds(
         context,
         ResourceType.TEAM,
-        param.teamId,
-        PrincipalType.USER,
-        member.user_id,
-      );
-      if (!assignment) {
+        [param.teamId],
+        { principal_type: PrincipalType.USER },
+      ),
+    ]);
+
+    const assignmentsByUserId = new Map(
+      currentAssignments.map((a) => [a.principal_ref_id, a]),
+    );
+
+    // Validate all members exist in team before making changes
+    for (const member of param.members) {
+      if (!assignmentsByUserId.has(member.user_id)) {
         NcError.get(context).invalidRequestBody(
           `User ${member.user_id} not found in this team`,
         );
       }
+    }
+
+    // Execute updates and emit events
+    const updatedMembers = [];
+
+    for (const member of param.members) {
+      const user = usersMap.get(member.user_id);
+      const oldAssignment = assignmentsByUserId.get(member.user_id)!;
 
       const updatedAssignment = await PrincipalAssignment.update(
         context,
@@ -1212,11 +1246,10 @@ export class TeamsV3Service {
         team,
         workspace,
         user,
-        oldTeamRole: assignment.roles, // Include old team role
+        oldTeamRole: oldAssignment.roles, // Include old team role
         teamRole: member?.team_role || '', // Include new team role
       } as TeamMemberUpdateEvent);
 
-      // Send email notification about role update
       await this.mailService.sendMail(
         {
           mailEvent: MailEvent.TEAM_MEMBER_ROLE_UPDATE,
@@ -1225,7 +1258,7 @@ export class TeamsV3Service {
             user,
             team,
             workspace,
-            oldTeamRole: assignment.roles,
+            oldTeamRole: oldAssignment.roles,
             teamRole: member.team_role,
           },
         },
@@ -1236,20 +1269,15 @@ export class TeamsV3Service {
     // Recalculate seat count after updating team member roles
     await this.paymentService.reseatSubscription(workspace.id);
 
-    // Transform to v3 response format with email
-    const members = await Promise.all(
-      updatedMembers.map(async (assignment) => {
-        const user = await this.getUserById(
-          context,
-          assignment.principal_ref_id,
-        );
-        return {
-          user_id: user.id,
-          user_email: user.email,
-          team_role: assignment.roles as TeamUserRoles,
-        };
-      }),
-    );
+    // Transform to v3 response format — reuse already-loaded users
+    const members = updatedMembers.map((assignment) => {
+      const user = usersMap.get(assignment.principal_ref_id)!;
+      return {
+        user_id: user.id,
+        user_email: user.email,
+        team_role: assignment.roles as TeamUserRoles,
+      };
+    });
 
     NocoSocket.broadcastEvent(
       context,

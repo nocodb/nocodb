@@ -10,7 +10,7 @@ const workspaceStore = useWorkspace()
 
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
-const tab = computed(() => wsAdminSlugToTab[route.params.page as string] || 'ws-collaborators')
+const tab = computed(() => wsSettingsSlugToTab[route.params.page as string] || 'ws-collaborators')
 
 const sidebarStore = useSidebarStore()
 

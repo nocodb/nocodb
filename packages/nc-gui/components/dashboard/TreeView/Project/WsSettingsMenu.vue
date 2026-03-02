@@ -9,31 +9,31 @@ const { isUIAllowed } = useRoles()
 
 const navigateToWsSettings = (page: string) => {
   const wsId = route.value.params.typeOrId
-  const slug = wsAdminTabToSlug[page] || page
+  const slug = wsSettingsTabToSlug[page] || page
   navigateTo(`/${wsId}/settings/${slug}`)
 }
 
-const activeAdminPage = computed(() => {
+const activeSettingsPage = computed(() => {
   if (activeSidebarTab.value !== 'settings') return ''
   return (route.value.params.page as string) || ''
 })
 
-const isWsAdminItemActive = (tab: string) => {
-  const slug = wsAdminTabToSlug[tab] || tab
-  return activeAdminPage.value === slug
+const isWsSettingsItemActive = (tab: string) => {
+  const slug = wsSettingsTabToSlug[tab] || tab
+  return activeSettingsPage.value === slug
 }
 </script>
 
 <template>
   <div class="nc-project-home-section">
-    <div class="nc-admin-section-header">
+    <div class="nc-settings-section-header">
       {{ $t('objects.workspace') }} {{ $t('labels.settings') }}
     </div>
     <NcSidebarMenuItem
       v-if="isUIAllowed('workspaceCollaborators')"
       v-e="['c:admin:ws:invite-user']"
       icon="users"
-      :active="isWsAdminItemActive('ws-collaborators')"
+      :active="isWsSettingsItemActive('ws-collaborators')"
       @click="navigateToWsSettings('ws-collaborators')"
     >
       {{ $t('labels.inviteUsersToWorkspace') }}
@@ -42,7 +42,7 @@ const isWsAdminItemActive = (tab: string) => {
       v-if="isUIAllowed('workspaceIntegrations')"
       v-e="['c:integrations']"
       icon="integration"
-      :active="isWsAdminItemActive('ws-integrations')"
+      :active="isWsSettingsItemActive('ws-integrations')"
       @click="navigateToWsSettings('ws-integrations')"
     >
       {{ $t('general.integrations') }}
@@ -51,7 +51,7 @@ const isWsAdminItemActive = (tab: string) => {
       v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
       v-e="['c:admin:ws:general']"
       icon="ncMoreHorizontal"
-      :active="isWsAdminItemActive('ws-settings')"
+      :active="isWsSettingsItemActive('ws-settings')"
       @click="navigateToWsSettings('ws-settings')"
     >
       {{ $t('general.general') }}
@@ -60,7 +60,7 @@ const isWsAdminItemActive = (tab: string) => {
 </template>
 
 <style lang="scss" scoped>
-.nc-admin-section-header {
+.nc-settings-section-header {
   @apply px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
   font-size: 13px;
 }

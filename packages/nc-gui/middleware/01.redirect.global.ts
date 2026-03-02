@@ -1,4 +1,4 @@
-import { baseAdminTabToSlug } from '~/utils/adminRouteUtils'
+import { baseSettingsTabToSlug } from '~/utils/settingsRouteUtils'
 
 export default defineNuxtRouteMiddleware(async (to) => {
   // Get the query params from the URL
@@ -62,7 +62,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       return navigateTo(`/${to.params.typeOrId}/${to.params.baseId}/settings/mcp`, { replace: true })
     }
 
-    const slug = baseAdminTabToSlug[page]
+    const slug = baseSettingsTabToSlug[page]
 
     if (slug) {
       // Forward remaining query params (excluding page and tab)

@@ -197,7 +197,7 @@ const { navigateToProjectPage } = useBase()
 
 const { t } = useI18n()
 
-const adminPageTitle = computed(() => {
+const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
     collaborator: t('labels.addUserToBase'),
     permissions: t('labels.dataPermissions'),
@@ -218,7 +218,7 @@ watch(projectPageTab, () => {
 
   // When tab is controlled by route path (settings pages), navigate to clean URL
   if (props.tab) {
-    const slug = adminTabToSlug[projectPageTab.value] || projectPageTab.value
+    const slug = settingsTabToSlug[projectPageTab.value] || projectPageTab.value
     const wsId = route.value.params.typeOrId
 
     const baseId = route.value.params.baseId
@@ -268,9 +268,9 @@ watch(
   },
 )
 
-const isAdminSidebar = computed(() => !!props.tab)
+const isSettingsSidebar = computed(() => !!props.tab)
 
-provide('isAdminSidebar', isAdminSidebar)
+provide('isSettingsSidebar', isSettingsSidebar)
 
 onMounted(async () => {
   await until(() => !!currentBase.value?.id).toBeTruthy()
@@ -334,7 +334,8 @@ watch(
         <div v-if="!showEmptySkeleton" class="flex flex-row items-center h-full gap-x-2 px-2 min-w-0">
           <template v-if="props.tab">
             <span class="font-semibold text-sm text-nc-content-gray truncate">
-              {{ adminPageTitle }}
+              {{ settingsPageTitle }}
+            
             </span>
           </template>
           <template v-else>
@@ -369,7 +370,7 @@ watch(
           </template>
         </div>
       </div>
-      <div v-if="!showEmptySkeleton && !isMobileMode && !props.tab" class="flex items-center gap-2">
+      <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
         <SmartsheetTopbarManagedAppStatus />
         <SmartsheetTopbarSandboxStatus />
         <LazyGeneralShareProject />
@@ -382,7 +383,7 @@ watch(
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <NcTabs v-model:active-key="projectPageTab" class="w-full" :class="{ 'hide-tabs': props.tab || projectPageTab === 'overview' }">
+      <NcTabs v-model:active-key="projectPageTab" class="w-full h-full" :class="{ 'hide-tabs': props.tab || projectPageTab === 'overview' }">
         <a-tab-pane
           v-if="!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode"
           key="overview"

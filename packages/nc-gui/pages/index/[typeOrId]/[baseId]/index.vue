@@ -99,8 +99,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div>
-    <div>
+  <div class="h-full">
+    <div class="h-full">
       <NuxtPage />
     </div>
   </div>

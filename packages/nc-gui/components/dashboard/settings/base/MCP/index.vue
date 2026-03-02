@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 
 const { t } = useI18n()
 
-const isAdminSidebar = inject<Ref<boolean>>('isAdminSidebar', ref(false))
+const isSettingsSidebar = inject<Ref<boolean>>('isSettingsSidebar', ref(false))
 
 const newTokenInputRef = ref()
 

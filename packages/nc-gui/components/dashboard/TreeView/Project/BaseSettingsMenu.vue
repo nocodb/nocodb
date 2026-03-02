@@ -26,31 +26,31 @@ const navigateToBaseSettings = (page: string) => {
   if (!baseId) return
 
   const wsId = route.value.params.typeOrId
-  const slug = adminTabToSlug[page] || page
+  const slug = settingsTabToSlug[page] || page
   navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
 }
 
-const activeAdminPage = computed(() => {
+const activeSettingsPage = computed(() => {
   if (activeSidebarTab.value !== 'settings') return ''
   return (route.value.params.page as string) || ''
 })
 
-const isAdminItemActive = (tab: string) => {
-  const slug = adminTabToSlug[tab] || tab
-  return activeAdminPage.value === slug
+const isSettingsItemActive = (tab: string) => {
+  const slug = settingsTabToSlug[tab] || tab
+  return activeSettingsPage.value === slug
 }
 </script>
 
 <template>
   <div class="nc-project-home-section">
-    <div class="nc-admin-section-header">
+    <div class="nc-settings-section-header">
       {{ $t('labels.baseSettings') }}
     </div>
     <NcSidebarMenuItem
       v-if="isUIAllowed('newUser', { roles: baseRoles })"
       v-e="['c:admin:base:add-user']"
       icon="users"
-      :active="isAdminItemActive('collaborator')"
+      :active="isSettingsItemActive('collaborator')"
       @click="navigateToBaseSettings('collaborator')"
     >
       {{ $t('labels.addUserToBase') }}
@@ -59,7 +59,7 @@ const isAdminItemActive = (tab: string) => {
       v-if="isUIAllowed('manageMCP')"
       v-e="['c:admin:base:mcp']"
       icon="mcp"
-      :active="isAdminItemActive('mcp')"
+      :active="isSettingsItemActive('mcp')"
       @click="navigateToBaseSettings('mcp')"
     >
       {{ $t('title.mcpServer') }}
@@ -68,7 +68,7 @@ const isAdminItemActive = (tab: string) => {
       v-if="isUIAllowed('sourceCreate')"
       v-e="['c:admin:base:add-data-source']"
       icon="ncDatabase"
-      :active="isAdminItemActive('data-source')"
+      :active="isSettingsItemActive('data-source')"
       @click="navigateToBaseSettings('data-source')"
     >
       {{ $t('labels.addDataSource') }}
@@ -76,7 +76,7 @@ const isAdminItemActive = (tab: string) => {
     <NcSidebarMenuItem
       v-e="['c:admin:base:more']"
       icon="ncMoreHorizontal"
-      :active="isAdminItemActive('base-settings')"
+      :active="isSettingsItemActive('base-settings')"
       @click="navigateToBaseSettings('base-settings')"
     >
       {{ $t('general.general') }}
@@ -85,7 +85,7 @@ const isAdminItemActive = (tab: string) => {
 </template>
 
 <style lang="scss" scoped>
-.nc-admin-section-header {
+.nc-settings-section-header {
   @apply px-3 pt-3 pb-1 font-semibold text-nc-content-brand uppercase tracking-wide;
   font-size: 13px;
 }

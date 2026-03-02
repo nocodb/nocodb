@@ -38,6 +38,11 @@ const {
 
 const { isFromIntegrationPage, integrationPaginationData, activeViewTab, loadIntegrations } = useProvideIntegrationViewStore()
 
+// Local ref for inner integrations sub-tabs in settings sidebar mode.
+// Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs
+// also reads route.query.tab — changing it to 'connections' makes the outer pane blank.
+const integrationsSubTab = ref<string>('integrations')
+
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
 })
@@ -135,11 +140,11 @@ watch(
 
 const { shouldShow: btbShouldShow } = useBackToBase()
 
-// --- Inline mode (admin sidebar) ---
+// --- Inline mode (settings sidebar) ---
 
-const isAdminSidebar = computed(() => !!props.tab)
+const isSettingsSidebar = computed(() => !!props.tab)
 
-provide('isAdminSidebar', isAdminSidebar)
+provide('isSettingsSidebar', isSettingsSidebar)
 
 // Map ws-* tab prop to NcTabs key (e.g. 'ws-collaborators' → 'collaborators')
 const wsTabToNcTabKey: Record<string, string> = {
@@ -152,7 +157,7 @@ const wsTabToNcTabKey: Record<string, string> = {
   'ws-settings': 'settings',
 }
 
-const adminPageTitle = computed(() => {
+const settingsPageTitle = computed(() => {
   if (!props.tab) return ''
   const tabTitles: Record<string, string> = {
     'ws-collaborators': t('labels.inviteUsersToWorkspace'),
@@ -166,12 +171,13 @@ const adminPageTitle = computed(() => {
   return tabTitles[props.tab] || ''
 })
 
-// When in admin sidebar mode, sync the props.tab to the NcTabs active key
+// When in settings sidebar mode, sync the props.tab to the NcTabs active key
 watch(
   () => props.tab,
   (newTab, oldTab) => {
     if (oldTab === 'ws-integrations') {
       isFromIntegrationPage.value = false
+      integrationsSubTab.value = 'integrations'
     }
 
     if (!newTab) return
@@ -208,18 +214,20 @@ onBeforeUnmount(() => {
   <div
     v-if="currentWorkspace"
     class="flex w-full flex-col nc-workspace-settings h-full overflow-hidden"
-    :class="{ 'nc-admin-sidebar-mode': isAdminSidebar }"
+    :class="{ 'nc-settings-sidebar-mode': isSettingsSidebar }"
   >
-    <!-- Admin sidebar mode: simple topbar with page title -->
+    <!-- Settings sidebar mode: simple topbar with page title -->
     <div
-      v-if="isAdminSidebar"
-      class="flex flex-row px-2 py-2 gap-3 w-full border-b-1 border-nc-border-gray-medium h-[var(--topbar-height)]"
+      v-if="isSettingsSidebar"
+      class="flex flex-row px-2 py-2 gap-3 justify-between w-full border-b-1 border-nc-border-gray-medium h-[var(--topbar-height)]"
     >
       <div class="flex-1 flex flex-row items-center gap-x-3">
         <GeneralOpenLeftSidebarBtn />
-        <span class="font-semibold text-sm text-nc-content-gray truncate">
-          {{ adminPageTitle }}
-        </span>
+        <div class="flex flex-row items-center h-full gap-x-2 px-2 min-w-0">
+          <span class="font-semibold text-sm text-nc-content-gray truncate">
+            {{ settingsPageTitle }}
+          </span>
+        </div>
       </div>
     </div>
 
@@ -283,7 +291,7 @@ onBeforeUnmount(() => {
     </template>
 
     <!-- Back-to-base full-width bar: shown between breadcrumb and tabs (breadcrumb variant only) -->
-    <DashboardBackToBaseBreadcrumbVariant v-if="!isAdminSidebar" />
+    <DashboardBackToBaseBreadcrumbVariant v-if="!isSettingsSidebar" />
 
     <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
       <template #leftExtra>
@@ -354,20 +362,28 @@ onBeforeUnmount(() => {
               </div>
             </template>
 
-            <WorkspaceSso :class="btbShouldShow ? '!h-[calc(100vh-128px)]' : '!h-[calc(100vh-92px)]'" />
+            <WorkspaceSso
+              :class="
+                isSettingsSidebar
+                  ? '!h-[calc(100vh-var(--topbar-height))]'
+                  : btbShouldShow
+                    ? '!h-[calc(100vh-128px)]'
+                    : '!h-[calc(100vh-92px)]'
+              "
+            />
           </a-tab-pane>
         </template>
       </template>
 
-      <a-tab-pane v-if="isAdminSidebar" key="integrations" class="w-full h-full">
+      <a-tab-pane v-if="isSettingsSidebar" key="integrations" class="w-full h-full">
         <template #tab>
           <div class="tab-title">
             <GeneralIcon icon="integration" class="h-4 w-4" />
             {{ $t('general.integrations') }}
           </div>
         </template>
-        <div class="h-full flex flex-col">
-          <NcTabs v-model:active-key="activeViewTab">
+        <div class="nc-integrations-tabs-wrapper h-full flex flex-col">
+          <NcTabs v-model:active-key="integrationsSubTab" class="flex-1 min-h-0">
             <template #leftExtra>
               <div class="w-3"></div>
             </template>
@@ -378,7 +394,7 @@ onBeforeUnmount(() => {
                   {{ $t('general.integrations') }}
                 </div>
               </template>
-              <div class="h-full">
+              <div class="h-full overflow-auto nc-scrollbar-thin">
                 <WorkspaceIntegrationsTab show-filter />
               </div>
             </a-tab-pane>
@@ -391,15 +407,15 @@ onBeforeUnmount(() => {
                     v-if="integrationPaginationData?.totalRows"
                     class="tab-info flex-none"
                     :class="{
-                      'bg-primary-selected': activeViewTab === 'connections',
-                      'bg-nc-bg-gray-extralight': activeViewTab !== 'connections',
+                      'bg-primary-selected': integrationsSubTab === 'connections',
+                      'bg-nc-bg-gray-extralight': integrationsSubTab !== 'connections',
                     }"
                   >
                     {{ integrationPaginationData.totalRows }}
                   </div>
                 </div>
               </template>
-              <div class="p-6 h-full">
+              <div class="p-6 h-full overflow-auto nc-scrollbar-thin">
                 <WorkspaceIntegrationsConnectionsTab />
               </div>
             </a-tab-pane>
@@ -447,10 +463,58 @@ onBeforeUnmount(() => {
   @apply flex flex-row items-center gap-x-2 py-[1px];
 }
 
-// Admin sidebar mode: hide only the outer tab bar (not nested sub-tabs like integrations)
-.nc-admin-sidebar-mode {
+// Integrations sub-tabs: propagate height through Ant tabs internal DOM
+.nc-integrations-tabs-wrapper {
+  :deep(.ant-tabs) {
+    @apply flex flex-col;
+  }
+
+  :deep(.ant-tabs-content-holder) {
+    @apply flex-1 min-h-0;
+  }
+
+  :deep(.ant-tabs-content) {
+    @apply h-full;
+  }
+
+  :deep(.ant-tabs-tabpane) {
+    @apply h-full;
+  }
+}
+
+// Settings sidebar mode: hide only the outer tab bar (not nested sub-tabs like integrations)
+.nc-settings-sidebar-mode {
   > :deep(.ant-tabs) > .ant-tabs-nav {
     display: none !important;
+  }
+
+  > :deep(.ant-tabs) > .ant-tabs-content-holder {
+    @apply flex-1 min-h-0;
+  }
+
+  > :deep(.ant-tabs) > .ant-tabs-content-holder > .ant-tabs-content {
+    @apply !max-w-[1100px] !mx-auto text-nc-content-gray-subtle h-full;
+    font-size: 13px;
+
+    th,
+    td,
+    label,
+    span,
+    div,
+    p,
+    a,
+    input,
+    textarea,
+    select,
+    button,
+    .ant-input,
+    .nc-button {
+      font-size: 13px;
+    }
+  }
+
+  > :deep(.ant-tabs) > .ant-tabs-content-holder > .ant-tabs-content > .ant-tabs-tabpane {
+    @apply h-full;
   }
 }
 </style>

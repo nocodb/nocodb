@@ -18,6 +18,8 @@ const { isActive } = toRefs(props)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const isSettingsSidebar = inject<Ref<boolean>>('isSettingsSidebar', ref(false))
+
 const { t } = useI18n()
 
 const { user } = useGlobal()
@@ -318,8 +320,9 @@ onMounted(async () => {
   <div
     class="nc-teams-container overflow-auto nc-scrollbar-thin relative"
     :class="{
-      'h-[calc(100vh-144px)]': isAdminPanel,
-      'h-[calc(100vh-92px)]': !isAdminPanel,
+      'h-[calc(100vh-var(--topbar-height))]': isSettingsSidebar,
+      'h-[calc(100vh-144px)]': !isSettingsSidebar && isAdminPanel,
+      'h-[calc(100vh-92px)]': !isSettingsSidebar && !isAdminPanel,
     }"
   >
     <div class="nc-teams-wrapper h-full max-w-[1200px] mx-auto py-6 px-6 flex flex-col gap-6 sticky top-0">

@@ -11,6 +11,8 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { isUIAllowed } = useRoles()
 
+const isSettingsSidebar = inject<Ref<boolean>>('isSettingsSidebar', ref(false))
+
 const formValidator = ref()
 const isErrored = ref(false)
 const isWorkspaceUpdating = ref(false)
@@ -94,7 +96,10 @@ watch(
 </script>
 
 <template>
-  <div class="nc-workspace-settings-container overflow-auto nc-scrollbar-thin h-[calc(100vh-var(--topbar-height)-44px)]">
+  <div
+    class="nc-workspace-settings-container overflow-auto nc-scrollbar-thin"
+    :class="isSettingsSidebar ? 'h-[calc(100vh-var(--topbar-height))]' : 'h-[calc(100vh-var(--topbar-height)-44px)]'"
+  >
     <div v-if="currentWorkspace" class="flex flex-col items-center pb-6 md:pb-10 px-4 md:px-6">
       <div class="nc-settings-item-card-wrapper mt-6 md:mt-10">
         <div class="nc-settings-item-heading text-nc-content-gray-emphasis">

@@ -41,7 +41,7 @@ const { orgId, org } = storeToRefs(orgStore)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
-const isAdminSidebar = inject<Ref<boolean>>('isAdminSidebar', ref(false))
+const isSettingsSidebar = inject<Ref<boolean>>('isSettingsSidebar', ref(false))
 
 const { $api, $eventBus } = useNuxtApp()
 
@@ -549,6 +549,7 @@ onBeforeUnmount(() => {
     class="nc-collaborator-table-container nc-access-settings-view flex flex-col relative"
     :class="{
       'nc-admin-panel': isAdminPanel,
+      'nc-is-settings-sidebar': isSettingsSidebar,
     }"
   >
     <ProjectPrivateOverlay v-if="showOverlay" />
@@ -830,6 +831,15 @@ onBeforeUnmount(() => {
 
     @supports (height: 100dvh) {
       @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+    }
+  }
+
+  // Admin sidebar mode: tab bar is hidden, so no 44px subtraction
+  &.nc-is-settings-sidebar {
+    @apply h-[calc(100vh-var(--topbar-height))];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-var(--topbar-height))];
     }
   }
 }

@@ -2277,21 +2277,16 @@ onBeforeUnmount(() => {
     }
   }
 
-  // @mention pills
+  // @mention pills — mirrors .nc-rich-text .mention in style.scss
   .mention {
-    font-weight: 600;
-    border-radius: 0.375rem;
-    padding: 0 0.25rem;
-    display: inline;
+    @apply font-semibold rounded-md px-1 inline;
 
     &.nc-current-user {
-      background: #D4F7E0;
-      color: #17803D;
+      @apply bg-[#D4F7E0] text-[#17803D] dark:(bg-nc-bg-gray-medium text-green-500);
     }
 
     &:not(.nc-current-user) {
-      background: var(--nc-bg-brand-inverted);
-      color: var(--nc-content-brand);
+      @apply bg-nc-bg-brand-inverted text-nc-content-brand;
     }
 
     > span:first-child {

@@ -416,6 +416,12 @@ export interface DocumentDeleteEvent extends NcBaseEvent {
   user: UserType;
 }
 
+export interface DocumentUserMentionEvent extends NcBaseEvent {
+  doc: DocumentType;
+  user: UserType;
+  mentions: string[];
+}
+
 export interface DocumentCommentCreateEvent extends NcBaseEvent {
   comment: Record<string, any>;
   user: UserType;

@@ -23,6 +23,7 @@ import type {
   DocumentCommentCreateEvent,
   DocumentCommentUpdateEvent,
   DocumentCommentDeleteEvent,
+  DocumentUserMentionEvent,
   RlsPolicyDeleteEvent,
   RlsPolicyUpdateEvent,
   SandboxCreateEvent,
@@ -488,6 +489,10 @@ export class AppHooksService extends ApppHookServiceCE {
     event: AppEvents.DOCUMENT_DELETE,
     listener: (data: DocumentDeleteEvent) => void,
   ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_USER_MENTION,
+    listener: (data: DocumentUserMentionEvent) => void,
+  ): () => void;
 
   // Document Comment Events
   on(
@@ -828,6 +833,10 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.DOCUMENT_CREATE, data: DocumentCreateEvent): void;
   emit(event: AppEvents.DOCUMENT_UPDATE, data: DocumentUpdateEvent): void;
   emit(event: AppEvents.DOCUMENT_DELETE, data: DocumentDeleteEvent): void;
+  emit(
+    event: AppEvents.DOCUMENT_USER_MENTION,
+    data: DocumentUserMentionEvent,
+  ): void;
 
   emit(
     event: AppEvents.DOCUMENT_COMMENT_CREATE,

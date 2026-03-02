@@ -3806,11 +3806,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }) {
     const { entity, entityId, permission, user, req } = params;
 
-    // Base owners always bypass table-level permission restrictions
-    if (getProjectRole(user) === ProjectRoles.OWNER) {
-      return;
-    }
-
     const permissionObj = req?.permissions?.find(
       (p) =>
         p.entity === entity &&

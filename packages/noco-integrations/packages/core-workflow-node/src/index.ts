@@ -134,7 +134,7 @@ export const entries: IntegrationEntry[] = [
   },
   {
     type: IntegrationType.WorkflowNode,
-    sub_type: 'smtp.send_email',
+    sub_type: 'core.action.send_smtp_email',
     wrapper: SmtpSendEmailNode,
     form: [],
     manifest: {

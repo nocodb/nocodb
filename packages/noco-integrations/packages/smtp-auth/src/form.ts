@@ -85,7 +85,7 @@ export const form: FormDefinition = [
     type: FormBuilderInputType.Switch,
     label: 'Allow self-signed certificates',
     model: 'config.allowSelfSigned',
-    span: 12,
+    span: 24,
     category: 'Connection',
     defaultValue: false,
     helpText:

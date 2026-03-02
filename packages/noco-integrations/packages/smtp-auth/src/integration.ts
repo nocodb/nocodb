@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
+import { AuthIntegration } from '@noco-integrations/core';
 import type { Transporter } from 'nodemailer';
 import type SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { AuthIntegration } from '@noco-integrations/core';
 import type { TestConnectionResponse } from '@noco-integrations/core';
 import type { SmtpAuthConfig } from './types';
 
@@ -9,7 +9,9 @@ export class SmtpAuthIntegration extends AuthIntegration<
   SmtpAuthConfig,
   Transporter<SMTPTransport.SentMessageInfo>
 > {
-  public async authenticate(): Promise<Transporter<SMTPTransport.SentMessageInfo>> {
+  public async authenticate(): Promise<
+    Transporter<SMTPTransport.SentMessageInfo>
+  > {
     const { host, port, encryption, username, password, allowSelfSigned } =
       this.config;
 

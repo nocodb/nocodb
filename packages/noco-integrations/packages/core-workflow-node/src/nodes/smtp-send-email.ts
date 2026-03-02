@@ -25,8 +25,6 @@ interface SmtpSendEmailConfig extends WorkflowNodeConfig {
   bcc?: string;
   fromName?: string;
   fromAddress?: string;
-  replyTo?: string;
-  isHtml?: boolean;
 }
 
 export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConfig> {
@@ -83,23 +81,15 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
         ],
       },
       {
-        type: FormBuilderInputType.Switch,
-        label: 'Send as HTML',
-        model: 'config.isHtml',
-        defaultValue: false,
-        helpText: 'When enabled, body is rendered as HTML',
-        group: 'moreOptions',
-        groupCollapsible: true,
-        groupLabel: 'Show more options',
-        groupDefaultCollapsed: true,
-      },
-      {
         type: FormBuilderInputType.WorkflowInput,
         label: 'CC',
         model: 'config.cc',
         placeholder: 'cc@example.com',
         helpText: 'Separate multiple addresses with commas',
         group: 'moreOptions',
+        groupCollapsible: true,
+        groupLabel: 'Show more options',
+        groupDefaultCollapsed: true,
       },
       {
         type: FormBuilderInputType.WorkflowInput,
@@ -110,14 +100,7 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
       },
       {
         type: FormBuilderInputType.WorkflowInput,
-        label: 'Reply-To',
-        model: 'config.replyTo',
-        placeholder: 'reply@example.com',
-        group: 'moreOptions',
-      },
-      {
-        type: FormBuilderInputType.WorkflowInput,
-        label: 'From name (override)',
+        label: 'From name',
         model: 'config.fromName',
         placeholder: 'Leave blank to use integration default',
         helpText: 'Overrides the From name set on the SMTP integration',
@@ -125,7 +108,7 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
       },
       {
         type: FormBuilderInputType.WorkflowInput,
-        label: 'From address (override)',
+        label: 'From address',
         model: 'config.fromAddress',
         placeholder: 'Leave blank to use integration default',
         helpText: 'Must be an address authorised by your SMTP provider',
@@ -134,7 +117,7 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
     ];
 
     return {
-      id: 'smtp.send_email',
+      id: 'core.action.send_smtp_email',
       title: 'Send Email (SMTP)',
       description:
         'Send an email via SMTP — works with SendGrid, Mailgun, SES, or any SMTP server',
@@ -196,7 +179,6 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
     validateEmailList(config.to, 'config.to', 'To', true);
     validateEmailList(config.cc, 'config.cc', 'CC');
     validateEmailList(config.bcc, 'config.bcc', 'BCC');
-    validateEmailList(config.replyTo, 'config.replyTo', 'Reply-To');
 
     if (
       config.fromAddress &&
@@ -234,10 +216,8 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
         body,
         cc,
         bcc,
-        replyTo,
         fromName,
         fromAddress,
-        isHtml,
       } = ctx.inputs.config;
 
       if (!authIntegrationId) {
@@ -271,10 +251,9 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
           from,
           to: this.sanitizeHeader(to),
           subject: this.sanitizeHeader(subject),
-          ...(isHtml ? { html: body } : { text: body }),
+          text: body,
           ...(cc && { cc: this.sanitizeHeader(cc) }),
           ...(bcc && { bcc: this.sanitizeHeader(bcc) }),
-          ...(replyTo && { replyTo: this.sanitizeHeader(replyTo) }),
         });
       });
 
@@ -366,14 +345,6 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
         name: 'BCC',
         extra: { icon: 'ncUsers' },
       });
-    if (this.config.replyTo)
-      vars.push({
-        key: 'config.replyTo',
-        type: NocoSDK.VariableType.String,
-        name: 'Reply-To',
-        extra: { icon: 'ncLink' },
-      });
-
     return vars;
   }
 

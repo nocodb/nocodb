@@ -173,20 +173,6 @@ describe('SmtpSendEmailNode.validate - email format', () => {
     expect(result.valid).toBe(true);
   });
 
-  it('should validate bcc when provided', async () => {
-    const node = createNode();
-    const result = await node.validate({ ...VALID_CONFIG, bcc: 'bad-email' } as any);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual(expect.objectContaining({ path: 'config.bcc' }));
-  });
-
-  it('should validate replyTo when provided', async () => {
-    const node = createNode();
-    const result = await node.validate({ ...VALID_CONFIG, replyTo: 'bad-email' } as any);
-    expect(result.valid).toBe(false);
-    expect(result.errors).toContainEqual(expect.objectContaining({ path: 'config.replyTo' }));
-  });
-
   it('should validate fromAddress when provided and not dynamic', async () => {
     const node = createNode();
     const result = await node.validate({ ...VALID_CONFIG, fromAddress: 'not-email' } as any);
@@ -199,6 +185,14 @@ describe('SmtpSendEmailNode.validate - email format', () => {
     const result = await node.validate({ ...VALID_CONFIG, fromAddress: '$(trigger.from)' } as any);
     expect(result.valid).toBe(true);
   });
+
+  it('should validate bcc when provided', async () => {
+    const node = createNode();
+    const result = await node.validate({ ...VALID_CONFIG, bcc: 'bad-email' } as any);
+    expect(result.valid).toBe(false);
+    expect(result.errors).toContainEqual(expect.objectContaining({ path: 'config.bcc' }));
+  });
+
 });
 
 // ──────────────────────────────────────────────
@@ -224,7 +218,7 @@ describe('SmtpSendEmailNode.run - success', () => {
     expect(sendMail).toHaveBeenCalledOnce();
   });
 
-  it('should send plain text body by default', async () => {
+  it('should send plain text body', async () => {
     const sendMail = vi.fn().mockResolvedValue({
       messageId: 'id', accepted: [], rejected: [], envelope: {},
     });
@@ -234,19 +228,6 @@ describe('SmtpSendEmailNode.run - success', () => {
     const call = sendMail.mock.calls[0][0];
     expect(call.text).toBe('Test body');
     expect(call.html).toBeUndefined();
-  });
-
-  it('should send html body when isHtml is true', async () => {
-    const sendMail = vi.fn().mockResolvedValue({
-      messageId: 'id', accepted: [], rejected: [], envelope: {},
-    });
-    const config = { ...VALID_CONFIG, isHtml: true, body: '<p>Hello</p>' };
-    const node = createNodeWithAuth(config, sendMail);
-    await node.run(createRunContext(config));
-
-    const call = sendMail.mock.calls[0][0];
-    expect(call.html).toBe('<p>Hello</p>');
-    expect(call.text).toBeUndefined();
   });
 
   it('should use integration fromEmail as default From', async () => {
@@ -297,18 +278,7 @@ describe('SmtpSendEmailNode.run - success', () => {
     expect(sendMail.mock.calls[0][0].bcc).toBe('bcc@example.com');
   });
 
-  it('should include replyTo when provided', async () => {
-    const sendMail = vi.fn().mockResolvedValue({
-      messageId: 'id', accepted: [], rejected: [], envelope: {},
-    });
-    const config = { ...VALID_CONFIG, replyTo: 'reply@example.com' };
-    const node = createNodeWithAuth(config, sendMail);
-    await node.run(createRunContext(config));
-
-    expect(sendMail.mock.calls[0][0].replyTo).toBe('reply@example.com');
-  });
-
-  it('should omit cc/bcc/replyTo when not provided', async () => {
+  it('should omit cc/bcc when not provided', async () => {
     const sendMail = vi.fn().mockResolvedValue({
       messageId: 'id', accepted: [], rejected: [], envelope: {},
     });
@@ -318,7 +288,6 @@ describe('SmtpSendEmailNode.run - success', () => {
     const call = sendMail.mock.calls[0][0];
     expect(call).not.toHaveProperty('cc');
     expect(call).not.toHaveProperty('bcc');
-    expect(call).not.toHaveProperty('replyTo');
   });
 
   it('should include executionTimeMs in metrics', async () => {
@@ -462,12 +431,11 @@ describe('SmtpSendEmailNode - variable definitions', () => {
     expect(withoutKeys).not.toContain('config.cc');
   });
 
-  it('should include bcc and replyTo in input variables only when configured', async () => {
-    const node = createNode({ ...VALID_CONFIG, bcc: 'b@b.com', replyTo: 'r@r.com' });
+  it('should include bcc in input variables only when configured', async () => {
+    const node = createNode({ ...VALID_CONFIG, bcc: 'b@b.com' });
     const vars = await node.generateInputVariables();
     const keys = vars.map((v) => v.key);
     expect(keys).toContain('config.bcc');
-    expect(keys).toContain('config.replyTo');
   });
 
   it('should include success/messageId/accepted/rejected in output variables', async () => {
@@ -489,7 +457,7 @@ describe('SmtpSendEmailNode.definition', () => {
   it('should return correct node id and category', async () => {
     const node = createNode();
     const def = await node.definition();
-    expect(def.id).toBe('smtp.send_email');
+    expect(def.id).toBe('core.action.send_smtp_email');
     expect(def.category).toBe('action');
   });
 

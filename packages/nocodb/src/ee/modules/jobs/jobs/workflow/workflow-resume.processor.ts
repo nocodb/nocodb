@@ -30,9 +30,15 @@ export class WorkflowResumeProcessor {
 
       for (const execution of dueExecutions) {
         try {
+          const ncSiteUrl =
+            Noco.config?.envs?.[Noco.env]?.publicUrl ||
+            Noco.config?.publicUrl ||
+            '';
+
           const context = {
             workspace_id: execution.fk_workspace_id,
             base_id: execution.base_id,
+            nc_site_url: process.env.NC_PUBLIC_URL || ncSiteUrl,
           };
 
           // Add a ResumeWorkflow job for this execution

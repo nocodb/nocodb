@@ -146,7 +146,7 @@ const { formState } = useProvideFormBuilderHelper({
 
     clearChildNodesTestResults(selectedNodeId.value)
   },
-  fetchOptions: async (key: string) => {
+  fetchOptions: async (key: string, searchQuery?: string) => {
     return fetchNodeIntegrationOptions(
       {
         ...formState.value,
@@ -154,6 +154,7 @@ const { formState } = useProvideFormBuilderHelper({
         sub_type: selectedNode.value.type,
       },
       key,
+      searchQuery,
     )
   },
 })

@@ -85,6 +85,7 @@ export class WorkflowPostOperations
         return await this.workflowsService.integrationFetchOptions(context, {
           integration: payload.integration,
           key: payload.key,
+          searchQuery: payload.searchQuery,
         });
       case 'workflowTestNode':
         return await this.workflowsService.testExecuteNode(

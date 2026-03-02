@@ -481,9 +481,10 @@ export class WorkflowsService implements OnModuleInit {
     param: {
       integration: IntegrationReqType;
       key: string;
+      searchQuery?: string;
     },
   ) {
-    const { integration, key } = param;
+    const { integration, key, searchQuery } = param;
 
     const wfNodeWrapper = this.workflowExecutionService.getNodeWrapper(
       context,
@@ -495,7 +496,7 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).workflowNodeNotFound(integration.sub_type);
     }
 
-    return await wfNodeWrapper.fetchOptions(key);
+    return await wfNodeWrapper.fetchOptions(key, searchQuery);
   }
 
   async testExecuteNode(

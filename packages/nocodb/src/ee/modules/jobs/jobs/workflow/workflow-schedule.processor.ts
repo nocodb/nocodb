@@ -39,9 +39,15 @@ export class WorkflowScheduleProcessor {
 
     for (const trigger of dueTriggers) {
       try {
+        const ncSiteUrl =
+          Noco.config?.envs?.[Noco.env]?.publicUrl ||
+          Noco.config?.publicUrl ||
+          '';
+
         const context = {
           workspace_id: trigger.fk_workspace_id,
           base_id: trigger.base_id,
+          nc_site_url: ncSiteUrl,
         };
 
         const base = await Base.get(context, trigger.base_id);
@@ -92,6 +98,7 @@ export class WorkflowScheduleProcessor {
             },
             req: {
               user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+              ncSiteUrl,
             } as any,
           });
 

@@ -508,7 +508,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     debouncedWorkflowUpdate()
   }
 
-  const fetchNodeIntegrationOptions = async (formState: any, key: string) => {
+  const fetchNodeIntegrationOptions = async (formState: any, key: string, searchQuery?: string) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
     try {
       return await api.internal.postOperation(
@@ -520,6 +520,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         {
           integration: formState,
           key,
+          searchQuery,
         },
       )
     } catch (e) {

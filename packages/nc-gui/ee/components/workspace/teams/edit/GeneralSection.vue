@@ -16,12 +16,67 @@ const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { teams, activeWorkspaceId } = storeToRefs(workspaceStore)
+const { teams, activeWorkspaceId, isTeamsHierarchyEnabled } = storeToRefs(workspaceStore)
+
+const { getTeamBreadcrumb, moveTeam, getTeamDescendantIds } = workspaceStore
 
 // Todo: Enable this once we support team description
 const showDescription = false
 
 const inputEl = ref<HTMLInputElement>()
+
+const isMoving = ref(false)
+
+const breadcrumb = computed(() => {
+  return getTeamBreadcrumb(team.value.id)
+})
+
+const parentTeamOptions = computed(() => {
+  const descendantIds = new Set(getTeamDescendantIds(team.value.id))
+
+  const eligible = (teams.value || []).filter((t: any) => {
+    if (t.id === team.value.id) return false
+    if (descendantIds.has(t.id)) return false
+    if ((t.depth ?? 0) >= 3) return false
+    return true
+  })
+
+  // Build parentId → children map for depth-first ordering
+  const childrenMap = new Map<string | null, typeof eligible>()
+  for (const t of eligible) {
+    const parentId = (t as any).fk_parent_team_id || null
+    if (!childrenMap.has(parentId)) childrenMap.set(parentId, [])
+    childrenMap.get(parentId)!.push(t)
+  }
+
+  for (const siblings of childrenMap.values()) {
+    siblings.sort((a, b) => (a.title ?? '').localeCompare(b.title ?? ''))
+  }
+
+  const ordered: typeof eligible = []
+  const walk = (parentId: string | null) => {
+    for (const child of childrenMap.get(parentId) ?? []) {
+      ordered.push(child)
+      walk(child.id)
+    }
+  }
+  walk(null)
+  return ordered
+})
+
+const selectedParentId = ref<string | null>(null)
+
+const handleMoveTeam = async () => {
+  if (isMoving.value || readOnly.value) return
+
+  try {
+    isMoving.value = true
+    await moveTeam(activeWorkspaceId.value!, team.value.id, selectedParentId.value)
+    message.success(t('msg.success.teamMoved'))
+  } finally {
+    isMoving.value = false
+  }
+}
 
 const formState = reactive<{
   title: string
@@ -109,6 +164,7 @@ onMounted(() => {
   formState.badge_color = team.value.badge_color ?? undefined
   formState.icon = team.value.icon ?? ''
   formState.icon_type = team.value.icon_type ?? ''
+  selectedParentId.value = (team.value as any).fk_parent_team_id || null
 })
 
 watch(
@@ -204,5 +260,62 @@ watch(
         />
       </a-form-item>
     </a-form>
+
+    <!-- Team hierarchy breadcrumb -->
+    <div v-if="breadcrumb.length > 1 && isTeamsHierarchyEnabled" class="mt-4">
+      <div class="text-[13px] text-nc-content-gray mb-1">{{ $t('labels.teamHierarchy') }}</div>
+      <div class="flex items-center gap-1 text-sm text-nc-content-gray-subtle flex-wrap">
+        <template v-for="(crumb, idx) in breadcrumb" :key="crumb.id">
+          <span :class="idx === breadcrumb.length - 1 ? 'text-nc-content-gray font-medium' : ''">
+            {{ crumb.title }}
+          </span>
+          <GeneralIcon v-if="idx < breadcrumb.length - 1" icon="ncArrowRight" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+        </template>
+      </div>
+    </div>
+
+    <!-- Move team -->
+    <div v-if="!readOnly && isTeamsHierarchyEnabled" class="mt-4">
+      <div class="text-[13px] text-nc-content-gray mb-1">{{ $t('labels.parentTeam') }}</div>
+      <div class="flex items-center gap-2">
+        <NcSelect
+          v-model:value="selectedParentId"
+          :placeholder="$t('general.none')"
+          allow-clear
+          show-search
+          :filter-option="(input: string, option: any) => option['data-label']?.toLowerCase().includes(input.toLowerCase())"
+          class="flex-1 nc-select-shadow"
+          data-testid="edit-team-parent-select"
+          dropdown-class-name="nc-dropdown-edit-team-parent"
+          :disabled="isMoving"
+        >
+          <a-select-option v-for="t in parentTeamOptions" :key="t.id" :value="t.id" :data-label="t.title">
+            <div class="flex items-center gap-2" :style="{ paddingLeft: `${(t.depth ?? 0) * 16}px` }">
+              <GeneralTeamIcon :team="t" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+              <NcTooltip class="truncate flex-1" show-on-truncate-only>
+                <template #title>{{ t.title }}</template>
+                {{ t.title }}
+              </NcTooltip>
+              <component
+                :is="iconMap.check"
+                v-if="selectedParentId === t.id"
+                id="nc-selected-item-icon"
+                class="text-primary w-4 h-4 flex-none"
+              />
+            </div>
+          </a-select-option>
+        </NcSelect>
+        <NcButton
+          v-if="selectedParentId !== ((team as any).fk_parent_team_id || null)"
+          size="small"
+          type="primary"
+          :loading="isMoving"
+          :disabled="isMoving"
+          @click="handleMoveTeam"
+        >
+          {{ $t('labels.moveTeam') }}
+        </NcButton>
+      </div>
+    </div>
   </div>
 </template>

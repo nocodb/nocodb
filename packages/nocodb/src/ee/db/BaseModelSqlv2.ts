@@ -104,6 +104,12 @@ import {
   resolveRlsDynamicValues,
   resolveRlsPolicies,
 } from '~/utils/rls-resolver';
+import Team from '~/ee/models/Team';
+import {
+  getExpandedTeamIds,
+  getMemberUserIdsForTeamsAndDescendants,
+  isUserInTeamOrDescendants,
+} from '~/ee/utils/team-subject-matcher';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -3940,10 +3946,50 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           .join(',');
       }
 
+      // Load user's team memberships for RLS
+      const teamIds: string[] = [];
+      const teamWithDescendantIds: string[] = [];
+
+      try {
+        const userTeamAssignments = await PrincipalAssignment.list(
+          this.context,
+          {
+            principal_type: PrincipalType.USER,
+            principal_ref_id: user.id,
+            resource_type: ResourceType.TEAM,
+          },
+        );
+
+        for (const assignment of userTeamAssignments) {
+          teamIds.push(assignment.resource_id);
+          const expanded = await getExpandedTeamIds(
+            this.context,
+            assignment.resource_id,
+          );
+          teamWithDescendantIds.push(...expanded);
+        }
+      } catch (_e) {
+        // Silently continue — teams are optional for RLS
+      }
+
+      // Resolve team hierarchy to member user IDs for {currentUser.teamWithDescendantMembers}
+      let teamDescendantMemberUserIds: string[] = [];
+      try {
+        if (teamIds.length > 0) {
+          teamDescendantMemberUserIds =
+            await getMemberUserIdsForTeamsAndDescendants(this.context, teamIds);
+        }
+      } catch (_e) {
+        // Silently continue — teams are optional
+      }
+
       const rlsUser = {
         id: user.id,
         email: user.email,
         roles: baseRoles,
+        teams: teamIds,
+        teamsWithDescendants: [...new Set(teamWithDescendantIds)],
+        teamDescendantMemberUserIds,
       };
 
       const result = await resolveRlsPolicies(
@@ -3984,14 +4030,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
             if (subject.type === 'team') {
               try {
-                const assignment = await PrincipalAssignment.get(
+                const inTeam = await isUserInTeamOrDescendants(
                   this.context,
-                  ResourceType.TEAM,
-                  subject.id,
-                  PrincipalType.USER,
                   user.id,
+                  subject.id,
+                  subject.hierarchy_scope,
                 );
-                if (assignment) {
+                if (inTeam) {
                   matched = true;
                   break;
                 }

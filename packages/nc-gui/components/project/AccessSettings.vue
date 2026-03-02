@@ -702,7 +702,7 @@ onBeforeUnmount(() => {
             </template>
 
             <template v-if="column.key === 'email' && record.isTeam">
-              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" />
+              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" show-breadcrumb />
             </template>
 
             <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">

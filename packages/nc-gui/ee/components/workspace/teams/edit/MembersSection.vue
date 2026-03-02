@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { TeamUserRoles, WorkspaceUserRoles } from 'nocodb-sdk'
-import type { TeamMemberV3ResponseV3Type, TeamV3V3Type, WorkspaceUserType } from 'nocodb-sdk'
+import type { InheritedTeamMemberV3V3Type, TeamMemberV3ResponseV3Type, TeamV3V3Type, WorkspaceUserType } from 'nocodb-sdk'
 
 import type { NcConfirmModalProps } from '~/components/nc/ModalConfirm.vue'
 
@@ -29,10 +29,17 @@ const { user } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { collaboratorsMap, activeWorkspaceId, editTeamDetails } = storeToRefs(workspaceStore)
+const { collaboratorsMap, activeWorkspaceId, editTeamDetails, isTeamsHierarchyEnabled } = storeToRefs(workspaceStore)
 
 const teamMembers = computed<TeamMember[]>(() => {
   return (editTeamDetails.value?.members || []).map((member) => ({
+    ...member,
+    ...(collaboratorsMap.value[member.user_id] || collaboratorsMap.value[member.user_email] || {}),
+  }))
+})
+
+const inheritedMembers = computed<(InheritedTeamMemberV3V3Type & WorkspaceUserType)[]>(() => {
+  return (editTeamDetails.value?.inherited_members || []).map((member) => ({
     ...member,
     ...(collaboratorsMap.value[member.user_id] || collaboratorsMap.value[member.user_email] || {}),
   }))
@@ -472,6 +479,31 @@ onMounted(() => {
         </template>
       </template>
     </NcTable>
+
+    <!-- Inherited members from parent teams -->
+    <div v-if="inheritedMembers.length && isTeamsHierarchyEnabled" class="mt-6">
+      <div class="nc-modal-teams-edit-content-section-title text-bodyBold flex items-center gap-2 mb-4">
+        {{ $t('labels.inheritedMembers') }}
+        <NcBadge size="xs" color="gray" :border="false" class="text-captionBold">
+          {{ inheritedMembers.length }}
+        </NcBadge>
+        <NcTooltip placement="right" :arrow="false">
+          <template #title>
+            {{ $t('tooltip.inheritedMembersInfo') }}
+          </template>
+          <GeneralIcon icon="ncInfo" class="h-3.5 w-3.5 text-nc-content-gray-muted cursor-default" />
+        </NcTooltip>
+      </div>
+
+      <div class="flex flex-col gap-0 divide-y divide-nc-border-gray-light">
+        <div v-for="member in inheritedMembers" :key="member.user_id" class="flex items-center justify-between py-3 px-1">
+          <NcUserInfo :user="member" class="min-w-20 flex-1 overflow-hidden" />
+          <span class="text-captionSm text-nc-content-gray-muted flex-none ml-3">
+            {{ $t('labels.inheritedFrom', { team: member.inherited_from_team_title }) }}
+          </span>
+        </div>
+      </div>
+    </div>
 
     <WorkspaceTeamsEditAddMembersModal
       v-model:visible="isAddMembersModalVisible"

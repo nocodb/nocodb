@@ -175,6 +175,7 @@ export const usePermissionSelector = (
         subjects = selectedUsers.value.map((user) => ({
           type: user.type ?? 'user',
           id: user.id,
+          ...(user.type === 'team' && user.hierarchy_scope ? { hierarchy_scope: user.hierarchy_scope } : {}),
         }))
       } else if (currentPermission.value === PermissionOptionValue.NOBODY) {
         granted_type = PermissionGrantedType.NOBODY
@@ -292,12 +293,16 @@ export const usePermissionSelector = (
           .concat(
             baseTeams
               .filter((team) => permission.subjects?.some((subject) => subject.type === 'team' && subject.id === team.team_id))
-              .map((team) => ({
-                id: team.team_id,
-                email: team.team_title,
-                display_name: team.team_title,
-                type: 'team',
-              })),
+              .map((team) => {
+                const subject = permission.subjects?.find((s) => s.type === 'team' && s.id === team.team_id)
+                return {
+                  id: team.team_id,
+                  email: team.team_title,
+                  display_name: team.team_title,
+                  type: 'team' as const,
+                  hierarchy_scope: subject?.hierarchy_scope,
+                }
+              }),
           )
 
         userSelectorSelectedUsers.value = new Set(permission.subjects?.map((subject) => subject.id) || [])

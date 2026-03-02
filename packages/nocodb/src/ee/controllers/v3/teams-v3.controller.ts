@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -15,10 +16,12 @@ import type {
   TeamMembersAddV3ReqType,
   TeamMembersRemoveV3ReqType,
   TeamMembersUpdateV3ReqType,
+  TeamTreeNodeV3Type,
   TeamV3ResponseType,
 } from '~/services/v3/teams-v3.types';
 import {
   TeamCreateV3ReqType,
+  TeamMoveV3ReqType,
   TeamUpdateV3ReqType,
 } from '~/services/v3/teams-v3.types';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -42,6 +45,17 @@ export class TeamsV3Controller {
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
   ): Promise<{ list: TeamV3ResponseType[] }> {
     return await this.teamsV3Service.teamList(context, {
+      workspaceOrOrgId,
+    });
+  }
+
+  @Get('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/tree')
+  @Acl('teamTree', { scope: 'workspace' })
+  async teamTree(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+  ): Promise<{ list: TeamTreeNodeV3Type[] }> {
+    return await this.teamsV3Service.teamTree(context, {
       workspaceOrOrgId,
     });
   }
@@ -92,6 +106,23 @@ export class TeamsV3Controller {
     });
   }
 
+  @Patch('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId/move')
+  @Acl('teamMove', { scope: 'workspace' })
+  async teamMove(
+    @TenantContext() context: NcContext,
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Param('teamId') teamId: string,
+    @Req() req: NcRequest,
+    @Body() body: TeamMoveV3ReqType,
+  ): Promise<TeamV3ResponseType> {
+    return await this.teamsV3Service.teamMove(context, {
+      workspaceOrOrgId,
+      teamId,
+      body,
+      req,
+    });
+  }
+
   @Delete('/api/v3/meta/workspaces/:workspaceOrOrgId/teams/:teamId')
   @Acl('teamDelete', { scope: 'workspace' })
   async teamDelete(
@@ -99,10 +130,12 @@ export class TeamsV3Controller {
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,
     @Param('teamId') teamId: string,
     @Req() req: NcRequest,
+    @Query('force') force?: string,
   ) {
     return await this.teamsV3Service.teamDelete(context, {
       workspaceOrOrgId,
       teamId,
+      force: force === 'true',
       req,
     });
   }

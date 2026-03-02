@@ -771,8 +771,25 @@ export const useRealtime = createSharedComposable(() => {
         break
       }
       case 'teamDelete': {
+        // Reparent children to the deleted team's parent before removing
+        const deletedTeam = teams.value.find((t: any) => t.id === id)
+        const parentId = (deletedTeam as any)?.fk_parent_team_id || null
+
+        teams.value = teams.value.map((t: any) => {
+          if (t.fk_parent_team_id === id) {
+            return { ...t, fk_parent_team_id: parentId }
+          }
+          return t
+        })
+
         teams.value = teams.value.filter((t) => t.id !== id)
         updateStatLimit(PlanLimitTypes.LIMIT_TEAM_MANAGEMENT, -1)
+        break
+      }
+      case 'teamMove': {
+        if (payload) {
+          teams.value = teams.value.map((team) => (team.id === id ? { ...team, ...payload } : team))
+        }
         break
       }
       case 'teamMembersAdd': {

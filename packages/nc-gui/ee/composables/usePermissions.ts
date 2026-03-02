@@ -121,22 +121,33 @@ export const usePermissions = () => {
       // Check if user exists in subjects array
       return (
         permissionObj.subjects?.some(
-          (subject: { type: string; id: string }) =>
-            (subject.type === 'user' && subject.id === user.value?.id) ||
-            (subject.type === 'team' && user.value?.teams?.some((t) => t.team_id === subject.id)),
-        ) || false
-      )
-    }
+          (subject: { type: string; id: string; hierarchy_scope?: 'self_only' | 'self_and_descendants' }) => {
+            if (subject.type === 'user') {
+              return subject.id === user.value?.id
+            }
 
-    if (permissionObj.granted_type === PermissionGrantedType.USER) {
-      // In shared form user is anonymous, but in form builder user role is present so we have to treat it as shared form
-      if (options?.isFormView) return false
-      // Check if user exists in subjects array
-      return (
-        permissionObj.subjects?.some(
-          (subject: { type: string; id: string }) =>
-            (subject.type === 'user' && subject.id === user.value?.id) ||
-            (subject.type === 'team' && user.value?.teams?.some((t) => t.team_id === subject.id)),
+            if (subject.type === 'team') {
+              // direct_teams: every team the user was explicitly added to, with their paths.
+              // Unlike user.teams (which only covers workspace-assigned teams + cascade),
+              // direct_teams is exhaustive — it covers all memberships regardless of assignment.
+              const directTeams: { team_id: string; path: string }[] = (user.value as any)?.direct_teams ?? []
+
+              // self_only: user must be a direct member of exactly the subject team
+              if (subject.hierarchy_scope === 'self_only') {
+                return directTeams.some((t) => t.team_id === subject.id)
+              }
+
+              // self_and_descendants (default when no scope): user must be in the subject
+              // team OR in any descendant team (a team whose path contains subject.id as a segment)
+              return directTeams.some((t) => {
+                if (t.team_id === subject.id) return true
+                const segments = t.path.split('/').filter(Boolean)
+                return segments.includes(subject.id)
+              })
+            }
+
+            return false
+          },
         ) || false
       )
     }

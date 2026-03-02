@@ -38,14 +38,15 @@ export default class RlsPolicy {
     ncMeta = Noco.ncMeta,
     subjectTypeField: string,
     subjectIdField: string,
+    hierarchyScopeField: string,
   ) {
     const { knex, knexConnection } = ncMeta;
     const client = knexConnection.client.config.client;
 
     const exprMap = {
-      pg: `json_build_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
-      mysql2: `JSON_OBJECT('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
-      sqlite3: `json_object('type', ${subjectTypeField}, 'id', ${subjectIdField})`,
+      pg: `json_build_object('type', ${subjectTypeField}, 'id', ${subjectIdField}, 'hierarchy_scope', ${hierarchyScopeField})`,
+      mysql2: `JSON_OBJECT('type', ${subjectTypeField}, 'id', ${subjectIdField}, 'hierarchy_scope', ${hierarchyScopeField})`,
+      sqlite3: `json_object('type', ${subjectTypeField}, 'id', ${subjectIdField}, 'hierarchy_scope', ${hierarchyScopeField})`,
     };
 
     return knex.raw(exprMap[client] || exprMap.mysql2);
@@ -103,6 +104,7 @@ export default class RlsPolicy {
         ncMeta,
         `${MetaTable.RLS_POLICY_SUBJECTS}.subject_type`,
         `${MetaTable.RLS_POLICY_SUBJECTS}.subject_id`,
+        `${MetaTable.RLS_POLICY_SUBJECTS}.hierarchy_scope`,
       );
 
       const jsonArrayAggExpr = this.getJsonArrayAggExpression(
@@ -167,6 +169,7 @@ export default class RlsPolicy {
         ncMeta,
         `${MetaTable.RLS_POLICY_SUBJECTS}.subject_type`,
         `${MetaTable.RLS_POLICY_SUBJECTS}.subject_id`,
+        `${MetaTable.RLS_POLICY_SUBJECTS}.hierarchy_scope`,
       );
 
       const jsonArrayAggExpr = this.getJsonArrayAggExpression(
@@ -406,10 +409,35 @@ export default class RlsPolicy {
           fk_rls_policy_id: policyId,
           subject_type: subject.type,
           subject_id: subject.id,
+          hierarchy_scope: subject.hierarchy_scope || null,
           fk_workspace_id: context.workspace_id,
           base_id: context.base_id,
         })),
         true,
+      );
+    }
+
+    // Update existing subjects where hierarchy_scope changed
+    const subjectsToUpdate = subjects.filter((subject) =>
+      existingSubjects.some(
+        (existing) =>
+          existing.type === subject.type &&
+          existing.id === subject.id &&
+          existing.hierarchy_scope !== subject.hierarchy_scope,
+      ),
+    );
+
+    for (const subject of subjectsToUpdate) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.RLS_POLICY_SUBJECTS,
+        { hierarchy_scope: subject.hierarchy_scope || null },
+        {
+          fk_rls_policy_id: policyId,
+          subject_type: subject.type,
+          subject_id: subject.id,
+        },
       );
     }
 

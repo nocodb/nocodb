@@ -85,6 +85,7 @@ import type {
   TableUpdatePayload,
   TeamCreatePayload,
   TeamDeletePayload,
+  TeamMovePayload,
   TeamMemberAddPayload,
   TeamMemberDeletePayload,
   TeamMemberUpdatePayload,
@@ -185,6 +186,7 @@ import type {
   TableUpdateEvent,
   TeamCreateEvent,
   TeamDeleteEvent,
+  TeamMoveEvent,
   TeamMemberAddEvent,
   TeamMemberDeleteEvent,
   TeamMemberUpdateEvent,
@@ -3955,6 +3957,29 @@ export class AppHooksListenerService
                 workspace_title: param.workspace?.title,
                 base_title: param.base?.title,
                 meta: param.team.meta,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      case AppEvents.TEAM_MOVE: {
+        const param = data as TeamMoveEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<TeamMovePayload>(
+            AuditV1OperationTypes.TEAM_MOVE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                team_id: param.team.id,
+                team_title: param.team.title,
+                old_parent_team_id: param.oldParentTeam?.id ?? null,
+                old_parent_team_title: param.oldParentTeam?.title ?? null,
+                new_parent_team_id: param.newParentTeam?.id ?? null,
+                new_parent_team_title: param.newParentTeam?.title ?? null,
+                workspace_title: param.workspace?.title,
               },
             },
           ),

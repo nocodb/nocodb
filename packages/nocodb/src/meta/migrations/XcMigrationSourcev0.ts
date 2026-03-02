@@ -31,6 +31,7 @@ import * as nc_202602270448_map_view_columns_add_source_id from './v0/nc_2026022
 import * as nc_202602270729_timeline_view from './v0/nc_202602270729_timeline_view';
 import * as nc_202602260000_unify_ce_roles from './v0/nc_202602260000_unify_ce_roles';
 import * as nc_202603020000_hook_error_notifications from './v0/nc_202603020000_hook_error_notifications';
+import * as nc_202603020001_teams_hierarchy from './v0/nc_202603020001_teams_hierarchy';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -73,6 +74,7 @@ export default class XcMigrationSourcev0 {
       'nc_202602270729_timeline_view',
       'nc_202602260000_unify_ce_roles',
       'nc_202603020000_hook_error_notifications',
+      'nc_202603020001_teams_hierarchy',
     ]);
   }
 
@@ -148,6 +150,8 @@ export default class XcMigrationSourcev0 {
         return nc_202602260000_unify_ce_roles;
       case 'nc_202603020000_hook_error_notifications':
         return nc_202603020000_hook_error_notifications;
+      case 'nc_202603020001_teams_hierarchy':
+        return nc_202603020001_teams_hierarchy;
     }
   }
 }

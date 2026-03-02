@@ -22,7 +22,7 @@ import type {
   UserType,
   WorkspaceType,
 } from 'nocodb-sdk';
-import type { AppConfig, NcRequest } from '~/interface/config';
+import type { AppConfig, NcContext, NcRequest } from '~/interface/config';
 import WorkspaceUser from '~/models/WorkspaceUser';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import Workspace from '~/models/Workspace';
@@ -37,9 +37,12 @@ import {
   Org,
   OrgUser,
   PresignedUrl,
+  PrincipalAssignment,
   Subscription,
+  Team,
   User,
 } from '~/models';
+import { PrincipalType, ResourceType } from '~/utils/globals';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { extractProps } from '~/helpers/extractProps';
 import { BasesService } from '~/services/bases.service';
@@ -797,11 +800,67 @@ export class WorkspacesService implements OnApplicationBootstrap {
     req: NcRequest;
   }) {
     const { workspaceId, user } = param;
-    const bases = await Base.listByWorkspaceAndUser(workspaceId, user.id);
+
+    // Compute the set of team IDs the user has access to, including all descendant
+    // teams via the upward-cascade hierarchy rule. This is passed to the query as
+    // a flat IN list so hierarchy depth never adds extra SQL joins.
+    const expandedTeamIds = await this.getExpandedTeamIdsForUser(
+      workspaceId,
+      user.id,
+    );
+
+    const bases = await Base.listByWorkspaceAndUser(
+      workspaceId,
+      user.id,
+      Noco.ncMeta,
+      expandedTeamIds,
+    );
 
     return new PagedResponseImpl<BaseType>(bases, {
       count: bases.length,
     });
+  }
+
+  /**
+   * Returns all team IDs that apply to the user in this workspace,
+   * including teams the user is directly in AND all their descendant teams
+   * (because parent team members inherit access from sub-team assignments).
+   */
+  private async getExpandedTeamIdsForUser(
+    workspaceId: string,
+    userId: string,
+  ): Promise<string[]> {
+    const context = {
+      workspace_id: workspaceId,
+      base_id: null,
+    } as NcContext;
+
+    // Get user's direct team memberships
+    const userTeamAssignments = await PrincipalAssignment.list(context, {
+      principal_type: PrincipalType.USER,
+      principal_ref_id: userId,
+      resource_type: ResourceType.TEAM,
+    });
+
+    if (userTeamAssignments.length === 0) return [];
+
+    const allTeamIds = new Set<string>();
+
+    for (const assignment of userTeamAssignments) {
+      allTeamIds.add(assignment.resource_id);
+
+      // Expand to descendants: if user is in Engineering, they also match
+      // Frontend/Backend/etc assignments (upward cascade means parent sees child assignments)
+      const team = await Team.get(context, assignment.resource_id);
+      if (team?.path) {
+        const descendants = await Team.getDescendants(context, team.id);
+        for (const desc of descendants) {
+          allTeamIds.add(desc.id);
+        }
+      }
+    }
+
+    return [...allTeamIds];
   }
 
   // todo: handle error case

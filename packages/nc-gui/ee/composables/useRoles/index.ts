@@ -121,6 +121,7 @@ export const useRolesShared = createSharedComposable(() => {
           meta: res.meta,
           identity_hash: res.identity_hash,
           teams: res.teams ?? [],
+          direct_teams: (res as any).direct_teams ?? [],
         } as User
       } else if (options?.isSharedErd) {
         const res = await api.auth.me(
@@ -145,6 +146,7 @@ export const useRolesShared = createSharedComposable(() => {
           meta: res.meta,
           identity_hash: res.identity_hash,
           teams: res.teams ?? [],
+          direct_teams: (res as any).direct_teams ?? [],
         } as User
       } else if (baseId) {
         const res = await api.auth.me({ base_id: baseId, ...wsId })
@@ -161,6 +163,7 @@ export const useRolesShared = createSharedComposable(() => {
           meta: res.meta,
           identity_hash: res.identity_hash,
           teams: res.teams ?? [],
+          direct_teams: (res as any).direct_teams ?? [],
         } as User
       } else {
         const res = await api.auth.me({ ...wsId } as any)
@@ -180,6 +183,7 @@ export const useRolesShared = createSharedComposable(() => {
            */
           is_new_user: res.is_new_user,
           teams: res.teams ?? [],
+          direct_teams: (res as any).direct_teams ?? [],
         } as User
       }
     } catch (e) {

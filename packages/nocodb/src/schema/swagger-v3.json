@@ -954,7 +954,7 @@
                           "id": "mwmlsgaek7932m4",
                           "title": "Table-1",
                           "meta": {
-                            "icon": "🚞"
+                            "icon": "\ud83d\ude9e"
                           },
                           "base_id": "pgfqcp0ocloo1j3",
                           "workspace_id": "w6dw3fo0"
@@ -963,7 +963,7 @@
                           "id": "m56zsedzrpz6p9w",
                           "title": "Table-2",
                           "meta": {
-                            "icon": "🏞️"
+                            "icon": "\ud83c\udfde\ufe0f"
                           },
                           "base_id": "pgfqcp0ocloo1j3",
                           "workspace_id": "w6dw3fo0"
@@ -1797,7 +1797,7 @@
                     "description": "Updated Description",
                     "display_field_id": "c455mde7px2yidt",
                     "meta": {
-                      "icon": "🚞"
+                      "icon": "\ud83d\ude9e"
                     }
                   }
                 }
@@ -1819,7 +1819,7 @@
                       "id": "m0nibecfkcfsz2x",
                       "title": "Features",
                       "meta": {
-                        "icon": "🚞"
+                        "icon": "\ud83d\ude9e"
                       },
                       "source_id": "bbtx6pvj7b8yszy",
                       "base_id": "pn9mmowpquxj60w",
@@ -3880,7 +3880,9 @@
           {
             "schema": {
               "type": "string",
-              "enum": ["true"]
+              "enum": [
+                "true"
+              ]
             },
             "name": "linksAsLtar",
             "in": "query",
@@ -4297,7 +4299,9 @@
           {
             "schema": {
               "type": "string",
-              "enum": ["true"]
+              "enum": [
+                "true"
+              ]
             },
             "name": "linksAsLtar",
             "in": "query",
@@ -8191,7 +8195,8 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/FieldBase"
-          },{
+          },
+          {
             "type": "object",
             "properties": {
               "type": {
@@ -10369,7 +10374,7 @@
               "null"
             ],
             "description": "Team icon (emoji or icon identifier)",
-            "example": "🎨"
+            "example": "\ud83c\udfa8"
           },
           "icon_type": {
             "oneOf": [
@@ -10420,6 +10425,34 @@
             "type": "string",
             "format": "date-time",
             "description": "Team last update timestamp"
+          },
+          "fk_parent_team_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Parent team ID. Null = root team."
+          },
+          "depth": {
+            "type": "integer",
+            "description": "Depth in the team tree. Root teams have depth 0.",
+            "example": 1
+          },
+          "path": {
+            "type": "string",
+            "description": "Materialized path for efficient ancestor/descendant queries.",
+            "example": "/eng/fe/web"
+          },
+          "is_member": {
+            "type": "boolean",
+            "description": "Whether the requesting user is a member of this team."
+          },
+          "managers": {
+            "type": "array",
+            "description": "List of user IDs who are owners/managers of this team.",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -10445,7 +10478,7 @@
               "null"
             ],
             "description": "Team icon (emoji or icon identifier)",
-            "example": "🎨"
+            "example": "\ud83c\udfa8"
           },
           "icon_type": {
             "oneOf": [
@@ -10475,6 +10508,14 @@
             "items": {
               "$ref": "#/components/schemas/TeamMemberV3"
             }
+          },
+          "parent_team_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Parent team ID. Null or omitted = root team.",
+            "example": "tmd_abc123"
           }
         },
         "required": [
@@ -10498,7 +10539,7 @@
               "null"
             ],
             "description": "Updated team icon (emoji or icon identifier)",
-            "example": "🛠️"
+            "example": "\ud83d\udee0\ufe0f"
           },
           "icon_type": {
             "oneOf": [
@@ -10539,7 +10580,7 @@
               "null"
             ],
             "description": "Team icon (emoji or icon identifier)",
-            "example": "🎨"
+            "example": "\ud83c\udfa8"
           },
           "icon_type": {
             "oneOf": [
@@ -10568,11 +10609,57 @@
             "items": {
               "$ref": "#/components/schemas/TeamMemberV3Response"
             }
+          },
+          "inherited_members": {
+            "type": "array",
+            "description": "Members inherited from ancestor teams",
+            "items": {
+              "$ref": "#/components/schemas/InheritedTeamMemberV3"
+            }
           }
         },
         "required": [
           "title",
           "members"
+        ]
+      },
+      "InheritedTeamMemberV3": {
+        "type": "object",
+        "description": "A team member inherited from an ancestor team",
+        "properties": {
+          "user_email": {
+            "type": "string",
+            "description": "Member email address",
+            "example": "user@example.com"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "Member user ID",
+            "example": "usr_xxxx"
+          },
+          "team_role": {
+            "type": "string",
+            "enum": ["owner", "member"],
+            "description": "Member role in the ancestor team",
+            "example": "member"
+          },
+          "inherited_from_team_id": {
+            "type": "string",
+            "description": "ID of the ancestor team this member is inherited from",
+            "example": "tm_xxxx"
+          },
+          "inherited_from_team_title": {
+            "type": "string",
+            "description": "Title of the ancestor team this member is inherited from",
+            "example": "Engineering"
+          }
+        },
+        "required": [
+          "user_email",
+          "user_id",
+          "team_role",
+          "inherited_from_team_id",
+          "inherited_from_team_title"
         ]
       },
       "TeamMemberV3": {

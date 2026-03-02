@@ -29,6 +29,7 @@ import type {
   TeamMemberAddEvent,
   TeamMemberDeleteEvent,
   TeamMemberUpdateEvent,
+  TeamMoveEvent,
   TeamUpdateEvent,
   UserSigninEvent,
   UserSignupEvent,
@@ -261,6 +262,11 @@ export class AppHooksService extends ApppHookServiceCE {
   on(
     event: AppEvents.TEAM_DELETE,
     listener: (data: TeamDeleteEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.TEAM_MOVE,
+    listener: (data: TeamMoveEvent) => void,
   ): () => void;
 
   on(
@@ -736,6 +742,7 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.TEAM_CREATE, data: TeamCreateEvent): void;
   emit(event: AppEvents.TEAM_UPDATE, data: TeamUpdateEvent): void;
   emit(event: AppEvents.TEAM_DELETE, data: TeamDeleteEvent): void;
+  emit(event: AppEvents.TEAM_MOVE, data: TeamMoveEvent): void;
   emit(event: AppEvents.TEAM_MEMBER_ADD, data: TeamMemberAddEvent): void;
   emit(event: AppEvents.TEAM_MEMBER_UPDATE, data: TeamMemberUpdateEvent): void;
   emit(event: AppEvents.TEAM_MEMBER_DELETE, data: TeamMemberDeleteEvent): void;

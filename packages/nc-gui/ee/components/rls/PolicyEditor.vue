@@ -81,11 +81,23 @@ const roleOptions = [
   { label: 'Creator', value: 'creator' },
 ]
 
-const defaultBehaviorOptions = [
-  { label: 'Show All Rows', value: 'show_all', description: 'All rows are visible when no scoped policy matches.' },
-  { label: 'Deny All Rows', value: 'deny_all', description: 'No rows are visible when no scoped policy matches.' },
-  { label: 'Apply Condition', value: 'condition', description: 'Apply filter conditions as the fallback.' },
-]
+const defaultBehaviorOptions = computed(() => [
+  {
+    label: t('msg.permissions.rlsPolicy.showAllRows'),
+    value: 'show_all',
+    description: t('msg.permissions.rlsPolicy.showAllRowsDescription'),
+  },
+  {
+    label: t('msg.permissions.rlsPolicy.denyAllRows'),
+    value: 'deny_all',
+    description: t('msg.permissions.rlsPolicy.denyAllRowsDescription'),
+  },
+  {
+    label: t('msg.permissions.rlsPolicy.applyCondition'),
+    value: 'condition',
+    description: t('msg.permissions.rlsPolicy.applyConditionDescription'),
+  },
+])
 
 const handleSave = async () => {
   if (!policy.value?.id) return
@@ -147,8 +159,12 @@ const subjectTypeIcons: Record<string, string> = {
 }
 
 const subjectGroupOrder = computed(() => {
-  const groups = ['Roles', 'Members']
-  if (isTeamsEnabled.value) groups.push('Teams')
+  const groups = [
+    t('msg.permissions.rlsPolicy.groupRoles'),
+    t('msg.permissions.rlsPolicy.groupMembers'),
+  ]
+  if (isTeamsEnabled.value)
+    groups.push(t('msg.permissions.rlsPolicy.groupTeams'))
   return groups
 })
 
@@ -164,7 +180,7 @@ const subjectListOptions = computed<NcListItemType[]>(() => {
       subjectType: 'role',
       subjectId: role.value,
       roleValue: role.value,
-      ncGroupHeaderLabel: 'Roles',
+      ncGroupHeaderLabel: t('msg.permissions.rlsPolicy.groupRoles'),
     })
   }
 
@@ -178,7 +194,7 @@ const subjectListOptions = computed<NcListItemType[]>(() => {
       display_name: (user as any).display_name,
       subjectType: 'user',
       subjectId: (user as any).id,
-      ncGroupHeaderLabel: 'Members',
+      ncGroupHeaderLabel: t('msg.permissions.rlsPolicy.groupMembers'),
     })
   }
 
@@ -193,7 +209,7 @@ const subjectListOptions = computed<NcListItemType[]>(() => {
         subjectType: 'team',
         subjectId: (team as any).team_id,
         description: `${(team as any).members_count || 0} members`,
-        ncGroupHeaderLabel: 'Teams',
+        ncGroupHeaderLabel: t('msg.permissions.rlsPolicy.groupTeams'),
       })
     }
   }
@@ -226,6 +242,17 @@ const handleSubjectToggle = (option: NcListItemType) => {
   }
 }
 
+const toggleTeamHierarchyScope = (index: number) => {
+  const subject = subjects.value[index]
+  if (subject?.type !== 'team') return
+
+  const current = subject.hierarchy_scope || 'self_and_descendants'
+  subjects.value[index] = {
+    ...subject,
+    hierarchy_scope: current === 'self_and_descendants' ? 'self_only' : 'self_and_descendants',
+  }
+}
+
 const showFilterSection = computed(() => {
   if (!policy.value?.is_default) return true
   return defaultBehavior.value === 'condition'
@@ -241,12 +268,16 @@ const showFilterSection = computed(() => {
           <GeneralIcon icon="arrowLeft" class="w-4 h-4" />
         </NcButton>
         <div class="text-subHeading2 text-nc-content-gray-emphasis">
-          {{ policy?.is_default ? 'Edit Default Policy' : 'Edit Policy' }}
+          {{
+            policy?.is_default
+              ? $t('msg.permissions.rlsPolicy.editDefaultPolicy')
+              : $t('msg.permissions.rlsPolicy.editPolicy')
+          }}
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <NcButton type="secondary" size="small" @click="emit('close')">Cancel</NcButton>
-        <NcButton type="primary" size="small" :loading="isSaving" @click="handleSave">Save</NcButton>
+        <NcButton type="secondary" size="small" @click="emit('close')">{{ $t('general.cancel') }}</NcButton>
+        <NcButton type="primary" size="small" :loading="isSaving" @click="handleSave">{{ $t('general.save') }}</NcButton>
       </div>
     </div>
 
@@ -254,20 +285,24 @@ const showFilterSection = computed(() => {
     <div class="flex-1 overflow-auto p-4 flex flex-col gap-5">
       <!-- Policy Name -->
       <div class="flex flex-col gap-1">
-        <label class="text-xs font-semibold text-nc-content-gray-subtle">Policy Name</label>
-        <a-input v-model:value="policyTitle" placeholder="Enter policy name" class="nc-input-sm nc-input-shadow" />
+        <label class="text-xs font-semibold text-nc-content-gray-subtle">{{ $t('msg.permissions.rlsPolicy.policyName') }}</label>
+        <a-input v-model:value="policyTitle" :placeholder="$t('msg.permissions.rlsPolicy.enterPolicyName')" class="nc-input-sm nc-input-shadow" />
       </div>
 
       <!-- Enabled -->
       <div class="flex items-center gap-2">
         <a-switch v-model:checked="policyEnabled" size="small" />
-        <span class="text-sm">{{ policyEnabled ? 'Enabled' : 'Disabled' }}</span>
+        <span class="text-sm">{{
+          policyEnabled
+            ? $t('msg.permissions.rlsPolicy.enabled')
+            : $t('msg.permissions.rlsPolicy.disabled')
+        }}</span>
       </div>
 
       <!-- Default Behavior (only for default policy) -->
       <div v-if="policy?.is_default" class="flex flex-col gap-2">
-        <label class="text-xs font-semibold text-nc-content-gray-subtle">Default Behavior</label>
-        <p class="text-xs text-nc-content-gray-muted">Applied when no scoped policy matches the current user.</p>
+        <label class="text-xs font-semibold text-nc-content-gray-subtle">{{ $t('msg.permissions.rlsPolicy.defaultBehavior') }}</label>
+        <p class="text-xs text-nc-content-gray-muted">{{ $t('msg.permissions.rlsPolicy.defaultBehaviorDescription') }}</p>
         <a-radio-group v-model:value="defaultBehavior" class="flex flex-col gap-1 mt-1">
           <a-radio v-for="opt in defaultBehaviorOptions" :key="opt.value" :value="opt.value" class="!flex items-start gap-1">
             <div class="flex flex-col">
@@ -280,32 +315,52 @@ const showFilterSection = computed(() => {
 
       <!-- Subjects (for scoped policies) -->
       <div v-if="!policy?.is_default" class="flex flex-col gap-2">
-        <label class="text-xs font-semibold text-nc-content-gray-subtle">Apply To (Subjects)</label>
-        <p class="text-xs text-nc-content-gray-muted">Choose which roles, teams, or users this policy applies to.</p>
+        <label class="text-xs font-semibold text-nc-content-gray-subtle">{{ $t('msg.permissions.rlsPolicy.applyTo') }}</label>
+        <p class="text-xs text-nc-content-gray-muted">{{ $t('msg.permissions.rlsPolicy.applyToDescription') }}</p>
 
         <NcListDropdown v-model:isOpen="isSubjectDropdownOpen" default-slot-wrapper-class="w-full !min-h-8 !h-auto">
           <!-- Trigger: show selected subjects as colored chips -->
           <div class="w-[calc(100%_-_24px)] flex items-center gap-1.5 flex-wrap">
             <template v-if="subjects.length">
               <div
-                v-for="subject in subjects"
+                v-for="(subject, idx) in subjects"
                 :key="`${subject.type}-${subject.id}`"
                 class="flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-lg border text-xs"
                 :class="subjectTypeColors[subject.type]"
               >
                 <GeneralIcon :icon="(subjectTypeIcons[subject.type] as any)" class="w-3 h-3 flex-none" />
                 <span class="truncate max-w-32">{{ getSubjectDisplayLabel(subject) }}</span>
+                <NcTooltip v-if="subject.type === 'team'">
+                  <template #title>
+                    {{
+                      subject.hierarchy_scope === 'self_only'
+                        ? t('tooltip.teamScopeThisOnly')
+                        : t('tooltip.teamScopeIncludesSubTeams')
+                    }}
+                  </template>
+                  <NcButton
+                    type="text"
+                    size="xs"
+                    class="!h-4 !w-4 !min-w-0"
+                    @click.stop="toggleTeamHierarchyScope(idx)"
+                  >
+                    <GeneralIcon
+                      :icon="subject.hierarchy_scope === 'self_only' ? 'ncUser' : 'ncUsers'"
+                      class="w-2.5 h-2.5"
+                    />
+                  </NcButton>
+                </NcTooltip>
                 <NcButton
                   type="text"
                   size="xs"
                   class="!h-4 !w-4 !min-w-0"
-                  @click.stop="handleRemoveSubject(subjects.indexOf(subject))"
+                  @click.stop="handleRemoveSubject(idx)"
                 >
                   <GeneralIcon icon="close" class="w-2.5 h-2.5" />
                 </NcButton>
               </div>
             </template>
-            <span v-else class="text-nc-content-gray-muted text-sm"> Select roles, users, or teams... </span>
+            <span v-else class="text-nc-content-gray-muted text-sm">{{ $t('msg.permissions.rlsPolicy.selectSubjects') }}</span>
           </div>
           <GeneralIcon
             icon="chevronDown"
@@ -326,10 +381,10 @@ const showFilterSection = computed(() => {
               :item-height="44"
               is-multi-select
               :close-on-select="false"
-              search-input-placeholder="Search roles, users, or teams..."
+              :search-input-placeholder="$t('msg.permissions.rlsPolicy.searchSubjects')"
               :filter-option="filterSubjectOption"
               :show-selected-option="false"
-              empty-description="No matches found"
+              :empty-description="$t('msg.permissions.rlsPolicy.noMatchesFound')"
               wrapper-class-name="!h-auto max-h-64"
               @change="handleSubjectToggle($event)"
               @escape="onEsc"

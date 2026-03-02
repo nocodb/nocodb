@@ -9,6 +9,7 @@ const props = defineProps<{
   permission?: PermissionKey
   readonly?: boolean
   hint?: string
+  teamHierarchyScopes?: Record<string, 'self_only' | 'self_and_descendants'>
 }>()
 
 const emits = defineEmits(['update:selectedUsers', 'save'])
@@ -16,6 +17,8 @@ const emits = defineEmits(['update:selectedUsers', 'save'])
 const selectedUsers = useVModel(props, 'selectedUsers', emits)
 
 const { $e } = useNuxtApp()
+
+const { t } = useI18n()
 
 const { getColor } = useTheme()
 
@@ -92,6 +95,40 @@ async function calculateVisibleUsers() {
   hiddenCount.value = selectedUsersList.value.length - count
 }
 
+// Toggle hierarchy scope for a team and save immediately
+const toggleTeamScope = (teamId: string) => {
+  const currentScope = props.teamHierarchyScopes?.[teamId] || 'self_and_descendants'
+  const newScope = currentScope === 'self_and_descendants' ? 'self_only' : 'self_and_descendants'
+
+  // Build users with the toggled scope and emit save
+  const selectedIds = Array.from(selectedUsers.value)
+  const users: PermissionSelectorUser[] = []
+
+  for (const id of selectedIds) {
+    const team = baseTeams.value.find((team) => team.team_id === id)
+    if (team) {
+      users.push({
+        id: team.team_id,
+        display_name: team.team_title,
+        type: 'team',
+        hierarchy_scope: id === teamId ? newScope : props.teamHierarchyScopes?.[team.team_id],
+      })
+    } else {
+      const user = baseUsers.value.find((user) => user.id === id)
+      if (user) {
+        users.push({
+          id: user.id,
+          email: user.email,
+          display_name: user.display_name,
+          type: 'user',
+        })
+      }
+    }
+  }
+
+  emits('save', { selectedUsers: users })
+}
+
 // Handle save
 const handleSave = async () => {
   const selectedIds = Array.from(selectedUsers.value)
@@ -107,6 +144,7 @@ const handleSave = async () => {
         id: team.team_id,
         display_name: team.team_title,
         type: 'team',
+        hierarchy_scope: props.teamHierarchyScopes?.[team.team_id],
       })
     } else {
       // It's a user
@@ -182,7 +220,7 @@ watch(selectedUsersList, () => {
       <div class="flex items-center gap-1.5 w-full">
         <!-- Selected user tags -->
         <div v-if="selectedUsers.size === 0" class="font-medium flex-1 text-nc-content-gray-muted truncate">
-          -no users selected- (Nobody {{ permissionDescription }})
+          {{ t('objects.permissions.inlineUserSelector.noUsersSelected', { description: permissionDescription }) }}
         </div>
         <div v-else ref="containerRef" class="flex items-center flex-1 overflow-hidden">
           <!-- Show first few users as tags -->
@@ -224,6 +262,26 @@ watch(selectedUsersList, () => {
                   {{ user?.isTeam ? user.display_name : extractUserDisplayNameOrEmail(user) }}
                 </span>
               </NcTooltip>
+              <NcTooltip v-if="user?.isTeam && !readonly">
+                <template #title>
+                  {{
+                    teamHierarchyScopes?.[user.id] === 'self_only'
+                      ? t('tooltip.teamScopeThisOnly')
+                      : t('tooltip.teamScopeIncludesSubTeams')
+                  }}
+                </template>
+                <NcButton
+                  type="text"
+                  size="xs"
+                  class="!h-4 !w-4 !min-w-0"
+                  @click.stop="toggleTeamScope(user.id)"
+                >
+                  <GeneralIcon
+                    :icon="teamHierarchyScopes?.[user.id] === 'self_only' ? 'ncUser' : 'ncUsers'"
+                    class="w-2.5 h-2.5"
+                  />
+                </NcButton>
+              </NcTooltip>
             </span>
           </a-tag>
           <!-- Show +X more if there are additional users -->
@@ -231,7 +289,7 @@ watch(selectedUsersList, () => {
             v-if="hiddenCount > 0"
             class="flex items-center gap-1 pr-2 py-0.5 !text-caption text-nc-content-gray-subtle2 truncate"
           >
-            + {{ hiddenCount }} more
+            {{ t('msg.permissions.inlineUserSelector.moreUsers', { count: hiddenCount }) }}
           </div>
         </div>
 

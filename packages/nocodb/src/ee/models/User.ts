@@ -1,6 +1,7 @@
 import UserCE from 'src/models/User';
 import {
   extractRolesObj,
+  OrderedWorkspaceRoles,
   OrgUserRoles,
   ProjectRoles,
   type UserType,
@@ -22,7 +23,10 @@ import { isCloud, sanitiseUserObj } from '~/utils';
 import { normalizeEmail } from '~/utils/emailUtils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
-import { extractUserTeamRoles } from '~/utils/team-role-extractor';
+import {
+  extractUserDirectTeams,
+  extractUserTeamRoles,
+} from '~/utils/team-role-extractor';
 import { extractUserBaseTeamRoles } from '~/utils/base-team-role-extractor';
 
 export default class User extends UserCE implements UserType {
@@ -502,6 +506,7 @@ export default class User extends UserCE implements UserType {
       orgRoles,
       { roles: teamRoles, teams: workspaceTeams },
       { roles: baseTeamRoles, teams: baseTeams },
+      directTeams,
     ] = await Promise.all([
       // extract workspace evel roles
       new Promise((resolve) => {
@@ -593,7 +598,12 @@ export default class User extends UserCE implements UserType {
         }
       }) as Promise<{
         roles?: Record<string, boolean> | null;
-        teams?: { team_id: string; roles: string }[];
+        teams?: {
+          team_id: string;
+          roles: string;
+          path?: string;
+          user_team_id?: string;
+        }[];
       }>,
       // extract base-team roles for base
       new Promise((resolve) => {
@@ -610,6 +620,11 @@ export default class User extends UserCE implements UserType {
         roles?: Record<string, boolean> | null;
         teams?: { team_id: string; roles: string }[];
       }>,
+      // direct team memberships (all teams user belongs to, with paths)
+      // used by frontend for permission subject matching (self_only / self_and_descendants)
+      args.workspaceId ?? context.workspace_id
+        ? extractUserDirectTeams(context, user.id)
+        : Promise.resolve([] as { team_id: string; path: string }[]),
     ]);
     let baseRoles = _baseRoles;
 
@@ -625,17 +640,19 @@ export default class User extends UserCE implements UserType {
       }
     }
 
-    // If workspace role is not defined then extract from team role
-    let finalWorkspaceRoles = workspaceRoles;
-    if (teamRoles && Object.keys(workspaceRoles || {}).length === 0) {
+    // Workspace roles: direct assignment overrides team roles
+    // If user has a direct workspace role, use it; otherwise fall back to team roles
+    let finalWorkspaceRoles: Record<string, boolean> | null = null;
+    if (workspaceRoles && Object.keys(workspaceRoles).length > 0) {
+      finalWorkspaceRoles = workspaceRoles;
+    } else if (teamRoles && Object.keys(teamRoles).length > 0) {
       finalWorkspaceRoles = teamRoles;
     }
 
     // Apply role priority hierarchy for base roles:
     // 1. Direct base role (highest priority)
     // 2. Role inherited from base-team
-    // 3. Role inherited from workspace role
-    // 4. Role inherited from workspace team role (lowest priority)
+    // 3. Role inherited from workspace role (direct overrides team)
 
     let finalBaseRoles = baseRoles;
 
@@ -646,19 +663,13 @@ export default class User extends UserCE implements UserType {
         if (baseTeamRoles) {
           finalBaseRoles = baseTeamRoles;
         }
-        // 2. Fallback to direct workspace roles
-        else if (workspaceRoles) {
-          finalBaseRoles =
-            mapWorkspaceRolesObjToProjectRolesObj(workspaceRoles);
-        }
-        // 3. Fallback to workspace team roles
+        // 2. Fallback to merged workspace roles (already includes team roles)
         else if (finalWorkspaceRoles) {
           finalBaseRoles =
             mapWorkspaceRolesObjToProjectRolesObj(finalWorkspaceRoles);
         }
       }
       // If direct base roles exist, they take highest priority (no override needed)
-      // Direct base roles should override any inherited roles
     }
 
     const finalUser = {
@@ -669,6 +680,7 @@ export default class User extends UserCE implements UserType {
       org_roles: orgRoles ? orgRoles : null,
       teams: workspaceTeams,
       base_teams: baseTeams,
+      direct_teams: directTeams,
     } as any;
 
     return finalUser;

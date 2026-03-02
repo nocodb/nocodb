@@ -46,10 +46,13 @@ export const OPERATION_SCOPES = {
 
   // Teams operations
   teamList: 'workspace',
+  teamTree: 'workspace',
   teamCreate: 'workspace',
   teamGet: 'workspace',
   teamUpdate: 'workspace',
   teamDelete: 'workspace',
+  teamMove: 'workspace',
+
   teamMembersAdd: 'workspace',
   teamMembersRemove: 'workspace',
   teamMembersUpdate: 'workspace',

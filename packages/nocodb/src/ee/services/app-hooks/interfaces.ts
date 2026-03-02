@@ -256,6 +256,13 @@ export interface TeamDeleteEvent extends NcBaseEvent {
   base?: BaseType;
 }
 
+export interface TeamMoveEvent extends NcBaseEvent {
+  team: Team;
+  oldParentTeam?: Team | null;
+  newParentTeam?: Team | null;
+  workspace?: WorkspaceType;
+}
+
 export interface TeamMemberAddEvent extends NcBaseEvent {
   team: Team;
   user: UserType;

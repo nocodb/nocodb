@@ -743,6 +743,7 @@ interface PermissionSelectorUser {
   email?: string
   display_name?: string | null
   type?: 'user' | 'team'
+  hierarchy_scope?: 'self_only' | 'self_and_descendants'
 }
 
 // NcList type starts here

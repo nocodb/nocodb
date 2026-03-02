@@ -563,6 +563,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.context.schema_locked = isBaseLocked(base);
     }
 
+    // Load permissions if not already loaded (legacyExtractIds loads them internally)
+    if (req.ncBaseId && req.context && !req.permissions) {
+      req.permissions = await Permission.list(req.context, req.ncBaseId);
+      req.context.permissions = req.permissions;
+    }
+
     next();
   }
 

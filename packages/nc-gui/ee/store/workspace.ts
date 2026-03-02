@@ -8,6 +8,7 @@ import type {
   TeamMembersAddV3ReqV3Type,
   TeamMembersRemoveV3ReqV3Type,
   TeamMembersUpdateV3ReqV3Type,
+  TeamTreeNodeV3Type,
   TeamUpdateV3ReqV3Type,
   TeamV3V3Type,
   WorkspaceType,
@@ -668,6 +669,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isTeamsEnabled = computed(() => isEeUI)
 
+  const isTeamsHierarchyEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.TEAM_HIERARCHY))
+
   const isTeamsLoading = ref(true)
 
   const teams = ref<TeamV3V3Type[]>([])
@@ -727,7 +730,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  async function createTeam(workspaceId: string, team: Pick<TeamType, 'title' | 'description' | 'meta'>) {
+  async function createTeam(
+    workspaceId: string,
+    team: Pick<TeamType, 'title' | 'description' | 'meta'> & { parent_team_id?: string },
+  ) {
     if (!isTeamsEnabled.value) return
 
     try {
@@ -758,7 +764,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         })
       }
 
-      return team
+      return res
     } catch (error: any) {
       console.error(error)
 
@@ -772,7 +778,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  async function deleteTeam(workspaceId: string, teamId: string) {
+  async function deleteTeam(workspaceId: string, teamId: string, force?: boolean) {
     if (!isTeamsEnabled.value) return
 
     try {
@@ -784,12 +790,26 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
         {
           teamId,
+          ...(force ? { force: true } : {}),
         },
       )) as TeamV3V3Type
 
       $e('a:team:delete')
 
       if (!res) return
+
+      // If force deleted, reparent children locally to the deleted team's parent
+      if (force) {
+        const deletedTeam = teams.value.find((t) => t.id === teamId)
+        const parentId = (deletedTeam as any)?.fk_parent_team_id || null
+
+        teams.value = teams.value.map((t) => {
+          if ((t as any).fk_parent_team_id === teamId) {
+            return { ...t, fk_parent_team_id: parentId }
+          }
+          return t
+        })
+      }
 
       teams.value = teams.value.filter((t) => t.id !== teamId)
 
@@ -841,6 +861,85 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       console.error(error)
       message.error('Error occured while updating team')
     }
+  }
+
+  // ── Team Hierarchy ─────────────────────────────────────────────
+
+  const teamTree = ref<TeamTreeNodeV3Type[]>([])
+
+  async function loadTeamTree(workspaceId: string) {
+    const { blockTeamsManagement } = useEeConfig()
+
+    if (!activeWorkspace.value?.payment?.plan?.meta || !isTeamsEnabled.value || blockTeamsManagement.value) {
+      teamTree.value = []
+      return
+    }
+
+    try {
+      const { list } = await $api.internal.getOperation(workspaceId, NO_SCOPE, {
+        operation: 'teamTree',
+      })
+
+      teamTree.value = list as TeamTreeNodeV3Type[]
+    } catch (e: any) {
+      teamTree.value = []
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  async function moveTeam(workspaceId: string, teamId: string, parentTeamId: string | null) {
+    if (!isTeamsEnabled.value) return
+
+    try {
+      const res = await $api.internal.postOperation(
+        workspaceId,
+        NO_SCOPE,
+        {
+          operation: 'teamMove',
+        },
+        {
+          teamId,
+          parent_team_id: parentTeamId,
+        },
+      )
+
+      $e('a:team:move')
+
+      // Reload both flat list and tree
+      await Promise.all([loadTeams({ workspaceId }), loadTeamTree(workspaceId)])
+
+      return res
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+    }
+  }
+
+  function getTeamBreadcrumb(teamId: string): TeamV3V3Type[] {
+    const result: TeamV3V3Type[] = []
+    let currentId: string | null | undefined = teamId
+
+    while (currentId) {
+      const team = teamsMap.value[currentId]
+      if (!team) break
+      result.unshift(team)
+      currentId = (team as any).fk_parent_team_id
+    }
+
+    return result
+  }
+
+  function getTeamDescendantIds(teamId: string): string[] {
+    const result: string[] = []
+    const team = teamsMap.value[teamId]
+    if (!team?.path) return result
+
+    for (const t of teams.value) {
+      if ((t as any).path?.startsWith(`${team.path}/`)) {
+        result.push(t.id)
+      }
+    }
+
+    return result
   }
 
   const onAddTeamMembers = (teamId: string, addedMembers: TeamMemberV3ResponseV3Type[]) => {
@@ -1292,12 +1391,18 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     updateTeam,
     loadTeams,
     getTeamById,
+    teamTree,
+    loadTeamTree,
+    moveTeam,
+    getTeamBreadcrumb,
+    getTeamDescendantIds,
     addTeamMembers,
     onAddTeamMembers,
     removeTeamMembers,
     onRemoveTeamMembers,
     updateTeamMembers,
     onUpdateTeamMembers,
+    isTeamsHierarchyEnabled,
 
     // Workspace Teams
     isLoadingWorkspaceTeams,

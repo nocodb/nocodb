@@ -29,12 +29,13 @@ export async function extractUserDirectTeams(
       resource_type: ResourceType.TEAM,
     });
 
-    const result: { team_id: string; path: string }[] = [];
+    const teamIds = assignments.map((a) => a.resource_id);
+    const teamsMap = await Team.getByIds(context, teamIds);
 
-    for (const assignment of assignments) {
-      const team = await Team.get(context, assignment.resource_id);
+    const result: { team_id: string; path: string }[] = [];
+    for (const [id, team] of teamsMap) {
       if (team?.path) {
-        result.push({ team_id: team.id, path: team.path });
+        result.push({ team_id: id, path: team.path });
       }
     }
 
@@ -101,10 +102,18 @@ export async function extractUserTeamRoles(
       return { roles: null, teams };
     }
 
-    // Load team details for user's teams to get paths
+    // Batch-load all needed teams in one query: user's teams + workspace-assigned teams
+    const userTeamIds = userTeamAssignments.map((a) => a.resource_id);
+    const assignedTeamIds = workspaceTeamAssignments.map(
+      (a) => a.principal_ref_id,
+    );
+    const allTeamIds = [...new Set([...userTeamIds, ...assignedTeamIds])];
+    const teamsMap = await Team.getByIds(context, allTeamIds);
+
+    // Build user's teams list from batch result
     const userTeams: { id: string; path: string }[] = [];
-    for (const assignment of userTeamAssignments) {
-      const team = await Team.get(context, assignment.resource_id);
+    for (const id of userTeamIds) {
+      const team = teamsMap.get(id);
       if (team?.path) {
         userTeams.push({ id: team.id, path: team.path });
       }
@@ -116,8 +125,8 @@ export async function extractUserTeamRoles(
     for (const assignment of workspaceTeamAssignments) {
       const assignedTeamId = assignment.principal_ref_id;
 
-      // Load the assigned team to get its path
-      const assignedTeam = await Team.get(context, assignedTeamId);
+      // Get the assigned team from batch result
+      const assignedTeam = teamsMap.get(assignedTeamId);
       if (!assignedTeam?.path) continue;
 
       // Check if user matches via direct membership or ancestor relationship

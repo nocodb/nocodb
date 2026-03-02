@@ -21,7 +21,6 @@ import * as nc_020_add_cell_coloring_fields_to_row_color_conditions from './v0/n
 import * as nc_021_scim_support from './v0/nc_021_scim_support';
 import * as nc_022_record_templates from './v0/nc_022_record_templates';
 import * as nc_023_rls_policies from './v0/nc_023_rls_policies';
-import * as nc_202603020000_hook_error_notifications from './v0/nc_202603020000_hook_error_notifications';
 import * as nc_202601010000_placeholder from './v0/nc_202601010000_placeholder';
 import * as nc_202602250000_outline_view from './v0/nc_202602250000_outline_view';
 import * as nc_202602250001_button_filter from './v0/nc_202602250001_button_filter';
@@ -31,6 +30,7 @@ import * as nc_202602251401_links_v2 from './v0/nc_202602251401_links_v2';
 import * as nc_202602270448_map_view_columns_add_source_id from './v0/nc_202602270448_map_view_columns_add_source_id';
 import * as nc_202602270729_timeline_view from './v0/nc_202602270729_timeline_view';
 import * as nc_202602260000_unify_ce_roles from './v0/nc_202602260000_unify_ce_roles';
+import * as nc_202603020000_hook_error_notifications from './v0/nc_202603020000_hook_error_notifications';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {

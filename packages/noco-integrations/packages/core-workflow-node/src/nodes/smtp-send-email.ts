@@ -306,7 +306,7 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
 
   /** Strip CR/LF/tab to prevent SMTP header injection */
   private sanitizeHeader(value: string): string {
-    return value.replace(/[\r\n\t]/g, ' ').trim();
+    return value.replace(/[\r\n\t"]/g, ' ').trim();
   }
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {

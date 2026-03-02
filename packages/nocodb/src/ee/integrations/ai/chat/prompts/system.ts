@@ -1,19 +1,17 @@
 /**
- * Builds the system prompt for the NocoDB AI chat agent.
+ * System prompt builders for the NocoDB AI chat agent.
  *
- * This prompt is sent on every API request. It must give the agent complete,
- * unambiguous context about NocoDB's data model, tool capabilities, query
- * syntax, and behavioral rules — so it can act confidently without guessing.
+ * Split into two functions for Anthropic prompt caching:
+ *
+ * - buildStaticSystemPromptText(): fully static content — Identity, Rules, Field Types,
+ *   Filter Operators, Query Syntax. Identical for every user and every base. Tagged with
+ *   cache_control so Anthropic caches it at the API-key level, shared across all users.
+ *
+ * - buildDynamicSystemPromptText(): per-request content — user role, base schema, current
+ *   table context. Changes per user/base/table so it is never cached.
  */
-export function buildSystemPromptText({
-  schemaContext,
-  currentTableContext,
-  userRole,
-}: {
-  schemaContext: string;
-  currentTableContext?: string;
-  userRole: string;
-}): string {
+
+export function buildStaticSystemPromptText(): string {
   const parts: string[] = [];
 
   // ─── Identity & Purpose ────────────────────────────────────────────────────
@@ -172,9 +170,22 @@ Prefix field name with \`-\` for descending, no prefix for ascending.
 Multiple sorts: \`-CreatedAt,Name\` (sort by CreatedAt DESC, then Name ASC)
 Example: \`-UpdatedAt\` or \`Name,-Priority\``);
 
+  return parts.join('\n');
+}
+
+export function buildDynamicSystemPromptText({
+  schemaContext,
+  currentTableContext,
+  userRole,
+}: {
+  schemaContext: string;
+  currentTableContext?: string;
+  userRole: string;
+}): string {
+  const parts: string[] = [];
+
   // ─── User Role ─────────────────────────────────────────────────────────────
-  parts.push(`
-## Current User
+  parts.push(`## Current User
 
 Role: **${userRole}**
 

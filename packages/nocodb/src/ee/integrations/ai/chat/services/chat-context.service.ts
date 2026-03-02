@@ -1,17 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { ChatMessageRole } from 'nocodb-sdk';
-import { buildSystemPromptText } from '../prompts';
+import {
+  buildDynamicSystemPromptText,
+  buildStaticSystemPromptText,
+} from '../prompts';
 import type { ChatMessageType } from 'nocodb-sdk';
-import type { ModelMessage } from 'ai';
+import type { ModelMessage, SystemModelMessage } from 'ai';
 import type { NcContext } from '~/interface/config';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
 
 const MAX_HISTORY_TOKENS = 8000;
 
+// Static content is identical for every request — build once and reuse.
+const STATIC_SYSTEM_PROMPT = buildStaticSystemPromptText();
+
 @Injectable()
 export class ChatContextService {
   constructor(private readonly aiSchemaService: AiSchemaService) {}
 
+  /**
+   * Returns the system prompt as two SystemModelMessage blocks:
+   * 1. Static block (Identity + Rules + Field Types + Filter Operators + Query Syntax)
+   *    tagged with cache_control so Anthropic caches it at the API-key level.
+   *    Shared across all users hitting the same AI integration.
+   * 2. Dynamic block (user role + base schema + current context) — never cached.
+   */
   async buildSystemPrompt(
     context: NcContext,
     params: {
@@ -21,10 +34,9 @@ export class ChatContextService {
       userRole: string;
       req: any;
     },
-  ): Promise<string> {
+  ): Promise<SystemModelMessage[]> {
     const { baseId, tableId, userRole, req } = params;
 
-    // Serialize base schema using existing AI schema service
     const serializedSchema = await this.aiSchemaService.serializeSchema(
       context,
       {
@@ -34,7 +46,6 @@ export class ChatContextService {
       },
     );
 
-    // Build compact schema text
     const schemaLines: string[] = [];
 
     for (const table of serializedSchema.tables) {
@@ -61,18 +72,29 @@ export class ChatContextService {
 
     let currentTableContext: string | undefined;
     if (tableId && serializedSchema.tables?.length) {
-      // serializeSchema already filters to tableIds, so the first entry is the active table
       const table = serializedSchema.tables[0];
       if (table?.title) {
         currentTableContext = `User is viewing table "${table.title}".`;
       }
     }
 
-    return buildSystemPromptText({
-      schemaContext,
-      currentTableContext,
-      userRole,
-    });
+    return [
+      {
+        role: 'system',
+        content: STATIC_SYSTEM_PROMPT,
+        providerOptions: {
+          anthropic: { cacheControl: { type: 'ephemeral' } },
+        },
+      },
+      {
+        role: 'system',
+        content: buildDynamicSystemPromptText({
+          schemaContext,
+          currentTableContext,
+          userRole,
+        }),
+      },
+    ];
   }
 
   buildMessages(params: {
@@ -212,11 +234,7 @@ export class ChatContextService {
     summary?: string;
     maxHistoryTokens?: number;
   }): ModelMessage[] {
-    const {
-      messages,
-      summary,
-      maxHistoryTokens = MAX_HISTORY_TOKENS,
-    } = params;
+    const { messages, summary, maxHistoryTokens = MAX_HISTORY_TOKENS } = params;
 
     // Reuse buildMessages but pass an empty continuation marker so the LLM
     // responds to the tool results rather than a new user message.
@@ -225,9 +243,7 @@ export class ChatContextService {
       newUserMessage: '',
       summary,
       maxHistoryTokens,
-    }).filter(
-      (m) => !(m.role === 'user' && (m.content as string) === ''),
-    );
+    }).filter((m) => !(m.role === 'user' && (m.content as string) === ''));
   }
 
   estimateTokens(text: string): number {

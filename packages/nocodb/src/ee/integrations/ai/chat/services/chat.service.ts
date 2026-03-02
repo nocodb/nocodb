@@ -179,7 +179,7 @@ export class ChatService {
       approvals,
     );
 
-    // 6. Build system prompt
+    // 6. Build system prompt (returns cached static block + dynamic block)
     const userRole = this.getUserRole(req);
     const systemPrompt = await this.contextService.buildSystemPrompt(context, {
       baseId: context.base_id,

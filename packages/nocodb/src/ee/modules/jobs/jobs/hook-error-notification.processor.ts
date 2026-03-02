@@ -113,6 +113,7 @@ export class HookErrorNotificationProcessor {
             await this.mailService.sendMail({
               mailEvent: MailEvent.HOOK_ERROR_DIGEST,
               payload: {
+                req: undefined,
                 user,
                 hook: {
                   id: group.fk_hook_id,

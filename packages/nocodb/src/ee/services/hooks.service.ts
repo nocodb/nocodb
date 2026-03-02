@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
-import type { OnModuleInit } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
+import type { OnModuleInit } from '@nestjs/common';
 import type { HookReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { NcContext } from '~/interface/config';
@@ -20,6 +20,8 @@ import { HookSubscribersService } from '~/services/hook-subscribers.service';
 
 @Injectable()
 export class HooksService extends HooksServiceCE implements OnModuleInit {
+  private logger = new Logger(HooksService.name);
+
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected readonly datasService: DatasService,
@@ -122,12 +124,15 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
 
     if (hook?.id && param.req?.user?.id) {
       try {
-        await this.hookSubscribersService.addSubscribers(
-          context,
-          hook.id,
-          [param.req.user.id],
+        await this.hookSubscribersService.addSubscribers(context, hook.id, [
+          param.req.user.id,
+        ]);
+      } catch (e: any) {
+        this.logger.error(
+          `Failed to add hook creator as subscriber: ${e.message}`,
+          e.stack,
         );
-      } catch {}
+      }
     }
 
     return hook;
@@ -142,7 +147,12 @@ export class HooksService extends HooksServiceCE implements OnModuleInit {
         context,
         param.hookId,
       );
-    } catch {}
+    } catch (e: any) {
+      this.logger.error(
+        `Failed to delete hook subscribers: ${e.message}`,
+        e.stack,
+      );
+    }
 
     return await super.hookDelete(context, param);
   }

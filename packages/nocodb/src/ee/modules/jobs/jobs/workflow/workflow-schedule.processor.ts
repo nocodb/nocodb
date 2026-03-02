@@ -47,7 +47,7 @@ export class WorkflowScheduleProcessor {
         const context = {
           workspace_id: trigger.fk_workspace_id,
           base_id: trigger.base_id,
-          nc_site_url: ncSiteUrl,
+          nc_site_url: process.env.NC_PUBLIC_URL || ncSiteUrl,
         };
 
         const base = await Base.get(context, trigger.base_id);

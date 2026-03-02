@@ -7,6 +7,8 @@ const props = defineProps<{
 
 const { api } = useApi()
 
+const { t } = useI18n()
+
 const baseStore = useBases()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
@@ -70,13 +72,13 @@ async function addSubscribers() {
         userIds: selectedUserIds.value,
       },
     )
-    message.success(`${selectedUserIds.value.length} user(s) added to notifications`)
+    message.success(t('activity.usersAddedToNotifications', { count: selectedUserIds.value.length }))
     showAddModal.value = false
     selectedUserIds.value = []
     await loadSubscribers()
   } catch (e) {
     console.error('Failed to add subscribers:', e)
-    message.error('Failed to add subscribers')
+    message.error(t('msg.error.somethingWentWrong'))
   } finally {
     isSaving.value = false
   }
@@ -95,11 +97,11 @@ async function removeSubscriber(subscriberId: string) {
         subscriberId,
       },
     )
-    message.success('User removed from notifications')
+    message.success(t('activity.userRemovedFromNotifications'))
     await loadSubscribers()
   } catch (e) {
     console.error('Failed to remove subscriber:', e)
-    message.error('Failed to remove subscriber')
+    message.error(t('msg.error.somethingWentWrong'))
   }
 }
 
@@ -143,14 +145,14 @@ watch(
         <div class="mb-6">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <div class="text-subHeading2 text-nc-content-gray-emphasis">Error Notifications</div>
+              <div class="text-subHeading2 text-nc-content-gray-emphasis">{{ $t('activity.errorNotifications') }}</div>
               <div class="text-bodyDefaultSm text-nc-content-gray-subtle mt-1">
-                Users who will receive email notifications when this webhook fails
+                {{ $t('activity.errorNotificationsDesc') }}
               </div>
             </div>
             <NcButton type="secondary" size="small" @click="openAddModal">
               <GeneralIcon icon="plus" class="mr-1" />
-              Add User
+              {{ $t('msg.info.addUser') }}
             </NcButton>
           </div>
 
@@ -160,10 +162,10 @@ watch(
 
           <div v-else-if="subscribers.length === 0" class="border border-nc-border-gray-medium rounded-lg p-6 text-center">
             <GeneralIcon icon="mail" class="w-8 h-8 text-nc-content-gray-muted mb-3" />
-            <div class="text-body text-nc-content-gray-subtle">No users subscribed to error notifications</div>
+            <div class="text-body text-nc-content-gray-subtle">{{ $t('activity.noErrorSubscribers') }}</div>
             <NcButton type="secondary" size="small" class="mt-4" @click="openAddModal">
               <GeneralIcon icon="plus" class="mr-1" />
-              Add User
+              {{ $t('msg.info.addUser') }}
             </NcButton>
           </div>
 
@@ -174,7 +176,7 @@ watch(
               class="flex items-center justify-between p-3 border-b border-nc-border-gray-medium last:border-b-0 hover:bg-nc-bg-gray-light"
             >
               <NcUserInfo v-if="subscriber.email" :user="subscriber" class="flex-1" />
-              <div v-else class="flex-1 text-nc-content-gray-subtle">Unknown user</div>
+              <div v-else class="flex-1 text-nc-content-gray-subtle">{{ $t('general.unknown') }}</div>
               <NcButton type="text" size="xs" class="!text-nc-content-red-dark" @click="removeSubscriber(subscriber.id)">
                 <GeneralIcon icon="delete" />
               </NcButton>
@@ -184,23 +186,22 @@ watch(
       </div>
     </div>
 
-    <GeneralModal
+    <NcModal
       v-model:visible="showAddModal"
+      size="xs"
       :mask-closable="false"
       :keyboard="!isSaving"
       wrap-class-name="nc-modal-add-hook-subscribers"
-      :footer="null"
-      class="!w-[448px]"
       :closable="false"
       @keydown.esc="showAddModal = false"
     >
-      <div>
+      <div class="flex flex-col h-full">
         <div class="flex items-center justify-between mb-2">
-          <div class="text-subHeading2 text-nc-content-gray-emphasis">Add Users to Notifications</div>
+          <div class="text-subHeading2 text-nc-content-gray-emphasis">{{ $t('activity.addUsersToNotifications') }}</div>
         </div>
 
         <div class="text-body text-nc-content-gray-subtle mb-5">
-          Select users who will receive email notifications when this webhook fails.
+          {{ $t('activity.addUsersToNotificationsDesc') }}
         </div>
 
         <NcList
@@ -210,11 +211,11 @@ watch(
           option-label-key="email"
           option-value-key="id"
           :item-height="52"
-          search-input-placeholder="Search user"
+          :search-input-placeholder="$t('placeholder.searchUsers')"
           is-multi-select
-          class="!w-auto border-1 border-nc-border-gray-medium rounded-lg max-h-80"
+          class="!w-auto border-1 h-full border-nc-border-gray-medium rounded-lg max-h-80"
           :filter-option="filterOption"
-          empty-description="No users available"
+          :empty-description="$t('msg.noUsersAvailable')"
           @change="handleUpdateValue($event)"
         >
           <template #listItemExtraLeft="{ isSelected }">
@@ -236,13 +237,11 @@ watch(
           <template #listItemSelectedIcon> <NcSpanHidden /> </template>
         </NcList>
 
-        <div class="flex items-center justify-between pt-4">
-          <div v-if="selectedUserIds.length" class="text-nc-content-gray-muted">
-            {{ selectedUserIds.length }} user{{ selectedUserIds.length > 1 ? 's' : '' }} selected
-          </div>
-          <div v-else>&nbsp;</div>
+        <div class="flex items-center justify-end pt-4 mt-auto">
           <div class="flex gap-2">
-            <NcButton type="secondary" size="small" :disabled="isSaving" @click="showAddModal = false"> Cancel </NcButton>
+            <NcButton type="secondary" size="small" :disabled="isSaving" @click="showAddModal = false">
+              {{ $t('general.cancel') }}
+            </NcButton>
             <NcButton
               type="primary"
               size="small"
@@ -250,12 +249,12 @@ watch(
               :disabled="isSaving || selectedUserIds.length === 0"
               @click="addSubscribers"
             >
-              Add {{ selectedUserIds.length > 1 ? 'Users' : 'User' }}
+              {{ $t('msg.info.addUser') }}
             </NcButton>
           </div>
         </div>
       </div>
-    </GeneralModal>
+    </NcModal>
   </div>
 </template>
 

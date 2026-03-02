@@ -149,11 +149,21 @@ export const useOnPremLicense = createSharedComposable(() => {
   }
 
   const TITLE_TO_LOOKUP_KEYS: Record<string, { monthly: string; yearly: string }> = {
+    // Legacy
     [OnPremPlanTitles.ENTERPRISE_STARTER]: {
       monthly: OnPremPlanPriceLookupKeys.STARTER_MONTHLY,
       yearly: OnPremPlanPriceLookupKeys.STARTER_YEARLY,
     },
-    [OnPremPlanTitles.ENTERPRISE]: {
+    // New 3-tier
+    [OnPremPlanTitles.SELF_HOSTED_PLUS]: {
+      monthly: OnPremPlanPriceLookupKeys.PLUS_MONTHLY,
+      yearly: OnPremPlanPriceLookupKeys.PLUS_YEARLY,
+    },
+    [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
+      monthly: OnPremPlanPriceLookupKeys.BUSINESS_MONTHLY,
+      yearly: OnPremPlanPriceLookupKeys.BUSINESS_YEARLY,
+    },
+    [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
       monthly: OnPremPlanPriceLookupKeys.ENTERPRISE_MONTHLY,
       yearly: OnPremPlanPriceLookupKeys.ENTERPRISE_YEARLY,
     },

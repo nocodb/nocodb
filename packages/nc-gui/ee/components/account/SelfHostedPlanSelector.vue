@@ -55,7 +55,6 @@ const sliderProgress = computed(() => {
 
 const presetPct = (value: number) => ((value - 1) / (MAX_SELF_SERVE_SEATS - 1)) * 100
 
-
 onMounted(async () => {
   if (plans.value.length === 0) {
     isLoadingPlans.value = true
@@ -85,13 +84,7 @@ onMounted(async () => {
           </span>
 
           <div class="nc-seat-input-wrapper">
-            <input
-              v-model.number="seatCount"
-              type="number"
-              min="1"
-              class="nc-seat-input"
-              @blur="onSeatInputBlur"
-            />
+            <input v-model.number="seatCount" type="number" min="1" class="nc-seat-input" @blur="onSeatInputBlur" />
           </div>
         </div>
 
@@ -124,7 +117,14 @@ onMounted(async () => {
       </div>
 
       <!-- Plan cards -->
-      <div class="grid gap-4 mt-6" :class="sortedPlans.length > 1 ? 'grid-cols-2' : 'grid-cols-1 max-w-[400px] mx-auto'">
+      <div
+        class="grid gap-4 mt-6"
+        :class="{
+          'grid-cols-1 max-w-[400px] mx-auto': sortedPlans.length === 1,
+          'grid-cols-2': sortedPlans.length === 2,
+          'grid-cols-3': sortedPlans.length >= 3,
+        }"
+      >
         <div
           v-for="plan in sortedPlans"
           :key="plan.id"
@@ -172,11 +172,7 @@ onMounted(async () => {
 
           <!-- Features -->
           <div v-if="plan.descriptions?.length" class="flex flex-col gap-2.5 mt-4">
-            <div
-              v-for="(desc, idx) in plan.descriptions"
-              :key="idx"
-              class="flex items-start gap-2 text-sm text-nc-content-gray"
-            >
+            <div v-for="(desc, idx) in plan.descriptions" :key="idx" class="flex items-start gap-2 text-sm text-nc-content-gray">
               <GeneralIcon icon="circleCheckSolid" class="flex-none w-4 h-4 mt-0.5 text-nc-content-green-dark" />
               {{ desc }}
             </div>
@@ -329,6 +325,10 @@ onMounted(async () => {
 
   &:hover:not(.active) {
     @apply bg-nc-bg-gray-medium;
+
+    .nc-seat-preset-caret {
+      border-bottom-color: var(--nc-bg-gray-medium);
+    }
   }
 
   &.active {
@@ -349,7 +349,7 @@ onMounted(async () => {
   height: 0;
   border-left: 5px solid transparent;
   border-right: 5px solid transparent;
-  border-bottom: 5px solid var(--nc-bg-gray-medium);
+  border-bottom: 5px solid var(--nc-bg-gray-light);
 }
 
 /* ── Plan card ── */
@@ -361,6 +361,10 @@ onMounted(async () => {
   &:hover {
     background-color: var(--plan-bg-dark);
     box-shadow: 0px 0px 8px 0px rgba(0, 0, 0, 0.06);
+
+    .nc-plan-total-row {
+      background-color: var(--plan-bg);
+    }
   }
 }
 

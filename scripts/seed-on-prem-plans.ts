@@ -76,15 +76,13 @@ interface PlanDef {
 
 const ON_PREM_PLANS: PlanDef[] = [
   {
-    name: 'Self-hosted Starter', // OnPremPlanTitles.ENTERPRISE_STARTER
+    name: 'Self-hosted Plus', // OnPremPlanTitles.SELF_HOSTED_PLUS
     description: 'Self-hosted NocoDB for small teams',
     metadata: {
       // Limits
       limit_workspace: '1',
-      limit_snapshot: '0',
-      // Features disabled (Enterprise-only per pricing CSV)
-      feature_ai: 'false',
-      feature_audit_workspace: 'false',
+      limit_snapshot: '2',
+      // Features disabled (Business/Enterprise only)
       feature_sso: 'false',
       feature_private_bases: 'false',
       feature_cell_colour: 'false',
@@ -92,37 +90,74 @@ const ON_PREM_PLANS: PlanDef[] = [
       feature_pinned_filter: 'false',
       feature_toggle_filter: 'false',
       feature_button_visibility: 'false',
+      feature_view_sections: 'false',
+      feature_audit_workspace: 'false',
       feature_rls: 'false',
       feature_scim: 'false',
-      feature_view_sections: 'false',
+      feature_table_and_field_permissions: 'false',
       // Descriptions
-      description_1: 'All EE features',
-      description_2: 'Unlimited editors & records',
-      description_3: 'AI & Workflows included',
-      description_4: 'Email support',
+      description_1: 'Unlimited editors & records',
+      description_2: 'Personal Views & Dynamic Filters',
+      description_3: 'Form Validations & Custom Logo',
+      description_4: 'Calendar, Timeline, Map & List Views',
     },
     prices: [
       {
-        lookup_key: 'on_prem_starter_monthly', // OnPremPlanPriceLookupKeys.STARTER_MONTHLY
+        lookup_key: 'on_prem_plus_monthly', // OnPremPlanPriceLookupKeys.PLUS_MONTHLY
         interval: 'month',
         tiers: [
           { up_to: 'inf', unit_amount: 1500 },
         ],
       },
       {
-        lookup_key: 'on_prem_starter_yearly', // OnPremPlanPriceLookupKeys.STARTER_YEARLY
+        lookup_key: 'on_prem_plus_yearly', // OnPremPlanPriceLookupKeys.PLUS_YEARLY
         interval: 'year',
         tiers: [
-          { up_to: 'inf', unit_amount: 18000 },
+          { up_to: 'inf', unit_amount: 14400 }, // $15 × 12 × 0.8 = $144
         ],
       },
     ],
   },
   {
-    name: 'Self-hosted Enterprise', // OnPremPlanTitles.ENTERPRISE
+    name: 'Self-hosted Business', // OnPremPlanTitles.SELF_HOSTED_BUSINESS
+    description: 'Self-hosted NocoDB for growing teams',
+    metadata: {
+      // Limits
+      limit_workspace: '1',
+      limit_snapshot: '5',
+      // Features disabled (Enterprise only)
+      feature_audit_workspace: 'false',
+      feature_rls: 'false',
+      feature_scim: 'false',
+      // Descriptions
+      description_1: 'Everything in Plus',
+      description_2: 'SSO & Private Bases',
+      description_3: 'Teams & Cell Colouring',
+      description_4: 'View Sections & Pinned Filters',
+    },
+    prices: [
+      {
+        lookup_key: 'on_prem_business_monthly', // OnPremPlanPriceLookupKeys.BUSINESS_MONTHLY
+        interval: 'month',
+        tiers: [
+          { up_to: 'inf', unit_amount: 3000 },
+        ],
+      },
+      {
+        lookup_key: 'on_prem_business_yearly', // OnPremPlanPriceLookupKeys.BUSINESS_YEARLY
+        interval: 'year',
+        tiers: [
+          { up_to: 'inf', unit_amount: 28800 }, // $30 × 12 × 0.8 = $288
+        ],
+      },
+    ],
+  },
+  {
+    name: 'Self-hosted Enterprise', // OnPremPlanTitles.SELF_HOSTED_ENTERPRISE
     description: 'Self-hosted NocoDB for organizations',
     metadata: {
-      description_1: 'Everything in Starter',
+      // Descriptions
+      description_1: 'Everything in Business',
       description_2: 'SSO, SCIM & advanced security',
       description_3: 'Unlimited workspaces',
       description_4: 'Priority support',
@@ -132,14 +167,14 @@ const ON_PREM_PLANS: PlanDef[] = [
         lookup_key: 'on_prem_enterprise_monthly', // OnPremPlanPriceLookupKeys.ENTERPRISE_MONTHLY
         interval: 'month',
         tiers: [
-          { up_to: 'inf', unit_amount: 5400 }
+          { up_to: 'inf', unit_amount: 6000 },
         ],
       },
       {
         lookup_key: 'on_prem_enterprise_yearly', // OnPremPlanPriceLookupKeys.ENTERPRISE_YEARLY
         interval: 'year',
         tiers: [
-          { up_to: 'inf', unit_amount: 54000 }
+          { up_to: 'inf', unit_amount: 57600 }, // $60 × 12 × 0.8 = $576
         ],
       },
     ],

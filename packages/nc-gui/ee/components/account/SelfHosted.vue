@@ -273,12 +273,6 @@ onBeforeUnmount(async () => {
               <NcButton type="primary" size="small" @click="onBuyLicense">
                 {{ $t('labels.buyYourFirstLicense') }}
               </NcButton>
-              <NcButton type="secondary" size="small" :loading="isSyncing" @click="onSyncLicenses">
-                <div class="flex items-center gap-1.5">
-                  <GeneralIcon icon="refresh" class="h-4 w-4" />
-                  {{ $t('labels.syncFromStripe') }}
-                </div>
-              </NcButton>
             </div>
           </div>
 

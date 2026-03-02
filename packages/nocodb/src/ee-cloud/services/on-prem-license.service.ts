@@ -18,25 +18,44 @@ const stripe = new Stripe(process.env.NC_STRIPE_SECRET_KEY || 'placeholder', {
  * Maps on-prem plan titles to license types
  */
 const PLAN_TO_LICENSE_TYPE: Record<string, LicenseType> = {
+  // Legacy
   [OnPremPlanTitles.ENTERPRISE_STARTER]: LicenseType.ENTERPRISE_STARTER,
-  [OnPremPlanTitles.ENTERPRISE]: LicenseType.ENTERPRISE,
+  // New 3-tier (SELF_HOSTED_ENTERPRISE shares value with legacy ENTERPRISE)
+  [OnPremPlanTitles.SELF_HOSTED_PLUS]: LicenseType.SELF_HOSTED_PLUS,
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: LicenseType.SELF_HOSTED_BUSINESS,
+  [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: LicenseType.SELF_HOSTED_ENTERPRISE,
 };
 
 /**
  * Builds license config from a plan's metadata.
+ * Always includes plan_title so on-prem can select the correct base plan.
  * Falls back to the legacy hardcoded config if plan has no meta.
  */
-function buildConfigFromPlan(plan: Plan): Record<string, any> {
+function buildConfigFromPlan(
+  plan: Plan,
+  subscription?: { meta?: { plan_meta?: Record<string, any> } },
+): Record<string, any> {
+  const config: Record<string, any> = {
+    plan_title: plan.title,
+  };
+
   if (plan.meta && Object.keys(plan.meta).length > 0) {
-    return { ...plan.meta };
+    Object.assign(config, plan.meta);
+  } else {
+    // Legacy fallback for plans without full metadata
+    const LEGACY_CONFIG: Record<string, Record<string, any>> = {
+      [OnPremPlanTitles.ENTERPRISE_STARTER]: { limit_workspace: 1 },
+      [OnPremPlanTitles.ENTERPRISE]: {},
+    };
+    Object.assign(config, LEGACY_CONFIG[plan.title] || {});
   }
 
-  // Legacy fallback for plans without full metadata
-  const LEGACY_CONFIG: Record<string, Record<string, any>> = {
-    [OnPremPlanTitles.ENTERPRISE_STARTER]: { limit_workspace: 1 },
-    [OnPremPlanTitles.ENTERPRISE]: {},
-  };
-  return LEGACY_CONFIG[plan.title] || {};
+  // Per-subscription overrides (addons, custom limits)
+  if (subscription?.meta?.plan_meta) {
+    Object.assign(config, subscription.meta.plan_meta);
+  }
+
+  return config;
 }
 
 @Injectable()

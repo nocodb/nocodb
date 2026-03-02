@@ -9,9 +9,11 @@ import Plan from '~/ee/models/Plan';
 export * from '~/ee/models/Plan';
 export default Plan;
 
+// ── Legacy plan (backward compat for old JWTs without plan_title) ──────────
+
 export const EnterpriseStarterPlan = Plan.prepare({
   title: OnPremPlanTitles.ENTERPRISE_STARTER,
-  description: 'Enterprise starter plan',
+  description: 'Enterprise starter plan (legacy)',
   meta: {
     ...Plan.limitPairs(-1, false),
     ...Plan.featurePairs(true),
@@ -31,6 +33,7 @@ export const EnterpriseStarterPlan = Plan.prepare({
 
     // Limits — Starter has no snapshots
     [PlanLimitTypes.LIMIT_SNAPSHOT_PER_WORKSPACE]: 0,
+    [PlanLimitTypes.LIMIT_WORKSPACE]: 1,
   },
   free: false,
 });

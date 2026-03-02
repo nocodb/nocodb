@@ -254,6 +254,8 @@
     "upgradeToEnterpriseTitle": "Upgrade to Enterprise",
     "upgradeToEnterpriseSubtitle": "This feature is available on the Self-hosted Enterprise plan. Upgrade your license to unlock it.",
     "upgradeToEnterprise": "Upgrade {detail}",
+    "upgradeToOnPremPlanTitle": "Upgrade to {plan}",
+    "upgradeToOnPremPlan": "Upgrade your license {detail}",
     "upgradeLicense": "Upgrade License",
     "purchaseLicense": "Purchase License",
     "licenseRefreshed": "License refreshed successfully",
@@ -791,7 +793,9 @@
       "Plus": "Plus",
       "Business": "Business",
       "Self-hosted Starter": "Starter",
-      "Self-hosted Enterprise": "Enterprise"
+      "Self-hosted Enterprise": "Enterprise",
+      "Self-hosted Plus": "Plus",
+      "Self-hosted Business": "Business"
     },
     "currentPlan": {
       "nextInvoice": "Next invoice",

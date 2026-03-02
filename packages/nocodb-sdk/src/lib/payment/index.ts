@@ -32,6 +32,7 @@ export enum PlanLimitTypes {
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
   LIMIT_DOCUMENT_PAGE_PER_BASE = 'limit_document_page_per_base',
   LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
+  LIMIT_WORKSPACE = 'limit_workspace',
 }
 
 export enum PlanFeatureTypes {
@@ -114,6 +115,9 @@ export enum PlanTitles {
 export enum OnPremPlanTitles {
   ENTERPRISE_STARTER = 'Self-hosted Starter',
   ENTERPRISE = 'Self-hosted Enterprise',
+  SELF_HOSTED_PLUS = 'Self-hosted Plus',
+  SELF_HOSTED_BUSINESS = 'Self-hosted Business',
+  SELF_HOSTED_ENTERPRISE = 'Self-hosted Enterprise',
 }
 
 export enum PlanPriceLookupKeys {
@@ -124,8 +128,14 @@ export enum PlanPriceLookupKeys {
 }
 
 export enum OnPremPlanPriceLookupKeys {
+  // Legacy aliases
   STARTER_MONTHLY = 'on_prem_starter_monthly',
   STARTER_YEARLY = 'on_prem_starter_yearly',
+  // New 3-tier lookup keys
+  PLUS_MONTHLY = 'on_prem_plus_monthly',
+  PLUS_YEARLY = 'on_prem_plus_yearly',
+  BUSINESS_MONTHLY = 'on_prem_business_monthly',
+  BUSINESS_YEARLY = 'on_prem_business_yearly',
   ENTERPRISE_MONTHLY = 'on_prem_enterprise_monthly',
   ENTERPRISE_YEARLY = 'on_prem_enterprise_yearly',
 }
@@ -221,6 +231,7 @@ export const HigherPlan = {
 } as Record<string, PlanTitles>;
 
 export const OnPremPlanMeta = {
+  // Legacy aliases
   [OnPremPlanTitles.ENTERPRISE_STARTER]: {
     title: OnPremPlanTitles.ENTERPRISE_STARTER,
     color: 'var(--plus-plan-color, #EDF9FF)',
@@ -232,8 +243,31 @@ export const OnPremPlanMeta = {
     badgeBgColor: 'var(--plus-plan-badge-bg-color, #D7F2FF)',
     badgeTextColor: 'var(--plus-plan-badge-text-color, #207399)',
   },
-  [OnPremPlanTitles.ENTERPRISE]: {
-    title: OnPremPlanTitles.ENTERPRISE,
+  // New 3-tier plan meta (Plus=blue, Business=pink, Enterprise=orange)
+  [OnPremPlanTitles.SELF_HOSTED_PLUS]: {
+    title: OnPremPlanTitles.SELF_HOSTED_PLUS,
+    color: 'var(--plus-plan-color, #EDF9FF)',
+    accent: 'var(--plus-plan-accent, #AFE5FF)',
+    primary: 'var(--plus-plan-primary, #207399)',
+    bgLight: 'var(--plus-plan-bg-light, #EDF9FF)',
+    bgDark: 'var(--plus-plan-bg-dark, #D7F2FF)',
+    border: 'var(--plus-plan-border, #AFE5FF)',
+    badgeBgColor: 'var(--plus-plan-badge-bg-color, #D7F2FF)',
+    badgeTextColor: 'var(--plus-plan-badge-text-color, #207399)',
+  },
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: {
+    title: OnPremPlanTitles.SELF_HOSTED_BUSINESS,
+    color: 'var(--business-plan-color, #FAF5FF)',
+    accent: 'var(--business-plan-accent, #FEB0E8)',
+    primary: 'var(--business-plan-primary, #972377)',
+    bgLight: 'var(--business-plan-bg-light, #FFEEFB)',
+    bgDark: 'var(--business-plan-bg-dark, #FED8F4)',
+    border: 'var(--business-plan-border, #FEB0E8)',
+    badgeBgColor: 'var(--business-plan-badge-bg-color, #FED8F4)',
+    badgeTextColor: 'var(--business-plan-badge-text-color, #972377)',
+  },
+  [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: {
+    title: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
     color: 'var(--enterprise-plan-color, #FFF5EF)',
     accent: 'var(--enterprise-plan-accent, #663B1F)',
     primary: 'var(--enterprise-plan-primary, #C86827)',
@@ -246,12 +280,20 @@ export const OnPremPlanMeta = {
 } as const;
 
 export const OnPremPlanOrder = {
+  // Legacy
   [OnPremPlanTitles.ENTERPRISE_STARTER]: 0,
-  [OnPremPlanTitles.ENTERPRISE]: 1,
+  // New 3-tier
+  [OnPremPlanTitles.SELF_HOSTED_PLUS]: 0,
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: 1,
+  [OnPremPlanTitles.SELF_HOSTED_ENTERPRISE]: 2,
 };
 
 export const OnPremHigherPlan = {
+  // Legacy
   [OnPremPlanTitles.ENTERPRISE_STARTER]: OnPremPlanTitles.ENTERPRISE,
+  // New 3-tier
+  [OnPremPlanTitles.SELF_HOSTED_PLUS]: OnPremPlanTitles.SELF_HOSTED_BUSINESS,
+  [OnPremPlanTitles.SELF_HOSTED_BUSINESS]: OnPremPlanTitles.SELF_HOSTED_ENTERPRISE,
 } as Record<string, OnPremPlanTitles>;
 
 export const GRACE_PERIOD_DURATION = 14;
@@ -300,6 +342,7 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
   [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
     'to add more row-level security policies per table.',
+  [PlanLimitTypes.LIMIT_WORKSPACE]: 'to create more workspaces.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',

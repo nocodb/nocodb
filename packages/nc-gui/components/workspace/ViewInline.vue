@@ -12,7 +12,7 @@ const route = router.currentRoute
 
 const { t } = useI18n()
 
-const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
 

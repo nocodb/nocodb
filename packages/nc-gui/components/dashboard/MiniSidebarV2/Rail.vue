@@ -7,10 +7,6 @@ interface NavItem {
   onClick?: () => void
 }
 
-const emits = defineEmits<{
-  (e: 'switch-panel', panel: string): void
-}>()
-
 const router = useRouter()
 
 const route = router.currentRoute

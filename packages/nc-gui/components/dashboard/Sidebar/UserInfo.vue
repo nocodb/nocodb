@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
 
-const { user, signOut, appInfo } = useGlobal()
+const { user, signOut } = useGlobal()
 // So watcher in users store is triggered
 useUsers()
 

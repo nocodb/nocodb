@@ -3,8 +3,6 @@ import dayjs from 'dayjs'
 
 const { t } = useI18n()
 
-const isSettingsSidebar = inject<Ref<boolean>>('isSettingsSidebar', ref(false))
-
 const newTokenInputRef = ref()
 
 const { sorts, sortDirection, loadSorts, handleGetSortedData, saveOrUpdate: saveOrUpdateSort } = useUserSorts('Webhook') // Using 'Webhook' as the sort type since 'MCPToken' isn't defined

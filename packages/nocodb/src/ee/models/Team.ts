@@ -427,7 +427,7 @@ export default class Team {
         {
           xcCondition: {
             _and: [
-              { fk_workspace_id: { eq: context.fk_workspace_id } }
+              { fk_workspace_id: { eq: context.workspace_id } },
               { id: { in: uncachedIds } },
               { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
             ],

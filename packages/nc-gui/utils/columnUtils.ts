@@ -50,6 +50,7 @@ const uiTypes: UiTypesType[] = [
     name: UITypes.Links,
     icon: iconMap.cellLinks,
     virtual: 1,
+    deprecated: 1,
   },
   {
     name: UITypes.LinkToAnotherRecord,

@@ -53,8 +53,8 @@ const FEATURES = [
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',
-    enabled: false,
-    version: 1,
+    enabled: true,
+    version: 2,
   },
   {
     id: 'ai_beta_features',
@@ -135,8 +135,8 @@ const FEATURES = [
     id: 'ltar_v2',
     title: 'Links V2',
     description: 'Use junction table based relations for all link types (beta).',
-    enabled: false,
-    version: 1,
+    enabled: true,
+    version: 2,
     isEngineering: true,
   },
   {

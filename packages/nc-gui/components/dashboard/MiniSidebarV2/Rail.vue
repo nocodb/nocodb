@@ -3,8 +3,7 @@ interface NavItem {
   key: string
   icon: string
   label: string
-  accentColor?: string
-  indicatorColor?: string
+  disabled?: boolean
   onClick?: () => void
 }
 
@@ -193,8 +192,6 @@ const mainItems: NavItem[] = computed(() => [
     key: 'data',
     icon: 'ncTable',
     label: 'Data',
-    accentColor: '#7ba8f0',
-    indicatorColor: '#5b8def',
     disabled: !hasAvailableBases.value,
     onClick: () => {
       onTabClick('data')
@@ -204,8 +201,6 @@ const mainItems: NavItem[] = computed(() => [
     key: 'automations',
     icon: 'ncAutomation',
     label: 'Automations',
-    accentColor: '#a78bfa',
-    indicatorColor: '#8b5cf6',
     disabled: !hasAvailableBases.value,
     onClick: () => {
       onTabClick('automations')
@@ -242,8 +237,6 @@ const onItemClick = (panel: string) => {
         :key="idx"
         :icon="item.icon"
         :label="item.label"
-        :accent-color="item.accentColor"
-        :indicator-color="item.indicatorColor"
         :panel-key="item.key"
         :active="activeSidebarTab === item.key"
         :disabled="item.disabled"
@@ -267,6 +260,7 @@ const onItemClick = (panel: string) => {
         data-testid="nc-sidebar-notification-btn"
         :active="isNotificationOpen"
         :disable-tooltip="isNotificationOpen"
+        is-dropdown
       >
         <template #icon>
           <div class="relative flex items-center justify-center">
@@ -330,27 +324,17 @@ const onItemClick = (panel: string) => {
 .nc-rail-logo {
   @apply flex items-center justify-center cursor-pointer pt-1 opacity-90 hover:opacity-100 transform transition-all duration-150;
 
-  color: #555;
-
-  :root[theme='dark'] & {
-    color: #9a9a9a;
-  }
-
   &:hover {
     scale: 1.1;
   }
 }
 
 .nc-rail-divider {
+  @apply bg-nc-bg-gray-dark/80;
   width: 28px;
   height: 1px;
   margin: 6px 0 4px;
   flex-shrink: 0;
-  background: rgba(0, 0, 0, 0.12);
-
-  :root[theme='dark'] & {
-    background: #333;
-  }
 }
 
 .nc-rail-bottom-group {

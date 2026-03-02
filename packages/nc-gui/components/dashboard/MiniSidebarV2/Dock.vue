@@ -3,8 +3,6 @@ interface NavItem {
   key: string
   icon: string
   label: string
-  accentColor?: string
-  indicatorColor?: string
   disabled?: boolean
   onClick?: () => void
 }
@@ -118,8 +116,6 @@ const mainItems = computed<NavItem[]>(() => [
     key: 'data',
     icon: 'ncTable',
     label: 'Data',
-    accentColor: '#7ba8f0',
-    indicatorColor: '#5b8def',
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
@@ -127,8 +123,6 @@ const mainItems = computed<NavItem[]>(() => [
     key: 'automations',
     icon: 'ncAutomation',
     label: 'Automations',
-    accentColor: '#a78bfa',
-    indicatorColor: '#8b5cf6',
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('automations'),
   },
@@ -282,8 +276,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         :ref="(el: any) => setItemRef(item.key, el)"
         :icon="item.icon"
         :label="item.label"
-        :accent-color="item.accentColor"
-        :indicator-color="item.indicatorColor"
         :panel-key="item.key"
         :active="activeSidebarTab === item.key"
         :disabled="item.disabled"

@@ -158,40 +158,53 @@ export class TeamsV3Service {
     // Get the current user ID from context
     const currentUserId = context.user?.id;
 
-    // Get teams with member counts using optimized query
-    const teamsWithCounts = await Promise.all(
-      teams.map(async (team) => {
-        const [membersCount, managersCount, managers] = await Promise.all([
-          this.getTeamMembersCount(context, team.id),
-          this.getTeamOwnersCount(context, team.id),
-          this.getTeamOwners(context, team.id),
-        ]);
-
-        // Check if current user is a member/owner of this team
-        let isMember = false;
-        let isOwner = false;
-        if (currentUserId) {
-          const assignment = await PrincipalAssignment.get(
-            context,
-            ResourceType.TEAM,
-            team.id,
-            PrincipalType.USER,
-            currentUserId,
-          );
-          isMember = assignment !== null;
-          isOwner = assignment?.roles === TeamUserRoles.OWNER;
-        }
-
-        return {
-          ...team,
-          members_count: membersCount,
-          managers_count: managersCount,
-          managers: managers,
-          is_member: isMember,
-          is_owner: isOwner,
-        };
-      }),
+    // Fetch all assignments for all teams in one query
+    const teamIds = teams.map((t) => t.id);
+    const allAssignments = await PrincipalAssignment.listByResourceIds(
+      context,
+      ResourceType.TEAM,
+      teamIds,
+      { principal_type: PrincipalType.USER },
     );
+
+    // Build per-team lookup maps from the batch result
+    const memberCountMap = new Map<string, number>();
+    const ownerCountMap = new Map<string, number>();
+    const ownersMap = new Map<string, string[]>();
+    const currentUserMemberMap = new Map<string, boolean>();
+    const currentUserOwnerMap = new Map<string, boolean>();
+
+    for (const id of teamIds) {
+      memberCountMap.set(id, 0);
+      ownerCountMap.set(id, 0);
+      ownersMap.set(id, []);
+    }
+
+    for (const assignment of allAssignments) {
+      const tid = assignment.resource_id;
+      memberCountMap.set(tid, (memberCountMap.get(tid) ?? 0) + 1);
+
+      if (assignment.roles === TeamUserRoles.OWNER) {
+        ownerCountMap.set(tid, (ownerCountMap.get(tid) ?? 0) + 1);
+        ownersMap.get(tid)?.push(assignment.principal_ref_id);
+      }
+
+      if (currentUserId && assignment.principal_ref_id === currentUserId) {
+        currentUserMemberMap.set(tid, true);
+        if (assignment.roles === TeamUserRoles.OWNER) {
+          currentUserOwnerMap.set(tid, true);
+        }
+      }
+    }
+
+    const teamsWithCounts = teams.map((team) => ({
+      ...team,
+      members_count: memberCountMap.get(team.id) ?? 0,
+      managers_count: ownerCountMap.get(team.id) ?? 0,
+      managers: ownersMap.get(team.id) ?? [],
+      is_member: currentUserMemberMap.get(team.id) ?? false,
+      is_owner: currentUserOwnerMap.get(team.id) ?? false,
+    }));
 
     // Transform to v3 response format
     const teamsV3: TeamV3ResponseType[] = teamsWithCounts.map((team) => {
@@ -1267,33 +1280,57 @@ export class TeamsV3Service {
     const treeRoots = await Team.getTree(context, param.workspaceOrOrgId);
     const currentUserId = context.user?.id;
 
-    // Recursively enrich each node with counts
-    const enrichNode = async (node: any): Promise<TeamTreeNodeV3Type> => {
-      const [membersCount, managersCount, managers] = await Promise.all([
-        this.getTeamMembersCount(context, node.id),
-        this.getTeamOwnersCount(context, node.id),
-        this.getTeamOwners(context, node.id),
-      ]);
+    // Collect all team IDs from the tree
+    const allNodeIds: string[] = [];
+    const collectIds = (nodes: any[]) => {
+      for (const node of nodes) {
+        allNodeIds.push(node.id);
+        if (node.children?.length) collectIds(node.children);
+      }
+    };
+    collectIds(treeRoots);
 
-      let isMember = false;
-      let isOwner = false;
-      if (currentUserId) {
-        const assignment = await PrincipalAssignment.get(
-          context,
-          ResourceType.TEAM,
-          node.id,
-          PrincipalType.USER,
-          currentUserId,
-        );
-        isMember = assignment !== null;
-        isOwner = assignment?.roles === TeamUserRoles.OWNER;
+    // Fetch all assignments for the entire tree in one query
+    const allAssignments = await PrincipalAssignment.listByResourceIds(
+      context,
+      ResourceType.TEAM,
+      allNodeIds,
+      { principal_type: PrincipalType.USER },
+    );
+
+    // Build per-team lookup maps
+    const memberCountMap = new Map<string, number>();
+    const ownerCountMap = new Map<string, number>();
+    const ownersMap = new Map<string, string[]>();
+    const currentUserMemberMap = new Map<string, boolean>();
+    const currentUserOwnerMap = new Map<string, boolean>();
+
+    for (const id of allNodeIds) {
+      memberCountMap.set(id, 0);
+      ownerCountMap.set(id, 0);
+      ownersMap.set(id, []);
+    }
+
+    for (const assignment of allAssignments) {
+      const tid = assignment.resource_id;
+      memberCountMap.set(tid, (memberCountMap.get(tid) ?? 0) + 1);
+
+      if (assignment.roles === TeamUserRoles.OWNER) {
+        ownerCountMap.set(tid, (ownerCountMap.get(tid) ?? 0) + 1);
+        ownersMap.get(tid)?.push(assignment.principal_ref_id);
       }
 
-      const meta = parseMetaProp(node) ?? {};
+      if (currentUserId && assignment.principal_ref_id === currentUserId) {
+        currentUserMemberMap.set(tid, true);
+        if (assignment.roles === TeamUserRoles.OWNER) {
+          currentUserOwnerMap.set(tid, true);
+        }
+      }
+    }
 
-      const enrichedChildren = await Promise.all(
-        (node.children || []).map(enrichNode),
-      );
+    // Enrich tree nodes synchronously using pre-fetched data
+    const enrichNode = (node: any): TeamTreeNodeV3Type => {
+      const meta = parseMetaProp(node) ?? {};
 
       return {
         id: node.id,
@@ -1301,24 +1338,22 @@ export class TeamsV3Service {
         icon: meta.icon || undefined,
         icon_type: meta.icon_type || undefined,
         badge_color: meta.badge_color || undefined,
-        members_count: membersCount,
-        managers_count: managersCount,
-        managers,
+        members_count: memberCountMap.get(node.id) ?? 0,
+        managers_count: ownerCountMap.get(node.id) ?? 0,
+        managers: ownersMap.get(node.id) ?? [],
         created_by: node.created_by,
         created_at: node.created_at,
         updated_at: node.updated_at,
-        is_member: isMember,
-        is_owner: isOwner,
+        is_member: currentUserMemberMap.get(node.id) ?? false,
+        is_owner: currentUserOwnerMap.get(node.id) ?? false,
         fk_parent_team_id: node.fk_parent_team_id || null,
         depth: node.depth ?? 0,
         path: node.path || undefined,
-        children: enrichedChildren,
+        children: (node.children || []).map(enrichNode),
       };
     };
 
-    const enrichedRoots = await Promise.all(treeRoots.map(enrichNode));
-
-    return { list: enrichedRoots };
+    return { list: treeRoots.map(enrichNode) };
   }
 
   async teamMove(

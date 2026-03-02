@@ -61,7 +61,7 @@ test.describe('Base Collaboration', () => {
       isToolbarOperationsRestricted: boolean;
     }
   ) => {
-    await dashboard.leftSidebar.clickTeamAndSettings();
+    await dashboard.leftSidebar.navigateToSettingsPage('ws-collaborators');
 
     // add all users as WS viewers
 

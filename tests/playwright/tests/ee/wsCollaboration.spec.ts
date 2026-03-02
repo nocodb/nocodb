@@ -47,7 +47,7 @@ test.describe('Collaborators', () => {
   });
 
   const testUserAccess = async (page: Page, user: { email: string; role: string }) => {
-    await dashboard.leftSidebar.clickTeamAndSettings();
+    await dashboard.leftSidebar.navigateToSettingsPage('ws-collaborators');
 
     await collaborationPage.addUsers(user.email, user.role);
 
@@ -77,7 +77,7 @@ test.describe('Collaborators', () => {
       await expect(dashboard.leftSidebar.btn_newProject).toBeVisible();
       await dashboard.leftSidebar.closeBaseListModal();
 
-      await dashboard.leftSidebar.clickTeamAndSettings();
+      await dashboard.leftSidebar.navigateToSettingsPage('ws-collaborators');
       await workspacePage.verifyAccess(user.role.toLowerCase());
     } else {
       await dashboard.leftSidebar.openBaseListModal();

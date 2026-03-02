@@ -15,7 +15,7 @@ export class WorkspaceSettingsObject extends BasePage {
   }
 
   async open() {
-    await this.dashboard.leftSidebar.clickTeamAndSettings();
+    await this.dashboard.leftSidebar.navigateToSettingsPage('ws-settings');
   }
 
   async clickSettingsTab() {

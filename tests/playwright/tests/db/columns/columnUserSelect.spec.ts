@@ -45,7 +45,7 @@ async function beforeEachInit({ page }: { page: any }) {
       }
     }
 
-    await dashboard.leftSidebar.clickTeamAndSettings();
+    await dashboard.leftSidebar.navigateToSettingsPage('ws-collaborators');
 
     // Since all are editor role, add bulk users
     await collaborationPage.addUsers(users.join(', '), 'editor');

@@ -56,7 +56,7 @@ test.describe('Grid view personal', () => {
     const workspacePage = new WorkspacePage(dashboard.rootPage);
     const collaborationPage = workspacePage.collaboration;
 
-    await dashboard.leftSidebar.clickTeamAndSettings();
+    await dashboard.leftSidebar.navigateToSettingsPage('ws-collaborators');
     for (let i = 0; i < users.length; i++) {
       // add all users as WS viewers
       await collaborationPage.addUsers(loginPage.prefixEmail(users[i].email), users[i].role);

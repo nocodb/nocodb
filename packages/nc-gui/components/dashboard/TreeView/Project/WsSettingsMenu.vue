@@ -60,6 +60,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-if="isUIAllowed('workspaceCollaborators')"
       v-e="['c:settings:ws:invite-user']"
       icon="users"
+      data-testid="ws-collaborators"
       :active="isWsSettingsItemActive('ws-collaborators')"
       @click="navigateToWsSettings('ws-collaborators')"
     >
@@ -69,6 +70,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-if="isEeUI && isTeamsEnabled"
       v-e="['c:settings:ws:add-team']"
       icon="ncBuilding"
+      data-testid="ws-teams"
       :active="isWsSettingsItemActive('ws-teams')"
       @click="navigateToWsSettings('ws-teams')"
     >
@@ -78,6 +80,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-if="isUIAllowed('workspaceIntegrations') && !isMobileMode"
       v-e="['c:integrations']"
       icon="integration"
+      data-testid="ws-integrations"
       :active="isWsSettingsItemActive('ws-integrations')"
       @click="navigateToWsSettings('ws-integrations')"
     >
@@ -87,6 +90,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-if="isEeUI && !activeWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling') && !isMobileMode"
       v-e="['c:settings:ws:billing']"
       icon="ncDollarSign"
+      data-testid="ws-billing"
       :active="isWsSettingsItemActive('ws-billing')"
       @click="navigateToWsSettings('ws-billing')"
     >
@@ -96,6 +100,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-if="isEeUI && isUIAllowed('workspaceAuditList') && !isMobileMode"
       v-e="['c:settings:ws:audits']"
       icon="audit"
+      data-testid="ws-audits"
       :active="isWsSettingsItemActive('ws-audits')"
       @click="navigateToWsSettings('ws-audits')"
     >
@@ -105,6 +110,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-if="isWorkspaceSsoAvail && !activeWorkspace?.fk_org_id && isUIAllowed('workspaceSSO') && !isMobileMode"
       v-e="['c:settings:ws:sso']"
       icon="sso"
+      data-testid="ws-sso"
       :active="isWsSettingsItemActive('ws-sso')"
       @click="navigateToWsSettings('ws-sso')"
     >
@@ -114,6 +120,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-if="!isMobileMode && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"
       v-e="['c:settings:ws:general']"
       icon="ncMoreHorizontal"
+      data-testid="ws-settings"
       :active="isWsSettingsItemActive('ws-settings')"
       @click="navigateToWsSettings('ws-settings')"
     >

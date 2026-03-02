@@ -18,6 +18,29 @@ type MiniSidebarActionType =
   | 'notification'
   | 'userInfo';
 
+/** Base settings menu items (BaseSettingsMenu.vue) */
+type BaseSettingsMenuItem =
+  | 'collaborator'
+  | 'permissions'
+  | 'mcp'
+  | 'syncs'
+  | 'snapshots'
+  | 'data-source'
+  | 'base-settings';
+
+/** Workspace settings menu items (WsSettingsMenu.vue) */
+type WsSettingsMenuItem =
+  | 'ws-collaborators'
+  | 'ws-teams'
+  | 'ws-integrations'
+  | 'ws-billing'
+  | 'ws-audits'
+  | 'ws-sso'
+  | 'ws-settings';
+
+/** Any settings menu item */
+type SettingsMenuItem = BaseSettingsMenuItem | WsSettingsMenuItem;
+
 /**
  * Tab / panel keys for MiniSidebarV2 (new-sidebar-2 branch).
  *
@@ -245,6 +268,62 @@ export class LeftSidebarPage extends BasePage {
   }
 
   /**
+   * Returns the locator for a settings menu item by its key.
+   * Scoped to the correct section header to avoid ambiguity
+   * (e.g. both base and workspace have a "General" item).
+   */
+  getSettingsMenuItemLocator(item: SettingsMenuItem): Locator {
+    const sidebar = this.get();
+
+    // Workspace items start with 'ws-', scope under "Workspace Settings" section
+    if (item.startsWith('ws-')) {
+      return sidebar.getByTestId(item);
+    }
+
+    // Base settings items, scope under "Base Settings" section
+    return sidebar.getByTestId(`base-${item}`);
+  }
+
+  /**
+   * Navigates to a specific settings page by clicking the settings tab
+   * (if not already active) and then clicking the target menu item.
+   *
+   * @param item - The settings menu item key
+   *
+   * @example
+   *   await leftSidebar.navigateToSettingsPage('collaborator');       // Base members
+   *   await leftSidebar.navigateToSettingsPage('ws-integrations');    // Workspace integrations
+   */
+  async navigateToSettingsPage(item: SettingsMenuItem): Promise<void> {
+    // Ensure settings tab is active
+    await this.navigateToSettingsTab();
+
+    const menuItem = this.getSettingsMenuItemLocator(item);
+
+    console.log('menu', item, menuItem);
+    await menuItem.waitFor({ state: 'visible' });
+    await menuItem.click();
+    await this.rootPage.waitForTimeout(500);
+  }
+
+  /**
+   * Verifies that a settings menu item is visible.
+   */
+  async verifySettingsMenuItemVisible(item: SettingsMenuItem): Promise<void> {
+    await this.navigateToSettingsTab();
+    const menuItem = this.getSettingsMenuItemLocator(item);
+    await expect(menuItem).toBeVisible();
+  }
+
+  /**
+   * Verifies that a settings menu item is currently active (highlighted).
+   */
+  async verifySettingsMenuItemActive(item: SettingsMenuItem): Promise<void> {
+    const menuItem = this.getSettingsMenuItemLocator(item);
+    await expect(menuItem).toHaveClass(/active/);
+  }
+
+  /**
    * Opens the notification panel via MiniSidebarV2.
    * Falls back silently if V2 is not present.
    */
@@ -287,12 +366,16 @@ export class LeftSidebarPage extends BasePage {
     await this.verifyBaseListOpen(true);
   }
 
+  /**
+   * @deprecated Use navigateToSettingsPage instead
+   */
   async clickTeamAndSettings(): Promise<void> {
     // V2: team & settings is accessed via the 'settings' rail/dock tab
     if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('settings');
+      await this.navigateToSettingsPage('ws-settings');
       return;
     }
+
     await this.miniSidebarActionClick({
       type: 'teamAndSettings',
       fallback: async () => {

@@ -63,7 +63,7 @@ test.describe('DashboardBasicTests', () => {
     });
 
     // tbd
-    // await dashboard.leftSidebar.clickTeamAndSettings();
+    // await dashboard.leftSidebar.navigateToSettingsPage('ws-settings');
     // await wsPage.container.settings.click();
     // await wsPage.container.deleteWorkspace({ title: ws2Title + '2' });
   });

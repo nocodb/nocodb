@@ -70,6 +70,7 @@ onMounted(() => {
       v-if="isUIAllowed('newUser', { roles: effectiveRoles })"
       v-e="['c:settings:base:add-user']"
       icon="users"
+      data-testid="base-collaborator"
       :active="isSettingsItemActive('collaborator')"
       @click="navigateToBaseSettings('collaborator')"
     >
@@ -79,6 +80,7 @@ onMounted(() => {
       v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
       v-e="['c:settings:base:permissions']"
       icon="ncLock"
+      data-testid="base-permissions"
       :active="isSettingsItemActive('permissions')"
       @click="navigateToBaseSettings('permissions')"
     >
@@ -88,6 +90,7 @@ onMounted(() => {
       v-if="isUIAllowed('manageMCP', { roles: effectiveRoles }) && !isMobileMode"
       v-e="['c:settings:base:mcp']"
       icon="mcp"
+      data-testid="base-mcp"
       :active="isSettingsItemActive('mcp')"
       @click="navigateToBaseSettings('mcp')"
     >
@@ -97,6 +100,7 @@ onMounted(() => {
       v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
       v-e="['c:settings:base:syncs']"
       icon="ncZap"
+      data-testid="base-syncs"
       :active="isSettingsItemActive('syncs')"
       @click="navigateToBaseSettings('syncs')"
     >
@@ -111,6 +115,7 @@ onMounted(() => {
       "
       v-e="['c:settings:base:snapshots']"
       icon="camera"
+      data-testid="base-snapshots"
       :active="isSettingsItemActive('snapshots')"
       @click="navigateToBaseSettings('snapshots')"
     >
@@ -120,6 +125,7 @@ onMounted(() => {
       v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
       v-e="['c:settings:base:add-data-source']"
       icon="ncDatabase"
+      data-testid="base-data-source"
       :active="isSettingsItemActive('data-source')"
       @click="navigateToBaseSettings('data-source')"
     >
@@ -129,6 +135,7 @@ onMounted(() => {
       v-if="!isMobileMode"
       v-e="['c:settings:base:more']"
       icon="ncMoreHorizontal"
+      data-testid="base-settings"
       :active="isSettingsItemActive('base-settings')"
       @click="navigateToBaseSettings('base-settings')"
     >

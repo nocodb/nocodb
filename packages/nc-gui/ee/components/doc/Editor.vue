@@ -39,7 +39,8 @@ const { $e } = useNuxtApp()
 const { user } = useGlobal()
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
-const { openFilePicker, uploadAndInsert } = useDocumentImageUpload()
+const { openFilePicker, uploadAndInsert, resolveImageSrc } = useDocumentImageUpload()
+const { batchUploadFiles } = useAttachment()
 const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
 
 const base = inject(ProjectInj, ref())
@@ -731,6 +732,66 @@ const updateDocumentIcon = async (icon: string) => {
   }
 }
 
+const coverImageSrc = computed(() => {
+  const coverPath = parseProp(doc.value?.meta).cover_image
+  if (!coverPath) return ''
+  return resolveImageSrc(coverPath)
+})
+
+const onAddOrChangeCover = async () => {
+  if (!doc.value?.id || !base.value?.id) return
+
+  const file = await openFilePicker()
+  if (!file) return
+
+  try {
+    const uploaded = await batchUploadFiles([file], 'noco/docs')
+    if (!uploaded.length || !uploaded[0].path) return
+
+    doc.value.meta = {
+      ...parseProp(doc.value.meta),
+      cover_image: uploaded[0].path,
+    }
+
+    const updated = await updateDocument(base.value.id, doc.value.id, {
+      meta: doc.value.meta,
+      version: doc.value.version,
+    })
+
+    if (updated?.version && doc.value) {
+      doc.value.version = updated.version
+    }
+
+    $e('a:doc:cover:update')
+  } catch (e: any) {
+    ncMessage.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+const onRemoveCover = async () => {
+  if (!doc.value?.id || !base.value?.id) return
+
+  try {
+    const meta = parseProp(doc.value.meta)
+    delete meta.cover_image
+
+    doc.value.meta = meta
+
+    const updated = await updateDocument(base.value.id, doc.value.id, {
+      meta: doc.value.meta,
+      version: doc.value.version,
+    })
+
+    if (updated?.version && doc.value) {
+      doc.value.version = updated.version
+    }
+
+    $e('a:doc:cover:remove')
+  } catch (e: any) {
+    ncMessage.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const onDownloadMarkdown = () => {
   isPageMenuOpen.value = false
   downloadMarkdown()
@@ -917,9 +978,31 @@ onBeforeUnmount(() => {
       </NcAlert>
     </div>
 
+    <!-- Cover image banner -->
+    <div v-if="coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
+      <img :src="coverImageSrc" class="nc-doc-cover-image" />
+      <div v-if="isUIAllowed('documentUpdate')" class="nc-doc-cover-controls">
+        <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-change" @click="onAddOrChangeCover">
+          {{ $t('labels.changeCover') }}
+        </NcButton>
+        <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-remove" @click="onRemoveCover">
+          {{ $t('labels.removeCover') }}
+        </NcButton>
+      </div>
+    </div>
+
     <div class="nc-doc-editor-inner w-full max-w-[900px] mx-auto px-6 sm:px-10 lg:px-16">
       <!-- Title -->
       <div class="nc-doc-editor-header pt-12 pb-4">
+        <div
+          v-if="!coverImageSrc && isUIAllowed('documentUpdate')"
+          class="nc-doc-add-cover"
+          data-testid="nc-doc-add-cover"
+          @click="onAddOrChangeCover"
+        >
+          <GeneralIcon icon="ncImage" class="!w-3.5 !h-3.5" />
+          {{ $t('labels.addCover') }}
+        </div>
         <div class="nc-doc-title-row flex items-center">
           <div class="nc-doc-editor-icon-wrapper flex-shrink-0" data-testid="nc-doc-opened-page-icon-picker">
             <LazyGeneralEmojiPicker
@@ -2158,6 +2241,66 @@ onBeforeUnmount(() => {
   }
   100% {
     background-color: rgba(var(--rgb-color-brand-100), 0.4);
+  }
+}
+
+// Cover image
+.nc-doc-cover {
+  height: 240px;
+  min-height: 240px;
+  flex-shrink: 0;
+  overflow: hidden;
+  margin-top: 44px;
+}
+
+.nc-doc-cover-image {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  object-position: center;
+}
+
+.nc-doc-cover-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  .group:hover & {
+    opacity: 1;
+  }
+
+  .nc-button.ant-btn {
+    padding: 0 8px !important;
+    font-size: 11px;
+    height: 22px !important;
+    min-height: 22px !important;
+    min-width: unset !important;
+  }
+}
+
+.nc-doc-add-cover {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--nc-content-gray-muted);
+  opacity: 0;
+  transition: opacity 0.15s;
+
+  &:hover {
+    background: var(--nc-bg-gray-light);
+    color: var(--nc-content-gray);
+  }
+
+  .nc-doc-editor-header:hover & {
+    opacity: 1;
   }
 }
 </style>

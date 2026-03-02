@@ -251,7 +251,7 @@ export class SmtpSendEmailNode extends WorkflowNodeIntegration<SmtpSendEmailConf
           from,
           to: this.sanitizeHeader(to),
           subject: this.sanitizeHeader(subject),
-          text: body,
+          text: body, // TODO: add html body support
           ...(cc && { cc: this.sanitizeHeader(cc) }),
           ...(bcc && { bcc: this.sanitizeHeader(bcc) }),
         });

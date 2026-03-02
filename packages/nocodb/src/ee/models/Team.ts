@@ -456,10 +456,17 @@ export default class Team {
     const result = new Map<string, Team[]>();
     if (!teams.length) return result;
 
+    // Initialize empty arrays for all input teams
     for (const team of teams) {
       result.set(team.id, []);
     }
 
+    // Build OR conditions: path LIKE 'teamPath/%' for each team
+    const orConditions = teams.map((t) => ({
+      path: { like: `${t.path}/%` },
+    }));
+
+    // All teams should be in the same workspace — use the first one
     const workspaceId = teams[0].fk_workspace_id;
 
     const descendants = await ncMeta.metaList2(
@@ -470,52 +477,19 @@ export default class Team {
         xcCondition: {
           _and: [
             { fk_workspace_id: { eq: workspaceId } },
-            { _or: teams.map((t) => ({ path: { like: `${t.path}/%` } })) },
+            { _or: orConditions },
             { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
           ],
         },
       },
     );
 
-    // O(1) lookup for input teams by path
-    const teamByPath = new Map(teams.map((t) => [t.path, t]));
-
-    // Reference cache: descendant path → closest ancestor team
-    const parentRef = new Map<string, { id: string } | null>();
-
-    const resolveParent = (path: string): { id: string } | null => {
-      if (parentRef.has(path)) return parentRef.get(path)!;
-
-      let p = path.lastIndexOf('/');
-      while (p > 0) {
-        const parentPath = path.substring(0, p);
-
-        // Check cache first
-        if (parentRef.has(parentPath)) {
-          const cached = parentRef.get(parentPath)!;
-          parentRef.set(path, cached);
-          return cached;
-        }
-
-        // Check if it's one of our input teams
-        const match = teamByPath.get(parentPath);
-        if (match) {
-          parentRef.set(path, match);
-          return match;
-        }
-
-        p = path.lastIndexOf('/', p - 1);
-      }
-
-      parentRef.set(path, null);
-      return null;
-    };
-
+    // Assign each descendant to its closest ancestor in the input set
     for (const desc of descendants) {
-      if (!desc.path) continue;
-      const parent = resolveParent(desc.path);
-      if (parent) {
-        result.get(parent.id)!.push(this.castType(desc));
+      for (const team of teams) {
+        if (desc.path?.startsWith(team.path + '/')) {
+          result.get(team.id)!.push(this.castType(desc));
+        }
       }
     }
 

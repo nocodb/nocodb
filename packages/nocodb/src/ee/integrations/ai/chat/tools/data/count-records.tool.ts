@@ -41,11 +41,9 @@ export const countRecordsTool: ChatToolDefinition = {
   ) {
     const dataService: DataTableService = Noco.nestApp.get(DataTableService);
     const model = await resolveTableByName(context, args.table_name);
-    const defaultView = await model.getViews(context).then((v) => v[0]);
 
     const result = await dataService.dataCount(context, {
       modelId: model.id,
-      viewId: defaultView?.id,
       query: {
         where: args.where,
       },

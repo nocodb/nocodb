@@ -75,11 +75,9 @@ export const queryRecordsTool: ChatToolDefinition = {
   ) {
     const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);
     const model = await resolveTableByName(context, args.table_name);
-    const defaultView = await model.getViews(context).then((v) => v[0]);
 
     const result = await dataV3Service.dataList(context, {
       modelId: model.id,
-      viewId: defaultView?.id,
       query: {
         where: args.where,
         sort: args.sort,

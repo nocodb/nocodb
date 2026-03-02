@@ -87,44 +87,28 @@ export default class ChatMessage
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(
-      context,
-      CacheScope.CHAT_MESSAGE,
-      [sessionId],
-    );
-    let { list: messagesList } = cachedList;
-    const { isNoneList } = cachedList;
-
-    if (!isNoneList && !messagesList.length) {
-      messagesList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.CHAT_MESSAGES,
-        {
-          condition: {
-            fk_session_id: sessionId,
-          },
-          orderBy: {
-            created_at: 'asc',
-          },
-          ...(limit && { limit }),
-          ...(offset && { offset }),
+    // Chat messages are append-only and frequently updated (approval flow, compaction).
+    // Session list caching is intentionally bypassed here: after approval, continueAfterApproval
+    // inserts a new message via appendToList which creates a partial cache list, causing
+    // messageList to return incomplete data. Always fetch from DB for correctness.
+    const messagesList = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CHAT_MESSAGES,
+      {
+        condition: {
+          fk_session_id: sessionId,
         },
-      );
+        orderBy: {
+          created_at: 'asc',
+        },
+        ...(limit && { limit }),
+        ...(offset && { offset }),
+      },
+    );
 
-      for (const msg of messagesList) {
-        prepareForResponse(msg, JSON_FIELDS);
-      }
-
-      // Only cache if no pagination (full list)
-      if (!limit && !offset) {
-        await NocoCache.setList(
-          context,
-          CacheScope.CHAT_MESSAGE,
-          [sessionId],
-          messagesList,
-        );
-      }
+    for (const msg of messagesList) {
+      prepareForResponse(msg, JSON_FIELDS);
     }
 
     return messagesList.map((m) => new ChatMessage(m));
@@ -159,15 +143,7 @@ export default class ChatMessage
       insertObj,
     );
 
-    return ChatMessage.get(context, id, ncMeta).then(async (chatMessage) => {
-      await NocoCache.appendToList(
-        context,
-        CacheScope.CHAT_MESSAGE,
-        [message.fk_session_id],
-        `${CacheScope.CHAT_MESSAGE}:${id}`,
-      );
-      return chatMessage;
-    });
+    return ChatMessage.get(context, id, ncMeta);
   }
 
   static async update(

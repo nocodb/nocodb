@@ -367,8 +367,8 @@ onBeforeUnmount(() => {
                 isSettingsSidebar
                   ? '!h-[calc(100vh-var(--topbar-height))]'
                   : btbShouldShow
-                    ? '!h-[calc(100vh-128px)]'
-                    : '!h-[calc(100vh-92px)]'
+                  ? '!h-[calc(100vh-128px)]'
+                  : '!h-[calc(100vh-92px)]'
               "
             />
           </a-tab-pane>

@@ -199,16 +199,16 @@ const { t } = useI18n()
 
 const settingsPageTitle = computed(() => {
   const tabTitles: Record<string, string> = {
-    collaborator: t('labels.addUserToBase'),
-    permissions: t('labels.dataPermissions'),
-    mcp: t('title.mcpServer'),
-    syncs: t('labels.manageSyncs'),
-    snapshots: t('labels.manageSnapshots'),
+    'collaborator': t('labels.addUserToBase'),
+    'permissions': t('labels.dataPermissions'),
+    'mcp': t('title.mcpServer'),
+    'syncs': t('labels.manageSyncs'),
+    'snapshots': t('labels.manageSnapshots'),
     'data-source': t('labels.addDataSource'),
     'base-settings': t('general.general'),
-    audits: t('title.audits'),
-    workflows: t('objects.workflows'),
-    overview: activeSidebarTab.value === 'automations' ? t('general.automate') : t('general.data'),
+    'audits': t('title.audits'),
+    'workflows': t('objects.workflows'),
+    'overview': activeSidebarTab.value === 'automations' ? t('general.automate') : t('general.data'),
   }
   return tabTitles[projectPageTab.value] || ''
 })
@@ -335,7 +335,6 @@ watch(
           <template v-if="props.tab">
             <span class="font-semibold text-sm text-nc-content-gray truncate">
               {{ settingsPageTitle }}
-            
             </span>
           </template>
           <template v-else>
@@ -383,7 +382,11 @@ watch(
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <NcTabs v-model:active-key="projectPageTab" class="w-full h-full" :class="{ 'hide-tabs': props.tab || projectPageTab === 'overview' }">
+      <NcTabs
+        v-model:active-key="projectPageTab"
+        class="w-full h-full"
+        :class="{ 'hide-tabs': props.tab || projectPageTab === 'overview' }"
+      >
         <a-tab-pane
           v-if="!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode"
           key="overview"
@@ -506,7 +509,10 @@ watch(
             <DashboardSettingsBaseMCP />
           </div>
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot') && base.id && !isMobileMode" key="snapshots">
+        <a-tab-pane
+          v-if="isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot') && base.id && !isMobileMode"
+          key="snapshots"
+        >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__snapshots">
               <GeneralIcon icon="camera" />

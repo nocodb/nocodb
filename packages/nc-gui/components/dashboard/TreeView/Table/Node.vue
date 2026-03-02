@@ -453,7 +453,11 @@ const enabledOptions = computed(() => {
                       {{ $t('general.changeIcon') }}
                     </template>
 
-                    <component :is="iconMap.ncZap" v-if="table?.synced" class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted" />
+                    <component
+                      :is="iconMap.ncZap"
+                      v-if="table?.synced"
+                      class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
+                    />
 
                     <component
                       :is="iconMap.table"

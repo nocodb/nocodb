@@ -19,8 +19,6 @@ const { activeTableId } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
 
-const { commandPalette } = useCommandPalette()
-
 const { setActiveCmdView } = useCommand()
 
 const showSidebarBtn = computed(() => {
@@ -30,10 +28,6 @@ const showSidebarBtn = computed(() => {
 
   return true
 })
-
-const openSearch = () => {
-  commandPalette.value?.open()
-}
 </script>
 
 <template>
@@ -44,11 +38,7 @@ const openSearch = () => {
       </div>
 
       <div class="flex items-center gap-0.5">
-        <NcTooltip
-          class="flex"
-          placement="bottom"
-          hide-on-click
-        >
+        <NcTooltip class="flex" placement="bottom" hide-on-click>
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
           </template>

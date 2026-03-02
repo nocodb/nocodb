@@ -288,7 +288,9 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       : ''
 
     const workflowPath = workflowId
-      ? `/automations/workflows/${workflowId}${toReadableUrlSlug([workflowTitle]) ? `/${toReadableUrlSlug([workflowTitle])}` : ''}`
+      ? `/automations/workflows/${workflowId}${
+          toReadableUrlSlug([workflowTitle]) ? `/${toReadableUrlSlug([workflowTitle])}` : ''
+        }`
       : ''
 
     const queryParams = query ? `?${new URLSearchParams(query).toString()}` : ''

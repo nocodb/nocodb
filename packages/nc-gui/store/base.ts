@@ -275,7 +275,7 @@ export const useBase = defineStore('baseStore', () => {
 
     if (projectPage) {
       const slug: Record<string, string> = {
-        collaborator: 'members',
+        'collaborator': 'members',
         'data-source': 'data-sources',
         'base-settings': 'settings',
       }

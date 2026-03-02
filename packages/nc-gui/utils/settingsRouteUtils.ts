@@ -7,16 +7,16 @@
 
 // Base settings: internal tab name → URL slug
 export const baseSettingsTabToSlug: Record<string, string> = {
-  collaborator: 'members',
+  'collaborator': 'members',
   'data-source': 'data-sources',
-  permissions: 'permissions',
-  syncs: 'syncs',
+  'permissions': 'permissions',
+  'syncs': 'syncs',
   'base-settings': 'settings',
-  audits: 'audits',
-  workflows: 'workflows',
-  overview: 'overview',
-  mcp: 'mcp',
-  snapshots: 'snapshots',
+  'audits': 'audits',
+  'workflows': 'workflows',
+  'overview': 'overview',
+  'mcp': 'mcp',
+  'snapshots': 'snapshots',
 }
 
 // Workspace settings: internal tab name → URL slug

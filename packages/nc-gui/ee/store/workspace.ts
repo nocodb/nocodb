@@ -93,9 +93,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
-  const isWorkspaceSettingsPageOpened = computed(
-    () => route.value.name === 'index-typeOrId-settings-page',
-  )
+  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings-page')
 
   const isIntegrationsPageOpened = computed(
     () =>

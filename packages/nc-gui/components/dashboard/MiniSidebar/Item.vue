@@ -56,14 +56,17 @@ const currentIcon = computed(() => {
 </script>
 
 <template>
-  <NcTooltip class="w-full" placement="right" :arrow="false" :disabled="(!isLabelHidden && !!label) || !tooltipText" :hide-on-click="!hideOnClickDisabled">
+  <NcTooltip
+    class="w-full"
+    placement="right"
+    :arrow="false"
+    :disabled="(!isLabelHidden && !!label) || !tooltipText"
+    :hide-on-click="!hideOnClickDisabled"
+  >
     <template #title>{{ tooltipText }}</template>
 
     <div
-      :class="[
-        variant === 'btn' ? 'nc-mini-sidebar-labeled-btn' : 'nc-mini-sidebar-labeled-item',
-        { active, disabled },
-      ]"
+      :class="[variant === 'btn' ? 'nc-mini-sidebar-labeled-btn' : 'nc-mini-sidebar-labeled-item', { active, disabled }]"
       :data-testid="dataTestid"
       @click="!disabled && emits('click')"
     >

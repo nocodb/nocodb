@@ -61,18 +61,13 @@ const toggleChatSupport = () => {
   window.$chatwoot.toggle(toggleText)
 }
 
-const activePanel = ref('agents')
-
 const isBaseOpen = computed(() => {
   return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
 })
 
-const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-settings-page')
-
 // Resolve a base for icon display when not on a base route (e.g. ws-admin)
 const resolvedProject = computed(() => {
   if (openedProject.value) return openedProject.value
-  if (!isWsAdminRoute.value) return undefined
 
   const lastVisitedBaseId = ncLastVisitedBase().get()
   return basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
@@ -84,17 +79,7 @@ const baseIconColor = computed(() => {
   return meta.iconColor
 })
 
-const showBaseIcon = computed(() => (isBaseOpen.value && openedProject.value) || (isWsAdminRoute.value && resolvedProject.value))
-
 const isBaseListModalOpen = ref(false)
-
-const miniSidebarTabs = computed(() => [
-  { key: 'data' as const, icon: 'ncTableOutline', activeIcon: 'ncTableFilled', label: 'Data' },
-  { key: 'automations' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
-  // { key: 'agents' as const, icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
-])
-
-const { isUIAllowed } = useRoles()
 
 const navigateToProjectPage = () => {
   if (route.value.name?.toString().startsWith('index-typeOrId-baseId-')) {
@@ -205,19 +190,18 @@ const mainItems = computed<NavItem[]>(() => [
 ])
 
 // ── Bottom items (pushed down by margin-top: auto) ──
-const bottomItems: NavItem[] = [{ key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }]
-
-const onItemClick = (panel: string) => {
-  activePanel.value = panel
-  emits('switch-panel', panel)
-}
+const bottomItems: NavItem[] = [
+  isChatWootEnabled.value
+    ? { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }
+    : null,
+].filter(Boolean) as NavItem[]
 </script>
 
 <template>
   <nav class="nc-rail" data-testid="nc-mini-sidebar-v2-rail">
     <!-- Logo -->
     <div class="nc-rail-logo" title="Home" data-testid="nc-mini-sidebar-v2-logo" @click="isBaseListModalOpen = true">
-      <GeneralProjectIcon class="!h-7 !w-7" />
+      <GeneralProjectIcon class="!h-7 !w-7" :color="baseIconColor" />
     </div>
 
     <div class="nc-rail-divider" />
@@ -277,11 +261,11 @@ const onItemClick = (panel: string) => {
       <!-- Theme toggle -->
       <DashboardMiniSidebarV2RailItem
         v-if="isThemeEnabled"
+        v-e="['c:nocodb:theme']"
         :label="selectedTheme === 'light' ? 'Light' : selectedTheme === 'dark' ? 'Dark' : 'System'"
         :disable-tooltip="true"
         panel-key="theme"
         data-testid="nc-sidebar-theme"
-        v-e="['c:nocodb:theme']"
         @click="toggleTheme"
       >
         <template #icon>

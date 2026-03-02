@@ -5,6 +5,19 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import type Record from '~icons/nc-icons/record'
 
 export const useBase = defineStore('baseStore', () => {
+  const pageToSlug: Record<string, string> = {
+    'collaborator': 'members',
+    'data-source': 'data-sources',
+    'permissions': 'permissions',
+    'syncs': 'syncs',
+    'base-settings': 'settings',
+    'audits': 'audits',
+    'workflows': 'workflows',
+    'overview': 'overview',
+    'mcp': 'mcp',
+    'snapshots': 'snapshots',
+  }
+
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()
@@ -109,7 +122,7 @@ export const useBase = defineStore('baseStore', () => {
   // todo: refactor path param name and variable name
   const baseType = computed(() => route.value.params.typeOrId as string)
 
-  const { navigateToProject, appInfo } = useGlobal()
+  const { appInfo } = useGlobal()
 
   const idUserMap = computed(() => {
     return (basesStore.basesUser.get(baseId.value) || []).reduce((acc, user) => {
@@ -416,19 +429,6 @@ export const useBase = defineStore('baseStore', () => {
       openedProject.value.isExpanded = true
     },
   )
-
-  const pageToSlug: Record<string, string> = {
-    collaborator: 'members',
-    'data-source': 'data-sources',
-    permissions: 'permissions',
-    syncs: 'syncs',
-    'base-settings': 'settings',
-    audits: 'audits',
-    workflows: 'workflows',
-    overview: 'overview',
-    mcp: 'mcp',
-    snapshots: 'snapshots',
-  }
 
   const navigateToProjectPage = async ({
     page,

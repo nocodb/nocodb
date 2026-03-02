@@ -7,11 +7,7 @@ const isDockMode = computed(() => !isRail.value)
 </script>
 
 <template>
-  <NcDropdown
-    v-model:visible="isMenuOpen"
-    placement="topLeft"
-    overlay-class-name="!min-w-60 !left-1"
-  >
+  <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-60 !left-1">
     <div class="nc-rail-avatar" :class="{ active: isMenuOpen }" title="Account">
       <img src="https://i.pravatar.cc/64?u=gilfoyle" alt="BG" />
     </div>

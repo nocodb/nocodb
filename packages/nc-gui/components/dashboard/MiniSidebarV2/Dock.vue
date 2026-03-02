@@ -249,13 +249,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <nav
-    ref="dockRef"
-    class="nc-dock"
-    data-testid="nc-mini-sidebar-v2-dock"
-    @mousemove="onMouseMove"
-    @mouseleave="onMouseLeave"
-  >
+  <nav ref="dockRef" class="nc-dock" data-testid="nc-mini-sidebar-v2-dock" @mousemove="onMouseMove" @mouseleave="onMouseLeave">
     <!-- Logo -->
     <DashboardMiniSidebarV2DockItem
       :ref="(el: any) => setItemRef('logo', el)"
@@ -324,11 +318,11 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       <DashboardMiniSidebarV2DockItem
         v-if="isThemeEnabled"
         :ref="(el: any) => setItemRef('theme', el)"
+        v-e="['c:nocodb:theme']"
         :label="selectedTheme === 'light' ? 'Light' : selectedTheme === 'dark' ? 'Dark' : 'System'"
         panel-key="theme"
         data-testid="nc-sidebar-theme"
         :scale="getScale('theme')"
-        v-e="['c:nocodb:theme']"
         @click="toggleTheme"
       >
         <GeneralIcon :icon="themeIcon" class="nc-dock-item-icon" />
@@ -348,20 +342,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
     <div class="nc-dock-separator" />
 
-    <div
-      :ref="(el: any) => setItemRef('create', el)"
-      class="nc-dock-magnify-wrapper"
-      :style="getMagnifyStyle('create')"
-    >
+    <div :ref="(el: any) => setItemRef('create', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('create')">
       <DashboardMiniSidebarCreateNewActionMenu />
     </div>
 
     <!-- User Avatar -->
-    <div
-      :ref="(el: any) => setItemRef('user', el)"
-      class="nc-dock-magnify-wrapper"
-      :style="getMagnifyStyle('user')"
-    >
+    <div :ref="(el: any) => setItemRef('user', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('user')">
       <DashboardSidebarUserInfo />
     </div>
 

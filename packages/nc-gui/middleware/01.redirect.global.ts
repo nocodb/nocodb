@@ -72,5 +72,4 @@ export default defineNuxtRouteMiddleware(async (to) => {
       return navigateTo({ path: `/${to.params.typeOrId}/${to.params.baseId}/settings/${slug}`, query }, { replace: true })
     }
   }
-
 })

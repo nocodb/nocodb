@@ -51,7 +51,13 @@ const themeIcon = computed(
     </NcTooltip>
 
     <!-- Mini sidebar mode — parent DashboardMiniSidebarItem handles tooltip -->
-    <div v-else v-e="['c:nocodb:theme']" class="h-4.5 flex items-center justify-center" data-testid="nc-sidebar-theme" @click="toggleTheme">
+    <div
+      v-else
+      v-e="['c:nocodb:theme']"
+      class="h-4.5 flex items-center justify-center"
+      data-testid="nc-sidebar-theme"
+      @click="toggleTheme"
+    >
       <GeneralIcon
         :icon="themeIcon"
         :class="{

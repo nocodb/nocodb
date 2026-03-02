@@ -89,8 +89,6 @@ const hasTableCreatePermission = computed(() => {
     source: base.value?.sources?.[0],
   })
 })
-
-
 </script>
 
 <template>
@@ -228,5 +226,4 @@ const hasTableCreatePermission = computed(() => {
     @apply hover:bg-nc-bg-brand;
   }
 }
-
 </style>

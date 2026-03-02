@@ -122,7 +122,12 @@ watch(activeWorkflowId, () => {
 
 <template>
   <div class="nc-tree-item nc-automation-node-wrapper nc-project-home-section text-sm select-none w-full nc-base-tree-automation">
-    <div v-if="!props.hideHeader" v-e="['c:automation:toggle-expand']" class="nc-project-home-section-header w-full cursor-pointer" @click.stop="onExpand">
+    <div
+      v-if="!props.hideHeader"
+      v-e="['c:automation:toggle-expand']"
+      class="nc-project-home-section-header w-full cursor-pointer"
+      @click.stop="onExpand"
+    >
       <div>{{ $t('general.automations') }}</div>
       <div class="flex-1" />
       <GeneralIcon
@@ -131,7 +136,11 @@ watch(activeWorkflowId, () => {
         :class="{ '!rotate-90': isExpanded }"
       />
     </div>
-    <DashboardTreeViewAutomationList v-if="props.hideHeader || isExpanded" :base-id="baseId!" :hide-create-button="props.hideCreateButton" />
+    <DashboardTreeViewAutomationList
+      v-if="props.hideHeader || isExpanded"
+      :base-id="baseId!"
+      :hide-create-button="props.hideCreateButton"
+    />
 
     <ScriptsMarket v-model:model-value="isMarketVisible" />
     <ScriptsDetails v-if="isDetailsVisible && detailsScriptId" v-model="isDetailsVisible" :script-id="detailsScriptId" />

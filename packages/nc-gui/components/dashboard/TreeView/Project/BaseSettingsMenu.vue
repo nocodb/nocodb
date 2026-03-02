@@ -103,7 +103,12 @@ onMounted(() => {
       {{ $t('labels.manageSyncs') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('baseMiscSettings', { roles: effectiveRoles }) && isUIAllowed('manageSnapshot', { roles: effectiveRoles }) && !isMobileMode"
+      v-if="
+        isEeUI &&
+        isUIAllowed('baseMiscSettings', { roles: effectiveRoles }) &&
+        isUIAllowed('manageSnapshot', { roles: effectiveRoles }) &&
+        !isMobileMode
+      "
       v-e="['c:settings:base:snapshots']"
       icon="camera"
       :active="isSettingsItemActive('snapshots')"

@@ -35,9 +35,9 @@ const dynamicMargin = computed(() => {
 })
 
 const itemStyle = computed(() => ({
-  'transform': `scale(${props.scale})`,
-  'marginTop': `${dynamicMargin.value}px`,
-  'marginBottom': `${dynamicMargin.value}px`,
+  transform: `scale(${props.scale})`,
+  marginTop: `${dynamicMargin.value}px`,
+  marginBottom: `${dynamicMargin.value}px`,
 }))
 </script>
 

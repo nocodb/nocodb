@@ -68,12 +68,7 @@ const onCreateBaseClick = () => {
 </script>
 
 <template>
-  <div
-    class="nc-all-tables-view p-6 nc-scrollbar-thin"
-    :style="{
-      height: 'calc(100vh - var(--topbar-height))',
-    }"
-  >
+  <div class="nc-all-tables-view p-6 nc-scrollbar-thin h-full overflow-y-auto">
     <div class="text-subHeading2 text-nc-content-gray mb-5">
       {{ activeSidebarTab === 'workflows' ? $t('objects.workflow') : $t('general.data') }} {{ $t('labels.actions') }}
     </div>

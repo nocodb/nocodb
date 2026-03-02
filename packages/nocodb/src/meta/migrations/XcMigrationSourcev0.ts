@@ -27,11 +27,11 @@ import * as nc_202602250001_button_filter from './v0/nc_202602250001_button_filt
 import * as nc_202602260000_rename_outline_to_list_view from './v0/nc_202602260000_rename_outline_to_list_view';
 import * as nc_202602260636_view_sections from './v0/nc_202602260636_view_sections';
 import * as nc_202602251401_links_v2 from './v0/nc_202602251401_links_v2';
-import * as nc_202602280000_teams_hierarchy from './v0/nc_202602280000_teams_hierarchy';
 import * as nc_202602270448_map_view_columns_add_source_id from './v0/nc_202602270448_map_view_columns_add_source_id';
 import * as nc_202602270729_timeline_view from './v0/nc_202602270729_timeline_view';
 import * as nc_202602260000_unify_ce_roles from './v0/nc_202602260000_unify_ce_roles';
 import * as nc_202603020000_hook_error_notifications from './v0/nc_202603020000_hook_error_notifications';
+import * as nc_202603020001_teams_hierarchy from './v0/nc_202603020001_teams_hierarchy';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -74,7 +74,7 @@ export default class XcMigrationSourcev0 {
       'nc_202602270729_timeline_view',
       'nc_202602260000_unify_ce_roles',
       'nc_202603020000_hook_error_notifications',
-      'nc_202602280000_teams_hierarchy',
+      'nc_202603020001_teams_hierarchy',
     ]);
   }
 
@@ -150,8 +150,8 @@ export default class XcMigrationSourcev0 {
         return nc_202602260000_unify_ce_roles;
       case 'nc_202603020000_hook_error_notifications':
         return nc_202603020000_hook_error_notifications;
-      case 'nc_202602280000_teams_hierarchy':
-        return nc_202602280000_teams_hierarchy;
+      case 'nc_202603020001_teams_hierarchy':
+        return nc_202603020001_teams_hierarchy;
     }
   }
 }

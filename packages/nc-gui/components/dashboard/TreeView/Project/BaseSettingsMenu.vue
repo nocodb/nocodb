@@ -134,7 +134,7 @@ onMounted(() => {
       {{ $t('labels.addDataSource') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('baseAuditList', { roles: effectiveRoles }) && isWsAuditEnabled.value && !isMobileMode"
+      v-if="isEeUI && isUIAllowed('baseAuditList', { roles: effectiveRoles }) && isWsAuditEnabled && !isMobileMode"
       v-e="['c:settings:base:audits']"
       icon="audit"
       data-testid="base-audit"

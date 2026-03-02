@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk'
+import { ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string

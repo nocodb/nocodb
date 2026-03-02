@@ -370,7 +370,7 @@ export const useBase = defineStore('baseStore', () => {
 
     if (projectPage) {
       const slug = pageToSlug[projectPage] || projectPage
-      return `${basUrl}/admin/${slug}`
+      return `${basUrl}/settings/${slug}`
     }
 
     return basUrl
@@ -442,7 +442,7 @@ export const useBase = defineStore('baseStore', () => {
     const slug = pageToSlug[page] || page
     const query = action ? { action } : undefined
 
-    navigateTo({ path: `/${wsId}/${bId}/admin/${slug}`, query })
+    navigateTo({ path: `/${wsId}/${bId}/settings/${slug}`, query })
   }
 
   return {

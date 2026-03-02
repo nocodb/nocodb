@@ -107,7 +107,7 @@ const onTabClick = async (tabKey: string) => {
     await navigateTo(basePath)
   }
 
-  activeSidebarTab.value = tabKey as any
+  activeSidebarTab.value = tabKey as typeof activeSidebarTab.value
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -166,11 +166,13 @@ const mainItems = computed<NavItem[]>(() => [
 ])
 
 // ── Bottom items (pushed down by margin-top: auto) ──
-const bottomItems: NavItem[] = [
-  isChatWootEnabled.value
-    ? { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }
-    : null,
-].filter(Boolean) as NavItem[]
+const bottomItems = computed<NavItem[]>(() =>
+  [
+    isChatWootEnabled.value
+      ? { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }
+      : null,
+  ].filter(Boolean) as NavItem[],
+)
 </script>
 
 <template>
@@ -288,7 +290,7 @@ const bottomItems: NavItem[] = [
 
 <style lang="scss" scoped>
 .nc-rail {
-  @apply flex flex-col gap-1.5 items-center h-full w-full pt-4 pt-1.5;
+  @apply flex flex-col gap-1.5 items-center h-full w-full pt-1.5;
 }
 
 .nc-rail-logo {

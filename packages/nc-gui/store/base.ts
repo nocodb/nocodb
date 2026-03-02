@@ -279,7 +279,7 @@ export const useBase = defineStore('baseStore', () => {
         'data-source': 'data-sources',
         'base-settings': 'settings',
       }
-      return `${basUrl}/admin/${slug[projectPage] || projectPage}`
+      return `${basUrl}/settings/${slug[projectPage] || projectPage}`
     }
 
     return basUrl

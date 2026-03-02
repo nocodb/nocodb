@@ -93,7 +93,7 @@ const onTabClick = async (tabKey: string) => {
     await navigateTo(basePath)
   }
 
-  activeSidebarTab.value = tabKey as any
+  activeSidebarTab.value = tabKey as typeof activeSidebarTab.value
 }
 
 const navigateToProjectPage = () => {

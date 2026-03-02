@@ -1410,9 +1410,13 @@
     "goBackToInstance": "Go back to your instance at {url} and paste the license key in Settings → License.",
     "viewAllLicenses": "View All Licenses",
     "manageBilling": "Manage Billing",
+    "syncFromStripe": "Sync licenses from Stripe",
     "selectPlan": "Select Plan",
     "billedAnnually": "Billed annually",
     "userPerMonth": "user / month",
+    "totalPerMonth": "total / month",
+    "perMonth": "/mo",
+    "seatCount": "Number of seats",
     "annual": "Annual",
     "suspended": "Suspended",
     "appMarket": "App Market",
@@ -3138,6 +3142,7 @@
     "info": {
       "contactAdminForAccess": "You haven't been added to any workspace yet. Contact your administrator to get access.",
       "licenseRequiresPostgres": "Enterprise licensing requires PostgreSQL. Please migrate to PostgreSQL to activate your license key.",
+      "licensesUpToDate": "All licenses are up to date",
       "convertLinkV2Description": "Your data will not be affected. After upgrading, this field will show only the count of linked records, and a new field will be added next to it to display the linked records themselves.",
       "convertLinkV1Description": "Your data will not be affected. The field will continue to display linked records after the upgrade.",
       "convertLinkV2OriginalBecomesRollup": "will show only the number of linked records",
@@ -3591,6 +3596,7 @@
       "nRecordsCreated": "{n} records created"
     },
     "success": {
+      "licensesSynced": "{count} license synced from Stripe | {count} licenses synced from Stripe",
       "createdRecords": "Created {count} record | Created {count} records",
       "workflowDisabled": "Workflow de-activated successfully",
       "workflowEnabled": "Workflow activated successfully",

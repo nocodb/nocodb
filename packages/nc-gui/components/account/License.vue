@@ -107,22 +107,39 @@ loadLicense()
       </template>
 
       <template v-else>
-        <NcAlert
-          visible
-          :type="licenseStatus === 'active' ? 'success' : licenseStatus === 'expired' ? 'warning' : 'info'"
-          background
-          class="mb-6"
+        <div
+          class="flex items-center gap-3 p-4 rounded-lg mb-6 border-1"
+          :class="
+            licenseStatus === 'active'
+              ? 'bg-nc-bg-green-light border-nc-border-green'
+              : licenseStatus === 'expired'
+              ? 'bg-nc-bg-red-light border-nc-border-red'
+              : 'bg-nc-bg-gray-light border-nc-border-gray-medium'
+          "
         >
-          <template #description>
-            {{
+          <GeneralIcon
+            :icon="licenseStatus === 'active' ? 'ncCheck' : licenseStatus === 'expired' ? 'ncAlertCircle' : 'ncInfo'"
+            class="h-5 w-5"
+            :class="
               licenseStatus === 'active'
-                ? $t('title.licenseActive')
+                ? 'text-nc-content-green-dark'
                 : licenseStatus === 'expired'
-                ? $t('title.licenseInvalid')
-                : $t('title.licenseNone')
-            }}
-          </template>
-        </NcAlert>
+                ? 'text-nc-content-red-dark'
+                : 'text-nc-content-gray-subtle'
+            "
+          />
+          <div class="flex flex-col">
+            <span class="text-sm font-medium">
+              {{
+                licenseStatus === 'active'
+                  ? $t('title.licenseActive')
+                  : licenseStatus === 'expired'
+                  ? $t('title.licenseInvalid')
+                  : $t('title.licenseNone')
+              }}
+            </span>
+          </div>
+        </div>
 
         <div class="flex flex-col gap-2 mb-4">
           <label class="text-sm font-medium text-nc-content-gray-subtle">{{ $t('title.licenseKey') }}</label>

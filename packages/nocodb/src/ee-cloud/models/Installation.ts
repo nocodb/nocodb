@@ -84,6 +84,7 @@ export default class Installation {
 
   // Seat management
   seat_count: number; // Current active users
+  min_seats: number; // Minimum seat commitment (billing floor)
 
   // License configuration
   config?: Record<string, any>; // JSON string representing limits, features, etc.
@@ -255,6 +256,7 @@ export default class Installation {
       'license_type',
       'status',
       'seat_count',
+      'min_seats',
       'meta',
       'config',
     ]);
@@ -303,6 +305,7 @@ export default class Installation {
       'expires_at',
       'status',
       'seat_count',
+      'min_seats',
       'license_type',
       'meta',
       'config',
@@ -760,13 +763,16 @@ export default class Installation {
   ): Promise<string> {
     const privateKey = await this.getServerPrivateKey();
 
+    const minSeats = installation.min_seats || 1;
+
     return jwt.sign(
       {
         installation_id: installation.id,
         license_key: installation.license_key,
         license_type: installation.license_type,
         status: installation.status,
-        seat_count: installation.seat_count,
+        seat_count: Math.max(minSeats, installation.seat_count),
+        min_seats: minSeats,
         expires_at: installation.expires_at,
         config: installation.config,
         instance_id: installation.meta?.instance_id ?? undefined,

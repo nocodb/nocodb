@@ -94,12 +94,14 @@ export class OnPremLicenseService {
     payload: {
       plan_id: string;
       price_id: string;
+      quantity?: number;
       instance_url?: string;
     },
     req: NcRequest,
     ncMeta = Noco.ncMeta,
   ) {
     const { plan_id, price_id, instance_url } = payload;
+    const seats = Math.max(1, Math.floor(payload.quantity || 1));
     const { user } = req;
 
     if (!plan_id || !price_id) {
@@ -150,7 +152,7 @@ export class OnPremLicenseService {
       line_items: [
         {
           price: price.id,
-          quantity: 1,
+          quantity: seats,
         },
       ],
       ui_mode: 'embedded',
@@ -178,6 +180,7 @@ export class OnPremLicenseService {
           fk_plan_id: plan_id,
           plan_title: plan.title,
           period: price.recurring.interval,
+          min_seats: String(seats),
           ...(instance_url ? { instance_url } : {}),
         },
       },
@@ -250,6 +253,11 @@ export class OnPremLicenseService {
     const price = stripeSub.items.data[0].price;
     const period = price.recurring.interval;
 
+    // Read min_seats from metadata (fallback: Stripe item quantity, then 1)
+    const minSeats = stripeSub.metadata.min_seats
+      ? parseInt(stripeSub.metadata.min_seats, 10)
+      : stripeSub.items.data[0].quantity || 1;
+
     // Create Subscription record (no workspace/org, just user)
     const subRec = await Subscription.insert({
       fk_user_id: userId,
@@ -258,7 +266,7 @@ export class OnPremLicenseService {
       fk_plan_id: planId,
       stripe_subscription_id: stripeSub.id,
       stripe_price_id: price.id,
-      seat_count: 1,
+      seat_count: minSeats,
       status: stripeSub.status,
       start_at: new Date(stripeSub.start_date * 1000).toISOString(),
       period,
@@ -277,6 +285,7 @@ export class OnPremLicenseService {
         license_type: licenseType,
         status: InstallationStatus.PENDING,
         seat_count: 0,
+        min_seats: minSeats,
         config,
       },
       ncMeta,
@@ -334,10 +343,7 @@ export class OnPremLicenseService {
         );
 
         // Update Installation config with new plan metadata
-        const inst = await Installation.getBySubscriptionId(
-          subRec.id,
-          ncMeta,
-        );
+        const inst = await Installation.getBySubscriptionId(subRec.id, ncMeta);
         if (inst) {
           const newConfig = buildConfigFromPlan(newPlan);
           const newLicenseType =
@@ -379,6 +385,25 @@ export class OnPremLicenseService {
       return;
     }
 
+    // Sync min_seats if Stripe item quantity changed (e.g. via customer portal)
+    const stripeQuantity = stripeSub.items.data[0]?.quantity;
+    if (stripeQuantity && stripeQuantity !== (installation.min_seats || 1)) {
+      await Installation.update(
+        installation.id,
+        { min_seats: stripeQuantity },
+        ncMeta,
+      );
+      await Subscription.update(
+        subRec.id,
+        { seat_count: stripeQuantity },
+        ncMeta,
+      );
+
+      this.logger.log(
+        `On-prem installation ${installation.id} min_seats synced to ${stripeQuantity} from Stripe`,
+      );
+    }
+
     // Suspend installation if subscription is canceled or unpaid
     if (stripeSub.status === 'canceled' || stripeSub.status === 'unpaid') {
       await Installation.updateStatus(
@@ -404,6 +429,53 @@ export class OnPremLicenseService {
 
       this.logger.log(`On-prem installation ${installation.id} reactivated`);
     }
+  }
+
+  /**
+   * Reseat an installation based on reported usage vs minimum commitment.
+   * If reported seats > min_seats, update Stripe to reported (prorated overage).
+   * If reported seats < min_seats, ensure Stripe stays at min_seats (billing floor).
+   */
+  async reseatInstallation(
+    installationId: string,
+    reportedSeats: number,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const installation = await Installation.get(installationId, ncMeta);
+    if (!installation?.fk_subscription_id) return;
+
+    const subscription = await Subscription.get(
+      installation.fk_subscription_id,
+      ncMeta,
+    );
+    if (!subscription?.stripe_subscription_id) return;
+
+    const minSeats = installation.min_seats || 1;
+    const billedSeats = Math.max(minSeats, reportedSeats);
+
+    // Get current Stripe quantity
+    const stripeSub = await stripe.subscriptions.retrieve(
+      subscription.stripe_subscription_id,
+    );
+    const item = stripeSub.items.data[0];
+    if (!item || billedSeats === (item.quantity || 1)) return;
+
+    // Update Stripe subscription quantity with proration
+    await stripe.subscriptions.update(subscription.stripe_subscription_id, {
+      items: [{ id: item.id, quantity: billedSeats }],
+      proration_behavior: 'always_invoice',
+    });
+
+    // Update local records
+    await Subscription.update(
+      subscription.id,
+      { seat_count: billedSeats },
+      ncMeta,
+    );
+
+    this.logger.log(
+      `Reseated installation ${installationId}: reported=${reportedSeats}, min=${minSeats}, billed=${billedSeats}`,
+    );
   }
 
   /**
@@ -435,6 +507,7 @@ export class OnPremLicenseService {
           license_type: inst.license_type,
           status: inst.status,
           seat_count: inst.seat_count,
+          min_seats: inst.min_seats || 1,
           expires_at: inst.expires_at,
           created_at: inst.created_at,
           meta: inst.meta,
@@ -456,6 +529,54 @@ export class OnPremLicenseService {
     );
 
     return enriched;
+  }
+
+  /**
+   * Sync on-prem licenses from Stripe.
+   * Finds active on-prem subscriptions in Stripe that don't have
+   * a corresponding Installation record (e.g. webhook was missed)
+   * and creates them.
+   */
+  async syncLicenses(userId: string, ncMeta = Noco.ncMeta) {
+    const user = await User.get(userId, ncMeta);
+    if (!user?.stripe_customer_id) return 0;
+
+    // Fetch all active subscriptions for this customer from Stripe
+    const stripeSubs = await stripe.subscriptions.list({
+      customer: user.stripe_customer_id,
+      status: 'active',
+      limit: 100,
+    });
+
+    let synced = 0;
+
+    for (const stripeSub of stripeSubs.data) {
+      // Only process on-prem subscriptions
+      if (stripeSub.metadata.on_prem !== 'true') continue;
+
+      // Check if we already have this subscription locally
+      const existing = await Subscription.getByStripeSubscriptionId(
+        stripeSub.id,
+        ncMeta,
+      );
+      if (existing) continue;
+
+      // Missed webhook — replay the creation
+      try {
+        await this.handleSubscriptionCreated(stripeSub, ncMeta);
+        synced++;
+        this.logger.log(
+          `Synced missing on-prem subscription ${stripeSub.id} for user ${userId}`,
+        );
+      } catch (e) {
+        this.logger.error(
+          `Failed to sync on-prem subscription ${stripeSub.id}: ${e.message}`,
+          e.stack,
+        );
+      }
+    }
+
+    return synced;
   }
 
   /**

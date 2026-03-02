@@ -32,6 +32,7 @@ interface OnPremLicense {
   license_type: string
   status: string
   seat_count: number
+  min_seats: number
   expires_at: string | null
   created_at: string
   meta: Record<string, any>
@@ -79,6 +80,23 @@ export const useOnPremLicense = createSharedComposable(() => {
     }
   }
 
+  const syncLicenses = async () => {
+    try {
+      const result = await $fetch<{ synced: number }>('/api/payment/on-premise/sync', {
+        baseURL,
+        method: 'POST',
+        headers: fetchHeaders.value,
+      })
+      if (result.synced > 0) {
+        await listLicenses()
+      }
+      return result.synced
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      return 0
+    }
+  }
+
   const getLicense = async (licenseId: string): Promise<OnPremLicense | null> => {
     try {
       return await $fetch(`/api/payment/on-premise/licenses/${licenseId}`, {
@@ -95,6 +113,7 @@ export const useOnPremLicense = createSharedComposable(() => {
   const createCheckoutSession = async (payload: {
     plan_id: string
     price_id: string
+    quantity?: number
     instance_url?: string
   }) => {
     return await $fetch('/api/payment/on-premise/create-checkout', {
@@ -188,6 +207,7 @@ export const useOnPremLicense = createSharedComposable(() => {
     isLoading,
     paymentMode,
     listLicenses,
+    syncLicenses,
     getLicense,
     loadPlans,
     getPlanPrice,

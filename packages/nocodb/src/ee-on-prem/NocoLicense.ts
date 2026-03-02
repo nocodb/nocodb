@@ -296,7 +296,9 @@ export default class NocoLicense {
             }
           }
         } catch (error) {
-          this.logger.warn(`Failed to parse cached license data: ${error.message}`);
+          this.logger.warn(
+            `Failed to parse cached license data: ${error.message}`,
+          );
         }
       }
 

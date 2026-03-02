@@ -15,9 +15,7 @@ import { OnPremLicenseService } from '~/services/on-prem-license.service';
 
 @Controller()
 export class OnPremLicenseController {
-  constructor(
-    private readonly onPremLicenseService: OnPremLicenseService,
-  ) {}
+  constructor(private readonly onPremLicenseService: OnPremLicenseService) {}
 
   @UseGuards(GlobalGuard)
   @HttpCode(200)
@@ -36,6 +34,15 @@ export class OnPremLicenseController {
     @Req() req: NcRequest,
   ) {
     return this.onPremLicenseService.getLicense(licenseId, req.user.id);
+  }
+
+  @UseGuards(GlobalGuard)
+  @HttpCode(200)
+  @Post('/api/payment/on-premise/sync')
+  @Acl('onPremLicenseList', { scope: 'org' })
+  async syncLicenses(@Req() req: NcRequest) {
+    const synced = await this.onPremLicenseService.syncLicenses(req.user.id);
+    return { synced };
   }
 
   @UseGuards(GlobalGuard)

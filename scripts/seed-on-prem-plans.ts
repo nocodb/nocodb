@@ -14,6 +14,12 @@
  *
  * Usage:
  *   NC_STRIPE_SECRET_KEY=sk_test_... npx tsx scripts/seed-on-prem-plans.ts
+ *   NC_STRIPE_SECRET_KEY=sk_test_... npx tsx scripts/seed-on-prem-plans.ts --force
+ *
+ * Flags:
+ *   --force   Dev mode: remove existing products/prices before re-creating.
+ *             Tries to delete products first; if in use, clears lookup keys
+ *             on prices and archives the product, then creates fresh ones.
  *
  * Environment variables:
  *   NC_STRIPE_SECRET_KEY  (required) — Stripe API key
@@ -30,6 +36,7 @@ const STRIPE_SECRET_KEY = process.env.NC_STRIPE_SECRET_KEY;
 const BACKEND_URL = process.env.NC_BACKEND_URL || 'http://localhost:8080';
 const BASIC_USER = process.env.NC_HTTP_BASIC_USER || 'defaultusername';
 const BASIC_PASS = process.env.NC_HTTP_BASIC_PASS || 'defaultpassword';
+const FORCE_MODE = process.argv.includes('--force');
 
 if (!STRIPE_SECRET_KEY) {
   console.error('Error: NC_STRIPE_SECRET_KEY is required.');
@@ -99,14 +106,14 @@ const ON_PREM_PLANS: PlanDef[] = [
         lookup_key: 'on_prem_starter_monthly', // OnPremPlanPriceLookupKeys.STARTER_MONTHLY
         interval: 'month',
         tiers: [
-          { up_to: 'inf', unit_amount: 5000 },
+          { up_to: 'inf', unit_amount: 1500 },
         ],
       },
       {
         lookup_key: 'on_prem_starter_yearly', // OnPremPlanPriceLookupKeys.STARTER_YEARLY
         interval: 'year',
         tiers: [
-          { up_to: 'inf', unit_amount: 48000 },
+          { up_to: 'inf', unit_amount: 18000 },
         ],
       },
     ],
@@ -193,6 +200,36 @@ async function backendRequest(method: string, path: string, body?: Record<string
   return { ok: res.ok, status: res.status, data };
 }
 
+/**
+ * Force-remove a Stripe product and its prices.
+ * 1. Try to delete the product outright (works if no active subscriptions).
+ * 2. If deletion fails, clear lookup_key on all prices, deactivate them, then archive the product.
+ */
+async function forceRemoveProduct(product: Stripe.Product): Promise<void> {
+  // Collect all prices for this product
+  const prices: Stripe.Price[] = [];
+  for await (const price of stripe.prices.list({ product: product.id, limit: 100 })) {
+    prices.push(price);
+  }
+
+  try {
+    // Deactivate prices first — product deletion requires no active prices
+    for (const price of prices) {
+      if (price.active) {
+        await stripe.prices.update(price.id, { active: false });
+      }
+    }
+
+    await stripe.products.del(product.id);
+    ok(`Deleted product ${product.id}`);
+  } catch {
+    // Product is in use (has subscriptions) — archive instead.
+    // Lookup keys are transferred when new prices are created (transfer_lookup_key).
+    await stripe.products.update(product.id, { active: false });
+    ok(`Archived product ${product.id} (in use — cannot delete)`);
+  }
+}
+
 function formatTierPrice(tier: TierDef, interval: string): string {
   const perSeat = tier.unit_amount / 100;
   const upTo = tier.up_to === 'inf' ? '∞' : tier.up_to;
@@ -202,7 +239,7 @@ function formatTierPrice(tier: TierDef, interval: string): string {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('\n=== Seed On-Prem Plans ===\n');
+  console.log(`\n=== Seed On-Prem Plans${FORCE_MODE ? ' (--force)' : ''} ===\n`);
 
   // 1. Verify Stripe connection
   console.log('  Checking Stripe connection...');
@@ -235,6 +272,11 @@ async function main() {
     // 3a. Find or create Stripe product (by exact name match)
     let product = await findExistingProduct(planDef.name);
 
+    if (product && FORCE_MODE) {
+      await forceRemoveProduct(product);
+      product = null;
+    }
+
     if (product) {
       product = await stripe.products.update(product.id, {
         description: planDef.description,
@@ -252,14 +294,16 @@ async function main() {
 
     // 3b. Create tiered prices (skip if lookup_key already exists)
     for (const priceDef of planDef.prices) {
-      const existing = await stripe.prices.list({
-        lookup_keys: [priceDef.lookup_key],
-        limit: 1,
-      });
+      if (!FORCE_MODE) {
+        const existing = await stripe.prices.list({
+          lookup_keys: [priceDef.lookup_key],
+          limit: 1,
+        });
 
-      if (existing.data.length > 0) {
-        skip(`Price ${priceDef.lookup_key} already exists: ${existing.data[0].id}`);
-        continue;
+        if (existing.data.length > 0) {
+          skip(`Price ${priceDef.lookup_key} already exists: ${existing.data[0].id}`);
+          continue;
+        }
       }
 
       const stripeTiers: Stripe.PriceCreateParams.Tier[] = priceDef.tiers.map((t) => ({
@@ -279,6 +323,8 @@ async function main() {
           usage_type: 'licensed',
         },
         lookup_key: priceDef.lookup_key,
+        // In force mode, transfer the lookup key from any existing price
+        ...(FORCE_MODE ? { transfer_lookup_key: true } : {}),
       });
 
       ok(`Created tiered price ${priceDef.lookup_key}: ${price.id}`);

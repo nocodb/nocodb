@@ -16,8 +16,24 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { licenses, isLoading, listLicenses, createCheckoutSession, getCheckoutSession, getCustomerPortal } =
+const { licenses, isLoading, listLicenses, syncLicenses, createCheckoutSession, getCheckoutSession, getCustomerPortal } =
   useOnPremLicense()
+
+const isSyncing = ref(false)
+
+const onSyncLicenses = async () => {
+  isSyncing.value = true
+  try {
+    const synced = await syncLicenses()
+    if (synced > 0) {
+      message.success(t('msg.success.licensesSynced', { count: synced }))
+    } else {
+      message.info(t('msg.info.licensesUpToDate'))
+    }
+  } finally {
+    isSyncing.value = false
+  }
+}
 
 const { loadStripe } = useStripe()
 
@@ -108,7 +124,7 @@ const onManageBilling = async () => {
   }
 }
 
-const initCheckout = async (planId: string, priceId: string) => {
+const initCheckout = async (planId: string, priceId: string, quantity: number = 1) => {
   viewState.value = 'checkout'
   checkoutLoading.value = true
 
@@ -120,6 +136,7 @@ const initCheckout = async (planId: string, priceId: string) => {
     const session = await createCheckoutSession({
       plan_id: planId,
       price_id: priceId,
+      quantity,
       instance_url: instanceUrl.value || undefined,
     })
 
@@ -220,179 +237,197 @@ onBeforeUnmount(async () => {
         <template v-if="viewState === 'list'">
           <div class="flex items-center justify-between mb-6">
             <div class="text-xl font-semibold">{{ $t('title.selfHostedLicenses') }}</div>
-            <NcButton
-              v-if="licenses.length > 0"
-              type="primary"
-              size="small"
-              data-testid="nc-self-hosted-buy-btn"
-              @click="onBuyLicense"
-            >
-              {{ $t('labels.buyNewLicense') }}
-            </NcButton>
-          </div>
-
-        <div v-if="isLoading" class="flex items-center justify-center py-20">
-          <GeneralLoader size="xlarge" />
-        </div>
-
-        <div v-else-if="licenses.length === 0" class="flex flex-col items-center gap-4 py-20">
-          <GeneralIcon icon="ncKey2" class="h-12 w-12 text-nc-content-gray-muted" />
-          <div class="text-sm text-nc-content-gray-subtle text-center">
-            {{ $t('labels.noSelfHostedLicenses') }}
-          </div>
-          <NcButton type="primary" size="small" @click="onBuyLicense">
-            {{ $t('labels.buyYourFirstLicense') }}
-          </NcButton>
-        </div>
-
-        <div v-else class="flex flex-col gap-4">
-          <div
-            v-for="license in licenses"
-            :key="license.id"
-            class="border border-nc-border-gray-medium rounded-xl p-5 hover:border-nc-border-gray-dark transition-colors"
-            data-testid="nc-self-hosted-license-card"
-          >
-            <div class="flex items-start justify-between mb-3">
-              <div class="flex items-center gap-3">
-                <div
-                  v-if="license.plan"
-                  class="px-2 py-0.5 rounded-md text-xs font-semibold"
-                  :style="{
-                    backgroundColor: planMeta(license.plan.title)?.badgeBgColor,
-                    color: planMeta(license.plan.title)?.badgeTextColor,
-                  }"
-                >
-                  {{ $t(`objects.paymentPlan.${license.plan.title}`) }}
-                </div>
-                <div
-                  class="px-2 py-0.5 rounded-md text-xs font-medium border"
-                  :class="statusClass(license.status)"
-                >
-                  {{ statusLabel(license.status) }}
-                </div>
-              </div>
-              <div class="text-xs text-nc-content-gray-muted">
-                {{ license.created_at ? new Date(license.created_at).toLocaleDateString() : '' }}
-              </div>
-            </div>
-
-            <div class="flex items-center gap-2 mb-3">
-              <code class="flex-1 text-xs bg-nc-bg-gray-light rounded-lg px-3 py-2 font-mono select-all break-all">
-                {{ revealedKeys.has(license.id) ? license.license_key : maskKey(license.license_key) }}
-              </code>
+            <div class="flex items-center gap-2">
               <NcButton
                 type="text"
-                size="xs"
-                :tooltip="revealedKeys.has(license.id) ? $t('general.hide') : $t('general.show')"
-                @click="toggleRevealKey(license.id)"
+                size="small"
+                :loading="isSyncing"
+                :tooltip="$t('labels.syncFromStripe')"
+                data-testid="nc-self-hosted-sync-btn"
+                @click="onSyncLicenses"
               >
-                <GeneralIcon :icon="revealedKeys.has(license.id) ? 'ncEyeOff' : 'ncEye'" class="h-4 w-4" />
+                <GeneralIcon icon="refresh" class="h-4 w-4" />
               </NcButton>
-              <NcButton type="text" size="xs" :tooltip="$t('general.copy')" @click="copyKey(license.license_key)">
-                <GeneralIcon icon="ncCopy" class="h-4 w-4" />
+              <NcButton
+                v-if="licenses.length > 0"
+                type="primary"
+                size="small"
+                data-testid="nc-self-hosted-buy-btn"
+                @click="onBuyLicense"
+              >
+                {{ $t('labels.buyNewLicense') }}
               </NcButton>
-            </div>
-
-            <div class="flex items-center gap-4 text-xs text-nc-content-gray-subtle">
-              <span>{{ license.licensed_to }}</span>
-              <span v-if="license.subscription">
-                {{ license.subscription.period === 'year' ? $t('labels.annual') : $t('general.monthly') }}
-              </span>
             </div>
           </div>
 
-          <NcDivider class="!my-4" />
-
-          <div class="flex items-center gap-3">
-            <NcButton type="secondary" size="small" @click="onManageBilling">
-              {{ $t('labels.manageBilling') }}
-            </NcButton>
-          </div>
-        </div>
-      </template>
-
-      <!-- Plan Select View -->
-      <template v-if="viewState === 'plan-select'">
-        <div class="mb-6">
-          <NcButton type="text" size="small" class="!-ml-2" @click="backToList">
-            <div class="flex items-center gap-1">
-              <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
-              {{ $t('labels.back') }}
-            </div>
-          </NcButton>
-        </div>
-
-        <div v-if="instanceUrl" class="p-3 rounded-lg bg-nc-bg-gray-light border border-nc-border-gray-medium mb-6">
-          <div class="text-xs text-nc-content-gray-subtle mb-1">{{ $t('labels.instanceUrl') }}</div>
-          <div class="text-sm font-medium break-all">{{ instanceUrl }}</div>
-        </div>
-
-        <AccountSelfHostedPlanSelector @select="initCheckout" />
-      </template>
-
-      <!-- Checkout View -->
-      <template v-if="viewState === 'checkout'">
-        <div class="mb-6">
-          <NcButton type="text" size="small" class="!-ml-2" @click="backToPlanSelect">
-            <div class="flex items-center gap-1">
-              <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
-              {{ $t('labels.back') }}
-            </div>
-          </NcButton>
-        </div>
-
-        <div v-if="checkoutLoading" class="relative min-h-[40vh]">
-          <div class="flex items-center justify-center py-20">
+          <div v-if="isLoading" class="flex items-center justify-center py-20">
             <GeneralLoader size="xlarge" />
           </div>
-        </div>
 
-        <div v-show="!checkoutLoading" id="on-prem-checkout" class="w-full pb-10" />
-      </template>
-
-      <!-- Success View -->
-      <template v-if="viewState === 'success' && successLicense">
-        <div class="flex flex-col items-center gap-6 py-10">
-          <div class="w-16 h-16 rounded-full bg-nc-green-50 flex items-center justify-center">
-            <GeneralIcon icon="ncCheck" class="h-8 w-8 text-nc-green-600" />
-          </div>
-
-          <div class="text-center">
-            <div class="text-xl font-semibold mb-2">{{ $t('title.licenseReady') }}</div>
-            <div class="text-sm text-nc-content-gray-subtle">
-              {{ $t('labels.licenseReadyDescription') }}
+          <div v-else-if="licenses.length === 0" class="flex flex-col items-center gap-4 py-20">
+            <GeneralIcon icon="ncKey2" class="h-12 w-12 text-nc-content-gray-muted" />
+            <div class="text-sm text-nc-content-gray-subtle text-center">
+              {{ $t('labels.noSelfHostedLicenses') }}
             </div>
-          </div>
-
-          <div class="w-full max-w-[560px] border border-nc-border-gray-medium rounded-xl p-6">
-            <div class="text-xs text-nc-content-gray-subtle mb-2">{{ $t('title.licenseKey') }}</div>
-            <div class="flex items-center gap-2">
-              <code
-                class="flex-1 text-sm bg-nc-bg-gray-light rounded-lg px-4 py-3 font-mono select-all break-all"
-                data-testid="nc-self-hosted-success-key"
-              >
-                {{ successLicense.license_key }}
-              </code>
-              <NcButton type="secondary" size="small" @click="copyKey(successLicense.license_key)">
-                <div class="flex items-center gap-1">
-                  <GeneralIcon :icon="copiedKey ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
-                  {{ copiedKey ? $t('general.copied') : $t('general.copy') }}
+            <div class="flex items-center gap-3">
+              <NcButton type="primary" size="small" @click="onBuyLicense">
+                {{ $t('labels.buyYourFirstLicense') }}
+              </NcButton>
+              <NcButton type="secondary" size="small" :loading="isSyncing" @click="onSyncLicenses">
+                <div class="flex items-center gap-1.5">
+                  <GeneralIcon icon="refresh" class="h-4 w-4" />
+                  {{ $t('labels.syncFromStripe') }}
                 </div>
               </NcButton>
             </div>
           </div>
 
-          <div v-if="instanceUrl" class="w-full max-w-[560px] p-4 rounded-lg bg-nc-bg-gray-light text-center">
-            <div class="text-sm text-nc-content-gray-subtle">
-              {{ $t('labels.goBackToInstance', { url: instanceUrl }) }}
+          <div v-else class="flex flex-col gap-4">
+            <div
+              v-for="license in licenses"
+              :key="license.id"
+              class="border border-nc-border-gray-medium rounded-xl p-5 hover:border-nc-border-gray-dark transition-colors"
+              data-testid="nc-self-hosted-license-card"
+            >
+              <div class="flex items-start justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <div
+                    v-if="license.plan"
+                    class="px-2 py-0.5 rounded-md text-xs font-semibold"
+                    :style="{
+                      backgroundColor: planMeta(license.plan.title)?.badgeBgColor,
+                      color: planMeta(license.plan.title)?.badgeTextColor,
+                    }"
+                  >
+                    {{ $t(`objects.paymentPlan.${license.plan.title}`) }}
+                  </div>
+                  <div class="px-2 py-0.5 rounded-md text-xs font-medium border" :class="statusClass(license.status)">
+                    {{ statusLabel(license.status) }}
+                  </div>
+                </div>
+                <div class="text-xs text-nc-content-gray-muted">
+                  {{ license.created_at ? new Date(license.created_at).toLocaleDateString() : '' }}
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 mb-3">
+                <code class="flex-1 text-xs bg-nc-bg-gray-light rounded-lg px-3 py-2 font-mono select-all break-all">
+                  {{ revealedKeys.has(license.id) ? license.license_key : maskKey(license.license_key) }}
+                </code>
+                <NcButton
+                  type="text"
+                  size="xs"
+                  :tooltip="revealedKeys.has(license.id) ? $t('general.hide') : $t('general.show')"
+                  @click="toggleRevealKey(license.id)"
+                >
+                  <GeneralIcon :icon="revealedKeys.has(license.id) ? 'ncEyeOff' : 'ncEye'" class="h-4 w-4" />
+                </NcButton>
+                <NcButton type="text" size="xs" :tooltip="$t('general.copy')" @click="copyKey(license.license_key)">
+                  <GeneralIcon icon="ncCopy" class="h-4 w-4" />
+                </NcButton>
+              </div>
+
+              <div class="flex items-center gap-4 text-xs text-nc-content-gray-subtle">
+                <span>{{ license.licensed_to }}</span>
+                <span v-if="license.min_seats > 1"> {{ license.min_seats }} {{ $t('general.seats') }} </span>
+                <span v-if="license.subscription">
+                  {{ license.subscription.period === 'year' ? $t('labels.annual') : $t('general.monthly') }}
+                </span>
+              </div>
+            </div>
+
+            <NcDivider class="!my-4" />
+
+            <div class="flex items-center gap-3">
+              <NcButton type="secondary" size="small" @click="onManageBilling">
+                {{ $t('labels.manageBilling') }}
+              </NcButton>
+            </div>
+          </div>
+        </template>
+
+        <!-- Plan Select View -->
+        <template v-if="viewState === 'plan-select'">
+          <div class="mb-6">
+            <NcButton type="text" size="small" class="!-ml-2" @click="backToList">
+              <div class="flex items-center gap-1">
+                <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
+                {{ $t('labels.back') }}
+              </div>
+            </NcButton>
+          </div>
+
+          <div v-if="instanceUrl" class="p-3 rounded-lg bg-nc-bg-gray-light border border-nc-border-gray-medium mb-6">
+            <div class="text-xs text-nc-content-gray-subtle mb-1">{{ $t('labels.instanceUrl') }}</div>
+            <div class="text-sm font-medium break-all">{{ instanceUrl }}</div>
+          </div>
+
+          <AccountSelfHostedPlanSelector @select="initCheckout" />
+        </template>
+
+        <!-- Checkout View -->
+        <template v-if="viewState === 'checkout'">
+          <div class="mb-6">
+            <NcButton type="text" size="small" class="!-ml-2" @click="backToPlanSelect">
+              <div class="flex items-center gap-1">
+                <GeneralIcon icon="ncArrowLeft" class="h-4 w-4" />
+                {{ $t('labels.back') }}
+              </div>
+            </NcButton>
+          </div>
+
+          <div v-if="checkoutLoading" class="relative min-h-[40vh]">
+            <div class="flex items-center justify-center py-20">
+              <GeneralLoader size="xlarge" />
             </div>
           </div>
 
-          <NcButton type="primary" size="small" @click="backToList">
-            {{ $t('labels.viewAllLicenses') }}
-          </NcButton>
-        </div>
-      </template>
+          <div v-show="!checkoutLoading" id="on-prem-checkout" class="w-full pb-10" />
+        </template>
+
+        <!-- Success View -->
+        <template v-if="viewState === 'success' && successLicense">
+          <div class="flex flex-col items-center gap-6 py-10">
+            <div class="w-16 h-16 rounded-full bg-nc-green-50 flex items-center justify-center">
+              <GeneralIcon icon="ncCheck" class="h-8 w-8 text-nc-green-600" />
+            </div>
+
+            <div class="text-center">
+              <div class="text-xl font-semibold mb-2">{{ $t('title.licenseReady') }}</div>
+              <div class="text-sm text-nc-content-gray-subtle">
+                {{ $t('labels.licenseReadyDescription') }}
+              </div>
+            </div>
+
+            <div class="w-full max-w-[560px] border border-nc-border-gray-medium rounded-xl p-6">
+              <div class="text-xs text-nc-content-gray-subtle mb-2">{{ $t('title.licenseKey') }}</div>
+              <div class="flex items-center gap-2">
+                <code
+                  class="flex-1 text-sm bg-nc-bg-gray-light rounded-lg px-4 py-3 font-mono select-all break-all"
+                  data-testid="nc-self-hosted-success-key"
+                >
+                  {{ successLicense.license_key }}
+                </code>
+                <NcButton type="secondary" size="small" @click="copyKey(successLicense.license_key)">
+                  <div class="flex items-center gap-1">
+                    <GeneralIcon :icon="copiedKey ? 'ncCheck' : 'ncCopy'" class="h-4 w-4" />
+                    {{ copiedKey ? $t('general.copied') : $t('general.copy') }}
+                  </div>
+                </NcButton>
+              </div>
+            </div>
+
+            <div v-if="instanceUrl" class="w-full max-w-[560px] p-4 rounded-lg bg-nc-bg-gray-light text-center">
+              <div class="text-sm text-nc-content-gray-subtle">
+                {{ $t('labels.goBackToInstance', { url: instanceUrl }) }}
+              </div>
+            </div>
+
+            <NcButton type="primary" size="small" @click="backToList">
+              {{ $t('labels.viewAllLicenses') }}
+            </NcButton>
+          </div>
+        </template>
       </div>
     </div>
   </div>

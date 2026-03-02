@@ -140,7 +140,6 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       }
 
       const { list, pageInfo } = await api.integration.list(
-        activeWorkspaceId.value,
         databaseOnly
           ? {
               type: IntegrationsType.Database,

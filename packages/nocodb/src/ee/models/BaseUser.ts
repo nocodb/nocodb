@@ -234,7 +234,9 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          'wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?',
+          ['mysql', 'mysql2'].includes(ncMeta.knex.clientType())
+            ? `wta_team.id = pa_team.id OR wta_team.path LIKE CONCAT(pa_team.path, ?)`
+            : `wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?`,
           ['/%'],
         )
         // Exclude soft-deleted teams
@@ -526,7 +528,9 @@ export default class BaseUser extends BaseUserCE {
         )
         // Hierarchy: direct match OR user's team is ancestor of assigned team
         .whereRaw(
-          'wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?',
+          ['mysql', 'mysql2'].includes(ncMeta.knex.clientType())
+            ? `wta_team.id = pa_team.id OR wta_team.path LIKE CONCAT(pa_team.path, ?)`
+            : `wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?`,
           ['/%'],
         )
         .where(
@@ -995,7 +999,9 @@ export default class BaseUser extends BaseUserCE {
           ncMeta.knex.raw('?', [false]),
         )
         .whereRaw(
-          'wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?',
+          ['mysql', 'mysql2'].includes(ncMeta.knex.clientType())
+            ? `wta_team.id = pa_team.id OR wta_team.path LIKE CONCAT(pa_team.path, ?)`
+            : `wta_team.id = pa_team.id OR wta_team.path LIKE pa_team.path || ?`,
           ['/%'],
         )
         .where(

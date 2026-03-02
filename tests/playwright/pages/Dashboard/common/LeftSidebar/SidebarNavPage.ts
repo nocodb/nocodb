@@ -9,7 +9,7 @@ export type BaseSettingsMenuItem =
   | 'syncs'
   | 'snapshots'
   | 'data-source'
-  | 'base-settings';
+  | 'settings';
 
 /** Workspace settings menu items (WsSettingsMenu.vue) */
 export type WsSettingsMenuItem =
@@ -68,6 +68,13 @@ export class SidebarNavPage extends BasePage {
     await this.miniSidebarV2.waitFor({ state: 'visible' });
     const tabLocator = this.getMiniSidebarV2TabLocator(tab);
     await tabLocator.waitFor({ state: 'visible' });
+
+    // For panel tabs, skip clicking if already active
+    if (['data', 'automations', 'settings'].includes(tab)) {
+      const classList = await tabLocator.getAttribute('class');
+      if (classList?.includes('active')) return;
+    }
+
     await tabLocator.click();
     await this.rootPage.waitForTimeout(500);
   }

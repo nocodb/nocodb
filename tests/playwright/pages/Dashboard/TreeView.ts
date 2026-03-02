@@ -214,6 +214,8 @@ export class TreeViewPage extends BasePage {
   }
 
   async createScript({ title, baseTitle }: { title: string; baseTitle: string }) {
+    await this.dashboard.leftSidebar.sidebarNav.navigateToAutomationTab();
+
     await this.createEntity({ type: 'script', skipOpeningModal: false, baseTitle });
     await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
     await this.dashboard.get().getByPlaceholder('Enter script name').fill(title);

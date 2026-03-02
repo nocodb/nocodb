@@ -78,7 +78,7 @@ export class ProjectViewPage extends BasePage {
       ).toBeTruthy();
 
       expect(
-        await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('base-settings').isVisible()
+        await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('settings').isVisible()
       ).toBeTruthy();
 
       expect(
@@ -86,14 +86,12 @@ export class ProjectViewPage extends BasePage {
       ).toBeTruthy();
     } else {
       expect(
-        await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('base-settings').isVisible()
+        await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('settings').isVisible()
       ).toBeFalsy();
 
       expect(
         await this.dashboard.leftSidebar.sidebarNav.getSettingsMenuItemLocator('data-source').isVisible()
       ).toBeFalsy();
-
-      expect(await this.tab_dataSources.isVisible()).toBeFalsy();
     }
 
     await this.tables.verifyAccess(role);

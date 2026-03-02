@@ -29,7 +29,21 @@ export class DocumentsService {
    * @param parentId — `null` for root documents, doc ID for children of that doc.
    */
   async list(context: NcContext, baseId: string, parentId: string | null) {
-    return await Document.listLite(context, baseId, parentId);
+    const docs = await Document.listLite(context, baseId, parentId);
+
+    // Enrich with comment counts
+    if (docs.length) {
+      const docIds = docs.map((d) => d.id).filter(Boolean) as string[];
+      const counts = await Comment.docCommentsCount(context, docIds);
+      const countMap = new Map<string, number>(
+        counts.map((c: any) => [c.fk_doc_id, +(c.count || 0)]),
+      );
+      for (const doc of docs) {
+        doc.comment_count = countMap.get(doc.id!) || 0;
+      }
+    }
+
+    return docs;
   }
 
   /** Fetch a single document with full content (ProseMirror JSON). */
@@ -38,6 +52,11 @@ export class DocumentsService {
     if (!doc) {
       NcError.get(context).genericNotFound('Document', docId);
     }
+
+    // Enrich with comment count
+    const counts = await Comment.docCommentsCount(context, [docId]);
+    doc.comment_count = +(counts[0] as any)?.count || 0;
+
     return doc;
   }
 

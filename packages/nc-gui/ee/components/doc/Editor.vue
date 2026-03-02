@@ -155,6 +155,13 @@ const onEditorClick = (e: MouseEvent) => {
 // Resolve pending anchor once comments are loaded
 const { comments: docComments, scrollToComment: scrollToDocComment, isCommentsLoading: isDocCommentsLoading } = useDocumentComments()
 
+// Comment count: prefer live list length once comments have been loaded (panel opened),
+// otherwise fall back to the count returned by the document API.
+const commentCount = computed(() => {
+  if (docComments.value.length) return docComments.value.length
+  return activeDocument.value?.comment_count ?? 0
+})
+
 watch(isDocCommentsLoading, (loading, wasLoading) => {
   if (wasLoading && !loading && pendingAnchorId.value) {
     const match = docComments.value.find((c) => c.anchor_id === pendingAnchorId.value)
@@ -1059,8 +1066,8 @@ onBeforeUnmount(() => {
             @click="toggleCommentsPanel()"
           >
             <GeneralIcon icon="ncMessageCircle" class="!w-3.5 !h-3.5" />
-            <template v-if="docComments.length">
-              {{ docComments.length }} {{ docComments.length === 1 ? $t('general.comment') : $t('general.comments') }}
+            <template v-if="commentCount">
+              {{ commentCount }} {{ commentCount === 1 ? $t('general.comment') : $t('general.comments') }}
             </template>
             <template v-else>
               {{ $t('general.comment') }}

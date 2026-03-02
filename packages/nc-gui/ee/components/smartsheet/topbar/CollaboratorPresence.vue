@@ -24,7 +24,7 @@ const remainingAfterTooltip = computed(() => Math.max(0, activeCollaborators.val
 
 const toUserProp = (collab: (typeof activeCollaborators.value)[number]) => ({
   email: collab.email,
-  display_name: collab.displayName,
+  display_name: collab.display_name,
   meta: collab.meta,
 })
 
@@ -160,6 +160,7 @@ watch(followedCollab, (collab) => {
                 size="xsmall"
                 :type="followingUserId === collab.userId ? 'primary' : 'text'"
                 class="!h-5 !px-1.5 !text-[10px] nc-presence-follow-btn"
+                v-e="['c:presence:follow:toggle']"
                 @click="toggleFollow(collab)"
               >
                 {{ followingUserId === collab.userId ? 'Following' : 'Follow' }}
@@ -173,8 +174,9 @@ watch(followedCollab, (collab) => {
           class="ring-2 cursor-pointer"
           :class="{ 'ring-offset-1': followingUserId === collab.userId }"
           :style="{ '--tw-ring-color': collab.color }"
-          :aria-label="`${collab.displayName} is in this base`"
+          :aria-label="`${collab.display_name} is in this base`"
           tabindex="0"
+          v-e="['c:presence:navigate']"
           @click="navigateToCollaborator(collab)"
           @keydown.enter="navigateToCollaborator(collab)"
         />
@@ -184,7 +186,7 @@ watch(followedCollab, (collab) => {
         <template #title>
           <div class="text-xs space-y-0.5 max-w-48">
             <div v-for="collab in overflowTooltipNames" :key="collab.userId" class="truncate">
-              {{ collab.displayName }}
+              {{ collab.display_name }}
               <span v-if="getLocationLabel(collab)" class="text-gray-400"> · {{ getLocationLabel(collab) }} </span>
             </div>
             <div v-if="remainingAfterTooltip > 0" class="text-gray-400">and {{ remainingAfterTooltip }} more</div>
@@ -208,6 +210,7 @@ watch(followedCollab, (collab) => {
         type="text"
         class="!w-6 !h-6 !p-0"
         :aria-label="presenceEnabled ? 'Hide my presence' : 'Show my presence'"
+        v-e="['c:presence:visibility:toggle']"
         @click="presenceEnabled = !presenceEnabled"
       >
         <GeneralIcon :icon="presenceEnabled ? 'ncEye' : 'ncEyeOff'" class="w-3.5 h-3.5 text-nc-content-gray-subtle" />

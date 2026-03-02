@@ -9,7 +9,7 @@ interface PresenceEntry {
   user: {
     id: string;
     email: string;
-    displayName: string;
+    display_name: string;
     meta?: Record<string, any> | null;
   };
   resource: {
@@ -136,15 +136,21 @@ export default class NocoPresence {
 
       const trustedUserId = socket.user.id;
       const { action } = payload || {};
-      if (!action) return;
+      if (!action || !['announce', 'heartbeat', 'leave'].includes(action))
+        return;
 
       const roomKey: string | undefined = socket.data.presenceRoom;
       if (!roomKey) return;
 
       // ── Leave ──
       if (action === 'leave') {
-        await this.removeEntry(roomKey, trustedUserId);
-        socket.to(roomKey).emit(roomKey, {
+        // Use explicit roomKey from payload if provided (avoids race on base switch)
+        const leaveRoom =
+          typeof payload.roomKey === 'string' && payload.roomKey
+            ? payload.roomKey
+            : roomKey;
+        await this.removeEntry(leaveRoom, trustedUserId);
+        socket.to(leaveRoom).emit(leaveRoom, {
           action: 'leave',
           user: { id: trustedUserId },
           socketId: socket.id,
@@ -186,7 +192,7 @@ export default class NocoPresence {
             user: {
               id: trustedUserId,
               email: socket.user.email,
-              displayName: (socket.user as any).display_name,
+              display_name: socket.user.display_name,
               meta: null,
             },
             resource: resource ?? {},
@@ -214,7 +220,7 @@ export default class NocoPresence {
         this.logger.warn(
           `Failed to fetch user ${trustedUserId} for presence announce`,
         );
-        trustedDisplayName = (socket.user as any).display_name;
+        trustedDisplayName = socket.user.display_name;
       }
 
       const isNewUser = (await this.getEntry(roomKey, trustedUserId)) === null;
@@ -223,7 +229,7 @@ export default class NocoPresence {
         user: {
           id: trustedUserId,
           email: trustedEmail,
-          displayName: trustedDisplayName,
+          display_name: trustedDisplayName,
           meta: trustedMeta,
         },
         resource: resource ?? {},

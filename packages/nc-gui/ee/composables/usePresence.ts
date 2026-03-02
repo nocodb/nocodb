@@ -48,7 +48,7 @@ function getCachedColor(userId: string): string {
 export interface CollaboratorPresence {
   userId: string
   email: string
-  displayName: string
+  display_name: string
   /** Table ID (TABLE), dashboard ID (DASHBOARD), or workflow ID (AUTOMATION) */
   resourceId?: string
   /** Only meaningful when pageType is TABLE */
@@ -108,33 +108,37 @@ export const usePresence = createSharedComposable(() => {
   const sendAnnounce = () => {
     if (!user.value?.id || !presenceEnabled.value) return
     const { pageType, resourceId, viewId } = currentLocation.value
+    if (!resourceId || !pageType) return
     $ncSocket.emit('presence:update', {
       action: 'announce',
       user: {
         id: user.value.id,
         email: user.value.email,
-        displayName: user.value.display_name,
+        display_name: user.value.display_name,
         meta: user.value.meta || null,
       },
-      resource: { id: resourceId!, type: pageType!, viewId },
+      resource: { id: resourceId, type: pageType, viewId },
     })
   }
 
   const sendHeartbeat = () => {
     if (!user.value?.id || !presenceEnabled.value) return
     const { pageType, resourceId, viewId } = currentLocation.value
+    if (!resourceId || !pageType) return
     $ncSocket.emit('presence:update', {
       action: 'heartbeat',
       user: { id: user.value.id },
-      resource: { id: resourceId!, type: pageType!, viewId },
+      resource: { id: resourceId, type: pageType, viewId },
     })
   }
 
-  const sendLeave = () => {
-    if (!currentEventKey.value || !user.value?.id) return
+  const sendLeave = (roomKey?: string | null) => {
+    const key = roomKey ?? currentEventKey.value
+    if (!key || !user.value?.id) return
     $ncSocket.emit('presence:update', {
       action: 'leave',
       user: { id: user.value.id },
+      roomKey: key,
     })
   }
 
@@ -150,7 +154,7 @@ export const usePresence = createSharedComposable(() => {
         collaborators.value.set(u.user.id, {
           userId: u.user.id,
           email: u.user.email,
-          displayName: u.user.displayName,
+          display_name: u.user.display_name,
           meta: u.user.meta,
           resourceId: u.resource.id,
           viewId: u.resource.viewId,
@@ -190,7 +194,7 @@ export const usePresence = createSharedComposable(() => {
       ...(existing || {}),
       userId: p.user.id,
       email: p.user.email,
-      displayName: p.user.displayName,
+      display_name: p.user.display_name,
       meta: p.user.meta,
       resourceId: p.resource.id,
       viewId: p.resource.viewId,
@@ -236,7 +240,7 @@ export const usePresence = createSharedComposable(() => {
   }
 
   if (typeof document !== 'undefined') {
-    document.addEventListener('visibilitychange', handleVisibilityChange)
+    useEventListener(document, 'visibilitychange', handleVisibilityChange)
   }
 
   // ── Watch presenceEnabled toggle ──────────────────────────────────────────
@@ -277,8 +281,8 @@ export const usePresence = createSharedComposable(() => {
       activePresenceListener.value = null
     }
     stopHeartbeat()
+    sendLeave(currentEventKey.value)
     collaborators.value.clear()
-    sendLeave()
     currentEventKey.value = null
   }
 
@@ -306,7 +310,7 @@ export const usePresence = createSharedComposable(() => {
   })
 
   const activeCollaborators = computed(() =>
-    Array.from(collaborators.value.values()).sort((a, b) => (a.displayName ?? '').localeCompare(b.displayName ?? '')),
+    Array.from(collaborators.value.values()).sort((a, b) => (a.display_name ?? '').localeCompare(b.display_name ?? '')),
   )
 
   tryOnScopeDispose(() => {
@@ -314,9 +318,6 @@ export const usePresence = createSharedComposable(() => {
     if (unsubReconnect) {
       unsubReconnect()
       unsubReconnect = null
-    }
-    if (typeof document !== 'undefined') {
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
     }
   })
 

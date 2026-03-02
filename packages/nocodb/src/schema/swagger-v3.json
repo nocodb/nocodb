@@ -2492,8 +2492,6 @@
                             }
                           },
                           "active": true,
-                          "async": false,
-                          "version": "v3",
                           "created_at": "2025-01-16T06:04:18.000Z",
                           "updated_at": "2025-01-16T06:04:18.000Z"
                         }
@@ -2559,8 +2557,7 @@
                         "method": "POST"
                       }
                     },
-                    "active": true,
-                    "version": "v3"
+                    "active": true
                   }
                 }
               }
@@ -2591,8 +2588,6 @@
                         }
                       },
                       "active": true,
-                      "async": false,
-                      "version": "v3",
                       "created_at": "2025-01-16T06:04:18.000Z",
                       "updated_at": "2025-01-16T06:04:18.000Z"
                     }
@@ -2665,8 +2660,6 @@
                         }
                       },
                       "active": true,
-                      "async": false,
-                      "version": "v3",
                       "trigger_fields": ["fldAbc123"],
                       "created_at": "2025-01-16T06:04:18.000Z",
                       "updated_at": "2025-01-16T06:04:18.000Z"
@@ -2756,8 +2749,6 @@
                         }
                       },
                       "active": true,
-                      "async": false,
-                      "version": "v3",
                       "created_at": "2025-01-16T06:04:18.000Z",
                       "updated_at": "2025-01-16T06:04:18.000Z"
                     }
@@ -8772,15 +8763,6 @@
             "type": "boolean",
             "description": "Indicates if the hook is active."
           },
-          "async": {
-            "type": "boolean",
-            "description": "Indicates if the hook executes asynchronously."
-          },
-          "version": {
-            "type": "string",
-            "enum": ["v1", "v2", "v3"],
-            "description": "Hook payload version."
-          },
           "trigger_fields": {
             "type": "array",
             "items": {
@@ -8849,17 +8831,6 @@
             "default": true,
             "description": "Indicates if the hook is active."
           },
-          "async": {
-            "type": "boolean",
-            "default": false,
-            "description": "Indicates if the hook executes asynchronously."
-          },
-          "version": {
-            "type": "string",
-            "enum": ["v1", "v2", "v3"],
-            "default": "v3",
-            "description": "Hook payload version."
-          },
           "trigger_fields": {
             "type": "array",
             "items": {
@@ -8902,15 +8873,6 @@
           "active": {
             "type": "boolean",
             "description": "Indicates if the hook is active."
-          },
-          "async": {
-            "type": "boolean",
-            "description": "Indicates if the hook executes asynchronously."
-          },
-          "version": {
-            "type": "string",
-            "enum": ["v1", "v2", "v3"],
-            "description": "Hook payload version."
           },
           "trigger_fields": {
             "type": "array",

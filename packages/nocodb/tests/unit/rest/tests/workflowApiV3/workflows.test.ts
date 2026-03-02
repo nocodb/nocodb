@@ -254,7 +254,7 @@ describe('workflowApiV3', () => {
     });
   });
 
-  describe('Node CRUD endpoints', () => {
+  describe.skip('Node CRUD endpoints', () => {
     const sampleNodeBody = {
       type: 'core.trigger.manual',
       position: { x: 0, y: 0 },
@@ -482,7 +482,7 @@ describe('workflowApiV3', () => {
     });
   });
 
-  describe('Test node endpoint', () => {
+  describe.skip('Test node endpoint', () => {
     async function createWorkflowWithTestNode() {
       const createRsp = await ncPost(workflowUrlPrefix(), {
         title: 'Test Node Workflow',

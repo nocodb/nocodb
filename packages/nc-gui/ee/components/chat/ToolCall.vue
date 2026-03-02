@@ -58,6 +58,9 @@ const toolCategory = computed(() => {
   ) {
     return 'data'
   }
+  if (name === 'ask_user') {
+    return 'view'
+  }
   return 'view'
 })
 

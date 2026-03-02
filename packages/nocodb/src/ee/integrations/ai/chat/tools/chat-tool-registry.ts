@@ -25,6 +25,9 @@ import { updateRecordsTool } from './data/update-records.tool';
 import { deleteRecordsTool } from './data/delete-records.tool';
 import { countRecordsTool } from './data/count-records.tool';
 
+// Ask user tool
+import { askUserTool } from './ask-user.tool';
+
 // View tools
 import { listViewFieldsTool } from './view/list-view-fields.tool';
 import { updateViewFieldsTool } from './view/update-view-fields.tool';
@@ -104,6 +107,8 @@ export class ChatToolRegistry {
       removeSortTool,
       setGroupByTool,
       clearGroupByTool,
+      // Interaction tool
+      askUserTool,
     ];
   }
 

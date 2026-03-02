@@ -2471,6 +2471,7 @@
   },
   "placeholder": {
     "askAnything": "Ask anything about your data...",
+    "somethingElse": "Something else",
     "searchWorkflows": "Search Workflows",
     "searchWorkspacesAndBases": "Search workspaces and bases...",
     "searchByTitle": "Search by title or description",

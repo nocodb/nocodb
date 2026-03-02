@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+import { ChatMessageRole, ChatToolCallStatus } from 'nocodb-sdk'
 
 const { isPanelExpanded, chatPanelSize, toggleChatPanel } = useChatPanel()
 
@@ -19,6 +20,36 @@ const isReady = ref(false)
 const messageListRef = ref<HTMLDivElement>()
 
 const hasInitialized = ref(false)
+
+// Track dismissed ask_user cards (local — resets when session changes)
+const dismissedInputIds = ref(new Set<string>())
+
+watch(
+  () => chatStore.activeSessionId,
+  () => {
+    dismissedInputIds.value = new Set()
+  },
+)
+
+// Detect the last unanswered ask_user tool call
+const pendingUserInput = computed(() => {
+  const msgs = activeMessages.value
+  for (let i = msgs.length - 1; i >= 0; i--) {
+    const m = msgs[i]
+    // If the user has already replied, stop searching
+    if (m.role === ChatMessageRole.USER) return null
+    if (m.role === ChatMessageRole.ASSISTANT) {
+      const tc = m.tool_calls?.find((c) => c.status === ChatToolCallStatus.AWAITING_INPUT)
+      if (!tc) return null
+      const result = m.tool_results?.find((r) => r.tool_call_id === tc.id)
+      if (!result?.output) return null
+      const output = typeof result.output === 'string' ? JSON.parse(result.output) : result.output
+      if (!output?.question || !output?.options) return null
+      return { toolCallId: tc.id, question: output.question as string, options: output.options as string[] }
+    }
+  }
+  return null
+})
 
 const panelSize = computed(() => {
   if (isPanelExpanded.value) {
@@ -120,6 +151,16 @@ const handleSelectSession = async (sessionId: string) => {
 
 const handleStarterPrompt = (prompt: string) => {
   handleSend(prompt)
+}
+
+const handleUserInput = (choice: string) => {
+  handleSend(choice)
+}
+
+const handleSkipInput = () => {
+  if (pendingUserInput.value) {
+    dismissedInputIds.value = new Set([...dismissedInputIds.value, pendingUserInput.value.toolCallId])
+  }
 }
 
 const handleApprove = async (messageId: string, toolCallId: string) => {
@@ -229,6 +270,18 @@ const handleDeny = async (messageId: string, toolCallId: string) => {
           </template>
         </div>
 
+        <!-- Option picker card (shown when AI asks a question) -->
+        <Transition name="nc-slide-up">
+          <ChatOptions
+            v-if="pendingUserInput && !dismissedInputIds.has(pendingUserInput.toolCallId) && !isSendingMessage"
+            :question="pendingUserInput.question"
+            :options="pendingUserInput.options"
+            class="mx-3 mb-2"
+            @select="handleUserInput"
+            @skip="handleSkipInput"
+          />
+        </Transition>
+
         <!-- Input -->
         <ChatInput :disabled="isSendingMessage" @send="handleSend" />
       </div>
@@ -241,5 +294,16 @@ const handleDeny = async (messageId: string, toolCallId: string) => {
   @apply flex flex-col bg-nc-bg-gray-extralight rounded-l-xl border-1 border-nc-border-gray-medium z-30 -mt-1px;
 
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
+}
+
+.nc-slide-up-enter-active,
+.nc-slide-up-leave-active {
+  transition: all 200ms ease;
+}
+
+.nc-slide-up-enter-from,
+.nc-slide-up-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
 }
 </style>

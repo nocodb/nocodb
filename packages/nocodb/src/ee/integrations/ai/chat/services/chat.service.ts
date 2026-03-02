@@ -222,8 +222,9 @@ export class ChatService {
           const toolCalls = [];
           const toolResults = [];
 
-          // Build a map of toolCallId → output to detect awaiting_approval sentinels
+          // Build a map of toolCallId → output to detect sentinel values
           const awaitingApprovalIds = new Set<string>();
+          const awaitingInputIds = new Set<string>();
           const deniedIds = new Set<string>();
 
           for (const step of steps || []) {
@@ -235,12 +236,16 @@ export class ChatService {
                     const parsed = JSON.parse(raw);
                     if (parsed.__requires_approval) {
                       awaitingApprovalIds.add(tr.toolCallId);
+                    } else if (parsed.__requires_user_input) {
+                      awaitingInputIds.add(tr.toolCallId);
                     } else if (parsed.status === 'denied') {
                       deniedIds.add(tr.toolCallId);
                     }
                   } catch {
                     // Not JSON — plain string result
                   }
+                } else if (raw && typeof raw === 'object' && raw.__requires_user_input) {
+                  awaitingInputIds.add(tr.toolCallId);
                 }
                 toolResults.push({
                   tool_call_id: tr.toolCallId,
@@ -257,6 +262,8 @@ export class ChatService {
                 let status: ChatToolCallStatus;
                 if (awaitingApprovalIds.has(tc.toolCallId)) {
                   status = ChatToolCallStatus.AWAITING_APPROVAL;
+                } else if (awaitingInputIds.has(tc.toolCallId)) {
+                  status = ChatToolCallStatus.AWAITING_INPUT;
                 } else if (deniedIds.has(tc.toolCallId)) {
                   status = ChatToolCallStatus.DENIED;
                 } else {

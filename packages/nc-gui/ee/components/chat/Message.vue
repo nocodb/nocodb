@@ -32,6 +32,9 @@ const isAssistant = computed(() => messageRole.value === ChatMessageRole.ASSISTA
 const toolCalls = computed(() => message.value?.tool_calls || [])
 const toolResults = computed(() => message.value?.tool_results || [])
 
+// AWAITING_INPUT calls render as the options card in Panel — exclude them from tool call rows
+const baseCalls = computed(() => toolCalls.value.filter((tc) => tc.status !== ChatToolCallStatus.AWAITING_INPUT))
+
 const findResult = (toolCallId: string) => toolResults.value.find((r) => r.tool_call_id === toolCallId)
 
 // Grouping: show first 2 by default; expand to show all if > 3
@@ -39,24 +42,24 @@ const VISIBLE_DEFAULT = 2
 const showAllTools = ref(false)
 
 const hasActiveTools = computed(() =>
-  toolCalls.value.some(
+  baseCalls.value.some(
     (tc) => tc.status === ChatToolCallStatus.RUNNING || tc.status === ChatToolCallStatus.PENDING,
   ),
 )
 
 const visibleToolCalls = computed(() => {
-  if (showAllTools.value || toolCalls.value.length <= VISIBLE_DEFAULT + 1) {
-    return toolCalls.value
+  if (showAllTools.value || baseCalls.value.length <= VISIBLE_DEFAULT + 1) {
+    return baseCalls.value
   }
-  return toolCalls.value.slice(0, VISIBLE_DEFAULT)
+  return baseCalls.value.slice(0, VISIBLE_DEFAULT)
 })
 
 const hiddenCount = computed(() => {
-  if (showAllTools.value || toolCalls.value.length <= VISIBLE_DEFAULT + 1) return 0
-  return toolCalls.value.length - VISIBLE_DEFAULT
+  if (showAllTools.value || baseCalls.value.length <= VISIBLE_DEFAULT + 1) return 0
+  return baseCalls.value.length - VISIBLE_DEFAULT
 })
 
-const errorCount = computed(() => toolCalls.value.filter((tc) => tc.status === ChatToolCallStatus.ERROR).length)
+const errorCount = computed(() => baseCalls.value.filter((tc) => tc.status === ChatToolCallStatus.ERROR).length)
 
 const renderedContent = computed(() => {
   if (!messageContent.value || !isAssistant.value) return ''
@@ -74,7 +77,7 @@ const renderedContent = computed(() => {
       }"
     >
       <!-- Tool calls section (before message text for assistant) -->
-      <div v-if="toolCalls.length" class="space-y-1 mb-2">
+      <div v-if="baseCalls.length" class="space-y-1 mb-2">
         <!-- Active tools label -->
         <div v-if="hasActiveTools" class="flex items-center gap-1.5 mb-1.5">
           <GeneralLoader :size="12" />

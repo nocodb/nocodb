@@ -244,6 +244,8 @@ export class LeftSidebarPage extends BasePage {
   async navigateToDataTab(): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
       await this.clickMiniSidebarV2Tab('data');
+
+      await this.rootPage.waitForLoadState('networkidle');
     }
   }
 
@@ -254,6 +256,8 @@ export class LeftSidebarPage extends BasePage {
   async navigateToAutomationTab(): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
       await this.clickMiniSidebarV2Tab('automations');
+
+      await this.rootPage.waitForLoadState('networkidle');
     }
   }
 
@@ -264,6 +268,8 @@ export class LeftSidebarPage extends BasePage {
   async navigateToSettingsTab(): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
       await this.clickMiniSidebarV2Tab('settings');
+
+      await this.rootPage.waitForLoadState('networkidle');
     }
   }
 

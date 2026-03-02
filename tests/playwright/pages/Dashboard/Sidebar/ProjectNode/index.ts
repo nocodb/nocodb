@@ -167,6 +167,8 @@ export class SidebarProjectNodeObject extends BasePage {
       if (isActiveProject) {
         await ncProjectHeader.hover({ force: true, position: { x: 2, y: 2 } });
 
+        await this.sidebar.dashboard.leftSidebar.navigateToDataTab();
+
         return true;
       }
     }
@@ -182,6 +184,8 @@ export class SidebarProjectNodeObject extends BasePage {
     await this.sidebar.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
 
     await this.sidebar.dashboard.leftSidebar.active_base.hover({ force: true, position: { x: 2, y: 2 } });
+
+    await this.sidebar.dashboard.leftSidebar.navigateToDataTab();
 
     return true;
   }

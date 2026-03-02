@@ -42,6 +42,8 @@ const {
   activeCommentId,
   scrollToComment,
   clearActiveComment,
+  toggleReaction,
+  getReactionSummary,
 } = useDocumentComments()
 
 const hasEditPermission = computed(() => isUIAllowed('documentCommentUpdate'))
@@ -529,12 +531,14 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
             :parsed-html="parsedHtmlComments[threadItem.id!] || ''"
             :is-owner="threadItem.created_by === user?.id"
             :anchor-text="threadItem.anchor_id ? anchorTextMap[threadItem.anchor_id] : undefined"
+            :reaction-summary="getReactionSummary(threadItem.id!)"
             @edit="editComment(threadItem)"
             @delete="deleteComment(threadItem.id!)"
             @resolve="resolveComment(threadItem.id!)"
             @activate="activeCommentId === threadItem.id ? clearActiveComment() : scrollToComment(threadItem.id!)"
             @reply="onReply(threadItem)"
             @scroll-to-anchor="scrollEditorToAnchor"
+            @react="(emoji: string) => toggleReaction(threadItem.id!, emoji)"
           />
 
           <!-- Replies (single-level — nested under their parent thread) -->
@@ -580,11 +584,13 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
               :parsed-html="parsedHtmlComments[replyItem.id!] || ''"
               :is-owner="replyItem.created_by === user?.id"
               :is-reply="true"
+              :reaction-summary="getReactionSummary(replyItem.id!)"
               @edit="editComment(replyItem)"
               @delete="deleteComment(replyItem.id!)"
               @resolve="resolveComment(replyItem.id!)"
               @activate="activeCommentId === replyItem.id ? clearActiveComment() : scrollToComment(replyItem.id!)"
               @reply="onReply(replyItem)"
+              @react="(emoji: string) => toggleReaction(replyItem.id!, emoji)"
             />
           </template>
 

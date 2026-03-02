@@ -1,5 +1,13 @@
-import type { CommentType } from 'nocodb-sdk'
+import type { CommentType, CommentReactionsType } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
+
+export const REACTION_EMOJIS = ['👍', '👎', '😄', '😢', '🎉', '🚀'] as const
+
+export interface ReactionSummaryItem {
+  emoji: string
+  count: number
+  hasReacted: boolean
+}
 
 export interface DocCommentExtended extends CommentType {
   created_display_name?: string | null
@@ -141,6 +149,12 @@ export const useDocumentComments = createSharedComposable(() => {
       ).list || []) as CommentType[]
 
       comments.value = res.map(enrichComment)
+
+      // Load reactions for all comments in the background
+      const commentIds = res.map((c) => c.id).filter(Boolean) as string[]
+      if (commentIds.length) {
+        loadReactions(commentIds)
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
@@ -299,6 +313,95 @@ export const useDocumentComments = createSharedComposable(() => {
     }
   }
 
+  // --- Reactions ---
+
+  const reactions = ref<Record<string, CommentReactionsType[]>>({})
+
+  const loadReactions = async (commentIds: string[]) => {
+    if (!commentIds.length) return
+    if (!activeWorkspaceId.value || !activeProjectId.value) return
+
+    try {
+      const res = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+        operation: 'documentCommentReactionList',
+        commentIds: commentIds.join(','),
+      })
+
+      // Merge into existing reactions (replace entries for loaded comment IDs)
+      const updated = { ...reactions.value }
+      for (const id of commentIds) {
+        updated[id] = res?.[id] || []
+      }
+      reactions.value = updated
+    } catch (_e: any) {
+      // Silently fail — reactions are non-critical
+    }
+  }
+
+  const toggleReaction = async (commentId: string, emoji: string) => {
+    if (!activeWorkspaceId.value || !activeProjectId.value || !user.value?.id) return
+
+    // Optimistic update
+    const prev = reactions.value[commentId] || []
+    const existing = prev.find((r) => r.reaction === emoji && ((r as any).created_by ?? r.user_id) === user.value!.id)
+
+    let optimistic: CommentReactionsType[]
+    if (existing) {
+      optimistic = prev.filter((r) => r.id !== existing.id)
+    } else {
+      optimistic = [
+        ...prev,
+        {
+          id: `temp-${Date.now()}`,
+          comment_id: commentId,
+          reaction: emoji,
+          // Backend returns `created_by`, SDK type has `user_id` — set both for safety
+          user_id: user.value.id,
+          created_by: user.value.id,
+          created_at: new Date().toISOString(),
+        } as CommentReactionsType & { created_by?: string },
+      ]
+    }
+    reactions.value = { ...reactions.value, [commentId]: optimistic }
+
+    try {
+      await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        activeProjectId.value,
+        { operation: 'documentCommentReactionToggle' },
+        { commentId, reaction: emoji },
+      )
+
+      // Reload reactions for this comment to get accurate server state
+      await loadReactions([commentId])
+    } catch (e: any) {
+      // Revert on error
+      reactions.value = { ...reactions.value, [commentId]: prev }
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const getReactionSummary = (commentId: string): ReactionSummaryItem[] => {
+    const list = reactions.value[commentId] || []
+    if (!list.length) return []
+
+    const grouped = new Map<string, { count: number; hasReacted: boolean }>()
+
+    for (const r of list) {
+      if (!r.reaction) continue
+      const entry = grouped.get(r.reaction) || { count: 0, hasReacted: false }
+      entry.count++
+      if (((r as any).created_by ?? r.user_id) === user.value?.id) entry.hasReacted = true
+      grouped.set(r.reaction, entry)
+    }
+
+    return Array.from(grouped.entries()).map(([emoji, { count, hasReacted }]) => ({
+      emoji,
+      count,
+      hasReacted,
+    }))
+  }
+
   const scrollToComment = (commentId: string) => {
     activeCommentId.value = commentId
   }
@@ -325,5 +428,9 @@ export const useDocumentComments = createSharedComposable(() => {
     applyRealtimeEvent,
     scrollToComment,
     clearActiveComment,
+    reactions,
+    toggleReaction,
+    getReactionSummary,
+    loadReactions,
   }
 })

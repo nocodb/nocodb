@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { DocCommentExtended } from '~/composables/useDocumentComments'
+import type { DocCommentExtended, ReactionSummaryItem } from '~/composables/useDocumentComments'
+import { REACTION_EMOJIS } from '~/composables/useDocumentComments'
 
 interface Props {
   comment: DocCommentExtended
@@ -7,6 +8,7 @@ interface Props {
   isOwner: boolean
   anchorText?: string
   isReply?: boolean
+  reactionSummary?: ReactionSummaryItem[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -14,6 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   isOwner: false,
   anchorText: undefined,
   isReply: false,
+  reactionSummary: () => [],
 })
 
 const emit = defineEmits<{
@@ -23,6 +26,7 @@ const emit = defineEmits<{
   (e: 'activate'): void
   (e: 'reply'): void
   (e: 'scrollToAnchor', anchorId: string): void
+  (e: 'react', emoji: string): void
 }>()
 
 const { comment } = toRefs(props)
@@ -119,12 +123,42 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
               <template #title>{{ $t('general.reply') }}</template>
             </NcTooltip>
 
+            <!-- Reaction picker — NcTooltip outside NcDropdown for alignment, dropdown gets NcButton as direct child -->
+            <NcTooltip v-if="hasEditPermission">
+              <NcDropdown placement="bottomRight">
+                <NcButton
+                  v-e="['c:doc:comment:react']"
+                  class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light"
+                  size="xsmall"
+                  type="text"
+                  data-testid="nc-doc-comment-react-btn"
+                  @click.stop
+                >
+                  <GeneralIcon class="text-xs" icon="ncSmile" />
+                </NcButton>
+                <template #overlay>
+                  <div class="flex items-center gap-0.5 p-1.5">
+                    <button
+                      v-for="emoji in REACTION_EMOJIS"
+                      :key="emoji"
+                      class="nc-reaction-picker-emoji flex items-center justify-center w-7 h-7 rounded-md hover:bg-nc-bg-gray-light cursor-pointer text-base transition-colors"
+                      :data-testid="`nc-doc-comment-react-${emoji}`"
+                      @click="emit('react', emoji)"
+                    >
+                      {{ emoji }}
+                    </button>
+                  </div>
+                </template>
+              </NcDropdown>
+              <template #title>{{ $t('general.react') }}</template>
+            </NcTooltip>
+
             <!-- Resolve button (unresolved state) — only on top-level comments, not replies -->
             <NcTooltip v-if="!isReply && !comment.resolved_by && hasEditPermission">
               <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text" @click.stop="emit('resolve')">
                 <GeneralIcon class="text-xs" icon="checkCircle" />
               </NcButton>
-              <template #title>{{ $t('activity.clickToResolve') }}</template>
+              <template #title>{{ $t('general.resolve') }}</template>
             </NcTooltip>
           </div>
 
@@ -154,6 +188,23 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         class="nc-doc-comment-body nc-rich-text-content text-small leading-5 text-nc-content-gray pl-6"
         v-html="parsedHtml"
       />
+
+      <!-- Reaction bubbles -->
+      <div v-if="reactionSummary.length" class="flex flex-wrap gap-1 pl-6 mt-1">
+        <button
+          v-for="r in reactionSummary"
+          :key="r.emoji"
+          class="nc-reaction-pill inline-flex items-center gap-0.75 px-1.5 h-6 rounded-full text-xs border-1 cursor-pointer transition-colors"
+          :class="r.hasReacted
+            ? 'bg-nc-bg-brand-light border-nc-border-brand text-nc-content-brand'
+            : 'bg-nc-bg-gray-light border-nc-border-gray-medium text-nc-content-gray hover:bg-nc-bg-gray-medium'"
+          :data-testid="`nc-doc-comment-reaction-${r.emoji}`"
+          @click.stop="emit('react', r.emoji)"
+        >
+          <span>{{ r.emoji }}</span>
+          <span class="font-medium">{{ r.count }}</span>
+        </button>
+      </div>
   </div>
 </template>
 

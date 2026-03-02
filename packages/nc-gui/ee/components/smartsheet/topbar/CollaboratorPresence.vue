@@ -226,10 +226,12 @@ watch(followedCollab, (collab) => {
 }
 
 .nc-presence-btn:not(:hover) {
+  @apply !dark:text-nc-content-gray;
   color: var(--nc-content-inverted-primary) !important;
 }
 
 .nc-presence-follow-btn:not(:hover) {
+  @apply !dark:text-nc-content-gray;
   color: var(--nc-content-inverted-primary) !important;
 }
 </style>

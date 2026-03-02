@@ -158,31 +158,6 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <DashboardMiniSidebarTheme v-if="isSharedBase" placement="bottom" render-as-btn button-class="h-8 w-8" />
 
-        <NcButton
-          v-if="
-            (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
-            !isSharedBase &&
-            !activeScriptId &&
-            !activeDashboardId &&
-            !activeWorkflowId &&
-            openedViewsTab === 'view' &&
-            !isMobileMode
-          "
-          v-e="['c:extension-toggle']"
-          type="secondary"
-          size="small"
-          class="nc-topbar-extension-btn"
-          :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
-          data-testid="nc-topbar-extension-btn"
-          @click="toggleExtensionPanel"
-        >
-          <GeneralIcon
-            :icon="isPanelExpanded ? 'ncPuzzleSolid' : 'ncPuzzleOutline'"
-            class="w-4 h-4 !stroke-transparent"
-            :class="{ 'border-l-1 border-transparent': isPanelExpanded }"
-          />
-        </NcButton>
-
         <LazySmartsheetTopbarShareProject v-if="!activeScriptId && !activeWorkflowId" />
 
         <div v-if="isSharedBase">

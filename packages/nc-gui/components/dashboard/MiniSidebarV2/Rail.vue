@@ -91,7 +91,7 @@ const isBaseListModalOpen = ref(false)
 
 const miniSidebarTabs = computed(() => [
   { key: 'data' as const, icon: 'ncTableOutline', activeIcon: 'ncTableFilled', label: 'Data' },
-  { key: 'automation' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
+  { key: 'automations' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
   // { key: 'agents' as const, icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
 ])
 
@@ -141,8 +141,8 @@ const onTabClick = async (tabKey: string) => {
   const basePath = getBasePath()
   if (!basePath) return
 
-  if (tabKey === 'automation') {
-    await navigateTo(`${basePath}/automation`)
+  if (tabKey === 'automations') {
+    await navigateTo(`${basePath}/automations`)
   } else {
     await navigateTo(basePath)
   }
@@ -201,14 +201,14 @@ const mainItems: NavItem[] = computed(() => [
     },
   },
   {
-    key: 'automation',
+    key: 'automations',
     icon: 'ncAutomation',
-    label: 'Automation',
+    label: 'Automations',
     accentColor: '#a78bfa',
     indicatorColor: '#8b5cf6',
     disabled: !hasAvailableBases.value,
     onClick: () => {
-      onTabClick('automation')
+      onTabClick('automations')
     },
   },
   { key: 'divider', icon: 'ncDivider', label: 'divider' },
@@ -328,7 +328,7 @@ const onItemClick = (panel: string) => {
 }
 
 .nc-rail-logo {
-  @apply flex items-center justify-center cursor-pointer pt-0.5 pb-1 opacity-90 hover:opacity-100 transform transition-all duration-150;
+  @apply flex items-center justify-center cursor-pointer pt-1 opacity-90 hover:opacity-100 transform transition-all duration-150;
 
   color: #555;
 

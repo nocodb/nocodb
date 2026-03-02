@@ -63,7 +63,7 @@ const isBaseListModalOpen = ref(false)
 
 const miniSidebarTabs = computed(() => [
   { key: 'data' as const, icon: 'ncTableOutline', activeIcon: 'ncTableFilled', label: 'Data' },
-  { key: 'automation' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
+  { key: 'automations' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
   // { key: 'agents' as const, icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
 ])
 
@@ -113,8 +113,8 @@ const onTabClick = async (tabKey: string) => {
   const basePath = getBasePath()
   if (!basePath) return
 
-  if (tabKey === 'automation') {
-    await navigateTo(`${basePath}/automation`)
+  if (tabKey === 'automations') {
+    await navigateTo(`${basePath}/automations`)
   } else {
     await navigateTo(basePath)
   }

@@ -79,8 +79,8 @@ const itemStyle = computed(() => {
 
 <style lang="scss" scoped>
 .nc-rail-item {
-  @apply flex flex-col gap-1 items-center justify-center pt-2.5 pb-1.5 cursor-pointer transition-all duration-150 rounded-lg;
-  width: 52px;
+  @apply flex flex-col gap-1.5 items-center justify-center pt-2.5 pb-1.5 cursor-pointer transition-all duration-150 rounded-[10px];
+  width: 53px;
   color: #666;
 
   :root[theme='dark'] & {
@@ -100,7 +100,7 @@ const itemStyle = computed(() => {
   }
 
   .nc-rail-item-label {
-    @apply select-none text-captionXs text-[9px] font-medium leading-tight  opacity-85;
+    @apply select-none text-captionXs text-[9px] font-medium leading-tight tracking-tight opacity-85;
   }
 
   &:hover:not(.active):not(.disabled) {

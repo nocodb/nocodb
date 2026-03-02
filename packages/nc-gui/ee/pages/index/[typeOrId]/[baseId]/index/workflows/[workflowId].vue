@@ -3,7 +3,7 @@ const route = useRoute()
 const router = useRouter()
 
 router.replace({
-  name: 'index-typeOrId-baseId-index-automation-workflows-workflowId',
+  name: 'index-typeOrId-baseId-index-automations-workflows-workflowId',
   params: {
     typeOrId: route.params.typeOrId,
     baseId: route.params.baseId,

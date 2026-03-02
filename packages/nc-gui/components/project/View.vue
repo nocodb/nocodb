@@ -208,7 +208,7 @@ const adminPageTitle = computed(() => {
     'base-settings': t('general.general'),
     audits: t('title.audits'),
     workflows: t('objects.workflows'),
-    overview: activeSidebarTab.value === 'automation' ? t('general.automate') : t('general.data'),
+    overview: activeSidebarTab.value === 'automations' ? t('general.automate') : t('general.data'),
   }
   return tabTitles[projectPageTab.value] || ''
 })
@@ -390,8 +390,8 @@ watch(
         >
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__overview">
-              <GeneralIcon :icon="activeSidebarTab === 'automation' ? 'ncAutomation' : 'ncMultiCircle'" />
-              <div>{{ activeSidebarTab === 'automation' ? $t('general.automate') : $t('general.data') }}</div>
+              <GeneralIcon :icon="activeSidebarTab === 'automations' ? 'ncAutomation' : 'ncMultiCircle'" />
+              <div>{{ activeSidebarTab === 'automations' ? $t('general.automate') : $t('general.data') }}</div>
             </div>
           </template>
           <ProjectOverview />

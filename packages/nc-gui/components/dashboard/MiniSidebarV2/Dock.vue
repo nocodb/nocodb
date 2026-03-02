@@ -89,8 +89,8 @@ const onTabClick = async (tabKey: string) => {
   const basePath = getBasePath()
   if (!basePath) return
 
-  if (tabKey === 'automation') {
-    await navigateTo(`${basePath}/automation`)
+  if (tabKey === 'automations') {
+    await navigateTo(`${basePath}/automations`)
   } else {
     await navigateTo(basePath)
   }
@@ -124,13 +124,13 @@ const mainItems = computed<NavItem[]>(() => [
     onClick: () => onTabClick('data'),
   },
   {
-    key: 'automation',
+    key: 'automations',
     icon: 'ncAutomation',
-    label: 'Automation',
+    label: 'Automations',
     accentColor: '#a78bfa',
     indicatorColor: '#8b5cf6',
     disabled: !hasAvailableBases.value,
-    onClick: () => onTabClick('automation'),
+    onClick: () => onTabClick('automations'),
   },
   { key: 'divider', icon: '', label: '' },
   { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },

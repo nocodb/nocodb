@@ -104,7 +104,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-  type SidebarTab = 'data' | 'automation' | 'agents' | 'settings'
+  type SidebarTab = 'data' | 'automations' | 'agents' | 'settings'
 
   const activeSidebarTab = ref<SidebarTab>('data')
 

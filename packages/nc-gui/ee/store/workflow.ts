@@ -639,7 +639,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       }
 
       router.replace({
-        name: 'index-typeOrId-baseId-index-automation-workflows-workflowId-slugs',
+        name: 'index-typeOrId-baseId-index-automations-workflows-workflowId-slugs',
         params: {
           ...route.params,
           slugs: newSlug,

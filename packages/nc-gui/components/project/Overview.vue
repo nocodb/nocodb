@@ -73,7 +73,7 @@ const onCreateBaseClick = () => {
     }"
   >
     <div class="text-subHeading2 text-nc-content-gray mb-5">
-      {{ activeSidebarTab === 'automation' ? $t('general.automate') : $t('general.data') }} {{ $t('labels.actions') }}
+      {{ activeSidebarTab === 'automations' ? $t('general.automate') : $t('general.data') }} {{ $t('labels.actions') }}
     </div>
 
     <div
@@ -141,7 +141,7 @@ const onCreateBaseClick = () => {
         </template>
 
         <!-- Automation actions (shown on Automation tab) -->
-        <template v-if="activeSidebarTab === 'automation'">
+        <template v-if="activeSidebarTab === 'automations'">
           <ProjectActionCreateEmptyWorkflow />
           <ProjectActionCreateEmptyScript />
           <ProjectActionScriptsByNocoDB />

@@ -187,6 +187,73 @@ describe('dataApiV3', () => {
         expect(result.records.length).to.greaterThan(0);
       });
 
+      it('get list country with returnFieldsByFieldId=true', async function () {
+        // First, get the field IDs for the columns
+        const columns = await countryTable!.getColumns(testContext.ctx);
+        const countryColumn = columns.find((c) => c.title === 'Country');
+
+        // Make request with returnFieldsByFieldId=true
+        const response = await ncAxiosGet({
+          url: `${urlPrefix}/${countryTable!.id}/records`,
+          query: {
+            returnFieldsByFieldId: true,
+            limit: 5,
+          },
+        });
+        const result = response.body as ListResult;
+        expect(result.records.length).to.greaterThan(0);
+
+        // Verify that fields are keyed by field IDs instead of titles
+        const firstRecord = result.records[0];
+        expect(firstRecord.fields).to.be.an('object');
+
+        // Should have field IDs as keys
+        if (countryColumn) {
+          expect(firstRecord.fields).to.have.property(countryColumn.id);
+        }
+
+        // Should NOT have field titles as keys
+        expect(firstRecord.fields).to.not.have.property('Country');
+        expect(firstRecord.fields).to.not.have.property('CountryId');
+
+        // id should still be present at the top level
+        expect(firstRecord).to.have.property('id');
+      });
+
+      it('get list country with returnFieldsByFieldId=true and specific fields', async function () {
+        // Get column IDs
+        const columns = await countryTable!.getColumns(testContext.ctx);
+        const countryColumn = columns.find((c) => c.title === 'Country');
+
+        // Make request with returnFieldsByFieldId=true and specific fields
+        const response = await ncAxiosGet({
+          url: `${urlPrefix}/${countryTable!.id}/records`,
+          query: {
+            returnFieldsByFieldId: true,
+            fields: ['Country'],
+            limit: 5,
+          },
+        });
+        const result = response.body as ListResult;
+        expect(result.records.length).to.greaterThan(0);
+
+        // Verify that only the requested field is returned, keyed by field ID
+        const firstRecord = result.records[0];
+        expect(firstRecord.fields).to.be.an('object');
+
+        if (countryColumn) {
+          expect(firstRecord.fields).to.have.property(countryColumn.id);
+          // Only one field should be present in fields
+          expect(Object.keys(firstRecord.fields)).to.have.length(1);
+        }
+
+        // Should NOT have field title as key
+        expect(firstRecord.fields).to.not.have.property('Country');
+
+        // id should still be present at the top level
+        expect(firstRecord).to.have.property('id');
+      });
+
       it('get list country with name like Ind', async function () {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${countryTable!.id}/records`,

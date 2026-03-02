@@ -140,15 +140,25 @@ export class ChatService {
   ): Promise<ReadableStream> {
     const { sessionId, body, req } = params;
 
-    // 1. Validate session ownership
+    // 1. Validate message length before any DB or LLM work
+    if (!body.content || body.content.length === 0) {
+      NcError.get(context).badRequest('Message content cannot be empty');
+    }
+    if (body.content.length > 10_000) {
+      NcError.get(context).badRequest(
+        'Message too long (max 10,000 characters)',
+      );
+    }
+
+    // 2. Validate session ownership
     const session = await this.sessionGet(context, { sessionId, req });
 
-    // 2. Check limits
+    // 3. Check limits
     await this.limitsService.checkCanSendMessage(context, {
       userId: (req as any).user?.id,
     });
 
-    // 3. Persist user message
+    // 4. Persist user message
     await ChatMessage.insert(context, {
       fk_session_id: sessionId,
       fk_workspace_id: context.workspace_id,
@@ -156,7 +166,7 @@ export class ChatService {
       content: body.content,
     });
 
-    // 4. Get AI provider
+    // 5. Get AI provider
     const integration = await Integration.getCategoryDefault(
       context,
       IntegrationCategoryType.AI,
@@ -169,7 +179,7 @@ export class ChatService {
     const wrapper = integration.getIntegrationWrapper<AiIntegration>();
     const model = wrapper.getModel();
 
-    // 5. Get available tools
+    // 6. Get available tools
     const approvals = body.approvals || {};
     const availableTools = this.toolRegistry.getAvailableTools(req);
     const vercelTools = this.toolRegistry.toVercelTools(
@@ -179,7 +189,7 @@ export class ChatService {
       approvals,
     );
 
-    // 6. Build system prompt (returns cached static block + dynamic block)
+    // 7. Build system prompt (returns cached static block + dynamic block)
     const userRole = this.getUserRole(req);
     const systemPrompt = await this.contextService.buildSystemPrompt(context, {
       baseId: context.base_id,
@@ -189,7 +199,7 @@ export class ChatService {
       req,
     });
 
-    // 7. Build messages (with compaction)
+    // 8. Build messages (with compaction)
     const existingMessages = await ChatMessage.list(context, { sessionId });
 
     const { summary, activeMessages } =
@@ -244,7 +254,11 @@ export class ChatService {
                   } catch {
                     // Not JSON — plain string result
                   }
-                } else if (raw && typeof raw === 'object' && raw.__requires_user_input) {
+                } else if (
+                  raw &&
+                  typeof raw === 'object' &&
+                  raw.__requires_user_input
+                ) {
                   awaitingInputIds.add(tr.toolCallId);
                 }
                 toolResults.push({
@@ -354,8 +368,10 @@ export class ChatService {
     const updatedToolCalls = (message.tool_calls || []).map((tc) => {
       if (tc.status !== ChatToolCallStatus.AWAITING_APPROVAL) return tc;
       const decision = decisions[tc.id];
-      if (decision === 'approved') return { ...tc, status: ChatToolCallStatus.SUCCESS };
-      if (decision === 'denied') return { ...tc, status: ChatToolCallStatus.DENIED };
+      if (decision === 'approved')
+        return { ...tc, status: ChatToolCallStatus.SUCCESS };
+      if (decision === 'denied')
+        return { ...tc, status: ChatToolCallStatus.DENIED };
       return tc;
     });
 
@@ -375,8 +391,8 @@ export class ChatService {
           output: isError
             ? `ERROR: ${result}`
             : typeof result === 'string'
-              ? result
-              : JSON.stringify(result, null, 2),
+            ? result
+            : JSON.stringify(result, null, 2),
           is_error: isError,
         });
       } else if (decision === 'denied') {

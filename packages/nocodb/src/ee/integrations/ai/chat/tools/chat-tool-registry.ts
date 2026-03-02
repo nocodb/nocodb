@@ -156,8 +156,11 @@ export class ChatToolRegistry {
       return { result, isError: false };
     } catch (e) {
       this.logger.error(`Tool ${toolName} failed: ${e.message}`, e.stack);
+      // Trim the error message — enough for the LLM to give a useful hint (e.g. "field not found")
+      // without leaking internal DB details that appear further into long error strings.
+      const hint = String(e.message || '').slice(0, 128);
       return {
-        result: `Error executing ${toolName}: ${e.message}`,
+        result: `Tool "${toolName}" failed: ${hint}`,
         isError: true,
       };
     }

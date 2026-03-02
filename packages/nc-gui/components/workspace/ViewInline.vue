@@ -36,7 +36,7 @@ const {
   isEEFeatureBlocked,
 } = useEeConfig()
 
-const { isFromIntegrationPage, integrationPaginationData, activeViewTab, loadIntegrations } = useProvideIntegrationViewStore()
+const { isFromIntegrationPage, integrationPaginationData, loadIntegrations } = useProvideIntegrationViewStore()
 
 // Local ref for inner integrations sub-tabs in settings sidebar mode.
 // Cannot use activeViewTab (which writes to route.query.tab) because the outer NcTabs

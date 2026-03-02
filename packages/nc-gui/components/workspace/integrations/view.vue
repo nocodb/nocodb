@@ -3,8 +3,6 @@ import { useTitle } from '@vueuse/core'
 
 const { isUIAllowed } = useRoles()
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
-
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()

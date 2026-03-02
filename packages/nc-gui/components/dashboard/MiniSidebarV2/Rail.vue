@@ -19,14 +19,11 @@ const { navigateToProject } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId, activeWorkspace, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading } =
-  storeToRefs(workspaceStore)
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
 const { basesList, resolvedProject } = storeToRefs(basesStore)
-
-const { isSharedBase } = storeToRefs(useBase())
 
 const sidebarStore = useSidebarStore()
 

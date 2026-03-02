@@ -17,7 +17,7 @@ const { files, reset } = useFileDialog()
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, isBaseRolesLoaded } = useRoles()
+const { isUIAllowed } = useRoles()
 
 type QuickImportTypes = 'excel' | 'json' | 'csv'
 

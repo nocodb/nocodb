@@ -12,7 +12,9 @@ dns.setDefaultResultOrder('ipv4first');
 const server = express();
 server.enable('trust proxy');
 server.use(cors());
-server.use('/', express.static(path.join(__dirname, 'nc-gui')));
+const ncGuiPath = path.join(__dirname, 'nc-gui');
+process.env.NC_GUI_DIST_PATH = process.env.NC_GUI_DIST_PATH ?? ncGuiPath;
+server.use('/', express.static(ncGuiPath));
 server.set('view engine', 'ejs');
 
 (async () => {

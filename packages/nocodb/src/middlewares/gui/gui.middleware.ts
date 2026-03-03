@@ -11,24 +11,41 @@ export class GuiMiddleware implements NestMiddleware, OnModuleInit {
   private indexHtml: string | null = null;
 
   onModuleInit() {
+    // Collect candidate paths for the frontend dist directory
+    const candidates: string[] = [];
+
+    // 1. Entry-point provided path (Docker/cloud builds bundle frontend here)
+    if (process.env.NC_GUI_DIST_PATH) {
+      candidates.push(process.env.NC_GUI_DIST_PATH);
+    }
+
+    // 2. nc-lib-gui npm package (standard npm install)
     try {
-      const distPath = path.join(
-        path.dirname(require.resolve('nc-lib-gui/package.json')),
-        'lib',
-        'dist',
+      candidates.push(
+        path.join(
+          path.dirname(require.resolve('nc-lib-gui/package.json')),
+          'lib',
+          'dist',
+        ),
       );
-
-      this.indexHtml = fs.readFileSync(
-        path.join(distPath, 'index.html'),
-        'utf-8',
-      );
-
-      // Serve static assets but NOT index.html (SPA fallback handles it)
-      const router = express.Router();
-      router.use('/', express.static(distPath, { index: false }));
-      this.staticRouter = router;
     } catch {
-      // nc-lib-gui not installed (e.g. dev mode) — skip GUI serving
+      // nc-lib-gui not installed
+    }
+
+    for (const distPath of candidates) {
+      try {
+        const indexPath = path.join(distPath, 'index.html');
+        if (!fs.existsSync(indexPath)) continue;
+
+        this.indexHtml = fs.readFileSync(indexPath, 'utf-8');
+
+        const router = express.Router();
+        router.use('/', express.static(distPath));
+        this.staticRouter = router;
+        return;
+      } catch {
+        // Try next candidate
+      }
     }
   }
 

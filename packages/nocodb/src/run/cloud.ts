@@ -39,9 +39,12 @@ async function createServer(isMaster: boolean): Promise<http.Server> {
   server.use(cors());
 
   // Add static file serving for the dashboard
+  const ncGuiPath = path.join(__dirname, 'nc-gui');
+  process.env.NC_GUI_DIST_PATH =
+    process.env.NC_GUI_DIST_PATH ?? ncGuiPath;
   server.use(
     process.env.NC_DASHBOARD_URL ?? '/',
-    express.static(path.join(__dirname, 'nc-gui')),
+    express.static(ncGuiPath),
   );
 
   // if NC_DASHBOARD_URL is not set to /dashboard, then redirect '/dashboard'

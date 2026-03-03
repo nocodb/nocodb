@@ -65,10 +65,10 @@ const currentWorkspace = computedAsync(async () => {
 
 const tab = computed({
   get() {
-    return route.value.query?.tab ?? 'collaborators'
+    return (props.tab && wsTabToNcTabKey[props.tab]) ?? 'collaborators'
   },
-  set(tab: string) {
-    if (!isWsAuditEnabled.value && tab === 'audits') {
+  set(newTab: string) {
+    if (!isWsAuditEnabled.value && newTab === 'audits') {
       return handleUpgradePlan({
         title: t('upgrade.upgradeToAccessWsAudit'),
         content: t('upgrade.upgradeToAccessWsAuditSubtitle', {
@@ -78,13 +78,19 @@ const tab = computed({
       })
     }
 
-    if (isEeUI && tab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
+    if (isEeUI && newTab === 'teams' && hasTeamsEditPermission.value && showUpgradeToUseTeams()) return
 
-    if (['collaborators', 'teams'].includes(tab) && isUIAllowed('workspaceCollaborators')) {
-      loadCollaborators({} as any, props.workspaceId)
+    if (['collaborators', 'teams'].includes(newTab) && isUIAllowed('workspaceCollaborators')) {
+      loadCollaborators({}, props.workspaceId)
     }
 
-    router.push({ query: { ...route.value.query, tab } })
+    // Navigate via route path
+    const wsTab = ncTabKeyToWsTab[newTab]
+    if (wsTab) {
+      const wsId = route.value.params.typeOrId
+      const slug = wsSettingsTabToSlug[wsTab] || wsTab
+      navigateTo(`/${wsId}/settings/${slug}`)
+    }
   },
 })
 
@@ -114,7 +120,7 @@ onMounted(() => {
     .toMatch((v) => !!v)
     .then(async () => {
       if (isUIAllowed('workspaceCollaborators')) {
-        await loadCollaborators({} as any, currentWorkspace.value!.id)
+        await loadCollaborators({}, currentWorkspace.value!.id)
       }
     })
 })
@@ -122,6 +128,9 @@ onMounted(() => {
 watch(
   () => route.value.query?.tab,
   async (newTab) => {
+    // In settings-sidebar mode, tab is derived from props.tab — skip query-based logic
+    if (props.tab) return
+
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
     if (!isUIAllowed('workspaceCollaborators') && !isEEFeatureBlocked.value) {
@@ -157,6 +166,11 @@ const wsTabToNcTabKey: Record<string, string> = {
   'ws-settings': 'settings',
 }
 
+// Inverse: NcTabs key → ws-* tab name for route generation
+const ncTabKeyToWsTab: Record<string, string> = Object.fromEntries(
+  Object.entries(wsTabToNcTabKey).map(([k, v]) => [v, k]),
+)
+
 const settingsPageTitle = computed(() => {
   if (!props.tab) return ''
   const tabTitles: Record<string, string> = {
@@ -171,7 +185,7 @@ const settingsPageTitle = computed(() => {
   return tabTitles[props.tab] || ''
 })
 
-// When in settings sidebar mode, sync the props.tab to the NcTabs active key
+// When in settings sidebar mode, load data for specific tabs on navigation
 watch(
   () => props.tab,
   (newTab, oldTab) => {
@@ -182,17 +196,12 @@ watch(
 
     if (!newTab) return
 
-    const ncTabKey = wsTabToNcTabKey[newTab]
-    if (ncTabKey && tab.value !== ncTabKey) {
-      tab.value = ncTabKey
-    }
-
     // Load data for specific tabs
     until(() => currentWorkspace.value?.id)
       .toMatch((v) => !!v)
       .then(async () => {
         if (['ws-collaborators', 'ws-teams'].includes(newTab) && isUIAllowed('workspaceCollaborators')) {
-          await loadCollaborators({} as any, currentWorkspace.value!.id)
+          await loadCollaborators({}, currentWorkspace.value!.id)
         }
         if (newTab === 'ws-integrations') {
           isFromIntegrationPage.value = true
@@ -293,7 +302,7 @@ onBeforeUnmount(() => {
     <!-- Back-to-base full-width bar: shown between breadcrumb and tabs (breadcrumb variant only) -->
     <DashboardBackToBaseBreadcrumbVariant v-if="!isSettingsSidebar" />
 
-    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
+    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0" :tab-bar-style="isSettingsSidebar ? { display: 'none' } : undefined">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
@@ -375,7 +384,7 @@ onBeforeUnmount(() => {
         </template>
       </template>
 
-      <a-tab-pane v-if="isSettingsSidebar" key="integrations" class="w-full h-full">
+      <a-tab-pane v-if="isSettingsSidebar && isUIAllowed('workspaceIntegrations') && !isMobileMode" key="integrations" class="w-full h-full">
         <template #tab>
           <div class="tab-title">
             <GeneralIcon icon="integration" class="h-4 w-4" />

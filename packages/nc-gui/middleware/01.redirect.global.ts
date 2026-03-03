@@ -37,6 +37,9 @@ export default defineNuxtRouteMiddleware(async (to) => {
     const slugMap: Record<string, string> = {
       settings: 'ws-settings',
       collaborator: 'ws-members',
+      collaborators: 'ws-members',
+      teams: 'ws-teams',
+      integrations: 'ws-integrations',
       billing: 'ws-billing',
       audits: 'ws-audits',
       sso: 'ws-sso',

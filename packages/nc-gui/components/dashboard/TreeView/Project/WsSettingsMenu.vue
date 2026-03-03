@@ -16,7 +16,8 @@ const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()
 
-const { isWsAuditEnabled, isPaymentEnabled, getFeature, showUpgradeToUseTeams, handleUpgradePlan } = useEeConfig()
+const { isWsAuditEnabled, isPaymentEnabled, isEEFeatureBlocked, getFeature, showUpgradeToUseTeams, handleUpgradePlan } =
+  useEeConfig()
 
 const isWorkspaceSsoAvail = computed(() => {
   if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
@@ -42,15 +43,11 @@ const navigateToWsSettings = (page: string) => {
   navigateTo(`/${wsId}/settings/${slug}`)
 }
 
-const activeSettingsPage = computed(() => {
+const activeWsSettingsTab = computed(() => {
   if (activeSidebarTab.value !== 'settings') return ''
-  return (route.value.params.page as string) || ''
+  const page = route.value.params.page as string
+  return page ? wsSettingsSlugToTab[page] || '' : ''
 })
-
-const isWsSettingsItemActive = (tab: string) => {
-  const slug = wsSettingsTabToSlug[tab] || tab
-  return activeSettingsPage.value === slug
-}
 </script>
 
 <template>
@@ -61,7 +58,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-e="['c:settings:ws:invite-user']"
       icon="users"
       data-testid="ws-collaborators"
-      :active="isWsSettingsItemActive('ws-collaborators')"
+      :active="activeWsSettingsTab === 'ws-collaborators'"
       @click="navigateToWsSettings('ws-collaborators')"
     >
       {{ $t('labels.inviteUsersToWorkspace') }}
@@ -71,7 +68,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-e="['c:settings:ws:add-team']"
       icon="ncBuilding"
       data-testid="ws-teams"
-      :active="isWsSettingsItemActive('ws-teams')"
+      :active="activeWsSettingsTab === 'ws-teams'"
       @click="navigateToWsSettings('ws-teams')"
     >
       {{ $t('labels.manageTeams') }}
@@ -81,7 +78,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-e="['c:integrations']"
       icon="integration"
       data-testid="ws-integrations"
-      :active="isWsSettingsItemActive('ws-integrations')"
+      :active="activeWsSettingsTab === 'ws-integrations'"
       @click="navigateToWsSettings('ws-integrations')"
     >
       {{ $t('general.integrations') }}
@@ -91,7 +88,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-e="['c:settings:ws:billing']"
       icon="ncDollarSign"
       data-testid="ws-billing"
-      :active="isWsSettingsItemActive('ws-billing')"
+      :active="activeWsSettingsTab === 'ws-billing'"
       @click="navigateToWsSettings('ws-billing')"
     >
       {{ $t('general.billing') }}
@@ -101,7 +98,7 @@ const isWsSettingsItemActive = (tab: string) => {
       v-e="['c:settings:ws:audits']"
       icon="audit"
       data-testid="ws-audits"
-      :active="isWsSettingsItemActive('ws-audits')"
+      :active="activeWsSettingsTab === 'ws-audits'"
       @click="navigateToWsSettings('ws-audits')"
     >
       {{ $t('title.audits') }}
@@ -111,17 +108,17 @@ const isWsSettingsItemActive = (tab: string) => {
       v-e="['c:settings:ws:sso']"
       icon="sso"
       data-testid="ws-sso"
-      :active="isWsSettingsItemActive('ws-sso')"
+      :active="activeWsSettingsTab === 'ws-sso'"
       @click="navigateToWsSettings('ws-sso')"
     >
       {{ $t('title.sso') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="!isMobileMode && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"
+      v-if="!isEEFeatureBlocked && !isMobileMode && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"
       v-e="['c:settings:ws:general']"
       icon="ncMoreHorizontal"
       data-testid="ws-settings"
-      :active="isWsSettingsItemActive('ws-settings')"
+      :active="activeWsSettingsTab === 'ws-settings'"
       @click="navigateToWsSettings('ws-settings')"
     >
       {{ $t('general.general') }}

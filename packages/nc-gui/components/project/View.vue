@@ -377,6 +377,7 @@ watch(
         v-model:active-key="projectPageTab"
         class="w-full h-full"
         :class="{ 'hide-tabs': props.tab || projectPageTab === 'overview' }"
+        :tab-bar-style="props.tab || projectPageTab === 'overview' ? { display: 'none' } : undefined"
       >
         <a-tab-pane
           v-if="!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode"

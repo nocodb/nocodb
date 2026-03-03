@@ -12,6 +12,7 @@ export const baseSettingsTabToSlug: Record<string, string> = {
   'permissions': 'permissions',
   'syncs': 'syncs',
   'base-settings': 'settings',
+  'audit': 'audits',
   'audits': 'audits',
   'workflows': 'workflows',
   'overview': 'overview',

@@ -154,9 +154,11 @@ export class TreeViewPage extends BasePage {
       await this.get().locator(`[data-testid="nc-tbl-title-${title}"]`).click({
         // x:10, y:10
       });
-
-      await this.rootPage.waitForLoadState('networkidle');
     }
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async openScript({ title, baseTitle }: { title: string; baseTitle?: string }) {
@@ -177,6 +179,10 @@ export class TreeViewPage extends BasePage {
     await scriptNode.click({
       // x:10, y:10
     });
+
+    await this.rootPage.waitForLoadState('networkidle');
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async createEntity({
@@ -197,6 +203,8 @@ export class TreeViewPage extends BasePage {
       await this.createNewButton.click();
       await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
       await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+
+      await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
     } else {
       if (skipOpeningModal) return;
 
@@ -207,6 +215,7 @@ export class TreeViewPage extends BasePage {
 
           await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
 
+          await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
           break;
         }
       }
@@ -220,6 +229,8 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
     await this.dashboard.get().getByPlaceholder('Enter script name').fill(title);
     await this.dashboard.get().locator('.ant-modal.active').locator('button:has-text("Create Script")').click();
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async createTable({
@@ -262,6 +273,8 @@ export class TreeViewPage extends BasePage {
     await this.rootPage.waitForTimeout(1000);
 
     await this.rootPage.waitForLoadState('networkidle');
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
 
     return tableId;
   }

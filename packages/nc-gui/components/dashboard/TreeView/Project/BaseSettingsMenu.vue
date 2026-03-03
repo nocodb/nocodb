@@ -41,15 +41,11 @@ const navigateToBaseSettings = (page: string) => {
   navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
 }
 
-const activeSettingsPage = computed(() => {
+const activeBaseSettingsTab = computed(() => {
   if (activeSidebarTab.value !== 'settings') return ''
-  return (route.value.params.page as string) || ''
+  const page = route.value.params.page as string
+  return page ? (baseSettingsSlugToTab[page] || '') : ''
 })
-
-const isSettingsItemActive = (tab: string) => {
-  const slug = settingsTabToSlug[tab] || tab
-  return activeSettingsPage.value === slug
-}
 
 // Use injected base role for immediate permission checks; load full roles in background
 const effectiveRoles = computed(() => baseRoles.value ?? baseRole.value)
@@ -73,7 +69,7 @@ onMounted(() => {
       v-e="['c:settings:base:add-user']"
       icon="users"
       data-testid="base-collaborator"
-      :active="isSettingsItemActive('collaborator')"
+      :active="activeBaseSettingsTab === 'collaborator'"
       @click="navigateToBaseSettings('collaborator')"
     >
       {{ $t('labels.addUserToBase') }}
@@ -83,7 +79,7 @@ onMounted(() => {
       v-e="['c:settings:base:permissions']"
       icon="ncLock"
       data-testid="base-permissions"
-      :active="isSettingsItemActive('permissions')"
+      :active="activeBaseSettingsTab === 'permissions'"
       @click="navigateToBaseSettings('permissions')"
     >
       {{ $t('labels.dataPermissions') }}
@@ -93,7 +89,7 @@ onMounted(() => {
       v-e="['c:settings:base:mcp']"
       icon="mcp"
       data-testid="base-mcp"
-      :active="isSettingsItemActive('mcp')"
+      :active="activeBaseSettingsTab === 'mcp'"
       @click="navigateToBaseSettings('mcp')"
     >
       {{ $t('title.mcpServer') }}
@@ -103,7 +99,7 @@ onMounted(() => {
       v-e="['c:settings:base:syncs']"
       icon="ncZap"
       data-testid="base-syncs"
-      :active="isSettingsItemActive('syncs')"
+      :active="activeBaseSettingsTab === 'syncs'"
       @click="navigateToBaseSettings('syncs')"
     >
       {{ $t('labels.manageSyncs') }}
@@ -118,7 +114,7 @@ onMounted(() => {
       v-e="['c:settings:base:snapshots']"
       icon="camera"
       data-testid="base-snapshots"
-      :active="isSettingsItemActive('snapshots')"
+      :active="activeBaseSettingsTab === 'snapshots'"
       @click="navigateToBaseSettings('snapshots')"
     >
       {{ $t('labels.manageSnapshots') }}
@@ -128,7 +124,7 @@ onMounted(() => {
       v-e="['c:settings:base:add-data-source']"
       icon="ncDatabase"
       data-testid="base-data-source"
-      :active="isSettingsItemActive('data-source')"
+      :active="activeBaseSettingsTab === 'data-source'"
       @click="navigateToBaseSettings('data-source')"
     >
       {{ $t('labels.addDataSource') }}
@@ -138,7 +134,7 @@ onMounted(() => {
       v-e="['c:settings:base:audits']"
       icon="audit"
       data-testid="base-audit"
-      :active="isSettingsItemActive('audit')"
+      :active="activeBaseSettingsTab === 'audit'"
       @click="navigateToBaseSettings('audit')"
     >
       {{ $t('title.audits') }}
@@ -148,7 +144,7 @@ onMounted(() => {
       v-e="['c:settings:base:more']"
       icon="ncMoreHorizontal"
       data-testid="base-settings"
-      :active="isSettingsItemActive('base-settings')"
+      :active="activeBaseSettingsTab === 'base-settings'"
       @click="navigateToBaseSettings('base-settings')"
     >
       {{ $t('general.general') }}

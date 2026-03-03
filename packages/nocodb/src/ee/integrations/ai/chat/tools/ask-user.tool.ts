@@ -7,7 +7,7 @@ import type { ChatToolDefinition } from './chat-tool-registry';
 export const askUserTool: ChatToolDefinition = {
   name: 'ask_user',
   description:
-    'Ask the user a question with predefined options. Use when the user\'s request is ' +
+    "Ask the user a question with predefined options. Use when the user's request is " +
     'ambiguous or when they need to choose between approaches. Provide 2–5 short option labels. ' +
     'The user can also type a custom answer or skip entirely.',
   parameters: {
@@ -22,7 +22,15 @@ export const askUserTool: ChatToolDefinition = {
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
-  async execute(_context: NcContext, args: { question: string; options: string[] }, _req: NcRequest) {
-    return { __requires_user_input: true, question: args.question, options: args.options };
+  async execute(
+    _context: NcContext,
+    args: { question: string; options: string[] },
+    _req: NcRequest,
+  ) {
+    return {
+      __requires_user_input: true,
+      question: args.question,
+      options: args.options,
+    };
   },
 };

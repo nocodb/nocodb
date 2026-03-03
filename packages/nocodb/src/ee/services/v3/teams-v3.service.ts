@@ -543,13 +543,12 @@ export class TeamsV3Service {
     }
 
     // Get member count for the created team
-    const postCreateAssignments =
-      await PrincipalAssignment.listByResourceIds(
-        context,
-        ResourceType.TEAM,
-        [team.id],
-        { principal_type: PrincipalType.USER },
-      );
+    const postCreateAssignments = await PrincipalAssignment.listByResourceIds(
+      context,
+      ResourceType.TEAM,
+      [team.id],
+      { principal_type: PrincipalType.USER },
+    );
     const teamUsers = postCreateAssignments.length;
     const managers = postCreateAssignments
       .filter((a) => a.roles === TeamUserRoles.OWNER)
@@ -796,8 +795,16 @@ export class TeamsV3Service {
 
     // Fetch both assignment directions in parallel
     const [teamAssignments, teamPrincipalAssignments] = await Promise.all([
-      PrincipalAssignment.listByResource(context, ResourceType.TEAM, param.teamId),
-      PrincipalAssignment.listByPrincipal(context, PrincipalType.TEAM, param.teamId),
+      PrincipalAssignment.listByResource(
+        context,
+        ResourceType.TEAM,
+        param.teamId,
+      ),
+      PrincipalAssignment.listByPrincipal(
+        context,
+        PrincipalType.TEAM,
+        param.teamId,
+      ),
     ]);
 
     // Delete all assignments (sequential — each delete does soft-delete + cache clear)

@@ -55,7 +55,10 @@ export const updateRecordsTool: ChatToolDefinition = {
   isDangerous: false,
   async execute(
     context: NcContext,
-    args: { table_name: string; rows: { id: string; fields: Record<string, any> }[] },
+    args: {
+      table_name: string;
+      rows: { id: string; fields: Record<string, any> }[];
+    },
     req: NcRequest,
   ) {
     const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);

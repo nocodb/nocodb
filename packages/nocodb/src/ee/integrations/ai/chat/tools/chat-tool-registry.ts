@@ -186,7 +186,10 @@ export class ChatToolRegistry {
               return JSON.stringify({ __requires_approval: true, toolCallId });
             }
             if (decision === 'denied') {
-              return JSON.stringify({ status: 'denied', message: 'Operation denied by user.' });
+              return JSON.stringify({
+                status: 'denied',
+                message: 'Operation denied by user.',
+              });
             }
             // decision === 'approved' → fall through to execute
           }

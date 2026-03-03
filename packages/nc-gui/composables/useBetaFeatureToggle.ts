@@ -2,7 +2,7 @@ import rfdc from 'rfdc'
 
 const deepClone = rfdc()
 const FEATURES = [
-    {
+  {
     id: 'chat',
     title: 'AI Chat & Act',
     description: 'Chat with AI to query, modify, and manage your base using natural language.',

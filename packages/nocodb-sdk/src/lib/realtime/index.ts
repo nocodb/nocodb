@@ -1,4 +1,5 @@
 import { NotificationType, UserType } from '~/lib/Api';
+import type { ChatContentBlock } from '~/lib/chat';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -17,6 +18,7 @@ export enum EventType {
   WORKFLOW_EVENT = 'event-workflow',
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
   PRESENCE_EVENT = 'event-presence',
+  CHAT_EVENT = 'event-chat',
 }
 
 export interface BaseSocketPayload {
@@ -188,6 +190,27 @@ export type PresencePayload =
   | PresenceLeavePayload
   | PresenceBatchPayload;
 
+export interface ChatEventPayload extends BaseSocketPayload {
+  action: 'token' | 'tool-start' | 'tool-call' | 'tool-result' | 'message-done' | 'message-update' | 'error';
+  sessionId: string;
+  // action: 'token'
+  content?: string;
+  // action: 'tool-start' | 'tool-call'
+  toolCallId?: string;
+  name?: string;
+  args?: any;
+  // action: 'tool-result'
+  output?: any;
+  isError?: boolean;
+  // action: 'message-done'
+  baseId?: string;
+  messageId?: string;
+  /** Final ordered content blocks — single source of truth for the persisted message. */
+  parts?: ChatContentBlock[];
+  // action: 'error'
+  error?: string;
+}
+
 export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
@@ -195,7 +218,8 @@ export type SocketEventPayload =
   | MetaPayload
   | CommentPayload
   | NotificationPayload
-  | PresencePayload;
+  | PresencePayload
+  | ChatEventPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
@@ -207,6 +231,7 @@ export type SocketEventPayloadMap = {
   [EventType.USER_EVENT]: UserEventPayload;
   [EventType.COMMENT_EVENT]: CommentPayload;
   [EventType.PRESENCE_EVENT]: PresencePayload;
+  [EventType.CHAT_EVENT]: ChatEventPayload;
   [key: string]: BaseSocketPayload;
 };
 

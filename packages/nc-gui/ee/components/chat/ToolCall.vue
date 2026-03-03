@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import type { ChatToolCallType, ChatToolResultType } from 'nocodb-sdk'
+import type { ChatContentBlock } from 'nocodb-sdk'
 import { ChatToolCallStatus } from 'nocodb-sdk'
 
+type ToolUseBlock = Extract<ChatContentBlock, { type: 'tool_use' }>
+
 interface Props {
-  toolCall: ChatToolCallType
-  result?: ChatToolResultType
+  block: ToolUseBlock
   index?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  result: undefined,
   index: 0,
 })
 
@@ -18,21 +18,21 @@ const emits = defineEmits<{
   deny: [toolCallId: string]
 }>()
 
-const { toolCall, result } = toRefs(props)
+const { block } = toRefs(props)
 
 const { t } = useI18n()
 
 const isExpanded = ref(false)
 
-const isSuccess = computed(() => toolCall.value.status === ChatToolCallStatus.SUCCESS)
-const isError = computed(() => toolCall.value.status === ChatToolCallStatus.ERROR || result.value?.is_error)
-const isRunning = computed(() => toolCall.value.status === ChatToolCallStatus.RUNNING)
-const isPending = computed(() => toolCall.value.status === ChatToolCallStatus.PENDING)
-const isAwaitingApproval = computed(() => toolCall.value.status === ChatToolCallStatus.AWAITING_APPROVAL)
-const isDenied = computed(() => toolCall.value.status === ChatToolCallStatus.DENIED)
+const isSuccess = computed(() => block.value.status === ChatToolCallStatus.SUCCESS)
+const isError = computed(() => block.value.status === ChatToolCallStatus.ERROR || block.value.is_error)
+const isRunning = computed(() => block.value.status === ChatToolCallStatus.RUNNING)
+const isPending = computed(() => block.value.status === ChatToolCallStatus.PENDING)
+const isAwaitingApproval = computed(() => block.value.status === ChatToolCallStatus.AWAITING_APPROVAL)
+const isDenied = computed(() => block.value.status === ChatToolCallStatus.DENIED)
 
 const toolCategory = computed(() => {
-  const name = toolCall.value.name
+  const name = block.value.name
   if (
     name === 'list_tables' ||
     name.startsWith('describe_') ||
@@ -89,7 +89,7 @@ const categoryTextColor = computed(() => {
 
 // Extract the most useful inline argument to show next to the tool name
 const keyArg = computed(() => {
-  const args = toolCall.value.arguments
+  const args = block.value.input
   if (!args || typeof args !== 'object') return null
   // Priority: table_name > title > first string value
   if (args.table_name) return args.table_name
@@ -98,25 +98,25 @@ const keyArg = computed(() => {
   return firstStr || null
 })
 
-const displayName = computed(() => toolCall.value.name.replace(/_/g, ' '))
+const displayName = computed(() => block.value.name.replace(/_/g, ' '))
 
 const formattedArgs = computed(() => {
   try {
-    const args = toolCall.value.arguments
+    const args = block.value.input
     if (!args || Object.keys(args).length === 0) return null
     return JSON.stringify(args, null, 2)
   } catch {
-    return String(toolCall.value.arguments)
+    return String(block.value.input)
   }
 })
 
 const formattedOutput = computed(() => {
-  if (!result.value) return ''
+  if (block.value.output === undefined || block.value.output === null) return ''
   try {
-    if (typeof result.value.output === 'string') return result.value.output
-    return JSON.stringify(result.value.output, null, 2)
+    if (typeof block.value.output === 'string') return block.value.output
+    return JSON.stringify(block.value.output, null, 2)
   } catch {
-    return String(result.value.output)
+    return String(block.value.output)
   }
 })
 
@@ -133,7 +133,7 @@ const visibleOutput = computed(() => {
 
 <template>
   <div
-    class="nc-chat-tool-call rounded-lg overflow-hidden transition-all duration-150"
+    class="nc-chat-tool-call w-72 rounded-lg overflow-hidden transition-all duration-150"
     :class="{
       'border-1 border-nc-border-red-medium bg-nc-bg-red-light': isError,
       'border-1 border-nc-border-yellow bg-nc-bg-yellow-light': isAwaitingApproval,
@@ -182,7 +182,7 @@ const visibleOutput = computed(() => {
           size="xxsmall"
           type="text"
           class="!text-nc-content-red-dark !h-5 !px-1.5 text-[11px] font-medium"
-          @click.stop="emits('deny', toolCall.id)"
+          @click.stop="emits('deny', block.id)"
         >
           {{ t('general.deny') }}
         </NcButton>
@@ -190,7 +190,7 @@ const visibleOutput = computed(() => {
           size="xxsmall"
           type="primary"
           class="!h-5 !px-2 text-[11px] font-medium"
-          @click.stop="emits('approve', toolCall.id)"
+          @click.stop="emits('approve', block.id)"
         >
           {{ t('general.allow') }}
         </NcButton>
@@ -220,7 +220,7 @@ const visibleOutput = computed(() => {
         </div>
 
         <!-- Result -->
-        <div v-if="result" class="space-y-1">
+        <div v-if="block.output !== undefined" class="space-y-1">
           <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">
             {{ isError ? t('msg.chat.toolError') : t('msg.chat.toolOutput') }}
           </div>

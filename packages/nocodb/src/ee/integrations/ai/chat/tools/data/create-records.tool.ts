@@ -48,11 +48,15 @@ export const createRecordsTool: ChatToolDefinition = {
     const model = await resolveTableByName(context, args.table_name);
     const defaultView = await model.getViews(context).then((v) => v[0]);
 
+    const cookieWithTypecast = Object.assign({}, req, {
+      query: { ...(req as any).query, typecast: 'true' },
+    });
+
     const result = await dataV3Service.dataInsert(context, {
       modelId: model.id,
       viewId: defaultView?.id,
       body: args.rows,
-      cookie: req,
+      cookie: cookieWithTypecast,
     });
 
     return result;

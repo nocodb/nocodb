@@ -65,6 +65,8 @@ export enum JobTypes {
   PollWorkflow = 'poll-workflow',
   WorkflowErrorNotification = 'workflow-error-notification',
   HookErrorNotification = 'hook-error-notification',
+  ChatMessage = 'chat-message',
+  ChatApproval = 'chat-approval',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -87,6 +89,8 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.PollWorkflow,
   JobTypes.WorkflowErrorNotification,
   JobTypes.HookErrorNotification,
+  JobTypes.ChatMessage,
+  JobTypes.ChatApproval,
 ];
 
 export enum JobStatus {
@@ -311,4 +315,16 @@ export interface PollWorkflowJobData extends JobData {
   workflowId: string;
   triggerNodeId: string;
   activationState: Record<string, any>;
+}
+
+export interface ChatMessageJobData extends JobData {
+  sessionId: string;
+  firstUserMessage?: string;
+  approvals?: Record<string, 'approved' | 'denied'>;
+}
+
+export interface ChatApprovalJobData extends JobData {
+  sessionId: string;
+  messageId: string;
+  decisions: Record<string, 'approved' | 'denied'>;
 }

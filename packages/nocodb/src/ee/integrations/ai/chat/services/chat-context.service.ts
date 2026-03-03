@@ -120,15 +120,26 @@ export class ChatContextService {
       });
     }
 
-    // Add message history within token budget
+    // Add message history within token budget.
+    // Iterate from the END (newest first) so the most recent messages —
+    // including the latest user message — are always included. Older
+    // messages are dropped first when the budget is exhausted.
     let tokenEstimate = summary ? this.estimateTokens(summary) : 0;
 
-    for (const msg of messages) {
-      const msgTokens = this.estimateTokens(msg.content || '');
-
+    // First pass: walk backwards to find the oldest message we can fit
+    let startIndex = messages.length;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msgTokens = this.estimateMessageTokens(messages[i]);
       if (tokenEstimate + msgTokens > maxHistoryTokens) {
         break;
       }
+      tokenEstimate += msgTokens;
+      startIndex = i;
+    }
+
+    // Second pass: emit messages in chronological order from startIndex
+    for (let i = startIndex; i < messages.length; i++) {
+      const msg = messages[i];
 
       if (msg.role === ChatMessageRole.USER) {
         coreMessages.push({
@@ -136,83 +147,77 @@ export class ChatContextService {
           content: msg.content || '',
         });
       } else if (msg.role === ChatMessageRole.ASSISTANT) {
-        if (msg.tool_calls?.length) {
-          // Emit assistant message with tool-call parts
-          coreMessages.push({
-            role: 'assistant',
-            content: msg.tool_calls.map((tc) => ({
-              type: 'tool-call' as const,
-              toolCallId: tc.id,
-              toolName: tc.name,
-              input: tc.arguments,
-            })),
-          });
+        if (msg.parts?.length) {
+          const toolBlocks = msg.parts.filter(
+            (p): p is Extract<typeof p, { type: 'tool_use' }> =>
+              p.type === 'tool_use',
+          );
 
-          // Emit matching tool-result messages so the provider sees complete pairs.
-          // Results are stored on the same assistant message, not as separate TOOL rows.
-          if (msg.tool_results?.length) {
-            for (const result of msg.tool_results) {
+          // Build a single assistant message with text and tool-call
+          // parts interleaved in their original order. This prevents
+          // stale text (e.g. "please approve…") from appearing as a
+          // separate assistant turn after tool results, which would
+          // confuse the LLM into re-calling already-executed tools.
+          const contentParts: Array<
+            | { type: 'text'; text: string }
+            | {
+                type: 'tool-call';
+                toolCallId: string;
+                toolName: string;
+                input: unknown;
+              }
+          > = [];
+
+          for (const part of msg.parts) {
+            if (part.type === 'text' && part.text) {
+              contentParts.push({ type: 'text', text: part.text });
+            } else if (part.type === 'tool_use') {
+              contentParts.push({
+                type: 'tool-call' as const,
+                toolCallId: part.id,
+                toolName: part.name,
+                input: part.input || {},
+              });
+            }
+          }
+
+          if (contentParts.length) {
+            coreMessages.push({
+              role: 'assistant',
+              content: contentParts,
+            });
+          }
+
+          // Emit tool results for completed tool blocks
+          for (const p of toolBlocks) {
+            if (p.output !== undefined) {
               coreMessages.push({
                 role: 'tool',
                 content: [
                   {
                     type: 'tool-result' as const,
-                    toolCallId: result.tool_call_id,
-                    toolName:
-                      msg.tool_calls.find((tc) => tc.id === result.tool_call_id)
-                        ?.name || '',
+                    toolCallId: p.id,
+                    toolName: p.name,
                     output: {
                       type: 'text' as const,
                       value:
-                        typeof result.output === 'string'
-                          ? result.output
-                          : JSON.stringify(result.output),
+                        typeof p.output === 'string'
+                          ? p.output
+                          : JSON.stringify(p.output),
                     },
                   },
                 ],
               });
             }
           }
-
-          // Emit the final text content after tool results (the AI's response after tool use)
-          if (msg.content) {
-            coreMessages.push({
-              role: 'assistant',
-              content: msg.content,
-            });
-          }
         } else {
+          // Fallback: content-only (user messages in old format)
           coreMessages.push({
             role: 'assistant',
             content: msg.content || '',
           });
         }
-      } else if (msg.role === ChatMessageRole.TOOL) {
-        // Standalone TOOL messages (future-proofing)
-        if (msg.tool_results?.length) {
-          for (const result of msg.tool_results) {
-            coreMessages.push({
-              role: 'tool',
-              content: [
-                {
-                  type: 'tool-result' as const,
-                  toolCallId: result.tool_call_id,
-                  toolName: '',
-                  output: {
-                    type: 'text' as const,
-                    value:
-                      typeof result.output === 'string'
-                        ? result.output
-                        : JSON.stringify(result.output),
-                  },
-                },
-              ],
-            });
-          }
-        }
       }
-
-      tokenEstimate += msgTokens;
     }
 
     // Add the new user message
@@ -249,5 +254,15 @@ export class ChatContextService {
   estimateTokens(text: string): number {
     // Rough approximation: ~4 characters per token
     return Math.ceil((text || '').length / 4);
+  }
+
+  estimateMessageTokens(msg: ChatMessageType): number {
+    if (msg.parts?.length) {
+      return msg.parts.reduce((sum, p) => {
+        if (p.type === 'text') return sum + this.estimateTokens(p.text);
+        return sum + this.estimateTokens(JSON.stringify(p));
+      }, 0);
+    }
+    return this.estimateTokens(msg.content || '');
   }
 }

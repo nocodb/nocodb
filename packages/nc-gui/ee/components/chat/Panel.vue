@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
+import type { ChatContentBlock } from 'nocodb-sdk'
 import { ChatMessageRole, ChatToolCallStatus } from 'nocodb-sdk'
 
 const { isPanelExpanded, chatPanelSize } = useChatPanel()
 
 const chatStore = useChatStore()
 
-const { activeMessages, isSendingMessage, activeSession, sessionList, isLoadingSessions } = storeToRefs(chatStore)
+const { activeMessages, isSendingMessage, activeSession, sessionList, isLoadingSessions, activeStreamingParts } =
+  storeToRefs(chatStore)
 
 const { base } = storeToRefs(useBase())
 
@@ -18,6 +20,9 @@ const { $e } = useNuxtApp()
 const isReady = ref(false)
 
 const messageListRef = ref<HTMLDivElement>()
+
+onMounted(() => chatStore.initChatSocket())
+onUnmounted(() => chatStore.destroyChatSocket())
 
 const hasInitialized = ref(false)
 
@@ -42,18 +47,21 @@ const pendingUserInput = computed(() => {
     // If the user has already replied, stop searching
     if (m.role === ChatMessageRole.USER) return null
     if (m.role === ChatMessageRole.ASSISTANT) {
-      const tc = m.tool_calls?.find((c) => c.status === ChatToolCallStatus.AWAITING_INPUT)
-      if (!tc) return null
-      const result = m.tool_results?.find((r) => r.tool_call_id === tc.id)
-      if (!result?.output) return null
-      let output: any
-      try {
-        output = typeof result.output === 'string' ? JSON.parse(result.output) : result.output
-      } catch {
-        return null
+      const block = m.parts?.find(
+        (p): p is Extract<ChatContentBlock, { type: 'tool_use' }> =>
+          p.type === 'tool_use' && p.status === ChatToolCallStatus.AWAITING_INPUT,
+      )
+      if (!block) return null
+      let output: any = block.output
+      if (typeof output === 'string') {
+        try {
+          output = JSON.parse(output)
+        } catch {
+          return null
+        }
       }
       if (!output?.question || !output?.options) return null
-      return { toolCallId: tc.id, question: output.question as string, options: output.options as string[] }
+      return { toolCallId: block.id, question: output.question as string, options: output.options as string[] }
     }
   }
   return null
@@ -89,8 +97,9 @@ const scrollToBottom = () => {
   })
 }
 
-// Auto-scroll when a new message is appended
+// Auto-scroll when a new message is appended or streaming content updates
 watch(() => activeMessages.value.length, scrollToBottom)
+watch(() => activeStreamingParts.value?.length, scrollToBottom)
 
 // Initialize: load sessions when panel opens
 watch(
@@ -300,12 +309,14 @@ const handleDeny = async (messageId: string, toolCallId: string) => {
                 v-for="msg in activeMessages"
                 :key="msg.id"
                 :message="msg"
+                :streaming-parts="msg.id.startsWith('streaming-') ? activeStreamingParts : undefined"
+                :is-streaming="msg.id.startsWith('streaming-') && isSendingMessage"
                 @approve="handleApprove"
                 @deny="handleDeny"
               />
 
-              <!-- Loading indicator while waiting for AI response -->
-              <ChatMessage v-if="isSendingMessage" :is-streaming="true" role="assistant" />
+              <!-- Loading indicator: shown only before first streaming part arrives -->
+              <ChatMessage v-if="isSendingMessage && !activeStreamingParts?.length" :is-streaming="true" role="assistant" />
             </div>
           </template>
         </div>

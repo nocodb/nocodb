@@ -7,7 +7,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
-const JSON_FIELDS = ['tool_calls', 'tool_results'];
+const JSON_FIELDS = ['parts'];
 
 export default class ChatMessage
   extends ChatMessageCE
@@ -17,8 +17,7 @@ export default class ChatMessage
   fk_session_id: string;
   role: ChatMessageType['role'];
   content?: string | null;
-  tool_calls?: ChatMessageType['tool_calls'];
-  tool_results?: ChatMessageType['tool_results'];
+  parts?: ChatMessageType['parts'];
   model?: string;
   input_tokens?: number;
   output_tokens?: number;
@@ -114,22 +113,20 @@ export default class ChatMessage
     message: Partial<ChatMessage>,
     ncMeta = Noco.ncMeta,
   ) {
-    let insertObj = extractProps(message, [
-      'id',
-      'fk_session_id',
-      'fk_workspace_id',
-      'role',
-      'content',
-      'tool_calls',
-      'tool_results',
-      'model',
-      'input_tokens',
-      'output_tokens',
-    ]);
-
-    (insertObj as any).base_id = context.base_id;
-
-    insertObj = prepareForDb(insertObj, JSON_FIELDS);
+    const insertObj = prepareForDb(
+      extractProps(message, [
+        'id',
+        'fk_session_id',
+        'fk_workspace_id',
+        'role',
+        'content',
+        'parts',
+        'model',
+        'input_tokens',
+        'output_tokens',
+      ]),
+      JSON_FIELDS,
+    );
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -144,11 +141,11 @@ export default class ChatMessage
   static async update(
     context: NcContext,
     messageId: string,
-    data: Partial<Pick<ChatMessage, 'tool_calls' | 'tool_results' | 'content'>>,
+    data: Partial<Pick<ChatMessage, 'parts' | 'content'>>,
     ncMeta = Noco.ncMeta,
   ) {
     const updateObj = prepareForDb(
-      extractProps(data, ['tool_calls', 'tool_results', 'content']),
+      extractProps(data, ['parts', 'content']),
       JSON_FIELDS,
     );
 

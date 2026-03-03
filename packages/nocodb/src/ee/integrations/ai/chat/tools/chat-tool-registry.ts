@@ -24,6 +24,9 @@ import { createRecordsTool } from './data/create-records.tool';
 import { updateRecordsTool } from './data/update-records.tool';
 import { deleteRecordsTool } from './data/delete-records.tool';
 import { countRecordsTool } from './data/count-records.tool';
+import { listLinkedRecordsTool } from './data/list-linked-records.tool';
+import { linkRecordsTool } from './data/link-records.tool';
+import { unlinkRecordsTool } from './data/unlink-records.tool';
 
 // Ask user tool
 import { askUserTool } from './ask-user.tool';
@@ -95,6 +98,9 @@ export class ChatToolRegistry {
       updateRecordsTool,
       deleteRecordsTool,
       countRecordsTool,
+      listLinkedRecordsTool,
+      linkRecordsTool,
+      unlinkRecordsTool,
       // View tools
       listViewFieldsTool,
       updateViewFieldsTool,

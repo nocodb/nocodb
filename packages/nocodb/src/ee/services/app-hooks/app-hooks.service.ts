@@ -459,6 +459,16 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: ScimUserEvent) => void,
   ): () => void;
 
+  // Chat Events
+  on(
+    event: AppEvents.CHAT_SESSION_CREATE,
+    listener: (data: ChatSessionCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.CHAT_SESSION_DELETE,
+    listener: (data: ChatSessionDeleteEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }

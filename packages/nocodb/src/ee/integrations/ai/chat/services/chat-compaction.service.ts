@@ -34,17 +34,7 @@ export class ChatCompactionService {
     // Estimate total tokens in message history
     let totalTokens = 0;
     for (const msg of messages) {
-      totalTokens += this.contextService.estimateTokens(msg.content || '');
-      if (msg.tool_calls) {
-        totalTokens += this.contextService.estimateTokens(
-          JSON.stringify(msg.tool_calls),
-        );
-      }
-      if (msg.tool_results) {
-        totalTokens += this.contextService.estimateTokens(
-          JSON.stringify(msg.tool_results),
-        );
-      }
+      totalTokens += this.contextService.estimateMessageTokens(msg);
     }
 
     // If under threshold, return all messages unchanged
@@ -103,7 +93,18 @@ export class ChatCompactionService {
     const wrapper = integration.getIntegrationWrapper<AiIntegration>();
 
     const conversationText = messages
-      .map((m) => `[${m.role}]: ${m.content || '(tool call)'}`)
+      .map((m) => {
+        const text = m.parts
+          ? m.parts
+              .filter(
+                (p): p is Extract<typeof p, { type: 'text' }> =>
+                  p.type === 'text',
+              )
+              .map((p) => p.text)
+              .join('') || '(tool call)'
+          : m.content || '(tool call)';
+        return `[${m.role}]: ${text}`;
+      })
       .join('\n');
 
     const prompt = existingSummary

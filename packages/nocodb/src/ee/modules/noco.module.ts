@@ -283,6 +283,7 @@ export const nocoModuleEeMetadata = {
     ...nocoModuleMetadata.controllers,
   ],
   exports: [
+    NocoChatModule,
     ScriptsService,
     WorkflowsService,
     ListsService,

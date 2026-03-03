@@ -130,7 +130,9 @@ export default [
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(SlackAuth) ? SlackAuth : [SlackAuth]),
-  ...(Array.isArray(SlackWorkflowNode) ? SlackWorkflowNode : [SlackWorkflowNode]),
+  ...(Array.isArray(SlackWorkflowNode)
+    ? SlackWorkflowNode
+    : [SlackWorkflowNode]),
   ...(Array.isArray(SmtpAuth) ? SmtpAuth : [SmtpAuth]),
   ...(Array.isArray(TwilioAuth) ? TwilioAuth : [TwilioAuth]),
   ...(Array.isArray(TwilioWorkflowNode)

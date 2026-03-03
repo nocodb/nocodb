@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ChatMessageType } from 'nocodb-sdk'
+import type { ChatContentBlock, ChatMessageType } from 'nocodb-sdk'
 import { ChatMessageRole, ChatToolCallStatus } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap/functionality/markdown'
 
@@ -8,6 +8,7 @@ interface Props {
   content?: string
   role?: string
   isStreaming?: boolean
+  streamingParts?: ChatContentBlock[]
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -15,6 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
   content: '',
   role: undefined,
   isStreaming: false,
+  streamingParts: undefined,
 })
 
 const emits = defineEmits<{
@@ -22,7 +24,7 @@ const emits = defineEmits<{
   deny: [messageId: string, toolCallId: string]
 }>()
 
-const { message, content, role, isStreaming } = toRefs(props)
+const { message, content, role, isStreaming, streamingParts } = toRefs(props)
 
 const { t } = useI18n()
 
@@ -31,36 +33,67 @@ const messageContent = computed(() => message.value?.content || content.value ||
 const isUser = computed(() => messageRole.value === ChatMessageRole.USER)
 const isAssistant = computed(() => messageRole.value === ChatMessageRole.ASSISTANT)
 
-const toolCalls = computed(() => message.value?.tool_calls || [])
-const toolResults = computed(() => message.value?.tool_results || [])
+// Unified parts: active streaming wins; fall back to persisted parts
+const displayParts = computed<ChatContentBlock[]>(() => {
+  if (streamingParts.value?.length) return streamingParts.value
+  return message.value?.parts || []
+})
 
-// AWAITING_INPUT calls render as the options card in Panel — exclude them from tool call rows
-const baseCalls = computed(() => toolCalls.value.filter((tc) => tc.status !== ChatToolCallStatus.AWAITING_INPUT))
+const hasParts = computed(() => displayParts.value.length > 0)
 
-const findResult = (toolCallId: string) => toolResults.value.find((r) => r.tool_call_id === toolCallId)
+// Group consecutive tool_use blocks so they collapse as "First Tool +N"
+type DisplaySegment =
+  | { kind: 'text'; text: string }
+  | { kind: 'tools'; blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[] }
 
-// Grouping: show first 2 by default; expand to show all if > 3
-const VISIBLE_DEFAULT = 2
-const showAllTools = ref(false)
-
-const hasActiveTools = computed(() =>
-  baseCalls.value.some((tc) => tc.status === ChatToolCallStatus.RUNNING || tc.status === ChatToolCallStatus.PENDING),
-)
-
-const visibleToolCalls = computed(() => {
-  if (showAllTools.value || baseCalls.value.length <= VISIBLE_DEFAULT + 1) {
-    return baseCalls.value
+const displaySegments = computed<DisplaySegment[]>(() => {
+  const parts = displayParts.value
+  const segments: DisplaySegment[] = []
+  for (const part of parts) {
+    if (part.type === 'text') {
+      segments.push({ kind: 'text', text: part.text || '' })
+    } else if (part.type === 'tool_use') {
+      const last = segments[segments.length - 1]
+      if (last?.kind === 'tools') {
+        last.blocks.push(part as Extract<ChatContentBlock, { type: 'tool_use' }>)
+      } else {
+        segments.push({ kind: 'tools', blocks: [part as Extract<ChatContentBlock, { type: 'tool_use' }>] })
+      }
+    }
   }
-  return baseCalls.value.slice(0, VISIBLE_DEFAULT)
+  return segments
 })
 
-const hiddenCount = computed(() => {
-  if (showAllTools.value || baseCalls.value.length <= VISIBLE_DEFAULT + 1) return 0
-  return baseCalls.value.length - VISIBLE_DEFAULT
-})
+// Track which tool groups are expanded (keyed by first tool's id)
+const expandedGroups = ref(new Set<string>())
 
-const errorCount = computed(() => baseCalls.value.filter((tc) => tc.status === ChatToolCallStatus.ERROR).length)
+const toggleGroup = (groupKey: string) => {
+  if (expandedGroups.value.has(groupKey)) {
+    expandedGroups.value.delete(groupKey)
+  } else {
+    expandedGroups.value.add(groupKey)
+  }
+}
 
+// Check if a tool group has any tools still in progress
+const isGroupRunning = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[]) => {
+  return blocks.some((b) => b.status === ChatToolCallStatus.RUNNING || b.status === ChatToolCallStatus.PENDING)
+}
+
+// Count completed tools in a group
+const completedCount = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[]) => {
+  return blocks.filter(
+    (b) => b.status !== ChatToolCallStatus.RUNNING && b.status !== ChatToolCallStatus.PENDING,
+  ).length
+}
+
+// Render text as markdown
+const renderMarkdown = (text: string) => {
+  if (!text) return ''
+  return NcMarkdownParser.parse(text, { linkify: true, breaks: true })
+}
+
+// Fallback for content-only assistant messages (no parts)
 const renderedContent = computed(() => {
   if (!messageContent.value || !isAssistant.value) return ''
   return NcMarkdownParser.parse(messageContent.value, { linkify: true, breaks: true })
@@ -76,71 +109,106 @@ const renderedContent = computed(() => {
         'bg-nc-bg-default border-1 border-nc-border-gray-light': isAssistant,
       }"
     >
-      <!-- Tool calls section (before message text for assistant) -->
-      <div v-if="baseCalls.length" class="space-y-1 mb-2">
-        <!-- Active tools label -->
-        <div v-if="hasActiveTools" class="flex items-center gap-1.5 mb-1.5">
-          <GeneralLoader :size="12" />
-          <span class="text-[11px] text-nc-content-gray-subtle">{{ t('msg.chat.working') }}</span>
-        </div>
-
-        <!-- Tool call rows -->
-        <TransitionGroup tag="div" name="nc-tool-list" class="space-y-1">
-          <ChatToolCall
-            v-for="(tc, i) in visibleToolCalls"
-            :key="tc.id"
-            :tool-call="tc"
-            :result="findResult(tc.id)"
-            :index="i"
-            @approve="emits('approve', message?.id!, $event)"
-            @deny="emits('deny', message?.id!, $event)"
-          />
-        </TransitionGroup>
-
-        <!-- Show more / show less toggle -->
-        <Transition name="nc-fade">
-          <div v-if="hiddenCount > 0 || showAllTools" class="pt-0.5">
-            <button
-              class="flex items-center gap-1 text-[11px] text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis transition-colors"
-              @click="showAllTools = !showAllTools"
-            >
-              <GeneralIcon
-                icon="chevronDown"
-                class="w-3 h-3 transition-transform duration-200"
-                :class="{ 'rotate-180': showAllTools }"
-              />
-              <span>{{ showAllTools ? t('msg.chat.showLess') : t('msg.chat.showMore', { count: hiddenCount }) }}</span>
-              <span v-if="errorCount && !showAllTools" class="text-nc-content-red ml-1">
-                ({{ t('msg.chat.toolsFailed', { count: errorCount }) }})
-              </span>
-            </button>
-          </div>
-        </Transition>
-      </div>
-
       <!-- User message: plain text -->
       <div v-if="messageContent && isUser" class="text-sm whitespace-pre-wrap break-words leading-relaxed text-white">
         {{ messageContent }}
       </div>
 
-      <!-- Assistant message: rendered markdown -->
-      <div
-        v-else-if="renderedContent && isAssistant"
-        v-dompurify-html="renderedContent"
-        class="nc-chat-markdown nc-rich-text-content text-sm text-nc-content-gray-emphasis break-words"
-      />
+      <!-- Assistant message: unified parts rendering with tool grouping -->
+      <template v-else-if="isAssistant && hasParts">
+        <div class="space-y-2">
+          <template v-for="(seg, si) in displaySegments" :key="si">
+            <!-- Text segment -->
+            <div
+              v-if="seg.kind === 'text' && seg.text"
+              v-dompurify-html="renderMarkdown(seg.text)"
+              class="nc-chat-markdown nc-rich-text-content text-sm text-nc-content-gray-emphasis break-words"
+            />
 
-      <!-- Streaming cursor (assistant only, no content yet) -->
-      <template v-if="isStreaming">
-        <div v-if="!messageContent && !toolCalls.length" class="flex items-center gap-1 py-0.5">
+            <!-- Tool group: single tool → show directly; multiple → collapsible group -->
+            <template v-else-if="seg.kind === 'tools'">
+              <!-- Single tool — no grouping needed -->
+              <ChatToolCall
+                v-if="seg.blocks.length === 1"
+                :block="seg.blocks[0]"
+                :index="0"
+                @approve="emits('approve', message?.id!, $event)"
+                @deny="emits('deny', message?.id!, $event)"
+              />
+
+              <!-- Multiple consecutive tools — collapsed group -->
+              <div v-else class="nc-chat-tool-group">
+                <!-- Always show first tool -->
+                <ChatToolCall
+                  :block="seg.blocks[0]"
+                  :index="0"
+                  @approve="emits('approve', message?.id!, $event)"
+                  @deny="emits('deny', message?.id!, $event)"
+                />
+
+                <!-- "+N more" toggle with group progress -->
+                <button
+                  class="nc-chat-tool-group-toggle flex items-center gap-1 px-2.5 py-1 text-[11px] text-nc-content-gray-subtle hover:text-nc-content-gray transition-colors"
+                  @click="toggleGroup(seg.blocks[0].id)"
+                >
+                  <!-- Loader while group has running tools -->
+                  <GeneralLoader v-if="isGroupRunning(seg.blocks)" :size="12" class="flex-none" />
+                  <GeneralIcon
+                    v-else
+                    icon="chevronDown"
+                    class="flex-none w-3 h-3 transition-transform duration-200"
+                    :class="{ 'rotate-180': expandedGroups.has(seg.blocks[0].id) }"
+                  />
+                  <span v-if="isGroupRunning(seg.blocks)">
+                    {{ `${completedCount(seg.blocks)}/${seg.blocks.length}` }}
+                  </span>
+                  <span v-else-if="!expandedGroups.has(seg.blocks[0].id)">
+                    {{ `+${seg.blocks.length - 1} more` }}
+                  </span>
+                  <span v-else>{{ t('msg.chat.showLess') }}</span>
+                </button>
+
+                <!-- Expanded: remaining tools -->
+                <template v-if="expandedGroups.has(seg.blocks[0].id)">
+                  <ChatToolCall
+                    v-for="(b, bi) in seg.blocks.slice(1)"
+                    :key="b.id"
+                    :block="b"
+                    :index="bi + 1"
+                    @approve="emits('approve', message?.id!, $event)"
+                    @deny="emits('deny', message?.id!, $event)"
+                  />
+                </template>
+              </div>
+            </template>
+          </template>
+        </div>
+        <!-- Streaming indicator: shown at the end of the message while AI is still working -->
+        <div v-if="isStreaming" class="flex items-center gap-1 mt-2 pt-1.5 border-t-1 border-nc-border-gray-light">
+          <span class="nc-chat-dot" />
+          <span class="nc-chat-dot" style="animation-delay: 160ms" />
+          <span class="nc-chat-dot" style="animation-delay: 320ms" />
+          <span class="text-[11px] text-nc-content-gray-muted ml-1">{{ t('msg.chat.working') }}</span>
+        </div>
+      </template>
+
+      <!-- Fallback: text-only assistant message without parts (shouldn't occur for new messages) -->
+      <template v-else-if="isAssistant">
+        <div
+          v-if="renderedContent"
+          v-dompurify-html="renderedContent"
+          class="nc-chat-markdown nc-rich-text-content text-sm text-nc-content-gray-emphasis break-words"
+        />
+      </template>
+
+      <!-- Pre-first-event spinner (standalone loading message) -->
+      <template v-if="isStreaming && isAssistant && !hasParts">
+        <div v-if="!messageContent" class="flex items-center gap-1 py-0.5">
           <span class="nc-chat-dot" />
           <span class="nc-chat-dot" style="animation-delay: 160ms" />
           <span class="nc-chat-dot" style="animation-delay: 320ms" />
         </div>
-        <span
-          v-else-if="messageContent && isAssistant"
-          class="nc-chat-cursor block w-1.5 h-3 mt-0.5 bg-nc-content-gray-muted rounded-sm"
-        />
+        <span v-else class="nc-chat-cursor block w-1.5 h-3 mt-0.5 bg-nc-content-gray-muted rounded-sm" />
       </template>
     </div>
   </div>
@@ -178,25 +246,6 @@ const renderedContent = computed(() => {
   50% {
     opacity: 0;
   }
-}
-
-// TransitionGroup for tool call list
-.nc-tool-list-enter-active {
-  transition: all 220ms ease;
-}
-
-.nc-tool-list-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
-
-.nc-tool-list-leave-active {
-  transition: all 150ms ease;
-  position: absolute;
-}
-
-.nc-tool-list-leave-to {
-  opacity: 0;
 }
 
 // Chat markdown — tighten spacing for the compact bubble layout
@@ -243,6 +292,18 @@ const renderedContent = computed(() => {
 
   :deep(blockquote) {
     @apply border-l-2 border-nc-border-gray-medium pl-2 my-1 text-nc-content-gray-subtle;
+  }
+}
+
+.nc-chat-tool-group {
+  @apply space-y-1;
+}
+
+.nc-chat-tool-group-toggle {
+  @apply rounded-md cursor-pointer select-none;
+
+  &:hover {
+    @apply bg-nc-bg-gray-light;
   }
 }
 

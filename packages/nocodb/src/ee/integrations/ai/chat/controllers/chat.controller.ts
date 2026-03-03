@@ -95,7 +95,8 @@ export class ChatController {
     },
     @Request() req: NcRequest,
   ) {
-    const stream = await this.chatService.sendMessage(context, {
+    // Enqueues a Bull job — response delivered via Socket.IO CHAT_EVENT
+    await this.chatService.sendMessage(context, {
       sessionId,
       body: {
         content: body.content,
@@ -104,20 +105,7 @@ export class ChatController {
       req,
     });
 
-    // Consume the full stream (non-streaming response)
-    const reader = stream.getReader();
-
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const { done } = await reader.read();
-      if (done) break;
-    }
-
-    // Re-fetch messages to get persisted assistant message with tool_calls
-    return await this.chatService.messageList(context, {
-      sessionId,
-      req,
-    });
+    return {};
   }
 
   @Post(
@@ -131,11 +119,14 @@ export class ChatController {
     @Body() body: { decisions: Record<string, 'approved' | 'denied'> },
     @Request() req: NcRequest,
   ) {
-    return await this.chatService.approveToolCalls(context, {
+    // Enqueues a Bull job — continuation delivered via Socket.IO CHAT_EVENT
+    await this.chatService.approveToolCalls(context, {
       sessionId,
       messageId,
       decisions: body.decisions || {},
       req,
     });
+
+    return {};
   }
 }

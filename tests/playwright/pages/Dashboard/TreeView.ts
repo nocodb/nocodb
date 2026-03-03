@@ -156,9 +156,9 @@ export class TreeViewPage extends BasePage {
       });
     }
 
-    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
-
-    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async openScript({ title, baseTitle }: { title: string; baseTitle?: string }) {
@@ -180,9 +180,9 @@ export class TreeViewPage extends BasePage {
       // x:10, y:10
     });
 
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
     await this.rootPage.waitForLoadState('networkidle');
-
-    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async createEntity({
@@ -204,7 +204,9 @@ export class TreeViewPage extends BasePage {
       await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
       await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
 
-      await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
+      // Wait for navigation
+      await this.rootPage.waitForTimeout(1000);
+      await this.rootPage.waitForLoadState('networkidle');
     } else {
       if (skipOpeningModal) return;
 
@@ -215,7 +217,9 @@ export class TreeViewPage extends BasePage {
 
           await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
 
-          await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
+          // Wait for navigation
+          await this.rootPage.waitForTimeout(1000);
+          await this.rootPage.waitForLoadState('networkidle');
           break;
         }
       }
@@ -230,7 +234,9 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.get().getByPlaceholder('Enter script name').fill(title);
     await this.dashboard.get().locator('.ant-modal.active').locator('button:has-text("Create Script")').click();
 
-    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async createTable({
@@ -271,10 +277,7 @@ export class TreeViewPage extends BasePage {
 
     // Wait for newly create table navigation and auto scroll
     await this.rootPage.waitForTimeout(1000);
-
     await this.rootPage.waitForLoadState('networkidle');
-
-    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
 
     return tableId;
   }

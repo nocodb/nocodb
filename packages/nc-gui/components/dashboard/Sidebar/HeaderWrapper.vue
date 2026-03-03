@@ -13,6 +13,8 @@ const { isLeftSidebarOpen, allowHideLeftSidebarForCurrentRoute } = storeToRefs(u
 
 const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
+const { isSharedBase } = storeToRefs(useBase())
+
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
@@ -38,7 +40,8 @@ const showSidebarBtn = computed(() => {
       </div>
 
       <div class="flex items-center gap-0.5">
-        <NcTooltip class="flex" placement="bottom" hide-on-click>
+        <DashboardSidebarViewOptions v-if="isEeUI && !isSharedBase" />
+        <NcTooltip v-if="!isSharedBase" class="flex" placement="bottom" hide-on-click>
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
           </template>
@@ -46,7 +49,7 @@ const showSidebarBtn = computed(() => {
             v-e="['c:quick-actions']"
             type="text"
             size="small"
-            class="!text-nc-content-gray-muted !hover:text-nc-content-gray !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
+            class="!text-nc-content-gray-muted !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
             data-testid="nc-sidebar-search-btn"
             @click="setActiveCmdView('cmd-k')"
           >

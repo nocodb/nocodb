@@ -164,12 +164,11 @@ export class ScimGroupsService {
     );
 
     const excludeMembers = this.shouldExcludeMembers(param.excludedAttributes);
-    const resources = [];
-    for (const t of paginatedTeams) {
-      resources.push(
-        await this.toScimGroup(context, t, param.workspaceId, excludeMembers),
-      );
-    }
+    const resources = await Promise.all(
+      paginatedTeams.map((t) =>
+        this.toScimGroup(context, t, param.workspaceId, excludeMembers),
+      ),
+    );
 
     return {
       schemas: ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],

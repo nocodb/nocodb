@@ -490,18 +490,18 @@ export default class Team {
       while (p > 0) {
         const parentPath = path.substring(0, p);
 
-        // Check cache first
-        if (parentRef.has(parentPath)) {
-          const cached = parentRef.get(parentPath)!;
-          parentRef.set(path, cached);
-          return cached;
-        }
-
-        // Check if it's one of our input teams
+        // Check if it's one of our input teams first (closest ancestor wins)
         const match = teamByPath.get(parentPath);
         if (match) {
           parentRef.set(path, match);
           return match;
+        }
+
+        // Check cache for non-input intermediate paths
+        if (parentRef.has(parentPath)) {
+          const cached = parentRef.get(parentPath)!;
+          parentRef.set(path, cached);
+          return cached;
         }
 
         p = path.lastIndexOf('/', p - 1);

@@ -42,6 +42,7 @@ export default class FormViewColumn implements FormColumnType {
     let viewColumn =
       formViewColumnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -60,6 +61,7 @@ export default class FormViewColumn implements FormColumnType {
             : viewColumn.meta;
 
         await NocoCache.set(
+          context,
           `${CacheScope.FORM_VIEW_COLUMN}:${formViewColumnId}`,
           viewColumn,
         );
@@ -113,6 +115,7 @@ export default class FormViewColumn implements FormColumnType {
 
     return this.get(context, id, ncMeta).then(async (viewColumn) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.FORM_VIEW_COLUMN,
         [column.fk_view_id],
         `${CacheScope.FORM_VIEW_COLUMN}:${id}`,
@@ -126,9 +129,11 @@ export default class FormViewColumn implements FormColumnType {
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<FormViewColumn[]> {
-    const cachedList = await NocoCache.getList(CacheScope.FORM_VIEW_COLUMN, [
-      viewId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.FORM_VIEW_COLUMN,
+      [viewId],
+    );
     let { list: viewColumns } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !viewColumns.length) {
@@ -151,6 +156,7 @@ export default class FormViewColumn implements FormColumnType {
       }
 
       await NocoCache.setList(
+        context,
         CacheScope.FORM_VIEW_COLUMN,
         [viewId],
         viewColumns,
@@ -191,6 +197,7 @@ export default class FormViewColumn implements FormColumnType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.FORM_VIEW_COLUMN}:${columnId}`,
       prepareForResponse(updateObj),
     );

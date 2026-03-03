@@ -61,23 +61,9 @@ export const useInfiniteGroups = (
     }, {})
   })
 
-  const groupByColumns = computed(() => {
-    const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
-    Object.values(gridViewCols.value).forEach((col) => {
-      if (col.group_by) {
-        const column = meta?.value?.columns?.find((f) => f.id === col.fk_column_id)
-        if (column) {
-          tempGroupBy.push({
-            column,
-            sort: col.group_by_sort || 'asc',
-            order: col.group_by_order || 1,
-          })
-        }
-      }
-    })
-    tempGroupBy.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
-    return tempGroupBy
-  })
+  const { groupBy: injectedGroupBy } = useViewGroupByOrThrow()
+
+  const groupByColumns = computed(() => injectedGroupBy.value)
 
   const cachedGroups = ref<Map<number, CanvasGroup>>(new Map())
   const totalGroups = ref(0)
@@ -150,9 +136,9 @@ export const useInfiniteGroups = (
         let group: CanvasGroup = {} as any
 
         if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
-          const relatedTableMeta = await getMeta(
-            (groupCol.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-          )
+          const colOpts = groupCol.column.colOptions as LinkToAnotherRecordType
+          const relatedBaseId = colOpts?.fk_related_base_id || (base.value?.id as string)
+          const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id as string)
           if (!relatedTableMeta) continue
           group.relatedTableMeta = relatedTableMeta
           const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
@@ -166,7 +152,9 @@ export const useInfiniteGroups = (
           )
           if (!relationColumn) continue
 
-          const relatedTableMeta = await getMeta(relationColumn.colOptions.fk_related_model_id as string)
+          const relColOpts = relationColumn.colOptions as LinkToAnotherRecordType
+          const relatedBaseId = relColOpts?.fk_related_base_id || (base.value?.id as string)
+          const relatedTableMeta = await getMeta(relatedBaseId, relColOpts.fk_related_model_id as string)
           if (!relatedTableMeta) continue
 
           const lookupColumn = relatedTableMeta.columns?.find(
@@ -177,11 +165,32 @@ export const useInfiniteGroups = (
           let finalTableMeta = relatedTableMeta
           let finalColumn = lookupColumn
 
-          // Check if the lookup column is a LinkToAnotherRecord
-          if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
-            const targetTableMeta = await getMeta(
-              (lookupColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
+          // Resolve nested lookups (Lookup → Lookup → ... → target column)
+          while (finalColumn?.uidt === UITypes.Lookup) {
+            const nestedRelCol = finalTableMeta.columns?.find(
+              (c: ColumnType) => c.id === (finalColumn!.colOptions as LookupType)?.fk_relation_column_id,
             )
+            if (!nestedRelCol) break
+
+            const nestedRelOpts = nestedRelCol.colOptions as LinkToAnotherRecordType
+            const nestedBaseId = nestedRelOpts?.fk_related_base_id || (base.value?.id as string)
+            const nestedTableMeta = await getMeta(nestedBaseId, nestedRelOpts.fk_related_model_id as string)
+            if (!nestedTableMeta) break
+
+            const nestedLookupCol = nestedTableMeta.columns?.find(
+              (c) => c.id === (finalColumn!.colOptions as LookupType)?.fk_lookup_column_id,
+            )
+            if (!nestedLookupCol) break
+
+            finalTableMeta = nestedTableMeta
+            finalColumn = nestedLookupCol
+          }
+
+          // Check if the final column is a LinkToAnotherRecord
+          if (finalColumn?.uidt === UITypes.LinkToAnotherRecord) {
+            const lookupColOpts = finalColumn.colOptions as LinkToAnotherRecordType
+            const targetBaseId = lookupColOpts?.fk_related_base_id || (base.value?.id as string)
+            const targetTableMeta = await getMeta(targetBaseId, lookupColOpts.fk_related_model_id as string)
             if (targetTableMeta) {
               finalTableMeta = targetTableMeta
               finalColumn = targetTableMeta.columns?.find((c) => c.pv) || targetTableMeta.columns?.[0]
@@ -220,7 +229,7 @@ export const useInfiniteGroups = (
                   title: groupCol.column.title!,
                   column_name: groupCol.column.title!,
                   key: value,
-                  column_uidt: groupCol.column.uidt,
+                  column_uidt: group.relatedColumn?.uidt ?? groupCol.column.uidt,
                   column_id: groupCol.column.id,
                   groupIndex,
                 },
@@ -230,7 +239,7 @@ export const useInfiniteGroups = (
                   title: groupCol.column.title!,
                   column_name: groupCol.column.title!,
                   key: value,
-                  column_uidt: groupCol.column.uidt,
+                  column_uidt: group.relatedColumn?.uidt ?? groupCol.column.uidt,
                   column_id: groupCol.column.id,
                   groupIndex,
                 },
@@ -266,7 +275,7 @@ export const useInfiniteGroups = (
         groups.push(group)
       }
 
-      if (appInfo.value?.ee && groups.length) {
+      if (groups.length && !appInfo.value.disableGroupByAggregation) {
         const aggregationAliasMapper = new AliasMapper()
 
         const aggregation = Object.values(gridViewCols.value)
@@ -285,10 +294,14 @@ export const useInfiniteGroups = (
 
         if (aggregation.length) {
           aggResponse = !isPublic.value
-            ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-                meta.value!.id,
+            ? await $api.internal.postOperation(
+                (meta.value as any)!.fk_workspace_id!,
+                meta.value!.base_id!,
                 {
+                  operation: 'bulkAggregate',
+                  tableId: meta.value!.id,
                   viewId: view.value!.id,
+                  baseId: meta.value!.base_id!,
                   aggregation,
                   filterArrJson: JSON.stringify(nestedFilters.value),
                 },
@@ -484,57 +497,68 @@ export const useInfiniteGroups = (
     }
   }
 
-  async function syncCount(group?: CanvasGroup) {
+  async function syncCount(group?: CanvasGroup, throwError = false, showToastMessage = false) {
     if (!view.value || !meta.value?.columns?.length) return
 
-    if (!group) {
-      const groupCol = groupByColumns.value?.[0]
-      if (!groupCol) return
+    try {
+      if (!group) {
+        const groupCol = groupByColumns.value?.[0]
+        if (!groupCol) return
 
-      totalGroups.value = isPublic.value
-        ? await $api.public.dataGroupByCount(
-            sharedView.value!.uuid!,
-            {
+        totalGroups.value = isPublic.value
+          ? await $api.public.dataGroupByCount(
+              sharedView.value!.uuid!,
+              {
+                where: where?.value,
+                column_name: groupCol.column.title,
+                filterArrJson: JSON.stringify(nestedFilters.value),
+              },
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
+                },
+              },
+            )
+          : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
               where: where?.value,
               column_name: groupCol.column.title,
-              filterArrJson: JSON.stringify(nestedFilters.value),
-            },
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
+            })
+      } else {
+        const groupCol = groupByColumns.value?.[group.nestedIn.length]
+
+        if (!groupCol) return
+
+        const groupFilterArr = buildNestedFilterArr(group) ?? []
+
+        group.groupCount = isPublic.value
+          ? await $api.public.dataGroupByCount(
+              sharedView.value!.uuid!,
+              {
+                where: where?.value,
+                column_name: groupCol.column.title,
+                filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...groupFilterArr]),
               },
-            },
-          )
-        : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
-            where: where?.value,
-            column_name: groupCol.column.title,
-          })
-    } else {
-      const groupCol = groupByColumns.value?.[group.nestedIn.length]
-
-      if (!groupCol) return
-
-      const groupFilterArr = buildNestedFilterArr(group) ?? []
-
-      group.groupCount = isPublic.value
-        ? await $api.public.dataGroupByCount(
-            sharedView.value!.uuid!,
-            {
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
+                },
+              },
+            )
+          : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
               where: where?.value,
               column_name: groupCol.column.title,
-              filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...groupFilterArr]),
-            },
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
-              },
-            },
-          )
-        : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
-            where: where?.value,
-            column_name: groupCol.column.title,
-            filterArrJson: JSON.stringify(groupFilterArr),
-          })
+              filterArrJson: JSON.stringify(groupFilterArr),
+            })
+      }
+    } catch (e: any) {
+      if (showToastMessage) {
+        const errorMessage = await extractSdkResponseErrorMsg(e)
+        message.error(`Failed to sync count: ${errorMessage}`)
+      }
+
+      if (throwError) {
+        throw e
+      }
     }
   }
 
@@ -545,7 +569,7 @@ export const useInfiniteGroups = (
       aggregation?: string
     }>,
   ) {
-    if (!appInfo.value?.ee) return
+    if (appInfo.value.disableGroupByAggregation) return
 
     const BATCH_SIZE = 100
     const aggregationAliasMapper = new AliasMapper()
@@ -592,10 +616,14 @@ export const useInfiniteGroups = (
 
       try {
         const aggResponse = !isPublic.value
-          ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-              meta.value!.id,
+          ? await $api.internal.postOperation(
+              (meta.value as any)!.fk_workspace_id!,
+              meta.value!.base_id!,
               {
+                operation: 'bulkAggregate',
+                tableId: meta.value!.id,
                 viewId: view.value!.id,
+                baseId: meta.value!.base_id!,
                 aggregation,
                 filterArrJson: JSON.stringify(nestedFilters.value),
               },

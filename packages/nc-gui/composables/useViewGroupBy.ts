@@ -37,11 +37,18 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
-    const { getMeta } = useMetas()
+    const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+
+    const { getMeta, getPartialMeta } = useMetas()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
-    const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
+    const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
+    const canSyncGroupBy = hasPersonalViewPermission('groupBySync')
+
+    const localGroupBy = ref<{ column: ColumnType; sort: string; order: number }[] | null>(null)
+
+    const syncedGroupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
       const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
       Object.values(gridViewCols.value).forEach((col) => {
         if (col.group_by) {
@@ -57,6 +64,18 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       })
       tempGroupBy.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
       return tempGroupBy
+    })
+
+    const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
+      // null = no override (use synced), [] = override with empty (no grouping)
+      if (localGroupBy.value !== null) {
+        return localGroupBy.value.map((e, i) => ({
+          column: e.column,
+          sort: e.sort,
+          order: e.order || i + 1,
+        }))
+      }
+      return syncedGroupBy.value
     })
 
     const isGroupBy = computed(() => !!groupBy.value.length)
@@ -125,7 +144,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       list.map((row) => ({
         row: { ...row },
         oldRow: { ...row },
-        rowMeta: {},
+        rowMeta: {
+          ...getEvaluatedRowMetaRowColorInfo(row),
+        },
       }))
 
     const colors = ref(enumColor.light)
@@ -300,6 +321,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
         if (groupby.column.uidt === UITypes.LinkToAnotherRecord) {
           const relatedTableMeta = await getMeta(
+            base.value?.id as string,
             (groupby.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
           )
           if (!relatedTableMeta) return
@@ -340,7 +362,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         group = await processGroupData(response, group)
         // }
 
-        if (appInfo.value.ee && group?.children?.length) {
+        if (group?.children?.length && !appInfo.value.disableGroupByAggregation) {
           const aggregationAliasMapper = new AliasMapper()
 
           const aggregation = Object.values(gridViewCols.value)
@@ -362,10 +384,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
           if (aggregation.length) {
             aggResponse = !isPublic
-              ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-                  meta.value!.id,
+              ? await api.internal.postOperation(
+                  meta.value!.fk_workspace_id!,
+                  meta.value!.base_id!,
                   {
+                    operation: 'bulkAggregate',
+                    tableId: meta.value!.id,
                     viewId: view.value!.id,
+                    baseId: meta.value!.base_id!,
                     aggregation,
                   },
                   aggregationParams,
@@ -413,6 +439,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
               ...query,
               ...params,
+              include_row_color: true,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             } as any)
@@ -435,7 +462,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }>,
     ) {
       try {
-        if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id || !appInfo.value.ee) return
+        if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id || appInfo.value.disableGroupByAggregation) return
 
         let filteredFields = fields
         if (!fields) {
@@ -460,10 +487,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         })
 
         const response = !isPublic
-          ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-              meta.value!.id,
+          ? await api.internal.postOperation(
+              (meta.value as any)!.fk_workspace_id!,
+              meta.value!.base_id!,
               {
+                operation: 'bulkAggregate',
+                tableId: meta.value!.id,
                 viewId: view.value!.id,
+                baseId: meta.value!.base_id!,
                 ...(filteredFields ? { aggregation: filteredFields } : {}),
               },
               aggregationParams,
@@ -524,12 +555,23 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     watch(
       () => groupBy.value.length,
       async () => {
-        if (!groupBy.value.length) return
+        if (!groupBy.value.length) {
+          nextTick(() => reloadViewDataHook?.trigger())
+          return
+        }
 
         rootGroup.value.paginationData = { page: 1, pageSize: groupByGroupLimit.value }
         rootGroup.value.column = {} as any
         refreshNested()
         nextTick(() => reloadViewDataHook?.trigger())
+      },
+    )
+
+    // Clear local group-bys on view change
+    watch(
+      () => view.value?.id,
+      () => {
+        localGroupBy.value = null
       },
     )
 
@@ -624,21 +666,32 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           if (col.uidt !== UITypes.Lookup) continue
 
           let nextCol: ColumnType = col
+          let currentBaseId = meta.value?.base_id as string
           // Check if the lookup column is an unsupported type
           while (nextCol && nextCol.uidt === UITypes.Lookup) {
-            const lookupRelation = (await getMeta(nextCol.fk_model_id as string))?.columns?.find(
+            // Use the tracked base_id for the current table where nextCol resides
+            const lookupRelation = (await getMeta(currentBaseId, nextCol.fk_model_id as string))?.columns?.find(
               (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
             )
 
             if (!lookupRelation?.colOptions) break
 
-            const relatedTableMeta = await getMeta(
-              (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-            )
+            let relatedTableMeta: TableType | null = null
+            const lookupRelColOpts = lookupRelation.colOptions as LinkToAnotherRecordType
+            const relatedTableId = lookupRelColOpts.fk_related_model_id as string
+            const relatedBaseId = lookupRelColOpts.fk_related_base_id || currentBaseId
+            try {
+              relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, undefined, undefined, undefined, true)
+            } catch {
+              relatedTableMeta = await getPartialMeta(relatedBaseId, lookupRelation?.id, relatedTableId)
+            }
 
             nextCol = relatedTableMeta?.columns?.find(
               (c) => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),
             ) as ColumnType
+
+            // Update currentBaseId for next iteration
+            currentBaseId = relatedBaseId
 
             // if next column is same as root lookup column then break the loop
             // since it's going to be a circular loop, and ignore the column
@@ -660,7 +713,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     }
 
     async function loadAggCommentsCount(formattedData: Array<Row>) {
-      if (!isUIAllowed('commentCount') || isPublic.value) return
+      if (!isUIAllowed('commentCount') || isPublic) return
 
       const ids = formattedData
         .filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -670,9 +723,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (!ids.length) return
 
       try {
-        const aggCommentCount = await $api.utils.commentCount({
-          ids,
+        const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'commentCount',
           fk_model_id: meta.value!.id as string,
+          ids,
         })
 
         formattedData.forEach((row) => {
@@ -688,6 +742,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     return {
       rootGroup,
       groupBy,
+      syncedGroupBy,
+      localGroupBy,
+      canSyncGroupBy,
       isGroupBy,
       fieldsToGroupBy,
       groupByLimit,

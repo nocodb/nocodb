@@ -39,7 +39,7 @@ test.describe('Source Restrictions', () => {
     await dataSourcesPage.source.updateDataReadOnly({ sourceName: 'Default', readOnly: true });
 
     // reload page to reflect source changes
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.treeView.verifyTable({ title: 'Actor', baseTitle: context.base.title });
 
@@ -64,7 +64,7 @@ test.describe('Source Restrictions', () => {
 
     await dataSourcesPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
     // reload page to reflect source changes
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.treeView.verifyTable({ title: 'Actor', baseTitle: context.base.title });
 
@@ -106,7 +106,7 @@ test.describe('Source Restrictions', () => {
 
     await dataSourcesPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
     // reload page to reflect source changes
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.treeView.verifyTable({ title: 'Country', baseTitle: context.base.title });
 

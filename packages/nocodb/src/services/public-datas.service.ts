@@ -1,5 +1,5 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk';
+import { NcBaseError, ncIsArray, UITypes, ViewTypes } from 'nocodb-sdk';
 import type { NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
@@ -44,24 +44,25 @@ export class PublicDatasService {
     const { sharedViewUuid, password, query = {} } = param;
     const view = await View.getByUUID(context, sharedViewUuid);
 
-    if (!view) NcError.viewNotFound(sharedViewUuid);
+    if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
 
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
-      NcError.notFound('Not found');
+      NcError.get(context).notFound('Not found');
     }
 
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== password) {
-      return NcError.invalidSharedViewPassword();
+    if (!(await View.verifyPassword(view, password))) {
+      return NcError.get(context).invalidSharedViewPassword();
     }
 
     const model = await Model.getByIdOrName(context, {
@@ -103,8 +104,11 @@ export class PublicDatasService {
       );
       count = await baseModel.count(listArgs);
     } catch (e) {
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
       console.log(e);
-      NcError.internalServerError('Please check server log for more details');
+      NcError.get(context).internalServerError(
+        'Please check server log for more details',
+      );
     }
 
     return new PagedResponseImpl(data, { ...param.query, count });
@@ -121,14 +125,15 @@ export class PublicDatasService {
     const { sharedViewUuid, password } = param;
     const view = await View.getByUUID(context, sharedViewUuid);
 
-    if (!view) NcError.viewNotFound(sharedViewUuid);
+    if (!view) NcError.get(context).viewNotFound(sharedViewUuid);
 
     if (
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.notFound('Not found');
     }
@@ -137,7 +142,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== password) {
+    if (!(await View.verifyPassword(view, password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -184,7 +189,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -240,7 +245,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -349,7 +354,7 @@ export class PublicDatasService {
       NcError.notFound('Not found');
     }
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -384,7 +389,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -501,7 +506,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -528,7 +533,7 @@ export class PublicDatasService {
     await view.model.getColumns(context);
 
     const fields = (view.model.columns = view.columns
-      .filter((c) => c.show)
+      .filter((c) => c.show && view.model.columnsById[c.fk_column_id])
       .reduce((o, c) => {
         o[view.model.columnsById[c.fk_column_id].title] = new Column({
           ...c,
@@ -626,7 +631,7 @@ export class PublicDatasService {
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       NcError.invalidSharedViewPassword();
     }
 
@@ -726,19 +731,13 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       NcError.invalidSharedViewPassword();
     }
 
@@ -809,19 +808,13 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       NcError.invalidSharedViewPassword();
     }
 
@@ -891,20 +884,13 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== password) {
+    if (!(await View.verifyPassword(view, password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -950,7 +936,7 @@ export class PublicDatasService {
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -1013,7 +999,7 @@ export class PublicDatasService {
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -1070,6 +1056,64 @@ export class PublicDatasService {
         count: parsedCount?.count,
       });
     });
+
+    return data;
+  }
+
+  async bulkAggregate(
+    context: NcContext,
+    param: {
+      sharedViewUuid: string;
+      password?: string;
+      query: any;
+      body: any;
+    },
+  ) {
+    const view = await View.getByUUID(context, param.sharedViewUuid);
+
+    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+
+    if (view.type !== ViewTypes.GRID) {
+      NcError.notFound('Not found');
+    }
+
+    const base = await Base.get(context, view.base_id);
+
+    this.publicMetasService.checkViewBaseType(view, base);
+
+    if (!(await View.verifyPassword(view, param.password))) {
+      return NcError.invalidSharedViewPassword();
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: view?.fk_model_id,
+    });
+
+    let bulkFilterList = param.body;
+
+    const listArgs: any = { ...param.query };
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.aggregation = JSON.parse(listArgs.aggregation);
+    } catch (e) {}
+
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const data = await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
 
     return data;
   }

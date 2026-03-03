@@ -92,10 +92,7 @@ export default class NcUpgrader {
       } else {
         this.log(`upgrade : Inserting config to meta database`);
         const configObj: any = {};
-        const isOld =
-          process.env.NC_CLOUD !== 'true' &&
-          (await ctx.ncMeta.baseList())?.length;
-        configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
+        configObj.version = process.env.NC_VERSION;
         await ctx.ncMeta.metaInsert2(
           RootScopes.ROOT,
           RootScopes.ROOT,
@@ -106,9 +103,6 @@ export default class NcUpgrader {
           },
           true,
         );
-        if (isOld) {
-          await this.upgrade(ctx);
-        }
       }
       await ctx.ncMeta.commit();
       T.emit('evt', {
@@ -169,7 +163,7 @@ Please raise an issue in our github by using following link :
 https://github.com/nocodb/nocodb/issues/new?labels=Type%3A%20Bug&template=bug_report.md
 
 Or contact us in our Discord community by following link :
-https://discord.gg/5RgZmkW ( message @o1lab, @pranavxc or @wingkwong )`,
+https://discord.gg/c7GEYrvFtT ( message @o1lab, @pranavxc or @wingkwong )`,
     { title: errorTitle, padding: 1, borderColor: 'yellow' },
   );
 }

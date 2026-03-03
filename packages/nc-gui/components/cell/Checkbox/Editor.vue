@@ -13,6 +13,8 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
+const { isDark, getColor } = useTheme()
+
 const active = inject(ActiveCellInj, ref(false))
 
 const column = inject(ColumnInj)
@@ -38,11 +40,20 @@ const isGrid = inject(IsGridInj, ref(false))
 const checkboxMeta = computed(() => {
   const icon = extractCheckboxIcon(column?.value?.meta)
 
-  return {
+  const result = {
     color: 'primary',
     ...parseProp(column?.value?.meta),
     icon,
   }
+
+  if (isDark.value) {
+    result.color =
+      result.color === '#777'
+        ? getColor(themeV4Colors.gray['600'])
+        : getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), result.color, ['#4a5268', '#d5dce8'])
+  }
+
+  return result
 })
 
 const vModel = computed<boolean | number>({

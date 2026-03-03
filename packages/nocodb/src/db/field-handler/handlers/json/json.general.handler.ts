@@ -145,9 +145,7 @@ export class JsonGeneralHandler extends GenericFieldHandler {
             break;
 
           default:
-            throw new Error(
-              `Unsupported comparison operator for JSON: ${filter.comparison_op}`,
-            );
+            NcError._.unsupportedFilterOperation(filter.comparison_op);
         }
       },
     };

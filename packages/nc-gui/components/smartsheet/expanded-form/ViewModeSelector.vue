@@ -115,7 +115,7 @@ onMounted(() => {
   }
 
   &.active {
-    @apply bg-nc-bg-brand text-nc-content-brand-disabled;
+    @apply bg-nc-bg-brand-inverted text-nc-content-brand-disabled;
 
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   }

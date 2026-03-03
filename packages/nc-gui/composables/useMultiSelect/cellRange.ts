@@ -80,6 +80,15 @@ export class CellRange {
     }
   }
 
+  get cellCount(): number {
+    if (this.isEmpty()) return 0
+
+    const rows = this.end.row - this.start.row + 1
+    const cols = this.end.col - this.start.col + 1
+
+    return rows * cols
+  }
+
   startRange(value: Cell) {
     this._start = value
     this._end = value

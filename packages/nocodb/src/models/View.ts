@@ -1,13 +1,18 @@
 import {
   AppEvents,
   CommonAggregations,
+  EventType,
   ExpandedFormMode,
+  getFirstNonPersonalView,
   isSystemColumn,
+  NcBaseError,
   parseProp,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import bcrypt from 'bcryptjs';
 import { Logger } from '@nestjs/common';
+import { isSupportedDisplayValueColumn } from 'nocodb-sdk';
 import type {
   BoolType,
   ColumnReqType,
@@ -18,6 +23,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { NcError } from '~/helpers/ncError';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
@@ -25,9 +31,12 @@ import GridView from '~/models/GridView';
 import KanbanView from '~/models/KanbanView';
 import GalleryView from '~/models/GalleryView';
 import CalendarView from '~/models/CalendarView';
+import TimelineView from '~/models/TimelineView';
 import GridViewColumn from '~/models/GridViewColumn';
 import CalendarViewColumn from '~/models/CalendarViewColumn';
+import TimelineViewColumn from '~/models/TimelineViewColumn';
 import CalendarRange from '~/models/CalendarRange';
+import TimelineRange from '~/models/TimelineRange';
 import Sort from '~/models/Sort';
 import Filter from '~/models/Filter';
 import GalleryViewColumn from '~/models/GalleryViewColumn';
@@ -36,6 +45,9 @@ import KanbanViewColumn from '~/models/KanbanViewColumn';
 import Column from '~/models/Column';
 import MapView from '~/models/MapView';
 import MapViewColumn from '~/models/MapViewColumn';
+import ListView from '~/models/ListView';
+import ListViewColumn from '~/models/ListViewColumn';
+import ListViewLevel from '~/models/ListViewLevel';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -43,6 +55,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import {
@@ -55,6 +68,7 @@ import { CustomUrl, LinkToAnotherRecordColumn } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import NocoSocket from '~/socket/NocoSocket';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -83,7 +97,6 @@ export default class View implements ViewType {
   uuid?: string;
   password?: string;
   show: boolean;
-  is_default: boolean;
   order: number;
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
@@ -99,7 +112,8 @@ export default class View implements ViewType {
     | KanbanView
     | GalleryView
     | MapView
-    | CalendarView;
+    | CalendarView
+    | TimelineView;
   columns?: Array<
     | FormViewColumn
     | GridViewColumn
@@ -107,6 +121,7 @@ export default class View implements ViewType {
     | KanbanViewColumn
     | MapViewColumn
     | CalendarViewColumn
+    | TimelineViewColumn
   >;
 
   sorts: Sort[];
@@ -117,6 +132,7 @@ export default class View implements ViewType {
   show_system_fields?: boolean;
   meta?: any;
   fk_custom_url_id?: string;
+  fk_view_section_id?: string;
 
   constructor(data: View) {
     Object.assign(this, data);
@@ -130,6 +146,7 @@ export default class View implements ViewType {
     let view =
       viewId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -143,7 +160,7 @@ export default class View implements ViewType {
       if (view) {
         view.meta = parseMetaProp(view);
 
-        await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
+        await NocoCache.set(context, `${CacheScope.VIEW}:${view.id}`, view);
       }
     }
 
@@ -158,6 +175,7 @@ export default class View implements ViewType {
     const viewId =
       titleOrId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.VIEW_ALIAS}:${fk_model_id}:${titleOrId}`,
         CacheGetType.TYPE_STRING,
       ));
@@ -186,12 +204,14 @@ export default class View implements ViewType {
 
       if (view) {
         await NocoCache.set(
+          context,
           `${CacheScope.VIEW}:${fk_model_id}:${view.id}`,
           view,
         );
         view.meta = parseMetaProp(view);
         // todo: cache - titleOrId can be viewId so we need a different scope here
         await NocoCache.set(
+          context,
           `${CacheScope.VIEW_ALIAS}:${fk_model_id}:${titleOrId}`,
           view.id,
         );
@@ -201,7 +221,7 @@ export default class View implements ViewType {
     return viewId && this.get(context, viewId?.id || viewId);
   }
 
-  public static async getDefaultView(
+  public static async getFirstCollaborativeView(
     context: NcContext,
     fk_model_id: string,
     ncMeta = Noco.ncMeta,
@@ -209,24 +229,26 @@ export default class View implements ViewType {
     let view =
       fk_model_id &&
       (await NocoCache.get(
+        context,
         `${CacheScope.VIEW}:${fk_model_id}:default`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.VIEWS,
+      view = getFirstNonPersonalView(
+        await this.list(context, fk_model_id, ncMeta),
         {
-          fk_model_id,
-          is_default: 1,
+          includeViewType: ViewTypes.GRID,
         },
-        null,
       );
+
       if (view) {
         view.meta = parseMetaProp(view);
 
-        await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
+        await NocoCache.set(
+          context,
+          `${CacheScope.VIEW}:${fk_model_id}:default`,
+          view,
+        );
       }
     }
     return view && new View(view);
@@ -237,7 +259,9 @@ export default class View implements ViewType {
     modelId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.VIEW, [modelId]);
+    const cachedList = await NocoCache.getList(context, CacheScope.VIEW, [
+      modelId,
+    ]);
     let { list: viewsList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !viewsList.length) {
@@ -257,7 +281,7 @@ export default class View implements ViewType {
       for (const view of viewsList) {
         view.meta = parseMetaProp(view);
       }
-      await NocoCache.setList(CacheScope.VIEW, [modelId], viewsList);
+      await NocoCache.setList(context, CacheScope.VIEW, [modelId], viewsList);
     }
     viewsList.sort(
       (a, b) =>
@@ -282,10 +306,12 @@ export default class View implements ViewType {
           | KanbanView
           | MapView
           | CalendarView
+          | TimelineView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
+          timeline_range?: Partial<TimelineRange>[];
         };
       req: NcRequest;
     },
@@ -296,7 +322,6 @@ export default class View implements ViewType {
       const insertObj = extractProps(view, [
         'id',
         'title',
-        'is_default',
         'description',
         'type',
         'fk_model_id',
@@ -345,6 +370,9 @@ export default class View implements ViewType {
         await Model.getByIdOrName(context, { id: view.fk_model_id }, ncMeta)
       ).getColumns(context, ncMeta);
 
+      const levelIdMap = new Map<string, string>();
+      let defaultLevelId: string | undefined;
+
       // insert view metadata based on view type
       switch (view.type) {
         case ViewTypes.GRID:
@@ -368,6 +396,61 @@ export default class View implements ViewType {
             ncMeta,
           );
           break;
+        case ViewTypes.LIST: {
+          await ListView.insert(
+            context,
+            {
+              ...(copyFromView?.view || {}),
+              ...view,
+              fk_view_id: view_id,
+            },
+            ncMeta,
+          );
+
+          if (copyFromView?.view) {
+            const sourceLevels = await ListViewLevel.list(
+              context,
+              copyFromView.id,
+              ncMeta,
+            );
+            for (const level of sourceLevels) {
+              const newLevel = await ListViewLevel.insert(
+                context,
+                {
+                  ...extractProps(level, [
+                    'level',
+                    'fk_model_id',
+                    'fk_link_column_id',
+                    'enable_nested_records',
+                    'fk_self_link_column_id',
+                    'wrap_headers',
+                    'meta',
+                  ]),
+                  fk_view_id: view_id,
+                },
+                ncMeta,
+              );
+              if (level.id && newLevel?.id) {
+                levelIdMap.set(level.id, newLevel.id);
+              }
+              if (level.fk_model_id === view.fk_model_id && newLevel?.id) {
+                defaultLevelId = newLevel.id;
+              }
+            }
+          } else {
+            const defaultLevel = await ListViewLevel.insert(
+              context,
+              {
+                fk_view_id: view_id,
+                level: 0,
+                fk_model_id: view.fk_model_id,
+              },
+              ncMeta,
+            );
+            defaultLevelId = defaultLevel?.id;
+          }
+          break;
+        }
         case ViewTypes.GALLERY:
           await GalleryView.insert(
             context,
@@ -424,6 +507,28 @@ export default class View implements ViewType {
           );
 
           await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
+          break;
+        }
+        case ViewTypes.TIMELINE: {
+          const obj = extractProps(view, ['timeline_range']);
+          if (!obj.timeline_range) break;
+          const timelineRange = obj.timeline_range as Partial<TimelineRange>[];
+          timelineRange.forEach((range) => {
+            range.fk_view_id = view_id;
+          });
+
+          await TimelineView.insert(
+            context,
+            {
+              ...(copyFromView?.view || {}),
+              ...view,
+              fk_view_id: view_id,
+            },
+            ncMeta,
+          );
+
+          await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
+          break;
         }
       }
 
@@ -444,16 +549,22 @@ export default class View implements ViewType {
         columns = await copyFromView.getColumns(context, ncMeta);
 
         for (const sort of sorts) {
+          const sortProps = extractProps(sort, [
+            'fk_column_id',
+            'fk_level_id',
+            'direction',
+            'base_id',
+            'source_id',
+            'order',
+          ]);
+          if (sortProps.fk_level_id) {
+            sortProps.fk_level_id =
+              levelIdMap.get(sortProps.fk_level_id) || sortProps.fk_level_id;
+          }
           await Sort.insert(
             context,
             {
-              ...extractProps(sort, [
-                'fk_column_id',
-                'direction',
-                'base_id',
-                'source_id',
-                'order',
-              ]),
+              ...sortProps,
               fk_view_id: view_id,
               id: null,
             },
@@ -471,23 +582,30 @@ export default class View implements ViewType {
         }
 
         for (const filter of filters.children) {
+          const filterProps = extractProps(filter, [
+            'id',
+            'fk_level_id',
+            'fk_parent_column_id',
+            'fk_column_id',
+            'comparison_op',
+            'comparison_sub_op',
+            'value',
+            'fk_parent_id',
+            'is_group',
+            'logical_op',
+            'base_id',
+            'source_id',
+            'order',
+          ]);
+          if (filterProps.fk_level_id) {
+            filterProps.fk_level_id =
+              levelIdMap.get(filterProps.fk_level_id) ||
+              filterProps.fk_level_id;
+          }
           const createdFilter = await Filter.insert(
             context,
             {
-              ...extractProps(filter, [
-                'id',
-                'fk_parent_column_id',
-                'fk_column_id',
-                'comparison_op',
-                'comparison_sub_op',
-                'value',
-                'fk_parent_id',
-                'is_group',
-                'logical_op',
-                'base_id',
-                'source_id',
-                'order',
-              ]),
+              ...filterProps,
               fk_view_id: view_id,
               id: null,
             },
@@ -512,7 +630,10 @@ export default class View implements ViewType {
         let kanbanShowLimit = 0;
         let calendarRanges: Array<string> | null = null;
 
-        if (view.type === ViewTypes.CALENDAR) {
+        if (
+          view.type === ViewTypes.CALENDAR ||
+          view.type === ViewTypes.TIMELINE
+        ) {
           calendarRanges = await View.getRangeColumnsAsArray(
             context,
             view_id,
@@ -593,6 +714,14 @@ export default class View implements ViewType {
             } else
               show = vCol.id === calendarView?.fk_cover_image_col_id || vCol.pv;
             // Show all Fields in Ranges
+          } else if (view.type === ViewTypes.TIMELINE && !copyFromView) {
+            // Timeline has no cover image, just show range columns and primary value
+            if (calendarRanges && calendarRanges.includes(vCol.id)) {
+              show = true;
+            } else {
+              show = vCol.pv;
+            }
+            // Show all Fields in Ranges
           } else if (view.type === ViewTypes.MAP && !copyFromView) {
             const mapView = await MapView.get(context, view_id, ncMeta);
             if (vCol.id === mapView?.fk_geo_data_col_id) {
@@ -619,6 +748,7 @@ export default class View implements ViewType {
               bold,
               italic,
               id: null,
+              ...(defaultLevelId ? { fk_level_id: defaultLevelId } : {}),
             },
             ncMeta,
           );
@@ -643,6 +773,7 @@ export default class View implements ViewType {
       }
       return View.get(context, view_id, ncMeta).then(async (v) => {
         await NocoCache.appendToList(
+          context,
           CacheScope.VIEW,
           [view.fk_model_id],
           `${CacheScope.VIEW}:${view_id}`,
@@ -658,8 +789,13 @@ export default class View implements ViewType {
           req,
           context,
         });
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        logger.error('Failed to Duplicate View', e);
+        NcError.get(context).internalServerError('Failed to Duplicate View');
       }
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to Duplicate View', e);
+      NcError.get(context).internalServerError('Failed to Create View');
     }
   }
 
@@ -668,6 +804,7 @@ export default class View implements ViewType {
     viewId: string,
     ncMeta,
   ) {
+    // Try CalendarRange first
     const calRange = await CalendarRange.read(context, viewId, ncMeta);
     if (calRange) {
       const calIds: Set<string> = new Set();
@@ -675,6 +812,16 @@ export default class View implements ViewType {
         calIds.add(range.fk_from_column_id);
       });
       return Array.from(calIds) as Array<string>;
+    }
+    // Try TimelineRange
+    const tlRange = await TimelineRange.read(context, viewId, ncMeta);
+    if (tlRange) {
+      const tlIds: Set<string> = new Set();
+      tlRange.ranges.forEach((range) => {
+        if (range.fk_from_column_id) tlIds.add(range.fk_from_column_id);
+        if (range.fk_to_column_id) tlIds.add(range.fk_to_column_id);
+      });
+      return Array.from(tlIds) as Array<string>;
     }
     return [];
   }
@@ -763,11 +910,46 @@ export default class View implements ViewType {
             ncMeta,
           );
           break;
+        case ViewTypes.LIST: {
+          // Insert the column to the list view level matching the model id
+          const level = (
+            (await ListViewLevel.list(context, view.id, ncMeta)) || []
+          ).find((l) => l.fk_model_id === param.fk_model_id);
+          const listOrder = level?.id
+            ? await ListViewColumn.getNextOrderForLevel(
+                context,
+                view.id,
+                level.id,
+                ncMeta,
+              )
+            : undefined;
+          await ListViewColumn.insert(
+            context,
+            {
+              ...insertObj,
+              fk_level_id: level?.id,
+              fk_view_id: view.id,
+              order: listOrder,
+            },
+            ncMeta,
+          );
+          break;
+        }
         case ViewTypes.KANBAN:
           await KanbanViewColumn.insert(context, modifiedInsertObj, ncMeta);
           break;
         case ViewTypes.CALENDAR:
           await CalendarViewColumn.insert(
+            context,
+            {
+              ...insertObj,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+          break;
+        case ViewTypes.TIMELINE:
+          await TimelineViewColumn.insert(
             context,
             {
               ...insertObj,
@@ -838,6 +1020,18 @@ export default class View implements ViewType {
           );
         }
         break;
+      case ViewTypes.LIST:
+        {
+          col = await ListViewColumn.insert(
+            context,
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+        }
+        break;
       case ViewTypes.FORM:
         {
           col = await FormViewColumn.insert(
@@ -865,6 +1059,18 @@ export default class View implements ViewType {
       case ViewTypes.CALENDAR:
         {
           col = await CalendarViewColumn.insert(
+            context,
+            {
+              ...param,
+              fk_view_id: view.id,
+            },
+            ncMeta,
+          );
+        }
+        break;
+      case ViewTypes.TIMELINE:
+        {
+          col = await TimelineViewColumn.insert(
             context,
             {
               ...param,
@@ -903,6 +1109,7 @@ export default class View implements ViewType {
       | KanbanViewColumn
       | MapViewColumn
       | CalendarViewColumn
+      | TimelineViewColumn
     >
   > {
     let columns: Array<GridViewColumn | any> = [];
@@ -919,6 +1126,9 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         columns = await MapViewColumn.list(context, viewId, ncMeta);
         break;
+      case ViewTypes.LIST:
+        columns = await ListViewColumn.list(context, viewId, ncMeta);
+        break;
       case ViewTypes.FORM:
         columns = await FormViewColumn.list(context, viewId, ncMeta);
         break;
@@ -927,6 +1137,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.CALENDAR:
         columns = await CalendarViewColumn.list(context, viewId, ncMeta);
+        break;
+      case ViewTypes.TIMELINE:
+        columns = await TimelineViewColumn.list(context, viewId, ncMeta);
         break;
     }
 
@@ -965,6 +1178,11 @@ export default class View implements ViewType {
         cacheScope = CacheScope.MAP_VIEW_COLUMN;
 
         break;
+      case ViewTypes.LIST:
+        tableName = MetaTable.LIST_VIEW_COLUMNS;
+        cacheScope = CacheScope.LIST_VIEW_COLUMN;
+
+        break;
       case ViewTypes.FORM:
         tableName = MetaTable.FORM_VIEW_COLUMNS;
         cacheScope = CacheScope.FORM_VIEW_COLUMN;
@@ -980,10 +1198,15 @@ export default class View implements ViewType {
         cacheScope = CacheScope.CALENDAR_VIEW_COLUMN;
 
         break;
+      case ViewTypes.TIMELINE:
+        tableName = MetaTable.TIMELINE_VIEW_COLUMNS;
+        cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
+
+        break;
     }
 
     const key = `${cacheScope}:viewColumnId:${colId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_STRING);
+    const o = await NocoCache.get(context, key, CacheGetType.TYPE_STRING);
     if (o) return o;
 
     const viewColumn = await ncMeta.metaGet2(
@@ -997,7 +1220,7 @@ export default class View implements ViewType {
     );
     if (!viewColumn) return undefined;
 
-    await NocoCache.set(key, viewColumn.id);
+    await NocoCache.set(context, key, viewColumn.id);
 
     return viewColumn.id;
   }
@@ -1027,6 +1250,10 @@ export default class View implements ViewType {
         table = MetaTable.MAP_VIEW_COLUMNS;
         cacheScope = CacheScope.MAP_VIEW_COLUMN;
         break;
+      case ViewTypes.LIST:
+        table = MetaTable.LIST_VIEW_COLUMNS;
+        cacheScope = CacheScope.LIST_VIEW_COLUMN;
+        break;
       case ViewTypes.GALLERY:
         table = MetaTable.GALLERY_VIEW_COLUMNS;
         cacheScope = CacheScope.GALLERY_VIEW_COLUMN;
@@ -1042,12 +1269,16 @@ export default class View implements ViewType {
       case ViewTypes.CALENDAR:
         table = MetaTable.CALENDAR_VIEW_COLUMNS;
         cacheScope = CacheScope.CALENDAR_VIEW_COLUMN;
+        break;
+      case ViewTypes.TIMELINE:
+        table = MetaTable.TIMELINE_VIEW_COLUMNS;
+        cacheScope = CacheScope.TIMELINE_VIEW_COLUMN;
     }
     let updateObj = extractProps(colData, ['order', 'show']);
 
     // keep primary_value_column always visible and first in grid view
     if (view.type === ViewTypes.GRID) {
-      const primary_value_column_meta = await ncMeta.metaGet2(
+      let primary_value_column_meta = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
         MetaTable.COLUMNS,
@@ -1056,6 +1287,33 @@ export default class View implements ViewType {
           pv: true,
         },
       );
+      if (!primary_value_column_meta) {
+        const metaColumns = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COLUMNS,
+          {
+            xcCondition: (qb) => {
+              qb.where('fk_model_id', view.fk_model_id);
+              qb.andWhere((subQb) => {
+                subQb.where('system', false).orWhereNull('system');
+              });
+            },
+            orderBy: { order: 'asc' },
+          },
+        );
+        primary_value_column_meta = metaColumns.find((col) =>
+          isSupportedDisplayValueColumn(col),
+        );
+        if (!primary_value_column_meta) {
+          NcError.get(context).internalServerError(
+            `No display field setup for table`,
+          );
+        }
+        await Column.update(context, primary_value_column_meta.id, {
+          pv: true,
+        });
+      }
 
       const primary_value_column = await ncMeta.metaGet2(
         context.workspace_id,
@@ -1072,7 +1330,7 @@ export default class View implements ViewType {
         updateObj.show = true;
       }
     }
-    if (view.type === ViewTypes.CALENDAR) {
+    if (view.type === ViewTypes.CALENDAR || view.type === ViewTypes.TIMELINE) {
       updateObj = {
         ...updateObj,
         ...extractProps(colData, ['underline', 'bold', 'italic']),
@@ -1088,7 +1346,7 @@ export default class View implements ViewType {
       colId,
     );
 
-    await NocoCache.update(`${cacheScope}:${colId}`, updateObj);
+    await NocoCache.update(context, `${cacheScope}:${colId}`, updateObj);
 
     // on view column update, delete corresponding single query cache
     await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
@@ -1108,6 +1366,8 @@ export default class View implements ViewType {
         return GridViewColumn.get(context, colId, ncMeta);
       case ViewTypes.MAP:
         return MapViewColumn.get(context, colId, ncMeta);
+      case ViewTypes.LIST:
+        return ListViewColumn.get(context, colId, ncMeta);
       case ViewTypes.GALLERY:
         return GalleryViewColumn.get(context, colId, ncMeta);
       case ViewTypes.KANBAN:
@@ -1116,6 +1376,8 @@ export default class View implements ViewType {
         return FormViewColumn.get(context, colId, ncMeta);
       case ViewTypes.CALENDAR:
         return CalendarViewColumn.get(context, colId, ncMeta);
+      case ViewTypes.TIMELINE:
+        return TimelineViewColumn.get(context, colId, ncMeta);
     }
     return null;
   }
@@ -1217,6 +1479,17 @@ export default class View implements ViewType {
             },
             ncMeta,
           );
+        case ViewTypes.LIST:
+          return await ListViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
         case ViewTypes.FORM:
           return await FormViewColumn.insert(
             context,
@@ -1230,6 +1503,17 @@ export default class View implements ViewType {
           );
         case ViewTypes.CALENDAR:
           return await CalendarViewColumn.insert(
+            context,
+            {
+              fk_view_id: viewId,
+              fk_column_id: fkColId,
+              order: colData.order,
+              show: colData.show,
+            },
+            ncMeta,
+          );
+        case ViewTypes.TIMELINE:
+          return await TimelineViewColumn.insert(
             context,
             {
               fk_view_id: viewId,
@@ -1262,8 +1546,8 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta,
   ) {
     const view = await ncMeta.metaGet2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.FULL_BYPASS,
+      RootScopes.FULL_BYPASS,
       MetaTable.VIEWS,
       {
         uuid,
@@ -1294,7 +1578,7 @@ export default class View implements ViewType {
         viewId,
       );
 
-      await NocoCache.update(`${CacheScope.VIEW}:${view.id}`, {
+      await NocoCache.update(context, `${CacheScope.VIEW}:${view.id}`, {
         uuid: view.uuid,
       });
     }
@@ -1317,6 +1601,7 @@ export default class View implements ViewType {
       );
 
       await NocoCache.update(
+        context,
         `${CacheScope.VIEW}:${view.id}`,
         prepareForResponse({
           meta: defaultMeta,
@@ -1332,20 +1617,40 @@ export default class View implements ViewType {
     { password }: { password: string },
     ncMeta = Noco.ncMeta,
   ) {
+    const hashedPassword = password
+      ? await bcrypt.hash(password, 10)
+      : password;
+
     // set meta
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.VIEWS,
       {
-        password,
+        password: hashedPassword,
       },
       viewId,
     );
 
-    await NocoCache.update(`${CacheScope.VIEW}:${viewId}`, {
-      password,
+    await NocoCache.update(context, `${CacheScope.VIEW}:${viewId}`, {
+      password: hashedPassword,
     });
+  }
+
+  static async verifyPassword(
+    view: { password?: string },
+    inputPassword: string,
+  ): Promise<boolean> {
+    if (!view.password) return true;
+    if (!inputPassword) return false;
+
+    // Support bcrypt hashed passwords (new) and plaintext (legacy)
+    if (view.password.startsWith('$2a$') || view.password.startsWith('$2b$')) {
+      return bcrypt.compare(inputPassword, view.password);
+    }
+
+    // Plaintext fallback for pre-migration passwords
+    return view.password === inputPassword;
   }
 
   static async sharedViewDelete(
@@ -1367,7 +1672,7 @@ export default class View implements ViewType {
 
     await CustomUrl.delete({ view_id: viewId });
 
-    await NocoCache.update(`${CacheScope.VIEW}:${viewId}`, {
+    await NocoCache.update(context, `${CacheScope.VIEW}:${viewId}`, {
       uuid: null,
       ...(isEE ? { fk_custom_url_id: null } : {}),
     });
@@ -1389,6 +1694,7 @@ export default class View implements ViewType {
       expanded_record_mode?: ExpandedFormModeType;
       attachment_mode_column_id?: string;
       fk_custom_url_id?: string;
+      fk_view_section_id?: string | null;
       row_coloring_mode?: ROW_COLORING_MODE;
     },
     includeCreatedByAndUpdateBy = false,
@@ -1405,9 +1711,15 @@ export default class View implements ViewType {
       'uuid',
       'row_coloring_mode',
       ...(isEE ? ['fk_custom_url_id'] : []),
+      ...(isEE ? ['fk_view_section_id'] : []),
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
       ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);
+
+    // Hash shared view password before storage
+    if (updateObj.password) {
+      updateObj.password = await bcrypt.hash(updateObj.password, 10);
+    }
 
     if (isEE) {
       if (!updateObj?.attachment_mode_column_id) {
@@ -1430,18 +1742,30 @@ export default class View implements ViewType {
 
     // reset alias cache
     await NocoCache.del(
+      context,
       `${CacheScope.VIEW}:${oldView.fk_model_id}:${oldView.title}`,
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.VIEW}:${viewId}`,
       prepareForResponse(updateObj),
     );
 
-    if (oldView.is_default) {
-      await NocoCache.update(
+    // Get the first collaborative grid view to update default view cache
+    const defaultView = getFirstNonPersonalView(
+      await this.list(context, oldView.fk_model_id, ncMeta),
+      {
+        includeViewType: ViewTypes.GRID,
+      },
+    );
+
+    // Update the default view cache if the first collaborative grid view has changed
+    if (defaultView) {
+      await NocoCache.set(
+        context,
         `${CacheScope.VIEW}:${oldView.fk_model_id}:default`,
-        prepareForResponse(updateObj),
+        defaultView,
       );
     }
 
@@ -1498,6 +1822,7 @@ export default class View implements ViewType {
       viewId,
     );
     await NocoCache.deepDel(
+      context,
       `${tableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -1513,19 +1838,56 @@ export default class View implements ViewType {
         },
       );
       await NocoCache.deepDel(
+        context,
         `${CacheScope.CALENDAR_VIEW_RANGE}:${viewId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
     }
+
+    // For List View, delete the levels associated with viewId
+    if (view.type === ViewTypes.LIST) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.LIST_VIEW_LEVELS,
+        {
+          fk_view_id: viewId,
+        },
+      );
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.LIST_VIEW_LEVEL}:${viewId}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
+
+    // For Timeline View, delete the range associated with viewId
+    if (view.type === ViewTypes.TIMELINE) {
+      await ncMeta.metaDelete(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.TIMELINE_VIEW_RANGE,
+        {
+          fk_view_id: viewId,
+        },
+      );
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.TIMELINE_VIEW_RANGE}:${viewId}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
     await NocoCache.deepDel(
+      context,
       `${columnTableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.deepDel(
+      context,
       `${CacheScope.VIEW}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await NocoCache.del([
+    await NocoCache.del(context, [
       `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.title}`,
       `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.id}`,
     ]);
@@ -1543,9 +1905,37 @@ export default class View implements ViewType {
         },
       );
 
+      const contextRef = { ...context };
       for (const link of links) {
         await LinkToAnotherRecordColumn.update(context, link.fk_column_id, {
           fk_target_view_id: null,
+        });
+
+        // notify all sockets of the change in the related column
+        (async (l) => {
+          NocoSocket.broadcastEvent(contextRef, {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'column_update',
+              payload: await Column.get(
+                context,
+                {
+                  colId: l.fk_column_id,
+                },
+                ncMeta,
+              ).then(async (col) => ({
+                column: col,
+                table: await Model.getWithInfo(
+                  context,
+                  { id: col.fk_model_id },
+                  ncMeta,
+                ),
+                skipDataReload: true,
+              })),
+            },
+          });
+        })(link).catch((err) => {
+          console.log(`Error in related column cache clear:`, err);
         });
       }
     }
@@ -1573,6 +1963,7 @@ export default class View implements ViewType {
     viewId,
     ignoreColdIds = [],
     ncMeta = Noco.ncMeta,
+    levelId?: string,
   ) {
     const view = await this.get(context, viewId);
     const table = this.extractViewColumnsTableName(view);
@@ -1587,16 +1978,17 @@ export default class View implements ViewType {
     );
 
     // get existing cache
-    const cachedList = await NocoCache.getList(scope, [viewId]);
+    const cachedList = await NocoCache.getList(context, scope, [viewId]);
     const { list: dataList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && dataList?.length) {
       for (const o of dataList) {
+        if (levelId && o.fk_level_id !== levelId) continue;
         if (!ignoreColdIds?.length || !ignoreColdIds.includes(o.fk_column_id)) {
           // set data
           o.show = true;
           // set cache
-          await NocoCache.set(`${scope}:${o.id}`, o);
+          await NocoCache.set(context, `${scope}:${o.id}`, o);
         }
       }
     }
@@ -1607,6 +1999,10 @@ export default class View implements ViewType {
 
       const colIndex = availableColumnsInView.indexOf(col.id);
       if (colIndex > -1) {
+        // Skip columns not belonging to the specified level
+        if (levelId && (viewColumns[colIndex] as any).fk_level_id !== levelId)
+          continue;
+
         await this.updateColumn(
           context,
           viewId,
@@ -1614,7 +2010,8 @@ export default class View implements ViewType {
           { show: true },
           ncMeta,
         );
-      } else {
+      } else if (!levelId) {
+        // Only insert new columns when not level-scoped
         await this.insertColumn(
           context,
           {
@@ -1655,6 +2052,7 @@ export default class View implements ViewType {
     viewId,
     ignoreColdIds = [],
     ncMeta = Noco.ncMeta,
+    levelId?: string,
   ) {
     const view = await this.get(context, viewId, ncMeta);
     const table = this.extractViewColumnsTableName(view);
@@ -1678,7 +2076,7 @@ export default class View implements ViewType {
     }
 
     // get existing cache
-    const cachedList = await NocoCache.getList(scope, [viewId]);
+    const cachedList = await NocoCache.getList(context, scope, [viewId]);
     const { list: dataList } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -1691,6 +2089,7 @@ export default class View implements ViewType {
 
     if (!isNoneList && dataList?.length) {
       for (const o of dataList) {
+        if (levelId && o.fk_level_id !== levelId) continue;
         if (
           !mergedIgnoreColdIds?.length ||
           !mergedIgnoreColdIds.includes(o.fk_column_id)
@@ -1698,19 +2097,25 @@ export default class View implements ViewType {
           // set data
           o.show = false;
           // set cache
-          await NocoCache.set(`${scope}:${o.id}`, o);
+          await NocoCache.set(context, `${scope}:${o.id}`, o);
         }
       }
     }
+
     // set meta
+    const condition: Record<string, any> = {
+      fk_view_id: viewId,
+    };
+    if (levelId) {
+      condition.fk_level_id = levelId;
+    }
+
     return await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       table,
       { show: false },
-      {
-        fk_view_id: viewId,
-      },
+      condition,
       mergedIgnoreColdIds?.length
         ? {
             _not: {
@@ -1745,8 +2150,14 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         viewType = 'map';
         break;
+      case ViewTypes.LIST:
+        viewType = 'list';
+        break;
       case ViewTypes.CALENDAR:
         viewType = 'calendar';
+        break;
+      case ViewTypes.TIMELINE:
+        viewType = 'timeline';
         break;
       default:
         viewType = 'view';
@@ -1764,7 +2175,9 @@ export default class View implements ViewType {
     tableId,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.VIEW, [tableId]);
+    const cachedList = await NocoCache.getList(context, CacheScope.VIEW, [
+      tableId,
+    ]);
     let { list: sharedViews } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !sharedViews.length) {
@@ -1785,7 +2198,7 @@ export default class View implements ViewType {
           },
         },
       );
-      await NocoCache.setList(CacheScope.VIEW, [tableId], sharedViews);
+      await NocoCache.setList(context, CacheScope.VIEW, [tableId], sharedViews);
     }
     sharedViews = sharedViews.filter((v) => v.uuid !== null);
     return sharedViews?.map((v) => new View(v));
@@ -1845,6 +2258,7 @@ export default class View implements ViewType {
           primary_value_column.id,
         );
         await NocoCache.set(
+          context,
           `${CacheScope.GRID_VIEW_COLUMN}:${primary_value_column.id}`,
           primary_value_column,
         );
@@ -1873,6 +2287,7 @@ export default class View implements ViewType {
             view_columns[i].id,
           );
           await NocoCache.set(
+            context,
             `${CacheScope.GRID_VIEW_COLUMN}:${view_columns[i].id}`,
             view_columns[i],
           );
@@ -1893,7 +2308,12 @@ export default class View implements ViewType {
         },
       },
     );
-    await NocoCache.setList(CacheScope.GRID_VIEW_COLUMN, [viewId], views);
+    await NocoCache.setList(
+      context,
+      CacheScope.GRID_VIEW_COLUMN,
+      [viewId],
+      views,
+    );
   }
 
   public static async clearSingleQueryCache(
@@ -1906,7 +2326,8 @@ export default class View implements ViewType {
 
     // get all views of the model
     let viewsList =
-      views || (await NocoCache.getList(CacheScope.VIEW, [modelId])).list;
+      views ||
+      (await NocoCache.getList(context, CacheScope.VIEW, [modelId])).list;
 
     if (!views && !viewsList?.length) {
       viewsList = await ncMeta.metaList2(
@@ -1926,18 +2347,44 @@ export default class View implements ViewType {
     for (const view of viewsList) {
       deleteKeys.push(
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries:ltar`,
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:count`,
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
       );
+      // Add all 16 combinations of bitwise flags (0-15)
+      for (let flags = 0; flags < 16; flags++) {
+        deleteKeys.push(
+          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:${flags}`,
+        );
+      }
     }
 
     deleteKeys.push(
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries:ltar`,
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:count`,
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
     );
+    // Add all 16 combinations of bitwise flags (0-15)
+    for (let flags = 0; flags < 16; flags++) {
+      deleteKeys.push(
+        `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:${flags}`,
+      );
+    }
 
-    await NocoCache.del(deleteKeys);
+    // Delete tracked RLS-specific cache keys (stored as Redis SET)
+    const rlsTrackingKey = `${CacheScope.SINGLE_QUERY}:${modelId}:rls_keys`;
+    const rlsKeys = await NocoCache.get(
+      context,
+      rlsTrackingKey,
+      CacheGetType.TYPE_ARRAY,
+    );
+    if (rlsKeys?.length) {
+      deleteKeys.push(
+        ...rlsKeys.filter((k) => k && k !== 'NONE'),
+        rlsTrackingKey,
+      );
+    }
+
+    await NocoCache.del(context, deleteKeys);
   }
 
   static async bulkColumnInsertToViews(
@@ -1959,6 +2406,7 @@ export default class View implements ViewType {
         | KanbanViewColumn
         | MapViewColumn
         | CalendarViewColumn
+        | TimelineViewColumn
       )[];
     },
     view: View,
@@ -1981,7 +2429,8 @@ export default class View implements ViewType {
             'base_id',
             'source_id',
             'order',
-            ...(view.type === ViewTypes.CALENDAR
+            ...(view.type === ViewTypes.CALENDAR ||
+            view.type === ViewTypes.TIMELINE
               ? ['bold', 'italic', 'underline']
               : []),
             ...(view.type === ViewTypes.FORM
@@ -2033,6 +2482,20 @@ export default class View implements ViewType {
         );
         if (calendarRange) {
           calendarRangeColumns = calendarRange.ranges
+            .map((range) => [
+              range.fk_from_column_id,
+              (range as any).fk_to_column_id,
+            ])
+            .flat();
+        }
+      } else if (view.type == ViewTypes.TIMELINE) {
+        const timelineRange = await TimelineRange.read(
+          context,
+          view.id,
+          ncMeta,
+        );
+        if (timelineRange) {
+          calendarRangeColumns = timelineRange.ranges
             .map((range) => [
               range.fk_from_column_id,
               (range as any).fk_to_column_id,
@@ -2104,6 +2567,11 @@ export default class View implements ViewType {
           if (calendarRangeColumns.includes(column.id)) {
             show = true;
           }
+        } else if (view.type === ViewTypes.TIMELINE) {
+          if (!calendarRangeColumns) break;
+          if (calendarRangeColumns.includes(column.id)) {
+            show = true;
+          }
         }
 
         insertObjs.push({
@@ -2147,6 +2615,14 @@ export default class View implements ViewType {
           insertObjs,
         );
         break;
+      case ViewTypes.LIST:
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.LIST_VIEW_COLUMNS,
+          insertObjs,
+        );
+        break;
       case ViewTypes.KANBAN:
         await ncMeta.bulkMetaInsert(
           context.workspace_id,
@@ -2170,6 +2646,14 @@ export default class View implements ViewType {
           MetaTable.CALENDAR_VIEW_COLUMNS,
           insertObjs,
         );
+        break;
+      case ViewTypes.TIMELINE:
+        await ncMeta.bulkMetaInsert(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.TIMELINE_VIEW_COLUMNS,
+          insertObjs,
+        );
     }
   }
 
@@ -2188,10 +2672,12 @@ export default class View implements ViewType {
           | KanbanView
           | MapView
           | CalendarView
+          | TimelineView
         > & {
           copy_from_id?: string;
           fk_grp_col_id?: string;
           calendar_range?: Partial<CalendarRange>[];
+          timeline_range?: Partial<TimelineRange>[];
           created_by: string;
           owned_by: string;
           expanded_record_mode?: ExpandedFormModeType;
@@ -2207,7 +2693,6 @@ export default class View implements ViewType {
     const insertObj = extractProps(view, [
       'id',
       'title',
-      'is_default',
       'description',
       'type',
       'fk_model_id',
@@ -2273,6 +2758,10 @@ export default class View implements ViewType {
 
     const { id: view_id } = insertedView;
 
+    // Map old level IDs to new level IDs for sort/filter duplication (list view)
+    const levelIdMap = new Map<string, string>();
+    let defaultLevelId: string | undefined;
+
     // insert view metadata based on view type
     switch (view.type) {
       case ViewTypes.GRID:
@@ -2296,6 +2785,61 @@ export default class View implements ViewType {
           ncMeta,
         );
         break;
+      case ViewTypes.LIST: {
+        await ListView.insert(
+          context,
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+
+        if (copyFromView?.view) {
+          const sourceLevels = await ListViewLevel.list(
+            context,
+            copyFromView.id,
+            ncMeta,
+          );
+          for (const level of sourceLevels) {
+            const newLevel = await ListViewLevel.insert(
+              context,
+              {
+                ...extractProps(level, [
+                  'level',
+                  'fk_model_id',
+                  'fk_link_column_id',
+                  'enable_nested_records',
+                  'fk_self_link_column_id',
+                  'meta',
+                ]),
+                fk_view_id: view_id,
+              },
+              ncMeta,
+            );
+            if (level.id && newLevel?.id) {
+              levelIdMap.set(level.id, newLevel.id);
+            }
+            if (level.fk_model_id === view.fk_model_id && newLevel?.id) {
+              defaultLevelId = newLevel.id;
+            }
+          }
+        } else {
+          // Auto-create level 0 with the view's table
+          const defaultLevel = await ListViewLevel.insert(
+            context,
+            {
+              fk_view_id: view_id,
+              level: 0,
+              fk_model_id: view.fk_model_id,
+            },
+            ncMeta,
+          );
+          defaultLevelId = defaultLevel?.id;
+        }
+        break;
+      }
       case ViewTypes.GALLERY:
         await GalleryView.insert(
           context,
@@ -2354,6 +2898,27 @@ export default class View implements ViewType {
 
         break;
       }
+      case ViewTypes.TIMELINE: {
+        const obj = extractProps(view, ['timeline_range']);
+        if (!obj.timeline_range) break;
+        const timelineRange = obj.timeline_range as Partial<TimelineRange>[];
+        timelineRange.forEach((range) => {
+          range.fk_view_id = view_id;
+        });
+
+        await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
+        await TimelineView.insert(
+          context,
+          {
+            ...(copyFromView?.view || {}),
+            ...view,
+            fk_view_id: view_id,
+          },
+          ncMeta,
+        );
+
+        break;
+      }
     }
     try {
       // copy from view
@@ -2389,13 +2954,19 @@ export default class View implements ViewType {
         const filterInsertObjs = [];
 
         for (const sort of sorts) {
+          const sortProps = extractProps(sort, [
+            'fk_column_id',
+            'fk_level_id',
+            'direction',
+            'base_id',
+            'source_id',
+          ]);
+          if (sortProps.fk_level_id) {
+            sortProps.fk_level_id =
+              levelIdMap.get(sortProps.fk_level_id) || sortProps.fk_level_id;
+          }
           sortInsertObjs.push({
-            ...extractProps(sort, [
-              'fk_column_id',
-              'direction',
-              'base_id',
-              'source_id',
-            ]),
+            ...sortProps,
             fk_view_id: view_id,
             id: undefined,
           });
@@ -2418,21 +2989,29 @@ export default class View implements ViewType {
           const fn = async (filter, parentId: string = null) => {
             const generatedId = await ncMeta.genNanoid(MetaTable.FILTER_EXP);
 
+            const filterProps = extractProps(filter, [
+              'fk_level_id',
+              'fk_parent_column_id',
+              'fk_row_color_condition_id',
+              'fk_column_id',
+              'comparison_op',
+              'comparison_sub_op',
+              'value',
+              'fk_parent_id',
+              'is_group',
+              'logical_op',
+              'base_id',
+              'source_id',
+              'order',
+              'meta',
+            ]);
+            if (filterProps.fk_level_id) {
+              filterProps.fk_level_id =
+                levelIdMap.get(filterProps.fk_level_id) ||
+                filterProps.fk_level_id;
+            }
             filterInsertObjs.push({
-              ...extractProps(filter, [
-                'fk_parent_column_id',
-                'fk_row_color_condition_id',
-                'fk_column_id',
-                'comparison_op',
-                'comparison_sub_op',
-                'value',
-                'fk_parent_id',
-                'is_group',
-                'logical_op',
-                'base_id',
-                'source_id',
-                'order',
-              ]),
+              ...filterProps,
               fk_view_id: view_id,
               id: generatedId,
               fk_parent_id: parentId,
@@ -2498,6 +3077,17 @@ export default class View implements ViewType {
         );
       }
 
+      // Associate bulk-inserted list view columns with the default level
+      if (view.type === ViewTypes.LIST && defaultLevelId) {
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.LIST_VIEW_COLUMNS,
+          { fk_level_id: defaultLevelId },
+          { fk_view_id: view_id },
+        );
+      }
+
       if (copyFromView) {
         Noco.appHooksService.emit(AppEvents.VIEW_DUPLICATE_COMPLETE, {
           sourceView: copyFromView,
@@ -2516,9 +3106,13 @@ export default class View implements ViewType {
           req,
           context,
         });
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        logger.error('Failed to Duplicate View', e);
+        NcError.get(context).internalServerError('Failed to Duplicate View');
       }
-
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to create View', e);
+      NcError.get(context).internalServerError('Failed to create View');
     }
   }
 
@@ -2540,8 +3134,14 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         table = MetaTable.MAP_VIEW_COLUMNS;
         break;
+      case ViewTypes.LIST:
+        table = MetaTable.LIST_VIEW_COLUMNS;
+        break;
       case ViewTypes.CALENDAR:
         table = MetaTable.CALENDAR_VIEW_COLUMNS;
+        break;
+      case ViewTypes.TIMELINE:
+        table = MetaTable.TIMELINE_VIEW_COLUMNS;
         break;
     }
     return table;
@@ -2565,8 +3165,14 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         table = MetaTable.MAP_VIEW;
         break;
+      case ViewTypes.LIST:
+        table = MetaTable.LIST_VIEW;
+        break;
       case ViewTypes.CALENDAR:
         table = MetaTable.CALENDAR_VIEW;
+        break;
+      case ViewTypes.TIMELINE:
+        table = MetaTable.TIMELINE_VIEW;
         break;
     }
     return table;
@@ -2584,6 +3190,9 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         scope = CacheScope.MAP_VIEW_COLUMN;
         break;
+      case ViewTypes.LIST:
+        scope = CacheScope.LIST_VIEW_COLUMN;
+        break;
       case ViewTypes.KANBAN:
         scope = CacheScope.KANBAN_VIEW_COLUMN;
         break;
@@ -2592,6 +3201,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.CALENDAR:
         scope = CacheScope.CALENDAR_VIEW_COLUMN;
+        break;
+      case ViewTypes.TIMELINE:
+        scope = CacheScope.TIMELINE_VIEW_COLUMN;
         break;
     }
     return scope;
@@ -2609,6 +3221,9 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         scope = CacheScope.MAP_VIEW;
         break;
+      case ViewTypes.LIST:
+        scope = CacheScope.LIST_VIEW;
+        break;
       case ViewTypes.KANBAN:
         scope = CacheScope.KANBAN_VIEW;
         break;
@@ -2617,6 +3232,9 @@ export default class View implements ViewType {
         break;
       case ViewTypes.CALENDAR:
         scope = CacheScope.CALENDAR_VIEW;
+        break;
+      case ViewTypes.TIMELINE:
+        scope = CacheScope.TIMELINE_VIEW;
         break;
     }
     return scope;
@@ -2655,11 +3273,17 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         this.view = await MapView.get(context, this.id, ncMeta);
         break;
+      case ViewTypes.LIST:
+        this.view = await ListView.get(context, this.id, ncMeta);
+        break;
       case ViewTypes.FORM:
         this.view = await FormView.getWithInfo(context, this.id, ncMeta);
         break;
       case ViewTypes.CALENDAR:
         this.view = await CalendarView.get(context, this.id, ncMeta);
+        break;
+      case ViewTypes.TIMELINE:
+        this.view = await TimelineView.get(context, this.id, ncMeta);
         break;
     }
     return <T>this.view;
@@ -2682,11 +3306,17 @@ export default class View implements ViewType {
       case ViewTypes.MAP:
         this.view = await MapView.get(context, this.id, ncMeta);
         break;
+      case ViewTypes.LIST:
+        this.view = await ListView.get(context, this.id, ncMeta);
+        break;
       case ViewTypes.FORM:
         this.view = await FormView.get(context, this.id, ncMeta);
         break;
       case ViewTypes.CALENDAR:
         this.view = await CalendarView.get(context, this.id, ncMeta);
+        break;
+      case ViewTypes.TIMELINE:
+        this.view = await TimelineView.get(context, this.id, ncMeta);
         break;
     }
     return this.view;

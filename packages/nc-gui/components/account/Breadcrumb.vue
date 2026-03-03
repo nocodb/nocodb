@@ -38,6 +38,20 @@ const breadcrumb = computed<BreadcrumbType[]>(() => {
       })
       break
     }
+    case 'oauth-clients': {
+      payload.push({
+        title: t('title.oauthClients'),
+        active: true,
+      })
+      break
+    }
+    case 'external-integrations': {
+      payload.push({
+        title: t('title.externalIntegrations'),
+        active: true,
+      })
+      break
+    }
     case 'audit': {
       payload.push({
         title: t('title.auditLogs'),
@@ -137,7 +151,7 @@ const onClick = async (item: BreadcrumbType) => {
         class="nc-breadcrumb-item capitalize"
         :class="{
           'active': item.active,
-          'cursor-pointer': item.path && !item.active,
+          'cursor-pointer hover:underline': item.path && !item.active,
         }"
         @click="onClick(item)"
       >

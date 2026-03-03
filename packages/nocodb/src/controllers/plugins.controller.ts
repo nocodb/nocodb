@@ -38,7 +38,7 @@ export class PluginsController {
 
   @Get(['/api/v1/db/meta/plugins/webhook', '/api/v2/meta/plugins/webhook'])
   @Acl('webhookPluginList', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async webhookPluginList() {
     return new PagedResponseImpl(await this.pluginsService.webhookPluginList());

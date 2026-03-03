@@ -196,7 +196,9 @@ export function useDataFetch({
 
     clearCache(Math.max(0, start - BUFFER_SIZE), Math.min(totalRows.value, end + BUFFER_SIZE))
 
-    debouncedFetchChunks(chunksToFetch, firstChunkId)
+    debouncedFetchChunks(chunksToFetch, firstChunkId).catch((error) => {
+      console.error('Error fetching chunks:', error)
+    })
   }
 
   const rafId = ref<number | null>(null)

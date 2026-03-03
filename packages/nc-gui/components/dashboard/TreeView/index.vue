@@ -17,7 +17,7 @@ const { createProject: _createProject, updateProject } = basesStore
 
 const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
 
-const { isWorkspaceLoading } = storeToRefs(useWorkspace())
+const { activeWorkspaceId, isWorkspaceLoading } = storeToRefs(useWorkspace())
 
 const baseCreateDlg = ref(false)
 
@@ -115,11 +115,19 @@ async function handleTableRename(
   updateTitle(title)
 
   try {
-    await $api.dbTable.update(table.id as string, {
-      base_id: table.base_id,
-      table_name: title,
-      title,
-    })
+    await $api.internal.postOperation(
+      table.fk_workspace_id!,
+      table.base_id!,
+      {
+        operation: 'tableUpdate',
+        tableId: table.id as string,
+      },
+      {
+        base_id: table.base_id,
+        table_name: title,
+        title,
+      },
+    )
 
     await loadProjectTables(table.base_id!, true)
 
@@ -154,7 +162,10 @@ async function handleTableRename(
     })
 
     // update metas
-    const newMeta = await $api.dbTable.read(table.id as string)
+    const newMeta = await $api.internal.getOperation(activeWorkspaceId.value!, base.value.id!, {
+      operation: 'tableGet',
+      tableId: table.id as string,
+    })
     await setMeta(newMeta)
 
     refreshCommandPalette()

@@ -41,12 +41,16 @@ function pollJob(jobId: string) {
           completed.value = true
           isLoading.value = false
 
-          workspace.loadWorkspace(activeWorkspace.value!.id!)
+          workspace.loadWorkspace(activeWorkspace.value!.id!).catch(() => {
+            // ignore
+          })
         } else if (data.status === JobStatus.FAILED) {
           completed.value = true
           isLoading.value = false
 
-          workspace.loadWorkspace(activeWorkspace.value!.id!)
+          workspace.loadWorkspace(activeWorkspace.value!.id!).catch(() => {
+            // ignore
+          })
         } else {
           lastMessage.value = data.data?.message || 'Upgrading workspace...'
         }

@@ -1,7 +1,7 @@
 import 'mocha';
 // @ts-ignore
 import request from 'supertest';
-import { UITypes } from 'nocodb-sdk';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
@@ -69,7 +69,7 @@ function tableStaticTest() {
     });
 
     customerView = (await customerTable.getViews(sakilaCtx)).find(
-      (v) => v.is_default,
+      (v) => v.type === ViewTypes.GRID,
     )!;
 
     customerColumns = await customerTable.getColumns(sakilaCtx);
@@ -393,8 +393,10 @@ function tableStaticTest() {
         .expect(200);
 
       // Check file content
-      expect(fileResponse.headers['content-disposition']).to.include(
-        `${customerTable.title} (Default View).csv`,
+      expect(fileResponse.headers['content-disposition']).to.match(
+        new RegExp(
+          `${sakilaProject.title} - ${customerTable.title} \\(Customer\\) \\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}.csv`,
+        ),
       );
       expect(fileResponse.headers['content-type']).to.include('text/csv');
       expect(fileResponse.text).to.be.a('string').and.not.empty;
@@ -406,6 +408,68 @@ function tableStaticTest() {
       throw error;
     }
   });
+  it('Export json', async () => {
+    // get row count
+    const rowCount = await countRows({
+      base: sakilaProject,
+      table: customerTable,
+      view: customerView,
+    });
+
+    // Start export job
+    const jobResponse = await request(context.app)
+      .post(`/api/v2/export/${customerView.id}/json`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    // Verify we got a job ID
+    const jobId = jobResponse.body.id;
+    expect(jobId).to.be.a('string');
+
+    // Wait for job completion using the helper function
+    const resultData = await listenForJob({
+      context,
+      base_id: sakilaProject.id,
+      job_id: jobId,
+    });
+
+    // Verify the exported file
+    expect(resultData).to.be.an('object');
+    expect(resultData.url).to.be.a('string');
+
+    try {
+      const fileUrl = resultData.url;
+
+      // Download the file using the download endpoint
+      const fileResponse = await request(context.app)
+        .get(`/${encodeURI(fileUrl)}`)
+        .set('xc-auth', context.token)
+        .expect(200);
+
+      // Check file content
+      expect(fileResponse.headers['content-disposition']).to.match(
+        new RegExp(
+          `${sakilaProject.title} - ${customerTable.title} \\(Customer\\) \\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}.json`,
+        ),
+      );
+      expect(fileResponse.headers['content-type']).to.include(
+        'application/json',
+      );
+      expect(fileResponse.text).to.be.a('string').and.not.empty;
+
+      // Parse and verify JSON content
+      const jsonData = JSON.parse(fileResponse.text);
+      expect(jsonData).to.be.an('array');
+      expect(jsonData.length).to.equal(rowCount);
+    } catch (error) {
+      console.log(error);
+      console.error('Error downloading file:', error.message);
+      console.error('URL used:', `/${resultData.url}`);
+      console.error('Result data:', JSON.stringify(resultData, null, 2));
+      throw error;
+    }
+  });
+
   // todo: Add export test for views
   it('Nested row list hm', async () => {
     const rowId = 1;
@@ -769,7 +833,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/Film/group/${ratingColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/group/${ratingColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);

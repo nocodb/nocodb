@@ -1,5 +1,6 @@
 import { ncIsNull, ncIsNumber, ncIsUndefined } from 'nocodb-sdk';
 import { NcError } from 'src/helpers/catchError';
+import { ncIsStringHasValue } from '../../utils/handlerUtils';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
 import type { NcContext } from 'nocodb-sdk';
@@ -124,6 +125,39 @@ export class DecimalGeneralHandler extends GenericFieldHandler {
       rootApply: undefined,
       clause: (qb: Knex.QueryBuilder) => {
         qb.whereNotNull(sourceField as any);
+      },
+    };
+  }
+
+  override async filterNeq(
+    args: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+    },
+    rootArgs: {
+      knex: CustomKnex;
+      filter: Filter;
+      column: Column;
+    },
+    _options: FilterOptions,
+  ) {
+    const { val, sourceField } = args;
+    const { knex } = rootArgs;
+
+    return {
+      rootApply: undefined,
+      clause: (qb: Knex.QueryBuilder) => {
+        if (!ncIsStringHasValue(val)) {
+          qb.where((nestedQb) => {
+            nestedQb.whereNotNull(sourceField as any);
+          });
+        } else {
+          qb.where((nestedQb) => {
+            nestedQb
+              .where(knex.raw('?? != ?', [sourceField, val]))
+              .orWhereNull(sourceField as any);
+          });
+        }
       },
     };
   }

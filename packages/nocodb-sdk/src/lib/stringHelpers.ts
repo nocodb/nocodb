@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { ncIsUndefined } from './is';
 
 const AppendToLengthSuffixConfig = {
@@ -110,7 +111,7 @@ export function generateUniqueCopyName<T = string>(
     /** Property name or accessor function to get the name from objects */
     accessor?: keyof T | ((item: T) => string);
     /** Prefix to use (default: "Copy of") */
-    prefix?: string;
+    prefix?: string | null;
     /** Separator before counter (default: " ") */
     separator?: string;
     /** Format for counter, use {counter} placeholder (default: "({counter})") */
@@ -137,7 +138,7 @@ export function generateUniqueCopyName<T = string>(
   });
 
   const getPrefix = () => {
-    return prefix ? `${prefix} ` : (prefix ?? '');
+    return prefix ? `${prefix} ` : prefix ?? '';
   };
   let newName = `${getPrefix()}${originalName}`;
   let counter = 1;
@@ -193,4 +194,12 @@ export function stringAllMatches(
   }
 
   return matches;
+}
+
+export function generateRandomUuid() {
+  if (crypto?.randomUUID && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return uuidv4();
 }

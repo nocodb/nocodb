@@ -30,7 +30,7 @@ export const homeCommands = [
     parent: 'user',
     section: 'Community',
     handler: () => {
-      navigateTo('https://discord.gg/5RgZmkW', { external: true })
+      navigateTo('https://discord.gg/c7GEYrvFtT', { external: true })
     },
   },
   {

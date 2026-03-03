@@ -1,9 +1,11 @@
 import { type ColumnType, type TableType, UITypes, type ViewType } from 'nocodb-sdk'
 import { ColumnHelper, ComputedTypePasteError, TypeConversionError } from 'nocodb-sdk'
+import { clearTextCache } from '../utils/canvas'
 import type { Row } from '../../../../../lib/types'
 import convertCellData from '../../../../../composables/useMultiSelect/convertCellData'
 import { serializeRange } from '../../../../../utils/pasteUtils'
 import { type CanvasElement, ElementTypes } from '../utils/CanvasElement'
+import { isUniqueConstraintViolationError } from '../../../../../utils/errorUtils'
 
 export function useFillHandler({
   isFillMode,
@@ -32,7 +34,7 @@ export function useFillHandler({
   bulkUpdateRows: (
     rows: Row[],
     props: string[],
-    metas?: { metaValue?: TableType; viewMetaValue?: ViewType },
+    metas?: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void },
     undo?: boolean,
     path?: Array<number>,
   ) => Promise<void>
@@ -157,12 +159,16 @@ export function useFillHandler({
     rawMatrix,
     cpCols,
     rowToPaste,
+    originalValues,
+    onError,
   }: {
     rawMatrix: string[][]
     cpCols: (ColumnType & {
       extra?: any | never
     })[]
     rowToPaste: { start: number; end: number }
+    originalValues: Map<number, Row>
+    onError?: (e: any) => void
   }) => {
     if (rawMatrix.length === 0) return
     const direction = rowToPaste.end - rowToPaste.start > 0 ? 1 : -1
@@ -204,6 +210,12 @@ export function useFillHandler({
     ) {
       const rowObj = (unref(cachedRows) as Map<number, Row>).get(rowIndex)
       if (rowObj) {
+        // Backup row if not already backed up
+        if (!originalValues.has(rowIndex)) {
+          // console.log('Backing up row', rowIndex, rowObj.row)
+          originalValues.set(rowIndex, { ...rowObj, row: { ...rowObj.row } })
+        }
+
         for (const [colIndex, cpCol] of cpCols.entries()) {
           const pasteValue = convertCellData(
             {
@@ -229,10 +241,10 @@ export function useFillHandler({
     }
 
     // If not in AI fill mode, perform a regular bulk update
-    await bulkUpdateRows?.(
+    bulkUpdateRows?.(
       rowsToPaste,
       cpCols.map((k) => k.title!),
-      undefined,
+      { onError },
       undefined,
       groupPath,
     )
@@ -241,6 +253,9 @@ export function useFillHandler({
   const handleFillEnd = async () => {
     // Check if fill mode is currently active
     if (isFillMode.value) {
+      // Backup original values for revert
+      const originalValues = new Map<number, Row>()
+
       try {
         // Indicate that the fill operation has ended
         isFillEnded.value = true
@@ -314,11 +329,33 @@ export function useFillHandler({
           const startRangeBottomMost = Math.max(fillStartRange.value.start.row, fillStartRange.value.end.row)
           const startRangeTopMost = Math.min(fillStartRange.value.start.row, fillStartRange.value.end.row)
 
+          const onError = (error: any) => {
+            if (isUniqueConstraintViolationError(error)) {
+              const { cachedRows } = getDataCache(groupPath)
+              for (const [rowId, originalRow] of originalValues) {
+                const rowObj = (unref(cachedRows) as Map<number, Row>).get(rowId)
+                if (rowObj) {
+                  for (const key in originalRow.row) {
+                    rowObj.row[key] = originalRow.row[key]
+                  }
+                  rowObj.rowMeta.changed = false
+                  rowObj.rowMeta.saving = false
+                }
+              }
+              // Ensure UI cleanup
+              fillStartRange.value = null
+              isFillMode.value = false
+              clearTextCache()
+              triggerReRender()
+            }
+          }
+
           // if not localAiMode, use the new v2 handle fill logic
           if (!localAiMode) {
             await v2HandleFillValue({
               rawMatrix,
               cpCols: cpcols,
+              originalValues,
               rowToPaste: {
                 start:
                   fillDirection === 1
@@ -329,6 +366,7 @@ export function useFillHandler({
                     ? Math.max(startRangeBottomMost, selection.value._end.row)
                     : Math.min(startRangeTopMost, selection.value._end.row),
               },
+              onError,
             })
 
             // Reset active cell, fill range, and fill mode after successful update
@@ -371,6 +409,11 @@ export function useFillHandler({
 
             // Initialize paste index for the current row
             let pasteIndex = 0
+
+            // Backup row if not already backed up
+            if (!originalValues.has(row)) {
+              originalValues.set(row, { ...rowObj, row: { ...rowObj.row } })
+            }
 
             // If the current cell is not part of the initial selection range, add the row to rowsToPaste
             if (!selectRangeMap.value[`${row}-${selection.value.start.col}`]) {
@@ -529,11 +572,10 @@ export function useFillHandler({
                   }
                 }
 
-                // Perform bulk update of rows with generated data
                 bulkUpdateRows?.(
                   rowsToPaste.concat(rowsToFill),
                   propsToPaste.concat(propsToFill),
-                  undefined,
+                  { onError },
                   undefined,
                   groupPath,
                 ).then(() => {
@@ -545,7 +587,6 @@ export function useFillHandler({
                 })
               })
               .catch((_e) => {
-                // Clear selection, fill range, and fill mode on error
                 selection.value.clear()
                 fillStartRange.value = null
                 isFillMode.value = false
@@ -554,14 +595,14 @@ export function useFillHandler({
           }
 
           // If not in AI fill mode, perform a regular bulk update
-          bulkUpdateRows?.(rowsToPaste, propsToPaste, undefined, undefined, groupPath).then(() => {
-            // Reset active cell, fill range, and fill mode after successful update
-            activeCell.value.column = tempActiveCell.col
-            activeCell.value.row = tempActiveCell.row
-            activeCell.value.path = groupPath
-            fillStartRange.value = null
-            isFillMode.value = false
-          })
+          bulkUpdateRows?.(rowsToPaste, propsToPaste, { onError }, undefined, groupPath)
+
+          // Reset active cell, fill range, and fill mode after successful update
+          activeCell.value.column = tempActiveCell.col
+          activeCell.value.row = tempActiveCell.row
+          activeCell.value.path = groupPath
+          fillStartRange.value = null
+          isFillMode.value = false
         } else {
           // If selection is invalid, reset fill range and fill mode
           fillStartRange.value = null

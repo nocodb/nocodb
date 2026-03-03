@@ -340,12 +340,72 @@ export class MetaDiffsService {
       );
       const parentCol = await colOpt.getParentColumn(context);
       const childCol = await colOpt.getChildColumn(context);
+
+      if (!parentCol || !childCol) {
+        // Parent or child column is missing - mark relation for removal
+        const ownerModel = await relationCol.getModel(context);
+        if (ownerModel) {
+          const ownerTable = changes.find(
+            (t) => t.table_name === ownerModel.table_name,
+          );
+          if (ownerTable) {
+            ownerTable.detectedChanges.push({
+              type: MetaDiffType.TABLE_RELATION_REMOVE,
+              msg: `Relation removed (${
+                !parentCol ? 'parent' : 'child'
+              } column missing)`,
+              colId: relationCol.id,
+              column: relationCol,
+            });
+          }
+        }
+        continue;
+      }
+
       const parentModel = await parentCol.getModel(context);
       const childModel = await childCol.getModel(context);
+
+      if (!parentModel || !childModel) {
+        // Parent or child model is missing - mark relation for removal
+        const ownerModel =
+          parentModel || childModel || (await relationCol.getModel(context));
+        if (ownerModel) {
+          const ownerTable = changes.find(
+            (t) => t.table_name === ownerModel.table_name,
+          );
+          if (ownerTable) {
+            ownerTable.detectedChanges.push({
+              type: MetaDiffType.TABLE_RELATION_REMOVE,
+              msg: `Relation removed (${
+                !parentModel ? 'parent' : 'child'
+              } table missing)`,
+              colId: relationCol.id,
+              column: relationCol,
+            });
+          }
+        }
+        continue;
+      }
 
       // many to many relation
       if (colOpt.type === RelationTypes.MANY_TO_MANY) {
         const m2mModel = await colOpt.getMMModel(context);
+
+        if (!m2mModel) {
+          // M2M model is missing - mark relation for removal
+          const ownerTable = changes.find(
+            (t) => t.table_name === childModel.table_name,
+          );
+          if (ownerTable) {
+            ownerTable.detectedChanges.push({
+              type: MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
+              msg: `Many to many removed (junction table missing)`,
+              colId: relationCol.id,
+              column: relationCol,
+            });
+          }
+          continue;
+        }
 
         const relatedTable = tableList.find(
           (t) => t.tn === parentModel.table_name,
@@ -1093,12 +1153,23 @@ export class MetaDiffsService {
         normalColumns.length < 5 &&
         assocModel.primaryKeys.length === 2
       ) {
+        // Ensure colOptions are populated
+        if (!belongsToCols[0].colOptions || !belongsToCols[1].colOptions) {
+          // Skip if colOptions are missing (corrupted data)
+          continue;
+        }
+
         const modelA = await belongsToCols[0].colOptions.getRelatedTable(
           context,
         );
         const modelB = await belongsToCols[1].colOptions.getRelatedTable(
           context,
         );
+
+        if (!modelA || !modelB) {
+          // Skip if related models are missing (deleted or corrupted data)
+          continue;
+        }
 
         await modelA.getColumns(context);
         await modelB.getColumns(context);
@@ -1172,6 +1243,11 @@ export class MetaDiffsService {
         for (const btCol of [belongsToCols[0], belongsToCols[1]]) {
           const colOpt = await btCol.colOptions;
           const model = await colOpt.getRelatedTable(context);
+
+          if (!model) {
+            // Skip if related model is missing
+            continue;
+          }
 
           for (const col of await model.getColumns(context)) {
             if (!isLinksOrLTAR(col.uidt)) continue;

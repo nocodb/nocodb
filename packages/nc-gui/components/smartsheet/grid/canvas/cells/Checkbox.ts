@@ -17,6 +17,8 @@ export const CheckboxCellRenderer: CellRenderer = {
       isUnderLookup,
       selected,
       isRowHovered,
+      getColor,
+      isDark,
     },
   ) => {
     const isCellHovered = isBoxHovered({ x, y, width, height }, mousePosition)
@@ -28,7 +30,7 @@ export const CheckboxCellRenderer: CellRenderer = {
       tagPaddingX = 6,
       tagHeight = 20,
       tagRadius = 6,
-      tagBgColor = '#f4f4f0',
+      tagBgColor = getColor('#f4f4f0', themeV4Colors.base.white),
       tagSpacing = 4,
       tagBorderColor,
       tagBorderWidth,
@@ -40,6 +42,9 @@ export const CheckboxCellRenderer: CellRenderer = {
       ...parseProp(column.meta),
       icon: extractCheckboxIcon(column?.meta ?? {}),
     }
+
+    // default checkbox color is #777 and it is looking like disabled text color in dark mode, so we need to use the gray['600'] color in dark mode
+    const columnMetaColor = isDark && columnMeta.color === '#777' ? getColor(themeV4Colors.gray['600']) : columnMeta.color
 
     if (!isRowHovered && !selected && !checked && !renderAsTag) {
       return
@@ -66,7 +71,9 @@ export const CheckboxCellRenderer: CellRenderer = {
           size: 14,
           x: x + tagWidth / 2 - 4,
           y: initialY + 3,
-          color: columnMeta.color,
+          color: isDark
+            ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMetaColor, ['#4a5268', '#d5dce8'])
+            : columnMetaColor,
         })
 
       return {
@@ -85,7 +92,9 @@ export const CheckboxCellRenderer: CellRenderer = {
         size: 14,
         x: x + width / 2 - 7,
         y: y + height / 2 - 7,
-        color: columnMeta.color,
+        color: isDark
+          ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMetaColor, ['#4a5268', '#d5dce8'])
+          : columnMetaColor,
         alpha: checked ? 1 : isHover ? 0.7 : 0.3,
       })
     }
@@ -93,11 +102,15 @@ export const CheckboxCellRenderer: CellRenderer = {
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow, readonly } = ctx
     const columnObj = column.columnObj
-    if (column.readonly || readonly || !column?.isCellEditable) return
+    if (column.readonly || readonly || !column?.isCellEditable || column.isSyncedColumn) return
 
     if (e.key === 'Enter') {
       row.row[columnObj.title!] = !row.row[columnObj.title!]
-      await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, ctx.path)
+      try {
+        await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, ctx.path)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
       return true
     }
 
@@ -105,11 +118,15 @@ export const CheckboxCellRenderer: CellRenderer = {
   },
   async handleClick(ctx) {
     const { row, column, updateOrSaveRow, getCellPosition, mousePosition, selected, readonly, formula } = ctx
-    if (column.readonly || readonly || formula || !column?.isCellEditable) return false
+    if (column.readonly || readonly || formula || !column?.isCellEditable || column.isSyncedColumn) return false
 
     if (selected) {
       row.row[column.title!] = !row.row[column.title!]
-      await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
+      try {
+        await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
       return true
     }
 
@@ -126,7 +143,11 @@ export const CheckboxCellRenderer: CellRenderer = {
 
     if (isBoxHovered(checkboxBounds, mousePosition)) {
       row.row[column.title!] = !row.row[column.title!]
-      await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
+      try {
+        await updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
       return true
     }
 

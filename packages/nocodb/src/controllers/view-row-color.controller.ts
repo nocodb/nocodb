@@ -50,6 +50,7 @@ export class ViewRowColorController {
     body: {
       color: string;
       is_set_as_background: boolean;
+      type?: string;
       nc_order: number;
       filter: FilterType;
     },
@@ -71,6 +72,7 @@ export class ViewRowColorController {
     body: {
       color: string;
       is_set_as_background: boolean;
+      type?: string;
       nc_order: number;
     },
   ) {

@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, ViewSettingOverrideOptions, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import {
+  RelationTypes,
+  UITypes,
+  ViewLockType,
+  ViewSettingOverrideOptions,
+  ViewTypes,
+  isLinksOrLTAR,
+  isSystemColumn,
+} from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
@@ -17,9 +25,15 @@ const isToolbarIconMode = inject(
 
 const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } = useViewColumnsOrThrow()
 
-const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
+const { fieldsToGroupBy, groupByLimit, localGroupBy, canSyncGroupBy } = useViewGroupByOrThrow()
 
 const { $e } = useNuxtApp()
+
+const { isUserViewOwner } = useViewsStore()
+
+const isRestrictedEditor = computed(() => isLocked.value || !canSyncGroupBy.value)
+
+const isPersonalViewNonOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value))
 
 interface Group {
   fk_column_id?: string
@@ -29,7 +43,8 @@ interface Group {
 
 const _groupBy = ref<Group[]>([])
 
-const groupBy = computed<Group[]>(() => {
+// Synced group-bys from gridViewCols (server-persisted)
+const syncedGroupByEntries = computed<Group[]>(() => {
   const tempGroupBy: Group[] = []
   Object.values(gridViewCols.value).forEach((col) => {
     if (col.group_by) {
@@ -44,7 +59,16 @@ const groupBy = computed<Group[]>(() => {
   return tempGroupBy
 })
 
-const groupedByColumnIds = computed(() => groupBy.value.map((g) => g.fk_column_id).filter((g) => g))
+// All group-by column IDs for badge count and column filtering
+const groupedByColumnIds = computed(() => {
+  // null = no override (use synced), [] = override with empty (no grouping)
+  if (localGroupBy.value !== null) {
+    return localGroupBy.value.map((g) => g.column.id).filter(Boolean)
+  }
+  return syncedGroupByEntries.value.map((g) => g.fk_column_id).filter(Boolean)
+})
+
+const totalGroupByCount = computed(() => _groupBy.value.length)
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -79,7 +103,7 @@ const availableColumns = computed(() => {
         /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
       }
     })
-    .filter((c) => !groupBy.value.find((g) => g.fk_column_id === c.id))
+    .filter((c) => !groupedByColumnIds.value.includes(c.id!))
 })
 
 const getColumnUidtByID = (key?: string) => {
@@ -91,7 +115,13 @@ const open = ref(false)
 useMenuCloseOnEsc(open)
 
 const saveGroupBy = async () => {
-  if (view.value?.id) {
+  if (!view.value?.id) {
+    message.error('View not found!!!')
+    return
+  }
+
+  if (canSyncGroupBy.value) {
+    // Synced mode: persist to server via updateGridViewColumn
     try {
       for (const gby of _groupBy.value) {
         if (!gby.fk_column_id) continue
@@ -105,7 +135,7 @@ const saveGroupBy = async () => {
         }
       }
 
-      for (const gby of groupBy.value) {
+      for (const gby of syncedGroupByEntries.value) {
         if (!gby.fk_column_id) continue
         if (_groupBy.value.find((g) => g.fk_column_id === gby.fk_column_id)) continue
         const col = gridViewCols.value[gby.fk_column_id]
@@ -118,14 +148,35 @@ const saveGroupBy = async () => {
         }
       }
 
-      $e('a:group-by:update', { groupBy: groupBy.value })
+      $e('a:group-by:update', { groupBy: syncedGroupByEntries.value })
 
       eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
     } catch (e) {
       message.error('There was an error while updating view!')
     }
   } else {
-    message.error('View not found!!!')
+    // Local mode: update localGroupBy ref
+    const allColumns = meta.value?.columns || []
+    const newLocalGroupBy = _groupBy.value
+      .filter((g) => g.fk_column_id)
+      .map((g, i) => ({
+        column: allColumns.find((c) => c.id === g.fk_column_id)!,
+        sort: g.sort,
+        order: i + 1,
+      }))
+      .filter((g) => g.column)
+
+    localGroupBy.value = newLocalGroupBy
+
+    $e('a:group-by:update', { groupBy: _groupBy.value, local: true })
+
+    // Wait for Vue to propagate localGroupBy changes through the component tree
+    // so that child components (e.g. CanvasTable) have updated props before the
+    // reload handler runs. Without this, the canvas handler sees stale isGroupBy
+    // state and takes the wrong (non-grouped) code path.
+    await nextTick()
+
+    eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
   }
 }
 
@@ -142,19 +193,31 @@ const removeFieldFromGroupBy = async (group: Group) => {
   }
 
   const index = _groupBy.value.findIndex((g) => g.fk_column_id === group.fk_column_id)
-  _groupBy.value.splice(+index, 1)
+  if (index >= 0) {
+    _groupBy.value.splice(index, 1)
+  }
   await saveGroupBy()
 }
 
 watch(open, () => {
   if (open.value) {
-    _groupBy.value = [...groupBy.value]
+    if (isRestrictedEditor.value && localGroupBy.value !== null) {
+      // Restricted editors with local override (including empty []): load from local state
+      _groupBy.value = localGroupBy.value.map((e, i) => ({
+        fk_column_id: e.column.id,
+        sort: e.sort,
+        order: i + 1,
+      }))
+    } else {
+      // Creators or restricted editors without local overrides (null): load from synced
+      _groupBy.value = [...syncedGroupByEntries.value]
+    }
   } else {
     showCreateGroupBy.value = false
   }
 })
 
-const smartSheetListener = async (event: SmartsheetStoreEvents, payload = {}) => {
+const smartSheetListener = async (event: SmartsheetStoreEvents, payload: any = {}) => {
   const column = payload?.column
 
   if (!column?.id) return
@@ -230,7 +293,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               $t('activity.group')
             }}</span>
           </div>
-          <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{
+          <span v-if="groupedByColumnIds?.length" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">{{
             groupedByColumnIds.length
           }}</span>
         </div>
@@ -242,15 +305,18 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           'nc-locked-view': isLocked,
         }"
       >
+        <!-- Empty state: show create group-by picker -->
         <SmartsheetToolbarCreateGroupBy
-          v-if="!_groupBy.length"
+          v-if="!_groupBy.length && !syncedGroupByEntries.length && !isPersonalViewNonOwner"
           :is-parent-open="open"
           :columns="getFieldsToGroupBy({})"
           :disabled="isLocked"
           @created="addFieldToGroupBy"
         />
+
+        <!-- Group-by list -->
         <div
-          v-else
+          v-else-if="_groupBy.length || syncedGroupByEntries.length"
           class="flex flex-col bg-nc-bg-default overflow-auto nc-group-by-list menu-filter-dropdown w-100 p-4"
           data-testid="nc-group-by-menu"
         >
@@ -258,13 +324,14 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
             <Draggable
               :model-value="_groupBy"
               item-key="fk_column_id"
-              ghost-class="bg-gray-50"
-              :disabled="isLocked"
+              ghost-class="bg-nc-bg-gray-extralight"
+              :disabled="isLocked || !isEeUI"
               @change="onMove($event)"
             >
               <template #item="{ element: group }">
                 <div :key="group.fk_column_id" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
                   <NcButton
+                    v-if="isEeUI"
                     type="secondary"
                     size="small"
                     class="!border-r-transparent !rounded-r-none"
@@ -276,6 +343,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   <LazySmartsheetToolbarFieldListAutoCompleteDropdown
                     v-model="group.fk_column_id"
                     class="caption nc-group-field-select !w-36"
+                    :class="!isEeUI ? 'nc-disable-reorder' : ''"
                     :columns="getFieldsToGroupBy(group)"
                     :allow-empty="true"
                     :meta="meta"
@@ -313,7 +381,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                   <!--                <NcDropdown :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])" :trigger="['click']">
                   <NcButton
                     :disabled="!isColumnSupportsGroupBySettings(columnByID[group.fk_column_id])"
-                    class="!rounded-none !border-gray-200 !border-l-transparent"
+                    class="!rounded-none !border-nc-border-gray-medium !border-l-transparent"
                     type="secondary"
                     size="small"
                   >
@@ -345,9 +413,16 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               </template>
             </Draggable>
           </div>
-          <div class="flex items-center justify-between children:flex-none mt-2 empty:hidden">
+
+          <!-- Add Sub Group button -->
+          <div v-if="!isPersonalViewNonOwner" class="flex items-center justify-between mt-2 empty:hidden">
             <NcDropdown
-              v-if="availableColumns.length && fieldsToGroupBy.length > _groupBy.length && _groupBy.length < groupByLimit"
+              v-if="
+                availableColumns.length &&
+                fieldsToGroupBy.length > totalGroupByCount &&
+                totalGroupByCount < groupByLimit &&
+                !(view?.type === ViewTypes.TIMELINE && totalGroupByCount >= 1)
+              "
               v-model:visible="showCreateGroupBy"
               :trigger="['click']"
               overlay-class-name="nc-toolbar-dropdown"
@@ -360,7 +435,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                 style="width: fit-content"
                 class="nc-add-group-by-btn"
                 :class="{
-                  '!text-brand-500': !isLocked,
+                  '!text-nc-content-brand': !isLocked,
                 }"
                 :disabled="isLocked"
                 @click.stop="showCreateGroupBy = true"
@@ -390,12 +465,12 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
         <GeneralLockedViewFooter
           v-if="isLocked"
           :class="{
-            '-mt-2': _groupBy.length,
+            '-mt-2': _groupBy.length || syncedGroupByEntries.length,
           }"
           @on-open="open = false"
         />
         <div
-          v-else-if="view && !_groupBy.length"
+          v-else-if="view && !_groupBy.length && !syncedGroupByEntries.length"
           class="flex items-center justify-end empty:hidden pl-3 pr-2 py-1.5 border-t-1 border-nc-border-gray-medium"
         >
           <LazyGeneralCopyFromAnotherViewActionBtn
@@ -413,7 +488,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
 :deep(.nc-group-field-select) {
   @apply !w-36;
   .ant-select-selector {
-    @apply !rounded-none !border-r-0 !border-gray-200 !shadow-none !w-36;
+    @apply !rounded-none !border-r-0 !border-nc-border-gray-medium !shadow-none !w-36;
 
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;
@@ -425,16 +500,22 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
   }
 }
 
+:deep(.nc-group-field-select.nc-disable-reorder) {
+  .ant-select-selector {
+    @apply !rounded-l-lg;
+  }
+}
+
 :deep(.nc-select:not(.ant-select-disabled):hover) {
   &,
   .ant-select-selector {
-    @apply bg-gray-50;
+    @apply bg-nc-bg-gray-extralight;
   }
 }
 
 :deep(.nc-group-sort-dir-select) {
   .ant-select-selector {
-    @apply !rounded-none !border-gray-200 !shadow-none;
+    @apply !rounded-none !border-nc-border-gray-medium !shadow-none;
   }
 }
 </style>

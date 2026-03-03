@@ -149,6 +149,10 @@ export enum ImportWorkerResponse {
   ERROR = 'error',
 }
 
+export enum FeatureFlag {
+  MANAGED_APP = 'MANAGED_APP',
+}
+
 export enum ImportType {
   EXCEL = 'excel',
   CSV = 'csv',
@@ -182,6 +186,7 @@ export enum RichTextBubbleMenuOptions {
   numberedList = 'numberedList',
   taskList = 'taskList',
   link = 'link',
+  image = 'image',
 }
 
 export enum CoverImageObjectFit {
@@ -218,4 +223,12 @@ export const EventBusEnum = {
   RealtimeBaseUser: Symbol('RealtimeBaseUser'),
   RealtimeViewMeta: Symbol('RealtimeViewMeta'),
   SmartsheetActions: Symbol('SmartSheetActions'),
+}
+
+export enum NcBaseCreateMode {
+  FROM_SCRATCH = 'fromScratch',
+  FROM_TEMPLATE = 'fromTemplate',
+  BUILD_WITH_AI = 'buildWithAi',
+  FROM_APP_STORE = 'fromAppStore',
+  MANAGED_APP = 'managedApp',
 }

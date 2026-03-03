@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ButtonActionsType, type ButtonType, type ColumnType } from 'nocodb-sdk'
+import { ButtonActionsType, type ButtonType, type ColumnType, type FilterType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { validateRowFilters } from '~/utils/dataUtils'
 
 const column = inject(ColumnInj) as Ref<
   ColumnType & {
@@ -38,9 +39,9 @@ const { runScript, activeExecutions, fieldIDRowMapping } = useScriptExecutor()
 
 const { addScriptExecution } = useActionPane()
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { loadAutomation } = automationStore
+const { loadScript } = scriptStore
 
 const isLoading = ref(false)
 
@@ -107,7 +108,34 @@ const isExecuting = computed(
 
 const invalidUrlTooltip = ref('')
 
+const baseStore = useBase()
+const { getBaseType } = baseStore
+const { metas } = useMetas()
+const { user } = useGlobal()
+
+const isFilterConditionMet = computed(() => {
+  const filters = column.value.colOptions?.filters as FilterType[] | undefined
+  if (!filters || !filters.length) return true
+
+  const rowData = currentRow.value?.row
+  if (!rowData) return true
+
+  const columns = meta.value?.columns as ColumnType[]
+  if (!columns) return true
+
+  return validateRowFilters(filters, rowData, columns, getBaseType(meta.value?.source_id), metas.value, meta.value?.base_id, {
+    currentUser: user.value?.id ? { id: user.value.id, email: user.value.email } : undefined,
+  })
+})
+
+const filterDisabledTooltip = computed(() => {
+  if (isFilterConditionMet.value) return ''
+  return t('msg.buttonConditionNotMet')
+})
+
 const componentProps = computed(() => {
+  const filterDisabled = !isFilterConditionMet.value
+
   if (column.value.colOptions.type === ButtonActionsType.Url) {
     let url = addMissingUrlSchma(cellValue.value?.url)
 
@@ -125,11 +153,12 @@ const componentProps = computed(() => {
     return {
       href: url,
       target: '_blank',
-      ...(column.value?.colOptions.error || !isValidUrl ? { disabled: true } : {}),
+      ...(column.value?.colOptions.error || !isValidUrl || filterDisabled ? { disabled: true } : {}),
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Webhook) {
     return {
       disabled:
+        filterDisabled ||
         isPublic.value ||
         !isUIAllowed('hookTrigger') ||
         isLoading.value ||
@@ -138,11 +167,12 @@ const componentProps = computed(() => {
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Script) {
     return {
-      disabled: isPublic.value || isExecuting.value || !isUIAllowed('dataEdit') || isLoading.value,
+      disabled: filterDisabled || isPublic.value || isExecuting.value || !isUIAllowed('dataEdit') || isLoading.value,
     }
   } else if (column.value.colOptions.type === ButtonActionsType.Ai) {
     return {
       disabled:
+        filterDisabled ||
         isPublic.value ||
         !isUIAllowed('dataEdit') ||
         !isFieldAiIntegrationAvailable.value ||
@@ -161,7 +191,7 @@ const componentProps = computed(() => {
     }
   }
 
-  return {}
+  return filterDisabled ? { disabled: true } : {}
 })
 
 const afterActionStatus = ref<{
@@ -181,7 +211,16 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
+      await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'hookTrigger',
+          hookId: cellValue.value?.fk_webhook_id,
+          rowId: rowId!.value,
+        },
+        {},
+      )
 
       afterActionStatus.value = { status: 'success' }
       ncDelay(2000).then(() => {
@@ -206,7 +245,7 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      const script = await loadAutomation(colOptions.fk_script_id)
+      const script = await loadScript(colOptions.fk_script_id)
 
       if (!script) {
         throw new Error('Script not found')
@@ -261,14 +300,16 @@ const triggerAction = async () => {
     <NcTooltip
       :disabled="
         isAiButtonType
-          ? isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')
-          : !invalidUrlTooltip && !afterActionStatus?.tooltip
+          ? (isFieldAiIntegrationAvailable || isPublic || !isUIAllowed('dataEdit')) && !filterDisabledTooltip
+          : !invalidUrlTooltip && !afterActionStatus?.tooltip && !filterDisabledTooltip
       "
       class="flex"
     >
       <template #title>
         {{
-          isAiButtonType
+          filterDisabledTooltip
+            ? filterDisabledTooltip
+            : isAiButtonType
             ? aiIntegrations.length
               ? $t('tooltip.aiIntegrationReConfigure')
               : $t('tooltip.aiIntegrationAddAndReConfigure')
@@ -346,8 +387,7 @@ const triggerAction = async () => {
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   }
   &:focus-within {
-    @apply outline-none ring-0;
-    box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px #3069fe;
+    @apply outline-none ring-0 shadow-focus;
   }
   &[disabled] {
     @apply opacity-50 cursor-not-allowed;
@@ -456,7 +496,7 @@ const triggerAction = async () => {
       @apply bg-gray-200;
     }
     &:focus {
-      box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+      @apply shadow-focus;
     }
 
     &.brand {

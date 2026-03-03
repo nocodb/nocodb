@@ -119,6 +119,7 @@ export function convertUnits(unit: string, type: 'mysql' | 'pg' | 'sqlite') {
       }
     }
     default:
-      return unit;
+      // Reject unrecognized units — prevents raw SQL interpolation of unsanitized input
+      return 'seconds';
   }
 }

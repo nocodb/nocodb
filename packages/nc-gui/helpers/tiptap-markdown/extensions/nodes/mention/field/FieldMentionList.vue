@@ -102,7 +102,7 @@ export default {
 
 <template>
   <div
-    class="w-64 bg-white scroll-smooth nc-mention-list nc-scrollbar-thin border-1 border-gray-200 rounded-lg max-h-64 !py-2 px-2 shadow-lg"
+    class="w-64 bg-nc-bg-default scroll-smooth nc-mention-list nc-scrollbar-thin border-1 border-nc-border-gray-medium rounded-lg max-h-64 !py-2 px-2 shadow-lg"
     @mousedown.stop
   >
     <template v-if="items.length">
@@ -110,7 +110,7 @@ export default {
         v-for="(item, index) in items"
         :key="index"
         :class="{ 'is-selected': index === selectedIndex }"
-        class="py-2 flex hover:bg-gray-100 rounded-md transition-all cursor-pointer items-center gap-2 text-gray-800 pl-4"
+        class="py-2 flex hover:bg-nc-bg-gray-light rounded-md transition-all cursor-pointer items-center gap-2 text-nc-content-gray pl-4"
         @click="selectItem(index, $event)"
       >
         <SmartsheetHeaderIcon
@@ -133,6 +133,6 @@ export default {
 
 <style lang="scss" scoped>
 .is-selected {
-  @apply bg-gray-100;
+  @apply bg-nc-bg-gray-light;
 }
 </style>

@@ -14,13 +14,23 @@ const props = withDefaults(
   },
 )
 
+provide(IsExpandedFormOpenInj, ref(true))
+
 provide(RowHeightInj, ref(1 as const))
+
+provide(IsUnderLookupInj, ref(true))
+
+provide(IsLinkRecordDropdownInj, ref(true))
+
+provide(IsFormInj, ref(false))
 
 const row = useVModel(props, 'row')
 
 const { fields, fieldsToDisplay, displayField } = toRefs(props)
 
 const { getPossibleAttachmentSrc } = useAttachment()
+
+const { isMounted } = useIsMounted()
 
 interface Attachment {
   url: string
@@ -51,16 +61,18 @@ useProvideSmartsheetRowStore(row)
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper px-[1px]">
+  <div
+    class="nc-list-item-wrapper hover:bg-nc-bg-gray-extralight group px-[1px] border-y-1 border-nc-border-gray-medium border-t-transparent"
+  >
     <a-card
       tabindex="0"
-      class="nc-list-item !outline-none transition-all relative group-hover:bg-nc-bg-gray-extralight cursor-pointer"
+      class="nc-list-item !outline-none transition-all relative group-hover:!bg-nc-bg-gray-extralight cursor-pointer !border-transparent"
       :body-style="{ padding: '6px 10px !important', borderRadius: 0 }"
       :hoverable="false"
     >
       <div class="flex items-center gap-3">
         <template v-if="attachmentField">
-          <div v-if="attachments && attachments.length">
+          <div v-if="isMounted && attachments && attachments.length">
             <a-carousel autoplay class="!w-11 !h-11 !max-h-11 !max-w-11">
               <template #customPaging> </template>
               <template v-for="(attachmentObj, index) in attachments">
@@ -85,7 +97,7 @@ useProvideSmartsheetRowStore(row)
           <SmartsheetPlainCell
             :model-value="row.row[displayField.title]"
             :column="displayField"
-            class="font-semibold text-brand-500 nc-display-value leading-[20px]"
+            class="font-semibold text-nc-content-brand nc-display-value leading-[20px]"
           />
 
           <div v-if="fieldsToDisplay.length > 0" class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5">
@@ -142,7 +154,7 @@ useProvideSmartsheetRowStore(row)
 .nc-picker-record-cell {
   :deep(.nc-cell),
   :deep(.nc-virtual-cell) {
-    @apply !text-small !text-gray-600 ml-1;
+    @apply !text-small !text-nc-content-gray-subtle2 ml-1;
 
     .nc-cell-field,
     .nc-cell-field-link,
@@ -152,13 +164,13 @@ useProvideSmartsheetRowStore(row)
     }
 
     &:not(.nc-display-value-cell) {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
       font-weight: 500;
 
       .nc-cell-field,
       input,
       textarea {
-        @apply text-gray-600;
+        @apply text-nc-content-gray-subtle2;
         font-weight: 500;
       }
     }
@@ -228,8 +240,8 @@ useProvideSmartsheetRowStore(row)
 
   &:focus-visible,
   &.nc-is-selected {
-    @apply border-brand-500;
-    box-shadow: 0 0 0 1px #3366ff;
+    @apply border-nc-border-brand;
+    box-shadow: 0 0 0 1px rgba(var(--rgb-color-brand-500), 1);
   }
   &:hover {
     .nc-text-area-expand-btn {

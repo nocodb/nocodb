@@ -23,6 +23,9 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+// Inject breadcrumbs before dropdown teleport boundary
+const parentBreadcrumbs = inject(TemplateBreadcrumbsInj, ref([]))
+
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
@@ -45,7 +48,7 @@ const { isUIAllowed } = useRoles()
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, unlink, meta } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -55,7 +58,10 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, un
 await loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
+  return (
+    ((!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)) &&
+    !(meta.value?.synced && column.value?.readonly)
+  )
 })
 
 const localCellValue = computed<any[]>(() => {
@@ -230,7 +236,7 @@ onUnmounted(() => {
           v-if="hasEditPermission"
           size="xxsmall"
           type="secondary"
-          class="nc-action-icon nc-many-to-many-plus-icon !h-5 !w-5"
+          class="nc-action-icon nc-many-to-many-plus-icon !h-5 !w-5 !min-w-5"
           @click.stop="openListDlg"
         >
           <GeneralIcon icon="plus" class="text-sm nc-plus h-3 w-3" />
@@ -239,10 +245,10 @@ onUnmounted(() => {
           <NcButton
             size="xxsmall"
             type="secondary"
-            class="nc-action-icon nc-many-to-many-maximize-icon !h-5 !w-5"
+            class="nc-action-icon nc-many-to-many-maximize-icon !h-5 !w-5 !min-w-5"
             @click.stop="openChildList"
           >
-            <GeneralIcon icon="maximize" class="!h-3 !w.3" />
+            <GeneralIcon icon="maximize" class="!h-3 !w-3" />
           </NcButton>
         </NcTooltip>
       </div>
@@ -254,6 +260,8 @@ onUnmounted(() => {
         v-model="childListDlg"
         :cell-value="localCellValue"
         :column="m2mColumn"
+        :items="cells.length"
+        :parent-breadcrumbs="parentBreadcrumbs"
         @attach-record="onAttachRecord"
         @escape="isOpen = false"
       />
@@ -262,6 +270,7 @@ onUnmounted(() => {
         v-model="listItemsDlg"
         :column="m2mColumn"
         :hide-back-btn="hideBackBtn"
+        :parent-breadcrumbs="parentBreadcrumbs"
         @attach-linked-record="onAttachLinkedRecord"
         @escape="isOpen = false"
       />

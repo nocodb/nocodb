@@ -61,7 +61,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
       if (!ignoreLoadingIndicator) isCommentsLoading.value = true
 
       const res = ((
-        await $api.utils.commentList({
+        await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'commentList',
           row_id: rowId,
           fk_model_id: meta.value.id as string,
         })
@@ -102,7 +103,16 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     try {
       comments.value = comments.value.filter((c) => c.id !== commentId)
 
-      await $api.utils.commentDelete(commentId)
+      await $api.internal.postOperation(
+        (meta.value as any).fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'commentDelete',
+        },
+        {
+          commentId,
+        },
+      )
 
       // update comment count in rowMeta
       Object.assign(row.value, {
@@ -146,7 +156,16 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         }
         return c
       })
-      await $api.utils.commentResolve(commentId, {})
+      await $api.internal.postOperation(
+        (meta.value as any).fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'commentResolve',
+        },
+        {
+          commentId,
+        },
+      )
     } catch (e: unknown) {
       comments.value = comments.value.map((c) => {
         if (c.id === commentId) {
@@ -175,11 +194,18 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
       if (!rowId) return
 
-      await $api.utils.commentRow({
-        fk_model_id: meta.value?.id as string,
-        row_id: rowId,
-        comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
-      })
+      await $api.internal.postOperation(
+        (meta.value as any).fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'commentRow',
+        },
+        {
+          fk_model_id: meta.value?.id as string,
+          row_id: rowId,
+          comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
+        },
+      )
 
       // Increase Comment Count in rowMeta
       Object.assign(row.value, {
@@ -220,7 +246,17 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
         }
         return c
       })
-      await $api.utils.commentUpdate(commentId, comment)
+      await $api.internal.postOperation(
+        (meta.value as any).fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'commentUpdate',
+        },
+        {
+          commentId,
+          ...comment,
+        },
+      )
     } catch (e: any) {
       comments.value = comments.value.map((c) => {
         if (c.id === commentId) {

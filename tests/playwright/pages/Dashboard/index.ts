@@ -29,6 +29,7 @@ import { CmdK } from './Command/CmdKPage';
 import { CmdL } from './Command/CmdLPage';
 import { CalendarPage } from './Calendar';
 import { Extensions } from './Extensions';
+import { ScriptsPage } from './Scripts';
 
 export class DashboardPage extends BasePage {
   readonly base: any;
@@ -63,6 +64,7 @@ export class DashboardPage extends BasePage {
   readonly cmdK: CmdK;
   readonly cmdL: CmdL;
   readonly extensions: Extensions;
+  readonly scripts: ScriptsPage;
 
   constructor(rootPage: Page, base: any) {
     super(rootPage);
@@ -97,6 +99,7 @@ export class DashboardPage extends BasePage {
     this.cmdK = new CmdK(this);
     this.cmdL = new CmdL(this);
     this.extensions = new Extensions(this);
+    this.scripts = new ScriptsPage(this);
   }
 
   get() {
@@ -112,8 +115,8 @@ export class DashboardPage extends BasePage {
   }
 
   async clickOnBaseMenuLink() {
-    // Open base list sidebar if it is not open
-    await this.leftSidebar.verifyBaseListOpen(true);
+    // Ensure the base is active/open in the sidebar (opens from modal if needed)
+    await this.sidebar.baseNode.verifyActiveProject({ baseTitle: this.base.title, open: true });
 
     const baseMenuLocator = this.rootPage.locator(`.base-title-node:has-text("${this.base.title}")`).first();
 
@@ -121,7 +124,7 @@ export class DashboardPage extends BasePage {
     await baseMenuLocator.scrollIntoViewIfNeeded();
     await baseMenuLocator.hover();
 
-    await baseMenuLocator.locator('[data-testid="nc-sidebar-context-menu"]').first().click();
+    await baseMenuLocator.click();
   }
 
   async verifyTeamAndSettingsLinkIsVisible() {

@@ -10,7 +10,7 @@ const { te, t } = useI18n()
 const hasSidebar = ref(true)
 const isOpen = ref(true)
 
-const { signOut, user } = useGlobal()
+const { signOut, user, appInfo } = useGlobal()
 const { clearWorkspaces } = useWorkspace()
 
 const email = computed(() => user.value?.email ?? '---')
@@ -77,7 +77,7 @@ export default {
           <a-dropdown v-if="!isPublic" :trigger="['click']" overlay-class-name="nc-dropdown-user-accounts-menu">
             <div class="flex items-center gap-1 cursor-pointer" data-testid="nc-ws-account-menu-dropdown">
               <div
-                class="h-8.5 w-8.5 rounded-full text-xs bg-secondary flex items-center justify-center font-weight-bold text-black uppercase"
+                class="h-8.5 w-8.5 rounded-full text-xs bg-secondary flex items-center justify-center font-weight-bold text-nc-content-gray-extreme uppercase"
               >
                 {{ email ? email.split('@')[0].slice(0, 2) : 'A' }}
               </div>
@@ -87,11 +87,15 @@ export default {
             <template #overlay>
               <a-menu class="!py-0 leading-8 !rounded min-w-40">
                 <a-menu-item key="0" data-testid="nc-menu-accounts__user-settings" class="!rounded-t">
-                  <nuxt-link v-e="['c:navbar:user:email']" class="nc-base-menu-item group !no-underline" to="/account/users">
+                  <nuxt-link
+                    v-e="['c:navbar:user:email']"
+                    class="nc-base-menu-item group !no-underline"
+                    :to="appInfo.isCloud ? '/account/users' : '/admin?tab=users-list'"
+                  >
                     <MdiAccountCircleOutline class="mt-1 group-hover:text-accent" />&nbsp;
                     <div class="prose group-hover:text-primary">
                       <div>{{ $t('labels.account') }}</div>
-                      <div class="text-xs text-gray-500">{{ email }}</div>
+                      <div class="text-xs text-nc-content-gray-muted">{{ email }}</div>
                     </div>
                   </nuxt-link>
                 </a-menu-item>
@@ -138,7 +142,7 @@ export default {
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
-        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_var(--new-header-height))] !shadow-none border-gray-100 border-r-1 !overflow-x-hidden"
+        class="relative shadow-md h-full z-1 nc-left-sidebar h-[calc(100vh_-_var(--new-header-height))] !shadow-none border-nc-border-gray-light border-r-1 !overflow-x-hidden"
         :trigger="null"
         collapsible
         theme="light"
@@ -154,7 +158,7 @@ export default {
 
 <style scoped lang="scss">
 .nc-workspace-avatar {
-  @apply min-w-6 h-6 rounded-[6px] flex items-center justify-center text-white font-weight-bold uppercase;
+  @apply min-w-6 h-6 rounded-[6px] flex items-center justify-center text-nc-content-inverted-primary font-weight-bold uppercase;
   font-size: 0.7rem;
 }
 
@@ -216,7 +220,7 @@ export default {
     @apply flex gap-2 py-2 px-4 items-center;
 
     .nc-collab-avatar {
-      @apply w-6 h-6 rounded-full flex items-center justify-center text-white font-weight-bold uppercase;
+      @apply w-6 h-6 rounded-full flex items-center justify-center text-nc-content-inverted-primary font-weight-bold uppercase;
       font-size: 0.7rem;
     }
   }
@@ -227,15 +231,14 @@ export default {
 }
 
 .ant-layout-header {
-  @apply !h-20 bg-transparent;
-  border-bottom: 1px solid #f5f5f5;
+  @apply !h-20 bg-transparent border-b-1 border-nc-border-gray-medium;
 }
 
 .nc-quick-action-wrapper {
   @apply relative;
 
   input {
-    @apply h-10 w-60 bg-gray-100 rounded-md pl-9 pr-5 mr-2;
+    @apply h-10 w-60 bg-nc-bg-gray-light rounded-md pl-9 pr-5 mr-2;
   }
 
   .nc-quick-action-icon {
@@ -243,12 +246,12 @@ export default {
   }
 
   .nc-quick-action-shortcut {
-    @apply text-gray-400 absolute right-4 top-0;
+    @apply text-nc-content-gray-disabled absolute right-4 top-0;
   }
 }
 
 :deep(.ant-tabs-tab:not(ant-tabs-tab-active)) {
-  @apply !text-gray-500;
+  @apply !text-nc-content-gray-muted;
 }
 
 :deep(.ant-tabs-content) {

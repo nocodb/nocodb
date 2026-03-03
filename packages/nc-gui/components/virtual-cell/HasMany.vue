@@ -24,6 +24,9 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+// Inject breadcrumbs before dropdown teleport boundary
+const parentBreadcrumbs = inject(TemplateBreadcrumbsInj, ref([]))
+
 const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEventDataInjType>({}))
 
 const cellEventHook = inject(CellEventHookInj, null)
@@ -232,14 +235,19 @@ onUnmounted(() => {
           v-if="hasEditPermission"
           size="xsmall"
           type="secondary"
-          class="nc-action-icon nc-has-many-plus-icon"
+          class="nc-action-icon nc-has-many-plus-icon !h-5 !w-5 !min-w-5"
           @click.stop="openListDlg"
         >
-          <GeneralIcon icon="plus" class="text-sm nc-plus" />
+          <GeneralIcon icon="plus" class="text-sm nc-plus !h-3 !w-3" />
         </NcButton>
         <NcTooltip :title="$t('tooltip.expandShiftSpace')" :disabled="isExpandedForm" class="flex">
-          <NcButton size="xsmall" type="secondary" class="nc-action-icon nc-has-many-maximize-icon" @click.stop="openChildList">
-            <GeneralIcon icon="maximize" />
+          <NcButton
+            size="xsmall"
+            type="secondary"
+            class="nc-action-icon nc-has-many-maximize-icon !h-5 !w-5 !min-w-5"
+            @click.stop="openChildList"
+          >
+            <GeneralIcon icon="maximize" class="!h-3 !w-3" />
           </NcButton>
         </NcTooltip>
       </div>
@@ -250,6 +258,7 @@ onUnmounted(() => {
         v-model="listItemsDlg"
         :column="hasManyColumn"
         :hide-back-btn="hideBackBtn"
+        :parent-breadcrumbs="parentBreadcrumbs"
         @attach-linked-record="onAttachLinkedRecord"
         @escape="isOpen = false"
       />
@@ -259,6 +268,8 @@ onUnmounted(() => {
         v-model="childListDlg"
         :cell-value="localCellValue"
         :column="hasManyColumn"
+        :items="cells.length"
+        :parent-breadcrumbs="parentBreadcrumbs"
         @attach-record="onAttachRecord"
         @escape="isOpen = false"
       />

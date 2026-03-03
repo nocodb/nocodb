@@ -87,6 +87,7 @@ export interface IBaseModelSqlV2 {
     model?: Model;
     knex?: XKnex;
     baseModel?: IBaseModelSqlV2;
+    updatedColIds: string[];
   }): Promise<void>;
   readOnlyPrimariesByPkFromModel(
     props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
@@ -350,6 +351,32 @@ export interface IBaseModelSqlV2 {
       skipSubstitutingColumnIds?: boolean;
     },
   ): Promise<any>;
+  selectObject(params: {
+    fieldsSet?: Set<string>;
+    qb: Knex.QueryBuilder & Knex.QueryInterface;
+    columns?: Column[];
+    fields?: string[] | string;
+    extractPkAndPv?: boolean;
+    viewId?: string;
+    alias?: string;
+    validateFormula?: boolean;
+    pkAndPvOnly?: boolean;
+    linksAsLtar?: boolean;
+  }): Promise<void>;
+  getProto(param?: {
+    apiVersion?: NcApiVersion;
+    linksAsLtar?: boolean;
+  }): Promise<
+    {
+      __proto__?: {
+        __columnAliases?: {
+          [key: string]: any;
+        };
+      };
+    } & {
+      [key: string]: any;
+    }
+  >;
 
   broadcastLinkUpdates(ids: Array<string>): Promise<void>;
   getSource(): Promise<Source>;
@@ -359,6 +386,8 @@ export interface IBaseModelSqlV2 {
    */
   getNonTransactionalClone(): IBaseModelSqlV2;
 
+  now(): string;
+  schema?: string;
   get viewId(): string;
   /** Returns the active database driver (transaction if active, otherwise base driver) */
   get dbDriver(): CustomKnex;
@@ -375,4 +404,12 @@ export interface IBaseModelSqlV2 {
     isPg: boolean;
     isMySQL: boolean;
   };
+
+  /**
+   * Set to true when a formula dry-run fails during validateFormula.
+   * Subsequent dry-runs on the same instance short-circuit immediately
+   * to avoid amplifying requests to an overwhelmed external source.
+   */
+  formulaDryRunFailed?: boolean;
+  getRlsConditions(): Promise<Filter[]>;
 }

@@ -11,6 +11,7 @@ import {
 } from '../../factory/column';
 import { createTable, getColumnsByAPI, getTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
+import { META_COL_NAME } from '../../../../src/constants';
 import type Model from '../../../../src/models/Model';
 import type Base from '~/models/Base';
 import type Column from '../../../../src/models/Column';
@@ -20,6 +21,8 @@ import type Column from '../../../../src/models/Column';
 // a. adding a QR code column which references another column
 //   - delivers the same cell values as the referenced column
 //   - gets deleted if the referenced column gets deleted
+
+const isEE = process.env.EE === 'true';
 
 function columnTypeSpecificTests() {
   let context;
@@ -62,6 +65,15 @@ function columnTypeSpecificTests() {
       uidt: UITypes.Order,
       system: true,
     },
+    ...(isEE
+      ? [
+          {
+            title: META_COL_NAME,
+            uidt: UITypes.Meta,
+            system: true,
+          },
+        ]
+      : []),
     {
       title: 'DateField',
       uidt: UITypes.Date,
@@ -178,7 +190,10 @@ function columnTypeSpecificTests() {
       const rowAttributes: any = [];
       for (let i = 0; i < 100; i++) {
         const row = {
-          DateField: rowMixedValue(columns[6], i),
+          DateField: rowMixedValue(
+            columns.find((c) => c.title === 'DateField'),
+            i,
+          ),
         };
         rowAttributes.push(row);
       }
@@ -506,7 +521,10 @@ function columnTypeSpecificTests() {
         // get all columns
         let columns = await getColumnsByAPI(context, base, table);
         // delete the field
-        await deleteColumn(context, { table, column: columns.columns[7] });
+        await deleteColumn(context, {
+          table,
+          column: columns.columns[columns.columns.length - 1],
+        });
         // create column again
         await createColumn(context, table, {
           title: 'CreatedBy',

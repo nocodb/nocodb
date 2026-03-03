@@ -16,6 +16,10 @@ const baseStore = useBase()
 
 const { loadProject } = baseStore
 
+const { base } = storeToRefs(baseStore)
+
+provide(ProjectInj, base)
+
 // create a new sidebar state
 const { toggle, toggleHasSidebar } = useSidebar('nc-left-sidebar', { hasSidebar: true, isOpen: true })
 
@@ -109,7 +113,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 .nc-left-sidebar {
   .nc-sidebar-left-toggle-icon {
-    @apply opacity-0 transition-opacity duration-200 transition-colors text-gray-500/80 hover:text-gray-500/100;
+    @apply opacity-0 transition-opacity duration-200 transition-colors text-nc-content-gray-muted/80 hover:text-nc-content-gray-muted/100;
 
     .nc-left-sidebar {
       @apply !border-r-0;

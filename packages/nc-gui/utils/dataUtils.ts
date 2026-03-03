@@ -86,7 +86,7 @@ export async function populateInsertObject({
 }: {
   meta: TableType
   ltarState: Record<string, any>
-  getMeta: (tableIdOrTitle: string, force?: boolean) => Promise<TableType | null>
+  getMeta: (baseId: string, tableIdOrTitle: string, force?: boolean) => Promise<TableType | null>
   row: Record<string, any>
   throwError?: boolean
   undo?: boolean
@@ -106,7 +106,8 @@ export async function populateInsertObject({
         const ltarVal = ltarState[col.title!] || row[col.title!]
         const colOpt = <LinkToAnotherRecordType>col.colOptions
         const childCol = meta.columns!.find((c) => colOpt.fk_child_column_id === c.id)
-        const relatedTableMeta = (await getMeta(colOpt.fk_related_model_id!)) as TableType
+        const relatedBaseId = (colOpt as any)?.fk_related_base_id || meta.base_id
+        const relatedTableMeta = (await getMeta(relatedBaseId!, colOpt.fk_related_model_id!)) as TableType
         if (relatedTableMeta && childCol) {
           o[childCol.title!] = ltarVal[relatedTableMeta!.columns!.find((c) => c.id === colOpt.fk_parent_column_id)!.title!]
           if (o[childCol.title!] !== null && o[childCol.title!] !== undefined) missingRequiredColumns.delete(childCol.title)
@@ -139,9 +140,15 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
     if (
       !isSystemColumn(col) &&
       !isVirtualCol(col) &&
-      ![UITypes.Attachment, UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(
-        col.uidt,
-      ) &&
+      ![
+        UITypes.Attachment,
+        UITypes.Rollup,
+        UITypes.Lookup,
+        UITypes.Formula,
+        UITypes.Barcode,
+        UITypes.QrCode,
+        UITypes.UUID,
+      ].includes(col.uidt) &&
       isValidValue(col?.cdf) &&
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
@@ -166,11 +173,13 @@ export function validateRowFilters(
   columns: ColumnType[],
   client: any,
   metas: Record<string, any>,
+  baseId?: string,
   options?: {
     currentUser?: {
       id: string
       email: string
     }
+    timezone?: string
   },
 ) {
   return sdkValidateRowFilters({
@@ -179,6 +188,7 @@ export function validateRowFilters(
     columns,
     client,
     metas,
+    baseId,
     options,
   })
 }
@@ -385,8 +395,13 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions as LinkToAnotherRecordType)
     : null
-  const relatedTableMeta =
-    relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+
+  // Use fk_related_base_id for cross-base relationships
+  const relatedBaseId = relationColumnOptions?.fk_related_base_id || meta?.base_id
+  const relatedTableMeta = relationColumnOptions?.fk_related_model_id
+    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null) ||
+      metas?.[relationColumnOptions.fk_related_model_id as string]
+    : null
 
   let childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
     | ColumnType
@@ -419,8 +434,12 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
     ? (meta?.value ?? meta)?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
     : col.colOptions
 
-  const relatedTableMeta =
-    relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+  // Use fk_related_base_id for cross-base relationships
+  const relatedBaseId = (relationColumnOptions as LinkToAnotherRecordType)?.fk_related_base_id || (meta?.value ?? meta)?.base_id
+  const relatedTableMeta = relationColumnOptions?.fk_related_model_id
+    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null) ||
+      metas?.[relationColumnOptions.fk_related_model_id as string]
+    : null
 
   const childColumn = relatedTableMeta?.columns.find(
     (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
@@ -434,13 +453,23 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
       })
       .join(', ')
   }
+
+  // when childColumn not found (external base or nested links, simply return the modelValue
+  if (!childColumn) {
+    if (typeof modelValue === 'string') {
+      return modelValue
+    } else {
+      return modelValue?.toString() ?? ''
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   return parsePlainCellValue(modelValue, { ...params, col: childColumn })
 }
 
 export function getLookupColumnType(
   col: ColumnType,
-  meta: { columns: ColumnType[] },
+  meta: { columns: ColumnType[]; base_id?: string },
   metas: Record<string, any>,
   visitedIds = new Set<string>(),
 ): UITypes | null | undefined {
@@ -448,6 +477,7 @@ export function getLookupColumnType(
     col,
     meta,
     metas,
+    baseId: meta.base_id,
     visitedIds,
   })
 }

@@ -361,3 +361,45 @@ export const isValidValue = (val: unknown) => {
 
   return true;
 };
+
+/**
+ * Checks if a value is a valid UUID.
+ *
+ * @param value - The value to check.
+ * @param version - Optional UUID version to check (1, 2, 3, 4, or 5). If not provided, checks for any valid UUID.
+ * @returns {boolean} - True if the value is a valid UUID (of the specified version if provided), false otherwise.
+ *
+ * @example
+ * ```typescript
+ * console.log(ncIsUUID('550e8400-e29b-41d4-a716-446655440000')); // true (any version)
+ * console.log(ncIsUUID('550e8400-e29b-41d4-a716-446655440000', 4)); // true (v4)
+ * console.log(ncIsUUID('6ba7b810-9dad-11d1-80b4-00c04fd430c8', 4)); // false (not v4)
+ * console.log(ncIsUUID('invalid-uuid')); // false
+ * console.log(ncIsUUID(null)); // false
+ * ```
+ */
+export function ncIsUUID(
+  value: any,
+  version?: 1 | 2 | 3 | 4 | 5
+): value is string {
+  if (!ncIsString(value)) return false;
+
+  // UUID regex patterns by version
+  const uuidRegexPatterns = {
+    1: /^[0-9a-f]{8}-[0-9a-f]{4}-1[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    2: /^[0-9a-f]{8}-[0-9a-f]{4}-2[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    3: /^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    4: /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+    5: /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  };
+
+  // If version is specified, check for that specific version
+  if (version) {
+    return uuidRegexPatterns[version].test(value);
+  }
+
+  // Otherwise, check for any valid UUID version (v1-v5)
+  const uuidRegex =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(value);
+}

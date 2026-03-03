@@ -7,8 +7,8 @@ import {
   NumericalAggregations,
   UITypes,
 } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { NcContext } from 'nocodb-sdk';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { BarcodeColumn, QrCodeColumn } from '~/models';
 import { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -84,7 +84,7 @@ export default async function applyAggregation({
   column,
   alias,
 }: {
-  baseModelSqlv2: BaseModelSqlv2;
+  baseModelSqlv2: IBaseModelSqlV2;
   aggregation: string;
   column: Column;
   alias?: string;

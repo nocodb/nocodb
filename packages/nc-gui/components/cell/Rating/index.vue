@@ -7,6 +7,8 @@ const { modelValue } = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
+const { isDark, getColor } = useTheme()
+
 const column = inject(ColumnInj)!
 
 const readOnly = inject(ReadonlyInj, ref(false))
@@ -17,12 +19,18 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const ratingMeta = computed(() => {
   const icon = extractRatingIcon(column?.value?.meta)
-  return {
+  const result = {
     color: '#fcb401',
     max: 5,
     ...parseProp(column.value?.meta),
     icon,
   }
+
+  if (isDark.value) {
+    result.color = getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), result.color, ['#4a5268', '#d5dce8'])
+  }
+
+  return result
 })
 
 const vModel = computed({

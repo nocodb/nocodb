@@ -9,7 +9,9 @@ interface Props {
 const props = defineProps<Props>()
 
 const background = computed(() => {
-  return `repeating-linear-gradient(0deg,#FCFCFC, #FCFCFC ${props.rowHeight - 1}px, #E7E7E9 ${props.rowHeight}px)`
+  return `repeating-linear-gradient(0deg,var(--nc-bg-default), var(--nc-bg-default) ${
+    props.rowHeight - 1
+  }px, var(--nc-bg-gray-medium) ${props.rowHeight}px)`
 })
 
 const height = computed(() => `${props.totalRowHeight}px`)

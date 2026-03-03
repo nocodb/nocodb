@@ -43,7 +43,7 @@ const isDropdownOpen = ref(false)
     <NcButton
       v-if="props.button"
       :class="{
-        '!border-brand-500 !shadow-selected': isDropdownOpen,
+        '!border-nc-border-brand !shadow-selected': isDropdownOpen,
       }"
       type="secondary"
       size="small"

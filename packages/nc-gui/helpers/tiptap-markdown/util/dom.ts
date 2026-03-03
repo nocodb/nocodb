@@ -6,6 +6,8 @@ export function elementFromString(value) {
 }
 
 export function escapeHTML(value) {
+  if (!ncIsString(value)) return value
+
   return value?.replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 

@@ -87,12 +87,12 @@ onMounted(async () => {
 <template>
   <NcDropdown v-model:visible="isDropdownOpen" :trigger="['click']" placement="bottomRight" overlay-class-name="overflow-hidden">
     <slot>
-      <GeneralIcon icon="ncSettings" class="text-gray-500 cursor-pointer" />
+      <GeneralIcon icon="ncSettings" class="text-nc-content-gray-muted cursor-pointer" />
     </slot>
 
     <template #overlay>
       <div class="flex flex-col w-[320px] overflow-hidden">
-        <div class="flex items-center justify-between w-full p-3 bg-purple-50">
+        <div class="flex items-center justify-between w-full p-3 bg-nc-bg-purple-light">
           <span class="text-sm font-bold text-nc-content-gray">Settings</span>
           <!-- Todo: add docs link  -->
           <a
@@ -111,7 +111,7 @@ onMounted(async () => {
                 <template #title>
                   <span>Integration to use for this operation</span>
                 </template>
-                <GeneralIcon icon="info" class="text-sm text-gray-500" />
+                <GeneralIcon icon="info" class="text-sm text-nc-content-gray-muted" />
               </NcTooltip>
             </div>
             <a-form-item class="flex-1 !my-0 min-w-0">
@@ -150,7 +150,7 @@ onMounted(async () => {
                 <template #title>
                   <span>Model to use for this operation</span>
                 </template>
-                <GeneralIcon icon="info" class="text-sm text-gray-500" />
+                <GeneralIcon icon="info" class="text-sm text-nc-content-gray-muted" />
               </NcTooltip>
             </div>
 
@@ -190,7 +190,7 @@ onMounted(async () => {
                 <template #title>
                   <span>Randomness of the response</span>
                 </template>
-                <GeneralIcon icon="info" class="text-sm text-gray-500" />
+                <GeneralIcon icon="info" class="text-sm text-nc-content-gray-muted" />
               </NcTooltip>
             </div>
             <div class="flex-1">

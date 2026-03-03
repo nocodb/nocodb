@@ -20,6 +20,8 @@ const route = useRoute()
 
 const { loadSharedView } = useSharedView()
 
+const { isDark } = useTheme()
+
 const formState = ref({ password: undefined })
 
 const passwordError = ref<string | null>(null)
@@ -32,7 +34,7 @@ const onFinish = async () => {
     const error = await extractSdkResponseErrorMsgv2(e)
     console.error(error.message)
 
-    if (error.error === NcErrorType.INVALID_SHARED_VIEW_PASSWORD) {
+    if (error.error === NcErrorType.ERR_INVALID_SHARED_VIEW_PASSWORD) {
       passwordError.value = error.message
     } else {
       message.error(error.message)
@@ -68,12 +70,12 @@ const bgImageName = computed(() => {
     :class="{ active: vModel }"
     :mask-closable="false"
     :mask-style="{
-      backgroundColor: 'rgba(255, 255, 255, 0.64)',
+      backgroundColor: 'rgba(var(--color-base-white), 0.64)',
       backdropFilter: 'blur(8px)',
     }"
   >
     <div class="flex flex-col gap-5">
-      <div class="flex flex-row items-center gap-x-2 text-base font-weight-700 text-gray-800">
+      <div class="flex flex-row items-center gap-x-2 text-base font-weight-700 text-nc-content-gray">
         <GeneralIcon icon="ncKey" class="!text-base w-5 h-5" />
         {{ $t('msg.thisSharedViewIsProtected') }}
       </div>
@@ -93,7 +95,7 @@ const bgImageName = computed(() => {
             @input="passwordError = null"
           />
           <Transition name="layout">
-            <div v-if="passwordError" class="mb-2 text-sm text-red-500">{{ passwordError }}</div>
+            <div v-if="passwordError" class="mb-2 text-sm text-nc-content-red-medium">{{ passwordError }}</div>
           </Transition>
         </a-form-item>
       </a-form>
@@ -114,5 +116,11 @@ const bgImageName = computed(() => {
     </div>
   </NcModal>
 
-  <img alt="view image" :src="bgImageName" class="fixed inset-0 w-full h-full" />
+  <img alt="view image" :src="bgImageName" class="fixed inset-0 w-full h-full" :class="{ 'bg-view-image--dark': isDark }" />
 </template>
+
+<style lang="scss" scoped>
+.bg-view-image--dark {
+  filter: invert(1) hue-rotate(180deg);
+}
+</style>

@@ -23,7 +23,7 @@ const copyBtnRef = ref()
 
 const { isMobileMode } = useGlobal()
 
-const { isUIAllowed } = useRoles()
+const { $e } = useNuxtApp()
 
 const logout = async () => {
   isLoggingOut.value = true
@@ -65,22 +65,37 @@ const openExperimentationMenu = () => {
   isExperimentalFeatureModalOpen.value = true
 }
 
-const accountUrl = computed(() => {
-  return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
-})
+const accountUrl = computed(() => '/account/profile')
 
 const copyEmail = () => {
   if (!user?.value?.email) return
 
   copyBtnRef.value?.copyContent?.(user.value?.email)
 }
+
+const openKeyboardShortcutDialog = () => {
+  isMenuOpen.value = false
+  $e('a:actions:keyboard-shortcut')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgKeyboardShortcuts'), {
+    'modelValue': isOpen,
+    'onUpdate:modelValue': closeDialog,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(300)
+  }
+}
 </script>
 
 <template>
   <div
-    class="flex w-full flex-col border-gray-200 gap-y-1"
+    class="flex w-full flex-col border-nc-border-gray-medium gap-y-1"
     :class="{
-      'sticky bottom-0 bg-[var(--mini-sidebar-bg-color)]': isMiniSidebar,
+      'sticky bottom-0 bg-nc-bg-gray-minisidebar': isMiniSidebar,
     }"
   >
     <LazyGeneralMaintenanceAlert v-if="!isMiniSidebar" />
@@ -108,7 +123,8 @@ const copyEmail = () => {
           <div
             class="flex"
             :class="{
-              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer': !isMiniSidebar,
+              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-nc-bg-gray-medium rounded-lg cursor-pointer':
+                !isMiniSidebar,
               'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
             }"
             data-testid="nc-sidebar-userinfo"
@@ -136,7 +152,7 @@ const copyEmail = () => {
                 {{ name ? name : user?.email }}
               </NcTooltip>
 
-              <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
+              <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-nc-content-gray-muted" />
             </template>
           </div>
         </NcTooltip>
@@ -153,7 +169,7 @@ const copyEmail = () => {
             <a
               v-if="!isMiniSidebar"
               v-e="['c:nocodb:discord']"
-              href="https://discord.gg/5RgZmkW"
+              href="https://discord.gg/c7GEYrvFtT"
               target="_blank"
               class="!underline-transparent"
               rel="noopener noreferrer"
@@ -185,7 +201,7 @@ const copyEmail = () => {
               rel="noopener noreferrer"
             >
               <NcMenuItem class="social-icon-wrapper group">
-                <GeneralIcon class="social-icon text-gray-500 group-hover:text-gray-800" icon="ncTwitter" />
+                <GeneralIcon class="social-icon text-nc-content-gray-muted group-hover:text-nc-content-gray" icon="ncTwitter" />
                 <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
               </NcMenuItem>
             </a>
@@ -198,17 +214,19 @@ const copyEmail = () => {
             >
               <NcMenuItem inner-class="w-full">
                 <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
-                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
+                  <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
                   {{ $t('labels.language') }}
-                  <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
+                  <div class="flex items-center text-nc-content-gray-disabled text-xs">
+                    {{ $t('labels.community.communityTranslated') }}
+                  </div>
                   <div class="flex-1" />
 
-                  <GeneralIcon icon="ncChevronRight" class="flex-none !text-gray-500" />
+                  <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
                 </div>
               </NcMenuItem>
 
               <template #content>
-                <div class="bg-white max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
+                <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
                   <LazyGeneralLanguageMenu />
                 </div>
               </template>
@@ -247,10 +265,24 @@ const copyEmail = () => {
                 <NcDivider />
               </template>
 
-              <DashboardSidebarEEMenuOption v-if="isEeUI" />
+              <DashboardSidebarEEMenuOption />
               <NcMenuItem @click="openExperimentationMenu">
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
+              </NcMenuItem>
+              <NcMenuItem
+                v-e="['c:user:keyboard-shortcuts']"
+                data-testid="nc-sidebar-keyboard-shortcuts"
+                @click="openKeyboardShortcutDialog"
+              >
+                <GeneralIcon icon="ncKeyboard" class="menu-icon" />
+                <div class="flex items-center justify-between flex-1">
+                  <span class="menu-btn"> {{ $t('title.keyboardShortcut') }} </span>
+                  <span class="flex items-center gap-0.5 text-nc-content-gray-muted ml-1">
+                    <kbd class="nc-user-menu-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
+                    <kbd class="nc-user-menu-kbd">/</kbd>
+                  </span>
+                </div>
               </NcMenuItem>
               <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens">
                 <NcMenuItem>
@@ -336,6 +368,16 @@ const copyEmail = () => {
   }
 }
 
+.nc-user-menu-kbd {
+  @apply inline-flex items-center justify-center
+    min-w-4.5 h-4.5 px-1
+    text-[10px] font-medium leading-none
+    text-nc-content-gray-muted
+    bg-nc-bg-gray-light
+    border-1 border-nc-border-gray-medium
+    rounded;
+}
+
 .social-icon {
   @apply my-0.5 w-4 h-4 stroke-transparent;
   // Make icon black and white
@@ -362,8 +404,12 @@ const copyEmail = () => {
 
 <style lang="scss">
 .nc-lang-menu-overlay {
+  .ant-popover-arrow-content {
+    @apply dark:(border-1 border-nc-border-gray-medium);
+  }
+
   .ant-popover-inner {
-    @apply !rounded-lg;
+    @apply dark:(border-1 border-nc-border-gray-medium) !rounded-lg;
   }
 
   .ant-popover-inner-content {

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, UITypesName } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, type SortType, UITypesName } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 import rfdc from 'rfdc'
@@ -7,6 +7,7 @@ import rfdc from 'rfdc'
 const props = defineProps<{
   // As we need to focus search box when the parent is opened
   isParentOpen: boolean
+  sorts: SortType[]
 }>()
 
 const emits = defineEmits(['created'])
@@ -19,13 +20,30 @@ const activeView = inject(ActiveViewInj, ref())
 
 const meta = inject(MetaInj, ref())
 
+const { isList } = useSmartsheetStoreOrThrow()
+
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const isListConfigured = computed(() => listViewStore?.isConfigured.value ?? false)
+
+const { getMetaByKey } = useMetas()
+
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
 
-const { sorts } = useViewSorts(activeView)
+const levelTableColumns = computed(() => {
+  if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevel.value) {
+    return meta.value?.columns || []
+  }
+  const level = listViewStore.selectedLevel.value
+  if (level.fk_model_id === meta.value?.id) {
+    return meta.value?.columns || []
+  }
+  const tableMeta = getMetaByKey(meta.value?.base_id, level.fk_model_id)
+  return tableMeta?.columns || []
+})
 
 const options = computed<ColumnType[]>(() =>
   (
-    clone(meta.value?.columns)
+    clone(levelTableColumns.value)
       ?.filter((c: ColumnType) => {
         if (c.uidt === UITypes.Links) {
           return true
@@ -51,7 +69,7 @@ const options = computed<ColumnType[]>(() =>
           /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
         }
       })
-      .filter((c: ColumnType) => !sorts.value.find((s) => s.fk_column_id === c.id)) ?? []
+      .filter((c: ColumnType) => !props.sorts?.find((s) => s.fk_column_id === c.id)) ?? []
   ).map((c) => {
     const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt)
 

@@ -64,6 +64,10 @@ const cleanupMetaTables = async () => {
     } catch (e) {}
   }
   await TestDbMngr.enableForeignKeyChecks(TestDbMngr.metaKnex);
+
+  // Reset cached workspace ID so verifyDefaultWorkspace recreates it
+  Noco.ncDefaultWorkspaceId = undefined;
+
   await NocoCache.destroy();
 };
 

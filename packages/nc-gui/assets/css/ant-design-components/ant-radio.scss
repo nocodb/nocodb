@@ -1,0 +1,105 @@
+[theme='dark'] {
+  .ant-radio-group {
+    color: rgba(var(--rgb-base), 0.85);
+  }
+  .ant-radio-wrapper {
+    color: rgba(var(--rgb-base), 0.85);
+  }
+  .ant-radio {
+    color: rgba(var(--rgb-base), 0.85);
+  }
+  .ant-radio-wrapper:hover .ant-radio,
+  .ant-radio:hover .ant-radio-inner,
+  .ant-radio-input:focus + .ant-radio-inner {
+    border-color: var(--ant-primary-color);
+  }
+  .ant-radio-input:focus + .ant-radio-inner {
+    box-shadow: 0 0 0 3px var(--color-brand-50);
+  }
+  .ant-radio-inner {
+    background-color: var(--nc-bg-default);
+    border-color: var(--nc-border-gray-medium);
+  }
+  .ant-radio-inner::after {
+    background-color: var(--ant-primary-color);
+  }
+  .ant-radio-checked .ant-radio-inner {
+    border-color: var(--ant-primary-color);
+  }
+  .ant-radio-disabled .ant-radio-inner {
+    background-color: var(--nc-bg-gray-medium);
+    border-color: var(--nc-bg-gray-dark) !important;
+  }
+  .ant-radio-disabled .ant-radio-inner::after {
+    background-color: rgba(var(--rgb-base), 0.2);
+  }
+  .ant-radio-disabled + span {
+    color: rgba(var(--rgb-base), 0.25);
+  }
+  .ant-radio-button-wrapper {
+    color: rgba(var(--rgb-base), 0.85);
+    background: var(--nc-bg-default);
+    border: 1px solid var(--nc-border-gray-medium);
+  }
+  .ant-radio-button-wrapper a {
+    color: rgba(var(--rgb-base), 0.85);
+  }
+  .ant-radio-button-wrapper:not(:first-child)::before {
+    background-color: var(--nc-bg-gray-medium);
+  }
+  .ant-radio-button-wrapper:first-child {
+    border-left: 1px solid var(--nc-bg-gray-medium);
+  }
+  .ant-radio-button-wrapper:hover {
+    color: var(--ant-primary-color);
+  }
+  .ant-radio-button-wrapper:focus-within {
+    box-shadow: 0 0 0 3px var(--ant-primary-1);
+  }
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+    color: var(--ant-primary-color);
+    background: var(--nc-bg-default);
+    border-color: var(--ant-primary-color);
+  }
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled)::before {
+    background-color: var(--ant-primary-color);
+  }
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):first-child {
+    border-color: var(--ant-primary-color);
+  }
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):hover {
+    color: var(--ant-primary-5);
+    border-color: var(--ant-primary-5);
+  }
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):hover::before {
+    background-color: var(--ant-primary-5);
+  }
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):active {
+    color: var(--ant-primary-7);
+    border-color: var(--ant-primary-7);
+  }
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):active::before {
+    background-color: var(--ant-primary-7);
+  }
+  .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):focus-within {
+    box-shadow: 0 0 0 3px var(--ant-primary-1);
+  }
+  .ant-radio-group-solid .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled) {
+    color: rgba(var(--rgb-base), 1);
+    background: var(--ant-primary-color);
+    border-color: var(--ant-primary-color);
+  }
+  .ant-radio-group-solid .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):hover {
+    color: rgba(var(--rgb-base), 1);
+    background: var(--ant-primary-5);
+    border-color: var(--ant-primary-5);
+  }
+  .ant-radio-group-solid .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):active {
+    color: rgba(var(--rgb-base), 1);
+    background: var(--ant-primary-7);
+    border-color: var(--ant-primary-7);
+  }
+  .ant-radio-group-solid .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled):focus-within {
+    box-shadow: 0 0 0 3px var(--ant-primary-1);
+  }
+}

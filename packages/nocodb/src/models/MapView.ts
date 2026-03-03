@@ -38,6 +38,7 @@ export default class MapView implements MapType {
     let view =
       viewId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.MAP_VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -50,7 +51,7 @@ export default class MapView implements MapType {
           fk_view_id: viewId,
         },
       );
-      await NocoCache.set(`${CacheScope.MAP_VIEW}:${viewId}`, view);
+      await NocoCache.set(context, `${CacheScope.MAP_VIEW}:${viewId}`, view);
     }
 
     return view && new MapView(view);
@@ -122,6 +123,7 @@ export default class MapView implements MapType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.MAP_VIEW}:${mapId}`,
       prepareForResponse(updateObj),
     );

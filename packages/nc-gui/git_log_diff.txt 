@@ -1,0 +1,848 @@
+2025-05-25 | Mert E. | Merge pull request #5639 from nocodb/codegen-bot/fix-auth-guide-new
+2025-05-25 | mertmit | fix: form type issue
+2025-05-25 | mertmit | chore: auth template
+2025-05-24 | navi | Merge pull request #5635 from nocodb/chore/action-pr
+2025-05-24 | mertmit | chore: action filter
+2025-05-24 | Anbarasu | Merge pull request #5626 from nocodb/more-deps
+2025-05-24 | Mert E. | Merge pull request #5628 from nocodb/chore/custom-sync-rule
+2025-05-24 | mertmit | chore: improve .cursorrules
+2025-05-24 | navi | Merge pull request #5627 from nocodb/fix/sync-followup
+2025-05-24 | mertmit | fix: remove raw data from custom syncs
+2025-05-24 | DarkPhoenix2704 | fix: remove nc-lib-gui for hub
+2025-05-24 | DarkPhoenix2704 | fix: more fixes
+2025-05-24 | DarkPhoenix2704 | fix: more fixes
+2025-05-24 | Anbarasu | Merge pull request #5618 from nocodb/dep-issues
+2025-05-24 | Mert E. | Merge pull request #5621 from nocodb/fix/uidt
+2025-05-24 | DarkPhoenix2704 | fix: more fix
+2025-05-23 | DarkPhoenix2704 | chore: bump dependencies
+2025-05-23 | DarkPhoenix2704 | chore: bump dependencies
+2025-05-23 | DarkPhoenix2704 | fix: bump nuxt, @nestjs cli
+2025-05-23 | DarkPhoenix2704 | fix: bump snowflake-sdk
+2025-05-23 | DarkPhoenix2704 | fix: dependabot fixes
+2025-05-23 | DarkPhoenix2704 | fix: xml-crypto  vulnerabilities
+2025-05-24 | navi | Merge pull request #5622 from nocodb/fix/clickhouse-con
+2025-05-24 | Pranav C | Merge pull request #5619 from nocodb/fix/oidc-pw-test
+2025-05-24 | mertmit | fix: avoid type on ch
+2025-05-24 | mertmit | fix: use dt to get uidt if available
+2025-05-24 | mertmit | fix: avoid throwing if uidt is missing
+2025-05-24 | Raju Udava | Merge pull request #5620 from nocodb/oss/a14903a0
+2025-05-24 | Raju Udava | docs: integrations-2
+2025-05-24 | Raju Udava | docs: integrations menu with available options
+2025-05-24 | Raju Udava | Merge pull request #5611 from nocodb/fix/current-user-filter-adjustment-be
+2025-05-24 | Fendy Heryanto | fix oidc pw test due to child process parsing stderr incorrectly
+2025-05-23 | navi | Merge pull request #5609 from nocodb/feat/pg-custom-sync
+2025-05-23 | mertmit | chore: bump lock file
+2025-05-23 | mertmit | fix: ch warning
+2025-05-23 | mertmit | chore: pg icons
+2025-05-23 | mertmit | feat: clickhouse integration
+2025-05-23 | mertmit | fix: oauth issue
+2025-05-23 | Anbarasu | Merge pull request #5615 from nocodb/oss/0c2c4d9e
+2025-05-23 | Naveen MR | docs : update FAQs
+2025-05-23 | Naveen MR | docs : update FAQs
+2025-05-23 | Naveen MR | docs : update FAQs
+2025-05-23 | Anbarasu | Merge pull request #5614 from nocodb/oss/42bf1290
+2025-05-23 | mertmit | feat: better auth wrapper & destroy logic
+2025-05-23 | mertmit | fix: small ui corrections
+2025-05-23 | Naveen MR | docs : update FAQs
+2025-05-23 | Naveen MR | docs : update FAQs
+2025-05-23 | Mert E. | Merge pull request #5613 from nocodb/chore/register-int
+2025-05-23 | mertmit | chore: register integrations
+2025-05-23 | Mert E. | Merge pull request #5608 from nocodb/fix/record-view-mode-options-not-visible
+2025-05-23 | Fendy Heryanto | move v2ext to conditionHelpers
+2025-05-23 | Fendy Heryanto | adjust logic for applying current user filter
+2025-05-23 | Mert E. | Merge pull request #5610 from nocodb/oss/bfda5c1a
+2025-05-23 | mertmit | fix: remove dup
+2025-05-23 | mertmit | chore: missing files
+2025-05-23 | mertmit | chore: temporarily disable integration jest test
+2025-05-23 | mertmit | chore: fix build error
+2025-05-23 | mertmit | fix: feature flag
+2025-05-23 | mertmit | chore: various
+2025-05-23 | mertmit | feat: fetch options
+2025-05-23 | mertmit | feat: auth integration test connection wired
+2025-05-23 | mertmit | feat: add testConnection to auth integrations
+2025-05-23 | mertmit | feat: types for custom sync
+2025-05-23 | mertmit | chore: auth template
+2025-05-23 | mertmit | chore: ai template
+2025-05-23 | mertmit | chore: AI integrations implementation
+2025-05-23 | mertmit | feat: implement OpenAI Compatible AI integration
+2025-05-23 | mertmit | feat: implement DeepSeek AI integration
+2025-05-23 | mertmit | feat: implement Azure AI integration
+2025-05-23 | mertmit | feat: implement Amazon Bedrock AI integration
+2025-05-23 | mertmit | feat: implement Groq AI integration
+2025-05-23 | mertmit | feat: implement Google Gemini & Claude integration
+2025-05-23 | mertmit | fix: switch style
+2025-05-23 | mertmit | fix: jest
+2025-05-23 | mertmit | fix: category handling
+2025-05-23 | mertmit | docs(todo): update Asana formatEntity pattern items as complete
+2025-05-23 | mertmit | docs(todo): update Linear formatEntity pattern items as complete
+2025-05-23 | mertmit | docs(todo): update Jira formatEntity pattern items as complete
+2025-05-23 | mertmit | refactor(gitlab-sync): implement formatEntity pattern
+2025-05-23 | mertmit | refactor(github-sync): implement formatEntity pattern
+2025-05-23 | mertmit | fix: type mismatchs
+2025-05-23 | mertmit | feat: add integrations
+2025-05-23 | mertmit | Implement Asana Sync integration
+2025-05-23 | mertmit | feat: implement Linear sync integration
+2025-05-23 | mertmit | feat: implement Jira sync integration
+2025-05-23 | mertmit | Add Asana Auth Integration
+2025-05-23 | mertmit | Add Linear Auth Integration
+2025-05-23 | mertmit | Add Jira Auth Integration
+2025-05-23 | mertmit | chore: default values
+2025-05-23 | mertmit | feat: template
+2025-05-23 | mertmit | feat: team for ticketing
+2025-05-23 | mertmit | feat: gitlab + logging
+2025-05-23 | mertmit | feat: sync edit + improvements
+2025-05-23 | mertmit | feat: sync revise
+2025-05-23 | mertmit | fix: migrate sync
+2025-05-23 | mertmit | feat: improved links + incremental link handling
+2025-05-23 | mertmit | feat: delete stale records
+2025-05-23 | mertmit | feat: multi sync WIP - relation data
+2025-05-23 | mertmit | feat: multi sync WIP - relation schema
+2025-05-23 | mertmit | feat: multi sync WIP
+2025-05-23 | mertmit | feat: multi sync WIP
+2025-05-23 | mertmit | feat: missing deps
+2025-05-23 | mertmit | test: mocks
+2025-05-23 | mertmit | chore: refactor names of integrations and structure
+2025-05-23 | mertmit | feat: local integrations
+2025-05-23 | mertmit | fix: consistent types
+2025-05-23 | mertmit | chore: remove submodules
+2025-05-23 | mertmit | chore: add integrations to monorepo
+2025-05-23 | mertmit | chore: rm submodule
+2025-05-23 | mertmit | feat: remove old integrations
+2025-05-23 | mertmit | feat: custom pg sync
+2025-05-23 | Ramesh Mane | fix(nc-gui): record view mode not visible
+2025-05-23 | Ramesh Mane | Merge pull request #5607 from nocodb/fix/user-filter-followup-changes
+2025-05-23 | Mert E. | Merge pull request #5471 from nocodb/feat/new-integrations
+2025-05-23 | Ramesh Mane | chore(nc-gui): lint
+2025-05-23 | Ramesh Mane | chore(nc-gui): cleanup
+2025-05-23 | Ramesh Mane | fix(nc-gui): use user filter only in ee
+2025-05-23 | mertmit | chore: temporarily disable integration jest test
+2025-05-23 | mertmit | chore: bump versions
+2025-05-22 | mertmit | chore: fix build error
+2025-05-22 | mertmit | fix: feature flag
+2025-05-22 | mertmit | test: null check
+2025-05-22 | mertmit | chore: various
+2025-05-22 | mertmit | feat: fetch options
+2025-05-20 | mertmit | feat: auth integration test connection wired
+2025-05-20 | mertmit | chore: bump zod version causing recursive type issue
+2025-05-20 | mertmit | feat: add testConnection to auth integrations
+2025-05-20 | mertmit | feat: types for custom sync
+2025-05-20 | mertmit | fix: integration acl
+2025-05-20 | mertmit | chore: update available models
+2025-05-20 | mertmit | chore: auth template
+2025-05-20 | mertmit | chore: ai template
+2025-05-20 | mertmit | chore: update icons
+2025-05-20 | mertmit | chore: AI integrations implementation
+2025-05-20 | mertmit | feat: implement OpenAI Compatible AI integration
+2025-05-20 | mertmit | feat: implement DeepSeek AI integration
+2025-05-20 | mertmit | feat: implement Azure AI integration
+2025-05-20 | mertmit | feat: implement Amazon Bedrock AI integration
+2025-05-20 | mertmit | feat: implement Groq AI integration
+2025-05-20 | mertmit | refactor: ai integration order
+2025-05-20 | mertmit | feat: implement Google Gemini & Claude integration
+2025-05-19 | mertmit | chore: bump ai packages & syncDependencies script
+2025-05-19 | mertmit | fix: switch style
+2025-05-19 | mertmit | fix: integration icons
+2025-05-19 | mertmit | fix: jest
+2025-05-19 | mertmit | chore: bump lockfile
+2025-05-19 | mertmit | fix: category handling
+2025-05-17 | mertmit | fix: build error
+2025-05-17 | mertmit | docs: add documentation for Jira, Linear and Asana auth integrations
+2025-05-17 | mertmit | chore: auth docs
+2025-05-17 | mertmit | docs: standardize GitHub and GitLab auth documentation
+2025-05-17 | mertmit | fix: remove unused synced at
+2025-05-17 | mertmit | docs(todo): update Asana formatEntity pattern items as complete
+2025-05-17 | mertmit | docs(todo): update Linear formatEntity pattern items as complete
+2025-05-17 | mertmit | docs(todo): update Jira formatEntity pattern items as complete
+2025-05-17 | mertmit | refactor(gitlab-sync): implement formatEntity pattern
+2025-05-17 | mertmit | refactor(github-sync): implement formatEntity pattern
+2025-05-17 | mertmit | fix: type mismatchs
+2025-05-16 | mertmit | feat: comment titles
+2025-05-16 | mertmit | fix: titles
+2025-05-16 | mertmit | fix: linear issue
+2025-05-16 | mertmit | feat: add integrations
+2025-05-16 | mertmit | fix: update @linear/sdk dependency to version 40.0.0
+2025-05-16 | mertmit | fix: linter errors across multiple integrations
+2025-05-16 | mertmit | fix: lint
+2025-05-16 | mertmit | Implement Asana Sync integration
+2025-05-16 | mertmit | fix: lint
+2025-05-16 | mertmit | feat: implement Linear sync integration
+2025-05-16 | mertmit | feat: implement Jira sync integration
+2025-05-16 | mertmit | Add Asana Auth Integration
+2025-05-16 | mertmit | Add Linear Auth Integration
+2025-05-16 | mertmit | Add Jira Auth Integration
+2025-05-16 | mertmit | feat: PR & MR
+2025-05-16 | mertmit | chore: default values
+2025-05-16 | mertmit | chore: auth rule
+2025-05-16 | mertmit | feat: README for oauth
+2025-05-16 | mertmit | feat: template
+2025-05-16 | mertmit | feat: team for ticketing
+2025-05-16 | mertmit | fix: lint
+2025-05-16 | mertmit | feat: gitlab + logging
+2025-05-16 | mertmit | fix: add missing base id prop
+2025-05-16 | mertmit | feat: sync edit + improvements
+2025-05-15 | mertmit | feat: sync revise
+2025-05-14 | mertmit | fix: migrate sync
+2025-05-14 | mertmit | feat: improved links + incremental link handling
+2025-05-14 | mertmit | feat: delete stale records
+2025-05-13 | mertmit | feat: multi sync WIP - relation data
+2025-05-12 | mertmit | feat: multi sync WIP - relation schema
+2025-05-12 | mertmit | feat: multi sync WIP
+2025-05-12 | mertmit | feat: multi sync WIP
+2025-05-10 | mertmit | feat: missing deps
+2025-05-09 | mertmit | test: mocks
+2025-05-09 | mertmit | chore: refactor names of integrations and structure
+2025-05-09 | mertmit | feat: local integrations
+2025-05-09 | mertmit | fix: type leak
+2025-05-09 | mertmit | fix: recursive type issue
+2025-05-09 | mertmit | fix: consistent types
+2025-05-09 | mertmit | chore: avoid inherit
+2025-05-09 | mertmit | chore: fix actions
+2025-05-09 | mertmit | fix: build error
+2025-05-09 | mertmit | chore: remove submodules
+2025-05-09 | mertmit | chore: add integrations to monorepo
+2025-05-09 | mertmit | chore: rm submodule
+2025-05-08 | mertmit | chore: inherit
+2025-05-08 | mertmit | chore: submodules
+2025-05-08 | mertmit | fix: local integrations
+2025-05-08 | mertmit | feat: register ai-nocodb
+2025-05-08 | mertmit | fix: register ch
+2025-05-08 | mertmit | feat: new integrations fw
+2025-05-04 | mertmit | feat: remove old integrations
+2025-05-23 | Raju Udava | Merge pull request #4698 from nocodb/feature/cross-base-link
+2025-05-23 | Anbarasu | Merge pull request #5591 from nocodb/formula-input
+2025-05-23 | Ramesh Mane | Merge pull request #5606 from nocodb/fix/filter-test-fail-issue
+2025-05-23 | Ramesh Mane | Merge pull request #5448 from nocodb/feat/user-filter-me
+2025-05-23 | Ramesh Mane | fix(nc-gui): filter test fail issue
+2025-05-23 | Ramesh Mane | fix(nc-gui): add tooltip
+2025-05-22 | Ramesh Mane | fix(nc-gui): show @ if current user filter is applied
+2025-05-22 | Ramesh Mane | fix(nc-gui): use same icon for @me user in dropdown as well in renderCell
+2025-05-19 | Ramesh Mane | fix(nc-gui): use i18n
+2025-05-19 | Ramesh Mane | fix(nc-gui): user band font color if it is current user
+2025-05-19 | Ramesh Mane | fix(nc-gui): user placeholder icon update
+2025-05-19 | Ramesh Mane | fix(nc-gui): current user info ui changes
+2025-05-06 | Fendy Heryanto | remove console log
+2025-05-06 | Fendy Heryanto | enable @me on frontend
+2025-05-06 | Fendy Heryanto | initial dev for user @me
+2025-05-22 | Mert E. | Merge pull request #5585 from nocodb/fix/oss-audit-log-on-null
+2025-05-22 | Mert E. | Merge pull request #5542 from nocodb/fix/filter-datetime-dynamic
+2025-05-22 | Mert E. | Merge pull request #5528 from nocodb/fix/like-nlike-user
+2025-05-22 | Mert E. | Merge pull request #5520 from nocodb/fix/json-filter-null
+2025-05-22 | Mert E. | Merge pull request #5594 from nocodb/scrollbar-visible
+2025-05-22 | Mert E. | Merge pull request #5601 from nocodb/fix-count-query
+2025-05-22 | Raju Udava | Merge branch 'develop' into feature/cross-base-link
+2025-05-22 | Raju Udava | Merge pull request #5600 from nocodb/arrow-not-working
+2025-05-22 | Raju Udava | Merge pull request #5602 from nocodb/oss/82ca12ee
+2025-05-22 | Ramesh Mane | Merge pull request #5604 from nocodb/fix/shared-base-sidebar-loading-issue
+2025-05-22 | Ramesh Mane | fix(nc-gui): shared base new sidebar stuck in loading state
+2025-05-22 | Ramesh Mane | Merge pull request #5603 from nocodb/oss/26b7d36e
+2025-05-22 | Ramesh Mane | fix(nc-gui): Inter font apply issue in oss
+2025-05-22 | Naveen MR | docs : calendar view with end date.
+2025-05-22 | Naveen MR | docs : calendar view with end date.
+2025-05-22 | DarkPhoenix2704 | fix: filter not applied on count
+2025-05-22 | DarkPhoenix2704 | fix: arrows not working when select filter is applied
+2025-05-22 | Raju Udava | Merge pull request #5583 from nocodb/fix/api-v3-missing-meta-props
+2025-05-22 | DarkPhoenix2704 | fix: update script apis to match v3 api
+2025-05-22 | DarkPhoenix2704 | fix: minor correction
+2025-05-22 | Ramesh Mane | Merge pull request #5588 from nocodb/fix/display-value-issue
+2025-05-22 | Ramesh Mane | Merge pull request #5566 from nocodb/codex/fix-alt-b-shortcut-focus-issue
+2025-05-22 | Ramesh Mane | fix(nc-gui): remove unused import statement
+2025-05-22 | Ramesh Mane | fix(nc-gui): hide minisidebar in pricing page
+2025-05-21 | Ramesh Mane | fix(nc-gui): show base list on switching ws
+2025-05-21 | Ramesh Mane | fix(nc-gui): remove unwanted code
+2025-05-19 | navi | fix(nc-gui): prevent alt+B from typing in search
+2025-05-22 | Ramesh Mane | chore(nc-gui): lint
+2025-05-22 | Ramesh Mane | refactor(nc-gui): parse formula plain cell value code
+2025-05-22 | Ramesh Mane | fix(nc-gui): formual cell value parse issue display issue
+2025-05-21 | Ramesh Mane | fix(nc-gui): formula field parse link text display issue
+2025-05-22 | Raju Udava | Merge pull request #5595 from nocodb/clean-up-code
+2025-05-22 | Raju Udava | Merge branch 'develop' into scrollbar-visible
+2025-05-19 | Pranav C | refactor: selectObject
+2025-05-16 | Pranav C | fix: avoid using same sqlMgr when table belongs to different base
+2025-05-16 | Pranav C | fix: rebase related corrections
+2025-05-16 | Pranav C | fix: context correction
+2025-05-12 | Pranav C | refactor: rename migration
+2025-05-12 | Pranav C | fix: view mode change - permission check
+2025-05-08 | Pranav C | fix: prop name correction
+2025-05-07 | Pranav C | refactor: review comments
+2025-05-06 | Pranav C | fix: add permission under scope
+2025-05-06 | Pranav C | fix: copy paste permission bug
+2025-05-06 | Pranav C | refactor: move under feature flag
+2025-05-06 | Pranav C | fix: hide add record if any one of the table doesn't have edit permission
+2025-05-04 | Pranav C | fix: delete cross base links on deleting base
+2025-05-03 | Pranav C | fix: show cross base link detail in edit modal
+2025-05-03 | Pranav C | fix: proper context usage while extracting source
+2025-05-03 | Pranav C | fix: show pointer for labels which are clickable
+2025-05-03 | Pranav C | fix: one to one column delete
+2025-05-03 | Pranav C | fix: skip showing custom link modal in edit mode
+2025-05-03 | Pranav C | fix: delete rollup/lookup when referencing column deleted
+2025-05-03 | Pranav C | fix: row delete bug
+2025-05-03 | Pranav C | fix: label toggle bug
+2025-05-03 | Pranav C | fix: duplicate dialog and toggle bug
+2025-05-03 | Pranav C | fix: has many delete context correction
+2025-05-03 | Pranav C | fix: label correction
+2025-05-12 | Pranav C | refactor: label
+2025-05-03 | Pranav C | fix: add permission check in GUI
+2025-05-02 | Pranav C | fix: hm lookup context
+2025-05-02 | Pranav C | fix: LTAR context correction in pg-single query
+2025-05-02 | Pranav C | fix: lookup/Links/LTAR context correction
+2025-05-02 | Pranav C | fix: lookup and rollup context correction
+2025-05-02 | Pranav C | fix: partial metadata read if base is inaccessible for user
+2025-05-02 | Pranav C | feat: highlight current base and disable bases in which user doesn't have creator+ access
+2025-05-01 | Pranav C | fix: extract base id from table meta
+2025-05-01 | Pranav C | fix: show table name instead of id
+2025-05-01 | Pranav C | refactor: handle missing column db error(pg)
+2025-05-01 | Pranav C | fix: table delete bug
+2025-05-01 | Pranav C | fix: cell clear, copy-paste related issues
+2025-05-01 | Pranav C | fix: reset state on toggling cross-base checkbox
+2025-05-01 | Pranav C | fix: tooltip and label correction
+2025-05-01 | Pranav C | fix: bulk delete pass proper context
+2025-05-01 | Pranav C | refactor: updated duplicate base note
+2025-05-01 | Pranav C | fix: extract id from meta to avoid passing wrong base id
+2025-05-01 | Pranav C | fix: pass missing loader reference
+2025-04-30 | Pranav C | fix: remove duplicate for cross base link
+2025-04-29 | Pranav C | fix: wrap code to avoid the duplicate var initialization related issue
+2025-04-29 | Pranav C | fix: colOption extraction logic correction
+2025-04-29 | Pranav C | fix: allow LTAR record expand only if user have edit permission in target base
+2025-04-29 | Pranav C | feat: limit pk and pv for external link
+2025-04-27 | Pranav C | fix: permission check related corrections
+2025-04-27 | Pranav C | feat: permission check related corrections
+2025-04-27 | Pranav C | feat: add permission check in ui
+2025-04-26 | Pranav C | fix: filter related corrections
+2025-04-26 | Pranav C | fix: rollup add cross-base link support
+2025-04-26 | Pranav C | refactor: correction
+2025-04-26 | Pranav C | chore: lint
+2025-04-26 | Pranav C | fix: corrections
+2025-04-26 | Pranav C | fix: handle formula - WIP
+2025-04-26 | Pranav C | fix: handle lookup
+2025-04-26 | Pranav C | refactor: remove duplicate logic
+2025-04-26 | Pranav C | refactor: parent/child column context extraction improvements
+2025-04-26 | Pranav C | fix: permission check
+2025-04-25 | Pranav C | fix: toggling custom link and cross-base link
+2025-04-25 | Pranav C | fix: mysql-helper - context related changes
+2025-04-25 | Pranav C | fix: expanded form from LTAR cell - use base id from meta if avail
+2025-04-25 | Pranav C | fix: one-to-one relation context corrections
+2025-04-25 | Pranav C | fix: bt/hm/oo relation related corrections
+2025-04-24 | Pranav C | fix: hm relation related corrections
+2025-04-24 | Pranav C | fix: mm relation related corrections in single query
+2025-04-24 | Pranav C | fix: mm relation related corrections
+2025-04-24 | Pranav C | fix: use proper context based on relation
+2025-04-24 | Pranav C | refactor: extract context from meta
+2025-03-07 | Pranav C | feat: handle context based on props defined in LTAR model
+2025-03-07 | Pranav C | feat: add  migration to igration list
+2025-03-05 | Pranav C | feat: add migration and keep cross base link context information in LTAR table
+2025-02-22 | Pranav C | fix: context and basemodel based on ref table
+2025-02-19 | Pranav C | feat: cross base LTAR support
+2025-05-22 | Raju Udava | Merge branch 'develop' into formula-input
+2025-05-22 | DarkPhoenix2704 | chore: clean up
+2025-05-22 | DarkPhoenix2704 | fix: docker build
+2025-05-22 | DarkPhoenix2704 | chore: lint
+2025-05-22 | DarkPhoenix2704 | chore: lint
+2025-05-22 | DarkPhoenix2704 | fix: more clean up
+2025-05-21 | DarkPhoenix2704 | fix: unit tests failing
+2025-05-21 | DarkPhoenix2704 | chore: clean up fe legacy code
+2025-05-21 | DarkPhoenix2704 | chore: clean up fe legacy code
+2025-05-21 | DarkPhoenix2704 | chore: clean up backend code
+2025-05-21 | navi | Merge pull request #5592 from nocodb/test/csv-import
+2025-05-21 | mertmit | test: ignore local filters on export
+2025-05-21 | mertmit | fix: playwright
+2025-05-21 | DarkPhoenix2704 | fix: do not auto hide scrollbar if configured in system
+2025-05-21 | mertmit | fix: deprecate unused code
+2025-05-21 | mertmit | test: temporarily disable problematic test
+2025-05-21 | mertmit | fix: remove unused hasNonDefaultViews logic
+2025-05-21 | mertmit | fix: wipe cache on reset meta
+2025-05-21 | mertmit | fix: unit test
+2025-05-21 | Anbarasu | Merge pull request #5531 from nocodb/script-api-queue
+2025-05-21 | DarkPhoenix2704 | feat: better formula input handler
+2025-05-21 | Anbarasu | Merge pull request #5589 from nocodb/fix-transform-new-dt
+2025-05-21 | Raju Udava | Merge pull request #5240 from nocodb/feat/input-field-validation
+2025-05-21 | Fendy Heryanto | fix duplicated reason
+2025-05-21 | Raju Udava | Merge pull request #5577 from nocodb/fix/json-like-sqlite
+2025-05-21 | DarkPhoenix2704 | fix: lint
+2025-05-16 | DarkPhoenix2704 | fix: script queuing for bulk execution
+2025-05-21 | DarkPhoenix2704 | fix: transform data
+2025-05-21 | Mert E. | Merge pull request #5146 from nocodb/fix/swagger-nested-add-status-code
+2025-05-21 | Raju Udava | Merge pull request #5586 from nocodb/oss/2766dc80
+2025-05-21 | vinayaknolastname | #9652 readme_changes
+2025-05-21 | vinayaknolastname | #9652 added date formats
+2025-05-21 | Raju Udava | Merge pull request #5582 from nocodb/oss/758b1391
+2025-05-21 | Raju Udava | Merge pull request #5580 from nocodb/oss/43356260
+2025-05-21 | Raju Udava | Merge pull request #5576 from nocodb/oss/29518a37
+2025-05-21 | Raju Udava | Merge pull request #5572 from nocodb/oss/dd0b6d6c
+2025-05-21 | Raju Udava | Merge pull request #5584 from nocodb/fix/new-export
+2025-05-21 | Fendy Heryanto | record audit log when new value is null
+2025-05-20 | Pranav C | fix: api v3 - button column related mapping and transformations
+2025-05-20 | mertmit | feat: data export clean up processor
+2025-05-20 | mertmit | feat: move csv export to background jobs
+2025-05-20 | Pranav C | fix: api v3 - button and links related field prop
+2025-05-20 | Pranav C | fix: api v3 - Created and lastmodified - map datetime options
+2025-05-20 | Pranav C | fix: api v3 - qr code and barcode option mapping
+2025-05-20 | Pranav C | fix: api v3 - corrections and missing props
+2025-05-20 | Pranav C | fix: longtext ai option mapping
+2025-05-20 | João Henrique Costa | chore: uppercammelcase
+2025-05-20 | João Henrique Costa | feat: better internationalization for create_new_table text
+2025-05-20 | Raju Udava | docs: modify URL displayed in example
+2025-05-20 | Raju Udava | docs: minor corrections
+2025-05-20 | Raju Udava | docs: url based filters
+2025-05-20 | Fendy Heryanto | fix json like on sqlite connection
+2025-05-20 | Salim B | refactor: improve div title
+2025-05-20 | Salim B | refactor: improve div title
+2025-05-20 | Salim B | refactor: tweak EN translations
+2025-05-07 | Fendy Heryanto | fix unit test errors
+2025-05-06 | Fendy Heryanto | add more values for checkbox
+2025-05-03 | Fendy Heryanto | refactor base model option
+2025-05-02 | Fendy Heryanto | TODO: check for custom knex and use get client from there
+2025-04-29 | Fendy Heryanto | enable update by column id
+2025-04-29 | Fendy Heryanto | commenting for now since we're unsure how to parse link for v3 atm
+2025-04-29 | Fendy Heryanto | remove more comments
+2025-04-29 | Fendy Heryanto | remove unused comments
+2025-04-29 | Fendy Heryanto | lookup general field handler - parse db value
+2025-04-29 | Fendy Heryanto | prototype add lookup for v3
+2025-04-29 | Fendy Heryanto | handle date
+2025-04-29 | Fendy Heryanto | add beforeEach attachment
+2025-04-29 | Fendy Heryanto | make id to be a generic and not computed field handler (for now)
+2025-04-28 | Fendy Heryanto | fix unit test for duration
+2025-04-28 | Fendy Heryanto | rollup use computed do not convert duration for v3
+2025-04-28 | Fendy Heryanto | remove assignment to data
+2025-04-28 | Fendy Heryanto | add computed field handler
+2025-04-28 | Fendy Heryanto | parse db value when queried text based check for length
+2025-04-28 | Fendy Heryanto | remove .only
+2025-04-28 | Fendy Heryanto | rename parseValue to parseUserInput
+2025-04-28 | Fendy Heryanto | add negative checking to rating, year and duration
+2025-04-28 | Fendy Heryanto | add Duration error handling
+2025-04-28 | Fendy Heryanto | add duration field handler that represent number
+2025-04-26 | Fendy Heryanto | add more unit test for user
+2025-04-26 | Fendy Heryanto | add user-based check
+2025-04-26 | Fendy Heryanto | prototype add user based test
+2025-04-26 | Fendy Heryanto | prototype add user field handler
+2025-04-26 | Fendy Heryanto | handle checkbox value validation
+2025-04-26 | Fendy Heryanto | add year test  case
+2025-04-26 | Fendy Heryanto | handle date error
+2025-04-26 | Fendy Heryanto | number based error message
+2025-04-26 | Fendy Heryanto | handle datetime, etc
+2025-04-25 | Fendy Heryanto | handle input format for decimal & number
+2025-05-19 | Ramesh Mane | Merge pull request #5560 from nocodb/fix/5559
+2025-05-19 | Ramesh Mane | fix(nc-gui): revert some plan.ts file changes
+2025-05-19 | Ramesh Mane | fix(nc-gui): convert to string before rendering number plain cell value
+2025-05-19 | Ramesh Mane | fix(nc-gui): parse numeric field plain cell value issue if value is 0
+2025-05-19 | Pranav C | Merge pull request #5558 from nocodb/fix/mini-sidebar-followup
+2025-05-19 | Ramesh Mane | Merge pull request #5556 from nocodb/fix/filter-auto-complete-text-truncate-issue
+2025-05-19 | Ramesh Mane | chore(nc-gui): lint
+2025-05-19 | Ramesh Mane | fix(nc-gui): use i18n text
+2025-05-19 | Ramesh Mane | fix(nc-gui): hide mini sidebar
+2025-05-19 | Ramesh Mane | fix(nc-gui): some review changes
+2025-05-19 | Ramesh Mane | fix(nc-gui): use computed value instead on inline condition
+2025-05-19 | Ramesh Mane | fix(nc-gui): some review changes
+2025-05-19 | Raju Udava | Merge pull request #5504 from nocodb/refactor/base-model-v4
+2025-05-19 | Raju Udava | Merge pull request #5518 from nocodb/fix/sorting-ui
+2025-05-19 | Raju Udava | Merge pull request #5541 from nocodb/fix/v3-swagger
+2025-05-19 | Mert E. | Merge pull request #5555 from nocodb/fix/batch-update-missing-props
+2025-05-19 | Raju Udava | Merge pull request #5553 from nocodb/fix-lookup-atatchments
+2025-05-19 | Fendy Heryanto | remove row[column] === undefined check
+2025-05-19 | Ramesh Mane | fix(nc-gui): text truncate issue #5551
+2025-05-19 | Fendy Heryanto | fix update missing fields set column to empty
+2025-05-19 | DarkPhoenix2704 | fix: better handling
+2025-05-19 | Mert E. | Merge pull request #5554 from nocodb/fix/dp-throw
+2025-05-19 | mertmit | chore: add new system events
+2025-05-19 | mertmit | fix: remove table if duplicate failed
+2025-05-19 | DarkPhoenix2704 | fix: preserve non-aliased fields in result mapping
+2025-05-19 | mertmit | feat: priority_error system event
+2025-05-14 | Fendy Heryanto | fix missing this
+2025-05-13 | Fendy Heryanto | refactor out select object
+2025-05-19 | mertmit | fix: duplicate flow throw on missing chunk
+2025-05-18 | Raju Udava | Merge pull request #5548 from nocodb/oss/f353bddf
+2025-05-18 | Pranav C | Merge pull request #5544 from nocodb/codegen-bot/add-search-to-experimental-features
+2025-05-17 | Ameesha Arackal | fix: update search input focus color to match application standard
+2025-05-17 | Ameesha Arackal | fix: consistent padding and focus state for search input
+2025-05-17 | Ameesha Arackal | fix: contain scrollbar within features list area
+2025-05-17 | Ameesha Arackal | fix: improve search input UI in feature experimentation
+2025-05-17 | Salim B | docs: minor addition
+2025-05-17 | Salim B | docs: minor rephrasing
+2025-05-17 | Salim B | docs: provide more context
+2025-05-17 | Salim B | docs: rephrase
+2025-05-17 | Salim B | fix: syntax
+2025-05-17 | Salim B | refactor: parse `rejectUnauthorized` as boolean
+2025-05-17 | Salim B | docs: update env var table
+2025-05-17 | Salim B | refactor: convert binary env vars to boolean
+2025-05-17 | Salim B | feat: introduce `NC_SMTP_DOMAIN` and `NC_SMTP_REJECT_UNAUTHORIZED` env vars
+2025-05-17 | Pranav C | Merge pull request #5547 from nocodb/oss/e5000563
+2025-05-17 | Salim B | refactor: further rewordings
+2025-05-17 | Salim B | refactor: tweak strings
+2025-05-17 | Raju Udava | Merge pull request #5481 from nocodb/feat/new-sidebar-imementation
+2025-05-17 | Anbarasu | Merge pull request #5524 from nocodb/esbuild-wasm
+2025-05-17 | DarkPhoenix2704 | fix: use shared promise
+2025-05-17 | Fendy Heryanto | generate sdk v2
+2025-05-17 | Pranav C | Merge pull request #5540 from nocodb/fix/5535-group-by-user
+2025-05-17 | Raju Udava | Merge branch 'develop' into feat/new-sidebar-imementation
+2025-05-17 | DarkPhoenix2704 | fix: rebase
+2025-05-17 | codegen-sh[bot] | feat: add search functionality to experimental features drawer and update toggle text
+2025-05-17 | Fendy Heryanto | check for dynamic if filter column changed
+2025-05-17 | Fendy Heryanto | add missing baseId param
+2025-05-17 | Fendy Heryanto | remove pr-tasks
+2025-05-17 | Fendy Heryanto | remove view routes until further confirmation adjust sort create to http 200
+2025-05-17 | Fendy Heryanto | add schema for view create
+2025-05-16 | Fendy Heryanto | add list & post view to swagger
+2025-05-16 | Fendy Heryanto | fix tables-v3 and v3-swagger (wip)
+2025-05-17 | Pranav C | fix: add alias to subquery
+2025-05-16 | Anbarasu | Merge pull request #5538 from nocodb/oss/ab494d6c
+2025-05-16 | DarkPhoenix2704 | fix: build corrections and dependencies
+2025-05-16 | Anbarasu | Merge pull request #5537 from nocodb/oss/8fb8d164
+2025-05-16 | Salim B | chore: bump SMTP plugin version nr
+2025-05-16 | Salim B | docs: be more precise
+2025-05-16 | Salim B | refactor: improve SMTPPlugin `help_text`s
+2025-05-16 | Anbarasu | Merge pull request #5521 from nocodb/nocodb-sdk
+2025-05-16 | Anbarasu | Merge pull request #5536 from nocodb/oss/9cb76f30
+2025-05-16 | Salim B | fix: allow to omit S3 region when endpoint is given
+2025-05-16 | Anbarasu | Merge pull request #5462 from nocodb/mcp-audit
+2025-05-16 | Ramesh Mane | fix(nc-gui): loading issue
+2025-05-16 | Pranav C | Merge pull request #5534 from nocodb/oss/7c040372
+2025-05-16 | Pranav C | chore: sync
+2025-05-16 | Pranav C | fix: type corrections
+2025-05-16 | Pranav C | refactor: proper error code
+2025-05-16 | Pranav C | refactor: change permission check order
+2025-05-16 | Pranav C | fix: check user have enough permission
+2025-05-16 | Pranav C | fix: error message handling
+2025-05-16 | Pranav C | fix: update ee version of user invite
+2025-05-16 | Pranav C | fix: pass metaService ref
+2025-05-16 | Pranav C | fix: condition correction
+2025-05-16 | Pranav C | Revert "fix: add option to alter role inheriting from workspace to base"
+2025-05-16 | Pranav C | fix: add option to alter role inheriting from workspace to base
+2025-05-16 | Pranav C | chore: correction in owner role check
+2025-05-16 | Pranav C | chore: corrections in role check(WIP)
+2025-05-16 | Pranav C | fix: make method async
+2025-05-16 | Pranav C | refactor: add comments
+2025-05-16 | Pranav C | fix: ensure base user with owner role exist on removing the current owner
+2025-05-16 | Pranav C | fix: consider derived role
+2025-05-16 | Ramesh Mane | fix(nc-gui): oss props type define issue
+2025-05-16 | Ramesh Mane | fix(nc-gui): animation issue while switching ws
+2025-05-16 | Pranav C | Merge pull request #5533 from nocodb/oss/d082b5ff
+2025-05-16 | Ramesh Mane | fix(nc-gui): navigate to last opened base
+2025-05-16 | Ramesh Mane | fix(nc-gui): add loading state
+2025-05-16 | Fendy Heryanto | remove wip file
+2025-05-16 | Fendy Heryanto | refactor: use NC_ALLOW_LOCAL_HOOKS to allow using button with non tld urls
+2025-05-16 | Fendy Heryanto | localhost url is now considered valid url
+2025-05-16 | Pranav C | Merge pull request #5532 from nocodb/oss/a9ce33ea
+2025-05-16 | Pranav C | Update index.ts
+2025-05-16 | Pranav C | fix: missing appInfo reference
+2025-05-16 | Ramesh Mane | fix(test): hub test fail issue
+2025-05-16 | Anbarasu | Merge pull request #5529 from nocodb/fix-datefield
+2025-05-16 | DarkPhoenix2704 | fix: move file
+2025-05-16 | DarkPhoenix2704 | fix: simple fix
+2025-05-16 | Ramesh Mane | fix(nc-gui): add version info in new sidebar
+2025-05-16 | Ramesh Mane | fix(nc-gui): review changes
+2025-05-16 | Ramesh Mane | chore(nc-gui): lint
+2025-05-15 | Ramesh Mane | fix(nc-gui): padding issue
+2025-05-15 | Ramesh Mane | fix(nc-gui): ai review changes
+2025-05-15 | Ramesh Mane | chore(nc-gui): lint
+2025-05-15 | Ramesh Mane | fix(nc-gui): disable new sidebar for playwright
+2025-05-15 | Ramesh Mane | fix(nc-gui): small screen ui issue
+2025-05-15 | Ramesh Mane | fix(nc-gui): alt+b shortcut issue
+2025-05-14 | Ramesh Mane | fix(nc-gui): add class to duo color svg path
+2025-05-14 | Ramesh Mane | fix(nc-gui): base home page header action menu ui changes
+2025-05-14 | Ramesh Mane | fix(nc-gui): some review changes
+2025-05-14 | Ramesh Mane | fix(nc-gui): create new component for base context menu
+2025-05-14 | Ramesh Mane | fix(nc-gui): change create base icon
+2025-05-14 | Ramesh Mane | fix(nc-gui): add shortcut key alt+b
+2025-05-14 | Ramesh Mane | fix(nc-gui): quick search base homepage input
+2025-05-14 | Ramesh Mane | fix(test): sidebar test fail issue
+2025-05-14 | Ramesh Mane | fix(nc-gui): cmd-k click issue from cmd-j modal
+2025-05-14 | Ramesh Mane | fix(test): Cannot read properties of undefined  (reading 'verifyBaseListOpen')
+2025-05-14 | Ramesh Mane | fix(nc-gui): edit description
+2025-05-14 | Ramesh Mane | fix(nc-gui): chevron icon alignment issue
+2025-05-14 | Ramesh Mane | fix(test): updated some left sidebar test cases
+2025-05-14 | Ramesh Mane | fix(nc-gui): add tooltip on create table plus btn
+2025-05-14 | Ramesh Mane | fix(nc-gui): active project highlight issue
+2025-05-14 | Ramesh Mane | fix(test): base related test udpate
+2025-05-14 | Ramesh Mane | fix(test): minisidebar action test
+2025-05-14 | Ramesh Mane | fix(nc-gui): notification tooltip
+2025-05-14 | Ramesh Mane | fix(nc-gui): base list empty state issue
+2025-05-14 | Ramesh Mane | fix(test): sidebar create table test update
+2025-05-14 | Ramesh Mane | fix(nc-gui): typo
+2025-05-14 | Ramesh Mane | fix(nc-gui): hide minisidebar only in mobile mode
+2025-05-14 | Ramesh Mane | fix(nc-gui): show base tooltip
+2025-05-14 | Ramesh Mane | fix(nc-gui): min sidebar arrow
+2025-05-14 | Ramesh Mane | fix(nc-gui): add workspace title in base list header
+2025-05-14 | Ramesh Mane | fix(nc-gui): cmd k review changes
+2025-05-14 | Ramesh Mane | fix(nc-gui): some review changes
+2025-05-14 | Ramesh Mane | fix(nc-gui): table search fn
+2025-05-14 | Ramesh Mane | fix(nc-gui): sidebar oss changes
+2025-05-13 | Ramesh Mane | fix(nc-gui): show base home page sidebar upon navigating to any base/table/view/script
+2025-05-13 | Ramesh Mane | fix(nc-gui): update project icon everywhere
+2025-05-13 | Ramesh Mane | fix(nc-gui): some review changes
+2025-05-13 | Ramesh Mane | fix(nc-gui): sidebar base icon active issue
+2025-05-13 | Ramesh Mane | fix(nc-gui): some animation issue
+2025-05-13 | Ramesh Mane | fix(nc-gui): oss sidebar logo issue
+2025-05-13 | Ramesh Mane | fix(nc-gui): some oss list changes
+2025-05-13 | Ramesh Mane | fix(nc-gui): some notification & scroll issue
+2025-05-13 | Ramesh Mane | fix(nc-gui): empty state
+2025-05-13 | Ramesh Mane | fix(nc-gui): cleanup
+2025-05-13 | Ramesh Mane | fix(nc-gui): show base home page if it is active on mount
+2025-05-13 | Ramesh Mane | chore(nc-gui): lint
+2025-05-13 | Ramesh Mane | fix(nc-gui): some transition issue
+2025-05-12 | Ramesh Mane | fix(nc-gui): shared base issue
+2025-05-12 | Ramesh Mane | fix(nc-gui): change order of create new btn
+2025-05-12 | Ramesh Mane | fix(nc-gui): some review changes
+2025-05-12 | Ramesh Mane | fix(nc-gui): animation issue
+2025-05-12 | Ramesh Mane | fix(nc-gui): add slide animation
+2025-05-12 | Ramesh Mane | fix(nc-gui): some review changes
+2025-05-12 | Ramesh Mane | fix(nc-gui): don't close sidebar if dropdown is active
+2025-05-12 | Ramesh Mane | fix(nc-gui): small issue
+2025-05-12 | Ramesh Mane | fix(nc-gui): add create new dropdown
+2025-05-12 | Ramesh Mane | fix(nc-gui): show ws menu on hover
+2025-05-12 | Ramesh Mane | fix(nc-gui): overflow and gap issue
+2025-05-12 | Ramesh Mane | fix(nc-gui): create base padding issue
+2025-05-12 | Ramesh Mane | fix(nc-gui): two mini sidebar btn active issue
+2025-05-12 | Ramesh Mane | fix(nc-gui): overflow issue
+2025-05-12 | Ramesh Mane | fix(nc-gui): Don't hide sidebar if user is hovering over any sidebar context menu dropdown
+2025-05-10 | Ramesh Mane | fix(nc-gui): update active state for base icon from minisidebar
+2025-05-10 | Ramesh Mane | fix(nc-gui): update minisidebar icons and state
+2025-05-10 | Ramesh Mane | fix(nc-gui): update left sidebar icons
+2025-05-10 | Ramesh Mane | fix(nc-gui): some padding issue
+2025-05-10 | Ramesh Mane | fix(nc-gui): client.x calculation issue while opening sidebar
+2025-05-10 | Ramesh Mane | fix(nc-gui): sidebar footer issue
+2025-05-10 | Ramesh Mane | fix(nc-gui): external source alignment issue
+2025-05-10 | Ramesh Mane | fix(nc-gui): create base btn bg issue
+2025-05-10 | Ramesh Mane | fix(nc-gui): baselist scroll issue
+2025-05-10 | Ramesh Mane | fix(nc-gui): scroll issue in list
+2025-05-10 | Ramesh Mane | fix(nc-gui): update script context menu
+2025-05-10 | Ramesh Mane | fix(nc-gui): add base list and table list sidebar switching
+2025-05-09 | Ramesh Mane | fix(nc-gui): closes sidebar width issue
+2025-05-09 | Ramesh Mane | fix(nc-gui): add base list component
+2025-05-09 | Ramesh Mane | fix(style): configure font weight for each custom fontSize variable in scss file
+2025-05-09 | Ramesh Mane | fix(nc-gui): use camelCase for windi css fontSize config
+2025-05-09 | Ramesh Mane | fix(nc-gui): base navigation issue
+2025-05-09 | Ramesh Mane | fix(nc-gui): hide open sidebar btn from non new sidebar pages
+2025-05-09 | Ramesh Mane | fix(nc-gui): some ui changes
+2025-05-09 | Ramesh Mane | fix(nc-gui): some ui changes
+2025-05-08 | Ramesh Mane | fix(nc-gui): closed sidebar hover area
+2025-05-08 | Ramesh Mane | feat(nc-gui): minisidebar
+2025-05-08 | Ramesh Mane | chore(nc-gui): add Improved Sidebar under beta feature
+2025-05-16 | Fendy Heryanto | formula query builder also handle replace users
+2025-05-16 | DarkPhoenix2704 | fix: calendar date field fixes
+2025-05-16 | Fendy Heryanto | like nlike user to use new method for replacing user id with email / name
+2025-05-16 | Pranav C | Merge pull request #4936 from nocodb/ee-version
+2025-05-16 | Pranav C | Merge pull request #5527 from nocodb/fix/5526-table-delete-bug
+2025-05-15 | Pranav C | fix: table delete - handle scenarios when user not in table page
+2025-05-13 | DarkPhoenix2704 | fix: limit audit log and dataList
+2025-05-13 | DarkPhoenix2704 | feat: audit logs support for mcp
+2025-05-15 | Anbarasu | Merge pull request #5495 from nocodb/script-templates
+2025-05-15 | Ameesha Arackal | Merge pull request #4988 from nocodb/fix/4351-user-role-issue
+2025-05-15 | DarkPhoenix2704 | fix: sync scripts
+2025-05-11 | DarkPhoenix2704 | chore: cleanup
+2025-05-11 | DarkPhoenix2704 | fix: script node in sidebar
+2025-05-11 | DarkPhoenix2704 | feat: allow user to see script details and add new script
+2025-05-11 | DarkPhoenix2704 | feat: refactor extensions to plugin for scripts
+2025-05-15 | DarkPhoenix2704 | fix: update package.json
+2025-05-15 | DarkPhoenix2704 | fix: some corrections
+2025-05-15 | DarkPhoenix2704 | feat: script use v3 api
+2025-05-15 | Fendy Heryanto | re-add null filter in json
+2025-05-15 | Ramesh Mane | Merge pull request #5519 from nocodb/fix/add-docs-link
+2025-05-15 | Fendy Heryanto | fix ui sorting
+2025-05-15 | Ramesh Mane | chore(nc-gui): lint
+2025-05-15 | Ramesh Mane | fix(nc-gui): select non supported file if their is no supported file
+2025-05-15 | Ramesh Mane | fix(nc-gui): add pdf in docs
+2025-05-15 | Ramesh Mane | fix(nc-gui): add supported file type docs link in expanded form filemode
+2025-05-15 | Ramesh Mane | Merge pull request #5508 from nocodb/fix/copy-paster-by-header
+2025-05-14 | Fendy Heryanto | fix off-by-1 index problem
+2025-05-15 | Fendy Heryanto | Merge pull request #5514 from nocodb/fix/multi-user-replace-order
+2025-05-15 | Pranav C | refactor: proper error code
+2025-05-13 | Pranav C | refactor: change permission check order
+2025-04-22 | Pranav C | fix: check user have enough permission
+2025-04-22 | Pranav C | fix: error message handling
+2025-04-22 | Pranav C | fix: update ee version of user invite/update/delete
+2025-04-22 | Pranav C | fix: update ee version of user invite
+2025-04-21 | Pranav C | fix: pass metaService ref
+2025-04-20 | Pranav C | fix: condition correction
+2025-03-28 | Pranav C | Revert "fix: add option to alter role inheriting from workspace to base"
+2025-03-27 | Pranav C | fix: add option to alter role inheriting from workspace to base
+2025-03-26 | Pranav C | chore: correction in owner role check
+2025-03-25 | Pranav C | chore: corrections in role check(WIP)
+2025-03-22 | Pranav C | fix: make method async
+2025-03-21 | Pranav C | refactor: add comments
+2025-03-21 | Pranav C | fix: ensure base user with owner role exist on removing the current owner
+2025-03-20 | Pranav C | fix: consider derived role
+2025-05-14 | Mert E. | Merge pull request #5516 from nocodb/fix-remove-userjoin
+2025-05-14 | DarkPhoenix2704 | fix: audit user join
+2025-05-14 | Fendy Heryanto | handle sqlite3 multiple users
+2025-05-14 | Pranav C | Merge pull request #5510 from nocodb/fix/v3-meta-add-column-single-line-text
+2025-05-14 | Fendy Heryanto | handle replace for pg
+2025-05-14 | Raju Udava | Merge pull request #5511 from nocodb/oss/a66901d2
+2025-05-14 | Raju Udava | fix: user field selection, add delay
+2025-05-14 | Raju Udava | fix: remove .only override
+2025-05-14 | Raju Udava | test: skip expand modes in OSS
+2025-05-14 | Fendy Heryanto | fix single line text not valid for field schema
+2025-05-14 | Raju Udava | Merge pull request #5489 from nocodb/fix/4712-on-prem-sso
+2025-05-14 | Raju Udava | Merge pull request #5509 from nocodb/fix-canvas-regression
+2025-05-14 | DarkPhoenix2704 | fix: disabled state condition wrong
+2025-05-14 | DarkPhoenix2704 | fix: do not keep state in column extra
+2025-05-14 | DarkPhoenix2704 | fix: canvas regression
+2025-05-13 | Raju Udava | Merge pull request #5498 from nocodb/fix/localhost-url
+2025-05-13 | Fendy Heryanto | remove wip file
+2025-05-13 | Raju Udava | Merge pull request #5488 from nocodb/fix/duplicate-column
+2025-05-13 | Raju Udava | Merge pull request #5499 from nocodb/fix/multiple-user-group
+2025-05-13 | Fendy Heryanto | refactor: use NC_ALLOW_LOCAL_HOOKS to allow using button with non tld urls
+2025-05-10 | Pranav C | feat: show no access message if license key limited with 1 workspace
+2025-05-13 | Mert E. | Merge pull request #5500 from nocodb/avoid-calling-integerationsm
+2025-05-13 | Mert E. | Merge pull request #5501 from nocodb/allow-hook-trigger
+2025-05-13 | mertmit | fix: update zero records
+2025-05-09 | mertmit | feat: optimize logic to call helpr
+2025-05-09 | mertmit | feat: batchUpdate helper for single pk
+2025-05-13 | Ramesh Mane | Merge pull request #5503 from nocodb/fix/issue-5502
+2025-05-13 | Ramesh Mane | fix(nocodb-sdk): update generate:sdk script
+2025-05-13 | DarkPhoenix2704 | fix: allow hook trigger for editor+
+2025-05-13 | DarkPhoenix2704 | fix: avoid calling loadIntegrations, instead use derived from workspace
+2025-05-13 | Fendy Heryanto | change replacement order by strategy
+2025-05-13 | Fendy Heryanto | localhost url is now considered valid url
+2025-05-12 | Anbarasu | Merge pull request #5496 from nocodb/oss/0435448f
+2025-05-12 | DarkPhoenix2704 | fix: minor correction
+2025-05-12 | DarkPhoenix2704 | fix: review comments
+2025-05-12 | DarkPhoenix2704 | fix: review comments
+2025-05-12 | DarkPhoenix2704 | fix: padding at header
+2025-05-12 | DarkPhoenix2704 | fix: review changes from shreyas
+2025-05-12 | DarkPhoenix2704 | fix: minor corrections
+2025-05-12 | DarkPhoenix2704 | fix: review comments
+2025-05-12 | DarkPhoenix2704 | fix: remove console
+2025-05-12 | DarkPhoenix2704 | fix: zod schema for attacment read
+2025-05-12 | DarkPhoenix2704 | fix: zod schema for attacment read
+2025-05-12 | DarkPhoenix2704 | feat: read attachment
+2025-05-12 | DarkPhoenix2704 | fix: new aui
+2025-05-12 | DarkPhoenix2704 | fix: lint
+2025-05-12 | DarkPhoenix2704 | fix: better acl control
+2025-05-12 | DarkPhoenix2704 | fix: mcp add token
+2025-05-12 | DarkPhoenix2704 | fix: delete when related meta deleted
+2025-05-12 | DarkPhoenix2704 | fix: review changes
+2025-05-12 | DarkPhoenix2704 | fix: keep mcp under feature flag
+2025-05-12 | DarkPhoenix2704 | fix: oss migration
+2025-05-12 | DarkPhoenix2704 | fix: mcp acl
+2025-05-12 | DarkPhoenix2704 | fix: ds support
+2025-05-12 | DarkPhoenix2704 | fix: remove internal workspace check
+2025-05-12 | DarkPhoenix2704 | feat: mcp
+2025-05-12 | Anbarasu | Merge pull request #5437 from nocodb/feat/mcp
+2025-05-12 | Ramesh Mane | Merge pull request #5480 from nocodb/docs/expanded-record-modes
+2025-05-12 | Pranav C | Merge pull request #5482 from nocodb/fix/gallery-search-date-copy-paste
+2025-05-12 | Raju Udava | Merge pull request #5432 from nocodb/fix/discussion-mode-followup
+2025-05-12 | Raju Udava | docs: feat available only in paid plans
+2025-05-12 | Pranav C | Revert "chore: add test prefix - revert later"
+2025-03-19 | Pranav C | feat: add version in sidebar
+2025-03-19 | Pranav C | chore: add test prefix - revert later
+2025-05-12 | DarkPhoenix2704 | fix: add acl service in noco.module
+2025-05-12 | DarkPhoenix2704 | fix: review comments
+2025-05-12 | DarkPhoenix2704 | fix: review comments
+2025-05-11 | DarkPhoenix2704 | fix: rebase
+2025-05-07 | DarkPhoenix2704 | fix: padding at header
+2025-05-07 | DarkPhoenix2704 | fix: review changes from shreyas
+2025-05-07 | DarkPhoenix2704 | fix: minor corrections
+2025-05-07 | DarkPhoenix2704 | fix: switch scope to root
+2025-05-07 | DarkPhoenix2704 | fix: review comments
+2025-05-07 | DarkPhoenix2704 | fix: remove console
+2025-05-07 | DarkPhoenix2704 | fix: zod schema for attacment read
+2025-05-07 | DarkPhoenix2704 | fix: zod schema for attacment read
+2025-05-07 | DarkPhoenix2704 | feat: read attachment
+2025-05-06 | DarkPhoenix2704 | fix: new aui
+2025-05-06 | DarkPhoenix2704 | fix: lint
+2025-05-06 | DarkPhoenix2704 | fix: better acl control
+2025-05-06 | DarkPhoenix2704 | fix: mcp add token
+2025-05-06 | DarkPhoenix2704 | fix: delete when related meta deleted
+2025-05-06 | DarkPhoenix2704 | fix: review changes
+2025-05-06 | DarkPhoenix2704 | fix: keep mcp under feature flag
+2025-05-06 | DarkPhoenix2704 | fix: oss migration
+2025-05-06 | DarkPhoenix2704 | fix: mcp acl
+2025-05-06 | DarkPhoenix2704 | fix: ds support
+2025-05-05 | DarkPhoenix2704 | fix: remove internal workspace check
+2025-05-05 | DarkPhoenix2704 | feat: mcp
+2025-05-11 | Mert E. | Merge pull request #5494 from nocodb/fix/empty-formula
+2025-05-11 | mertmit | fix: avoid populating skipped cols
+2025-03-19 | Pranav C | chore: update action to include version in on-prem docker image
+2025-05-10 | Mert E. | Merge pull request #5490 from nocodb/fix/snapshot-error
+2025-05-10 | mertmit | fix: snapshot throw on error
+2025-05-10 | Mert E. | Merge pull request #5487 from nocodb/fix/duplicate-empty
+2025-05-09 | mertmit | fix: better handle empty / null
+2025-05-09 | Fendy Heryanto | Merge branch 'fix/link-last-modified' into fix/gallery-search-date-copy-paste
+2025-05-09 | Fendy Heryanto | fix quick search not working
+2025-05-09 | Fendy Heryanto | add unit test for date time parser use column date format if exists
+2025-05-09 | Fendy Heryanto | update last modified for all affected rows when relation change
+2025-05-08 | Ramesh Mane | fix(nc-gui): update active expanded form view mode default state
+2025-05-08 | Ramesh Mane | chore(nc-gui): lint
+2025-05-08 | Ramesh Mane | fix(test): enable file mode pw test
+2025-05-08 | Ramesh Mane | fix(nc-gui): user field icon related issue
+2025-05-08 | Ramesh Mane | fix(nc-gui): some review changes
+2025-05-07 | Ramesh Mane | fix(nc-gui): update view mode only if it is active view expanded form open
+2025-05-07 | Ramesh Mane | fix(nc-gui): audit checkbox and rating render issue
+2025-05-07 | Ramesh Mane | fix(nc-gui): minor changes
+2025-05-07 | Ramesh Mane | fix(nc-gui): timezone display issue
+2025-05-07 | Ramesh Mane | fix(nc-gui): add fallback to field mode if view mode options are hidden and viewmode is not field mode
+2025-05-07 | Ramesh Mane | fix(nc-gui): update create attachment field to use file mode text for readonly users
+2025-05-07 | Ramesh Mane | fix(nc-gui): show discussion mode comment box only if user has comment edit or add access
+2025-05-07 | Ramesh Mane | fix(nc-gui): allow view mode toggle for viewer role also
+2025-05-07 | Ramesh Mane | fix(nc-gui): update swagger file to support discussion view mode udpate
+2025-05-07 | Ramesh Mane | fix(nc-gui): persist view mode information on toggle
+2025-05-07 | Ramesh Mane | fix(nc-gui): hide expanded form view mode in shared view
+2025-05-07 | Ramesh Mane | fix(nc-gui): shadow cut issue
+2025-05-07 | Ramesh Mane | fix(nc-gui): allow change attachment view field for viewer also
+2025-05-07 | Ramesh Mane | fix(nc-gui): open first preview supported file
+2025-05-07 | Ramesh Mane | fix(nc-gui): add border on field name in audit
+2025-05-07 | Ramesh Mane | fix(nc-gui): increase stoke width of field mode icon on active
+2025-05-06 | Ramesh Mane | fix(nc-gui): show rename and delete file option only if user has edit access from filemode
+2025-05-06 | Ramesh Mane | fix(nc-gui): add prev & next record text in expanded form navigation
+2025-05-06 | Ramesh Mane | fix(nc-gui): discussion mode comment box issue
+2025-05-06 | Ramesh Mane | fix(nc-gui): enable discussion & file mode by default
+2025-05-06 | Ramesh Mane | fix(nc-gui): ai review changes
+2025-05-05 | Ramesh Mane | fix(nc-gui): small change
+2025-05-05 | Ramesh Mane | chore(nc-gui): lint
+2025-05-05 | Ramesh Mane | fix(nc-gui): attachment rename issue
+2025-05-05 | Ramesh Mane | fix(nc-gui): filemode related ui changes
+2025-05-05 | Ramesh Mane | fix(nc-gui): date time field audit visibility issue
+2025-05-05 | Ramesh Mane | fix(nc-gui): initial vertical discussion mode line alignment issue
+2025-05-05 | Ramesh Mane | fix(nc-gui): minor changes
+2025-05-05 | Ramesh Mane | fix(nc-gui): update expanded form view mode tabs
+2025-05-05 | Ramesh Mane | fix(nc-gui): update gap
+2025-05-05 | Ramesh Mane | fix(nc-gui): comment user profile position udpate
+2025-05-05 | Ramesh Mane | fix(nc-gui): gap issue
+2025-05-05 | Ramesh Mane | fix(nc-gui): overflow issue
+2025-05-05 | Ramesh Mane | fix(nc-gui): expanded form max default visible attachment items
+2025-05-05 | Ramesh Mane | fix(nc-gui): remove badge border and bg from field badge
+2025-05-03 | Ramesh Mane | fix(nc-gui): sticky comment box
+2025-05-03 | Ramesh Mane | fix(nc-gui): discussion mode alignment issue
+2025-05-09 | Raju Udava | docs: expand record modes
+2025-05-09 | Ramesh Mane | Merge pull request #5474 from nocodb/fix/checkbox-issue
+2025-05-09 | Ramesh Mane | fix(nc-gui): remove optional chaining
+2025-05-09 | Raju Udava | Update Kanban.vue
+2025-05-09 | Ramesh Mane | chore(nc-gui): lint
+2025-05-09 | Ramesh Mane | fix(nc-gui): apply column color on url filter
+2025-05-09 | Ramesh Mane | fix(nc-gui): update alert box from url filter
+2025-05-09 | Ramesh Mane | fix(nc-gui): keep minimal info in delete stack
+2025-05-09 | Fendy Heryanto | fix undefined reference
+2025-05-09 | Ramesh Mane | fix(nc-gui): update kanban stack delete warning msg
+2025-05-09 | Ramesh Mane | fix(nc-gui): add string check validation in isValidURL fn
+2025-05-09 | Ramesh Mane | Merge pull request #5476 from nocodb/oss/a96f7e8b
+2025-05-09 | Salim B | docs: fix `NC_DISABLE_PG_DATA_REFLECTION` description
+2025-05-09 | Ramesh Mane | Merge pull request #5470 from nocodb/fix-form-image
+2025-05-08 | DarkPhoenix2704 | fix: form view logo url
+2025-05-08 | Mert E. | Merge pull request #5468 from nocodb/ui-clean-up-scripts
+2025-05-08 | DarkPhoenix2704 | fix: execute code
+2025-05-08 | DarkPhoenix2704 | fix: do not assign same variable
+2025-05-08 | DarkPhoenix2704 | fix: add debounce
+2025-05-08 | DarkPhoenix2704 | fix: remove watcher
+2025-05-08 | DarkPhoenix2704 | fix: rename code to script
+2025-05-08 | DarkPhoenix2704 | fix: script migration
+2025-05-08 | DarkPhoenix2704 | fix: build
+2025-05-08 | DarkPhoenix2704 | fix: build
+2025-05-08 | DarkPhoenix2704 | fix: scripts not loading properly
+2025-05-08 | DarkPhoenix2704 | fix: unwanted api calls
+2025-05-08 | DarkPhoenix2704 | fix: monaco not getting mounted
+2025-05-08 | DarkPhoenix2704 | fix: script not getting saved
+2025-05-08 | Mert E. | Merge pull request #5469 from nocodb/fix/onprem-filter
+2025-05-08 | mertmit | fix: token pw
+2025-05-08 | mertmit | fix: ui get limit
+2025-05-08 | Anbarasu | Merge pull request #5467 from nocodb/fix-script
+2025-05-08 | DarkPhoenix2704 | fix: minor correction
+2025-05-08 | DarkPhoenix2704 | fix: remove controllers and move to internal endpoints
+2025-05-08 | Raju Udava | Merge pull request #5455 from nocodb/fix/lookup-formula-nested
+2025-05-08 | Ramesh Mane | Merge pull request #5459 from nocodb/expand-icon-cursor
+2025-05-08 | Ramesh Mane | fix(nc-gui): index cell cursor issue
+2025-05-07 | WarWolf47 | fix: add cursor pointer for expand icon in row meta column
+2025-05-07 | Fendy Heryanto | revert back to original gealiascount
+2025-05-07 | Fendy Heryanto | increment lookup alias count
+2025-05-07 | Fendy Heryanto | fix missing context on verify filter prevent uidt mutation on formula general handler
+2025-05-07 | Fendy Heryanto | remove console.log
+2025-05-07 | Fendy Heryanto | tableAlias resolved in real time (not cached)
+2025-04-18 | Fendy Heryanto | change /api/v2/tables/{tableId}/links/{linkFieldId}/records/{recordId} response to 201 to match production

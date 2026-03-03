@@ -233,7 +233,7 @@ test.describe('Filter Tests: Numerical', () => {
 
     const table = await createDemoTable({ context, type: 'numberBased', recordCnt: 400 });
     records = await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 400 });
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -389,7 +389,7 @@ test.describe('Filter Tests: Text based', () => {
 
     const table = await createDemoTable({ context, type: 'textBased', recordCnt: 400 });
     records = await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 400 });
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -515,7 +515,7 @@ test.describe('Filter Tests: Select based', () => {
     const table = await createDemoTable({ context, type: 'selectBased', recordCnt: 400 });
     records = await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 400 });
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -837,7 +837,7 @@ test.describe('Filter Tests: Date based', () => {
     const table = await createDemoTable({ context, type: 'dateTimeBased', recordCnt: 800 });
     records = await api.dbTableRow.list('noco', context.base.id, table.id, { limit: 800 });
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -947,7 +947,7 @@ test.describe('Filter Tests: AddOn', () => {
     } catch (e) {
       console.error(e);
     }
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {

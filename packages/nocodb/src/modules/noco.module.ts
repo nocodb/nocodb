@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { NotFoundHandlerModule } from './not-found-handler.module';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
@@ -51,7 +52,6 @@ import { HooksController } from '~/controllers/hooks.controller';
 import { JobsMetaController } from '~/controllers/jobs-meta.controller';
 import { KanbansController } from '~/controllers/kanbans.controller';
 import { MapsController } from '~/controllers/maps.controller';
-import { MetaDiffsController } from '~/controllers/meta-diffs.controller';
 import { ModelVisibilitiesController } from '~/controllers/model-visibilities.controller';
 import { NotificationsController } from '~/controllers/notifications.controller';
 import { OrgLcenseController } from '~/controllers/org-lcense.controller';
@@ -78,6 +78,7 @@ import { CachesService } from '~/services/caches.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { ColumnsService } from '~/services/columns.service';
 import { CommandPaletteService } from '~/services/command-palette.service';
+import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import { CommentsService } from '~/services/comments.service';
 import { ExtensionsService } from '~/services/extensions.service';
 import { FiltersService } from '~/services/filters.service';
@@ -112,7 +113,9 @@ import { McpTokenService } from '~/services/mcp.service';
 import { McpService } from '~/mcp/mcp.service';
 import { McpController } from '~/mcp/mcp.controller';
 import { InternalController } from '~/controllers/internal.controller';
+import { WorkspaceUsersController } from '~/controllers/workspace-users.controller';
 import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
+import { DependencyService } from '~/services/dependency.service';
 
 /* Datas */
 import { BulkDataAliasController } from '~/controllers/bulk-data-alias.controller';
@@ -149,11 +152,22 @@ import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewRowColorController } from '~/controllers/view-row-color.controller';
+import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-url-upload.handler';
 
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataAttachmentV3Service } from '~/services/v3/data-attachment-v3.service';
+import { OAuthModule } from '~/modules/oauth/oauth.module';
+import {
+  InternalApiModuleProvider,
+  InternalApiModules,
+} from '~/controllers/internal/provider';
+import {
+  MetaDependencyModuleProvider,
+  MetaDependencyServices,
+} from '~/services/meta-dependency/meta-dependency.provider';
+import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -167,6 +181,7 @@ export const nocoModuleMetadata = {
         files: NC_MAX_ATTACHMENTS_ALLOWED,
       },
     }),
+    OAuthModule,
 
     // put it at the bottom most since it's route not found handling
     // resorting to import to be resolved the last
@@ -198,7 +213,6 @@ export const nocoModuleMetadata = {
           HooksController,
           KanbansController,
           MapsController,
-          MetaDiffsController,
           ModelVisibilitiesController,
           OrgLcenseController,
           OrgTokensController,
@@ -220,6 +234,7 @@ export const nocoModuleMetadata = {
           JobsMetaController,
           IntegrationsController,
           InternalController,
+          WorkspaceUsersController,
 
           // MCP
           McpController,
@@ -254,6 +269,7 @@ export const nocoModuleMetadata = {
     AppHooksService,
     AppHooksListenerService,
     TelemetryService,
+    TelemetryHandlerService,
     HookHandlerService,
     MailService,
 
@@ -271,6 +287,7 @@ export const nocoModuleMetadata = {
     CachesService,
     CalendarsService,
     ColumnsService,
+    DuplicateDetectionService,
     CommentsService,
     FiltersService,
     FormColumnsService,
@@ -315,6 +332,8 @@ export const nocoModuleMetadata = {
     ViewRowColorService,
     ViewRowColorV3Service,
     ViewsV3Service,
+    DependencyService,
+    WorkspaceUsersService,
 
     /* Datas */
     DataTableService,
@@ -345,6 +364,14 @@ export const nocoModuleMetadata = {
 
     /* emit handlers */
     AttachmentUrlUploadHandler,
+
+    ...InternalApiModules,
+    InternalApiModuleProvider,
+
+    /* Dependency handler */
+    MetaDependencyEventHandler,
+    ...MetaDependencyServices,
+    MetaDependencyModuleProvider,
   ],
   exports: [
     /* Generic */
@@ -360,6 +387,7 @@ export const nocoModuleMetadata = {
     MetaService,
     TablesService,
     ColumnsService,
+    DuplicateDetectionService,
     FiltersService,
     SortsService,
     ViewsService,
@@ -382,6 +410,8 @@ export const nocoModuleMetadata = {
     NocoJobsService,
     ViewRowColorService,
     ViewRowColorV3Service,
+    DependencyService,
+    MailService,
 
     /* Datas */
     DatasService,
@@ -392,6 +422,10 @@ export const nocoModuleMetadata = {
     'IViewsV3Service',
 
     AttachmentUrlUploadHandler,
+
+    ...InternalApiModules,
+    MetaDependencyEventHandler,
+    ...MetaDependencyServices,
   ],
 };
 

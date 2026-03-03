@@ -1,7 +1,7 @@
-import { RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
 import type { BoolType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
 import type Filter from '~/models/Filter';
+import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
@@ -47,7 +47,7 @@ export default class LinkToAnotherRecordColumn {
   ur?: string;
   fk_index_name?: string;
 
-  type: 'hm' | 'bt' | 'mm' | 'oo';
+  type: 'hm' | 'bt' | 'mm' | 'oo' | 'om' | 'mo';
   virtual: BoolType;
 
   mmModel?: Model;
@@ -60,6 +60,7 @@ export default class LinkToAnotherRecordColumn {
   parentColumn?: Column;
 
   filter?: Filter;
+  version?: number;
 
   constructor(data: Partial<LinkToAnotherRecordColumn>) {
     Object.assign(this, {
@@ -72,7 +73,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { childContext } = await this.getParentChildContext(context);
+    const { childContext } = await this.getParentChildContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.childColumn = await Column.get(
       childContext,
       {
@@ -86,7 +90,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { mmContext } = this.getRelContext(context);
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
 
     return (this.mmChildColumn = await Column.get(
       mmContext,
@@ -101,7 +108,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { parentContext } = await this.getParentChildContext(context);
+    const { parentContext } = await this.getParentChildContext({
+      ...context,
+      base_id: this.base_id,
+    });
 
     return (this.parentColumn = await Column.get(
       parentContext,
@@ -116,7 +126,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { mmContext } = this.getRelContext(context);
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.mmParentColumn = await Column.get(
       mmContext,
       {
@@ -144,7 +157,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
-    const { refContext } = this.getRelContext(context);
+    const { refContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.relatedTable = await Model.getByIdOrName(
       refContext,
       {
@@ -177,6 +193,7 @@ export default class LinkToAnotherRecordColumn {
       'fk_mm_base_id',
       'fk_related_source_id',
       'fk_mm_source_id',
+      'version',
     ]);
 
     await ncMeta.metaInsert2(
@@ -207,6 +224,7 @@ export default class LinkToAnotherRecordColumn {
     let colData =
       columnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_RELATION}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -217,7 +235,11 @@ export default class LinkToAnotherRecordColumn {
         MetaTable.COL_RELATIONS,
         { fk_column_id: columnId },
       );
-      await NocoCache.set(`${CacheScope.COL_RELATION}:${columnId}`, colData);
+      await NocoCache.set(
+        context,
+        `${CacheScope.COL_RELATION}:${columnId}`,
+        colData,
+      );
     }
     return colData ? new LinkToAnotherRecordColumn(colData) : null;
   }
@@ -257,6 +279,12 @@ export default class LinkToAnotherRecordColumn {
       };
     }
 
+    // propagate cache map
+    if (context.cacheMap) {
+      refContext.cacheMap = context.cacheMap;
+      if (mmContext) mmContext.cacheMap = context.cacheMap;
+    }
+
     return (this._context = {
       refContext,
       mmContext,
@@ -272,40 +300,44 @@ export default class LinkToAnotherRecordColumn {
       return this._parentChildContext;
     }
 
-    const { refContext, mmContext } = this.getRelContext(context);
+    const { refContext, mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
+
     let childContext = context;
     let parentContext = context;
 
-    // if hm then child belongs to the related table
-    // if oo(hm) then child belongs to the related table
-    // in these scenario overwrite context if fk_related_base_id is present
-    if (
-      this.fk_related_base_id &&
-      (this.type === RelationTypes.HAS_MANY ||
-        (this.type === RelationTypes.ONE_TO_ONE &&
-          !(
-            column ||
-            (await Column.get(context, { colId: this.fk_column_id }, ncMeta))
-          )?.meta?.bt))
-    ) {
-      childContext = refContext;
+    if (this.fk_related_base_id) {
+      const col =
+        column ||
+        (await Column.get(context, { colId: this.fk_column_id }, ncMeta));
+
+      // V2 om/mo/mm all use junction tables — parent always in related table
+      if (isMMOrMMLike(col)) {
+        parentContext = refContext;
+      } else if (this.type === RelationTypes.HAS_MANY) {
+        // hm: child (FK column) belongs to the related table
+        childContext = refContext;
+      } else if (this.type === RelationTypes.BELONGS_TO) {
+        // bt: parent (PK column) belongs to the related table
+        parentContext = refContext;
+      } else if (this.type === RelationTypes.ONE_TO_ONE) {
+        // oo: depends on which side holds the FK
+        if (col?.meta?.bt) {
+          parentContext = refContext;
+        } else {
+          childContext = refContext;
+        }
+      }
     }
 
-    // if mm link parent present in related table
-    // if bt then parent belongs to the related table
-    // if oo(bt) then parent belongs to the related table
-    // in these scenario overwrite context if fk_related_base_id is present
-    if (
-      this.fk_related_base_id &&
-      (this.type === RelationTypes.MANY_TO_MANY ||
-        this.type === RelationTypes.BELONGS_TO ||
-        (this.type === RelationTypes.ONE_TO_ONE &&
-          (
-            column ||
-            (await Column.get(context, { colId: this.fk_column_id }, ncMeta))
-          )?.meta?.bt))
-    ) {
-      parentContext = refContext;
+    // propagate cache map
+    if (context.cacheMap) {
+      refContext.cacheMap = context.cacheMap;
+      if (mmContext) mmContext.cacheMap = context.cacheMap;
+      childContext.cacheMap = context.cacheMap;
+      parentContext.cacheMap = context.cacheMap;
     }
 
     return (this._parentChildContext = {

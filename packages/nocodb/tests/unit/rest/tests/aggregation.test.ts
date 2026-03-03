@@ -355,7 +355,7 @@ function aggregationTests() {
       ],
     });
 
-    await relatedTable.getColumns(context);
+    await relatedTable.getColumns(ctx);
 
     childTable = await createTable(context, base, {
       table_name: 'ChildTable',

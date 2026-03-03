@@ -39,6 +39,17 @@ export default async function getColumnPropsFromUIDT(
   newColumn.altered = column.altered || 2;
 
   const finalColumnMeta = { ...newColumn, ...column };
+  // Preserve original cdf if it was set (newColumn sets it to null by default)
+  if ('cdf' in column && column.cdf !== undefined && column.cdf !== null) {
+    finalColumnMeta.cdf = column.cdf as string;
+  }
+  // Preserve original unique and ck if they were set
+  if ('unique' in column && column.unique !== undefined) {
+    finalColumnMeta.unique = column.unique;
+  }
+  if ('ck' in column && column.ck !== undefined) {
+    finalColumnMeta.ck = column.ck;
+  }
   sqlUi.adjustLengthAndScale(finalColumnMeta);
 
   if (

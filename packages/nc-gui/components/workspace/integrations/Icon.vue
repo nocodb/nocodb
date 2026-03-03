@@ -44,13 +44,13 @@ const pxWrapperPadding = computed(() => {
     <GeneralIcon
       v-if="typeof integrationItem === 'string'"
       :icon="integrationItem"
-      class="text-gray-700"
+      class="text-nc-content-inverted-secondary"
       :style="{ width: pxSize, height: pxSize }"
     />
     <component
       :is="integrationItem.icon"
       v-else-if="integrationItem.icon"
-      class="text-gray-700"
+      class="text-nc-content-inverted-secondary"
       :style="{ width: pxSize, height: pxSize }"
     />
   </div>
@@ -58,6 +58,6 @@ const pxWrapperPadding = computed(() => {
 
 <style lang="scss" scoped>
 .logo-wrapper {
-  @apply bg-gray-200 rounded-lg flex items-center justify-center;
+  @apply bg-nc-bg-gray-medium rounded-lg flex items-center justify-center;
 }
 </style>

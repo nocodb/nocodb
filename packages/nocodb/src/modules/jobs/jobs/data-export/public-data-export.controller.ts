@@ -33,22 +33,17 @@ export class PublicDataExportController {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('publicDataUuid') publicDataUuid: string,
-    @Param('exportAs') exportAs: 'csv' | 'json' | 'xlsx',
+    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel',
     @Body() options: DataExportJobData['options'],
   ) {
     const view = await View.getByUUID(context, publicDataUuid);
 
     if (!view) NcError.viewNotFound(publicDataUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR &&
-      view.type !== ViewTypes.MAP
-    )
-      NcError.notFound('Not found');
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
-    if (view.password && view.password !== req.headers?.['xc-password']) {
+    if (
+      !(await View.verifyPassword(view, req.headers?.['xc-password'] as string))
+    ) {
       NcError.invalidSharedViewPassword();
     }
 
@@ -61,7 +56,11 @@ export class PublicDataExportController {
 
     const job = await this.jobsService.add(JobTypes.DataExport, {
       context,
-      options,
+      options: {
+        ...(options ?? {}),
+        // includeByteOrderMark when export is triggered from controller
+        includeByteOrderMark: true,
+      },
       modelId: view.fk_model_id,
       viewId: view.id,
       user: req.user,

@@ -40,8 +40,11 @@ const openLongText = (event: MouseEvent) => {
   if (!isStringDataType.value) return
 
   const target = event.target as HTMLElement
-  if (target.tagName === 'A') {
+  const anchor = target.closest('a') as HTMLAnchorElement | null
+  if (anchor?.href) {
+    event.preventDefault()
     event.stopPropagation()
+    confirmPageLeavingRedirect(anchor.href, '_blank')
     return
   }
 
@@ -71,11 +74,17 @@ const updatedColumn = computed(() => {
       uidt: column.value.meta?.display_type,
       ...column.value.meta?.display_column_meta,
     }
+  } else if (column.value.colOptions?.parsed_tree?.referencedColumn) {
+    return {
+      ...column.value,
+      uidt: column.value.colOptions?.parsed_tree?.referencedColumn.uidt,
+      ...column.value.meta?.display_column_meta,
+    }
   }
 })
 
 const renderAsCell = computed(() => {
-  return !!column.value.meta?.display_type
+  return !!column.value.meta?.display_type || !!column.value.colOptions?.parsed_tree?.referencedColumn
 })
 </script>
 
@@ -90,7 +99,11 @@ const renderAsCell = computed(() => {
     </div>
   </template>
   <div v-else class="w-full" :class="{ 'text-right': isNumber && isGrid && !isExpandedFormOpen }">
-    <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">
+    <a-tooltip
+      v-if="column && column.colOptions && column.colOptions.error"
+      placement="bottom"
+      class="text-nc-content-orange-dark"
+    >
       <template #title>
         <span class="font-bold">{{ column.colOptions.error }}</span>
       </template>
@@ -100,6 +113,7 @@ const renderAsCell = computed(() => {
     <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
       <div
         v-if="urls"
+        v-dompurify-html="urls"
         :style="{
           'display': '-webkit-box',
           'max-width': '100%',
@@ -109,7 +123,6 @@ const renderAsCell = computed(() => {
           'word-break': 'break-all',
         }"
         @click="openLongText"
-        v-html="urls"
       />
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />
@@ -133,7 +146,10 @@ const renderAsCell = computed(() => {
           class="nc-textarea-expand !p-0 !w-5 !h-5 !min-w-[fit-content]"
           @click.stop="openLongText"
         >
-          <component :is="iconMap.maximize" class="transform group-hover:(!text-gray-800) text-gray-700 w-3 h-3" />
+          <component
+            :is="iconMap.maximize"
+            class="transform group-hover:(!text-nc-content-gray) text-nc-content-gray-subtle w-3 h-3"
+          />
         </NcButton>
       </NcTooltip>
     </div>

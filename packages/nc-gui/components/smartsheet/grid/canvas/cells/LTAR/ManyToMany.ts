@@ -23,6 +23,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
       setCursor,
       cellRenderStore,
       selected,
+      getColor,
     } = props
 
     const relatedTableDisplayValueProp =
@@ -65,10 +66,10 @@ export const ManyToManyCellRenderer: CellRenderer = {
       readonly: true,
       height: rowHeightInPx['1']!,
       padding: 10,
-      textColor: themeV3Colors.brand['500'],
+      textColor: getColor(themeV4Colors.brand['500']),
       tag: {
         renderAsTag: true,
-        tagBgColor: themeV3Colors.brand['50'],
+        tagBgColor: getColor(themeV4Colors.brand['50'], 'var(--nc-bg-gray-light)'),
         tagHeight: 24,
       },
       meta: relatedTableMeta,
@@ -184,7 +185,7 @@ export const ManyToManyCellRenderer: CellRenderer = {
 
       if (!readonly) {
         renderIconButton(ctx, {
-          buttonX: x + width - 57,
+          buttonX: x + width - 54,
           buttonY: y + 6,
           borderRadius,
           buttonSize,
@@ -195,8 +196,12 @@ export const ManyToManyCellRenderer: CellRenderer = {
             size: 14,
             xOffset: 3,
             yOffset: 3,
+            color: getColor(themeV4Colors.gray['700']),
           },
           setCursor,
+          background: getColor(themeV4Colors.base.white),
+          borderColor: getColor(themeV4Colors.gray['200']),
+          hoveredBackground: getColor(themeV4Colors.gray['100']),
         })
       }
 
@@ -213,7 +218,11 @@ export const ManyToManyCellRenderer: CellRenderer = {
           size: 12,
           xOffset: 4,
           yOffset: 4,
+          color: getColor(themeV4Colors.gray['700']),
         },
+        background: getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
       })
     }
   },

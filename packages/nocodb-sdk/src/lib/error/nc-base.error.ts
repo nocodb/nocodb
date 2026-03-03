@@ -62,6 +62,22 @@ export class OptionsNotExistsError extends BadRequestV2 {
   validOptions: string[];
 }
 
+export class UniqueConstraintViolationError extends BadRequestV2 {
+  constructor({ value, fieldName }: { value: string; fieldName: string }) {
+    let message = `${fieldName} field unique constraint violation. Value '${value}' already exists.`
+
+    if (value === 'unknown') {
+      message = `${fieldName} field unique constraint violation.`;
+    }
+
+    super(message);
+    this.value = value;
+    this.fieldName = fieldName;
+  }
+  value: string;
+  fieldName: string;
+}
+
 export class TestConnectionError extends NcBaseError {
   public sql_code?: string;
 

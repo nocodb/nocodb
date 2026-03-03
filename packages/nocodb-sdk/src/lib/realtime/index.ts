@@ -1,10 +1,11 @@
-import { UserType } from '~/lib/Api';
+import { NotificationType, UserType } from '~/lib/Api';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
   CONNECTION_WELCOME = 'connection-welcome',
   CONNECTION_ERROR = 'connection-error',
   NOTIFICATION = 'notification',
+  NOTIFICATION_EVENT = 'event-notification',
   USER_EVENT = 'event-user',
   DATA_EVENT = 'event-data',
   META_EVENT = 'event-meta',
@@ -12,16 +13,18 @@ export enum EventType {
   DASHBOARD_EVENT = 'event-dashboard',
   WIDGET_EVENT = 'event-widget',
   SCRIPT_EVENT = 'event-script',
+  TEAM_EVENT = 'event-team',
+  WORKFLOW_EVENT = 'event-workflow',
+  WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
+  PRESENCE_EVENT = 'event-presence',
 }
 
-// Base payload interface for all socket events
 export interface BaseSocketPayload {
   timestamp: number;
   socketId?: string;
   event?: EventType;
 }
 
-// Connection event payloads
 export interface ConnectionWelcomePayload extends BaseSocketPayload {
   message: string;
   serverInfo: {
@@ -57,8 +60,10 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'source_create'
     | 'source_update'
     | 'source_delete'
+    | 'source_meta_sync'
     | 'table_create'
     | 'table_update'
+    | 'table_permission_update'
     | 'table_delete'
     | 'column_add'
     | 'column_update'
@@ -75,7 +80,11 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'sort_delete'
     | 'view_column_update'
     | 'view_column_refresh' // hide/show all
-    | 'row_color_update';
+    | 'row_color_update'
+    | 'extension_update'
+    | 'extension_create'
+    | 'extension_delete'
+    | 'rls_policy_update';
   payload: T;
   baseId?: string;
 }
@@ -89,28 +98,115 @@ export interface UserEventPayload<T = any> extends BaseSocketPayload {
     | 'workspace_update'
     | 'workspace_user_add'
     | 'workspace_user_remove'
-    | 'workspace_user_update';
+    | 'workspace_user_update'
+    | 'base_meta_reload';
   payload: T;
   baseId?: string;
   workspaceId?: string;
 }
 
-// Union type for all socket event payloads
+export interface NotificationPayload extends BaseSocketPayload {
+  action: 'create';
+  payload: Partial<NotificationType>;
+}
+
+export enum PresencePageType {
+  TABLE = 'table',
+  AUTOMATION = 'automation',
+  DASHBOARD = 'dashboard',
+  SCRIPT = 'script',
+}
+
+export interface PresenceAnnouncePayload extends BaseSocketPayload {
+  action: 'announce';
+  user: {
+    id: string;
+    email: string;
+    displayName: string;
+    meta?: Record<string, any> | null;
+  };
+  resource: {
+    id: string;
+    type: PresencePageType;
+    viewId?: string;
+  };
+}
+
+export interface PresenceHeartbeatPayload extends BaseSocketPayload {
+  action: 'heartbeat';
+  user: {
+    id: string;
+  };
+  resource: {
+    id: string;
+    type: PresencePageType;
+    viewId?: string;
+  };
+}
+
+export interface PresenceLocationChangePayload extends BaseSocketPayload {
+  action: 'location-change';
+  user: {
+    id: string;
+  };
+  resource: {
+    id: string;
+    type: PresencePageType;
+    viewId?: string;
+  };
+}
+
+export interface PresenceLeavePayload extends BaseSocketPayload {
+  action: 'leave';
+  user: {
+    id: string;
+  };
+}
+
+export interface PresenceBatchPayload extends BaseSocketPayload {
+  action: 'batch';
+  users: Array<{
+    user: {
+      id: string;
+      email: string;
+      displayName: string;
+      meta?: Record<string, any> | null;
+    };
+    resource: {
+      id: string;
+      type: PresencePageType;
+      viewId?: string;
+    };
+    lastSeen: number;
+  }>;
+}
+
+export type PresencePayload =
+  | PresenceAnnouncePayload
+  | PresenceHeartbeatPayload
+  | PresenceLocationChangePayload
+  | PresenceLeavePayload
+  | PresenceBatchPayload;
+
 export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
   | DataPayload
   | MetaPayload
-  | CommentPayload;
+  | CommentPayload
+  | NotificationPayload
+  | PresencePayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
+  [EventType.NOTIFICATION_EVENT]: NotificationPayload;
   [EventType.CONNECTION_WELCOME]: ConnectionWelcomePayload;
   [EventType.CONNECTION_ERROR]: ConnectionErrorPayload;
   [EventType.DATA_EVENT]: DataPayload;
   [EventType.META_EVENT]: MetaPayload;
   [EventType.USER_EVENT]: UserEventPayload;
   [EventType.COMMENT_EVENT]: CommentPayload;
+  [EventType.PRESENCE_EVENT]: PresencePayload;
   [key: string]: BaseSocketPayload;
 };
 

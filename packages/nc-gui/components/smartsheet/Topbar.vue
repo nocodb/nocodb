@@ -6,9 +6,11 @@ const { isUIAllowed } = useRoles()
 
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
-const { activeAutomationId } = storeToRefs(useAutomationStore())
+const { activeScriptId } = storeToRefs(useScriptStore())
 
 const { activeDashboardId, isEditingDashboard } = storeToRefs(useDashboardStore())
+
+const { activeWorkflowId, activeWorkflowHasDraftChanges } = storeToRefs(useWorkflowStore())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -21,6 +23,8 @@ const { toggleExtensionPanel, isPanelExpanded } = useExtensions()
 const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded, isViewActionsEnabled } = useActionPane()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { isEEFeatureBlocked } = useEeConfig()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -38,43 +42,55 @@ const topbarBreadcrumbItemWidth = computed(() => {
 <template>
   <div
     :class="{
-      'bg-nc-bg-brand': isEditingDashboard,
+      'bg-nc-bg-brand': isEditingDashboard || activeWorkflowHasDraftChanges,
     }"
     class="nc-table-topbar py-2 border-b-1 border-nc-border-gray-medium flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
     style="z-index: 7"
   >
-    <template v-if="isViewsLoading && !activeAutomationId && !activeDashboardId">
+    <template v-if="isViewsLoading && !activeScriptId && !activeDashboardId && !activeWorkflowId">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
       <div
-        class="flex items-center gap-3 min-w-[calc(100%_-_62px)] md:min-w-[300px]"
+        class="flex items-center gap-3 md:min-w-[300px]"
         :style="{
           width: topbarBreadcrumbItemWidth,
         }"
       >
         <GeneralOpenLeftSidebarBtn />
-        <LazySmartsheetToolbarViewInfo v-if="!isPublic && !activeAutomationId && !activeDashboardId" />
-        <LazySmartsheetTopbarAutomationInfo v-if="!isPublic && activeAutomationId" />
+        <LazySmartsheetToolbarViewInfo v-if="!isPublic && !activeScriptId && !activeDashboardId && !activeWorkflowId" />
+        <LazySmartsheetTopbarScriptInfo v-if="!isPublic && activeScriptId" />
         <LazySmartsheetTopbarDashboardInfo v-if="!isPublic && activeDashboardId" />
+        <LazySmartsheetTopbarWorkflowInfo v-if="!isPublic && activeWorkflowId" />
       </div>
 
-      <div v-if="!isSharedBase && !isMobileMode && !activeAutomationId && !activeDashboardId">
+      <div v-if="!isSharedBase && !isMobileMode && !activeScriptId && !activeDashboardId && !activeWorkflowId">
         <SmartsheetTopbarSelectMode />
       </div>
-      <div v-else-if="activeDashboardId">
+      <div v-else-if="activeDashboardId || activeWorkflowId">
         <SmartsheetTopbarEditingState />
       </div>
 
       <div class="flex items-center justify-end gap-2 flex-1">
-        <GeneralApiLoader v-if="!isMobileMode && !activeAutomationId && !activeDashboardId" />
+        <GeneralApiLoader v-if="!isMobileMode && !activeScriptId && !activeDashboardId" />
+
+        <!-- Managed App Status -->
+        <LazySmartsheetTopbarManagedAppStatus v-if="!isSharedBase && !isMobileMode" />
+
+        <!-- Sandbox Status -->
+        <LazySmartsheetTopbarSandboxStatus v-if="!isSharedBase && !isMobileMode" />
+
+        <LazySmartsheetTopbarCollaboratorPresence
+          v-if="!isPublic && !isSharedBase && !isMobileMode && openedViewsTab === 'view' && appInfo.ee"
+        />
 
         <NcButton
           v-if="
-            (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            ((isEeUI && !isEEFeatureBlocked) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
-            !activeAutomationId &&
+            !activeScriptId &&
             !activeDashboardId &&
+            !activeWorkflowId &&
             openedViewsTab === 'view' &&
             !isMobileMode
           "
@@ -82,7 +98,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           type="secondary"
           size="small"
           class="nc-topbar-extension-btn"
-          :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isPanelExpanded }"
+          :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isPanelExpanded }"
           data-testid="nc-topbar-extension-btn"
           @click="toggleExtensionPanel"
         >
@@ -104,8 +120,9 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <NcButton
           v-if="
             !isSharedBase &&
-            !activeAutomationId &&
+            !activeScriptId &&
             !activeDashboardId &&
+            !activeWorkflowId &&
             openedViewsTab === 'view' &&
             !isMobileMode &&
             isViewActionsEnabled
@@ -114,7 +131,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
           type="secondary"
           size="small"
           class="nc-topbar-action-btn"
-          :class="{ '!bg-brand-50 !hover:bg-brand-100/70 !text-brand-500': isActionPanelExpanded }"
+          :class="{ '!bg-nc-bg-brand !hover:bg-nc-brand-100/70 !text-nc-content-brand': isActionPanelExpanded }"
           data-testid="nc-topbar-action-btn"
           @click="toggleActionPanel"
         >
@@ -135,9 +152,13 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <div v-if="!isSharedBase" class="flex gap-2 items-center empty:hidden">
           <LazySmartsheetTopbarDashboardState v-if="activeDashboardId && isUIAllowed('dashboardEdit')" />
-          <LazySmartsheetTopbarScriptAction v-if="activeAutomationId && appInfo.ee" />
+          <LazySmartsheetTopbarScriptAction v-if="activeScriptId && appInfo.ee" />
+          <LazySmartsheetTopbarWorkflowAction v-if="activeWorkflowId && appInfo.ee" />
         </div>
-        <LazySmartsheetTopbarShareProject v-if="!activeAutomationId" />
+
+        <DashboardMiniSidebarTheme v-if="isSharedBase" placement="bottom" render-as-btn button-class="h-8 w-8" />
+
+        <LazySmartsheetTopbarShareProject v-if="!activeScriptId && !activeWorkflowId" />
 
         <div v-if="isSharedBase">
           <LazyGeneralLanguage

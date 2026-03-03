@@ -1,5 +1,14 @@
 <script setup lang="ts">
+import { BaseVersion } from 'nocodb-sdk'
+
 const { isUIAllowed } = useRoles()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { isEEFeatureBlocked, showUpgradeToUseSnapshots } = useEeConfig()
+
+const baseStore = useBase()
+const { base } = storeToRefs(baseStore)
 
 const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType'))
 
@@ -7,18 +16,23 @@ const hasPermissionForMCP = computed(() => isUIAllowed('manageMCP'))
 
 const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
 
-const hasPermissionForMigrate = computed(() => !isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
+const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 
 const hasPermissionForVisibility = computed(() => isUIAllowed('baseMiscSettings'))
 
+const hasPermissionForMigrateToV3 = computed(
+  () => isFeatureEnabled(FEATURE_FLAG.BASES_V3) && base.value?.version === BaseVersion.V2 && isUIAllowed('baseMiscSettings'),
+)
+
 const router = useRouter()
 
-const allTabs = ['baseType', 'snapshots', 'visibility', 'mcp', 'migrate']
+const allTabs = ['baseType', 'snapshots', 'visibility', 'migrateToV3', 'mcp', 'migrate']
 
 const getDefaultTab = () => {
   if (hasPermissionForBaseAccess.value) return 'baseType'
   if (hasPermissionForSnapshots.value) return 'snapshots'
   if (hasPermissionForVisibility.value) return 'visibility'
+  if (hasPermissionForMigrateToV3.value) return 'migrateToV3'
   if (hasPermissionForMigrate.value) return 'migrate'
   return 'mcp'
 }
@@ -39,6 +53,10 @@ const selectMenu = (option: string, updateQuery = true) => {
   }
 
   if (!hasPermissionForVisibility.value && option === 'visibility') {
+    return
+  }
+
+  if (!hasPermissionForMigrateToV3.value && option === 'migrateToV3') {
     return
   }
 
@@ -85,7 +103,7 @@ watch(
           :class="{
             'active-menu': activeMenu === 'baseType',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           @click="selectMenu('baseType')"
         >
           <GeneralIcon icon="ncUsers" />
@@ -100,14 +118,15 @@ watch(
           :class="{
             'active-menu': activeMenu === 'snapshots',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
-          @click="selectMenu('snapshots')"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          @click="isEEFeatureBlocked ? showUpgradeToUseSnapshots() : selectMenu('snapshots')"
         >
           <GeneralIcon icon="camera" />
 
           <span>
             {{ $t('general.snapshots') }}
           </span>
+          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" />
         </div>
 
         <div
@@ -115,7 +134,7 @@ watch(
           :class="{
             'active-menu': activeMenu === 'visibility',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           data-testid="visibility-tab"
           @click="selectMenu('visibility')"
         >
@@ -125,11 +144,25 @@ watch(
           </span>
         </div>
         <div
+          v-if="hasPermissionForMigrateToV3"
+          :class="{
+            'active-menu': activeMenu === 'migrateToV3',
+          }"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          data-testid="migrate-to-v3-tab"
+          @click="selectMenu('migrateToV3')"
+        >
+          <GeneralIcon icon="ncArrowUp" />
+          <span>
+            {{ $t('labels.migrateToV3') }}
+          </span>
+        </div>
+        <div
           v-if="hasPermissionForMCP"
           :class="{
             'active-menu': activeMenu === 'mcp',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           data-testid="mcp-tab"
           @click="selectMenu('mcp')"
         >
@@ -144,7 +177,7 @@ watch(
           :class="{
             'active-menu': activeMenu === 'migrate',
           }"
-          class="gap-3 hover:bg-gray-100 transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
           data-testid="migrate-tab"
           @click="selectMenu('migrate')"
         >
@@ -159,6 +192,7 @@ watch(
       <DashboardSettingsBaseAccess v-if="activeMenu === 'baseType'" />
       <DashboardSettingsBaseSnapshots v-if="activeMenu === 'snapshots'" />
       <DashboardSettingsBaseVisibility v-if="activeMenu === 'visibility'" />
+      <DashboardSettingsBaseMigrateToV3 v-if="activeMenu === 'migrateToV3'" />
       <DashboardSettingsBaseMigrate v-if="activeMenu === 'migrate'" />
       <DashboardSettingsBaseMCP v-if="activeMenu === 'mcp'" />
     </div>
@@ -167,6 +201,6 @@ watch(
 
 <style lang="scss" scoped>
 .active-menu {
-  @apply !bg-brand-50 font-semibold !text-nc-content-brand-disabled;
+  @apply !bg-nc-bg-brand dark:!bg-nc-bg-gray-medium font-semibold !text-nc-content-brand-disabled;
 }
 </style>

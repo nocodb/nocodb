@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import tinycolor from 'tinycolor2'
 import { Checkbox, CheckboxGroup, Radio, RadioGroup } from 'ant-design-vue'
 import type { Select as AntSelect } from 'ant-design-vue'
 import { CURRENT_USER_TOKEN, type UserFieldRecordType } from 'nocodb-sdk'
@@ -21,6 +20,8 @@ const emit = defineEmits(['update:modelValue'])
 const { isMobileMode } = useGlobal()
 
 const { t } = useI18n()
+
+const { getColor } = useTheme()
 
 const meta = inject(MetaInj)!
 
@@ -385,17 +386,17 @@ onMounted(() => {
                   <div class="flex flex-col w-[calc(100%_-_40px)]">
                     <div class="w-full flex gap-3">
                       <NcTooltip
-                        class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full text-gray-800"
+                        class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full text-nc-content-gray"
                         :class="{
-                          '!text-gray-500': !isCollaborator(op.id || op.email),
+                          '!text-nc-content-gray-muted': !isCollaborator(op.id || op.email),
                         }"
                         show-on-truncate-only
                         placement="bottom"
                       >
                         <template #title>
-                          {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                          {{ extractUserDisplayNameOrEmail(op) }}
                         </template>
-                        {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                        {{ extractUserDisplayNameOrEmail(op) }}
                       </NcTooltip>
                     </div>
                     <NcTooltip
@@ -425,7 +426,7 @@ onMounted(() => {
       </div>
       <div
         v-if="!readOnly && !isMultiple && vModel.length"
-        class="inline-block px-2 pt-2 cursor-pointer text-xs text-gray-500 hover:text-gray-800"
+        class="inline-block px-2 pt-2 cursor-pointer text-xs text-nc-content-gray-muted hover:text-nc-content-gray"
         @click="vModel = []"
       >
         {{ $t('labels.clearSelection') }}
@@ -457,7 +458,7 @@ onMounted(() => {
       @keydown="onKeyDown"
     >
       <template #suffixIcon>
-        <GeneralIcon icon="arrowDown" class="text-gray-700 nc-select-expand-btn" />
+        <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle nc-select-expand-btn" />
       </template>
       <template v-for="op of options" :key="op.id || op.email">
         <a-select-option
@@ -491,15 +492,15 @@ onMounted(() => {
                   class="text-bodyDefaultSmBold !leading-5 capitalize truncate max-w-full"
                   :class="{
                     'text-nc-content-brand': op.email === CURRENT_USER_TOKEN,
-                    'text-gray-800': op.email !== CURRENT_USER_TOKEN,
+                    'text-nc-content-gray': op.email !== CURRENT_USER_TOKEN,
                   }"
                   show-on-truncate-only
                   placement="bottom"
                 >
                   <template #title>
-                    {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                    {{ extractUserDisplayNameOrEmail(op) }}
                   </template>
-                  {{ op.display_name?.trim() || extractNameFromEmail(op.email) }}
+                  {{ extractUserDisplayNameOrEmail(op) }}
                 </NcTooltip>
               </div>
               <NcTooltip
@@ -532,7 +533,9 @@ onMounted(() => {
             '!my-0': !rowHeight || rowHeight === 1,
           }"
           :style="{ display: 'flex', alignItems: 'center' }"
-          :color="val === CURRENT_USER_TOKEN ? themeV4Colors.brand[50] : location === 'filter' ? themeV4Colors.gray[200] : '#ccc'"
+          :color="
+            val === CURRENT_USER_TOKEN ? themeV4Colors.brand[50] : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
+          "
           :closable="editAllowed && ((vModel?.length ?? 0) > 1 || !column?.rqd)"
           :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
           @click="onTagClick($event, onClose)"
@@ -540,12 +543,7 @@ onMounted(() => {
         >
           <span
             :style="{
-              color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', {
-                level: 'AA',
-                size: 'large',
-              })
-                ? '#fff'
-                : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              color: getSelectTypeOptionTextColor(getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'), getColor),
             }"
             class="flex items-stretch gap-2"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
@@ -560,7 +558,7 @@ onMounted(() => {
                 }"
                 class="!text-[0.5rem] !h-[16.8px]"
                 :class="{
-                  '!bg-white': val === CURRENT_USER_TOKEN,
+                  '!bg-nc-bg-default': val === CURRENT_USER_TOKEN,
                 }"
                 :is-deleted="!isCollaborator(val)"
                 :disabled="!isCollaborator(val)"
@@ -569,7 +567,7 @@ onMounted(() => {
             </div>
             <span
               :class="{
-                'text-gray-500': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
+                'text-nc-content-gray-muted': !isCollaborator(val) && val !== CURRENT_USER_TOKEN,
                 'text-nc-content-brand': val === CURRENT_USER_TOKEN,
                 'font-600': isInFilter,
               }"
@@ -585,7 +583,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .ms-close-icon {
-  color: rgba(0, 0, 0, 0.25);
+  color: rgba(var(--rgb-base), 0.25);
   cursor: pointer;
   display: flex;
   font-size: 12px;
@@ -606,7 +604,7 @@ onMounted(() => {
 }
 
 .ms-close-icon:hover {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(var(--rgb-base), 0.45);
 }
 
 .read-only {
@@ -616,15 +614,11 @@ onMounted(() => {
 }
 
 .rounded-tag {
-  @apply bg-gray-200 px-2 rounded-[12px];
+  @apply bg-nc-bg-gray-medium px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[1px];
-}
-
-:deep(.ant-tag-close-icon) {
-  @apply "text-slate-500";
 }
 
 :deep(.ant-select-selection-overflow-item) {

@@ -4,12 +4,12 @@ import { AppEvents, comparisonOpList, EventType } from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
-import type { MetaService } from 'src/meta/meta.service';
+import type { MetaService } from '~/meta/meta.service';
+import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import NocoSocket from '~/socket/NocoSocket';
-import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 import { Filter, Hook, View } from '~/models';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
@@ -54,11 +54,38 @@ export class FiltersService {
     return Filter.rootFilterListByHook(context, { hookId: param.hookId });
   }
 
+  async buttonFilterCreate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      buttonColId: any;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    validatePayload('swagger.json#/components/schemas/FilterReq', param.filter);
+
+    return await Filter.insert(context, {
+      ...param.filter,
+      fk_button_col_id: param.buttonColId,
+    });
+  }
+
+  async buttonFilterList(context: NcContext, param: { buttonColId: string }) {
+    return Filter.rootFilterListByButtonColumn(context, {
+      buttonColId: param.buttonColId,
+    });
+  }
+
   async filterDelete(
     context: NcContext,
     param: { filterId: string; req: NcRequest },
     ncMeta?: MetaService,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     const filter = await Filter.get(context, param.filterId);
 
     if (!filter) {
@@ -402,13 +429,7 @@ export class FiltersService {
     filterId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    try {
-      // Delete directly from nc_filters table
-      await Filter.delete(context, filterId, ncMeta);
-    } catch (error) {
-      console.warn(`Failed to delete filter ${filterId}: ${error.message}`);
-      throw error;
-    }
+    await Filter.delete(context, filterId, ncMeta);
   }
 
   /**

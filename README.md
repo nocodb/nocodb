@@ -3,7 +3,6 @@
         <a style="color:#36f" href="https://www.nocodb.com">
             <img src="/packages/nc-gui/assets/img/brand/nocodb-full.png" height="80" />
             <br>
-    The Open Source Airtable Alternative 
         </a>
         <br>
     </div>
@@ -16,7 +15,7 @@ NocoDB is the fastest and easiest way to build databases online.
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://discord.gg/c7GEYrvFtT"><b>Discord</b></a> •
     <a href="https://community.nocodb.com/"><b>Community</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
@@ -36,6 +35,7 @@ NocoDB is the fastest and easiest way to build databases online.
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263770-38e3e79d-11d4-472e-ac27-ae0f17cf65c4.png">](markdown/readme/languages/japanese.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263822-28fce9de-915a-44dc-962d-7a61d340e91d.png">](markdown/readme/languages/korean.md)
 [<img height="38" src="https://user-images.githubusercontent.com/61551451/135263888-151d4ad1-7084-4943-97c9-56f28cd40b80.png">](markdown/readme/languages/russian.md)
+[<img height="38" alt="Bengali translation" src="">](markdown/readme/languages/bengali.md)
 
 </div>
 
@@ -45,7 +45,7 @@ NocoDB is the fastest and easiest way to build databases online.
 
 # Join Our Community
 
-<a href="https://discord.gg/5RgZmkW" target="_blank">
+<a href="https://discord.gg/c7GEYrvFtT" target="_blank">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 
@@ -162,12 +162,12 @@ Most internet businesses equip themselves with either spreadsheet or a database 
 
 # Our Mission
 
-Our mission is to provide the most powerful no-code interface for databases that is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on the internet.
+Our mission is to provide the most powerful no-code interface for databases, accessible to every internet business across the world. By making this capability broadly available under a fair and sustainable model, we aim to democratise access to powerful computing tools and enable a billion-plus people to develop radical tinkering and building abilities on the internet.
 
 # License
 
 <p>
-This project is licensed under <a href="./LICENSE">AGPLv3</a>.
+This project is licensed under <a href="./LICENSE">Sustainable Use License</a>.
 </p>
 
 # Contributors

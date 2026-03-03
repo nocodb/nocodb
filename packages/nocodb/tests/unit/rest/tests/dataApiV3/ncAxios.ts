@@ -27,10 +27,12 @@ export interface INcAxios {
     url,
     body,
     status,
+    query,
   }: {
     url: string;
     body?: any;
     status?: number;
+    query?: any;
   }) => Promise<request.Response>;
   ncAxiosDelete: ({
     url,
@@ -122,14 +124,17 @@ export const ncAxios = (testContext: ITestContext) => {
     url,
     body = {},
     status = 200,
+    query = {},
   }: {
     url: string;
     body?: any;
     status?: number;
+    query?: any;
   }) {
     const response = await request(testContext.context.app)
       .patch(url)
       .set('xc-auth', testContext.context.token)
+      .query(query)
       .send(body);
     expect(response.status).to.equal(status);
     return response;

@@ -26,8 +26,10 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isEditColumn = inject(EditColumnInj, ref(false))
 
+const { isDark, getColor } = useTheme()
+
 const options = computed<(SelectOptionType & { value?: string })[]>(() => {
-  return getOptions(column.value, isEditColumn.value, isForm.value)
+  return getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
 })
 
 const showReadonlyField = computed(() => {

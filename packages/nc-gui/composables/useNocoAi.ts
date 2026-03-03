@@ -1,4 +1,4 @@
-import type { IntegrationType, SerializedAiViewType, TableType } from 'nocodb-sdk'
+import { BaseVersion, type IntegrationType, type SerializedAiViewType, type TableType } from 'nocodb-sdk'
 
 const aiIntegrationNotFound = 'AI integration not found'
 
@@ -13,7 +13,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const isAiFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+  const isAiFeaturesEnabled = computed(() => isEeUI)
 
   const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES))
 
@@ -110,7 +110,11 @@ export const useNocoAi = createSharedComposable(() => {
       aiLoading.value = true
       aiError.value = ''
 
-      const res = await $api.ai.schemaCreate(workspaceStore.activeWorkspaceId, { operation, input })
+      const res = await $api.ai.schemaCreate(workspaceStore.activeWorkspaceId, {
+        operation,
+        input,
+        ...(isFeatureEnabled(FEATURE_FLAG.BASES_V3) ? { version: BaseVersion.V3 } : {}),
+      })
 
       return res
     } catch (e) {
@@ -300,6 +304,47 @@ export const useNocoAi = createSharedComposable(() => {
     return []
   }
 
+  /**
+   * Predict filter conditions from a natural-language description using AI.
+   * Calls the backend 'predictFilters' operation, which uses the table schema
+   * to generate structured filters (column, operator, value, logical_op).
+   *
+   * Returns { action, filters } where:
+   * - action: 'add' (append), 'replace' (clear + add), or 'clear' (remove all)
+   * - filters: array of filter objects with column titles (not IDs) — the caller
+   *   is responsible for resolving titles to fk_column_id before applying.
+   */
+  const predictFilters = async (
+    tableId: string,
+    description: string,
+    viewId?: string,
+    baseId?: string,
+    skipMsgToast = true,
+  ): Promise<{
+    action: 'add' | 'replace' | 'clear'
+    filters: {
+      column: string
+      comparison_op: string
+      comparison_sub_op: string | null
+      value: string | null
+      logical_op: string
+    }[]
+  }> => {
+    const res = await callAiSchemaApi('predictFilters', { tableId, viewId, description }, baseId, skipMsgToast)
+
+    return {
+      action: (res?.action as 'add' | 'replace' | 'clear') || 'add',
+      filters:
+        (res?.filters as {
+          column: string
+          comparison_op: string
+          comparison_sub_op: string | null
+          value: string | null
+          logical_op: string
+        }[]) || [],
+    }
+  }
+
   const generatingRows = ref<string[]>([])
 
   const generatingColumnRows = ref<string[]>([])
@@ -400,6 +445,7 @@ export const useNocoAi = createSharedComposable(() => {
     predictFormula,
     repairFormula,
     predictViews,
+    predictFilters,
     aiIntegrations,
     completeScript,
     isAiFeaturesEnabled,

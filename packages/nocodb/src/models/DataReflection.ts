@@ -64,11 +64,13 @@ export default class DataReflection {
 
     let dataReflection = condition.id
       ? await NocoCache.get(
+          'root',
           `${CacheScope.DATA_REFLECTION}:${condition.id}`,
           CacheGetType.TYPE_OBJECT,
         )
       : condition.fk_workspace_id
       ? await NocoCache.get(
+          'root',
           `${CacheScope.DATA_REFLECTION}:${condition.fk_workspace_id}`,
           CacheGetType.TYPE_OBJECT,
         )
@@ -90,11 +92,13 @@ export default class DataReflection {
 
       if (dataReflection) {
         await NocoCache.set(
+          'root',
           `${CacheScope.DATA_REFLECTION}:${dataReflection.id}`,
           dataReflection,
         );
 
         await NocoCache.set(
+          'root',
           `${CacheScope.DATA_REFLECTION}:${dataReflection.fk_workspace_id}`,
           dataReflection,
         );
@@ -123,8 +127,12 @@ export default class DataReflection {
       return;
     }
 
-    await NocoCache.del(`${CacheScope.DATA_REFLECTION}:${dataReflection.id}`);
     await NocoCache.del(
+      'root',
+      `${CacheScope.DATA_REFLECTION}:${dataReflection.id}`,
+    );
+    await NocoCache.del(
+      'root',
       `${CacheScope.DATA_REFLECTION}:${dataReflection.fk_workspace_id}`,
     );
 

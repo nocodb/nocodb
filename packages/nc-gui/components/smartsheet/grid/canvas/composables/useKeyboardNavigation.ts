@@ -4,7 +4,7 @@ import { EDIT_INTERACTABLE } from '../utils/constants'
 import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
 
 // column types which support delete even when it's in edit state
-const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User]
+const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.GeoData]
 
 const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1
@@ -85,7 +85,8 @@ export function useKeyboardNavigation({
   const meta = inject(MetaInj, ref())
 
   const _handleKeyDown = async (e: KeyboardEvent) => {
-    if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideExtension()) return
+    if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideScriptPane() || isActiveElementInsideExtension())
+      return
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
     )
@@ -93,12 +94,18 @@ export function useKeyboardNavigation({
       e.preventDefault()
       return true
     }
-    if (isExpandedCellInputExist()) return
+
+    if (isExpandedCellInputExist() || isNcListSearchInputActive()) return
     if (isNcDropdownOpen()) return
     if (isCmdJActive() || cmdKActive()) return
+
     if (isDrawerOrModalExist() || isLinkDropdownExist() || isGeneralOverlayActive()) {
       // If Extension Pane is Active, ignore
       if (!isExtensionPaneActive()) return
+      else if (!isActiveElementInsideExtension() && !isActiveElementInsideScriptPane() && isDrawerOrModalExist()) {
+        // If extension pane open and active drawer or modal is not extension modal then we have to return, else it will prevent keyboard events
+        return
+      }
     }
     const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
     const altOrOptionKey = e.altKey
@@ -166,6 +173,9 @@ export function useKeyboardNavigation({
     if (cmdOrCtrl && (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt))) {
       switch (e.key.toLowerCase()) {
         case 'c':
+          // If cell is not selected then return
+          if (activeCell.value.row === -1 || activeCell.value.column === -1) return
+
           e.preventDefault()
           copyValue({ row: activeCell.value.row, col: activeCell.value.column }, groupPath)
           return

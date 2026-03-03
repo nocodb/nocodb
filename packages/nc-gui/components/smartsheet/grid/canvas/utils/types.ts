@@ -34,6 +34,7 @@ export interface RenderMultiLineTextProps extends RenderSingleLineTextProps {
   firstLineMaxWidth?: number
   yOffset?: number
   selected?: boolean
+  renderAsPreTag?: boolean
 }
 
 export interface RenderRectangleProps {

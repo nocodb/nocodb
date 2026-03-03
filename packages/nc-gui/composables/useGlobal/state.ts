@@ -1,5 +1,6 @@
 import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
+import { MapProvider } from 'nocodb-sdk'
 import type { AppInfo, State, StoredState } from './types'
 import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
 
@@ -16,6 +17,10 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   const {
     vueApp: { i18n },
   } = useNuxtApp()
+
+  const router = useRouter()
+
+  const isSharedBaseOrErdOrView = computed(() => isSharedBaseOrErdOrViewRoute(router.currentRoute.value))
 
   /**
    * Set initial language based on browser settings.
@@ -70,6 +75,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     syncDataUpvotes: [],
     giftBannerDismissedCount: 0,
     isLeftSidebarOpen: !isViewPortMobile(),
+    lastUsedAuthMethod: null,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
@@ -79,9 +85,32 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   storage.value.darkMode = false
 
   /** current token ref, used by `useJwt` to reactively parse our token payload */
+  /**
+   * Token management behavior (read/write rules):
+   *
+   * Issue:
+   * - When opening a Shared Base, ERD, or Shared View in a new tab,
+   *   the main application’s auth token from `localStorage` gets reused.
+   * - This incorrectly treats the user as authenticated, even though
+   *   shared resources must always behave as "guest/readonly" access.
+   *
+   * Fix:
+   * - When we detect that current route is a Shared Base / ERD / Shared View,
+   *   we completely avoid reading from or writing to localStorage.
+   * - This ensures:
+   *    ✅ Shared views always open as guest users
+   *    ✅ Real login session in main app remains unaffected
+   *    ✅ No accidental privilege escalation when opening links in new tab
+   *
+   * Result:
+   * - Main app uses persistent auth from localStorage
+   * - Shared resources use a temporary, isolated token only in memory
+   */
   const token = computed({
-    get: () => storage.value.token || '',
+    get: () => (isSharedBaseOrErdOrView.value ? '' : storage.value.token || ''),
     set: (val) => {
+      if (isSharedBaseOrErdOrView.value) return
+
       storage.value.token = val
     },
   })
@@ -118,6 +147,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     inviteOnlySignup: false,
     giftUrl: '',
     isOnPrem: false,
+    defaultWorkspaceId: null,
+    disableGroupByAggregation: false,
+    mapProvider: MapProvider.OPENSTREETMAP,
   })
 
   /** reactive token payload */

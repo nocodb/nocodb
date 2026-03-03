@@ -2,17 +2,22 @@ import { Readable } from 'stream';
 import path from 'path';
 import iconv from 'iconv-lite';
 import { Injectable, Logger } from '@nestjs/common';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import type { Job } from 'bull';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import { type DataExportJobData } from '~/interface/Jobs';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
-import { Model, PresignedUrl, View } from '~/models';
+import { Base, Model, PresignedUrl, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 
 function getViewTitle(view: View) {
-  return view?.is_default ? 'Default View' : view?.title;
+  return view?.title;
 }
 
 @Injectable()
@@ -32,7 +37,8 @@ export class DataExportProcessor {
       ncSiteUrl,
     } = job.data;
 
-    if (exportAs !== 'csv') NcError.notImplemented(`Export as ${exportAs}`);
+    if (exportAs !== 'csv' && exportAs !== 'json' && exportAs !== 'excel')
+      NcError.notImplemented(`Export as ${exportAs}`);
 
     const hrTime = initTime();
 
@@ -45,13 +51,21 @@ export class DataExportProcessor {
     if (!view) NcError.viewNotFound(viewId);
 
     // date time as containing folder YYYY-MM-DD/HH
-    const dateFolder = moment().format('YYYY-MM-DD/HH');
+    const dateFolder = dayjs().format('YYYY-MM-DD/HH');
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${
-      model.title
-    } (${getViewTitle(view)}) - ${Date.now()}.csv`;
+    const base = await Base.get(context, model.base_id);
+    const date = dayjs()
+      .tz(options?.filenameTimeZone || 'Etc/UTC')
+      .format('YYYY-MM-DD_HH-mm');
+    const filename = `${base.title} - ${model.title} (${getViewTitle(
+      view,
+    )}) ${date}`;
+
+    const fileExtension =
+      exportAs === 'json' ? 'json' : exportAs === 'excel' ? 'xlsx' : 'csv';
+    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.${fileExtension}`;
 
     let url = null;
 
@@ -60,9 +74,13 @@ export class DataExportProcessor {
         read() {},
       });
 
-      dataStream.setEncoding('utf8');
+      // Excel outputs binary data, so only set encoding for text-based formats
+      if (exportAs !== 'excel') {
+        dataStream.setEncoding('utf8');
+      }
 
       const encodedStream =
+        exportAs !== 'excel' &&
         options?.encoding &&
         options.encoding !== 'utf-8' &&
         iconv.encodingExists(options.encoding)
@@ -70,6 +88,15 @@ export class DataExportProcessor {
               .pipe(iconv.decodeStream('utf-8'))
               .pipe(iconv.encodeStream(options?.encoding || 'utf-8'))
           : dataStream;
+
+      if (
+        exportAs === 'csv' &&
+        (!options?.encoding || options.encoding === 'utf-8') &&
+        options.includeByteOrderMark
+      ) {
+        // Push UTF-8 BOM at the start (only for CSV text format)
+        dataStream.push('\uFEFF');
+      }
 
       let error = null;
 
@@ -80,47 +107,96 @@ export class DataExportProcessor {
           error = e;
         });
 
-      this.exportService
-        .streamModelDataAsCsv(context, {
-          dataStream,
-          linkStream: null,
-          baseId: model.base_id,
-          modelId: model.id,
-          viewId: view.id,
-          ncSiteUrl: ncSiteUrl,
-          delimiter: options?.delimiter,
-        })
-        .catch((e) => {
-          this.logger.debug(e);
-          dataStream.push(null);
-          error = e;
-        });
+      if (exportAs === 'json') {
+        this.exportService
+          .streamModelDataAsJson(context, {
+            dataStream,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      } else if (exportAs === 'excel') {
+        this.exportService
+          .streamModelDataAsExcel(context, {
+            dataStream,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      } else {
+        this.exportService
+          .streamModelDataAsCsv(context, {
+            dataStream,
+            linkStream: null,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            delimiter: options?.delimiter,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      }
 
       url = await uploadFilePromise;
 
+      if (error) {
+        throw error;
+      }
+
       // if url is not defined, it is local attachment
+      const mimetype =
+        exportAs === 'json'
+          ? 'application/json'
+          : exportAs === 'csv'
+          ? 'text/csv'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const filenameWithExt = `${filename}.${fileExtension}`;
+
       if (!url) {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),
-          filename: `${model.title} (${getViewTitle(view)}).csv`,
+          filename: filenameWithExt,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
-          mimetype: 'text/csv',
-          encoding: options?.encoding || 'utf-8',
+          mimetype,
+          encoding:
+            exportAs === 'excel' ? undefined : options?.encoding || 'utf-8',
         });
       } else {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: url,
-          filename: `${model.title} (${getViewTitle(view)}).csv`,
+          filename: filenameWithExt,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
-          mimetype: 'text/csv',
-          encoding: options?.encoding || 'utf-8',
+          mimetype,
+          encoding:
+            exportAs === 'excel' ? undefined : options?.encoding || 'utf-8',
         });
-      }
-
-      if (error) {
-        throw error;
       }
 
       elapsedTime(
@@ -132,7 +208,7 @@ export class DataExportProcessor {
       throw {
         data: {
           extension_id: options?.extension_id,
-          title: `${model.title} (${getViewTitle(view)})`,
+          title: filename,
         },
         message: e.message,
       };
@@ -142,7 +218,7 @@ export class DataExportProcessor {
       timestamp: new Date(),
       extension_id: options?.extension_id,
       type: exportAs,
-      title: `${model.title} (${getViewTitle(view)})`,
+      title: filename,
       url,
     };
   }

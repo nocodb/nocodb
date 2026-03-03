@@ -29,7 +29,7 @@ const availableFields = computed(() => {
   )
 })
 
-const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName } =
+const { isEdit, setAdditionalValidations, column, formattedData, loadData, disableSubmitBtn, updateFieldName, isSyncedField } =
   useColumnCreateStoreOrThrow()
 
 const { isAiBetaFeaturesEnabled, aiIntegrationAvailable, generateRows } = useNocoAi()
@@ -210,7 +210,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
         </template>
         <div class="flex items-center gap-1">
           <NcSwitch v-model:checked="richMode" :disabled="isEnabledGenerateText || (isPvColumn && !richMode)">
-            <div class="text-sm text-gray-800 select-none font-semibold">
+            <div class="text-sm text-nc-content-gray select-none">
               {{ $t('labels.enableRichText') }}
             </div>
           </NcSwitch>
@@ -220,10 +220,12 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
 
     <div v-if="isPromptEnabled" class="relative">
       <a-form-item class="flex items-center">
-        <NcTooltip :disabled="!(richMode || (isPvColumn && !isEnabledGenerateText))" class="flex items-center">
+        <NcTooltip :disabled="!(richMode || (isPvColumn && !isEnabledGenerateText) || isSyncedField)" class="flex items-center">
           <template #title>
             {{
-              isPvColumn && !isEnabledGenerateText
+              isSyncedField
+                ? 'You cannot generate content in a synced field'
+                : isPvColumn && !isEnabledGenerateText
                 ? `${UITypesName.AIPrompt} field cannot be used as display value field`
                 : 'Generate text using AI is not supported when rich text formatting is enabled'
             }}</template
@@ -231,7 +233,7 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
 
           <NcSwitch
             v-model:checked="isEnabledGenerateText"
-            :disabled="richMode || (isPvColumn && !isEnabledGenerateText)"
+            :disabled="richMode || (isPvColumn && !isEnabledGenerateText) || isSyncedField"
             class="nc-ai-field-generate-text nc-ai-input"
             @change="handleDisableSubmitBtn"
           >
@@ -381,12 +383,12 @@ watch(isPreviewEnabled, handleDisableSubmitBtn, {
 
 .nc-prompt-input-wrapper {
   @apply border-1 border-nc-border-gray-medium;
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
 }
 
 .nc-ai-options-preview {
   @apply rounded-lg border-1 border-nc-border-gray-medium;
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
 
   :deep(.nc-text-area-expand-btn) {
     @apply right-1;

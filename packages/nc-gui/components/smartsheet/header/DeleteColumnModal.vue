@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { DependencyTableType, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -15,7 +15,7 @@ const { $api, $e } = useNuxtApp()
 
 const menuColumn = inject(ColumnInj)
 
-const canvasColumn = inject(CanvasColumnInj)
+const canvasColumn = inject(CanvasColumnInj, ref())
 
 const column = computed<ColumnType>(() => {
   return menuColumn?.value || canvasColumn?.value
@@ -34,6 +34,18 @@ const { loadTables } = useBase()
 const viewsStore = useViewsStore()
 
 const isLoading = ref(false)
+
+const { status, dependency, checkDependency } = useDependencies()
+
+watch(
+  () => props.visible,
+  async (newVal) => {
+    if (newVal && column.value?.id) {
+      await checkDependency(DependencyTableType.Column, column.value.id)
+    }
+  },
+  { immediate: true },
+)
 
 // disable for time being - internal discussion required
 /*
@@ -66,13 +78,22 @@ const onDelete = async () => {
   isLoading.value = true
 
   try {
-    await $api.dbTableColumn.delete(column.value.id as string)
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnDelete',
+        columnId: column.value.id as string,
+      },
+      {},
+    )
 
-    await getMeta(meta?.value?.id as string, true)
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
     if (isLinksOrLTAR(column.value) && column.value?.colOptions) {
-      await getMeta((column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
+      const relatedBaseId = (column.value.colOptions as LinkToAnotherRecordType).fk_related_base_id || meta?.value?.base_id
+      await getMeta(relatedBaseId as string, (column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
 
       // reload tables if deleted column is mm and include m2m is true
       if (includeM2M.value && (column.value.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
@@ -84,6 +105,7 @@ const onDelete = async () => {
 
     viewsStore.updateViewCoverImageColumnId({
       metaId: meta.value?.id as string,
+      baseId: meta.value?.base_id,
       columnIds: new Set([column.value.id as string]),
     })
     eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
@@ -101,9 +123,17 @@ const onDelete = async () => {
 </script>
 
 <template>
-  <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.column')" :on-delete="onDelete">
+  <GeneralDeleteModal
+    v-model:visible="visible"
+    :entity-name="$t('objects.column')"
+    :on-delete="onDelete"
+    :disable-delete-btn="status === 'loading'"
+  >
     <template #entity-preview>
-      <div v-if="column" class="flex flex-row items-center py-2 px-3 bg-gray-50 rounded-lg text-gray-700 mb-4">
+      <div
+        v-if="column"
+        class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle2 mb-4"
+      >
         <SmartsheetHeaderIcon :column="column" class="nc-view-icon" />
 
         <div
@@ -112,6 +142,15 @@ const onDelete = async () => {
         >
           {{ column.title }}
         </div>
+      </div>
+      <div class="mt-4">
+        <NcDependencyList
+          :status="status"
+          :has-breaking-changes="dependency.hasBreakingChanges"
+          :entities="dependency.entities"
+          action="delete"
+          entity-type="column"
+        />
       </div>
     </template>
 

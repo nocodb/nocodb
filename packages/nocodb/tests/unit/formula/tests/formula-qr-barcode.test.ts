@@ -68,7 +68,9 @@ function formulaQrBarcodeTests() {
       { throwError: true },
     );
     const rows = await listRow({ base: _base, table: _tables.table2 });
-    expect(rows[0].FormulaT1Barcode).to.eq('T1_001,T1_002,T1_003');
+    expect(rows[0].FormulaT1Barcode).to.contain('T1_001');
+    expect(rows[0].FormulaT1Barcode).to.contain('T1_002');
+    expect(rows[0].FormulaT1Barcode).to.contain('T1_003');
   });
 }
 

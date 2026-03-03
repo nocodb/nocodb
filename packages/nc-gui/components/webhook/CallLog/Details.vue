@@ -51,7 +51,7 @@ const hookType = (item: HookLogType) => {
       </div>
 
       <div class="log-details">
-        <div class="log-detail-item">
+        <div v-if="item.execution_time" class="log-detail-item">
           <span class="label">Execution Time</span>
           <span class="value">{{ item.execution_time }} ms</span>
         </div>
@@ -137,7 +137,7 @@ const hookType = (item: HookLogType) => {
   .log-url-wrapper {
     @apply flex flex-row gap-2 items-center h-20px;
     .log-method {
-      @apply bg-gray-200 rounded-md leading-20px px-1 text-gray-600;
+      @apply bg-nc-bg-gray-medium rounded-md leading-20px px-1 text-nc-content-gray-subtle2;
     }
 
     .log-url {

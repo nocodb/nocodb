@@ -31,17 +31,17 @@ function formulaFormulaTests() {
     const _formula1Column = await createColumn(_context, _tables.table1, {
       title: 'formulaTitle',
       uidt: UITypes.Formula,
-      formula: `CONCAT({Title}, '_')`,
-      formula_raw: `CONCAT({Title}, '_')`,
+      formula: `CONCAT({Title}, '_', '?')`,
+      formula_raw: `CONCAT({Title}, '_', '?')`,
     });
     const _formula2Column = await createColumn(_context, _tables.table1, {
       title: 'formulaTitle2',
       uidt: UITypes.Formula,
-      formula: `CONCAT({formulaTitle}, '_')`,
-      formula_raw: `CONCAT({formulaTitle}, '_')`,
+      formula: `CONCAT({formulaTitle}, '_', '?')`,
+      formula_raw: `CONCAT({formulaTitle}, '_', '?')`,
     });
     const rows = await listRow({ base: _base, table: _tables.table1 });
-    expect(rows[0].formulaTitle2).to.eq('T1_001__');
+    expect(rows[0].formulaTitle2).to.eq('T1_001_?_?');
   });
 }
 

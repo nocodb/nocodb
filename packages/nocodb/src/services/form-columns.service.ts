@@ -10,6 +10,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { Column, FormViewColumn, View } from '~/models';
 import { extractProps } from '~/helpers/extractProps';
+import { NcError } from '~/helpers/ncError';
 
 @Injectable()
 export class FormColumnsService {
@@ -26,6 +27,10 @@ export class FormColumnsService {
     },
     ncMeta?: MetaService,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     validatePayload(
       'swagger.json#/components/schemas/FormColumnReq',
       param.formViewColumn,

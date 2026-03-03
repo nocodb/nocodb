@@ -125,7 +125,7 @@ const props = defineProps<{
   }>
   toggleExpand: (group: CanvasGroup) => void
   toggleExpandAll: (path: Array<number>, expand: boolean) => void
-  groupSyncCount: (group?: CanvasGroup) => Promise<void>
+  groupSyncCount: (group?: CanvasGroup, throwError?: boolean, showToastMessage?: boolean) => Promise<void>
   fetchMissingGroupChunks: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => Promise<void>
   clearGroupCache: (startIndex: number, endIndex: number, parentGroup?: CanvasGroup) => void
 }>()
@@ -164,7 +164,7 @@ const vSelectedAllRecords = useVModel(props, 'selectedAllRecords', emits)
 
 const vSelectedAllRecordsSkipPks = useVModel(props, 'selectedAllRecordsSkipPks', emits)
 
-const { eventBus, isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
+const { eventBus, isSqlView, isExternalSource, meta: currentMeta } = useSmartsheetStoreOrThrow()
 
 const { metas, getMeta } = useMetas()
 
@@ -250,8 +250,10 @@ const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
+const { selectedTemplate } = useRecordTemplate()
+const { base } = storeToRefs(useBase())
 const route = useRoute()
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 const { t } = useI18n()
 const tooltipStore = useTooltipStore()
 const { targetReference, placement } = storeToRefs(tooltipStore)
@@ -403,6 +405,27 @@ const {
   getDataCache,
 })
 
+// File drop to create records
+const showFileDropZone = ref(false)
+const dragFileCount = ref(0)
+
+const {
+  isProcessing: isFileDropProcessing,
+  showFieldSelectDlg,
+  pendingFiles: pendingDropFiles,
+  attachmentFields,
+  handleFileDrop,
+  onFieldSelected,
+  onFieldSelectCancelled,
+} = useFileDropToCreateRecords({
+  meta,
+  callAddEmptyRow,
+  updateOrSaveRow,
+})
+
+/** Whether the table has attachment fields and data editing is allowed — gates the file drop zone */
+const canDropFilesToCreateRecords = computed(() => isDataEditAllowed.value && attachmentFields.value.length > 0)
+
 const activeCursor = ref<CursorType>('auto')
 
 function setCursor(cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) {
@@ -430,7 +453,7 @@ const isDropdownVisible = computed({
   set(value) {
     // block closing editOrAddMenu if it needs to be keep open
     // for example while saving/updating column it needs to be in open state to avoid partial save
-    if (!value && _isCreateOrEditColumnDropdownOpen.value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen()) {
+    if (!value && _isCreateOrEditColumnDropdownOpen.value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
       return
     }
     _isDropdownVisible.value = value
@@ -444,7 +467,7 @@ const isCreateOrEditColumnDropdownOpen = computed({
   set(value) {
     // block closing editOrAddMenu if it needs to be keep open
     // for example while saving/updating column it needs to be in open state to avoid partial save
-    if (!value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen()) {
+    if (!value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
       return
     }
     _isCreateOrEditColumnDropdownOpen.value = value
@@ -744,11 +767,41 @@ function onNewRecordToFormClick(path: Array<number> = []) {
   isDropdownVisible.value = false
 }
 
+function onOpenTemplateManager() {
+  openAddNewRowDropdown.value = null
+  isDropdownVisible.value = false
+  const { openManager } = useRecordTemplate()
+  openManager()
+}
+
+/** Create a record using the currently selected template (delegates to shared utility) */
+async function onSelectedTemplateClick() {
+  const tmpl = selectedTemplate.value
+  if (!tmpl || !base.value?.id || !meta.value?.id) return
+
+  try {
+    await createRecordFromTemplate({
+      tmpl,
+      api: $api,
+      baseId: base.value.id,
+      tableId: meta.value.id,
+      columns: (meta.value.columns || []) as ColumnType[],
+      getMeta,
+    })
+
+    message.toast('Record created from template')
+    reloadViewDataHook?.trigger()
+  } catch (e: any) {
+    console.error(e)
+    message.toast(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 const onVisibilityChange = (value: boolean) => {
   if (value) {
     isDropdownVisible.value = true
   } else if (isCreateOrEditColumnDropdownOpen.value) {
-    const keepOpen = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
+    const keepOpen = columnEditOrAddProviderRef.value?.shouldKeepModalOpen?.()
     isDropdownVisible.value = keepOpen
     isCreateOrEditColumnDropdownOpen.value = keepOpen
     if (!keepOpen) {
@@ -1475,7 +1528,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     if (clickType === MouseClickType.SINGLE_CLICK) {
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
-      if ((clickedColumn && clickedColumn?.fixed) || !appInfo.value.ee) {
+      if (clickedColumn && clickedColumn?.fixed) {
         const columnWidth = parseCellWidth(clickedColumn.width)
 
         const diff = x - columnWidth
@@ -1572,7 +1625,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
         const setGroup = getDefaultGroupData(group)
 
-        if (isAddNewRecordGridMode.value || !isGroupBy.value) {
+        if (selectedTemplate.value) {
+          onSelectedTemplateClick()
+        } else if (isAddNewRecordGridMode.value || !isGroupBy.value) {
           addEmptyRow(undefined, undefined, undefined, setGroup, groupPath)
         } else {
           openNewRecordHandler({ overwrite: setGroup, path: groupPath })
@@ -1580,7 +1635,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       } else {
         if (removeInlineAddRecord.value) return
 
-        await addEmptyRow()
+        if (selectedTemplate.value) {
+          await onSelectedTemplateClick()
+        } else {
+          await addEmptyRow()
+        }
       }
     }
     selection.value.clear()
@@ -1719,7 +1778,7 @@ const getHeaderTooltipRegions = (
   const regions: {
     x: number
     width: number
-    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron'
+    type: 'columnIcon' | 'title' | 'error' | 'info' | 'columnChevron' | 'synced'
     text: string
     tooltipText?: string
     height?: number
@@ -1747,7 +1806,13 @@ const getHeaderTooltipRegions = (
 
     if (column.uidt) {
       totalIconWidth += 26
-      tooltipText = getCustomColumnTooltip({ column, metas: metas.value, isExternalLink: isExternalSource.value, getMeta })
+      tooltipText = getCustomColumnTooltip({
+        column,
+        metas: metas.value,
+        baseId: currentMeta.value?.base_id,
+        isExternalLink: isExternalSource.value,
+        getMeta,
+      })
       regions.push({
         x: xOffset + 8 - scrollLeftValue,
         width: 13,
@@ -1800,7 +1865,7 @@ const getHeaderTooltipRegions = (
         width: 14,
         type: 'synced',
         disableTooltip: false,
-        text: 'This field is synced',
+        text: t('tooltip.fieldIsExternallySynced'),
       })
     }
 
@@ -1869,7 +1934,7 @@ const handleMouseMove = (e: MouseEvent) => {
         (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
       )
 
-      if (['title', 'columnChevron'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
+      if (['title', 'columnChevron', 'synced'].includes(activeFixedRegion?.type) && isFieldEditAllowed.value) {
         cursor = 'pointer'
       }
       if (activeFixedRegion && !activeFixedRegion.disableTooltip) {
@@ -1903,7 +1968,7 @@ const handleMouseMove = (e: MouseEvent) => {
           (region) => mousePosition.x >= region.x && mousePosition.x <= region.x + region.width,
         )
 
-        if (['title', 'columnChevron'].includes(activeRegion?.type) && isFieldEditAllowed.value) {
+        if (['title', 'columnChevron', 'synced'].includes(activeRegion?.type) && isFieldEditAllowed.value) {
           cursor = 'pointer'
         }
 
@@ -2430,6 +2495,14 @@ const bulkUpdataContext = (path: Array<number>) => {
   emits('bulkUpdateDlg', path)
 }
 
+const showSendRecordModal = ref(false)
+const sendRecordRowId = ref<string | null>(null)
+
+const handleSendRecord = (rowId: string) => {
+  sendRecordRowId.value = rowId
+  showSendRecordModal.value = true
+}
+
 watch([height, width, windowWidth, windowHeight], () => {
   nextTick(() => {
     calculateSlices()
@@ -2503,7 +2576,7 @@ watch(
         clearTextCache()
         await until(isViewColumnsLoading).toMatch((c) => !c)
         if (isGroupBy.value) {
-          await syncGroupCount()
+          await syncGroupCount(undefined, true)
           calculateSlices()
         } else {
           await syncCount()
@@ -2584,7 +2657,7 @@ onClickOutside(
       isExpandedCellInputExist() ||
       isLinkDropdownExist() ||
       isGeneralOverlayActive() ||
-      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown']))
+      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown', 'nc-colour-picker-modal']))
     ) {
       return
     }
@@ -2656,7 +2729,26 @@ const resetAttachmentCellDropOver = () => {
 }
 
 const onDrop = (files: File[] | null) => {
-  if (!attachmentCellDropOver.value || !files?.length || !isDataEditAllowed.value) {
+  // Capture whether the bottom drop zone was showing before clearing it
+  const wasDropZoneVisible = showFileDropZone.value
+
+  showFileDropZone.value = false
+  dragFileCount.value = 0
+
+  if (!files?.length || !isDataEditAllowed.value) {
+    return
+  }
+
+  // If the bottom drop zone was visible, always create new records
+  if (wasDropZoneVisible && canDropFilesToCreateRecords.value) {
+    resetAttachmentCellDropOver()
+    handleFileDrop(Array.from(files))
+    return
+  }
+
+  // If no specific attachment cell is targeted, trigger new record creation
+  if (!attachmentCellDropOver.value) {
+    handleFileDrop(Array.from(files))
     return
   }
 
@@ -2694,6 +2786,10 @@ const onDrop = (files: File[] | null) => {
 const onOver = (_files: File[] | null, e: DragEvent) => {
   if (!isDataEditAllowed.value) return
 
+  if (e.dataTransfer?.items) {
+    dragFileCount.value = Array.from(e.dataTransfer.items).filter((item) => item.kind === 'file').length
+  }
+
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -2726,10 +2822,16 @@ const onOver = (_files: File[] | null, e: DragEvent) => {
 
   const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
 
-  // If hover column is not attachment or is readonly, skip
+  // If hover column is not attachment or is readonly, show bottom drop zone instead
   if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment || column.readonly) {
+    if (canDropFilesToCreateRecords.value) {
+      showFileDropZone.value = true
+    }
     return resetAttachmentCellDropOver()
   }
+
+  // Over a valid attachment cell — hide bottom drop zone so cell drop takes priority
+  showFileDropZone.value = false
 
   if (
     attachmentCellDropOver.value &&
@@ -2748,10 +2850,15 @@ useDropZone(canvasRef, {
   onDrop,
   onEnter: () => {
     resetAttachmentCellDropOver()
+    if (canDropFilesToCreateRecords.value) {
+      showFileDropZone.value = true
+    }
   },
   onOver,
   onLeave: () => {
     resetAttachmentCellDropOver()
+    showFileDropZone.value = false
+    dragFileCount.value = 0
   },
 })
 
@@ -2792,10 +2899,10 @@ watch(
 </script>
 
 <template>
-  <div ref="wrapperRef" class="w-full h-full">
+  <div ref="wrapperRef" class="w-full h-full relative">
     <div
       v-if="isBulkOperationInProgress"
-      class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/30"
+      class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-nc-bg-default/30"
     >
       <a-spin size="large" />
     </div>
@@ -2871,6 +2978,7 @@ watch(
               :clear-selected-range-of-cells="clearSelectedRangeOfCells"
               @click="isContextMenuOpen = false"
               @bulk-update-dlg="bulkUpdataContext"
+              @send-record="handleSendRecord"
             />
           </template>
         </NcDropdown>
@@ -2891,13 +2999,13 @@ watch(
             :class="{
               [`row-height-${rowHeightEnum ?? 1}`]: true,
               'on-stick ': isClamped.isStuck,
-              'border-[#3366ff]': isClamped.isStuck && editEnabled.isCellEditable,
-              'border-[#9AA2AF]': isClamped.isStuck && !editEnabled.isCellEditable,
+              'border-nc-border-brand': isClamped.isStuck && editEnabled.isCellEditable,
+              'border-[#9AA2AF]': isClamped.isStuck && (!editEnabled.isCellEditable || editEnabled.isSyncedColumn),
             }"
           >
             <div
               ref="activeCellElement"
-              class="relative w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-white"
+              class="relative w-[calc(100%-5px)] h-[calc(100%-5px)] rounded-br-[9px] bg-nc-bg-default"
               :class="{
                 'px-[0.550rem]': !noPadding && !editEnabled.fixed,
                 'px-[0.49rem]': editEnabled.fixed,
@@ -2919,7 +3027,7 @@ watch(
                     :row="editEnabled.row"
                     :path="editEnabled.path"
                     active
-                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable || editEnabled.isSyncedColumn"
                     :is-allowed="editEnabled.isCellEditable"
                     @save="
                       updateOrSaveRow?.(editEnabled.row, editEnabled.column.title, state, undefined, undefined, editEnabled.path)
@@ -2934,7 +3042,7 @@ watch(
                     :path="editEnabled.path"
                     active
                     edit-enabled
-                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable"
+                    :read-only="!isDataEditAllowed || !editEnabled.isCellEditable || editEnabled.isSyncedColumn"
                     :is-allowed="editEnabled.isCellEditable"
                     @update:model-value="updateValue"
                     @save="updateOrSaveRow?.(...$event)"
@@ -2998,6 +3106,7 @@ watch(
             :path="openAddNewRowDropdown"
             :on-new-record-to-grid-click="onNewRecordToGridClick"
             :on-new-record-to-form-click="onNewRecordToFormClick"
+            :on-open-template-manager="onOpenTemplateManager"
           />
           <GroupContextMenu
             v-else-if="openGroupContextMenuDropdown"
@@ -3026,8 +3135,22 @@ watch(
       </NcDropdown>
     </template>
     <div class="absolute bottom-12 z-5 left-2" @click.stop>
+      <NcTooltip v-if="meta?.synced" placement="right" :disabled="!meta?.synced">
+        <NcButton class="nc-grid-add-new-row" size="small" disabled type="secondary" :shadow="false">
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="plus" />
+            New Record
+          </div>
+        </NcButton>
+        <template #title>
+          <div class="flex flex-col gap-1">
+            <div class="text-captionBold">{{ $t('objects.permissions.addNewRecordTooltipTitle') }}</div>
+            <div class="text-captionSm">{{ $t('tooltip.cannotCreateRecordInSyncTable') }}</div>
+          </div>
+        </template>
+      </NcTooltip>
       <PermissionsTooltip
-        v-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
+        v-else-if="isAddingEmptyRowAllowed && !removeInlineAddRecord"
         :entity="PermissionEntity.TABLE"
         :entity-id="meta?.id"
         :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -3052,7 +3175,13 @@ watch(
               </NcButton>
               <NcButton
                 v-else
-                v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+                v-e="[
+                  selectedTemplate
+                    ? 'c:row:add:template'
+                    : isAddNewRecordGridMode && !isGroupBy
+                    ? 'c:row:add:grid'
+                    : 'c:row:add:form',
+                ]"
                 class="nc-grid-add-new-row"
                 size="small"
                 :class="{
@@ -3060,11 +3189,20 @@ watch(
                 }"
                 type="secondary"
                 :shadow="false"
-                @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
+                @click.stop="
+                  selectedTemplate
+                    ? onSelectedTemplateClick()
+                    : isAddNewRecordGridMode && !isGroupBy
+                    ? addEmptyRow()
+                    : onNewRecordToFormClick()
+                "
               >
                 <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
                   <GeneralIcon icon="plus" />
-                  <template v-if="isAddNewRecordGridMode || isGroupBy">
+                  <template v-if="selectedTemplate">
+                    {{ selectedTemplate.title }}
+                  </template>
+                  <template v-else-if="isAddNewRecordGridMode || isGroupBy">
                     {{ $t('activity.newRecord') }}
                   </template>
                   <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
@@ -3086,13 +3224,29 @@ watch(
                 :path="openAddNewRowDropdown"
                 :on-new-record-to-grid-click="onNewRecordToGridClick"
                 :on-new-record-to-form-click="onNewRecordToFormClick"
+                :on-open-template-manager="onOpenTemplateManager"
               />
             </template>
           </NcDropdown>
         </template>
       </PermissionsTooltip>
     </div>
+    <SmartsheetGridCanvasComponentsFileDropZone
+      v-if="isEeUI"
+      :visible="showFileDropZone && canDropFilesToCreateRecords && !isFileDropProcessing"
+      :file-count="dragFileCount"
+    />
   </div>
+
+  <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
+  <DlgAttachmentFieldSelect
+    v-if="isEeUI"
+    v-model="showFieldSelectDlg"
+    :table-id="meta?.id"
+    :file-count="pendingDropFiles.length"
+    @select="onFieldSelected"
+    @cancel="onFieldSelectCancelled"
+  />
 </template>
 
 <style scoped lang="scss">
@@ -3100,7 +3254,7 @@ watch(
   @apply sticky !text-small !leading-[18px] overflow-hidden;
 
   &.on-stick {
-    @apply bg-white border-2 !rounded;
+    @apply bg-nc-bg-default border-2 !rounded;
   }
 
   &.row-height-1 {
@@ -3139,12 +3293,15 @@ watch(
 
   :deep(.nc-cell-longtext) {
     @apply !px-[2px];
-    .nc-text-area-clamped-text {
-      @apply !px-[7px] !pt-[5px];
-    }
 
-    .nc-readonly-rich-text-wrapper {
-      @apply !pl-2 pt-0.5;
+    &:not(.nc-under-ltar) {
+      .nc-text-area-clamped-text {
+        @apply !px-[7px] !pt-[5px];
+      }
+
+      .nc-readonly-rich-text-wrapper {
+        @apply !pl-2 pt-0.5;
+      }
     }
   }
 

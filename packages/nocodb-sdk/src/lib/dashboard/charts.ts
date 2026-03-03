@@ -18,6 +18,7 @@ interface PieChartDataConfig {
   category: {
     column_id: string;
     orderBy?: 'default' | 'asc' | 'desc';
+    categoryLimit?: number;
     includeEmptyRecords?: boolean;
     includeOthers?: boolean;
   };
@@ -72,6 +73,7 @@ export interface BarChartDataConfig {
     orderBy?: 'default' | 'asc' | 'desc';
     includeEmptyRecords?: boolean;
     includeOthers?: boolean;
+    categoryLimit?: number;
   };
   yAxis: {
     startAtZero: boolean;

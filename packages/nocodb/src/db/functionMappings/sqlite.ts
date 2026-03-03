@@ -1,6 +1,9 @@
 import dayjs from 'dayjs';
 import { convertToTargetFormat, getDateFormat } from 'nocodb-sdk';
-import commonFns from './commonFns';
+import commonFns, {
+  safeDateAddUnitSQL,
+  validateDateAddUnit,
+} from './commonFns';
 import type { MapFnArgs } from '../mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
@@ -81,24 +84,46 @@ const sqlite3 = {
       dateIN = Number(dateIN.toQuery());
     }
 
-    let dateModifier = (await fn(pt.arguments[2])).builder;
-    if (typeof dateModifier === 'object' && dateModifier.toQuery) {
-      dateModifier = dateModifier.toQuery().replace(/["']/g, '');
+    if (pt.arguments[2].type === 'Literal') {
+      let dateModifier = (await fn(pt.arguments[2])).builder;
+      if (typeof dateModifier === 'object' && dateModifier.toQuery) {
+        dateModifier = dateModifier.toQuery();
+      }
+      const unit = validateDateAddUnit(String(dateModifier));
+      const fullModifierRaw = `${dateIN > 0 ? '+' : ''}${dateIN} ${unit}`;
+
+      return {
+        builder: knex.raw(
+          `CASE
+        WHEN :source LIKE '%:%' THEN
+          STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(:source, 'utc', ':fullModifier'))
+        ELSE
+          DATE(:source, ':fullModifier')
+        END`,
+          {
+            source,
+            fullModifier: knex.raw(fullModifierRaw),
+          },
+        ),
+      };
     }
 
-    const fullModifier = `${dateIN > 0 ? '+' : ''}${dateIN} ${dateModifier}`;
+    // Dynamic unit (field reference) — build modifier as a SQL expression
+    // with proper ? bindings so knex nests the Raw correctly
+    const unitBuilder = (await fn(pt.arguments[2])).builder;
+    const safeUnit = safeDateAddUnitSQL(knex, unitBuilder);
+    const prefix = `${dateIN > 0 ? '+' : ''}${dateIN} `;
+    const fullModifier = knex.raw(`'${prefix}' || ?`, [safeUnit]);
+
     return {
       builder: knex.raw(
         `CASE
-      WHEN :source LIKE '%:%' THEN
-        STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(:source, 'utc', ':fullModifier'))
+      WHEN ? LIKE '%:%' THEN
+        STRFTIME('%Y-%m-%dT%H:%M:%fZ', DATETIME(?, 'utc', ?))
       ELSE
-        DATE(:source, ':fullModifier')
+        DATE(?, ?)
       END`,
-        {
-          source,
-          fullModifier: knex.raw(fullModifier),
-        },
+        [source, source, fullModifier, source, fullModifier],
       ),
     };
   },

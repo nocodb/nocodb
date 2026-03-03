@@ -222,10 +222,10 @@ const updateViewWidth = () => {
 
 const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
 
-const isCanvasTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GRID_VIEW))
+const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
 
 const isCanvasGroupByTableEnabled = computed(
-  () => isFeatureEnabled(FEATURE_FLAG.CANVAS_GROUP_GRID_VIEW) && !blockExternalSourceRecordVisibility(isExternalSource.value),
+  () => !ncIsPlaywright() && !blockExternalSourceRecordVisibility(isExternalSource.value),
 )
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)
@@ -270,13 +270,13 @@ const {
 const baseColor = computed(() => {
   switch (groupBy.value.length) {
     case 1:
-      return '#F9F9FA'
+      return 'var(--color-gray-50)'
     case 2:
-      return '#F4F4F5'
+      return 'var(--color-gray-100)'
     case 3:
-      return '#E7E7E9'
+      return 'var(--color-gray-200)'
     default:
-      return '#F9F9FA'
+      return 'var(--color-gray-50)'
   }
 })
 
@@ -373,7 +373,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
   <div
     class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
-    :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-grid-bg)'};`"
+    :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
   >
     <Table
       v-if="!isGroupBy && !isInfiniteScrollingEnabled"
@@ -539,7 +539,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
 <style lang="scss">
 .nc-grid-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
-    @apply !p-0 !rounded-l-lg hover:border-gray-300;
+    @apply !p-0 !rounded-l-lg hover:border-nc-gray-300;
   }
 
   > .ant-dropdown-trigger {

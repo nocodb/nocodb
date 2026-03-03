@@ -38,9 +38,11 @@ export default class GridViewColumn implements GridColumnType {
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<GridViewColumn[]> {
-    const cachedList = await NocoCache.getList(CacheScope.GRID_VIEW_COLUMN, [
-      viewId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.GRID_VIEW_COLUMN,
+      [viewId],
+    );
     let { list: views } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !views.length) {
@@ -57,7 +59,12 @@ export default class GridViewColumn implements GridColumnType {
           },
         },
       );
-      await NocoCache.setList(CacheScope.GRID_VIEW_COLUMN, [viewId], views);
+      await NocoCache.setList(
+        context,
+        CacheScope.GRID_VIEW_COLUMN,
+        [viewId],
+        views,
+      );
     }
     views.sort(
       (a, b) =>
@@ -75,6 +82,7 @@ export default class GridViewColumn implements GridColumnType {
     let viewColumn =
       gridViewColumnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -87,6 +95,7 @@ export default class GridViewColumn implements GridColumnType {
       );
       if (viewColumn) {
         await NocoCache.set(
+          context,
           `${CacheScope.GRID_VIEW_COLUMN}:${gridViewColumnId}`,
           viewColumn,
         );
@@ -151,6 +160,7 @@ export default class GridViewColumn implements GridColumnType {
 
     return this.get(context, id, ncMeta).then(async (viewColumn) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.GRID_VIEW_COLUMN,
         [column.fk_view_id],
         `${CacheScope.GRID_VIEW_COLUMN}:${id}`,
@@ -185,6 +195,7 @@ export default class GridViewColumn implements GridColumnType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.GRID_VIEW_COLUMN}:${columnId}`,
       updateObj,
     );

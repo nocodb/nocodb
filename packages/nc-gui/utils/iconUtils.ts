@@ -174,6 +174,7 @@ import NcCellLinks from '~icons/nc-icons/cell-link'
 import NcCellLongText from '~icons/nc-icons/cell-longtext'
 import NcCellLookup from '~icons/nc-icons/cell-lookup'
 import NcCellMultiSelect from '~icons/nc-icons/cell-multiselect'
+import NcCellAutoNumber from '~icons/nc-icons/cell-auto-number'
 import NcCellNumber from '~icons/nc-icons/cell-number'
 import NcCellPercent from '~icons/nc-icons/cell-percentage'
 import NcCellPhone from '~icons/nc-icons/cell-phone'
@@ -193,6 +194,8 @@ import NcCellAttachment from '~icons/nc-icons/cell-attachment'
 import NcCellButton from '~icons/nc-icons/cell-button'
 import NcCellAiButton from '~icons/nc-icons/cell-ai-button'
 import NcCellAi from '~icons/nc-icons/cell-ai'
+import NcCellColour from '~icons/nc-icons/cell-colour'
+import NcCellUuid from '~icons/nc-icons/cell-uuid'
 
 import NcCircleCheck from '~icons/nc-icons/circle-check'
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
@@ -207,6 +210,7 @@ import NcSettings from '~icons/nc-icons/settings'
 import NcHelp from '~icons/nc-icons/help'
 import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
 import NcAudit from '~icons/nc-icons/audit'
+import NcAuditNew from '~icons/nc-icons-v2/audit-new'
 import NcMessageCircle from '~icons/nc-icons/message-circle'
 import NcKey from '~icons/nc-icons/key'
 
@@ -301,6 +305,7 @@ import NcPosthog from '~icons/nc-icons/posthog'
 import NcNocodbPg from '~icons/nc-icons/nocodb-pg'
 import NcStopCircle from '~icons/nc-icons/stop-circle'
 import NcEnter from '~icons/nc-icons/enter'
+import NcAmazonAws from '~icons/nc-icons/amazon_aws'
 
 // Buttons Icons V2
 
@@ -514,6 +519,8 @@ import NcLinkedinIcon from '~icons/nc-icons-v2/linkedin.svg'
 import NcVideoIcon from '~icons/nc-icons-v2/video.svg'
 import NcActivityIcon from '~icons/nc-icons-v2/activity.svg'
 import NcMapPinIcon from '~icons/nc-icons-v2/map-pin.svg'
+import NcPinIcon from '~icons/nc-icons-v2/pin.svg'
+import NcPinOffIcon from '~icons/nc-icons-v2/pin-off.svg'
 import NcFilterIcon from '~icons/nc-icons-v2/filter.svg'
 import NcPhoneIncomingIcon from '~icons/nc-icons-v2/phone-incoming.svg'
 import NcItalicIcon from '~icons/nc-icons-v2/italic.svg'
@@ -541,6 +548,9 @@ import NcAlertOctagonIcon from '~icons/nc-icons-v2/alert-octagon.svg'
 import NcMenuIcon from '~icons/nc-icons-v2/menu.svg'
 import NcChromeIcon from '~icons/nc-icons-v2/chrome.svg'
 import NcFolderIcon from '~icons/nc-icons-v2/folder.svg'
+import NcFolderClosedIcon from '~icons/nc-icons-v2/folder-closed.svg'
+import NcFolderOpenIcon from '~icons/nc-icons-v2/folder-open.svg'
+import NcPaletteIcon from '~icons/nc-icons-v2/palette.svg'
 import NcUsersIcon from '~icons/nc-icons-v2/users.svg'
 import NcCornerDownLeftIcon from '~icons/nc-icons-v2/corner-down-left.svg'
 import NcMonitorIcon from '~icons/nc-icons-v2/monitor.svg'
@@ -569,6 +579,7 @@ import NcChartDonut from '~icons/nc-icons-v2/chart-donut.svg'
 import NcChartBar from '~icons/nc-icons-v2/chart-bar.svg'
 import NcChartLine from '~icons/nc-icons-v2/chart-line.svg'
 import NcChartPie from '~icons/nc-icons-v2/chart-pie.svg'
+import NcGaugeWidget from '~icons/nc-icons-v2/gauge-widget.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -592,6 +603,8 @@ import NcFormViewIcon from '~icons/nc-icons/form'
 import NcGalleryViewIcon from '~icons/nc-icons/gallery'
 import NcKanbanViewIcon from '~icons/nc-icons/kanban'
 import NcCalendarViewIcon from '~icons/nc-icons/calendar'
+import NcTimelineViewIcon from '~icons/nc-icons/timeline'
+import NcMapViewIcon from '~icons/nc-icons/map'
 import NcPuzzleSolid from '~icons/nc-icons/puzzle-solid'
 import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
 
@@ -643,6 +656,13 @@ import NcErd from '~icons/nc-icons/erd'
 import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
 import NcWebhook from '~icons/nc-icons-v2/webhook'
+
+import NcFormResponse from '~icons/nc-icons-v2/new-form-responce'
+import NcRecordCreate from '~icons/nc-icons-v2/record-create'
+import NcRecordUpdate from '~icons/nc-icons-v2/record-update'
+import NcRecordDelete from '~icons/nc-icons-v2/record-delete'
+import NcRecordEntersView from '~icons/nc-icons-v2/record-enters-view'
+import NcIfElse from '~icons/nc-icons-v2/if-else'
 
 import NcLogoAsanaColored from '~icons/nc-icons-v2/asana-colored.svg'
 import NcLogoAsana from '~icons/nc-icons-v2/asana.svg'
@@ -776,6 +796,7 @@ import NcHeadphone from '~icons/nc-icons-v2/headphone'
 import NcPaintRoller from '~icons/nc-icons-v2/paint-roller.svg'
 import NcConditions from '~icons/nc-icons-v2/conditions.svg'
 import NcSun from '~icons/nc-icons-v2/sun.svg'
+import NcSunMoon from '~icons/nc-icons-v2/sun-moon.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -799,6 +820,10 @@ import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
 import NcChatwoot from '~icons/nc-icons-v2/chatwoot'
 import NcGraduationCap from '~icons/nc-icons-v2/graduation-cap'
 import NcSupportAgent from '~icons/nc-icons-v2/support-agent'
+import NcBuilding from '~icons/nc-icons-v2/building'
+import NcExtUrlPreviewEmptyState from '~icons/nc-icons/extension-url-preview-empty-state'
+import NcClipboardType from '~icons/nc-icons-v2/clipboard-type'
+import NcKeyboardIcon from '~icons/nc-icons-v2/keyboard'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -949,10 +974,12 @@ import NcSupportAgent from '~icons/nc-icons-v2/support-agent'
 
 export const iconMap = {
   'calendar': NcCalendarViewIcon,
+  'timeline': NcTimelineViewIcon,
   'grid': NcGridViewIcon,
   'form': NcFormViewIcon,
   'gallery': NcGalleryViewIcon,
   'kanban': NcKanbanViewIcon,
+  'map': NcMapViewIcon,
 
   'strike': NcStrike,
   'atSign': NcAtSign,
@@ -980,14 +1007,17 @@ export const iconMap = {
   'cellLongText': NcCellLongText,
   'cellLookup': NcCellLookup,
   'cellMultiSelect': NcCellMultiSelect,
+  'cellAutoNumber': NcCellAutoNumber,
   'cellNumber': NcCellNumber,
   'cellPercent': NcCellPercent,
   'cellPhone': NcCellPhone,
   'cellQrCode': NcCellQrCode,
   'cellRating': NcCellRating,
+  'cellColour': NcCellColour,
   'cellRollup': h(NcCellRollup, { stroke: 'transparent' }),
   'cellSingleSelect': NcCellSingleSelect,
   'cellText': NcCellText,
+  'cellUuid': NcCellUuid,
   'cellTime': NcCellTime,
   'cellUrl': NcCellUrl,
   'cellUser': NcCellUser,
@@ -1048,6 +1078,7 @@ export const iconMap = {
   'unStar': NcUnStar,
   'sortDesc': MsSort,
   'article': NcArticle,
+  'template': h('span', { class: 'material-symbols' }, 'content_copy'),
   'triangleFill': PhTriangleFill,
   'sortAsc': h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
   'contentSaveExit': h('span', { class: 'material-symbols' }, 'save'),
@@ -1176,7 +1207,7 @@ export const iconMap = {
   // grid: h('span', { class: 'material-symbols' }, 'grid_view'),
   // gallery: h('span', { class: 'material-symbols' }, 'image'),
   // form: h('span', { class: 'material-symbols' }, 'article'),
-  'map': h('span', { class: 'material-symbols' }, 'map'),
+  // 'map': NcMapViewIcon,
   // kanban: h('span', { class: 'material-symbols' }, 'view_kanban'),
   'view': h('span', { class: 'material-symbols' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols' }, 'height'),
@@ -1215,6 +1246,7 @@ export const iconMap = {
   'role_editor': Editor,
   'role_commenter': Commentor,
   'role_viewer': Viewer,
+  'role_inherit': NcLayers,
   'role_super': SuperAdmin,
   'role_no_access': NoAccess,
   'commentHere': NcCommentHere,
@@ -1320,6 +1352,7 @@ export const iconMap = {
   'greenhouse': NcGreenhouse,
   'lever': h(NcLever, { stroke: 'transparent' }),
   'bitBucket': NcBitBucket,
+  'bambooHR': NcLogoBambooHrColored,
   'quickbooks': NcQuickbooks,
   'intercom': NcIntercom,
   'dropbox': NcDropbox,
@@ -1379,6 +1412,7 @@ export const iconMap = {
   'ncSmartphone': NcSmartphoneIcon,
   'ncMoreHorizontal': NcMoreHorizontalIcon,
   'ncSliders': NcSlidersIcon,
+  'sliders': NcSlidersIcon,
   'ncArrowUpLeft': NcArrowUpLeftIcon,
   'ncChevronDown': NcChevronDownIcon,
   'ncHexagon': NcHexagonIcon,
@@ -1547,6 +1581,8 @@ export const iconMap = {
   'ncVideo': NcVideoIcon,
   'ncActivity': NcActivityIcon,
   'ncMapPin': NcMapPinIcon,
+  'ncPin': NcPinIcon,
+  'ncPinOff': NcPinOffIcon,
   'ncFilter': NcFilterIcon,
   'ncPhoneIncoming': NcPhoneIncomingIcon,
   'ncItalic': NcItalicIcon,
@@ -1574,6 +1610,9 @@ export const iconMap = {
   'ncMenu': NcMenuIcon,
   'ncChrome': NcChromeIcon,
   'ncFolder': NcFolderIcon,
+  'ncFolderClosed': NcFolderClosedIcon,
+  'ncFolderOpen': NcFolderOpenIcon,
+  'ncPalette': NcPaletteIcon,
   'ncUsers': NcUsersIcon,
   'ncCornerDownLeft': NcCornerDownLeftIcon,
   'ncMonitor': NcMonitorIcon,
@@ -1612,6 +1651,7 @@ export const iconMap = {
   'ncScript': NcScript,
   'youtube': NcYoutube2Icon,
   'ncEnter': NcEnter,
+  'NcAmazonAws': h(NcAmazonAws, { stroke: 'transparent' }),
   'ncAutoAwesome': h(NcAutoAwesome, { stroke: 'transparent' }),
   'ncPlusAi': h(NcPlusAi, { stroke: 'transparent' }),
   'ncPlusMultiple': NcPlusMultiple,
@@ -1655,6 +1695,7 @@ export const iconMap = {
   'ncLogoChromeColored': h(NcLogoChromeColored, { stroke: 'transparent' }),
   'ncLogoClaudeAiColored': h(NcLogoClaudeAiColored, { stroke: 'transparent' }),
   'ncLogoClaudeAi': h(NcLogoClaudeAi, { stroke: 'transparent' }),
+  'ncLogoDiscord': h(NcLogoDiscord, { stroke: 'transparent' }),
   'ncLogoDiscordColored': h(NcLogoDiscordColored, { stroke: 'transparent' }),
   'ncLogoDropboxColored': h(NcLogoDropboxColored, { stroke: 'transparent' }),
   'ncLogoDropbox': h(NcLogoDropbox, { stroke: 'transparent' }),
@@ -1802,9 +1843,22 @@ export const iconMap = {
   'ncChartLine': h(NcChartLine, { stroke: 'transparent' }),
   'ncChartDonut': h(NcChartDonut, { stroke: 'transparent' }),
   'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
+  'ncGaugeWidget': h(NcGaugeWidget, { stroke: 'transparent' }),
   'ncSun': NcSun,
+  'ncSunMoon': NcSunMoon,
   'ncGraduationCap': NcGraduationCap,
   'ncSupportAgent': h(NcSupportAgent, { stroke: 'transparent' }),
+  'ncBuilding': NcBuilding,
+  'ncRecordCreate': NcRecordCreate,
+  'ncRecordUpdate': NcRecordUpdate,
+  'ncRecordDelete': NcRecordDelete,
+  'ncRecordFind': NcAuditNew,
+  'ncFormResponse': NcFormResponse,
+  'ncIfElse': NcIfElse,
+  'ncRecordEntersView': NcRecordEntersView,
+  'ncExtUrlPreviewEmptyState': h(NcExtUrlPreviewEmptyState, { stroke: 'transparent' }),
+  'ncClipboardType': NcClipboardType,
+  'ncKeyboard': NcKeyboardIcon,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4005,6 +4059,14 @@ export const searchableMap = {
     icon: NcMapPinIcon,
     keywords: ['location', 'navigation', 'marker', 'geography', 'pinpoint'],
   },
+  ncPin: {
+    icon: NcPinIcon,
+    keywords: ['pin', 'attach', 'stick', 'thumbtack', 'pushpin'],
+  },
+  ncPinOff: {
+    icon: NcPinOffIcon,
+    keywords: ['unpin', 'detach', 'remove pin', 'unstick'],
+  },
   ncFilter: {
     icon: NcFilterIcon,
     keywords: ['Sort', 'refine', 'categorize', 'organize', 'sift'],
@@ -4112,6 +4174,14 @@ export const searchableMap = {
   ncFolder: {
     icon: NcFolderIcon,
     keywords: ['directory', 'file', 'storage', 'organize', 'documents'],
+  },
+  ncFolderClosed: {
+    icon: NcFolderClosedIcon,
+    keywords: ['directory', 'file', 'storage', 'organize', 'collapsed'],
+  },
+  ncFolderOpen: {
+    icon: NcFolderOpenIcon,
+    keywords: ['directory', 'file', 'storage', 'organize', 'expanded'],
   },
   ncUsers: {
     icon: NcUsersIcon,
@@ -4576,6 +4646,10 @@ export const searchableMap = {
     icon: NcSun,
     keywords: ['sun', 'sunny', 'weather', 'light', 'day', 'morning', 'summer', 'warm', 'warmth'],
   },
+  ncSunMoon: {
+    icon: NcSunMoon,
+    keywords: ['sun', 'moon', 'dark', 'light', 'theme', 'auto theme', 'system theme', 'appearance'],
+  },
   ncGraduationCap: {
     icon: NcGraduationCap,
     keywords: ['graduation', 'cap', 'school', 'education', 'academic'],
@@ -4583,6 +4657,18 @@ export const searchableMap = {
   ncSupportAgent: {
     icon: h(NcSupportAgent, { stroke: 'transparent' }),
     keywords: ['support', 'agent', 'help', 'customer', 'service'],
+  },
+  ncBuilding: {
+    icon: NcBuilding,
+    keywords: ['building', 'office', 'building-outline'],
+  },
+  ncClipboardType: {
+    icon: NcClipboardType,
+    keywords: ['clipboard', 'type', 'copy', 'paste'],
+  },
+  ncKeyboard: {
+    icon: NcKeyboardIcon,
+    keywords: ['keyboard', 'type', 'input', 'keys', 'shortcut'],
   },
 }
 

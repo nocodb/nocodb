@@ -23,8 +23,8 @@ export const themeColors = {
   'background': '#FFFFFF',
   'surface': '#FFFFFF',
   'primary': '#4351e8',
-  'primary-selected': '#EBF0FF',
-  'primary-selected-sidebar': '#EBF0FF',
+  'primary-selected': 'var(--color-brand-50)',
+  'primary-selected-sidebar': 'var(--color-brand-50)',
   'hover': '#E1E3E6',
   'scrollbar': '#d7d7d7',
   'scrollbar-hover': '#cbcbcb',
@@ -59,7 +59,7 @@ export const themeV2Colors = {
 
 // @deprecated
 // Use CSS variables from variables.css directly in future like:
-// color: var(--nc-content-brand-default)
+// color: var(--nc-content-brand)
 // background: var(--nc-bg-brand)
 // The above values map 1:1 directly with Figma CSS variables.
 export const themeV3Colors = {
@@ -381,131 +381,182 @@ export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light')
   return enumColor[mode][i % enumColor[mode].length]
 }
 
+export function hexToRgb(hex: string) {
+  const cleaned = hex.replace('#', '')
+  const bigint = parseInt(cleaned, 16)
+  const r = (bigint >> 16) & 255
+  const g = (bigint >> 8) & 255
+  const b = bigint & 255
+  return `${r}, ${g}, ${b}`
+}
+
+export function flattenColors(colors: Record<string, any>, prefix = ''): Record<string, string> {
+  const result: Record<string, string> = {}
+
+  Object.entries(colors).forEach(([key, value]) => {
+    const newKey = prefix ? (key === 'DEFAULT' ? prefix : `${prefix}-${key}`) : key
+
+    if (typeof value === 'string') {
+      result[newKey] = value
+    } else {
+      Object.assign(result, flattenColors(value, newKey))
+    }
+  })
+
+  return result
+}
+
+export function ncBuildColorsWithOpacity(colors: Record<string, any>, prefix: string = ''): Record<string, any> {
+  const flat = flattenColors(colors, prefix)
+
+  const result: Record<string, any> = {}
+
+  Object.entries(flat).forEach(([key, value]) => {
+    const rgb = value.startsWith('#') ? hexToRgb(value) : `var(${value})`
+
+    result[key] = ({ opacityVariable, opacityValue }: { opacityVariable?: string; opacityValue?: number } = {}) => {
+      if (opacityValue !== undefined) return `rgba(${rgb}, ${opacityValue})`
+      if (opacityVariable !== undefined) return `rgba(${rgb}, var(${opacityVariable}, 1))`
+      return `rgb(${rgb})`
+    }
+  })
+
+  return result
+}
+
 export const themeV4Colors = {
-  base: {
-    white: 'var(--color-base-white)',
-    black: 'var(--color-base-black)',
-  },
+  base: { white: '--rgb-color-base-white', black: '--rgb-color-base-black' },
   brand: {
-    50: 'var(--color-brand-50)',
-    100: 'var(--color-brand-100)',
-    200: 'var(--color-brand-200)',
-    300: 'var(--color-brand-300)',
-    400: 'var(--color-brand-400)',
-    500: 'var(--color-brand-500)',
-    600: 'var(--color-brand-600)',
-    700: 'var(--color-brand-700)',
-    800: 'var(--color-brand-800)',
-    900: 'var(--color-brand-900)',
+    inverted: '--rgb-nc-bg-brand-inverted',
+    20: '--rgb-color-brand-20',
+    50: '--rgb-color-brand-50',
+    100: '--rgb-color-brand-100',
+    200: '--rgb-color-brand-200',
+    300: '--rgb-color-brand-300',
+    400: '--rgb-color-brand-400',
+    500: '--rgb-color-brand-500',
+    600: '--rgb-color-brand-600',
+    700: '--rgb-color-brand-700',
+    800: '--rgb-color-brand-800',
+    900: '--rgb-color-brand-900',
   },
   gray: {
     10: '#FCFCFC',
-    50: 'var(--color-gray-50)',
-    100: 'var(--color-gray-100)',
-    200: 'var(--color-gray-200)',
-    300: 'var(--color-gray-300)',
-    400: 'var(--color-gray-400)',
-    500: 'var(--color-gray-500)',
-    600: 'var(--color-gray-600)',
-    700: 'var(--color-gray-700)',
-    800: 'var(--color-gray-800)',
-    900: 'var(--color-gray-900)',
+    20: '--rgb-color-gray-20',
+    50: '--rgb-color-gray-50',
+    100: '--rgb-color-gray-100',
+    200: '--rgb-color-gray-200',
+    300: '--rgb-color-gray-300',
+    400: '--rgb-color-gray-400',
+    500: '--rgb-color-gray-500',
+    600: '--rgb-color-gray-600',
+    700: '--rgb-color-gray-700',
+    800: '--rgb-color-gray-800',
+    900: '--rgb-color-gray-900',
   },
   red: {
-    50: 'var(--color-red-50)',
-    100: 'var(--color-red-100)',
-    200: 'var(--color-red-200)',
-    300: 'var(--color-red-300)',
-    400: 'var(--color-red-400)',
-    500: 'var(--color-red-500)',
-    600: 'var(--color-red-600)',
-    700: 'var(--color-red-700)',
-    800: 'var(--color-red-800)',
-    900: 'var(--color-red-900)',
+    20: '--rgb-color-red-20',
+    50: '--rgb-color-red-50',
+    100: '--rgb-color-red-100',
+    200: '--rgb-color-red-200',
+    300: '--rgb-color-red-300',
+    400: '--rgb-color-red-400',
+    500: '--rgb-color-red-500',
+    600: '--rgb-color-red-600',
+    700: '--rgb-color-red-700',
+    800: '--rgb-color-red-800',
+    900: '--rgb-color-red-900',
   },
   pink: {
-    50: 'var(--color-pink-50)',
-    100: 'var(--color-pink-100)',
-    200: 'var(--color-pink-200)',
-    300: 'var(--color-pink-300)',
-    400: 'var(--color-pink-400)',
-    500: 'var(--color-pink-500)',
-    600: 'var(--color-pink-600)',
-    700: 'var(--color-pink-700)',
-    800: 'var(--color-pink-800)',
-    900: 'var(--color-pink-900)',
+    20: '--rgb-color-pink-20',
+    50: '--rgb-color-pink-50',
+    100: '--rgb-color-pink-100',
+    200: '--rgb-color-pink-200',
+    300: '--rgb-color-pink-300',
+    400: '--rgb-color-pink-400',
+    500: '--rgb-color-pink-500',
+    600: '--rgb-color-pink-600',
+    700: '--rgb-color-pink-700',
+    800: '--rgb-color-pink-800',
+    900: '--rgb-color-pink-900',
   },
   orange: {
-    50: 'var(--color-orange-50)',
-    100: 'var(--color-orange-100)',
-    200: 'var(--color-orange-200)',
-    300: 'var(--color-orange-300)',
-    400: 'var(--color-orange-400)',
-    500: 'var(--color-orange-500)',
-    600: 'var(--color-orange-600)',
-    700: 'var(--color-orange-700)',
-    800: 'var(--color-orange-800)',
-    900: 'var(--color-orange-900)',
+    20: '--rgb-color-orange-20',
+    50: '--rgb-color-orange-50',
+    100: '--rgb-color-orange-100',
+    200: '--rgb-color-orange-200',
+    300: '--rgb-color-orange-300',
+    400: '--rgb-color-orange-400',
+    500: '--rgb-color-orange-500',
+    600: '--rgb-color-orange-600',
+    700: '--rgb-color-orange-700',
+    800: '--rgb-color-orange-800',
+    900: '--rgb-color-orange-900',
   },
   purple: {
-    50: 'var(--color-purple-50)',
-    100: 'var(--color-purple-100)',
-    200: 'var(--color-purple-200)',
-    300: 'var(--color-purple-300)',
-    400: 'var(--color-purple-400)',
-    500: 'var(--color-purple-500)',
-    600: 'var(--color-purple-600)',
-    700: 'var(--color-purple-700)',
-    800: 'var(--color-purple-800)',
-    900: 'var(--color-purple-900)',
+    20: '--rgb-color-purple-20',
+    50: '--rgb-color-purple-50',
+    100: '--rgb-color-purple-100',
+    200: '--rgb-color-purple-200',
+    300: '--rgb-color-purple-300',
+    400: '--rgb-color-purple-400',
+    500: '--rgb-color-purple-500',
+    600: '--rgb-color-purple-600',
+    700: '--rgb-color-purple-700',
+    800: '--rgb-color-purple-800',
+    900: '--rgb-color-purple-900',
   },
   blue: {
-    50: 'var(--color-blue-50)',
-    100: 'var(--color-blue-100)',
-    200: 'var(--color-blue-200)',
-    300: 'var(--color-blue-300)',
-    400: 'var(--color-blue-400)',
-    500: 'var(--color-blue-500)',
-    600: 'var(--color-blue-600)',
-    700: 'var(--color-blue-700)',
-    800: 'var(--color-blue-800)',
-    900: 'var(--color-blue-900)',
+    20: '--rgb-color-blue-20',
+    50: '--rgb-color-blue-50',
+    100: '--rgb-color-blue-100',
+    200: '--rgb-color-blue-200',
+    300: '--rgb-color-blue-300',
+    400: '--rgb-color-blue-400',
+    500: '--rgb-color-blue-500',
+    600: '--rgb-color-blue-600',
+    700: '--rgb-color-blue-700',
+    800: '--rgb-color-blue-800',
+    900: '--rgb-color-blue-900',
   },
   yellow: {
-    50: 'var(--color-yellow-50)',
-    100: 'var(--color-yellow-100)',
-    200: 'var(--color-yellow-200)',
-    300: 'var(--color-yellow-300)',
-    400: 'var(--color-yellow-400)',
-    500: 'var(--color-yellow-500)',
-    600: 'var(--color-yellow-600)',
-    700: 'var(--color-yellow-700)',
-    800: 'var(--color-yellow-800)',
-    900: 'var(--color-yellow-900)',
+    20: '--rgb-color-yellow-20',
+    50: '--rgb-color-yellow-50',
+    100: '--rgb-color-yellow-100',
+    200: '--rgb-color-yellow-200',
+    300: '--rgb-color-yellow-300',
+    400: '--rgb-color-yellow-400',
+    500: '--rgb-color-yellow-500',
+    600: '--rgb-color-yellow-600',
+    700: '--rgb-color-yellow-700',
+    800: '--rgb-color-yellow-800',
+    900: '--rgb-color-yellow-900',
   },
   maroon: {
-    50: 'var(--color-maroon-50)',
-    100: 'var(--color-maroon-100)',
-    200: 'var(--color-maroon-200)',
-    300: 'var(--color-maroon-300)',
-    400: 'var(--color-maroon-400)',
-    500: 'var(--color-maroon-500)',
-    600: 'var(--color-maroon-600)',
-    700: 'var(--color-maroon-700)',
-    800: 'var(--color-maroon-800)',
-    900: 'var(--color-maroon-900)',
+    20: '--rgb-color-maroon-20',
+    50: '--rgb-color-maroon-50',
+    100: '--rgb-color-maroon-100',
+    200: '--rgb-color-maroon-200',
+    300: '--rgb-color-maroon-300',
+    400: '--rgb-color-maroon-400',
+    500: '--rgb-color-maroon-500',
+    600: '--rgb-color-maroon-600',
+    700: '--rgb-color-maroon-700',
+    800: '--rgb-color-maroon-800',
+    900: '--rgb-color-maroon-900',
   },
   green: {
-    50: 'var(--color-green-50)',
-    100: 'var(--color-green-100)',
-    200: 'var(--color-green-200)',
-    300: 'var(--color-green-300)',
-    400: 'var(--color-green-400)',
-    500: 'var(--color-green-500)',
-    600: 'var(--color-green-600)',
-    700: 'var(--color-green-700)',
-    800: 'var(--color-green-800)',
-    900: 'var(--color-green-900)',
+    20: '--rgb-color-green-20',
+    50: '--rgb-color-green-50',
+    100: '--rgb-color-green-100',
+    200: '--rgb-color-green-200',
+    300: '--rgb-color-green-300',
+    400: '--rgb-color-green-400',
+    500: '--rgb-color-green-500',
+    600: '--rgb-color-green-600',
+    700: '--rgb-color-green-700',
+    800: '--rgb-color-green-800',
+    900: '--rgb-color-green-900',
   },
 }
 
@@ -649,10 +700,14 @@ export const themeVariables = {
   },
   background: {
     'nc-bg-default': themeV4Colors.base.white,
-    'nc-bg-brand': themeV4Colors.brand[50],
+    'nc-bg-brand': {
+      DEFAULT: themeV4Colors.brand[50],
+      inverted: themeV4Colors.brand.inverted,
+    },
     'nc-bg-gray': {
       extralight: themeV4Colors.gray[50],
       sidebar: themeV4Colors.gray[50],
+      minisidebar: themeV4Colors.gray[100],
       light: themeV4Colors.gray[100],
       medium: themeV4Colors.gray[200],
       dark: themeV4Colors.gray[300],
@@ -796,29 +851,73 @@ export const themeVariables = {
   },
 }
 
-export const getLighterTint = (
+export const getAdaptiveTint = (
   color: string,
-  option?: {
+  opts?: {
+    isDarkMode?: boolean
     saturationMod?: number
     brightnessMod?: number
+    shade?: number // darker
+    tint?: number // lighter
   },
 ) => {
-  const evalColor = tinycolor(color)
+  const { isDarkMode, shade = 0, tint = 0 } = opts || {}
 
-  const hsv = evalColor.toHsv()
+  const { saturationMod = 0, brightnessMod = 0 } = opts || {}
 
-  const safeS = hsv.s < 0.01 ? 0 : 5 + (option?.saturationMod ?? 0) // prevent gray → red
-  const safeV = Math.min(100, (hsv.s < 0.01 ? 97 : 100) + (option?.brightnessMod ?? 0))
+  const base = tinycolor(color)
+  const hsv = base.toHsv()
 
-  return tinycolor({
-    h: hsv.h,
-    s: safeS,
-    v: safeV,
-  }).toHexString()
+  const isGray = hsv.s < 0.01
+  let s = hsv.s
+  let v = hsv.v
+
+  //
+  // --- STEP 1: ORIGINAL BASE LOGIC (unchanged for light mode) ---
+  //
+  if (!isDarkMode) {
+    // LIGHT MODE — keep exactly your original behavior (no extra dark/light here)
+    const safeS = isGray ? 0 : Math.min(100, 5 + saturationMod)
+    const safeV = Math.min(100, (isGray ? 97 : 100) + brightnessMod)
+    s = safeS
+    v = safeV
+  } else {
+    //
+    // 🌙 DARK MODE — softer, not too dark
+    //
+
+    // Reduce saturation (avoid neon). Target ~40–55%
+    s = isGray ? 0 : hsv.s * 0.45
+
+    // Deep darkness curve — compress v to ~0.08–0.14
+    v = hsv.v * 0.25 + 0.06 + brightnessMod * 0.005
+
+    // Hard clamp for reliable ultra-dark look
+    v = Math.max(0.08, Math.min(0.14, v))
+
+    // gentle shade/tint
+    if (shade) v = Math.max(0.06, v - shade * 0.004)
+    if (tint) v = Math.min(0.16, v + tint * 0.004)
+  }
+
+  return tinycolor({ h: hsv.h, s, v }).toHexString()
 }
 
-export const getOppositeColorOfBackground = (color: string) => {
-  return tinycolor.isReadable(color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-    ? '#fff'
-    : tinycolor.mostReadable(color || '#ccc', ['#0b1d05', '#fff']).toHex8String()
+export const getOppositeColorOfBackground = (
+  background?: string,
+  preferredText?: string,
+  fallbackColors: string[] = ['#1f293a', '#101015', '#ffffff'],
+) => {
+  const bg = background || '#cccccc'
+  const txt = preferredText || '#ffffff'
+
+  // If preferred text color is readable on this background
+  if (tinycolor.isReadable(bg, txt, { level: 'AA', size: 'large' })) {
+    return tinycolor(txt).toHex8String()
+  }
+
+  // Else choose best fallback between white & black
+  const fallback = tinycolor.mostReadable(bg, fallbackColors)
+
+  return fallback.toHex8String()
 }

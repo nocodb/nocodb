@@ -34,7 +34,7 @@ export default function () {
             title: '',
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(
           'Missing table `title` property in request body',
         );
@@ -54,7 +54,7 @@ export default function () {
             title: 'MyTable',
           })
           .expect(422);
-        expect(result.body.error).to.eq('DUPLICATE_ALIAS');
+        expect(result.body.error).to.eq('ERR_DUPLICATE_IN_ALIAS');
         expect(result.body.message).to.satisfy((msg) =>
           msg.startsWith(`Duplicate table alias 'MyTable' at base`),
         );
@@ -67,7 +67,7 @@ export default function () {
             title: '~!.,1230856123{}+_',
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(
           'Following characters are not allowed "."',
         );
@@ -77,7 +77,7 @@ export default function () {
           await (
             await Base.get(
               {
-                fk_workspace_id: context.fk_workspace_id,
+                workspace_id: context.fk_workspace_id,
                 base_id: initBase.id,
               },
               initBase.id,
@@ -95,7 +95,7 @@ export default function () {
             title,
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(
           sqlUi.tableNameLengthLimit > 250
             ? 'Invalid request body'
@@ -123,8 +123,7 @@ export default function () {
           .set('xc-auth', context.token)
           .send(table)
           .expect(400);
-        console.log(response.body)
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
       });
 
       it(`will create column with incorrect type`, async () => {
@@ -148,7 +147,7 @@ export default function () {
           .send(table)
           .expect(400);
 
-        expect(response.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(response.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
       });
     });
     describe('table get', () => {
@@ -157,7 +156,7 @@ export default function () {
           .get(`${API_PREFIX}/tables/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .expect(422);
-        expect(result.body.error).to.eq('TABLE_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_TABLE_NOT_FOUND');
         expect(result.body.message).to.eq(`Table 'NOT_FOUND' not found`);
       });
     });
@@ -180,7 +179,7 @@ export default function () {
             title: 'any',
           })
           .expect(422);
-        expect(result.body.error).to.eq('TABLE_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_TABLE_NOT_FOUND');
         expect(result.body.message).to.eq(`Table 'NOT_FOUND' not found`);
       });
       it(`will handle title special character`, async () => {
@@ -191,7 +190,7 @@ export default function () {
             title: '~!.,1230856123{}+_',
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(
           'Following characters are not allowed "."',
         );
@@ -204,7 +203,7 @@ export default function () {
             title: '',
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(
           'Missing table name `table_name` property in request body',
         );
@@ -225,9 +224,9 @@ export default function () {
             title: 'MyTable',
           })
           .expect(422);
-        expect(result.body.error).to.eq('DUPLICATE_ALIAS');
+        expect(result.body.error).to.eq('ERR_DUPLICATE_IN_ALIAS');
         expect(result.body.message).to.satisfy((msg) =>
-          msg.startsWith(`Duplicate table alias 'MyTable' at base `),
+          msg.startsWith(`Duplicate table name `),
         );
       });
       it(`will handle incorrect title length`, async () => {
@@ -235,7 +234,7 @@ export default function () {
           await (
             await Base.get(
               {
-                fk_workspace_id: context.fk_workspace_id,
+                workspace_id: context.fk_workspace_id,
                 base_id: initBase.id,
               },
               initBase.id,
@@ -254,7 +253,7 @@ export default function () {
             title,
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(
           `Table name exceeds ${sqlUi.tableNameLengthLimit} characters`,
         );
@@ -266,7 +265,7 @@ export default function () {
           .get(`${API_PREFIX}/tables/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .expect(422);
-        expect(result.body.error).to.eq('TABLE_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_TABLE_NOT_FOUND');
         expect(result.body.message).to.eq(`Table 'NOT_FOUND' not found`);
       });
     });

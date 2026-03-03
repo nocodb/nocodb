@@ -88,4 +88,25 @@ export const NC_DISABLE_SUPPORT_CHAT =
   process.env.NC_DISABLE_SUPPORT_CHAT === 'true';
 
 export const NC_IFRAME_WHITELIST_DOMAINS =
-  process.env.NC_IFRAME_WHITELIST_DOMAINS || '';
+  process.env.NC_IFRAME_ALLOWED_DOMAINS ||
+  process.env.NC_IFRAME_WHITELIST_DOMAINS ||
+  '';
+
+export const NC_DISABLE_GROUP_BY_LIMIT =
+  process.env.NC_DISABLE_GROUP_BY_LIMIT === 'true' || false;
+
+export const NC_DISABLE_GROUP_BY_AGG =
+  process.env.NC_DISABLE_GROUP_BY_AGG === 'true' || false;
+
+const DEFAULT_THUMBNAIL_MAX_SIZE = 3 * 1024 * 1024;
+
+export const getThumbnailMaxSize = () => {
+  const envValue = process.env.NC_THUMBNAIL_MAX_SIZE;
+  if (envValue) {
+    const parsed = parseInt(envValue, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return DEFAULT_THUMBNAIL_MAX_SIZE;
+};

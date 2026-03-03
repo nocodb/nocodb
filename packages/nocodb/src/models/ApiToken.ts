@@ -46,6 +46,7 @@ export default class ApiToken implements ApiTokenType {
     );
     return this.getByToken(token).then(async (apiToken) => {
       await NocoCache.appendToList(
+        'root',
         CacheScope.API_TOKEN,
         [],
         `${CacheScope.API_TOKEN}:${token}`,
@@ -88,6 +89,7 @@ export default class ApiToken implements ApiTokenType {
   static async delete(tokenId: string, ncMeta = Noco.ncMeta) {
     const tokenData = await this.get(tokenId, ncMeta);
     await NocoCache.deepDel(
+      'root',
       `${CacheScope.API_TOKEN}:${tokenData.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -99,10 +101,18 @@ export default class ApiToken implements ApiTokenType {
     );
   }
 
+  static async deleteByUser(userId: string, ncMeta = Noco.ncMeta) {
+    const tokens = await this.list(userId, ncMeta);
+    for (const token of tokens) {
+      await this.delete(token.id, ncMeta);
+    }
+  }
+
   static async getByToken(token, ncMeta = Noco.ncMeta) {
     let data =
       token &&
       (await NocoCache.get(
+        'root',
         `${CacheScope.API_TOKEN}:${token}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -113,7 +123,7 @@ export default class ApiToken implements ApiTokenType {
         MetaTable.API_TOKENS,
         { token },
       );
-      await NocoCache.set(`${CacheScope.API_TOKEN}:${token}`, data);
+      await NocoCache.set('root', `${CacheScope.API_TOKEN}:${token}`, data);
     }
     return data && this.castType(data);
   }
@@ -244,10 +254,11 @@ export default class ApiToken implements ApiTokenType {
 
       // Clear cache
       await NocoCache.deepDel(
+        'root',
         `${CacheScope.API_TOKEN}:${token.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
-      await NocoCache.del(`${CacheScope.API_TOKEN}:${token.token}`);
+      await NocoCache.del('root', `${CacheScope.API_TOKEN}:${token.token}`);
     }
 
     return tokens?.length || 0;

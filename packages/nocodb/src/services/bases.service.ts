@@ -1,12 +1,14 @@
 import { promisify } from 'util';
-import { Injectable } from '@nestjs/common';
-import * as DOMPurify from 'isomorphic-dompurify';
+import { Injectable, Logger } from '@nestjs/common';
+import DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
+  BaseVersion,
   EventType,
   extractRolesObj,
   IntegrationsType,
+  NcBaseError,
   OrgUserRoles,
   SqlUiFactory,
 } from 'nocodb-sdk';
@@ -36,6 +38,8 @@ const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
 @Injectable()
 export class BasesService {
+  protected logger = new Logger(BasesService.name);
+
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected metaService: MetaService,
@@ -51,7 +55,10 @@ export class BasesService {
   ) {
     const bases = extractRolesObj(param.user?.roles)[OrgUserRoles.SUPER_ADMIN]
       ? await Base.list()
-      : await BaseUser.getProjectsList(param.user.id, param.query);
+      : await BaseUser.getProjectsList(param.user.id, {
+          ...param.query,
+          workspaceId: Noco.ncDefaultWorkspaceId,
+        });
 
     return bases;
   }
@@ -110,6 +117,7 @@ export class BasesService {
       'order',
       'description',
       'default_role',
+      'version',
     ]);
     await this.validateProjectTitle(context, data, base);
 
@@ -193,7 +201,9 @@ export class BasesService {
       await transaction.commit();
     } catch (e) {
       await transaction.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error deleting base', e);
+      NcError.get(context).internalServerError('Failed to delete base');
     }
 
     this.appHooksService.emit(AppEvents.PROJECT_DELETE, {
@@ -208,7 +218,7 @@ export class BasesService {
 
   async baseCreate(
     param: {
-      base: ProjectReqType;
+      base: ProjectReqType & { version?: BaseVersion };
       user: any;
       req: any;
       apiVersion?: NcApiVersion;
@@ -337,6 +347,14 @@ export class BasesService {
 
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
+    // TODO: set default version to V3 after beta of v3 is over
+    baseBody.version = param.base.version || BaseVersion.V2;
+
+    // Ensure workspace context: in unlicensed on-prem (EE build), @EEOnly()
+    // falls back to this CE code, but the EE Base model needs fk_workspace_id.
+    if (!baseBody.fk_workspace_id && Noco.ncDefaultWorkspaceId) {
+      baseBody.fk_workspace_id = Noco.ncDefaultWorkspaceId;
+    }
 
     const base = await Base.createProject(baseBody, ncMeta);
 

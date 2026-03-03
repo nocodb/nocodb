@@ -1,4 +1,9 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isBtLikeV2Junction,
+  isMMOrMMLike,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { QueryWithCte } from '~/helpers/dbHelpers';
@@ -26,11 +31,15 @@ export async function getDisplayValueOfRefTable(
   context: NcContext,
   relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
 ) {
-  return await relationCol
-    .getColOptions(context)
-    .then((colOpt) => colOpt.getRelatedTable(context))
-    .then((model) => model.getColumns(context))
-    .then((cols) => cols.find((col) => col.pv) || cols[0]);
+  // Use the column's own base_id for getColOptions since the relation metadata
+  // is stored in the column's base, not the related table's base (cross-base links)
+  const colOpt = await relationCol.getColOptions<
+    LinkToAnotherRecordColumn | LinksColumn
+  >({ ...context, base_id: relationCol.base_id });
+  const model = await colOpt.getRelatedTable(context);
+  const modelContext = { ...context, base_id: model.base_id };
+  const cols = await model.getColumns(modelContext);
+  return cols.find((col) => col.pv) || cols[0];
 }
 
 // this function will generate the query for lookup column
@@ -69,8 +78,11 @@ export default async function generateLookupSelectQuery({
 
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>(context);
-    } else if (column.uidt !== UITypes.LinkToAnotherRecord) {
-      NcError.badRequest('Invalid field type');
+    } else if (
+      column.uidt !== UITypes.LinkToAnotherRecord &&
+      column.uidt !== UITypes.Links
+    ) {
+      NcError.get(context).badRequest('Invalid field type');
     }
 
     await column.getColOptions<LookupColumn>(context);
@@ -81,6 +93,8 @@ export default async function generateLookupSelectQuery({
         : column;
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
+
+      const isMMLike = isMMOrMMLike(relationCol);
 
       const {
         parentContext,
@@ -98,13 +112,18 @@ export default async function generateLookupSelectQuery({
           : RelationTypes.HAS_MANY;
       }
 
-      if (relationType === RelationTypes.BELONGS_TO) {
+      if (relationType === RelationTypes.BELONGS_TO && !isMMLike) {
         const childColumn = await relation.getChildColumn(context);
         const parentColumn = await relation.getParentColumn(context);
         const childModel = await childColumn.getModel(childContext);
         await childModel.getColumns(childContext);
         const parentModel = await parentColumn.getModel(parentContext);
         await parentModel.getColumns(parentContext);
+
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childModel,
+          dbDriver: knex,
+        });
 
         const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
           model: parentModel,
@@ -119,12 +138,12 @@ export default async function generateLookupSelectQuery({
         ).where(
           `${alias}.${parentColumn.column_name}`,
           knex.raw(`??`, [
-            `${rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+            `${rootAlias || childBaseModel.getTnPath(childModel.table_name)}.${
               childColumn.column_name
             }`,
           ]),
         );
-      } else if (relationType === RelationTypes.HAS_MANY) {
+      } else if (relationType === RelationTypes.HAS_MANY && !isMMLike) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
         const parentColumn = await relation.getParentColumn(context);
@@ -132,6 +151,12 @@ export default async function generateLookupSelectQuery({
         await childModel.getColumns(childContext);
         const parentModel = await parentColumn.getModel(parentContext);
         await parentModel.getColumns(parentContext);
+
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childModel,
+          dbDriver: knex,
+        });
+
         const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
           model: parentModel,
           dbDriver: knex,
@@ -139,25 +164,33 @@ export default async function generateLookupSelectQuery({
 
         selectQb = knex(
           knex.raw(`?? as ??`, [
-            parentBaseModel.getTnPath(childModel.table_name),
+            childBaseModel.getTnPath(childModel.table_name),
             alias,
           ]),
         ).where(
           `${alias}.${childColumn.column_name}`,
           knex.raw(`??`, [
-            `${rootAlias || baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-              parentColumn.column_name
-            }`,
+            `${
+              rootAlias || parentBaseModel.getTnPath(parentModel.table_name)
+            }.${parentColumn.column_name}`,
           ]),
         );
-      } else if (relationType === RelationTypes.MANY_TO_MANY) {
-        isBtLookup = false;
+      } else if (relationType === RelationTypes.MANY_TO_MANY || isMMLike) {
+        const isSingleTargetV2 = isBtLikeV2Junction(relationCol);
+        if (!isSingleTargetV2) {
+          isBtLookup = false;
+        }
         const childColumn = await relation.getChildColumn(context);
         const parentColumn = await relation.getParentColumn(context);
         const childModel = await childColumn.getModel(childContext);
         await childModel.getColumns(childContext);
         const parentModel = await parentColumn.getModel(parentContext);
         await parentModel.getColumns(parentContext);
+
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childModel,
+          dbDriver: knex,
+        });
 
         const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
           model: parentModel,
@@ -194,10 +227,14 @@ export default async function generateLookupSelectQuery({
             '=',
             knex.ref(
               `${
-                rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)
+                rootAlias || childBaseModel.getTnPath(childModel.table_name)
               }.${childColumn.column_name}`,
             ),
           );
+
+        if (isSingleTargetV2) {
+          selectQb.limit(1);
+        }
       }
     }
     let lookupColumn = lookupColOpt
@@ -206,8 +243,12 @@ export default async function generateLookupSelectQuery({
 
     // if lookup column is qr code or barcode extract the referencing column
     if ([UITypes.QrCode, UITypes.Barcode].includes(lookupColumn.uidt)) {
+      // For cross-base lookups, lookupColumn might belong to a different base than context
+      const lookupColContext = lookupColumn.base_id
+        ? { ...context, base_id: lookupColumn.base_id }
+        : context;
       lookupColumn = await lookupColumn
-        .getColOptions<BarcodeColumn | QrCodeColumn>(context)
+        .getColOptions<BarcodeColumn | QrCodeColumn>(lookupColContext)
         .then((barcode) => barcode.getValueColumn(refContext));
     }
     {
@@ -234,7 +275,9 @@ export default async function generateLookupSelectQuery({
         const relation =
           await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
 
-        let relationType = relation.type;
+        let relationType = isMMOrMMLike(relationCol)
+          ? RelationTypes.MANY_TO_MANY
+          : relation.type;
 
         if (relationType === RelationTypes.ONE_TO_ONE) {
           relationType = relationCol.meta?.bt
@@ -244,7 +287,7 @@ export default async function generateLookupSelectQuery({
         const {
           parentContext,
           childContext,
-          refContext: _refContext,
+          refContext: nestedRefContext,
           mmContext,
         } = await relation.getParentChildContext(context, relationCol);
 
@@ -292,13 +335,22 @@ export default async function generateLookupSelectQuery({
             `${prevAlias}.${parentColumn.column_name}`,
           );
         } else if (relationType === RelationTypes.MANY_TO_MANY) {
-          isBtLookup = false;
+          const nestedIsSingleTargetV2 = isBtLikeV2Junction(relationCol);
+          if (!nestedIsSingleTargetV2) {
+            isBtLookup = false;
+          }
           const childColumn = await relation.getChildColumn(context);
           const parentColumn = await relation.getParentColumn(context);
           const childModel = await childColumn.getModel(childContext);
           await childModel.getColumns(childContext);
           const parentModel = await parentColumn.getModel(parentContext);
           await parentModel.getColumns(parentContext);
+
+          const childBaseModel = await Model.getBaseModelSQL(childContext, {
+            model: childModel,
+            dbDriver: knex,
+          });
+
           const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
             model: parentModel,
             dbDriver: knex,
@@ -335,22 +387,28 @@ export default async function generateLookupSelectQuery({
               knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
               '=',
               knex.ref(
-                `${alias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+                `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
                   childColumn.column_name
                 }`,
               ),
             );
+
+          if (nestedIsSingleTargetV2) {
+            selectQb.limit(1);
+          }
         }
 
         if (lookupColumn.uidt === UITypes.Lookup)
-          lookupColumn = await nestedLookupColOpt.getLookupColumn(refContext);
+          lookupColumn = await nestedLookupColOpt.getLookupColumn(
+            nestedRefContext,
+          );
         else
           lookupColumn = await getDisplayValueOfRefTable(
-            refContext,
+            nestedRefContext,
             relationCol,
           );
         prevAlias = nestedAlias;
-        context = _refContext;
+        context = nestedRefContext;
       }
 
       {
@@ -413,7 +471,7 @@ export default async function generateLookupSelectQuery({
             break;
           case UITypes.Attachment:
             if (!isAggregation) {
-              NcError.badRequest(
+              NcError.get(context).badRequest(
                 'Group by using attachment column is not supported',
               );
               break;
@@ -502,7 +560,9 @@ export default async function generateLookupSelectQuery({
         };
       }
 
-      NcError.notImplemented('This operation on Lookup/LTAR for this database');
+      NcError.get(context).notImplemented(
+        'This operation on Lookup/LTAR for this database',
+      );
     }
   }
 }

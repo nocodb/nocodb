@@ -59,7 +59,12 @@ const duplicateVirtualColumn = async () => {
   }
 
   try {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
@@ -69,16 +74,24 @@ const duplicateVirtualColumn = async () => {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
     }
 
-    await $api.dbTableColumn.create(meta!.value!.id!, {
-      ...columnCreatePayload,
-      pv: false,
-      view_id: view.value!.id as string,
-      column_order: {
-        order: newColumnOrder,
-        view_id: view.value!.id as string,
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      {
+        operation: 'columnAdd',
+        tableId: meta!.value!.id!,
       },
-    } as ColumnReqType)
-    await getMeta(meta!.value!.id!, true)
+      {
+        ...columnCreatePayload,
+        pv: false,
+        view_id: view.value!.id as string,
+        column_order: {
+          order: newColumnOrder,
+          view_id: view.value!.id as string,
+        },
+      } as ColumnReqType,
+    )
+    await getMeta(meta!.value!.base_id!, meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger()
@@ -106,7 +119,12 @@ const openDuplicateDlg = async () => {
   ) {
     duplicateVirtualColumn()
   } else {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder

@@ -15,8 +15,6 @@ const isAuthTokenCopied = ref(false)
 
 const isLoggingOut = ref(false)
 
-const { isUIAllowed } = useRoles()
-
 const logout = async () => {
   isLoggingOut.value = true
   try {
@@ -52,13 +50,11 @@ onMounted(() => {
   isMounted.value = true
 })
 
-const accountUrl = computed(() => {
-  return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
-})
+const accountUrl = computed(() => '/account/profile')
 </script>
 
 <template>
-  <div class="flex flex-col border-gray-200 gap-y-1">
+  <div class="flex flex-col border-nc-border-gray-medium gap-y-1">
     <div class="flex items-center justify-between">
       <NcDropdown v-model:visible="isMenuOpen" placement="topLeft" overlay-class-name="!min-w-64">
         <div

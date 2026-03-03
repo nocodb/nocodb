@@ -20,7 +20,7 @@ const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { getMeta, metas } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const meta = inject(MetaInj, ref())
 
@@ -44,6 +44,8 @@ const selectedFields = ref<Record<string, boolean>>({})
 
 const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
 
+const fkRelatedBaseId = computed(() => (column.value.colOptions as any)?.fk_related_base_id || meta.value?.base_id)
+
 const relatedModel = ref<TableType | null>()
 
 const selectedFieldsCount = computed(() => Object.values(selectedFields.value).filter(Boolean).length)
@@ -66,7 +68,7 @@ const createLookups = async () => {
     const currIndex = meta.value?.columns?.length ?? 0
 
     for (const [k] of Object.entries(selectedFields.value).filter(([, v]) => v)) {
-      const lookupCol = metas.value[relatedModel.value?.id].columns.find((c) => c.id === k)
+      const lookupCol = getMetaByKey(fkRelatedBaseId.value, relatedModel.value?.id)?.columns.find((c) => c.id === k)
       const index = filteredColumns.value.findIndex((c) => c.id === k)
       const tempCol = {
         uidt: UITypes.Lookup,
@@ -100,12 +102,17 @@ const createLookups = async () => {
       })
     }
 
-    await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: meta.value?.columnsHash,
-      ops: bulkOpsCols,
-    })
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      { operation: 'columnsBulk', tableId: meta.value?.id as string },
+      {
+        hash: meta.value?.columnsHash,
+        ops: bulkOpsCols,
+      },
+    )
 
-    await getMeta(meta?.value?.id as string, true)
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     message.success(
       selectedFieldsCount.value > 1
@@ -129,7 +136,7 @@ const createLookups = async () => {
 
 watch([relatedModel, searchField], async () => {
   if (relatedModel.value) {
-    const columns = metas.value[relatedModel.value?.id]?.columns || []
+    const columns = getMetaByKey(fkRelatedBaseId.value, relatedModel.value?.id)?.columns || []
     filteredColumns.value = columns.filter(
       (c: any) =>
         getValidLookupColumn({
@@ -151,7 +158,7 @@ function switchToSearchMode() {
 
 watch(isOpened, async (val) => {
   if (val) {
-    relatedModel.value = await getMeta(fkRelatedModelId.value)
+    relatedModel.value = await getMeta(fkRelatedBaseId.value as string, fkRelatedModelId.value)
     isInSearchMode.value = false
     searchField.value = ''
   } else {
@@ -185,7 +192,7 @@ watch(isOpened, async (val) => {
                   placeholder="Search field to add as lookup"
                 >
                   <template #prefix>
-                    <component :is="iconMap.search" class="w-3.5 text-gray-500 h-3.5 mr-1 ml-1" />
+                    <GeneralIcon icon="search" class="w-3.5 text-nc-content-gray-muted h-3.5 mr-1 ml-1" />
                   </template>
                 </a-input>
               </template>
@@ -196,18 +203,18 @@ watch(isOpened, async (val) => {
                 >
                   <div class="font-weight-600">{{ t('general.add') }} {{ t('datatype.Lookup') }} {{ t('objects.fields') }}</div>
                   <NcButton type="text" size="small" @click="switchToSearchMode()">
-                    <component :is="iconMap.search" class="w-4 h-4" />
+                    <GeneralIcon icon="search" class="w-4 h-4" />
                   </NcButton>
                 </div>
               </template>
             </transition>
           </div>
-          <div class="border-y-1 h-[310px] border-gray-200 py-1 nc-scrollbar-thin" style="scrollbar-gutter: stable">
+          <div class="border-y-1 h-[310px] border-nc-border-gray-medium py-1 nc-scrollbar-thin" style="scrollbar-gutter: stable">
             <div v-for="field of filteredColumns" :key="field.id">
               <div
                 :key="field.id"
                 :data-testid="`nc-lookup-add-menu-${field.title}`"
-                class="px-1 py-0.75 mx-1 flex flex-row items-center rounded-md hover:bg-gray-100"
+                class="px-1 py-0.75 mx-1 flex flex-row items-center rounded-md hover:bg-nc-bg-gray-light"
                 @click.stop="selectedFields[field.id] = !selectedFields[field.id]"
               >
                 <div class="flex flex-row items-center w-full cursor-pointer truncate ml-1 py-[2px] pr-2">

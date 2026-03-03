@@ -64,7 +64,7 @@ const isCurrentDate = computed(() => {
   return showCurrentDateOption.value && cdfValue.value?.toUpperCase?.() === sqlUi.value?.getCurrentDateDefault?.(vModel.value)
 })
 
-const { isSystem } = useColumnCreateStoreOrThrow()
+const { isSystem, isSyncedField } = useColumnCreateStoreOrThrow()
 
 const validationError = computed(() => {
   return getColumnValidationError(vModel.value)
@@ -89,49 +89,65 @@ const handleShowInput = () => {
 
 <template>
   <div v-if="!isVisibleDefaultValueInput">
-    <NcButton
-      size="small"
-      type="text"
-      class="!text-gray-700"
-      data-testid="nc-show-default-value-btn"
-      :disabled="isSystem"
-      @click.stop="handleShowInput"
-    >
-      <div class="flex items-center gap-2">
-        <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
-        <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue').toLowerCase() }}</span>
-      </div>
-    </NcButton>
+    <NcTooltip :disabled="!isSyncedField" placement="right">
+      <NcTooltip :disabled="!vModel.unique" placement="right">
+        <template #title>
+          <div class="max-w-xs">
+            {{ $t('msg.info.defaultValueNotAllowedForUniqueFields') }}
+          </div>
+        </template>
+        <NcButton
+          size="small"
+          type="text"
+          class="!text-nc-content-gray-subtle"
+          data-testid="nc-show-default-value-btn"
+          :disabled="isSystem || isSyncedField || vModel.unique"
+          @click.stop="handleShowInput"
+        >
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
+            <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue').toLowerCase() }}</span>
+          </div>
+        </NcButton>
+      </NcTooltip>
+      <template #title>
+        {{ $t('msg.info.defaultValSyncedCol') }}
+      </template>
+    </NcTooltip>
   </div>
 
   <div v-else>
     <div class="w-full flex items-center gap-2 mb-2">
-      <div class="text-small leading-[18px] flex-1 text-gray-700">{{ $t('placeholder.defaultValue') }}</div>
+      <div class="text-small leading-[18px] flex-1 text-nc-content-gray-subtle">{{ $t('placeholder.defaultValue') }}</div>
     </div>
     <div class="flex flex-row gap-2 relative">
       <div
-        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-gray-300 rounded-lg sm:min-h-[32px] xs:min-h-13 focus-within:(border-brand-500 shadow-selected ring-0) transition-all duration-0.3s"
+        class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-nc-border-gray-dark rounded-lg sm:min-h-[32px] xs:min-h-13 focus-within:(border-nc-border-brand shadow-selected ring-0) transition-all duration-0.3s"
         :class="{
-          'bg-white': isAiModeFieldModal,
+          'bg-nc-bg-default': isAiModeFieldModal,
+          'bg-nc-bg-gray-light opacity-60': vModel.unique,
         }"
       >
         <div ref="defaultValueWrapperRef" class="relative flex-grow max-w-full">
           <div
             v-if="isCurrentDate"
-            class="absolute pointer-events-none h-full w-full bg-white z-2 top-0 left-0 rounded-full items-center flex bg-white"
+            class="absolute pointer-events-none h-full w-full bg-nc-bg-default z-2 top-0 left-0 rounded-full items-center flex bg-nc-bg-default"
           >
             <div class="-ml-2">
               <NcBadge>{{ $t('labels.currentDate') }}</NcBadge>
             </div>
           </div>
           <LazySmartsheetCell
-            :edit-enabled="true"
+            :edit-enabled="!vModel.unique"
             :model-value="cdfValue"
             :column="vModel"
             class="!border-none h-auto my-auto"
+            :class="{
+              'pointer-events-none': vModel.unique,
+            }"
             @update:cdf="updateCdfValue"
             @update:edit-enabled="editEnabled = $event"
-            @click="editEnabled = true"
+            @click="editEnabled = !vModel.unique"
           />
         </div>
         <NcTooltip :title="$t('general.clear')" class="flex">
@@ -142,8 +158,12 @@ const handleShowInput = () => {
                 vModel.uidt,
               ) || isCurrentDate
             "
-            class="w-4 h-4 cursor-pointer rounded-full z-3 !text-black-500 text-gray-500 hover:bg-gray-50 default-value-clear"
-            @click.stop="updateCdfValue(null)"
+            :class="{
+              'w-4 h-4 cursor-pointer rounded-full z-3 text-nc-content-gray-muted hover:bg-nc-bg-gray-extralight dark:hover:bg-nc-bg-gray-medium default-value-clear':
+                !vModel.unique,
+              'w-4 h-4 rounded-full z-3 text-nc-content-gray-muted opacity-50 pointer-events-none': vModel.unique,
+            }"
+            @click.stop="!vModel.unique && updateCdfValue(null)"
           />
         </NcTooltip>
       </div>

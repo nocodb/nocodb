@@ -12,7 +12,9 @@ const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { base, isSharedBase } = storeToRefs(useBase())
+const { base, isSharedBase, isManagedAppMaster, isSandbox } = storeToRefs(useBase())
+
+const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
 
 const { $e } = useNuxtApp()
 
@@ -44,7 +46,14 @@ const copySharedBase = async () => {
 
 <template>
   <div
-    v-if="!isSharedBase && isUIAllowed('baseShare') && visibility !== 'hidden' && (activeTable || base)"
+    v-if="
+      !isSharedBase &&
+      !isManagedAppMaster &&
+      !isSandbox &&
+      isUIAllowed('baseShare') &&
+      visibility !== 'hidden' &&
+      (activeTable || base)
+    "
     class="nc-share-base-button flex flex-col justify-center"
     data-testid="share-base-button"
     :data-sharetype="visibility"
@@ -70,7 +79,7 @@ const copySharedBase = async () => {
     </NcButton>
   </div>
 
-  <template v-else-if="isSharedBase">
+  <template v-else-if="isSharedBase && !hideSharedBaseBtn">
     <div class="flex-1"></div>
     <div class="flex flex-col justify-center h-full">
       <div class="flex flex-row items-center w-full">

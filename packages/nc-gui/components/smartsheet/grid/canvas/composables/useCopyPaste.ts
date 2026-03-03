@@ -164,6 +164,21 @@ export function useCopyPaste({
 
     const restrictEditCell = col.id && !isAllowed(PermissionEntity.FIELD, col.id, PermissionKey.RECORD_FIELD_EDIT)
 
+    if (col.readonly && meta.value?.synced) {
+      if (showInfo) {
+        message.toast(t('msg.info.pasteNotSupportedInSyncedCells'))
+      }
+      return false
+    }
+
+    // Skip pasting UUID columns (read-only, auto-generated)
+    if (col.uidt === UITypes.UUID) {
+      if (showInfo) {
+        message.toast(t('msg.info.computedFieldEditWarning'))
+      }
+      return false
+    }
+
     // skip pasting virtual columns (including LTAR columns for now) and system columns
     if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
       if (!avoidLtarRestrictions || !isLinksOrLTAR(col)) {
@@ -214,6 +229,7 @@ export function useCopyPaste({
       isViewSearchActive() ||
       isSidebarNodeRenameActive() ||
       isActiveElementInsideExtension() ||
+      isActiveElementInsideScriptPane() ||
       isCmdJActive() ||
       cmdKActive()
     ) {
@@ -305,7 +321,12 @@ export function useCopyPaste({
         if (options.expand) {
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
           if (newColsNeeded > 0) {
-            const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+            const columnsHash = (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'columnsHash',
+                tableId: meta.value?.id as string,
+              })
+            ).hash
             const columnsLength = meta.value?.columns?.length || 0
 
             // Create new columns as needed
@@ -335,12 +356,17 @@ export function useCopyPaste({
               })
             }
 
-            await $api.dbTableColumn.bulk(meta.value?.id, {
-              hash: columnsHash,
-              ops: bulkOpsCols,
-            })
+            await $api.internal.postOperation(
+              meta.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              { operation: 'columnsBulk', tableId: meta.value?.id as string },
+              {
+                hash: columnsHash,
+                ops: bulkOpsCols,
+              },
+            )
 
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
         } else {
@@ -372,6 +398,10 @@ export function useCopyPaste({
                 rowIndex: absoluteRowIndex,
               },
             }
+
+            // Skip rows hidden by RLS policy — they are locked and should not be pasted into
+            if (targetRow.rowMeta?.isRlsHidden) continue
+
             updatedRows.push(targetRow)
           } else {
             targetRow = {
@@ -486,7 +516,12 @@ export function useCopyPaste({
 
             if (!foreignKeyColumn) return
 
-            const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+            const relatedBaseId =
+              (columnObj.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta?.value?.base_id
+            const relatedTableMeta = await getMeta(
+              relatedBaseId as string,
+              (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+            )
 
             // update old row to allow undo redo as bt column update only through foreignKeyColumn title
             rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]
@@ -530,9 +565,15 @@ export function useCopyPaste({
             let result
 
             try {
-              result = await $api.dbDataTableRow.nestedListCopyPasteOrDeleteAll(
-                meta.value?.id as string,
-                columnObj.id as string,
+              result = await $api.internal.postOperation(
+                meta.value?.fk_workspace_id as string,
+                meta.value?.base_id as string,
+                {
+                  operation: 'nestedDataListCopyPasteOrDeleteAll',
+                  tableId: meta.value?.id as string,
+                  columnId: columnObj.id as string,
+                  viewId: view?.value?.id,
+                },
                 [
                   {
                     operation: 'copy',
@@ -548,7 +589,6 @@ export function useCopyPaste({
                       (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
                   },
                 ],
-                { viewId: view?.value?.id },
               )
             } catch {
               rowObj.row[columnObj.title!] = oldCellValue
@@ -579,22 +619,30 @@ export function useCopyPaste({
                     ) {
                       await Promise.all([
                         result.link.length &&
-                          $api.dbDataTableRow.nestedLink(
-                            meta.value?.id as string,
-                            columnObj.id as string,
-                            encodeURIComponent(pasteRowPk),
-                            result.link,
+                          $api.internal.postOperation(
+                            meta.value?.fk_workspace_id as string,
+                            meta.value?.base_id as string,
                             {
+                              operation: 'nestedDataLink',
+                              tableId: meta.value?.id as string,
+                              columnId: columnObj.id as string,
+                              rowId: pasteRowPk,
                               viewId: view?.value?.id,
                             },
+                            result.link,
                           ),
                         result.unlink.length &&
-                          $api.dbDataTableRow.nestedUnlink(
-                            meta.value?.id as string,
-                            columnObj.id as string,
-                            encodeURIComponent(pasteRowPk),
+                          $api.internal.postOperation(
+                            meta.value?.fk_workspace_id as string,
+                            meta.value?.base_id as string,
+                            {
+                              operation: 'nestedDataUnlink',
+                              tableId: meta.value?.id as string,
+                              columnId: columnObj.id as string,
+                              rowId: pasteRowPk,
+                              viewId: view?.value?.id,
+                            },
                             result.unlink,
-                            { viewId: view?.value?.id },
                           ),
                       ])
 
@@ -623,17 +671,27 @@ export function useCopyPaste({
                     ) {
                       await Promise.all([
                         result.unlink.length &&
-                          $api.dbDataTableRow.nestedLink(
-                            meta.value?.id as string,
-                            columnObj.id as string,
-                            encodeURIComponent(pasteRowPk),
+                          $api.internal.postOperation(
+                            meta.value?.fk_workspace_id as string,
+                            meta.value?.base_id as string,
+                            {
+                              operation: 'nestedDataLink',
+                              tableId: meta.value?.id as string,
+                              columnId: columnObj.id as string,
+                              rowId: pasteRowPk,
+                            },
                             result.unlink,
                           ),
                         result.link.length &&
-                          $api.dbDataTableRow.nestedUnlink(
-                            meta.value?.id as string,
-                            columnObj.id as string,
-                            encodeURIComponent(pasteRowPk),
+                          $api.internal.postOperation(
+                            meta.value?.fk_workspace_id as string,
+                            meta.value?.base_id as string,
+                            {
+                              operation: 'nestedDataUnlink',
+                              tableId: meta.value?.id as string,
+                              columnId: columnObj.id as string,
+                              rowId: pasteRowPk,
+                            },
                             result.link,
                           ),
                       ])
@@ -924,7 +982,7 @@ export function useCopyPaste({
     const col = columns.value[ctx.col]
     const rowObj = cachedRows.value.get(ctx.row)
 
-    if (!col || !col?.columnObj || !rowObj || !col.isCellEditable) return
+    if (!col || !col?.columnObj || !rowObj || !col.isCellEditable || col.isSyncedColumn || rowObj.rowMeta?.isRlsHidden) return
     const columnObj = col.columnObj
 
     if (
@@ -983,10 +1041,15 @@ export function useCopyPaste({
                 await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
                 await syncLTARRefs(rowObj, rowObj.row)
               } else if (isMm(columnObj)) {
-                await $api.dbDataTableRow.nestedLink(
-                  meta.value?.id as string,
-                  columnObj.id as string,
-                  encodeURIComponent(rowId as string),
+                await $api.internal.postOperation(
+                  meta.value?.fk_workspace_id as string,
+                  meta.value?.base_id as string,
+                  {
+                    operation: 'nestedDataLink',
+                    tableId: meta.value?.id as string,
+                    columnId: columnObj.id as string,
+                    rowId: rowId as string,
+                  },
                   mmClearResult,
                 )
                 rowObj.row[columnObj.title] = mmOldResult ?? null

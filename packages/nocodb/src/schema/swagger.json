@@ -2157,7 +2157,6 @@
                         "fk_model_id": "md_5mipbdg6ketmv8",
                         "title": "Sheet-1",
                         "type": 3,
-                        "is_default": true,
                         "show_system_fields": null,
                         "lock_type": "collaborative",
                         "uuid": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f",
@@ -3834,7 +3833,6 @@
                           },
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "id": "vw_p2jcatxz4mvcfw",
-                          "is_default": 1,
                           "lock_type": "collaborative",
                           "meta": {},
                           "order": 1,
@@ -4295,7 +4293,6 @@
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "title": "Table1",
                           "type": 3,
-                          "is_default": 1,
                           "show_system_fields": null,
                           "lock_type": "collaborative",
                           "uuid": null,
@@ -5307,7 +5304,6 @@
                           },
                           "fk_model_id": "md_rsu68aqjsbyqtl",
                           "id": "vw_p2jcatxz4mvcfw",
-                          "is_default": 1,
                           "lock_type": "collaborative",
                           "meta": {},
                           "order": 1,
@@ -5908,7 +5904,6 @@
                       "created_at": "2023-03-02 17:46:31",
                       "fk_model_id": "md_mhs9z4r2ak98x0",
                       "id": "vw_lg052cnc1c26kf",
-                      "is_default": 1,
                       "lock_type": "collaborative",
                       "meta": "{\"allowCSVDownload\":true}",
                       "order": 1,
@@ -6429,7 +6424,6 @@
                           "created_at": "2023-03-02 17:46:31",
                           "fk_model_id": "md_mhs9z4r2ak98x0",
                           "id": "vw_lg052cnc1c26kf",
-                          "is_default": 1,
                           "lock_type": "collaborative",
                           "meta": {},
                           "order": 1,
@@ -7769,7 +7763,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Grid-1",
                       "type": 3,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -7854,7 +7847,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Form-1",
                       "type": 1,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -7938,7 +7930,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Gallery-1",
                       "type": 2,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -8174,7 +8165,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Gallery-1",
                       "type": 2,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -8383,7 +8373,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Gallery-1",
                       "type": 2,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -8466,7 +8455,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Gallery-1",
                       "type": 2,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -8576,7 +8564,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Kanban-1",
                       "type": 4,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -8660,7 +8647,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Gallery-1",
                       "type": 2,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -8811,7 +8797,6 @@
                       "created_at": "2023-03-02 17:46:31",
                       "fk_model_id": "md_mhs9z4r2ak98x0",
                       "id": "vw_lg052cnc1c26kf",
-                      "is_default": 1,
                       "lock_type": "collaborative",
                       "meta": {},
                       "order": 1,
@@ -8991,7 +8976,6 @@
                       "fk_model_id": "md_8hr3xndx8umuce",
                       "title": "Calendar-1",
                       "type": 6,
-                      "is_default": null,
                       "show_system_fields": null,
                       "lock_type": "collaborative",
                       "uuid": null,
@@ -12973,7 +12957,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -13086,7 +13071,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -13312,7 +13298,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -13444,6 +13431,262 @@
                   "Example 1": {
                     "value": {
                       "count": 25
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/public/oauth/client/{clientId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "clientId",
+          "in": "path",
+          "required": true,
+          "description": "Client Id"
+        }
+      ],
+      "get": {
+        "summary": "Get OAuth Client Information",
+        "description": "Retrieve public information about an OAuth client for authorization display",
+        "tags": [
+          "OAuth"
+        ],
+        "responses": {
+          "200": {
+            "description": "OAuth client information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "client_id": {
+                      "type": "string",
+                      "description": "OAuth client identifier"
+                    },
+                    "client_name": {
+                      "type": "string",
+                      "description": "Application name"
+                    },
+                    "client_uri": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "Application homepage URL"
+                    },
+                    "logo_uri": {
+                      "oneOf": [
+                        {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "path": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "mimetype": {
+                              "type": "string"
+                            },
+                            "size": {
+                              "type": "integer"
+                            }
+                          }
+                        }
+                      ],
+                      "description": "Application logo URL or file metadata"
+                    },
+                    "client_description": {
+                      "type": "string",
+                      "description": "Application description"
+                    },
+                    "redirect_uris": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      "description": "Registered redirect URIs"
+                    },
+                    "client_type": {
+                      "type": "string",
+                      "enum": [
+                        "public",
+                        "confidential"
+                      ],
+                      "description": "OAuth client type"
+                    }
+                  },
+                  "required": [
+                    "client_id",
+                    "client_name",
+                    "redirect_uris",
+                    "client_type"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid client ID format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "invalid_client_id"
+                    },
+                    "error_description": {
+                      "type": "string",
+                      "example": "The client ID format is invalid"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "OAuth client not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "client_not_found"
+                    },
+                    "error_description": {
+                      "type": "string",
+                      "example": "The requested OAuth client does not exist"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v2/oauth/authorize": {
+      "post": {
+        "tags": [
+          "OAuth"
+        ],
+        "summary": "OAuth Authorization",
+        "description": "Handle OAuth authorization request with user approval/denial",
+        "operationId": "authorize",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "client_id",
+                  "redirect_uri"
+                ],
+                "properties": {
+                  "client_id": {
+                    "type": "string",
+                    "description": "The client identifier",
+                    "example": "your-client-id"
+                  },
+                  "redirect_uri": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "The client redirection URI",
+                    "example": "https://your-app.com/callback"
+                  },
+                  "state": {
+                    "type": "string",
+                    "description": "Opaque value used to maintain state between request and callback",
+                    "example": "xyz123"
+                  },
+                  "approved": {
+                    "type": "boolean",
+                    "description": "Whether the user approved the authorization request",
+                    "example": true
+                  },
+                  "code_challenge": {
+                    "type": "string",
+                    "description": "PKCE code challenge",
+                    "example": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+                  },
+                  "code_challenge_method": {
+                    "type": "string",
+                    "enum": [
+                      "S256",
+                      "plain"
+                    ],
+                    "description": "PKCE code challenge method",
+                    "example": "S256"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authorization processed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "redirect_url": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "URL to redirect the user to"
+                    }
+                  }
+                },
+                "examples": {
+                  "success": {
+                    "summary": "Successful authorization",
+                    "value": {
+                      "redirect_url": "https://your-app.com/callback?code=auth_code_123&state=xyz123"
+                    }
+                  },
+                  "denied": {
+                    "summary": "User denied authorization",
+                    "value": {
+                      "redirect_url": "https://your-app.com/callback?error=access_denied&error_description=User%20denied%20the%20request&state=xyz123"
+                    }
+                  },
+                  "error": {
+                    "summary": "Server error occurred",
+                    "value": {
+                      "redirect_url": "https://your-app.com/callback?error=server_error&error_description=Authorization%20server%20encountered%20an%20error&state=xyz123"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Missing required parameters: client_id, redirect_uri"
                     }
                   }
                 }
@@ -13691,6 +13934,215 @@
                       "Id": 1,
                       "Title": "90",
                       "SingleSelect": "50"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/tables/{tableId}/bulk/aggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Table ID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "required": true,
+          "name": "viewId",
+          "in": "query",
+          "description": "View ID is required"
+        },
+        {
+          "schema": {
+            "type": "array",
+            "description": "List of fields to be aggregated",
+            "items": {
+              "type": "object"
+            }
+          },
+          "in": "query",
+          "name": "aggregation",
+          "description": "Used for selective aggregation"
+        }
+      ],
+      "post": {
+        "summary": "Read Bulk Aggregated Data",
+        "operationId": "db-data-table-bulk-aggregate",
+        "description": "Read bulk aggregated data from a given table with given filters",
+        "tags": [
+          "DB Data Table Bulk Aggregate"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "$ref": "#/components/parameters/xc-auth"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          }
+        }
+      }
+    },
+    "/api/v2/public/shared-view/{sharedViewUuid}/bulk/aggregate": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string",
+            "example": "24a6d0bb-e45d-4b1a-bfef-f492d870de9f"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true,
+          "description": "Shared View UUID"
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "post": {
+        "summary": "Read Shared View Bulk Aggregated Data",
+        "operationId": "public-data-table-bulk-aggregate",
+        "description": "Read bulk aggregated data from a given table with provided filters",
+        "tags": [
+          "Public"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where",
+            "description": "Extra filtering"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "filterArrJson",
+            "description": "Used for multiple filter queries"
+          },
+          {
+            "schema": {
+              "type": "array",
+              "description": "List of fields to be aggregated",
+              "items": {
+                "type": "object"
+              }
+            },
+            "in": "query",
+            "name": "aggregation",
+            "description": "Used for selective aggregation"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "alias": {
+                        "Id": 1,
+                        "Title": "90",
+                        "SingleSelect": "50"
+                      },
+                      "alias2": {
+                        "Id": 2,
+                        "Title": "50",
+                        "SingleSelect": "30"
+                      }
                     }
                   }
                 }
@@ -14070,7 +14522,6 @@
                           "created_at": "2023-03-02 17:46:31",
                           "fk_model_id": "md_mhs9z4r2ak98x0",
                           "id": "vw_lg052cnc1c26kf",
-                          "is_default": 1,
                           "lock_type": "collaborative",
                           "meta": {},
                           "order": 1,
@@ -14483,7 +14934,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -20422,10 +20874,561 @@
           "schema": {
             "type": "string"
           },
+          "name": "workflowId",
+          "in": "query",
+          "description": "Workflow ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
           "name": "cursor",
           "in": "query",
           "description": "Cursor",
           "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "query",
+          "description": "Table Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "mcpTokenId",
+          "in": "query",
+          "description": "MCP Token Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewId",
+          "in": "query",
+          "description": "View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "formViewId",
+          "in": "query",
+          "description": "Form View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "gridViewId",
+          "in": "query",
+          "description": "Grid View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "kanbanViewId",
+          "in": "query",
+          "description": "Kanban View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "galleryViewId",
+          "in": "query",
+          "description": "Gallery View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "calendarViewId",
+          "in": "query",
+          "description": "Calendar View Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "publicDataUuid",
+          "in": "query",
+          "description": "Public Data UUID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
+          "in": "query",
+          "description": "Shared View UUID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedBaseUuid",
+          "in": "query",
+          "description": "Shared Base UUID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedDashboardUuid",
+          "in": "query",
+          "description": "Shared Dashboard UUID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "hookId",
+          "in": "query",
+          "description": "Hook Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowColorConditionId",
+          "in": "query",
+          "description": "Row Color Condition Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "gridViewColumnId",
+          "in": "query",
+          "description": "Grid View Column Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "formViewColumnId",
+          "in": "query",
+          "description": "Form View Column Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "galleryViewColumnId",
+          "in": "query",
+          "description": "Gallery View Column Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "query",
+          "description": "Column Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "filterId",
+          "in": "query",
+          "description": "Filter Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "filterParentId",
+          "in": "query",
+          "description": "Filter Parent Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "widgetId",
+          "in": "query",
+          "description": "Widget Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sortId",
+          "in": "query",
+          "description": "Sort Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "syncId",
+          "in": "query",
+          "description": "Sync Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "extensionId",
+          "in": "query",
+          "description": "Extension Id",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "teamId",
+          "in": "query",
+          "description": "Team ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "clientId",
+          "in": "query",
+          "description": "Client ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tokenId",
+          "in": "query",
+          "description": "Token ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "dashboardId",
+          "in": "query",
+          "description": "Dashboard ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "widgetId",
+          "in": "query",
+          "description": "Widget ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "id",
+          "in": "query",
+          "description": "Entity ID",
+          "required": false
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "teamId",
+          "in": "query",
+          "description": "Team ID",
+          "required": false
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users": {
+      "get": {
+        "summary": "Workspace users list",
+        "operationId": "workspace-user-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUserList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace users list"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "boolean"
+          },
+          "name": "includeDeleted",
+          "in": "query"
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/users/{userId}": {
+      "get": {
+        "summary": "Workspace user read",
+        "operationId": "workspace-user-read",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceUser"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user read"
+      },
+      "patch": {
+        "summary": "Update workspace user",
+        "operationId": "workspace-user-update",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "roles": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "description": "Update workspace user"
+      },
+      "delete": {
+        "summary": "Delete workspace user",
+        "operationId": "workspace-user-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "Workspace User"
+        ],
+        "description": "Delete workspace user"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v1/workspaces/{workspaceId}/invitations": {
+      "post": {
+        "summary": "Workspace user invite",
+        "operationId": "workspace-user-invite",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceUserInvite"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Workspace user"
+        ],
+        "description": "Workspace user invite"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/workspaces/{workspaceId}/integrations": {
+      "get": {
+        "summary": "List integrations",
+        "operationId": "workspace-integration-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "List integrations",
+        "parameters": [
+          {
+            "schema": {
+              "$ref": "#/components/schemas/Integrations"
+            },
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "boolean"
+            },
+            "name": "includeDatabaseInfo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "baseId",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "query",
+            "in": "query"
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create integration",
+        "operationId": "workspace-integration-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IntegrationReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Integration"
+        ],
+        "description": "Create integration"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "workspaceId",
+          "in": "path",
+          "required": true
         }
       ]
     }
@@ -21278,7 +22281,8 @@
           "finance",
           "ticketing",
           "storage",
-          "others"
+          "others",
+          "workflow-node"
         ]
       },
       "IntegrationReq": {
@@ -21627,7 +22631,10 @@
               "CreatedBy",
               "LastModifiedBy",
               "AI",
-              "Order"
+              "Order",
+              "Meta",
+              "Colour",
+              "UUID"
             ],
             "type": "string"
           },
@@ -22070,6 +23077,14 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Link Column"
           },
+          "fk_rls_policy_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to RLS Policy"
+          },
+          "fk_button_col_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Button Column"
+          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"
@@ -22109,6 +23124,14 @@
             "type": "number",
             "description": "The order of the filter",
             "example": 1
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this filter is enabled. Disabled filters are skipped during evaluation."
+          },
+          "fk_level_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to List View Level"
           }
         },
         "readOnly": true,
@@ -22420,6 +23443,14 @@
           },
           "value": {
             "description": "The filter value. Can be NULL for some operators."
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this filter is enabled. Disabled filters are skipped during evaluation."
+          },
+          "fk_level_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to List View Level"
           }
         },
         "readOnly": true
@@ -22704,7 +23735,7 @@
             "fk_view_id": "vw_s1pf4umdnikoyn",
             "help": null,
             "id": "fvc_8z1i7t8aswkqxx",
-            "label": "dsdsds",
+            "label": "First name",
             "order": 1,
             "required": false,
             "show": 1,
@@ -22794,7 +23825,7 @@
             "fk_view_id": "vw_s1pf4umdnikoyn",
             "help": null,
             "id": "fvc_8z1i7t8aswkqxx",
-            "label": "dsdsds",
+            "label": "First name",
             "order": 1,
             "required": false,
             "show": 1,
@@ -22982,6 +24013,13 @@
           "model": {
             "description": "AI model",
             "type": "string"
+          },
+          "filters": {
+            "description": "Visibility condition filters for the button",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Filter"
+            }
           }
         },
         "x-stoplight": {
@@ -23727,13 +24765,17 @@
             "id": "string",
             "notification": "{\"type\":\"URL\",\"payload\":{\"method\":\"POST\",\"body\":\"{{ json data }}\",\"headers\":[{}],\"parameters\":[{}],\"auth\":\"\",\"path\":\"http://example.com\"}}",
             "null": null,
-            "operation": ["insert"],
+            "operation": [
+              "insert"
+            ],
             "retries": 10,
             "retry_interval": 60000,
             "timeout": 60000,
             "title": "My Webhook",
             "trigger_field": false,
-            "trigger_fields": ["c2965755662b"]
+            "trigger_fields": [
+              "c2965755662b"
+            ]
           }
         ],
         "title": "Hook Model",
@@ -23925,7 +24967,7 @@
           },
           "operation": {
             "type": "array",
-            "items" : {
+            "items": {
               "enum": [
                 "insert",
                 "update",
@@ -24904,6 +25946,8 @@
               "bt",
               "hm",
               "mm",
+              "om",
+              "mo",
               "oo"
             ],
             "type": "string",
@@ -24953,7 +25997,8 @@
             "order": "string",
             "type": "string",
             "ur": "string",
-            "virtual": true
+            "virtual": true,
+            "version": 2
           }
         ],
         "properties": {
@@ -25021,6 +26066,9 @@
           },
           "fk_mm_source_id": {
             "type": "string"
+          },
+          "version": {
+            "type": "number"
           }
         },
         "title": "LinkToAnotherRecord Model",
@@ -25497,7 +26545,10 @@
               "CreatedBy",
               "LastModifiedBy",
               "AI",
-              "Order"
+              "Order",
+              "Meta",
+              "Colour",
+              "UUID"
             ],
             "type": "string",
             "description": "UI Data Type"
@@ -25733,7 +26784,7 @@
             "status": "install",
             "status_details": null,
             "logo": "plugins/s3.png",
-            "icon": null,
+            "icon": "ncMail",
             "tags": "Storage",
             "category": "Storage",
             "input_schema": "{\"title\":\"Configure Amazon S3\",\"items\":[{\"key\":\"bucket\",\"label\":\"Bucket Name\",\"placeholder\":\"Bucket Name\",\"type\":\"SingleLineText\",\"required\":true},{\"key\":\"region\",\"label\":\"Region\",\"placeholder\":\"Region\",\"type\":\"SingleLineText\",\"required\":true},{\"key\":\"access_key\",\"label\":\"Access Key\",\"placeholder\":\"Access Key\",\"type\":\"SingleLineText\",\"required\":true},{\"key\":\"access_secret\",\"label\":\"Access Secret\",\"placeholder\":\"Access Secret\",\"type\":\"Password\",\"required\":true}],\"actions\":[{\"label\":\"Test\",\"placeholder\":\"Test\",\"key\":\"test\",\"actionType\":\"TEST\",\"type\":\"Button\"},{\"label\":\"Save\",\"placeholder\":\"Save\",\"key\":\"save\",\"actionType\":\"SUBMIT\",\"type\":\"Button\"}],\"msgOnInstall\":\"Successfully installed and attachment will be stored in AWS S3\",\"msgOnUninstall\":\"\"}",
@@ -25774,7 +26825,7 @@
           },
           "icon": {
             "type": "string",
-            "description": "Plugin Icon (Not in use)"
+            "description": "Plugin Icon - IconMapKey. Takes priority over 'logo' if both are provided."
           },
           "id": {
             "$ref": "#/components/schemas/Id",
@@ -26061,7 +27112,10 @@
                     "properties": {
                       "type": {
                         "type": "string",
-                        "enum": ["user", "group"],
+                        "enum": [
+                          "user",
+                          "team"
+                        ],
                         "description": "Type of the subject"
                       },
                       "id": {
@@ -26069,7 +27123,10 @@
                         "description": "ID of the subject"
                       }
                     },
-                    "required": ["type", "id"]
+                    "required": [
+                      "type",
+                      "id"
+                    ]
                   }
                 }
               },
@@ -26080,6 +27137,14 @@
                 "granted_type"
               ]
             }
+          },
+          "is_sandbox": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates if the base is a sandbox"
+          },
+          "is_sandbox_master": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates if the base is a sandbox master"
           }
         },
         "x-stoplight": {
@@ -26243,16 +27308,13 @@
               "dashboard"
             ]
           },
-          "linked_db_project_ids": {
-            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "meta": {
             "$ref": "#/components/schemas/Meta",
             "description": "Base Meta"
+          },
+          "fk_workspace_id": {
+            "description": "Workspace ID",
+            "type": "string"
           }
         },
         "required": [
@@ -26305,13 +27367,6 @@
             "description": "Base Status",
             "example": "locked"
           },
-          "linked_db_project_ids": {
-            "description": "List of Linked Database Base IDs (only used for Dashboard Projects so far)",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "order": {
             "type": "number",
             "description": "The order of the list of projects.",
@@ -26343,7 +27398,8 @@
               "guest",
               "owner",
               "viewer",
-              "creator"
+              "creator",
+              "inherit"
             ],
             "type": "string",
             "description": "Base User Role"
@@ -26380,7 +27436,8 @@
               "guest",
               "owner",
               "viewer",
-              "creator"
+              "creator",
+              "inherit"
             ],
             "type": "string",
             "description": "Base User Role"
@@ -26636,7 +27693,6 @@
             "created_at": "2023-03-02 17:46:31",
             "fk_model_id": "md_mhs9z4r2ak98x0",
             "id": "vw_lg052cnc1c26kf",
-            "is_default": 1,
             "lock_type": "collaborative",
             "meta": {},
             "order": 1,
@@ -26674,7 +27730,6 @@
                 "created_at": "2023-03-02 17:46:31",
                 "fk_model_id": "md_mhs9z4r2ak98x0",
                 "id": "vw_lg052cnc1c26kf",
-                "is_default": 1,
                 "lock_type": "collaborative",
                 "meta": {},
                 "order": 1,
@@ -26930,6 +27985,10 @@
             "description": "Base ID",
             "example": "p_9sx43moxhqtjm3",
             "readOnly": true
+          },
+          "fk_level_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to List View Level"
           }
         },
         "x-stoplight": {
@@ -27043,6 +28102,10 @@
               "desc"
             ],
             "type": "string"
+          },
+          "fk_level_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to List View Level"
           }
         },
         "x-stoplight": {
@@ -27475,7 +28538,6 @@
                 },
                 "fk_model_id": "md_rsu68aqjsbyqtl",
                 "id": "vw_p2jcatxz4mvcfw",
-                "is_default": 1,
                 "lock_type": "collaborative",
                 "meta": {},
                 "order": 1,
@@ -28102,7 +29164,6 @@
             "created_at": "2023-03-02 17:46:31",
             "fk_model_id": "md_mhs9z4r2ak98x0",
             "id": "vw_lg052cnc1c26kf",
-            "is_default": 1,
             "lock_type": "collaborative",
             "meta": {},
             "order": 1,
@@ -28178,10 +29239,6 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Should show system fields in this view?"
           },
-          "is_default": {
-            "$ref": "#/components/schemas/Bool",
-            "description": "Is this view default view for the model?"
-          },
           "title": {
             "description": "View Title",
             "type": "string"
@@ -28213,6 +29270,9 @@
               },
               {
                 "$ref": "#/components/schemas/Calendar"
+              },
+              {
+                "$ref": "#/components/schemas/List"
               }
             ],
             "description": "Associated View Model"
@@ -28457,6 +29517,11 @@
           "calendar_range": {
             "description": "Calendar Range or Null",
             "$ref": "#/components/schemas/CalendarRangeOrNull"
+          },
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Description of the view.",
+            "example": "This is a grid view."
           }
         },
         "required": [
@@ -29362,6 +30427,83 @@
           "id": "4zvzrppfjxrqb"
         }
       },
+      "Workflow": {
+        "description": "Model for Workflow",
+        "title": "Workflow Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the Workflow"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the Workflow"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID"
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "Whether the workflow is enabled"
+          },
+          "nodes": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Nodes configuration for the workflow workflow"
+          },
+          "edges": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Edges configuration for the workflow workflow"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for the Workflow"
+          },
+          "draft": {
+            "type": "object",
+            "description": "Draft data for the Workflow",
+            "properties": {
+              "nodes": {
+                "$ref": "#/components/schemas/Meta",
+                "description": "Nodes configuration for the draft workflow"
+              },
+              "edges": {
+                "$ref": "#/components/schemas/Meta",
+                "description": "Edges configuration for the draft workflow"
+              }
+            }
+          },
+          "order": {
+            "description": "The order of the workflow in the list",
+            "type": "number"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Last updated time"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Creation time"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the creator"
+          },
+          "updated_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "User ID of the last updated user"
+          }
+        }
+      },
       "ExtensionReq": {
         "type": "object",
         "properties": {
@@ -29462,6 +30604,295 @@
             "description": "Custom url path"
           }
         }
+      },
+      "ListViewLevel": {
+        "description": "Model for List View Level",
+        "title": "ListViewLevel Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "Unique ID for Level",
+            "type": "string"
+          },
+          "fk_view_id": {
+            "description": "Foreign Key to View",
+            "type": "string"
+          },
+          "level": {
+            "description": "Level number (1, 2, or 3)",
+            "type": "number"
+          },
+          "fk_model_id": {
+            "description": "Foreign Key to Model (table) for this level",
+            "type": "string"
+          },
+          "fk_link_column_id": {
+            "description": "Foreign Key to Link Column connecting levels",
+            "type": "string"
+          },
+          "enable_nested_records": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Enable nested records (Level 1 only)"
+          },
+          "fk_self_link_column_id": {
+            "description": "Foreign Key to Self-Link Column",
+            "type": "string"
+          },
+          "wrap_headers": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Wrap column headers in this level"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for this level"
+          }
+        }
+      },
+      "List": {
+        "description": "Model for List View",
+        "title": "List Model",
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "description": "The ID of the source that this view belongs to",
+            "type": "string"
+          },
+          "columns": {
+            "description": "Columns in this view",
+            "items": {
+              "$ref": "#/components/schemas/ListColumn"
+            },
+            "type": "array"
+          },
+          "fk_view_id": {
+            "description": "Foreign Key to View",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for this view"
+          },
+          "order": {
+            "description": "The order of the list",
+            "type": "number"
+          },
+          "base_id": {
+            "description": "The ID of the base that this view belongs to",
+            "type": "string"
+          },
+          "show": {
+            "description": "To show this view or not",
+            "type": "boolean"
+          },
+          "title": {
+            "description": "Title of List View",
+            "type": "string"
+          },
+          "show_empty_parents": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show empty parent sections"
+          },
+          "row_height": {
+            "description": "Row height for this list view",
+            "type": "number"
+          },
+          "fk_prefix_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Prefix Column"
+          },
+          "levels": {
+            "description": "Levels configuration for this list view",
+            "items": {
+              "$ref": "#/components/schemas/ListViewLevel"
+            },
+            "type": "array"
+          }
+        }
+      },
+      "ListColumn": {
+        "description": "Model for List Column",
+        "title": "ListColumn Model",
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "description": "The ID of the source",
+            "type": "string"
+          },
+          "fk_column_id": {
+            "description": "Foreign Key to Column",
+            "type": "string"
+          },
+          "fk_view_id": {
+            "description": "Foreign Key to View",
+            "type": "string"
+          },
+          "fk_level_id": {
+            "description": "Foreign Key to Level",
+            "type": "string"
+          },
+          "id": {
+            "description": "Unique ID of List Column",
+            "type": "string"
+          },
+          "order": {
+            "description": "The order in the list of columns",
+            "type": "number"
+          },
+          "base_id": {
+            "description": "The ID of the base",
+            "type": "string"
+          },
+          "show": {
+            "description": "Whether to show this column or not",
+            "type": "number"
+          },
+          "width": {
+            "description": "Column width",
+            "type": "string"
+          }
+        }
+      },
+      "ListUpdateReq": {
+        "description": "Model for List View Update Request",
+        "title": "ListUpdateReq Model",
+        "type": "object",
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for this view"
+          },
+          "show_empty_parents": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Show empty parent sections"
+          },
+          "row_height": {
+            "description": "Row height for this list view",
+            "type": "number"
+          },
+          "fk_prefix_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Prefix Column"
+          },
+          "levels": {
+            "description": "Levels configuration for this list view",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListViewLevelReq"
+            }
+          }
+        }
+      },
+      "ListViewLevelReq": {
+        "description": "Model for List View Level Request",
+        "title": "ListViewLevelReq Model",
+        "type": "object",
+        "required": [
+          "level",
+          "fk_model_id"
+        ],
+        "properties": {
+          "level": {
+            "description": "Level number (1, 2, or 3)",
+            "type": "number"
+          },
+          "fk_model_id": {
+            "description": "Foreign Key to Model (table) for this level",
+            "type": "string"
+          },
+          "fk_link_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Link Column"
+          },
+          "enable_nested_records": {
+            "$ref": "#/components/schemas/Bool"
+          },
+          "fk_self_link_column_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to Self-Link Column"
+          },
+          "wrap_headers": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Wrap column headers in this level"
+          }
+        }
+      },
+      "WorkspaceUser": {
+        "description": "",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "fk_user_id": {
+            "type": "string"
+          },
+          "invite_accepted": {
+            "type": "boolean"
+          },
+          "invite_token": {
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        },
+        "title": "Workspace User",
+        "type": "object",
+        "x-internal": false
+      },
+      "WorkspaceUserInvite": {
+        "description": "",
+        "properties": {
+          "email": {
+            "format": "email",
+            "type": "string"
+          },
+          "roles": {
+            "type": "string"
+          }
+        },
+        "title": "Workspace User Invite",
+        "type": "object",
+        "x-internal": false
+      },
+      "WorkspaceUserList": {
+        "description": "",
+        "properties": {
+          "list": {
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceUser"
+            },
+            "type": "array"
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated"
+          }
+        },
+        "type": "object"
+      },
+      "IntegrationList": {
+        "description": "Model for Integration List",
+        "title": "Integration List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "description": "List of Integration Models",
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/Integration"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/Paginated",
+            "description": "Pagination Info"
+          }
+        },
+        "required": [
+          "list",
+          "pageInfo"
+        ]
       }
     },
     "responses": {
@@ -29754,7 +31185,6 @@
                       "created_at": "2023-03-02 17:46:31",
                       "fk_model_id": "md_mhs9z4r2ak98x0",
                       "id": "vw_lg052cnc1c26kf",
-                      "is_default": 1,
                       "lock_type": "collaborative",
                       "meta": {},
                       "order": 1,

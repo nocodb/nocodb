@@ -1,7 +1,7 @@
-import { isNumericCol, numericUITypes, UITypes } from '~/lib';
+import UITypes, { isNumericCol, numericUITypes } from '~/lib/UITypes';
 import type { Api, ColumnType, FilterType } from '~/lib/Api';
-import { isDateMonthFormat } from '~/lib';
-import { parseProp } from '~/lib';
+import { isDateMonthFormat } from '~/lib/dateTimeHelper';
+import { parseProp } from '~/lib/helperFunctions';
 
 export interface ComparisonOpUiType {
   text: string;
@@ -35,7 +35,8 @@ export interface FilterRowChangeEvent {
     | 'value'
     | 'dynamic'
     | 'child_add'
-    | 'child_delete';
+    | 'child_delete'
+    | 'order';
   prevValue: any;
   value: any;
   index: number;
@@ -179,6 +180,7 @@ const getTypeSpecificSemantic = (
       UITypes.Email,
       UITypes.PhoneNumber,
       UITypes.URL,
+      UITypes.UUID,
     ].includes(fieldUiType)
   ) {
     return `${baseSemantic}_text`;
@@ -276,6 +278,7 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
       UITypes.Time,
+      UITypes.Colour,
       ...numericUITypes,
     ],
     semanticType: 'pattern_match',
@@ -299,6 +302,7 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
       UITypes.Time,
+      UITypes.Colour,
       ...numericUITypes,
     ],
     semanticType: 'pattern_not_match',
@@ -531,14 +535,16 @@ export const comparisonOpList = (
     text: 'is blank',
     value: 'blank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    // UUID excluded: auto-generated on insert, never blank
+    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup, UITypes.UUID],
     semanticType: 'blank_check',
   },
   {
     text: 'is not blank',
     value: 'notblank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    // UUID excluded: auto-generated on insert, never blank
+    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup, UITypes.UUID],
     semanticType: 'not_blank_check',
   },
 ];
@@ -823,6 +829,7 @@ export const getPlaceholderNewRow = (
             UITypes.Percent,
             UITypes.Rating,
             UITypes.Duration,
+            UITypes.Colour,
             UITypes.JSON,
 
             // User is using allOf and anyOf so we cannot include it here
@@ -930,4 +937,6 @@ export const deleteFilterWithSub = async (
 
 // Type definitions for compatibility
 export type Filter = FilterType;
-export type ColumnFilterType = FilterType;
+export type ColumnFilterType = FilterType & {
+  tmp_id?: string; // will be used for reordering draft filters
+};

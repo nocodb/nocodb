@@ -16,7 +16,7 @@ const { toggleRead, deleteNotification } = notificationStore
 </script>
 
 <template>
-  <div class="flex pl-6 pr-4 w-full overflow-x-hidden group py-4 hover:bg-gray-50 gap-3 relative cursor-pointer">
+  <div class="flex pl-6 pr-4 w-full overflow-x-hidden group py-4 hover:bg-nc-bg-gray-extralight gap-3 relative cursor-pointer">
     <div class="w-9.625">
       <slot name="avatar">
         <GeneralIcon icon="nocodb1" class="w-8 h-8" />
@@ -26,7 +26,7 @@ const { toggleRead, deleteNotification } = notificationStore
     <div class="text-[13px] min-h-12 w-full leading-5">
       <slot />
     </div>
-    <div v-if="item" class="text-xs whitespace-nowrap absolute right-4.1 bottom-5 text-gray-600">
+    <div v-if="item" class="text-xs whitespace-nowrap absolute right-4.1 bottom-5 text-nc-content-gray-subtle2">
       {{ timeAgo(item.created_at) }}
     </div>
     <div class="flex items-start">
@@ -44,7 +44,7 @@ const { toggleRead, deleteNotification } = notificationStore
           size="xsmall"
           @click.stop="() => toggleRead(item)"
         >
-          <GeneralIcon icon="check" class="text-gray-700" />
+          <GeneralIcon icon="check" class="text-nc-content-gray-subtle" />
         </NcButton>
       </NcTooltip>
       <NcDropdown

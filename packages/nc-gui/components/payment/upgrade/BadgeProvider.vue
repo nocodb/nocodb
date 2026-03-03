@@ -12,12 +12,12 @@ const planUpgradeClickHook = createEventHook()
 
 provide(PlanUpgraderClickHookInj, planUpgradeClickHook)
 
-const { getFeature, isPaymentEnabled } = useEeConfig()
+const { getFeature } = useEeConfig()
 
 const isFeatureEnabled = computed(() => getFeature(props.feature))
 
 const onClick = (feature: PlanFeatureTypes, successCallback?: (...arg: any[]) => any | Promise<any>, bypass: boolean = false) => {
-  if (isEeUI && !getFeature(feature) && isPaymentEnabled.value && !bypass) {
+  if (isEeUI && !getFeature(feature) && !bypass) {
     planUpgradeClickHook.trigger()
 
     // Return true if feature is not available so that we can prevent any action

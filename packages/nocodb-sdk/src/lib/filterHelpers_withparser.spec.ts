@@ -3,9 +3,17 @@ import { testExtractFilterFromXwhere } from './filterHelpers_old.spec';
 import { extractFilterFromXwhere } from './filterHelpers_withparser';
 import UITypes from './UITypes';
 
+const context = { timezone: 'Asia/Calcutta' };
+
 testExtractFilterFromXwhere(
   'filterHelpers_withparser',
-  extractFilterFromXwhere
+  (str, aliasColObjMap, throwErrorIfInvalid) => {
+    return extractFilterFromXwhere(context, {
+      str,
+      aliasColObjMap,
+      throwErrorIfInvalid,
+    });
+  }
 );
 
 describe('filterHelpers_withparser_specific', () => {
@@ -29,7 +37,10 @@ describe('filterHelpers_withparser_specific', () => {
           },
         };
 
-        const result = extractFilterFromXwhere(query, columnAlias);
+        const result = extractFilterFromXwhere(context, {
+          str: query,
+          aliasColObjMap: columnAlias,
+        });
         expect(result).toBeDefined();
         expect(result.filters).toBeDefined();
         expect(result.filters.length).toBe(1);
@@ -54,7 +65,10 @@ describe('filterHelpers_withparser_specific', () => {
           },
         };
 
-        const result = extractFilterFromXwhere(query, columnAlias);
+        const result = extractFilterFromXwhere(context, {
+          str: query,
+          aliasColObjMap: columnAlias,
+        });
         expect(result).toBeDefined();
         expect(result.filters).toBeDefined();
         expect(result.filters.length).toBe(1);
@@ -73,7 +87,10 @@ describe('filterHelpers_withparser_specific', () => {
           },
         };
 
-        const result = extractFilterFromXwhere(query, columnAlias);
+        const result = extractFilterFromXwhere(context, {
+          str: query,
+          aliasColObjMap: columnAlias,
+        });
         expect(result).toBeDefined();
         expect(result.filters).toBeDefined();
         expect(result.filters.length).toBe(1);

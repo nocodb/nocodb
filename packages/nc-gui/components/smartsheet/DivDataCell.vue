@@ -37,7 +37,7 @@ const onTabPress = () => {
 
 <style lang="scss" scoped>
 .nc-data-cell:focus-within {
-  @apply !border-1 !border-brand-500 !rounded-lg !shadow-none !ring-0;
+  @apply !border-1 !border-nc-border-brand !rounded-lg !shadow-none !ring-0;
 }
 .nc-data-cell {
   @apply border-1 border-nc-border-gray-medium overflow-hidden rounded-lg;

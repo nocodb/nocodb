@@ -53,6 +53,7 @@ export default class GalleryView implements GalleryType {
     let view =
       viewId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.GALLERY_VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -65,7 +66,11 @@ export default class GalleryView implements GalleryType {
           fk_view_id: viewId,
         },
       );
-      await NocoCache.set(`${CacheScope.GALLERY_VIEW}:${viewId}`, view);
+      await NocoCache.set(
+        context,
+        `${CacheScope.GALLERY_VIEW}:${viewId}`,
+        view,
+      );
     }
 
     return view && new GalleryView(view);
@@ -143,6 +148,7 @@ export default class GalleryView implements GalleryType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.GALLERY_VIEW}:${galleryId}`,
       prepareForResponse(updateObj),
     );

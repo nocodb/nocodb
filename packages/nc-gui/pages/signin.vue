@@ -87,7 +87,7 @@ function navigateForgotPassword() {
         class="md:bg-primary bg-opacity-5 signin h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signin"
       >
         <div
-          class="bg-white md:mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+          class="bg-nc-bg-default md:mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-nc-border-gray-medium shadow-xl)"
         >
           <GeneralNocoIcon class="color-transition hover:(ring ring-accent ring-opacity-100)" :animate="isLoading" />
 
@@ -147,7 +147,7 @@ function navigateForgotPassword() {
               <a
                 v-if="appInfo.googleAuthEnabled"
                 :href="`${appInfo.ncSiteUrl}/auth/google`"
-                class="scaling-btn bg-opacity-100 after:(!bg-white) !text-primary !no-underline"
+                class="scaling-btn bg-opacity-100 after:(!bg-nc-bg-default) !text-primary !no-underline"
               >
                 <span class="flex items-center gap-2">
                   <LogosGoogleGmail />

@@ -14,6 +14,16 @@ class OracleClient extends KnexClient {
     super(connectionConfig);
   }
 
+  async schemaCreateWithCredentials(_args): Promise<any> {}
+
+  async sequenceList(_args: any = {}): Promise<any> {}
+
+  async sequenceCreate(_args: any = {}): Promise<any> {}
+
+  async sequenceUpdate(_args: any = {}): Promise<any> {}
+
+  async sequenceDelete(_args: any = {}): Promise<any> {}
+
   getKnexDataTypes() {
     const result = new Result();
 

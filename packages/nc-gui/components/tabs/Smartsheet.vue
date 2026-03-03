@@ -16,19 +16,11 @@ useSidebar('nc-right-sidebar')
 
 const { isUIAllowed } = useRoles()
 
-const { metas, getMeta } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const { ncNavigateTo } = useGlobal()
 
 const route = useRoute()
-
-const meta = computed<TableType | undefined>(() => {
-  const viewId = route.params.viewId as string
-  return viewId && metas.value[viewId]
-})
-
-const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
-const { activeTableId } = storeToRefs(useTablesStore())
 
 const { activeProjectId } = storeToRefs(useBases())
 
@@ -36,11 +28,19 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const viewStore = useViewsStore()
 
+const webhooksStore = useWebhooksStore()
+
+const { pendingDeepLinkHookId, pendingDeepLinkHookTab } = storeToRefs(webhooksStore)
+
 const { activeView, openedViewsTab, activeViewTitleOrId, isViewsLoading } = storeToRefs(viewStore)
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere, eventBus } = useProvideSmartsheetStore(
-  activeView,
-  meta,
-)
+
+const meta = computed<TableType | undefined>(() => {
+  const viewId = route.params.viewId as string
+  return viewId && getMetaByKey(activeProjectId.value, viewId)
+})
+
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, isTimeline, xWhere, eventBus } =
+  useProvideSmartsheetStore(activeView, meta)
 
 useViewRowColorProvider({ view: activeView, eventBus })
 
@@ -59,6 +59,8 @@ const activeSource = computed(() => {
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView, false, xWhere)
+useProvideListViewStore(meta, activeView)
+useProvideTimelineViewStore(meta, activeView, false, xWhere)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -68,6 +70,7 @@ provide(ReloadViewDataHookInj, reloadViewDataEventHook)
 provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(IsFormInj, isForm)
+provide(IsTimelineInj, isTimeline)
 provide(TabMetaInj, activeTab)
 provide(ActiveSourceInj, activeSource)
 provide(ReloadAggregateHookInj, createEventHook())
@@ -96,6 +99,18 @@ const extensionPaneRef = ref()
 
 const actionPaneRef = ref()
 
+/*
+ * NOTE:
+ * Splitpanes internally schedules async resize/redo logic.
+ * If the component is mounted/unmounted quickly (route change, fullscreen toggle),
+ * those callbacks can run after unmount and crash with:
+ * "Cannot read properties of null (reading 'children')".
+ *
+ * We delay rendering Splitpanes until the parent component is fully mounted
+ * and show a loader meanwhile to ensure DOM stability.
+ */
+const { isMounted } = useIsMounted()
+
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
   try {
@@ -109,8 +124,8 @@ const onDrop = async (event: DragEvent) => {
     // if dragged item or opened view is not a table, return
     if (data.type !== 'table' || meta.value?.type !== 'table') return
 
-    const childMeta = await getMeta(data.id)
-    const parentMeta = metas.value[meta.value.id!]
+    const childMeta = await getMeta(meta.value.base_id!, data.id)
+    const parentMeta = getMetaByKey(activeProjectId.value, meta.value.id!)
 
     if (!childMeta || !parentMeta) return
 
@@ -171,10 +186,6 @@ const onDrop = async (event: DragEvent) => {
   }
 }
 
-watch([activeViewTitleOrId, activeTableId], () => {
-  handleSidebarOpenOnMobileForNonViews()
-})
-
 const { leftSidebarWidth, windowSize, isFullScreen } = storeToRefs(useSidebarStore())
 
 const { isPanelExpanded, extensionPanelSize } = useExtensions()
@@ -234,6 +245,7 @@ const onReady = () => {
 const checkIfViewExists = async () => {
   await until(() => isViewsLoading.value).toBe(false)
   const views = await viewStore.loadViews({
+    baseId: activeProjectId.value,
     ignoreLoading: true,
   })
 
@@ -251,6 +263,15 @@ const checkIfViewExists = async () => {
 
 onMounted(async () => {
   await checkIfViewExists()
+
+  const hookId = route.query.hookId as string
+  if (hookId) {
+    pendingDeepLinkHookId.value = hookId
+    pendingDeepLinkHookTab.value = (route.query.hookTab as string) || 'log'
+    if (openedViewsTab.value !== 'webhook') {
+      viewStore.onViewsTabChange('webhook')
+    }
+  }
 })
 
 watch(isViewsLoading, async () => {
@@ -268,7 +289,9 @@ watch(isViewsLoading, async () => {
     <SmartsheetTopbar v-if="!isFullScreen" />
     <div style="height: calc(100% - var(--topbar-height))">
       <NcFullScreen v-if="openedViewsTab === 'view'" v-model="isFullScreen" class="h-full" :page-only="true">
+        <!-- Splitpanes is conditionally rendered only after mount to avoid race conditions with its internal async resize logic. -->
         <Splitpanes
+          v-if="isMounted"
           class="nc-extensions-content-resizable-wrapper"
           :class="{
             'nc-is-open-extensions': isPanelExpanded,
@@ -279,23 +302,30 @@ watch(isViewsLoading, async () => {
           @resized="onResized"
         >
           <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-            <LazySmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
-            <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
+            <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
+            <div
+              :style="{ height: isForm || isTimeline ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+              class="flex flex-row w-full"
+            >
               <Transition name="layout" mode="out-in">
                 <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                   <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
-                    <LazySmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+                    <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
                     <template v-if="activeView && meta">
-                      <LazySmartsheetGallery v-if="isGallery" />
+                      <SmartsheetGallery v-if="isGallery" />
 
-                      <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                      <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
-                      <LazySmartsheetKanban v-else-if="isKanban" />
+                      <SmartsheetKanbanWrapper v-else-if="isKanban" />
 
-                      <LazySmartsheetCalendar v-else-if="isCalendar" />
+                      <SmartsheetCalendar v-else-if="isCalendar" />
 
-                      <LazySmartsheetMap v-else-if="isMap" />
+                      <SmartsheetTimeline v-else-if="isTimeline" />
+
+                      <SmartsheetMap v-else-if="isMap" />
+
+                      <SmartsheetList v-else-if="isList" />
                     </template>
                   </div>
                 </div>
@@ -305,6 +335,9 @@ watch(isViewsLoading, async () => {
           <LazyExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
           <LazyActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
         </Splitpanes>
+        <div v-else class="flex items-center justify-center h-full w-full">
+          <a-spin size="large" />
+        </div>
       </NcFullScreen>
 
       <LazySmartsheetDetails v-else />

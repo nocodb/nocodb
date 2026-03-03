@@ -128,7 +128,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
       console.error(e);
     }
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -156,7 +156,7 @@ test.describe.serial('Timezone-XCDB : Japan/Tokyo', () => {
   test('API insert, verify display value', async () => {
     if (!isSqlite(context)) return;
 
-    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: `xcdb${context.workerId}` });
     await dashboard.treeView.openTable({ title: 'dateTimeTable', baseTitle: `xcdb${context.workerId}` });
 
     // DateTime inserted using API without timezone is converted to db-timezone (server timezone in case of sqlite)
@@ -224,14 +224,14 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 
     try {
       const { base, table, api } = await timezoneSuite(`xcdb${context.workerId}`, context);
-      await dashboard.rootPage.reload();
+      await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
       await api.dbTableRow.bulkCreate('noco', base.id, table.id, rowAttributes);
     } catch (e) {
       console.error(e);
     }
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -256,7 +256,8 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    *   Display value is converted to Asia/Hong-Kong
    */
   test('API insert, verify display value', async () => {
-    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: `xcdb${context.workerId}` });
+
     await dashboard.treeView.openTable({ title: 'dateTimeTable', baseTitle: `xcdb${context.workerId}` });
 
     // DateTime inserted using API without timezone is converted to UTC
@@ -299,21 +300,24 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
 
     const { base, api } = await timezoneSuite(`xcdb${context.workerId}`, context, true);
     gApi = api;
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     context.base = base;
 
     // Kludge: Using API for test preparation was not working
     // Hence switched over to UI based table creation
 
-    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: `xcdb${context.workerId}` });
 
-    await dashboard.treeView.createTable({
+    const tableId = await dashboard.treeView.createTable({
       title: 'dateTimeTable',
       mode: 'Xcdb',
       baseTitle: context.base.title,
       skipOpeningModal: false,
     });
+
+    context.dateTimeTableId = tableId;
+
     await dashboard.grid.column.create({
       title: 'DateTime',
       type: 'DateTime',
@@ -346,7 +350,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
    */
   test('Cell insert', async () => {
     // Verify stored value in database is UTC
-    records = await gApi.dbTableRow.list('noco', context.base.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.base.id, context.dateTimeTableId, { limit: 10 });
 
     const readDate = records.list[0].DateTime;
     // skip seconds from readDate
@@ -380,7 +384,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     });
     await dashboard.expandedForm.save();
 
-    records = await gApi.dbTableRow.list('noco', context.base.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.base.id, context.dateTimeTableId, { limit: 10 });
     const readDate = records.list[0].DateTime;
     // skip seconds from readDate
     // stored value expected to be in UTC
@@ -412,7 +416,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     }
     await dashboard.grid.addNewRow({ index: 1, columnHeader: 'Title', value: 'Copy paste test' });
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(1000);
     await dashboard.grid.cell.copyCellToClipboard(
       {
@@ -425,7 +429,7 @@ test.describe.serial('Timezone-XCDB : Asia/Hong-kong', () => {
     expect(await dashboard.grid.cell.getClipboardText()).toBe('2021-01-01 08:00');
     await dashboard.grid.cell.pasteFromClipboard({ index: 1, columnHeader: 'DateTime' });
 
-    records = await gApi.dbTableRow.list('noco', context.base.id, 'dateTimeTable', { limit: 10 });
+    records = await gApi.dbTableRow.list('noco', context.base.id, context.dateTimeTableId, { limit: 10 });
     expect(records.list.length).toBe(2);
     const readDate = records.list[1].DateTime;
     // skip seconds from readDate
@@ -542,7 +546,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
   //
   test('Formula, verify display value', async () => {
     await connectToExtDb(context, `datetimetable01${counter}`, api);
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     // insert a record to work with formula experiments
@@ -573,7 +577,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       formula_raw: '0',
     });
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     // Insert new row
@@ -625,18 +629,19 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
       }
 
       // reload page
-      await dashboard.rootPage.reload();
+      await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
       await dashboard.rootPage.waitForTimeout(2000);
 
       await dashboard.grid.cell.verify({
         index: 2,
         columnHeader: 'formula-1',
-        value: expectedDisplayValue[0],
+        // new formula is displayed as datetime field with divs, so the space is somehow gone on textContent
+        value: expectedDisplayValue[0].replace(' ', ''),
       });
       await dashboard.grid.cell.verify({
         index: 2,
         columnHeader: 'formula-2',
-        value: expectedDisplayValue[1],
+        value: expectedDisplayValue[1].replace(' ', ''),
       });
 
       // verify API response
@@ -705,7 +710,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
 
   test('Verify display value, UI insert, API response', async () => {
     await connectToExtDb(context, `datetimetable01${counter}`, api);
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     // get timezone offset
@@ -765,7 +770,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     });
 
     // reload page & verify if inserted values are shown correctly
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     await dashboard.grid.cell.verifyDateCell({
@@ -784,7 +789,11 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone same a
     // Hence, we skip seconds from API response
     //
 
-    const records = (await api.dbTableRow.list('noco', context.base.id, 'MyTable', { limit: 10 })) as {
+    const table = await api.dbTable.list(context.base.id);
+
+    const tableId = table.list.find(x => x.title === 'MyTable').id;
+
+    const records = (await api.dbTableRow.list('noco', context.base.id, tableId, { limit: 10 })) as {
       list: Record<string, any>[];
       pageInfo: PaginatedType;
     };
@@ -877,12 +886,11 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
   //
   test('Formula, verify display value', async () => {
     await connectToExtDb(context, 'datetimetable02', api);
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     // insert a record to work with formula experiments
-    //
-    // await dashboard.treeView.openBase({ title: 'datetimetable02' });
+
     await dashboard.treeView.openTable({
       title: 'MyTable',
       baseTitle: `pgExtREST${context.workerId}`,
@@ -922,7 +930,7 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
       formula_raw: 'DATEADD(DatetimeWithTz, 1, "day")',
     });
     // reload page
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     const records = await api.dbTableRow.list('noco', context.base.id, table_data.id, { limit: 10 });
@@ -965,12 +973,12 @@ test.describe.serial('Timezone- ExtDB : DateTime column, Browser Timezone set to
       await dashboard.grid.cell.verify({
         index,
         columnHeader: 'formula-1',
-        value: expectedValues[context.dbType][index]['formula-1'],
+        value: expectedValues[context.dbType][index]['formula-1'].replace(' ', ''),
       });
       await dashboard.grid.cell.verify({
         index,
         columnHeader: 'formula-2',
-        value: expectedValues[context.dbType][index]['formula-2'],
+        value: expectedValues[context.dbType][index]['formula-2'].replace(' ', ''),
       });
 
       // set seconds to 00 for comparison (API response has non zero seconds)
@@ -1036,10 +1044,9 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
     // connect after timezone is set
     await connectToExtDb(context, 'datetimetable03', api);
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
-    // await dashboard.treeView.openBase({ title: 'datetimetable03' });
     await dashboard.treeView.openTable({
       title: 'MyTable',
       baseTitle: `pgExtREST${context.workerId}`,
@@ -1082,7 +1089,7 @@ test.describe.serial('Timezone- ExtDB (MySQL Only) : DB Timezone configured as H
     });
 
     // reload page & verify if inserted values are shown correctly
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     await dashboard.grid.cell.verifyDateCell({

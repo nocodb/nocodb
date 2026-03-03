@@ -37,6 +37,7 @@ export default class Plugin implements PluginType {
     let plugin =
       pluginId &&
       (await NocoCache.get(
+        'root',
         `${CacheScope.PLUGIN}:${pluginId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -47,13 +48,13 @@ export default class Plugin implements PluginType {
         MetaTable.PLUGIN,
         pluginId,
       );
-      await NocoCache.set(`${CacheScope.PLUGIN}:${pluginId}`, plugin);
+      await NocoCache.set('root', `${CacheScope.PLUGIN}:${pluginId}`, plugin);
     }
     return plugin && new Plugin(plugin);
   }
 
   static async list(ncMeta = Noco.ncMeta) {
-    const cachedList = await NocoCache.getList(CacheScope.PLUGIN, []);
+    const cachedList = await NocoCache.getList('root', CacheScope.PLUGIN, []);
     let { list: pluginList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !pluginList.length) {
@@ -62,7 +63,7 @@ export default class Plugin implements PluginType {
         RootScopes.ROOT,
         MetaTable.PLUGIN,
       );
-      await NocoCache.setList(CacheScope.PLUGIN, [], pluginList);
+      await NocoCache.setList('root', CacheScope.PLUGIN, [], pluginList);
     }
     return pluginList;
   }
@@ -88,7 +89,11 @@ export default class Plugin implements PluginType {
       pluginId,
     );
 
-    await NocoCache.update(`${CacheScope.PLUGIN}:${pluginId}`, updateObj);
+    await NocoCache.update(
+      'root',
+      `${CacheScope.PLUGIN}:${pluginId}`,
+      updateObj,
+    );
 
     return this.get(pluginId);
   }
@@ -107,6 +112,7 @@ export default class Plugin implements PluginType {
     let plugin =
       id &&
       (await NocoCache.get(
+        'root',
         `${CacheScope.PLUGIN}:${id}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -117,7 +123,7 @@ export default class Plugin implements PluginType {
         MetaTable.PLUGIN,
         id,
       );
-      await NocoCache.set(`${CacheScope.PLUGIN}:${id}`, plugin);
+      await NocoCache.set('root', `${CacheScope.PLUGIN}:${id}`, plugin);
     }
     return plugin;
   }

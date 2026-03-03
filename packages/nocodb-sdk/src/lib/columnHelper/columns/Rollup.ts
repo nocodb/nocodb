@@ -3,11 +3,15 @@ import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
 import { ColumnHelper } from '../column-helper';
+import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
 import { getRenderAsTextFunForUiType, parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { ComputedTypePasteError } from '~/lib/error';
 import { precisionFormats } from '../utils';
 import { isValidValue } from '~/lib/is';
+import rfdc from 'rfdc';
+
+const clone = rfdc();
 
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -34,6 +38,7 @@ export class RollupHelper extends AbstractColumnHelper {
 
     const { col, meta, metas } = params;
 
+    const baseId = meta?.base_id;
     const colOptions = col.colOptions as RollupType;
     const relationColumnOptions = colOptions.fk_relation_column_id
       ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)
@@ -41,13 +46,19 @@ export class RollupHelper extends AbstractColumnHelper {
       : null;
     const relatedTableMeta =
       relationColumnOptions?.fk_related_model_id &&
-      metas?.[relationColumnOptions.fk_related_model_id as string];
+      getMetaWithCompositeKey(
+        metas,
+        baseId,
+        relationColumnOptions.fk_related_model_id as string
+      );
 
-    const childColumn = relatedTableMeta?.columns.find(
+    let childColumn = relatedTableMeta?.columns.find(
       (c: ColumnType) => c.id === colOptions.fk_rollup_column_id
     ) as ColumnType | undefined;
 
     if (!childColumn) return value;
+
+    childColumn = clone(childColumn);
 
     const renderAsTextFun = getRenderAsTextFunForUiType(
       (childColumn.uidt ?? UITypes.SingleLineText) as UITypes

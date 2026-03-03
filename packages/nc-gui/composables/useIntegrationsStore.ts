@@ -84,6 +84,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
 
   const isLoadingIntegrations = ref(false)
 
+  const isLoadedIntegrations = ref(false)
+
   const eventBus = useEventBus<IntegrationStoreEventsTypes>(Symbol('integrationStore'))
 
   const { $api, $e } = useNuxtApp()
@@ -155,6 +157,8 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       if (!databaseOnly) {
         integrationPaginationData.value.totalRows = pageInfo.totalRows ?? 0
       }
+
+      isLoadedIntegrations.value = true
     } catch (e) {
       await message.error(await extractSdkResponseErrorMsg(e))
       integrations.value = []
@@ -207,7 +211,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     } catch (e) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
-      if (error.error === NcErrorType.INTEGRATION_NOT_FOUND) {
+      if (error.error === NcErrorType.ERR_INTEGRATION_NOT_FOUND) {
         await message.error(error.message?.replace(integration.id, integration.title!))
         window.location.reload()
         return
@@ -301,7 +305,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
         integration.title = integration.title.trim()
       }
 
-      const response = await api.integration.create(integration)
+      const response = await api.integration.create(activeWorkspaceId.value, integration)
 
       if (response && response?.id) {
         if (!loadDatasourceInfo) {
@@ -384,7 +388,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     } catch (e) {
       const error = await extractSdkResponseErrorMsgv2(e)
 
-      if (error.error === NcErrorType.INTEGRATION_NOT_FOUND) {
+      if (error.error === NcErrorType.ERR_INTEGRATION_NOT_FOUND) {
         await message.error(error.message?.replace(integration.id!, integration.title!))
         window.location.reload()
         return
@@ -447,7 +451,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
   const listIntegrationByType = async (type: IntegrationsType) => {
     if (!activeWorkspaceId.value) return
 
-    const { list } = await api.integration.list({
+    const { list } = await api.integration.list(activeWorkspaceId.value, {
       type,
     })
 
@@ -529,6 +533,7 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
     integrationsRefreshKey,
     integrations,
     isLoadingIntegrations,
+    isLoadedIntegrations,
     deleteConfirmText,
     eventBus,
     requestIntegration,

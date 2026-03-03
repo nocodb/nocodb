@@ -143,7 +143,7 @@ const onTouchStart = (e: TouchEvent) => {
 
     <div v-if="controls" class="absolute mx-auto w-full bottom-4 flex items-center justify-center gap-2">
       <button
-        class="rounded-full bg-gray-800/70 p-2 text-white hover:bg-gray-700/70 disabled:opacity-50"
+        class="rounded-full bg-nc-gray-800/70 p-2 text-nc-content-inverted-primary hover:bg-nc-gray-700/70 disabled:opacity-50"
         :disabled="scale >= MAX_SCALE"
         title="Zoom in"
         @click="zoom('in')"
@@ -151,7 +151,7 @@ const onTouchStart = (e: TouchEvent) => {
         <GeneralIcon icon="ncZoomIn" class="h-5 w-5" />
       </button>
       <button
-        class="rounded-full bg-gray-800/70 p-2 text-white hover:bg-gray-700/70 disabled:opacity-50"
+        class="rounded-full bg-nc-gray-800/70 p-2 text-nc-content-inverted-primary hover:bg-nc-gray-700/70 disabled:opacity-50"
         :disabled="scale <= MIN_SCALE"
         title="Zoom out"
         @click="zoom('out')"

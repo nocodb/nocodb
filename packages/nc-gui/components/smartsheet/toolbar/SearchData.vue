@@ -7,7 +7,9 @@ const reloadAggregate = inject(ReloadAggregateHookInj)
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { meta, eventBus, isGrid, isGallery, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
+const { $e } = useNuxtApp()
+
+const { meta, eventBus, isGrid, isGallery, isList, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
   useSmartsheetStoreOrThrow()
 
 const { lastOpenedViewId } = storeToRefs(useViewsStore())
@@ -21,6 +23,16 @@ const route = router.currentRoute
 const { search, loadFieldQuery } = useFieldQuery()
 
 const { isMobileMode } = useGlobal()
+
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const { getMetaByKey } = useMetas()
+
+function getTableTitle(tableId?: string) {
+  if (!tableId) return 'Unknown'
+  const baseId = (meta.value as TableType)?.base_id
+  const tableMeta = getMetaByKey(baseId, tableId)
+  return tableMeta?.title || 'Unknown'
+}
 
 const isDropdownOpen = ref(false)
 
@@ -47,7 +59,17 @@ const isSearchResultVisible = computed(() => {
   )
 })
 
-const columns = computed(() => (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? [])
+const columns = computed(() => {
+  if (isList.value && listViewStore?.selectedLevel.value?.fk_model_id) {
+    const levelTableId = listViewStore.selectedLevel.value.fk_model_id
+    const baseId = (meta.value as TableType)?.base_id
+    const levelMeta = getMetaByKey(baseId, levelTableId)
+    if (levelMeta?.columns) {
+      return (levelMeta.columns as ColumnType[]).filter((column) => isSearchableColumn(column))
+    }
+  }
+  return (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? []
+})
 
 watch(
   () => activeView.value?.id,
@@ -66,7 +88,18 @@ watch(
   { immediate: true },
 )
 
+if (isList.value && listViewStore) {
+  watch(
+    () => listViewStore!.selectedLevelId.value,
+    () => {
+      search.value.field = ''
+      search.value.query = ''
+    },
+  )
+}
+
 function onPressEnter() {
+  $e('a:view:search')
   reloadData.trigger({ shouldShowLoading: false, offset: 0 })
   reloadAggregate?.trigger()
 }
@@ -140,7 +173,7 @@ const handleEscapeKey = () => {
 
 const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
   const targetEl = e.target as HTMLElement
-  if (search.value.query || targetEl.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
+  if (search.value.query || targetEl?.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
     return
   }
 
@@ -202,10 +235,28 @@ watch(
     <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
       <div
         :class="{
-          'border-1 rounded-lg border-gray-200 overflow-hidden focus-within:(border-primary shadow-selected)': isMobileMode,
+          'border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)':
+            isMobileMode,
           'border-primary shadow-selected': isMobileMode && search.query.length !== 0,
         }"
       >
+        <div
+          v-if="isList && listViewStore && listViewStore.levels.value.length > 1"
+          class="flex items-center gap-1 px-2 py-1 border-b-1 border-nc-border-gray-medium"
+        >
+          <div
+            v-for="(level, index) in listViewStore.levels.value"
+            :key="level.id || index"
+            class="px-1.5 py-0.5 rounded text-[11px] font-medium cursor-pointer transition-colors truncate"
+            :class="{
+              'bg-nc-bg-brand text-nc-content-brand': listViewStore.selectedLevelId.value === level.id,
+              'text-nc-content-gray-muted hover:bg-nc-bg-gray-medium': listViewStore.selectedLevelId.value !== level.id,
+            }"
+            @click="listViewStore.setSelectedLevel(level.id ?? null)"
+          >
+            {{ getTableTitle(level.fk_model_id) }}
+          </div>
+        </div>
         <div class="flex flex-row h-8 relative">
           <NcDropdown
             v-model:visible="isDropdownOpen"
@@ -214,7 +265,7 @@ watch(
           >
             <div class="flex items-center gap-2 group px-2 cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
               <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
-              <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand select-none">
+              <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
                 <SmartsheetHeaderIcon :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
                 <div v-if="!isMobileMode" class="w-16 text-bodyDefaultSm font-medium truncate">
                   {{ displayColumnLabel ?? '' }}

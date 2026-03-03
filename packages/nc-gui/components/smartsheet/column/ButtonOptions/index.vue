@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import type { ButtonType, ColumnType, HookType, ScriptType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FilterType, HookType, ScriptType, UnifiedMetaType } from 'nocodb-sdk'
 import {
   ButtonActionsType,
   FormulaError,
+  PlanFeatureTypes,
+  PlanTitles,
   UITypes,
   isHiddenCol,
   substituteColumnIdWithAliasInFormula,
@@ -32,10 +34,10 @@ const { getMeta } = useMetas()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
-  useColumnCreateStoreOrThrow()
+const { getPlanTitle } = useEeConfig()
 
-const { isRowActionsEnabled } = useActionPane()
+const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk } =
+  useColumnCreateStoreOrThrow()
 
 const uiTypesNotSupportedInFormulas = [UITypes.QrCode, UITypes.Barcode, UITypes.Button]
 
@@ -45,17 +47,17 @@ const { loadHooksList } = webhooksStore
 
 const { hooks } = toRefs(webhooksStore)
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { loadAutomations } = automationStore
+const { loadScripts } = scriptStore
 
 const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-await Promise.all([loadHooksList(), loadAutomations({ baseId: openedProject.value!.id, force: true })])
+await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
 
-const { activeBaseAutomations } = toRefs(automationStore)
+const { activeBaseScripts } = toRefs(scriptStore)
 
 const selectedWebhook = ref<HookType>()
 
@@ -100,7 +102,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI && isRowActionsEnabled.value
+  ...(isEeUI
     ? [
         {
           icon: 'ncScript',
@@ -137,11 +139,11 @@ const validators = {
 
             try {
               await validateFormulaAndExtractTreeWithType({
-                column: column.value,
+                column: column.value as UnifiedMetaType.IColumn,
                 formula,
-                columns: supportedColumns.value,
+                columns: supportedColumns.value as UnifiedMetaType.IColumn[],
                 clientOrSqlUi: sqlUi.value,
-                getMeta,
+                getMeta: validateFormulaGetMeta(getMeta),
                 trackPosition: true,
               })
               editorError.value = { ...defaultEditorError }
@@ -275,7 +277,7 @@ if (isEdit.value) {
   vModel.value.fk_script_id = colOptions?.fk_script_id
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
-  selectedScript.value = activeBaseAutomations.value.find((script) => script.id === vModel.value?.fk_script_id)
+  selectedScript.value = activeBaseScripts.value.find((script) => script.id === vModel.value?.fk_script_id)
 
   if (vModel.value.type === ButtonActionsType.Ai) {
     vModel.value.formula_raw = colOptions?.formula_raw || ''
@@ -394,6 +396,31 @@ const handleUpdateActionType = () => {
   updateFieldName(true, undefined, true)
   vModel.value.formula_raw = ''
 }
+
+const filterRef = ref()
+
+const isFilterSectionOpen = ref(false)
+
+const filtersCount = ref(0)
+
+if (isEdit.value) {
+  const existingFilters = (vModel.value.colOptions as ButtonType)?.filters
+  if (Array.isArray(existingFilters) && existingFilters.length) {
+    vModel.value.filters = existingFilters.map((f: FilterType) => ({ ...f }))
+    isFilterSectionOpen.value = true
+    filtersCount.value = existingFilters.filter((f: FilterType) => !f.is_group && f.fk_column_id).length
+  }
+}
+
+onMounted(() => {
+  setPostSaveOrUpdateCbk(async ({ colId, column }) => {
+    await filterRef.value?.applyChanges(colId || column?.id, false)
+  })
+})
+
+onUnmounted(() => {
+  setPostSaveOrUpdateCbk(null)
+})
 </script>
 
 <template>
@@ -418,9 +445,9 @@ const handleUpdateActionType = () => {
               :class="{
                 'nc-button-style-dropdown': isDropdownOpen,
                 '!border-nc-border-purple !shadow-selected-ai': isDropdownOpen && isAiMode,
-                '!border-brand-500 !shadow-selected': isDropdownOpen && !isAiMode,
+                '!border-nc-border-brand !shadow-selected': isDropdownOpen && !isAiMode,
               }"
-              class="flex items-center justify-between border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+              class="flex items-center justify-between border-1 h-8 px-[11px] border-nc-border-gray-dark !w-full transition-all cursor-pointer !rounded-lg"
             >
               <div
                 :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
@@ -428,10 +455,10 @@ const handleUpdateActionType = () => {
               >
                 <component :is="iconMap.cellText" class="w-4 h-4" />
               </div>
-              <GeneralIcon icon="arrowDown" class="text-gray-500 !w-4 !h-4" />
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted !w-4 !h-4" />
             </div>
             <template #overlay>
-              <div class="bg-white space-y-2 p-2 rounded-lg">
+              <div class="bg-nc-bg-default space-y-2 p-2 rounded-lg">
                 <div v-for="[type, colors] in Object.entries(colorClass)" :key="type" class="flex gap-2">
                   <div v-for="[name, color] in Object.entries(colors)" :key="name">
                     <button
@@ -439,7 +466,7 @@ const handleUpdateActionType = () => {
                         [color]: true,
                         '!border-transparent': type !== 'text',
                       }"
-                      class="border-1 border-gray-200 flex items-center justify-center rounded h-6 w-6"
+                      class="border-1 border-nc-border-gray-medium flex items-center justify-center rounded h-6 w-6"
                       @click="updateButtonTheme(type, name)"
                     >
                       <component :is="iconMap.cellText" class="w-3.5 h-3.5" />
@@ -458,21 +485,21 @@ const handleUpdateActionType = () => {
               :class="{
                 'nc-button-style-dropdown ': isButtonIconDropdownOpen,
                 '!border-nc-border-purple !shadow-selected-ai': isButtonIconDropdownOpen && isAiMode,
-                '!border-brand-500 !shadow-selected': isButtonIconDropdownOpen && !isAiMode,
+                '!border-nc-border-brand !shadow-selected': isButtonIconDropdownOpen && !isAiMode,
               }"
-              class="flex items-center justify-center border-1 h-8 px-[11px] border-gray-300 !w-full transition-all cursor-pointer !rounded-lg"
+              class="flex items-center justify-center border-1 h-8 px-[11px] border-nc-border-gray-dark !w-full transition-all cursor-pointer !rounded-lg"
             >
               <div class="flex w-full items-center leading-5 justify-between gap-1">
-                <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4 text-gray-700" />
-                <div v-else class="text-sm flex items-center leading-5 text-gray-500">
+                <GeneralIcon v-if="vModel.icon" :icon="vModel.icon as any" class="w-4 h-4 text-nc-content-gray" />
+                <div v-else class="text-sm flex items-center leading-5 text-nc-content-gray-muted">
                   {{ $t('labels.selectIcon') }}
                 </div>
-                <GeneralIcon icon="arrowDown" class="text-gray-500 !w-4 !h-4" />
+                <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted !w-4 !h-4" />
               </div>
             </div>
             <template #overlay>
-              <div class="bg-white w-80 space-y-3 h-70 overflow-y-auto rounded-lg">
-                <div class="!sticky top-0 flex gap-2 bg-white px-2 py-2">
+              <div class="bg-nc-bg-default w-80 space-y-3 h-70 overflow-y-auto rounded-lg">
+                <div class="!sticky top-0 flex gap-2 bg-nc-bg-default px-2 py-2">
                   <a-input
                     ref="inputRef"
                     v-model:value="iconSearchQuery"
@@ -497,7 +524,7 @@ const handleUpdateActionType = () => {
                     v-for="({ icon, name }, i) in icons"
                     :key="i"
                     :icon="icon"
-                    class="w-6 hover:bg-gray-100 cursor-pointer rounded p-1 text-gray-700 h-6"
+                    class="w-6 hover:bg-nc-bg-gray-light cursor-pointer rounded p-1 text-nc-content-gray-subtle h-6"
                     @click="selectIcon(name)"
                   />
                 </div>
@@ -519,11 +546,11 @@ const handleUpdateActionType = () => {
             dropdown-class-name="nc-dropdown-button-cell-type"
             @change="handleUpdateActionType"
           >
-            <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-gray-500" /> </template>
+            <template #suffixIcon> <GeneralIcon icon="arrowDown" class="text-nc-content-gray-muted" /> </template>
 
             <a-select-option v-for="(type, i) of buttonTypes" :key="i" :value="type.value">
               <NcTooltip :disabled="!type.tooltip" placement="right" class="w-full" :title="type.tooltip">
-                <div class="flex gap-2 w-full capitalize text-gray-800 truncate items-center">
+                <div class="flex gap-2 w-full capitalize text-nc-content-gray truncate items-center">
                   <GeneralIcon :icon="type.icon" />
                   <div class="flex-1">
                     {{ type.label }}
@@ -559,16 +586,58 @@ const handleUpdateActionType = () => {
       v-model:selected-webhook="selectedWebhook"
     />
     <SmartsheetColumnButtonOptionsScript
-      v-if="vModel?.type === buttonActionsType.Script && isRowActionsEnabled"
+      v-if="vModel?.type === buttonActionsType.Script"
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />
+
+    <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
+      <template #default="{ click }">
+        <div class="nc-button-filter-section mt-2">
+          <div
+            class="flex items-center gap-2 cursor-pointer py-1 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+            @click="click(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY, () => (isFilterSectionOpen = !isFilterSectionOpen))"
+          >
+            <GeneralIcon
+              icon="arrowDown"
+              class="transform transition-transform duration-150 !w-4 !h-4"
+              :class="{ '-rotate-90': !isFilterSectionOpen }"
+            />
+            <span class="text-small font-medium select-none">{{ $t('labels.visibilityCondition') }}</span>
+            <PaymentUpgradeBadge
+              :plan-title="PlanTitles.BUSINESS"
+              :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY"
+              :title="$t('upgrade.upgradeToUseButtonVisibility')"
+              :content="
+                $t('upgrade.upgradeToUseButtonVisibilitySubtitle', {
+                  plan: getPlanTitle(PlanTitles.BUSINESS),
+                })
+              "
+            />
+          </div>
+          <div v-if="isFilterSectionOpen" class="mt-2 overflow-x-auto nc-scrollbar-thin">
+            <SmartsheetToolbarColumnFilter
+              ref="filterRef"
+              v-model="vModel.filters"
+              :auto-save="false"
+              :is-button="true"
+              :button-col-id="vModel.id"
+              :show-loading="false"
+              :show-dynamic-condition="false"
+              :hide-checkbox="true"
+              class="!min-w-full !pl-0"
+              @update:filters-length="filtersCount = $event"
+            />
+          </div>
+        </div>
+      </template>
+    </PaymentUpgradeBadgeProvider>
   </div>
 </template>
 
 <style scoped lang="scss">
 :deep(.ant-form-item-label > label) {
-  @apply !text-small !leading-[18px] mb-2 !text-gray-800 flex;
+  @apply !text-small !leading-[18px] mb-2 !text-nc-content-gray flex;
 }
 
 .mono-font {
@@ -581,7 +650,7 @@ const handleUpdateActionType = () => {
 
 .nc-cell-button {
   &.solid {
-    @apply text-white;
+    @apply text-base-white;
 
     &.brand {
       @apply bg-brand-500;
@@ -669,7 +738,7 @@ const handleUpdateActionType = () => {
   }
 
   &.text {
-    @apply border-1 border-gray-200 rounded;
+    @apply border-1 border-nc-border-gray-medium rounded;
 
     &.brand {
       @apply text-brand-500;

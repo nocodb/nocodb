@@ -66,6 +66,7 @@ export default class Job {
     );
 
     await NocoCache.update(
+      'root',
       `${CacheScope.JOBS}:${jobId}`,
       prepareForResponse(updateObj, 'result'),
     );
@@ -86,6 +87,7 @@ export default class Job {
     );
 
     await NocoCache.deepDel(
+      'root',
       `${CacheScope.JOBS}:${jobId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -95,6 +97,7 @@ export default class Job {
     let jobData =
       id &&
       (await NocoCache.get(
+        'root',
         `${CacheScope.JOBS}:${id}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -109,7 +112,7 @@ export default class Job {
 
       jobData = prepareForResponse(jobData, 'result');
 
-      await NocoCache.set(`${CacheScope.JOBS}:${id}`, jobData);
+      await NocoCache.set('root', `${CacheScope.JOBS}:${id}`, jobData);
     }
 
     return jobData && new Job(jobData);

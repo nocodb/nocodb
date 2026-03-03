@@ -17,8 +17,6 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { copy } = useCopy()
-
 const { dashboardUrl } = useDashboard()
 
 const { clearBasesUser } = useBases()
@@ -65,19 +63,6 @@ const inviteUrl = computed(() =>
   usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
 )
 
-const copyUrl = async () => {
-  if (!inviteUrl.value) return
-  try {
-    await copy(inviteUrl.value)
-
-    // Copied shareable source url to clipboard!
-    message.success(t('msg.toast.inviteUrlCopy'))
-  } catch (e: any) {
-    message.error(e.message)
-  }
-  $e('c:shared-base:copy-url')
-}
-
 const clickInviteMore = () => {
   $e('c:user:invite-more')
   usersData.value.invitationToken = undefined
@@ -92,19 +77,6 @@ const onPaste = (e: ClipboardEvent) => {
 
   usersData.value.emails = extractEmail(pastedText) || pastedText
 }
-
-const userRoleOptions = [
-  {
-    title: 'objects.roleType.orgLevelCreator',
-    subtitle: 'msg.info.roles.orgCreator',
-    value: OrgUserRoles.CREATOR,
-  },
-  {
-    title: 'objects.roleType.orgLevelViewer',
-    subtitle: 'msg.info.roles.orgViewer',
-    value: OrgUserRoles.VIEWER,
-  },
-]
 </script>
 
 <template>
@@ -120,7 +92,9 @@ const userRoleOptions = [
   >
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" :level="4" data-rec="true"> {{ $t('activity.inviteUser') }}</a-typography-title>
+        <h4 class="select-none text-nc-content-gray text-subHeading1" data-rec="true">
+          {{ $t('activity.inviteUser') }}
+        </h4>
 
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
@@ -137,35 +111,29 @@ const userRoleOptions = [
               <div class="text-xs ml-0.5 mt-0.5" data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
             </div>
 
-            <a-alert class="!mt-2" type="success" show-icon>
-              <template #message>
-                <div class="flex flex-row justify-between items-center py-1">
-                  <div class="flex pl-2 text-green-700 text-xs" data-rec="true">
-                    {{ inviteUrl }}
-                  </div>
+            <NcAlert
+              type="success"
+              :message="inviteUrl"
+              message-class="!text-green-700 !text-bodyDefaultSm"
+              background
+              :copy-text="inviteUrl"
+              :copy-text-toast-message="$t('msg.toast.inviteUrlCopy')"
+              class="mt-2 !p-3"
+            />
 
-                  <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
-                    <template #icon>
-                      <component :is="iconMap.copy" class="flex mx-auto text-green-700 h-[1rem]" />
-                    </template>
-                  </a-button>
-                </div>
-              </template>
-            </a-alert>
-
-            <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2" data-rec="true">
+            <div class="flex text-xs text-nc-content-gray-muted mt-2 justify-start ml-2" data-rec="true">
               {{ $t('msg.info.userInviteNoSMTP') }}
               {{ usersData.invitationToken && usersData.emails }}
             </div>
 
             <div class="flex flex-row justify-end mt-4 ml-2">
-              <a-button size="middle" outlined @click="clickInviteMore">
+              <NcButton size="small" type="secondary" text-color="primary" @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
-                  <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]" />
+                  <MaterialSymbolsSendOutline class="flex mx-auto h-[0.8rem]" />
 
-                  <div class="text-xs text-gray-600" data-rec="true">{{ $t('activity.inviteMore') }}</div>
+                  <div class="text-xs" data-rec="true">{{ $t('activity.inviteMore') }}</div>
                 </div>
-              </a-button>
+              </NcButton>
             </div>
           </div>
         </template>
@@ -180,14 +148,14 @@ const userRoleOptions = [
               @finish="saveUser"
             >
               <div class="flex flex-row space-x-4">
-                <div class="flex flex-col w-3/4">
+                <div class="flex flex-col w-full">
                   <a-form-item
                     v-bind="validateInfos.emails"
                     validate-trigger="onBlur"
                     name="emails"
                     :rules="[{ required: true, message: $t('msg.plsInputEmail') }]"
                   >
-                    <div class="ml-1 mb-1 text-xs text-gray-500" data-rec="true">{{ $t('datatype.Email') }}:</div>
+                    <div class="ml-1 mb-1 text-xs text-nc-content-gray-muted" data-rec="true">{{ $t('datatype.Email') }}:</div>
 
                     <a-input
                       :ref="emailInput"
@@ -200,57 +168,15 @@ const userRoleOptions = [
                     />
                   </a-form-item>
                 </div>
-
-                <div v-show="!isEeUI" class="flex flex-col w-2/4">
-                  <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
-                    <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
-
-                    <NcSelect
-                      v-model:value="usersData.role"
-                      class="w-55 nc-user-roles"
-                      :dropdown-match-select-width="false"
-                      dropdown-class-name="nc-dropdown-user-role max-w-64"
-                    >
-                      <a-select-option
-                        v-for="(option, idx) of userRoleOptions"
-                        :key="idx"
-                        class="nc-role-option"
-                        :value="option.value"
-                      >
-                        <div class="w-full flex items-start gap-1">
-                          <div class="flex-1 max-w-[calc(100%_-_16px)]">
-                            <NcTooltip show-on-truncate-only class="truncate" data-rec="true">
-                              <template #title>
-                                {{ $t(option.title) }}
-                              </template>
-                              {{ $t(option.title) }}
-                            </NcTooltip>
-
-                            <div class="nc-select-hide-item text-gray-500 text-xs whitespace-normal" data-rec="true">
-                              {{ $t(option.subtitle) }}
-                            </div>
-                          </div>
-
-                          <GeneralIcon
-                            v-if="usersData.role === option.value"
-                            id="nc-selected-item-icon"
-                            icon="check"
-                            class="w-4 h-4 text-primary"
-                          />
-                        </div>
-                      </a-select-option>
-                    </NcSelect>
-                  </a-form-item>
-                </div>
               </div>
 
               <div class="flex flex-row justify-end">
-                <a-button type="primary" class="!rounded-md" html-type="submit">
+                <NcButton type="primary" size="small" html-type="submit">
                   <div class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
                     <div data-rec="true">{{ $t('activity.invite') }}</div>
                   </div>
-                </a-button>
+                </NcButton>
               </div>
             </a-form>
           </div>

@@ -1,7 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { isEE } from 'playwright/setup/db';
+import { isEE } from '../../../utils/helpers';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import init from '../../../init';
 import { overrideFeature } from '../../../utils/plan.utils';

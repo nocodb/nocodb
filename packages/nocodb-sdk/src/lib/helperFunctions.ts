@@ -33,7 +33,7 @@ const isSystemColumn = (col): boolean =>
 const isSelfReferencingTableColumn = (col): boolean => {
   return (
     col &&
-    (col.uidt === UITypes.Links || col.uidt === UITypes.LinkToAnotherRecord) &&
+    isLinksOrLTAR(col) &&
     (col?.fk_model_id || col?.colOptions?.fk_model_id) &&
     col?.colOptions?.fk_related_model_id &&
     (col?.fk_model_id || col?.colOptions?.fk_model_id) ===
@@ -272,21 +272,21 @@ export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
   return [IntegrationsType.Ai].includes(category);
 };
 
-export function parseProp(v: any): any {
+export function parseProp(v: any, fallbackVal = {}): any {
   if (ncIsUndefined(v) || ncIsNull(v)) return {};
   try {
-    return typeof v === 'string' ? JSON.parse(v) ?? {} : v;
+    return typeof v === 'string' ? JSON.parse(v) ?? fallbackVal : v;
   } catch {
-    return {};
+    return fallbackVal;
   }
 }
 
-export function stringifyProp(v: any): string {
+export function stringifyProp(v: any, fallbackVal = '{}'): string {
   if (ncIsUndefined(v) || ncIsNull(v)) return '{}';
   try {
-    return typeof v === 'string' ? v : JSON.stringify(v) ?? '{}';
+    return typeof v === 'string' ? v : JSON.stringify(v) ?? fallbackVal;
   } catch {
-    return '{}';
+    return fallbackVal;
   }
 }
 

@@ -119,7 +119,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       }
     })
 
-    const { fieldsMap, isLocalMode, showSystemFields } = useViewColumnsOrThrow()
+    const { fieldsMap, isLocalMode, showSystemFields, hasViewFieldDataEditPermission } = useViewColumnsOrThrow()
 
     const isHiddenColumnInNewRecord = (col: ColumnType) => {
       return isReadOnlyColumn(col) || isAIPromptCol(col)
@@ -189,10 +189,13 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           !isHiddenCol(col, meta.value ?? {}) &&
           (!useMetaFields || !isSystemColumn(col)) &&
           !fields.value?.includes(col) &&
-          (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
+          (isLocalMode.value && !hasViewFieldDataEditPermission.value && col?.id && fieldsMap.value[col.id]
+            ? fieldsMap.value[col.id]?.initialShow
+            : true) &&
           // exclude readonly fields from hidden fields if new record creation
           (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
       )
+
       if (useMetaFields) {
         return maintainDefaultViewOrder.value
           ? _hiddenFields.sort((a, b) => {
@@ -250,9 +253,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           },
         )
 
-        // Skip insert as it will be first for all
-        response.list = response.list.filter((audit) => !audit?.op_type.includes('INSERT'))
-
         const lastRecord = response.list?.[response.list.length - 1]
 
         if (lastRecord) {
@@ -279,7 +279,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         console.error(e)
         const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-        if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+        if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
           const details = errorInfo.details as PlanLimitExceededDetailsType
 
           handleUpgradePlan({
@@ -435,13 +435,18 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             return message.info(t('msg.info.updateNotAllowedWithoutPK'))
           }
 
-          await $api.dbTableRow.update(
+          const updatedData = await $api.dbTableRow.update(
             NOCO,
             meta.value.base_id ?? (base.value.id as string),
             meta.value.id,
             encodeURIComponent(id),
             updateOrInsertObj,
           )
+
+          // If the updated row is now hidden by RLS policy, mark it
+          if (updatedData?.__nc_rls_hidden) {
+            row.value.row.__nc_rls_hidden = true
+          }
 
           if (!undo) {
             const undoObject = [...changedColumns.value].reduce((obj, col) => {
@@ -496,6 +501,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {
       if (row?.value?.rowMeta?.new || isPublic.value || !meta.value?.id) return
+
+      // Row is hidden by RLS policy — skip read to avoid 404
+      if (row?.value?.row?.__nc_rls_hidden) return
 
       const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 

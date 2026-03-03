@@ -5,7 +5,7 @@ const rowColoringMode = ref<RowColoringMode>(null)
 </script>
 
 <template>
-  <div class="bg-gray-100">
+  <div class="bg-nc-bg-gray-light">
     <a-card>
       <h4>Simple</h4>
       <div>
@@ -15,13 +15,13 @@ const rowColoringMode = ref<RowColoringMode>(null)
     </a-card>
     <SmartsheetToolbarRowColorFilterTypeOption v-model:row-coloring-mode="rowColoringMode">
       <template #filter>
-        <div class="bg-white animate-animated animate-fadeIn" style="animation-duration: 0.3s">
+        <div class="bg-nc-bg-default animate-animated animate-fadeIn" style="animation-duration: 0.3s">
           This is filter panel <NcButton type="secondary" size="small" @click="rowColoringMode = null">Clear</NcButton>
         </div>
       </template>
 
       <template #select>
-        <div class="bg-white animate-animated animate-fadeIn" style="animation-duration: 0.3s">
+        <div class="bg-nc-bg-default animate-animated animate-fadeIn" style="animation-duration: 0.3s">
           This is select panel <NcButton type="secondary" size="small" @click="rowColoringMode = null">Clear</NcButton>
         </div>
       </template>

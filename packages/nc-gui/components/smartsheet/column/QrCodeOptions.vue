@@ -59,7 +59,7 @@ setAvoidShowingToastMsgForValidations({
         @click.stop
       >
         <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
         </template>
 
         <a-select-option v-for="(option, index) of columnsAllowedAsQrValue" :key="index" :value="option.id">

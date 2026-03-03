@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { FormBuilderInputType, FormBuilderValidatorType } from '@noco-integrations/core'
 const initState = ref({
   someDefaultProp: 'value',
 })
@@ -8,40 +9,44 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     {
       type: FormBuilderInputType.Input,
       label: 'Sample Input',
-      width: 100,
+      span: 24,
       model: 'title',
       placeholder: 'Some placeholder',
       category: 'General',
-      required: true,
+      validators: [
+        {
+          type: FormBuilderValidatorType.Required,
+          message: 'Sample Input is required',
+        },
+      ],
     },
     {
       type: FormBuilderInputType.Input,
       label: 'Input To Nested Path',
-      width: 50,
+      span: 12,
       model: 'config.sample',
       placeholder: 'This is added to config.sample',
       category: 'Sample Category',
       helpText: 'This is a sample help text',
-      required: true,
-    },
-    {
-      type: FormBuilderInputType.Space,
-      width: 50,
-      category: 'Sample Category',
+      validators: [
+        {
+          type: FormBuilderValidatorType.Required,
+          message: 'Input To Nested Path is required',
+        },
+      ],
     },
     {
       type: FormBuilderInputType.Input,
       label: 'Multiple Elements in Category',
-      width: 50,
+      span: 12,
       model: 'config.sample2',
       placeholder: 'This is added to config.sample2',
       category: 'Sample Category',
-      required: false,
     },
     {
       type: FormBuilderInputType.Select,
       label: 'Sample Select',
-      width: 100,
+      span: 24,
       model: 'config.select',
       category: 'Settings',
       options: [
@@ -50,16 +55,20 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
         { label: 'Option 3', value: 'option3' },
       ],
       defaultValue: 'option2',
-      required: true,
+      validators: [
+        {
+          type: FormBuilderValidatorType.Required,
+          message: 'Sample Select is required',
+        },
+      ],
     },
     {
       type: FormBuilderInputType.Switch,
       label: 'Sample Switch',
-      width: 100,
+      span: 24,
       model: 'config.switch',
       category: 'Misc',
       helpText: 'This is a sample switch',
-      required: false,
       border: true,
     },
   ],

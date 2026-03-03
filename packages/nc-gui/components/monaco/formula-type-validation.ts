@@ -89,7 +89,7 @@ export class FormulaTypeValidator {
         columns: this.columns,
         clientOrSqlUi: this.dbType,
         column: this.columnId ? this.columns.find((c) => c.id === this.columnId) : undefined,
-        getMeta: this.getMeta,
+        getMeta: validateFormulaGetMeta(this.getMeta),
       })
 
       this.analyzeTypeWarnings(result, errors)

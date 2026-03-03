@@ -6,6 +6,7 @@ import baseTests from './tests/base.test';
 import columnTypeSpecificTests from './tests/columnTypeSpecific.test';
 import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
+import viewRowLocalTests from './tests/viewRow-local.test';
 import attachmentTests from './tests/attachment.test';
 import filterTest from './tests/filter.test';
 import groupByTest from './tests/groupby.test';
@@ -22,17 +23,27 @@ import { paymentTest } from './tests/payment/payment.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
+let scimTest = () => {};
+let scimComplianceTest = () => {};
 let cloudOrgTest = () => {};
 let bulkAggregationTest = () => {};
 let columnTest = () => {};
 let integrationTest = require('./tests/integration.test').default;
+let oauthDCRTest = () => {};
+let oauthTests = () => {};
+let autoNumberTests = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
+  oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
   ssoTest = require('./tests/ee/sso.test').default;
+  scimTest = require('./tests/ee/scim.test').default;
+  scimComplianceTest = require('./tests/ee/scim-compliance.test').default;
   cloudOrgTest = require('./tests/ee/cloud-org.test').default;
   bulkAggregationTest = require('./tests/ee/bulkAggregation.test').default;
   columnTest = require('./tests/ee/column.test').default;
   integrationTest = require('./tests/ee/integration.test').default;
+  oauthTests = require('./tests/oauth.test').default;
+  autoNumberTests = require('./tests/ee/autoNumber.test').default
 }
 
 const testVersion = ['v1', 'v2', 'v3'];
@@ -43,14 +54,17 @@ function restTests() {
     orgTests();
     baseTests();
     tableRowTests();
-    viewRowTests();
+    viewRowLocalTests();
     columnTypeSpecificTests();
+    autoNumberTests();
     attachmentTests();
     filterTest();
     groupByTest();
     workspaceTest();
     formulaTests();
     ssoTest();
+    scimTest();
+    scimComplianceTest();
     cloudOrgTest();
     typeCastsTest();
     readOnlyTest();
@@ -59,9 +73,13 @@ function restTests() {
     columnTest();
     integrationTest();
     paymentTest();
+    oauthTests();
     bulkV1Test();
+    oauthDCRTest();
   }
-
+  if (willRunOnSet(2)) {
+    viewRowTests();
+  }
   if (testVersion.includes('v1')) tableTests('v1');
   if (testVersion.includes('v2')) dataAPIsV3Test('v2');
 

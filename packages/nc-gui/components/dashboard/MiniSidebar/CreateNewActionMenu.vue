@@ -5,7 +5,7 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, orgRoles, workspaceRoles } = useRoles()
 
-const { openedProject, showProjectList } = storeToRefs(useBases())
+const { openedProject } = storeToRefs(useBases())
 
 const { base, isSharedBase } = storeToRefs(useBase())
 
@@ -13,15 +13,21 @@ const tablesStore = useTablesStore()
 const { openTableCreateDialog: _openTableCreateDialog } = tablesStore
 const { activeTable } = storeToRefs(tablesStore)
 
-const { openNewScriptModal } = useAutomationStore()
+const { openNewScriptModal } = useScriptStore()
+
+const { openNewWorkflowModal } = useWorkflowStore()
 
 const { openNewDashboardModal } = useDashboardStore()
 
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
-const { activeView } = storeToRefs(viewsStore)
+const { activeView, isListViewEnabled } = storeToRefs(viewsStore)
 
 const { isAiFeaturesEnabled } = useNocoAi()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { isEEFeatureBlocked, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
 
 const isVisibleCreateNew = ref(false)
 
@@ -64,7 +70,8 @@ async function onOpenModal({
   isViewListLoading.value = true
   try {
     await loadViews({
-      tableId: activeTable.value.id!,
+      tableId: activeTable.value?.id as string,
+      baseId: base.value.id!,
     })
   } catch (e) {
     console.log('error', e)
@@ -102,7 +109,7 @@ const hasBaseCreateAccess = computed(() => {
 })
 
 const isBaseHomePage = computed(() => {
-  return !showProjectList.value && !!openedProject.value
+  return !!openedProject.value
 })
 
 const hasTableCreateAccess = computed(() => {
@@ -120,10 +127,16 @@ const hasViewCreateAccess = computed(() => {
   return isUIAllowed('viewCreateOrEdit')
 })
 
-const hasAutomationCreateAccess = computed(() => {
+const hasScriptCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
   return isUIAllowed('scriptCreateOrEdit')
+})
+
+const hasWorkflowCreateAccess = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return true
+
+  return isUIAllowed('workflowCreateOrEdit')
 })
 
 const hasDashboardCreateAccess = computed(() => {
@@ -193,6 +206,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="dashboards" />
                 {{ $t('general.dashboard') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>
@@ -245,6 +259,28 @@ const hasDashboardCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
+              <template v-if="isListViewEnabled">
+                <NcMenuItem data-testid="mini-sidebar-view-create-list" @click="onOpenModal({ type: ViewTypes.LIST })">
+                  <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                  <div>{{ $t('objects.viewType.list') }}</div>
+                </NcMenuItem>
+              </template>
+              <NcMenuItem
+                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+                data-testid="mini-sidebar-view-create-map"
+                @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
+                <div>{{ $t('objects.viewType.map') }}</div>
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
+                data-testid="mini-sidebar-view-create-timeline"
+                @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
+                <div>{{ $t('objects.viewType.timeline') }}</div>
+              </NcMenuItem>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />
                 <NcMenuItem data-testid="mini-sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
@@ -259,20 +295,40 @@ const hasDashboardCreateAccess = computed(() => {
             <NcDivider />
             <NcTooltip
               :title="
-                hasAutomationCreateAccess
-                  ? $t('tooltip.navigateToBaseToCreateAutomation')
-                  : $t('tooltip.youDontHaveAccessToCreateNewAutomation')
+                hasScriptCreateAccess
+                  ? $t('tooltip.navigateToBaseToCreateScript')
+                  : $t('tooltip.youDontHaveAccessToCreateNewScript')
               "
-              :disabled="!(!isBaseHomePage || !hasAutomationCreateAccess)"
+              :disabled="!(!isBaseHomePage || !hasScriptCreateAccess)"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--script-create"
-                :disabled="!isBaseHomePage || !hasAutomationCreateAccess"
+                :disabled="!isBaseHomePage || !hasScriptCreateAccess"
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncScript" />
                 {{ $t('general.script') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+              </NcMenuItem>
+            </NcTooltip>
+            <NcTooltip
+              :title="
+                hasWorkflowCreateAccess
+                  ? $t('tooltip.navigateToBaseToCreateWorkflow')
+                  : $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
+              "
+              :disabled="!(!isBaseHomePage || !hasWorkflowCreateAccess)"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--workflow-create"
+                :disabled="!isBaseHomePage || !hasWorkflowCreateAccess"
+                @click="openNewWorkflowModal({ baseId: openedProject?.id })"
+              >
+                <GeneralIcon icon="ncAutomation" />
+                {{ $t('general.workflow') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>

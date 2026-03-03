@@ -26,6 +26,9 @@ module.exports = {
     'dist',
     'nc',
     '.eslintrc.js',
+    '**/*.spec.ts',
+    'test/',
+    'src/types/nc-plugin/',
   ],
   globals: {
     BigInt: true,

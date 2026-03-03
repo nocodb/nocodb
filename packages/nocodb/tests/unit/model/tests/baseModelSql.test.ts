@@ -26,6 +26,7 @@ function baseModelSqlTests() {
   let table: Model;
   let view: View;
   let baseModelSql: BaseModelSqlv2;
+  let source: Source;
 
   beforeEach(async function () {
     console.time('#### baseModelSqlTests');
@@ -40,12 +41,13 @@ function baseModelSqlTests() {
     table = await createTable(context, base);
     view = await table.getViews(ctx)[0];
 
-    const source = await Source.get(ctx, table.source_id);
+    source = await Source.get(ctx, table.source_id);
     baseModelSql = new BaseModelSqlv2({
       dbDriver: await NcConnectionMgrv2.get(source),
       model: table,
       view,
       context: ctx,
+      schema: source.getConfig()?.schema,
     });
     console.timeEnd('#### baseModelSqlTests');
   });
@@ -441,6 +443,7 @@ function baseModelSqlTests() {
       model: childTable,
       view,
       context: ctx,
+      schema: source.getConfig()?.schema,
     });
     const insertedChildRow = await childBaseModel.readByPk(childRow['Id'], {
       getHiddenColumns: true,
@@ -510,6 +513,7 @@ function baseModelSqlTests() {
       model: childTable,
       view,
       context: ctx,
+      schema: source.getConfig()?.schema,
     });
     const updatedChildRow = await childBaseModel.readByPk(
       insertedChildRow['Id'],
@@ -587,6 +591,7 @@ function baseModelSqlTests() {
       model: childTable,
       view,
       context: ctx,
+      schema: source.getConfig()?.schema,
     });
     const updatedChildRow = await childBaseModel.readByPk(
       insertedChildRow['Id'],

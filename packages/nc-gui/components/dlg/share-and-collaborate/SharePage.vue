@@ -11,7 +11,7 @@ const { dashboardUrl } = useDashboard()
 
 const viewStore = useViewsStore()
 
-const { metas } = useMetas()
+const { getMetaByKey } = useMetas()
 
 const { isPrivateBase } = storeToRefs(useBase())
 
@@ -201,6 +201,58 @@ const surveyMode = computed({
   },
 })
 
+const themeOptions = [
+  { label: 'Light', value: 'light' },
+  { label: 'Dark', value: 'dark' },
+]
+
+const themeSetLocal = ref(false)
+
+const themeSet = computed(() => {
+  return !!activeView.value?.meta?.defaultTheme || themeSetLocal.value
+})
+
+const toggleThemeSet = async () => {
+  themeSetLocal.value = !themeSet.value
+  if (!activeView.value) return
+  if (isUpdating.value.language) return
+
+  isUpdating.value.language = true
+  try {
+    if (!themeSetLocal.value) {
+      activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, defaultTheme: null } }
+    } else {
+      activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, defaultTheme: 'light' } }
+    }
+
+    await updateSharedView()
+  } finally {
+    isUpdating.value.language = false
+  }
+}
+
+const defaultTheme = computed({
+  get: () => {
+    if (!activeView.value?.meta) return null
+
+    if (typeof activeView.value?.meta === 'string') {
+      activeView.value.meta = JSON.parse(activeView.value.meta)
+    }
+
+    return (activeView.value?.meta as any)?.defaultTheme
+  },
+  set: (theme) => {
+    if (!activeView.value?.meta) return
+
+    if (typeof activeView.value?.meta === 'string') {
+      activeView.value.meta = JSON.parse(activeView.value.meta)
+    }
+
+    activeView.value.meta = { ...(activeView.value.meta as any), defaultTheme: theme }
+    updateSharedView()
+  },
+})
+
 const formPreFill = computed({
   get: () => ({
     preFillEnabled: parseProp(activeView.value?.meta)?.preFillEnabled ?? false,
@@ -256,29 +308,67 @@ function sharedViewUrl(withPrefill = true) {
     case ViewTypes.CALENDAR:
       viewType = 'calendar'
       break
+    case ViewTypes.LIST:
+      viewType = 'list'
+      break
+    case ViewTypes.TIMELINE:
+      viewType = 'timeline'
+      break
     default:
       viewType = 'view'
   }
 
-  return `${encodeURI(`${dashboardUrl.value}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`)}${
-    withPrefill && preFillFormSearchParams.value ? `?${preFillFormSearchParams.value}` : ''
-  }`
+  const baseUrl = `${dashboardUrl.value}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`
+  const queryParams = []
+
+  // Add prefill parameters
+  if (withPrefill && preFillFormSearchParams.value) {
+    queryParams.push(preFillFormSearchParams.value)
+  }
+
+  // Add theme parameter if defaultTheme is set
+  // Use 'nc-theme' to avoid conflicts with user form fields named 'theme'
+  if (defaultTheme.value) {
+    queryParams.push(`nc-theme=${defaultTheme.value}`)
+  }
+
+  return `${encodeURI(baseUrl)}${queryParams.length > 0 ? `?${queryParams.join('&')}` : ''}`
 }
 
 const toggleViewShare = async () => {
   if (!activeView.value?.id) return
 
   if (activeView.value?.uuid) {
-    await $api.dbViewShare.delete(activeView.value.id)
+    // Get meta using base_id from activeView
+    const meta = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
+    await $api.internal.postOperation(
+      meta!.fk_workspace_id!,
+      meta!.base_id!,
+      {
+        operation: 'shareViewDelete',
+        viewId: activeView.value.id,
+      },
+      {},
+    )
 
     activeView.value = { ...activeView.value, uuid: undefined, password: undefined }
   } else {
-    const response = await $api.dbViewShare.create(activeView.value.id)
+    // Get meta using base_id from activeView
+    const meta = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
+    const response = await $api.internal.postOperation(
+      meta!.fk_workspace_id!,
+      meta!.base_id!,
+      {
+        operation: 'shareView',
+        viewId: activeView.value.id,
+      },
+      {},
+    )
     activeView.value = { ...activeView.value, ...(response as any) }
 
     if (activeView.value!.type === ViewTypes.KANBAN) {
       // extract grouping column meta
-      const groupingFieldColumn = metas.value[viewStore.activeView!.fk_model_id].columns!.find(
+      const groupingFieldColumn = getMetaByKey(viewStore.activeView!.base_id, viewStore.activeView!.fk_model_id)?.columns!.find(
         (col: ColumnType) => col.id === ((viewStore.activeView!.view! as KanbanType).fk_grp_col_id! as string),
       )
 
@@ -328,11 +418,21 @@ async function updateSharedView(custUrl = undefined) {
     if (!activeView.value?.meta) return
     const meta = activeView.value.meta
 
-    const res = await $api.dbViewShare.update(activeView.value.id!, {
-      meta,
-      password: activeView.value.password,
-      ...(custUrl !== undefined ? { custom_url_path: custUrl ?? null } : {}),
-    })
+    // Get meta using base_id from activeView
+    const metaInfo = getMetaByKey(activeView.value.base_id, activeView.value.fk_model_id)
+    const res = await $api.internal.postOperation(
+      metaInfo!.fk_workspace_id!,
+      metaInfo!.base_id!,
+      {
+        operation: 'shareViewUpdate',
+        viewId: activeView.value.id!,
+      },
+      {
+        meta,
+        password: activeView.value.password,
+        ...(custUrl !== undefined ? { custom_url_path: custUrl ?? null } : {}),
+      },
+    )
 
     if (custUrl !== undefined) {
       activeView.value.fk_custom_url_id = res.fk_custom_url_id
@@ -359,9 +459,9 @@ const copyCustomUrl = async (custUrl = '') => {
 
 <template>
   <div class="flex flex-col py-2 px-3 mb-1">
-    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-gray-200 border-1 rounded-md gap-y-2">
+    <div class="flex flex-col w-full mt-2.5 px-3 py-2.5 border-nc-border-gray-medium border-1 rounded-md gap-y-2">
       <div class="flex flex-row w-full justify-between py-0.5">
-        <div class="text-gray-900 font-medium">
+        <div class="text-nc-content-gray-emphasis font-medium">
           {{ $t('activity.enabledPublicViewing') }}
         </div>
         <a-switch
@@ -377,7 +477,7 @@ const copyCustomUrl = async (custUrl = '') => {
         <div v-else class="text-nc-content-gray-muted">{{ $t('labels.sharingRestricted') }}</div>
       </div>
       <template v-if="isPublicShared">
-        <div class="mt-0.5 border-t-1 border-gray-100 pt-3">
+        <div class="mt-0.5 border-t-1 border-nc-border-gray-light pt-3">
           <GeneralCopyUrl v-model:url="url" />
         </div>
 
@@ -390,9 +490,9 @@ const copyCustomUrl = async (custUrl = '') => {
           :disabled="isReadOnly"
           @update-custom-url="updateSharedView"
         />
-        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
+        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md">
           <div class="flex flex-row items-center justify-between">
-            <div class="flex text-black">
+            <div class="flex text-nc-content-gray-extreme">
               {{ $t('activity.restrictAccessWithPassword') }}
             </div>
             <a-switch
@@ -411,7 +511,7 @@ const copyCustomUrl = async (custUrl = '') => {
               <a-input-password
                 v-model:value="password"
                 :placeholder="$t('placeholder.password.enter')"
-                class="!rounded-lg !py-1 !bg-white"
+                class="!rounded-lg !py-1 !bg-nc-bg-default"
                 data-testid="nc-modal-share-view__password"
                 size="small"
                 type="password"
@@ -425,10 +525,10 @@ const copyCustomUrl = async (custUrl = '') => {
             activeView &&
             [ViewTypes.GRID, ViewTypes.KANBAN, ViewTypes.GALLERY, ViewTypes.MAP, ViewTypes.CALENDAR].includes(activeView.type)
           "
-          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
         >
           <div class="flex flex-row items-center justify-between">
-            <div class="flex text-black">{{ $t('activity.allowDownload') }}</div>
+            <div class="flex text-nc-content-gray-extreme">{{ $t('activity.allowDownload') }}</div>
             <a-switch
               v-model:checked="allowCSVDownload"
               v-e="['c:share:view:allow-csv-download:toggle']"
@@ -441,9 +541,9 @@ const copyCustomUrl = async (custUrl = '') => {
           </div>
         </div>
 
-        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-gray-50 rounded-md">
+        <div class="flex flex-col justify-between mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md">
           <div class="flex flex-row items-center justify-between">
-            <div class="flex text-black">
+            <div class="flex text-nc-content-gray-extreme">
               {{ $t('labels.language') }}
             </div>
             <a-switch
@@ -472,10 +572,10 @@ const copyCustomUrl = async (custUrl = '') => {
 
         <div
           v-if="activeView?.type === ViewTypes.FORM"
-          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
         >
           <div class="flex flex-row items-center justify-between">
-            <div class="text-black flex items-center space-x-1">
+            <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>
                 {{ $t('activity.surveyMode') }}
               </div>
@@ -496,10 +596,48 @@ const copyCustomUrl = async (custUrl = '') => {
 
         <div
           v-if="activeView?.type === ViewTypes.FORM"
-          class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-gray-50 rounded-md"
+          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
         >
           <div class="flex flex-row items-center justify-between">
-            <div class="text-black flex items-center space-x-1">
+            <div class="text-nc-content-gray-extreme flex items-center space-x-1">
+              <div>Default Theme</div>
+              <NcTooltip class="flex items-center">
+                <template #title
+                  >Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the
+                  URL.</template
+                >
+                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
+              </NcTooltip>
+            </div>
+            <a-switch
+              v-e="['c:share:view:theme:toggle']"
+              :checked="themeSet"
+              :loading="isUpdating.language"
+              data-testid="nc-modal-share-view__themeToggle"
+              size="small"
+              :disabled="isReadOnly"
+              @click="toggleThemeSet"
+            />
+          </div>
+          <Transition mode="out-in" name="layout">
+            <div v-if="themeSet" class="flex gap-2 mt-2 w-2/3">
+              <NcSelect
+                v-model:value="defaultTheme"
+                data-testid="nc-modal-share-view__themeSelect"
+                :options="themeOptions"
+                class="w-full nc-select-shadow"
+                :disabled="isReadOnly"
+              />
+            </div>
+          </Transition>
+        </div>
+
+        <div
+          v-if="activeView?.type === ViewTypes.FORM"
+          class="nc-pre-filled-mode-wrapper flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
+        >
+          <div class="flex flex-row items-center justify-between">
+            <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>
                 {{ $t('activity.preFilledFields.title') }}
               </div>
@@ -563,7 +701,7 @@ const copyCustomUrl = async (custUrl = '') => {
   @apply flex flex-col;
 
   .ant-radio-wrapper {
-    @apply !m-0 !flex !items-center w-full px-2 py-1 rounded-lg hover:bg-gray-100;
+    @apply !m-0 !flex !items-center w-full px-2 py-1 rounded-lg hover:bg-nc-bg-gray-light;
     .ant-radio {
       @apply !top-0;
     }

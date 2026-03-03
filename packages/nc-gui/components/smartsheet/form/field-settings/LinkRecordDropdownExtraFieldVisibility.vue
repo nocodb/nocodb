@@ -24,10 +24,10 @@ const vShowExtraFields = computed({
   <div v-if="activeField && isLinksOrLTAR(activeField)" class="flex flex-col">
     <div class="flex items-start justify-between gap-3">
       <div>
-        <div class="nc-form-input-required text-gray-800 font-medium">
+        <div class="nc-form-input-required text-nc-content-gray font-medium">
           {{ $t('labels.showExtraFields') }}
         </div>
-        <div class="text-gray-500 mt-1">
+        <div class="text-nc-content-gray-muted mt-1">
           {{ $t('labels.showExtraFieldsDescription') }}
         </div>
       </div>

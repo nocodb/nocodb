@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { lastValueFrom, Observable } from 'rxjs';
-import { extractRolesObj } from 'nocodb-sdk';
+
 import type { Request } from 'express';
 import type { ExecutionContext } from '@nestjs/common';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
@@ -33,20 +33,6 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
       }
     }
 
-    if (result && !req.headers['xc-shared-base-id']) {
-      if (
-        req.path.indexOf('/user/me') === -1 &&
-        req.header('xc-preview') &&
-        ['owner', 'creator'].some((role) => req.user.roles?.[role])
-      ) {
-        return (req.user = {
-          ...req.user,
-          isAuthorized: true,
-          roles: extractRolesObj(req.header('xc-preview')),
-        });
-      }
-    }
-
     if (result) return true;
 
     if (getApiTokenFromHeader(req)) {
@@ -55,6 +41,19 @@ export class GlobalGuard extends AuthGuard(['jwt']) {
         const guard = new (AuthGuard('authtoken'))(context);
         canActivate = await this.extractBoolVal(guard.canActivate(context));
       } catch {}
+
+      // If API token validation failed and we have a Bearer token, try OAuth token validation
+      if (
+        !canActivate &&
+        req.headers?.authorization?.toLowerCase().startsWith('bearer ')
+      ) {
+        try {
+          const oauthGuard = new (AuthGuard('oauth-token'))(context);
+          canActivate = await this.extractBoolVal(
+            oauthGuard.canActivate(context),
+          );
+        } catch {}
+      }
 
       if (canActivate) {
         return this.authenticate(req, {

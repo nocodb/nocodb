@@ -2,8 +2,10 @@ import { Readable } from 'stream';
 import { Injectable } from '@nestjs/common';
 import debug from 'debug';
 import {
+  getFirstNonPersonalView,
   isCrossBaseLink,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -15,6 +17,7 @@ import {
   type WidgetType,
 } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
+import * as XLSX from 'xlsx';
 import { elapsedTime, initTime } from '../../helpers';
 import type { LookupType, NcRequest, RollupType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -55,9 +58,13 @@ import { getQueriedColumns } from '~/helpers/dbHelpers';
 
 @Injectable()
 export class ExportService {
-  private readonly debugLog = debug('nc:jobs:import');
+  protected readonly debugLog = debug('nc:jobs:import');
 
-  constructor(private datasService: DatasService) {}
+  constructor(protected datasService: DatasService) {}
+
+  async getDataList(context: NcContext, param: any) {
+    return this.datasService.dataList(context, param);
+  }
 
   async serializeScripts(context: NcContext) {
     const serializedScripts = [];
@@ -74,6 +81,10 @@ export class ExportService {
     }
 
     return serializedScripts;
+  }
+
+  async serializeWorkflows(_context: NcContext, _param: any, _req: NcRequest) {
+    return [];
   }
 
   async serializeDashboards(context: NcContext, param: any, req: NcRequest) {
@@ -212,8 +223,23 @@ export class ExportService {
       await model.getViews(context);
 
       // if views are excluded, filter all views except default
+      const firstView = getFirstNonPersonalView(model.views, {
+        includeViewType: ViewTypes.GRID,
+      });
+
       if (excludeViews) {
-        model.views = model.views.filter((v) => v.is_default);
+        if (firstView) {
+          (firstView as any).is_default = true;
+        }
+
+        model.views = firstView ? [firstView as View] : [];
+      } else {
+        model.views = model.views.map((view) => {
+          if (view.id === firstView.id) {
+            (view as any).is_default = true;
+          }
+          return view;
+        });
       }
 
       for (const column of model.columns) {
@@ -358,6 +384,10 @@ export class ExportService {
           ) {
             continue;
           }
+          // skip custom link columns
+          if (column?.meta?.custom) {
+            continue;
+          }
 
           colOptions.filter = (await Filter.getFilterObject(context, {
             linkColId: column.id,
@@ -411,6 +441,7 @@ export class ExportService {
               comparison_op: fl.comparison_op,
               comparison_sub_op: fl.comparison_sub_op,
               value: fl.value,
+              meta: fl.meta,
             };
             if (tempFl.is_group) {
               delete tempFl.comparison_op;
@@ -440,7 +471,28 @@ export class ExportService {
               case 'fk_column_id':
               case 'fk_cover_image_col_id':
               case 'fk_grp_col_id':
+              case 'fk_prefix_column_id':
                 view.view[k] = idMap.get(v as string);
+                break;
+              case 'levels':
+                if (view.type === ViewTypes.LIST) {
+                  view.view[k] = (v as any[]).map((level) => ({
+                    level: level.level,
+                    fk_model_id:
+                      idMap.get(level.fk_model_id) ?? level.fk_model_id,
+                    fk_link_column_id: level.fk_link_column_id
+                      ? idMap.get(level.fk_link_column_id) ??
+                        level.fk_link_column_id
+                      : null,
+                    fk_self_link_column_id: level.fk_self_link_column_id
+                      ? idMap.get(level.fk_self_link_column_id) ??
+                        level.fk_self_link_column_id
+                      : null,
+                    enable_nested_records: level.enable_nested_records,
+                    wrap_headers: level.wrap_headers,
+                    meta: level.meta,
+                  }));
+                }
                 break;
               case 'meta':
                 if (view.type === ViewTypes.KANBAN) {
@@ -639,40 +691,44 @@ export class ExportService {
           description: model.description,
           pgSerialLastVal,
           meta: model.meta,
-          columns: model.columns.map((column) => ({
-            description: column.description,
-            id: idMap.get(column.id),
-            ai: column.ai,
-            column_name: column.column_name,
-            meta: column.meta,
-            pk: column.pk,
-            pv: column.pv,
-            order: column.order,
-            rqd: column.rqd,
-            system: column.system,
-            uidt: column.uidt,
-            title: column.title,
-            un: column.un,
-            unique: column.unique,
-            colOptions: column.colOptions,
-            ...(!compatibilityMode && {
-              cc: column.cc,
-              dt: column.dt,
-              dtxp: column.dtxp,
-              dtxs: column.dtxs,
-              cdf: column.cdf,
-            }),
-          })),
+          columns: model.columns.map((column) => {
+            // Exclude constraints field from export (internal field)
+            const { constraints, ...columnData } = column as any;
+            return {
+              description: columnData.description,
+              id: idMap.get(columnData.id),
+              ai: columnData.ai,
+              column_name: columnData.column_name,
+              meta: columnData.meta,
+              pk: columnData.pk,
+              pv: columnData.pv,
+              order: columnData.order,
+              rqd: columnData.rqd,
+              system: columnData.system,
+              uidt: columnData.uidt,
+              title: columnData.title,
+              un: columnData.un,
+              unique: columnData.unique,
+              colOptions: columnData.colOptions,
+              ...(!compatibilityMode && {
+                cc: columnData.cc,
+                dt: columnData.dt,
+                dtxp: columnData.dtxp,
+                dtxs: columnData.dtxs,
+                cdf: columnData.cdf,
+              }),
+            };
+          }),
         },
         views: model.views.map((view) => ({
           description: view.description,
           id: idMap.get(view.id),
-          is_default: view.is_default,
           type: view.type,
           meta: RowColorViewHelpers.withContext(context).mapMetaColumn({
             meta: view.meta,
             idMap,
           }),
+          is_default: (view as any).is_default,
           order: view.order,
           title: view.title,
           show: view.show,
@@ -749,8 +805,13 @@ export class ExportService {
       ncSiteUrl?: string;
       delimiter?: string;
       excludeUsers?: boolean;
+      includeCrossBaseColumns?: boolean;
+      filterArrJson?: any;
+      sortArrJson?: any;
     },
   ) {
+    context = { ...context, cache: true };
+
     const { dataStream, linkStream, handledMmList } = param;
 
     const dataExportMode = !linkStream;
@@ -765,7 +826,11 @@ export class ExportService {
 
     await model.getColumns(context);
 
-    model.columns = this.filterOutCrossBaseColumns(model);
+    if (!param.includeCrossBaseColumns) {
+      model.columns = this.filterOutCrossBaseColumns(model);
+    } else {
+      model.columns = [...model.columns];
+    }
 
     const btMap = new Map<string, string>();
 
@@ -805,7 +870,8 @@ export class ExportService {
           .filter((c) => !isLinksOrLTAR(c) && !isVirtualCol(c))
           .map((c) => c.title);
 
-    const refView = view ?? (await View.getDefaultView(context, model.id));
+    const refView =
+      view ?? (await View.getFirstCollaborativeView(context, model.id));
 
     const viewCols = await refView.getColumns(context);
     if (dataExportMode) {
@@ -832,10 +898,8 @@ export class ExportService {
     const mmColumns = param._fieldIds
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
-          .filter((col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm')
-      : model.columns.filter(
-          (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
-        );
+          .filter((col) => isMMOrMMLike(col))
+      : model.columns.filter((col) => isMMOrMMLike(col));
 
     const hasLink = !dataExportMode && mmColumns.length > 0;
 
@@ -999,6 +1063,10 @@ export class ExportService {
         true,
         param.delimiter,
         dataExportMode,
+        {
+          filterArrJson: param.filterArrJson,
+          sortArrJson: param.sortArrJson,
+        },
       );
     } catch (e) {
       this.debugLog(e);
@@ -1089,6 +1157,433 @@ export class ExportService {
     }
   }
 
+  async streamModelDataAsJson(
+    context: NcContext,
+    param: {
+      dataStream: Readable;
+      baseId: string;
+      modelId: string;
+      viewId?: string;
+      handledMmList?: string[];
+      _fieldIds?: string[];
+      ncSiteUrl?: string;
+      excludeUsers?: boolean;
+      includeCrossBaseColumns?: boolean;
+      filterArrJson?: any;
+      sortArrJson?: any;
+    },
+  ) {
+    context = { ...context, cache: true };
+
+    const { dataStream } = param;
+
+    const { model, view } = await getViewAndModelByAliasOrId(context, {
+      baseName: param.baseId,
+      tableName: param.modelId,
+      viewName: param.viewId,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    await model.getColumns(context);
+
+    if (!param.includeCrossBaseColumns) {
+      model.columns = this.filterOutCrossBaseColumns(model);
+    } else {
+      model.columns = [...model.columns];
+    }
+
+    let fields = param._fieldIds
+      ? model.columns
+          .filter((c) => param._fieldIds?.includes(c.id))
+          .map((c) => c.title)
+      : model.columns
+          .filter((c) => !isLinksOrLTAR(c) && !isVirtualCol(c))
+          .map((c) => c.title);
+
+    const refView =
+      view ?? (await View.getFirstCollaborativeView(context, model.id));
+
+    const viewCols = await refView.getColumns(context);
+
+    const hideSystemFields = view.show_system_fields
+      ? // at minimum filter mm fields used in Links field
+        model.columns
+          .filter(
+            (c) =>
+              isSystemColumn(c) &&
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions?.fk_related_model_id !== model.id,
+          )
+          .map((c) => c.id)
+      : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
+
+    fields = viewCols
+      .sort((a, b) => a.order - b.order)
+      .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
+      .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title)
+      // to filter out undefined values(cross base link)
+      .filter(Boolean);
+
+    dataStream.setEncoding('utf8');
+
+    const formatAndSerializeForJson = async (data: any) => {
+      const includedColumns: {
+        col: Column;
+        viewOrder: number;
+      }[] = [];
+      for (const row of data) {
+        for (const [k, v] of Object.entries(row)) {
+          const col = model.columns.find((c) => c.title === k);
+          if (col) {
+            row[k] = await serializeCellValue(context, {
+              value: v,
+              column: col,
+              siteUrl: param.ncSiteUrl,
+            });
+            includedColumns.push({
+              col,
+              viewOrder:
+                viewCols.find((vCol) => vCol.fk_column_id === col.id)?.order ??
+                includedColumns.length + 1,
+            });
+          }
+        }
+      }
+      const orderedColumns = includedColumns.sort(
+        (a, b) => a.viewOrder - b.viewOrder,
+      );
+      return {
+        data: data.map((row) => {
+          return orderedColumns.reduce((acc, cur) => {
+            acc[cur.col.title] = row[cur.col.title];
+            return acc;
+          }, {});
+        }),
+      };
+    };
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const limit = 200;
+    const offset = 0;
+
+    try {
+      await this.recursiveReadForJson(
+        context,
+        formatAndSerializeForJson,
+        baseModel,
+        dataStream,
+        model,
+        view,
+        offset,
+        limit,
+        fields,
+        true,
+        {
+          filterArrJson: param.filterArrJson,
+          sortArrJson: param.sortArrJson,
+        },
+      );
+    } catch (e) {
+      this.debugLog(e);
+      throw e;
+    }
+  }
+
+  async streamModelDataAsExcel(
+    context: NcContext,
+    param: {
+      dataStream: Readable;
+      baseId: string;
+      modelId: string;
+      viewId?: string;
+      ncSiteUrl?: string;
+      includeCrossBaseColumns?: boolean;
+      filterArrJson?: any;
+      sortArrJson?: any;
+    },
+  ) {
+    context = { ...context, cache: true };
+
+    const { dataStream } = param;
+
+    const { model, view } = await getViewAndModelByAliasOrId(context, {
+      baseName: param.baseId,
+      tableName: param.modelId,
+      viewName: param.viewId,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    await model.getColumns(context);
+
+    if (!param.includeCrossBaseColumns) {
+      model.columns = this.filterOutCrossBaseColumns(model);
+    } else {
+      model.columns = [...model.columns];
+    }
+
+    const refView =
+      view ?? (await View.getFirstCollaborativeView(context, model.id));
+
+    const viewCols = await refView.getColumns(context);
+
+    const hideSystemFields = view.show_system_fields
+      ? model.columns
+          .filter(
+            (c) =>
+              isSystemColumn(c) &&
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions?.fk_related_model_id !== model.id,
+          )
+          .map((c) => c.id)
+      : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
+
+    const fields = viewCols
+      .sort((a, b) => a.order - b.order)
+      .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
+      .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title)
+      .filter(Boolean);
+
+    const formatAndSerialize = async (data: any) => {
+      const includedColumns: {
+        col: Column;
+        viewOrder: number;
+      }[] = [];
+      for (const row of data) {
+        for (const [k, v] of Object.entries(row)) {
+          const col = model.columns.find((c) => c.title === k);
+          if (col) {
+            row[k] = await serializeCellValue(context, {
+              value: v,
+              column: col,
+              siteUrl: param.ncSiteUrl,
+            });
+            includedColumns.push({
+              col,
+              viewOrder:
+                viewCols.find((vCol) => vCol.fk_column_id === col.id)?.order ??
+                includedColumns.length + 1,
+            });
+          }
+        }
+      }
+      const orderedColumns = includedColumns.sort(
+        (a, b) => a.viewOrder - b.viewOrder,
+      );
+      return {
+        data: data.map((row) => {
+          return orderedColumns.reduce((acc, cur) => {
+            acc[cur.col.title] = row[cur.col.title];
+            return acc;
+          }, {});
+        }),
+      };
+    };
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const limit = 200;
+    const offset = 0;
+
+    try {
+      await this.recursiveReadForExcel(
+        context,
+        formatAndSerialize,
+        baseModel,
+        dataStream,
+        model,
+        view,
+        offset,
+        limit,
+        fields,
+        {
+          filterArrJson: param.filterArrJson,
+          sortArrJson: param.sortArrJson,
+        },
+      );
+    } catch (e) {
+      this.debugLog(e);
+      throw e;
+    }
+  }
+
+  async recursiveReadForExcel(
+    context: NcContext,
+    formatter: (data: any) => Promise<{ data: any }>,
+    baseModel: BaseModelSqlv2,
+    stream: Readable,
+    model: Model,
+    view: View,
+    offset: number,
+    limit: number,
+    fields: string[],
+    param?: {
+      filterArrJson: any;
+      sortArrJson: any;
+    },
+    allRows: Record<string, any>[] = [],
+    headers: string[] = [],
+  ): Promise<void> {
+    const result = await this.datasService.dataList(context, {
+      model,
+      view,
+      query: {
+        limit,
+        offset,
+        fields,
+        filterArrJson: param?.filterArrJson,
+        sortArrJson: param?.sortArrJson,
+      },
+      baseModel,
+      ignoreViewFilterAndSort: false,
+      limitOverride: limit,
+      skipSortBasedOnOrderCol: true,
+    });
+
+    if (result.list.length === 0 && offset === 0) {
+      // Empty result - generate Excel with just headers
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet([fields]);
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+      const excelBuffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      });
+      stream.push(excelBuffer);
+      stream.push(null);
+      return;
+    }
+
+    const { data } = await formatter(result.list);
+
+    // Capture headers from the first batch (preserves view column order)
+    if (offset === 0 && data.length > 0) {
+      headers.push(...Object.keys(data[0]));
+    }
+
+    allRows.push(...data);
+
+    if (result.pageInfo.isLastPage) {
+      // All data collected — generate Excel workbook
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(allRows, {
+        header: headers,
+      });
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+
+      const excelBuffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      });
+
+      stream.push(excelBuffer);
+      stream.push(null);
+    } else {
+      await this.recursiveReadForExcel(
+        context,
+        formatter,
+        baseModel,
+        stream,
+        model,
+        view,
+        offset + limit,
+        limit,
+        fields,
+        param,
+        allRows,
+        headers,
+      );
+    }
+  }
+
+  async recursiveReadForJson(
+    context: NcContext,
+    formatter: (data: any) => Promise<{ data: any }>,
+    baseModel: BaseModelSqlv2,
+    stream: Readable,
+    model: Model,
+    view: View,
+    offset: number,
+    limit: number,
+    fields: string[],
+    isFirst = false,
+    param?: {
+      filterArrJson: any;
+      sortArrJson: any;
+    },
+  ): Promise<void> {
+    const result = await this.datasService.dataList(context, {
+      model,
+      view,
+      query: {
+        limit,
+        offset,
+        fields,
+        filterArrJson: param?.filterArrJson,
+        sortArrJson: param?.sortArrJson,
+      },
+      baseModel,
+      ignoreViewFilterAndSort: false,
+      limitOverride: limit,
+      skipSortBasedOnOrderCol: true,
+    });
+
+    if (result.list.length === 0 && offset === 0) {
+      // Empty result, just return empty array
+      stream.push('[]');
+      stream.push(null);
+      return;
+    }
+
+    const { data } = await formatter(result.list);
+
+    if (isFirst) {
+      // Start JSON array
+      stream.push('[\n');
+    }
+
+    if (data.length > 0) {
+      // Add comma if not the first batch
+      if (offset > 0) {
+        stream.push(',\n');
+      }
+
+      // Write JSON objects
+      const jsonRows = data.map((row) => JSON.stringify(row)).join(',\n');
+      stream.push(jsonRows);
+    }
+
+    if (result.pageInfo.isLastPage) {
+      // Close JSON array
+      stream.push('\n]');
+      stream.push(null);
+    } else {
+      await this.recursiveReadForJson(
+        context,
+        formatter,
+        baseModel,
+        stream,
+        model,
+        view,
+        offset + limit,
+        limit,
+        fields,
+        false,
+        param,
+      );
+    }
+  }
+
   private filterOutCrossBaseColumns(model: Model) {
     const crossbaseLinkIds = new Set(
       model.columns.filter((c) => isCrossBaseLink(c)).map((c) => c.id),
@@ -1117,13 +1612,23 @@ export class ExportService {
     header = false,
     delimiter = ',',
     dataExportMode = false,
+    param?: {
+      filterArrJson: any;
+      sortArrJson: any;
+    },
   ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.datasService
         .dataList(context, {
           model,
           view,
-          query: { limit, offset, fields },
+          query: {
+            limit,
+            offset,
+            fields,
+            filterArrJson: param?.filterArrJson,
+            sortArrJson: param?.sortArrJson,
+          },
           baseModel,
           ignoreViewFilterAndSort: !dataExportMode,
           limitOverride: limit,
@@ -1389,7 +1894,7 @@ export class ExportService {
         'exportBase',
       );
     } catch (e) {
-      throw NcError.badRequest(e);
+      NcError.get(context).badRequest(e);
     }
 
     return {

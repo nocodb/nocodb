@@ -93,6 +93,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         break;
       case 'ER_DUP_ENTRY':
         message = 'This record already exists.';
+        _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
         break;
       case 'ER_PARSE_ERROR':
         message = 'There was a syntax error in your SQL query.';
@@ -148,13 +149,24 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
       case 'ER_ROW_IS_REFERENCED':
         message = 'This record is being referenced by other records.';
         break;
-
+      case 'ER_LOCK_DEADLOCK':
+        message = 'Deadlock detected. Please retry the operation.';
+        httpStatus = 409;
+        break;
+      case 'ER_TOO_MANY_ROWS':
+        message = 'Query returned too many rows.';
+        break;
       default:
+        this.option.dbErrorLogger.error(
+          `${error.code} is not handled on database mysql`,
+        );
+        message = `An error occurred when querying mysql database.`;
+        httpStatus = 500;
         return;
     }
 
     return {
-      error: NcErrorType.DATABASE_ERROR,
+      error: NcErrorType.ERR_DATABASE_OP_FAILED,
       message,
       code: error.code,
       httpStatus,

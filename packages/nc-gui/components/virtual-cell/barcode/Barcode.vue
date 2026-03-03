@@ -97,7 +97,7 @@ onMounted(() => {
         </div>
         <div class="flex-1"></div>
         <NcButton class="nc-barcode-close !px-1" type="text" size="xs" @click="modalVisible = false">
-          <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
+          <GeneralIcon class="text-md text-nc-content-gray-subtle h-4 w-4" icon="close" />
         </NcButton>
       </div>
     </template>
@@ -106,6 +106,7 @@ onMounted(() => {
       :barcode-value="barcodeValue"
       :barcode-format="barcodeMeta.barcodeFormat"
       show-download
+      is-modal
     />
   </a-modal>
   <div
@@ -147,7 +148,7 @@ onMounted(() => {
         </div>
       </template>
     </JsBarcodeWrapper>
-    <a-tooltip v-else-if="!showBarcode && barcodeValue === 'ERR!'" placement="bottom" class="text-orange-700">
+    <a-tooltip v-else-if="!showBarcode && barcodeValue === 'ERR!'" placement="bottom" class="text-nc-content-orange-dark">
       <template #title>
         <span class="font-bold">Please select a target field!</span>
       </template>
@@ -175,11 +176,11 @@ onMounted(() => {
 .barcode-modal .ant-modal-content {
   padding: 0 !important;
   .ant-modal-header {
+    @apply border-b-1 border-b-nc-border-gray-medium;
     position: relative;
     padding: 8px 16px;
     border-top-left-radius: 1em;
     border-top-right-radius: 1em;
-    border-bottom: 1px solid #e7e7e9;
     .ant-modal-title {
       height: 30px;
       display: flex;
@@ -190,10 +191,11 @@ onMounted(() => {
 
 .nc-data-cell {
   &:has(.nc-virtual-cell-barcode) {
-    @apply !border-none;
+    @apply !border-none outline-none;
     box-shadow: none !important;
 
     &:focus-within:not(.nc-readonly-div-data-cell):not(.nc-system-field) {
+      @apply outline-none;
       box-shadow: none !important;
     }
   }

@@ -42,8 +42,8 @@ const gotoFeed = () => navigateToFeed()
     data-testid="nc-sidebar-product-feed"
     :centered="false"
     :class="{
-      '!text-brand-600 !bg-brand-50 !hover:bg-brand-50 active': isFeedPageOpened,
-      '!hover:(bg-gray-200 text-gray-700)': !isFeedPageOpened,
+      '!text-nc-content-brand-disabled !bg-nc-bg-brand !hover:bg-nc-bg-brand active': isFeedPageOpened,
+      '!hover:(bg-nc-bg-gray-medium text-gray-700)': !isFeedPageOpened,
     }"
     @click="gotoFeed"
   >

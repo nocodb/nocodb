@@ -34,14 +34,14 @@ const { getPlanTitle } = useEeConfig()
             :class="{
               '!w-3 h-3': hideTick,
               '!w-4 h-4': !hideTick,
-              'text-gray-400': disabled,
+              'text-nc-content-gray-disabled': disabled,
             }"
           />
           <div
             class="flex"
             :class="{
               '!text-xs py-0.7': hideTick,
-              'text-gray-400': disabled,
+              'text-nc-content-gray-disabled': disabled,
             }"
           >
             {{ $t(types[type].title) }}
@@ -52,7 +52,7 @@ const { getPlanTitle } = useEeConfig()
               v-if="selectedView?.lock_type === type"
               icon="circleCheckSolid"
               class="h-4 w-4 flex-none"
-              :class="{ '!text-brand-500': !disabled }"
+              :class="{ '!text-nc-content-brand': !disabled }"
             />
             <LazyPaymentUpgradeBadge
               v-else-if="type === LockType.Personal"
@@ -71,7 +71,7 @@ const { getPlanTitle } = useEeConfig()
           v-if="!hideTick"
           class="nc-subtitle font-weight-400 max-w-120 !text-xs whitespace-normal ml-6 pr-6"
           :class="{
-            'text-gray-400': disabled,
+            'text-nc-content-gray-disabled': disabled,
             'text-nc-content-gray-subtle2': !disabled,
           }"
         >

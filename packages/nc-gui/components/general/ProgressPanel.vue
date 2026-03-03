@@ -14,9 +14,12 @@ const scrollToBottom = () => {
   container.scrollTop = container.scrollHeight
 }
 
-const pushProgress = (message: string, status: JobStatus | 'progress') => {
+const pushProgress = (message: string, status: JobStatus | 'progress' | 'warning') => {
   if (!message?.trim()) return
-  progress.value.push({ msg: message, status })
+  progress.value.push({
+    msg: message,
+    status: status === JobStatus.FAILED ? JobStatus.FAILED : message.startsWith('WARNING: ') ? 'warning' : status,
+  })
 
   if (autoScroll.value) {
     nextTick(scrollToBottom)
@@ -68,6 +71,7 @@ onMounted(() => {
 <template>
   <a-card
     ref="logRef"
+    :bordered="false"
     :body-style="{
       'overflow': 'auto',
       'width': '100%',
@@ -87,7 +91,11 @@ onMounted(() => {
 
         <span class="text-red-500 ml-2">{{ msg }}</span>
       </div>
+      <div v-else-if="status === 'warning'" class="flex items-center">
+        <component :is="iconMap.warning" class="text-yellow-500" />
 
+        <span class="text-yellow-500 ml-2">{{ msg }}</span>
+      </div>
       <div v-else class="flex items-center">
         <MdiCurrencyUsd class="text-green-500" />
 
@@ -100,17 +108,18 @@ onMounted(() => {
       <span class="text-green-500 ml-2">Loading...</span>
     </div>
 
-    <a-button
+    <NcButton
       v-if="progressEnd"
       class="!absolute z-1 right-2 bottom-2 opacity-75 hover:opacity-100 !rounded-md !w-8 !h-8"
       size="small"
+      type="secondary"
       @click="downloadLogs('logs.txt')"
     >
       <nc-tooltip>
         <template #title>Download Logs</template>
         <component :is="iconMap.download" />
       </nc-tooltip>
-    </a-button>
+    </NcButton>
   </a-card>
 </template>
 

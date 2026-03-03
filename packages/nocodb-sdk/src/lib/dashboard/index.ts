@@ -21,6 +21,7 @@ export interface DashboardType {
 export enum WidgetTypes {
   CHART = 'chart',
   METRIC = 'metric',
+  GAUGE = 'gauge',
   TEXT = 'text',
   TABLE = 'table',
   IFRAME = 'iframe',
@@ -34,6 +35,7 @@ export const WidgetChartLabelMap = {
   [ChartTypes.SCATTER]: 'Scatter Plot',
   [WidgetTypes.TABLE]: 'Table',
   [WidgetTypes.METRIC]: 'Metric',
+  [WidgetTypes.GAUGE]: 'Gauge',
   [WidgetTypes.TEXT]: 'Text',
   [WidgetTypes.IFRAME]: 'iFrame',
 };
@@ -68,6 +70,26 @@ export interface MetricWidgetConfig {
       | 'orange'
       | 'maroon'
       | 'purple';
+  };
+}
+
+export interface GaugeRange {
+  color: string;
+  min: number;
+  max: number;
+  label?: string;
+}
+
+export interface GaugeWidgetConfig {
+  dataSource?: WidgetDataSourceTypes;
+  metric: {
+    type: 'count' | 'summary';
+    column_id?: string;
+    aggregation: 'sum' | 'avg' | 'count' | 'min' | 'max';
+  };
+  appearance: {
+    ranges?: GaugeRange[];
+    showValue: boolean;
   };
 }
 
@@ -118,6 +140,7 @@ export type WidgetConfig =
   | ChartWidgetConfig
   | TableWidgetConfig
   | MetricWidgetConfig
+  | GaugeWidgetConfig
   | TextWidgetConfig
   | IframeWidgetConfig;
 
@@ -148,6 +171,7 @@ export interface CommonWidgetType {
 
 export interface ChartWidgetType<C extends ChartTypes = ChartTypes>
   extends CommonWidgetType {
+  type: WidgetTypes.CHART;
   config: ChartWidgetConfig<C>;
 }
 
@@ -159,6 +183,11 @@ export interface TableWidgetType extends CommonWidgetType {
 export interface MetricWidgetType extends CommonWidgetType {
   type: WidgetTypes.METRIC;
   config: MetricWidgetConfig;
+}
+
+export interface GaugeWidgetType extends CommonWidgetType {
+  type: WidgetTypes.GAUGE;
+  config: GaugeWidgetConfig;
 }
 
 export interface TextWidgetType extends CommonWidgetType {
@@ -178,11 +207,21 @@ export type WidgetType<T extends WidgetTypes = WidgetTypes> =
     ? TableWidgetType
     : T extends WidgetTypes.METRIC
     ? MetricWidgetType
+    : T extends WidgetTypes.GAUGE
+    ? GaugeWidgetType
     : T extends WidgetTypes.TEXT
     ? TextWidgetType
     : T extends WidgetTypes.IFRAME
     ? IframeWidgetType
     : never;
+
+export type AnyWidgetType =
+  | ChartWidgetType
+  | TableWidgetType
+  | MetricWidgetType
+  | GaugeWidgetType
+  | TextWidgetType
+  | IframeWidgetType;
 
 export type Widget<
   T extends WidgetType = WidgetType,
@@ -193,6 +232,8 @@ export type Widget<
   ? TableWidgetType
   : T extends MetricWidgetType
   ? MetricWidgetType
+  : T extends GaugeWidgetType
+  ? GaugeWidgetType
   : T extends TextWidgetType
   ? TextWidgetType
   : T extends IframeWidgetType

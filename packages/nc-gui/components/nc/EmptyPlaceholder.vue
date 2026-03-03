@@ -3,6 +3,7 @@ interface Props {
   title?: string
   subtitle?: string
 }
+
 defineProps<Props>()
 </script>
 
@@ -26,9 +27,11 @@ defineProps<Props>()
 <style lang="scss" scoped>
 .placeholder-container {
   @apply flex flex-col items-center justify-center mx-auto max-w-[420px] text-center gap-3;
+
   .placeholder-title {
     @apply text-nc-content-gray;
   }
+
   .placeholder-subtitle {
     @apply text-nc-content-gray-subtle2;
   }

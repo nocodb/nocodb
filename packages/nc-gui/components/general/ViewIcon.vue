@@ -15,6 +15,7 @@ const viewMeta = toRef(props, 'meta')
     :data-testid="`nc-emoji-${viewMeta.meta?.icon}`"
     size="xsmall"
     :emoji="viewMeta.meta?.icon"
+    class="nc-view-icon"
     readonly
   />
   <component

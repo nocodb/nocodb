@@ -62,7 +62,6 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
       a.setAttribute('class', 'nc-cell-field-link')
       a.setAttribute('target', '_blank')
       a.setAttribute('rel', 'noopener noreferrer')
-      a.setAttribute('onClick', 'window.tiptapLinkHandler(event)')
       return a.outerHTML
     },
   )
@@ -110,8 +109,13 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
 }
 
 export const openLink = (path: string, baseURL?: string, target = '_blank') => {
-  const url = new URL(path, baseURL)
-  window.open(url.href, target, 'noopener,noreferrer')
+  try {
+    const url = new URL(path, baseURL)
+    window.open(url.href, target, 'noopener,noreferrer')
+  } catch (e) {
+    console.error(`Failed constructing URL'${path}'`, e)
+    message.error((e as Error)?.message || 'Failed to construct URL')
+  }
 }
 
 export const navigateToBlankTargetOpenOption = {
@@ -240,6 +244,15 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
   }
 }
 
+export const handleDompurifyLinkClick = (event: MouseEvent) => {
+  const target = (event.target as HTMLElement)?.closest('a') as HTMLAnchorElement | null
+  if (!target?.href) return
+
+  event.preventDefault()
+  event.stopPropagation()
+  confirmPageLeavingRedirect(target.href, '_blank')
+}
+
 export const addConfirmPageLeavingRedirectToWindow = (remove = false) => {
   if (typeof window === 'undefined') return
 
@@ -249,14 +262,6 @@ export const addConfirmPageLeavingRedirectToWindow = (remove = false) => {
   }
 
   sessionStorage.setItem('ncIsSharedViewOrBase', 'true')
-
-  window.tiptapLinkHandler = (event) => {
-    event.preventDefault()
-
-    if (event?.target?.href) {
-      confirmPageLeavingRedirect(event?.target?.href, '_blank')
-    }
-  }
 }
 
 export const isLinkExpired = async (url: string) => {

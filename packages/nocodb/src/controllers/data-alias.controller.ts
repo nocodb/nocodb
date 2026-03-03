@@ -44,6 +44,7 @@ export class DataAliasController {
     @Query('includeSortAndFilterColumns')
     includeSortAndFilterColumns: string,
   ) {
+    context.cache = true;
     const startTime = process.hrtime();
     const responseData = await this.datasService.dataList(context, {
       query: req.query,
@@ -54,6 +55,8 @@ export class DataAliasController {
       getHiddenColumns: getHiddenColumns === 'true',
       includeSortAndFilterColumns: includeSortAndFilterColumns === 'true',
       includeRowColorColumns: req.query.include_row_color === 'true',
+      includeButtonFilterColumns:
+        req.query.include_button_filter_columns === 'true',
     });
     const elapsedMilliSeconds = parseHrtimeToMilliSeconds(
       process.hrtime(startTime),
@@ -98,6 +101,7 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
+    context.cache = true;
     return await this.datasService.dataGroupBy(context, {
       query: req.query,
       baseName: baseName,
@@ -118,6 +122,7 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
+    context.cache = true;
     return await this.datasService.dataGroupByCount(context, {
       query: req.query,
       baseName: baseName,
@@ -139,6 +144,7 @@ export class DataAliasController {
     @Param('tableName') tableName: string,
     @Param('viewName') viewName: string,
   ) {
+    context.cache = true;
     const countResult = await this.datasService.dataCount(context, {
       query: req.query,
       baseName: baseName,
@@ -242,6 +248,7 @@ export class DataAliasController {
     @Query('opt') opt: string,
     @Query('getHiddenColumn') getHiddenColumn: string,
   ) {
+    context.cache = true;
     return await this.datasService.dataRead(context, {
       baseName: baseName,
       tableName: tableName,
@@ -267,6 +274,7 @@ export class DataAliasController {
     @Param('viewName') viewName: string,
     @Param('rowId') rowId: string,
   ) {
+    context.cache = true;
     const exists = await this.datasService.dataExist(context, {
       baseName: baseName,
       tableName: tableName,
@@ -294,6 +302,7 @@ export class DataAliasController {
     @Param('viewName') viewName: string,
     @Param('columnId') columnId: string,
   ) {
+    context.cache = true;
     const startTime = process.hrtime();
     const groupedData = await this.datasService.groupedDataList(context, {
       baseName: baseName,

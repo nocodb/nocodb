@@ -26,6 +26,18 @@ enum MailEvent {
   WORKSPACE_INVITE = 'WORKSPACE_INVITE',
   WORKSPACE_ROLE_UPDATE = 'WORKSPACE_ROLE_UPDATE',
   WORKSPACE_REQUEST_UPGRADE = 'WORKSPACE_REQUEST_UPGRADE',
+  TEAM_MEMBER_INVITE = 'TEAM_MEMBER_INVITE',
+  TEAM_MEMBER_ROLE_UPDATE = 'TEAM_MEMBER_ROLE_UPDATE',
+  TEAM_MEMBER_REMOVED = 'TEAM_MEMBER_REMOVED',
+  TEAM_ASSIGNED_TO_WORKSPACE = 'TEAM_ASSIGNED_TO_WORKSPACE',
+  TEAM_ASSIGNED_TO_BASE = 'TEAM_ASSIGNED_TO_BASE',
+  WORKSPACE_TEAM_REMOVED = 'WORKSPACE_TEAM_REMOVED',
+  WORKSPACE_TEAM_ROLE_UPDATE = 'WORKSPACE_TEAM_ROLE_UPDATE',
+  BASE_TEAM_REMOVED = 'BASE_TEAM_REMOVED',
+  BASE_TEAM_ROLE_UPDATE = 'BASE_TEAM_ROLE_UPDATE',
+  WORKFLOW_ERROR_DIGEST = 'WORKFLOW_ERROR_DIGEST',
+  HOOK_ERROR_DIGEST = 'HOOK_ERROR_DIGEST',
+  SEND_RECORD = 'SEND_RECORD',
 }
 
 interface CommentPayload {
@@ -93,6 +105,23 @@ interface FormSubmissionPayload {
   }[];
 }
 
+interface SendRecordPayload {
+  senderName: string;
+  senderEmail: string;
+  emails: string[];
+  model: TableType;
+  base: BaseType;
+  message?: string;
+  subject?: string;
+  recordData: {
+    parsedValue?: any;
+    columnTitle: string;
+    uidt: UITypes | string;
+  }[];
+  rowId: string;
+  req: NcRequest;
+}
+
 type MailParams =
   | {
       mailEvent: MailEvent.COMMENT_CREATE | MailEvent.COMMENT_UPDATE;
@@ -129,6 +158,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.FORM_SUBMISSION;
       payload: FormSubmissionPayload;
+    }
+  | {
+      mailEvent: MailEvent.SEND_RECORD;
+      payload: SendRecordPayload;
     };
 
 interface RawMailParams {
@@ -141,4 +174,10 @@ interface RawMailParams {
   bcc?: string | string[];
 }
 
-export { MailEvent, MailParams, FormSubmissionPayload, RawMailParams };
+export {
+  MailEvent,
+  MailParams,
+  FormSubmissionPayload,
+  SendRecordPayload,
+  RawMailParams,
+};

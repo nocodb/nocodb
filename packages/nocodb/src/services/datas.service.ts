@@ -32,9 +32,11 @@ export class DatasService {
       getHiddenColumns?: boolean;
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
+      includeButtonFilterColumns?: boolean;
       apiVersion?: NcApiVersion;
       ignoreViewFilterAndSort?: boolean;
       baseModel?: BaseModelSqlv2;
+      skipSortBasedOnOrderCol?: boolean;
     },
   ) {
     let { model, view } = param as { view?: View; model?: Model };
@@ -57,14 +59,15 @@ export class DatasService {
       if (
         !linkColumn ||
         !isLinksOrLTAR(linkColumn) ||
+        !linkColumn.colOptions ||
         linkColumn.colOptions.fk_related_model_id !== model.id
       ) {
-        NcError.fieldNotFound(param.query?.linkColumnId, {
+        NcError.get(context).fieldNotFound(param.query?.linkColumnId, {
           customMessage: `Link column with id ${param.query.linkColumnId} not found`,
         });
       }
 
-      if (linkColumn.colOptions.fk_target_view_id) {
+      if (linkColumn.colOptions?.fk_target_view_id) {
         view = await View.get(context, linkColumn.colOptions.fk_target_view_id);
       }
     }
@@ -80,6 +83,7 @@ export class DatasService {
       apiVersion: param.apiVersion,
       includeSortAndFilterColumns: param.includeSortAndFilterColumns,
       includeRowColorColumns: param.includeRowColorColumns,
+      includeButtonFilterColumns: param.includeButtonFilterColumns,
       ignoreViewFilterAndSort: param.ignoreViewFilterAndSort,
       baseModel: param.baseModel,
     });
@@ -206,7 +210,7 @@ export class DatasService {
     if (!source.isMeta()) {
       const message = await baseModel.hasLTARData(param.rowId, model);
       if (message.length) {
-        NcError.badRequest(message);
+        NcError.get(context).badRequest(message);
       }
     }
 
@@ -229,6 +233,7 @@ export class DatasService {
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
+      includeButtonFilterColumns?: boolean;
       skipSortBasedOnOrderCol?: boolean;
     },
   ) {
@@ -262,6 +267,7 @@ export class DatasService {
       apiVersion,
       includeSortAndFilterColumns: includeSortAndFilterColumns,
       includeRowColorColumns: param.includeRowColorColumns,
+      includeButtonFilterColumns: param.includeButtonFilterColumns,
       skipSubstitutingColumnIds:
         query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
@@ -301,8 +307,8 @@ export class DatasService {
           );
         } catch (e) {
           if (e instanceof NcBaseError || e instanceof NcSDKErrorV2) throw e;
-          this.logger.error(e);
-          NcError.internalServerError(
+          this.logger.error('Error fetching data', e);
+          NcError.get(context).internalServerError(
             'Please check server log for more details',
           );
         }
@@ -433,7 +439,7 @@ export class DatasService {
     });
 
     if (!row) {
-      NcError.recordNotFound(param.rowId);
+      NcError.get(context).recordNotFound(param.rowId);
     }
 
     return row;
@@ -485,6 +491,64 @@ export class DatasService {
 
     const source = await Source.get(context, model.source_id);
 
+    // Use singleQueryGroupedList for PostgreSQL to avoid nocoExecute
+    // It handles nested columns/rollups directly in SQL
+    if (source.type === 'pg' && param.query?.opt === 'true') {
+      const { dependencyFields } = await getAst(context, {
+        model,
+        query,
+        view,
+        includeRowColorColumns: query.include_row_color === 'true',
+        includeButtonFilterColumns:
+          query.include_button_filter_columns === 'true',
+      });
+
+      const listArgs: any = { ...dependencyFields };
+      try {
+        listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+      } catch (e) {}
+      try {
+        listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+      } catch (e) {}
+      try {
+        listArgs.options = JSON.parse(listArgs.optionsArrJson);
+      } catch (e) {}
+
+      const baseModel = await Model.getBaseModelSQL(context, {
+        id: model.id,
+        viewId: view?.id,
+        dbDriver: await NcConnectionMgrv2.get(source),
+        source,
+      });
+
+      // Run both queries in parallel for better performance
+      const [groupedData, countArr] = await Promise.all([
+        await baseModel.groupedList({
+          ...listArgs,
+          groupColumnId: param.columnId,
+        }),
+        baseModel.groupedListCount({
+          ...listArgs,
+          groupColumnId: param.columnId,
+        }),
+      ]);
+
+      return groupedData.map((item) => {
+        const count =
+          countArr.find((countItem: any) => countItem.key === item.key)
+            ?.count ?? 0;
+
+        return {
+          ...item,
+          value: new PagedResponseImpl(item.value, {
+            ...query,
+            count: count,
+          }),
+        };
+      });
+    }
+
+    // Fallback to original implementation for non-PostgreSQL databases
     const baseModel = await Model.getBaseModelSQL(context, {
       id: model.id,
       viewId: view?.id,
@@ -494,9 +558,11 @@ export class DatasService {
 
     const { ast, dependencyFields } = await getAst(context, {
       model,
-      query,
+      query: { ...query },
       view,
-      includeRowColorColumns: query.include_row_color === 'true',
+      includeRowColorColumns: query?.include_row_color === 'true',
+      includeButtonFilterColumns:
+        query?.include_button_filter_columns === 'true',
     });
 
     const listArgs: any = { ...dependencyFields };
@@ -515,6 +581,9 @@ export class DatasService {
     const groupedData = await baseModel.groupedList({
       ...listArgs,
       groupColumnId: param.columnId,
+      includeRowColorColumns: query?.include_row_color === 'true',
+      includeButtonFilterColumns:
+        query?.include_button_filter_columns === 'true',
     });
     data = await nocoExecute({ key: 1, value: ast }, groupedData, {}, listArgs);
     const countArr = await baseModel.groupedListCount({
@@ -547,7 +616,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     return await this.getDataList(context, {
       model,
@@ -572,7 +642,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -637,7 +708,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -702,7 +774,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -767,7 +840,10 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) return NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      return NcError.get(context).tableNotFound(
+        view?.fk_model_id || param.viewId,
+      );
 
     const source = await Source.get(context, model.source_id);
 
@@ -832,7 +908,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -888,7 +965,7 @@ export class DatasService {
       const model = await Model.getByIdOrName(context, {
         id: param.viewId,
       });
-      if (!model) NcError.tableNotFound(param.viewId);
+      if (!model) NcError.get(context).tableNotFound(param.viewId);
 
       const source = await Source.get(context, model.source_id);
 
@@ -910,8 +987,11 @@ export class DatasService {
         dependencyFields,
       );
     } catch (e) {
-      this.logger.error(e);
-      NcError.internalServerError('Please check server log for more details');
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Please check server log for more details', e);
+      NcError.get(context).internalServerError(
+        'Please check server log for more details',
+      );
     }
   }
 
@@ -922,7 +1002,7 @@ export class DatasService {
     const model = await Model.getByIdOrName(context, {
       id: param.viewId,
     });
-    if (!model) return NcError.tableNotFound(param.viewId);
+    if (!model) return NcError.get(context).tableNotFound(param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -947,7 +1027,7 @@ export class DatasService {
     const model = await Model.getByIdOrName(context, {
       id: param.viewId,
     });
-    if (!model) NcError.tableNotFound(param.viewId);
+    if (!model) NcError.get(context).tableNotFound(param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -976,7 +1056,7 @@ export class DatasService {
     const model = await Model.getByIdOrName(context, {
       id: param.viewId,
     });
-    if (!model) NcError.tableNotFound(param.viewId);
+    if (!model) NcError.get(context).tableNotFound(param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -1005,7 +1085,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -1042,7 +1123,8 @@ export class DatasService {
       id: view?.fk_model_id || param.viewId,
     });
 
-    if (!model) NcError.tableNotFound(view?.fk_model_id || param.viewId);
+    if (!model)
+      NcError.get(context).tableNotFound(view?.fk_model_id || param.viewId);
 
     const source = await Source.get(context, model.source_id);
 
@@ -1085,7 +1167,7 @@ export class DatasService {
         titleOrId: req.params.viewName,
         fk_model_id: model.id,
       }));
-    if (!model) NcError.tableNotFound(req.params.tableName);
+    if (!model) NcError.get(context).tableNotFound(req.params.tableName);
     return { model, view };
   }
 
@@ -1101,7 +1183,7 @@ export class DatasService {
         c.column_name === columnNameOrId,
     );
 
-    if (!column) NcError.fieldNotFound(columnNameOrId);
+    if (!column) NcError.get(context).fieldNotFound(columnNameOrId);
 
     return column;
   }

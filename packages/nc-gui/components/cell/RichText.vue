@@ -5,8 +5,10 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
 import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
+
 import {
   HardBreak,
+  Image,
   Italic,
   Link,
   Paragraph,
@@ -107,6 +109,7 @@ const getTiptapExtensions = () => {
     Subscript,
 
     // Nodes
+    Image,
     Paragraph,
     HardBreak,
     TaskList,
@@ -115,7 +118,7 @@ const getTiptapExtensions = () => {
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
     }),
-    Markdown.configure({ breaks: true, transformPastedText: true }),
+    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: !isEeUI }),
   ]
 
   if (appInfo.value.ee && !props.hideMention) {
@@ -280,6 +283,45 @@ onClickOutside(editorDom, (e) => {
     <div v-if="renderAsText" class="truncate">
       <span v-if="editor">{{ editor?.getText() ?? '' }}</span>
     </div>
+    <template v-else>
+      <div
+        v-if="showMenu && !readOnly && !isFormField"
+        class="absolute top-0 right-0.5"
+        :class="{
+          'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
+          'max-w-[calc(100%_-_198px)]': fullMode,
+          'justify-start left-0.5 max-w-[calc(100%_-_8px)]': isForm,
+          'justify-end xs:hidden max-w-[calc(100%_-_2px)]': !isForm,
+        }"
+      >
+        <div class="nc-scrollbar-thin relative">
+          <CellRichTextSelectedBubbleMenu
+            v-if="editor"
+            :editor="editor"
+            embed-mode
+            :hide-mention="hideMention"
+            :is-form-field="isFormField"
+            :enable-close-button="fullMode"
+            @close="emits('close')"
+          />
+        </div>
+      </div>
+      <CellRichTextSelectedBubbleMenuPopup
+        v-if="editor && !isFormField && !isForm"
+        :editor="editor"
+        :hide-mention="hideMention"
+        hide-on-select-all-sortcut
+      />
+
+      <template v-if="shouldShowLinkOption">
+        <CellRichTextLinkOrImageOptions
+          v-if="editor"
+          ref="richTextLinkOptionRef"
+          :editor="editor"
+          :is-form-field="isFormField"
+          @blur="isFocused = false"
+        />
+      </template>
 
     <template v-else>
       <EditorContent
@@ -288,14 +330,165 @@ onClickOutside(editorDom, (e) => {
         class="nc-rich-text-content flex flex-col nc-textarea-rich-editor w-full"
         :class="{
           'mt-2.5 flex-grow': fullMode,
-          'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent':
-            !fullMode || (!fullMode && isExpandedFormOpen),
+          'nc-scrollbar-thin': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
           [`!overflow-hidden nc-rich-truncate nc-line-clamp-${rowHeightTruncateLines(localRowHeight)}`]:
             !fullMode && readOnly && localRowHeight && !isExpandedFormOpen && !isForm,
         }"
+        @click="readOnly ? handleDompurifyLinkClick($event) : undefined"
+        @keydown.alt.stop
+        @keydown.alt.enter.stop
+        @keydown.shift.enter.stop
+        @keydown.down.stop
+        @keydown.left.stop
+        @keydown.right.stop
+        @keydown.up.stop
+        @keydown.delete.stop
+        @selectstart.capture.stop
+        @mousedown.stop
+        @keydown.esc="handleOnEscRichTextEditor($event, editor)"
       />
     </template>
   </div>
 </template>
 
+<style lang="scss">
+.nc-text-rich-scroll {
+  &::-webkit-scrollbar-thumb {
+    @apply bg-transparent;
+  }
+}
+.nc-text-rich-scroll:hover {
+  &::-webkit-scrollbar-thumb {
+    @apply bg-nc-bg-gray-medium;
+  }
+}
+
+.nc-rich-text-embed {
+  .ProseMirror {
+    @apply !border-transparent max-h-full;
+  }
+  &:not(.nc-form-rich-text-field):not(.nc-rich-text-grid) {
+    .ProseMirror {
+      min-height: 8rem;
+    }
+  }
+
+  &.nc-form-rich-text-field {
+    .ProseMirror {
+      padding: 0;
+    }
+    &.readonly {
+      ul[data-type='taskList'] li input[type='checkbox'] {
+        background-color: #d5d5d9 !important;
+        &:not(:checked) {
+          @apply !border-nc-border-gray-extradark;
+        }
+        &:focus {
+          box-shadow: none !important;
+          background-color: #d5d5d9 !important;
+        }
+      }
+    }
+  }
+  &.readonly {
+    .nc-textarea-rich-editor {
+      .ProseMirror {
+        resize: none;
+        white-space: pre-line;
+      }
+    }
+  }
+  &.allow-vertical-resize:not(.readonly) {
+    .ProseMirror {
+      @apply nc-scrollbar-thin;
+
+      overflow-y: auto;
+      overflow-x: hidden;
+      resize: vertical;
+      min-width: 100%;
+      max-height: min(800px, calc(100vh - 200px)) !important;
+
+      @supports (height: 100dvh) {
+        max-height: min(800px, calc(100dvh - 200px)) !important;
+      }
+    }
+  }
+}
+
+.nc-rich-text-full {
+  @apply px-3;
+  .ProseMirror {
+    @apply !p-2 h-[min(797px,100dvh_-_170px)] w-[min(1256px,100vw_-_124px)];
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin !important;
+    resize: both;
+    min-height: 215px;
+    max-height: min(797px, calc(100vh - 170px));
+    min-width: 256px;
+    max-width: min(1256px, 100vw - 126px);
+
+    @supports (height: 100dvh) {
+      max-height: min(797px, calc(100dvh - 170px));
+    }
+
+    @media (max-width: 767px) {
+      min-width: 100%;
+      max-width: min(1256px, 100vw - 58px);
+    }
+  }
+  &.readonly {
+    .ProseMirror {
+      @apply bg-nc-bg-gray-extralight;
+    }
+  }
+}
+
+.nc-textarea-rich-editor {
+  &.nc-rich-truncate {
+    .tiptap.ProseMirror {
+      display: -webkit-box;
+      max-width: 100%;
+      -webkit-box-orient: vertical;
+      word-break: break-word;
+    }
+    &.nc-line-clamp-1 .tiptap.ProseMirror {
+      -webkit-line-clamp: 1;
+    }
+    &.nc-line-clamp-2 .tiptap.ProseMirror {
+      -webkit-line-clamp: 2;
+    }
+    &.nc-line-clamp-3 .tiptap.ProseMirror {
+      -webkit-line-clamp: 3;
+    }
+    &.nc-line-clamp-4 .tiptap.ProseMirror {
+      -webkit-line-clamp: 4;
+    }
+  }
+  .tiptap p.is-editor-empty:first-child::before {
+    color: #9aa2af;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+  .ProseMirror {
+    @apply flex-grow pt-1.5 border-1 border-nc-border-gray-medium rounded-lg;
+
+    > * {
+      @apply ml-1;
+    }
+  }
+  .ProseMirror-focused {
+    // remove all border
+    outline: none;
+    @apply border-nc-border-brand;
+  }
+}
+.nc-form-field-bubble-menu-wrapper {
+  @apply absolute -bottom-9 left-1/2 z-50 rounded-lg;
+  transform: translateX(-50%);
+  box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1);
+}
+</style>

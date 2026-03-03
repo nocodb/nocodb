@@ -20,9 +20,7 @@ const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api } = useNuxtApp()
 
-const baseURL = $api.instance.defaults.baseURL
-
-const { $state, $poller } = useNuxtApp()
+const { $poller } = useNuxtApp()
 
 const workspace = useWorkspace()
 
@@ -50,6 +48,8 @@ const goBack = ref(false)
 
 const listeningForUpdates = ref(false)
 
+const hasWarning = ref(false)
+
 const syncSource = ref({
   id: '',
   type: 'Airtable',
@@ -75,13 +75,15 @@ const syncSource = ref({
 
 const sourceSelectorRef = ref()
 
-const customSourceId = computed(() => {
-  return sourceSelectorRef.value?.customSourceId || sourceId
-})
+const sourceIdRef = ref(sourceId)
 
 const onLog = (data: { message: string }) => {
   progressRef.value?.pushProgress(data.message, 'progress')
   lastProgress.value = { msg: data.message, status: 'progress' }
+
+  if (data.message.startsWith('WARNING: ')) {
+    hasWarning.value = true
+  }
 }
 
 const onStatus = async (status: JobStatus, data?: any) => {
@@ -138,19 +140,25 @@ async function createOrUpdate() {
     const { id, ...payload } = syncSource.value
 
     if (id !== '') {
-      await $fetch(`/api/v1/db/meta/syncs/${id}`, {
-        baseURL,
-        method: 'PATCH',
-        headers: { 'xc-auth': $state.token.value as string },
-        body: payload,
-      })
+      await $api.internal.postOperation(
+        activeWorkspace.value!.id,
+        baseId,
+        {
+          operation: 'syncSourceUpdate',
+          syncId: id,
+        },
+        payload,
+      )
     } else {
-      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${customSourceId.value}`, {
-        baseURL,
-        method: 'POST',
-        headers: { 'xc-auth': $state.token.value as string },
-        body: payload,
-      })
+      syncSource.value = await $api.internal.postOperation(
+        activeWorkspace.value!.id,
+        baseId,
+        {
+          operation: 'syncSourceCreate',
+          sourceId: sourceIdRef.value,
+        },
+        payload,
+      )
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -207,10 +215,9 @@ async function listenForUpdates(id?: string) {
 }
 
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${customSourceId.value}`, {
-    baseURL,
-    method: 'GET',
-    headers: { 'xc-auth': $state.token.value as string },
+  const data: any = await $api.internal.getOperation(activeWorkspace.value!.id, baseId, {
+    operation: 'syncSourceList',
+    sourceId: sourceIdRef.value,
   })
 
   const { list: srcs } = data
@@ -249,11 +256,15 @@ async function loadSyncSrc() {
 
 async function sync() {
   try {
-    const jobData: any = await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
-      baseURL,
-      method: 'POST',
-      headers: { 'xc-auth': $state.token.value as string },
-    })
+    const jobData: any = await $api.internal.postOperation(
+      activeWorkspace.value!.id,
+      baseId,
+      {
+        operation: 'atImportTrigger',
+        syncId: syncSource.value.id,
+      },
+      {},
+    )
     listeningForUpdates.value = false
     listenForUpdates(jobData.id)
   } catch (e: any) {
@@ -346,7 +357,7 @@ const collapseKey = ref('')
         </nc-button>
         <NcButton v-if="!isInProgress" icon-only type="text" size="xs" @click.stop="dialogShow = false">
           <template #icon>
-            <GeneralIcon icon="close" class="text-gray-600" />
+            <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
           </template>
         </NcButton>
       </div>
@@ -396,8 +407,8 @@ const collapseKey = ref('')
         <div class="my-5">
           <NcListSourceSelector
             ref="sourceSelectorRef"
+            v-model:source-id="sourceIdRef"
             :base-id="baseId"
-            :source-id="sourceId"
             :show-source-selector="showSourceSelector"
             force-layout="vertical"
           />
@@ -473,9 +484,12 @@ const collapseKey = ref('')
             :description="$t('msg.error.anErrorOccuredWhileAirtableBaseImport')"
           />
         </template>
-        <div v-else class="flex items-center gap-3">
-          <GeneralIcon icon="checkFill" class="text-white w-4 h-4" />
-          <span> {{ $t('msg.airtableImportSuccess') }} </span>
+        <div v-else class="flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <GeneralIcon icon="checkFill" class="text-white w-4 h-4" />
+            <span> {{ $t('msg.airtableImportSuccess') }} </span>
+          </div>
+          <div v-if="hasWarning" class="text-yellow-500">{{ $t('msg.airtableImportWarning') }}</div>
         </div>
       </div>
 

@@ -4,6 +4,33 @@ import type { MapFnArgs } from '~/db/mapFunctionName';
 import { concatKnexRaw } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 
+export const ALLOWED_DATEADD_UNITS = new Set([
+  'day',
+  'week',
+  'month',
+  'year',
+  'hour',
+  'minute',
+  'second',
+]);
+
+export function validateDateAddUnit(raw: string): string {
+  const unit = raw.replace(/["']/g, '').trim().toLowerCase();
+  if (!ALLOWED_DATEADD_UNITS.has(unit)) {
+    NcError.badRequest(`Invalid DATEADD unit: ${unit}`);
+  }
+  return unit;
+}
+
+// SQL-level sanitization for dynamic unit values (field references, expressions).
+// Returns a CASE expression that constrains the value to valid units at query time.
+export function safeDateAddUnitSQL(knex: Knex, unitBuilder: any): Knex.Raw {
+  const branches = [...ALLOWED_DATEADD_UNITS]
+    .map((u) => `WHEN '${u}' THEN '${u}'`)
+    .join(' ');
+  return knex.raw(`CASE LOWER(?) ${branches} ELSE 'day' END`, [unitBuilder]);
+}
+
 async function treatArgAsConditionalExp(
   args: MapFnArgs,
   argument = args.pt?.arguments?.[0],

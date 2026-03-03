@@ -25,11 +25,11 @@ const { tooltipText } = storeToRefs(store)
 }
 
 .tooltip-dark {
-  @apply bg-gray-800 text-white;
+  @apply bg-gray-800 text-white dark:!bg-[#3a3f4b];
 }
 
 .tooltip-light {
-  @apply bg-gray-200 text-gray-800;
+  @apply bg-nc-bg-gray-medium text-nc-content-gray;
 }
 
 .tooltip-enter-active,

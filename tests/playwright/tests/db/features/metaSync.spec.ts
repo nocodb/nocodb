@@ -52,6 +52,7 @@ test.describe('Meta sync', () => {
     await dbExec(`CREATE TABLE table1 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
     await dbExec(`CREATE TABLE table2 (id INT NOT NULL, col1 INT NULL, PRIMARY KEY (id))`);
 
+    await dashboard.rootPage.waitForTimeout(1000);
     await metaData.clickReload();
     await dashboard.rootPage.waitForTimeout(5000);
 

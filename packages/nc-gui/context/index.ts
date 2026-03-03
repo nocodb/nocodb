@@ -17,11 +17,13 @@ export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Sy
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
 export const IsCalendarInj: InjectionKey<Ref<boolean>> = Symbol('is-calendar-injection')
+export const IsTimelineInj: InjectionKey<Ref<boolean>> = Symbol('is-timeline-injection')
 export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')
 export const IsGridInj: InjectionKey<Ref<boolean>> = Symbol('is-grid-injection')
 export const IsGroupByInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-injection')
 export const IsGroupByLabelInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-label-injection')
 export const IsGalleryInj: InjectionKey<Ref<boolean>> = Symbol('is-gallery-injection')
+export const IsListInj: InjectionKey<Ref<boolean>> = Symbol('is-list-injection')
 export const IsKanbanInj: InjectionKey<Ref<boolean>> = Symbol('is-kanban-injection')
 export const IsDashboardInj: InjectionKey<Ref<boolean>> = Symbol('is-dashboard-injection')
 export const IsLockedInj: InjectionKey<Ref<boolean>> = Symbol('is-locked-injection')
@@ -34,7 +36,7 @@ export const IsAllowedInj: InjectionKey<Ref<boolean>> = Symbol('is-allowed-injec
 export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
-
+export const isWorkflowInj: InjectionKey<Ref<boolean>> = Symbol('is-workflow-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<
   EventHook<{
@@ -98,8 +100,9 @@ export const TreeViewInj: InjectionKey<{
     disableTitleDiffCheck?: boolean,
   ) => void
   openViewDescriptionDialog: (view: ViewType) => void
-  openAutomationDescriptionDialog?: (automation: any) => void
+  openScriptDescriptionDialog?: (script: any) => void
   openDashboardDescriptionDialog?: (dashboard: any) => void
+  openWorkflowDescriptionDialog?: (workflow: any) => void
   openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'table' | 'main' | 'layout'; value?: any }
   tableRenameId: Ref<string>
@@ -148,3 +151,18 @@ export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | Comp
   Symbol('extension-config-injection')
 
 export const IsOrgBillingInj: InjectionKey<Ref<boolean>> = Symbol('is-org-billing-injection')
+
+export const IsTemplateModeInj: InjectionKey<Ref<boolean>> = Symbol('is-template-mode-injection')
+
+export const BlueprintParentTableIdInj: InjectionKey<Ref<string | undefined>> = Symbol('blueprint-parent-table-id-injection')
+
+/** Breadcrumb trail for nested sub-record forms (e.g., ['Project Template', 'Tasks']) */
+export const TemplateBreadcrumbsInj: InjectionKey<Ref<string[]>> = Symbol('template-breadcrumbs-injection')
+
+export const WorkflowVariableInj: InjectionKey<{
+  selectedNodeId: Ref<string | null>
+  getAvailableVariablesFlat: (nodeId: string) => any[]
+  getAvailableVariables: (nodeId: string) => Array<{ nodeId: string; nodeTitle: string; variables: any[] }>
+}> = Symbol('workflow-variable-injection')
+
+export const IsWsBaseListModalInj: InjectionKey<Ref<boolean>> = Symbol('is-ws-base-list-modal-injection')

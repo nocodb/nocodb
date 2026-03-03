@@ -60,6 +60,35 @@ export const validateScriptName = {
   },
 }
 
+export const validateWorkflowName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (!value) {
+        // return 'Table name required'
+        return reject(new Error(t('msg.error.workflowNameRequired')))
+      }
+
+      if (value.length > 256) {
+        return reject(new Error(t('msg.error.workflowNameExceedsCharacters', { value: 256 })))
+      }
+
+      // exclude . / \
+      // rest all characters allowed
+      // https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/acreldb/n0rfg6x1shw0ppn1cwhco6yn09f7.htm#:~:text=By%20default%2C%20MySQL%20encloses%20column,not%20truncate%20a%20longer%20name.
+      const m = value.match(/[./\\]/g)
+      if (m) {
+        // return `Following characters are not allowed ${m.map((c) => JSON.stringify(c)).join(', ')}`
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}
+
 export const validateDashboardName = {
   validator: (_: unknown, value: string) => {
     return new Promise((resolve, reject) => {
@@ -71,6 +100,30 @@ export const validateDashboardName = {
 
       if (value.length > 256) {
         return reject(new Error(t('msg.error.dashboardNameExceedsCharacters', { value: 256 })))
+      }
+
+      const m = value.match(/[./\\]/g)
+      if (m) {
+        return reject(
+          new Error(`${t('msg.error.followingCharactersAreNotAllowed')} ${m.map((c) => JSON.stringify(c)).join(', ')}`),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}
+
+export const validateTeamName = {
+  validator: (_: unknown, value: string) => {
+    return new Promise((resolve, reject) => {
+      const { t } = getI18n().global
+
+      if (!value) {
+        return reject(new Error(t('msg.error.teamNameRequired')))
+      }
+
+      if (value.length > 256) {
+        return reject(new Error(t('msg.error.teamNameExceedsCharacters', { value: 256 })))
       }
 
       const m = value.match(/[./\\]/g)
@@ -127,7 +180,7 @@ export const layoutTitleValidator = {
   },
 }
 
-export const baseTitleValidator = (title: 'project' | 'connection' = 'project') => {
+export const baseTitleValidator = (title: string = 'objects.project') => {
   return {
     validator: (rule: any, value: any) => {
       const { t } = getI18n().global
@@ -137,7 +190,7 @@ export const baseTitleValidator = (title: 'project' | 'connection' = 'project') 
           reject(
             new Error(
               t('msg.error.projectNameExceeds50Characters', {
-                title: title === 'project' ? t('objects.project') : t('general.connection'),
+                title: t(title),
               }),
             ),
           )
@@ -147,7 +200,7 @@ export const baseTitleValidator = (title: 'project' | 'connection' = 'project') 
           reject(
             new Error(
               t('msg.error.projectNameCannotStartWithSpace', {
-                title: title === 'project' ? t('objects.project') : t('general.connection'),
+                title: t(title),
               }),
             ),
           )

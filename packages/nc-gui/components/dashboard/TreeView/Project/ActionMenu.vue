@@ -37,6 +37,8 @@ const isOptionVisible = computed(() => {
     baseOptions:
       (base.value?.sources?.[0]?.enabled || (base.value?.sources || []).length > 1) &&
       props.showBaseOption(base.value.sources[0]),
+    apiDocs: isUIAllowed('apiDocs'),
+    baseMiscSettings: isUIAllowed('baseMiscSettings'),
     baseDelete: isUIAllowed('baseDelete', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
   }
 })
@@ -114,7 +116,7 @@ const isOptionVisible = computed(() => {
 
     <!-- Swagger: Rest APIs -->
     <NcSubMenu
-      v-if="isUIAllowed('apiDocs')"
+      v-if="isOptionVisible.apiDocs"
       key="api"
       v-e="['e:api-docs']"
       data-testid="nc-sidebar-base-rest-apis"
@@ -149,10 +151,10 @@ const isOptionVisible = computed(() => {
       <DashboardTreeViewBaseOptions v-model:base="base" :source="base.sources[0]" />
     </template>
 
-    <NcDivider v-if="['baseMiscSettings', 'baseDelete'].some((permission) => isUIAllowed(permission))" />
+    <NcDivider v-if="isOptionVisible.baseMiscSettings || isOptionVisible.baseDelete" />
 
     <NcMenuItem
-      v-if="isUIAllowed('baseMiscSettings')"
+      v-if="isOptionVisible.baseMiscSettings"
       key="teamAndSettings"
       data-testid="nc-sidebar-base-settings"
       class="nc-sidebar-base-base-settings"

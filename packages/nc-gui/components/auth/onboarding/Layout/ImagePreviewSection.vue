@@ -149,7 +149,7 @@ defineExpose({
 <style lang="scss" scoped>
 .nc-view-image-box {
   @apply border border-nc-border-gray-medium bg-cover bg-no-repeat overflow-hidden rounded-lg absolute left-[240px] top-[50%] transform -translate-y-1/2 h-[min(760px,80%)] w-[1351px];
-  box-shadow: 0 0 12px 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 12px 4px rgba(var(--rgb-base), 0.08);
 
   &.nc-moscot-image-box {
     @apply overflow-visible;

@@ -3,6 +3,8 @@ export const useWidgetStore = defineStore('widget', () => {
 
   const activeDashboardWidgets = computed(() => [])
 
+  const isGaugeWidgetEnabled = computed(() => false)
+
   const selectedWidget = ref(null)
 
   const loadWidgets = async (_params: any) => []
@@ -30,6 +32,7 @@ export const useWidgetStore = defineStore('widget', () => {
     // Getters
     activeDashboardWidgets,
     selectedWidget,
+    isGaugeWidgetEnabled,
 
     // Actions
     loadWidgets,

@@ -25,8 +25,8 @@ const toggleFullScreen = () => {
   <Panel
     class="text-xs rounded-md p-2 z-50 nc-erd-histogram cursor-pointer shadow-md transition-colors"
     :class="{
-      'text-white bg-brand-500 md:(hover:bg-brand-600)': config.isFullScreen,
-      'border-1 border-gray-200 bg-white hover:bg-gray-100': !config.isFullScreen,
+      'text-white bg-nc-brand-500 md:(hover:bg-nc-brand-600)': config.isFullScreen,
+      'border-1 border-nc-border-gray-medium bg-nc-bg-default hover:bg-nc-bg-gray-light': !config.isFullScreen,
     }"
     :position="PanelPosition.BottomRight"
   >

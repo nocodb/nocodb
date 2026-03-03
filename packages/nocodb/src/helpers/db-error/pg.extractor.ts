@@ -3,6 +3,9 @@ import { DBError } from './utils';
 import type { Logger } from '@nestjs/common';
 import type { DBErrorExtractResult, IClientDbErrorExtractor } from './utils';
 
+const REGEX_DATE_TIME_OUT_OF_RANGE =
+  /date\/time field value out of range:\s*(.*)$/;
+
 export class PgDBErrorExtractor implements IClientDbErrorExtractor {
   constructor(
     private readonly option?: {
@@ -21,9 +24,76 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
     // todo: handle not null constraint error for all databases
     switch (error.code) {
       // postgres errors
-      case '23505':
-        message = 'This record already exists.';
+      case '22008': {
+        const matchedMessage = error.message.match(
+          REGEX_DATE_TIME_OUT_OF_RANGE,
+        )?.[0];
+        message = matchedMessage
+          ? `${matchedMessage[0].toUpperCase()}${matchedMessage.substring(1)}`
+          : 'Date/time field value out of range';
         break;
+      }
+      case '23505': {
+        message = 'This record already exists.';
+        _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
+
+        // Extract column name and duplicate value from error detail
+        // PostgreSQL error detail format: "Key ("Text_7")=(a) already exists."
+        const errorDetail = error?.detail || '';
+        let columnName: string | undefined;
+        let duplicateValue: string | undefined;
+
+        if (errorDetail) {
+          // Extract column name from pattern: Key ("column_name")= or Key (column_name)=
+          const columnNameMatch = errorDetail.match(/Key\s*\(([^)]+)\)\s*=/);
+          if (columnNameMatch) {
+            // Remove surrounding quotes if present and get first column if composite
+            columnName = columnNameMatch[1]
+              .split(',')[0]
+              .trim()
+              .replace(/^["']|["']$/g, '');
+          }
+
+          // Extract duplicate value from pattern: Key (...)=(value)
+          const valueMatch = errorDetail.match(
+            /Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/,
+          );
+          if (valueMatch) {
+            // Remove surrounding quotes if present
+            duplicateValue = valueMatch[1].trim().replace(/^["']|["']$/g, '');
+          }
+        }
+
+        // Include extracted information in _extra if available
+        if (columnName || duplicateValue) {
+          _extra = {};
+          if (columnName) {
+            _extra.column = columnName;
+          }
+          if (duplicateValue !== undefined) {
+            _extra.value = duplicateValue;
+          }
+
+          // Update message to be more descriptive if we have column info
+          if (columnName) {
+            if (
+              duplicateValue === 'unknown' ||
+              duplicateValue === undefined ||
+              duplicateValue === null
+            ) {
+              message = `${columnName} field unique constraint violation.`;
+            } else {
+              message = `${columnName} field unique constraint violation. Value '${duplicateValue}' already exists.`;
+            }
+          }
+        }
+
+        // Note: This is a fallback message. If handleUniqueConstraintError is called
+        // before this extractor, it will throw UniqueConstraintViolationError with
+        // proper field name. This extractor only processes errors that weren't
+        // handled by handleUniqueConstraintError.
+        break;
+      }
       case '42601':
         message = 'There was a syntax error in your SQL query.';
         break;
@@ -174,16 +244,30 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
           }
         }
         break;
+      case '40001': // serialization_failure
+        message = 'Transaction serialization failure. Please retry.';
+        httpStatus = 409;
+        break;
 
+      case '53300': // too_many_connections
+        message = 'Too many database connections.';
+        httpStatus = 503;
+        break;
       default:
+        this.option.dbErrorLogger.error(
+          `${error.code} is not handled on database pg`,
+        );
+        message = `An error occurred when querying postgresql database.`;
+        httpStatus = 500;
         return;
     }
 
     return {
-      error: NcErrorType.DATABASE_ERROR,
+      error: NcErrorType.ERR_DATABASE_OP_FAILED,
       message,
       code: error.code,
       httpStatus,
+      ...(_extra && { details: _extra }),
     };
   }
 }

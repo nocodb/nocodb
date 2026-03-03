@@ -3,6 +3,7 @@ import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType 
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type Record from '~icons/*'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 // todo: merge with base store
 export const useBases = defineStore('basesStore', () => {
@@ -14,7 +15,11 @@ export const useBases = defineStore('basesStore', () => {
 
   const { isUIAllowed } = useRoles()
 
+  const baseCreateMode = ref<NcBaseCreateMode | null>(null)
+
   const baseRoles = ref<Record<string, any>>({})
+
+  const workspaceBasesMap = ref<Map<string, Map<string, NcProject>>>(new Map())
 
   const bases = ref<Map<string, NcProject>>(new Map())
 
@@ -38,8 +43,6 @@ export const useBases = defineStore('basesStore', () => {
 
     return route.value.params.baseId as string | undefined
   })
-
-  const showProjectList = ref<boolean>(route.value.params.typeOrId === 'base' ? false : !route.value.params.baseId)
 
   const baseHomeSearchQuery = ref<string>('')
 
@@ -195,8 +198,6 @@ export const useBases = defineStore('basesStore', () => {
     if (!base) return false
 
     return tableStore.baseTables.get(baseId)!.length === 0
-
-    return false
   }
 
   function isProjectPopulated(baseId: string) {
@@ -204,6 +205,11 @@ export const useBases = defineStore('basesStore', () => {
     if (!base) return false
 
     return !!(base.sources?.length && tableStore.baseTables.get(baseId))
+  }
+
+  function setProjectsLoaded() {
+    isProjectsLoading.value = false
+    isProjectsLoaded.value = true
   }
 
   // actions
@@ -295,7 +301,7 @@ export const useBases = defineStore('basesStore', () => {
     await api.base.delete(baseId)
     bases.value.delete(baseId)
     tableStore.baseTables.delete(baseId)
-
+    extensionUserPrefsManager.deleteBase(baseId)
     await loadProjects()
   }
 
@@ -401,35 +407,6 @@ export const useBases = defineStore('basesStore', () => {
     },
   )
 
-  /**
-   * Will have to show base home page sidebar if any base/table/view/script is active
-   */
-  watch(
-    [() => route.value.params.baseId, () => route.value.params.viewId, () => route.value.params.viewTitle],
-    ([newBaseId, newTableId, newViewId], [oldBaseId, oldTableId, oldViewId]) => {
-      const shouldShowProjectList = !(
-        (newBaseId && newBaseId !== oldBaseId) ||
-        newTableId !== oldTableId ||
-        newViewId !== oldViewId
-      )
-
-      if (showProjectList.value === shouldShowProjectList) return
-
-      showProjectList.value = shouldShowProjectList
-    },
-  )
-
-  watch([() => basesList.value.length, () => isProjectsLoaded.value], ([baseListLength, newIsProjectsLoaded]) => {
-    /**
-     * Use case:
-     * If project list is empty and showProjectList is false,
-     * then we have to show project list else it will stuck in loading state (blank sidebar state)
-     */
-    if (baseListLength || !newIsProjectsLoaded || showProjectList.value) return
-
-    showProjectList.value = true
-  })
-
   watch(activeProjectId, () => {
     ncLastVisitedBase().set(activeProjectId.value)
   })
@@ -438,7 +415,27 @@ export const useBases = defineStore('basesStore', () => {
     // this is a placeholder function
   }
 
+  /**
+   * Teams section start here
+   */
+  const isLoadingBaseTeams = ref(true)
+
+  const basesTeams = ref<Map<string, Record<string, any>[]>>(new Map())
+
+  const getBaseTeams = async (..._args: any[]) => {}
+
+  const baseTeamList = async (..._args: any[]) => {}
+  const baseTeamGet = async (..._args: any[]) => {}
+  const baseTeamAdd = async (..._args: any[]) => {}
+  const baseTeamUpdate = async (..._args: any[]) => {}
+  const baseTeamRemove = async (..._args: any[]) => {}
+
+  /**
+   * Teams section end here
+   */
+
   return {
+    baseCreateMode,
     bases,
     basesList,
     loadProjects,
@@ -455,6 +452,7 @@ export const useBases = defineStore('basesStore', () => {
     isProjectPopulated,
     isProjectsLoading,
     isProjectsLoaded,
+    setProjectsLoaded,
     activeProjectId,
     openedProject,
     openedProjectBasesMap,
@@ -468,10 +466,20 @@ export const useBases = defineStore('basesStore', () => {
     basesUser,
     clearBasesUser,
     isDataSourceLimitReached,
-    showProjectList,
     baseHomeSearchQuery,
     getBaseRoles,
     baseRoles,
+    workspaceBasesMap,
+
+    // Base Teams
+    isLoadingBaseTeams,
+    basesTeams,
+    getBaseTeams,
+    baseTeamList,
+    baseTeamGet,
+    baseTeamAdd,
+    baseTeamUpdate,
+    baseTeamRemove,
   }
 })
 

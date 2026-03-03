@@ -1,6 +1,7 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import { v7 as uuidv7 } from 'uuid';
+import { BaseVersion } from 'nocodb-sdk';
 import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -8,11 +9,17 @@ import timezone from 'dayjs/plugin/timezone';
 import type * as knex from 'knex';
 import type { Knex } from 'knex';
 import type { Condition } from '~/db/CustomKnex';
+import XcMigrationSourcev0 from '~/meta/migrations/XcMigrationSourcev0';
 import XcMigrationSource from '~/meta/migrations/XcMigrationSource';
 import XcMigrationSourcev2 from '~/meta/migrations/XcMigrationSourcev2';
 import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
-import { MetaTable, RootScopes, RootScopeTables } from '~/utils/globals';
+import {
+  BaseRelatedMetaTables,
+  MetaTable,
+  RootScopes,
+  RootScopeTables,
+} from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
 import { isWorker } from '~/utils';
 
@@ -21,6 +28,10 @@ dayjs.extend(timezone);
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
+const nanoidWorkspace = customAlphabet(
+  '1234567890abcdefghijklmnopqrstuvwxyz',
+  7,
+);
 
 @Injectable()
 export class MetaService {
@@ -61,13 +72,110 @@ export class MetaService {
     return this.knexConnection;
   }
 
+  /***
+   * Generate nanoid for the given target
+   * @param target - Table name
+   * @returns {string} - Generated nanoid
+   * */
+  public async genNanoid(target: string) {
+    if (target === MetaTable.AUDIT) {
+      return uuidv7();
+    }
+
+    const prefixMap: { [key: string]: string } = {
+      [MetaTable.PROJECT]: 'p',
+      [MetaTable.SOURCES]: 'b',
+      [MetaTable.MODELS]: 'm',
+      [MetaTable.COLUMNS]: 'c',
+      [MetaTable.COL_RELATIONS]: 'l',
+      [MetaTable.COL_SELECT_OPTIONS]: 's',
+      [MetaTable.COL_LOOKUP]: 'lk',
+      [MetaTable.COL_ROLLUP]: 'rl',
+      [MetaTable.COL_FORMULA]: 'f',
+      [MetaTable.FILTER_EXP]: 'fi',
+      [MetaTable.SORT]: 'so',
+      [MetaTable.SHARED_VIEWS]: 'sv',
+      [MetaTable.ACL]: 'ac',
+      [MetaTable.FORM_VIEW]: 'fv',
+      [MetaTable.FORM_VIEW_COLUMNS]: 'fvc',
+      [MetaTable.GALLERY_VIEW]: 'gv',
+      [MetaTable.GALLERY_VIEW_COLUMNS]: 'gvc',
+      [MetaTable.KANBAN_VIEW]: 'kv',
+      [MetaTable.KANBAN_VIEW_COLUMNS]: 'kvc',
+      [MetaTable.CALENDAR_VIEW]: 'cv',
+      [MetaTable.CALENDAR_VIEW_COLUMNS]: 'cvc',
+      [MetaTable.CALENDAR_VIEW_RANGE]: 'cvr',
+      [MetaTable.TIMELINE_VIEW]: 'tv',
+      [MetaTable.TIMELINE_VIEW_COLUMNS]: 'tvc',
+      [MetaTable.TIMELINE_VIEW_RANGE]: 'tvr',
+      [MetaTable.USERS]: 'us',
+      [MetaTable.ORGS_OLD]: 'org',
+      [MetaTable.TEAMS]: 'tm',
+      [MetaTable.VIEWS]: 'vw',
+      [MetaTable.HOOKS]: 'hk',
+      [MetaTable.HOOK_LOGS]: 'hkl',
+      [MetaTable.API_TOKENS]: 'tkn',
+      [MetaTable.EXTENSIONS]: 'ext',
+      [MetaTable.COMMENTS]: 'com',
+      [MetaTable.COMMENTS_REACTIONS]: 'cre',
+      [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
+      [MetaTable.JOBS]: 'job',
+      [MetaTable.INTEGRATIONS]: 'int',
+      [MetaTable.FILE_REFERENCES]: 'at',
+      [MetaTable.COL_BUTTON]: 'btn',
+      [MetaTable.SNAPSHOT]: 'snap',
+      [MetaTable.SYNC_CONFIGS]: 'sync',
+      [MetaTable.PERMISSIONS]: 'perm',
+      [MetaTable.PERMISSION_SUBJECTS]: 'pers',
+      [MetaTable.DASHBOARDS]: 'dash',
+      [MetaTable.WIDGETS]: 'wgt',
+      [MetaTable.WORKSPACE]: 'w',
+      [MetaTable.LIST_VIEW]: 'lv',
+      [MetaTable.LIST_VIEW_COLUMNS]: 'lvc',
+      [MetaTable.LIST_VIEW_LEVELS]: 'lvl',
+      [MetaTable.DEPENDENCY_TRACKER]: 'dt',
+      [MetaTable.INSTALLATIONS]: 'inst',
+      [MetaTable.AUTOMATIONS]: 'aut',
+      [MetaTable.AUTOMATION_EXECUTIONS]: 'auex',
+      [MetaTable.MANAGED_APPS]: 'ma',
+      [MetaTable.MANAGED_APP_VERSIONS]: 'mav',
+      [MetaTable.MANAGED_APP_DEPLOYMENT_LOGS]: 'madl',
+      [MetaTable.SANDBOXES]: 'sb',
+      [MetaTable.SCIM_CONFIG]: 'scfg',
+      [MetaTable.RLS_POLICIES]: 'rlp',
+      [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
+    };
+
+    const prefix = prefixMap[target] || 'nc';
+
+    // using nanoid to avoid collision with existing ids when duplicating
+    return `${prefix}${
+      target === MetaTable.WORKSPACE ? nanoidWorkspace() : nanoidv2()
+    }`;
+  }
+
+  // private connection: XKnex;
+  // todo: need to fix
+  protected trx: Knex.Transaction;
+  protected nested: number;
+
   public contextCondition(
     query: Knex.QueryBuilder,
     workspace_id: string,
     base_id: string,
     target: string,
   ) {
-    if (workspace_id === base_id || base_id === RootScopes.WORKSPACE) {
+    if (workspace_id === base_id) {
+      return;
+    }
+
+    if (target === MetaTable.WORKSPACE) {
+      return;
+    }
+
+    query.where('fk_workspace_id', workspace_id);
+
+    if (base_id === RootScopes.WORKSPACE) {
       return;
     }
 
@@ -79,28 +187,9 @@ export class MetaService {
   }
 
   /***
-   * Get single record from meta data
-   * @param workspace_id - Workspace id
-   * @param base_id - Base alias
-   * @param target - Table name
-   * @param idOrCondition - If string, will get the record with the given id. If object, will get the record with the given condition.
-   * @param fields - Fields to be selected
-   */
-  public async metaGet(
-    workspace_id: string,
-    base_id: string,
-    target: string,
-    idOrCondition: string | { [p: string]: any },
-    fields?: string[],
-    // xcCondition?
-  ): Promise<any> {
-    return this.metaGet2(workspace_id, base_id, target, idOrCondition, fields);
-  }
-
-  /***
    * Insert record into meta data
-   * @param fk_workspace_id - Base id
-   * @param dbAlias - Database alias
+   * @param workspace_id - Workspace id
+   * @param base_id - Base id
    * @param target - Table name
    * @param data - Data to be inserted
    * @param ignoreIdGeneration - If true, will not generate id for the record
@@ -134,7 +223,16 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
+      insertObj.fk_workspace_id = workspace_id;
+
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -143,11 +241,15 @@ export class MetaService {
       if (base_id !== RootScopes.WORKSPACE) insertObj.base_id = base_id;
     }
 
-    await this.knexConnection(target).insert({
-      ...insertObj,
-      created_at: this.now(),
-      updated_at: this.now(),
-    });
+    const at = this.now();
+    insertObj.created_at = at;
+    insertObj.updated_at = at;
+
+    const qb = this.knexConnection(target).insert(insertObj);
+
+    this.logHelper(workspace_id, base_id, target, qb);
+
+    await qb;
 
     return insertObj;
   }
@@ -155,7 +257,7 @@ export class MetaService {
   /***
    * Insert multiple records into meta data
    * @param workspace_id - Workspace id
-   * @param base_id - Source id
+   * @param base_id - Base id
    * @param target - Table name
    * @param data - Data to be inserted
    * @param ignoreIdGeneration - If true, will not generate id for the record
@@ -194,27 +296,43 @@ export class MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
         });
       }
+
+      commonProps.fk_workspace_id = workspace_id;
       commonProps.base_id = base_id;
     }
 
     for (const d of Array.isArray(data) ? data : [data]) {
+      const id =
+        d?.id || (ignoreIdGeneration ? null : await this.genNanoid(target));
       const tempObj = {
         ...d,
-        ...(ignoreIdGeneration
-          ? {}
-          : { id: d?.id || (await this.genNanoid(target)) }),
+        ...(ignoreIdGeneration ? {} : { id }),
         ...commonProps,
       };
       insertObj.push(tempObj);
     }
 
-    await this.knexConnection.batchInsert(target, insertObj);
+    const BATCH_SIZE =
+      this.knexConnection.client.config.client === 'sqlite3' ? 200 : 10000;
+    for (let i = 0; i < insertObj.length; i += BATCH_SIZE) {
+      await this.knexConnection.batchInsert(
+        target,
+        insertObj.slice(i, i + BATCH_SIZE),
+      );
+    }
 
     return insertObj;
   }
@@ -258,6 +376,13 @@ export class MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -295,74 +420,6 @@ export class MetaService {
   }
 
   /***
-   * Generate nanoid for the given target
-   * @param target - Table name
-   * @returns {string} - Generated nanoid
-   * */
-  public async genNanoid(target: string) {
-    if (target === MetaTable.AUDIT) {
-      return uuidv7();
-    }
-
-    const prefixMap: { [key: string]: string } = {
-      [MetaTable.PROJECT]: 'p',
-      [MetaTable.SOURCES]: 'b',
-      [MetaTable.MODELS]: 'm',
-      [MetaTable.COLUMNS]: 'c',
-      [MetaTable.COL_RELATIONS]: 'l',
-      [MetaTable.COL_SELECT_OPTIONS]: 's',
-      [MetaTable.COL_LOOKUP]: 'lk',
-      [MetaTable.COL_ROLLUP]: 'rl',
-      [MetaTable.COL_FORMULA]: 'f',
-      [MetaTable.FILTER_EXP]: 'fi',
-      [MetaTable.SORT]: 'so',
-      [MetaTable.SHARED_VIEWS]: 'sv',
-      [MetaTable.ACL]: 'ac',
-      [MetaTable.FORM_VIEW]: 'fv',
-      [MetaTable.FORM_VIEW_COLUMNS]: 'fvc',
-      [MetaTable.GALLERY_VIEW]: 'gv',
-      [MetaTable.GALLERY_VIEW_COLUMNS]: 'gvc',
-      [MetaTable.KANBAN_VIEW]: 'kv',
-      [MetaTable.KANBAN_VIEW_COLUMNS]: 'kvc',
-      [MetaTable.CALENDAR_VIEW]: 'cv',
-      [MetaTable.CALENDAR_VIEW_COLUMNS]: 'cvc',
-      [MetaTable.CALENDAR_VIEW_RANGE]: 'cvr',
-      [MetaTable.USERS]: 'us',
-      [MetaTable.ORGS_OLD]: 'org',
-      [MetaTable.TEAMS]: 'tm',
-      [MetaTable.VIEWS]: 'vw',
-      [MetaTable.HOOKS]: 'hk',
-      [MetaTable.HOOK_LOGS]: 'hkl',
-      [MetaTable.API_TOKENS]: 'tkn',
-      [MetaTable.EXTENSIONS]: 'ext',
-      [MetaTable.COMMENTS]: 'com',
-      [MetaTable.COMMENTS_REACTIONS]: 'cre',
-      [MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE]: 'cnp',
-      [MetaTable.JOBS]: 'job',
-      [MetaTable.INTEGRATIONS]: 'int',
-      [MetaTable.FILE_REFERENCES]: 'at',
-      [MetaTable.COL_BUTTON]: 'btn',
-      [MetaTable.SNAPSHOT]: 'snap',
-      [MetaTable.SCRIPTS]: 'scr',
-      [MetaTable.SYNC_CONFIGS]: 'sync',
-      [MetaTable.PERMISSIONS]: 'perm',
-      [MetaTable.PERMISSION_SUBJECTS]: 'pers',
-      [MetaTable.DASHBOARDS]: 'dash',
-      [MetaTable.WIDGETS]: 'wgt',
-    };
-
-    const prefix = prefixMap[target] || 'nc';
-
-    // using nanoid to avoid collision with existing ids when duplicating
-    return `${prefix}${nanoidv2()}`;
-  }
-
-  // private connection: XKnex;
-  // todo: need to fix
-  protected trx: Knex.Transaction;
-  protected nested: number;
-
-  /***
    * Delete meta data
    * @param workspace_id - Workspace id
    * @param base_id - Base id
@@ -396,7 +453,14 @@ export class MetaService {
         });
       }
     } else {
-      if (!base_id) {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
+      if (!base_id && base_id !== RootScopes.WORKSPACE) {
         NcError.metaError({
           message: 'Base ID is required',
           sql: '',
@@ -422,7 +486,28 @@ export class MetaService {
     // Apply context condition
     this.contextCondition(query, workspace_id, base_id, target);
 
+    this.logHelper(workspace_id, base_id, target, query);
+
     return query.del();
+  }
+
+  /***
+   * Get single record from meta data
+   * @param workspace_id - Workspace id
+   * @param base_id - Base alias
+   * @param target - Table name
+   * @param idOrCondition - If string, will get the record with the given id. If object, will get the record with the given condition.
+   * @param fields - Fields to be selected
+   */
+  public async metaGet(
+    workspace_id: string,
+    base_id: string,
+    target: string,
+    idOrCondition: string | { [p: string]: any },
+    fields?: string[],
+    // xcCondition?
+  ): Promise<any> {
+    return this.metaGet2(workspace_id, base_id, target, idOrCondition, fields);
   }
 
   /***
@@ -452,8 +537,24 @@ export class MetaService {
       query.select(...fields);
     }
 
-    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
-      // bypass
+    if (
+      workspace_id === RootScopes.FULL_BYPASS &&
+      base_id === RootScopes.FULL_BYPASS
+    ) {
+      // With full bypass, no context condition is applied
+    } else if (
+      workspace_id === RootScopes.BYPASS &&
+      base_id === RootScopes.BYPASS
+    ) {
+      // bypass is only allowed for v2 bases, so we join the base table to ensure the base is v2
+      if (BaseRelatedMetaTables.includes(target as MetaTable)) {
+        query.whereExists(function () {
+          this.select(1)
+            .from(`${MetaTable.PROJECT} as p`)
+            .whereRaw('p.id = base_id')
+            .andWhere('p.version', BaseVersion.V2);
+        });
+      }
     } else if (workspace_id === base_id) {
       if (!Object.values(RootScopes).includes(workspace_id as RootScopes)) {
         NcError.metaError({
@@ -469,6 +570,13 @@ export class MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -480,6 +588,8 @@ export class MetaService {
     }
 
     if (!idOrCondition) {
+      this.logHelper(workspace_id, base_id, target, query);
+
       return null;
     }
 
@@ -488,34 +598,10 @@ export class MetaService {
     } else {
       query.where(idOrCondition);
     }
+
+    this.logHelper(workspace_id, base_id, target, query);
+
     return query.first();
-  }
-
-  /***
-   * Get order value for the next record
-   * @param target - Table name
-   * @param condition - Condition to be applied
-   * @param xcCondition - Additional nested or complex condition to be added to the query.
-   * @returns {Promise<number>} - Order value
-   * */
-  public async metaGetNextOrder(
-    target: string,
-    condition: { [key: string]: any },
-    xcCondition?: Condition,
-  ): Promise<number> {
-    const query = this.knexConnection(target);
-
-    if (condition) {
-      query.where(condition);
-    }
-
-    if (xcCondition) {
-      (query as any).condition(xcCondition);
-    }
-
-    query.max('order', { as: 'order' });
-
-    return (+(await query.first())?.order || 0) + 1;
   }
 
   /***
@@ -554,6 +640,11 @@ export class MetaService {
         });
       }
 
+      const r = RootScopeTables[workspace_id];
+      if (!r) {
+        console.log('Invalid scope', RootScopeTables);
+      }
+
       if (!RootScopeTables[workspace_id].includes(target)) {
         NcError.metaError({
           message: 'Table not accessible from this scope',
@@ -561,6 +652,13 @@ export class MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -592,6 +690,8 @@ export class MetaService {
     if (args?.fields?.length) {
       query.select(...args.fields);
     }
+
+    this.logHelper(workspace_id, base_id, target, query);
 
     return query;
   }
@@ -635,6 +735,13 @@ export class MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -654,6 +761,8 @@ export class MetaService {
     }
 
     query.count(args?.aggField || 'id', { as: 'count' }).first();
+
+    this.logHelper(workspace_id, base_id, target, query);
 
     return +(await query)?.['count'] || 0;
   }
@@ -697,6 +806,13 @@ export class MetaService {
         });
       }
     } else {
+      if (!workspace_id) {
+        NcError.metaError({
+          message: 'Workspace ID is required',
+          sql: '',
+        });
+      }
+
       if (!base_id) {
         NcError.metaError({
           message: 'Base ID is required',
@@ -712,7 +828,8 @@ export class MetaService {
     if (!skipUpdatedAt) {
       data.updated_at = this.now();
     }
-    query.update({ ...data });
+
+    query.update(data);
     if (typeof idOrCondition !== 'object') {
       query.where('id', idOrCondition);
     } else if (idOrCondition) {
@@ -730,7 +847,67 @@ export class MetaService {
     // Apply context condition
     this.contextCondition(query, workspace_id, base_id, target);
 
+    this.logHelper(workspace_id, base_id, target, query);
+
     return await query;
+  }
+
+  /***
+   * Get order value for the next record
+   * @param target - Table name
+   * @param condition - Condition to be applied
+   * @param xcCondition - Additional nested or complex condition to be added to the query.
+   * @returns {Promise<number>} - Order value
+   * */
+  public async metaGetNextOrder(
+    target: string,
+    condition: { [key: string]: any },
+    xcCondition?: Condition,
+  ): Promise<number> {
+    const query = this.knexConnection(target);
+
+    if (condition) {
+      query.where(condition);
+    }
+
+    if (xcCondition) {
+      (query as any).condition(xcCondition);
+    }
+
+    query.max('order', { as: 'order' });
+
+    return (+(await query.first())?.order || 0) + 1;
+  }
+
+  protected async logHelper(workspace_id, base_id, target, q) {
+    const qStr = q.toQuery();
+
+    if (
+      (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) ||
+      (workspace_id === RootScopes.FULL_BYPASS &&
+        base_id === RootScopes.FULL_BYPASS)
+    ) {
+      return;
+    }
+
+    if (target === MetaTable.PROJECT) {
+      if (!qStr.includes('fk_workspace_id') || !qStr.includes('id')) {
+        if (!(workspace_id in RootScopeTables)) {
+          console.log(`Missing tenant isolation (${workspace_id}): ${qStr}`);
+          console.log(new Error().stack);
+        }
+      }
+    } else {
+      if (
+        !qStr.includes('fk_workspace_id') ||
+        (base_id !== RootScopes.WORKSPACE && !qStr.includes('base_id'))
+      ) {
+        if (!(workspace_id in RootScopeTables)) {
+          console.log(`Missing tenant isolation (${workspace_id}): ${qStr}`);
+          console.log(new Error().stack);
+        }
+      }
+    }
   }
 
   async commit() {
@@ -762,39 +939,10 @@ export class MetaService {
   }
 
   /***
-   * Update base config
-   * @param baseId - Base id
-   * @param config - Base config
-   * */
-  public async baseUpdate(baseId: string, config: any): Promise<any> {
-    if (!baseId) {
-      NcError.metaError({
-        message: 'Base Id is required to update base config',
-        sql: '',
-      });
-    }
-
-    try {
-      const base = {
-        config: CryptoJS.AES.encrypt(
-          JSON.stringify(config, null, 2),
-          'secret', // todo: tobe replaced - this.config?.auth?.jwt?.secret
-        ).toString(),
-      };
-      // todo: check base name used or not
-      await this.knexConnection('nc_projects').update(base).where({
-        id: baseId,
-      });
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  /***
    * Get base list with decrypted config
    * @returns {Promise<any[]>} - List of bases
    * */
-  public async baseList(): Promise<any[]> {
+  public async legacyProjectList(): Promise<any[]> {
     // check if table exists
     const tableExists = await this.knexConnection.schema.hasTable(
       'nc_projects',
@@ -842,14 +990,36 @@ export class MetaService {
       return true;
     }
 
+    /*
+      if xc_knex_migrations table exists, then run the migrations (Existing installations)
+      if xc_knex_migrations table does not exist, then run the migrations (Fresh installations)
+
+      Soon we will have a version where we will remove old migrations
+      So users will have to upgrade to specific version first and then to the latest version
+    */
+    if (await this.connection.schema.hasTable('xc_knex_migrations')) {
+      // see if there are records in the v1 migration table
+      const records = await this.connection('xc_knex_migrations')
+        .select('*')
+        .limit(1);
+
+      if (records.length > 0) {
+        await this.connection.migrate.latest({
+          migrationSource: new XcMigrationSource(),
+          tableName: 'xc_knex_migrations',
+        });
+        await this.connection.migrate.latest({
+          migrationSource: new XcMigrationSourcev2(),
+          tableName: 'xc_knex_migrationsv2',
+        });
+      }
+    }
+
     await this.connection.migrate.latest({
-      migrationSource: new XcMigrationSource(),
-      tableName: 'xc_knex_migrations',
+      migrationSource: new XcMigrationSourcev0(),
+      tableName: 'xc_knex_migrationsv0',
     });
-    await this.connection.migrate.latest({
-      migrationSource: new XcMigrationSourcev2(),
-      tableName: 'xc_knex_migrationsv2',
-    });
+
     return true;
   }
 

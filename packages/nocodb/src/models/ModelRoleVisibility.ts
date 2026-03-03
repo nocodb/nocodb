@@ -30,6 +30,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     baseId,
   ): Promise<ModelRoleVisibility[]> {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.MODEL_ROLE_VISIBILITY,
       [baseId],
     );
@@ -42,6 +43,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         MetaTable.MODEL_ROLE_VISIBILITY,
       );
       await NocoCache.setList(
+        context,
         CacheScope.MODEL_ROLE_VISIBILITY,
         [baseId],
         data,
@@ -60,6 +62,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       args.fk_view_id &&
       args.role &&
       (await NocoCache.get(
+        context,
         `${CacheScope.MODEL_ROLE_VISIBILITY}:${args.fk_view_id}:${args.role}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -80,6 +83,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
         },
       );
       await NocoCache.set(
+        context,
         `${CacheScope.MODEL_ROLE_VISIBILITY}:${args.fk_view_id}:${args.role}`,
         data,
       );
@@ -109,6 +113,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.MODEL_ROLE_VISIBILITY}:${fk_view_id}:${role}`,
       {
         disabled: body.disabled,
@@ -142,6 +147,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
       },
     );
     await NocoCache.deepDel(
+      context,
       `${CacheScope.MODEL_ROLE_VISIBILITY}:${fk_view_id}:${role}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -186,6 +192,7 @@ export default class ModelRoleVisibility implements ModelRoleVisibilityType {
     ).then(async (modelRoleVisibility) => {
       const key = `${CacheScope.MODEL_ROLE_VISIBILITY}:${body.fk_view_id}:${body.role}`;
       await NocoCache.appendToList(
+        context,
         CacheScope.MODEL_ROLE_VISIBILITY,
         [context.base_id],
         key,

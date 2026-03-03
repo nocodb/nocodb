@@ -1,7 +1,15 @@
-import { OrgUserRoles, ProjectRoles, SourceRestriction } from 'nocodb-sdk'
+import { OrgUserRoles, ProjectRoles, SourceRestriction, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
+  workspace: [
+    WorkspaceUserRoles.NO_ACCESS,
+    WorkspaceUserRoles.VIEWER,
+    WorkspaceUserRoles.COMMENTER,
+    WorkspaceUserRoles.EDITOR,
+    WorkspaceUserRoles.CREATOR,
+    WorkspaceUserRoles.OWNER,
+  ],
   base: [
     ProjectRoles.NO_ACCESS,
     ProjectRoles.VIEWER,
@@ -27,16 +35,8 @@ const rolePermissions = {
   [OrgUserRoles.SUPER_ADMIN]: '*',
   [OrgUserRoles.CREATOR]: {
     include: {
-      workspaceSettings: true,
       superAdminUserManagement: true,
-      baseCreate: true,
-      baseMove: true,
-      baseDelete: true,
-      baseDuplicate: true,
-      newUser: true,
       orgAdminPanel: true,
-      workspaceAuditList: true,
-      workspaceIntegrations: true,
     },
   },
   [OrgUserRoles.VIEWER]: {
@@ -45,12 +45,46 @@ const rolePermissions = {
     },
   },
 
+  // Workspace role permissions
+  [WorkspaceUserRoles.OWNER]: {
+    include: {
+      workspaceSettings: true,
+      workspaceAuditList: true,
+      workspaceIntegrations: true,
+      workspaceManage: true,
+      baseDelete: true,
+    },
+  },
+  [WorkspaceUserRoles.CREATOR]: {
+    include: {
+      baseCreate: true,
+      baseMove: true,
+      baseDuplicate: true,
+      newUser: true,
+    },
+  },
+  [WorkspaceUserRoles.EDITOR]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.COMMENTER]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.VIEWER]: {
+    include: {
+      workspaceCollaborators: true,
+    },
+  },
+  [WorkspaceUserRoles.NO_ACCESS]: {
+    include: {},
+  },
+
   // Base role permissions
   [ProjectRoles.OWNER]: {
     include: {
       baseDelete: true,
       manageSnapshot: true,
       migrateBase: true,
+      baseAuditList: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -64,6 +98,7 @@ const rolePermissions = {
       tableDelete: true,
       tableDescriptionEdit: true,
       tableDuplicate: true,
+      tablePermission: true,
       tableSort: true,
       layoutRename: true,
       layoutDelete: true,
@@ -86,7 +121,6 @@ const rolePermissions = {
       baseRename: true,
       baseDuplicate: true,
       sourceCreate: true,
-      baseAuditList: true,
 
       // Row colouring
       rowColourUpdate: true,
@@ -96,22 +130,29 @@ const rolePermissions = {
       // Extensions
       extensionCreate: true,
       extensionDelete: true,
+
+      // Creator specific permissions (previously inherited from Editor)
+      sortSync: true,
+      filterSync: true,
+      groupBySync: true,
+      viewFieldEdit: true,
     },
   },
   [ProjectRoles.EDITOR]: {
     include: {
       dataInsert: true,
       dataEdit: true,
-      sortSync: true,
-      filterSync: true,
-      filterChildrenRead: true,
-      viewFieldEdit: true,
+      viewFieldDataEdit:
+        true /** For editor just show hidden field in expanded form, fields menu and will not allow to configure it */,
+      filterChildrenList: true,
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
 
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,
+      sortList: true,
+      filterList: true,
 
       // Extensions
       extensionUpdate: true,
@@ -143,7 +184,7 @@ const rolePermissions = {
   [ProjectRoles.NO_ACCESS]: {
     include: {},
   },
-} as Record<OrgUserRoles | ProjectRoles, Perm | '*'>
+} as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>
 
 // excluded/restricted permissions at source level based on source restriction
 // `true` means permission is restricted and `false`/missing means permission is allowed
@@ -225,5 +266,8 @@ Object.values(roleScopes).forEach((roles) => {
     roleIndex++
   }
 })
+
+// Collapse org roles — VIEWER gets same as CREATOR (EE pattern)
+rolePermissions[OrgUserRoles.VIEWER] = rolePermissions[OrgUserRoles.CREATOR]
 
 export { rolePermissions }

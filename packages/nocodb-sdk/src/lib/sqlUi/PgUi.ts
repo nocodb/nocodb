@@ -1764,7 +1764,8 @@ export class PgUi implements SqlUi {
         colProp.dt = 'timestamp';
         break;
       case 'AutoNumber':
-        colProp.dt = 'int';
+        colProp.dt = 'int8';
+        colProp.ai = true;
         break;
       case 'Barcode':
         colProp.dt = 'character varying';
@@ -1775,8 +1776,16 @@ export class PgUi implements SqlUi {
       case 'JSON':
         colProp.dt = 'json';
         break;
+      case 'Meta':
+        colProp.dt = 'jsonb';
+        break;
       case 'Order':
         colProp.dt = 'numeric';
+        break;
+      case 'UUID':
+        colProp.dt = 'uuid';
+        colProp.cdf = 'gen_random_uuid()';
+        colProp.rqd = false;
         break;
       default:
         colProp.dt = 'character varying';
@@ -2056,6 +2065,9 @@ export class PgUi implements SqlUi {
           'path',
           'circle',
         ];
+
+      case 'UUID':
+        return ['uuid'];
 
       default:
         return dbTypes;

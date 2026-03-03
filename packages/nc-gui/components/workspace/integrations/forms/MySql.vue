@@ -9,7 +9,7 @@
   @apply w-3/4 flex flex-col;
 
   .panel {
-    @apply border-1 border-gray-200 p-6 rounded-lg;
+    @apply border-1 border-nc-border-gray-medium p-6 rounded-lg;
   }
 }
 </style>

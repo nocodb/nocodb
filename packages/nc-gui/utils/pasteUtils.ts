@@ -8,7 +8,7 @@ export const valueToCopy = (
     isPg: (sourceId: string) => boolean
     isMysql: (sourceId: string) => boolean
     meta: TableType
-    metas: { [idOrTitle: string]: TableType | any }
+    metas?: { [idOrTitle: string]: TableType | any }
   },
   option?: {
     skipUidt?: UITypes[]

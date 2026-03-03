@@ -10,7 +10,7 @@ export async function getCommandPaletteForUserWorkspace(
 ) {
   const key = `${CacheScope.CMD_PALETTE}:${userId}:${workspaceId}`;
 
-  let cmdData = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+  let cmdData = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
 
   if (!cmdData) {
     cmdData = {
@@ -29,7 +29,6 @@ export async function getCommandPaletteForUserWorkspace(
           't.order as table_order',
           'v.id as view_id',
           'v.title as view_title',
-          'v.is_default as view_is_default',
           'v.type as view_type',
           'v.meta as view_meta',
           'v.order as view_order',
@@ -59,10 +58,12 @@ export async function getCommandPaletteForUserWorkspace(
         }),
     };
 
-    await NocoCache.set(key, cmdData);
+    await NocoCache.set('root', key, cmdData);
     // append to lists for later cleanup
-    await NocoCache.set(`${CacheScope.CMD_PALETTE}:ws`, [key]);
-    await NocoCache.set(`${CacheScope.CMD_PALETTE}:user:${userId}`, [key]);
+    await NocoCache.set('root', `${CacheScope.CMD_PALETTE}:ws`, [key]);
+    await NocoCache.set('root', `${CacheScope.CMD_PALETTE}:user:${userId}`, [
+      key,
+    ]);
   }
 
   return cmdData?.data?.sort((a, b) => {
@@ -81,22 +82,27 @@ export async function getCommandPaletteForUserWorkspace(
 
 export async function cleanCommandPaletteCache(_ws?: string) {
   const keys = await NocoCache.get(
+    'root',
     `${CacheScope.CMD_PALETTE}:ws`,
     CacheGetType.TYPE_ARRAY,
   );
 
   if (keys) {
-    await NocoCache.del([...keys, `${CacheScope.CMD_PALETTE}`]);
+    await NocoCache.del('root', [...keys, `${CacheScope.CMD_PALETTE}`]);
   }
 }
 
 export async function cleanCommandPaletteCacheForUser(userId: string) {
   const keys = await NocoCache.get(
+    'root',
     `${CacheScope.CMD_PALETTE}:user:${userId}`,
     CacheGetType.TYPE_ARRAY,
   );
 
   if (keys) {
-    await NocoCache.del([...keys, `${CacheScope.CMD_PALETTE}:${userId}`]);
+    await NocoCache.del('root', [
+      ...keys,
+      `${CacheScope.CMD_PALETTE}:${userId}`,
+    ]);
   }
 }

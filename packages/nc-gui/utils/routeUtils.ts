@@ -35,3 +35,14 @@ export const isPublicRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
 
   return route.meta?.public
 }
+
+export const isSharedBaseOrErdOrViewRoute = (route: RouteLocationNormalizedLoadedGeneric) => {
+  if (!route) return false
+
+  return (
+    isSharedViewRoute(route) ||
+    isSharedFormViewRoute(route) ||
+    route.params.typeOrId === 'base' ||
+    route.params.typeOrId === 'ERD'
+  )
+}

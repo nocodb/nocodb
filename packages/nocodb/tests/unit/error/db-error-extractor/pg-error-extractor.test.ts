@@ -37,6 +37,7 @@ function pgErrorExtractorTests() {
       model: setup.tables.table1,
       view,
       context: setup.ctx,
+      schema: source.getConfig()?.schema,
     });
   });
 
@@ -47,7 +48,7 @@ function pgErrorExtractorTests() {
       return;
     }
     const knex = baseModelSql.dbDriver;
-    const columnTitle = (await _tables.table1.getColumns()).find(
+    const columnTitle = (await _tables.table1.getColumns(_ctx)).find(
       (col) => col.title === 'Title',
     );
     try {
@@ -72,11 +73,14 @@ function pgErrorExtractorTests() {
       return;
     }
     const knex = baseModelSql.dbDriver;
-    const columnTitle = (await _tables.table1.getColumns()).find(
+    const columnTitle = (await _tables.table1.getColumns(_ctx)).find(
       (col) => col.title === 'Title',
     );
     try {
-      await knex(_tables.table1.table_name).select(
+      const path = _source.getConfig()?.schema
+        ? `${_source.getConfig()?.schema}.${_tables.table1.table_name}`
+        : _tables.table1.table_name;
+      await knex(path).select(
         knex.raw(`SUBSTRING (?, 0, -1) as field`, [
           `${_tables.table1.table_name}.${columnTitle.column_name}`,
         ]),

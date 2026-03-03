@@ -78,7 +78,7 @@ export class OrgTokensService {
       !extractRolesObj(param.user.roles)[OrgUserRoles.SUPER_ADMIN] &&
       apiToken.fk_user_id !== fk_user_id
     ) {
-      NcError.notFound('Token not found');
+      NcError._.notFound('Token not found');
     }
     const res = await ApiToken.delete(param.tokenId);
 

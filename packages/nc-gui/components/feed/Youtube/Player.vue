@@ -25,7 +25,7 @@ const watchVideo = () => {
 </script>
 
 <template>
-  <div class="mt-6 border-1 !bg-white recent-card !rounded-2xl border-gray-200">
+  <div class="mt-6 border-1 !bg-nc-bg-default recent-card !rounded-2xl border-nc-border-gray-medium">
     <YoutubeVue3
       :videoid="extractYoutubeVideoId(Url)"
       class="!rounded-t-xl"

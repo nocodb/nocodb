@@ -1,17 +1,19 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
+    /* module/moduleResolution are set for type checking only (IDE + tsc --noEmit).
+       Actual compilation is handled by SWC via rspack, which ignores these settings.
+       "bundler" avoids an infinite peer-dependency resolution loop */
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "es2017",
     "lib": ["es2019"],
-    "sourceMap": true,
-    "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo",
     "skipLibCheck": true,
     "strictNullChecks": false,
     "noImplicitAny": false,
@@ -28,7 +30,7 @@
       "@noco-local-integrations/*": ["../noco-integrations/packages/*"],
       "@noco-local-integrations/core": ["../noco-integrations/core"]
     },
-    "typeRoots": ["src/types", "node_modules/@types"]
+    "typeRoots": ["node_modules/@types"]
   },
   "include": ["src/**/*"],
   "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]

@@ -1,9 +1,11 @@
 export * from '~/lib/XcUIBuilder';
 export * from '~/lib/XcNotification';
 export * from '~/lib/Api';
+export * from '~/lib/timelineTypes';
 export * from '~/lib/columnRules';
 export * from '~/lib/sqlUi';
 export * from '~/lib/globals';
+export * from '~/lib/timezoneUtils';
 export * from '~/lib/helperFunctions';
 export * from '~/lib/enums';
 export * from '~/lib/formulaHelpers';
@@ -12,6 +14,11 @@ export * from '~/lib/payment';
 export * from '~/lib/permission';
 export * from '~/lib/realtime';
 export * from '~/lib/scripts';
+export * from '~/lib/oauth';
+export * from '~/lib/unifiedMeta';
+export * from '~/lib/types';
+export * from '~/lib/helpers/metaHelpers';
+export * from '~/lib/circularReplacer';
 export {
   default as UITypes,
   UITypesName,
@@ -21,6 +28,10 @@ export {
   isNumericCol,
   isVirtualCol,
   isLinksOrLTAR,
+  isLTARType,
+  isLinkV2,
+  isMMOrMMLike,
+  isBtLikeV2Junction,
   isSelfLinkCol,
   isCreatedOrLastModifiedTimeCol,
   isCreatedOrLastModifiedByCol,
@@ -40,9 +51,13 @@ export {
   ratingIconListMap,
   durationOptions,
   isReadOnlyColumn,
+  isAutoNumber,
   isDateOrDateTimeCol,
   customLinkSupportedTypes,
   UITypesSearchTerms,
+  isInUIType,
+  hiddenColumnTypes,
+  LinksVersion,
 } from '~/lib/UITypes';
 export { default as CustomAPI, FileType } from '~/lib/CustomAPI';
 export { default as TemplateGenerator } from '~/lib/TemplateGenerator';
@@ -78,3 +93,7 @@ export * from '~/lib/timer.utils';
 export * from '~/lib/commonUtils';
 export * from '~/lib/CircularRefContext';
 export * from '~/lib/viewUtils';
+export * from '~/lib/workflow';
+export * from '~/lib/uniqueConstraintHelpers';
+export * from '~/lib/recordTemplate';
+export * from '~/lib/viewSection';

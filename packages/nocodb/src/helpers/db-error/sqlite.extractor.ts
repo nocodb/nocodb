@@ -34,6 +34,10 @@ export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
           _extra = {
             constraint,
           };
+          // Set type if it's a unique constraint violation
+          if (/UNIQUE/i.test(error.message)) {
+            _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
+          }
         }
         break;
       case 'SQLITE_CORRUPT':
@@ -119,11 +123,16 @@ export class SqliteDBErrorExtractor implements IClientDbErrorExtractor {
         break;
 
       default:
+        this.option.dbErrorLogger.error(
+          `${error.code} is not handled on database sqlite`,
+        );
+        message = `An error occurred when querying sqlite database.`;
+        httpStatus = 500;
         return;
     }
 
     return {
-      error: NcErrorType.DATABASE_ERROR,
+      error: NcErrorType.ERR_DATABASE_OP_FAILED,
       message,
       code: error.code,
       httpStatus,

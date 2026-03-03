@@ -25,6 +25,9 @@ const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMouseP
 
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
+// Inject breadcrumbs before dropdown teleport boundary
+const parentBreadcrumbs = inject(TemplateBreadcrumbsInj, ref([]))
+
 const cellClickHook = inject(CellClickHookInj, null)
 
 const onDivDataCellEventHook = inject(OnDivDataCellEventHookInj, null)
@@ -178,9 +181,9 @@ onUnmounted(() => {
         >
           <GeneralIcon
             icon="plus"
-            class="flex-none select-none !text-md text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+            class="flex-none select-none !text-md text-nc-content-gray-subtle nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
             :class="{
-              '!visible !text-gray-600': isCanvasInjected && active,
+              '!visible !text-nc-content-gray-subtle2': isCanvasInjected && active,
             }"
             @click.stop="listItemsDlg = true"
           />
@@ -193,6 +196,7 @@ onUnmounted(() => {
           v-model="listItemsDlg"
           :column="belongsToColumn"
           hide-back-btn
+          :parent-breadcrumbs="parentBreadcrumbs"
           @escape="isOpen = false"
         /> </template
     ></LazyVirtualCellComponentsLinkRecordDropdown>

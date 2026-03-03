@@ -11,7 +11,7 @@ withDefaults(defineProps<Props>(), {
   <div
     class="nc-page-header"
     :class="{
-      'border-b-1 border-gray-200': bottomBorder,
+      'border-b-1 border-nc-border-gray-medium': bottomBorder,
     }"
   >
     <div class="flex-1 flex items-start gap-3">

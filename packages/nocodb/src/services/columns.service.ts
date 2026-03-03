@@ -4,19 +4,27 @@ import {
   AppEvents,
   ButtonActionsType,
   EventType,
+  extractRolesObj,
   FormulaDataTypes,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
+  isServiceUser,
   isSystemColumn,
   isVirtualCol,
+  LinksVersion,
   LongTextAiMetaProp,
+  MetaEventType,
   NcApiVersion,
+  NcBaseError,
   ncIsNull,
   ncIsUndefined,
   parseProp,
   partialUpdateAllowedTypes,
+  PermissionEntity,
+  PermissionKey,
   ProjectRoles,
   readonlyMetaAllowedTypes,
   RelationTypes,
@@ -27,7 +35,9 @@ import {
   validateFormulaAndExtractTreeWithType,
   WebhookActions,
 } from 'nocodb-sdk';
+import { getProjectRole } from 'nocodb-sdk';
 import rfdc from 'rfdc';
+import type { ClientType } from 'nocodb-sdk';
 import type {
   ColumnReqType,
   LinkToAnotherColumnReqType,
@@ -57,6 +67,7 @@ import {
   deleteColumnSystemPropsFromRequest,
   generateFkName,
   getMMColumnNames,
+  getRevType,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -82,6 +93,8 @@ import {
   Hook,
   KanbanView,
   Model,
+  Permission,
+  RollupColumn,
   Script,
   Source,
   User,
@@ -92,14 +105,22 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
+import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import {
   convertAIRecordTypeToValue,
   convertValueToAIRecordType,
 } from '~/utils/dataConversion';
-import { MetaTable } from '~/utils/globals';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
 import { parseMetaProp } from '~/utils/modelUtils';
 import NocoSocket from '~/socket/NocoSocket';
+import { DBErrorExtractor } from '~/helpers/db-error/extractor';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
+import { validateColumnInternalMeta } from '~/types/column-internal-meta';
+import { backfillAutoNumber } from '~/helpers/autonumberHelpers';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -250,7 +271,47 @@ export class ColumnsService implements IColumnsService {
     protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
     protected readonly viewRowColorService: ViewRowColorService,
     protected readonly filtersService: FiltersService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+    protected readonly duplicateDetectionService: DuplicateDetectionService,
   ) {}
+
+  /**
+   * Stores unique constraint name in internal_meta field when enabling unique constraint.
+   * This ensures we can drop the constraint even if table/column name changes later.
+   * internal_meta is an internal field (not exposed via API)
+   *
+   * @param context - NcContext
+   * @param column - Partial Column object containing base_id, fk_model_id, id, and internal_meta
+   * @returns Updated internal_meta object with unique_constraint_name set
+   */
+  private storeUniqueConstraintNameInInternalMeta(
+    context: NcContext,
+    column: Pick<Column, 'id' | 'base_id' | 'fk_model_id' | 'internal_meta'>,
+  ): any {
+    // Generate constraint name using base_id + '_' + table_id + '_' + column_id for fixed-length, unique constraint name
+    // For new columns, column.id might be a temporary identifier (like column name) that will be updated after insertion
+    const constraintName = `uk_${column.base_id}_${column.fk_model_id}_${column.id}`;
+
+    // Parse existing internal_meta or create new object
+    let internalMeta = column.internal_meta;
+    if (typeof internalMeta === 'string') {
+      try {
+        internalMeta = JSON.parse(internalMeta);
+      } catch {
+        internalMeta = {};
+      }
+    } else if (!internalMeta) {
+      internalMeta = {};
+    }
+
+    // Validate internal_meta structure
+    validateColumnInternalMeta(internalMeta);
+
+    // Store constraint name in internal_meta field
+    internalMeta.unique_constraint_name = constraintName;
+
+    return internalMeta;
+  }
 
   async updateFormulas(
     context: NcContext,
@@ -309,13 +370,36 @@ export class ColumnsService implements IColumnsService {
       columns: await Promise.all(
         table.columns.map(async (c) => {
           if (c.id === column.id) {
+            // Determine unique value: use column.unique if provided, otherwise preserve existing value
+            const uniqueValue =
+              column.unique !== undefined
+                ? column.unique
+                : (c as any).unique !== undefined
+                ? (c as any).unique
+                : false;
+
             const res = {
               ...c,
               ...column,
-              cn: column.column_name,
+              // Use column.column_name if provided and not empty, otherwise use existing column name
+              // This ensures we don't accidentally rename the column when only updating other properties
+              // Always set cn to the existing column name if column_name is not explicitly provided
+              cn:
+                column.column_name !== undefined &&
+                column.column_name !== null &&
+                column.column_name !== ''
+                  ? column.column_name
+                  : c.column_name,
+              // cno should always be the original column name (before any potential rename)
               cno: c.column_name,
               altered: Altered.UPDATE_COLUMN,
+              unique: uniqueValue,
             };
+
+            // Ensure cn and cno are set correctly - if not renaming, they should be the same
+            if (!res.cn) {
+              res.cn = res.cno;
+            }
 
             if (args.processColumn) {
               await args.processColumn();
@@ -369,12 +453,10 @@ export class ColumnsService implements IColumnsService {
       }),
     );
 
-    if (table.synced && column.readonly && !param.forceUpdateSystem) {
-      NcError.get(context).invalidRequestBody(
-        `The column '${
-          column.title || column.column_name
-        }' is a synced column and cannot be updated.`,
-      );
+    const isSyncedColumn = table.synced && column.readonly;
+
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
     }
 
     const source = await reuseOrSave('source', reuse, async () =>
@@ -402,11 +484,11 @@ export class ColumnsService implements IColumnsService {
     // These are the column types whose meta is allowed to be updated
     // It includes currency, date, datetime where formatting is allowed to update
     const isMetaOnlyUpdateAllowed =
-      source?.is_schema_readonly &&
+      (source?.is_schema_readonly || isSyncedColumn) &&
       partialUpdateAllowedTypes.includes(column.uidt);
     // check if source is readonly and column type is not allowed
     if (
-      source?.is_schema_readonly &&
+      (source?.is_schema_readonly || isSyncedColumn) &&
       (!readonlyMetaAllowedTypes.includes(column.uidt) ||
         (param.column.uidt &&
           !readonlyMetaAllowedTypes.includes(param.column.uidt as UITypes))) &&
@@ -575,6 +657,66 @@ export class ColumnsService implements IColumnsService {
       ...param.column,
     };
 
+    // Validate unique constraint for column updates
+    if ('unique' in param.column) {
+      // Check if disabling unique constraint (always allowed)
+      if (!param.column.unique && column.unique) {
+        // Disabling is allowed, no validation needed
+      }
+      // if previous and existing are unique, no need to validate
+      else if (param.column.unique && column.unique) {
+        // no validation needed
+      } else if (param.column.unique) {
+        // Enabling unique constraint enabled
+        validateUniqueConstraint(
+          context,
+          (param.column.uidt || column.uidt) as UITypes,
+          (param.column as any).meta || column.meta,
+          !!(param.column as any).unique, // Convert to boolean (might be number or boolean)
+          source,
+          (param.column as any).cdf !== undefined
+            ? (param.column as any).cdf
+            : column.cdf,
+        );
+
+        // Check for existing duplicates if enabling unique constraint
+        if (!column.unique && param.column.unique) {
+          const duplicateCheck =
+            await this.duplicateDetectionService.checkForDuplicates(
+              context,
+              column,
+            );
+          if (duplicateCheck.hasDuplicates) {
+            NcError.get(context).badRequest(
+              `Found ${duplicateCheck.count} duplicate values in this field. Please edit or remove duplicates before enabling uniqueness.`,
+            );
+          }
+        }
+      }
+    }
+
+    // Check if default value is being set when unique constraint is enabled
+    // Exclude UUID fields which are allowed to have both unique constraint and auto-generation
+    // Also check the original column type to handle cases where uidt might not be sent in the update request
+    const isUUIDColumn =
+      (param.column.uidt || column.uidt) === UITypes.UUID ||
+      column.uidt === UITypes.UUID;
+    if (
+      'cdf' in param.column &&
+      param.column.cdf !== null &&
+      param.column.cdf !== undefined &&
+      param.column.cdf !== '' &&
+      !isUUIDColumn
+    ) {
+      const currentUnique =
+        param.column.unique !== undefined ? param.column.unique : column.unique;
+      if (currentUnique) {
+        NcError.get(context).badRequest(
+          'Default values are not allowed for unique fields. Please disable the unique constraint first.',
+        );
+      }
+    }
+
     let colBody = { ...param.column } as Column & {
       formula?: string;
       formula_raw?: string;
@@ -588,6 +730,20 @@ export class ColumnsService implements IColumnsService {
       fk_integration_id?: string;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
     sqlUi.adjustLengthAndScale(colBody);
+
+    // Store unique constraint name in internal_meta field when enabling unique constraint
+    // This ensures we can drop the constraint even if table/column name changes later
+    // internal_meta is an internal field (not exposed via API)
+    if ((param.column as any).unique && !column.unique) {
+      // Enabling unique constraint - generate and store constraint name
+      const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+        context,
+        column,
+      );
+
+      // Store in colBody (will be saved to database)
+      (colBody as any).internal_meta = internalMeta;
+    }
 
     const { applyRowColorInvolvement } =
       await this.viewRowColorService.checkIfColumnInvolved({
@@ -620,6 +776,11 @@ export class ColumnsService implements IColumnsService {
             ...colBody,
           } as Column);
         } else if (column.uidt === UITypes.Formula) {
+          const relatedModels: Map<string, Model> = await getRelatedModelMap(
+            context,
+            table,
+          );
+
           colBody.formula = await substituteColumnAliasWithIdInFormula(
             colBody.formula_raw || colBody.formula,
             table.columns,
@@ -629,10 +790,8 @@ export class ColumnsService implements IColumnsService {
             columns: table.columns,
             column,
             clientOrSqlUi: source.type as any,
-            getMeta: async (modelId) => {
-              const model = await Model.get(context, modelId);
-              await model.getColumns(context);
-              return model;
+            getMeta: async (_, { id }) => {
+              return relatedModels.get(id);
             },
           });
 
@@ -654,8 +813,9 @@ export class ColumnsService implements IColumnsService {
               parsedTree: colBody.parsed_tree,
             });
           } catch (e) {
-            console.error(e);
-            throw e;
+            if (e instanceof NcError || e instanceof NcBaseError) throw e;
+            this.logger.error('Error updating column', e);
+            NcError.get(context).internalServerError('Failed to update column');
           }
 
           await Column.update(context, column.id, {
@@ -665,6 +825,11 @@ export class ColumnsService implements IColumnsService {
           });
         } else if (column.uidt === UITypes.Button) {
           if (colBody.type === ButtonActionsType.Url) {
+            const relatedModels: Map<string, Model> = await getRelatedModelMap(
+              context,
+              table,
+            );
+
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
@@ -674,10 +839,8 @@ export class ColumnsService implements IColumnsService {
               columns: table.columns,
               column,
               clientOrSqlUi: source.type as any,
-              getMeta: async (modelId) => {
-                const model = await Model.get(context, modelId);
-                await model.getColumns(context);
-                return model;
+              getMeta: async (_, { id }) => {
+                return relatedModels.get(id);
               },
             });
 
@@ -703,11 +866,11 @@ export class ColumnsService implements IColumnsService {
               });
             } catch (e) {
               console.error(e);
-              NcError.badRequest('Invalid Formula');
+              NcError.get(context).badRequest('Invalid Formula');
             }
           } else if (colBody.type === ButtonActionsType.Webhook) {
             if (!colBody.fk_webhook_id) {
-              NcError.badRequest('Webhook not found');
+              NcError.get(context).badRequest('Webhook not found');
             }
 
             const hook = await Hook.get(context, colBody.fk_webhook_id);
@@ -718,17 +881,17 @@ export class ColumnsService implements IColumnsService {
               (hook.version !== 'v3' && hook.event === 'manual') ||
               (hook.version === 'v3' && !hook.operation?.includes('trigger'))
             ) {
-              NcError.badRequest('Webhook not found');
+              NcError.get(context).badRequest('Webhook not found');
             }
           } else if (colBody.type === ButtonActionsType.Script) {
             if (!colBody.fk_script_id) {
-              NcError.badRequest('Script not found');
+              NcError.get(context).badRequest('Script not found');
             }
 
             const script = await Script.get(context, colBody.fk_script_id);
 
             if (!script) {
-              NcError.badRequest('Script not found');
+              NcError.get(context).badRequest('Script not found');
             }
           } else if (colBody.type === ButtonActionsType.Ai) {
             /*
@@ -743,7 +906,7 @@ export class ColumnsService implements IColumnsService {
                   const column = table.columns.find((c) => c.title === p1);
 
                   if (!column) {
-                    NcError.badRequest(`Field '${p1}' not found`);
+                    NcError.get(context).badRequest(`Field '${p1}' not found`);
                   }
 
                   return `{${column.id}}`;
@@ -860,7 +1023,9 @@ export class ColumnsService implements IColumnsService {
           },
         );
       } else {
-        NcError.notImplemented(`Updating ${column.uidt} => ${colBody.uidt}`);
+        NcError.get(context).notImplemented(
+          `Updating ${column.uidt} => ${colBody.uidt}`,
+        );
       }
     } else if (
       [
@@ -873,7 +1038,9 @@ export class ColumnsService implements IColumnsService {
         UITypes.ForeignKey,
       ].includes(colBody.uidt)
     ) {
-      NcError.notImplemented(`Updating ${colBody.uidt} => ${colBody.uidt}`);
+      NcError.get(context).notImplemented(
+        `Updating ${colBody.uidt} => ${colBody.uidt}`,
+      );
     } else if (
       [
         UITypes.CreatedTime,
@@ -882,6 +1049,14 @@ export class ColumnsService implements IColumnsService {
         UITypes.LastModifiedBy,
       ].includes(colBody.uidt)
     ) {
+      if (isSyncedColumn) {
+        NcError.get(context).invalidRequestBody(
+          `The column '${
+            column.title || column.column_name
+          }' is a synced column and cannot be updated.`,
+        );
+      }
+
       // allow updating of title only
       await Column.update(context, param.columnId, {
         ...column,
@@ -890,7 +1065,22 @@ export class ColumnsService implements IColumnsService {
     } else if (
       [UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)
     ) {
+      if (isSyncedColumn) {
+        NcError.get(context).invalidRequestBody(
+          `The column '${
+            column.title || column.column_name
+          }' is a synced column and cannot be updated.`,
+        );
+      }
       colBody = await getColumnPropsFromUIDT(colBody, source);
+
+      // Preserve existing colOptions when the request doesn't include them.
+      // Without this, a metadata-only PATCH (e.g. updating description) would
+      // skip the options-processing block entirely or cause options to be wiped
+      // when Column.update deletes and re-inserts colOptions.
+      if (!colBody.colOptions?.options && column.colOptions?.options) {
+        colBody.colOptions = column.colOptions;
+      }
 
       const baseModel = await reuseOrSave('baseModel', reuse, async () =>
         Model.getBaseModelSQL(context, {
@@ -916,7 +1106,7 @@ export class ColumnsService implements IColumnsService {
             (await KanbanView.getViewsByGroupingColId(context, column.id))
               .length > 0
           ) {
-            NcError.badRequest(
+            NcError.get(context).badRequest(
               `The column '${column.title}' is being used in Kanban View.`,
             );
           }
@@ -990,7 +1180,7 @@ export class ColumnsService implements IColumnsService {
                 const values = String(el[column.column_name]).split(',');
                 if (values.length > 1) {
                   if (colBody.uidt === UITypes.SingleSelect) {
-                    NcError.badRequest(
+                    NcError.get(context).badRequest(
                       'SingleSelect cannot have comma separated values, please use MultiSelect instead.',
                     );
                   }
@@ -1030,14 +1220,14 @@ export class ColumnsService implements IColumnsService {
           if (colBody.uidt === UITypes.SingleSelect) {
             try {
               if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-                NcError.badRequest(
+                NcError.get(context).badRequest(
                   `Default value '${colBody.cdf}' is not a select option.`,
                 );
               }
             } catch (e) {
               colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
               if (!optionTitles.includes(colBody.cdf.replace(/'/g, "''"))) {
-                NcError.badRequest(
+                NcError.get(context).badRequest(
                   `Default value '${colBody.cdf}' is not a select option.`,
                 );
               }
@@ -1046,7 +1236,7 @@ export class ColumnsService implements IColumnsService {
             try {
               for (const cdf of colBody.cdf.split(',')) {
                 if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                  NcError.badRequest(
+                  NcError.get(context).badRequest(
                     `Default value '${cdf}' is not a select option.`,
                   );
                 }
@@ -1055,7 +1245,7 @@ export class ColumnsService implements IColumnsService {
               colBody.cdf = colBody.cdf.replace(/^'/, '').replace(/'$/, '');
               for (const cdf of colBody.cdf.split(',')) {
                 if (!optionTitles.includes(cdf.replace(/'/g, "''"))) {
-                  NcError.badRequest(
+                  NcError.get(context).badRequest(
                     `Default value '${cdf}' is not a select option.`,
                   );
                 }
@@ -1082,7 +1272,7 @@ export class ColumnsService implements IColumnsService {
             return titles.indexOf(item) !== titles.lastIndexOf(item);
           })
         ) {
-          NcError.badRequest('Duplicates are not allowed!');
+          NcError.get(context).badRequest('Duplicates are not allowed!');
         }
 
         // Restrict empty options
@@ -1091,7 +1281,7 @@ export class ColumnsService implements IColumnsService {
             return item === '';
           })
         ) {
-          NcError.badRequest('Empty options are not allowed!');
+          NcError.get(context).badRequest('Empty options are not allowed!');
         }
 
         // Trim end of enum/set
@@ -1112,7 +1302,9 @@ export class ColumnsService implements IColumnsService {
             ? `${colBody.colOptions.options
                 .map((o) => {
                   if (o.title.includes(',')) {
-                    NcError.badRequest("Illegal char(',') for MultiSelect");
+                    NcError.get(context).badRequest(
+                      "Illegal char(',') for MultiSelect",
+                    );
                   }
                   return `'${o.title.replace(/'/gi, "''")}'`;
                 })
@@ -1136,6 +1328,76 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
+        // normalize multiselect values (split + trim + join) when converting to MultiSelect
+        if (
+          column.uidt !== colBody.uidt &&
+          colBody.uidt === UITypes.MultiSelect
+        ) {
+          if (driverType === 'pg') {
+            await sqlClient.raw(
+              `
+              UPDATE :table_name:
+              SET :column_name: = regexp_replace(
+                regexp_replace(:column_name:, '\\s*,\\s*', ',', 'g'),
+                '^,|,$',
+                '',
+                'g'
+              )
+              WHERE :column_name: IS NOT NULL
+              `,
+              {
+                table_name: baseModel.getTnPath(table.table_name),
+                column_name: column.column_name,
+              },
+            );
+          } else if (driverType === 'mysql' || driverType === 'mysql2') {
+            await sqlClient.raw(
+              `
+              UPDATE :table_name:
+              SET :column_name: = TRIM(BOTH ',' FROM
+                REGEXP_REPLACE(
+                  :column_name:,
+                  '\\\\s*,\\\\s*',
+                  ','
+                )
+              )
+              WHERE :column_name: IS NOT NULL
+              `,
+              {
+                table_name: baseModel.getTnPath(table.table_name),
+                column_name: column.column_name,
+              },
+            );
+          } else if (driverType === 'sqlite3') {
+            await sqlClient.raw(
+              `
+              UPDATE :table_name:
+              SET :column_name: = TRIM(
+                REPLACE(
+                  REPLACE(
+                    REPLACE(
+                      ',' || :column_name: || ',',
+                      ', ',
+                      ','
+                    ),
+                    ' ,',
+                    ','
+                  ),
+                  ',,',
+                  ','
+                ),
+                ','
+              )
+              WHERE :column_name: IS NOT NULL
+              `,
+              {
+                table_name: baseModel.getTnPath(table.table_name),
+                column_name: column.column_name,
+              },
+            );
+          }
+        }
+
         // Handle option delete
         if (column.colOptions?.options) {
           for (const option of column.colOptions.options.filter(
@@ -1148,7 +1410,7 @@ export class ColumnsService implements IColumnsService {
               !supportedDrivers.includes(driverType) &&
               column.uidt === UITypes.MultiSelect
             ) {
-              NcError.badRequest(
+              NcError.get(context).badRequest(
                 'Your database not yet supported for this operation. Please remove option from records manually before dropping.',
               );
             }
@@ -1236,7 +1498,7 @@ export class ColumnsService implements IColumnsService {
               !supportedDrivers.includes(driverType) &&
               column.uidt === UITypes.MultiSelect
             ) {
-              NcError.badRequest(
+              NcError.get(context).badRequest(
                 'Your database not yet supported for this operation. Please remove option from records manually before updating.',
               );
             }
@@ -1283,10 +1545,9 @@ export class ColumnsService implements IColumnsService {
                   ? `${column.colOptions.options
                       .map((o) => {
                         if (o.title.includes(',')) {
-                          NcError.badRequest(
+                          NcError.get(context).badRequest(
                             "Illegal char(',') for MultiSelect",
                           );
-                          throw new Error('');
                         }
                         return `'${o.title.replace(/'/gi, "''")}'`;
                       })
@@ -1608,6 +1869,13 @@ export class ColumnsService implements IColumnsService {
         }
       }
     } else if (colBody.uidt === UITypes.User) {
+      if (isSyncedColumn) {
+        NcError.get(context).invalidRequestBody(
+          `The column '${
+            column.title || column.column_name
+          }' is a synced column and cannot be updated.`,
+        );
+      }
       // handle default value for user column
       if (typeof colBody.cdf !== 'string') {
         colBody.cdf = '';
@@ -1623,7 +1891,7 @@ export class ColumnsService implements IColumnsService {
         });
 
         if (emailsNotPresent.length) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             `The following default users are not part of workspace: ${emailsNotPresent.join(
               ', ',
             )}`,
@@ -1642,6 +1910,14 @@ export class ColumnsService implements IColumnsService {
 
       if (column.uidt === UITypes.User) {
         // multi user to single user
+        if (isSyncedColumn) {
+          NcError.get(context).invalidRequestBody(
+            `The column '${
+              column.title || column.column_name
+            }' is a synced column and cannot be updated.`,
+          );
+        }
+
         if (
           colBody.meta?.is_multi === false &&
           column.meta?.is_multi === true
@@ -1707,6 +1983,14 @@ export class ColumnsService implements IColumnsService {
           },
         });
       } else {
+        if (isSyncedColumn) {
+          NcError.get(context).invalidRequestBody(
+            `The column '${
+              column.title || column.column_name
+            }' is a synced column and cannot be updated.`,
+          );
+        }
+
         // email/text to user
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
@@ -1803,6 +2087,13 @@ export class ColumnsService implements IColumnsService {
         });
       }
     } else {
+      if (isSyncedColumn) {
+        NcError.get(context).invalidRequestBody(
+          `The column '${
+            column.title || column.column_name
+          }' is a synced column and cannot be updated.`,
+        );
+      }
       if (column.uidt === UITypes.User) {
         const baseModel = await reuseOrSave('baseModel', reuse, async () =>
           Model.getBaseModelSQL(context, {
@@ -1836,7 +2127,7 @@ export class ColumnsService implements IColumnsService {
         (await KanbanView.getViewsByGroupingColId(context, column.id)).length >
           0
       ) {
-        NcError.badRequest(
+        NcError.get(context).badRequest(
           `The column '${column.title}' is being used in Kanban View. Please update stack by field or delete Kanban View first.`,
         );
       }
@@ -1876,7 +2167,7 @@ export class ColumnsService implements IColumnsService {
             const column = table.columns.find((c) => c.title === p1);
 
             if (!column) {
-              NcError.badRequest(`Field '${p1}' not found`);
+              NcError.get(context).badRequest(`Field '${p1}' not found`);
             }
 
             return `{${column.id}}`;
@@ -1910,7 +2201,32 @@ export class ColumnsService implements IColumnsService {
         }
       }
 
+      // Block AutoNumber conversion on non-PG sources
+      if (
+        colBody.uidt === UITypes.AutoNumber &&
+        column.uidt !== UITypes.AutoNumber &&
+        source.type !== 'pg'
+      ) {
+        NcError.get(context).badRequest(
+          'AutoNumber field type is supported only for PostgreSQL databases',
+        );
+      }
+
+      const originalCdf = colBody.cdf;
       colBody = await getColumnPropsFromUIDT(colBody, source);
+
+      // AutoNumber columns are read-only — prevent manual updates via data API
+      if (colBody.uidt === UITypes.AutoNumber) {
+        colBody.readonly = true;
+      }
+
+      if (
+        typeof colBody.cdf !== 'undefined' &&
+        typeof originalCdf === 'undefined'
+      ) {
+        // do not override cdf when request is undefined
+        colBody.cdf = originalCdf;
+      }
 
       await this.updateMetaAndDatabase(context, {
         table,
@@ -1925,6 +2241,15 @@ export class ColumnsService implements IColumnsService {
           });
         },
       });
+
+      // After converting to AutoNumber, backfill existing rows + reset sequence
+      if (
+        colBody.uidt === UITypes.AutoNumber &&
+        column.uidt !== UITypes.AutoNumber
+      ) {
+        const savedCol = await Column.get(context, { colId: column.id });
+        await backfillAutoNumber(context, table, savedCol, source);
+      }
     }
 
     const DATE_TIME_TYPES = [
@@ -2012,11 +2337,14 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
-    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+    const defaultView = await View.getFirstCollaborativeView(
+      context,
+      column.fk_model_id,
+      ncMeta,
+    );
 
-    // Pass defaultViewId so that default view column order and visibility get added to the column meta
     // Get all the columns in the table and return
-    await table.getColumns(context, undefined, defaultViewId);
+    await table.getColumns(context, undefined, defaultView?.id);
 
     // Handle filter transformation if this is a column type change
     if (column.uidt !== colBody.uidt) {
@@ -2047,6 +2375,15 @@ export class ColumnsService implements IColumnsService {
       context,
       columns: table.columns,
     });
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.COLUMN_UPDATED,
+        oldEntity: oldColumn,
+        newEntity: updatedColumn,
+      },
+      ncMeta,
+    );
 
     NocoSocket.broadcastEvent(
       context,
@@ -2090,7 +2427,7 @@ export class ColumnsService implements IColumnsService {
       .then((model) => model.getColumns(context))
       .then((columns) => columns.find((c) => c.pv));
     if (!oldColumn) {
-      NcError.notFound(`Column with id ${param.columnId} not found`);
+      NcError.get(context).fieldNotFound(param.columnId);
     }
     const result = await Model.updatePrimaryColumn(
       context,
@@ -2192,6 +2529,10 @@ export class ColumnsService implements IColumnsService {
         id: param.tableId,
       }),
     );
+
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
 
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
@@ -2320,6 +2661,39 @@ export class ColumnsService implements IColumnsService {
 
     let colBody: any = param.column;
 
+    // Store original cdf before getColumnPropsFromUIDT potentially overwrites it
+    const originalCdf = colBody.cdf;
+    const originalUnique = colBody.unique;
+
+    // Validate unique constraint BEFORE getColumnPropsFromUIDT
+    if (colBody.unique) {
+      validateUniqueConstraint(
+        context,
+        colBody.uidt,
+        colBody.meta,
+        colBody.unique,
+        {
+          is_meta: !!source.is_meta,
+          is_local: !!source.is_local,
+        },
+        originalCdf,
+      );
+    }
+
+    // Check if default value is being set when unique constraint is enabled
+    // Exclude UUID fields which are allowed to have both unique constraint and auto-generation
+    if (
+      originalCdf !== null &&
+      originalCdf !== undefined &&
+      originalCdf !== '' &&
+      colBody.unique &&
+      colBody.uidt !== UITypes.UUID
+    ) {
+      NcError.get(context).badRequest(
+        'Default values are not allowed for unique fields. Please disable the unique constraint first.',
+      );
+    }
+
     const colExtra = {
       view_id: colBody.view_id,
       column_order: colBody.column_order,
@@ -2386,8 +2760,75 @@ export class ColumnsService implements IColumnsService {
           fk_model_id: table.id,
         });
         break;
+      case UITypes.UUID:
+        {
+          // UUID is only supported for PostgreSQL databases
+          if (source.type !== 'pg') {
+            NcError.get(context).badRequest(
+              'UUID field type is supported only for PostgreSQL databases',
+            );
+          }
+
+          // Get column properties from UI type (sets dt='uuid', cdf='gen_random_uuid()')
+          colBody = await getColumnPropsFromUIDT(colBody, source);
+
+          // UUID fields must have unique constraint (per PRD requirement DR-2)
+          colBody.unique = true;
+
+          // Generate column ID upfront for unique constraint name
+          const columnId = await ncMeta.genNanoid(MetaTable.COLUMNS);
+          (colBody as any).base_id = context.base_id;
+          (colBody as any).fk_model_id = table.id;
+          (colBody as any).id = columnId;
+
+          // Generate unique constraint name and store in internal_meta
+          const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+            context,
+            {
+              base_id: context.base_id,
+              fk_model_id: table.id,
+              id: columnId,
+            },
+          );
+          colBody.internal_meta = internalMeta;
+
+          // Create the physical column in the database
+          const tableUpdateBody = {
+            ...table,
+            tn: table.table_name,
+            originalColumns: table.columns.map((c) => ({
+              ...c,
+              cn: c.column_name,
+            })),
+            columns: [
+              ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
+              {
+                ...colBody,
+                cn: colBody.column_name,
+                altered: Altered.NEW_COLUMN,
+              },
+            ],
+          };
+
+          const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+            ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
+          );
+          await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+          // Save the column metadata
+          savedColumn = await Column.insert(context, {
+            ...colBody,
+            fk_model_id: table.id,
+          });
+        }
+        break;
       case UITypes.Formula:
         try {
+          const relatedModels: Map<string, Model> = await getRelatedModelMap(
+            context,
+            table,
+          );
+
           colBody.formula = await substituteColumnAliasWithIdInFormula(
             colBody.formula_raw || colBody.formula,
             table.columns,
@@ -2402,10 +2843,8 @@ export class ColumnsService implements IColumnsService {
             },
             columns: table.columns,
             clientOrSqlUi: source.type as any,
-            getMeta: async (modelId) => {
-              const model = await Model.get(context, modelId);
-              await model.getColumns(context);
-              return model;
+            getMeta: async (_, { id }) => {
+              return relatedModels.get(id);
             },
           });
 
@@ -2429,7 +2868,9 @@ export class ColumnsService implements IColumnsService {
           colBody.error = e.message;
           colBody.parsed_tree = null;
           if (!param.suppressFormulaError) {
-            throw e;
+            if (e instanceof NcError || e instanceof NcBaseError) throw e;
+            this.logger.error('Error updating column', e);
+            NcError.get(context).internalServerError('Failed to update column');
           }
         }
 
@@ -2442,6 +2883,11 @@ export class ColumnsService implements IColumnsService {
       case UITypes.Button: {
         if (colBody.type === ButtonActionsType.Url) {
           try {
+            const relatedModels: Map<string, Model> = await getRelatedModelMap(
+              context,
+              table,
+            );
+
             colBody.formula = await substituteColumnAliasWithIdInFormula(
               colBody.formula_raw || colBody.formula,
               table.columns,
@@ -2454,10 +2900,8 @@ export class ColumnsService implements IColumnsService {
                 colOptions: colBody,
               },
               clientOrSqlUi: source.type as any,
-              getMeta: async (modelId) => {
-                const model = await Model.get(context, modelId);
-                await model.getColumns(context);
-                return model;
+              getMeta: async (_, { id }) => {
+                return relatedModels.get(id);
               },
             });
 
@@ -2575,7 +3019,14 @@ export class ColumnsService implements IColumnsService {
             }
 
             {
+              // Preserve original cdf before getColumnPropsFromUIDT potentially overwrites it
+              const preservedCdf = colBody.cdf;
               colBody = await getColumnPropsFromUIDT(colBody, source);
+
+              // Restore original cdf if it was set (getColumnPropsFromUIDT sets it to null by default)
+              if (preservedCdf !== undefined && preservedCdf !== null) {
+                colBody.cdf = preservedCdf;
+              }
 
               // remove default value for SQLite since it doesn't support default value as function when adding column
               // only support default value as constant value
@@ -2625,9 +3076,71 @@ export class ColumnsService implements IColumnsService {
           });
         }
         break;
+      case UITypes.AutoNumber: {
+        // AutoNumber is only supported for PostgreSQL
+        if (source.type !== 'pg') {
+          NcError.get(context).badRequest(
+            'AutoNumber field type is supported only for PostgreSQL databases',
+          );
+        }
+
+        // Get column properties from UI type (sets dt='int8', ai=true → BIGSERIAL on PG)
+        colBody = await getColumnPropsFromUIDT(colBody, source);
+        // AutoNumber is read-only — prevent manual updates via data API
+        colBody.readonly = true;
+
+        // Create the physical column in the database
+        const tableUpdateBodyAN = {
+          ...table,
+          tn: table.table_name,
+          originalColumns: table.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+          })),
+          columns: [
+            ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
+            {
+              ...colBody,
+              cn: colBody.column_name,
+              altered: Altered.NEW_COLUMN,
+            },
+          ],
+        };
+
+        const sqlMgrAN = await reuseOrSave('sqlMgr', reuse, async () =>
+          ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
+        );
+        await sqlMgrAN.sqlOpPlus(source, 'tableUpdate', tableUpdateBodyAN);
+
+        // Save column metadata
+        savedColumn = await Column.insert(context, {
+          ...colBody,
+          fk_model_id: table.id,
+        });
+
+        // Backfill existing rows with sequential values + reset PG sequence.
+        await backfillAutoNumber(
+          context,
+          table,
+          savedColumn,
+          source,
+          (colBody as any).view_id,
+        );
+
+        break;
+      }
+
       default:
         {
+          // Preserve original cdf before getColumnPropsFromUIDT potentially overwrites it
+          const preservedCdf = colBody.cdf;
           colBody = await getColumnPropsFromUIDT(colBody, source);
+
+          // Restore original cdf if it was set (getColumnPropsFromUIDT sets it to null by default)
+          if (preservedCdf !== undefined && preservedCdf !== null) {
+            colBody.cdf = preservedCdf;
+          }
+
           if (colBody.uidt === UITypes.Duration) {
             colBody.dtxp = '20';
             // by default, colBody.dtxs is 2
@@ -2830,6 +3343,35 @@ export class ColumnsService implements IColumnsService {
             colBody.prompt = prompt;
           }
 
+          // For columns with unique constraint, generate column ID upfront
+          // Then use the column ID to generate the constraint name before SQL operation
+          let columnId: string | null = null;
+          if (originalUnique && !isVirtualCol(param.column)) {
+            // Generate column ID upfront
+            columnId = await ncMeta.genNanoid(MetaTable.COLUMNS);
+
+            // Set base_id and fk_model_id in colBody so SQL client can use them
+            (colBody as any).base_id = context.base_id;
+            (colBody as any).fk_model_id = table.id;
+            (colBody as any).id = columnId;
+
+            // Use helper function with the generated column ID to set up internal_meta
+            // Create a temporary column-like object for the method
+            const tempColumn = {
+              base_id: context.base_id,
+              fk_model_id: table.id,
+              id: columnId,
+            };
+
+            const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+              context,
+              tempColumn,
+            );
+
+            // Store in colBody (will be passed to SQL client and Column.insert)
+            colBody.internal_meta = internalMeta;
+          }
+
           const tableUpdateBody = {
             ...table,
             tn: table.table_name,
@@ -2874,18 +3416,23 @@ export class ColumnsService implements IColumnsService {
             Object.assign(colBody, insertedColumnMeta);
           }
 
+          // Insert column with pre-generated ID if available (for unique constraint)
           savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
+            ...(columnId ? { id: columnId } : {}),
           });
         }
         break;
     }
 
-    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+    const defaultView = await View.getFirstCollaborativeView(
+      context,
+      table.id,
+      ncMeta,
+    );
 
-    // Pass defaultViewId so that default view column order and visibility get added to the column meta
-    await table.getColumns(context, undefined, defaultViewId);
+    await table.getColumns(context, undefined, defaultView?.id);
 
     const newColumn = table.columns.find((c) => c.title === param.column.title);
 
@@ -2969,6 +3516,7 @@ export class ColumnsService implements IColumnsService {
         context,
         existingColumn: column,
         action: 'delete',
+        ncMeta,
       });
 
     if ((column.system || isSystemColumn(column)) && !param.forceDeleteSystem) {
@@ -2991,6 +3539,10 @@ export class ColumnsService implements IColumnsService {
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id, false, ncMeta),
     );
+
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
 
     // check if source is readonly and column type is not allowed
     if (
@@ -3065,7 +3617,7 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         const table = await linkCol.getModel(context, ncMeta);
-        NcError.columnAssociatedWithLink(column.id, {
+        NcError.get(context).columnAssociatedWithLink(column.id, {
           customMessage: `Column is associated with Link column '${
             linkCol.title || linkCol.column_name
           }' (${
@@ -3092,6 +3644,8 @@ export class ColumnsService implements IColumnsService {
       case UITypes.QrCode:
       case UITypes.Barcode:
       case UITypes.Button:
+        // PR review fix #3: UUID removed from this group — it has a physical DB column
+        // and must go through the default path (sqlOpPlus + tableUpdate) to drop it.
         await Column.delete2(
           context,
           {
@@ -3114,7 +3668,7 @@ export class ColumnsService implements IColumnsService {
               )
             )?.length
           ) {
-            NcError.badRequest(
+            NcError.get(context).badRequest(
               `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
             );
           }
@@ -3131,7 +3685,7 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         if (rangesList?.length) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
@@ -3185,7 +3739,11 @@ export class ColumnsService implements IColumnsService {
           );
           const custom = column.meta?.custom;
 
-          switch (relationColOpt.type) {
+          const isMMLike = isMMOrMMLike(column);
+
+          const relationType = isMMLike ? 'mm' : relationColOpt.type;
+
+          switch (relationType) {
             case 'bt':
             case 'hm':
               {
@@ -3301,7 +3859,7 @@ export class ColumnsService implements IColumnsService {
                       ncMeta,
                     );
                   if (
-                    colOpt.type === 'mm' &&
+                    isMMOrMMLike(c) &&
                     colOpt.fk_parent_column_id === childColumn.id &&
                     colOpt.fk_child_column_id === parentColumn.id &&
                     colOpt.fk_mm_model_id === relationColOpt.fk_mm_model_id &&
@@ -3483,7 +4041,7 @@ export class ColumnsService implements IColumnsService {
         });
         break;
       case UITypes.ForeignKey: {
-        NcError.notImplemented(`Support for ${column.uidt}`);
+        NcError.get(context).notImplemented(`Support for ${column.uidt}`);
         break;
       }
       case UITypes.SingleSelect: {
@@ -3491,7 +4049,7 @@ export class ColumnsService implements IColumnsService {
           (await KanbanView.getViewsByGroupingColId(context, column.id))
             .length > 0
         ) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             `The column '${column.title}' is being used in Kanban View. Please update Kanban View first.`,
           );
         }
@@ -3505,7 +4063,7 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         if (listRanges?.length) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
@@ -3547,11 +4105,14 @@ export class ColumnsService implements IColumnsService {
         );
       }
     }
-
-    const defaultViewId = table.views?.find((v) => v.is_default)?.id;
+    const defaultView = await View.getFirstCollaborativeView(
+      context,
+      table.id,
+      ncMeta,
+    );
 
     // Pass defaultViewId so that default view column order and visibility get added to the column meta
-    await table.getColumns(context, ncMeta, defaultViewId);
+    await table.getColumns(context, ncMeta, defaultView?.id);
 
     const displayValueColumn = mapDefaultDisplayValue(table.columns);
     if (displayValueColumn) {
@@ -3725,6 +4286,7 @@ export class ColumnsService implements IColumnsService {
         await columnWebhookManager?.addOldColumnById({
           columnId: c.id,
           action: WebhookActions.DELETE,
+          context: refContext,
         });
         await Column.delete2(
           refContext,
@@ -3839,6 +4401,7 @@ export class ColumnsService implements IColumnsService {
       await columnWebhookManager?.addOldColumnById({
         columnId: childColumn.id,
         action: WebhookActions.DELETE,
+        context: childContext,
       });
       // delete foreign key column
       await Column.delete2(
@@ -3975,6 +4538,7 @@ export class ColumnsService implements IColumnsService {
         await columnWebhookManager?.addOldColumnById({
           columnId: c.id,
           action: WebhookActions.DELETE,
+          context: refContext,
         });
         await Column.delete2(
           refContext,
@@ -3999,6 +4563,7 @@ export class ColumnsService implements IColumnsService {
     await columnWebhookManager?.addOldColumnById({
       columnId: relationColOpt.fk_column_id,
       action: WebhookActions.DELETE,
+      context,
     });
     // delete virtual columns
     await Column.delete2(
@@ -4084,6 +4649,7 @@ export class ColumnsService implements IColumnsService {
       await columnWebhookManager?.addOldColumnById({
         columnId: childColumn.id,
         action: WebhookActions.DELETE,
+        context: childContext,
       });
       // delete foreign key column
       await Column.delete2(
@@ -4116,6 +4682,14 @@ export class ColumnsService implements IColumnsService {
     validateParams(['parentId', 'childId', 'type'], param.column, context);
 
     const reuse = param.reuse ?? {};
+
+    // v2 LTAR uses junction table for all relation types (like mm)
+    // v1 is the default - v2 is only used when explicitly requested via version param
+    const isMMLike =
+      (param.column as any).version === LinksVersion.V2 ||
+      // traditional MM is always treated as MM-like regardless of version
+      (param.column as LinkToAnotherColumnReqType).type ===
+        RelationTypes.MANY_TO_MANY;
 
     // get table and refTable models
     const table = await Model.getWithInfo(context, {
@@ -4160,7 +4734,7 @@ export class ColumnsService implements IColumnsService {
       param.source.id !== refTable.source_id &&
       (!param.source.isMeta() || !refSource.isMeta())
     ) {
-      NcError.badRequest(
+      NcError.get(context).badRequest(
         'Cross base relations are only supported between meta bases',
       );
     }
@@ -4182,12 +4756,13 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (
-      (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
-      (param.column as LinkToAnotherColumnReqType).type === 'bt'
+      !isMMLike &&
+      ((param.column as LinkToAnotherColumnReqType).type === 'hm' ||
+        (param.column as LinkToAnotherColumnReqType).type === 'bt')
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
-        await refTable.getColumns(context),
+        await refTable.getColumns(refContext),
         `${table.table_name}_id`,
       );
 
@@ -4284,15 +4859,21 @@ export class ColumnsService implements IColumnsService {
         null,
         param.column['meta'],
         isLinks,
-        param.colExtra,
+        {
+          ...param.colExtra,
+          readonly: (param.column as any).readonly || false,
+        },
         undefined,
         undefined,
         param.columnWebhookManager,
       );
-    } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
+    } else if (
+      !isMMLike &&
+      (param.column as LinkToAnotherColumnReqType).type === 'oo'
+    ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
-        await refTable.getColumns(context),
+        await refTable.getColumns(refContext),
         `${table.table_name}_id`,
       );
 
@@ -4388,12 +4969,18 @@ export class ColumnsService implements IColumnsService {
         (param.column as LinkToAnotherColumnReqType).virtual,
         null,
         param.column['meta'],
-        param.colExtra,
+        {
+          ...param.colExtra,
+          readonly: (param.column as any).readonly || false,
+        },
         undefined,
         undefined,
         param.columnWebhookManager,
       );
-    } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
+    } else if (
+      isMMLike ||
+      (param.column as LinkToAnotherColumnReqType).type === 'mm'
+    ) {
       const aTn = await getJunctionTableName(param, table, refTable);
       const aTnAlias = aTn;
 
@@ -4489,6 +5076,7 @@ export class ColumnsService implements IColumnsService {
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel1Args);
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel2Args);
       }
+
       const parentCol = (await assocModel.getColumns(context))?.find(
         (c) => c.column_name === columnName,
       );
@@ -4496,6 +5084,7 @@ export class ColumnsService implements IColumnsService {
         (c) => c.column_name === refColumnName,
       );
 
+      // todo: skip hm and bt if new type
       await createHmAndBtColumn(
         context,
         param.req,
@@ -4566,14 +5155,44 @@ export class ColumnsService implements IColumnsService {
         };
       }
 
+      // Normalize V1 types to V2 equivalents when using junction table
+      // HM with junction table is effectively OM, BT with junction table is effectively MO
+      let normalizedType = (
+        param.column as Pick<LinkToAnotherColumnReqType, 'type'>
+      ).type as RelationTypes;
+      if (isMMLike) {
+        if (normalizedType === RelationTypes.HAS_MANY) {
+          normalizedType = RelationTypes.ONE_TO_MANY;
+        } else if (normalizedType === RelationTypes.BELONGS_TO) {
+          normalizedType = RelationTypes.MANY_TO_ONE;
+        }
+      }
+
+      const revType = getRevType(normalizedType);
+      const relationType = normalizedType;
+
+      // Use singular for ONE_TO_ONE and MANY_TO_ONE, plural for others
+      const defaultTitle = [
+        RelationTypes.ONE_TO_ONE,
+        RelationTypes.MANY_TO_ONE,
+      ].includes(relationType)
+        ? singularize(refTable.title)
+        : pluralize(refTable.title);
+
       savedColumn = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
-          param.column.title ?? pluralize(refTable.title),
+          param.column.title ?? defaultTitle,
         ),
 
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
+        // OO always uses LinkToAnotherRecord (same as V1 createOOColumn)
+        uidt:
+          relationType === RelationTypes.ONE_TO_ONE
+            ? UITypes.LinkToAnotherRecord
+            : isLinks
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
+        type: relationType,
 
         fk_model_id: table.id,
 
@@ -4586,18 +5205,27 @@ export class ColumnsService implements IColumnsService {
         fk_mm_parent_column_id: childCol.id,
         fk_related_model_id: refTable.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        readonly: (param.column as any).readonly || false,
         meta: {
           ...(param.column['meta'] || {}),
           plural: param.column['meta']?.plural || pluralize(refTable.title),
           singular:
             param.column['meta']?.singular || singularize(refTable.title),
         },
-
+        version: isMMLike ? 2 : 1,
         // column_order and view_id if provided
         ...param.colExtra,
         // include cross base link props
         ...crossBaseLinkProps,
       });
+
+      // Use singular for ONE_TO_ONE and MANY_TO_ONE, plural for others
+      const reverseDefaultTitle = [
+        RelationTypes.ONE_TO_ONE,
+        RelationTypes.MANY_TO_ONE,
+      ].includes(revType)
+        ? singularize(table.title)
+        : pluralize(table.title);
 
       const parentRelCol = await Column.insert(refContext, {
         title: getUniqueColumnAliasName(
@@ -4606,10 +5234,17 @@ export class ColumnsService implements IColumnsService {
             // if self ref include saved column
             ...(table.id === refTable.id ? [savedColumn] : []),
           ],
-          pluralize(table.title),
+          reverseDefaultTitle,
         ),
-        uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
+        // OO always uses LinkToAnotherRecord (same as V1 createOOColumn)
+        uidt:
+          revType === RelationTypes.ONE_TO_ONE
+            ? UITypes.LinkToAnotherRecord
+            : isLinks
+            ? UITypes.Links
+            : UITypes.LinkToAnotherRecord,
+        type: revType,
+        version: isMMLike ? 2 : 1,
 
         // ref_db_alias
         fk_model_id: refTable.id,
@@ -4624,6 +5259,7 @@ export class ColumnsService implements IColumnsService {
         fk_mm_parent_column_id: parentCol.id,
         fk_related_model_id: table.id,
         virtual: (param.column as LinkToAnotherColumnReqType).virtual,
+        readonly: (param.column as any).readonly || false,
         meta: {
           plural: pluralize(table.title),
           singular: singularize(table.title),
@@ -4677,10 +5313,18 @@ export class ColumnsService implements IColumnsService {
       await param.columnWebhookManager?.addNewColumnById({
         columnId: parentRelCol.id,
         action: WebhookActions.INSERT,
+        context: {
+          ...context,
+          base_id: parentRelCol.base_id,
+        },
       });
       await param.columnWebhookManager?.addNewColumnById({
         columnId: savedColumn.id,
         action: WebhookActions.INSERT,
+        context: {
+          ...context,
+          base_id: savedColumn.base_id,
+        },
       });
       return savedColumn;
     }
@@ -4764,7 +5408,7 @@ export class ColumnsService implements IColumnsService {
     });
 
     if (!table) {
-      NcError.tableNotFound(tableId);
+      NcError.get(context).tableNotFound(tableId);
     }
 
     return {
@@ -4792,7 +5436,7 @@ export class ColumnsService implements IColumnsService {
     });
 
     if (!table) {
-      NcError.tableNotFound(tableId);
+      NcError.get(context).tableNotFound(tableId);
     }
 
     if (table.columnsHash !== params.hash) {
@@ -4804,13 +5448,13 @@ export class ColumnsService implements IColumnsService {
     const source = await Source.get(context, table.source_id);
 
     if (!source) {
-      NcError.sourceNotFound(table.source_id);
+      NcError.get(context).sourceNotFound(table.source_id);
     }
 
     const base = await source.getProject(context);
 
     if (!base) {
-      NcError.baseNotFound(source.base_id);
+      NcError.get(context).baseNotFound(source.base_id);
     }
 
     const dbDriver = await NcConnectionMgrv2.get(source);
@@ -4824,7 +5468,9 @@ export class ColumnsService implements IColumnsService {
     });
 
     if (!dbDriver || !sqlClient || !sqlMgr || !baseModel) {
-      NcError.badRequest('There was an error handling your request');
+      NcError.get(context).badRequest(
+        'There was an error handling your request',
+      );
     }
 
     const reuse: ReusableParams = {
@@ -4842,19 +5488,21 @@ export class ColumnsService implements IColumnsService {
     for (const op of ops) {
       if (op.op === 'update') {
         if (!op.column || !op.column?.id) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             'Bad request, update operation requires column id',
           );
         }
       } else if (op.op === 'delete') {
         if (!op.column || !op.column?.id) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             'Bad request, delete operation requires column id',
           );
         }
       } else if (op.op === 'add') {
         if (!op.column) {
-          NcError.badRequest('Bad request, add operation requires column');
+          NcError.get(context).badRequest(
+            'Bad request, add operation requires column',
+          );
         }
       }
     }
@@ -4876,9 +5524,13 @@ export class ColumnsService implements IColumnsService {
 
           await this.postColumnAdd(context, column as ColumnReqType, tableMeta);
         } catch (e) {
+          const dbError = DBErrorExtractor.get().extractDbError(e, {
+            clientType: source.type as unknown as ClientType, // Pass the client type from source
+          });
+
           failedOps.push({
             ...op,
-            error: e.message,
+            error: dbError?.message || e.message, // Use extracted message, fallback to original
           });
         }
       } else if (op.op === 'update') {
@@ -4893,9 +5545,13 @@ export class ColumnsService implements IColumnsService {
 
           await this.postColumnUpdate(context, column as ColumnReqType);
         } catch (e) {
+          const dbError = DBErrorExtractor.get().extractDbError(e, {
+            clientType: source.type as unknown as ClientType, // Pass the client type from source
+          });
+
           failedOps.push({
             ...op,
-            error: e.message,
+            error: dbError?.message || e.message, // Use extracted message, fallback to original
           });
         }
       } else if (op.op === 'delete') {
@@ -4906,9 +5562,13 @@ export class ColumnsService implements IColumnsService {
             user: req.user,
           });
         } catch (e) {
+          const dbError = DBErrorExtractor.get().extractDbError(e, {
+            clientType: source.type as unknown as ClientType, // Pass the client type from source
+          });
+
           failedOps.push({
             ...op,
-            error: e.message,
+            error: dbError?.message || e.message, // Use extracted message, fallback to original
           });
         }
       }
@@ -4945,14 +5605,14 @@ export class ColumnsService implements IColumnsService {
     });
 
     if (!userWithRoles) {
-      NcError.userNotFound(user.id);
+      NcError.get(refContext).userNotFound(user.id);
     }
 
     if (
       !userWithRoles.base_roles?.[ProjectRoles.CREATOR] &&
       !userWithRoles.base_roles?.[ProjectRoles.OWNER]
     ) {
-      NcError.forbidden(
+      NcError.get(refContext).forbidden(
         `You don't have permission to create a relation to target base ${refContext.base_id}`,
       );
     }
@@ -4972,13 +5632,17 @@ export class ColumnsService implements IColumnsService {
 
   async getLinkColumnRefTable(
     context: NcContext,
-    { columnId, tableId }: { columnId: string; tableId: string },
+    {
+      columnId,
+      tableId,
+      user,
+    }: { columnId: string; tableId: string; user?: UserType },
   ) {
     const column = await Column.get(context, { colId: columnId });
 
     // if not LTAR or Links throw error
     if (!isLinksOrLTAR(column)) {
-      NcError.badRequest('Invalid column id');
+      NcError.get(context).badRequest('Invalid column id');
     }
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
@@ -4998,7 +5662,7 @@ export class ColumnsService implements IColumnsService {
       // load columns
       await table.getColumns(refContext);
     } else {
-      NcError.badRequest('Invalid table id');
+      NcError.get(context).badRequest('Invalid table id');
     }
 
     // filter out columns other than primary key and display column
@@ -5006,7 +5670,954 @@ export class ColumnsService implements IColumnsService {
       return col.pk || col.pv;
     });
 
-    return table;
+    // Check table visibility access and add flag
+    let is_private = false;
+    if (user && !isServiceUser(user)) {
+      const baseRoles = extractRolesObj((user as any)?.base_roles);
+      // Base owners always have access
+      if (!baseRoles?.[ProjectRoles.OWNER]) {
+        const permissions = await Permission.list(context, table.base_id);
+        const visibilityPermission = permissions.find(
+          (p) =>
+            p.entity === PermissionEntity.TABLE &&
+            p.entity_id === tableId &&
+            p.permission === PermissionKey.TABLE_VISIBILITY,
+        );
+        if (visibilityPermission) {
+          // Get the user's project role (base role)
+          const userRole = getProjectRole(user) as ProjectRoles;
+          if (!userRole) {
+            is_private = true;
+          } else {
+            // Check if user has permission
+            // Type assertion needed because isAllowed is defined in EE Permission model
+            const hasPermission = await (Permission as any).isAllowed(
+              context,
+              visibilityPermission,
+              {
+                id: user.id,
+                role: userRole,
+              },
+            );
+            if (!hasPermission) {
+              is_private = true;
+            }
+          }
+        }
+      }
+    }
+
+    // Add is_private flag to table object
+    return {
+      ...table,
+      is_private,
+    };
+  }
+
+  /**
+   * Convert a V1 LTAR column (HM/BT/OO with direct FK) to V2 (junction-table-based).
+   * If a BT column is provided, automatically finds and converts from the paired HM side.
+   * Both paired columns are updated atomically.
+   */
+  async convertLinkToV2(
+    context: NcContext,
+    param: {
+      columnId: string;
+      req: NcRequest;
+    },
+  ) {
+    // Phase 0: Load and validate
+    const column = await Column.get(context, { colId: param.columnId });
+
+    if (!column) {
+      NcError.fieldNotFound(param.columnId);
+    }
+
+    if (!isLinksOrLTAR(column.uidt)) {
+      NcError.badRequest('Column is not a Link/LTAR type');
+    }
+
+    const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
+      context,
+    );
+
+    // MM already has junction tables — just update version metadata
+    // Allow V2 MM Links columns through (they need Rollup + LTAR display conversion)
+    if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+      return this.convertMMToV2(context, {
+        column,
+        colOptions,
+        req: param.req,
+      });
+    }
+
+    if (colOptions.version === LinksVersion.V2) {
+      NcError.badRequest('Column is already V2');
+    }
+
+    // Phase 1: Normalize to parent side (HM or parent-OO)
+    let hmColumn: Column;
+    let hmColOptions: LinkToAnotherRecordColumn;
+    let btColumn: Column;
+    let btColOptions: LinkToAnotherRecordColumn;
+
+    const isBtSide =
+      colOptions.type === RelationTypes.BELONGS_TO ||
+      (colOptions.type === RelationTypes.ONE_TO_ONE && column.meta?.bt);
+
+    if (isBtSide) {
+      btColumn = column;
+      btColOptions = colOptions;
+
+      // Find the paired HM/OO column in the related table
+      const { refContext } = colOptions.getRelContext(context);
+      const relatedTable = await colOptions.getRelatedTable(refContext);
+      const relatedColumns = await relatedTable.getColumns(refContext);
+
+      const pairedRelType =
+        colOptions.type === RelationTypes.ONE_TO_ONE
+          ? RelationTypes.ONE_TO_ONE
+          : RelationTypes.HAS_MANY;
+
+      for (const c of relatedColumns) {
+        if (!isLinksOrLTAR(c.uidt)) continue;
+        // Skip self (self-referencing OO: both sides have same type & FK columns)
+        if (c.id === column.id) continue;
+        const opts = await c.getColOptions<LinkToAnotherRecordColumn>(
+          refContext,
+        );
+        if (
+          opts.fk_parent_column_id === colOptions.fk_parent_column_id &&
+          opts.fk_child_column_id === colOptions.fk_child_column_id &&
+          opts.type === pairedRelType
+        ) {
+          hmColumn = c;
+          hmColOptions = opts;
+          break;
+        }
+      }
+
+      if (!hmColumn) {
+        NcError.badRequest('Could not find the paired parent-side column');
+      }
+    } else {
+      hmColumn = column;
+      hmColOptions = colOptions;
+
+      // Find the paired BT column in the related table
+      const { refContext } = colOptions.getRelContext(context);
+      const relatedTable = await colOptions.getRelatedTable(refContext);
+      const relatedColumns = await relatedTable.getColumns(refContext);
+
+      const pairedRelType =
+        colOptions.type === RelationTypes.ONE_TO_ONE
+          ? RelationTypes.ONE_TO_ONE
+          : RelationTypes.BELONGS_TO;
+
+      for (const c of relatedColumns) {
+        if (!isLinksOrLTAR(c.uidt)) continue;
+        // Skip self (self-referencing OO: both sides have same type & FK columns)
+        if (c.id === column.id) continue;
+        const opts = await c.getColOptions<LinkToAnotherRecordColumn>(
+          refContext,
+        );
+        if (
+          opts.fk_parent_column_id === colOptions.fk_parent_column_id &&
+          opts.fk_child_column_id === colOptions.fk_child_column_id &&
+          opts.type === pairedRelType
+        ) {
+          btColumn = c;
+          btColOptions = opts;
+          break;
+        }
+      }
+
+      if (!btColumn) {
+        NcError.badRequest('Could not find the paired child-side column');
+      }
+    }
+
+    // Phase 2: Load context
+    const parentTable = await Model.getWithInfo(context, {
+      id: hmColumn.fk_model_id,
+    });
+    const parentPK = parentTable.primaryKey;
+
+    const { refContext: childRefContext } = hmColOptions.getRelContext(context);
+    const childTable = await Model.getWithInfo(childRefContext, {
+      id: hmColOptions.fk_related_model_id,
+    });
+    const childPK = childTable.primaryKey;
+
+    // The FK column in the child table
+    const fkColumn = await Column.get(childRefContext, {
+      colId: hmColOptions.fk_child_column_id,
+    });
+
+    if (!fkColumn) {
+      NcError.badRequest('Could not find the foreign key column');
+    }
+
+    const source = await Source.get(context, parentTable.source_id);
+    const childSource =
+      childTable.source_id === source.id
+        ? source
+        : await Source.get(childRefContext, childTable.source_id);
+
+    const base = await source.getProject(context);
+
+    const sqlMgr = await ProjectMgrv2.getSqlMgr(context, {
+      id: source.base_id,
+    });
+
+    const isVirtual = hmColOptions.virtual;
+
+    // Track progress for rollback
+    let junctionCreated = false;
+    let fkDropped = false;
+
+    // Compute junction table name and column names before starting the
+    // transaction — getJunctionTableName queries the meta DB via Noco.ncMeta
+    // and would deadlock on SQLite if the transaction is already holding the
+    // only available connection.
+    const aTn = await getJunctionTableName({ base }, parentTable, childTable);
+    const aTnAlias = aTn;
+
+    const { parentCn: columnName, childCn: refColumnName } = getMMColumnNames(
+      parentTable,
+      childTable,
+    );
+
+    // ── Phase A: SQL / data-DB operations (no meta transaction) ──
+    // These touch the data DB via sqlMgr and NcConnectionMgrv2, which may
+    // trigger indirect meta queries (EE workspace/payment lookups). Running
+    // them outside a meta transaction avoids SQLite single-connection deadlock.
+
+    const associateTableCols = [
+      {
+        cn: refColumnName,
+        column_name: refColumnName,
+        title: refColumnName,
+        rqd: true,
+        pk: true,
+        ai: false,
+        cdf: null,
+        dt: childPK.dt,
+        dtxp: childPK.dtxp,
+        dtxs: childPK.dtxs,
+        un: childPK.un,
+        altered: 1,
+        uidt: UITypes.ForeignKey,
+      },
+      {
+        cn: columnName,
+        column_name: columnName,
+        title: columnName,
+        rqd: true,
+        pk: true,
+        ai: false,
+        cdf: null,
+        dt: parentPK.dt,
+        dtxp: parentPK.dtxp,
+        dtxs: parentPK.dtxs,
+        un: parentPK.un,
+        altered: 1,
+        uidt: UITypes.ForeignKey,
+      },
+    ];
+
+    try {
+      // Create junction table in data DB
+      await sqlMgr.sqlOpPlus(source, 'tableCreate', {
+        tn: aTn,
+        _tn: aTnAlias,
+        columns: associateTableCols,
+      });
+      junctionCreated = true;
+
+      // Create FK constraints on junction table (non-virtual only)
+      let foreignKeyName1: string;
+      let foreignKeyName2: string;
+
+      if (!isVirtual) {
+        foreignKeyName1 = generateFkName(parentTable, childTable);
+        foreignKeyName2 = generateFkName(parentTable, childTable);
+
+        await sqlMgr.sqlOpPlus(source, 'relationCreate', {
+          childTable: aTn,
+          childColumn: columnName,
+          parentTable: parentTable.table_name,
+          parentColumn: parentPK.column_name,
+          type: 'real',
+          foreignKeyName: foreignKeyName1,
+        });
+
+        await sqlMgr.sqlOpPlus(source, 'relationCreate', {
+          childTable: aTn,
+          childColumn: refColumnName,
+          parentTable: childTable.table_name,
+          parentColumn: childPK.column_name,
+          type: 'real',
+          foreignKeyName: foreignKeyName2,
+        });
+      }
+
+      // Migrate data: copy FK → junction table
+      const dbDriver = await NcConnectionMgrv2.get(source);
+      const baseModel = await Model.getBaseModelSQL(context, {
+        id: childTable.id,
+        dbDriver,
+      });
+
+      const junctionTnPath = baseModel.getTnPath(aTn);
+      const childTnPath = baseModel.getTnPath(childTable.table_name);
+
+      // Fetch FK data from child table, then insert into junction with
+      // explicit column mapping to avoid any positional ambiguity.
+      // columnName = {parentTable}_id → holds parent PK values (from fkColumn)
+      // refColumnName = {childTable}_id → holds child PK values
+      const fkRows = await baseModel.execAndParse(
+        dbDriver(childTnPath)
+          .select(fkColumn.column_name, childPK.column_name)
+          .whereNotNull(fkColumn.column_name),
+        null,
+        { raw: true },
+      );
+
+      if (fkRows.length) {
+        // Batch insert in chunks to avoid exceeding query size limits
+        const BATCH_SIZE = 1000;
+        for (let i = 0; i < fkRows.length; i += BATCH_SIZE) {
+          const batch = fkRows.slice(i, i + BATCH_SIZE);
+          await dbDriver(junctionTnPath).insert(
+            batch.map((row) => ({
+              [columnName]: row[fkColumn.column_name],
+              [refColumnName]: row[childPK.column_name],
+            })),
+          );
+        }
+      }
+
+      // Remove old FK constraint and indexes from child table.
+      // Always drop indexes on the FK column — even when keeping it — so
+      // that a later manual deletion of the column doesn't fail on SQLite
+      // (SQLite errors on DROP COLUMN if an index still references it).
+      if (!isVirtual) {
+        try {
+          await sqlMgr.sqlOpPlus(childSource, 'relationDelete', {
+            childColumn: fkColumn.column_name,
+            childTable: childTable.table_name,
+            parentTable: parentTable.table_name,
+            parentColumn: parentPK.column_name,
+            foreignKeyName: hmColOptions.fk_index_name,
+          });
+        } catch (e) {
+          Logger.warn(
+            `Failed to drop FK constraint during V1→V2 migration: ${e.message}`,
+          );
+        }
+      }
+
+      // Drop indexes on the FK column (handles both virtual index and
+      // real FK index that relationDelete may not have removed)
+      const fkIndexes =
+        (
+          await sqlMgr.sqlOp(childSource, 'indexList', {
+            tn: childTable.table_name,
+          })
+        )?.data?.list ?? [];
+
+      for (const index of fkIndexes) {
+        if (index.cn !== fkColumn.column_name) continue;
+        await sqlMgr.sqlOpPlus(childSource, 'indexDelete', {
+          ...index,
+          tn: childTable.table_name,
+          columns: [fkColumn.column_name],
+          indexName: index.key_name,
+        });
+      }
+
+      fkDropped = true;
+
+      // Drop old FK column from data DB
+      if (fkColumn.uidt === UITypes.ForeignKey) {
+        const tableUpdateBody = {
+          ...childTable,
+          tn: childTable.table_name,
+          originalColumns: childTable.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+            cno: c.column_name,
+          })),
+          columns: childTable.columns.map((c) => {
+            if (c.id === fkColumn.id) {
+              return {
+                ...c,
+                cn: c.column_name,
+                cno: c.column_name,
+                altered: Altered.DELETE_COLUMN,
+              };
+            } else {
+              (c as any).cn = c.column_name;
+            }
+            return c;
+          }),
+        };
+
+        await sqlMgr.sqlOpPlus(childSource, 'tableUpdate', tableUpdateBody);
+      }
+
+      // PG indexes on junction FK columns
+      if (source.type === 'pg') {
+        await this.createColumnIndex(context, {
+          column: new Column({
+            ...associateTableCols[0],
+            fk_model_id: parentTable.id, // placeholder, overwritten after Model.insert
+          }),
+          indexName: generateFkName(parentTable, childTable),
+          source,
+          sqlMgr,
+        });
+        await this.createColumnIndex(context, {
+          column: new Column({
+            ...associateTableCols[1],
+            fk_model_id: parentTable.id,
+          }),
+          indexName: generateFkName(parentTable, childTable),
+          source,
+          sqlMgr,
+        });
+      }
+
+      // ── Phase A.2: Meta model + system columns (outside transaction) ──
+      // Model.insert and createHmAndBtColumn use Noco.ncMeta internally
+      // and cannot run inside a meta transaction (SQLite deadlock).
+      // This matches the existing MM creation pattern in columnAdd.
+
+      // Insert junction table model
+      const assocModel = await Model.insert(context, base.id, source.id, {
+        table_name: aTn,
+        title: aTnAlias,
+        mm: true,
+        columns: associateTableCols,
+        user_id: (param.req as any).user?.id,
+      });
+
+      // Get junction table columns
+      const parentCol = (await assocModel.getColumns(context))?.find(
+        (c) => c.column_name === columnName,
+      );
+      const childCol = (await assocModel.getColumns(context))?.find(
+        (c) => c.column_name === refColumnName,
+      );
+
+      // Create system HM/BT columns in junction table
+      await createHmAndBtColumn(
+        context,
+        param.req,
+        assocModel,
+        childTable,
+        childCol,
+        null,
+        null,
+        null,
+        foreignKeyName2,
+        isVirtual,
+        true,
+      );
+      await createHmAndBtColumn(
+        context,
+        param.req,
+        assocModel,
+        parentTable,
+        parentCol,
+        null,
+        null,
+        null,
+        foreignKeyName1,
+        isVirtual,
+        true,
+      );
+
+      // Links columns (showing count) → convert to Rollup + new LTAR
+      // LinkToAnotherRecord columns (showing records) → update in-place to V2
+      const isLinksColumn = hmColumn.uidt === UITypes.Links;
+
+      Logger.log(
+        `[convertLinkToV2] hmColumn.id=${hmColumn.id}, hmColumn.uidt=${hmColumn.uidt}, isLinksColumn=${isLinksColumn}`,
+      );
+
+      // ── Phase B: Meta transaction ──
+      // Only pure meta operations (metaDelete/metaInsert2/metaUpdate)
+      // that accept ncMeta go here — no data-DB or indirect meta queries.
+      // Compute V2 types and cross-base props before the transaction
+      const isOO = hmColOptions.type === RelationTypes.ONE_TO_ONE;
+      const hmNewType = isOO
+        ? RelationTypes.ONE_TO_ONE
+        : RelationTypes.ONE_TO_MANY;
+      const btNewType = isOO
+        ? RelationTypes.ONE_TO_ONE
+        : RelationTypes.MANY_TO_ONE;
+
+      let crossBaseLinkProps: Record<string, string> = {};
+      let refCrossBaseLinkProps: Record<string, string> = {};
+
+      if (hmColOptions.fk_related_base_id) {
+        crossBaseLinkProps = {
+          fk_related_base_id: hmColOptions.fk_related_base_id,
+          fk_mm_base_id: assocModel.base_id,
+          fk_related_source_id:
+            hmColOptions.fk_related_source_id || childTable.source_id,
+          fk_mm_source_id: assocModel.source_id,
+        };
+        refCrossBaseLinkProps = {
+          fk_related_base_id: context.base_id,
+          fk_mm_base_id: assocModel.base_id,
+          fk_related_source_id: parentTable.source_id,
+          fk_mm_source_id: assocModel.source_id,
+        };
+      }
+
+      // Pre-compute column_order before the transaction (requires meta queries
+      // that would deadlock on SQLite inside a transaction)
+      let columnOrder: { order: number; view_id: string } | undefined;
+      let newLtarTitle: string | undefined;
+
+      if (isLinksColumn) {
+        const defaultView = (await View.list(context, parentTable.id))?.[0];
+        if (defaultView) {
+          const viewColumns = await View.getColumns(context, defaultView.id);
+          const origViewCol = viewColumns.find(
+            (vc) => (vc as any).fk_column_id === hmColumn.id,
+          );
+          if (origViewCol) {
+            columnOrder = {
+              order: (origViewCol as any).order + 0.5,
+              view_id: defaultView.id,
+            };
+          }
+        }
+
+        newLtarTitle = getUniqueColumnAliasName(
+          await parentTable.getColumns(context),
+          `LTAR_${hmColumn.title}`,
+        );
+      }
+
+      // ── Phase B: Meta transaction ──
+      // All meta operations run inside a single transaction so that a failure
+      // in Column.insert or RollupColumn.insert rolls back the entire batch
+      // (uidt change, col_relations, new LTAR column, rollup metadata).
+      const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+
+      let newLtarCol: Column | undefined;
+
+      try {
+        // Delete old HM col_relations
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_RELATIONS,
+          { fk_column_id: hmColumn.id },
+        );
+
+        if (isLinksColumn) {
+          // Links column → convert to Rollup in-place (preserves filters/sorts/group-by)
+          Logger.log(
+            `[convertLinkToV2] Converting hmColumn ${hmColumn.id} (${hmColumn.uidt}) to Rollup`,
+          );
+          await ncMeta.metaUpdate(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COLUMNS,
+            { uidt: UITypes.Rollup },
+            hmColumn.id,
+          );
+        } else {
+          // Plain LinkToAnotherRecord → convert in-place to V2
+          await ncMeta.metaInsert2(
+            context.workspace_id,
+            context.base_id,
+            MetaTable.COL_RELATIONS,
+            {
+              fk_column_id: hmColumn.id,
+              type: hmNewType,
+              fk_child_column_id: parentPK.id,
+              fk_parent_column_id: childPK.id,
+              fk_mm_model_id: assocModel.id,
+              fk_mm_child_column_id: parentCol.id,
+              fk_mm_parent_column_id: childCol.id,
+              fk_related_model_id: hmColOptions.fk_related_model_id,
+              fk_target_view_id: hmColOptions.fk_target_view_id,
+              virtual: isVirtual,
+              version: LinksVersion.V2,
+              ...crossBaseLinkProps,
+            },
+          );
+        }
+
+        // Delete old + insert new BT col_relations
+        await ncMeta.metaDelete(
+          childRefContext.workspace_id,
+          childRefContext.base_id,
+          MetaTable.COL_RELATIONS,
+          { fk_column_id: btColumn.id },
+        );
+
+        await ncMeta.metaInsert2(
+          childRefContext.workspace_id,
+          childRefContext.base_id,
+          MetaTable.COL_RELATIONS,
+          {
+            fk_column_id: btColumn.id,
+            type: btNewType,
+            fk_child_column_id: childPK.id,
+            fk_parent_column_id: parentPK.id,
+            fk_mm_model_id: assocModel.id,
+            fk_mm_child_column_id: childCol.id,
+            fk_mm_parent_column_id: parentCol.id,
+            fk_related_model_id: btColOptions.fk_related_model_id,
+            fk_target_view_id: btColOptions.fk_target_view_id,
+            virtual: isVirtual,
+            version: LinksVersion.V2,
+            ...refCrossBaseLinkProps,
+          },
+        );
+
+        // Delete old FK column metadata
+        if (fkColumn.uidt === UITypes.ForeignKey) {
+          await ncMeta.metaDelete(
+            childRefContext.workspace_id,
+            childRefContext.base_id,
+            MetaTable.COLUMNS,
+            fkColumn.id,
+          );
+        }
+
+        // Create new LTAR column + Rollup metadata inside the same transaction
+        // so that a failure here rolls back everything (uidt, col_relations, etc.)
+        if (isLinksColumn) {
+          newLtarCol = await Column.insert(
+            context,
+            {
+              fk_model_id: hmColumn.fk_model_id,
+              title: newLtarTitle,
+              uidt: UITypes.LinkToAnotherRecord,
+              type: hmNewType,
+              version: LinksVersion.V2,
+              fk_child_column_id: parentPK.id,
+              fk_parent_column_id: childPK.id,
+              fk_mm_model_id: assocModel.id,
+              fk_mm_child_column_id: parentCol.id,
+              fk_mm_parent_column_id: childCol.id,
+              fk_related_model_id: hmColOptions.fk_related_model_id,
+              fk_target_view_id: hmColOptions.fk_target_view_id,
+              virtual: isVirtual,
+              column_order: columnOrder,
+              ...crossBaseLinkProps,
+            },
+            ncMeta,
+          );
+
+          await RollupColumn.insert(
+            context,
+            {
+              fk_column_id: hmColumn.id,
+              fk_relation_column_id: newLtarCol.id,
+              fk_rollup_column_id: childPK.id,
+              rollup_function: 'count',
+            },
+            ncMeta,
+          );
+
+          Logger.log(
+            `[convertLinkToV2] newLtarCol.id=${newLtarCol.id}, title=${newLtarCol.title}. Original ${hmColumn.id} is now Rollup.`,
+          );
+        }
+
+        await ncMeta.commit();
+      } catch (metaError) {
+        await ncMeta.rollback();
+        throw metaError;
+      }
+
+      // Clear caches after successful commit
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.COL_RELATION}:${hmColumn.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+      await NocoCache.deepDel(
+        childRefContext,
+        `${CacheScope.COL_RELATION}:${btColumn.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+
+      if (isLinksColumn) {
+        // Update column cache entry to reflect new Rollup uidt
+        // (deepDel would remove it from the list cache, making it disappear from table metadata)
+        await NocoCache.update(context, `${CacheScope.COLUMN}:${hmColumn.id}`, {
+          uidt: UITypes.Rollup,
+        });
+      }
+
+      if (fkColumn.uidt === UITypes.ForeignKey) {
+        await NocoCache.deepDel(
+          childRefContext,
+          `${CacheScope.COLUMN}:${fkColumn.id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+
+      await View.clearSingleQueryCache(context, parentTable.id);
+      await View.clearSingleQueryCache(childRefContext, childTable.id);
+
+      // Emit events
+      (this.appHooksService as any).emit(AppEvents.COLUMN_UPDATE, {
+        table: parentTable,
+        column: hmColumn,
+        req: param.req,
+        context,
+        columnId: hmColumn.id,
+        columns: await parentTable.getColumns(context),
+      });
+
+      return parentTable;
+    } catch (e) {
+      // Reverse data DB changes
+      if (fkDropped && !isVirtual) {
+        try {
+          await sqlMgr.sqlOpPlus(childSource, 'relationCreate', {
+            childColumn: fkColumn.column_name,
+            childTable: childTable.table_name,
+            parentTable: parentTable.table_name,
+            parentColumn: parentPK.column_name,
+            type: 'real',
+            foreignKeyName: hmColOptions.fk_index_name,
+          });
+        } catch (_e) {
+          Logger.warn(
+            `Failed to restore FK constraint during rollback: ${_e.message}`,
+          );
+        }
+      }
+
+      if (junctionCreated) {
+        try {
+          await sqlMgr.sqlOpPlus(source, 'tableDelete', { tn: aTn });
+        } catch (_e) {
+          Logger.warn(
+            `Failed to drop junction table during rollback: ${_e.message}`,
+          );
+        }
+      }
+
+      throw e;
+    }
+  }
+
+  /**
+   * Convert an MM column to V2. MM already has a junction table,
+   * so we only need to update version metadata. For Links MM columns
+   * (V1 or V2), convert the original to Rollup and create a new V2 LTAR column.
+   */
+  async convertMMToV2(
+    context: NcContext,
+    param: {
+      column: Column;
+      colOptions: LinkToAnotherRecordColumn;
+      req: NcRequest;
+    },
+  ) {
+    const { column, colOptions } = param;
+
+    // V2 LTAR MM is already fully converted — nothing to do
+    if (
+      colOptions.version === LinksVersion.V2 &&
+      column.uidt === UITypes.LinkToAnotherRecord
+    ) {
+      NcError.badRequest('Column is already converted');
+    }
+
+    const sourceTable = await Model.getWithInfo(context, {
+      id: column.fk_model_id,
+    });
+
+    // Find paired MM column on the related table
+    const { refContext } = colOptions.getRelContext(context);
+    const relatedTable = await colOptions.getRelatedTable(refContext);
+    const relatedColumns = await relatedTable.getColumns(refContext);
+
+    let pairedColumn: Column | undefined;
+
+    for (const c of relatedColumns) {
+      if (!isLinksOrLTAR(c.uidt)) continue;
+      if (c.id === column.id) continue;
+      const opts = await c.getColOptions<LinkToAnotherRecordColumn>(refContext);
+      if (
+        opts.type === RelationTypes.MANY_TO_MANY &&
+        opts.fk_mm_model_id === colOptions.fk_mm_model_id &&
+        opts.fk_related_model_id === sourceTable.id
+      ) {
+        pairedColumn = c;
+        break;
+      }
+    }
+
+    // Links columns (showing count) → convert to Rollup + new LTAR (showing records)
+    // LinkToAnotherRecord columns → just update version metadata
+    const isLinksColumn = column.uidt === UITypes.Links;
+
+    // Pre-compute column_order and title before the transaction
+    let mmColumnOrder: { order: number; view_id: string } | undefined;
+    let mmNewLtarTitle: string | undefined;
+
+    if (isLinksColumn) {
+      const defaultView = (await View.list(context, sourceTable.id))?.[0];
+      if (defaultView) {
+        const viewColumns = await View.getColumns(context, defaultView.id);
+        const origViewCol = viewColumns.find(
+          (vc) => (vc as any).fk_column_id === column.id,
+        );
+        if (origViewCol) {
+          mmColumnOrder = {
+            order: (origViewCol as any).order + 0.5,
+            view_id: defaultView.id,
+          };
+        }
+      }
+
+      mmNewLtarTitle = getUniqueColumnAliasName(
+        await sourceTable.getColumns(context),
+        `LTAR_${column.title}`,
+      );
+    }
+
+    // Meta transaction: all meta operations in a single transaction so that
+    // a failure in Column.insert or RollupColumn.insert rolls back everything
+    const ncMeta = await (Noco.ncMeta as MetaService).startTransaction();
+
+    let mmNewLtarCol: Column | undefined;
+
+    try {
+      if (isLinksColumn) {
+        // Links MM → convert to Rollup in-place
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COLUMNS,
+          { uidt: UITypes.Rollup },
+          column.id,
+        );
+
+        // Delete old COL_RELATIONS (Rollup doesn't use it)
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_RELATIONS,
+          { fk_column_id: column.id },
+        );
+      } else {
+        // Plain LinkToAnotherRecord MM → update version in-place
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COL_RELATIONS,
+          { version: LinksVersion.V2 },
+          { fk_column_id: column.id },
+        );
+      }
+
+      // Update version on paired side
+      if (pairedColumn) {
+        await ncMeta.metaUpdate(
+          refContext.workspace_id,
+          refContext.base_id,
+          MetaTable.COL_RELATIONS,
+          { version: LinksVersion.V2 },
+          { fk_column_id: pairedColumn.id },
+        );
+      }
+
+      // Create new LTAR column + Rollup metadata inside the same transaction
+      if (isLinksColumn) {
+        const relatedPK = relatedTable.primaryKey;
+
+        mmNewLtarCol = await Column.insert(
+          context,
+          {
+            fk_model_id: column.fk_model_id,
+            title: mmNewLtarTitle,
+            uidt: UITypes.LinkToAnotherRecord,
+            type: RelationTypes.MANY_TO_MANY,
+            version: LinksVersion.V2,
+            fk_child_column_id: colOptions.fk_child_column_id,
+            fk_parent_column_id: colOptions.fk_parent_column_id,
+            fk_mm_model_id: colOptions.fk_mm_model_id,
+            fk_mm_child_column_id: colOptions.fk_mm_child_column_id,
+            fk_mm_parent_column_id: colOptions.fk_mm_parent_column_id,
+            fk_related_model_id: colOptions.fk_related_model_id,
+            fk_target_view_id: colOptions.fk_target_view_id,
+            virtual: colOptions.virtual,
+            column_order: mmColumnOrder,
+          },
+          ncMeta,
+        );
+
+        await RollupColumn.insert(
+          context,
+          {
+            fk_column_id: column.id,
+            fk_relation_column_id: mmNewLtarCol.id,
+            fk_rollup_column_id: relatedPK.id,
+            rollup_function: 'count',
+          },
+          ncMeta,
+        );
+      }
+
+      await ncMeta.commit();
+    } catch (metaError) {
+      await ncMeta.rollback();
+      throw metaError;
+    }
+
+    if (isLinksColumn) {
+      // Update column cache entry to reflect new Rollup uidt
+      // (deepDel would remove it from the list cache, making it disappear from table metadata)
+      await NocoCache.update(context, `${CacheScope.COLUMN}:${column.id}`, {
+        uidt: UITypes.Rollup,
+      });
+    }
+
+    // Clear relation caches
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.COL_RELATION}:${column.id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
+    if (pairedColumn) {
+      await NocoCache.deepDel(
+        refContext,
+        `${CacheScope.COL_RELATION}:${pairedColumn.id}`,
+        CacheDelDirection.CHILD_TO_PARENT,
+      );
+    }
+
+    await View.clearSingleQueryCache(context, sourceTable.id);
+    await View.clearSingleQueryCache(refContext, relatedTable.id);
+
+    // Emit events
+    (this.appHooksService as any).emit(AppEvents.COLUMN_UPDATE, {
+      table: sourceTable,
+      column,
+      req: param.req,
+      context,
+      columnId: column.id,
+      columns: await sourceTable.getColumns(context),
+    });
+
+    return sourceTable;
   }
 }
 

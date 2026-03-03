@@ -58,21 +58,26 @@ export function buildFilterTree(items: FilterType[]) {
 }
 
 export function extractFilterFromXwhere(
-  context: Pick<NcContext, 'api_version'>,
+  context: Pick<NcContext, 'api_version'> & Pick<NcContext, 'timezone'>,
   str: string | string[],
   aliasColObjMap: { [columnAlias: string]: ColumnType },
   throwErrorIfInvalid = false,
   errors: FilterParseError[] = []
 ): { filters?: FilterType[]; errors?: FilterParseError[] } {
   if (context.api_version === NcApiVersion.V3) {
-    return parserExtract(str, aliasColObjMap, throwErrorIfInvalid, errors);
-  } else if (typeof str === 'string' && str.startsWith('@')) {
-    return parserExtract(
-      str.substring(1),
+    return parserExtract(context, {
+      str,
       aliasColObjMap,
       throwErrorIfInvalid,
-      errors
-    );
+      errors,
+    });
+  } else if (typeof str === 'string' && str.startsWith('@')) {
+    return parserExtract(context, {
+      str: str.substring(1),
+      aliasColObjMap,
+      throwErrorIfInvalid,
+      errors,
+    });
   } else {
     return oldExtract(str, aliasColObjMap, throwErrorIfInvalid, errors);
   }

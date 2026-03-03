@@ -13,15 +13,18 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
-import { T } from '~/utils';
+import {
+  ensureUserInDefaultWorkspace,
+  verifyDefaultWorkspace,
+} from '~/helpers/verifyDefaultWorkspace';
+import { isEE, isOnPrem, T } from '~/utils';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
-import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { PresignedUrl, Store, User, UserRefreshToken } from '~/models';
+import { PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
@@ -43,7 +46,9 @@ export class UsersService {
 
   // allow signup/signin only if email matches against pattern
   validateEmailPattern(email: string) {
-    const emailPattern = process.env.NC_AUTH_EMAIL_PATTERN;
+    const emailPattern =
+      process.env.NC_USER_ALLOWED_EMAIL_PATTERN ||
+      process.env.NC_AUTH_EMAIL_PATTERN;
     if (emailPattern) {
       const regex = new RegExp(emailPattern);
       if (!regex.test(email)) {
@@ -53,15 +58,7 @@ export class UsersService {
   }
 
   async findOne(_email: string) {
-    const email = _email.toLowerCase();
-    const user = await this.metaService.metaGet(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.USERS,
-      {
-        email,
-      },
-    );
+    const user = await User.getByEmail(_email);
 
     await PresignedUrl.signMetaIconImage(user);
 
@@ -135,6 +132,7 @@ export class UsersService {
       email_verification_token,
       req,
       is_invite = false,
+      workspace_invite = false,
     }: {
       email: string;
       salt: any;
@@ -142,6 +140,7 @@ export class UsersService {
       email_verification_token;
       req: NcRequest;
       is_invite?: boolean;
+      workspace_invite?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -160,12 +159,7 @@ export class UsersService {
         count: 1,
       });
     } else {
-      let settings: { invite_only_signup?: boolean } = {};
-      try {
-        settings = JSON.parse(
-          (await Store.get(NC_APP_SETTINGS, undefined, ncMeta))?.value,
-        );
-      } catch {}
+      const settings = await Noco.getAppSettings();
 
       if (settings?.invite_only_signup && !is_invite) {
         NcError.badRequest('Not allowed to signup, contact super admin.');
@@ -188,13 +182,22 @@ export class UsersService {
     );
 
     // if first user and super admin, create a base
-    if (isFirstUser && process.env.NC_CLOUD !== 'true') {
+    // On unlicensed on-prem (EE build), @EEOnly() falls back to this CE code,
+    // so on-prem also needs workspace + base creation here.
+    if (isFirstUser && (!isEE || isOnPrem)) {
+      await verifyDefaultWorkspace(user, ncMeta);
+
       // todo: update swagger type
       (user as any).createdProject = await this.createDefaultProject(
         user,
         req,
         ncMeta,
       );
+    } else if (!isFirstUser && !is_invite && !workspace_invite) {
+      // Only add to default workspace for self-signups, not invites.
+      // Workspace invites set the role explicitly via the invite flow;
+      // org invites call ensureUserInDefaultWorkspace separately.
+      await ensureUserInDefaultWorkspace(user.id, undefined, ncMeta);
     }
 
     // todo: update swagger type
@@ -301,8 +304,6 @@ export class UsersService {
         user: user,
         req: param.req,
       });
-    } else {
-      return NcError.badRequest('Your email has not been registered.');
     }
 
     return true;
@@ -378,6 +379,9 @@ export class UsersService {
       reset_password_token: '',
       token_version: randomTokenString(),
     });
+
+    // delete all refresh tokens to invalidate existing sessions
+    await UserRefreshToken.deleteAllUserToken(user.id);
 
     this.appHooksService.emit(AppEvents.USER_PASSWORD_RESET, {
       user: user,
@@ -502,11 +506,18 @@ export class UsersService {
       NcError.badRequest(`Invalid email`);
     }
 
+    // Reject plus addressing (always abusive)
+    if (_email.split('@')[0].includes('+')) {
+      NcError.badRequest('Email aliases with "+" are not allowed');
+    }
+
     const email = _email.toLowerCase();
 
     this.validateEmailPattern(email);
 
-    let user = await User.getByEmail(email);
+    // Check for existing user by canonical email to prevent alias abuse
+    let user =
+      (await User.getByCanonicalEmail(email)) || (await User.getByEmail(email));
 
     if (user) {
       if (token) {

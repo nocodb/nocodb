@@ -14,7 +14,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
 const { user } = useGlobal()
-const { isViewDataLoading } = storeToRefs(useViewsStore())
+const { isViewDataLoading, isActiveViewFieldHeaderVisible } = storeToRefs(useViewsStore())
 const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus } =
   useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
@@ -33,6 +33,8 @@ provide(IsGridInj, ref(false))
 provide(IsCalendarInj, ref(false))
 provide(RowHeightInj, ref(1 as const))
 provide(ReloadRowDataHookInj, reloadViewDataHook!)
+
+const { isMounted } = useIsMounted()
 
 const {
   fetchChunk,
@@ -82,6 +84,13 @@ const contextMenu = computed({
   },
 })
 const contextMenuTarget = ref<{ row: RowType; index: number } | null>(null)
+
+const showSendRecordModal = ref(false)
+
+const contextMenuRowId = computed(() => {
+  if (!contextMenuTarget.value?.row) return null
+  return extractPkFromRow(contextMenuTarget.value.row.row, meta.value?.columns)
+})
 
 const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }) => {
   if (isSqlView.value) return
@@ -241,7 +250,41 @@ const visibleRows = computed(() => {
   })
 })
 
-const { isRowColouringEnabled } = useViewRowColorRender()
+const {
+  isRowColouringEnabled,
+  getCellColorStyle: _getCellColorStyle,
+  getCellLeftBorderStyle: _getCellLeftBorderStyle,
+} = useViewRowColorRender()
+
+const getCellColorStyle = (record: Row, columnId: string) => {
+  // Access pre-computed cell colors from rowMeta (optimized - no function calls)
+  const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
+  if (!cellColorInfo) return {}
+
+  const style: Record<string, string> = {}
+  if (cellColorInfo.cellBgColor) {
+    style.backgroundColor = cellColorInfo.cellBgColor
+  }
+  return style
+}
+
+const getCellLeftBorderStyle = (record: Row, columnId: string) => {
+  // Access pre-computed cell colors from rowMeta (optimized - no function calls)
+  const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
+  if (!cellColorInfo || cellColorInfo.is_set_as_background || !cellColorInfo.cellLeftBorderColor) return null
+
+  return { backgroundColor: cellColorInfo.cellLeftBorderColor }
+}
+
+const getCellColorClass = (record: Row, columnId: string) => {
+  const bgStyle = getCellColorStyle(record, columnId)
+  return bgStyle?.backgroundColor ? 'has-cell-bg-color' : ''
+}
+
+const getCellColorBgVar = (record: Row, columnId: string) => {
+  const bgStyle = getCellColorStyle(record, columnId)
+  return bgStyle?.backgroundColor ? { '--cell-bg-color': bgStyle.backgroundColor } : {}
+}
 
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
@@ -394,6 +437,10 @@ const handleOpenNewRecordForm = () => {
 
   openNewRecordFormHook.trigger()
 }
+
+const resetPointerEvent = (record: RowType, col: ColumnType) => {
+  return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
+}
 </script>
 
 <template>
@@ -414,6 +461,12 @@ const handleOpenNewRecordForm = () => {
             <div v-e="['a:row:expand-record']" class="flex items-center gap-2">
               <component :is="iconMap.maximize" class="flex" />
               {{ $t('activity.expandRecord') }}
+            </div>
+          </NcMenuItem>
+          <NcMenuItem v-if="contextMenuTarget && contextMenuRowId && !isPublic && isEeUI" @click="showSendRecordModal = true">
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="mail" class="flex" />
+              {{ $t('activity.sendRecord') }}
             </div>
           </NcMenuItem>
           <NcDivider />
@@ -466,7 +519,7 @@ const handleOpenNewRecordForm = () => {
                 >
                   <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                     <a-carousel
-                      v-if="!reloadAttachments && attachments(record).length"
+                      v-if="isMounted && !reloadAttachments && attachments(record).length"
                       class="gallery-carousel !border-b-1 !border-nc-border-gray-medium min-h-52 !bg-nc-bg-default"
                       :style="{
                         ...extractRowBackgroundColorStyle(record).rowBgColor,
@@ -532,85 +585,138 @@ const handleOpenNewRecordForm = () => {
                       :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
                     ></div>
                     <div
-                      class="flex-1 flex flex-col gap-3 !children:pointer-events-none"
+                      class="flex-1 flex flex-col !children:pointer-events-none"
                       :class="{
                         'w-[calc(100%_-_16px)]': isRowColouringEnabled,
                         'w-full': !isRowColouringEnabled,
+                        'gap-3': isActiveViewFieldHeaderVisible,
                       }"
                     >
-                      <h2
+                      <div
                         v-if="displayField"
-                        class="nc-card-display-value-wrapper"
-                        :class="{
-                          '!children:pointer-events-auto':
-                            isButton(displayField) ||
-                            (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
-                        }"
+                        class="flex gap-2 rounded-lg w-full z-1 relative"
+                        :class="getCellColorClass(record, displayField.id)"
+                        :style="getCellColorBgVar(record, displayField.id)"
                       >
-                        <template
-                          v-if="
-                            !isRowEmpty(record, displayField) ||
-                            isAllowToRenderRowEmptyField(displayField) ||
-                            isPercent(displayField)
-                          "
+                        <div
+                          v-if="getCellLeftBorderStyle(record, displayField.id)"
+                          class="w-1 flex-none min-h-4 rounded-sm"
+                          :style="getCellLeftBorderStyle(record, displayField.id)"
+                        ></div>
+                        <h2
+                          class="nc-card-display-value-wrapper flex-1 min-w-0"
+                          :class="{
+                            '!children:pointer-events-auto': resetPointerEvent(record, displayField),
+                          }"
                         >
-                          <LazySmartsheetVirtualCell
-                            v-if="isVirtualCol(displayField)"
-                            v-model="record.row[displayField.title]"
-                            class="!text-nc-content-brand"
-                            :column="displayField"
-                            :row="record"
-                          />
-                          <LazySmartsheetCell
-                            v-else
-                            v-model="record.row[displayField.title]"
-                            class="!text-nc-content-brand"
-                            :column="displayField"
-                            :edit-enabled="false"
-                            :read-only="true"
-                          />
-                        </template>
-                        <template v-else> - </template>
-                      </h2>
+                          <template
+                            v-if="
+                              !isRowEmpty(record, displayField) ||
+                              isAllowToRenderRowEmptyField(displayField) ||
+                              isPercent(displayField)
+                            "
+                          >
+                            <LazySmartsheetVirtualCell
+                              v-if="isVirtualCol(displayField)"
+                              v-model="record.row[displayField.title]"
+                              class="!text-nc-content-brand"
+                              :column="displayField"
+                              :row="record"
+                            />
+                            <LazySmartsheetCell
+                              v-else
+                              v-model="record.row[displayField.title]"
+                              class="!text-nc-content-brand"
+                              :column="displayField"
+                              :edit-enabled="false"
+                              :read-only="true"
+                            />
+                          </template>
+                          <template v-else> - </template>
+                        </h2>
+                      </div>
                       <div
                         v-for="col in fieldsWithoutDisplay"
                         :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
                         class="nc-card-col-wrapper"
                         :class="{
-                          '!children:pointer-events-auto':
-                            isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
+                          '!children:pointer-events-auto': resetPointerEvent(record, col),
                         }"
                         @click="handleClick(col, $event)"
                       >
-                        <div class="flex flex-col rounded-lg w-full">
-                          <div class="flex flex-row w-full justify-start">
-                            <div class="nc-card-col-header w-full !children:text-gray-500">
-                              <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                              <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                        <NcTooltip
+                          hide-on-click
+                          :disabled="isActiveViewFieldHeaderVisible"
+                          class="w-full z-10 flex"
+                          :class="{
+                            'pointer-events-auto': !isActiveViewFieldHeaderVisible,
+                          }"
+                          placement="left"
+                          :arrow="false"
+                        >
+                          <template #title>
+                            <LazySmartsheetHeaderVirtualCell
+                              v-if="isVirtualCol(col)"
+                              :column="col"
+                              :hide-menu="true"
+                              hide-icon-tooltip
+                              class="!text-gray-100 nc-record-cell-tooltip"
+                            />
+                            <LazySmartsheetHeaderCell
+                              v-else
+                              :column="col"
+                              :hide-menu="true"
+                              hide-icon-tooltip
+                              class="!text-gray-100 nc-record-cell-tooltip"
+                            />
+                          </template>
+                          <div
+                            class="flex gap-2 rounded-lg w-full z-1 relative"
+                            :class="{
+                              'pointer-events-none': !resetPointerEvent(record, col),
+                              [getCellColorClass(record, col.id)]: true,
+                            }"
+                            :style="getCellColorBgVar(record, col.id)"
+                          >
+                            <div
+                              v-if="getCellLeftBorderStyle(record, col.id)"
+                              class="w-1 flex-none min-h-4 rounded-sm"
+                              :style="getCellLeftBorderStyle(record, col.id)"
+                            ></div>
+                            <div class="flex flex-col w-full">
+                              <div class="flex flex-row w-full justify-start">
+                                <div
+                                  v-if="isActiveViewFieldHeaderVisible"
+                                  class="nc-card-col-header w-full !children:text-gray-500"
+                                >
+                                  <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+                                  <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                </div>
+                              </div>
+                              <div
+                                v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
+                                class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
+                              >
+                                <LazySmartsheetVirtualCell
+                                  v-if="isVirtualCol(col)"
+                                  v-model="record.row[col.title]"
+                                  :column="col"
+                                  :row="record"
+                                  class="!text-nc-content-gray"
+                                />
+                                <LazySmartsheetCell
+                                  v-else
+                                  v-model="record.row[col.title]"
+                                  :column="col"
+                                  :edit-enabled="false"
+                                  :read-only="true"
+                                  class="!text-nc-content-gray"
+                                />
+                              </div>
+                              <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
                             </div>
                           </div>
-                          <div
-                            v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
-                            class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
-                          >
-                            <LazySmartsheetVirtualCell
-                              v-if="isVirtualCol(col)"
-                              v-model="record.row[col.title]"
-                              :column="col"
-                              :row="record"
-                              class="!text-nc-content-gray"
-                            />
-                            <LazySmartsheetCell
-                              v-else
-                              v-model="record.row[col.title]"
-                              :column="col"
-                              :edit-enabled="false"
-                              :read-only="true"
-                              class="!text-nc-content-gray"
-                            />
-                          </div>
-                          <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
-                        </div>
+                        </NcTooltip>
                       </div>
                     </div>
                   </div>
@@ -625,7 +731,7 @@ const handleOpenNewRecordForm = () => {
         </div>
       </div>
     </NcDropdown>
-    <div class="sticky bottom-4 w-[fit-content]">
+    <div class="sticky bottom-4 w-[fit-content] z-10">
       <PermissionsTooltip
         v-if="isUIAllowed('dataInsert') && !isSyncedTable"
         :entity="PermissionEntity.TABLE"
@@ -673,12 +779,22 @@ const handleOpenNewRecordForm = () => {
       @prev="navigateToSiblingRow(NavigateDir.PREV)"
     />
   </Suspense>
+
+  <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="contextMenuRowId" />
 </template>
 
 <style lang="scss" scoped>
 .nc-gallery-container,
 .nc-gallery-container-skeleton {
   @apply auto-rows-[1fr] grid-cols-[repeat(auto-fit,minmax(250px,1fr))];
+}
+
+.has-cell-bg-color {
+  &::before {
+    content: '';
+    @apply absolute inset-0 -left-1 rounded-lg -z-1;
+    background-color: var(--cell-bg-color);
+  }
 }
 
 :deep(.slick-dots li button) {
@@ -690,7 +806,7 @@ const handleOpenNewRecordForm = () => {
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
-  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-[#d9d9d9];
+  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-nc-bg-gray-medium;
   font-size: 0;
 }
 
@@ -816,6 +932,16 @@ const handleOpenNewRecordForm = () => {
       @apply flex-none !max-w-none !w-auto;
     }
   }
+
+  .nc-date-picker > div > div {
+    &:first-child {
+      @apply pl-0;
+    }
+
+    &:last-child {
+      @apply pr-0;
+    }
+  }
 }
 
 :deep(.nc-virtual-cell) {
@@ -860,6 +986,32 @@ const handleOpenNewRecordForm = () => {
   &.nc-virtual-cell-qrcode,
   &.nc-virtual-cell-barcode {
     @apply children:justify-start;
+  }
+
+  .nc-date-picker > div > div {
+    &:first-child {
+      @apply pl-0;
+    }
+
+    &:last-child {
+      @apply pr-0;
+    }
+  }
+}
+
+.nc-record-cell-tooltip {
+  @apply !bg-transparent !hover:bg-transparent;
+
+  :deep(.nc-cell-icon) {
+    @apply !ml-0 h-3.5 w-3.5;
+  }
+  :deep(.name) {
+    @apply text-captionSm;
+  }
+
+  :deep(.nc-cell-name-wrapper),
+  :deep(.nc-virtual-cell-name-wrapper) {
+    @apply !max-w-full;
   }
 }
 </style>

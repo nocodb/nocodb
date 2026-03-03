@@ -61,7 +61,7 @@ test.describe('View', () => {
     });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban',
-      index: 0,
+      index: 1,
     });
 
     // configure stack-by field
@@ -203,7 +203,7 @@ test.describe('View', () => {
     });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban',
-      index: 0,
+      index: 1,
     });
 
     await toolbar.sort.add({
@@ -228,7 +228,7 @@ test.describe('View', () => {
     await dashboard.viewSidebar.copyView({ title: 'Film Kanban' });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban copy',
-      index: 1,
+      index: 2,
     });
     const kanban = dashboard.kanban;
     await kanban.verifyStackCount({ count: 6 });
@@ -303,7 +303,7 @@ test.describe('View', () => {
     await dashboard.expandedForm.save({ waitForRowsData: false });
     await toolbar.fields.toggle({ title: 'Language1' });
     // kludge: reload the page
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await kanban.verifyStackCount({ count: 7 });
     await kanban.verifyStackOrder({
@@ -333,7 +333,7 @@ test.describe('View', () => {
     });
     await dashboard.viewSidebar.verifyView({
       title: 'Film Kanban',
-      index: 0,
+      index: 1,
     });
 
     // Share view
@@ -346,7 +346,7 @@ test.describe('View', () => {
 
     // Open shared view & verify stack count
     await page.goto(sharedLink);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     const kanban = dashboard.kanban;
     await kanban.verifyStackCount({ count: 6 });
   });

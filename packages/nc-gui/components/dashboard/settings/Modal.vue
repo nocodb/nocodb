@@ -162,7 +162,7 @@ watch(
   >
     <div class="nc-modal-settings-content">
       <!--    Settings -->
-      <div class="flex flex-row justify-between w-full items-center p-4 border-b-1 border-gray-200">
+      <div class="flex flex-row justify-between w-full items-center p-4 border-b-1 border-nc-border-gray-medium">
         <h5 class="!my-0 text-2xl font-bold">{{ $t('objects.project') }} {{ $t('activity.settings') }}</h5>
 
         <NcButton type="text" size="small" data-testid="settings-modal-close-button" @click="vModel = false">
@@ -172,7 +172,7 @@ watch(
 
       <a-layout class="overflow-y-auto flex !h-[calc(100%_-_66px)]">
         <!-- Side tabs -->
-        <a-layout-sider class="!bg-white">
+        <a-layout-sider class="!bg-nc-bg-default">
           <a-menu v-model:selected-keys="selectedTabKeys" class="tabs-menu h-full" :open-keys="[]">
             <template v-for="(tab, key) of tabsInfo" :key="key">
               <a-menu-item

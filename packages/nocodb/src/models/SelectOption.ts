@@ -54,6 +54,7 @@ export default class SelectOption implements SelectOptionType {
 
     return this.get(context, id, ncMeta).then(async (selectOption) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.COL_SELECT_OPTION,
         [data.fk_column_id],
         `${CacheScope.COL_SELECT_OPTION}:${id}`,
@@ -92,8 +93,13 @@ export default class SelectOption implements SelectOptionType {
     );
 
     for (const d of bulkData) {
-      await NocoCache.set(`${CacheScope.COL_SELECT_OPTION}:${d.id}`, d);
+      await NocoCache.set(
+        context,
+        `${CacheScope.COL_SELECT_OPTION}:${d.id}`,
+        d,
+      );
       await NocoCache.appendToList(
+        context,
         CacheScope.COL_SELECT_OPTION,
         [d.fk_column_id],
         `${CacheScope.COL_SELECT_OPTION}:${d.id}`,
@@ -111,6 +117,7 @@ export default class SelectOption implements SelectOptionType {
     let data =
       selectOptionId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_SELECT_OPTION}:${selectOptionId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -122,6 +129,7 @@ export default class SelectOption implements SelectOptionType {
         selectOptionId,
       );
       await NocoCache.set(
+        context,
         `${CacheScope.COL_SELECT_OPTION}:${selectOptionId}`,
         data,
       );
@@ -134,9 +142,11 @@ export default class SelectOption implements SelectOptionType {
     fk_column_id: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.COL_SELECT_OPTION, [
-      fk_column_id,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.COL_SELECT_OPTION,
+      [fk_column_id],
+    );
     let { list: options } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !options.length) {
@@ -147,6 +157,7 @@ export default class SelectOption implements SelectOptionType {
         { condition: { fk_column_id } },
       );
       await NocoCache.setList(
+        context,
         CacheScope.COL_SELECT_OPTION,
         [fk_column_id],
         options.map(({ created_at, updated_at, ...others }) => others),

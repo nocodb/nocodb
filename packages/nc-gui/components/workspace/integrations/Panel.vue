@@ -42,7 +42,7 @@ const toggleCollapse = () => {
 
 <style lang="scss" scoped>
 .panel {
-  @apply border-1 border-gray-200 px-6 py-4 rounded-lg mb-4;
+  @apply border-1 border-nc-border-gray-medium px-6 py-4 rounded-lg mb-4;
 
   .panel-label {
     @apply text-md font-weight-bold flex-1;

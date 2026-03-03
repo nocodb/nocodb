@@ -1,3 +1,0 @@
-#!/bin/execlineb -P
-
-/etc/s6-services/acme-selfsigned/shell_up.sh

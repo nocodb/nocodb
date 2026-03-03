@@ -79,20 +79,20 @@ onBeforeUnmount(() => {
 
   <div class="flex flex-col h-full">
     <NcTabs v-model:active-key="activeTab" centered>
-      <a-tab-pane v-for="tab in tabs" :key="tab.key" class="bg-gray-50 !h-full">
+      <a-tab-pane v-for="tab in tabs" :key="tab.key" class="bg-nc-bg-gray-extralight !h-full">
         <template #tab>
           <div class="flex gap-2 items-center">
             <GeneralIcon
               :class="{
-                'text-brand-500': activeTab === tab.key,
-                'text-gray-600': activeTab !== tab.key,
+                'text-nc-content-brand': activeTab === tab.key,
+                'text-nc-content-gray-subtle2': activeTab !== tab.key,
               }"
               :icon="tab.icon as any"
             />
             <span
               :class="{
-                'text-brand-500 font-medium': activeTab === tab.key,
-                'text-gray-700': activeTab !== tab.key,
+                'text-nc-content-brand font-medium': activeTab === tab.key,
+                'text-nc-content-gray-subtle': activeTab !== tab.key,
               }"
               class="text-sm"
               >{{ tab.title }}

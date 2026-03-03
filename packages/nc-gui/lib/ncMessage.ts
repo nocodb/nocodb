@@ -216,6 +216,13 @@ const showMessage = (
 
   const key = generateMessageKey(params)
 
+  let ncDuration = duration ?? ncAlertProps.duration
+
+  // If showDuration is false and duration is not provided, then set duration to 3 seconds
+  if (!ncAlertProps.showDuration && !ncDuration) {
+    ncDuration = 3
+  }
+
   return message.open({
     key,
     content: renderAsNcAlert
@@ -232,7 +239,7 @@ const showMessage = (
                 onClose?.()
                 message.destroy(key)
               },
-              duration: duration ?? ncAlertProps.duration,
+              duration: ncDuration,
             },
             {
               action: ncIsFunction(ncAlertProps.action)
@@ -245,7 +252,7 @@ const showMessage = (
           )
       : content,
     type: !renderAsNcAlert && type !== 'toast' ? type : undefined,
-    duration: duration ?? ncAlertProps.duration,
+    duration: ncDuration,
     prefixCls,
     rootPrefixCls,
     getPopupContainer,

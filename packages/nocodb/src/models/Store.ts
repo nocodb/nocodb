@@ -34,6 +34,7 @@ export default class Store {
       const storeData =
         key &&
         (await NocoCache.get(
+          'root',
           `${CacheScope.STORE}:${key}`,
           CacheGetType.TYPE_OBJECT,
         ));
@@ -50,7 +51,7 @@ export default class Store {
     );
 
     if (lookInCache)
-      await NocoCache.set(`${CacheScope.STORE}:${key}`, storeData);
+      await NocoCache.set('root', `${CacheScope.STORE}:${key}`, storeData);
 
     return storeData;
   }
@@ -88,6 +89,7 @@ export default class Store {
         true,
       );
     }
-    if (store.key) await NocoCache.del(`${CacheScope.STORE}:${store.key}`);
+    if (store.key)
+      await NocoCache.del('root', `${CacheScope.STORE}:${store.key}`);
   }
 }

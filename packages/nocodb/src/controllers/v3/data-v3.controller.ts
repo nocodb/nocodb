@@ -50,6 +50,7 @@ export class Datav3Controller {
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
+    context.cache = true;
     const startTime = process.hrtime();
     const responseData = await this.dataV3Service.dataList(context, {
       query: req.query,
@@ -73,6 +74,7 @@ export class Datav3Controller {
     @Query('view_id') viewId: string,
     @Body() body: DataInsertRequest | DataInsertRequest[],
   ) {
+    context.cache = true;
     return await this.dataV3Service.dataInsert(context, {
       modelId: modelId,
       body: body,
@@ -94,6 +96,7 @@ export class Datav3Controller {
     @Param('columnId') columnId: string,
     @Body() body: { contentType: string; file: string; filename: string },
   ) {
+    context.cache = true;
     return await this.dataAttachmentV3Service.appendBase64AttachmentToCellData({
       context,
       modelId,
@@ -116,6 +119,7 @@ export class Datav3Controller {
     @Body() body: DataDeleteRequest | DataDeleteRequest[],
     @Query('records') records: string | string[],
   ) {
+    context.cache = true;
     return await this.dataV3Service.dataDelete(context, {
       modelId: modelId,
       cookie: req,
@@ -135,6 +139,7 @@ export class Datav3Controller {
     @Query('view_id') viewId: string,
     @Body() body: DataUpdateRequest | DataUpdateRequest[],
   ) {
+    context.cache = true;
     return await this.dataV3Service.dataUpdate(context, {
       modelId: modelId,
       body: body,
@@ -154,6 +159,7 @@ export class Datav3Controller {
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
   ) {
+    context.cache = true;
     return await this.dataV3Service.nestedDataList(context, {
       modelId,
       rowId: rowId,
@@ -184,6 +190,7 @@ export class Datav3Controller {
       | Record<string, any>
       | Record<string, any>[],
   ) {
+    context.cache = true;
     return await this.dataV3Service.nestedLink(context, {
       modelId,
       rowId: rowId,
@@ -214,6 +221,7 @@ export class Datav3Controller {
       | Record<string, any>
       | Record<string, any>[],
   ) {
+    context.cache = true;
     return await this.dataV3Service.nestedUnlink(context, {
       modelId,
       rowId: rowId,
@@ -235,6 +243,7 @@ export class Datav3Controller {
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
+    context.cache = true;
     const countResult = await this.dataTableService.dataCount(context, {
       query: req.query,
       modelId,
@@ -254,6 +263,7 @@ export class Datav3Controller {
     @Query('view_id') viewId: string,
     @Param('rowId') rowId: string,
   ): Promise<DataRecord> {
+    context.cache = true;
     return await this.dataV3Service.dataRead(context, {
       modelId,
       rowId: rowId,

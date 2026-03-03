@@ -2,45 +2,152 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  Inject,
   Param,
   Post,
   Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { NcContext, NcRequest } from 'nocodb-sdk';
-import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-import { GlobalGuard } from '~/guards/global/global.guard';
-import { McpTokenService } from '~/services/mcp.service';
-import { AuditsService } from '~/services/audits.service';
+import { NcContext, NcRequest, ViewLockType } from 'nocodb-sdk';
+import type { InternalApiModule } from '~/utils/internal-type';
+import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
+import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
-import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import {
+  AclMiddleware,
+  VIEW_KEY,
+} from '~/middlewares/extract-ids/extract-ids.middleware';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
+import {
+  Filter,
+  GridViewColumn,
+  Sort,
+  TimelineViewColumn,
+  View,
+} from '~/models';
+import { RootScopes } from '~/utils/globals';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class InternalController {
   constructor(
-    protected readonly mcpService: McpTokenService,
     protected readonly aclMiddleware: AclMiddleware,
-    protected readonly auditsService: AuditsService,
-  ) {}
-
-  protected get operationScopes() {
-    return {
-      mcpList: 'base',
-      mcpCreate: 'base',
-      mcpUpdate: 'base',
-      mcpDelete: 'base',
-      recordAuditList: 'base',
-    };
+    @Inject(INTERNAL_API_MODULE_PROVIDER_KEY)
+    protected readonly internalApiModules: InternalApiModule<any>[],
+  ) {
+    if (!this.internalApiModuleMap) {
+      this.internalApiModuleMap = {};
+    }
+    for (const each of internalApiModules) {
+      this.internalApiModuleMap[each.httpMethod] =
+        this.internalApiModuleMap[each.httpMethod] ?? {};
+      for (const operation of each.operations) {
+        this.internalApiModuleMap[each.httpMethod][operation] = each;
+      }
+    }
   }
 
-  protected async checkAcl(operation: string, req, scope?: string) {
+  protected internalApiModuleMap: Record<
+    string,
+    Record<string, InternalApiModule<any>>
+  > = {};
+
+  protected async checkAcl(
+    operation: keyof typeof OPERATION_SCOPES,
+    req: NcRequest,
+    scope?: string,
+  ) {
+    // For filter/sort/view operations, extract view to check personal view ownership
+    const filterSortOperations = [
+      'filterList',
+      'filterChildrenList',
+      'filterCreate',
+      'filterUpdate',
+      'filterDelete',
+      'sortList',
+      'sortCreate',
+      'sortUpdate',
+      'sortDelete',
+      'viewUpdate',
+      'viewColumnUpdate',
+      'viewColumnCreate',
+      'hideAllColumns',
+      'showAllColumns',
+      'gridViewUpdate',
+      'gridColumnUpdate',
+      'galleryViewUpdate',
+      'kanbanViewUpdate',
+      'mapViewUpdate',
+      'calendarViewUpdate',
+      'timelineViewUpdate',
+      'timelineColumnUpdate',
+      'viewRowColorConditionAdd',
+      'viewRowColorConditionUpdate',
+      'viewRowColorConditionDelete',
+      'viewRowColorSelectAdd',
+      'viewRowColorInfoDelete',
+      'rowColorConditionsFilterCreate',
+    ];
+
+    if (filterSortOperations.includes(operation as string)) {
+      const bypassContext = {
+        workspace_id: RootScopes.BYPASS,
+        base_id: RootScopes.BYPASS,
+      };
+
+      let view: View | null = null;
+
+      // Extract view based on the operation parameters
+      if (req.query.viewId) {
+        view = await View.get(bypassContext, req.query.viewId as string);
+      } else if (req.body?.fk_view_id) {
+        // For create operations (filterCreate, sortCreate, etc.) where viewId is in body
+        view = await View.get(bypassContext, req.body.fk_view_id);
+      } else if (req.query.filterId) {
+        const filter = await Filter.get(
+          bypassContext,
+          req.query.filterId as string,
+        );
+        if (filter?.fk_view_id) {
+          view = await View.get(bypassContext, filter.fk_view_id);
+        }
+      } else if (req.query.sortId) {
+        const sort = await Sort.get(bypassContext, req.query.sortId as string);
+        if (sort?.fk_view_id) {
+          view = await View.get(bypassContext, sort.fk_view_id);
+        }
+      } else if (req.query.gridViewColumnId) {
+        const gridCol = await GridViewColumn.get(
+          bypassContext,
+          req.query.gridViewColumnId as string,
+        );
+        if (gridCol?.fk_view_id) {
+          view = await View.get(bypassContext, gridCol.fk_view_id);
+        }
+      } else if (req.query.timelineViewColumnId) {
+        const timelineCol = await TimelineViewColumn.get(
+          bypassContext,
+          req.query.timelineViewColumnId as string,
+        );
+        if (timelineCol?.fk_view_id) {
+          view = await View.get(bypassContext, timelineCol.fk_view_id);
+        }
+      }
+
+      // Set view in request for personal view ownership check in ACL middleware
+      if (view && view.lock_type === ViewLockType.Personal) {
+        req[VIEW_KEY] = view;
+      }
+    }
+
     await this.aclMiddleware.aclFn(
       operation,
       {
@@ -56,51 +163,47 @@ export class InternalController {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: string,
+    @Query('operation') operation: keyof typeof OPERATION_SCOPES,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
-    await this.checkAcl(operation, req, this.operationScopes[operation]);
+    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
+    const module = this.internalApiModuleMap['GET'][operation];
 
-    switch (operation) {
-      case 'mcpList':
-        return await this.mcpService.list(context, req);
-      case 'mcpGet':
-        return await this.mcpService.get(context, req.query.tokenId as string);
-      case 'recordAuditList':
-        return await this.auditsService.recordAuditList(context, {
-          row_id: req.query.row_id as string,
-          fk_model_id: req.query.fk_model_id as string,
-          cursor: req.query.cursor as string,
-        });
-      default:
-        return NcError.notFound('Operation');
+    if (module) {
+      return module.handle(context, {
+        workspaceId,
+        baseId,
+        operation,
+        req,
+      });
     }
+    return NcError.notFound('Operation');
   }
 
   @Post(['/api/v2/internal/:workspaceId/:baseId'])
+  // return 200 instead 201 for more generic operations
+  @HttpCode(200)
   protected async internalAPIPost(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('baseId') baseId: string,
-    @Query('operation') operation: string,
+    @Query('operation') operation: keyof typeof OPERATION_SCOPES,
     @Body() payload: any,
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
-    await this.checkAcl(operation, req, this.operationScopes[operation]);
+    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
-    switch (operation) {
-      case 'mcpCreate':
-        return await this.mcpService.create(context, payload, req);
-      case 'mcpUpdate':
-        return await this.mcpService.regenerateToken(
-          context,
-          payload.tokenId,
-          payload,
-        );
-      case 'mcpDelete':
-        return await this.mcpService.delete(context, payload.tokenId);
-      default:
-        NcError.notFound('Operation');
+    const module = this.internalApiModuleMap['POST'][operation];
+
+    if (module) {
+      return module.handle(context, {
+        workspaceId,
+        baseId,
+        operation,
+        req,
+        payload,
+      });
     }
+    return NcError.notFound('Operation');
   }
 }

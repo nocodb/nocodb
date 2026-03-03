@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import tinycolor from 'tinycolor2'
 import type { ColumnType, SelectOptionType, SelectOptionsType, UserFieldRecordType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib/types'
@@ -17,6 +16,8 @@ const emits = defineEmits(['update:modelValue', 'update:formFieldState'])
 const meta = inject(MetaInj)!
 
 const { column, formFieldState } = toRefs(props)
+
+const { isDark, getColor } = useTheme()
 
 const basesStore = useBases()
 
@@ -152,7 +153,7 @@ const showOrHideAll = (showAll: boolean) => {
 </script>
 
 <template>
-  <div class="w-full h-full nc-col-select-option nc-form-scrollbar">
+  <div class="w-full h-full nc-col-select-option nc-scrollbar-thin">
     <div v-if="vModel.length > 12">
       <a-input
         v-model:value="searchQuery"
@@ -162,13 +163,13 @@ const showOrHideAll = (showAll: boolean) => {
         data-testid="nc-form-field-limit-option-search-input"
       >
         <template #prefix>
-          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
         </template>
         <template #suffix>
           <GeneralIcon
             v-if="searchQuery.length > 0"
             icon="close"
-            class="ml-2 h-4 w-4 text-gray-500 group-hover:text-black"
+            class="ml-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
             data-testid="nc-form-field-clear-search"
             @click="searchQuery = ''"
           />
@@ -176,14 +177,17 @@ const showOrHideAll = (showAll: boolean) => {
       </a-input>
     </div>
 
-    <div v-if="vModel.length" class="flex items-stretch gap-2 pr-2 pl-3 py-1.5 rounded-t-lg border-1 border-b-0 border-gray-200">
+    <div
+      v-if="vModel.length"
+      class="flex items-stretch gap-2 pr-2 pl-3 py-1.5 rounded-t-lg border-1 border-b-0 border-nc-border-gray-medium"
+    >
       <NcTooltip :disabled="!isRequired">
         <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
 
         <NcButton
           type="secondary"
           size="xxsmall"
-          class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
+          class="!border-none !px-2 !text-xs !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
           :disabled="isRequired || vModel.filter((o) => !o.show).length === vModel.length"
           :shadow="false"
           @click="showOrHideAll(false)"
@@ -196,7 +200,7 @@ const showOrHideAll = (showAll: boolean) => {
         <NcButton
           type="secondary"
           size="xxsmall"
-          class="!border-none !px-2 !text-xs !text-gray-500 !disabled:text-gray-300"
+          class="!border-none !px-2 !text-xs !text-nc-content-gray-muted !disabled:text-nc-content-brand-hover"
           :disabled="vModel.filter((o) => o.show).length === vModel.length"
           :shadow="false"
           @click="showOrHideAll(true)"
@@ -213,7 +217,7 @@ const showOrHideAll = (showAll: boolean) => {
       item-key="id"
       handle=".nc-child-draggable-icon"
       ghost-class="nc-form-field-limit-option-ghost"
-      class="rounded-b-lg border-1 border-gray-200 !max-h-[224px] overflow-y-auto nc-form-scrollbar"
+      class="rounded-b-lg border-1 border-nc-border-gray-medium !max-h-[224px] overflow-y-auto nc-scrollbar-thin"
       @change="onMove($event)"
       @start="drag = true"
       @end="drag = false"
@@ -226,14 +230,17 @@ const showOrHideAll = (showAll: boolean) => {
               : element.title?.toLowerCase().includes(searchQuery.toLowerCase())
           "
           :key="element.id"
-          class="w-full h-10 px-2 py-1.5 flex flex-row items-center gap-3 border-b-1 last:border-none border-gray-200"
+          class="w-full h-10 px-2 py-1.5 flex flex-row items-center gap-3 border-b-1 last:border-none border-nc-border-gray-medium"
           :class="[
             `nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`,
-            `${element.show ? 'hover:bg-gray-50' : 'bg-gray-100'}`,
+            `${element.show ? 'hover:bg-nc-bg-gray-extralight' : 'bg-nc-bg-gray-light'}`,
           ]"
           :data-testid="`nc-form-field-${column.title?.replaceAll(' ', '')}-limit-option-${element.title?.replaceAll(' ', '')}`"
         >
-          <component :is="iconMap.drag" class="nc-child-draggable-icon flex-none cursor-move !h-4 !w-4 text-gray-600" />
+          <component
+            :is="iconMap.drag"
+            class="nc-child-draggable-icon flex-none cursor-move !h-4 !w-4 text-nc-content-gray-subtle2"
+          />
 
           <NcTooltip :disabled="!isRequired || !(element.show && isRequired && vModel.filter((o) => o.show).length === 1)">
             <template #title> {{ $t('msg.info.preventHideAllOptions') }} </template>
@@ -250,17 +257,19 @@ const showOrHideAll = (showAll: boolean) => {
             >
               <component
                 :is="element.show ? iconMap.eye : iconMap.eyeSlash"
-                class="flex-none cursor-pointer !h-4 !w-4 text-gray-600"
+                class="flex-none cursor-pointer !h-4 !w-4 text-nc-content-gray-subtle2"
               />
             </div>
           </NcTooltip>
 
-          <a-tag v-if="column.uidt === UITypes.User" class="rounded-tag max-w-[calc(100%_-_70px)] !pl-0" color="'#ccc'">
+          <a-tag
+            v-if="column.uidt === UITypes.User"
+            class="rounded-tag max-w-[calc(100%_-_70px)] !pl-0"
+            :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
+          >
             <span
               :style="{
-                'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                  ? '#fff'
-                  : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'color': getSelectTypeOptionTextColor(getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'), getColor),
                 'font-size': '13px',
               }"
               class="flex items-stretch gap-2"
@@ -285,12 +294,14 @@ const showOrHideAll = (showAll: boolean) => {
               </NcTooltip>
             </span>
           </a-tag>
-          <a-tag v-else class="rounded-tag max-w-[calc(100%_-_70px)]" :color="element.color">
+          <a-tag
+            v-else
+            class="rounded-tag max-w-[calc(100%_-_70px)]"
+            :color="getSelectTypeFieldOptionBgColor({ color: element.color, isDark })"
+          >
             <span
               :style="{
-                'color': tinycolor.isReadable(element.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                  ? '#fff'
-                  : tinycolor.mostReadable(element.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'color': getSelectTypeFieldOptionTextColor({ color: element.color, isDark, getColor }),
                 'font-size': '13px',
               }"
             >
@@ -314,7 +325,7 @@ const showOrHideAll = (showAll: boolean) => {
         </div>
       </template>
       <template v-if="!vModel.length" #footer
-        ><div class="px-0.5 py-2 text-gray-500 text-center">{{ $t('title.noOptionsFound') }}</div></template
+        ><div class="px-0.5 py-2 text-nc-content-gray-muted text-center">{{ $t('title.noOptionsFound') }}</div></template
       >
       <template
         v-else-if="
@@ -328,19 +339,15 @@ const showOrHideAll = (showAll: boolean) => {
         "
         #footer
       >
-        <div class="px-0.5 py-2 text-gray-500 text-center">{{ $t('title.noOptionsFound') }} with title `{{ searchQuery }}`</div>
+        <div class="px-0.5 py-2 text-nc-content-gray-muted text-center">
+          {{ $t('title.noOptionsFound') }} with title `{{ searchQuery }}`
+        </div>
       </template>
     </Draggable>
   </div>
 </template>
 
 <style scoped lang="scss">
-.nc-form-scrollbar {
-  @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
-  &::-webkit-scrollbar-thumb:hover {
-    @apply !scrollbar-thumb-gray-300;
-  }
-}
 .rounded-tag {
   @apply py-0 px-[12px] rounded-[12px];
 }
@@ -349,6 +356,6 @@ const showOrHideAll = (showAll: boolean) => {
   @apply rounded-tag my-[2px];
 }
 .nc-form-field-limit-option-ghost {
-  @apply bg-gray-50;
+  @apply bg-nc-bg-gray-extralight;
 }
 </style>

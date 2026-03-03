@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { getTrueCircularReplacer } from 'nocodb-sdk';
 import type { OnModuleInit } from '@nestjs/common';
 import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import {
@@ -46,6 +47,8 @@ export class JobsService implements OnModuleInit {
       base_id: RootScopes.ROOT,
       ...(data?.context || {}),
     };
+
+    data = JSON.parse(JSON.stringify(data, getTrueCircularReplacer()));
 
     let jobData;
 

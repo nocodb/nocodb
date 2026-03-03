@@ -35,7 +35,7 @@ const baseTables = computed(() => _baseTables.value.get(baseId.value) ?? [])
 
 const sources = computed<SourceType[]>(() => bases.value.get(baseId.value)?.sources || [])
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const tables = ref<TableType[]>([])
 
@@ -58,13 +58,15 @@ const fetchMissingTableMetas = async (localTables: TableType[]) => {
   const processChunk = async (chunk: TableType[]) => {
     await Promise.all(
       chunk.map(async (table) => {
-        await getMeta(table.id!)
+        await getMeta(baseId.value, table.id!)
       }),
     )
   }
 
   // filter out tables that are already loaded and are not from the same source
-  const filteredTables = localTables.filter((t: TableType) => !metas.value[t.id!] && t.source_id === props.sourceId)
+  const filteredTables = localTables.filter(
+    (t: TableType) => !getMetaByKey(baseId.value, t.id!) && t.source_id === props.sourceId,
+  )
 
   // Split the tables into chunks and process each chunk sequentially to avoid hitting throttling limits
   for (let i = 0; i < filteredTables.length; i += chunkSize) {
@@ -77,7 +79,7 @@ const populateTables = async () => {
   let localTables: TableType[] = []
   if (props.table) {
     // use getMeta method to load meta since it will get meta if not loaded already
-    const tableMeta = await getMeta(props.table!.id!)
+    const tableMeta = await getMeta(baseId.value, props.table!.id!)
 
     // if table is provided only get the table and its related tables
     localTables = baseTables.value.filter(
@@ -154,7 +156,7 @@ onMounted(async () => {
 
 <template>
   <div
-    class="w-full bg-white border-1 border-gray-100 rounded-lg"
+    class="w-full bg-nc-bg-default border-1 border-nc-border-gray-light rounded-t-xl rounded-b-2xl"
     :class="{
       'z-100 nc-h-screen nc-w-screen fixed top-0 left-0 right-0 bottom-0': config.isFullScreen,
       'nc-erd-vue-flow-single-table': config.singleTableMode,
@@ -164,7 +166,7 @@ onMounted(async () => {
   >
     <div class="relative h-full">
       <LazyErdFlow :tables="filteredTables" :config="config">
-        <GeneralOverlay v-model="isLoading" inline class="bg-gray-300/50">
+        <GeneralOverlay v-model="isLoading" inline class="bg-nc-bg-gray-dark/50 dark:bg-nc-gray-800/50 rounded-xl">
           <div class="h-full w-full flex flex-col justify-center items-center">
             <a-spin size="large" />
           </div>

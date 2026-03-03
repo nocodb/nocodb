@@ -34,7 +34,7 @@ const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
 
-const { metas, getMeta } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const filterRef = ref()
 
@@ -58,13 +58,16 @@ const refTables = computed(() => {
 
   const _refTables = meta.value.columns
     .filter((column) => canUseForLookupLinkField(column, meta.value?.source_id))
-    .map((column) => ({
-      col: column.colOptions,
-      column,
-      ...(tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id) ||
-        metas.value[(column.colOptions as LinkToAnotherRecordType).fk_related_model_id!] ||
-        {}),
-    }))
+    .map((column) => {
+      const relatedBaseId = (column.colOptions as any)?.fk_related_base_id || meta.value?.base_id
+      return {
+        col: column.colOptions,
+        column,
+        ...(tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id) ||
+          getMetaByKey(relatedBaseId, (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!) ||
+          {}),
+      }
+    })
     .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })
@@ -106,7 +109,7 @@ const columns = computed<ColumnType[]>(() => {
   if (!selectedTable.value?.id) {
     return []
   }
-  return metas.value[selectedTable.value.id]?.columns.filter(
+  return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns.filter(
     (c: ColumnType) =>
       vModel.value.fk_lookup_column_id === c.id ||
       getValidLookupColumn({
@@ -134,7 +137,7 @@ provide(
   computed(() => {
     if (!selectedTable.value) return {}
 
-    return metas.value[selectedTable.value.id] || {}
+    return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id) || {}
   }),
 )
 
@@ -163,7 +166,7 @@ const getNextColumnId = () => {
 
 const onRelationColChange = async () => {
   if (selectedTable.value) {
-    await getMeta(selectedTable.value.id)
+    await getMeta(selectedTable.value.base_id, selectedTable.value.id)
   }
   vModel.value.fk_lookup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()
@@ -233,7 +236,7 @@ const handleScrollIntoView = () => {
           @change="onRelationColChange"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
           <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
             <div class="flex gap-2 w-full justify-between truncate items-center">
@@ -246,7 +249,7 @@ const handleScrollIntoView = () => {
                 </NcTooltip>
               </div>
               <div class="inline-flex items-center truncate gap-2">
-                <div class="text-[0.65rem] leading-4 flex-1 truncate text-gray-600 nc-relation-details">
+                <div class="text-[0.65rem] leading-4 flex-1 truncate text-nc-content-gray-subtle2 nc-relation-details">
                   <NcTooltip class="truncate" show-on-truncate-only>
                     <template #title>{{ table.title || table.table_name }}</template>
                     {{ table.title || table.table_name }}
@@ -280,7 +283,7 @@ const handleScrollIntoView = () => {
           @change="onDataTypeChange"
         >
           <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
           <a-select-option v-for="column of columns" :key="column.title" :value="column.id">
             <div class="w-full flex gap-2 truncate items-center justify-between">
@@ -310,7 +313,7 @@ const handleScrollIntoView = () => {
                 {{ $t('msg.evaluateRecursivelyTooltip') }}
               </template>
               {{ $t('msg.evaluateRecursively') }}
-              <GeneralIcon icon="info" class="h-4 w-4 text-gray-400" />
+              <GeneralIcon icon="info" class="h-4 w-4 text-nc-content-gray-disabled" />
             </NcTooltip>
           </NcSwitch>
         </div>

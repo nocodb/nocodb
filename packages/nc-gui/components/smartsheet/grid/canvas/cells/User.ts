@@ -44,9 +44,9 @@ const usernameInitials = (username: string, email: string) => {
   }
 }
 
-const backgroundColor = (username: string, email: string, userIcon: ReturnType<typeof getUserIcon>) => {
+const backgroundColor = (username: string, email: string, userIcon: ReturnType<typeof getUserIcon>, getColor: GetColorType) => {
   const color = username ? stringToColor(username) : email ? stringToColor(email) : '#FFFFFF'
-  const bgColor = '#F4F4F5'
+  const bgColor = getColor('var(--nc-bg-gray-light)', 'var(--nc-bg-gray-medium)')
 
   if (userIcon.icon) {
     switch (userIcon.iconType) {
@@ -65,7 +65,7 @@ const backgroundColor = (username: string, email: string, userIcon: ReturnType<t
 
 export const UserFieldCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x: _x, y: _y, width: _width, height, column, spriteLoader, padding, imageLoader } = props
+    const { value, x: _x, y: _y, width: _width, height, column, spriteLoader, padding, imageLoader, getColor } = props
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
@@ -104,7 +104,7 @@ export const UserFieldCellRenderer: CellRenderer = {
             textAlign: 'right',
             verticalAlign: 'middle',
             fontFamily: '500 13px Inter',
-            fillStyle: isDeleted ? '#4a5268' : '#0b1d05',
+            fillStyle: isDeleted ? getColor('var(--nc-content-gray-subtle2)') : getColor('var(--nc-content-gray-subtle)'),
             height,
           })
           x = x + padding + tagSpacingX + ellipsisWidth
@@ -124,7 +124,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         width: minTagWidth,
         height: tagHeight,
         radius: 12,
-        fillStyle: '#e7e7e9',
+        fillStyle: getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'),
       })
 
       const userIcon = getUserIcon(user.meta)
@@ -133,14 +133,14 @@ export const UserFieldCellRenderer: CellRenderer = {
       const circleSize = 19
       const circleRadius = circleSize / 2
       const enableBackground = isDeleted ? true : !isImage
-      const bgColor = isImage ? 'transparent' : backgroundColor(userDisplayName, userEmail, userIcon)
+      const bgColor = isImage ? 'transparent' : backgroundColor(userDisplayName, userEmail, userIcon, getColor)
       const textColor = isColorDark(bgColor) ? 'white' : 'black'
 
       const icon = userIcon.icon as string
 
       if (enableBackground) {
         roundedRect(ctx, x, y + 6.5, circleSize, circleSize, circleRadius, {
-          backgroundColor: isDeleted ? themeV3Colors.gray[300] : bgColor,
+          backgroundColor: isDeleted ? getColor('var(--nc-bg-gray-dark)') : bgColor,
         })
       }
 
@@ -161,7 +161,7 @@ export const UserFieldCellRenderer: CellRenderer = {
         }
       } else if (userIcon.icon && userIcon.iconType === IconType.ICON) {
         spriteLoader.renderIcon(ctx, {
-          color: 'black',
+          color: getColor('var(--nc-content-gray)'),
           icon: icon as IconMapKey,
           size: 12,
           x: x + 4,
@@ -174,7 +174,7 @@ export const UserFieldCellRenderer: CellRenderer = {
           size: iconSize,
           x: x + 2.5,
           y: y + 6 + (tagHeight - iconSize) / 2,
-          color: themeV3Colors.gray[500],
+          color: getColor('var(--nc-content-gray-muted)'),
         })
         needsPlaceholder = false
       } else if (initials) {
@@ -208,7 +208,9 @@ export const UserFieldCellRenderer: CellRenderer = {
         textAlign: 'left',
         verticalAlign: 'middle',
         fontFamily: '500 13px Inter',
-        fillStyle: isDeleted ? themeV3Colors.gray[500] : '#0b1d05',
+        fillStyle: isDeleted
+          ? getColor('var(--nc-content-gray-muted)')
+          : getColor('var(--nc-content-gray)', 'var(--nc-content-gray-subtle2)'),
         height,
       })
 
@@ -314,7 +316,14 @@ export const UserFieldCellRenderer: CellRenderer = {
   },
 
   async handleClick({ row, column, mousePosition, getCellPosition, makeCellEditable, selected }) {
-    if (column.readonly || !column?.isCellEditable || isCreatedOrLastModifiedByCol(column.uidt) || !selected) return false
+    if (
+      column.readonly ||
+      column.isSyncedColumn ||
+      !column?.isCellEditable ||
+      isCreatedOrLastModifiedByCol(column.uidt) ||
+      !selected
+    )
+      return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
     const padding = 10
@@ -339,7 +348,8 @@ export const UserFieldCellRenderer: CellRenderer = {
   },
 
   async handleKeyDown({ e, row, column, makeCellEditable }) {
-    if (column.readonly || !column?.isCellEditable || isCreatedOrLastModifiedByCol(column.uidt)) return false
+    if (column.readonly || column.isSyncedColumn || !column?.isCellEditable || isCreatedOrLastModifiedByCol(column.uidt))
+      return false
     if (e.key.length === 1) {
       makeCellEditable(row, column)
       return true

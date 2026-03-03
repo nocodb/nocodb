@@ -28,6 +28,8 @@ interface Props {
   filterPerViewLimit: number
   // total filter already added into section
   filtersCount?: number
+  // total visible filter count at current nested level
+  visibleFilterCount?: number
 
   // what's this???
   queryFilter?: boolean
@@ -35,6 +37,7 @@ interface Props {
   handler?: GroupHandler
   isColourFilter?: boolean
   isLoadingFilter?: boolean
+  parentEnabled?: boolean
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -46,12 +49,21 @@ interface Emits {
       index: number
     },
   ): void
+  (
+    event: 'copy',
+    model: {
+      filter: ColumnFilterType
+      index: number
+    },
+  ): void
 }
 const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
+
+const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
 
 const logicalOps = [
   { value: 'and', text: t('general.and') },
@@ -66,6 +78,9 @@ const isDisabled = computed(() => {
 const isChildLogicalOpChangeAllowed = computed(() => {
   return new Set(vModel.value.children?.slice(1).map((filter) => filter.logical_op)).size > 1
 })
+
+// For now hide toggle filter enabled feature
+const isAllowFilterEnableToggle = false
 // #endregion
 
 // #region event handling
@@ -128,12 +143,58 @@ const onDelete = () => {
     index: props.index,
   })
 }
+
+const onCopy = () => {
+  emits('copy', {
+    filter: { ...vModel.value },
+    index: props.index,
+  })
+}
+
+const isFilterEnabled = computed(() => vModel.value.enabled !== false)
+
+const effectiveEnabled = computed(() => props.parentEnabled !== false && isFilterEnabled.value)
+
+const onEnabledChange = (val: boolean | Event) => {
+  const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
+  const prevValue = vModel.value.enabled
+  vModel.value.enabled = newValue
+
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: vModel.value,
+      type: 'enabled',
+      prevValue,
+      value: newValue,
+      index: props.index,
+    })
+  } else {
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'enabled',
+      prevValue,
+      value: newValue,
+      index: props.index,
+    })
+  }
+}
+
+const onToggleFilterChange = (val: boolean | Event) => {
+  if (blockToggleFilter.value) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(val)
+}
 // #endregion
 </script>
 
 <template>
   <div class="flex flex-col min-w-full w-min gap-y-2">
-    <div class="flex rounded-lg p-2 min-w-full w-min border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
+    <div
+      class="flex rounded-lg p-2 min-w-full w-min border-1"
+      :class="[`nc-filter-nested-level-${nestedLevel}`, { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled }]"
+    >
       <SmartsheetToolbarFilterGroup
         v-model="vModel.children"
         :index="index"
@@ -158,10 +219,19 @@ const onDelete = () => {
         :handler="handler"
         :is-colour-filter="isColourFilter"
         :is-loading-filter="isLoadingFilter"
+        :parent-enabled="effectiveEnabled"
         @change="onFilterChange"
         @row-change="onFilterRowChange"
       >
         <template #nestedRowStart>
+          <NcCheckbox
+            v-if="isEeUI && isAllowFilterEnableToggle"
+            :checked="isFilterEnabled"
+            size="default"
+            :disabled="isDisabled || parentEnabled === false"
+            class="nc-filter-enabled-checkbox"
+            @change="onToggleFilterChange"
+          />
           <template v-if="index === 0">
             <span class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>
           </template>
@@ -195,9 +265,8 @@ const onDelete = () => {
           </div>
         </template>
         <template #nestedRowEnd>
-          <div :class="{ 'cursor-wait': isLoadingFilter }">
+          <div v-if="!vModel.readOnly && !disabled" class="inline-block" :class="{ 'cursor-wait': isLoadingFilter }">
             <NcButton
-              v-if="!vModel.readOnly && !disabled"
               :key="index"
               v-e="['c:filter:delete', { link: !!link, webHook: !!webHook, widget: !!widget }]"
               type="text"
@@ -210,6 +279,33 @@ const onDelete = () => {
               <component :is="iconMap.deleteListItem" />
             </NcButton>
           </div>
+          <div v-if="!vModel.readOnly && !disabled && isEeUI" class="inline-block" :class="{ 'cursor-wait': isLoadingFilter }">
+            <NcButton
+              :key="index"
+              v-e="['c:filter:copy', { link: !!link, webHook: !!webHook, widget: !!widget }]"
+              type="text"
+              size="small"
+              :disabled="isLockedView"
+              class="nc-filter-item-copy-btn cursor-pointer"
+              :class="{ 'pointer-events-none': isLoadingFilter }"
+              @click.stop="onCopy()"
+            >
+              <GeneralIcon icon="copy" />
+            </NcButton>
+          </div>
+          <div v-if="!isDisabled" class="inline-block" :class="{ 'cursor-wait': isLoadingFilter }">
+            <NcButton
+              v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook, widget: !!widget }]"
+              type="text"
+              size="small"
+              class="nc-filter-item-reorder-btn nc-filter-group-row-drag-handler self-center"
+              :class="{ 'pointer-events-none': isLoadingFilter }"
+              :shadow="false"
+              :disabled="!visibleFilterCount || visibleFilterCount <= 1"
+            >
+              <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
+            </NcButton>
+          </div>
         </template>
       </SmartsheetToolbarFilterGroup>
     </div>
@@ -218,11 +314,13 @@ const onDelete = () => {
 
 <style lang="scss" scoped>
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
-.nc-filter-item-remove-btn {
-  @apply text-gray-600 hover:text-gray-800;
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn,
+.nc-filter-item-copy-btn {
+  @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 
 .nc-filter-grid {
@@ -242,7 +340,7 @@ const onDelete = () => {
 }
 
 .nc-filter-wrapper {
-  @apply bg-white !rounded-lg border-1px border-[#E7E7E9];
+  @apply bg-nc-bg-default !rounded-lg border-1px border-[#E7E7E9];
 
   & > *,
   .nc-filter-value-select {
@@ -294,23 +392,23 @@ const onDelete = () => {
   :deep(.nc-select:not(.nc-disabled-logical-op):not(.ant-select-disabled):hover) {
     &,
     .ant-select-selector {
-      @apply bg-gray-50;
+      @apply bg-nc-bg-gray-extralight;
     }
   }
 }
 
 .nc-filter-nested-level-0 {
-  @apply bg-[#f9f9fa];
+  @apply bg-nc-bg-gray-extralight;
 }
 
 .nc-filter-nested-level-1,
 .nc-filter-nested-level-3 {
-  @apply bg-gray-[#f4f4f5];
+  @apply bg-nc-bg-gray-light;
 }
 
 .nc-filter-nested-level-2,
 .nc-filter-nested-level-4 {
-  @apply bg-gray-[#e7e7e9];
+  @apply bg-nc-bg-gray-medium;
 }
 
 .nc-filter-logical-op-level-3,
@@ -321,11 +419,11 @@ const onDelete = () => {
 }
 
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 :deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
-  @apply bg-transparent text-gray-400;
+  @apply bg-transparent text-nc-content-gray-disabled;
 }
 
 :deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
@@ -333,14 +431,14 @@ const onDelete = () => {
 }
 
 :deep(.nc-select-expand-btn) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .menu-filter-dropdown {
   input:not(:disabled),
   select:not(:disabled),
   .ant-select:not(.ant-select-disabled) {
-    @apply text-[#4A5268];
+    @apply text-nc-content-brand-disabled;
   }
 }
 
@@ -351,6 +449,18 @@ const onDelete = () => {
 }
 
 .nc-btn-focus:focus {
-  @apply !text-brand-500 !shadow-none;
+  @apply !text-nc-content-brand !shadow-none;
+}
+
+.nc-filter-disabled-row {
+  @apply opacity-40;
+
+  :deep(.nc-filter-enabled-checkbox) {
+    @apply opacity-100;
+  }
+}
+
+.nc-filter-enabled-checkbox {
+  @apply flex-shrink-0 flex items-center;
 }
 </style>

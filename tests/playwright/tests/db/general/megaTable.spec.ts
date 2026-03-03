@@ -159,7 +159,7 @@ test.describe.serial('Test table', () => {
       console.log(e);
     }
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.skip('mega table - LinkToAnotherRecord', async ({ page }) => {

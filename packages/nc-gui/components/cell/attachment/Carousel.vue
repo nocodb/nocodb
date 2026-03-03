@@ -338,7 +338,7 @@ const initEmblaApi = (val: any) => {
           'w-0': !openComments,
           '!w-88': openComments,
         }"
-        class="bg-white max-w-88 transition-all"
+        class="bg-nc-bg-default max-w-88 transition-all"
       >
         <SmartsheetExpandedFormSidebarComments />
       </div>

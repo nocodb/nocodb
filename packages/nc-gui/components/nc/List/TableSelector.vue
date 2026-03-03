@@ -11,6 +11,9 @@ interface Props {
   disableLabel?: boolean
   autoSelect?: boolean
   disabled?: boolean
+  dropdownClass?: string
+  dropdownOverlayClassName?: string
+  defaultSlotWrapperClass?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -130,13 +133,20 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('general.table') }}</slot>
+        <slot name="label">{{ t('objects.table') }}</slot>
       </div>
     </template>
-    <NcListDropdown v-model:is-open="isOpenTableSelectDropdown" :disabled="disabled" :has-error="!!selectedTable?.ncItemDisabled">
+    <NcListDropdown
+      v-model:is-open="isOpenTableSelectDropdown"
+      :disabled="disabled"
+      :has-error="!!selectedTable?.ncItemDisabled"
+      :class="dropdownClass"
+      :overlay-class-name="dropdownOverlayClassName"
+      :default-slot-wrapper-class="defaultSlotWrapperClass"
+    >
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedTable" class="min-w-5 flex items-center justify-center">
-          <NcIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-gray-500" />
+          <NcIconTable :table="selectedTable || { title: '', table_name: '' }" class="text-nc-content-muted" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -147,10 +157,17 @@ defineExpose({
           >
             {{ selectedTable?.label }}
           </span>
-          <span v-else class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select table --</span>
+          <template v-else>
+            <slot name="placeholder">
+              <span class="text-sm flex-1 truncate text-nc-content-gray-muted">-- Select table --</span>
+            </slot>
+          </template>
 
           <template #title>
-            {{ selectedTable?.label || 'Select table' }}
+            <template v-if="selectedTable?.label">
+              {{ selectedTable?.label }}
+            </template>
+            <slot v-else name="placeholderTooltip"> Select table </slot>
           </template>
         </NcTooltip>
 
@@ -171,60 +188,19 @@ defineExpose({
           @update:value="handleValueUpdate"
           @escape="onEsc"
         >
-          <template #item="{ item }">
-            <div class="w-full flex items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <NcIconTable :table="item" class="text-gray-500" />
-              </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ item.label }}</template>
-                <span>{{ item.label }}</span>
-              </NcTooltip>
-              <component
-                :is="iconMap.check"
-                v-if="modelValue === item.value"
-                id="nc-selected-item-icon"
-                class="flex-none text-primary w-4 h-4"
-              />
+          <template #listItemExtraLeft="{ option }">
+            <div class="min-w-5 flex items-center justify-center">
+              <NcIconTable :table="option as TableType" class="text-nc-content-muted" />
             </div>
+          </template>
+          <template v-if="$slots.listHeader" #listHeader>
+            <slot name="listHeader" :length="tableList.length" />
+          </template>
+          <template v-if="$slots.emptyState" #emptyState>
+            <slot name="emptyState" :length="tableList.length" />
           </template>
         </NcList>
       </template>
     </NcListDropdown>
   </a-form-item>
 </template>
-
-<style lang="scss">
-.nc-table-selector.ant-form-item {
-  &.nc-force-layout-vertical {
-    @apply !flex-col;
-
-    & > .ant-form-item-label {
-      @apply pb-2 text-left;
-
-      &::after {
-        @apply hidden;
-      }
-
-      & > label {
-        @apply !h-auto;
-        &::after {
-          @apply !hidden;
-        }
-      }
-    }
-  }
-
-  &.nc-force-layout-horizontal {
-    @apply !flex-row !items-center;
-
-    & > .ant-form-item-label {
-      @apply pb-0 items-center;
-
-      &::after {
-        @apply content-[':'] !mr-2 !ml-0.5 relative top-[0.5px];
-      }
-    }
-  }
-}
-</style>

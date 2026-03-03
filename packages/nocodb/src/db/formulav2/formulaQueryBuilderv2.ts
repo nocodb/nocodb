@@ -1,9 +1,8 @@
 import { Logger } from '@nestjs/common';
-import jsep from 'jsep';
 import {
   CircularRefContext,
   FormulaDataTypes,
-  jsepCurlyHook,
+  isBtLikeV2Junction,
   JSEPNode,
   LongTextAiMetaProp,
   NcErrorType,
@@ -22,7 +21,7 @@ import {
 } from './parsed-tree-builder';
 import type { ClientType, LiteralNode } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { BarcodeColumn, QrCodeColumn, User } from '~/models';
+import type { BarcodeColumn, Model, QrCodeColumn, User } from '~/models';
 import type Column from '~/models/Column';
 import type RollupColumn from '~/models/RollupColumn';
 import type {
@@ -31,13 +30,15 @@ import type {
   TAliasToColumn,
   TAliasToColumnParam,
 } from './formula-query-builder.types';
+import { isTransientError } from '~/helpers/db-error/utils';
 import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
-import { ExternalTimeout, NcBaseErrorv2, NcError } from '~/helpers/catchError';
+import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
 import { BaseUser, ButtonColumn } from '~/models';
 import FormulaColumn from '~/models/FormulaColumn';
-import Model from '~/models/Model';
 import { CacheScope } from '~/utils/globals';
+import { TelemetryHandlerService } from '~/services/telemetry-handler.service';
+import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
 
 const logger = new Logger('FormulaQueryBuilderv2');
 
@@ -47,9 +48,11 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
     _tree,
     model,
     aliasToColumn = {},
+    columnIdToUidt = {},
     tableAlias,
     parsedTree,
     column = null,
+    columns,
     getAliasCount,
   } = params;
 
@@ -59,9 +62,12 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
 
   const context = baseModelSqlv2.context;
 
-  const columns = await model.getColumns(context);
   let tree = parsedTree;
   if (!tree) {
+    const relatedModels: Map<string, Model> = await getRelatedModelMap(
+      context,
+      model,
+    );
     // formula may include double curly brackets in previous version
     // convert to single curly bracket here for compatibility
     // const _tree1 = jsep(_tree.replaceAll('{{', '{').replaceAll('}}', '}'));
@@ -78,10 +84,8 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         | 'mariadb'
         | 'sqlite'
         | 'snowflake',
-      getMeta: async (modelId) => {
-        const model = await Model.get(context, modelId);
-        await model.getColumns(context);
-        return model;
+      getMeta: async (_, { id }) => {
+        return relatedModels.get(id);
       },
     });
 
@@ -108,8 +112,6 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       }
     }
   }
-
-  const columnIdToUidt: Record<string, UITypes> = {};
 
   // todo: improve - implement a common solution for filter, sort, formula, etc
   for (const col of columns) {
@@ -145,6 +147,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
               parentColumns,
               getAliasCount,
               column: col,
+              columns,
             });
             builder.sql = '(' + builder.sql + ')';
             return {
@@ -164,6 +167,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       case UITypes.Rollup:
       case UITypes.Links:
+        if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {
+          aliasToColumn[col.id] = lookupOrLtarBuilder({
+            ...params,
+            column: col,
+            _formulaQueryBuilder,
+            knex,
+          });
+          break;
+        }
         aliasToColumn[col.id] = async ({
           tableAlias,
           parentColumns: parentColumns,
@@ -182,7 +194,7 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
       case UITypes.LastModifiedTime:
       case UITypes.DateTime:
         {
-          const refCol = await getRefColumnIfAlias(context, col);
+          const refCol = await getRefColumnIfAlias(context, col, columns);
 
           if (refCol.id in aliasToColumn) {
             aliasToColumn[col.id] = aliasToColumn[refCol.id];
@@ -436,29 +448,33 @@ export default async function formulaQueryBuilderv2({
   model,
   column,
   aliasToColumn = {},
+  columnIdToUidt = {},
   tableAlias,
   validateFormula = false,
   parsedTree,
   baseUsers,
   parentColumns,
+  columns,
 }: {
   baseModel: IBaseModelSqlV2;
   tree;
   model: Model;
   column?: Column;
   aliasToColumn?: TAliasToColumn;
+  columnIdToUidt?: Record<string, UITypes>;
   tableAlias?: string;
   validateFormula?: boolean;
   parsedTree?: any;
   baseUsers?: (Partial<User> & BaseUser)[];
   parentColumns?: CircularRefContext;
+  columns?: Column[];
 }) {
   const knex = baseModelSqlv2.dbDriver;
 
   const context = baseModelSqlv2.context;
 
-  // register jsep curly hook once only
-  jsep.plugins.register(jsepCurlyHook);
+  columns = columns ?? (await model.getColumns(context));
+
   const formulaContext = {
     count: 0,
   };
@@ -484,6 +500,7 @@ export default async function formulaQueryBuilderv2({
       model,
       aliasToColumn,
       tableAlias,
+      columnIdToUidt,
       column,
       parsedTree:
         parsedTree ??
@@ -492,10 +509,39 @@ export default async function formulaQueryBuilderv2({
           .then((formula) => formula?.getParsedTree())),
       baseUsers,
       parentColumns,
+      columns,
       getAliasCount,
     });
 
+    let sqlLength = 0;
+    try {
+      sqlLength = qb?.builder?.toSQL?.().sql?.length ?? 0;
+    } catch (ex) {}
+
+    // we limit the formula length to 500k to prevent server crashing
+    if (sqlLength > 500 * 1000) {
+      const columnInfo = {
+        title: column?.title ? `column ${column.title}` : 'new column',
+        id: column?.id ? ` (${column.id})` : '',
+      };
+      TelemetryHandlerService.sendPriorityError(context, {
+        trigger: 'formulaQueryBuilder',
+        error_type: 'FORMULA_TOO_LONG_ERROR',
+        message: `Formula length too long for ${columnInfo.title}${columnInfo.id}`,
+      });
+      NcError.get(context).formulaError(
+        `Formula length too long for ${columnInfo.title}`,
+      );
+    }
     if (!validateFormula) return qb;
+
+    // Short-circuit if a previous dry-run already failed for this base model,
+    // to avoid amplifying requests to an overwhelmed external source
+    if (baseModelSqlv2.formulaDryRunFailed) {
+      throw new Error(
+        'Skipping formula dry-run: a previous validation already failed',
+      );
+    }
 
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
@@ -515,24 +561,31 @@ export default async function formulaQueryBuilderv2({
       // clean the previous formula error if the formula works this time
       if (formula.error) {
         if (formula.constructor.name === 'ButtonColumn') {
-          await ButtonColumn.update(context, column.id, {
+          await ButtonColumn.update({ ...context, cache: false }, column.id, {
             error: null,
           });
         } else {
-          await FormulaColumn.update(context, column.id, {
+          await FormulaColumn.update({ ...context, cache: false }, column.id, {
             error: null,
           });
         }
       }
+      // clear context cache if present since metadata has changed
+      context.cacheMap?.clear();
     }
   } catch (e) {
+    // Check if this is a transient error (connection/timeout issue)
+    const isTransient = isTransientError(e);
+
     // Mark formula error if formula validation is invoked
     // or if a circular reference error occurs and a column is provided
+    // BUT skip marking for transient errors
     if (
-      validateFormula ||
-      (column?.id &&
-        e instanceof NcBaseErrorv2 &&
-        e.error === NcErrorType.FORMULA_CIRCULAR_REF_ERROR)
+      !isTransient &&
+      (validateFormula ||
+        (column?.id &&
+          e instanceof NcBaseErrorv2 &&
+          e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA))
     ) {
       console.error(e);
 
@@ -542,22 +595,35 @@ export default async function formulaQueryBuilderv2({
             error: null,
           });
           // update cache to reflect the error in UI
-          await NocoCache.update(`${CacheScope.COL_BUTTON}:${column.id}`, {
-            error: e.message,
-          });
-        } else if (!(e instanceof ExternalTimeout)) {
+          await NocoCache.update(
+            context,
+            `${CacheScope.COL_BUTTON}:${column.id}`,
+            {
+              error: e.message,
+            },
+          );
+        } else {
           // add formula error to show in UI
           await FormulaColumn.update(context, column.id, {
             error: e.message,
           });
 
           // update cache to reflect the error in UI
-          await NocoCache.update(`${CacheScope.COL_FORMULA}:${column.id}`, {
-            error: e.message,
-          });
+          await NocoCache.update(
+            context,
+            `${CacheScope.COL_FORMULA}:${column.id}`,
+            {
+              error: e.message,
+            },
+          );
         }
       }
     } else {
+      // Mark dry-run as failed so subsequent formula validations on the same
+      // base model short-circuit instead of hammering an unreachable source
+      if (isTransient && validateFormula) {
+        baseModelSqlv2.formulaDryRunFailed = true;
+      }
       throw e;
     }
 

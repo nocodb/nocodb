@@ -57,6 +57,10 @@ export class NcError {
     return NcError._.dashboardNotFound(id, args);
   }
 
+  static viewSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.viewSectionNotFound(id, args);
+  }
+
   static sourceNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.sourceNotFound(id, args);
   }
@@ -67,6 +71,10 @@ export class NcError {
 
   static userNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.userNotFound(id, args);
+  }
+
+  static teamNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.teamNotFound(id, args);
   }
 
   static viewNotFound(id: string, args?: NcErrorArgs): never {
@@ -171,6 +179,10 @@ export class NcError {
     return NcError._.forbidden(message, args);
   }
 
+  static insufficientPrivilege(message: string, args?: NcErrorArgs): never {
+    return NcError._.insufficientPrivilege(message, args);
+  }
+
   static sourceDataReadOnly(name: string): never {
     return NcError.forbidden(`Source '${name}' is read-only`);
   }
@@ -217,11 +229,23 @@ export class NcError {
   static allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOGeneratedToken(ncWorkspaceId);
   }
-  static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
-    return NcError._.maxInsertLimitExceeded(limit, args);
+  static maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
+    return NcError._.maxPayloadLimitExceeded(limit, args);
   }
   static baseUserError(message: string, args?: NcErrorArgs) {
     return NcError._.baseUserError(message, args);
+  }
+
+  static orgUserError(message: string, args?: NcErrorArgs) {
+    return NcError._.orgUserError(message, args);
+  }
+
+  static tableError(message: string, args?: NcErrorArgs) {
+    return NcError._.tableError(message, args);
+  }
+
+  static columnError(message: string, args?: NcErrorArgs) {
+    return NcError._.columnError(message, args);
   }
 
   static maxWorkspaceLimitReached(args?: NcErrorArgs): never {
@@ -292,6 +316,25 @@ export class NcError {
     humanReadableError: boolean;
   }): never {
     return NcError._.ajvValidationError(param);
+  }
+
+  static externalError(message: string, args?: NcErrorArgs): never {
+    return NcError._.externalError(message, args);
+  }
+
+  static externalTimeOut(message?: string, args?: NcErrorArgs): never {
+    return NcError._.externalTimeOut(message, args);
+  }
+
+  static pluginTestError(message: string, args?: NcErrorArgs): never {
+    return NcError._.pluginTestError(message, args);
+  }
+  static licenseRequired(feature?: string, args?: NcErrorArgs): never {
+    return NcError._.licenseRequired(feature, args);
+  }
+
+  static licenseSuspended(args?: NcErrorArgs): never {
+    return NcError._.licenseSuspended(args);
   }
   /* endregion statics */
 }

@@ -345,6 +345,7 @@ export const colOptionBuilder = builderGenerator({
     related_table_rollup_field_id: 'fk_rollup_column_id',
 
     fk_webhook_id: 'button_hook_id',
+    fk_script_id: 'script_id',
 
     // todo: extract this
     // inverse_related_field_id: 'inverse_related_field_id',
@@ -363,6 +364,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       'colOptions',
       'fk_model_id',
       'system',
+      'unique',
     ],
     mappings: {
       uidt: 'type',
@@ -371,6 +373,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       fk_model_id: 'table_id',
     },
     excludeNullProps: true,
+    booleanProps: ['unique'], // Ensure unique is always included even if false
     meta: {
       snakeCase: true,
       metaProps: ['meta'],
@@ -427,8 +430,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       }
 
       if (data.type === UITypes.Checkbox) {
-        const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
-
+        const { icon, iconIdx, ...rest } = options;
         // extract option meta and include only label and color
         options = rest;
 
@@ -440,7 +442,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
           )?.label;
         }
       } else if (data.type === UITypes.Rating) {
-        const { icon, iconIdx, ...rest } = data.options as Record<string, any>;
+        const { icon, iconIdx, ...rest } = options;
 
         // extract option meta and include only label and color
         options = rest;
@@ -453,10 +455,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
           )?.label;
         }
       } else if (data.type === UITypes.Duration) {
-        const { duration, duration_format, ...rest } = data.options as Record<
-          string,
-          any
-        >;
+        const { duration, duration_format, ...rest } = options;
         const durationFormat = duration ?? duration_format;
         // extract option meta and include only label and color
         options = rest;
@@ -465,7 +464,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
           options.duration_format = durationOptions[durationFormat]?.title;
         }
       } else if (data.type === UITypes.Button) {
-        const { type, ...rest } = data.options as Record<string, any>;
+        const { type, ...rest } = options;
 
         // Transform button properties based on type
         if (type === 'formula') {
@@ -481,6 +480,15 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
           options = {
             type,
             webhook_id: rest.button_hook_id,
+            label: rest.label,
+            color: rest.color,
+            theme: rest.theme,
+            icon: rest.icon,
+          };
+        } else if (type === 'script') {
+          options = {
+            type,
+            script_id: rest.script_id,
             label: rest.label,
             color: rest.color,
             theme: rest.theme,
@@ -502,11 +510,9 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
           options = { ...rest, button_type: type };
         }
       } else if (isLinksOrLTAR(data.type)) {
-        const { type, ...rest } =
-          (data.options as Record<string, any>) ?? options;
+        const { type, ...rest } = options;
         options = { ...rest, relation_type: type };
       }
-      options = options || data.options;
 
       // exclude rollup function if Links
       if (data.type === UITypes.Links && options && options.rollup_function) {
@@ -517,6 +523,8 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         ...data,
         colOptions: undefined,
         options: options && Object.keys(options)?.length ? options : undefined,
+        // Explicitly preserve unique property
+        unique: data.unique,
       };
     },
   },
@@ -534,6 +542,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     'related_table_lookup_field_id',
     'rollup_function',
     'button_hook_id',
+    'script_id',
     'webhook_id',
     'type',
     'prompt',
@@ -552,6 +561,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     relation_type: 'type',
 
     button_hook_id: 'fk_webhook_id',
+    script_id: 'fk_script_id',
     webhook_id: 'fk_webhook_id',
 
     // parent id we need to extract from the url
@@ -568,6 +578,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
       if (
         data.type === 'formula' ||
         data.type === 'webhook' ||
+        data.type === 'script' ||
         data.type === 'ai'
       ) {
         return {
@@ -581,7 +592,15 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
 });
 
 export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
-  allowed: ['id', 'title', 'type', 'default_value', 'options', 'description'],
+  allowed: [
+    'id',
+    'title',
+    'type',
+    'default_value',
+    'options',
+    'description',
+    'unique',
+  ],
   mappings: {
     type: 'uidt',
     default_value: 'cdf',
@@ -627,16 +646,19 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       case UITypes.SingleSelect:
       case UITypes.MultiSelect:
         {
-          const choices =
-            meta.choices?.map((opt) => {
-              const res: Record<string, unknown> = {
-                title: opt.title,
-                color: opt.color,
-              };
-              if (opt.id) res.id = opt.id;
-              return res;
-            }) ?? [];
-          colOptions = { options: choices };
+          // when choices not sent, do not override
+          if (meta.choices) {
+            const choices =
+              meta.choices?.map((opt) => {
+                const res: Record<string, unknown> = {
+                  title: opt.title,
+                  color: opt.color,
+                };
+                if (opt.id) res.id = opt.id;
+                return res;
+              }) ?? [];
+            colOptions = { options: choices };
+          }
         }
         break;
 
@@ -676,32 +698,6 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       );
       if (durationIdx > -1) {
         meta.duration = durationIdx;
-      }
-    } else if (data.uidt === UITypes.Button) {
-      // Convert the V3 oneOf schema format to the V2 format for buttons
-      const {
-        type,
-        formula,
-        webhook_id,
-        prompt,
-        integration_id,
-        output_column_ids,
-        ...commonProps
-      } = meta as Record<string, any>;
-
-      // Set base meta properties
-      Object.assign(meta, commonProps);
-      meta.type = type;
-
-      // Add type-specific properties
-      if (type === 'formula' && formula) {
-        meta.formula = formula;
-      } else if (type === 'webhook' && webhook_id) {
-        meta.fk_webhook_id = webhook_id;
-      } else if (type === 'ai') {
-        if (prompt) meta.prompt = prompt;
-        if (integration_id) meta.integration_id = integration_id;
-        if (output_column_ids) meta.output_column_ids = output_column_ids;
       }
     }
     // if multi select then accept array of default values

@@ -62,7 +62,7 @@ test.describe('Links', () => {
     }
 
     // refresh page
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {

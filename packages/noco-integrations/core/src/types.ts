@@ -6,6 +6,7 @@ import {
   IntegrationsType as IntegrationType,
   SyncCategory,
   UITypes,
+  EntitySelectorMode,
 } from 'nocodb-sdk';
 import type { IntegrationWrapper } from './integration';
 
@@ -20,14 +21,19 @@ export interface IntegrationManifest {
   hidden?: boolean;
   order?: number;
   sync_category?: SyncCategory;
+  iconStyle?: any;
 }
 
-export interface IntegrationEntry {
+export interface IntegrationEntry<T = any> {
   type: IntegrationType;
   sub_type: string;
-  wrapper:  new (config: any) => IntegrationWrapper<any>;
+  wrapper: new (config: T, option: {
+    saveConfig?(config: any): Promise<void>;
+    logger?: (message: string) => void;
+  }) => IntegrationWrapper<T>;
   form: FormDefinition;
   manifest: IntegrationManifest;
+  packageManifest?: IntegrationManifest;
 }
 
 export {
@@ -38,4 +44,5 @@ export {
   IntegrationType,
   SyncCategory,
   UITypes,
+  EntitySelectorMode,
 };

@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { IntegrationReqType, IntegrationsType } from 'nocodb-sdk';
+import { IntegrationReqType, IntegrationsType, NcApiVersion } from 'nocodb-sdk';
 // This service is overwritten entirely in the cloud and does not extend there.
 // As a result, it refers to services from OSS to avoid type mismatches.
 import { IntegrationsService } from 'src/services/integrations.service';
@@ -21,6 +21,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { Integration } from '~/models';
 import { maskKnexConfig } from '~/helpers/responseHelpers';
+import { NcError } from '~/helpers/ncError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -29,7 +30,7 @@ export class IntegrationsController {
 
   @Get(['/api/v2/meta/integrations/:integrationId'])
   @Acl('integrationGet', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async integrationGet(
     @TenantContext() context: NcContext,
@@ -59,9 +60,12 @@ export class IntegrationsController {
 
     return integration;
   }
-  @Post(['/api/v2/meta/integrations'])
+  @Post([
+    '/api/v2/meta/workspaces/:workspaceId/integrations',
+    '/api/v2/meta/integrations',
+  ])
   @Acl('integrationCreate', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async integrationCreate(
     @TenantContext() context: NcContext,
@@ -76,7 +80,7 @@ export class IntegrationsController {
 
   @Delete(['/api/v2/meta/integrations/:integrationId'])
   @Acl('integrationDelete', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async integrationDelete(
     @TenantContext() context: NcContext,
@@ -93,7 +97,7 @@ export class IntegrationsController {
 
   @Patch(['/api/v2/meta/integrations/:integrationId'])
   @Acl('integrationUpdate', {
-    scope: 'org',
+    scope: 'workspace',
   })
   async integrationUpdate(
     @TenantContext() context: NcContext,
@@ -113,9 +117,12 @@ export class IntegrationsController {
     return integration;
   }
 
-  @Get(['/api/v2/meta/integrations'])
+  @Get([
+    '/api/v2/meta/workspaces/:workspaceId/integrations',
+    '/api/v2/meta/integrations',
+  ])
   @Acl('integrationList', {
-    scope: 'org',
+    scope: 'workspace',
     extendedScope: 'base',
   })
   async integrationList(
@@ -164,7 +171,9 @@ export class IntegrationsController {
     );
 
     if (!integration) {
-      throw new Error('Integration not found!');
+      NcError.get({
+        api_version: NcApiVersion.V2,
+      }).integrationNotFound(`${type}:${subType}`);
     }
 
     return {
@@ -176,6 +185,9 @@ export class IntegrationsController {
   }
 
   @Post(['/api/v2/integrations/:integrationId/store'])
+  @Acl('integrationStore', {
+    scope: 'workspace',
+  })
   async storeIntegration(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,
@@ -197,7 +209,7 @@ export class IntegrationsController {
     const integration = await Integration.get(context, integrationId);
 
     if (!integration) {
-      throw new Error('Integration not found!');
+      NcError.get(context).integrationNotFound(integrationId);
     }
 
     return await this.integrationsService.integrationStore(
@@ -208,6 +220,9 @@ export class IntegrationsController {
   }
 
   @Post(['/api/v2/integrations/:integrationId/:endpoint'])
+  @Acl('integrationEndpointGet', {
+    scope: 'workspace',
+  })
   async integrationEndpointGet(
     @TenantContext() context: NcContext,
     @Param('integrationId') integrationId: string,

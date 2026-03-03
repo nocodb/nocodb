@@ -114,12 +114,14 @@ async function upgradeModelRelations(
 
     // update the cache as well
     const cachedData = await NocoCache.get(
+      context,
       `${CacheScope.COL_RELATION}:${colOptions.fk_column_id}`,
       CacheGetType.TYPE_OBJECT,
     );
     if (cachedData) {
       cachedData.virtual = true;
       await NocoCache.set(
+        context,
         `${CacheScope.COL_RELATION}:${colOptions.fk_column_id}`,
         cachedData,
       );

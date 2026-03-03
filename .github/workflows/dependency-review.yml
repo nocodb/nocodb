@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   dependency-review:
-    runs-on: [self-hosted, v3, aws]
+    runs-on: ubicloud-standard-2
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

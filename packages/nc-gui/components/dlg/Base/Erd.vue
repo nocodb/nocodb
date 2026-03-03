@@ -32,7 +32,7 @@ onMounted(async () => {
 
     await Promise.all(
       baseTables.value.get(baseId.value!)!.map(async (table) => {
-        await getMeta(table.id!, false, false, baseId.value!)
+        await getMeta(baseId.value!, table.id!)
       }),
     )
   } catch (e) {

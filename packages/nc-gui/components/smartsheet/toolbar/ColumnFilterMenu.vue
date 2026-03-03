@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewSettingOverrideOptions } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -15,6 +15,8 @@ const reloadViewDataEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const { isMobileMode } = useGlobal()
 
+const { isUserViewOwner } = useViewsStore()
+
 const filterComp = ref<typeof ColumnFilter>()
 
 const {
@@ -29,7 +31,7 @@ const {
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
 
 // todo: avoid duplicate api call by keeping a filter store
-const { nonDeletedFilters, loadFilters } = useViewFilters(
+const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
   activeView!,
   undefined,
   computed(() => true),
@@ -39,6 +41,24 @@ const { nonDeletedFilters, loadFilters } = useViewFilters(
 )
 
 const filtersLength = ref(0)
+// If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
+const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
+
+// True when user is viewing a personal view they don't own
+const isPersonalViewNonOwner = computed(
+  () => activeView.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(activeView.value),
+)
+
+// Show temp filters only for collaborative views, not for personal views
+// For personal views, non-assigned users should not see temp filters at all
+const showTempFilters = computed(() => {
+  // If user has full access, don't need temp filters section (they have full editor)
+  if (!isRestrictedEditor.value) return false
+  // If restricted AND it's a personal view, hide temp filters (non-assigned user)
+  if (activeView.value?.lock_type === 'personal') return false
+  // If restricted AND it's NOT a personal view, show temp filters (editor on collaborative view)
+  return true
+})
 
 watch(
   () => activeView?.value?.id,
@@ -55,6 +75,26 @@ watch(
   { immediate: true },
 )
 
+const existingFilters = computed(() => {
+  return (nestedFilters.value || []).filter((f) => f.id && f.status !== 'delete')
+})
+
+// We need to cast nestedFilters to any to avoid type check errors in setter for now
+const localFilters = computed({
+  get: () => {
+    // Strictly return new/local filters (no ID)
+    return (nestedFilters.value || []).filter((f) => !f.id)
+  },
+  set: (val: any[]) => {
+    // Merge logic: keep existing (with ID), replace local (no ID)
+    const existing = (nestedFilters.value || []).filter((f) => f.id)
+    // Ensure we don't duplicate if val somehow contains IDs (shouldn't happen)
+    const newLocal = val.filter((f) => !f.id)
+
+    nestedFilters.value = [...existing, ...newLocal]
+  },
+})
+
 const open = ref(false)
 
 const allFilters = ref({})
@@ -67,9 +107,14 @@ useMenuCloseOnEsc(open)
 
 const draftFilter = ref({})
 const queryFilterOpen = ref(false)
+const viewFilterOpen = ref(true)
 
 const smartsheetEventListener = async (event: string, payload?: any) => {
-  if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
+  if (
+    (event === SmartsheetStoreEvents.FILTER_RELOAD ||
+      validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload)) &&
+    activeView?.value?.id
+  ) {
     await loadFilters({
       hookId: undefined,
       isWebhook: false,
@@ -98,7 +143,10 @@ onBeforeUnmount(() => {
 })
 
 const combinedFilterLength = computed(() => {
-  return filtersLength.value + (filtersFromUrlParams.value?.filters?.length || 0)
+  if (isRestrictedEditor.value) {
+    return (filtersLength.value || 0) + (localFilters.value?.length || 0)
+  }
+  return filtersLength.value
 })
 
 const isCurrentUserFilterPresent = ref(false)
@@ -211,7 +259,7 @@ watch(
             </span>
           </NcTooltip>
 
-          <!--    show a warning icon with tooltip if query filter error is there -->
+          <!-- show a warning icon with tooltip if query filter error is there -->
           <template v-if="filtersFromUrlParams?.errors?.length">
             <NcTooltip :title="$t('msg.urlFilterError')" placement="top">
               <GeneralIcon icon="ncAlertCircle" class="nc-error-icon w-3.5" />
@@ -223,17 +271,79 @@ watch(
 
     <template #overlay>
       <div :key="filterKey">
-        <SmartsheetToolbarColumnFilter
-          ref="filterComp"
-          v-model:draft-filter="draftFilter"
-          v-model:is-open="open"
-          class="nc-table-toolbar-menu"
-          :auto-save="true"
-          data-testid="nc-filter-menu"
-          :is-view-filter="true"
-          @update:filters-length="filtersLength = $event"
-        >
-        </SmartsheetToolbarColumnFilter>
+        <template v-if="!isRestrictedEditor">
+          <SmartsheetToolbarColumnFilter
+            ref="filterComp"
+            v-model:draft-filter="draftFilter"
+            v-model:is-open="open"
+            class="nc-table-toolbar-menu"
+            :auto-save="true"
+            data-testid="nc-filter-menu"
+            :is-view-filter="true"
+            @update:filters-length="filtersLength = $event"
+          >
+          </SmartsheetToolbarColumnFilter>
+        </template>
+        <template v-else>
+          <template v-if="!!filtersLength">
+            <div class="px-2 mt-2">
+              <div
+                class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
+                :class="{ 'pb-3': !viewFilterOpen }"
+                @click="viewFilterOpen = !viewFilterOpen"
+              >
+                <div class="flex-grow gap-2 flex">
+                  {{ $t('title.viewFilters') }}
+
+                  <div>
+                    <NcTooltip :title="$t('msg.viewFilter')" placement="top">
+                      <GeneralIcon icon="ncInfo" class="nc-info-icon !w-3.5 !h-3.5" />
+                    </NcTooltip>
+                  </div>
+                </div>
+                <div class="p-2">
+                  <GeneralIcon
+                    icon="ncChevronDown"
+                    class="nc-chevron-icon transition-all cursor-pointer w-4 h-4"
+                    :class="{ 'transform rotate-180': viewFilterOpen }"
+                  />
+                </div>
+              </div>
+              <div
+                class="overflow-hidden transition-all duration-300 -mt-2"
+                :class="{ 'max-h-0': !viewFilterOpen, 'max-h-[1000px] overflow-auto': viewFilterOpen }"
+              >
+                <SmartsheetToolbarColumnFilter
+                  :key="`existing-${filterKey}`"
+                  v-model:is-open="open"
+                  class="nc-table-toolbar-menu !pl-2 !w-full"
+                  :model-value="existingFilters"
+                  :auto-save="false"
+                  :is-view-filter="!isPersonalViewNonOwner && !isLocked"
+                  read-only
+                  @update:filters-length="filtersLength = $event || 0"
+                >
+                </SmartsheetToolbarColumnFilter>
+              </div>
+            </div>
+            <a-divider v-if="showTempFilters" class="!my-1" />
+          </template>
+          <template v-if="showTempFilters">
+            <SmartsheetToolbarColumnFilter
+              ref="filterComp"
+              v-model="localFilters"
+              v-model:draft-filter="draftFilter"
+              v-model:is-open="open"
+              class="nc-table-toolbar-menu"
+              :auto-save="false"
+              data-testid="nc-filter-menu"
+              :is-view-filter="false"
+              :is-temp-filters="true"
+            >
+            </SmartsheetToolbarColumnFilter>
+          </template>
+          <GeneralLockedViewFooter v-if="isLocked || isPersonalViewNonOwner" @on-open="open = false" />
+        </template>
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />
           <div class="px-2 pb-2">
@@ -246,7 +356,7 @@ watch(
                 {{ $t('title.urlFilters') }}
                 <div
                   v-if="filtersFromUrlParams?.filters?.length"
-                  class="bg-[#F0F3FF] px-1 rounded rounded-6px font-medium text-brand-500 h-5"
+                  class="bg-nc-bg-brand px-1 rounded rounded-6px font-medium text-nc-content-brand h-5"
                 >
                   {{ filtersFromUrlParams.filters.length }}
                 </div>
@@ -309,7 +419,7 @@ watch(
 .nc-query-filter.readonly {
   input,
   .text-nc-content-gray-muted {
-    @apply !text-gray-400;
+    @apply !text-nc-content-gray-disabled;
   }
 }
 </style>

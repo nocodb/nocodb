@@ -27,12 +27,22 @@ interface Props {
   deleteButtonProps?: any
   isColourFilter?: boolean
   isLoadingFilter?: boolean
+  // total visible filter count at current nested level
+  visibleFilterCount?: number
+  parentEnabled?: boolean
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
   (event: 'change', model: FilterRowChangeEvent): void
   (
     event: 'delete',
+    model: {
+      filter: ColumnFilterType
+      index: number
+    },
+  ): void
+  (
+    event: 'copy',
     model: {
       filter: ColumnFilterType
       index: number
@@ -48,6 +58,8 @@ const meta = inject(MetaInj, ref())
 // t is a standalone dependency, so not need to abstract it
 const { t } = useI18n()
 
+const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
+
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -60,6 +72,9 @@ const filterPrevComparisonOp = ref('')
 const isFilterSaving = ref(false)
 
 const localFilterValue = ref('')
+
+// For now hide toggle filter enabled feature
+const isAllowFilterEnableToggle = false
 
 /**
  * We are using debounce to save filter value so we have to sync the value from localFilterValue to vModel.value.value
@@ -343,6 +358,50 @@ const onDelete = () => {
     index: props.index,
   })
 }
+
+const onCopy = () => {
+  emits('copy', {
+    filter: { ...vModel.value },
+    index: props.index,
+  })
+}
+
+const isFilterEnabled = computed(() => vModel.value.enabled !== false && vModel.value.enabled !== 0)
+
+const effectiveEnabled = computed(() => props.parentEnabled !== false && props.parentEnabled !== 0 && isFilterEnabled.value)
+
+const onEnabledChange = (val: boolean | Event) => {
+  const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
+  const prevValue = vModel.value.enabled
+  vModel.value.enabled = newValue
+
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: vModel.value,
+      type: 'enabled',
+      prevValue,
+      value: newValue,
+      index: props.index,
+    })
+  } else {
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'enabled',
+      prevValue,
+      value: newValue,
+      index: props.index,
+    })
+  }
+}
+
+const onToggleFilterChange = (val: boolean | Event) => {
+  if (blockToggleFilter.value) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(val)
+}
+
 async function onResetDynamicField() {
   const prevValue = vModel.value.dynamic
   vModel.value.dynamic = false
@@ -367,18 +426,35 @@ const onChangeToDynamic = async () => {
     index: props.index,
   })
 }
+
 // #endregion
 </script>
 
 <template>
   <div
-    class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-white"
-    :class="`nc-filter-wrapper-${vModel.fk_column_id}`"
+    class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-nc-bg-default"
+    :class="[`nc-filter-wrapper-${vModel.fk_column_id}`, { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled }]"
     v-bind="containerProps"
   >
+    <!-- #region enabled checkbox (EE only) -->
+    <div v-if="isEeUI && isAllowFilterEnableToggle" class="flex items-center pl-2 pr-1">
+      <NcCheckbox
+        :checked="isFilterEnabled"
+        size="default"
+        :disabled="isDisabled || parentEnabled === false"
+        class="nc-filter-enabled-checkbox"
+        @change="onToggleFilterChange"
+      />
+    </div>
+    <!-- #endregion enabled checkbox -->
+
     <!-- #region logical op -->
     <template v-if="index === 0">
-      <div class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label" v-bind="logicalOpsProps">
+      <div
+        class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label"
+        :class="isEeUI && isAllowFilterEnableToggle ? 'pl-1' : 'pl-3'"
+        v-bind="logicalOpsProps"
+      >
         {{ $t('labels.where') }}
       </div>
     </template>
@@ -547,11 +623,11 @@ const onChangeToDynamic = async () => {
                 <template #overlay>
                   <div class="relative overflow-visible min-h-17 w-10">
                     <div
-                      class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                      class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
                       style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                     >
                       <div
-                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
+                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
                         @click="onResetDynamicField()"
                       >
                         <div class="flex flex-row items-center justify-between w-full">
@@ -562,11 +638,11 @@ const onChangeToDynamic = async () => {
                             class="w-4 h-4 text-primary"
                           />
                         </div>
-                        <div class="flex flex-row text-xs text-gray-400">Filter based on static value</div>
+                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
                       </div>
                       <div
                         v-e="['c:filter:dynamic-filter']"
-                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                        class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
                         :class="
                           isDynamicFilterAllowed(vModel, column, dbClientType) && showFilterInput
                             ? 'cursor-pointer'
@@ -582,7 +658,7 @@ const onChangeToDynamic = async () => {
                             class="w-4 h-4 text-primary"
                           />
                         </div>
-                        <div class="flex flex-row text-xs text-gray-400">Filter based on dynamic value</div>
+                        <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
                       </div>
                     </div>
                   </div>
@@ -591,12 +667,12 @@ const onChangeToDynamic = async () => {
             </template>
           </template>
           <div v-else class="flex-grow"></div>
+          <SmartsheetToolbarFilterTimezoneAbbreviation :column="column" :filter="vModel" />
         </div>
       </template>
-      <div :class="{ 'cursor-wait': isLoadingFilter }">
+      <div v-if="!vModel.readOnly && !disabled" :class="{ 'cursor-wait': isLoadingFilter }">
         <!-- if locked view, do not hide the button -->
         <NcButton
-          v-if="!vModel.readOnly && !disabled"
           v-e="['c:filter:delete', { link: !!link, webHook: !!webHook, widget: !!widget }]"
           v-bind="deleteButtonProps"
           type="text"
@@ -609,17 +685,46 @@ const onChangeToDynamic = async () => {
           <component :is="iconMap.deleteListItem" />
         </NcButton>
       </div>
+      <div v-if="!vModel.readOnly && !disabled && isEeUI" :class="{ 'cursor-wait': isLoadingFilter }">
+        <NcButton
+          :key="index"
+          v-e="['c:filter:copy', { link: !!link, webHook: !!webHook, widget: !!widget }]"
+          type="text"
+          size="small"
+          :disabled="isLockedView"
+          class="nc-filter-item-copy-btn cursor-pointer"
+          :class="{ 'pointer-events-none': isLoadingFilter }"
+          @click.stop="onCopy()"
+        >
+          <GeneralIcon icon="copy" />
+        </NcButton>
+      </div>
+      <div v-if="!isDisabled" :class="{ 'cursor-wait': isLoadingFilter }">
+        <NcButton
+          v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook, widget: !!widget }]"
+          type="text"
+          size="small"
+          class="nc-filter-item-reorder-btn nc-filter-group-row-drag-handler self-center"
+          :class="{ 'pointer-events-none': isLoadingFilter }"
+          :shadow="false"
+          :disabled="!visibleFilterCount || visibleFilterCount <= 1"
+        >
+          <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
+        </NcButton>
+      </div>
     </template>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
-.nc-filter-item-remove-btn {
-  @apply text-gray-600 hover:text-gray-800;
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn,
+.nc-filter-item-copy-btn {
+  @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 
 .nc-filter-grid {
@@ -639,7 +744,7 @@ const onChangeToDynamic = async () => {
 }
 
 .nc-filter-wrapper {
-  @apply bg-white !rounded-lg border-1px border-[#E7E7E9];
+  @apply bg-nc-bg-default !rounded-lg border-1px border-nc-border-gray-medium;
 
   & > *,
   .nc-filter-value-select {
@@ -653,26 +758,36 @@ const onChangeToDynamic = async () => {
   }
 
   & > :not(:last-child):not(:empty) {
-    border-right: 1px solid #eee !important;
+    border-right: 1px solid var(--nc-border-gray-medium) !important;
     border-bottom-right-radius: 0 !important;
     border-top-right-radius: 0 !important;
+
+    & > button {
+      border-bottom-right-radius: 0 !important;
+      border-top-right-radius: 0 !important;
+    }
   }
 
   .nc-settings-dropdown {
-    border-left: 1px solid #eee !important;
+    border-left: 1px solid var(--nc-border-gray-medium) !important;
     border-radius: 0 !important;
   }
 
   & > :not(:first-child) {
     border-bottom-left-radius: 0 !important;
     border-top-left-radius: 0 !important;
+
+    & > button {
+      border-bottom-left-radius: 0 !important;
+      border-top-left-radius: 0 !important;
+    }
   }
 
   & > :last-child {
     @apply relative;
     &::after {
       content: '';
-      @apply absolute h-full w-1px bg-[#eee] -left-1px top-0;
+      @apply absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0;
     }
   }
 
@@ -691,23 +806,23 @@ const onChangeToDynamic = async () => {
   :deep(.nc-select:not(.nc-disabled-logical-op):not(.ant-select-disabled):hover) {
     &,
     .ant-select-selector {
-      @apply bg-gray-50;
+      @apply bg-nc-bg-gray-extralight;
     }
   }
 }
 
 .nc-filter-nested-level-0 {
-  @apply bg-[#f9f9fa];
+  @apply bg-nc-bg-gray-extralight;
 }
 
 .nc-filter-nested-level-1,
 .nc-filter-nested-level-3 {
-  @apply bg-gray-[#f4f4f5];
+  @apply bg-nc-bg-gray-light;
 }
 
 .nc-filter-nested-level-2,
 .nc-filter-nested-level-4 {
-  @apply bg-gray-[#e7e7e9];
+  @apply bg-nc-bg-gray-medium;
 }
 
 .nc-filter-logical-op-level-3,
@@ -718,11 +833,11 @@ const onChangeToDynamic = async () => {
 }
 
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 :deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
-  @apply bg-transparent text-gray-400;
+  @apply bg-transparent text-nc-content-gray-disabled;
 }
 
 :deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
@@ -730,14 +845,14 @@ const onChangeToDynamic = async () => {
 }
 
 :deep(.nc-select-expand-btn) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .menu-filter-dropdown {
   input:not(:disabled),
   select:not(:disabled),
   .ant-select:not(.ant-select-disabled) {
-    @apply text-[#4A5268];
+    @apply text-nc-content-gray-subtle2;
   }
 }
 
@@ -748,6 +863,16 @@ const onChangeToDynamic = async () => {
 }
 
 .nc-btn-focus:focus {
-  @apply !text-brand-500 !shadow-none;
+  @apply !text-nc-content-brand !shadow-none;
+}
+
+.nc-filter-disabled-row {
+  & > *:not(.nc-filter-enabled-checkbox):not(:first-child) {
+    @apply opacity-40 pointer-events-none;
+  }
+}
+
+.nc-filter-enabled-checkbox {
+  @apply flex-shrink-0;
 }
 </style>

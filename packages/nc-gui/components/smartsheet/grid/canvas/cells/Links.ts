@@ -2,7 +2,22 @@ import { isBoxHovered, renderSingleLineText, renderTagLabel } from '../utils/can
 
 export const LinksCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, x, y, width, height, padding, t, spriteLoader, mousePosition, readonly, setCursor, selected } = props
+    const {
+      column,
+      value,
+      x,
+      y,
+      width,
+      height,
+      padding,
+      t,
+      spriteLoader,
+      mousePosition,
+      readonly,
+      setCursor,
+      selected,
+      getColor,
+    } = props
 
     const parsedValue = +value || 0
 
@@ -24,7 +39,7 @@ export const LinksCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2 - 20,
         fontFamily: '500 13px Inter',
-        fillStyle: 'rgb(67, 81, 232)',
+        fillStyle: getColor('rgb(67, 81, 232)', themeV4Colors.brand['500']),
         height,
       })
 
@@ -36,7 +51,7 @@ export const LinksCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2 - 20,
         fontFamily: '500 13px Inter',
-        fillStyle: 'rgb(67, 81, 232)',
+        fillStyle: getColor('rgb(67, 81, 232)', themeV4Colors.brand['500']),
         height,
         underline: selected && isHoverOverText,
       })
@@ -51,7 +66,7 @@ export const LinksCellRenderer: CellRenderer = {
           x: x + width - 16 - padding,
           y: y + 7,
           size: 16,
-          color: '#374151',
+          color: getColor(themeV4Colors.gray['700']),
         })
 
         if (isBoxHovered({ x: x + width - 16 - padding, y: y + 7, width: 16, height: 16 }, mousePosition)) {

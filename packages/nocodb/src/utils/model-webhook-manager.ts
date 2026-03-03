@@ -1,4 +1,3 @@
-import { WebhookActions } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { Model } from '~/models';
 

@@ -55,9 +55,9 @@ export class ProjectViewPage extends BasePage {
   }
 
   async openOverview() {
-    await this.dashboard.leftSidebar.verifyBaseListOpen(false);
-
     if (await this.get().isVisible()) return;
+
+    await this.sidebar_overview_btn.scrollIntoViewIfNeeded();
 
     await this.sidebar_overview_btn.click();
 

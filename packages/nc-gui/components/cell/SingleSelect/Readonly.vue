@@ -9,6 +9,8 @@ interface Props {
 
 const { modelValue, options: selectOptions } = defineProps<Props>()
 
+const { getColor, isDark } = useTheme()
+
 const column = inject(ColumnInj)!
 
 const isForm = inject(IsFormInj, ref(false))
@@ -18,7 +20,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const isEditColumn = inject(EditModeInj, ref(false))
 
 const options = computed(() => {
-  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value)
+  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
 })
 
 const optionsMap = computed(() => {
@@ -45,10 +47,10 @@ const selectedOpt = computed(() => {
     </div>
 
     <div v-else class="w-full flex items-center">
-      <a-tag v-if="selectedOpt" class="rounded-tag !h-[22px] max-w-full" :color="selectedOpt.color">
+      <a-tag v-if="selectedOpt" class="rounded-tag !h-[22px] max-w-full" :color="selectedOpt.bgColor">
         <span
           :style="{
-            color: getSelectTypeOptionTextColor(selectedOpt.color),
+            color: selectedOpt.textColor,
           }"
           :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
         >

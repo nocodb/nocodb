@@ -227,25 +227,22 @@ export class ExpandedFormPage extends BasePage {
     const role = param.role.toLowerCase();
 
     // expect(await this.btn_moreActions.count()).toBe(1);
+    await this.rootPage.waitForTimeout(200);
     if (await this.btn_moreActions.isVisible()) {
       // In large screen, the more actions button will be hidden as copy record url button will be visible inline (outside)
       await this.btn_moreActions.click();
     }
 
+    if (!isEE()) {
+      await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
+    } else {
+      await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toHaveCount(0);
+    }
+
     if (role === 'owner' || role === 'editor' || role === 'creator') {
-      if (!isEE()) {
-        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
-      } else {
-        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toHaveCount(0);
-      }
       await expect(this.rootPage.getByTestId('nc-expanded-form-duplicate')).toBeVisible();
       await expect(this.rootPage.getByTestId('nc-expanded-form-delete')).toBeVisible();
     } else {
-      if (!isEE()) {
-        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
-      } else {
-        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toHaveCount(0);
-      }
       await expect(this.rootPage.getByTestId('nc-expanded-form-duplicate')).toHaveCount(0);
       await expect(this.rootPage.getByTestId('nc-expanded-form-delete')).toHaveCount(0);
     }

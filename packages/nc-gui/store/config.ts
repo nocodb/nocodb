@@ -2,14 +2,10 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
 
 export const useConfigStore = defineStore('configStore', () => {
+  const router = useRouter()
+
   const { isMobileMode: globalIsMobile } = useGlobal()
   const { width } = useWindowSize()
-
-  const sidebarStore = useSidebarStore()
-  const viewsStore = useViewsStore()
-  const { activeViewTitleOrId } = storeToRefs(viewsStore)
-  const tablesStore = useTablesStore()
-  const { activeTableId } = storeToRefs(tablesStore)
 
   const isViewPortMobile = () => width.value < MAX_WIDTH_FOR_MOBILE_MODE
 
@@ -19,6 +15,8 @@ export const useConfigStore = defineStore('configStore', () => {
   const isMobileMode = ref(isViewPortMobile())
 
   const projectPageTab = ref<ProjectPageType>('overview')
+
+  const hideSharedBaseBtn = ref(router.currentRoute.value.query.hideSharedBaseBtn === 'true')
 
   const onViewPortResize = () => {
     isMobileMode.value = isViewPortMobile()
@@ -49,28 +47,12 @@ export const useConfigStore = defineStore('configStore', () => {
     },
   )
 
-  const handleSidebarOpenOnMobileForNonViews = () => {
-    if (!isViewPortMobile()) return
-
-    if (!activeViewTitleOrId && !activeTableId) {
-      nextTick(() => {
-        sidebarStore.isLeftSidebarOpen = true
-      })
-    } else {
-      sidebarStore.isLeftSidebarOpen = false
-    }
-  }
-
-  watch([activeViewTitleOrId, activeTableId], () => {
-    handleSidebarOpenOnMobileForNonViews()
-  })
-
   return {
     isMobileMode,
     isViewPortMobile,
-    handleSidebarOpenOnMobileForNonViews,
     projectPageTab,
     isExpandedFormCommentMode,
+    hideSharedBaseBtn,
   }
 })
 

@@ -166,12 +166,13 @@ const mainItems = computed<NavItem[]>(() => [
 ])
 
 // ── Bottom items (pushed down by margin-top: auto) ──
-const bottomItems = computed<NavItem[]>(() =>
-  [
-    isChatWootEnabled.value
-      ? { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }
-      : null,
-  ].filter(Boolean) as NavItem[],
+const bottomItems = computed<NavItem[]>(
+  () =>
+    [
+      isChatWootEnabled.value
+        ? { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }
+        : null,
+    ].filter(Boolean) as NavItem[],
 )
 </script>
 

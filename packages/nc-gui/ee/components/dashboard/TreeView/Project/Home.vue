@@ -24,26 +24,15 @@ const baseRole = inject(ProjectRoleInj)!
 
 const basesStore = useBases()
 
-const { activeProjectId } = storeToRefs(basesStore)
-
 const { meta: metaKey, control } = useMagicKeys()
 
 const { isUIAllowed } = useRoles()
 
-const { isMobileMode, appInfo } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const { isDark } = useTheme()
 
 const projectNodeRef = ref()
-
-// If only base is open, i.e in case of docs, base view is open and not the page view
-const baseViewOpen = computed(() => {
-  const routeNameSplit = String(route.value?.name).split('baseId-index-index')
-  if (routeNameSplit.length <= 1) return false
-
-  const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
-  return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
-})
 
 const addNewProjectChildEntity = async (showSourceSelector = true) => {
   if (!projectNodeRef.value) return

@@ -167,9 +167,7 @@ const wsTabToNcTabKey: Record<string, string> = {
 }
 
 // Inverse: NcTabs key → ws-* tab name for route generation
-const ncTabKeyToWsTab: Record<string, string> = Object.fromEntries(
-  Object.entries(wsTabToNcTabKey).map(([k, v]) => [v, k]),
-)
+const ncTabKeyToWsTab: Record<string, string> = Object.fromEntries(Object.entries(wsTabToNcTabKey).map(([k, v]) => [v, k]))
 
 const settingsPageTitle = computed(() => {
   if (!props.tab) return ''
@@ -384,7 +382,11 @@ onBeforeUnmount(() => {
         </template>
       </template>
 
-      <a-tab-pane v-if="isSettingsSidebar && isUIAllowed('workspaceIntegrations') && !isMobileMode" key="integrations" class="w-full h-full">
+      <a-tab-pane
+        v-if="isSettingsSidebar && isUIAllowed('workspaceIntegrations') && !isMobileMode"
+        key="integrations"
+        class="w-full h-full"
+      >
         <template #tab>
           <div class="tab-title">
             <GeneralIcon icon="integration" class="h-4 w-4" />

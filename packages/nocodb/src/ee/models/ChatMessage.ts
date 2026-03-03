@@ -4,12 +4,7 @@ import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
-import {
-  CacheDelDirection,
-  CacheGetType,
-  CacheScope,
-  MetaTable,
-} from '~/utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 const JSON_FIELDS = ['tool_calls', 'tool_results'];
@@ -165,11 +160,9 @@ export default class ChatMessage
       { id: messageId },
     );
 
-    await NocoCache.deepDel(
-      context,
-      `${CacheScope.CHAT_MESSAGE}:${messageId}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
+    // Evict stale entry — list cache is intentionally not used for messages,
+    // so a plain del is sufficient (no parent list to walk up to).
+    await NocoCache.del(context, `${CacheScope.CHAT_MESSAGE}:${messageId}`);
 
     return ChatMessage.get(context, messageId, ncMeta);
   }
@@ -188,11 +181,7 @@ export default class ChatMessage
       },
     );
 
-    await NocoCache.deepDel(
-      context,
-      `${CacheScope.CHAT_MESSAGE}:${messageId}`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
+    await NocoCache.del(context, `${CacheScope.CHAT_MESSAGE}:${messageId}`);
   }
 
   static async deleteBySessionId(
@@ -200,15 +189,25 @@ export default class ChatMessage
     sessionId: string,
     ncMeta = Noco.ncMeta,
   ) {
+    // Fetch IDs first so we can bust the cache for each message
     const messages = await this.list(context, { sessionId }, ncMeta);
 
-    for (const message of messages) {
-      await this.delete(context, message.id, ncMeta);
-    }
+    // Bulk delete in a single query
+    await ncMeta
+      .knexConnection(MetaTable.CHAT_MESSAGES)
+      .where('fk_session_id', sessionId)
+      .where('base_id', context.base_id)
+      .delete();
+
+    // Evict all message cache entries in a single round trip
+    await NocoCache.del(
+      context,
+      messages.map((m) => `${CacheScope.CHAT_MESSAGE}:${m.id}`),
+    );
   }
 
   static async countByWorkspaceAndMonth(
-    context: NcContext,
+    _context: NcContext,
     workspaceId: string,
     ncMeta = Noco.ncMeta,
   ) {

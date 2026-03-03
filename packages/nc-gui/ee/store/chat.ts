@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import type { ChatContextType, ChatMessageType, ChatSessionType } from 'nocodb-sdk'
+import type { ChatMessageType, ChatSessionType } from 'nocodb-sdk'
 import { ChatMessageRole } from 'nocodb-sdk'
 
 export const useChatStore = defineStore('chatStore', () => {
@@ -105,7 +105,7 @@ export const useChatStore = defineStore('chatStore', () => {
     }
   }
 
-  const sendMessage = async (bId: string, sessionId: string, content: string, context?: ChatContextType) => {
+  const sendMessage = async (bId: string, sessionId: string, content: string) => {
     // Push optimistic user message
     const userMessage: ChatMessageType = {
       id: `temp-${Date.now()}`,
@@ -123,7 +123,6 @@ export const useChatStore = defineStore('chatStore', () => {
     try {
       const { data } = await $api.instance.post(`/api/v3/meta/bases/${bId}/chat/sessions/${sessionId}/messages`, {
         content,
-        context,
       })
 
       // Backend returns the updated message list

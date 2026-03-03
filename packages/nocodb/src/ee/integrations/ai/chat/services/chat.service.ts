@@ -43,7 +43,7 @@ export class ChatService {
     const session = await ChatSession.insert(context, {
       title: params.title || 'New Chat',
       fk_workspace_id: context.workspace_id,
-      fk_user_id: (params.req as any).user?.id,
+      fk_user_id: params.req.user?.id,
     });
 
     (this.appHooksService as any).emit(AppEvents.CHAT_SESSION_CREATE, {
@@ -63,7 +63,7 @@ export class ChatService {
   ) {
     return ChatSession.list(context, {
       baseId: context.base_id,
-      userId: (params.req as any).user?.id,
+      userId: params.req.user?.id,
     });
   }
 
@@ -81,7 +81,7 @@ export class ChatService {
     }
 
     // Verify ownership
-    if (session.fk_user_id !== (params.req as any).user?.id) {
+    if (session.fk_user_id !== params.req.user?.id) {
       NcError.get(context).genericNotFound('Chat session', params.sessionId);
     }
 
@@ -193,8 +193,6 @@ export class ChatService {
     const userRole = this.getUserRole(req);
     const systemPrompt = await this.contextService.buildSystemPrompt(context, {
       baseId: context.base_id,
-      tableId: body.context?.table_id,
-      viewId: body.context?.view_id,
       userRole,
       req,
     });
@@ -324,11 +322,7 @@ export class ChatService {
           }
 
           // Store integration usage
-          await integration.storeInsert(
-            context,
-            (req as any).user?.id,
-            usage as any,
-          );
+          await integration.storeInsert(context, req.user?.id, usage as any);
         } catch (e) {
           this.logger.error('Failed to persist chat response', e.stack);
         }
@@ -352,9 +346,9 @@ export class ChatService {
     // Verify session ownership
     const session = await this.sessionGet(context, { sessionId, req });
 
-    // Load the message with awaiting_approval tool calls
+    // Load the message and verify it belongs to this session
     const message = await ChatMessage.get(context, messageId);
-    if (!message) {
+    if (!message || message.fk_session_id !== sessionId) {
       NcError.get(context).genericNotFound('Chat message', messageId);
     }
 
@@ -517,11 +511,7 @@ export class ChatService {
             message_count: (session.message_count || 0) + 1,
           });
 
-          await integration.storeInsert(
-            context,
-            (req as any).user?.id,
-            usage as any,
-          );
+          await integration.storeInsert(context, req.user?.id, usage as any);
         } catch (e) {
           this.logger.error('Failed to persist continuation response', e.stack);
         }
@@ -530,6 +520,7 @@ export class ChatService {
 
     // Consume stream
     const reader = result.toTextStreamResponse().body.getReader();
+    // eslint-disable-next-line no-constant-condition
     while (true) {
       const { done } = await reader.read();
       if (done) break;
@@ -537,7 +528,7 @@ export class ChatService {
   }
 
   private getUserRole(req: NcRequest): string {
-    const roles = (req as any).user?.base_roles || (req as any).user?.roles;
+    const roles = req.user?.base_roles || (req.user as any)?.roles;
     if (!roles) return 'viewer';
 
     if (typeof roles === 'string') return roles;

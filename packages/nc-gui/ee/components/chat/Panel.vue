@@ -3,15 +3,13 @@ import { Pane } from 'splitpanes'
 import 'splitpanes/dist/splitpanes.css'
 import { ChatMessageRole, ChatToolCallStatus } from 'nocodb-sdk'
 
-const { isPanelExpanded, chatPanelSize, toggleChatPanel } = useChatPanel()
+const { isPanelExpanded, chatPanelSize } = useChatPanel()
 
 const chatStore = useChatStore()
 
 const { activeMessages, isSendingMessage, activeSession, sessionList, isLoadingSessions } = storeToRefs(chatStore)
 
 const { base } = storeToRefs(useBase())
-
-const { activeView } = storeToRefs(useViewsStore())
 
 const { t } = useI18n()
 
@@ -40,6 +38,7 @@ const pendingUserInput = computed(() => {
   const msgs = activeMessages.value
   for (let i = msgs.length - 1; i >= 0; i--) {
     const m = msgs[i]
+    if (!m) continue
     // If the user has already replied, stop searching
     if (m.role === ChatMessageRole.USER) return null
     if (m.role === ChatMessageRole.ASSISTANT) {
@@ -47,7 +46,12 @@ const pendingUserInput = computed(() => {
       if (!tc) return null
       const result = m.tool_results?.find((r) => r.tool_call_id === tc.id)
       if (!result?.output) return null
-      const output = typeof result.output === 'string' ? JSON.parse(result.output) : result.output
+      let output: any
+      try {
+        output = typeof result.output === 'string' ? JSON.parse(result.output) : result.output
+      } catch {
+        return null
+      }
       if (!output?.question || !output?.options) return null
       return { toolCallId: tc.id, question: output.question as string, options: output.options as string[] }
     }
@@ -85,8 +89,8 @@ const scrollToBottom = () => {
   })
 }
 
-// Auto-scroll when messages change
-watch(activeMessages, scrollToBottom, { deep: true })
+// Auto-scroll when a new message is appended
+watch(() => activeMessages.value.length, scrollToBottom)
 
 // Initialize: load sessions when panel opens
 watch(
@@ -130,15 +134,7 @@ const handleSend = async (content: string) => {
     if (!session?.id) return
   }
 
-  const context = {
-    base_id: base.value.id,
-    workspace_id: base.value.fk_workspace_id || '',
-    table_id: activeView.value?.fk_model_id || undefined,
-    view_id: activeView.value?.id || undefined,
-    user_role: 'owner',
-  }
-
-  await chatStore.sendMessage(base.value.id, chatStore.activeSessionId!, content, context)
+  await chatStore.sendMessage(base.value.id, chatStore.activeSessionId!, content)
 }
 
 const handleNewSession = async () => {
@@ -162,11 +158,13 @@ const handleStarterPrompt = (prompt: string) => {
 }
 
 const handleUserInput = (choice: string) => {
+  $e('c:chat:option:select')
   handleSend(choice)
 }
 
 const handleSkipInput = () => {
   if (pendingUserInput.value) {
+    $e('c:chat:option:skip')
     dismissedInputIds.value = new Set([...dismissedInputIds.value, pendingUserInput.value.toolCallId])
   }
 }

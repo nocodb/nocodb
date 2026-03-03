@@ -88,14 +88,17 @@ export class ChatController {
   async messageSend(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
-    @Body() body: { content: string; context?: any; approvals?: Record<string, 'approved' | 'denied'> },
+    @Body()
+    body: {
+      content: string;
+      approvals?: Record<string, 'approved' | 'denied'>;
+    },
     @Request() req: NcRequest,
   ) {
     const stream = await this.chatService.sendMessage(context, {
       sessionId,
       body: {
         content: body.content,
-        context: body.context,
         approvals: body.approvals,
       },
       req,
@@ -117,7 +120,9 @@ export class ChatController {
     });
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId/messages/:messageId/approve`)
+  @Post(
+    `${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId/messages/:messageId/approve`,
+  )
   @Acl('chatMessageSend', { scope: 'base' })
   async approveToolCalls(
     @TenantContext() context: NcContext,

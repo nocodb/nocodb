@@ -64,17 +64,8 @@ export interface ChatToolResultType {
   is_error: boolean;
 }
 
-export interface ChatContextType {
-  base_id: string;
-  workspace_id: string;
-  table_id?: string;
-  view_id?: string;
-  user_role: string;
-}
-
 export interface ChatSendMessageType {
   content: string;
-  context?: ChatContextType;
   approvals?: Record<string, 'approved' | 'denied'>;
 }
 

@@ -15,6 +15,7 @@ import type {
 } from '~/services/v3/dashboards-v3.types';
 import type { Dashboard, Widget } from '~/models';
 import type { WidgetTypes } from 'nocodb-sdk';
+import { processConcurrently } from '~/utils';
 import { DashboardsService } from '~/services/dashboards.service';
 import {
   ApiV3DataTransformationBuilder,
@@ -416,13 +417,18 @@ export class DashboardsV3Service {
 
     const widgetsData: Record<string, unknown> = {};
 
-    for (const widget of widgets) {
-      widgetsData[widget.id] = await this.dashboardsService.widgetDataGet(
-        context,
-        widget.id,
-        req,
-      );
-    }
+    // TODO: make it single query rather than N+1
+    await processConcurrently(
+      widgets,
+      async (widget) => {
+        widgetsData[widget.id] = await this.dashboardsService.widgetDataGet(
+          context,
+          widget.id,
+          req,
+        );
+      },
+      3,
+    );
 
     return { widgets: widgetsData };
   }

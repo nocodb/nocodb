@@ -38,6 +38,6 @@ const isActionVisible = computed(() => {
         <GeneralIcon icon="ncScript" class="!h-8 !w-8 text-nc-content-maroon-dark" />
       </template>
     </ProjectActionItem>
-    <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" class="absolute right-2 top-2" />
+    <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click class="absolute right-2 top-2" />
   </div>
 </template>

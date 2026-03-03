@@ -142,7 +142,7 @@ Two frontend builds: CE (`pnpm dev`) and EE (`pnpm dev:ee`). The EE frontend ser
 | Scenario | Check | Example |
 |----------|-------|---------|
 | Hide in CE, show in all EE (even unlicensed) | `v-if="isEeUI"` | Workspace count on admin dashboard |
-| Show in EE with upgrade badge when unlicensed | `v-if="isEeUI"` + `PaymentUpgradeBadge` with `:feature-enabled-callback="() => !isEEFeatureBlocked"` | SSO tab in admin sidebar |
+| Show in EE with upgrade badge when unlicensed | `v-if="isEeUI"` + `PaymentUpgradeBadge` with `feature="PlanFeatureTypes.<FeatureName>"` `:feature-enabled-callback="() => !isEEFeatureBlocked"` | SSO tab in admin sidebar |
 | Block feature when unlicensed OR not in plan | `block*` computed from `useEeConfig()` | `blockSSO`, `blockSnapshots`, `blockRowColoring` |
 | Cloud-only plan gating | `isPaymentEnabled && !getFeature(...)` | Record limits, seat limits |
 

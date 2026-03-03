@@ -3,7 +3,7 @@
  * PaymentUpgradeBadge component - will only visible if feature is not available in current plan
  */
 import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
-import { PlanMeta, PlanTitles } from 'nocodb-sdk'
+import { PlanMeta, PlanTitles, PlanFeatureTypesToPlanTitles, PlanFeatureTypesToPlanTitlesEeCloud } from 'nocodb-sdk'
 interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles
@@ -30,7 +30,6 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  planTitle: PlanTitles.PLUS,
   size: 'xs',
   content: '',
 })
@@ -38,6 +37,8 @@ const props = withDefaults(defineProps<Props>(), {
 const { disabled, removeClick } = toRefs(props)
 
 const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
+
+const { appInfo } = useGlobal()
 
 const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem, isEEFeatureBlocked } = useEeConfig()
 
@@ -49,7 +50,19 @@ const isFeatureEnabled = computed(() => {
   return props.feature && getFeature(props.feature)
 })
 
-const effectivePlanTitle = computed(() => (isEEFeatureBlocked.value ? PlanTitles.ENTERPRISE : props.planTitle))
+const effectivePlanTitle = computed(() => {
+  if (isEEFeatureBlocked.value) {
+    return PlanTitles.ENTERPRISE
+  }
+
+  if (props.planTitle) return props.planTitle
+
+  return (
+    (appInfo.value?.isCloud
+      ? PlanFeatureTypesToPlanTitles[props.feature as PlanFeatureTypes]
+      : PlanFeatureTypesToPlanTitlesEeCloud[props.feature as PlanFeatureTypes]) || PlanTitles.PLUS
+  )
+})
 
 const activePlanMeta = computed(() => PlanMeta[effectivePlanTitle.value])
 
@@ -70,7 +83,7 @@ const showUpgradeModal = (e?: MouseEvent) => {
   handleUpgradePlan({
     title: props.title,
     content: props.content,
-    newPlanTitle: props.planTitle,
+    newPlanTitle: effectivePlanTitle.value,
     callback: props.callback,
     limitOrFeature: props.limitOrFeature || props.feature,
   })

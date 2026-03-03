@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ROW_COLORING_MODE, UITypes, ViewLockType } from 'nocodb-sdk'
+import { ROW_COLORING_MODE, UITypes, ViewLockType, PlanFeatureTypes } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
 
@@ -121,7 +121,12 @@ watch(open, (value) => {
               {{ $t('general.colour') }}
             </span>
           </div>
-          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+          <LazyPaymentUpgradeBadge
+            :feature="PlanFeatureTypes.FEATURE_ROW_COLOUR"
+            :feature-enabled-callback="() => !isEEFeatureBlocked"
+            show-as-lock
+            remove-click
+          />
           <span
             v-if="rowColoringCount"
             class="bg-nc-bg-maroon-dark group-hover:bg-nc-maroon-200 text-nc-maroon-700 nc-toolbar-btn-chip"

@@ -225,7 +225,11 @@ onBeforeUnmount(() => {
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
               {{ $t('general.teams') }}
-              <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
+                :feature-enabled-callback="() => !isEEFeatureBlocked"
+                remove-click
+              />
             </div>
           </template>
 
@@ -256,7 +260,11 @@ onBeforeUnmount(() => {
               <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
                 <GeneralIcon icon="audit" class="h-4 w-4" />
                 {{ $t('title.audits') }}
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => isWsAuditEnabled" remove-click />
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE"
+                  :feature-enabled-callback="() => isWsAuditEnabled"
+                  remove-click
+                />
               </div>
             </template>
             <WorkspaceAudits v-if="isWsAuditEnabled" />

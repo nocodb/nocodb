@@ -262,7 +262,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]:
     'to access redirect after form submission feature',
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: 'to add a custom logo to forms.',
-  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]: 'to customize the submit button label.',
+  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]:
+    'to customize the submit button label.',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]:
     'to access conditional form fields feature',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]:
@@ -312,7 +313,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_SCIM]: 'to enable SCIM provisioning.',
   [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
-  [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]: 'to enable or disable individual filters.',
+  [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]:
+    'to enable or disable individual filters.',
   [PlanFeatureTypes.FEATURE_PINNED_FILTER]: 'to pin filters to the toolbar.',
   [PlanFeatureTypes.FEATURE_UUID_FIELD]: 'to use UUID fields.',
   [PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD]: 'to use AutoNumber fields.',
@@ -344,3 +346,13 @@ export enum ReturnToBillingPage {
   ACCOUNT = 'account',
   WS = 'ws',
 }
+
+export const PlanFeatureTypesToPlanTitles = {} as Record<
+  PlanFeatureTypes,
+  PlanTitles
+>;
+
+export const PlanFeatureTypesToPlanTitlesEeCloud = {} as Record<
+  Partial<PlanFeatureTypes>,
+  PlanTitles
+>;

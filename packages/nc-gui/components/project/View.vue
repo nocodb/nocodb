@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { ProjectRoles } from 'nocodb-sdk'
+import { ProjectRoles, PlanFeatureTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -339,7 +339,11 @@ onMounted(() => {
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
               <div>{{ $t('general.permissions') }}</div>
-              <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                :feature-enabled-callback="() => !isEEFeatureBlocked"
+                remove-click
+              />
             </div>
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
@@ -368,7 +372,11 @@ onMounted(() => {
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
               <div>Syncs</div>
-              <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_SYNC"
+                :feature-enabled-callback="() => !isEEFeatureBlocked"
+                remove-click
+              />
             </div>
           </template>
           <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />

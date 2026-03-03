@@ -54,6 +54,7 @@ import PostgresAuth from '@noco-local-integrations/postgres-auth';
 import PostgresSync from '@noco-local-integrations/postgres-sync';
 import SlackAuth from '@noco-local-integrations/slack-auth';
 import SlackWorkflowNode from '@noco-local-integrations/slack-workflow-node';
+import SmtpAuth from '@noco-local-integrations/smtp-auth';
 import TwilioAuth from '@noco-local-integrations/twilio-auth';
 import TwilioWorkflowNode from '@noco-local-integrations/twilio-workflow-node';
 import ZendeskAuth from '@noco-local-integrations/zendesk-auth';
@@ -114,6 +115,7 @@ export default [
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(SlackAuth) ? SlackAuth : [SlackAuth]),
   ...(Array.isArray(SlackWorkflowNode) ? SlackWorkflowNode : [SlackWorkflowNode]),
+  ...(Array.isArray(SmtpAuth) ? SmtpAuth : [SmtpAuth]),
   ...(Array.isArray(TwilioAuth) ? TwilioAuth : [TwilioAuth]),
   ...(Array.isArray(TwilioWorkflowNode) ? TwilioWorkflowNode : [TwilioWorkflowNode]),
   ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),

@@ -12,6 +12,7 @@ import { SendEmailAction } from './nodes/send-email';
 import { DelayNode } from './nodes/delay';
 import { WaitUntilNode } from './nodes/wait-until';
 import { HttpRequest } from './nodes/http-request';
+import { SmtpSendEmailNode } from './nodes/smtp-send-email';
 
 export const entries: IntegrationEntry[] = [
   {
@@ -128,6 +129,19 @@ export const entries: IntegrationEntry[] = [
       title: 'HTTP Request',
       icon: 'ncGlobe',
       order: 13,
+    },
+    packageManifest: manifest,
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'core.action.send_smtp_email',
+    wrapper: SmtpSendEmailNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'Send Email (SMTP)',
+      icon: 'ncMail',
+      order: 14,
     },
     packageManifest: manifest,
   },

@@ -36,7 +36,7 @@ test.describe('Multi select', () => {
     const tables = await api.dbTable.list(context.base.id);
     tableId = tables.list.find((table: any) => table.title === 'sheet1').id;
     await addRecordUsingAPI(context, tableId, [{ Id: 1, Title: `Row 0` }]);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -265,7 +265,7 @@ test.describe('Multi select - filters', () => {
     }
 
     // page reload
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {

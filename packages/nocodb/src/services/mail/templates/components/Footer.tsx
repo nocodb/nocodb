@@ -83,14 +83,14 @@ export const Footer = () => {
             </Link>
           </Column>
           <Column className="border border-y-0 px-1 border-l-0 border-r-1 border-solid border-gray-200">
-            <Link href="https://blog.nocodb.com" target="_blank">
+            <Link href="https://nocodb.com/blog" target="_blank">
               <Text className="text-center underline py-0 !my-0 text-gray-500 text-[13px]">
                 Blog
               </Text>
             </Link>
           </Column>
           <Column className="border px-1 border-y-0 border-l-0 border-r-1 border-solid border-gray-200">
-            <Link href="https://docs.nocodb.com/" target="_blank">
+            <Link href="https://nocodb.com/docs/" target="_blank">
               <Text className="text-center underline py-0 !my-0 text-gray-500 text-[13px]">
                 Docs
               </Text>

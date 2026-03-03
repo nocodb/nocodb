@@ -18,7 +18,7 @@ Convierte cualquier MySQL, PostgreSQL, SQL Server, SQLite y Mariadb en una hoja 
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://discord.gg/c7GEYrvFtT"><b>Discord</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
     <a href="https://docs.nocodb.com/"><b>Documentación</b></a>
@@ -66,7 +66,7 @@ Para accesar al dashboard: [http://localhost:8080/dashboard](http://localhost:80
 
 # Únete a nuestra comunidad
 
-<a href="https://discord.gg/5RgZmkW">
+<a href="https://discord.gg/c7GEYrvFtT">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 <br>

@@ -18,7 +18,7 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & MariaDB in eine Smart-T
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Webseite</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://discord.gg/c7GEYrvFtT"><b>Discord</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
     <a href="https://docs.nocodb.com/"><b>Dokumentation</b></a>
@@ -72,7 +72,7 @@ Zugriff auf Dashboard mit. : [http://localhost:8080/dashboard](http://localhost:
 
 # Tritt unserer Gemeinschaft bei
 
-<a href="https://discord.gg/5RgZmkW">
+<a href="https://discord.gg/c7GEYrvFtT">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 <br>

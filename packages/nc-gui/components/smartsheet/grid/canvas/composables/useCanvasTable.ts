@@ -7,6 +7,7 @@ import {
   isOrderCol,
   isReadonlyVirtualColumn,
   isSystemColumn,
+  isUUID,
   isVirtualCol,
   ncHasProperties,
 } from 'nocodb-sdk'
@@ -240,6 +241,7 @@ export function useCanvasTable({
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
+  const { isFeatureEnabled } = useBetaFeatureToggle()
   const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
   const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
@@ -286,10 +288,15 @@ export function useCanvasTable({
     currentUser,
   )
 
-  // Set base information for internal API calls
-  if (baseStore.base?.id && baseStore.base?.fk_workspace_id) {
-    actionManager.setBaseInfo(baseStore.base.id, baseStore.base.fk_workspace_id)
-  }
+  watch(
+    () => [baseStore.base?.id, baseStore.base?.fk_workspace_id] as const,
+    ([baseId, workspaceId]) => {
+      if (baseId && workspaceId) {
+        actionManager.setBaseInfo(baseId, workspaceId)
+      }
+    },
+    { immediate: true },
+  )
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
@@ -327,7 +334,9 @@ export function useCanvasTable({
 
   const headerRowHeight = computed(() => (isMobileMode.value ? 40 : COLUMN_HEADER_HEIGHT_IN_PX))
 
-  const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled.value)
+  const isAiFillMode = computed(
+    () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled && isFeatureEnabled(FEATURE_FLAG.AI_FILL_HANDLE),
+  )
 
   const fetchMetaIds = ref<string[][]>([])
   const isLoadingMetas = ref(false)
@@ -782,11 +791,12 @@ export function useCanvasTable({
       if (removeInlineAddRecord.value && selection.value.start.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) return null
 
       const selectedColumn = columns.value[selection.value.end.col]
-      // If the cell is virtual or system column, hide the fill handler
+      // If the cell is virtual, system column, AI prompt, or UUID (read-only auto-generated), hide the fill handler
       if (
         selectedColumn?.virtual ||
         isSystemColumn(selectedColumn?.columnObj) ||
-        (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj))
+        (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj)) ||
+        (selectedColumn?.columnObj && isUUID(selectedColumn?.columnObj))
       ) {
         return null
       }
@@ -1333,6 +1343,9 @@ export function useCanvasTable({
 
     if (!row || !column) return null
 
+    // Row is hidden by RLS policy — lock it to prevent edits before it's removed from view
+    if (row.rowMeta?.isRlsHidden) return null
+
     if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
     const isEditRestricted = column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
@@ -1459,6 +1472,9 @@ export function useCanvasTable({
         await Promise.all(
           metaIdsToFetch.map(async ([colId, tableId, relatedBaseId]) => {
             if (!tableId || !relatedBaseId) return
+            // Try fetching full table meta first. If it fails (e.g., user lacks permission
+            // to access the related table), fall back to partial meta which only fetches
+            // the linked column metadata needed to render the LTAR cell.
             try {
               await getMeta(relatedBaseId, tableId, false, false, true)
             } catch {}

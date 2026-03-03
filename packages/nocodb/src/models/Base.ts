@@ -54,12 +54,19 @@ export default class Base implements BaseType {
   roles?: string;
   fk_custom_url_id?: string;
 
-  // sandbox props
-  sandbox_master?: boolean; // Is this base a sandbox master?
-  sandbox_id?: string; // Points to SANDBOXES (for both master and installed instances)
-  sandbox_version_id?: string; // Current version ID from SANDBOX_VERSIONS
+  // managed app props
+  managed_app_master?: boolean; // Is this base a managed app master?
+  managed_app_id?: string; // Points to MANAGED_APPS (for both master and installed instances)
+  managed_app_version_id?: string; // Current version ID from MANAGED_APP_VERSIONS
   auto_update?: boolean; // For installed instances: auto-update to new published versions
-  sandbox_schema_locked?: boolean; // Computed: whether schema modifications are allowed
+  // managed app info (populated fields)
+  managed_app_version?: string; // Current version string
+  managed_app_published_at?: string; // When this version was published
+  managed_app_schema_locked?: boolean; // Computed: whether schema modifications are allowed
+
+  // sandbox props
+  is_sandbox_master?: boolean; // Is this base a master base that has sandbox(es)?
+  is_sandbox?: boolean; // Is this base a sandbox base?
 
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
@@ -69,8 +76,8 @@ export default class Base implements BaseType {
     return base && new Base(base);
   }
 
-  public static async computeSchemaLocked(_base: Base): Promise<boolean> {
-    return false;
+  public static async populateManagedAppInfo(_base: Base): Promise<void> {
+    return;
   }
 
   public static async createProject(
@@ -88,10 +95,12 @@ export default class Base implements BaseType {
       'color',
       'order',
       'version',
-      'sandbox_master',
-      'sandbox_id',
-      'sandbox_version_id',
+      'managed_app_master',
+      'managed_app_id',
+      'managed_app_version_id',
       'auto_update',
+      'is_sandbox_master',
+      'is_sandbox',
     ]);
 
     if (!insertObj.order) {
@@ -289,9 +298,8 @@ export default class Base implements BaseType {
     }
     const base = this.castType(baseData);
 
-    // Compute sandbox_schema_locked
-    if (base && base.sandbox_id) {
-      base.sandbox_schema_locked = await this.computeSchemaLocked(base);
+    if (base && base.managed_app_id) {
+      await this.populateManagedAppInfo(base);
     }
 
     return base;
@@ -370,9 +378,8 @@ export default class Base implements BaseType {
     if (baseData) {
       const base = this.castType(baseData);
 
-      // Compute sandbox_schema_locked
-      if (base.sandbox_id) {
-        base.sandbox_schema_locked = await this.computeSchemaLocked(base);
+      if (base.managed_app_id) {
+        await this.populateManagedAppInfo(base);
       }
 
       await base.getSources(includeConfig, ncMeta);
@@ -471,10 +478,12 @@ export default class Base implements BaseType {
       'password',
       'roles',
       'version',
-      'sandbox_master',
-      'sandbox_id',
-      'sandbox_version_id',
+      'managed_app_master',
+      'managed_app_id',
+      'managed_app_version_id',
       'auto_update',
+      'is_sandbox_master',
+      'is_sandbox',
     ]);
 
     // stringify meta

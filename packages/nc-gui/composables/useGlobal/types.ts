@@ -2,6 +2,8 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
+import type { MapProvider } from 'nocodb-sdk'
+
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
@@ -43,6 +45,7 @@ export interface AppInfo {
   feedEnabled: boolean
   sentryDSN: string
   isOnPrem: boolean
+  defaultWorkspaceId: string | null
   stripePublishableKey?: string
   marketingRootUrl?: string
   templatesRootUrl?: string
@@ -51,6 +54,8 @@ export interface AppInfo {
   disableOnboardingFlow: boolean
   iframeWhitelistDomains?: Array<string>
   disableGroupByAggregation?: boolean
+  sendRecordMaxRecipients?: number
+  mapProvider?: MapProvider
 }
 
 export interface StoredState {

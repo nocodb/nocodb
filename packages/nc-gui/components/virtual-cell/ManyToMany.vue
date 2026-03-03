@@ -23,6 +23,9 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+// Inject breadcrumbs before dropdown teleport boundary
+const parentBreadcrumbs = inject(TemplateBreadcrumbsInj, ref([]))
+
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
@@ -258,6 +261,7 @@ onUnmounted(() => {
         :cell-value="localCellValue"
         :column="m2mColumn"
         :items="cells.length"
+        :parent-breadcrumbs="parentBreadcrumbs"
         @attach-record="onAttachRecord"
         @escape="isOpen = false"
       />
@@ -266,6 +270,7 @@ onUnmounted(() => {
         v-model="listItemsDlg"
         :column="m2mColumn"
         :hide-back-btn="hideBackBtn"
+        :parent-breadcrumbs="parentBreadcrumbs"
         @attach-linked-record="onAttachLinkedRecord"
         @escape="isOpen = false"
       />

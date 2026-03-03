@@ -1,4 +1,4 @@
-import type { BaseType, WorkspaceType } from 'nocodb-sdk'
+import type { BaseType, WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import { isString } from '@vue/shared'
 
@@ -59,11 +59,11 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   )
 
   const activeWorkspaceId = computed(() => {
-    return 'default'
+    return appInfo.value.defaultWorkspaceId || 'nc'
   })
 
   const activeWorkspace = computed(() => {
-    return { id: 'default', title: 'default', meta: {}, roles: '' } as any
+    return { id: activeWorkspaceId.value, title: 'default', meta: {}, roles: '' } as any
   })
 
   const workspaceRole = computed(() => activeWorkspace.value?.roles)
@@ -90,15 +90,73 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const deleteWorkspace = async (_: string, { skipStateUpdate: __ }: { skipStateUpdate?: boolean } = {}) => {}
 
-  const loadCollaborators = async (..._args: any) => {}
+  const loadCollaborators = async (
+    params?: { offset?: number; limit?: number; ignoreLoading?: boolean },
+    workspaceId?: string,
+  ) => {
+    if (!params?.ignoreLoading) isCollaboratorsLoading.value = true
 
-  const inviteCollaborator = async (..._args: any) => {}
+    try {
+      const response: any = await $api.workspaceUser.list(workspaceId ?? activeWorkspaceId.value)
 
-  const removeCollaborator = async (..._args: any) => {}
+      if (!response) return
 
-  const updateCollaborator = async (..._args: any) => {}
+      allCollaborators.value = response.list
+      collaborators.value = response.list
+      workspaceUserCount.value = response.pageInfo?.totalRows
+    } catch {
+      // Silently fail if user doesn't have permission
+    } finally {
+      if (!params?.ignoreLoading) isCollaboratorsLoading.value = false
+    }
+  }
 
-  const loadWorkspace = async (..._args: any) => {}
+  const inviteCollaborator = async (email: string, roles: WorkspaceUserRoles, workspaceId?: string) => {
+    isInvitingCollaborators.value = true
+    try {
+      await $api.workspaceUser.invite(workspaceId ?? activeWorkspaceId.value, { email, roles } as any)
+      await loadCollaborators({} as any, workspaceId)
+      basesStore.clearBasesUser()
+    } finally {
+      isInvitingCollaborators.value = false
+    }
+  }
+
+  const removeCollaborator = async (userId: string, workspaceId?: string, _onCurrentUserLeftCallback?: () => void) => {
+    if (removingCollaboratorMap.value[userId]) return
+    try {
+      removingCollaboratorMap.value[userId] = true
+      await $api.workspaceUser.delete(workspaceId ?? activeWorkspaceId.value, userId)
+      await loadCollaborators({} as any, workspaceId)
+      basesStore.clearBasesUser()
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      delete removingCollaboratorMap.value[userId]
+    }
+  }
+
+  const updateCollaborator = async (
+    userId: string,
+    roles: WorkspaceUserRoles,
+    workspaceId?: string,
+    _overrideBaseRole: boolean = false,
+  ) => {
+    try {
+      await $api.workspaceUser.update(workspaceId ?? activeWorkspaceId.value, userId, { roles } as any)
+      await loadCollaborators({} as any, workspaceId)
+      basesStore.clearBasesUser()
+      return true
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const loadWorkspace = async (workspaceId?: string) => {
+    if (workspaceId) {
+      workspaces.value.set(workspaceId, { ...activeWorkspace.value, id: workspaceId })
+    }
+  }
 
   const moveToOrg = async (..._args: any) => {}
 
@@ -223,12 +281,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   }
 
   const navigateToWorkspaceSettings = async (_?: string, cmdOrCtrl?: boolean) => {
+    const workspaceId = activeWorkspaceId.value
     if (cmdOrCtrl) {
-      await navigateTo('#/account/users', {
+      await navigateTo(router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } }).href, {
         open: navigateToBlankTargetOpenOption,
       })
     } else {
-      await navigateTo('/account/users')
+      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
     }
   }
 
@@ -274,6 +333,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    */
 
   const isTeamsEnabled = computed(() => false)
+
+  const isTeamsHierarchyEnabled = computed(() => false)
 
   const teams = ref([])
 
@@ -324,6 +385,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     loadWorkspaces,
     workspaces,
     workspacesList,
+    isWorkspaceCeLocked: (_workspaceId?: string) => false,
     createWorkspace,
     deleteWorkspace,
     updateWorkspace,
@@ -384,6 +446,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     addTeamMembers,
     removeTeamMembers,
     updateTeamMembers,
+    isTeamsHierarchyEnabled,
 
     // Workspace Teams
     isLoadingWorkspaceTeams,

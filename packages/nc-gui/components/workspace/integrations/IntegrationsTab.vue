@@ -34,6 +34,8 @@ const { activeWorkspace } = storeToRefs(useWorkspace())
 
 const { isSyncFeatureEnabled } = storeToRefs(useSyncStore())
 
+const { isEEFeatureBlocked } = useEeConfig()
+
 const easterEggToggle = computed(() => isFeatureEnabled(FEATURE_FLAG.INTEGRATIONS))
 
 const router = useRouter()
@@ -85,6 +87,8 @@ const upvotesData = computed(() => {
 const integrationCategoriesRef = computed(() => {
   return integrationCategories
     .filter((c) => {
+      if (isEEFeatureBlocked.value && c.value !== IntegrationCategoryType.DATABASE) return false
+
       const filterByActiveCategory = activeCategory.value ? c.value === activeCategory.value.value : true
 
       return filterCategory(c) && filterByActiveCategory && !c.value.endsWith('-coming-soon')
@@ -149,6 +153,8 @@ const integrationsMapByCategory = computed(() => {
 
   return integrationCategories
     .filter((c) => {
+      if (isEEFeatureBlocked.value && c.value !== IntegrationCategoryType.DATABASE) return false
+
       const filterByActiveCategory = activeCategory.value ? c.value === activeCategory.value.value : true
 
       const filterByUrlQuery =

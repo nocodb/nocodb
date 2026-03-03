@@ -125,6 +125,7 @@ export const NO_EDITABLE_CELL = [
   UITypes.LastModifiedTime,
   UITypes.CreatedTime,
   UITypes.Formula,
+  UITypes.UUID,
 ]
 
 export const renderAsCellLookupOrLtarValue = [

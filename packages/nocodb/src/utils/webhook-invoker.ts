@@ -37,6 +37,9 @@ import { addDummyRootAndNest } from '~/services/v3/filters-v3.service';
 import { isEE, isOnPrem } from '~/utils';
 import { filterBuilder } from '~/utils/api-v3-data-transformation.builder';
 
+const webhookLogLevel =
+  process.env.NC_WEBHOOK_LOG_LEVEL || process.env.NC_AUTOMATION_LOG_LEVEL;
+
 interface WebhookResponseLog {
   status: number;
   statusText: string;
@@ -467,8 +470,8 @@ export class WebhookInvoker {
               await NcPluginMgrv2.emailAdapter(false)
             )?.mailSend(parsedPayload);
             if (
-              process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-              (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+              webhookLogLevel === 'ALL' ||
+              (isEE && !webhookLogLevel)
             ) {
               hookLog = {
                 ...hook,
@@ -502,8 +505,8 @@ export class WebhookInvoker {
             );
 
             if (
-              process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-              (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+              webhookLogLevel === 'ALL' ||
+              (isEE && !webhookLogLevel)
             ) {
               hookLog = {
                 ...hook,
@@ -623,8 +626,8 @@ export class WebhookInvoker {
             );
 
             if (
-              process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-              (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+              webhookLogLevel === 'ALL' ||
+              (isEE && !webhookLogLevel)
             ) {
               hookLog = {
                 ...hook,
@@ -663,7 +666,7 @@ export class WebhookInvoker {
         this.logger.error(e.message, e.stack);
       }
       if (
-        ['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL) ||
+        ['ERROR', 'ALL'].includes(webhookLogLevel) ||
         isEE
       ) {
         hookLog = {

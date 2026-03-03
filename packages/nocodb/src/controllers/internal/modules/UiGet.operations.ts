@@ -20,7 +20,6 @@ import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
-
 @Injectable()
 export class UiGetOperations
   implements InternalApiModule<InternalGETResponseType>
@@ -54,6 +53,7 @@ export class UiGetOperations
     'hookList' as const,
     'hookLogList' as const,
     'hookFilterList' as const,
+    'buttonFilterList' as const,
     'hookSamplePayload' as const,
     'tableSampleData' as const,
     'linkFilterList' as const,
@@ -68,6 +68,8 @@ export class UiGetOperations
     'syncSourceList' as const,
     'extensionList' as const,
     'extensionRead' as const,
+    'listViewDataList' as const,
+    'listViewDataCount' as const,
   ];
   httpMethod = 'GET' as const;
 

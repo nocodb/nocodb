@@ -219,7 +219,14 @@ onMounted(() => {
                 </div>
                 <div class="flex w-1/2 justify-end text-nc-content-gray-subtle2">
                   <div class="flex gap-2 px-2 py-1 rounded-md items-center">
-                    <component :is="iconMap.project" class="w-4 h-4" />
+                    <GeneralProjectIcon
+                      :managed-app="{
+                        managed_app_master: cmdOption?.managed_app_master,
+                        managed_app_id: cmdOption?.managed_app_id,
+                      }"
+                      :color="cmdOption?.iconColor"
+                      class="!h-4 !w-4"
+                    />
                     <a-tooltip overlay-class-name="!px-2 !py-1 !rounded-lg" :tooltip-style="{ zIndex: 1100 }">
                       <template #title>
                         {{ cmdOption.baseName }}

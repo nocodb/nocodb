@@ -529,7 +529,7 @@ test.describe.serial('Webhook', () => {
       console.error(e);
     }
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     await dashboard.treeView.openTable({ title: 'Test', baseTitle: context.base.title });
 
     // create after insert webhook
@@ -555,7 +555,7 @@ test.describe.serial('Webhook', () => {
       Number: (i + 1) * 100,
     }));
     await api.dbTableRow.bulkCreate('noco', context.base.id, table.id, rowAttributesForInsert);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     let rsp = await getWebhookResponses({ request, count: 1 });
     await verifyBulkOperationTrigger(rsp, 'records.after.insert');
 
@@ -568,7 +568,7 @@ test.describe.serial('Webhook', () => {
     }));
 
     await api.dbTableRow.bulkUpdate('noco', context.base.id, table.id, rowAttributesForUpdate);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     // 50 records updated, we expect 2 webhook responses
     rsp = await getWebhookResponses({ request, count: 1 });
     await verifyBulkOperationTrigger(rsp, 'records.after.update');
@@ -578,7 +578,7 @@ test.describe.serial('Webhook', () => {
     const rowAttributesForDelete = Array.from({ length: 50 }, (_, i) => ({ Id: i + 1 }));
 
     await api.dbTableRow.bulkDelete('noco', context.base.id, table.id, rowAttributesForDelete);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     rsp = await getWebhookResponses({ request, count: 1 });
     await verifyBulkOperationTrigger(rsp, 'records.after.delete');
   });
@@ -704,7 +704,7 @@ test.describe.serial('Webhook', () => {
       console.log(e);
     }
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     // create after update webhook

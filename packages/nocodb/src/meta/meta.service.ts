@@ -105,6 +105,9 @@ export class MetaService {
       [MetaTable.CALENDAR_VIEW]: 'cv',
       [MetaTable.CALENDAR_VIEW_COLUMNS]: 'cvc',
       [MetaTable.CALENDAR_VIEW_RANGE]: 'cvr',
+      [MetaTable.TIMELINE_VIEW]: 'tv',
+      [MetaTable.TIMELINE_VIEW_COLUMNS]: 'tvc',
+      [MetaTable.TIMELINE_VIEW_RANGE]: 'tvr',
       [MetaTable.USERS]: 'us',
       [MetaTable.ORGS_OLD]: 'org',
       [MetaTable.TEAMS]: 'tm',
@@ -127,13 +130,20 @@ export class MetaService {
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.WIDGETS]: 'wgt',
       [MetaTable.WORKSPACE]: 'w',
+      [MetaTable.LIST_VIEW]: 'lv',
+      [MetaTable.LIST_VIEW_COLUMNS]: 'lvc',
+      [MetaTable.LIST_VIEW_LEVELS]: 'lvl',
       [MetaTable.DEPENDENCY_TRACKER]: 'dt',
       [MetaTable.INSTALLATIONS]: 'inst',
       [MetaTable.AUTOMATIONS]: 'aut',
       [MetaTable.AUTOMATION_EXECUTIONS]: 'auex',
+      [MetaTable.MANAGED_APPS]: 'ma',
+      [MetaTable.MANAGED_APP_VERSIONS]: 'mav',
+      [MetaTable.MANAGED_APP_DEPLOYMENT_LOGS]: 'madl',
       [MetaTable.SANDBOXES]: 'sb',
-      [MetaTable.SANDBOX_VERSIONS]: 'sbv',
-      [MetaTable.SANDBOX_DEPLOYMENT_LOGS]: 'sbdl',
+      [MetaTable.SCIM_CONFIG]: 'scfg',
+      [MetaTable.RLS_POLICIES]: 'rlp',
+      [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
     };
 
     const prefix = prefixMap[target] || 'nc';
@@ -314,7 +324,15 @@ export class MetaService {
       };
       insertObj.push(tempObj);
     }
-    await this.knexConnection.batchInsert(target, insertObj);
+
+    const BATCH_SIZE =
+      this.knexConnection.client.config.client === 'sqlite3' ? 200 : 10000;
+    for (let i = 0; i < insertObj.length; i += BATCH_SIZE) {
+      await this.knexConnection.batchInsert(
+        target,
+        insertObj.slice(i, i + BATCH_SIZE),
+      );
+    }
 
     return insertObj;
   }

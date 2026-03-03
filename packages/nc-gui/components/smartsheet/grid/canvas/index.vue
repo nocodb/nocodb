@@ -250,8 +250,10 @@ const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
+const { selectedTemplate } = useRecordTemplate()
+const { base } = storeToRefs(useBase())
 const route = useRoute()
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 const { t } = useI18n()
 const tooltipStore = useTooltipStore()
 const { targetReference, placement } = storeToRefs(tooltipStore)
@@ -402,6 +404,27 @@ const {
   fetchMissingGroupChunks,
   getDataCache,
 })
+
+// File drop to create records
+const showFileDropZone = ref(false)
+const dragFileCount = ref(0)
+
+const {
+  isProcessing: isFileDropProcessing,
+  showFieldSelectDlg,
+  pendingFiles: pendingDropFiles,
+  attachmentFields,
+  handleFileDrop,
+  onFieldSelected,
+  onFieldSelectCancelled,
+} = useFileDropToCreateRecords({
+  meta,
+  callAddEmptyRow,
+  updateOrSaveRow,
+})
+
+/** Whether the table has attachment fields and data editing is allowed — gates the file drop zone */
+const canDropFilesToCreateRecords = computed(() => isDataEditAllowed.value && attachmentFields.value.length > 0)
 
 const activeCursor = ref<CursorType>('auto')
 
@@ -742,6 +765,36 @@ function onNewRecordToFormClick(path: Array<number> = []) {
   openNewRecordFormHook.trigger({ overwrite, path })
   openAddNewRowDropdown.value = null
   isDropdownVisible.value = false
+}
+
+function onOpenTemplateManager() {
+  openAddNewRowDropdown.value = null
+  isDropdownVisible.value = false
+  const { openManager } = useRecordTemplate()
+  openManager()
+}
+
+/** Create a record using the currently selected template (delegates to shared utility) */
+async function onSelectedTemplateClick() {
+  const tmpl = selectedTemplate.value
+  if (!tmpl || !base.value?.id || !meta.value?.id) return
+
+  try {
+    await createRecordFromTemplate({
+      tmpl,
+      api: $api,
+      baseId: base.value.id,
+      tableId: meta.value.id,
+      columns: (meta.value.columns || []) as ColumnType[],
+      getMeta,
+    })
+
+    message.toast('Record created from template')
+    reloadViewDataHook?.trigger()
+  } catch (e: any) {
+    console.error(e)
+    message.toast(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 const onVisibilityChange = (value: boolean) => {
@@ -1572,7 +1625,9 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
         const setGroup = getDefaultGroupData(group)
 
-        if (isAddNewRecordGridMode.value || !isGroupBy.value) {
+        if (selectedTemplate.value) {
+          onSelectedTemplateClick()
+        } else if (isAddNewRecordGridMode.value || !isGroupBy.value) {
           addEmptyRow(undefined, undefined, undefined, setGroup, groupPath)
         } else {
           openNewRecordHandler({ overwrite: setGroup, path: groupPath })
@@ -1580,7 +1635,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       } else {
         if (removeInlineAddRecord.value) return
 
-        await addEmptyRow()
+        if (selectedTemplate.value) {
+          await onSelectedTemplateClick()
+        } else {
+          await addEmptyRow()
+        }
       }
     }
     selection.value.clear()
@@ -2436,6 +2495,14 @@ const bulkUpdataContext = (path: Array<number>) => {
   emits('bulkUpdateDlg', path)
 }
 
+const showSendRecordModal = ref(false)
+const sendRecordRowId = ref<string | null>(null)
+
+const handleSendRecord = (rowId: string) => {
+  sendRecordRowId.value = rowId
+  showSendRecordModal.value = true
+}
+
 watch([height, width, windowWidth, windowHeight], () => {
   nextTick(() => {
     calculateSlices()
@@ -2590,7 +2657,7 @@ onClickOutside(
       isExpandedCellInputExist() ||
       isLinkDropdownExist() ||
       isGeneralOverlayActive() ||
-      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown']))
+      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown', 'nc-colour-picker-modal']))
     ) {
       return
     }
@@ -2662,7 +2729,26 @@ const resetAttachmentCellDropOver = () => {
 }
 
 const onDrop = (files: File[] | null) => {
-  if (!attachmentCellDropOver.value || !files?.length || !isDataEditAllowed.value) {
+  // Capture whether the bottom drop zone was showing before clearing it
+  const wasDropZoneVisible = showFileDropZone.value
+
+  showFileDropZone.value = false
+  dragFileCount.value = 0
+
+  if (!files?.length || !isDataEditAllowed.value) {
+    return
+  }
+
+  // If the bottom drop zone was visible, always create new records
+  if (wasDropZoneVisible && canDropFilesToCreateRecords.value) {
+    resetAttachmentCellDropOver()
+    handleFileDrop(Array.from(files))
+    return
+  }
+
+  // If no specific attachment cell is targeted, trigger new record creation
+  if (!attachmentCellDropOver.value) {
+    handleFileDrop(Array.from(files))
     return
   }
 
@@ -2700,6 +2786,10 @@ const onDrop = (files: File[] | null) => {
 const onOver = (_files: File[] | null, e: DragEvent) => {
   if (!isDataEditAllowed.value) return
 
+  if (e.dataTransfer?.items) {
+    dragFileCount.value = Array.from(e.dataTransfer.items).filter((item) => item.kind === 'file').length
+  }
+
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -2732,10 +2822,16 @@ const onOver = (_files: File[] | null, e: DragEvent) => {
 
   const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
 
-  // If hover column is not attachment or is readonly, skip
+  // If hover column is not attachment or is readonly, show bottom drop zone instead
   if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment || column.readonly) {
+    if (canDropFilesToCreateRecords.value) {
+      showFileDropZone.value = true
+    }
     return resetAttachmentCellDropOver()
   }
+
+  // Over a valid attachment cell — hide bottom drop zone so cell drop takes priority
+  showFileDropZone.value = false
 
   if (
     attachmentCellDropOver.value &&
@@ -2754,10 +2850,15 @@ useDropZone(canvasRef, {
   onDrop,
   onEnter: () => {
     resetAttachmentCellDropOver()
+    if (canDropFilesToCreateRecords.value) {
+      showFileDropZone.value = true
+    }
   },
   onOver,
   onLeave: () => {
     resetAttachmentCellDropOver()
+    showFileDropZone.value = false
+    dragFileCount.value = 0
   },
 })
 
@@ -2798,7 +2899,7 @@ watch(
 </script>
 
 <template>
-  <div ref="wrapperRef" class="w-full h-full">
+  <div ref="wrapperRef" class="w-full h-full relative">
     <div
       v-if="isBulkOperationInProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-nc-bg-default/30"
@@ -2877,6 +2978,7 @@ watch(
               :clear-selected-range-of-cells="clearSelectedRangeOfCells"
               @click="isContextMenuOpen = false"
               @bulk-update-dlg="bulkUpdataContext"
+              @send-record="handleSendRecord"
             />
           </template>
         </NcDropdown>
@@ -3004,6 +3106,7 @@ watch(
             :path="openAddNewRowDropdown"
             :on-new-record-to-grid-click="onNewRecordToGridClick"
             :on-new-record-to-form-click="onNewRecordToFormClick"
+            :on-open-template-manager="onOpenTemplateManager"
           />
           <GroupContextMenu
             v-else-if="openGroupContextMenuDropdown"
@@ -3072,7 +3175,13 @@ watch(
               </NcButton>
               <NcButton
                 v-else
-                v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+                v-e="[
+                  selectedTemplate
+                    ? 'c:row:add:template'
+                    : isAddNewRecordGridMode && !isGroupBy
+                    ? 'c:row:add:grid'
+                    : 'c:row:add:form',
+                ]"
                 class="nc-grid-add-new-row"
                 size="small"
                 :class="{
@@ -3080,11 +3189,20 @@ watch(
                 }"
                 type="secondary"
                 :shadow="false"
-                @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
+                @click.stop="
+                  selectedTemplate
+                    ? onSelectedTemplateClick()
+                    : isAddNewRecordGridMode && !isGroupBy
+                    ? addEmptyRow()
+                    : onNewRecordToFormClick()
+                "
               >
                 <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
                   <GeneralIcon icon="plus" />
-                  <template v-if="isAddNewRecordGridMode || isGroupBy">
+                  <template v-if="selectedTemplate">
+                    {{ selectedTemplate.title }}
+                  </template>
+                  <template v-else-if="isAddNewRecordGridMode || isGroupBy">
                     {{ $t('activity.newRecord') }}
                   </template>
                   <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
@@ -3106,13 +3224,29 @@ watch(
                 :path="openAddNewRowDropdown"
                 :on-new-record-to-grid-click="onNewRecordToGridClick"
                 :on-new-record-to-form-click="onNewRecordToFormClick"
+                :on-open-template-manager="onOpenTemplateManager"
               />
             </template>
           </NcDropdown>
         </template>
       </PermissionsTooltip>
     </div>
+    <SmartsheetGridCanvasComponentsFileDropZone
+      v-if="isEeUI"
+      :visible="showFileDropZone && canDropFilesToCreateRecords && !isFileDropProcessing"
+      :file-count="dragFileCount"
+    />
   </div>
+
+  <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
+  <DlgAttachmentFieldSelect
+    v-if="isEeUI"
+    v-model="showFieldSelectDlg"
+    :table-id="meta?.id"
+    :file-count="pendingDropFiles.length"
+    @select="onFieldSelected"
+    @cancel="onFieldSelectCancelled"
+  />
 </template>
 
 <style scoped lang="scss">

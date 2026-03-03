@@ -2487,6 +2487,12 @@ class MysqlClient extends KnexClient {
     return result;
   }
 
+  async sequenceCreate(_args: any = {}): Promise<any> {}
+
+  async sequenceUpdate(_args: any = {}): Promise<any> {}
+
+  async sequenceDelete(_args: any = {}): Promise<any> {}
+
   alterTableRemoveColumn(n, _o, existingQuery) {
     let query = existingQuery ? ',' : '';
     query += this.genQuery(` DROP COLUMN ??`, [n.cn]);

@@ -7,12 +7,6 @@ export const useConfigStore = defineStore('configStore', () => {
   const { isMobileMode: globalIsMobile } = useGlobal()
   const { width } = useWindowSize()
 
-  const sidebarStore = useSidebarStore()
-  const viewsStore = useViewsStore()
-  const { activeViewTitleOrId } = storeToRefs(viewsStore)
-  const tablesStore = useTablesStore()
-  const { activeTableId } = storeToRefs(tablesStore)
-
   const isViewPortMobile = () => width.value < MAX_WIDTH_FOR_MOBILE_MODE
 
   // When set to true expanded form will auto focus on comment input and state will be set to false after focussing
@@ -53,26 +47,9 @@ export const useConfigStore = defineStore('configStore', () => {
     },
   )
 
-  const handleSidebarOpenOnMobileForNonViews = () => {
-    if (!isViewPortMobile()) return
-
-    if (!activeViewTitleOrId && !activeTableId) {
-      nextTick(() => {
-        sidebarStore.isLeftSidebarOpen = true
-      })
-    } else {
-      sidebarStore.isLeftSidebarOpen = false
-    }
-  }
-
-  watch([activeViewTitleOrId, activeTableId], () => {
-    handleSidebarOpenOnMobileForNonViews()
-  })
-
   return {
     isMobileMode,
     isViewPortMobile,
-    handleSidebarOpenOnMobileForNonViews,
     projectPageTab,
     isExpandedFormCommentMode,
     hideSharedBaseBtn,

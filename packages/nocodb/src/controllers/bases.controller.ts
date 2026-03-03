@@ -31,7 +31,7 @@ export class BasesController {
   constructor(protected readonly projectsService: BasesService) {}
 
   @Acl('baseList', {
-    scope: 'org',
+    scope: 'workspace',
   })
   @Get(['/api/v1/db/meta/projects/', '/api/v2/meta/bases/'])
   async list(
@@ -116,7 +116,7 @@ export class BasesController {
   }
 
   @Acl('baseCreate', {
-    scope: 'org',
+    scope: 'workspace',
   })
   @Post(['/api/v1/db/meta/projects', '/api/v2/meta/bases'])
   @HttpCode(200)

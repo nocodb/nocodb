@@ -51,8 +51,10 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isForm = computed(() => view.value?.type === ViewTypes.FORM)
     const isGallery = computed(() => view.value?.type === ViewTypes.GALLERY)
     const isCalendar = computed(() => view.value?.type === ViewTypes.CALENDAR)
+    const isTimeline = computed(() => view.value?.type === ViewTypes.TIMELINE)
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
+    const isList = computed(() => view.value?.type === ViewTypes.LIST)
     const isSharedForm = computed(() => isForm.value && shared)
     const isDefaultView = computed(() => {
       const getFirstGridView = getFirstNonPersonalView(views.value, {
@@ -243,7 +245,9 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       isGallery,
       isKanban,
       isMap,
+      isList,
       isCalendar,
+      isTimeline,
       isSharedForm,
       sorts,
       nestedFilters,
@@ -272,7 +276,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   'smartsheet-store',
 )
 
-export { useProvideSmartsheetStore }
+export { useProvideSmartsheetStore, useSmartsheetStore }
 
 export function useSmartsheetStoreOrThrow() {
   const state = useSmartsheetStore()

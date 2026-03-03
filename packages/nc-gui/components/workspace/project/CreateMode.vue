@@ -11,7 +11,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emit = defineEmits(['update:aiMode', 'update:mode', 'sandboxInstalled', 'close'])
+const emit = defineEmits(['update:aiMode', 'update:mode', 'managedAppInstalled', 'close'])
 
 const aiMode = useVModel(props, 'aiMode', emit)
 
@@ -48,9 +48,9 @@ const selectMode = (mode: CreateMode) => {
   emit('update:mode', mode)
 }
 
-const onSandboxInstalled = (sandbox: any) => {
+const onManagedAppInstalled = (managedApp: any) => {
   showAppMarket.value = false
-  emit('sandboxInstalled', sandbox)
+  emit('managedAppInstalled', managedApp)
 }
 
 const onAppMarketClose = () => {
@@ -93,17 +93,17 @@ onMounted(() => {
         </div>
       </div>
       <div
-        v-if="isFeatureEnabled(FEATURE_FLAG.SANDBOXES)"
+        v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)"
         v-e="['c:base:market:create']"
         class="nc-create-base-market"
         @click="selectMode('market')"
       >
         <div class="nc-placeholder-icon-wrapper">
-          <GeneralIcon icon="ncStore" class="nc-placeholder-icon !h-20 !w-20" />
+          <GeneralIcon icon="ncBox" class="nc-placeholder-icon !h-20 !w-20" />
         </div>
         <div class="nc-create-base-content">
           <div class="nc-create-base-content-title">
-            <GeneralIcon icon="ncStore" class="h-4 w-4 !text-nc-content-gray-subtle" />
+            <GeneralIcon icon="ncBox" class="h-4 w-4 !text-nc-content-gray-subtle" />
             Install from App Market
           </div>
           <div class="nc-create-base-content-subtitle">Browse and install pre-built Bases from the App Market.</div>
@@ -115,7 +115,7 @@ onMounted(() => {
       v-if="showAppMarket && workspaceId"
       :workspace-id="workspaceId"
       @close="onAppMarketClose"
-      @installed="onSandboxInstalled"
+      @installed="onManagedAppInstalled"
     />
   </div>
 </template>

@@ -16,6 +16,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  inset: {
+    type: Number,
+    default: 72,
+  },
 })
 
 const emit = defineEmits(['scroll'])
@@ -43,6 +47,8 @@ const scrollHeight = toRef(props, 'scrollHeight')
 const height = toRef(props, 'height')
 
 const width = toRef(props, 'width')
+
+const inset = toRef(props, 'inset')
 
 const wrapperRef = ref()
 const contentWrapper = ref()
@@ -101,7 +107,7 @@ const horizontalThumbWidth = computed(() => {
 })
 
 const verticalThumbPosition = computed(() => {
-  const availableSpace = height.value - 72 - ((height.value - 72) * verticalThumbHeight.value) / 100
+  const availableSpace = height.value - inset.value - ((height.value - inset.value) * verticalThumbHeight.value) / 100
   const scrollRatio = scrollTop.value / (scrollHeight.value - height.value)
   return scrollRatio * availableSpace
 })
@@ -132,12 +138,12 @@ const updateScroll = (vertical?: number, horizontal?: number) => {
   let newLeft = scrollLeft.value
 
   if (vertical !== undefined) {
-    const maxScroll = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
+    const maxScroll = scrollHeight.value - height.value
     newTop = getBoundedValue(vertical, 0, maxScroll)
   }
 
   if (horizontal !== undefined) {
-    const maxScroll = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
+    const maxScroll = scrollWidth.value - width.value
     newLeft = getBoundedValue(horizontal, 0, maxScroll)
   }
 
@@ -183,8 +189,8 @@ const handleWheel = (e: WheelEvent) => {
     }
   }
 
-  const maxScrollY = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
-  const maxScrollX = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
+  const maxScrollY = scrollHeight.value - height.value
+  const maxScrollX = scrollWidth.value - width.value
 
   const canScrollVertically = (deltaY > 0 && scrollTop.value < maxScrollY) || (deltaY < 0 && scrollTop.value > 0)
   const canScrollHorizontally = (deltaX > 0 && scrollLeft.value < maxScrollX) || (deltaX < 0 && scrollLeft.value > 0)
@@ -229,10 +235,8 @@ function handleDrag(event: MouseEvent | TouchEvent) {
 
   const scrollRatio =
     currentDragAxis.value === 'vertical'
-      ? (contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight) /
-        (wrapperRef.value.clientHeight - (wrapperRef.value.clientHeight * verticalThumbHeight.value) / 100)
-      : (contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth) /
-        (wrapperRef.value.clientWidth - (wrapperRef.value.clientWidth * horizontalThumbWidth.value) / 100)
+      ? (scrollHeight.value - height.value) / (height.value - (height.value * verticalThumbHeight.value) / 100)
+      : (scrollWidth.value - width.value) / (width.value - (width.value * horizontalThumbWidth.value) / 100)
 
   const newScroll = dragStartScroll.value + delta * scrollRatio
 
@@ -259,10 +263,7 @@ const handleTrackClick = (axis: 'vertical' | 'horizontal', event: any) => {
   const trackSize = axis === 'vertical' ? rect.height : rect.width
 
   const scrollRatio = clickPosition / trackSize
-  const maxScroll =
-    axis === 'vertical'
-      ? contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
-      : contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
+  const maxScroll = axis === 'vertical' ? scrollHeight.value - height.value : scrollWidth.value - width.value
 
   const newScroll = maxScroll * scrollRatio
 
@@ -354,10 +355,10 @@ const decayAnimation = (value: number, velocity: number): number => {
 
 const animateScroll = () => {
   const state = scrollState.value
-  if (!state.animation || !contentWrapper.value || !wrapperRef.value) return
+  if (!state.animation) return
 
-  const maxScrollY = contentWrapper.value.scrollHeight - wrapperRef.value.clientHeight
-  const maxScrollX = contentWrapper.value.scrollWidth - wrapperRef.value.clientWidth
+  const maxScrollY = scrollHeight.value - height.value
+  const maxScrollX = scrollWidth.value - width.value
 
   let newX = scrollLeft.value
   let newY = scrollTop.value

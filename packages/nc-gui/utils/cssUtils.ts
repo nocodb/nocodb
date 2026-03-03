@@ -33,47 +33,48 @@ export const roleColorsMapping: Record<
   purple: {
     bg: 'bg-nc-bg-purple-light',
     content: 'text-nc-content-purple-dark',
-    contentTooltip: 'text-nc-purple-200',
+    // Fixed light color for dark tooltip background (doesn't change with theme)
+    contentTooltip: 'text-[#CBA8EB]',
   },
   blue: {
     bg: 'bg-nc-bg-blue-light',
     content: 'text-nc-content-blue-dark',
-    contentTooltip: 'text-nc-blue-200',
+    contentTooltip: 'text-[#AFE5FF]',
   },
   green: {
     bg: 'bg-nc-bg-green-light',
     content: 'text-nc-content-green-dark',
-    contentTooltip: 'text-nc-green-200',
+    contentTooltip: 'text-[#A9EFC1]',
   },
   orange: {
     bg: 'bg-nc-bg-orange-light',
     content: 'text-nc-content-orange-dark',
-    contentTooltip: 'text-nc-orange-200',
+    contentTooltip: 'text-[#FDCDAD]',
   },
   yellow: {
     bg: 'bg-nc-bg-yellow-light',
     content: 'text-nc-content-yellow-dark',
-    contentTooltip: 'text-nc-yellow-200',
+    contentTooltip: 'text-[#FEE5B0]',
   },
   red: {
     bg: 'bg-nc-bg-red-light',
     content: 'text-nc-content-red-dark',
-    contentTooltip: 'text-nc-red-200',
+    contentTooltip: 'text-[#FFB7B2]',
   },
   maroon: {
     bg: 'bg-nc-bg-maroon-light',
     content: 'text-nc-content-maroon-dark',
-    contentTooltip: 'text-nc-maroon-200',
+    contentTooltip: 'text-[#FFABD2]',
   },
   disabled: {
     bg: 'bg-nc-bg-gray-light',
     content: 'text-nc-content-gray-disabled',
-    contentTooltip: 'text-nc-gray-200',
+    contentTooltip: 'text-[#E7E7E9]',
   },
   gray: {
     bg: 'bg-nc-bg-gray-medium',
     content: 'text-nc-content-gray-subtle2',
-    contentTooltip: 'text-nc-gray-200',
+    contentTooltip: 'text-[#E7E7E9]',
     badgeClass: '!bg-nc-bg-gray-medium !border-nc-border-gray-medium',
   },
 }

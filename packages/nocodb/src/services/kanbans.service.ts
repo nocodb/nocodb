@@ -56,9 +56,7 @@ export class KanbansService {
     );
 
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const model = await Model.get(context, param.tableId, ncMeta);

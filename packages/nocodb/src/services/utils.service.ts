@@ -483,7 +483,9 @@ export class UtilsService {
       samlAuthEnabled,
       giftUrl,
       prodReady: Noco.getConfig()?.meta?.db?.client !== DriverClient.SQLITE,
-      allowLocalUrl: process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
+      allowLocalUrl:
+        process.env.NC_WEBHOOK_ALLOW_PRIVATE_NETWORK === 'true' ||
+        process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
       isOnPrem,
       disableSupportChat: NC_DISABLE_SUPPORT_CHAT,
       disableGroupByAggregation: NC_DISABLE_GROUP_BY_AGG,
@@ -498,7 +500,7 @@ export class UtilsService {
         process.env.NODE_ENV === 'test',
       ...(isEE === false
         ? {
-            ncDefaultWorkspaceId: Noco.ncDefaultWorkspaceId || null,
+            defaultWorkspaceId: Noco.ncDefaultWorkspaceId || null,
           }
         : {}),
     };

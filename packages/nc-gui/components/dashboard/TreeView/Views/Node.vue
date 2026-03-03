@@ -7,6 +7,8 @@ interface Props {
   view: ViewType
   table: TableType
   onValidate: (view: ViewType) => boolean | string
+  isDragging?: boolean
+  isInSection?: boolean
 }
 
 interface Emits {
@@ -287,8 +289,10 @@ watch(isDropdownOpen, async () => {
   <div
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :class="{
-      '!pl-7.5 !xs:(pl-6.5)': isDefaultBaseLocal,
-      '!pl-14': !isDefaultBaseLocal,
+      '!pl-7.5 !xs:(pl-6.5)': isDefaultBaseLocal && !isInSection,
+      '!pl-14': !isDefaultBaseLocal && !isInSection,
+      '!pl-13.5 !xs:(!pl-13.5)': isDefaultBaseLocal && isInSection,
+      '!pl-20.5 !xs:(!pl-20.5)': !isDefaultBaseLocal && isInSection,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @click.prevent="handleOnClick"
@@ -300,7 +304,7 @@ watch(isDropdownOpen, async () => {
       class="w-full"
       trigger="hover"
       placement="right"
-      :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip || isMobileMode"
+      :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip || isMobileMode || isDragging"
     >
       <template #title>
         <div class="flex flex-col gap-3">

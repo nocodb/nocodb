@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import { initFormulaLookupColumns, initInitialModel } from '../initModel';
 import { createColumn } from '../../factory/column';
 import { chunkListRow, listRow } from '../../factory/row';
-import { isEE } from '../../utils/helpers';
 
 function formulaLookupLtarTests() {
   let _setup;
@@ -279,11 +278,6 @@ function formulaLookupLtarTests() {
 
   // issue #11299
   it('will create a formula referencing lookup referencing formula', async () => {
-    // TODO: enable and fix for OSS
-    if (!isEE()) {
-      return;
-    }
-
     await initFormulaLookupColumns(_setup);
     const _formulaColumn = await createColumn(_context, _tables.table2, {
       title: 'table1FormulaTitleConcat',
@@ -303,6 +297,14 @@ function formulaLookupLtarTests() {
       expect(parts[1]).to.contain(token);
     }
 
+    // referencing using formula field so it's populated in chunkList
+    await createColumn(_context, _tables.table1, {
+      title: 'table2FormulaTitleFormula',
+      uidt: UITypes.Formula,
+      formula: `{table2FormulaTitle}`,
+      formula_raw: `{table2FormulaTitle}`,
+    });
+
     const t1Rows = await chunkListRow({
       base: _base,
       table: _tables.table1,
@@ -318,9 +320,9 @@ function formulaLookupLtarTests() {
       table: _tables.table3,
       pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
     });
-    expect(t1Rows[0].table2FormulaTitle).to.eq('T2_001?');
+    expect(t1Rows[0].table2FormulaTitleFormula).to.eq('T2_001?');
     expect(t2Rows[0].table1FormulaTitleConcat).to.contain('T1_001?');
-    expect(t3Rows[0].table1FormulaTitle).to.eq('T1_001?');
+    expect(t3Rows[0].table1FormulaTitleFormula).to.eq('T1_001?');
   });
 
   it('will create a formula column assigned as display value accessed through ltar field', async () => {

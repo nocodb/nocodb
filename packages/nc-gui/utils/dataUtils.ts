@@ -140,9 +140,15 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
     if (
       !isSystemColumn(col) &&
       !isVirtualCol(col) &&
-      ![UITypes.Attachment, UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(
-        col.uidt,
-      ) &&
+      ![
+        UITypes.Attachment,
+        UITypes.Rollup,
+        UITypes.Lookup,
+        UITypes.Formula,
+        UITypes.Barcode,
+        UITypes.QrCode,
+        UITypes.UUID,
+      ].includes(col.uidt) &&
       isValidValue(col?.cdf) &&
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
@@ -447,6 +453,16 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
       })
       .join(', ')
   }
+
+  // when childColumn not found (external base or nested links, simply return the modelValue
+  if (!childColumn) {
+    if (typeof modelValue === 'string') {
+      return modelValue
+    } else {
+      return modelValue?.toString() ?? ''
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   return parsePlainCellValue(modelValue, { ...params, col: childColumn })
 }

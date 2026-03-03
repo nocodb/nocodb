@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   type LinkToAnotherRecordType,
+  LinksVersion,
   ModelTypes,
   PlanFeatureTypes,
   PlanTitles,
@@ -224,11 +225,27 @@ const refViews = computed(() => {
   return (views || []).filter((v) => v.type !== ViewTypes.FORM)
 })
 
-const filterOption = (value: string, option: { key: string }) => {
-  return option.key.toLowerCase().includes(value.toLowerCase())
-}
-
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
+
+const isLtarV2Enabled = computed(() => isFeatureEnabled(FEATURE_FLAG.LTAR_V2))
+
+// Set version based on feature flag and uidt
+// Links (V1 UI) always sends version=1; LinkToAnotherRecord (V2 UI) sends version=2
+watch(
+  [() => vModel.value.type, () => vModel.value.uidt, isLtarV2Enabled],
+  () => {
+    if (isEdit.value) return
+
+    if (isLtarV2Enabled.value && vModel.value.uidt === UITypes.LinkToAnotherRecord) {
+      vModel.value.version = LinksVersion.V2
+    } else if (vModel.value.uidt === UITypes.Links) {
+      vModel.value.version = LinksVersion.V1
+    } else {
+      delete vModel.value.version
+    }
+  },
+  { immediate: true },
+)
 
 watch(
   () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),
@@ -455,25 +472,71 @@ const handleScrollIntoView = () => {
   <div class="w-full flex flex-col gap-4">
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit">
-          <a-radio value="mm" data-testid="Many to Many">
-            <span class="nc-ltar-icon nc-mm-icon">
-              <GeneralIcon icon="mm_solid" />
-            </span>
-            {{ $t('title.manyToMany') }}
-          </a-radio>
-          <a-radio value="hm" data-testid="Has Many">
-            <span class="nc-ltar-icon nc-hm-icon">
-              <GeneralIcon icon="hm_solid" />
-            </span>
-            {{ $t('title.hasMany') }}
-          </a-radio>
-          <a-radio value="oo" data-testid="One to One">
-            <span class="nc-ltar-icon nc-oo-icon">
-              <GeneralIcon icon="oneToOneSolid" />
-            </span>
-            {{ $t('title.oneToOne') }}
-          </a-radio>
+        <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
+          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord && isLtarV2Enabled">
+            <a-row :gutter="[8, 8]">
+              <a-col :span="12">
+                <a-radio value="mm" data-testid="Many to Many">
+                  <span class="nc-ltar-icon nc-mm-icon">
+                    <GeneralIcon icon="mm_solid" />
+                  </span>
+                  {{ $t('title.manyToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio :value="RelationTypes.ONE_TO_MANY" data-testid="One to Many">
+                  <span class="nc-ltar-icon nc-om-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.oneToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio :value="RelationTypes.MANY_TO_ONE" data-testid="Many to One">
+                  <span class="nc-ltar-icon nc-mo-icon">
+                    <GeneralIcon icon="bt_solid" />
+                  </span>
+                  {{ $t('title.manyToOne') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="12">
+                <a-radio value="oo" data-testid="One to One">
+                  <span class="nc-ltar-icon nc-oo-icon">
+                    <GeneralIcon icon="oneToOneSolid" />
+                  </span>
+                  {{ $t('title.oneToOne') }}
+                </a-radio>
+              </a-col>
+            </a-row>
+          </template>
+          <template v-else>
+            <a-row :gutter="[8, 8]" class="nc-links-3-col">
+              <a-col :span="8">
+                <a-radio value="mm" data-testid="Many to Many">
+                  <span class="nc-ltar-icon nc-mm-icon">
+                    <GeneralIcon icon="mm_solid" />
+                  </span>
+                  {{ $t('title.manyToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="hm" data-testid="Has Many">
+                  <span class="nc-ltar-icon nc-hm-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.hasMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="oo" data-testid="One to One">
+                  <span class="nc-ltar-icon nc-oo-icon">
+                    <GeneralIcon icon="oneToOneSolid" />
+                  </span>
+                  {{ $t('title.oneToOne') }}
+                </a-radio>
+              </a-col>
+            </a-row>
+          </template>
         </a-radio-group>
       </a-form-item>
     </div>
@@ -529,7 +592,7 @@ const handleScrollIntoView = () => {
             v-model:value="referenceBaseId"
             show-search
             :disabled="isEdit"
-            :filter-option="filterOption"
+            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
             placeholder="Select base"
             dropdown-class-name="nc-dropdown-ltar-child-table"
             @change="onBaseChange(referenceBaseId)"
@@ -539,7 +602,8 @@ const handleScrollIntoView = () => {
             </template>
             <a-select-option
               v-for="base of basesList"
-              :key="base.title"
+              :key="base.id"
+              :data-label="base.title"
               :disabled="!canCreateCrossBaseLink(base)"
               :value="base.id"
             >
@@ -549,7 +613,15 @@ const handleScrollIntoView = () => {
                 </template>
                 <div class="flex w-full items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
-                    <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-project-icon" />
+                    <GeneralProjectIcon
+                      :color="parseProp(base.meta).iconColor"
+                      :type="base.type"
+                      :managed-app="{
+                        managed_app_master: base.managed_app_master,
+                        managed_app_id: base.managed_app_id,
+                      }"
+                      class="nc-project-icon"
+                    />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ base.title }}</template>
@@ -573,7 +645,7 @@ const handleScrollIntoView = () => {
             v-model:value="referenceTableChildId"
             show-search
             :disabled="isEdit || isLinkedTablePrivate"
-            :filter-option="filterOption"
+            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
             placeholder="select table to link"
             dropdown-class-name="nc-dropdown-ltar-child-table"
             @change="handleUpdateRefTable"
@@ -583,7 +655,8 @@ const handleScrollIntoView = () => {
             </template>
             <a-select-option
               v-for="table of refTables"
-              :key="table.title"
+              :key="table.id"
+              :data-label="table.title"
               :value="table.id"
               :disabled="(table as any).is_private"
             >
@@ -661,10 +734,16 @@ const handleScrollIntoView = () => {
             :placeholder="$t('labels.selectView')"
             show-search
             :disabled="isLinkedViewPrivate"
-            :filter-option="filterOption"
+            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
             dropdown-class-name="nc-dropdown-ltar-child-view"
           >
-            <a-select-option v-for="view of refViews" :key="view.title" :value="view.id" :disabled="(view as any).is_private">
+            <a-select-option
+              v-for="view of refViews"
+              :key="view.id"
+              :value="view.id"
+              :data-label="view.title"
+              :disabled="(view as any).is_private"
+            >
               <div class="flex w-full items-center gap-2">
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralViewIcon
@@ -865,13 +944,23 @@ const handleScrollIntoView = () => {
 }
 
 :deep(.nc-ltar-relation-type .ant-radio-group) {
-  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-nc-border-gray-medium rounded-lg);
+  .ant-row {
+    @apply flex flex-wrap;
+  }
+
+  .ant-col {
+    @apply flex;
+  }
 
   .ant-radio-wrapper {
-    @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;
+    @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3 m-0 px-2 border-1 border-nc-border-gray-medium rounded-lg flex-1;
 
-    &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled):focus-within {
-      @apply border-nc-border-brand;
+    &.ant-radio-wrapper-checked {
+      @apply border-nc-border-brand bg-nc-bg-brand-light;
+
+      &:not(.ant-radio-wrapper-disabled):focus-within {
+        @apply border-nc-border-brand;
+      }
     }
 
     span:not(.ant-radio):not(.nc-ltar-icon) {
@@ -889,7 +978,7 @@ const handleScrollIntoView = () => {
 }
 
 :deep(.nc-ltar-relation-type .ant-col.ant-form-item-control) {
-  @apply h-8.5;
+  @apply flex-1;
 }
 </style>
 

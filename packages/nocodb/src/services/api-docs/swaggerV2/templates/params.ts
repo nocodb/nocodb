@@ -1,8 +1,8 @@
 import {
   isLinksOrLTAR,
+  isLTARType,
   isSelfLinkCol,
   RelationTypes,
-  UITypes,
 } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
@@ -55,7 +55,7 @@ export const limitParam = {
   in: 'query',
   name: 'limit',
   description:
-    'The `limit` parameter used for pagination, the response collection size depends on limit value with default value `25` and maximum value `1000`, which can be overridden by environment variables `DB_QUERY_LIMIT_DEFAULT` and `DB_QUERY_LIMIT_MAX` respectively.',
+    'The `limit` parameter used for pagination, the response collection size depends on limit value with default value `25` and maximum value `1000`, which can be overridden by environment variables `NC_DB_QUERY_LIMIT_DEFAULT` and `NC_DB_QUERY_LIMIT_MAX` respectively.',
   example: 25,
 };
 export const offsetParam = {
@@ -224,7 +224,7 @@ export const getNestedParams = async (
   columns: SwaggerColumn[],
 ): Promise<any[]> => {
   return await columns.reduce(async (paramsArr, { column }) => {
-    if (column.uidt === UITypes.LinkToAnotherRecord && !column.system) {
+    if (isLTARType(column) && !column.system) {
       const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );

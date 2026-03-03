@@ -143,7 +143,15 @@ watch(showShareModal, (val) => {
 
       <div class="share-base">
         <div class="flex flex-row items-center gap-x-2 px-4 pt-3 pb-3 select-none">
-          <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-view-icon group-hover" />
+          <GeneralProjectIcon
+            :color="parseProp(base.meta).iconColor"
+            :type="base.type"
+            :managed-app="{
+              managed_app_master: base.managed_app_master,
+              managed_app_id: base.managed_app_id,
+            }"
+            class="nc-view-icon group-hover"
+          />
 
           <div>{{ $t('activity.shareBase.label') }}</div>
           <div

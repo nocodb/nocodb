@@ -37,6 +37,12 @@ const createView = async (
         return 'kanbans';
       case ViewTypes.CALENDAR:
         return 'calendars';
+      case ViewTypes.CALENDAR:
+        return 'calendars';
+      case ViewTypes.MAP:
+        return 'maps';
+      case ViewTypes.TIMELINE:
+        return 'timelines';
       default:
         throw new Error('Invalid view type');
     }
@@ -93,6 +99,8 @@ const createViewV3 = async (
         return 'kanban';
       case ViewTypes.CALENDAR:
         return 'calendar';
+      case ViewTypes.TIMELINE:
+        return 'timeline';
       default:
         throw new Error('Invalid view type');
     }

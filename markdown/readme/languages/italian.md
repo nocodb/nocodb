@@ -18,7 +18,7 @@ Trasforma qualsiasi MySQL, PostgreSQL, SQL Server, SQLite & Mariadb in un foglio
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://discord.gg/c7GEYrvFtT"><b>Discord</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
@@ -66,9 +66,9 @@ Accedi al Pannello di Controllo visitando: [http://localhost:8080/dashboard](htt
 
 # Unisciti alla nostra comunità
 
-<a href="https://discord.gg/5RgZmkW">
+<a href="https://discord.gg/c7GEYrvFtT">
     <img 
-    src="https://invidget.switchblade.xyz/5RgZmkW" 
+    src="https://invidget.switchblade.xyz/c7GEYrvFtT" 
     alt="Unisciti a NocoDB: Free & Self-hostable Airtable alternative"
     >
 </a>

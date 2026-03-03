@@ -1,4 +1,4 @@
-import { validateRowFilters } from './validate-row-filters';
+import { RowFilterValidator, validateRowFilters } from '~/lib/filter/validate-row-filters';
 import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import UITypes from '~/lib/UITypes';
 import dayjs from 'dayjs';
@@ -37,6 +37,7 @@ const mockColumns: ColumnType[] = [
   },
   { id: '7', title: 'JsonData', uidt: UITypes.JSON },
   { id: '8', title: 'TimeData', uidt: UITypes.Time },
+  { id: '9', title: 'DateData', uidt: UITypes.Date },
 ];
 
 const mockMetas = {
@@ -1009,3 +1010,62 @@ describe('validateRowFilters', () => {
     });
   });
 });
+
+describe('RowFilterValidator', () => {
+  let timestamp = {
+    value: 1769756211000 // Thursday, January 29, 2026 10:56:51 PM GMT-08:00
+  };
+  class RowFilterValidatorTester extends RowFilterValidator {
+    override dateNow(): Date {
+      return new Date(timestamp.value);
+    }
+  }
+
+  const validator = new RowFilterValidatorTester();
+
+  describe('validateSync', () => {
+    it('will validate date time is today on timezone', () => {
+      const testCases = [
+        {
+          expected: true,
+          timestamp: 1769756211000, // Thursday, January 29, 2026 10:56:51 PM GMT-08:00
+          data: '2026-01-29',
+          timezone: 'America/Los_Angeles'
+        },
+        {
+          expected: true,
+          timestamp: 1769839576361, // Friday, January 30, 2026 10:06:16.361 PM
+          data: '2026-01-30',
+          timezone: 'America/Los_Angeles'
+        }
+      ]
+      for(const testCase of testCases) {
+        timestamp.value = testCase.timestamp;
+
+        const filters: (FilterType & {meta?: any})[] = [{
+          fk_column_id: '9',
+          comparison_op: 'eq',
+          comparison_sub_op: 'today',
+          logical_op: 'and',
+          meta: {
+            timezone: testCase.timezone
+          }
+        }];
+        const data = { DateData: testCase.data };
+        const result = validator.validateSync({
+          filters,
+          data,
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+        try {
+          expect(result).toBe(true);
+        } catch(ex) {
+          console.error(ex.message, testCase);
+          throw ex;
+        }
+      }
+    })
+  })
+})

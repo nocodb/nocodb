@@ -40,6 +40,8 @@ export enum ViewTypes {
   KANBAN = 4,
   MAP = 5,
   CALENDAR = 6,
+  LIST = 7,
+  TIMELINE = 8,
 }
 
 export const viewTypeAlias: Record<ViewTypes, string> = {
@@ -49,6 +51,8 @@ export const viewTypeAlias: Record<ViewTypes, string> = {
   [ViewTypes.KANBAN]: 'kanban',
   [ViewTypes.MAP]: 'map',
   [ViewTypes.CALENDAR]: 'calendar',
+  [ViewTypes.LIST]: 'list',
+  [ViewTypes.TIMELINE]: 'timeline',
 };
 
 export const viewTypeToStringMap: Record<ViewTypes, string> = {
@@ -77,6 +81,13 @@ export enum RelationTypes {
   BELONGS_TO = 'bt',
   MANY_TO_MANY = 'mm',
   ONE_TO_ONE = 'oo',
+  ONE_TO_MANY = 'om',
+  MANY_TO_ONE = 'mo',
+}
+
+export enum LinksVersion {
+  V1 = 1,
+  V2 = 2,
 }
 
 export const ExpandedFormMode = {
@@ -91,6 +102,7 @@ export type ExpandedFormModeType =
 export enum ExportTypes {
   EXCEL = 'excel',
   CSV = 'csv',
+  JSON = 'json',
 }
 
 export enum PluginCategory {
@@ -207,6 +219,7 @@ export enum NcErrorType {
   ERR_DASHBOARD_NOT_FOUND = 'ERR_DASHBOARD_NOT_FOUND',
   ERR_WORKFLOW_NOT_FOUND = 'ERR_WORKFLOW_NOT_FOUND',
   ERR_WIDGET_NOT_FOUND = 'ERR_WIDGET_NOT_FOUND',
+  ERR_VIEW_SECTION_NOT_FOUND = 'ERR_VIEW_SECTION_NOT_FOUND',
   ERR_SHARED_DASHBOARD_PASSWORD_INVALID = 'ERR_SHARED_DASHBOARD_PASSWORD_INVALID',
   ERR_DUPLICATE_IN_ALIAS = 'ERR_DUPLICATE_IN_ALIAS',
   ERR_OUT_OF_SYNC = 'ERR_OUT_OF_SYNC',
@@ -246,6 +259,8 @@ export enum NcErrorType {
   FIELD_UNIQUE_CONSTRAINT_VIOLATION = 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
   ERR_METHOD_NOT_ALLOWED = 'ERR_METHOD_NOT_ALLOWED',
 
+  ERR_INSUFFICIENT_PRIVILEGE = 'ERR_INSUFFICIENT_PRIVILEGE',
+
   // Workflow Errors
   ERR_WORKFLOW_EMPTY_NODE = 'ERR_WORKFLOW_EMPTY_NODE',
   ERR_WORKFLOW_TRIGGER_NODE_NOT_FOUND = 'ERR_WORKFLOW_TRIGGER_NODE_NOT_FOUND',
@@ -253,11 +268,20 @@ export enum NcErrorType {
   ERR_WORKFLOW_MAX_ITERATIONS_EXCEEDED = 'ERR_WORKFLOW_MAX_ITERATIONS_EXCEEDED',
   ERR_WORKFLOW_NODE_NOT_FOUND = 'ERR_WORKFLOW_NODE_NOT_FOUND',
   ERR_WORKFLOW_WAITING_EXECUTIONS = 'ERR_WORKFLOW_WAITING_EXECUTIONS',
+
+  // License Errors
+  ERR_LICENSE_REQUIRED = 'ERR_LICENSE_REQUIRED',
+  ERR_LICENSE_SUSPENDED = 'ERR_LICENSE_SUSPENDED',
 }
 
 export enum ROW_COLORING_MODE {
   FILTER = 'filter',
   SELECT = 'select',
+}
+
+export enum COLORING_TYPE {
+  ROW = 'row',
+  CELL = 'cell',
 }
 
 export const LongTextAiMetaProp = 'ai';
@@ -301,6 +325,8 @@ export type RowColoringInfoFilterRow = {
   is_set_as_background: boolean;
   nc_order: number;
   color: string;
+  type?: string;
+  fk_target_column_id?: string;
   conditions: FilterType[];
   nestedConditions: FilterType[];
 };
@@ -370,12 +396,12 @@ export enum BaseVersion {
   V3 = 3,
 }
 
-export enum SandboxVersionStatus {
+export enum ManagedAppVersionStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
 }
 
-export enum SandboxVisibility {
+export enum ManagedAppVisibility {
   PUBLIC = 'public',
   PRIVATE = 'private',
   UNLISTED = 'unlisted',

@@ -29,11 +29,13 @@ interface Props {
   showUpgradeModal?: boolean
   sampleDataV2?: any
   stickyScroll?: boolean
+  initialTab?: string
 }
 
 enum HookTab {
   Configuration = 'configuration',
   Log = 'log',
+  Settings = 'settings',
 }
 
 const { eventList, showUpgradeModal, sampleDataV2 } = toRefs(props)
@@ -747,7 +749,15 @@ const sampleData = ref()
 
 const containerElem = ref()
 
-const activeTab = ref<HookTab>(HookTab.Configuration)
+const resolveInitialTab = (): HookTab => {
+  if (props.initialTab && props.hook) {
+    if (props.initialTab === 'log') return HookTab.Log
+    if (props.initialTab === 'settings') return HookTab.Settings
+  }
+  return HookTab.Configuration
+}
+
+const activeTab = ref<HookTab>(resolveInitialTab())
 
 const [isVisible, toggleVisibility] = useToggle()
 
@@ -974,9 +984,10 @@ const webhookV2AndV3Diff = computed(() => {
             <template v-if="activeTab === HookTab.Configuration">
               {{ showUpgradeModal ? hookRef.title : !hook ? $t('activity.newWebhook') : 'Webhook Settings' }}
             </template>
-            <template v-else>
+            <template v-else-if="activeTab === HookTab.Log">
               {{ $t('activity.webhookLogs') }}
             </template>
+            <template v-else-if="activeTab === HookTab.Settings"> Webhook Settings </template>
           </span>
         </div>
 
@@ -1003,6 +1014,17 @@ const webhookV2AndV3Diff = computed(() => {
             @click="handleChangeTab(HookTab.Log)"
           >
             <div class="tab-title nc-tab">{{ $t('general.logs') }}</div>
+          </div>
+          <div
+            v-if="isEeUI"
+            v-e="['c:webhook:settings']"
+            class="tab"
+            :class="{
+              active: activeTab === HookTab.Settings,
+            }"
+            @click="handleChangeTab(HookTab.Settings)"
+          >
+            <div class="tab-title nc-tab">{{ $t('labels.settings') }}</div>
           </div>
         </div>
 
@@ -1645,6 +1667,9 @@ const webhookV2AndV3Diff = computed(() => {
     </div>
     <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_57px)]">
       <WebhookCallLog :hook="hook" />
+    </div>
+    <div v-else-if="isEeUI && activeTab === HookTab.Settings" class="h-[calc(100%_-_57px)]">
+      <WebhookErrorNotifications v-if="hook?.id" :hook-id="hook.id" />
     </div>
   </NcModal>
 </template>

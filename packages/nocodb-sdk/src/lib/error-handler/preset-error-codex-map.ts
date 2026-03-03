@@ -36,6 +36,11 @@ export const presetErrorCodexMap: Partial<
       message ? `Forbidden - ${message}` : 'Forbidden to access this resource',
     code: 403,
   },
+  [NcErrorType.ERR_INSUFFICIENT_PRIVILEGE]: {
+    message: (message: string) =>
+      message || 'Insufficient privilege to perform this action',
+    code: 403,
+  },
   [NcErrorType.ERR_API_TOKEN_NOT_ALLOWED]: {
     message: 'This request is not allowed with API token',
     code: 401,
@@ -93,6 +98,10 @@ export const presetErrorCodexMap: Partial<
   },
   [NcErrorType.ERR_WIDGET_NOT_FOUND]: {
     message: (id: string) => `Widget '${id}' not found`,
+    code: 404,
+  },
+  [NcErrorType.ERR_VIEW_SECTION_NOT_FOUND]: {
+    message: (id: string) => `View section '${id}' not found`,
     code: 404,
   },
   [NcErrorType.ERR_DASHBOARD_NOT_FOUND]: {
@@ -316,7 +325,7 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) =>
       message ||
       'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
-    code: 504,
+    code: 408,
   },
   [NcErrorType.ERR_RELATION_FIELD_NOT_FOUND]: {
     message: (id: string) => `Relation Field '${id}' not found`,
@@ -402,5 +411,16 @@ export const presetErrorCodexMap: Partial<
   [NcErrorType.ERR_METHOD_NOT_ALLOWED]: {
     message: (method: string) => `Method ${method} not allowed`,
     code: 405,
+  },
+  [NcErrorType.ERR_LICENSE_REQUIRED]: {
+    message: (feature: string) =>
+      feature
+        ? `The "${feature}" feature requires an Enterprise license.`
+        : 'This feature requires an Enterprise license.',
+    code: 402,
+  },
+  [NcErrorType.ERR_LICENSE_SUSPENDED]: {
+    message: 'Your license has been suspended. Please contact support.',
+    code: 403,
   },
 };

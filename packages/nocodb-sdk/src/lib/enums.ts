@@ -1,6 +1,8 @@
 export enum OrgUserRoles {
   SUPER_ADMIN = 'super',
+  /** @deprecated Noop for permissions — use workspace roles instead. Kept only for DB storage backward compat. */
   CREATOR = 'org-level-creator',
+  /** @deprecated Noop for permissions — use workspace roles instead. Kept only for DB storage backward compat. */
   VIEWER = 'org-level-viewer',
 }
 
@@ -60,6 +62,12 @@ export enum AppEvents {
   WORKSPACE_UPDATE = 'workspace.update',
   WORKSPACE_UPGRADE_REQUEST = 'workspace.upgrade.request',
 
+  SCIM_USER_PROVISION = 'scim.user.provision',
+  SCIM_USER_UPDATE = 'scim.user.update',
+  SCIM_USER_DEACTIVATE = 'scim.user.deactivate',
+  SCIM_USER_REACTIVATE = 'scim.user.reactivate',
+  SCIM_USER_DELETE = 'scim.user.delete',
+
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
   USER_INVITE = 'user.invite',
@@ -76,6 +84,7 @@ export enum AppEvents {
   TEAM_MEMBER_ADD = 'team.member.add',
   TEAM_MEMBER_UPDATE = 'team.member.update',
   TEAM_MEMBER_DELETE = 'team.member.delete',
+  TEAM_MOVE = 'team.move',
 
   TABLE_CREATE = 'table.create',
   TABLE_DELETE = 'table.delete',
@@ -181,9 +190,12 @@ export enum AppEvents {
 
   ROW_USER_MENTION = 'row.user.mention',
   CALENDAR_CREATE = 'calendar.create',
+  TIMELINE_CREATE = 'timeline.create',
   FORM_DUPLICATE = 'form.duplicate',
   CALENDAR_UPDATE = 'calendar.update',
+  TIMELINE_UPDATE = 'timeline.update',
   CALENDAR_DELETE = 'calendar.delete',
+  TIMELINE_DELETE = 'timeline.delete',
   FORM_DELETE = 'form.delete',
 
   SOURCE_CREATE = 'source.create',
@@ -196,6 +208,10 @@ export enum AppEvents {
   KANBAN_DUPLICATE = 'kanban.duplicate',
   GALLERY_DELETE = 'gallery.delete',
   GALLERY_DUPLICATE = 'gallery.duplicate',
+
+  LIST_CREATE = 'list.create',
+  LIST_UPDATE = 'list.update',
+  LIST_DELETE = 'list.delete',
 
   BASE_DUPLICATE_START = 'base.duplicate.start',
   BASE_DUPLICATE_COMPLETE = 'base.duplicate.complete',
@@ -255,6 +271,24 @@ export enum AppEvents {
   WORKFLOW_DELETE = 'workflow.delete',
   WORKFLOW_DUPLICATE = 'workflow.duplicate',
   WORKFLOW_EXECUTE = 'workflow.execute',
+
+  SANDBOX_CREATE = 'sandbox.create',
+  SANDBOX_DELETE = 'sandbox.delete',
+  SANDBOX_DISCARD = 'sandbox.discard',
+  SANDBOX_MERGE = 'sandbox.merge',
+
+  RECORD_TEMPLATE_CREATE = 'record.template.create',
+  RECORD_TEMPLATE_UPDATE = 'record.template.update',
+  RECORD_TEMPLATE_DELETE = 'record.template.delete',
+  RECORD_TEMPLATE_USE = 'record.template.use',
+
+  RLS_POLICY_CREATE = 'rls_policy.create',
+  RLS_POLICY_UPDATE = 'rls_policy.update',
+  RLS_POLICY_DELETE = 'rls_policy.delete',
+
+  VIEW_SECTION_CREATE = 'viewSection.create',
+  VIEW_SECTION_UPDATE = 'viewSection.update',
+  VIEW_SECTION_DELETE = 'viewSection.delete',
 }
 
 export enum ClickhouseTables {
@@ -602,4 +636,10 @@ export enum MetaEntityType {
   FILTER = 'FILTER',
   SORT = 'SORT',
   VIEW_ROW_COLOR = 'VIEW_ROW_COLOR',
+}
+
+export enum MapProvider {
+  OPENSTREETMAP = 'openstreetmap',
+  STADIAMAP = 'stadiamap',
+  STADIAMAP_APIKEY = 'stadiamap_apikey',
 }

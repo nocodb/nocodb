@@ -347,12 +347,13 @@ describe('Formula parsing and type validation', () => {
       for (const supportedType of supportedTypes) {
         const result = await validateFormulaAndExtractTreeWithType({
           formula: '{column1} + 3',
+          // Cast partial mock column properly instead of double `as any`
           columns: [
             {
               base_id,
               id: 'id1',
               title: 'column1',
-              uidt: supportedType,
+              uidt: supportedType as any,
             },
           ],
           clientOrSqlUi: 'mysql2',

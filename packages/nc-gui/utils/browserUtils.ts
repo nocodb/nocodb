@@ -9,6 +9,7 @@ export const isDrawerOrModalExist = () => document.querySelector('.ant-modal.act
 export const isExpandedFormOpenExist = () => document.querySelector('.nc-drawer-expanded-form.active')
 export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.nc-drawer-expanded-form.active')?.length > 1
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
+export const isNcListSearchInputActive = () => document.activeElement?.closest('.nc-list-search-input')
 export const isExtensionPaneActive = () => document.querySelector('.nc-extension-pane')
 export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
 export const isSelectActive = () => {
@@ -223,4 +224,18 @@ export const openContactSalesEmail = (email: string = 'support@nocodb.com') => {
   a.href = `mailto:${email}`
   a.target = '_blank'
   a.click()
+}
+
+export const getValidSlotName = (name: string, prefix?: string, suffix?: string): string => {
+  let slotName = name.replace(/\./g, '__')
+
+  if (prefix) {
+    slotName = `${prefix}-${slotName}`
+  }
+
+  if (suffix) {
+    slotName = `${slotName}-${suffix}`
+  }
+
+  return slotName
 }

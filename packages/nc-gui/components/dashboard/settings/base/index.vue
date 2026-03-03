@@ -5,6 +5,8 @@ const { isUIAllowed } = useRoles()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { isEEFeatureBlocked, showUpgradeToUseSnapshots } = useEeConfig()
+
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
@@ -14,7 +16,7 @@ const hasPermissionForMCP = computed(() => isUIAllowed('manageMCP'))
 
 const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
 
-const hasPermissionForMigrate = computed(() => !isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
+const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 
 const hasPermissionForVisibility = computed(() => isUIAllowed('baseMiscSettings'))
 
@@ -117,13 +119,14 @@ watch(
             'active-menu': activeMenu === 'snapshots',
           }"
           class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
-          @click="selectMenu('snapshots')"
+          @click="isEEFeatureBlocked ? showUpgradeToUseSnapshots() : selectMenu('snapshots')"
         >
           <GeneralIcon icon="camera" />
 
           <span>
             {{ $t('general.snapshots') }}
           </span>
+          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" />
         </div>
 
         <div

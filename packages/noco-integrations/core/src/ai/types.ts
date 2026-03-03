@@ -81,6 +81,7 @@ export interface AiGenerateObjectArgs {
   messages: ModelMessage[];
   schema: any;
   customModel?: string;
+  websearch?: boolean;
 }
 
 interface AiGenerateObjectResponse<T> {
@@ -91,6 +92,7 @@ interface AiGenerateObjectResponse<T> {
 export type AiGenerateTextArgs =  {
   system: string
   customModel?: string;
+  websearch?: boolean;
 } & ({ prompt: string } | { messages: ModelMessage[] })
 
 interface AiGenerateTextResponse {

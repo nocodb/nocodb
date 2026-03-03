@@ -1,4 +1,14 @@
-import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, ViewType } from 'nocodb-sdk'
+import type {
+  CalendarType,
+  FilterType,
+  GalleryType,
+  KanbanType,
+  MapType,
+  RowColoringInfo,
+  SortType,
+  TimelineType,
+  ViewType,
+} from 'nocodb-sdk'
 import {
   ProjectRoles,
   ViewSettingOverrideOptions,
@@ -196,16 +206,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isActiveViewLocked = computed(() => activeView.value?.lock_type === 'locked')
   const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
 
-  const isCardFieldHeaderVisibilityEnabled = computed(() => {
-    return isEeUI && isFeatureEnabled(FEATURE_FLAG.CARD_FIELD_HEADER_VISIBILITY)
-  })
-
   const isActiveViewFieldHeaderVisible = computed(() => {
     // If card field header visibility is not enabled or blocked, return true to show header by default
-    if (!isCardFieldHeaderVisibilityEnabled.value || blockCardFieldHeaderVisibility.value || !isEeUI) return true
+    if (blockCardFieldHeaderVisibility.value || !isEeUI) return true
 
     return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
   })
+
+  const isListViewEnabled = computed(() => isEeUI && isFeatureEnabled(FEATURE_FLAG.LIST_VIEW))
 
   const isShowEveryonePersonalViewsEnabled = computed({
     get: () => {
@@ -488,6 +496,34 @@ export const useViewsStore = defineStore('viewsStore', () => {
             },
           )
           break
+        case ViewTypes.LIST:
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'listViewCreate',
+              tableId,
+            },
+            form,
+          )
+          break
+        case ViewTypes.TIMELINE:
+          data = await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            openedProject.value!.id!,
+            {
+              operation: 'timelineViewCreate',
+              tableId,
+            },
+            {
+              ...form,
+              timeline_range: form.timeline_range.map((range) => ({
+                fk_from_column_id: range.fk_from_column_id,
+                fk_to_column_id: range.fk_to_column_id,
+              })),
+            },
+          )
+          break
       }
 
       if (data) {
@@ -577,6 +613,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
             ...baseProps,
             calendar_range:
               (sourceView.view as CalendarType)?.calendar_range?.map((range) => ({
+                fk_from_column_id: range.fk_from_column_id as string,
+                fk_to_column_id: range.fk_to_column_id as string,
+              })) || [],
+          }
+        case ViewTypes.TIMELINE:
+          return {
+            ...baseProps,
+            timeline_range:
+              (sourceView.view as TimelineType)?.timeline_range?.map((range) => ({
                 fk_from_column_id: range.fk_from_column_id as string,
                 fk_to_column_id: range.fk_to_column_id as string,
               })) || [],
@@ -792,11 +837,27 @@ export const useViewsStore = defineStore('viewsStore', () => {
               updates,
             )
             break
+          case ViewTypes.TIMELINE:
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'timelineViewUpdate', viewId },
+              updates,
+            )
+            break
           case ViewTypes.FORM:
             updatedView = await $api.internal.postOperation(
               activeView.value!.fk_workspace_id!,
               activeView.value!.base_id!,
               { operation: 'formViewUpdate', viewId },
+              updates,
+            )
+            break
+          case ViewTypes.LIST:
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'listViewUpdate', viewId },
               updates,
             )
             break
@@ -1268,7 +1329,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     const tableName = tablesStore.baseTables.get(view.base_id)?.find((t) => t.id === view.fk_model_id)?.title
 
-    const baseName = bases.basesList.find((p) => p.id === view.base_id)?.title
+    const base = bases.basesList.find((p) => p.id === view.base_id)
     allRecentViews.value = [
       {
         viewId: view.id,
@@ -1278,7 +1339,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
         viewType: view.type,
         workspaceId: activeWorkspaceId.value,
         tableName: tableName as string,
-        baseName: baseName as string,
+        baseName: base?.title as string,
+        managed_app_master: base?.managed_app_master,
+        managed_app_id: base?.managed_app_id,
+        iconColor: parseProp(base?.meta).iconColor,
       },
       ...allRecentViews.value.filter((f) => f.viewId !== view.id || f.tableID !== view.fk_model_id),
     ]
@@ -1354,7 +1418,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
     lastOpenedViewId,
     activeViewRowColorInfo,
     sharedView,
-    isCardFieldHeaderVisibilityEnabled,
     isActiveViewFieldHeaderVisible,
 
     // Methods
@@ -1380,6 +1443,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     isUserViewOwner,
     getCopyViewConfigBtnAccessStatus,
     isShowEveryonePersonalViewsEnabled,
+    isListViewEnabled,
   }
 })
 

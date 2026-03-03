@@ -32,6 +32,7 @@ export class DatasService {
       getHiddenColumns?: boolean;
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
+      includeButtonFilterColumns?: boolean;
       apiVersion?: NcApiVersion;
       ignoreViewFilterAndSort?: boolean;
       baseModel?: BaseModelSqlv2;
@@ -82,6 +83,7 @@ export class DatasService {
       apiVersion: param.apiVersion,
       includeSortAndFilterColumns: param.includeSortAndFilterColumns,
       includeRowColorColumns: param.includeRowColorColumns,
+      includeButtonFilterColumns: param.includeButtonFilterColumns,
       ignoreViewFilterAndSort: param.ignoreViewFilterAndSort,
       baseModel: param.baseModel,
     });
@@ -231,6 +233,7 @@ export class DatasService {
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
+      includeButtonFilterColumns?: boolean;
       skipSortBasedOnOrderCol?: boolean;
     },
   ) {
@@ -264,6 +267,7 @@ export class DatasService {
       apiVersion,
       includeSortAndFilterColumns: includeSortAndFilterColumns,
       includeRowColorColumns: param.includeRowColorColumns,
+      includeButtonFilterColumns: param.includeButtonFilterColumns,
       skipSubstitutingColumnIds:
         query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
@@ -495,6 +499,8 @@ export class DatasService {
         query,
         view,
         includeRowColorColumns: query.include_row_color === 'true',
+        includeButtonFilterColumns:
+          query.include_button_filter_columns === 'true',
       });
 
       const listArgs: any = { ...dependencyFields };
@@ -552,9 +558,11 @@ export class DatasService {
 
     const { ast, dependencyFields } = await getAst(context, {
       model,
-      query,
+      query: { ...query },
       view,
-      includeRowColorColumns: query.include_row_color === 'true',
+      includeRowColorColumns: query?.include_row_color === 'true',
+      includeButtonFilterColumns:
+        query?.include_button_filter_columns === 'true',
     });
 
     const listArgs: any = { ...dependencyFields };
@@ -573,6 +581,9 @@ export class DatasService {
     const groupedData = await baseModel.groupedList({
       ...listArgs,
       groupColumnId: param.columnId,
+      includeRowColorColumns: query?.include_row_color === 'true',
+      includeButtonFilterColumns:
+        query?.include_button_filter_columns === 'true',
     });
     data = await nocoExecute({ key: 1, value: ast }, groupedData, {}, listArgs);
     const countArr = await baseModel.groupedListCount({

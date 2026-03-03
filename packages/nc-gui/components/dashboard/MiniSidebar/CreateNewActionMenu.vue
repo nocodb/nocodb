@@ -5,7 +5,7 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed, orgRoles, workspaceRoles } = useRoles()
 
-const { openedProject, showProjectList } = storeToRefs(useBases())
+const { openedProject } = storeToRefs(useBases())
 
 const { base, isSharedBase } = storeToRefs(useBase())
 
@@ -21,9 +21,13 @@ const { openNewDashboardModal } = useDashboardStore()
 
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
-const { activeView } = storeToRefs(viewsStore)
+const { activeView, isListViewEnabled } = storeToRefs(viewsStore)
 
 const { isAiFeaturesEnabled } = useNocoAi()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { isEEFeatureBlocked, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
 
 const isVisibleCreateNew = ref(false)
 
@@ -105,7 +109,7 @@ const hasBaseCreateAccess = computed(() => {
 })
 
 const isBaseHomePage = computed(() => {
-  return !showProjectList.value && !!openedProject.value
+  return !!openedProject.value
 })
 
 const hasTableCreateAccess = computed(() => {
@@ -202,6 +206,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="dashboards" />
                 {{ $t('general.dashboard') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>
@@ -254,6 +259,28 @@ const hasDashboardCreateAccess = computed(() => {
                 <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
                 <div>{{ $t('objects.viewType.calendar') }}</div>
               </NcMenuItem>
+              <template v-if="isListViewEnabled">
+                <NcMenuItem data-testid="mini-sidebar-view-create-list" @click="onOpenModal({ type: ViewTypes.LIST })">
+                  <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
+                  <div>{{ $t('objects.viewType.list') }}</div>
+                </NcMenuItem>
+              </template>
+              <NcMenuItem
+                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+                data-testid="mini-sidebar-view-create-map"
+                @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" class="!w-4 !h-4" />
+                <div>{{ $t('objects.viewType.map') }}</div>
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
+                data-testid="mini-sidebar-view-create-timeline"
+                @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
+              >
+                <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
+                <div>{{ $t('objects.viewType.timeline') }}</div>
+              </NcMenuItem>
               <template v-if="isAiFeaturesEnabled">
                 <NcDivider />
                 <NcMenuItem data-testid="mini-sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
@@ -282,6 +309,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="ncScript" />
                 {{ $t('general.script') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
             <NcTooltip
@@ -300,6 +328,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="ncAutomation" />
                 {{ $t('general.workflow') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>

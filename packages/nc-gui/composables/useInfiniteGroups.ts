@@ -61,23 +61,9 @@ export const useInfiniteGroups = (
     }, {})
   })
 
-  const groupByColumns = computed(() => {
-    const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
-    Object.values(gridViewCols.value).forEach((col) => {
-      if (col.group_by) {
-        const column = meta?.value?.columns?.find((f) => f.id === col.fk_column_id)
-        if (column) {
-          tempGroupBy.push({
-            column,
-            sort: col.group_by_sort || 'asc',
-            order: col.group_by_order || 1,
-          })
-        }
-      }
-    })
-    tempGroupBy.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
-    return tempGroupBy
-  })
+  const { groupBy: injectedGroupBy } = useViewGroupByOrThrow()
+
+  const groupByColumns = computed(() => injectedGroupBy.value)
 
   const cachedGroups = ref<Map<number, CanvasGroup>>(new Map())
   const totalGroups = ref(0)
@@ -150,10 +136,9 @@ export const useInfiniteGroups = (
         let group: CanvasGroup = {} as any
 
         if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
-          const relatedTableMeta = await getMeta(
-            base.value?.id as string,
-            (groupCol.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-          )
+          const colOpts = groupCol.column.colOptions as LinkToAnotherRecordType
+          const relatedBaseId = colOpts?.fk_related_base_id || (base.value?.id as string)
+          const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id as string)
           if (!relatedTableMeta) continue
           group.relatedTableMeta = relatedTableMeta
           const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
@@ -180,12 +165,32 @@ export const useInfiniteGroups = (
           let finalTableMeta = relatedTableMeta
           let finalColumn = lookupColumn
 
-          // Check if the lookup column is a LinkToAnotherRecord
-          if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
-            const targetTableMeta = await getMeta(
-              base.value?.id as string,
-              (lookupColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
+          // Resolve nested lookups (Lookup → Lookup → ... → target column)
+          while (finalColumn?.uidt === UITypes.Lookup) {
+            const nestedRelCol = finalTableMeta.columns?.find(
+              (c: ColumnType) => c.id === (finalColumn!.colOptions as LookupType)?.fk_relation_column_id,
             )
+            if (!nestedRelCol) break
+
+            const nestedRelOpts = nestedRelCol.colOptions as LinkToAnotherRecordType
+            const nestedBaseId = nestedRelOpts?.fk_related_base_id || (base.value?.id as string)
+            const nestedTableMeta = await getMeta(nestedBaseId, nestedRelOpts.fk_related_model_id as string)
+            if (!nestedTableMeta) break
+
+            const nestedLookupCol = nestedTableMeta.columns?.find(
+              (c) => c.id === (finalColumn!.colOptions as LookupType)?.fk_lookup_column_id,
+            )
+            if (!nestedLookupCol) break
+
+            finalTableMeta = nestedTableMeta
+            finalColumn = nestedLookupCol
+          }
+
+          // Check if the final column is a LinkToAnotherRecord
+          if (finalColumn?.uidt === UITypes.LinkToAnotherRecord) {
+            const lookupColOpts = finalColumn.colOptions as LinkToAnotherRecordType
+            const targetBaseId = lookupColOpts?.fk_related_base_id || (base.value?.id as string)
+            const targetTableMeta = await getMeta(targetBaseId, lookupColOpts.fk_related_model_id as string)
             if (targetTableMeta) {
               finalTableMeta = targetTableMeta
               finalColumn = targetTableMeta.columns?.find((c) => c.pv) || targetTableMeta.columns?.[0]
@@ -224,7 +229,7 @@ export const useInfiniteGroups = (
                   title: groupCol.column.title!,
                   column_name: groupCol.column.title!,
                   key: value,
-                  column_uidt: groupCol.column.uidt,
+                  column_uidt: group.relatedColumn?.uidt ?? groupCol.column.uidt,
                   column_id: groupCol.column.id,
                   groupIndex,
                 },
@@ -234,7 +239,7 @@ export const useInfiniteGroups = (
                   title: groupCol.column.title!,
                   column_name: groupCol.column.title!,
                   key: value,
-                  column_uidt: groupCol.column.uidt,
+                  column_uidt: group.relatedColumn?.uidt ?? groupCol.column.uidt,
                   column_id: groupCol.column.id,
                   groupIndex,
                 },

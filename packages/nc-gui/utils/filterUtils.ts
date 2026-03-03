@@ -8,6 +8,7 @@ import {
   getEquivalentUIType,
   getFilterCount,
   getPlaceholderNewRow,
+  isBtLikeV2Junction,
   isComparisonOpAllowed,
   isDateType,
   isSystemColumn,
@@ -148,6 +149,10 @@ export const getDynamicColumns = (metaColumns: ColumnType[], column?: ColumnType
 }
 
 export const getFilterUidt = (col: ColumnTypeForFilter): UITypes => {
+  // V2 MO/OO Links → filter by display value like LTAR
+  if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {
+    return UITypes.LinkToAnotherRecord
+  }
   if (col.uidt === UITypes.Formula) {
     const formulaUIType = getEquivalentUIType({
       formulaColumn: col,

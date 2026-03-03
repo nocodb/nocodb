@@ -1,4 +1,4 @@
-import { type ColumnType, type SelectOptionsType, UITypes, dateFormats, timeFormats } from 'nocodb-sdk'
+import { type ColumnType, type SelectOptionsType, UITypes, dateFormats, isBtLikeV2Junction, timeFormats } from 'nocodb-sdk'
 
 export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: string) => {
   if (col.uidt === UITypes.Checkbox) {
@@ -11,7 +11,12 @@ export const valueToTitle = (value: string, col: ColumnType, displayValueProp?: 
     }
   }
 
-  if (col.uidt === UITypes.LinkToAnotherRecord && displayValueProp && value && typeof value === 'object') {
+  if (
+    (col.uidt === UITypes.LinkToAnotherRecord || (col.uidt === UITypes.Links && isBtLikeV2Junction(col))) &&
+    displayValueProp &&
+    value &&
+    typeof value === 'object'
+  ) {
     return value[displayValueProp] ?? GROUP_BY_VARS.NULL
   }
 

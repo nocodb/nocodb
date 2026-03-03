@@ -104,3 +104,12 @@ result
 # Temp
 migrate-colors.js
 antd.variable.css
+
+# Claude - per-branch working memory (ephemeral, local only)
+.claude/branches/
+
+# nocodb-api skill runtime state
+.claude/skills/nocodb-dev-api/.state.json
+/.claude/worktrees/
+.playwright-mcp
+.playwright-cli

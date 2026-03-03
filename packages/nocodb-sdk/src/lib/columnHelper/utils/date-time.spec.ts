@@ -19,6 +19,8 @@ describe('parse date', () => {
 
   it('should parse a valid numeric timestamp', () => {
     const col = { meta: null, uidt: UITypes.Date };
+    // FIXME: this is still affected by system's timezone (error when America/Los_Angeles)
+    // need to strictly return utc, but can break something
     // Timestamp for 2023-10-27T00:00:00.000Z
     expect(parseDateValue('1698364800000', col as any)).toBe('2023-10-27');
   });

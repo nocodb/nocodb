@@ -2,6 +2,7 @@
 import {
   HigherPlan,
   OrderedWorkspaceRoles,
+  OrgUserRoles,
   type PlanLimitExceededDetailsType,
   PlanLimitTypes,
   PlanTitles,
@@ -19,7 +20,7 @@ const route = router.currentRoute
 
 const { $e } = useNuxtApp()
 
-const { workspaceRoles } = useRoles()
+const { workspaceRoles, orgRoles } = useRoles()
 
 const { user, isMobileMode, appInfo } = useGlobal()
 
@@ -50,6 +51,8 @@ const {
   navigateToPricing,
   isTopBannerVisible,
   showUpgradeToUseTeams,
+  blockWorkspaceMembers,
+  showUpgradeToManageWorkspaceMembers,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -246,14 +249,20 @@ const onConfirmRoleChangeConfirmationModal = () => {
   updateCollaborator(userRoleUpdateInfo.value.collab, userRoleUpdateInfo.value.roles!, userRoleUpdateInfo.value.overrideBaseRole)
 }
 
+const isSuperAdmin = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
 const isOwnerOrCreator = computed(() => {
-  return workspaceRoles.value?.[WorkspaceUserRoles.OWNER] || workspaceRoles.value?.[WorkspaceUserRoles.CREATOR]
+  return (
+    isSuperAdmin.value || workspaceRoles.value?.[WorkspaceUserRoles.OWNER] || workspaceRoles.value?.[WorkspaceUserRoles.CREATOR]
+  )
 })
 
 const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
-  const currentRoleIndex = OrderedWorkspaceRoles.findIndex(
-    (role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role),
-  )
+  // Super admin can assign all workspace roles (treated as owner)
+  const currentRoleIndex = isSuperAdmin.value
+    ? 0
+    : OrderedWorkspaceRoles.findIndex((role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role))
+
   if (currentRoleIndex === -1) return []
   const roles = OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
 
@@ -338,7 +347,14 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
   class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0 !cursor-default`,
 })
 
-const isDeleteOrUpdateAllowed = (user) => {
+const isScimManaged = (record: any) => !!record?.scim_managed
+
+const isRoleUpdateAllowed = (user) => {
+  return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
+}
+
+const isDeleteAllowed = (user) => {
+  if (isScimManaged(user)) return false
   return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
 }
 
@@ -476,11 +492,12 @@ watch(inviteDlg, (newVal) => {
               :disabled="isCollaboratorsLoading"
               data-testid="nc-add-member-btn"
               :text-color="isTeamsEnabled ? 'primary' : undefined"
-              @click="inviteDlg = true"
+              @click="blockWorkspaceMembers ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
                 {{ $t('activity.addMembers') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockWorkspaceMembers" remove-click />
               </div>
             </NcButton>
 
@@ -607,6 +624,21 @@ watch(inviteDlg, (newVal) => {
                       <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </NcBadge>
                   </NcTooltip>
+                  <NcTooltip
+                    v-if="isScimManaged(record)"
+                    :title="$t('labels.scimManagedUserTooltip')"
+                    class="flex items-center"
+                    :tooltip-style="{ width: '230px' }"
+                    :overlay-inner-style="{ width: '230px' }"
+                  >
+                    <NcBadge
+                      :border="false"
+                      color="blue"
+                      class="text-nc-content-blue-dark dark:!bg-nc-bg-blue-light text-[10px] leading-[14px] !h-[18px] font-semibold"
+                    >
+                      {{ $t('labels.scimManaged') }}
+                    </NcBadge>
+                  </NcTooltip>
                 </div>
                 <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                   <template #title>
@@ -618,17 +650,50 @@ watch(inviteDlg, (newVal) => {
             </div>
             <div v-if="column.key === 'role'">
               <template
-                v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles as WorkspaceUserRoles)"
+                v-if="isRoleUpdateAllowed(record) && isOwnerOrCreator && getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles as WorkspaceUserRoles)"
               >
-                <RolesSelectorV2
-                  :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
-                  :role="record.roles"
-                  :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
-                  class="cursor-pointer"
-                />
+                <div class="flex flex-col gap-1">
+                  <RolesSelectorV2
+                    :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
+                    :role="record.roles"
+                    :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
+                    :effective-role="record.effective_role"
+                    class="cursor-pointer"
+                  />
+                  <NcTooltip v-if="record.role_source?.length" placement="bottom">
+                    <template #title>
+                      <div class="text-xs">
+                        <div v-for="src in record.role_source" :key="src.team_id">
+                          {{ teamsMap[src.team_id]?.title || src.team_id }}
+                          <span class="capitalize">({{ src.role?.replace('workspace-level-', '') }})</span>
+                        </div>
+                      </div>
+                    </template>
+                    <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted cursor-help">
+                      <GeneralIcon icon="ncBuilding" class="h-3 w-3 flex-none" />
+                      <span>{{ $t('tooltip.roleInheritedFromTeam') }}</span>
+                    </div>
+                  </NcTooltip>
+                </div>
               </template>
               <template v-else>
-                <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
+                <div class="flex flex-col gap-1">
+                  <RolesBadge :border="false" :role="record.effective_role || record.roles" class="cursor-default" />
+                  <NcTooltip v-if="record.role_source?.length" placement="bottom">
+                    <template #title>
+                      <div class="text-xs">
+                        <div v-for="src in record.role_source" :key="src.team_id">
+                          {{ teamsMap[src.team_id]?.title || src.team_id }}
+                          <span class="capitalize">({{ src.role?.replace('workspace-level-', '') }})</span>
+                        </div>
+                      </div>
+                    </template>
+                    <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted cursor-help">
+                      <GeneralIcon icon="ncBuilding" class="h-3 w-3 flex-none" />
+                      <span>{{ $t('tooltip.roleInheritedFromTeam') }}</span>
+                    </div>
+                  </NcTooltip>
+                </div>
               </template>
             </div>
             <div v-if="column.key === 'created_at'">
@@ -660,7 +725,10 @@ watch(inviteDlg, (newVal) => {
                     />
 
                     <template
-                      v-if="isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member)"
+                      v-if="
+                        isEeUI &&
+                        (isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member))
+                      "
                     >
                       <NcDivider />
 
@@ -677,12 +745,14 @@ watch(inviteDlg, (newVal) => {
                         <NcDivider />
                       </template>
 
-                      <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+                      <NcTooltip
+                        :disabled="(!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER) && !isScimManaged(record)"
+                      >
                         <template #title>
-                          {{ $t('tooltip.leaveWorkspace') }}
+                          {{ isScimManaged(record) ? $t('labels.scimManagedRemovalTooltip') : $t('tooltip.leaveWorkspace') }}
                         </template>
                         <NcMenuItem
-                          :disabled="!isDeleteOrUpdateAllowed(record) || (record.isTeam && !isOwnerOrCreator)"
+                          :disabled="!isDeleteAllowed(record) || (record.isTeam && !isOwnerOrCreator)"
                           danger
                           @click="removeCollaborator(record.id, currentWorkspace?.id, record)"
                         >

@@ -3,39 +3,19 @@ definePageMeta({
   hideHeader: true,
 })
 
-const { emailConfigured, storageConfigured, loadSetupApps } = useProvideAccountSetupStore()
-
-const { isUIAllowed } = useRoles()
-
 const $route = useRoute()
 
-const { appInfo, signedIn, signOut } = useGlobal()
+const { signedIn, signOut } = useGlobal()
 
-const selectedKeys = computed(() => [
-  /^\/account\/users\/?$/.test($route.fullPath)
-    ? isUIAllowed('superAdminUserManagement')
-      ? 'list'
-      : 'settings'
-    : $route.params.nestedPage ?? $route.params.page,
-])
+const selectedKeys = computed(() => [$route.params.nestedPage ?? $route.params.page])
 
-const openKeys = ref([/^\/account\/users/.test($route.fullPath) && 'users'])
+const openKeys = ref([])
 
 const logout = async () => {
   await signOut({
     redirectToSignin: true,
   })
 }
-
-const isSetupPageAllowed = computed(() => isUIAllowed('superAdminSetup') && (!isEeUI || appInfo.value.isOnPrem))
-
-watchEffect(() => {
-  if (isSetupPageAllowed.value) {
-    loadSetupApps()
-  }
-})
-
-const isPending = computed(() => !emailConfigured.value || !storageConfigured.value)
 </script>
 
 <template>
@@ -72,32 +52,6 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
               <NcDivider class="!mt-0" />
 
               <div class="text-sm text-nc-content-gray-muted font-semibold ml-4 py-1.5 mt-2">{{ $t('labels.account') }}</div>
-              <NcMenuItem
-                v-if="isSetupPageAllowed"
-                key="profile"
-                class="item"
-                :class="{
-                  active: $route.path?.startsWith('/account/setup'),
-                }"
-                @click="navigateTo('/account/setup')"
-              >
-                <div class="flex items-center space-x-2 w-full">
-                  <GeneralIcon icon="ncSliders" class="!h-4 !w-4" />
-
-                  <div class="select-none">
-                    {{ $t('labels.setup') }}
-                  </div>
-                  <span class="flex-grow" />
-                  <NcTooltip v-if="isPending">
-                    <template #title>
-                      <span>
-                        {{ $t('activity.pending') }}
-                      </span>
-                    </template>
-                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
-                  </NcTooltip>
-                </div>
-              </NcMenuItem>
 
               <NcMenuItem
                 key="profile"
@@ -128,7 +82,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                key="tokens"
+                key="mcp"
                 :class="{
                   active: $route.params.page === 'mcp',
                 }"
@@ -142,79 +96,18 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 </div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isUIAllowed('superAdminAppStore') && !isEeUI"
-                key="apps"
-                class="item w-full"
+                key="password-reset"
+                class="item"
                 :class="{
-                  active: $route.params.page === 'apps',
+                  active: $route.params.nestedPage === 'password-reset',
                 }"
-                @click="navigateTo('/account/apps')"
+                @click="navigateTo('/account/users/password-reset')"
               >
-                <div class="flex items-center gap-2 w-full">
-                  <component :is="iconMap.appStore" />
-
-                  <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
-                  <span class="flex-grow" />
-                  <NcTooltip>
-                    <template #title>
-                      <span>
-                        App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of
-                        the plugins here will be moved to integrations.
-                      </span>
-                    </template>
-                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
-                  </NcTooltip>
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncLock" class="!h-4 !w-4" />
+                  <div class="select-none">{{ $t('title.resetPasswordMenu') }}</div>
                 </div>
               </NcMenuItem>
-              <a-sub-menu key="users" class="!bg-nc-bg-gray-sidebar !my-0">
-                <template #icon>
-                  <GeneralIcon icon="ncUsers" class="!h- !w-4" />
-                </template>
-                <template #title>{{ $t('objects.users') }}</template>
-
-                <template #expandIcon="{ isOpen }">
-                  <NcButton type="text" size="xxsmall" class="">
-                    <GeneralIcon
-                      icon="chevronRight"
-                      class="flex-none cursor-pointer transform transition-transform duration-200 text-[20px]"
-                      :class="{ '!rotate-90': isOpen }"
-                    />
-                  </NcButton>
-                </template>
-
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminUserManagement') && !isEeUI"
-                  key="list"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'list',
-                  }"
-                  @click="navigateTo('/account/users/list')"
-                >
-                  <span class="ml-4">{{ $t('title.userManagement') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  key="password-reset"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'password-reset',
-                  }"
-                  @click="navigateTo('/account/users/password-reset')"
-                >
-                  <span class="ml-4">{{ $t('title.resetPasswordMenu') }}</span>
-                </NcMenuItem>
-                <NcMenuItem
-                  v-if="isUIAllowed('superAdminAppSettings') && !isEeUI"
-                  key="settings"
-                  class="text-xs item"
-                  :class="{
-                    active: $route.params.nestedPage === 'settings',
-                  }"
-                  @click="navigateTo('/account/users/settings')"
-                >
-                  <span class="ml-4">{{ $t('activity.settings') }}</span>
-                </NcMenuItem>
-              </a-sub-menu>
             </NcMenu>
           </div>
 

@@ -115,8 +115,8 @@ export class DashboardPage extends BasePage {
   }
 
   async clickOnBaseMenuLink() {
-    // Open base list sidebar if it is not open
-    await this.leftSidebar.verifyBaseListOpen(true);
+    // Ensure the base is active/open in the sidebar (opens from modal if needed)
+    await this.sidebar.baseNode.verifyActiveProject({ baseTitle: this.base.title, open: true });
 
     const baseMenuLocator = this.rootPage.locator(`.base-title-node:has-text("${this.base.title}")`).first();
 
@@ -124,7 +124,7 @@ export class DashboardPage extends BasePage {
     await baseMenuLocator.scrollIntoViewIfNeeded();
     await baseMenuLocator.hover();
 
-    await baseMenuLocator.locator('[data-testid="nc-sidebar-context-menu"]').first().click();
+    await baseMenuLocator.click();
   }
 
   async verifyTeamAndSettingsLinkIsVisible() {

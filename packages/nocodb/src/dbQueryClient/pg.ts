@@ -1,3 +1,4 @@
+import { ClientType } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
 
@@ -5,6 +6,10 @@ export class PGDBQueryClient
   extends GenericDBQueryClient
   implements DBQueryClient
 {
+  get clientType(): ClientType {
+    return ClientType.PG;
+  }
+
   concat(fields: string[]) {
     return `CONCAT(${fields.join(', ')})`;
   }

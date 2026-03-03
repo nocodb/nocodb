@@ -53,7 +53,7 @@
     "@playwright/test": "1.52.0",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
     "@typescript-eslint/parser": "^6.1.0",
-    "axios": "^1.9.0",
+    "axios": "^1.13.5",
     "dotenv": "^16.5.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^8.10.0",

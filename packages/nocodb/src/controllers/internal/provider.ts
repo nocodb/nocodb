@@ -7,6 +7,8 @@ import { OAuthPostOperations } from '~/controllers/internal/modules/OAuthPost.op
 import { DependencyPostOperations } from '~/controllers/internal/modules/DependencyPost.operations';
 import { UiGetOperations } from '~/controllers/internal/modules/UiGet.operations';
 import { UiPostOperations } from '~/controllers/internal/modules/UiPost.operations';
+import { BaseListAllGetOperations } from '~/controllers/internal/modules/BaseListAllGet.operations';
+import { InstanceAdminGetOperations } from '~/controllers/internal/modules/InstanceAdminGet.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -18,6 +20,8 @@ export const InternalApiModules = [
   DependencyPostOperations,
   UiGetOperations,
   UiPostOperations,
+  BaseListAllGetOperations,
+  InstanceAdminGetOperations,
 ];
 
 export const InternalApiModuleProvider = {

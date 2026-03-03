@@ -30,7 +30,7 @@ const props = withDefaults(defineProps<TeamIconProps>(), {
 
 const { size } = toRefs(props)
 
-const { getColor } = useTheme()
+const { getColor: _getColor } = useTheme()
 
 const team = computed(() => {
   return {
@@ -79,6 +79,14 @@ const teamIcon = computed<{
     iconType,
   }
 })
+
+const getColor = (color: string) => {
+  if (color === 'transparent') {
+    return _getColor('var(--nc-bg-default)')
+  }
+
+  return _getColor(color)
+}
 
 const backgroundColor = computed(() => {
   if (props.iconBgColor === 'transparent') {

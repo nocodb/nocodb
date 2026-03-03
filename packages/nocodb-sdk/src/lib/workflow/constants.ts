@@ -14,6 +14,7 @@ export enum TriggerActivationType {
   NONE = 'none', // Manual triggers - no activation needed
   WEBHOOK = 'webhook', // External webhooks (GitHub, GitLab, etc.)
   CRON = 'cron', // Scheduled/cron-based
+  POLLING = 'polling', // Polling-based triggers for services without webhooks
 }
 
 /**

@@ -1,6 +1,7 @@
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isHiddenCol,
   isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
@@ -61,6 +62,7 @@ const getAst = async (
     extractOrderColumn = false,
     includeSortAndFilterColumns = false,
     includeRowColorColumns = false,
+    includeButtonFilterColumns = false,
     skipSubstitutingColumnIds = false,
   }: {
     query?: RequestQuery;
@@ -77,6 +79,7 @@ const getAst = async (
     extractOrderColumn?: boolean;
     includeSortAndFilterColumns?: boolean;
     includeRowColorColumns?: boolean;
+    includeButtonFilterColumns?: boolean;
     skipSubstitutingColumnIds?: boolean;
   },
 ): Promise<{
@@ -140,6 +143,14 @@ const getAst = async (
     const addingColumns = await getViewRowColorFields({ context, view });
     for (const addColumn of addingColumns) {
       rowColoringColumnIds.add(addColumn);
+    }
+  }
+
+  const buttonFilterColumnIds = new Set<string>();
+  if (view && includeButtonFilterColumns) {
+    const addingColumns = await getButtonFilterFields({ context, model, view });
+    for (const addColumn of addingColumns) {
+      buttonFilterColumnIds.add(addColumn);
     }
   }
 
@@ -239,8 +250,13 @@ const getAst = async (
     // TODO: also get from col.id
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
+    const linksAsLtar = query?.linksAsLtar === 'true';
+
     if (nestedFields && nestedFields !== '*') {
-      if (col.uidt === UITypes.LinkToAnotherRecord) {
+      if (
+        col.uidt === UITypes.LinkToAnotherRecord ||
+        (col.uidt === UITypes.Links && linksAsLtar)
+      ) {
         const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
           context,
         );
@@ -279,7 +295,10 @@ const getAst = async (
           Array.isArray(nestedFields) ? nestedFields : nestedFields.split(',')
         ).reduce((o, f) => ({ ...o, [f]: 1 }), {});
       }
-    } else if (col.uidt === UITypes.LinkToAnotherRecord) {
+    } else if (
+      col.uidt === UITypes.LinkToAnotherRecord ||
+      (col.uidt === UITypes.Links && linksAsLtar)
+    ) {
       const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );
@@ -324,7 +343,10 @@ const getAst = async (
       isRequested = false;
     } else if (isSortOrFilterColumn) {
       isRequested = true;
-    } else if (rowColoringColumnIds.has(col.id)) {
+    } else if (
+      rowColoringColumnIds.has(col.id) ||
+      buttonFilterColumnIds.has(col.id)
+    ) {
       isRequested = true;
     }
     // exclude system column and foreign key from API response for v3
@@ -341,6 +363,7 @@ const getAst = async (
     } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
+        ((!view || !!view?.show_system_fields) && !isHiddenCol(col, model)) ||
         (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
         // include all non-has-many system links(self-link) columns since has-many is part of mm relation and which is not required
         (isLinksOrLTAR(col) &&
@@ -414,6 +437,54 @@ const getViewRowColorFields = async (params: {
       .filter((value, index, array) => array.indexOf(value) === index);
   }
   return [] as string[];
+};
+
+/**
+ * Returns the column IDs referenced by button visibility filters across all
+ * button columns in the table.  This ensures hidden columns used in button
+ * filter conditions are still included in the API response.
+ */
+const getButtonFilterFields = async (params: {
+  context: NcContext;
+  model: Model;
+  view?: View;
+  ncMeta?: MetaService;
+}): Promise<string[]> => {
+  const ncMeta = params.ncMeta ?? Noco.ncMeta;
+
+  // Find all button columns in this table
+  if (!params.model.columns?.length)
+    await params.model.getColumns(params.context);
+
+  let buttonColIds = params.model.columns
+    .filter((col) => col.uidt === UITypes.Button)
+    .map((col) => col.id);
+
+  // If a view is provided, only include button columns visible in the view
+  if (params.view && buttonColIds.length) {
+    const viewColumns = await View.getColumns(params.context, params.view.id);
+    const visibleColIds = new Set(
+      viewColumns.filter((vc) => vc.show).map((vc) => vc.fk_column_id),
+    );
+    buttonColIds = buttonColIds.filter((id) => visibleColIds.has(id));
+  }
+
+  if (!buttonColIds.length) return [];
+
+  // Fetch all filters that belong to these button columns
+  const filters = await ncMeta.metaList2(
+    params.context.workspace_id,
+    params.context.base_id,
+    MetaTable.FILTER_EXP,
+    {
+      xcCondition: (knex) => knex.whereIn('fk_button_col_id', buttonColIds),
+    },
+  );
+
+  return filters
+    .filter((f) => f.fk_column_id)
+    .map((f) => f.fk_column_id as string)
+    .filter((value, index, array) => array.indexOf(value) === index);
 };
 
 const extractDependencies = async (
@@ -513,6 +584,7 @@ export type RequestQuery = {
   nested?: {
     [field: string]: RequestQuery;
   };
+  linksAsLtar?: string;
 };
 
 export interface DependantFields {

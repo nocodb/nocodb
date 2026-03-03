@@ -42,8 +42,6 @@ const {
   hasOnlyOneGridViewInTable,
 } = viewsStore
 
-const { isCardFieldHeaderVisibilityEnabled } = storeToRefs(viewsStore)
-
 const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -200,7 +198,7 @@ const isFieldHeaderVisibilityOptionVisible = computed(() => {
     !props.inSidebar &&
     isUIAllowed('viewCreateOrEdit') &&
     [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type) &&
-    isCardFieldHeaderVisibilityEnabled.value
+    isEeUI
   )
 })
 
@@ -344,6 +342,14 @@ defineOptions({
             })
           }}
         </NcMenuItem>
+
+        <SmartsheetToolbarViewActionMenuMoveToSection
+          v-if="isEeUI"
+          :view="view"
+          :table="table"
+          :in-sidebar="inSidebar"
+          @close-modal="emits('closeModal')"
+        />
       </template>
 
       <SmartsheetToolbarNotAllowedTooltip
@@ -384,6 +390,7 @@ defineOptions({
                       plan: getPlanTitle(PlanTitles.PLUS),
                     })
                   "
+                  show-as-lock
                   :on-click-callback="() => emits('closeModal')"
                 />
               </div>
@@ -629,6 +636,7 @@ defineOptions({
                           plan: getPlanTitle(PlanTitles.PLUS),
                         })
                       "
+                      show-as-lock
                       :on-click-callback="() => emits('closeModal')"
                     />
                   </div>

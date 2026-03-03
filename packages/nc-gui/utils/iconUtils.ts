@@ -174,6 +174,7 @@ import NcCellLinks from '~icons/nc-icons/cell-link'
 import NcCellLongText from '~icons/nc-icons/cell-longtext'
 import NcCellLookup from '~icons/nc-icons/cell-lookup'
 import NcCellMultiSelect from '~icons/nc-icons/cell-multiselect'
+import NcCellAutoNumber from '~icons/nc-icons/cell-auto-number'
 import NcCellNumber from '~icons/nc-icons/cell-number'
 import NcCellPercent from '~icons/nc-icons/cell-percentage'
 import NcCellPhone from '~icons/nc-icons/cell-phone'
@@ -193,6 +194,8 @@ import NcCellAttachment from '~icons/nc-icons/cell-attachment'
 import NcCellButton from '~icons/nc-icons/cell-button'
 import NcCellAiButton from '~icons/nc-icons/cell-ai-button'
 import NcCellAi from '~icons/nc-icons/cell-ai'
+import NcCellColour from '~icons/nc-icons/cell-colour'
+import NcCellUuid from '~icons/nc-icons/cell-uuid'
 
 import NcCircleCheck from '~icons/nc-icons/circle-check'
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
@@ -516,6 +519,8 @@ import NcLinkedinIcon from '~icons/nc-icons-v2/linkedin.svg'
 import NcVideoIcon from '~icons/nc-icons-v2/video.svg'
 import NcActivityIcon from '~icons/nc-icons-v2/activity.svg'
 import NcMapPinIcon from '~icons/nc-icons-v2/map-pin.svg'
+import NcPinIcon from '~icons/nc-icons-v2/pin.svg'
+import NcPinOffIcon from '~icons/nc-icons-v2/pin-off.svg'
 import NcFilterIcon from '~icons/nc-icons-v2/filter.svg'
 import NcPhoneIncomingIcon from '~icons/nc-icons-v2/phone-incoming.svg'
 import NcItalicIcon from '~icons/nc-icons-v2/italic.svg'
@@ -543,6 +548,9 @@ import NcAlertOctagonIcon from '~icons/nc-icons-v2/alert-octagon.svg'
 import NcMenuIcon from '~icons/nc-icons-v2/menu.svg'
 import NcChromeIcon from '~icons/nc-icons-v2/chrome.svg'
 import NcFolderIcon from '~icons/nc-icons-v2/folder.svg'
+import NcFolderClosedIcon from '~icons/nc-icons-v2/folder-closed.svg'
+import NcFolderOpenIcon from '~icons/nc-icons-v2/folder-open.svg'
+import NcPaletteIcon from '~icons/nc-icons-v2/palette.svg'
 import NcUsersIcon from '~icons/nc-icons-v2/users.svg'
 import NcCornerDownLeftIcon from '~icons/nc-icons-v2/corner-down-left.svg'
 import NcMonitorIcon from '~icons/nc-icons-v2/monitor.svg'
@@ -595,6 +603,8 @@ import NcFormViewIcon from '~icons/nc-icons/form'
 import NcGalleryViewIcon from '~icons/nc-icons/gallery'
 import NcKanbanViewIcon from '~icons/nc-icons/kanban'
 import NcCalendarViewIcon from '~icons/nc-icons/calendar'
+import NcTimelineViewIcon from '~icons/nc-icons/timeline'
+import NcMapViewIcon from '~icons/nc-icons/map'
 import NcPuzzleSolid from '~icons/nc-icons/puzzle-solid'
 import NcPuzzleOutline from '~icons/nc-icons/puzzle-outline'
 
@@ -812,6 +822,8 @@ import NcGraduationCap from '~icons/nc-icons-v2/graduation-cap'
 import NcSupportAgent from '~icons/nc-icons-v2/support-agent'
 import NcBuilding from '~icons/nc-icons-v2/building'
 import NcExtUrlPreviewEmptyState from '~icons/nc-icons/extension-url-preview-empty-state'
+import NcClipboardType from '~icons/nc-icons-v2/clipboard-type'
+import NcKeyboardIcon from '~icons/nc-icons-v2/keyboard'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -962,10 +974,12 @@ import NcExtUrlPreviewEmptyState from '~icons/nc-icons/extension-url-preview-emp
 
 export const iconMap = {
   'calendar': NcCalendarViewIcon,
+  'timeline': NcTimelineViewIcon,
   'grid': NcGridViewIcon,
   'form': NcFormViewIcon,
   'gallery': NcGalleryViewIcon,
   'kanban': NcKanbanViewIcon,
+  'map': NcMapViewIcon,
 
   'strike': NcStrike,
   'atSign': NcAtSign,
@@ -993,14 +1007,17 @@ export const iconMap = {
   'cellLongText': NcCellLongText,
   'cellLookup': NcCellLookup,
   'cellMultiSelect': NcCellMultiSelect,
+  'cellAutoNumber': NcCellAutoNumber,
   'cellNumber': NcCellNumber,
   'cellPercent': NcCellPercent,
   'cellPhone': NcCellPhone,
   'cellQrCode': NcCellQrCode,
   'cellRating': NcCellRating,
+  'cellColour': NcCellColour,
   'cellRollup': h(NcCellRollup, { stroke: 'transparent' }),
   'cellSingleSelect': NcCellSingleSelect,
   'cellText': NcCellText,
+  'cellUuid': NcCellUuid,
   'cellTime': NcCellTime,
   'cellUrl': NcCellUrl,
   'cellUser': NcCellUser,
@@ -1061,6 +1078,7 @@ export const iconMap = {
   'unStar': NcUnStar,
   'sortDesc': MsSort,
   'article': NcArticle,
+  'template': h('span', { class: 'material-symbols' }, 'content_copy'),
   'triangleFill': PhTriangleFill,
   'sortAsc': h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
   'contentSaveExit': h('span', { class: 'material-symbols' }, 'save'),
@@ -1189,7 +1207,7 @@ export const iconMap = {
   // grid: h('span', { class: 'material-symbols' }, 'grid_view'),
   // gallery: h('span', { class: 'material-symbols' }, 'image'),
   // form: h('span', { class: 'material-symbols' }, 'article'),
-  'map': h('span', { class: 'material-symbols' }, 'map'),
+  // 'map': NcMapViewIcon,
   // kanban: h('span', { class: 'material-symbols' }, 'view_kanban'),
   'view': h('span', { class: 'material-symbols' }, 'visibility'),
   // rowHeight: h('span', { class: 'material-symbols' }, 'height'),
@@ -1563,6 +1581,8 @@ export const iconMap = {
   'ncVideo': NcVideoIcon,
   'ncActivity': NcActivityIcon,
   'ncMapPin': NcMapPinIcon,
+  'ncPin': NcPinIcon,
+  'ncPinOff': NcPinOffIcon,
   'ncFilter': NcFilterIcon,
   'ncPhoneIncoming': NcPhoneIncomingIcon,
   'ncItalic': NcItalicIcon,
@@ -1590,6 +1610,9 @@ export const iconMap = {
   'ncMenu': NcMenuIcon,
   'ncChrome': NcChromeIcon,
   'ncFolder': NcFolderIcon,
+  'ncFolderClosed': NcFolderClosedIcon,
+  'ncFolderOpen': NcFolderOpenIcon,
+  'ncPalette': NcPaletteIcon,
   'ncUsers': NcUsersIcon,
   'ncCornerDownLeft': NcCornerDownLeftIcon,
   'ncMonitor': NcMonitorIcon,
@@ -1834,6 +1857,8 @@ export const iconMap = {
   'ncIfElse': NcIfElse,
   'ncRecordEntersView': NcRecordEntersView,
   'ncExtUrlPreviewEmptyState': h(NcExtUrlPreviewEmptyState, { stroke: 'transparent' }),
+  'ncClipboardType': NcClipboardType,
+  'ncKeyboard': NcKeyboardIcon,
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4034,6 +4059,14 @@ export const searchableMap = {
     icon: NcMapPinIcon,
     keywords: ['location', 'navigation', 'marker', 'geography', 'pinpoint'],
   },
+  ncPin: {
+    icon: NcPinIcon,
+    keywords: ['pin', 'attach', 'stick', 'thumbtack', 'pushpin'],
+  },
+  ncPinOff: {
+    icon: NcPinOffIcon,
+    keywords: ['unpin', 'detach', 'remove pin', 'unstick'],
+  },
   ncFilter: {
     icon: NcFilterIcon,
     keywords: ['Sort', 'refine', 'categorize', 'organize', 'sift'],
@@ -4141,6 +4174,14 @@ export const searchableMap = {
   ncFolder: {
     icon: NcFolderIcon,
     keywords: ['directory', 'file', 'storage', 'organize', 'documents'],
+  },
+  ncFolderClosed: {
+    icon: NcFolderClosedIcon,
+    keywords: ['directory', 'file', 'storage', 'organize', 'collapsed'],
+  },
+  ncFolderOpen: {
+    icon: NcFolderOpenIcon,
+    keywords: ['directory', 'file', 'storage', 'organize', 'expanded'],
   },
   ncUsers: {
     icon: NcUsersIcon,
@@ -4620,6 +4661,14 @@ export const searchableMap = {
   ncBuilding: {
     icon: NcBuilding,
     keywords: ['building', 'office', 'building-outline'],
+  },
+  ncClipboardType: {
+    icon: NcClipboardType,
+    keywords: ['clipboard', 'type', 'copy', 'paste'],
+  },
+  ncKeyboard: {
+    icon: NcKeyboardIcon,
+    keywords: ['keyboard', 'type', 'input', 'keys', 'shortcut'],
   },
 }
 

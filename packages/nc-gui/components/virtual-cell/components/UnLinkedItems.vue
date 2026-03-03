@@ -3,7 +3,13 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, RelationTypes, isDateOrDateTimeCol, isLinksOrLTAR } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
-const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
+const props = defineProps<{
+  modelValue: boolean
+  column: any
+  hideBackBtn?: boolean
+  /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
+  parentBreadcrumbs?: string[]
+}>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord', 'attachLinkedRecord', 'escape'])
 
@@ -60,9 +66,16 @@ const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isTemplateMode = inject(IsTemplateModeInj, ref(false))
+
+// Use prop-based breadcrumbs (injection doesn't work across dropdown teleport boundary)
+const parentBreadcrumbs = computed(() => props.parentBreadcrumbs || [])
+
 const isExpandedFormCloseAfterSave = ref(false)
 
 const isNewRecord = ref(false)
+
+const isBlueprintMode = ref(false)
 
 isChildrenExcludedLoading.value = true
 
@@ -152,7 +165,9 @@ const newRowState = computed(() => {
 
     if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
       return (
-        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id && colOpt.fk_child_column_id === colOpt1.fk_parent_column_id
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
+        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
+        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
       )
     } else {
       return (
@@ -232,9 +247,21 @@ const addNewRecord = () => {
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
   isNewRecord.value = true
+  isBlueprintMode.value = false
 }
 
 const onCreatedRecord = (record: any) => {
+  // Blueprint mode: store the record data as a blueprint in ltarState (no real record created)
+  if (isBlueprintMode.value) {
+    const blueprint = { ...record, _isBlueprint: true }
+    addLTARRef(blueprint, injectedColumn?.value as ColumnType)
+    loadChildrenList(false, rowState.value)
+    isBlueprintMode.value = false
+    isNewRecord.value = false
+    vModel.value = false
+    return
+  }
+
   addLTARRef(record, injectedColumn?.value as ColumnType)
 
   reloadTrigger?.trigger({
@@ -478,6 +505,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               v-if="
                 !isPublic &&
                 !isDataReadOnly &&
+                !isTemplateMode &&
                 isUIAllowed('dataEdit', externalBaseUserRoles) &&
                 !isForm &&
                 !relatedTableMeta?.synced
@@ -508,6 +536,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
             v-if="
               !isPublic &&
               !isDataReadOnly &&
+              !isTemplateMode &&
               isUIAllowed('dataEdit', externalBaseUserRoles) &&
               !isForm &&
               !relatedTableMeta?.synced
@@ -559,14 +588,14 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <LazySmartsheetExpandedForm
         v-if="expandedFormDlg"
         v-model="expandedFormDlg"
-        :load-row="!isPublic"
+        :load-row="!isPublic && !isBlueprintMode"
         :close-after-save="isExpandedFormCloseAfterSave"
         :meta="relatedTableMeta"
         :new-record-header="
-          isExpandedFormCloseAfterSave
-            ? $t('activity.tableNameCreateNewRecord', {
-                tableName: relatedTableMeta?.title,
-              })
+          isBlueprintMode
+            ? `New ${relatedTableMeta?.title} Record`
+            : isExpandedFormCloseAfterSave
+            ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title })
             : undefined
         "
         :row="{
@@ -580,10 +609,12 @@ const handleKeyDown = (e: KeyboardEvent) => {
         }"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
+        :blueprint-mode="isBlueprintMode"
+        :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         use-meta-fields
         maintain-default-view-order
         skip-reload
-        :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
+        :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Record' : 'Create & Link'"
         @deleted-record="onDeletedRecord"
         @created-record="onCreatedRecord"
       />

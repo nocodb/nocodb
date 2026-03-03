@@ -4,7 +4,10 @@ import bcrypt from 'bcryptjs';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
 import isEmail from 'validator/lib/isEmail';
-import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
+import {
+  verifyDefaultWorkspace,
+  verifyDefaultWsOwner,
+} from '~/helpers/verifyDefaultWorkspace';
 import { T } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
@@ -101,7 +104,6 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         );
 
         let superUserPresent = false;
-
         for (const user of superUsers) {
           if (!user.roles?.includes('super')) continue;
 
@@ -279,6 +281,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             );
           }
         }
+        await verifyDefaultWsOwner(ncMeta);
       }
 
       await ncMeta.commit();

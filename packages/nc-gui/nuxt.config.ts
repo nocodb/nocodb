@@ -152,7 +152,15 @@ export default defineNuxtConfig({
         ignoreTryCatch: true,
       },
       minify: true,
-      rollupOptions: {},
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('/nocodb-sdk/')) {
+              return 'nocodb-sdk'
+            }
+          },
+        },
+      },
     },
     plugins: [
       VueI18nPlugin({
@@ -313,6 +321,9 @@ export default defineNuxtConfig({
         'vue-fullscreen',
         'cronstrue',
         'plyr',
+        'leaflet',
+        'leaflet.markercluster',
+        'uuid',
       ],
       esbuildOptions: {
         define: {

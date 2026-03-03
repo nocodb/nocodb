@@ -763,7 +763,7 @@ const validationErrorDisplay = computed(() => {
       }"
       :class="{
         '!border-nc-border-red formula-error':
-          !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus !== 'success',
+          validationErrorDisplay?.validateStatus && validationErrorDisplay?.validateStatus !== 'success',
         '!focus-within:border-nc-border-brand shadow-default hover:shadow-hover formula-success':
           !validationErrorDisplay?.validateStatus || validationErrorDisplay?.validateStatus === 'success',
         'bg-nc-bg-default': isAiModeFieldModal,

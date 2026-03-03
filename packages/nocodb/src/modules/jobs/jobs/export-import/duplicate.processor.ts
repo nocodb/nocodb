@@ -642,12 +642,16 @@ export class DuplicateProcessor {
       // save old default value
       const oldCdf = replacedColumn.cdf;
       const oldRequired = replacedColumn.rqd;
+      const isUUIDColumn = replacedColumn.uidt === UITypes.UUID;
 
       replacedColumn.title = title;
       replacedColumn.column_name = title.toLowerCase().replace(/ /g, '_');
 
       // remove default value to avoid filling existing empty rows
-      replacedColumn.cdf = null;
+      // Exception: UUID columns need their cdf (gen_random_uuid()) to function
+      if (!isUUIDColumn) {
+        replacedColumn.cdf = null;
+      }
 
       // remove required to avoid filling existing empty rows
       if (oldRequired) {
@@ -676,7 +680,7 @@ export class DuplicateProcessor {
 
       if (
         !excludeData &&
-        // ignore data if replaced column is derivative types
+        // ignore data if replaced column is derivative types or auto-generated types like UUID
         ![
           UITypes.Button,
           UITypes.Formula,
@@ -684,6 +688,7 @@ export class DuplicateProcessor {
           UITypes.QrCode,
           UITypes.Rollup,
           UITypes.Lookup,
+          UITypes.UUID,
         ].includes(replacedColumn.uidt)
       ) {
         const fields: Record<string, string[]> = {};
@@ -732,7 +737,12 @@ export class DuplicateProcessor {
       });
 
       // update cdf and rqd
-      if (!isVirtualCol(destColumn) && !isAIPromptCol(destColumn)) {
+      // Skip for UUID columns since their cdf was preserved during import
+      if (
+        !isVirtualCol(destColumn) &&
+        !isAIPromptCol(destColumn) &&
+        destColumn.uidt !== UITypes.UUID
+      ) {
         await this.columnsService.columnUpdate(context, {
           columnId: findWithIdentifier(idMap, sourceColumn.id),
           column: {

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { PlanTitles } from 'nocodb-sdk'
+
 const { isLoading, appInfo } = useGlobal()
 
 const { isDark } = useTheme()
@@ -9,6 +11,8 @@ const { sharedView, allowCSVDownload } = useSharedView()
 
 const { isFullScreen } = storeToRefs(useSidebarStore())
 
+const { activePlanTitle } = useEeConfig()
+
 const router = useRouter()
 
 const route = router.currentRoute
@@ -16,6 +20,14 @@ const route = router.currentRoute
 const disableTopbar = computed(() => route.value.query?.disableTopbar === 'true' || isFullScreen.value)
 
 const ncNotFound = computed(() => route.value.query?.ncNotFound === 'true')
+
+const showSignUpButton = computed(() => {
+  if (appInfo.value.isOnPrem) return false
+
+  if (!isEeUI) return true
+
+  return !activePlanTitle.value || activePlanTitle.value === PlanTitles.FREE
+})
 
 onMounted(() => {
   // check if we are inside an iframe
@@ -109,7 +121,7 @@ export default {
             <LazySmartsheetToolbarExportWithProvider v-if="allowCSVDownload" />
 
             <a
-              v-if="!appInfo.isOnPrem"
+              v-if="showSignUpButton"
               href="https://app.nocodb.com/#/signin"
               target="_blank"
               class="!no-underline xs:hidden"

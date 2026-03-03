@@ -16,6 +16,8 @@ interface CmdAction {
   keywords?: string[]
   section?: string
   iconColor?: string
+  managed_app_master?: boolean
+  managed_app_id?: string
 }
 
 const props = defineProps<{
@@ -90,6 +92,8 @@ const nestedScope = computed(() => {
       section: parentEl?.section,
       iconType: parentEl?.iconType,
       iconColor: parent.startsWith('ws-') ? parentEl?.iconColor : null,
+      managed_app_master: !!parentEl?.managed_app_master,
+      managed_app_id: parentEl?.managed_app_id || '',
     })
     parent = parentEl?.parent || 'root'
   }
@@ -431,9 +435,13 @@ defineExpose({
 
                 <template v-else-if="el.section === 'Bases' || el.icon === 'project'">
                   <GeneralBaseIconColorPicker
-                    :key="el.iconColor"
+                    :key="`${el.iconColor}-${el.managed_app_id}-${el.managed_app_master}`"
                     :model-value="el.iconColor"
                     type="database"
+                    :managed-app="{
+                      managed_app_master: el.managed_app_master,
+                      managed_app_id: el.managed_app_id,
+                    }"
                     readonly
                     class="cmdk-action-icon !w-5"
                   >
@@ -544,10 +552,14 @@ defineExpose({
                           />
                           <template v-else-if="item.data.section === 'Bases' || item.data.icon === 'project'">
                             <GeneralBaseIconColorPicker
-                              :key="item.data.iconColor"
+                              :key="`${item.data.iconColor}-${item.data.managed_app_id}-${item.data.managed_app_master}`"
                               :model-value="item.data.iconColor"
                               type="database"
                               readonly
+                              :managed-app="{
+                                managed_app_master: item.data.managed_app_master,
+                                managed_app_id: item.data.managed_app_id,
+                              }"
                             >
                             </GeneralBaseIconColorPicker>
                           </template>

@@ -1,12 +1,14 @@
 # License
 
-**Updated on: January 9, 2026**
+**Updated on: January 29, 2026**
 
 Portions of this software are licensed as follows:
 
 * All third party components incorporated into the NocoDB Software are licensed under the original license provided by the owner of the applicable component.
-* Content of branches other than the main branch (i.e. “master”) are not licensed.
-* Content in the master branch is available under the “Sustainable Use License” as defined below.
+* Content in the "master" branch is available under the "Sustainable Use License" as defined below.
+* Content in the "develop" branch is available under the "Sustainable Use License" as defined below.
+* Content of branches other than "master" and "develop" are not licensed.
+
 
 ## Sustainable Use License
 

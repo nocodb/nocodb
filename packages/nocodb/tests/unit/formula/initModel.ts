@@ -530,6 +530,14 @@ export async function initFormulaLookupColumns(context: ITestContext) {
     relationColumnId: t3_OO_t1_Ltar.id,
   });
 
+  // referencing using formula field so it's populated in chunkList
+  await createColumn(context.context, context.tables.table3, {
+    title: 'table1FormulaTitleFormula',
+    uidt: UITypes.Formula,
+    formula: `{table1FormulaTitle}`,
+    formula_raw: `{table1FormulaTitle}`,
+  });
+
   for (const attr of t1SupportingLookupColumns) {
     await createLookupColumn(context.context, {
       base: context.base,

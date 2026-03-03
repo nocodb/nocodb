@@ -16,7 +16,7 @@ NocoDB online veritabanı oluşturmanın en hızlı ve kolay yoludur.
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Web sitesi</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://discord.gg/c7GEYrvFtT"><b>Discord</b></a> •
     <a href="https://community.nocodb.com/"><b>Topluluk</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
@@ -27,7 +27,7 @@ NocoDB online veritabanı oluşturmanın en hızlı ve kolay yoludur.
 
 # Topluluğumuza Katılın
 
-<a href="https://discord.gg/5RgZmkW" target="_blank">
+<a href="https://discord.gg/c7GEYrvFtT" target="_blank">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 

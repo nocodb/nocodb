@@ -15,7 +15,7 @@ NocoDB ऑनलाइन डेटाबेस बनाने का सबस
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>वेबसाइट</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>डिस्कॉर्ड</b></a> •
+    <a href="https://discord.gg/c7GEYrvFtT"><b>डिस्कॉर्ड</b></a> •
     <a href="https://community.nocodb.com/"><b>समुदाय</b></a> •
     <a href="https://twitter.com/nocodb"><b>ट्विटर</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>रेडिट</b></a> •
@@ -28,7 +28,7 @@ NocoDB ऑनलाइन डेटाबेस बनाने का सबस
 
 # हमारे समुदाय में शामिल हों
 
-<a href="https://discord.gg/5RgZmkW" target="_blank">
+<a href="https://discord.gg/c7GEYrvFtT" target="_blank">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
 

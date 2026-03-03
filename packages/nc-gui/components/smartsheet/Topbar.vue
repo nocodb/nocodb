@@ -24,6 +24,8 @@ const { toggleActionPanel, isPanelExpanded: isActionPanelExpanded, isViewActions
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { isEEFeatureBlocked } = useEeConfig()
+
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
 const topbarBreadcrumbItemWidth = computed(() => {
@@ -72,12 +74,19 @@ const topbarBreadcrumbItemWidth = computed(() => {
       <div class="flex items-center justify-end gap-2 flex-1">
         <GeneralApiLoader v-if="!isMobileMode && !activeScriptId && !activeDashboardId" />
 
+        <!-- Managed App Status -->
+        <LazySmartsheetTopbarManagedAppStatus v-if="!isSharedBase && !isMobileMode" />
+
         <!-- Sandbox Status -->
         <LazySmartsheetTopbarSandboxStatus v-if="!isSharedBase && !isMobileMode" />
 
+        <LazySmartsheetTopbarCollaboratorPresence
+          v-if="!isPublic && !isSharedBase && !isMobileMode && openedViewsTab === 'view' && appInfo.ee"
+        />
+
         <NcButton
           v-if="
-            (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
+            ((isEeUI && !isEEFeatureBlocked) || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
             !activeScriptId &&
             !activeDashboardId &&

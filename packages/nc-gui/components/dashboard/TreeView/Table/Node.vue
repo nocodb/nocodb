@@ -51,6 +51,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
@@ -63,6 +65,7 @@ const source = computed(() => {
 
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)
+const isTableRlsDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
 
@@ -282,6 +285,11 @@ async function onPermissions(_table: SidebarTableNode) {
   isTablePermissionsDialogVisible.value = true
 }
 
+function onRowLevelSecurity() {
+  isOptionsOpen.value = false
+  isTableRlsDialogVisible.value = true
+}
+
 /** Cancel renaming view */
 function onCancel() {
   if (!isEditing.value) return
@@ -388,6 +396,11 @@ const enabledOptions = computed(() => {
       (source.value?.is_meta || source.value?.is_local),
     tablePermission:
       isEeUI && table.value?.type === 'table' && isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
+    tableRowLevelSecurity:
+      isEeUI &&
+      isFeatureEnabled(FEATURE_FLAG.ROW_LEVEL_SECURITY) &&
+      table.value?.type === 'table' &&
+      isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }),
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })
@@ -608,6 +621,17 @@ const enabledOptions = computed(() => {
                       </NcMenuItem>
                     </template>
                   </PaymentUpgradeBadgeProvider>
+                  <NcMenuItem
+                    v-if="enabledOptions.tableRowLevelSecurity"
+                    :data-testid="`sidebar-table-rls-${table.title}`"
+                    class="nc-table-rls"
+                    @click="onRowLevelSecurity"
+                  >
+                    <div v-e="['c:table:rls']" class="flex gap-2 items-center w-full">
+                      <GeneralIcon icon="ncShield" class="opacity-80" />
+                      <div class="flex-1">Row-level security</div>
+                    </div>
+                  </NcMenuItem>
                 </template>
                 <template v-if="enabledOptions.tableDelete">
                   <NcDivider />
@@ -659,7 +683,13 @@ const enabledOptions = computed(() => {
       :table-id="table.id"
       :title="table.title"
     />
-    <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" />
+    <DlgTableRowLevelSecurity
+      v-if="table.id && isEeUI"
+      v-model:visible="isTableRlsDialogVisible"
+      :table-id="table.id"
+      :title="table.title"
+    />
+    <DashboardTreeViewViews v-if="isExpanded" />
   </div>
 </template>
 

@@ -303,7 +303,7 @@ test.describe('View', () => {
     await dashboard.expandedForm.save({ waitForRowsData: false });
     await toolbar.fields.toggle({ title: 'Language1' });
     // kludge: reload the page
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await kanban.verifyStackCount({ count: 7 });
     await kanban.verifyStackOrder({
@@ -346,7 +346,7 @@ test.describe('View', () => {
 
     // Open shared view & verify stack count
     await page.goto(sharedLink);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     const kanban = dashboard.kanban;
     await kanban.verifyStackCount({ count: 6 });
   });

@@ -111,9 +111,7 @@ export class ViewColumnsService {
     ncMeta?: MetaService,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     validatePayload(
@@ -133,6 +131,10 @@ export class ViewColumnsService {
       param.columnId,
       ncMeta,
     );
+
+    if (!oldViewColumn) {
+      NcError.get(context).fieldNotFound(param.columnId);
+    }
 
     const column = await Column.get(
       context,

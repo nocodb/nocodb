@@ -98,7 +98,7 @@ export function useMultiSelect(
 
   const { meta: metaKey } = useMagicKeys()
 
-  const { isAiFeaturesEnabled } = useNocoAi()
+  const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const { isSqlView, isExternalSource } = useSmartsheetStoreOrThrow()
 
@@ -1878,7 +1878,7 @@ export function useMultiSelect(
     }
 
     isFillMode.value = true
-    if (metaKey?.value && isAiFeaturesEnabled.value) {
+    if (metaKey?.value && isFeatureEnabled(FEATURE_FLAG.AI_FILL_HANDLE)) {
       aiMode.value = true
     }
 

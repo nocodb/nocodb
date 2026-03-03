@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import {
   CircularRefContext,
   FormulaDataTypes,
+  isBtLikeV2Junction,
   JSEPNode,
   LongTextAiMetaProp,
   NcErrorType,
@@ -29,6 +30,7 @@ import type {
   TAliasToColumn,
   TAliasToColumnParam,
 } from './formula-query-builder.types';
+import { isTransientError } from '~/helpers/db-error/utils';
 import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';
@@ -165,6 +167,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       case UITypes.Rollup:
       case UITypes.Links:
+        if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {
+          aliasToColumn[col.id] = lookupOrLtarBuilder({
+            ...params,
+            column: col,
+            _formulaQueryBuilder,
+            knex,
+          });
+          break;
+        }
         aliasToColumn[col.id] = async ({
           tableAlias,
           parentColumns: parentColumns,
@@ -523,6 +534,15 @@ export default async function formulaQueryBuilderv2({
       );
     }
     if (!validateFormula) return qb;
+
+    // Short-circuit if a previous dry-run already failed for this base model,
+    // to avoid amplifying requests to an overwhelmed external source
+    if (baseModelSqlv2.formulaDryRunFailed) {
+      throw new Error(
+        'Skipping formula dry-run: a previous validation already failed',
+      );
+    }
+
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
     await baseModelSqlv2.execAndParse(
@@ -554,13 +574,18 @@ export default async function formulaQueryBuilderv2({
       context.cacheMap?.clear();
     }
   } catch (e) {
+    // Check if this is a transient error (connection/timeout issue)
+    const isTransient = isTransientError(e);
+
     // Mark formula error if formula validation is invoked
     // or if a circular reference error occurs and a column is provided
+    // BUT skip marking for transient errors
     if (
-      validateFormula ||
-      (column?.id &&
-        e instanceof NcBaseErrorv2 &&
-        e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA)
+      !isTransient &&
+      (validateFormula ||
+        (column?.id &&
+          e instanceof NcBaseErrorv2 &&
+          e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA))
     ) {
       console.error(e);
 
@@ -577,9 +602,7 @@ export default async function formulaQueryBuilderv2({
               error: e.message,
             },
           );
-        } else if (
-          ![NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT].includes(e.error)
-        ) {
+        } else {
           // add formula error to show in UI
           await FormulaColumn.update(context, column.id, {
             error: e.message,
@@ -596,6 +619,11 @@ export default async function formulaQueryBuilderv2({
         }
       }
     } else {
+      // Mark dry-run as failed so subsequent formula validations on the same
+      // base model short-circuit instead of hammering an unreachable source
+      if (isTransient && validateFormula) {
+        baseModelSqlv2.formulaDryRunFailed = true;
+      }
       throw e;
     }
 

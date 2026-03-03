@@ -170,9 +170,7 @@ export class ViewsService {
       param.view,
     );
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const oldView = await View.get(context, param.viewId, ncMeta);
@@ -351,9 +349,7 @@ export class ViewsService {
     ncMeta = Noco.ncMeta,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const view = await View.get(context, param.viewId, ncMeta);
@@ -405,6 +401,8 @@ export class ViewsService {
       deleteEvent = AppEvents.KANBAN_DELETE;
     } else if (view.type === ViewTypes.MAP) {
       deleteEvent = AppEvents.MAP_DELETE;
+    } else if (view.type === ViewTypes.LIST) {
+      deleteEvent = AppEvents.LIST_DELETE;
     }
 
     let owner = param.req.user;
@@ -550,6 +548,7 @@ export class ViewsService {
     param: {
       viewId: string;
       ignoreIds?: string[];
+      levelId?: string;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
@@ -567,7 +566,13 @@ export class ViewsService {
           ).withViewId(view.id)
         ).forUpdate();
     }
-    await View.showAllColumns(context, param.viewId, param.ignoreIds || []);
+    await View.showAllColumns(
+      context,
+      param.viewId,
+      param.ignoreIds || [],
+      undefined,
+      param.levelId,
+    );
 
     NocoSocket.broadcastEvent(
       context,
@@ -597,6 +602,7 @@ export class ViewsService {
     param: {
       viewId: string;
       ignoreIds?: string[];
+      levelId?: string;
       viewWebhookManager?: ViewWebhookManager;
     },
     ncMeta?: MetaService,
@@ -620,6 +626,7 @@ export class ViewsService {
       param.viewId,
       param.ignoreIds || [],
       ncMeta,
+      param.levelId,
     );
 
     NocoSocket.broadcastEvent(

@@ -139,7 +139,7 @@ test.describe('Verify shortcuts', () => {
     await dashboard.expandedForm.save();
     await dashboard.expandedForm.escape();
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+Enter' : 'Control+Enter');
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     await grid.cell.verify({ index: 1, columnHeader: 'Country', value: 'NewAlgeria' });
 
     await grid.cell.click({ index: 14, columnHeader: 'Cities' });
@@ -229,7 +229,7 @@ test.describe('Clipboard support', () => {
     }
 
     // reload page
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.treeView.openTable({ title: 'Sheet1', baseTitle: context.base.title });
 
     // ########################################
@@ -370,7 +370,7 @@ test.describe('Clipboard support', () => {
     await verifyCellContents({ rowIndex: 1 });
 
     // reload page
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.grid.verifyRowCount({ count: 2 });
   });
 
@@ -460,7 +460,7 @@ test.describe('Clipboard support', () => {
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
     // reload page
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     // verify copied data
     // modified cell text after previous block operation
@@ -477,7 +477,7 @@ test.describe('Clipboard support', () => {
     await page.keyboard.press((await grid.isMacOs()) ? 'Meta+v' : 'Control+v');
 
     // reload page
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     // verify copied data
     for (let i = 1; i <= 5; i++) {

@@ -50,6 +50,10 @@ export class MailService {
       columnId?: string;
       resetPassword?: string;
       verificationToken?: string;
+      automationId?: string;
+      executionId?: string;
+      hookId?: string;
+      hookTab?: string;
     } = {},
   ) {
     const dashboardPath = Noco.getConfig()?.dashboardPath;
@@ -58,7 +62,7 @@ export class MailService {
       return `${req.ncSiteUrl}${dashboardPath}#/signup/${params.token}`;
     }
 
-    let url = req.ncSiteUrl;
+    let url = req?.ncSiteUrl || process.env.NC_PUBLIC_URL;
 
     // Reset password link is served from the backend. So no need to append the dashboard path
     if (params.resetPassword) {
@@ -87,18 +91,38 @@ export class MailService {
       if (params.tableId) {
         url += `/${params.tableId}`;
 
-        const searchParams = new URLSearchParams();
+        if (params.hookId) {
+          const searchParams = new URLSearchParams();
+          searchParams.set('hookId', params.hookId);
+          if (params.hookTab) {
+            searchParams.set('hookTab', params.hookTab);
+          }
+          url += `?${searchParams.toString()}`;
+        } else {
+          const searchParams = new URLSearchParams();
 
-        if (params.rowId) {
-          searchParams.set('rowId', params.rowId);
+          if (params.rowId) {
+            searchParams.set('rowId', params.rowId);
+          }
+          if (params.commentId) {
+            searchParams.set('commentId', params.commentId);
+          }
+          if (params.columnId) {
+            searchParams.set('columnId', params.columnId);
+          }
+          if (searchParams.toString()) {
+            url += `?${searchParams.toString()}`;
+          }
         }
-        if (params.commentId) {
-          searchParams.set('commentId', params.commentId);
-        }
-        if (params.columnId) {
-          searchParams.set('columnId', params.columnId);
-        }
-        if (searchParams.toString()) {
+      }
+
+      if (params.automationId) {
+        url += `/workflows/${params.automationId}`;
+
+        if (params.executionId) {
+          const searchParams = new URLSearchParams();
+          searchParams.set('tab', 'logs');
+          searchParams.set('executionId', params.executionId);
           url += `?${searchParams.toString()}`;
         }
       }
@@ -275,22 +299,22 @@ export class MailService {
           });
           break;
         }
-        case MailEvent.FORM_SUBMISSION:
-          {
-            const { formView, data, model, emails, base } = payload;
+        case MailEvent.FORM_SUBMISSION: {
+          const { formView, data, model, emails, base } = payload;
 
-            await mailerAdapter.mailSend({
-              to: emails.join(','),
-              subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
-              html: await this.renderMail('FormSubmission', {
-                formTitle: formView.title,
-                tableTitle: model.title,
-                submissionData: data,
-                baseTitle: base.title,
-              }),
-            });
-          }
+          await mailerAdapter.mailSend({
+            to: emails.join(','),
+            subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
+            html: await this.renderMail('FormSubmission', {
+              formTitle: formView.title,
+              tableTitle: model.title,
+              submissionData: data,
+              baseTitle: base.title,
+            }),
+          });
+
           break;
+        }
       }
       return true;
     } catch (e) {

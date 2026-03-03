@@ -72,9 +72,7 @@ export class TablesService {
     },
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const model = await Model.get(context, param.tableId);
@@ -306,9 +304,7 @@ export class TablesService {
     },
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const table = await Model.getByIdOrName(context, { id: param.tableId });
@@ -717,9 +713,7 @@ export class TablesService {
     };
 
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const base = await Base.getWithInfo(context, param.baseId);

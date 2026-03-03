@@ -5,14 +5,20 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { navigateToProject, isMobileMode } = useGlobal()
+const { navigateToProject, isMobileMode, appInfo } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading, isTemplatesPageOpened } =
-  storeToRefs(workspaceStore)
+const {
+  activeWorkspaceId,
+  activeWorkspace,
+  isWorkspaceSettingsPageOpened,
+  isIntegrationsPageOpened,
+  isWorkspacesLoading,
+  isTemplatesPageOpened,
+} = storeToRefs(workspaceStore)
 
 const {
   navigateToWorkspaceSettings,
@@ -21,7 +27,7 @@ const {
   isTemplatesFeatureEnabled,
 } = workspaceStore
 
-const { basesList, showProjectList } = storeToRefs(useBases())
+const { basesList } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -31,27 +37,8 @@ const { setActiveCmdView } = useCommand()
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
-const isProjectListOrHomePageOpen = computed(() => {
-  return (
-    route.value.name?.startsWith('index-typeOrId-baseId-') ||
-    route.value.name === 'index' ||
-    route.value.name === 'index-typeOrId'
-  )
-})
-
-const isProjectPageOpen = computed(() => {
-  return (
-    (route.value.name?.startsWith('index-typeOrId-baseId-') ||
-      route.value.name === 'index' ||
-      route.value.name === 'index-typeOrId') &&
-    showProjectList.value
-  )
-})
-
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
-    showProjectList.value = !showProjectList.value
-
     return
   }
 
@@ -65,6 +52,11 @@ const navigateToProjectPage = () => {
 }
 
 const navigateToSettings = () => {
+  if (isEeUI && !appInfo.value?.ee && !appInfo.value?.isOnPrem) {
+    navigateTo('/account/users/list')
+    return
+  }
+
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   navigateToWorkspaceSettings('', cmdOrCtrl)
@@ -121,34 +113,14 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           }"
         >
           <GeneralLoader v-if="isWorkspacesLoading" size="large" />
-          <WorkspaceMenu v-else />
+          <NcTooltip v-else placement="right" hide-on-click :arrow="false" :disabled="!activeWorkspace">
+            <template #title>
+              <div class="capitalize">{{ activeWorkspace?.title ?? '' }}</div>
+            </template>
+            <WorkspaceMenu />
+          </NcTooltip>
         </div>
       </DashboardMiniSidebarItemWrapper>
-
-      <DashboardMiniSidebarItemWrapper show-in-mobile>
-        <NcTooltip placement="right" hide-on-click :arrow="false">
-          <template #title>
-            <div class="flex gap-1.5">
-              {{ $t('labels.baseList') }}
-              <div class="px-1 text-bodySmBold text-white bg-gray-700 rounded">{{ renderAltOrOptlKey(true) }} B</div>
-            </div>
-          </template>
-          <div class="nc-mini-sidebar-btn-full-width" data-testid="nc-sidebar-project-btn" @click="navigateToProjectPage">
-            <div
-              class="nc-mini-sidebar-btn"
-              :class="{
-                'active': isProjectPageOpen,
-                'active-base': isProjectListOrHomePageOpen,
-              }"
-            >
-              <GeneralIcon icon="ncBaseOutline" class="h-4 w-4" />
-            </div>
-          </div>
-        </NcTooltip>
-      </DashboardMiniSidebarItemWrapper>
-      <div v-if="!isMobileMode" class="px-2 w-full">
-        <NcDivider class="!border-nc-border-gray-dark !my-1" />
-      </div>
 
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip placement="right" hide-on-click :arrow="false">

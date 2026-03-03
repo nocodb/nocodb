@@ -4,6 +4,15 @@ import { ViewTypes, getFirstNonPersonalView, viewTypeAlias } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 
+interface Props {
+  /** When provided, only these views are displayed (EE per-section usage) */
+  sectionViews?: ViewType[]
+  /** When true, the "Create View" button is hidden (EE manages it at index level) */
+  hideCreateViewBtn?: boolean
+  /** When true, applies extra indentation for views nested inside a section */
+  isInSection?: boolean
+}
+
 interface Emits {
   (
     event: 'openModal',
@@ -18,6 +27,11 @@ interface Emits {
 
   (event: 'deleted'): void
 }
+
+const props = withDefaults(defineProps<Props>(), {
+  hideCreateViewBtn: false,
+  isInSection: false,
+})
 
 const emits = defineEmits<Emits>()
 const base = inject(ProjectInj)!
@@ -48,8 +62,6 @@ const views = computed(() => {
   const key = `${table.value.base_id}:${table.value.id}`
   return viewsByTable.value.get(key) ?? []
 })
-
-const { api } = useApi()
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -397,7 +409,9 @@ function onOpenModal({
 }
 
 const filteredViews = computed(() => {
-  return views.value.filter((view) => {
+  const sourceViews = props.sectionViews ?? views.value
+
+  return sourceViews.filter((view) => {
     if (isShowEveryonePersonalViewsEnabled.value) {
       return searchCompare(view.title, baseHomeSearchQuery.value)
     }
@@ -411,7 +425,7 @@ const filteredViews = computed(() => {
 
 <template>
   <div>
-    <template v-if="!isSharedBase">
+    <template v-if="!isSharedBase && !hideCreateViewBtn">
       <DashboardTreeViewCreateViewBtn
         v-if="isUIAllowed('viewCreateOrEdit')"
         :align-left-level="isDefaultSource ? 1 : 2"
@@ -453,7 +467,9 @@ const filteredViews = computed(() => {
         :key="view.id"
         :data-id="view.id"
         :data-order="view.order"
+        :is-dragging="dragging"
         :data-title="view.title"
+        :is-in-section="isInSection"
         :class="{
           'bg-nc-bg-gray-medium': isMarked === view.id,
           'active': activeView?.id === view.id,

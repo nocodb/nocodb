@@ -361,8 +361,12 @@ export interface IBaseModelSqlV2 {
     alias?: string;
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
+    linksAsLtar?: boolean;
   }): Promise<void>;
-  getProto(param?: { apiVersion?: NcApiVersion }): Promise<
+  getProto(param?: {
+    apiVersion?: NcApiVersion;
+    linksAsLtar?: boolean;
+  }): Promise<
     {
       __proto__?: {
         __columnAliases?: {
@@ -400,4 +404,12 @@ export interface IBaseModelSqlV2 {
     isPg: boolean;
     isMySQL: boolean;
   };
+
+  /**
+   * Set to true when a formula dry-run fails during validateFormula.
+   * Subsequent dry-runs on the same instance short-circuit immediately
+   * to avoid amplifying requests to an overwhelmed external source.
+   */
+  formulaDryRunFailed?: boolean;
+  getRlsConditions(): Promise<Filter[]>;
 }

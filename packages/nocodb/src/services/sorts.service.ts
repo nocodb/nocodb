@@ -32,9 +32,7 @@ export class SortsService {
     ncMeta = Noco.ncMeta,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const sort = await Sort.get(context, param.sortId, ncMeta);
@@ -101,9 +99,7 @@ export class SortsService {
     ncMeta = Noco.ncMeta,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
@@ -178,9 +174,7 @@ export class SortsService {
     ncMeta?: MetaService,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 

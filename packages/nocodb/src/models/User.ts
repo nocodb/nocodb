@@ -2,8 +2,11 @@ import {
   extractRolesObj,
   IconType,
   ncIsObject,
+  OrgUserRoles,
   ProjectRoles,
   type UserType,
+  WorkspaceRolesToProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { MetaType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -18,8 +21,10 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
+import WorkspaceUser from '~/models/WorkspaceUser';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 
 export default class User implements UserType {
@@ -46,6 +51,7 @@ export default class User implements UserType {
   blocked_reason?: string;
 
   is_new_user?: boolean;
+  canonical_email?: string;
 
   deleted_at?: Date;
   is_deleted?: boolean;
@@ -63,6 +69,7 @@ export default class User implements UserType {
     const insertObj = extractProps(user, [
       'id',
       'email',
+      'canonical_email',
       'password',
       'salt',
       'invite_token',
@@ -84,6 +91,7 @@ export default class User implements UserType {
 
     if (insertObj.email) {
       insertObj.email = insertObj.email.toLowerCase();
+      insertObj.canonical_email = normalizeEmail(insertObj.email);
     }
 
     const { id } = await ncMeta.metaInsert2(
@@ -111,6 +119,7 @@ export default class User implements UserType {
   public static async update(id, user: Partial<User>, ncMeta = Noco.ncMeta) {
     const updateObj = extractProps(user, [
       'email',
+      'canonical_email',
       'password',
       'salt',
       'invite_token',
@@ -129,10 +138,20 @@ export default class User implements UserType {
 
     if (updateObj.email) {
       updateObj.email = updateObj.email.toLowerCase();
+      updateObj.canonical_email = normalizeEmail(updateObj.email);
 
       // check if the target email addr is in use or not
       const targetUser = await this.getByEmail(updateObj.email, ncMeta);
       if (targetUser && targetUser.id !== id) {
+        NcError.badRequest('email is in use');
+      }
+
+      // check if a user with the same canonical email already exists
+      const canonicalUser = await this.getByCanonicalEmail(
+        updateObj.email,
+        ncMeta,
+      );
+      if (canonicalUser && canonicalUser.id !== id) {
         NcError.badRequest('email is in use');
       }
     } else {
@@ -184,6 +203,52 @@ export default class User implements UserType {
       }
 
       await NocoCache.set('root', `${CacheScope.USER}:${email}`, user);
+    }
+
+    if (user?.is_deleted) {
+      return null;
+    }
+
+    return this.castType(user);
+  }
+
+  /**
+   * Look up a user by canonical (normalized) email.
+   * Normalizes the input so any alias variant finds the right user.
+   */
+  public static async getByCanonicalEmail(
+    _email: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!_email || _email === '') return null;
+
+    const canonical = normalizeEmail(_email);
+    let user =
+      canonical &&
+      (await NocoCache.get(
+        'root',
+        `${CacheScope.USER}:canonical:${canonical}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    if (!user) {
+      user = await ncMeta.metaGet2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.USERS,
+        {
+          canonical_email: canonical,
+        },
+      );
+
+      if (user) {
+        user.meta = parseMetaProp(user);
+      }
+
+      await NocoCache.set(
+        'root',
+        `${CacheScope.USER}:canonical:${canonical}`,
+        user,
+      );
     }
 
     if (user?.is_deleted) {
@@ -247,6 +312,63 @@ export default class User implements UserType {
     }
 
     return this.castType(user);
+  }
+
+  /**
+   * Get multiple users by IDs in a single query.
+   * Falls back to cache for each ID first, then fetches remaining from DB.
+   */
+  static async getByIds(
+    userIds: string[],
+    ncMeta = Noco.ncMeta,
+  ): Promise<Map<string, User>> {
+    const result = new Map<string, User>();
+    if (!userIds.length) return result;
+
+    const uniqueIds = [...new Set(userIds)];
+    const uncachedIds: string[] = [];
+
+    for (const id of uniqueIds) {
+      const cached = await NocoCache.get(
+        'root',
+        `${CacheScope.USER}:${id}`,
+        CacheGetType.TYPE_OBJECT,
+      );
+      if (cached && !cached.is_deleted) {
+        result.set(id, this.castType(cached));
+      } else if (!cached) {
+        uncachedIds.push(id);
+      }
+    }
+
+    if (uncachedIds.length) {
+      const rows = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.USERS,
+        {
+          xcCondition: {
+            _and: [
+              { id: { in: uncachedIds } },
+              {
+                _or: [
+                  { is_deleted: { eq: false } },
+                  { is_deleted: { eq: null } },
+                ],
+              },
+            ],
+          },
+        },
+      );
+
+      for (const row of rows) {
+        row.meta = parseMetaProp(row);
+        await NocoCache.set('root', `${CacheScope.USER}:${row.id}`, row);
+        result.set(row.id, this.castType(row));
+      }
+    }
+
+    return result;
   }
 
   static async getByRefreshToken(refresh_token, ncMeta = Noco.ncMeta) {
@@ -365,6 +487,18 @@ export default class User implements UserType {
 
     if (!user) NcError.userNotFound(userId);
 
+    // Super admin is treated as owner of all workspaces and bases
+    if (extractRolesObj(user.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+      return {
+        ...sanitiseUserObj(user),
+        roles: extractRolesObj(user.roles),
+        workspace_roles: args.workspaceId
+          ? { [WorkspaceUserRoles.OWNER]: true }
+          : null,
+        base_roles: args.baseId ? { [ProjectRoles.OWNER]: true } : null,
+      } as any;
+    }
+
     const baseRoles = await new Promise((resolve) => {
       if (args.baseId) {
         BaseUser.get(context, args.baseId, user.id, ncMeta).then(
@@ -390,13 +524,47 @@ export default class User implements UserType {
       }
     });
 
+    let workspaceRoles: Record<string, boolean> | null = null;
+
+    if (args.workspaceId) {
+      const wsUser = await WorkspaceUser.get(
+        args.workspaceId,
+        user.id,
+        {},
+        ncMeta,
+      );
+      if (wsUser?.roles) {
+        workspaceRoles = extractRolesObj(wsUser.roles);
+      }
+    }
+
+    // If no explicit base role, inherit from workspace role
+    let effectiveBaseRoles = baseRoles;
+    if (!effectiveBaseRoles && workspaceRoles) {
+      const wsRoleStr = Object.keys(workspaceRoles).find(
+        (k) => workspaceRoles[k],
+      ) as WorkspaceUserRoles | undefined;
+      if (wsRoleStr) {
+        const projectRole = WorkspaceRolesToProjectRoles[wsRoleStr];
+        if (
+          projectRole &&
+          projectRole !== ProjectRoles.NO_ACCESS &&
+          projectRole !== ProjectRoles.INHERIT
+        ) {
+          effectiveBaseRoles = extractRolesObj(projectRole);
+        }
+      }
+    }
+
     return {
       ...sanitiseUserObj(user),
       roles: user.roles ? extractRolesObj(user.roles) : null,
-      base_roles: baseRoles ? baseRoles : null,
+      base_roles: effectiveBaseRoles ? effectiveBaseRoles : null,
+      workspace_roles: workspaceRoles,
     } as UserType & {
       roles: Record<string, boolean>;
       base_roles: Record<string, boolean>;
+      workspace_roles: Record<string, boolean>;
     };
   }
 
@@ -418,6 +586,12 @@ export default class User implements UserType {
     // clear all user related cache
     await NocoCache.del('root', `${CacheScope.USER}:${userId}`);
     await NocoCache.del('root', `${CacheScope.USER}:${user.email}`);
+    if (user.email) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.USER}:canonical:${normalizeEmail(user.email)}`,
+      );
+    }
   }
 
   public static async signUserImage(

@@ -2,6 +2,7 @@ import {
   AuditV1OperationTypes,
   checkboxIconList,
   durationOptions,
+  isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
   ratingIconList,
@@ -397,10 +398,7 @@ export const extractRefColumnIfFound = async ({
   }
 
   // if Links / LTAR column extract the ref table title and column title
-  if (
-    column.uidt === UITypes.Links ||
-    column.uidt === UITypes.LinkToAnotherRecord
-  ) {
+  if (isLinksOrLTAR(column)) {
     const refTable = await Model.get(
       context,
       column.child_id ||
@@ -544,6 +542,61 @@ export const extractViewRelatedProps = async ({
         },
       );
     }
+  }
+
+  if ((view as { fk_prefix_column_id?: string }).fk_prefix_column_id) {
+    const prefixCol = await Column.get(context, {
+      colId: (view as { fk_prefix_column_id: string }).fk_prefix_column_id,
+    });
+    result.prefix_field_id = prefixCol?.id;
+    result.prefix_field_title = prefixCol?.title;
+    result.fk_prefix_column_id = undefined;
+  }
+
+  // extract list view level column references
+  if (Array.isArray(view.levels) && view.levels.length) {
+    result.levels = await Promise.all(
+      view.levels.map(
+        async (level: {
+          fk_model_id?: string;
+          fk_link_column_id?: string;
+          fk_self_link_column_id?: string;
+          level?: number;
+          enable_nested_records?: any;
+          wrap_headers?: any;
+        }) => {
+          const levelResult: Record<string, any> = {
+            level: level.level,
+            enable_nested_records: level.enable_nested_records,
+            wrap_headers: level.wrap_headers,
+          };
+
+          if (level.fk_model_id) {
+            const model = await Model.get(context, level.fk_model_id);
+            levelResult.model_id = model?.id;
+            levelResult.model_title = model?.title;
+          }
+
+          if (level.fk_link_column_id) {
+            const col = await Column.get(context, {
+              colId: level.fk_link_column_id,
+            });
+            levelResult.link_field_id = col?.id;
+            levelResult.link_field_title = col?.title;
+          }
+
+          if (level.fk_self_link_column_id) {
+            const col = await Column.get(context, {
+              colId: level.fk_self_link_column_id,
+            });
+            levelResult.self_link_field_id = col?.id;
+            levelResult.self_link_field_title = col?.title;
+          }
+
+          return levelResult;
+        },
+      ),
+    );
   }
 
   return result;

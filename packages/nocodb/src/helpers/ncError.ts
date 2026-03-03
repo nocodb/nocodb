@@ -57,6 +57,10 @@ export class NcError {
     return NcError._.dashboardNotFound(id, args);
   }
 
+  static viewSectionNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.viewSectionNotFound(id, args);
+  }
+
   static sourceNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.sourceNotFound(id, args);
   }
@@ -173,6 +177,10 @@ export class NcError {
 
   static forbidden(message: string, args?: NcErrorArgs): never {
     return NcError._.forbidden(message, args);
+  }
+
+  static insufficientPrivilege(message: string, args?: NcErrorArgs): never {
+    return NcError._.insufficientPrivilege(message, args);
   }
 
   static sourceDataReadOnly(name: string): never {
@@ -320,6 +328,13 @@ export class NcError {
 
   static pluginTestError(message: string, args?: NcErrorArgs): never {
     return NcError._.pluginTestError(message, args);
+  }
+  static licenseRequired(feature?: string, args?: NcErrorArgs): never {
+    return NcError._.licenseRequired(feature, args);
+  }
+
+  static licenseSuspended(args?: NcErrorArgs): never {
+    return NcError._.licenseSuspended(args);
   }
   /* endregion statics */
 }

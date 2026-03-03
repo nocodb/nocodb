@@ -20,7 +20,7 @@ import { NcContext, NcRequest } from '~/interface/config';
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 export class MapsController {
-  constructor(private readonly mapsService: MapsService) {}
+  constructor(protected readonly mapsService: MapsService) {}
 
   @Get(['/api/v1/db/meta/maps/:mapViewId', '/api/v2/meta/maps/:mapViewId'])
   @Acl('mapViewGet')

@@ -6,7 +6,11 @@ import {
   TableType,
 } from './Api';
 import { FormulaDataTypes } from './formula/enums';
-import { LongTextAiMetaProp, RelationTypes } from '~/lib/globals';
+import {
+  LinksVersion,
+  LongTextAiMetaProp,
+  RelationTypes,
+} from '~/lib/globals';
 import { parseProp } from './helperFunctions';
 
 enum UITypes {
@@ -34,6 +38,7 @@ enum UITypes {
   Percent = 'Percent',
   Duration = 'Duration',
   Rating = 'Rating',
+  Colour = 'Colour',
   Formula = 'Formula',
   Rollup = 'Rollup',
   Count = 'Count',
@@ -53,6 +58,7 @@ enum UITypes {
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
   Meta = 'Meta',
+  UUID = 'UUID',
 }
 
 export const UITypesName = {
@@ -82,6 +88,7 @@ export const UITypesName = {
   [UITypes.Percent]: 'Percent',
   [UITypes.Duration]: 'Duration',
   [UITypes.Rating]: 'Rating',
+  [UITypes.Colour]: 'Colour',
   [UITypes.Formula]: 'Formula',
   [UITypes.Rollup]: 'Rollup',
   [UITypes.Count]: 'Count',
@@ -100,6 +107,7 @@ export const UITypesName = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Meta]: 'Row Meta',
+  [UITypes.UUID]: 'UUID',
   AIButton: 'AI Button',
   AIPrompt: 'AI Text',
 };
@@ -192,6 +200,7 @@ export const UITypesSearchTerms = {
     'hours worked',
   ],
   [UITypes.Rating]: ['Rating', 'stars', 'score', 'review', 'feedback'],
+  [UITypes.Colour]: ['Colour', 'Color', 'hex', 'rgb', 'visual', 'palette', 'swatch'],
   [UITypes.Formula]: [
     'Formula',
     'calculation',
@@ -230,6 +239,13 @@ export const UITypesSearchTerms = {
     'Last modified by',
     'last updated by',
     'who changed',
+  ],
+  [UITypes.UUID]: [
+    'UUID',
+    'unique identifier',
+    'globally unique',
+    'GUID',
+    'universally unique identifier',
   ],
   AIButton: ['AI Button', 'AI action', 'smart button'],
   AIPrompt: ['AI Text', 'AI Prompt', 'AI field', 'smart field'],
@@ -291,6 +307,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.Percent]: 'Percent',
   [UITypes.Duration]: 'Duration',
   [UITypes.Rating]: 'Rating',
+  [UITypes.Colour]: 'Colour',
   [UITypes.Formula]: 'Formula',
   [UITypes.Rollup]: '{RollupFunction}({FieldName}) from {TableName}',
   [UITypes.Count]: 'Count',
@@ -310,6 +327,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Order]: 'Order',
   [UITypes.Meta]: 'Row Meta',
+  [UITypes.UUID]: 'UUID',
 };
 
 export const numericUITypes = [
@@ -323,6 +341,7 @@ export const numericUITypes = [
   UITypes.Year,
   UITypes.Links,
   UITypes.ID,
+  UITypes.AutoNumber,
 ];
 
 export function isNumericCol(
@@ -456,6 +475,86 @@ export function isLinksOrLTAR(
   );
 }
 
+// Alias for isLinksOrLTAR
+export const isLTARType = isLinksOrLTAR;
+
+export function isLinkV2(
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any }
+    | UITypes
+    | string,
+) {
+  // Strings and simple UIType values cannot be determined as v2 without colOptions
+  if (typeof col === 'string' || typeof col !== 'object') {
+    return false;
+  }
+
+  // Check colOptions.version if available
+  if (col.colOptions) {
+    return (
+      isLinksOrLTAR(col) &&
+      (col.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2
+    );
+  }
+
+  // Fallback: check v2-only relation types on colOptions-less objects
+  // These types only exist in v2 so their presence is definitive
+  if ('colOptions' in col && !col.colOptions) {
+    return false;
+  }
+
+  return false;
+}
+
+export function isMMOrMMLike(
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any; type?: RelationTypes },
+): boolean {
+  if (typeof col === 'object' && isLinksOrLTAR(col)) {
+    if (col.colOptions) {
+      const opts = col.colOptions as LinkToAnotherRecordType;
+      // V2 relations are all junction-table-based (MM-like)
+      if (opts.version === LinksVersion.V2) {
+        return true;
+      }
+      // Traditional MANY_TO_MANY
+      return opts.type === RelationTypes.MANY_TO_MANY;
+    }
+
+    // colOptions not loaded — check type on column root
+    // (set during column creation in the UI before colOptions exists)
+    if ('type' in col && col.type) {
+      return (
+        col.type === RelationTypes.MANY_TO_MANY ||
+        col.type === RelationTypes.ONE_TO_MANY ||
+        col.type === RelationTypes.MANY_TO_ONE
+      );
+    }
+  }
+  return false;
+}
+
+// Returns true for V2 relations that have single-record semantics
+// (MO, OO, BT) — they use junction tables but should return one record, not an array
+export function isBtLikeV2Junction(
+  col:
+    | ColumnType
+    | { uidt: UITypes | string; colOptions?: any; type?: RelationTypes },
+): boolean {
+  if (typeof col === 'object' && isLinksOrLTAR(col) && col.colOptions) {
+    const opts = col.colOptions as LinkToAnotherRecordType;
+    if (opts.version !== LinksVersion.V2) return false;
+    return [
+      RelationTypes.MANY_TO_ONE,
+      RelationTypes.ONE_TO_ONE,
+      RelationTypes.BELONGS_TO,
+    ].includes(opts.type as RelationTypes);
+  }
+  return false;
+}
+
 export function isSelfLinkCol(
   col: ColumnType & { colOptions: unknown }
 ): boolean {
@@ -512,6 +611,7 @@ export const readonlyMetaAllowedTypes = [
   UITypes.Button,
   UITypes.Barcode,
   UITypes.QrCode,
+  UITypes.UUID,
 ];
 
 export const partialUpdateAllowedTypes = [
@@ -728,6 +828,8 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
       UITypes.Barcode,
       UITypes.QrCode,
       UITypes.ForeignKey,
+      UITypes.UUID,
+      UITypes.AutoNumber,
     ].includes(column.uidt as UITypes) ||
     // Check if the column is a system-generated user tracking field (CreatedBy, LastModifiedBy)
     isCreatedOrLastModifiedByCol(column) ||
@@ -739,6 +841,15 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
     (column.pk && (column.ai || parseProp(column.meta)?.ag))
   );
 };
+
+/**
+ * Determines whether a given column is an AutoNumber field.
+ *
+ * @param {ColumnType} column - The column to check.
+ * @returns {boolean} - Returns `true` if the column is an AutoNumber field.
+ */
+export const isAutoNumber = (column: ColumnType): boolean =>
+  column.uidt === UITypes.AutoNumber;
 
 /**
  * Determines whether a given column type represents a Date or DateTime field.
@@ -783,3 +894,6 @@ export const customLinkSupportedTypes: UITypes[] = [
 
 // column types that are not shown in the GUI
 export const hiddenColumnTypes: UITypes[] = [UITypes.Meta];
+
+// Re-export LinksVersion from globals for backward compatibility
+export { LinksVersion } from '~/lib/globals';

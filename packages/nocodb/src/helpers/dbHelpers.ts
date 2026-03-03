@@ -186,6 +186,10 @@ export function getOppositeRelationType(
     return RelationTypes.BELONGS_TO;
   } else if (type === RelationTypes.BELONGS_TO) {
     return RelationTypes.HAS_MANY;
+  } else if (type === RelationTypes.ONE_TO_MANY) {
+    return RelationTypes.MANY_TO_ONE;
+  } else if (type === RelationTypes.MANY_TO_ONE) {
+    return RelationTypes.ONE_TO_MANY;
   }
   return type as RelationTypes;
 }

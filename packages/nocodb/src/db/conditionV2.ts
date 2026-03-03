@@ -1,3 +1,4 @@
+import { deprecate } from 'util';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
@@ -94,9 +95,15 @@ const parseConditionV2 = async (
     if (!(_filter instanceof Filter)) filter = new Filter(_filter as Filter);
     else filter = _filter;
   }
+  const supportToggle = await Filter.supportToggle(baseModelSqlv2.context);
   if (Array.isArray(_filter)) {
+    // Filter out disabled filters before processing
+    const enabledFilters = supportToggle
+      ? _filter.filter((f) => f.enabled !== false && f.enabled !== 0)
+      : _filter;
+
     const qbs = await Promise.all(
-      _filter.map((child) =>
+      enabledFilters.map((child) =>
         parseConditionV2(
           baseModelSqlv2,
           child,
@@ -117,12 +124,17 @@ const parseConditionV2 = async (
       clause: (qbP) => {
         qbP.where((qb) => {
           for (const [i, qb1] of Object.entries(qbs)) {
-            qb[getLogicalOpMethod(_filter[i])](qb1.clause);
+            qb[getLogicalOpMethod(enabledFilters[i])](qb1.clause);
           }
         });
       },
     };
   } else if (filter.is_group) {
+    // Skip disabled filter groups entirely (cascade disable)
+    if (supportToggle && (filter.enabled === false || filter.enabled === 0)) {
+      return { clause: () => {}, rootApply: () => {} };
+    }
+
     const children = await filter.getChildren(context);
 
     const qbs = await Promise.all(
@@ -156,6 +168,11 @@ const parseConditionV2 = async (
     };
   } else {
     if (!filter.fk_column_id) return;
+
+    // Skip disabled leaf filters
+    if (supportToggle && (filter.enabled === false || filter.enabled === 0)) {
+      return { clause: () => {}, rootApply: () => {} };
+    }
 
     // handle group by filter separately,
     // `gb_eq` is equivalent to `eq` but for lookup it compares on aggregated value returns in group by api
@@ -231,6 +248,10 @@ const parseConditionV2 = async (
         UITypes.Percent,
         UITypes.User,
         UITypes.DateTime,
+        UITypes.Date,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
+        UITypes.UUID,
       ].includes(column.uidt) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)
@@ -450,83 +471,89 @@ const parseConditionV2 = async (
               UITypes.LastModifiedTime,
             ].includes(column.uidt)
           ) {
-            let now = dayjs(new Date()).utc();
-            const dateFormatFromMeta = column?.meta?.date_format;
-            if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
-              // reset to 1st
-              now = dayjs(now).date(1);
-              if (val) genVal = dayjs(val).date(1);
-            }
-            // handle sub operation
-            switch (filter.comparison_sub_op) {
-              case 'today':
-                genVal = now;
-                break;
-              case 'tomorrow':
-                genVal = now.add(1, 'day');
-                break;
-              case 'yesterday':
-                genVal = now.add(-1, 'day');
-                break;
-              case 'oneWeekAgo':
-                genVal = now.add(-1, 'week');
-                break;
-              case 'oneWeekFromNow':
-                genVal = now.add(1, 'week');
-                break;
-              case 'oneMonthAgo':
-                genVal = now.add(-1, 'month');
-                break;
-              case 'oneMonthFromNow':
-                genVal = now.add(1, 'month');
-                break;
-              case 'daysAgo':
-                if (!val) return;
-                genVal = now.add(-genVal, 'day');
-                break;
-              case 'daysFromNow':
-                if (!val) return;
-                genVal = now.add(genVal, 'day');
-                break;
-              case 'exactDate':
-                if (!genVal) return;
-                break;
-              // sub-ops for `isWithin` comparison
-              case 'pastWeek':
-                genVal = now.add(-1, 'week');
-                break;
-              case 'pastMonth':
-                genVal = now.add(-1, 'month');
-                break;
-              case 'pastYear':
-                genVal = now.add(-1, 'year');
-                break;
-              case 'nextWeek':
-                genVal = now.add(1, 'week');
-                break;
-              case 'nextMonth':
-                genVal = now.add(1, 'month');
-                break;
-              case 'nextYear':
-                genVal = now.add(1, 'year');
-                break;
-              case 'pastNumberOfDays':
-                if (!val) return;
-                genVal = now.add(-genVal, 'day');
-                break;
-              case 'nextNumberOfDays':
-                if (!genVal) return;
-                genVal = now.add(genVal, 'day');
-                break;
-            }
+            // should not be called anymore
+            const legacyDateFilter = deprecate(() => {
+              let now = dayjs(new Date()).utc();
+              const dateFormatFromMeta = column?.meta?.date_format;
+              if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
+                // reset to 1st
+                now = dayjs(now).date(1);
+                if (val) genVal = dayjs(val).date(1);
+              }
+              // handle sub operation
+              switch (filter.comparison_sub_op) {
+                case 'today':
+                  genVal = now;
+                  break;
+                case 'tomorrow':
+                  genVal = now.add(1, 'day');
+                  break;
+                case 'yesterday':
+                  genVal = now.add(-1, 'day');
+                  break;
+                case 'oneWeekAgo':
+                  genVal = now.add(-1, 'week');
+                  break;
+                case 'oneWeekFromNow':
+                  genVal = now.add(1, 'week');
+                  break;
+                case 'oneMonthAgo':
+                  genVal = now.add(-1, 'month');
+                  break;
+                case 'oneMonthFromNow':
+                  genVal = now.add(1, 'month');
+                  break;
+                case 'daysAgo':
+                  if (!val) return;
+                  genVal = now.add(-genVal, 'day');
+                  break;
+                case 'daysFromNow':
+                  if (!val) return;
+                  genVal = now.add(genVal, 'day');
+                  break;
+                case 'exactDate':
+                  if (!genVal) return;
+                  break;
+                // sub-ops for `isWithin` comparison
+                case 'pastWeek':
+                  genVal = now.add(-1, 'week');
+                  break;
+                case 'pastMonth':
+                  genVal = now.add(-1, 'month');
+                  break;
+                case 'pastYear':
+                  genVal = now.add(-1, 'year');
+                  break;
+                case 'nextWeek':
+                  genVal = now.add(1, 'week');
+                  break;
+                case 'nextMonth':
+                  genVal = now.add(1, 'month');
+                  break;
+                case 'nextYear':
+                  genVal = now.add(1, 'year');
+                  break;
+                case 'pastNumberOfDays':
+                  if (!val) return;
+                  genVal = now.add(-genVal, 'day');
+                  break;
+                case 'nextNumberOfDays':
+                  if (!genVal) return;
+                  genVal = now.add(genVal, 'day');
+                  break;
+              }
 
-            if (dayjs.isDayjs(genVal)) {
-              // turn `val` in dayjs object format to string
-              genVal = genVal.format(dateFormat).toString();
-              // keep YYYY-MM-DD only for date
-              genVal =
-                column.uidt === UITypes.Date ? genVal.substring(0, 10) : genVal;
-            }
+              if (dayjs.isDayjs(genVal)) {
+                // turn `val` in dayjs object format to string
+                genVal = genVal.format(dateFormat).toString();
+                // keep YYYY-MM-DD only for date
+                genVal =
+                  column.uidt === UITypes.Date
+                    ? genVal.substring(0, 10)
+                    : genVal;
+              }
+            }, `legacy date filter is deprecated, should not be called, stack: ${new Error().stack}`);
+            legacyDateFilter();
           }
 
           if (

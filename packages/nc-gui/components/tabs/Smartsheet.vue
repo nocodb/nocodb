@@ -22,14 +22,15 @@ const { ncNavigateTo } = useGlobal()
 
 const route = useRoute()
 
-const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
-const { activeTableId } = storeToRefs(useTablesStore())
-
 const { activeProjectId } = storeToRefs(useBases())
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const viewStore = useViewsStore()
+
+const webhooksStore = useWebhooksStore()
+
+const { pendingDeepLinkHookId, pendingDeepLinkHookTab } = storeToRefs(webhooksStore)
 
 const { activeView, openedViewsTab, activeViewTitleOrId, isViewsLoading } = storeToRefs(viewStore)
 
@@ -38,10 +39,8 @@ const meta = computed<TableType | undefined>(() => {
   return viewId && getMetaByKey(activeProjectId.value, viewId)
 })
 
-const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere, eventBus } = useProvideSmartsheetStore(
-  activeView,
-  meta,
-)
+const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, isList, isTimeline, xWhere, eventBus } =
+  useProvideSmartsheetStore(activeView, meta)
 
 useViewRowColorProvider({ view: activeView, eventBus })
 
@@ -60,6 +59,8 @@ const activeSource = computed(() => {
 useProvideKanbanViewStore(meta, activeView)
 useProvideMapViewStore(meta, activeView)
 useProvideCalendarViewStore(meta, activeView, false, xWhere)
+useProvideListViewStore(meta, activeView)
+useProvideTimelineViewStore(meta, activeView, false, xWhere)
 
 // todo: move to store
 provide(MetaInj, meta)
@@ -69,6 +70,7 @@ provide(ReloadViewDataHookInj, reloadViewDataEventHook)
 provide(ReloadViewMetaHookInj, reloadViewMetaEventHook)
 provide(OpenNewRecordFormHookInj, openNewRecordFormHook)
 provide(IsFormInj, isForm)
+provide(IsTimelineInj, isTimeline)
 provide(TabMetaInj, activeTab)
 provide(ActiveSourceInj, activeSource)
 provide(ReloadAggregateHookInj, createEventHook())
@@ -184,10 +186,6 @@ const onDrop = async (event: DragEvent) => {
   }
 }
 
-watch([activeViewTitleOrId, activeTableId], () => {
-  handleSidebarOpenOnMobileForNonViews()
-})
-
 const { leftSidebarWidth, windowSize, isFullScreen } = storeToRefs(useSidebarStore())
 
 const { isPanelExpanded, extensionPanelSize } = useExtensions()
@@ -265,6 +263,15 @@ const checkIfViewExists = async () => {
 
 onMounted(async () => {
   await checkIfViewExists()
+
+  const hookId = route.query.hookId as string
+  if (hookId) {
+    pendingDeepLinkHookId.value = hookId
+    pendingDeepLinkHookTab.value = (route.query.hookTab as string) || 'log'
+    if (openedViewsTab.value !== 'webhook') {
+      viewStore.onViewsTabChange('webhook')
+    }
+  }
 })
 
 watch(isViewsLoading, async () => {
@@ -295,23 +302,30 @@ watch(isViewsLoading, async () => {
           @resized="onResized"
         >
           <Pane class="flex flex-col h-full min-w-0" :max-size="contentMaxSize" :size="contentSize">
-            <LazySmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
-            <div :style="{ height: isForm ? '100%' : 'calc(100% - var(--toolbar-height))' }" class="flex flex-row w-full">
+            <SmartsheetToolbar v-if="!isForm" show-full-screen-toggle />
+            <div
+              :style="{ height: isForm || isTimeline ? '100%' : 'calc(100% - var(--toolbar-height))' }"
+              class="flex flex-row w-full"
+            >
               <Transition name="layout" mode="out-in">
                 <div v-if="openedViewsTab === 'view'" class="flex flex-1 min-h-0 w-3/4">
                   <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-default">
-                    <LazySmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
+                    <SmartsheetGrid v-if="isGrid || !meta || !activeView" ref="grid" />
 
                     <template v-if="activeView && meta">
-                      <LazySmartsheetGallery v-if="isGallery" />
+                      <SmartsheetGallery v-if="isGallery" />
 
-                      <LazySmartsheetForm v-else-if="isForm && !$route.query.reload" />
+                      <SmartsheetForm v-else-if="isForm && !$route.query.reload" />
 
                       <SmartsheetKanbanWrapper v-else-if="isKanban" />
 
-                      <LazySmartsheetCalendar v-else-if="isCalendar" />
+                      <SmartsheetCalendar v-else-if="isCalendar" />
 
-                      <LazySmartsheetMap v-else-if="isMap" />
+                      <SmartsheetTimeline v-else-if="isTimeline" />
+
+                      <SmartsheetMap v-else-if="isMap" />
+
+                      <SmartsheetList v-else-if="isList" />
                     </template>
                   </div>
                 </div>

@@ -40,8 +40,11 @@ const openLongText = (event: MouseEvent) => {
   if (!isStringDataType.value) return
 
   const target = event.target as HTMLElement
-  if (target.tagName === 'A') {
+  const anchor = target.closest('a') as HTMLAnchorElement | null
+  if (anchor?.href) {
+    event.preventDefault()
     event.stopPropagation()
+    confirmPageLeavingRedirect(anchor.href, '_blank')
     return
   }
 
@@ -110,6 +113,7 @@ const renderAsCell = computed(() => {
     <div v-else class="nc-cell-field group py-1" @dblclick="activateShowEditNonEditableFieldWarning">
       <div
         v-if="urls"
+        v-dompurify-html="urls"
         :style="{
           'display': '-webkit-box',
           'max-width': '100%',
@@ -119,7 +123,6 @@ const renderAsCell = computed(() => {
           'word-break': 'break-all',
         }"
         @click="openLongText"
-        v-html="urls"
       />
 
       <LazyCellClampedText v-else :value="result" :lines="rowHeight" />

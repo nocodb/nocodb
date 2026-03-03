@@ -1,6 +1,4 @@
 export const useWorkflowStore = defineStore('workflow', () => {
-  const isWorkflowsEnabled = computed(() => false)
-
   // State
   const workflows = ref(new Map())
 
@@ -34,7 +32,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     workflows,
     activeWorkflow,
     isLoadingWorkflow,
-    isWorkflowsEnabled,
 
     // Getters
     activeBaseWorkflows,

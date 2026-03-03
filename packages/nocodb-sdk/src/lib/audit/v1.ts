@@ -12,6 +12,12 @@ enum AuditV1OperationTypes {
   WORKSPACE_TEAM_UPDATE = 'WORKSPACE_TEAM_UPDATE',
   WORKSPACE_TEAM_DELETE = 'WORKSPACE_TEAM_DELETE',
 
+  SCIM_USER_PROVISION = 'SCIM_USER_PROVISION',
+  SCIM_USER_UPDATE = 'SCIM_USER_UPDATE',
+  SCIM_USER_DEACTIVATE = 'SCIM_USER_DEACTIVATE',
+  SCIM_USER_REACTIVATE = 'SCIM_USER_REACTIVATE',
+  SCIM_USER_DELETE = 'SCIM_USER_DELETE',
+
   USER_PASSWORD_CHANGE = 'USER_PASSWORD_CHANGE',
   USER_PASSWORD_RESET = 'USER_PASSWORD_RESET',
   USER_PASSWORD_FORGOT = 'USER_PASSWORD_FORGOT',
@@ -164,6 +170,7 @@ enum AuditV1OperationTypes {
   TEAM_CREATE = 'TEAM_CREATE',
   TEAM_UPDATE = 'TEAM_UPDATE',
   TEAM_DELETE = 'TEAM_DELETE',
+  TEAM_MOVE = 'TEAM_MOVE',
   TEAM_MEMBER_ADD = 'TEAM_MEMBER_ADD',
   TEAM_MEMBER_UPDATE = 'TEAM_MEMBER_UPDATE',
   TEAM_MEMBER_DELETE = 'TEAM_MEMBER_DELETE',
@@ -173,6 +180,15 @@ enum AuditV1OperationTypes {
   WORKFLOW_DELETE = 'WORKFLOW_DELETE',
 
   WORKFLOW_DUPLICATE = 'WORKFLOW_DUPLICATE',
+
+  RECORD_TEMPLATE_CREATE = 'RECORD_TEMPLATE_CREATE',
+  RECORD_TEMPLATE_UPDATE = 'RECORD_TEMPLATE_UPDATE',
+  RECORD_TEMPLATE_DELETE = 'RECORD_TEMPLATE_DELETE',
+  RECORD_TEMPLATE_USE = 'RECORD_TEMPLATE_USE',
+
+  RLS_POLICY_CREATE = 'RLS_POLICY_CREATE',
+  RLS_POLICY_UPDATE = 'RLS_POLICY_UPDATE',
+  RLS_POLICY_DELETE = 'RLS_POLICY_DELETE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -627,6 +643,46 @@ export interface WorkspaceUserDeletePayload {
   user_name?: string;
   user_id: string;
   user_role: string;
+}
+
+export interface ScimUserProvisionPayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
+}
+
+export interface ScimUserUpdatePayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
+}
+
+export interface ScimUserDeactivatePayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
+}
+
+export interface ScimUserReactivatePayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
+}
+
+export interface ScimUserDeletePayload {
+  workspace_title: string;
+  user_email: string;
+  user_name?: string;
+  user_id: string;
+  scim_id: string;
 }
 
 export interface WorkspaceTeamInvitePayload {
@@ -1112,6 +1168,22 @@ export interface PermissionDeletePayload {
   entity_id: string;
 }
 
+export interface RlsPolicyCreatePayload {
+  policy_id: string;
+  policy_title: string;
+  table_id: string;
+}
+
+export interface RlsPolicyUpdatePayload {
+  policy_id: string;
+  policy_title: string;
+}
+
+export interface RlsPolicyDeletePayload {
+  policy_id: string;
+  table_id: string;
+}
+
 export interface TeamCreatePayload {
   team_id: string;
   team_title: string;
@@ -1134,6 +1206,16 @@ export interface TeamDeletePayload {
   workspace_title?: string;
   base_title?: string;
   meta?: any;
+}
+
+export interface TeamMovePayload {
+  team_id: string;
+  team_title: string;
+  old_parent_team_id?: string | null;
+  old_parent_team_title?: string | null;
+  new_parent_team_id?: string | null;
+  new_parent_team_title?: string | null;
+  workspace_title?: string;
 }
 
 export interface TeamMemberAddPayload {
@@ -1192,6 +1274,31 @@ export interface WorkflowDuplicatePayload {
   source_workflow_title: string;
   source_workflow_id: string;
   error?: string;
+}
+
+export interface RecordTemplateCreatePayload {
+  template_title: string;
+  template_id: string;
+  table_id: string;
+}
+
+export interface RecordTemplateUpdatePayload {
+  template_title: string;
+  template_id: string;
+  table_id: string;
+}
+
+export interface RecordTemplateDeletePayload {
+  template_title: string;
+  template_id: string;
+  table_id: string;
+}
+
+export interface RecordTemplateUsePayload {
+  template_title: string;
+  template_id: string;
+  table_id: string;
+  usage_count: number;
 }
 
 export interface AuditV1<T = any> {
@@ -1420,6 +1527,29 @@ const descriptionTemplates = {
     audit: AuditV1<WorkflowDuplicatePayload>
   ) =>
     `Workflow '${audit.details.duplicated_workflow_title}' has been duplicated`,
+  [AuditV1OperationTypes.RECORD_TEMPLATE_CREATE]: (
+    audit: AuditV1<RecordTemplateCreatePayload>
+  ) => `Record template '${audit.details.template_title}' has been created`,
+  [AuditV1OperationTypes.RECORD_TEMPLATE_UPDATE]: (
+    audit: AuditV1<RecordTemplateUpdatePayload>
+  ) => `Record template '${audit.details.template_title}' has been updated`,
+  [AuditV1OperationTypes.RECORD_TEMPLATE_DELETE]: (
+    audit: AuditV1<RecordTemplateDeletePayload>
+  ) => `Record template '${audit.details.template_title}' has been deleted`,
+  [AuditV1OperationTypes.RECORD_TEMPLATE_USE]: (
+    audit: AuditV1<RecordTemplateUsePayload>
+  ) => `Record template '${audit.details.template_title}' has been used`,
+  [AuditV1OperationTypes.RLS_POLICY_CREATE]: (
+    audit: AuditV1<RlsPolicyCreatePayload>
+  ) =>
+    `RLS policy '${audit.details.policy_title}' has been created for table '${audit.details.table_id}'`,
+  [AuditV1OperationTypes.RLS_POLICY_UPDATE]: (
+    audit: AuditV1<RlsPolicyUpdatePayload>
+  ) => `RLS policy '${audit.details.policy_title}' has been updated`,
+  [AuditV1OperationTypes.RLS_POLICY_DELETE]: (
+    audit: AuditV1<RlsPolicyDeletePayload>
+  ) =>
+    `RLS policy '${audit.details.policy_id}' has been deleted from table '${audit.details.table_id}'`,
 };
 
 function auditDescription(audit: AuditV1) {

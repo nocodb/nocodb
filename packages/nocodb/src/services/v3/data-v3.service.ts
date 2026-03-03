@@ -30,6 +30,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   MAX_NESTING_DEPTH,
   QUERY_STRING_FIELD_ID_ON_RESULT,
+  QUERY_STRING_LINKS_AS_LTAR,
   V3_DATA_PAYLOAD_LIMIT,
 } from '~/constants';
 import { processConcurrently, reuseOrSave } from '~/utils';
@@ -129,6 +130,7 @@ export class DataV3Service {
     skipSubstitutingColumnIds?: boolean;
     reuse?: ReusableParams;
     depth?: number;
+    linksAsLtar?: boolean;
   }): Promise<DataRecord> {
     const {
       context,
@@ -141,6 +143,7 @@ export class DataV3Service {
       skipSubstitutingColumnIds,
       reuse = {},
       depth = 0,
+      linksAsLtar = false,
     } = param;
 
     const getPrimaryKey = (column: Column) => {
@@ -188,7 +191,10 @@ export class DataV3Service {
       // Handle LTAR fields if columns are provided
       if (columns) {
         const column = columns.find((col) => col.title === key);
-        if (column?.uidt === UITypes.LinkToAnotherRecord) {
+        if (
+          column?.uidt === UITypes.LinkToAnotherRecord ||
+          (column?.uidt === UITypes.Links && linksAsLtar)
+        ) {
           if (Array.isArray(value)) {
             // Check depth limit to prevent unbounded recursion
             if (depth >= MAX_NESTING_DEPTH) {
@@ -239,6 +245,7 @@ export class DataV3Service {
                   record: nestedRecord,
                   primaryKey: relatedPrimaryKey,
                   primaryKeys: relatedPrimaryKeys,
+                  columns: relatedModelInfo.model.columns,
                   reuse,
                   depth: depth + 1,
                 });
@@ -264,6 +271,7 @@ export class DataV3Service {
               record: value,
               primaryKey: relatedPrimaryKey,
               primaryKeys: relatedPrimaryKeys,
+              columns: relatedModelInfo.model.columns,
               reuse,
               depth: depth + 1,
             });
@@ -302,6 +310,7 @@ export class DataV3Service {
     skipSubstitutingColumnIds?: boolean;
     reuse?: ReusableParams;
     depth?: number;
+    linksAsLtar?: boolean;
   }): Promise<DataRecord[]> {
     const { records } = param;
 
@@ -321,23 +330,27 @@ export class DataV3Service {
     const columns = param.modelInfo.columns;
     if (param.query.sort) {
       let fieldsArr: string[] = [];
-      if (typeof param.query.sort !== 'string') {
+      let parsedSortJSON;
+
+      if (typeof param.query.sort === 'string') {
+        try {
+          parsedSortJSON = JSON.parse(param.query.sort);
+        } catch {
+          NcError.get(context).invalidRequestBody(
+            `Query parameter 'sort' needs to a JSON string in format of [{"field": "fieldId", "direction": "asc"}]`,
+          );
+        }
+      } else if (typeof param.query.sort === 'object') {
+        parsedSortJSON = param.query.sort;
+      } else {
         NcError.get(context).invalidRequestBody(
           `Query parameter 'sort' needs to be a single string`,
         );
       }
-      let parsedSort: any | any[];
-      try {
-        const parsedSortJSON = JSON.parse(param.query.sort);
-        parsedSort = Array.isArray(parsedSortJSON)
-          ? parsedSortJSON
-          : [parsedSortJSON];
-        fieldsArr = parsedSort.map((s) => s.field);
-      } catch {
-        NcError.get(context).invalidRequestBody(
-          `Query parameter 'sort' needs to a JSON string in format of [{"field": "fieldId", "direction": "asc"}]`,
-        );
-      }
+      const parsedSort: any | any[] = Array.isArray(parsedSortJSON)
+        ? parsedSortJSON
+        : [parsedSortJSON];
+
       if (
         parsedSort.some(
           (s) => s.direction && !['asc', 'desc'].includes(s.direction),
@@ -440,6 +453,8 @@ export class DataV3Service {
       queryParams: param.query,
     });
 
+    const linksAsLtar = param.query[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
     // Transform records with LTAR handling
     const transformedRecords = await this.transformRecordsToV3Format({
       context: context,
@@ -453,6 +468,7 @@ export class DataV3Service {
         param.query[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       reuse: {}, // Create reuse cache for this data list operation
       depth: 0, // Start at depth 0 for main records
+      linksAsLtar,
     });
 
     if (!pagination) {
@@ -680,10 +696,16 @@ export class DataV3Service {
     // Convert IDs to strings for chunkList
     const idsAsStrings = insertedIds.map((id) => String(id));
 
+    const linksAsLtar =
+      param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
     // Fetch all records in bulk
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
       apiVersion: NcApiVersion.V3,
+      args: {
+        ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
+      },
     });
 
     // Create a map for quick lookup by ID
@@ -716,6 +738,7 @@ export class DataV3Service {
           param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
         reuse: {}, // Create reuse cache for this data insert operation
         depth: 0, // Start at depth 0 for main records
+        linksAsLtar,
       }),
     };
   }
@@ -843,10 +866,16 @@ export class DataV3Service {
     // Convert IDs to strings for chunkList
     const idsAsStrings = updatedIds.map((id) => String(id));
 
+    const linksAsLtar =
+      param.cookie.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
     // Fetch all records in bulk
     const fullRecords = await baseModel.chunkList({
       pks: idsAsStrings,
       apiVersion: context.api_version,
+      args: {
+        ...(linksAsLtar ? { linksAsLtar: 'true' } : {}),
+      },
     });
     profiler.log(`baseModel.chunkList done`);
 
@@ -865,6 +894,7 @@ export class DataV3Service {
         orderedRecords.push(record);
       }
     }
+
     const resultRecords = await this.transformRecordsToV3Format({
       context: context,
       records: orderedRecords,
@@ -877,6 +907,7 @@ export class DataV3Service {
         param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
       reuse: {}, // Create reuse cache for this data update operation
       depth: 0, // Start at depth 0 for main records
+      linksAsLtar,
     });
     profiler.end();
 
@@ -960,6 +991,8 @@ export class DataV3Service {
       const relatedModel = await colOptions.getRelatedTable(context);
       const relatedColumns = await relatedModel.getColumns(context);
 
+      const linksAsLtar = param.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
       const transformedRecord = await this.transformRecordToV3Format({
         context: context,
         record: response,
@@ -972,6 +1005,7 @@ export class DataV3Service {
           param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
         reuse: {}, // Create reuse cache for this nested data list operation
         depth: 0, // Start at depth 0 for main records
+        linksAsLtar,
       });
 
       // For single relations, return the record directly, for others return as array
@@ -1030,6 +1064,8 @@ export class DataV3Service {
     const nestedLimit =
       +param.query?.nestedLimit || BaseModelSqlv2.config.ltarV3Limit;
 
+    const linksAsLtar = param.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
     const transformedRecords = await this.transformRecordsToV3Format({
       context: context,
       records: pagedResponse.list,
@@ -1042,6 +1078,7 @@ export class DataV3Service {
         param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       reuse: {}, // Create reuse cache for this nested data list operation
       depth: 0, // Start at depth 0 for main records
+      linksAsLtar,
     });
 
     // Check if any LTAR fields were truncated
@@ -1103,6 +1140,8 @@ export class DataV3Service {
       return primaryKey.title in obj || primaryKey.id in obj;
     };
 
+    const linksAsLtar = param.query[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
     return hasPrimaryKey(result)
       ? await this.transformRecordToV3Format({
           context: context,
@@ -1116,6 +1155,7 @@ export class DataV3Service {
             param.query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
           reuse: {}, // Create reuse cache for this data read operation
           depth: 0, // Start at depth 0 for main records
+          linksAsLtar,
         })
       : { id: '', fields: {} };
   }

@@ -7,6 +7,7 @@ export * from './Percent';
 export * from './SingleLineText';
 export * from './LongText';
 export * from './Rating';
+export * from './Colour';
 export * from './Decimal';
 export * from './PhoneNumber';
 export * from './Email';

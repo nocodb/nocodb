@@ -124,7 +124,7 @@ test.describe('Calendar View', () => {
 
     await api.dbTableRow.bulkCreate('noco', base.id, table.id, dateRecords);
 
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     await dashboard.rootPage.waitForTimeout(1000);
   });
@@ -135,7 +135,8 @@ test.describe('Calendar View', () => {
 
   test('Calendar Sidebar Verify Sidebar Filter, Calendar View Mode', async () => {
     // Create & Verify Calendar View
-    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: `xcdb${context.workerId}` });
+
     await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.viewSidebar.createCalendarView({
@@ -299,7 +300,7 @@ test.describe('Calendar View', () => {
   });
 
   test('Calendar Drag and Drop & Undo Redo Operations', async () => {
-    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
@@ -380,7 +381,7 @@ test.describe('Calendar View', () => {
   });
 
   test('Calendar shared view operations', async ({ page }) => {
-    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: `xcdb${context.workerId}` });
     await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.viewSidebar.createCalendarView({
@@ -400,7 +401,7 @@ test.describe('Calendar View', () => {
 
     // Open shared view & verify Data
     await page.goto(sharedLink);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     const calendar = dashboard.calendar;
 
@@ -439,7 +440,7 @@ test.describe('Calendar View', () => {
   });
 
   test('Calendar Operations Date Fields', async () => {
-    await dashboard.treeView.openBase({ title: `xcdb${context.workerId}` });
+    await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: `xcdb${context.workerId}` });
 
     await dashboard.treeView.openTable({ title: 'Social Media Calendar', baseTitle: `xcdb${context.workerId}` });
 

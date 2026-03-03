@@ -54,7 +54,7 @@ const props = defineProps<{
 }>()
 
 // Emits
-const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks'])
+const emits = defineEmits(['bulkUpdateDlg', 'update:selectedAllRecords', 'update:selectedAllRecordsSkipPks', 'sendRecord'])
 
 const {
   bulkDeleteAll,
@@ -93,6 +93,7 @@ const { isMobileMode } = useGlobal()
 const { paste } = usePaste()
 const { meta } = useSmartsheetStoreOrThrow()
 const metaInj = inject(MetaInj, ref())
+const isPublic = inject(IsPublicInj, ref(false))
 
 // Computed States
 const hasEditPermission = computed(() => isUIAllowed('dataEdit'))
@@ -112,6 +113,14 @@ const selectedRows = computed(() => {
   if (!contextMenuPath.value) return []
   const dataCache = getDataCache(contextMenuPath.value)
   return dataCache.selectedRows.value
+})
+
+const contextMenuRowId = computed(() => {
+  if (contextMenuRow.value === null || !contextMenuPath.value) return null
+  const dataCache = getDataCache(contextMenuPath.value)
+  const row = dataCache.cachedRows.value.get(contextMenuRow.value)
+  if (!row) return null
+  return extractPkFromRow(row.row, meta.value?.columns)
 })
 
 const disablePasteCell = computed(() => {
@@ -641,6 +650,17 @@ const execBulkAction = async (path: Array<number>) => {
         <div v-e="['a:row:comment']" class="flex gap-2 items-center">
           <MdiMessageOutline class="h-4 w-4" />
           {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
+        </div>
+      </NcMenuItem>
+      <NcMenuItem
+        v-if="isEeUI && contextMenuRowId && !isPublic"
+        key="send-record"
+        class="nc-base-menu-item"
+        @click="emits('sendRecord', contextMenuRowId)"
+      >
+        <div class="flex gap-2 items-center">
+          <GeneralIcon icon="mail" class="h-4 w-4" />
+          {{ $t('activity.sendRecord') }}
         </div>
       </NcMenuItem>
     </template>

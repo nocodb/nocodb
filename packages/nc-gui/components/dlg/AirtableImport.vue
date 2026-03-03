@@ -20,9 +20,7 @@ const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api } = useNuxtApp()
 
-const baseURL = $api.instance.defaults.baseURL
-
-const { $state, $poller } = useNuxtApp()
+const { $poller } = useNuxtApp()
 
 const workspace = useWorkspace()
 
@@ -77,9 +75,7 @@ const syncSource = ref({
 
 const sourceSelectorRef = ref()
 
-const customSourceId = computed(() => {
-  return sourceSelectorRef.value?.customSourceId || sourceId
-})
+const sourceIdRef = ref(sourceId)
 
 const onLog = (data: { message: string }) => {
   progressRef.value?.pushProgress(data.message, 'progress')
@@ -159,7 +155,7 @@ async function createOrUpdate() {
         baseId,
         {
           operation: 'syncSourceCreate',
-          sourceId: customSourceId.value,
+          sourceId: sourceIdRef.value,
         },
         payload,
       )
@@ -221,7 +217,7 @@ async function listenForUpdates(id?: string) {
 async function loadSyncSrc() {
   const data: any = await $api.internal.getOperation(activeWorkspace.value!.id, baseId, {
     operation: 'syncSourceList',
-    sourceId: customSourceId.value,
+    sourceId: sourceIdRef.value,
   })
 
   const { list: srcs } = data
@@ -411,8 +407,8 @@ const collapseKey = ref('')
         <div class="my-5">
           <NcListSourceSelector
             ref="sourceSelectorRef"
+            v-model:source-id="sourceIdRef"
             :base-id="baseId"
-            :source-id="sourceId"
             :show-source-selector="showSourceSelector"
             force-layout="vertical"
           />

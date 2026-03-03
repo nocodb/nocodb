@@ -28,6 +28,8 @@ export enum PlanLimitTypes {
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
+  LIMIT_SANDBOX_PER_BASE = 'limit_sandbox',
+  LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
 }
 
 export enum PlanFeatureTypes {
@@ -42,6 +44,7 @@ export enum PlanFeatureTypes {
   FEATURE_FILE_MODE = 'feature_file_mode',
   FEATURE_FORM_URL_REDIRECTION = 'feature_form_url_redirection',
   FEATURE_FORM_CUSTOM_LOGO = 'feature_form_custom_logo',
+  FEATURE_FORM_CUSTOM_SUBMIT_LABEL = 'feature_form_custom_submit_label',
   FEATURE_FORM_FIELD_ON_CONDITION = 'feature_form_field_on_condition',
   FEATURE_FORM_FIELD_VALIDATION = 'feature_form_field_validation',
   FEATURE_GROUP_BY_AGGREGATIONS = 'feature_group_by_aggregations',
@@ -55,6 +58,7 @@ export enum PlanFeatureTypes {
   FEATURE_WORKSPACE_CUSTOM_LOGO = 'feature_workspace_custom_logo',
   FEATURE_CURRENT_USER_FILTER = 'feature_current_user_filter',
   FEATURE_ROW_COLOUR = 'feature_row_colour',
+  FEATURE_CELL_COLOUR = 'feature_cell_colour',
   FEATURE_TABLE_AND_FIELD_PERMISSIONS = 'feature_table_and_field_permissions',
   FEATURE_PRIVATE_BASES = 'feature_private_bases',
   FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
@@ -64,12 +68,24 @@ export enum PlanFeatureTypes {
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
   FEATURE_AI_BUTTON_FIELD = 'feature_ai_button_field',
+  FEATURE_BUTTON_VISIBILITY = 'feature_button_visibility',
+  FEATURE_COLOUR_FIELD = 'feature_colour_field',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
   FEATURE_COPY_VIEW_SETTING_FROM_OTHER = 'feature_copy_view_setting_other',
   FEATURE_CARD_FIELD_HEADER_VISIBILITY = 'feature_card_field_header_visibility',
+  FEATURE_SCIM = 'feature_scim',
   FEATURE_SYNC = 'feature_sync',
   FEATURE_UNIQUE = 'feature_unique',
+  FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
+  FEATURE_PINNED_FILTER = 'feature_pinned_filter',
+  FEATURE_UUID_FIELD = 'feature_uuid_field',
+  FEATURE_AUTONUMBER_FIELD = 'feature_autonumber_field',
+  FEATURE_RECORD_TEMPLATES = 'feature_record_templates',
+  FEATURE_RLS = 'feature_rls',
+  FEATURE_VIEW_SECTIONS = 'feature_view_sections',
+  FEATURE_MAP_VIEW = 'feature_map_view',
+  FEATURE_TIMELINE_VIEW = 'feature_timeline_view',
 }
 
 export enum PlanTitles {
@@ -225,9 +241,12 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
+  [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
+    'to add more row-level security policies per table.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
+  [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -243,6 +262,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]:
     'to access redirect after form submission feature',
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: 'to add a custom logo to forms.',
+  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]:
+    'to customize the submit button label.',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]:
     'to access conditional form fields feature',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]:
@@ -265,6 +286,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]:
     'to filter view by current user',
   [PlanFeatureTypes.FEATURE_ROW_COLOUR]: 'to use row colouring.',
+  [PlanFeatureTypes.FEATURE_CELL_COLOUR]: 'to use cell colouring.',
   [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]:
     'to use table and field permissions.',
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
@@ -277,6 +299,9 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to visualize records in a calendar range.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: 'to use AI button fields.',
+  [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]:
+    'to use button visibility conditions.',
+  [PlanFeatureTypes.FEATURE_COLOUR_FIELD]: 'to use colour fields.',
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE]:
     'to target different base when duplicate table.',
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_WS]:
@@ -285,8 +310,19 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to copy view configuration from another view.',
   [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]:
     'to hide field headers in Gallery and Kanban views.',
+  [PlanFeatureTypes.FEATURE_SCIM]: 'to enable SCIM provisioning.',
   [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
+  [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]:
+    'to enable or disable individual filters.',
+  [PlanFeatureTypes.FEATURE_PINNED_FILTER]: 'to pin filters to the toolbar.',
+  [PlanFeatureTypes.FEATURE_UUID_FIELD]: 'to use UUID fields.',
+  [PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD]: 'to use AutoNumber fields.',
+  [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: 'to use record templates.',
+  [PlanFeatureTypes.FEATURE_RLS]: 'to use row-level security.',
+  [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into sections.',
+  [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
+  [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: 'to use timeline view.',
 };
 
 export const getUpgradeMessage = (
@@ -310,3 +346,13 @@ export enum ReturnToBillingPage {
   ACCOUNT = 'account',
   WS = 'ws',
 }
+
+export const PlanFeatureTypesToPlanTitles = {} as Record<
+  PlanFeatureTypes,
+  PlanTitles
+>;
+
+export const PlanFeatureTypesToPlanTitlesEeCloud = {} as Record<
+  Partial<PlanFeatureTypes>,
+  PlanTitles
+>;

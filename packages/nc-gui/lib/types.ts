@@ -78,6 +78,7 @@ interface Field {
   underline: boolean | number
   title: string
   fk_column_id?: string
+  fk_level_id?: string
   system?: boolean
   isViewEssentialField?: boolean
   initialShow?: boolean
@@ -131,6 +132,8 @@ interface Row {
     saving?: boolean
     ltarState?: Record<string, Record<string, any> | Record<string, any>[] | null>
     fromExpandedForm?: boolean
+    // Row is hidden by RLS policy after insert
+    isRlsHidden?: boolean
     // use in datetime picker component
     isUpdatedFromCopyNPaste?: Record<string, boolean>
     // Used in Calendar view
@@ -148,6 +151,8 @@ interface Row {
     minutes?: number
     recordIndex?: number // For week spanning records in month view
     maxSpanning?: number
+    /** Per-button-column visibility: true = button disabled for this row */
+    buttonDisabled?: Record<string, boolean>
   } & RowMetaRowColorInfo
 }
 
@@ -186,6 +191,7 @@ interface SharedViewMeta extends Record<string, any> {
   transitionDuration?: number // in ms
   withTheme?: boolean
   theme?: Partial<ThemeConfig>
+  defaultTheme?: 'light' | 'dark'
   allowCSVDownload?: boolean
   rtl?: boolean
   preFillEnabled?: boolean
@@ -225,12 +231,14 @@ type NcProject = BaseType & {
   users?: User[]
   default_role?: ProjectRoles | string
   version?: BaseVersion
-  // Sandbox fields
-  sandbox_master?: boolean
-  sandbox_id?: string
-  sandbox_version_id?: string
+  // Managed App fields
+  managed_app_master?: boolean
+  managed_app_id?: string
+  managed_app_version_id?: string
+  managed_app_version?: string
+  managed_app_published_at?: string
   auto_update?: boolean
-  sandbox_schema_locked?: boolean
+  managed_app_schema_locked?: boolean
 }
 
 interface UndoRedoAction {
@@ -277,7 +285,15 @@ interface Users {
   invitationToken?: string
 }
 
-type ProjectPageType = 'overview' | 'collaborator' | 'data-source' | 'base-settings' | 'syncs' | 'permissions' | 'audits'
+type ProjectPageType =
+  | 'overview'
+  | 'collaborator'
+  | 'data-source'
+  | 'base-settings'
+  | 'syncs'
+  | 'permissions'
+  | 'audits'
+  | 'workflows'
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
 
@@ -727,6 +743,7 @@ interface PermissionSelectorUser {
   email?: string
   display_name?: string | null
   type?: 'user' | 'team'
+  hierarchy_scope?: 'self_only' | 'self_and_descendants'
 }
 
 // NcList type starts here
@@ -761,6 +778,51 @@ interface NcListSearchBasisOptionType {
    * The filter callback to use for the list.
    */
   filterCallback: (input: string, option: NcListItemType, index: Number) => boolean
+}
+
+/**
+ * Props interface for a standalone NcListItem component.
+ * Used both by NcList internally and anywhere an individual list-item
+ * with consistent variant / state styling is needed.
+ */
+interface NcListItemProps {
+  /** The list item data object */
+  option: NcListItemType
+  /** Size variant — controls padding and min-height */
+  variant?: 'default' | 'small' | 'medium'
+  /** Index within the parent list (used for keyboard-active CSS class) */
+  index?: number
+  /** Key for reading the label from the option object */
+  optionLabelKey?: string
+  /** Whether this item is currently selected */
+  isSelected?: boolean
+  /** Whether this item is currently active / keyboard-focused */
+  isActive?: boolean
+  /** Show a checkmark icon when the item is selected */
+  showSelectedOption?: boolean
+  /**
+   * Whether to render the selected-item background highlight.
+   * NcList sets this to false while the user is moving with the keyboard
+   * so the hover effect doesn't compete with the keyboard-active highlight.
+   */
+  showHoverEffect?: boolean
+  /** Disable all pointer interaction (locked view) */
+  isLocked?: boolean
+  /** Remove horizontal padding and rounded corners (full-width mode) */
+  itemFullWidth?: boolean
+  /** Extra CSS classes forwarded to the item root element */
+  itemClassName?: string
+  /** Extra CSS classes forwarded to group-header items */
+  groupHeaderClassName?: string
+  /** Placement for the item-level tooltip (ncItemTooltip) */
+  itemTooltipPlacement?: TooltipPlacement
+  /**
+   * Secondary info shown next to the label when the item was matched via
+   * a search-basis option rather than by label text.
+   */
+  searchBasisInfo?: string
+  /** Min-height of group header rows in pixels */
+  groupHeaderHeight?: number
 }
 
 /**
@@ -903,6 +965,8 @@ interface NcListProps {
    * @default default
    */
   theme?: 'default' | 'ai'
+
+  resetHoverEffectOnMouseLeave?: boolean
 }
 
 // NcList type ends here
@@ -1066,6 +1130,7 @@ export type {
   PermissionConfig,
   PermissionSelectorUser,
   NcListProps,
+  NcListItemProps,
   NcListItemType,
   NcListSearchBasisOptionType,
   MultiSelectRawValueType,

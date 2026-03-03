@@ -3,6 +3,7 @@ import debug from 'debug';
 import {
   isAIPromptCol,
   isLinksOrLTAR,
+  isLinkV2,
   isVirtualCol,
   NcApiVersion,
   NcBaseError,
@@ -476,7 +477,10 @@ export class ImportService {
 
           const colOptions = col.colOptions as LinksColumn;
           if (idMap.has(colOptions.fk_related_model_id)) {
-            if (colOptions.type === 'mm') {
+            if (
+              colOptions.type === RelationTypes.MANY_TO_MANY ||
+              isLinkV2(col)
+            ) {
               if (!linkMap.has(colOptions.fk_mm_model_id)) {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
@@ -736,7 +740,10 @@ export class ImportService {
               }
             }
           } else if (externalIdMap.has(colOptions.fk_related_model_id)) {
-            if (colOptions.type === 'mm') {
+            if (
+              colOptions.type === RelationTypes.MANY_TO_MANY ||
+              isLinkV2(col)
+            ) {
               if (!linkMap.has(colOptions.fk_mm_model_id)) {
                 // delete col.column_name as it is not required and will cause ajv error (null for LTAR)
                 delete col.column_name;
@@ -1380,7 +1387,9 @@ export class ImportService {
       col.dt = col.dt ?? sqlUi.getDataTypeForUiType(col).dt;
       const { colOptions, ...flatCol } = col;
       if (col.uidt === UITypes.Lookup) {
+        // Skip if relation column or lookup column can't be mapped (e.g., cross-base lookups)
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
+        if (!getIdOrExternalId(colOptions.fk_lookup_column_id)) continue;
         const freshModelData = (await this.columnsService.columnAdd(
           targetContext,
           {
@@ -1409,7 +1418,9 @@ export class ImportService {
           }
         }
       } else if (col.uidt === UITypes.Rollup) {
+        // Skip if relation column or rollup column can't be mapped (e.g., cross-base rollups)
         if (!getIdOrExternalId(colOptions.fk_relation_column_id)) continue;
+        if (!getIdOrExternalId(colOptions.fk_rollup_column_id)) continue;
         const freshModelData = (await this.columnsService.columnAdd(context, {
           tableId: getIdOrExternalId(getParentIdentifier(col.id)),
           column: withoutId({

@@ -235,7 +235,8 @@ const mockColumns: UnifiedMetaType.IColumn[] = [
   },
 ];
 
-const mockGetMeta: UnifiedMetaType.IGetModel = jest.fn(
+// PR review fix #8: use proper typing instead of `as any` casts
+const mockGetMeta = jest.fn(
   async (_context, options) => {
     if (options.id === 'model2') {
       return {
@@ -246,7 +247,7 @@ const mockGetMeta: UnifiedMetaType.IGetModel = jest.fn(
           {
             id: 'col7',
             title: 'Column7',
-            uidt: UITypes.SingleLineText,
+            uidt: UITypes.SingleLineText as any,
             dt: 'varchar',
             pv: true,
             base_id: 'base1',
@@ -255,16 +256,16 @@ const mockGetMeta: UnifiedMetaType.IGetModel = jest.fn(
             deleted: false,
           },
         ],
-      };
+      } as any;
     }
     return {
       id: 'model1',
       title: 'Model1',
       base_id: 'base1',
-      columns: mockColumns,
-    };
+      columns: mockColumns as any,
+    } as any;
   }
-);
+) as unknown as UnifiedMetaType.IGetModel;
 
 const mockClientOrSqlUi = SqlUiFactory.create({ client: 'pg' });
 

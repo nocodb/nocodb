@@ -39,14 +39,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
     const attr = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)
 
     if (isValidURL(attr.href)) {
-      return [
-        'a',
-        {
-          ...attr,
-          onclick: '(function(event) { window.tiptapLinkHandler?.(event);})(event)', // Global handler
-        },
-        0,
-      ]
+      return ['a', attr, 0]
     }
 
     // We use this as a workaround to show a tooltip on the content

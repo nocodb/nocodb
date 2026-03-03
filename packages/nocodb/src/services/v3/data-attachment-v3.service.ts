@@ -294,7 +294,7 @@ export class DataAttachmentV3Service {
         size: fileSize,
       };
       processedAttachments.push(processedAttachment);
-      if (supportsThumbnails({ mimetype: mimeType })) {
+      if (supportsThumbnails({ mimetype: mimeType, size: fileSize })) {
         generateThumbnailAttachments.push(processedAttachment);
       }
     } catch (error) {

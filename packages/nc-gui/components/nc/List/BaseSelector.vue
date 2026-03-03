@@ -101,7 +101,7 @@ watch(
 
       // Auto-select logic (only if autoSelect is enabled and no current value)
       if (!modelValue.value && props.autoSelect) {
-        const firstBase = newBaseList[0]
+        const firstBase = newBaseList[0]!
 
         if (firstBase.ncItemDisabled) {
           modelValue.value = newBaseList.find((base) => !base.ncItemDisabled)?.value || firstBase.value
@@ -141,7 +141,14 @@ defineExpose({
     <NcListDropdown v-model:is-open="isOpenBaseSelectDropdown" :disabled="disabled" :has-error="!!selectedBase?.ncItemDisabled">
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedBase" class="min-w-5 flex items-center justify-center">
-          <GeneralProjectIcon :color="parseProp(selectedBase.meta).iconColor" size="small" />
+          <GeneralProjectIcon
+            :color="parseProp(selectedBase.meta).iconColor"
+            :managed-app="{
+              managed_app_master: selectedBase.managed_app_master,
+              managed_app_id: selectedBase.managed_app_id,
+            }"
+            size="small"
+          />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -178,7 +185,14 @@ defineExpose({
         >
           <template #listItemExtraLeft="{ option }">
             <div class="min-w-5 flex items-center justify-center">
-              <GeneralProjectIcon :color="parseProp(option.meta).iconColor" size="small" />
+              <GeneralProjectIcon
+                :color="parseProp(option.meta).iconColor"
+                :managed-app="{
+                  managed_app_master: option.managed_app_master,
+                  managed_app_id: option.managed_app_id,
+                }"
+                size="small"
+              />
             </div>
           </template>
         </NcList>
@@ -186,38 +200,3 @@ defineExpose({
     </NcListDropdown>
   </a-form-item>
 </template>
-
-<style lang="scss">
-.nc-base-selector.ant-form-item {
-  &.nc-force-layout-vertical {
-    @apply !flex-col;
-
-    & > .ant-form-item-label {
-      @apply pb-2 text-left;
-
-      &::after {
-        @apply hidden;
-      }
-
-      & > label {
-        @apply !h-auto;
-        &::after {
-          @apply !hidden;
-        }
-      }
-    }
-  }
-
-  &.nc-force-layout-horizontal {
-    @apply !flex-row !items-center;
-
-    & > .ant-form-item-label {
-      @apply pb-0 items-center;
-
-      &::after {
-        @apply content-[':'] !mr-2 !ml-0.5 relative top-[0.5px];
-      }
-    }
-  }
-}
-</style>

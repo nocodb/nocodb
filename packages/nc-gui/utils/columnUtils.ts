@@ -75,6 +75,10 @@ const uiTypes: UiTypesType[] = [
     icon: iconMap.cellNumber,
   },
   {
+    name: UITypes.AutoNumber,
+    icon: iconMap.cellAutoNumber,
+  },
+  {
     name: UITypes.Decimal,
     icon: iconMap.cellDecimal,
   },
@@ -135,6 +139,10 @@ const uiTypes: UiTypesType[] = [
     icon: iconMap.cellRating,
   },
   {
+    name: UITypes.Colour,
+    icon: iconMap.palette,
+  },
+  {
     name: UITypes.Formula,
     icon: iconMap.cellFormula,
     virtual: 1,
@@ -174,6 +182,10 @@ const uiTypes: UiTypesType[] = [
   {
     name: UITypes.SpecificDBType,
     icon: iconMap.cellDb,
+  },
+  {
+    name: UITypes.UUID,
+    icon: iconMap.cellUuid,
   },
   {
     name: UITypes.User,
@@ -428,6 +440,7 @@ const formViewHiddenColTypes = [
   UITypes.CreatedBy,
   UITypes.LastModifiedBy,
   UITypes.Meta,
+  UITypes.UUID,
   AIButton,
   AIPrompt,
 ]

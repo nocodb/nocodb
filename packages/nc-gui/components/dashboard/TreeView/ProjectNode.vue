@@ -34,7 +34,7 @@ const { isMobileMode, user } = useGlobal()
 
 const { createProject: _createProject, updateProject, getProjectMetaInfo } = basesStore
 
-const { bases, basesUser, showProjectList } = storeToRefs(basesStore)
+const { bases, basesUser } = storeToRefs(basesStore)
 
 const collaborators = computed(() => {
   return (basesUser.value.get(base.value?.id) || []).map((user: any) => {
@@ -240,11 +240,6 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
 
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-  if (!cmdOrCtrl && activeProjectId.value === base.id) {
-    showProjectList.value = false
-    return
-  }
-
   if (!toggleIsExpanded && !cmdOrCtrl) $e('c:base:open')
 
   toggleIsExpanded = isMobileMode.value || toggleIsExpanded
@@ -297,8 +292,6 @@ const onProjectClick = async (base: NcProject, ignoreNavigation?: boolean, toggl
       updatedProject.isLoading = false
     }
   }
-
-  showProjectList.value = false
 }
 
 function openErdView(source: SourceType) {
@@ -367,12 +360,6 @@ const selectedProjectToDuplicate = ref()
 const duplicateProject = (base: BaseType) => {
   selectedProjectToDuplicate.value = base
   isDuplicateDlgOpen.value = true
-}
-
-const isConvertToSandboxDlgOpen = ref(false)
-
-const convertToSandbox = () => {
-  isConvertToSandboxDlgOpen.value = true
 }
 
 const tableDelete = () => {
@@ -619,7 +606,6 @@ defineExpose({
                       @click-menu="onClickMenu"
                       @rename="enableEditMode()"
                       @duplicate-project="duplicateProject($event)"
-                      @convert-to-sandbox="convertToSandbox"
                       @copy-project-info="copyProjectInfo()"
                       @open-erd-view="openErdView($event)"
                       @open-base-settings="openBaseSettings($event)"
@@ -680,7 +666,6 @@ defineExpose({
         @click-menu="onClickMenu"
         @rename="enableEditMode(true)"
         @duplicate-project="duplicateProject($event)"
-        @convert-to-sandbox="convertToSandbox"
         @copy-project-info="copyProjectInfo()"
         @open-erd-view="openErdView($event)"
         @open-base-settings="openBaseSettings($event)"
@@ -765,7 +750,6 @@ defineExpose({
   />
   <DlgBaseDelete v-model:visible="isBaseDeleteDialogVisible" :base-id="base?.id" />
   <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
-  <DlgConvertToSandbox v-if="base?.id" v-model:visible="isConvertToSandboxDlgOpen" :base-id="base.id" />
   <GeneralModal v-model:visible="isErdModalOpen" size="large">
     <div class="h-[80vh]">
       <LazyDashboardSettingsErd :base-id="base?.id" :source-id="activeBaseId" />

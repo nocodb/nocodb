@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { ProjectRoles } from 'nocodb-sdk'
+import { PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -18,6 +18,8 @@ const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeTo
 const { activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace, isTeamsEnabled } = storeToRefs(useWorkspace())
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
@@ -28,6 +30,7 @@ const {
   blockSync,
   showUpgradeToUseSync,
   isWsAuditEnabled,
+  isEEFeatureBlocked,
 } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
@@ -53,7 +56,7 @@ const { base } = storeToRefs(useBase())
 
 const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, appInfo } = useGlobal()
 
 const baseSettingsState = ref('')
 
@@ -79,6 +82,23 @@ const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
 const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList'))
 
+const isWorkflowsTabVisible = computed(
+  () =>
+    isEeUI &&
+    appInfo.value?.ee &&
+    isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
+    isUIAllowed('workflowCreateOrEdit') &&
+    !isMobileMode.value,
+)
+
+// Get actual workflow count
+const workflowStore = useWorkflowStore()
+const { activeBaseWorkflows } = storeToRefs(workflowStore)
+
+const workflowCount = computed(() => {
+  return activeBaseWorkflows.value?.length ?? 0
+})
+
 const projectPageTab = computed({
   get() {
     return _projectPageTab.value
@@ -93,6 +113,10 @@ const projectPageTab = computed({
     }
 
     if (value === 'audits' && !isAuditsTabVisible.value) {
+      return
+    }
+
+    if (value === 'workflows' && !isWorkflowsTabVisible.value) {
       return
     }
 
@@ -113,7 +137,9 @@ watch(
      * We are waiting for base role load and their might be the case that,
      * on navigating to different page this watch get called which will overwrite projectPageTab value and navigateToProjectPage fn get called
      */
-    if (route.value.params.viewId) return
+    if (['viewId', 'workflowId', 'scriptId', 'dashboardId'].some((key) => route.value.params[key])) {
+      return
+    }
 
     // In mobile mode we only show collaborator tab
     if (isMobileMode.value && newVal !== 'collaborator') {
@@ -134,6 +160,8 @@ watch(
         projectPageTab.value = 'base-settings'
       } else if (newVal === 'audits' && isAuditsTabVisible.value) {
         projectPageTab.value = 'audits'
+      } else if (newVal === 'workflows' && isWorkflowsTabVisible.value) {
+        projectPageTab.value = 'workflows'
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -208,6 +236,10 @@ onMounted(() => {
           <GeneralProjectIcon
             :color="parseProp(currentBase?.meta).iconColor"
             :type="currentBase?.type"
+            :managed-app="{
+              managed_app_master: currentBase?.managed_app_master,
+              managed_app_id: currentBase?.managed_app_id,
+            }"
             class="h-6 w-6 md:(h-4 w-4) flex-none"
           />
           <NcTooltip
@@ -232,6 +264,7 @@ onMounted(() => {
         </div>
       </div>
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
+        <SmartsheetTopbarManagedAppStatus />
         <SmartsheetTopbarSandboxStatus />
         <LazyGeneralShareProject />
       </div>
@@ -282,11 +315,35 @@ onMounted(() => {
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
+        <a-tab-pane v-if="isWorkflowsTabVisible && base.id" key="workflows">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__workflows">
+              <GeneralIcon icon="ncAutomation" />
+              <div>{{ $t('objects.workflows') }}</div>
+              <div
+                v-if="workflowCount"
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'workflows',
+                  'bg-nc-bg-gray-extralight': projectPageTab !== 'workflows',
+                }"
+              >
+                {{ workflowCount }}
+              </div>
+            </div>
+          </template>
+          <ProjectWorkflowsList :base-id="base.id" />
+        </a-tab-pane>
         <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
               <div>{{ $t('general.permissions') }}</div>
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+                :feature-enabled-callback="() => !isEEFeatureBlocked"
+                remove-click
+              />
             </div>
           </template>
           <DashboardSettingsPermissions v-model:state="baseSettingsState" :base-id="base.id" />
@@ -315,6 +372,11 @@ onMounted(() => {
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
               <div>Syncs</div>
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_SYNC"
+                :feature-enabled-callback="() => !isEEFeatureBlocked"
+                remove-click
+              />
             </div>
           </template>
           <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />

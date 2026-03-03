@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { RelationTypes } from 'nocodb-sdk'
+
 const {
   relation,
   relatedTableTitle,
@@ -16,14 +18,14 @@ const {
 const { t } = useI18n()
 
 const relationMeta = computed(() => {
-  if (relation === 'hm') {
+  if (relation === RelationTypes.HAS_MANY || relation === RelationTypes.ONE_TO_MANY) {
     return {
       title: t('msg.hm.title'),
       icon: iconMap.hm,
       tooltip_desc: t('msg.hm.tooltip_desc'),
       tooltip_desc2: t('msg.hm.tooltip_desc2'),
     }
-  } else if (relation === 'mm') {
+  } else if (relation === RelationTypes.MANY_TO_MANY) {
     return {
       title: t('msg.mm.title'),
       icon: iconMap.mm,
@@ -31,7 +33,7 @@ const relationMeta = computed(() => {
       tooltip_desc: t('msg.mm.tooltip_desc'),
       tooltip_desc2: t('msg.mm.tooltip_desc2'),
     }
-  } else if (relation === 'bt') {
+  } else if (relation === RelationTypes.MANY_TO_ONE || relation === RelationTypes.BELONGS_TO) {
     return {
       title: t('msg.bt.title'),
       icon: iconMap.bt,

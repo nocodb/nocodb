@@ -37,11 +37,18 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
+    const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+
     const { getMeta, getPartialMeta } = useMetas()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
-    const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
+    const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
+    const canSyncGroupBy = hasPersonalViewPermission('groupBySync')
+
+    const localGroupBy = ref<{ column: ColumnType; sort: string; order: number }[] | null>(null)
+
+    const syncedGroupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
       const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
       Object.values(gridViewCols.value).forEach((col) => {
         if (col.group_by) {
@@ -57,6 +64,18 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       })
       tempGroupBy.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
       return tempGroupBy
+    })
+
+    const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
+      // null = no override (use synced), [] = override with empty (no grouping)
+      if (localGroupBy.value !== null) {
+        return localGroupBy.value.map((e, i) => ({
+          column: e.column,
+          sort: e.sort,
+          order: e.order || i + 1,
+        }))
+      }
+      return syncedGroupBy.value
     })
 
     const isGroupBy = computed(() => !!groupBy.value.length)
@@ -125,7 +144,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       list.map((row) => ({
         row: { ...row },
         oldRow: { ...row },
-        rowMeta: {},
+        rowMeta: {
+          ...getEvaluatedRowMetaRowColorInfo(row),
+        },
       }))
 
     const colors = ref(enumColor.light)
@@ -418,6 +439,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
               ...query,
               ...params,
+              include_row_color: true,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             } as any)
@@ -533,12 +555,23 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     watch(
       () => groupBy.value.length,
       async () => {
-        if (!groupBy.value.length) return
+        if (!groupBy.value.length) {
+          nextTick(() => reloadViewDataHook?.trigger())
+          return
+        }
 
         rootGroup.value.paginationData = { page: 1, pageSize: groupByGroupLimit.value }
         rootGroup.value.column = {} as any
         refreshNested()
         nextTick(() => reloadViewDataHook?.trigger())
+      },
+    )
+
+    // Clear local group-bys on view change
+    watch(
+      () => view.value?.id,
+      () => {
+        localGroupBy.value = null
       },
     )
 
@@ -680,7 +713,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     }
 
     async function loadAggCommentsCount(formattedData: Array<Row>) {
-      if (!isUIAllowed('commentCount') || isPublic.value) return
+      if (!isUIAllowed('commentCount') || isPublic) return
 
       const ids = formattedData
         .filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -709,6 +742,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     return {
       rootGroup,
       groupBy,
+      syncedGroupBy,
+      localGroupBy,
+      canSyncGroupBy,
       isGroupBy,
       fieldsToGroupBy,
       groupByLimit,

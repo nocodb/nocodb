@@ -25,8 +25,15 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature, blockTeamsManagement, showUpgradeToUseTeams } =
-  useEeConfig()
+const {
+  isWsAuditEnabled,
+  handleUpgradePlan,
+  isPaymentEnabled,
+  getFeature,
+  blockTeamsManagement,
+  showUpgradeToUseTeams,
+  isEEFeatureBlocked,
+} = useEeConfig()
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
@@ -109,7 +116,7 @@ watch(
   async (newTab) => {
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isUIAllowed('workspaceCollaborators')) {
+    if (!isUIAllowed('workspaceCollaborators') && !isEEFeatureBlocked.value) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
@@ -123,6 +130,8 @@ watch(
   },
 )
 
+const { shouldShow: btbShouldShow } = useBackToBase()
+
 onMounted(() => {
   hideSidebar.value = true
 })
@@ -133,7 +142,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings">
+  <div v-if="currentWorkspace" class="flex w-full flex-col nc-workspace-settings h-full overflow-hidden">
     <div
       v-if="!props.workspaceId"
       class="min-w-0 p-2 h-[var(--topbar-height)] border-b-1 border-nc-border-gray-medium flex items-center gap-2"
@@ -154,6 +163,7 @@ onBeforeUnmount(() => {
           {{ $t('title.teamAndSettings') }}
         </h1>
       </div>
+
       <GeneralHideLeftSidebarBtn v-if="isMobileMode && isLeftSidebarOpen" />
     </div>
     <template v-else>
@@ -191,7 +201,10 @@ onBeforeUnmount(() => {
       </NcPageHeader>
     </template>
 
-    <NcTabs v-model:active-key="tab">
+    <!-- Back-to-base full-width bar: shown between breadcrumb and tabs (breadcrumb variant only) -->
+    <DashboardBackToBaseBreadcrumbVariant />
+
+    <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
       <template #leftExtra>
         <div class="w-3"></div>
       </template>
@@ -212,6 +225,11 @@ onBeforeUnmount(() => {
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
               {{ $t('general.teams') }}
+              <LazyPaymentUpgradeBadge
+                :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT"
+                :feature-enabled-callback="() => !isEEFeatureBlocked"
+                remove-click
+              />
             </div>
           </template>
 
@@ -236,12 +254,17 @@ onBeforeUnmount(() => {
           </a-tab-pane>
         </template>
 
-        <template v-if="isEeUI && !props.workspaceId && isWsAuditEnabled && isUIAllowed('workspaceAuditList')">
+        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList')">
           <a-tab-pane key="audits" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
                 <GeneralIcon icon="audit" class="h-4 w-4" />
                 {{ $t('title.audits') }}
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE"
+                  :feature-enabled-callback="() => isWsAuditEnabled"
+                  remove-click
+                />
               </div>
             </template>
             <WorkspaceAudits v-if="isWsAuditEnabled" />
@@ -258,12 +281,12 @@ onBeforeUnmount(() => {
               </div>
             </template>
 
-            <WorkspaceSso class="!h-[calc(100vh_-_92px)]" />
+            <WorkspaceSso :class="btbShouldShow ? '!h-[calc(100vh-128px)]' : '!h-[calc(100vh-92px)]'" />
           </a-tab-pane>
         </template>
       </template>
 
-      <a-tab-pane key="settings" class="w-full">
+      <a-tab-pane v-if="!isEEFeatureBlocked" key="settings" class="w-full">
         <template #tab>
           <div class="tab-title" data-testid="nc-workspace-settings-tab-settings">
             <GeneralIcon icon="ncSettings" class="h-4 w-4" />

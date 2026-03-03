@@ -22,6 +22,10 @@ export const modalSizes = {
     width: 'min(80vw, 1280px)',
     height: 'min(90vh, 864px)',
   },
+  xl: {
+    width: 'min(90vw, 1280px)',
+    height: 'min(90vh, 864px)',
+  },
   fullscreen: {
     width: '100vw',
     height: '100vh',

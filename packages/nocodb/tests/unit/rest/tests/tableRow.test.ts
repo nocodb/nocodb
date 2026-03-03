@@ -162,7 +162,7 @@ function tableStaticTest() {
 
     if (
       lastPageResponse.body.list[lastPageResponse.body.list.length - 1][
-      firstNameColumn.title
+        firstNameColumn.title
       ] !== 'AARON'
     ) {
       console.log(lastPageOffset, lastPageResponse.body.list);
@@ -215,7 +215,7 @@ function tableStaticTest() {
 
     if (
       lastPageResponse.body.list[lastPageResponse.body.list.length - 1][
-      firstNameColumn.title
+        firstNameColumn.title
       ] !== 'ZACHARY'
     ) {
       console.log(lastPageOffset, lastPageResponse.body.list);
@@ -408,6 +408,68 @@ function tableStaticTest() {
       throw error;
     }
   });
+  it('Export json', async () => {
+    // get row count
+    const rowCount = await countRows({
+      base: sakilaProject,
+      table: customerTable,
+      view: customerView,
+    });
+
+    // Start export job
+    const jobResponse = await request(context.app)
+      .post(`/api/v2/export/${customerView.id}/json`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    // Verify we got a job ID
+    const jobId = jobResponse.body.id;
+    expect(jobId).to.be.a('string');
+
+    // Wait for job completion using the helper function
+    const resultData = await listenForJob({
+      context,
+      base_id: sakilaProject.id,
+      job_id: jobId,
+    });
+
+    // Verify the exported file
+    expect(resultData).to.be.an('object');
+    expect(resultData.url).to.be.a('string');
+
+    try {
+      const fileUrl = resultData.url;
+
+      // Download the file using the download endpoint
+      const fileResponse = await request(context.app)
+        .get(`/${encodeURI(fileUrl)}`)
+        .set('xc-auth', context.token)
+        .expect(200);
+
+      // Check file content
+      expect(fileResponse.headers['content-disposition']).to.match(
+        new RegExp(
+          `${sakilaProject.title} - ${customerTable.title} \\(Customer\\) \\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}.json`,
+        ),
+      );
+      expect(fileResponse.headers['content-type']).to.include(
+        'application/json',
+      );
+      expect(fileResponse.text).to.be.a('string').and.not.empty;
+
+      // Parse and verify JSON content
+      const jsonData = JSON.parse(fileResponse.text);
+      expect(jsonData).to.be.an('array');
+      expect(jsonData.length).to.equal(rowCount);
+    } catch (error) {
+      console.log(error);
+      console.error('Error downloading file:', error.message);
+      console.error('URL used:', `/${resultData.url}`);
+      console.error('Result data:', JSON.stringify(resultData, null, 2));
+      throw error;
+    }
+  });
+
   // todo: Add export test for views
   it('Nested row list hm', async () => {
     const rowId = 1;

@@ -14,6 +14,8 @@ const { loadCollaborators } = workspaceStore
 
 const { isFromIntegrationPage, integrationPaginationData, activeViewTab, loadIntegrations } = useProvideIntegrationViewStore()
 
+const { shouldShow: btbShouldShow } = useBackToBase()
+
 const currentWorkspace = computedAsync(async () => {
   await loadRoles(undefined, {}, _activeWorkspace.value?.id)
   return _activeWorkspace.value
@@ -65,6 +67,9 @@ onBeforeMount(() => {
         </h1>
       </div>
     </div>
+
+    <DashboardBackToBaseBreadcrumbVariant />
+
     <NcTabs v-model:active-key="activeViewTab">
       <template #leftExtra>
         <div class="w-3"></div>
@@ -77,7 +82,7 @@ onBeforeMount(() => {
               {{ $t('general.integrations') }}
             </div>
           </template>
-          <div class="h-[calc(100vh-92px)]">
+          <div :class="btbShouldShow ? 'h-[calc(100vh-128px)]' : 'h-[calc(100vh-92px)]'">
             <WorkspaceIntegrationsTab show-filter />
           </div>
         </a-tab-pane>
@@ -100,7 +105,7 @@ onBeforeMount(() => {
               </div>
             </div>
           </template>
-          <div class="h-[calc(100vh-92px)] p-6">
+          <div class="p-6" :class="[btbShouldShow ? 'h-[calc(100vh-128px)]' : 'h-[calc(100vh-92px)]']">
             <WorkspaceIntegrationsConnectionsTab />
           </div>
         </a-tab-pane>

@@ -10,7 +10,7 @@ export class AccountSetupConfigPage extends BasePage {
   }
 
   async goto(category: 'email' | 'storage', plugin: string) {
-    await this.rootPage.goto(`/#/account/setup/${category}/${plugin}`);
+    await this.rootPage.goto(`/account/setup/${category}/${plugin}`);
   }
 
   get() {

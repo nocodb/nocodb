@@ -72,7 +72,7 @@ const customRow = (base: Record<string, any>) => ({
     if (isEeUI) {
       navigateTo(`/${base.workspace_id}/${base.id}`)
     } else {
-      navigateTo(`/#/nc/${base.workspace_id}/${base.id}`)
+      navigateTo(`/nc/${base.workspace_id}/${base.id}`)
     }
   },
 })

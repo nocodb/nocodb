@@ -1,24 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import { ConfigService } from '@nestjs/config';
-import type { AppConfig, NcContext, NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Base, CustomUrl } from '~/models';
 
-// todo: load from config
-const config = {
-  dashboardPath: '/nc',
-};
-
 @Injectable()
 export class SharedBasesService {
-  constructor(
-    private readonly appHooksService: AppHooksService,
-    private configService: ConfigService<AppConfig>,
-  ) {}
+  constructor(private readonly appHooksService: AppHooksService) {}
 
   async createSharedBaseLink(
     context: NcContext,
@@ -178,15 +169,12 @@ export class SharedBasesService {
     let siteUrl = _siteUrl;
 
     const baseDomain = process.env.NC_BASE_HOST_NAME;
-    const dashboardPath = this.configService.get('dashboardPath', {
-      infer: true,
-    });
 
     if (baseDomain) {
-      siteUrl = `https://${base['fk_workspace_id']}.${baseDomain}${dashboardPath}`;
+      siteUrl = `https://${base['fk_workspace_id']}.${baseDomain}`;
     }
 
-    return `${siteUrl}${config.dashboardPath}#/base/${base.uuid}`;
+    return `${siteUrl}/base/${base.uuid}`;
   }
 
   async disableSharedBaseLink(
@@ -240,7 +228,7 @@ export class SharedBasesService {
       fk_custom_url_id: base.fk_custom_url_id,
     };
     if (data.uuid)
-      data.url = `${param.siteUrl}${config.dashboardPath}#/base/${data.shared_base_id}`;
+      data.url = `${param.siteUrl}/base/${data.uuid}`;
 
     return data;
   }

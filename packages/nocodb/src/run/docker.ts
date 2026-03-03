@@ -32,5 +32,11 @@ process.env[`DEBUG`] = 'xc*';
 (async () => {
   const httpServer = server.listen(process.env.PORT || 8080, async () => {
     server.use(await Noco.init({}, httpServer, server));
+
+    // SPA fallback — serves index.html for unmatched GET requests
+    // (history-mode routing). Must be mounted AFTER the NestJS app.
+    if (Noco.spaFallbackHandler) {
+      server.use(Noco.spaFallbackHandler);
+    }
   });
 })().catch((e) => console.log(e));

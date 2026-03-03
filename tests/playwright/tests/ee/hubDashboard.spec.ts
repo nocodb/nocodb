@@ -72,17 +72,17 @@ test.describe('DashboardBasicTests', () => {
     const header = await wsPage.header;
     await header.navigateUsingCmdK({
       keySequence: ['Enter', 'ArrowDown', 'ArrowDown', 'Enter'],
-      url: 'http://localhost:3000/#/account/apps',
+      url: 'http://localhost:3000/account/apps',
     });
 
     await header.navigateUsingCmdK({
       keySequence: ['ArrowDown', 'Enter'],
-      url: 'http://localhost:3000/#/account/tokens',
+      url: 'http://localhost:3000/account/tokens',
     });
 
     await header.navigateUsingCmdK({
       searchInput: 'License',
-      url: 'http://localhost:3000/#/account/license',
+      url: 'http://localhost:3000/account/license',
     });
   });
 
@@ -175,10 +175,10 @@ test.describe('DashboardBasicTests', () => {
   test.skip('Accounts menu', async () => {
     const header = await wsPage.header;
     await header.accountMenuOpen({ title: 'user-settings' });
-    expect(dashboard.rootPage.url()).toBe('http://localhost:3000/#/account/users');
+    expect(dashboard.rootPage.url()).toBe('http://localhost:3000/account/users');
 
-    await wsPage.rootPage.goto('http://localhost:3000/#/');
+    await wsPage.rootPage.goto('http://localhost:3000/');
     await header.accountMenuOpen({ title: 'sign-out' });
-    expect(dashboard.rootPage.url()).toBe('http://localhost:3000/#/signin');
+    expect(dashboard.rootPage.url()).toBe('http://localhost:3000/signin');
   });
 });

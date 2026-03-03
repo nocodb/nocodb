@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
 import { NcDebug } from 'nc-gui/utils/debug';
+import { GuiMiddleware } from '~/middlewares/gui/gui.middleware';
 // import { definePDFJSModule } from 'unpdf';
 import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
@@ -70,6 +71,7 @@ export default class Noco {
   public static isPdfjsInitialized: boolean;
 
   public static firstEeLoad: boolean;
+  public static spaFallbackHandler: express.RequestHandler | null = null;
 
   private static _appSettings: AppSettings | null = null;
 
@@ -207,11 +209,37 @@ export default class Noco {
     await nestApp.enableShutdownHooks();
     NcDebug.log('Shutdown hooks enabled');
 
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/';
     server.use(express.static(path.join(__dirname, 'public')));
 
+    // If NC_DASHBOARD_URL is set to a non-root path (e.g. /dashboard),
+    // redirect those old paths to / so existing bookmarks still work.
     if (dashboardPath !== '/' && dashboardPath !== '') {
-      server.get('/', (_req, res) => res.redirect(dashboardPath));
+      const normalizedPath = dashboardPath.replace(/\/+$/, '');
+      server.get(`${normalizedPath}*`, (req, res) => {
+        const remaining = req.path.slice(normalizedPath.length) || '/';
+        res.redirect(remaining);
+      });
+    }
+
+    // Prepare SPA fallback handler for history-mode routing.
+    // This is mounted in docker.ts AFTER the NestJS app so it only
+    // catches requests that no controller or middleware handled.
+    try {
+      const guiMiddleware = nestApp.get(GuiMiddleware);
+      const indexHtml = guiMiddleware.getIndexHtml();
+      if (indexHtml) {
+        Noco.spaFallbackHandler = (_req, res, next) => {
+          // Only serve index.html for non-file GET requests
+          if (_req.method !== 'GET' || path.extname(_req.path)) {
+            return next();
+          }
+          res.setHeader('Content-Type', 'text/html');
+          res.send(indexHtml);
+        };
+      }
+    } catch {
+      // GuiMiddleware not available — skip SPA fallback
     }
 
     await Integration.init();

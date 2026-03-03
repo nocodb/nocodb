@@ -487,15 +487,15 @@ const setup = async ({
 
     switch (baseType) {
       case ProjectTypes.DOCUMENTATION:
-        baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}/doc`;
+        baseUrl = url ? url : `/${base.fk_workspace_id}/${base.id}/doc`;
         break;
       case ProjectTypes.DATABASE:
-        baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}`;
+        baseUrl = url ? url : `/${base.fk_workspace_id}/${base.id}`;
         break;
     }
   } else {
-    // sample: http://localhost:3000/#/ws/default/base/pdknlfoc5e7bx4w
-    baseUrl = url ? url : `/#/nc/${base.id}`;
+    // sample: http://localhost:3000/nc/pdknlfoc5e7bx4w
+    baseUrl = url ? url : `/nc/${base.id}`;
   }
 
   await page.addInitScript(() => (window.isPlaywright = true));

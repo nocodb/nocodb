@@ -7,13 +7,13 @@ if (import.meta.env.PROD) {
 const navItems = [
   {
     name: 'Icons',
-    path: '#/playground/icons',
+    path: '/playground/icons',
     description: 'Browse all icons from iconUtils',
     icon: 'star',
   },
   {
     name: 'Components',
-    path: '#/playground/components',
+    path: '/playground/components',
     description: 'Test NcComponents',
     icon: 'appStore',
   },

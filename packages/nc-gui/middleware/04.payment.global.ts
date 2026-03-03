@@ -9,7 +9,7 @@ export default defineNuxtRouteMiddleware(() => {
   const pricing = params.get('pricing')
 
   if (upgrade) {
-    const url = `/#/upgrade?${params.toString()}`
+    const url = `/upgrade?${params.toString()}`
 
     window.location.href = url
 
@@ -22,7 +22,7 @@ export default defineNuxtRouteMiddleware(() => {
     const searchParams = new URLSearchParams(params.toString())
     searchParams.delete('workspaceId')
 
-    const url = `/#/${workspaceId}/pricing${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+    const url = `/${workspaceId}/pricing${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 
     window.location.href = url
 
@@ -36,11 +36,11 @@ export default defineNuxtRouteMiddleware(() => {
     let url = ''
 
     if (returnToPage === 'org') {
-      url = `/#/admin/${workspaceId}/billing?${params.toString()}`
+      url = `/admin/${workspaceId}/billing?${params.toString()}`
     } else if (returnToPage === 'account') {
-      url = `/#/account/workspace/${workspaceId}/settings?${params.toString()}`
+      url = `/account/workspace/${workspaceId}/settings?${params.toString()}`
     } else {
-      url = `/#/${workspaceId}/settings/ws-billing?${params.toString()}`
+      url = `/${workspaceId}/settings/ws-billing?${params.toString()}`
     }
 
     window.location.href = url

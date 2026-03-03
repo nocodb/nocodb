@@ -56,10 +56,8 @@ export class MailService {
       hookTab?: string;
     } = {},
   ) {
-    const dashboardPath = Noco.getConfig()?.dashboardPath;
-
     if (params.token && !config.auth.disableEmailAuth) {
-      return `${req.ncSiteUrl}${dashboardPath}#/signup/${params.token}`;
+      return `${req.ncSiteUrl}/signup/${params.token}`;
     }
 
     let url = req?.ncSiteUrl || process.env.NC_PUBLIC_URL;
@@ -76,13 +74,8 @@ export class MailService {
       return url;
     }
 
-    // Below links are served from the frontend. So we need to append the dashboard path
-    url += dashboardPath;
-
     if (params.workspaceId) {
-      url += `#/${params.workspaceId}`;
-    } else {
-      url += `#`;
+      url += `/${params.workspaceId}`;
     }
 
     if (params.baseId) {

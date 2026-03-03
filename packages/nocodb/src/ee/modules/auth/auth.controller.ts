@@ -142,13 +142,11 @@ export class AuthController extends AuthControllerCE {
     }
 
     res.redirect(
-      `https://${state.host}${this.config.get('dashboardPath', {
-        infer: true,
-      })}?code=${req.query.code}&state=${req.query.state}${
+      `https://${state.host}/?code=${req.query.code}&state=${req.query.state}${
         state.continueAfterSignIn
           ? `&continueAfterSignIn=${state.continueAfterSignIn}`
           : ''
-      }}`,
+      }`,
     );
   }
 
@@ -157,13 +155,9 @@ export class AuthController extends AuthControllerCE {
   async logoutRedirect(@Req() req: NcRequest, @Res() res: Response) {
     const host = req.query.state;
 
-    const dashboardPath = this.config.get('dashboardPath', {
-      infer: true,
-    });
-
     const url = host
-      ? `https://${host}${dashboardPath}#/signin?logout=true`
-      : `${dashboardPath}#/signin?logout=true`;
+      ? `https://${host}/signin?logout=true`
+      : `/signin?logout=true`;
 
     res.send((await import('./templates/redirect')).default({ url }));
   }
@@ -259,13 +253,7 @@ export class AuthController extends AuthControllerCE {
     @Req() req: NcRequest & { extra: any },
     @Res() res: Response,
   ) {
-    const dashboardPath = this.config.get('dashboardPath', {
-      infer: true,
-    });
-
-    const redirectUrl = `${dashboardPath}?short-token=${req.user['token']}`;
-
-    res.redirect(redirectUrl);
+    res.redirect(`/?short-token=${req.user['token']}`);
   }
 
   @Post('/auth/long-lived-token')

@@ -115,7 +115,7 @@ const onDelete = async () => {
     // We only remove the delete workspace from the list after the api call is successful
 
     if (isAdminPanel.value) {
-      router.replace({ hash: `#/admin/${orgId.value}/workspaces` })
+      router.replace({ path: `/admin/${orgId.value}/workspaces` })
     }
 
     await loadWorkspaces()

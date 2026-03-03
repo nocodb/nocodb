@@ -16,7 +16,7 @@ export class AccountTokenPage extends BasePage {
 
   async goto() {
     return this.waitForResponse({
-      uiAction: async () => await this.rootPage.goto('/#/account/tokens'),
+      uiAction: async () => await this.rootPage.goto('/account/tokens'),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: `api/v1/tokens`,
     });

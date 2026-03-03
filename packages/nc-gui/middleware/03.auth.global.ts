@@ -159,7 +159,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
     window.history.pushState(
       'object',
       document.title,
-      `${extraProps?.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
+      `${extraProps?.continueAfterSignIn ? `${newURL}?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
     )
     window.location.reload()
   }
@@ -210,7 +210,7 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
     window.history.pushState(
       'object',
       document.title,
-      `${extraProps?.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
+      `${extraProps?.continueAfterSignIn ? `${newURL}?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
     )
     window.location.reload()
   }
@@ -226,8 +226,8 @@ async function checkForRedirect() {
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
-    const newURL = window.location.href.split('?')[0]
-    window.history.pushState('object', document.title, `${newURL}#${url}`)
-    window.location.reload()
+    if (url) {
+      return navigateTo(url, { replace: true })
+    }
   }
 }

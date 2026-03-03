@@ -54,6 +54,7 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]: PlanTitles.BUSINESS, // Todo: discuss
   [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: PlanTitles.BUSINESS,
+  [PlanFeatureTypes.FEATURE_API_DASHBOARD_V3]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_SYNC]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_UNIQUE]: PlanTitles.BUSINESS,

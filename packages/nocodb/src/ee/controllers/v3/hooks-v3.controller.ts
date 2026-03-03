@@ -11,6 +11,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { HookV3CreateV3Type, HookV3UpdateV3Type } from 'nocodb-sdk';
+import {
+  checkForFeature,
+  PlanFeatureTypes,
+} from '~/ee/helpers/paymentHelpers';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -18,9 +22,11 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { HooksV3Service } from '~/services/v3/hooks-v3.service';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License('webhooks')
 export class HooksV3Controller {
   constructor(private readonly hooksV3Service: HooksV3Service) {}
 
@@ -30,6 +36,8 @@ export class HooksV3Controller {
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_WEBHOOK_V3);
+
     return {
       list: await this.hooksV3Service.hookList(context, { tableId }),
     };
@@ -44,6 +52,8 @@ export class HooksV3Controller {
     @Body() body: HookV3CreateV3Type,
     @Req() req: NcRequest,
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_WEBHOOK_V3);
+
     return await this.hooksV3Service.hookCreate(context, {
       tableId,
       hook: body,
@@ -57,6 +67,8 @@ export class HooksV3Controller {
     @TenantContext() context: NcContext,
     @Param('hookId') hookId: string,
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_WEBHOOK_V3);
+
     return await this.hooksV3Service.hookGet(context, { hookId });
   }
 
@@ -68,6 +80,8 @@ export class HooksV3Controller {
     @Body() body: HookV3UpdateV3Type,
     @Req() req: NcRequest,
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_WEBHOOK_V3);
+
     return await this.hooksV3Service.hookUpdate(context, {
       hookId,
       hook: body,
@@ -82,6 +96,8 @@ export class HooksV3Controller {
     @Param('hookId') hookId: string,
     @Req() req: NcRequest,
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_API_WEBHOOK_V3);
+
     return await this.hooksV3Service.hookDelete(context, { hookId, req });
   }
 }

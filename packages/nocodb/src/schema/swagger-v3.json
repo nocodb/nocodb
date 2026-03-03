@@ -2445,7 +2445,7 @@
         "tags": [
           "Hooks"
         ],
-        "description": "Retrieve a list of all hooks for a specific table.",
+        "description": "Retrieve a list of all hooks for a specific table.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "parameters": [
           {
             "name": "baseId",
@@ -2512,7 +2512,7 @@
       },
       "post": {
         "summary": "Create hook",
-        "description": "Create a new hook for a table.",
+        "description": "Create a new hook for a table.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "hook-create",
         "tags": [
           "Hooks"
@@ -2627,7 +2627,7 @@
     "/api/v3/meta/bases/{baseId}/hooks/{hookId}": {
       "get": {
         "summary": "Get hook",
-        "description": "Retrieve the details of a specific hook.",
+        "description": "Retrieve the details of a specific hook.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "hook-read",
         "tags": [
           "Hooks"
@@ -2695,7 +2695,7 @@
       },
       "patch": {
         "summary": "Update hook",
-        "description": "Update the details of a specific hook.",
+        "description": "Update the details of a specific hook.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "hook-update",
         "tags": [
           "Hooks"
@@ -2814,7 +2814,7 @@
       },
       "delete": {
         "summary": "Delete hook",
-        "description": "Delete a specific hook.",
+        "description": "Delete a specific hook.\n\n**Note**: Hook APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "hook-delete",
         "tags": [
           "Hooks"

@@ -132,7 +132,6 @@ import { BasesV3Controller } from '~/controllers/v3/bases-v3.controller';
 import { ColumnsV3Controller } from '~/controllers/v3/columns-v3.controller';
 import { Datav3Controller } from '~/controllers/v3/data-v3.controller';
 import { FiltersV3Controller } from '~/controllers/v3/filters-v3.controller';
-import { HooksV3Controller } from '~/controllers/v3/hooks-v3.controller';
 import { SortsV3Controller } from '~/controllers/v3/sorts-v3.controller';
 import { TablesV3Controller } from '~/controllers/v3/tables-v3.controller';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -248,8 +247,6 @@ export const nocoModuleMetadata = {
           ColumnsV3Controller,
           SortsV3Controller,
           FiltersV3Controller,
-          HooksV3Controller,
-
           /* Datas */
           DataTableController,
           DatasController,

@@ -41,6 +41,9 @@ import { WorkspaceUsersController } from '~/controllers/workspace-users.controll
 /* Views V3 */
 import { ViewsV3Controller } from '~/ee/controllers/v3/views-v3.controller';
 
+/* Hooks V3 */
+import { HooksV3Controller } from '~/ee/controllers/v3/hooks-v3.controller';
+
 /* Workspace V3 */
 import { WorkspaceV3Service } from '~/services/v3/workspace-v3.service';
 import { WorkspaceMembersV3Service } from '~/services/v3/workspace-members-v3.service';
@@ -267,6 +270,8 @@ export const nocoModuleEeMetadata = {
     OrgsController,
 
     ViewsV3Controller,
+
+    HooksV3Controller,
 
     ApiTokensV3Controller,
 

@@ -122,7 +122,7 @@ export class NcConfig {
     if (dashboardPath) {
       ncConfig.dashboardPath = dashboardPath;
     } else {
-      ncConfig.dashboardPath = '/dashboard';
+      ncConfig.dashboardPath = '/';
     }
 
     try {
@@ -146,7 +146,7 @@ export class NcConfig {
       port: process.env.NC_PORT,
       tryMode: !!process.env.NC_TRY,
       worker: !!process.env.NC_WORKER,
-      dashboardPath: process.env.NC_DASHBOARD_URL ?? '/dashboard',
+      dashboardPath: process.env.NC_DASHBOARD_URL ?? '/',
       publicUrl: process.env.NC_PUBLIC_URL,
     });
   }

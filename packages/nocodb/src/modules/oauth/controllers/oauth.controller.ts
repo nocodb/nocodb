@@ -45,7 +45,7 @@ export class OAuthController {
   @UseGuards(MetaApiLimiterGuard)
   async authorizeRedirect(@Req() req: NcRequest, @Res() res: Response) {
     const queryParams = new URLSearchParams(req.query).toString();
-    const redirectUrl = `${req.ncSiteUrl}/#/oauth/authorize${
+    const redirectUrl = `${req.ncSiteUrl}/oauth/authorize${
       queryParams ? '?' + queryParams : ''
     }`;
 

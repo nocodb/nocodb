@@ -83,28 +83,35 @@ export default class ChatSession
     },
     ncMeta = Noco.ncMeta,
   ) {
-    // Session lists are not cached — caching by base_id only would
-    // mix sessions across users, leaking session metadata (titles) between
-    // workspace members. Always query from DB with user-scoped filter.
-    const condition: Record<string, any> = {
-      base_id: baseId,
-    };
+    if (!userId) return [];
 
-    if (userId) {
-      condition.fk_user_id = userId;
-    }
-
-    const sessionsList = await ncMeta.metaList2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.CHAT_SESSIONS,
-      {
-        condition,
-        orderBy: {
-          updated_at: 'desc',
-        },
-      },
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.CHAT_SESSION,
+      [baseId, userId],
     );
+    const { list: sessionsList, isNoneList } = cachedList;
+
+    if (!isNoneList && !sessionsList.length) {
+      const rows = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.CHAT_SESSIONS,
+        {
+          condition: { base_id: baseId, fk_user_id: userId },
+          orderBy: { updated_at: 'desc' },
+        },
+      );
+
+      await NocoCache.setList(
+        context,
+        CacheScope.CHAT_SESSION,
+        [baseId, userId],
+        rows,
+      );
+
+      return rows.map((s) => new ChatSession(s));
+    }
 
     return sessionsList.map((s) => new ChatSession(s));
   }
@@ -128,7 +135,17 @@ export default class ChatSession
       insertObj,
     );
 
-    return ChatSession.get(context, id, ncMeta);
+    return ChatSession.get(context, id, ncMeta).then(async (chatSession) => {
+      if (chatSession?.fk_user_id) {
+        await NocoCache.appendToList(
+          context,
+          CacheScope.CHAT_SESSION,
+          [context.base_id, chatSession.fk_user_id],
+          `${CacheScope.CHAT_SESSION}:${id}`,
+        );
+      }
+      return chatSession;
+    });
   }
 
   static async update(

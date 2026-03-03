@@ -1,9 +1,11 @@
 <script lang="ts" setup>
+import { PlanFeatureTypes } from 'nocodb-sdk'
+
 const router = useRouter()
 const route = router.currentRoute
 
 const basesStore = useBases()
-const { basesList } = storeToRefs(basesStore)
+const { resolvedProject } = storeToRefs(basesStore)
 
 const sidebarStore = useSidebarStore()
 const { activeSidebarTab } = storeToRefs(sidebarStore)
@@ -18,22 +20,13 @@ const { isMobileMode } = useGlobal()
 
 const { isUIAllowed, baseRoles, loadRoles } = useRoles()
 
-const { isWsAuditEnabled, showUpgradeToUseTableAndFieldPermissions, showUpgradeToUseSync } = useEeConfig()
-
-const resolveBaseId = () => {
-  if (route.value.params.baseId) return route.value.params.baseId as string
-  if (base.value?.id) return base.value.id
-
-  const lastVisitedBaseId = ncLastVisitedBase().get()
-  const resolved = basesList.value.find((b) => b.id === lastVisitedBaseId) || basesList.value[0]
-  return resolved?.id
-}
+const { isWsAuditEnabled, showUpgradeToUseTableAndFieldPermissions, showUpgradeToUseSync, isEEFeatureBlocked } = useEeConfig()
 
 const navigateToBaseSettings = (page: string) => {
   if (page === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) return
   if (page === 'syncs' && showUpgradeToUseSync()) return
 
-  const baseId = resolveBaseId()
+  const baseId = resolvedProject.value?.id
   if (!baseId) return
 
   const wsId = route.value.params.typeOrId
@@ -52,7 +45,7 @@ const effectiveRoles = computed(() => baseRoles.value ?? baseRole.value)
 
 // Load base roles in background if not already loaded
 onMounted(() => {
-  const baseId = resolveBaseId()
+  const baseId = resolvedProject.value?.id
   if (baseId) {
     loadRoles(baseId).catch(() => {})
   }
@@ -83,6 +76,9 @@ onMounted(() => {
       @click="navigateToBaseSettings('permissions')"
     >
       {{ $t('labels.dataPermissions') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS" remove-click />
+      </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
@@ -103,6 +99,9 @@ onMounted(() => {
       @click="navigateToBaseSettings('syncs')"
     >
       {{ $t('labels.manageSyncs') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_SYNC" remove-click />
+      </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="isEeUI && isUIAllowed('baseAuditList', { roles: effectiveRoles }) && isWsAuditEnabled && !isMobileMode"

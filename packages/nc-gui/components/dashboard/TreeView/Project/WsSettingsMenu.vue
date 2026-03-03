@@ -72,6 +72,9 @@ const activeWsSettingsTab = computed(() => {
       @click="navigateToWsSettings('ws-teams')"
     >
       {{ $t('labels.manageTeams') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT" remove-click />
+      </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="isUIAllowed('workspaceIntegrations') && !isMobileMode"
@@ -102,6 +105,13 @@ const activeWsSettingsTab = computed(() => {
       @click="navigateToWsSettings('ws-audits')"
     >
       {{ $t('title.audits') }}
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE"
+          :feature-enabled-callback="() => isWsAuditEnabled"
+          remove-click
+        />
+      </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="isWorkspaceSsoAvail && !activeWorkspace?.fk_org_id && isUIAllowed('workspaceSSO') && !isMobileMode"

@@ -162,6 +162,7 @@ const mainItems = computed<NavItem[]>(() => [
       ]
     : []),
   { key: 'divider', icon: 'ncDivider', label: 'divider' },
+  { key: 'notification', icon: 'ncNotification', label: 'Notification' },
   { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
 ])
 
@@ -205,6 +206,41 @@ const bottomItems = computed<NavItem[]>(
         class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium"
       />
 
+      <!-- Notifications -->
+      <NcDropdown
+        v-else-if="item.key === 'notification'"
+        :key="`notification-${idx}`"
+        v-model:visible="isNotificationOpen"
+        placement="right"
+        overlay-class-name="!shadow-none"
+        :overlay-style="{ marginLeft: '8px' }"
+        :trigger="['click']"
+      >
+        <DashboardMiniSidebarV2RailItem
+          label="Activity"
+          tooltip="Activity"
+          panel-key="notification"
+          data-testid="nc-sidebar-notification-btn"
+          :active="isNotificationOpen"
+          :disable-tooltip="isNotificationOpen"
+          is-dropdown
+        >
+          <template #icon>
+            <div class="relative flex items-center justify-center">
+              <span
+                v-if="unreadCount"
+                class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
+                style="background: #e75a8d"
+              />
+              <GeneralIcon icon="notification" class="nc-rail-item-icon" />
+            </div>
+          </template>
+        </DashboardMiniSidebarV2RailItem>
+        <template #overlay>
+          <NotificationCard @close="isNotificationOpen = false" />
+        </template>
+      </NcDropdown>
+
       <DashboardMiniSidebarV2RailItem
         v-else
         :key="idx"
@@ -217,39 +253,6 @@ const bottomItems = computed<NavItem[]>(
         @click="item.onClick?.()"
       />
     </template>
-
-    <!-- Notifications -->
-    <NcDropdown
-      v-model:visible="isNotificationOpen"
-      placement="right"
-      overlay-class-name="!shadow-none"
-      :overlay-style="{ marginLeft: '8px' }"
-      :trigger="['click']"
-    >
-      <DashboardMiniSidebarV2RailItem
-        label="Activity"
-        tooltip="Activity"
-        panel-key="notification"
-        data-testid="nc-sidebar-notification-btn"
-        :active="isNotificationOpen"
-        :disable-tooltip="isNotificationOpen"
-        is-dropdown
-      >
-        <template #icon>
-          <div class="relative flex items-center justify-center">
-            <span
-              v-if="unreadCount"
-              class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
-              style="background: #e75a8d"
-            />
-            <GeneralIcon icon="notification" class="nc-rail-item-icon" />
-          </div>
-        </template>
-      </DashboardMiniSidebarV2RailItem>
-      <template #overlay>
-        <NotificationCard @close="isNotificationOpen = false" />
-      </template>
-    </NcDropdown>
 
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">

@@ -11,13 +11,6 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const tab = computed(() => wsSettingsSlugToTab[route.params.page as string] || 'ws-collaborators')
-
-const sidebarStore = useSidebarStore()
-
-const { activeSidebarTab } = storeToRefs(sidebarStore)
-
-// Ensure settings tab is active when on ws-settings route
-activeSidebarTab.value = 'settings'
 </script>
 
 <template>

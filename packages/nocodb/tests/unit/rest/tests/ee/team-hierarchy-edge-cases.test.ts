@@ -14,6 +14,8 @@ import { createUser } from '../../../factory/user';
 import { overridePlan } from '../../../utils/plan.utils';
 import { createProject } from '../../../factory/base';
 import { createTable } from '../../../factory/table';
+import NocoCache from '~/cache/NocoCache';
+import { CacheScope } from '~/utils/globals';
 
 /**
  * Team Hierarchy — Remaining Coverage
@@ -269,6 +271,14 @@ export default function () {
         .send(data);
       expect(res.status).to.be.oneOf([200, 201]);
       return res.body.Id ?? res.body.id;
+    }
+
+    async function ownerBulkInsert(baseId: string, tableId: string, rows: any[]): Promise<void> {
+      const res = await request(context.app)
+        .post(`/api/v1/db/data/bulk/noco/${baseId}/${tableId}`)
+        .set('xc-token', context.xc_token)
+        .send(rows);
+      expect(res.status).to.be.oneOf([200, 201]);
     }
 
     async function addColumn(tableId: string, title: string, uidt: string): Promise<string> {
@@ -1600,12 +1610,10 @@ const res = await listRecords(base.id, tableId, nancyToken);
         tableId = await createNamedTable(base.id, 'PatientRecords');
         const regionColId = await addColumn(tableId, 'Region', 'SingleLineText');
 
-        for (let i = 0; i < 5; i++) {
-          await ownerInsert(base.id, tableId, { Region: 'North' });
-        }
-        for (let i = 0; i < 5; i++) {
-          await ownerInsert(base.id, tableId, { Region: 'South' });
-        }
+        await ownerBulkInsert(base.id, tableId, [
+          ...Array(5).fill({ Region: 'North' }),
+          ...Array(5).fill({ Region: 'South' }),
+        ]);
 
         await createRlsPolicy(
           base.id,
@@ -1711,6 +1719,13 @@ const res = await listRecords(base.id, tableId, nancyToken);
       it('Alex is unblocked as soon as direct no_access is removed', async () => {
         await removeDirectBaseRole(base.id, alex.user.id);
 
+        // TODO: remove this workaround once BaseUser.delete() properly invalidates
+        // the per-user cache entry (BASE_USER:{baseId}:{userId})
+        await NocoCache.del(
+          { workspace_id: workspaceId, base_id: base.id },
+          `${CacheScope.BASE_USER}:${base.id}:${alex.user.id}`,
+        );
+
         const res = await createTableInBase(base.id, alexToken, 'AlexTable');
         expect(res.status).to.equal(200);
       });
@@ -1768,12 +1783,10 @@ const res = await listRecords(base.id, tableId, nancyToken);
         const quarterColId = await addColumn(tableId, 'Quarter', 'SingleLineText');
         const departmentColId = await addColumn(tableId, 'Department', 'SingleLineText');
 
-        for (let i = 0; i < 5; i++) {
-          await ownerInsert(base.id, tableId, { Quarter: 'Q4', Department: 'Finance' });
-        }
-        for (let i = 0; i < 8; i++) {
-          await ownerInsert(base.id, tableId, { Quarter: 'Q3', Department: 'Engineering' });
-        }
+        await ownerBulkInsert(base.id, tableId, [
+          ...Array(5).fill({ Quarter: 'Q4', Department: 'Finance' }),
+          ...Array(8).fill({ Quarter: 'Q3', Department: 'Engineering' }),
+        ]);
 
         // Finance policy: deny_all default
         await createRlsPolicy(

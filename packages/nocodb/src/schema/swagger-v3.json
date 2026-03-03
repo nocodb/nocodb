@@ -4093,7 +4093,7 @@
               }
             }
           },
-          "404": { "description": "Widget not found." },
+          "422": { "description": "Widget not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -4146,7 +4146,7 @@
               }
             }
           },
-          "404": { "description": "Widget not found." },
+          "422": { "description": "Widget not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -4226,7 +4226,7 @@
               }
             }
           },
-          "404": { "description": "Widget not found." },
+          "422": { "description": "Widget not found." },
           "500": { "description": "Server error." }
         }
       }

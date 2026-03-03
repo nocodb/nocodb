@@ -74,12 +74,6 @@ async function createServer(isMaster: boolean): Promise<http.Server> {
 
         server.use(await Noco.init({}, serverInstance, server));
 
-        // SPA fallback — serves index.html for unmatched GET requests
-        // (history-mode routing). Must be mounted AFTER the NestJS app.
-        if (Noco.spaFallbackHandler) {
-          server.use(Noco.spaFallbackHandler);
-        }
-
         if (!isMaster) {
           console.log(`Worker ${process.pid} initialized successfully`);
         }

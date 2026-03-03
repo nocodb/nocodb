@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
-import fs from 'fs';
 import { NcDebug } from 'nc-gui/utils/debug';
 // import { definePDFJSModule } from 'unpdf';
 import type { INestApplication } from '@nestjs/common';
@@ -221,36 +220,6 @@ export default class Noco {
       });
     }
 
-<<<<<<< HEAD
-    // Prepare SPA fallback handler for history-mode routing.
-    // This is mounted in docker.ts/cloud.ts AFTER the NestJS app so it only
-    // catches requests that no controller or middleware handled.
-    try {
-      const distPath = path.join(
-        path.dirname(require.resolve('nc-lib-gui/package.json')),
-        'lib',
-        'dist',
-      );
-      const indexHtml = fs.readFileSync(
-        path.join(distPath, 'index.html'),
-        'utf-8',
-      );
-      if (indexHtml) {
-        Noco.spaFallbackHandler = (_req, res, next) => {
-          // Only serve index.html for non-file GET requests
-          if (_req.method !== 'GET' || path.extname(_req.path)) {
-            return next();
-          }
-          res.setHeader('Content-Type', 'text/html');
-          res.send(indexHtml);
-        };
-      }
-    } catch {
-      // nc-lib-gui not installed (e.g. dev mode) — skip SPA fallback
-    }
-
-=======
->>>>>>> 267225c4eb (fix: API base URL and SPA fallback for history-mode routing)
     await Integration.init();
     NcDebug.log('Integration initialized');
 

@@ -11828,7 +11828,7 @@
             "description": "Metric aggregation configuration.",
             "properties": {
               "type": { "type": "string", "enum": ["count", "summary"], "description": "'count' counts all rows, 'summary' aggregates a column." },
-              "column_id": { "type": "string", "description": "Column to aggregate. Required when type is 'summary'." },
+              "field_id": { "type": "string", "description": "Column to aggregate. Required when type is 'summary'." },
               "aggregation": { "type": "string", "enum": ["sum", "avg", "count", "min", "max"], "description": "Aggregation function." }
             },
             "required": ["type", "aggregation"]
@@ -11856,7 +11856,7 @@
             "description": "Metric aggregation configuration.",
             "properties": {
               "type": { "type": "string", "enum": ["count", "summary"] },
-              "column_id": { "type": "string" },
+              "field_id": { "type": "string" },
               "aggregation": { "type": "string", "enum": ["sum", "avg", "count", "min", "max"] }
             },
             "required": ["type", "aggregation"]
@@ -11894,19 +11894,19 @@
               "category": {
                 "type": "object",
                 "properties": {
-                  "column_id": { "type": "string", "description": "Column to group by." },
+                  "field_id": { "type": "string", "description": "Column to group by." },
                   "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
                   "category_limit": { "type": "number", "description": "Max categories (10-50)." },
                   "include_empty_records": { "type": "boolean" },
                   "include_others": { "type": "boolean", "description": "Aggregate remaining into 'Others'." }
                 },
-                "required": ["column_id"]
+                "required": ["field_id"]
               },
               "value": {
                 "type": "object",
                 "properties": {
                   "type": { "type": "string", "enum": ["count", "summary"] },
-                  "column_id": { "type": "string", "description": "Column to aggregate. Required when type is 'summary'." },
+                  "field_id": { "type": "string", "description": "Column to aggregate. Required when type is 'summary'." },
                   "aggregation": { "type": "string", "description": "Aggregation function. Required when type is 'summary'." }
                 },
                 "required": ["type"]
@@ -11955,19 +11955,19 @@
               "category": {
                 "type": "object",
                 "properties": {
-                  "column_id": { "type": "string" },
+                  "field_id": { "type": "string" },
                   "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
                   "category_limit": { "type": "number" },
                   "include_empty_records": { "type": "boolean" },
                   "include_others": { "type": "boolean" }
                 },
-                "required": ["column_id"]
+                "required": ["field_id"]
               },
               "value": {
                 "type": "object",
                 "properties": {
                   "type": { "type": "string", "enum": ["count", "summary"] },
-                  "column_id": { "type": "string" },
+                  "field_id": { "type": "string" },
                   "aggregation": { "type": "string" }
                 },
                 "required": ["type"]

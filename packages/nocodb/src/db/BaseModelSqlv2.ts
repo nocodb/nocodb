@@ -5744,7 +5744,25 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
 
         for (const col of availableUserColumns) {
-          d[col.id] = d[col.id].split(',');
+          // Handle JSON array strings from lookup aggregation (json_agg)
+          // e.g. '["userId1", "userId2"]' from HM/MM lookup on User fields
+          let userIds: string[];
+          if (
+            typeof d[col.id] === 'string' &&
+            d[col.id].startsWith('[')
+          ) {
+            try {
+              const parsed = JSON.parse(d[col.id]);
+              userIds = Array.isArray(parsed)
+                ? parsed.map((v) => (typeof v === 'string' ? v : String(v)))
+                : d[col.id].split(',');
+            } catch {
+              userIds = d[col.id].split(',');
+            }
+          } else {
+            userIds = d[col.id].split(',');
+          }
+          d[col.id] = userIds;
 
           d[col.id] = d[col.id].map((fid) => {
             const user = userMap.get(fid);

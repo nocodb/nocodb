@@ -141,7 +141,7 @@ onMounted(() => {
     </NcSidebarMenuItem>
 
     <NcSidebarMenuItem
-      v-if="!isSharedBase && !isMobileMode"
+      v-if="!isSharedBase && isUIAllowed('baseMiscSettings', { roles: effectiveRoles }) && !isMobileMode"
       v-e="['c:settings:base:more']"
       icon="ncMoreHorizontal"
       data-testid="base-settings"

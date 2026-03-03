@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ROW_COLORING_MODE, UITypes, ViewLockType, PlanFeatureTypes } from 'nocodb-sdk'
+import { PlanFeatureTypes, ROW_COLORING_MODE, UITypes, ViewLockType } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
 

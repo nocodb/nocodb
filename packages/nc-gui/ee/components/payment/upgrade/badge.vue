@@ -3,7 +3,7 @@
  * PaymentUpgradeBadge component - will only visible if feature is not available in current plan
  */
 import type { PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk'
-import { PlanMeta, PlanTitles, PlanFeatureTypesToPlanTitles, PlanFeatureTypesToPlanTitlesEeCloud } from 'nocodb-sdk'
+import { PlanFeatureTypesToPlanTitles, PlanFeatureTypesToPlanTitlesEeCloud, PlanMeta, PlanTitles } from 'nocodb-sdk'
 interface Props {
   /** Required plan to access new feature */
   planTitle?: PlanTitles

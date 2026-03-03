@@ -6,12 +6,16 @@ export const PlanFeatureTypesToPlanTitles: Record<
   PlanFeatureTypes,
   PlanTitles
 > = {
+  // Free features
+  [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: PlanTitles.FREE,
+  [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: PlanTitles.FREE,
+  [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: PlanTitles.FREE,
+
   // Plus features
   [PlanFeatureTypes.FEATURE_AI]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_AI_INTEGRATIONS]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_AT_MENTION]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_COMMENT_RESOLVE]: PlanTitles.PLUS,
-  [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_EXTENSIONS]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_FILE_MODE]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]: PlanTitles.PLUS,
@@ -19,20 +23,17 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]: PlanTitles.PLUS,
-  [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_HIDE_BRANDING]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_PERSONAL_VIEWS]: PlanTitles.PLUS,
-  [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_WORKSPACE_CUSTOM_LOGO]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_ROW_COLOUR]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: PlanTitles.PLUS,
-  [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_COLOUR_FIELD]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]: PlanTitles.PLUS,
@@ -45,6 +46,7 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_CUSTOM_URL]: PlanTitles.PLUS,
 
   // Business features
+  [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_CURRENT_USER_FILTER]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_CELL_COLOUR]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: PlanTitles.BUSINESS,
@@ -69,5 +71,4 @@ export const PlanFeatureTypesToPlanTitles: Record<
 export const PlanFeatureTypesToPlanTitlesEeCloud = {
   ...PlanFeatureTypesToPlanTitles,
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: PlanTitles.FREE,
-  [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]: PlanTitles.FREE,
 } as Record<PlanFeatureTypes, PlanTitles>;

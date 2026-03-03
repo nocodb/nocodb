@@ -159,12 +159,8 @@ const subjectTypeIcons: Record<string, string> = {
 }
 
 const subjectGroupOrder = computed(() => {
-  const groups = [
-    t('msg.permissions.rlsPolicy.groupRoles'),
-    t('msg.permissions.rlsPolicy.groupMembers'),
-  ]
-  if (isTeamsEnabled.value)
-    groups.push(t('msg.permissions.rlsPolicy.groupTeams'))
+  const groups = [t('msg.permissions.rlsPolicy.groupRoles'), t('msg.permissions.rlsPolicy.groupMembers')]
+  if (isTeamsEnabled.value) groups.push(t('msg.permissions.rlsPolicy.groupTeams'))
   return groups
 })
 
@@ -269,9 +265,7 @@ const showFilterSection = computed(() => {
         </NcButton>
         <div class="text-subHeading2 text-nc-content-gray-emphasis">
           {{
-            policy?.is_default
-              ? $t('msg.permissions.rlsPolicy.editDefaultPolicy')
-              : $t('msg.permissions.rlsPolicy.editPolicy')
+            policy?.is_default ? $t('msg.permissions.rlsPolicy.editDefaultPolicy') : $t('msg.permissions.rlsPolicy.editPolicy')
           }}
         </div>
       </div>
@@ -286,22 +280,26 @@ const showFilterSection = computed(() => {
       <!-- Policy Name -->
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-nc-content-gray-subtle">{{ $t('msg.permissions.rlsPolicy.policyName') }}</label>
-        <a-input v-model:value="policyTitle" :placeholder="$t('msg.permissions.rlsPolicy.enterPolicyName')" class="nc-input-sm nc-input-shadow" />
+        <a-input
+          v-model:value="policyTitle"
+          :placeholder="$t('msg.permissions.rlsPolicy.enterPolicyName')"
+          class="nc-input-sm nc-input-shadow"
+        />
       </div>
 
       <!-- Enabled -->
       <div class="flex items-center gap-2">
         <a-switch v-model:checked="policyEnabled" size="small" />
         <span class="text-sm">{{
-          policyEnabled
-            ? $t('msg.permissions.rlsPolicy.enabled')
-            : $t('msg.permissions.rlsPolicy.disabled')
+          policyEnabled ? $t('msg.permissions.rlsPolicy.enabled') : $t('msg.permissions.rlsPolicy.disabled')
         }}</span>
       </div>
 
       <!-- Default Behavior (only for default policy) -->
       <div v-if="policy?.is_default" class="flex flex-col gap-2">
-        <label class="text-xs font-semibold text-nc-content-gray-subtle">{{ $t('msg.permissions.rlsPolicy.defaultBehavior') }}</label>
+        <label class="text-xs font-semibold text-nc-content-gray-subtle">{{
+          $t('msg.permissions.rlsPolicy.defaultBehavior')
+        }}</label>
         <p class="text-xs text-nc-content-gray-muted">{{ $t('msg.permissions.rlsPolicy.defaultBehaviorDescription') }}</p>
         <a-radio-group v-model:value="defaultBehavior" class="flex flex-col gap-1 mt-1">
           <a-radio v-for="opt in defaultBehaviorOptions" :key="opt.value" :value="opt.value" class="!flex items-start gap-1">
@@ -338,24 +336,11 @@ const showFilterSection = computed(() => {
                         : t('tooltip.teamScopeIncludesSubTeams')
                     }}
                   </template>
-                  <NcButton
-                    type="text"
-                    size="xs"
-                    class="!h-4 !w-4 !min-w-0"
-                    @click.stop="toggleTeamHierarchyScope(idx)"
-                  >
-                    <GeneralIcon
-                      :icon="subject.hierarchy_scope === 'self_only' ? 'ncUser' : 'ncUsers'"
-                      class="w-2.5 h-2.5"
-                    />
+                  <NcButton type="text" size="xs" class="!h-4 !w-4 !min-w-0" @click.stop="toggleTeamHierarchyScope(idx)">
+                    <GeneralIcon :icon="subject.hierarchy_scope === 'self_only' ? 'ncUser' : 'ncUsers'" class="w-2.5 h-2.5" />
                   </NcButton>
                 </NcTooltip>
-                <NcButton
-                  type="text"
-                  size="xs"
-                  class="!h-4 !w-4 !min-w-0"
-                  @click.stop="handleRemoveSubject(idx)"
-                >
+                <NcButton type="text" size="xs" class="!h-4 !w-4 !min-w-0" @click.stop="handleRemoveSubject(idx)">
                   <GeneralIcon icon="close" class="w-2.5 h-2.5" />
                 </NcButton>
               </div>

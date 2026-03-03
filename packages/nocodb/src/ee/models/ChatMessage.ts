@@ -192,12 +192,13 @@ export default class ChatMessage
     // Fetch IDs first so we can bust the cache for each message
     const messages = await this.list(context, { sessionId }, ncMeta);
 
-    // Bulk delete in a single query
-    await ncMeta
-      .knexConnection(MetaTable.CHAT_MESSAGES)
-      .where('fk_session_id', sessionId)
-      .where('base_id', context.base_id)
-      .delete();
+    // Bulk delete — contextCondition adds base_id/fk_workspace_id scoping automatically
+    await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CHAT_MESSAGES,
+      { fk_session_id: sessionId },
+    );
 
     // Evict all message cache entries in a single round trip
     await NocoCache.del(
@@ -214,6 +215,8 @@ export default class ChatMessage
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    // knexConnection is intentional: metaCount only supports equality conditions,
+    // but we need a date-range filter (>=) and workspace-wide scope across all bases.
     const result = await ncMeta
       .knexConnection(MetaTable.CHAT_MESSAGES)
       .where('fk_workspace_id', workspaceId)

@@ -350,7 +350,7 @@ export class TreeViewPage extends BasePage {
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
     } else {
-      await this.dashboard.leftSidebar.navigateToDataTab();
+      await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
     }
 
     const tableTitle = title.replace(/ /g, '');

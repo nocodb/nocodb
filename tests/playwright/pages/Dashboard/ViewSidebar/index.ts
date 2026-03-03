@@ -58,20 +58,36 @@ export class ViewSidebarPage extends BasePage {
 
   async createGalleryView({ title }: { title: string }) {
     await this.createView({ title, type: ViewTypes.GALLERY });
+
+    await this.rootPage.waitForLoadState('networkidle');
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async createGridView({ title }: { title: string }) {
     await this.createView({ title, type: ViewTypes.GRID });
+
+    await this.rootPage.waitForLoadState('networkidle');
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async createFormView({ title }: { title: string }) {
     await this.createView({ title, type: ViewTypes.FORM });
+
+    await this.rootPage.waitForLoadState('networkidle');
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async openView({ title }: { title: string }) {
     await this.get().waitFor({ state: 'visible' });
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).waitFor({ state: 'visible' });
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).click();
+
+    await this.rootPage.waitForLoadState('networkidle');
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async createKanbanView({ title }: { title: string }) {
@@ -138,6 +154,10 @@ export class ViewSidebarPage extends BasePage {
       });
 
     await this.rootPage.getByTestId('nc-delete-modal-delete-btn').click();
+
+    await this.rootPage.waitForLoadState('networkidle');
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {
@@ -170,6 +190,10 @@ export class ViewSidebarPage extends BasePage {
 
     await this.rootPage.locator(`[data-testid="view-sidebar-view-actions-${title}"]`).waitFor({ state: 'hidden' });
     // await this.verifyToast({ message: 'View created successfully' });
+
+    await this.rootPage.waitForLoadState('networkidle');
+
+    await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
   }
 
   async changeViewIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {

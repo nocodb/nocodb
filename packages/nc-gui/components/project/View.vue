@@ -552,11 +552,6 @@ watch(
     @apply !ml-0;
   }
 }
-:deep(.ant-tabs-content) {
-  &:not(:has(.nc-project-overview-tab-content.ant-tabs-tabpane-active)) {
-    @apply nc-content-max-w;
-  }
-}
 
 .tab-info {
   @apply flex pl-1.25 px-1.5 py-0.75 rounded-md text-xs;
@@ -568,7 +563,7 @@ watch(
   }
 
   :deep(.ant-tabs-content) {
-    @apply !max-w-[1100px] !mx-auto text-nc-content-gray-subtle;
+    @apply text-nc-content-gray-subtle;
     font-size: 13px;
 
     // Apply 13px and muted text to all elements inside admin content
@@ -586,6 +581,10 @@ watch(
     .ant-input,
     .nc-button {
       font-size: 13px;
+    }
+
+    > .ant-tabs-tabpane > div {
+      @apply nc-content-max-w mx-auto;
     }
   }
 }

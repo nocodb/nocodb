@@ -504,7 +504,7 @@ onBeforeUnmount(() => {
   }
 
   > :deep(.ant-tabs) > .ant-tabs-content-holder > .ant-tabs-content {
-    @apply !max-w-[1100px] !mx-auto text-nc-content-gray-subtle h-full;
+    @apply text-nc-content-gray-subtle h-full;
     font-size: 13px;
 
     th,

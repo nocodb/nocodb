@@ -108,7 +108,7 @@ onMounted(() => {
       v-e="['c:settings:base:audits']"
       icon="audit"
       data-testid="base-audit"
-      :active="activeBaseSettingsTab === 'audit'"
+      :active="activeBaseSettingsTab === 'audits'"
       @click="navigateToBaseSettings('audit')"
     >
       {{ $t('title.audits') }}

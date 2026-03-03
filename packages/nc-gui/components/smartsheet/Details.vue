@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PlanFeatureTypes } from 'nocodb-sdk'
 import { LoadingOutlined } from '@ant-design/icons-vue'
 
 const { openedViewsTab } = storeToRefs(useViewsStore())
@@ -97,7 +98,11 @@ watch(
           <div class="tab" data-testid="nc-permissions-tab">
             <GeneralIcon icon="ncLock" class="tab-icon" :class="{}" />
             <div>{{ $t('general.permissions') }}</div>
-            <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
+            <LazyPaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
+              :feature-enabled-callback="() => !isEEFeatureBlocked"
+              remove-click
+            />
           </div>
         </template>
 

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { PlanFeatureTypes } from 'nocodb-sdk'
+
 interface Props {
   baseId?: string
 }
@@ -32,7 +34,12 @@ const { appInfo } = useGlobal()
             <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-nc-content-green-dark" />
           </template>
         </ProjectActionItem>
-        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" class="absolute right-2 top-2" />
+        <LazyPaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_SYNC"
+          :feature-enabled-callback="() => !isEEFeatureBlocked"
+          class="absolute right-2 top-2"
+          remove-click
+        />
       </div>
     </template>
   </ProjectSyncCreateProvider>

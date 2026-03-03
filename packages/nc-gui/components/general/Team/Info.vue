@@ -34,9 +34,7 @@ const breadcrumb = computed(() => {
 <template>
   <div class="w-full flex gap-3 items-center">
     <GeneralTeamIcon v-bind="iconProps" :team="team" class="flex-none" />
-    <div
-      class="flex flex-1 max-w-[calc(100%_-_44px)] flex-col"
-    >
+    <div class="flex flex-1 max-w-[calc(100%_-_44px)] flex-col">
       <div class="flex items-center gap-1">
         <NcTooltip
           class="truncate max-w-full capitalize font-semibold"
@@ -57,10 +55,7 @@ const breadcrumb = computed(() => {
         class="flex items-center gap-0.5 text-[11px] text-nc-content-gray-subtle2 truncate"
       >
         <template v-for="(crumb, idx) in breadcrumb" :key="crumb.id">
-          <span
-            :class="idx === breadcrumb.length - 1 ? 'text-nc-content-gray-subtle font-medium' : ''"
-            class="truncate max-w-20"
-          >
+          <span :class="idx === breadcrumb.length - 1 ? 'text-nc-content-gray-subtle font-medium' : ''" class="truncate max-w-20">
             {{ crumb.title }}
           </span>
           <GeneralIcon v-if="idx < breadcrumb.length - 1" icon="ncArrowRight" class="h-3 w-3 flex-none" />

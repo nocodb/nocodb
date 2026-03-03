@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { OrgUserRoles } from 'nocodb-sdk'
+import { OrgUserRoles, PlanFeatureTypes } from 'nocodb-sdk'
 
 definePageMeta({
   hideHeader: true,
@@ -169,7 +169,11 @@ watch(
               <div class="flex items-center space-x-2">
                 <component :is="iconMap.ncLock" />
                 <div class="select-none text-sm">{{ $t('title.sso') }}</div>
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_SSO"
+                  :feature-enabled-callback="() => !isEEFeatureBlocked"
+                  remove-click
+                />
               </div>
             </NcMenuItem>
 

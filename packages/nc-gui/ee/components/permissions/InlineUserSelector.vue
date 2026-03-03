@@ -270,12 +270,7 @@ watch(selectedUsersList, () => {
                       : t('tooltip.teamScopeIncludesSubTeams')
                   }}
                 </template>
-                <NcButton
-                  type="text"
-                  size="xs"
-                  class="!h-4 !w-4 !min-w-0"
-                  @click.stop="toggleTeamScope(user.id)"
-                >
+                <NcButton type="text" size="xs" class="!h-4 !w-4 !min-w-0" @click.stop="toggleTeamScope(user.id)">
                   <GeneralIcon
                     :icon="teamHierarchyScopes?.[user.id] === 'self_only' ? 'ncUser' : 'ncUsers'"
                     class="w-2.5 h-2.5"

@@ -157,10 +157,10 @@ watch(followedCollab, (collab) => {
                 Go there
               </NcButton>
               <NcButton
+                v-e="['c:presence:follow:toggle']"
                 size="xsmall"
                 :type="followingUserId === collab.userId ? 'primary' : 'text'"
                 class="!h-5 !px-1.5 !text-[10px] nc-presence-follow-btn"
-                v-e="['c:presence:follow:toggle']"
                 @click="toggleFollow(collab)"
               >
                 {{ followingUserId === collab.userId ? 'Following' : 'Follow' }}
@@ -169,6 +169,7 @@ watch(followedCollab, (collab) => {
           </div>
         </template>
         <GeneralUserIcon
+          v-e="['c:presence:navigate']"
           :user="toUserProp(collab)"
           size="medium"
           class="ring-2 cursor-pointer"
@@ -176,7 +177,6 @@ watch(followedCollab, (collab) => {
           :style="{ '--tw-ring-color': collab.color }"
           :aria-label="`${collab.display_name} is in this base`"
           tabindex="0"
-          v-e="['c:presence:navigate']"
           @click="navigateToCollaborator(collab)"
           @keydown.enter="navigateToCollaborator(collab)"
         />
@@ -206,11 +206,11 @@ watch(followedCollab, (collab) => {
         {{ presenceEnabled ? 'Hide my presence' : 'Show my presence' }}
       </template>
       <NcButton
+        v-e="['c:presence:visibility:toggle']"
         size="xsmall"
         type="text"
         class="!w-6 !h-6 !p-0"
         :aria-label="presenceEnabled ? 'Hide my presence' : 'Show my presence'"
-        v-e="['c:presence:visibility:toggle']"
         @click="presenceEnabled = !presenceEnabled"
       >
         <GeneralIcon :icon="presenceEnabled ? 'ncEye' : 'ncEyeOff'" class="w-3.5 h-3.5 text-nc-content-gray-subtle" />

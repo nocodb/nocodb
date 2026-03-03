@@ -289,16 +289,16 @@ watch(
           dropdown-class-name="nc-dropdown-edit-team-parent"
           :disabled="isMoving"
         >
-          <a-select-option v-for="t in parentTeamOptions" :key="t.id" :value="t.id" :data-label="t.title">
-            <div class="flex items-center gap-2" :style="{ paddingLeft: `${(t.depth ?? 0) * 16}px` }">
-              <GeneralTeamIcon :team="t" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
+          <a-select-option v-for="pt in parentTeamOptions" :key="pt.id" :value="pt.id" :data-label="pt.title">
+            <div class="flex items-center gap-2" :style="{ paddingLeft: `${(pt.depth ?? 0) * 16}px` }">
+              <GeneralTeamIcon :team="pt" class="!w-5 !h-5 !min-w-5 flex-none !rounded-md" />
               <NcTooltip class="truncate flex-1" show-on-truncate-only>
-                <template #title>{{ t.title }}</template>
-                {{ t.title }}
+                <template #title>{{ pt.title }}</template>
+                {{ pt.title }}
               </NcTooltip>
               <component
                 :is="iconMap.check"
-                v-if="selectedParentId === t.id"
+                v-if="selectedParentId === pt.id"
                 id="nc-selected-item-icon"
                 class="text-primary w-4 h-4 flex-none"
               />

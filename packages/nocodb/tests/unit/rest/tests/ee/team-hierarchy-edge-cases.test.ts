@@ -14,8 +14,6 @@ import { createUser } from '../../../factory/user';
 import { overridePlan } from '../../../utils/plan.utils';
 import { createProject } from '../../../factory/base';
 import { createTable } from '../../../factory/table';
-import NocoCache from '~/cache/NocoCache';
-import { CacheScope } from '~/utils/globals';
 
 /**
  * Team Hierarchy — Remaining Coverage
@@ -1718,13 +1716,6 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       it('Alex is unblocked as soon as direct no_access is removed', async () => {
         await removeDirectBaseRole(base.id, alex.user.id);
-
-        // TODO: remove this workaround once BaseUser.delete() properly invalidates
-        // the per-user cache entry (BASE_USER:{baseId}:{userId})
-        await NocoCache.del(
-          { workspace_id: workspaceId, base_id: base.id },
-          `${CacheScope.BASE_USER}:${base.id}:${alex.user.id}`,
-        );
 
         const res = await createTableInBase(base.id, alexToken, 'AlexTable');
         expect(res.status).to.equal(200);

@@ -85,14 +85,14 @@ onMounted(() => {
       {{ $t('labels.dataPermissions') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isUIAllowed('manageMCP', { roles: effectiveRoles }) && !isMobileMode"
-      v-e="['c:settings:base:mcp']"
-      icon="mcp"
-      data-testid="base-mcp"
-      :active="activeBaseSettingsTab === 'mcp'"
-      @click="navigateToBaseSettings('mcp')"
+      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:add-data-source']"
+      icon="ncDatabase"
+      data-testid="base-data-source"
+      :active="activeBaseSettingsTab === 'data-source'"
+      @click="navigateToBaseSettings('data-source')"
     >
-      {{ $t('title.mcpServer') }}
+      {{ $t('labels.addDataSource') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
@@ -103,6 +103,26 @@ onMounted(() => {
       @click="navigateToBaseSettings('syncs')"
     >
       {{ $t('labels.manageSyncs') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isEeUI && isUIAllowed('baseAuditList', { roles: effectiveRoles }) && isWsAuditEnabled && !isMobileMode"
+      v-e="['c:settings:base:audits']"
+      icon="audit"
+      data-testid="base-audit"
+      :active="activeBaseSettingsTab === 'audit'"
+      @click="navigateToBaseSettings('audit')"
+    >
+      {{ $t('title.audits') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
+      v-if="isUIAllowed('manageMCP', { roles: effectiveRoles }) && !isMobileMode"
+      v-e="['c:settings:base:mcp']"
+      icon="mcp"
+      data-testid="base-mcp"
+      :active="activeBaseSettingsTab === 'mcp'"
+      @click="navigateToBaseSettings('mcp')"
+    >
+      {{ $t('title.mcpServer') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
       v-if="
@@ -119,26 +139,7 @@ onMounted(() => {
     >
       {{ $t('labels.manageSnapshots') }}
     </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
-      v-e="['c:settings:base:add-data-source']"
-      icon="ncDatabase"
-      data-testid="base-data-source"
-      :active="activeBaseSettingsTab === 'data-source'"
-      @click="navigateToBaseSettings('data-source')"
-    >
-      {{ $t('labels.addDataSource') }}
-    </NcSidebarMenuItem>
-    <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('baseAuditList', { roles: effectiveRoles }) && isWsAuditEnabled && !isMobileMode"
-      v-e="['c:settings:base:audits']"
-      icon="audit"
-      data-testid="base-audit"
-      :active="activeBaseSettingsTab === 'audit'"
-      @click="navigateToBaseSettings('audit')"
-    >
-      {{ $t('title.audits') }}
-    </NcSidebarMenuItem>
+
     <NcSidebarMenuItem
       v-if="!isSharedBase && !isMobileMode"
       v-e="['c:settings:base:more']"

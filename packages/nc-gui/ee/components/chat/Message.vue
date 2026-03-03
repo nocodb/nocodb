@@ -82,9 +82,7 @@ const isGroupRunning = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[
 
 // Count completed tools in a group
 const completedCount = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[]) => {
-  return blocks.filter(
-    (b) => b.status !== ChatToolCallStatus.RUNNING && b.status !== ChatToolCallStatus.PENDING,
-  ).length
+  return blocks.filter((b) => b.status !== ChatToolCallStatus.RUNNING && b.status !== ChatToolCallStatus.PENDING).length
 }
 
 // Render text as markdown

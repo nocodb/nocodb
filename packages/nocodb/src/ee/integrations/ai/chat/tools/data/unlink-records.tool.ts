@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import { resolveTableByName, resolveColumnByName } from '../helpers';
+import { resolveColumnByName, resolveTableByName } from '../helpers';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';

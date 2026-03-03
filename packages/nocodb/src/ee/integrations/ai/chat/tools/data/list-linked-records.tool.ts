@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
 import {
-  resolveTableByName,
   resolveColumnByName,
+  resolveTableByName,
   truncateResult,
 } from '../helpers';
 import type { NcContext } from '~/interface/config';

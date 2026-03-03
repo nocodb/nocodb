@@ -24,7 +24,6 @@ const { t } = useI18n()
 
 const isExpanded = ref(false)
 
-const isSuccess = computed(() => block.value.status === ChatToolCallStatus.SUCCESS)
 const isError = computed(() => block.value.status === ChatToolCallStatus.ERROR || block.value.is_error)
 const isRunning = computed(() => block.value.status === ChatToolCallStatus.RUNNING)
 const isPending = computed(() => block.value.status === ChatToolCallStatus.PENDING)

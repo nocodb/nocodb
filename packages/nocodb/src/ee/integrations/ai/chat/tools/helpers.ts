@@ -11,7 +11,7 @@ import Noco from '~/Noco';
 export async function resolveTableByName(
   context: NcContext,
   tableName: string,
-  ncMeta = Noco.ncMeta,
+  _ncMeta = Noco.ncMeta,
 ): Promise<Model> {
   const models = await Model.list(context, {
     base_id: context.base_id,

@@ -93,8 +93,8 @@ export class WorkspaceTeamsV3Service {
             WorkspaceUserRoles,
             WorkspaceUserRoles.OWNER
           >,
-          created_at: assignment.created_at!,
-          updated_at: assignment.updated_at!,
+          created_at: assignment.created_at ?? null,
+          updated_at: assignment.updated_at ?? null,
         };
       })
       .filter((team) => team !== null);
@@ -183,8 +183,8 @@ export class WorkspaceTeamsV3Service {
         WorkspaceUserRoles,
         WorkspaceUserRoles.OWNER
       >,
-      created_at: assignment.created_at!,
-      updated_at: assignment.updated_at!,
+      created_at: assignment.created_at ?? null,
+      updated_at: assignment.updated_at ?? null,
     };
 
     // Emit workspace team invite event
@@ -363,8 +363,8 @@ export class WorkspaceTeamsV3Service {
           WorkspaceUserRoles,
           WorkspaceUserRoles.OWNER
         >,
-        created_at: updatedAssignment.created_at!,
-        updated_at: updatedAssignment.updated_at!,
+        created_at: updatedAssignment.created_at ?? null,
+        updated_at: updatedAssignment.updated_at ?? null,
       });
 
       // Notify team owners via email about role update (using pre-fetched data)
@@ -679,8 +679,8 @@ export class WorkspaceTeamsV3Service {
         WorkspaceUserRoles,
         WorkspaceUserRoles.OWNER
       >,
-      created_at: assignment.created_at!,
-      updated_at: assignment.updated_at!,
+      created_at: assignment.created_at ?? null,
+      updated_at: assignment.updated_at ?? null,
     };
   }
 }

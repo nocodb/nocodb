@@ -515,7 +515,10 @@ export default class Team {
       if (!desc.path) continue;
       const parent = resolveParent(desc.path);
       if (parent) {
-        result.get(parent.id)!.push(this.castType(desc));
+        const siblings = result.get(parent.id);
+        if (siblings) {
+          siblings.push(this.castType(desc));
+        }
       }
     }
 

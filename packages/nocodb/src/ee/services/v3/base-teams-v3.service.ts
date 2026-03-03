@@ -112,7 +112,8 @@ export class BaseTeamsV3Service {
     const baseTeams = baseTeamAssignments
       .filter((a) => teamsMap.has(a.principal_ref_id))
       .map((assignment) => {
-        const team = teamsMap.get(assignment.principal_ref_id)!;
+        const team = teamsMap.get(assignment.principal_ref_id);
+        if (!team) return null;
         const meta = parseMetaProp(team);
         const workspaceAssignment = workspaceAssignmentMap.get(
           assignment.principal_ref_id,
@@ -133,10 +134,11 @@ export class BaseTeamsV3Service {
               WorkspaceUserRoles,
               WorkspaceUserRoles.OWNER
             >) || null,
-          created_at: assignment.created_at!,
-          updated_at: assignment.updated_at!,
+          created_at: assignment.created_at ?? null,
+          updated_at: assignment.updated_at ?? null,
         };
-      });
+      })
+      .filter(Boolean);
 
     // Build workspace-only teams list from batch result
     const workspaceOnlyTeams = workspaceTeamAssignments
@@ -146,7 +148,8 @@ export class BaseTeamsV3Service {
           teamsMap.has(a.principal_ref_id),
       )
       .map((assignment) => {
-        const team = teamsMap.get(assignment.principal_ref_id)!;
+        const team = teamsMap.get(assignment.principal_ref_id);
+        if (!team) return null;
         const meta = parseMetaProp(team);
 
         return {
@@ -160,10 +163,11 @@ export class BaseTeamsV3Service {
             WorkspaceUserRoles,
             WorkspaceUserRoles.OWNER
           >,
-          created_at: assignment.created_at!,
-          updated_at: assignment.updated_at!,
+          created_at: assignment.created_at ?? null,
+          updated_at: assignment.updated_at ?? null,
         };
-      });
+      })
+      .filter(Boolean);
 
     const allTeams = [...baseTeams, ...workspaceOnlyTeams];
 
@@ -268,8 +272,8 @@ export class BaseTeamsV3Service {
       team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
       base_role: assignment.roles as Exclude<ProjectRoles, ProjectRoles.OWNER>,
-      created_at: assignment.created_at!,
-      updated_at: assignment.updated_at!,
+      created_at: assignment.created_at ?? null,
+      updated_at: assignment.updated_at ?? null,
     };
 
     // Emit base team invite event
@@ -483,8 +487,8 @@ export class BaseTeamsV3Service {
           ProjectRoles,
           ProjectRoles.OWNER
         >,
-        created_at: updatedAssignment.created_at!,
-        updated_at: updatedAssignment.updated_at!,
+        created_at: updatedAssignment.created_at ?? null,
+        updated_at: updatedAssignment.updated_at ?? null,
       });
 
       // Notify team owners via email about role update (using pre-fetched data)
@@ -572,7 +576,7 @@ export class BaseTeamsV3Service {
       if (!membersByTeamId.has(a.resource_id)) {
         membersByTeamId.set(a.resource_id, []);
       }
-      membersByTeamId.get(a.resource_id)!.push(a);
+      membersByTeamId.get(a.resource_id)?.push(a);
     }
 
     // Load all owner users for notifications
@@ -777,8 +781,8 @@ export class BaseTeamsV3Service {
           WorkspaceUserRoles,
           WorkspaceUserRoles.OWNER
         >) || null,
-      created_at: (baseAssignment || workspaceAssignment)!.created_at!,
-      updated_at: (baseAssignment || workspaceAssignment)!.updated_at!,
+      created_at: (baseAssignment || workspaceAssignment)?.created_at ?? null,
+      updated_at: (baseAssignment || workspaceAssignment)?.updated_at ?? null,
     };
   }
 }

@@ -9,7 +9,7 @@ const { isLoading } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
-const { isLeftSidebarOpen, allowHideLeftSidebarForCurrentRoute } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen, allowHideLeftSidebarForCurrentRoute, activeSidebarTab } = storeToRefs(useSidebarStore())
 
 const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
 
@@ -40,7 +40,7 @@ const showSidebarBtn = computed(() => {
       </div>
 
       <div class="flex items-center gap-0.5">
-        <DashboardSidebarViewOptions v-if="isEeUI && !isSharedBase" />
+        <DashboardSidebarViewOptions v-if="isEeUI && !isSharedBase && activeSidebarTab === 'data'" />
         <NcTooltip v-if="!isSharedBase" class="flex" placement="bottom" hide-on-click>
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>

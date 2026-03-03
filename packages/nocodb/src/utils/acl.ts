@@ -244,23 +244,6 @@ const permissionScopes = {
     'mcpUpdate',
     'mcpDelete',
 
-    // Documents
-    'documentList',
-    'documentGet',
-    'documentCreate',
-    'documentUpdate',
-    'documentDelete',
-    'documentReorder',
-
-    // Document Comments
-    'documentCommentList',
-    'documentCommentCount',
-    'documentCommentCreate',
-    'documentCommentUpdate',
-    'documentCommentDelete',
-    'documentCommentReactionToggle',
-    'documentCommentReactionList',
-
     // etc
     'fetchViaUrl',
   ],
@@ -434,15 +417,6 @@ const rolePermissions:
       mcpCreate: true,
       mcpUpdate: true,
       mcpDelete: true,
-
-      // Documents — read-only for viewers
-      documentList: true,
-      documentGet: true,
-
-      // Document Comments — read-only for viewers
-      documentCommentList: true,
-      documentCommentCount: true,
-      documentCommentReactionList: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -450,12 +424,6 @@ const rolePermissions:
       commentRow: true,
       commentUpdate: true,
       commentDelete: true,
-
-      // Document Comments — commenters can create/update/delete + reactions
-      documentCommentCreate: true,
-      documentCommentUpdate: true,
-      documentCommentDelete: true,
-      documentCommentReactionToggle: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -490,12 +458,6 @@ const rolePermissions:
       // AI
       aiUtils: true,
       aiData: true,
-
-      // Documents — editors can modify existing documents but NOT create/delete.
-      // documentCreate and documentDelete are restricted to CREATOR+ (via exclude pattern)
-      // so that document lifecycle is controlled by project admins.
-      documentUpdate: true,
-      documentReorder: true,
 
       // Extensions
       extensionUpdate: true,
@@ -897,21 +859,6 @@ const permissionDescriptions: Record<string, string> = {
   chatSessionDelete: 'delete a chat session',
   chatMessageList: 'list chat messages',
   chatMessageSend: 'send a chat message',
-
-  documentList: 'view list of documents',
-  documentGet: 'view document details',
-  documentCreate: 'create a new document',
-  documentUpdate: 'update a document',
-  documentDelete: 'delete a document',
-  documentReorder: 'reorder documents',
-
-  documentCommentList: 'view document comments',
-  documentCommentCount: 'view document comment count',
-  documentCommentCreate: 'comment on a document',
-  documentCommentUpdate: 'update document comments',
-  documentCommentDelete: 'delete document comments',
-  documentCommentReactionToggle: 'react to document comments',
-  documentCommentReactionList: 'view document comment reactions',
 };
 
 // Human-readable descriptions for roles

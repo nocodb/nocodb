@@ -1,6 +1,6 @@
 /**
  * Internal API GET operations for Document Comments.
- * Handles documentCommentList and documentCommentCount.
+ * Handles documentCommentList, documentCommentCount, and documentCommentReactionList.
  */
 import { Injectable } from '@nestjs/common';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';

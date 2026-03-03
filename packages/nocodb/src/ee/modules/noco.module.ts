@@ -86,6 +86,10 @@ import { WorkflowSubscribersService } from '~/services/workflow-subscribers.serv
 import { HookSubscribersService } from '~/services/hook-subscribers.service';
 import { WorkflowWebhookController } from '~/controllers/workflow-webhook.controller';
 
+/* Documents */
+import { DocumentsService } from '~/services/documents.service';
+import { DocumentCommentsService } from '~/services/document-comments.service';
+
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
 
@@ -193,6 +197,10 @@ export const nocoModuleEeMetadata = {
       provide: 'WorkflowExecutionService',
       useClass: WorkflowExecutionService,
     },
+
+    /* Documents */
+    DocumentsService,
+    DocumentCommentsService,
 
     /* Dashboards */
     DashboardsService,

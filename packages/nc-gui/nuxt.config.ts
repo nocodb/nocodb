@@ -299,7 +299,6 @@ export default defineNuxtConfig({
         'splitpanes',
         'tippy.js',
         'tiptap-markdown',
-        'turndown',
         'unified',
         'v3-infinite-loading',
         'validator',

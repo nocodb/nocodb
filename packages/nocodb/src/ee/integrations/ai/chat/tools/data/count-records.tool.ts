@@ -24,10 +24,12 @@ export const countRecordsTool: ChatToolDefinition = {
       .string()
       .optional()
       .describe(
-        'Optional filter to count only matching records. ' +
-          'Format: (FieldTitle,operator,value)~and(FieldTitle,operator,value). ' +
-          'Example: (Status,eq,Active) or (CreatedAt,gt,2024-01-01)~and(Status,neq,Archived). ' +
-          'All filter operators are listed in the system prompt under "Filter Operators".',
+        'Where clause: (FieldTitle,op,value) chained with ~and / ~or. ' +
+          'Operators: eq, neq, gt, lt, gte, lte, like ("%search%"), nlike, ' +
+          'blank, notblank, null, notnull, empty, notempty, ' +
+          'in ("A,B"), allof, anyof, nallof, nanyof, btw ("10,20"), nbtw, ' +
+          'checked, notchecked, is, isnot, isWithin. ' +
+          'Example: (Status,eq,Active)~and(CreatedAt,gt,2024-01-01)',
       ),
   },
   permission: 'dataCount',

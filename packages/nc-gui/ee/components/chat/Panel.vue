@@ -60,8 +60,16 @@ const pendingUserInput = computed(() => {
           return null
         }
       }
-      if (!output?.question || !output?.options) return null
-      return { toolCallId: block.id, question: output.question as string, options: output.options as string[] }
+      // Support both new multi-question format and legacy single-question format
+      let questions: { question: string; options: string[] }[]
+      if (output?.questions && Array.isArray(output.questions)) {
+        questions = output.questions
+      } else if (output?.question && output?.options) {
+        questions = [{ question: output.question, options: output.options }]
+      } else {
+        return null
+      }
+      return { toolCallId: block.id, questions }
     }
   }
   return null
@@ -325,8 +333,7 @@ const handleDeny = async (messageId: string, toolCallId: string) => {
         <Transition name="nc-slide-up">
           <ChatOptions
             v-if="pendingUserInput && !dismissedInputIds.has(pendingUserInput.toolCallId) && !isSendingMessage"
-            :question="pendingUserInput.question"
-            :options="pendingUserInput.options"
+            :questions="pendingUserInput.questions"
             class="mx-3 mb-2"
             @select="handleUserInput"
             @skip="handleSkipInput"

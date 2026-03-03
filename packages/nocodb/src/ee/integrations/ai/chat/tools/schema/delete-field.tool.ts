@@ -11,8 +11,7 @@ export const deleteFieldTool: ChatToolDefinition = {
   name: 'delete_field',
   description:
     'Permanently delete a field (column) from a table, including all data stored in that field across all records. ' +
-    'This CANNOT be undone. Confirm with the user before calling this. ' +
-    'Use describe_table to verify the field name before deleting.',
+    'This CANNOT be undone.',
   parameters: {
     table_name: z
       .string()
@@ -21,10 +20,7 @@ export const deleteFieldTool: ChatToolDefinition = {
       ),
     field_name: z
       .string()
-      .describe(
-        'The title of the field to delete (case-insensitive). ' +
-          'Use describe_table to see exact field names.',
-      ),
+      .describe('The title of the field to delete (case-insensitive).'),
   },
   permission: 'columnDelete',
   scope: 'base',

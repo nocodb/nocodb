@@ -1,10 +1,14 @@
 <script setup lang="ts">
-interface Props {
+interface Question {
   question: string
   options: string[]
 }
 
-defineProps<Props>()
+interface Props {
+  questions: Question[]
+}
+
+const props = defineProps<Props>()
 
 const emits = defineEmits<{
   select: [choice: string]
@@ -13,20 +17,92 @@ const emits = defineEmits<{
 
 const { t } = useI18n()
 
+const isSingleQuestion = computed(() => props.questions.length === 1)
+
+// Current step index (0-based)
+const currentStep = ref(0)
+
+// Track selected answer per question (index -> choice string)
+const answers = ref<Record<number, string>>({})
+
 const customInput = ref('')
+
+const currentQuestion = computed(() => props.questions[currentStep.value])
+
+const currentAnswer = computed(() => answers.value[currentStep.value])
+
+const isLastStep = computed(() => currentStep.value === props.questions.length - 1)
+
+const selectOption = (option: string) => {
+  // Single question: emit immediately (same UX as before)
+  if (isSingleQuestion.value) {
+    emits('select', option)
+    return
+  }
+  answers.value = { ...answers.value, [currentStep.value]: option }
+}
 
 const handleCustomSubmit = () => {
   const trimmed = customInput.value.trim()
   if (!trimmed) return
-  emits('select', trimmed)
+  if (isSingleQuestion.value) {
+    emits('select', trimmed)
+    return
+  }
+  answers.value = { ...answers.value, [currentStep.value]: trimmed }
+  customInput.value = ''
 }
+
+const goNext = () => {
+  if (!currentAnswer.value) return
+  if (isLastStep.value) {
+    submitAll()
+    return
+  }
+  customInput.value = ''
+  currentStep.value++
+}
+
+const goBack = () => {
+  if (currentStep.value > 0) {
+    customInput.value = ''
+    currentStep.value--
+  }
+}
+
+const submitAll = () => {
+  const combined = props.questions.map((q, i) => `${q.question} ${answers.value[i]}`).join('\n')
+  emits('select', combined)
+}
+
+// Reset step when questions change
+watch(
+  () => props.questions,
+  () => {
+    currentStep.value = 0
+    answers.value = {}
+    customInput.value = ''
+  },
+)
 </script>
 
 <template>
   <div class="nc-chat-options bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl overflow-hidden">
-    <!-- Header -->
+    <!-- Step indicator (multi-question only) -->
+    <div v-if="!isSingleQuestion" class="flex items-center gap-1.5 px-3 pt-2.5 pb-1">
+      <div
+        v-for="(_, si) in questions"
+        :key="si"
+        class="h-1 rounded-full transition-all duration-200"
+        :class="[si <= currentStep ? 'bg-nc-fill-primary' : 'bg-nc-bg-gray-medium', si === currentStep ? 'flex-[2]' : 'flex-1']"
+      />
+    </div>
+
+    <!-- Question header -->
     <div class="flex items-center justify-between px-3 py-2.5">
-      <span class="text-sm font-medium text-nc-content-gray-emphasis leading-snug flex-1 mr-2">{{ question }}</span>
+      <span class="text-sm font-medium text-nc-content-gray-emphasis leading-snug flex-1 mr-2">
+        {{ currentQuestion?.question }}
+      </span>
       <NcButton size="xxsmall" type="text" class="!text-nc-content-gray-muted flex-none" @click="emits('skip')">
         <GeneralIcon icon="close" class="w-3.5 h-3.5" />
       </NcButton>
@@ -34,18 +110,24 @@ const handleCustomSubmit = () => {
 
     <div class="border-t-1 border-nc-border-gray-light" />
 
-    <!-- Options -->
+    <!-- Options for current step -->
     <div>
       <div
-        v-for="(option, i) in options"
+        v-for="(option, i) in currentQuestion?.options"
         :key="i"
-        class="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
-        @click="emits('select', option)"
+        class="flex items-center gap-2.5 px-3 py-2 cursor-pointer transition-colors"
+        :class="currentAnswer === option ? 'bg-nc-bg-brand-soft' : 'hover:bg-nc-bg-gray-light'"
+        @click="selectOption(option)"
       >
         <span
-          class="flex-none w-7 h-7 flex items-center justify-center rounded-lg bg-nc-bg-gray-extralight text-xs font-semibold text-nc-content-gray-subtle border-1 border-nc-border-gray-light"
+          class="flex-none w-7 h-7 flex items-center justify-center rounded-lg text-xs font-semibold border-1"
+          :class="
+            currentAnswer === option
+              ? 'bg-nc-fill-primary text-white border-transparent'
+              : 'bg-nc-bg-gray-extralight text-nc-content-gray-subtle border-nc-border-gray-light'
+          "
         >
-          {{ i + 1 }}
+          {{ currentAnswer === option ? '&#10003;' : i + 1 }}
         </span>
         <span class="text-sm text-nc-content-gray-emphasis">{{ option }}</span>
       </div>
@@ -53,7 +135,7 @@ const handleCustomSubmit = () => {
 
     <div class="border-t-1 border-nc-border-gray-light" />
 
-    <!-- Footer: custom input + skip -->
+    <!-- Custom input -->
     <div class="flex items-center gap-2 px-3 py-2">
       <GeneralIcon icon="ncEdit" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
       <input
@@ -63,11 +145,41 @@ const handleCustomSubmit = () => {
         @keydown.enter.prevent="handleCustomSubmit"
       />
       <NcButton v-if="customInput.trim()" size="xxsmall" type="primary" @click="handleCustomSubmit">
-        {{ t('general.send') }}
+        {{ isSingleQuestion ? t('general.send') : t('general.select') }}
       </NcButton>
-      <NcButton v-else size="xxsmall" type="text" class="!text-nc-content-gray-subtle" @click="emits('skip')">
+      <NcButton
+        v-else-if="isSingleQuestion"
+        size="xxsmall"
+        type="text"
+        class="!text-nc-content-gray-subtle"
+        @click="emits('skip')"
+      >
         {{ t('general.skip') }}
       </NcButton>
     </div>
+
+    <!-- Navigation footer (multi-question only) -->
+    <template v-if="!isSingleQuestion">
+      <div class="border-t-1 border-nc-border-gray-medium" />
+      <div class="flex items-center justify-between px-3 py-2">
+        <!-- Back button or step counter -->
+        <div class="flex items-center gap-2">
+          <NcButton v-if="currentStep > 0" size="small" type="secondary" @click="goBack">
+            {{ t('general.back') }}
+          </NcButton>
+          <span class="text-[12px] text-nc-content-gray-muted"> {{ currentStep + 1 }}/{{ questions.length }} </span>
+        </div>
+
+        <!-- Next / Submit -->
+        <div class="flex items-center gap-2">
+          <NcButton size="small" type="secondary" @click="emits('skip')">
+            {{ t('general.skip') }}
+          </NcButton>
+          <NcButton size="small" type="primary" :disabled="!currentAnswer" @click="goNext">
+            {{ isLastStep ? t('general.submit') : t('labels.next') }}
+          </NcButton>
+        </div>
+      </div>
+    </template>
   </div>
 </template>

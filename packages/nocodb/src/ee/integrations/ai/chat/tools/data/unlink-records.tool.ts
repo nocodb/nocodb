@@ -22,8 +22,7 @@ export const unlinkRecordsTool: ChatToolDefinition = {
     link_field_name: z
       .string()
       .describe(
-        'The title of the LinkToAnotherRecord field (case-insensitive). ' +
-          'Use describe_table to find it.',
+        'The title of the LinkToAnotherRecord field (case-insensitive).',
       ),
     row_id: z
       .union([z.string(), z.number()])

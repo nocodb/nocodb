@@ -11,7 +11,6 @@ export const createRecordsTool: ChatToolDefinition = {
   name: 'create_records',
   description:
     'Insert one or more records into a table (1–10 per call). ' +
-    'Use describe_table first to see available fields and their types. ' +
     'Field value rules: ' +
     'SingleSelect must exactly match one of the defined options (case-sensitive). ' +
     'MultiSelect: comma-separated option values, e.g. "Tag1,Tag2". ' +
@@ -30,7 +29,7 @@ export const createRecordsTool: ChatToolDefinition = {
       .max(10)
       .describe(
         'Array of records to insert (1–10). Each element must be { "fields": { "FieldTitle": value, ... } }. ' +
-          'Keys inside "fields" must exactly match field titles from describe_table (case-sensitive). ' +
+          'Keys inside "fields" must exactly match field titles (case-sensitive). ' +
           'Do NOT include the primary key — it is auto-generated. ' +
           'Example: [{ "fields": { "Name": "Alice", "Status": "Active" } }, { "fields": { "Name": "Bob", "Status": "Inactive" } }]',
       ),

@@ -16,9 +16,7 @@ export const addFilterTool: ChatToolDefinition = {
   description:
     'Add a filter condition to a view. Filters limit which records are shown in the view without deleting data. ' +
     'Multiple filters are combined using logical_op (and/or). ' +
-    'Returns the filter_id which you can use later with remove_filter. ' +
-    'All operators are listed in the system prompt under "Filter Operators". ' +
-    'Value-less operators (blank, notblank, null, notnull, checked, notchecked) do not need a value.',
+    'Returns the filter_id which you can use later with remove_filter.',
   parameters: {
     table_name: z
       .string()
@@ -33,17 +31,19 @@ export const addFilterTool: ChatToolDefinition = {
       ),
     field_name: z
       .string()
-      .describe(
-        'The title of the field to filter on (case-insensitive). ' +
-          'Use describe_table to see exact field names.',
-      ),
+      .describe('The title of the field to filter on (case-insensitive).'),
     operator: z
       .string()
       .describe(
-        'The comparison operator. See system prompt "Filter Operators" for the complete list. ' +
-          'Common operators: eq (equals), neq (not equals), like (contains), gt/lt (greater/less than), ' +
-          'blank (null or empty), in (one of list), anyof (any option selected). ' +
-          'For no-value operators like blank/notblank/checked/notchecked, omit the value parameter.',
+        'Comparison operator. ' +
+          'Equality: eq, neq. ' +
+          'Comparison: gt, lt, gte, lte, btw ("10,20"), nbtw. ' +
+          'Text: like ("%search%"), nlike. ' +
+          'Presence: null, notnull, blank (null OR empty), notblank, empty, notempty. ' +
+          'Checkbox: checked, notchecked. ' +
+          'Select: in ("A,B"), allof, anyof, nallof, nanyof. ' +
+          'Date: is, isnot, isWithin — values: "today", "thisWeek", "thisMonth", "pastWeek", "nextMonth". ' +
+          'Value-less operators (blank, notblank, null, notnull, checked, notchecked): omit the value parameter.',
       ),
     value: z
       .string()

@@ -37,7 +37,7 @@ export const updateRecordsTool: ChatToolDefinition = {
             .record(z.any())
             .describe(
               'Fields to update as { "FieldTitle": newValue, ... }. ' +
-                'Keys must exactly match field titles from describe_table (case-sensitive). ' +
+                'Keys must exactly match field titles (case-sensitive). ' +
                 'Include only the fields you want to change — other fields are untouched.',
             ),
         }),

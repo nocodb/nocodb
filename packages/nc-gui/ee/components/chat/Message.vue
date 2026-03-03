@@ -61,7 +61,18 @@ const displaySegments = computed<DisplaySegment[]>(() => {
       }
     }
   }
-  return segments
+
+  // Hide text that immediately precedes an ask_user tool — the Options card renders it
+  const filtered: DisplaySegment[] = []
+  for (let i = 0; i < segments.length; i++) {
+    const seg = segments[i]
+    const next = segments[i + 1]
+    if (seg.kind === 'text' && next?.kind === 'tools' && next.blocks.every((b) => b.name === 'ask_user')) {
+      continue
+    }
+    filtered.push(seg)
+  }
+  return filtered
 })
 
 // Track which tool groups are expanded (keyed by first tool's id)

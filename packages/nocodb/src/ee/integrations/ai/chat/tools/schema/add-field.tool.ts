@@ -14,7 +14,6 @@ export const addFieldTool: ChatToolDefinition = {
     'Valid types: SingleLineText, LongText, Email, URL, PhoneNumber, Number, Decimal, ' +
     'Currency, Percent, Duration, Rating, Date, DateTime, Time, Year, SingleSelect, MultiSelect, ' +
     'Checkbox, Attachment, JSON, LinkToAnotherRecord. ' +
-    'Use describe_table first to verify the current field names and avoid duplicates. ' +
     'For SingleSelect and MultiSelect, pass choices as an array: [{ "title": "Option A" }, { "title": "Option B" }]. ' +
     'For LinkToAnotherRecord, pass relation_type ("om", "mo", "mm", or "oo") and related_table_name. ' +
     'Returns the created field in v3 format.',

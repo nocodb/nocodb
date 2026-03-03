@@ -13,9 +13,7 @@ export const queryRecordsTool: ChatToolDefinition = {
     'Query records from a table with optional filtering, sorting, and pagination. ' +
     'Returns records in v3 format: each record has an "id" (the primary key value) and a "fields" object. ' +
     'Use the "id" value directly in get_record, update_records (rows[].id), and delete_records (row_ids) — ' +
-    'never guess or construct row IDs yourself. ' +
-    'Filter syntax: (FieldTitle,operator,value)~and(FieldTitle,operator,value). ' +
-    'All filter operators are listed in the system prompt under "Filter Operators".',
+    'never guess or construct row IDs yourself.',
   parameters: {
     table_name: z
       .string()
@@ -24,10 +22,12 @@ export const queryRecordsTool: ChatToolDefinition = {
       .string()
       .optional()
       .describe(
-        'Filter expression. Format: (FieldTitle,operator,value)~and(FieldTitle,operator,value). ' +
-          'Operators: eq, neq, gt, lt, gte, lte, like, nlike, blank, notblank, null, notnull, ' +
-          'in, allof, anyof, btw, nbtw, is, isnot, isWithin, checked, notchecked. ' +
-          'Example: (Status,eq,Active)~and(Priority,gt,2) or (Name,like,%john%)',
+        'Where clause: (FieldTitle,op,value) chained with ~and / ~or. ' +
+          'Operators: eq, neq, gt, lt, gte, lte, like ("%search%"), nlike, ' +
+          'blank, notblank, null, notnull, empty, notempty, ' +
+          'in ("A,B"), allof, anyof, nallof, nanyof, btw ("10,20"), nbtw, ' +
+          'checked, notchecked, is, isnot, isWithin. ' +
+          'Example: (Status,eq,Active)~and(Priority,gt,2)',
       ),
     sort: z
       .string()

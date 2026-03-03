@@ -5,16 +5,13 @@ import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
 import Model from '~/models/Model';
-import Noco from '~/Noco';
 
 export const describeTableTool: ChatToolDefinition = {
   name: 'describe_table',
   description:
     'Get the full schema of a table: all user-visible fields with their name, type, ' +
     'required flag, display field flag, and available options for SingleSelect/MultiSelect fields. ' +
-    'For LinkToAnotherRecord fields, shows the related table name and relationship type (om, mo, mm, oo). ' +
-    'Call this before creating or modifying fields, and before writing records to a table you have not ' +
-    'seen yet — it tells you exact field names, types, and option values that records must match.',
+    'For LinkToAnotherRecord fields, shows the related table name and relationship type (om, mo, mm, oo).',
   parameters: {
     table_name: z
       .string()

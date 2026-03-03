@@ -16,8 +16,7 @@ export const listLinkedRecordsTool: ChatToolDefinition = {
   description:
     'List records linked to a specific row through a LinkToAnotherRecord field. ' +
     'Returns the linked records with their fields. ' +
-    'Use query_records first to get the row_id of the source record, and describe_table ' +
-    'to find the link field name. ' +
+    'Use query_records first to get the row_id of the source record. ' +
     'For one-to-many (om) and many-to-many (mm) fields, returns an array of linked records. ' +
     'For one-to-one (oo) or many-to-one (mo), returns a single record or null.',
   parameters: {
@@ -29,8 +28,7 @@ export const listLinkedRecordsTool: ChatToolDefinition = {
     link_field_name: z
       .string()
       .describe(
-        'The title of the LinkToAnotherRecord field (case-insensitive). ' +
-          'Use describe_table to find it.',
+        'The title of the LinkToAnotherRecord field (case-insensitive).',
       ),
     row_id: z
       .union([z.string(), z.number()])

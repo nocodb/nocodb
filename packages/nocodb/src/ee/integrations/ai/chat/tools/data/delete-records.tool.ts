@@ -11,7 +11,6 @@ export const deleteRecordsTool: ChatToolDefinition = {
   name: 'delete_records',
   description:
     'Permanently delete one or more records from a table (1–10 at a time). This CANNOT be undone. ' +
-    'Always confirm with the user before deleting. ' +
     'You MUST call query_records first to obtain the IDs: each record in the response has an ' +
     '"id" field at the root level — collect those values and pass them all at once here. ' +
     'Do not call delete_records multiple times for the same batch — pass all IDs in a single call (max 10). ' +

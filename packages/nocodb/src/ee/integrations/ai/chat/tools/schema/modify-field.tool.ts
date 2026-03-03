@@ -14,7 +14,7 @@ export const modifyFieldTool: ChatToolDefinition = {
     'At least one of new_title, type, or choices must be provided. ' +
     'WARNING: Changing the field type may cause data loss if existing values are incompatible. ' +
     'For SingleSelect/MultiSelect, providing choices replaces the full option list — include ALL desired options, ' +
-    'not just the new ones. Use describe_table first to see the current field configuration.',
+    'not just the new ones.',
   parameters: {
     table_name: z
       .string()
@@ -23,10 +23,7 @@ export const modifyFieldTool: ChatToolDefinition = {
       ),
     field_name: z
       .string()
-      .describe(
-        'The current title of the field to modify (case-insensitive). ' +
-          'Use describe_table to get the exact field names.',
-      ),
+      .describe('The current title of the field to modify (case-insensitive).'),
     new_title: z
       .string()
       .optional()
@@ -35,7 +32,7 @@ export const modifyFieldTool: ChatToolDefinition = {
       .string()
       .optional()
       .describe(
-        'New field type (e.g. "LongText", "Number"). See system prompt "Field Types". Omit if not changing.',
+        'New field type (e.g. "LongText", "Number"). Omit if not changing.',
       ),
     choices: z
       .array(z.object({ title: z.string() }))

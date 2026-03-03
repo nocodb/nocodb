@@ -11,7 +11,7 @@ export const deleteTableTool: ChatToolDefinition = {
   name: 'delete_table',
   description:
     'Permanently delete a table and ALL of its data, fields, views, and relationship links. ' +
-    'This CANNOT be undone. Confirm with the user before calling this. ' +
+    'This CANNOT be undone. ' +
     'Also removes any LinkToAnotherRecord/Links columns in other tables that pointed to this table.',
   parameters: {
     table_name: z

@@ -32,10 +32,7 @@ export const addSortTool: ChatToolDefinition = {
       ),
     field_name: z
       .string()
-      .describe(
-        'The title of the field to sort by (case-insensitive). ' +
-          'Use describe_table to see available field names.',
-      ),
+      .describe('The title of the field to sort by (case-insensitive).'),
     direction: z
       .enum(['asc', 'desc'])
       .describe(

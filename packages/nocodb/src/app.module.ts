@@ -45,7 +45,6 @@ export const ceModuleConfig = {
       provide: APP_GUARD,
       useClass: ExtractIdsMiddleware,
     },
-    GuiMiddleware,
   ],
 };
 

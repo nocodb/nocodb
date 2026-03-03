@@ -37,8 +37,17 @@ export class GuiMiddleware implements NestMiddleware, OnModuleInit {
 
     // Try serving a static asset (JS, CSS, images, fonts)
     this.staticRouter(req, res, () => {
-      // Static file not found — just pass through.
-      // SPA fallback is handled separately after all NestJS routes.
+      // No static file matched. For browser navigation requests
+      // (non-file GET that accept text/html), serve index.html as
+      // SPA fallback for history-mode routing.
+      if (
+        this.indexHtml &&
+        !path.extname(req.path) &&
+        req.headers.accept?.includes('text/html')
+      ) {
+        res.setHeader('Content-Type', 'text/html');
+        return res.send(this.indexHtml);
+      }
       next();
     });
   }

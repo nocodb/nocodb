@@ -122,7 +122,7 @@ export default {
 
             <a
               v-if="showSignUpButton"
-              href="https://app.nocodb.com/#/signin"
+              href="https://app.nocodb.com/signin"
               target="_blank"
               class="!no-underline xs:hidden"
               rel="noopener"

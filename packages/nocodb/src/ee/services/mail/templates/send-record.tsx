@@ -196,7 +196,7 @@ SendRecord.PreviewProps = {
       columnTitle: 'Phone',
     },
   ],
-  recordUrl: 'https://app.nocodb.com/#/workspace/base/table?rowId=123',
+  recordUrl: 'https://app.nocodb.com/workspace/base/table?rowId=123',
 };
 
 export default SendRecord;

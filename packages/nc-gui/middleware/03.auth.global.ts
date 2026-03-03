@@ -39,15 +39,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   await checkForRedirect()
 
-  /** If baseHostname defined block home page access under subdomains, and redirect to workspace page */
-  if (
-    state.appInfo.value.baseHostName &&
-    !location.hostname?.startsWith(`${state.appInfo.value.mainSubDomain}.`) &&
-    to.path === '/'
-  ) {
-    return navigateTo(`/${location.hostname.split('.')[0]}`)
-  }
-
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
   if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) {
     await tryGoogleAuth(api, state.signIn)

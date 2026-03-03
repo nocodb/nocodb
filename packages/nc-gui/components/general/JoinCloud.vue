@@ -75,7 +75,7 @@ const onMouseover = async () => {
     <a
       v-e="['c:navbar:join-cloud']"
       class="flex flex-grow !no-underline items-center justify-center border-r-1 h-full hover:bg-nc-bg-gray-light"
-      href="https://app.nocodb.com/#/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=OSS"
+      href="https://app.nocodb.com/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=OSS"
     >
       <div class="px-1 text-nc-content-gray-muted prose-sm" style="line-height: 1.3125rem">Try NocoDB Cloud</div>
     </a>
@@ -125,7 +125,7 @@ const onMouseover = async () => {
               <div class="text-xs leading-[18px] font-normal text-nc-content-gray-muted text-center">
                 (no credit card required)
               </div>
-              <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline" rel="noopener">
+              <a href="https://app.nocodb.com/signin" target="_blank" class="!no-underline" rel="noopener">
                 <NcButton type="secondary" class="w-full">Start for Free</NcButton>
               </a>
             </div>

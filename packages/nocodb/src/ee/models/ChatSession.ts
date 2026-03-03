@@ -83,50 +83,30 @@ export default class ChatSession
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(
-      context,
-      CacheScope.CHAT_SESSION,
-      [baseId],
-    );
-    let { list: sessionsList } = cachedList;
-    const { isNoneList } = cachedList;
+    // Session lists are not cached — caching by base_id only would
+    // mix sessions across users, leaking session metadata (titles) between
+    // workspace members. Always query from DB with user-scoped filter.
+    const condition: Record<string, any> = {
+      base_id: baseId,
+    };
 
-    if (!isNoneList && !sessionsList.length) {
-      const condition: Record<string, any> = {
-        base_id: baseId,
-      };
-
-      if (userId) {
-        condition.fk_user_id = userId;
-      }
-
-      sessionsList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.CHAT_SESSIONS,
-        {
-          condition,
-          orderBy: {
-            updated_at: 'desc',
-          },
-        },
-      );
-
-      await NocoCache.setList(
-        context,
-        CacheScope.CHAT_SESSION,
-        [baseId],
-        sessionsList,
-      );
-    }
-
-    // Filter by userId in-memory if fetched from cache
-    let filtered = sessionsList;
     if (userId) {
-      filtered = sessionsList.filter((s) => s.fk_user_id === userId);
+      condition.fk_user_id = userId;
     }
 
-    return filtered.map((s) => new ChatSession(s));
+    const sessionsList = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CHAT_SESSIONS,
+      {
+        condition,
+        orderBy: {
+          updated_at: 'desc',
+        },
+      },
+    );
+
+    return sessionsList.map((s) => new ChatSession(s));
   }
 
   static async insert(
@@ -141,8 +121,6 @@ export default class ChatSession
       'fk_user_id',
     ]);
 
-    (insertObj as any).base_id = context.base_id;
-
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
@@ -150,15 +128,7 @@ export default class ChatSession
       insertObj,
     );
 
-    return ChatSession.get(context, id, ncMeta).then(async (chatSession) => {
-      await NocoCache.appendToList(
-        context,
-        CacheScope.CHAT_SESSION,
-        [context.base_id],
-        `${CacheScope.CHAT_SESSION}:${id}`,
-      );
-      return chatSession;
-    });
+    return ChatSession.get(context, id, ncMeta);
   }
 
   static async update(

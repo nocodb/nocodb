@@ -5,11 +5,11 @@ import {
   ChatMessageRole,
   ChatToolCallStatus,
   IntegrationCategoryType,
+  PlanFeatureTypes,
 } from 'nocodb-sdk';
 import { ChatToolRegistry } from '../tools/chat-tool-registry';
 import { ChatContextService } from './chat-context.service';
 import { ChatCompactionService } from './chat-compaction.service';
-import { ChatLimitsService } from './chat-limits.service';
 import type { ChatSendMessageType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
@@ -17,6 +17,7 @@ import ChatSession from '~/models/ChatSession';
 import ChatMessage from '~/models/ChatMessage';
 import Integration from '~/models/Integration';
 import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 const MAX_STEPS = 10;
@@ -28,7 +29,6 @@ export class ChatService {
   constructor(
     private readonly contextService: ChatContextService,
     private readonly compactionService: ChatCompactionService,
-    private readonly limitsService: ChatLimitsService,
     private readonly toolRegistry: ChatToolRegistry,
     private readonly appHooksService: AppHooksService,
   ) {}
@@ -46,7 +46,7 @@ export class ChatService {
       fk_user_id: params.req.user?.id,
     });
 
-    (this.appHooksService as any).emit(AppEvents.CHAT_SESSION_CREATE, {
+    this.appHooksService.emit(AppEvents.CHAT_SESSION_CREATE, {
       context,
       req: params.req,
       sessionId: session.id,
@@ -99,7 +99,7 @@ export class ChatService {
 
     await ChatSession.delete(context, params.sessionId);
 
-    (this.appHooksService as any).emit(AppEvents.CHAT_SESSION_DELETE, {
+    this.appHooksService.emit(AppEvents.CHAT_SESSION_DELETE, {
       context,
       req: params.req,
       sessionId: session.id,
@@ -153,10 +153,8 @@ export class ChatService {
     // 2. Validate session ownership
     const session = await this.sessionGet(context, { sessionId, req });
 
-    // 3. Check limits
-    await this.limitsService.checkCanSendMessage(context, {
-      userId: (req as any).user?.id,
-    });
+    // 3. Check feature gate
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_CHAT);
 
     // 4. Persist user message
     await ChatMessage.insert(context, {
@@ -345,6 +343,11 @@ export class ChatService {
 
     // Verify session ownership
     const session = await this.sessionGet(context, { sessionId, req });
+
+    // Check feature gate and monthly message limit — approving tool calls
+    // triggers a full LLM round-trip identical to sendMessage, so the same
+    // feature gate applies.
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_CHAT);
 
     // Load the message and verify it belongs to this session
     const message = await ChatMessage.get(context, messageId);

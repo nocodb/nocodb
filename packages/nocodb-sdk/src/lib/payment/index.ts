@@ -30,7 +30,6 @@ export enum PlanLimitTypes {
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
   LIMIT_SANDBOX_PER_BASE = 'limit_sandbox',
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
-  LIMIT_AI_CHAT_MESSAGES_PER_MONTH = 'limit_ai_chat_messages_per_month',
 }
 
 export enum PlanFeatureTypes {
@@ -249,8 +248,6 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
   [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
-  [PlanLimitTypes.LIMIT_AI_CHAT_MESSAGES_PER_MONTH]:
-    'to send more AI chat messages.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {

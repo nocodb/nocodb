@@ -210,9 +210,11 @@ export default class Noco {
     const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/';
     server.use(express.static(path.join(__dirname, 'public')));
 
-    // If NC_DASHBOARD_URL is set to a non-root path (e.g. /dashboard),
-    // redirect those old paths to / so existing bookmarks still work.
-    if (dashboardPath !== '/' && dashboardPath !== '') {
+    if (dashboardPath.startsWith('http')) {
+      // Test/split mode: frontend runs separately, redirect root to it
+      server.get('/', (_req, res) => res.redirect(dashboardPath));
+    } else if (dashboardPath !== '/' && dashboardPath !== '') {
+      // Non-root dashboard path: redirect old path to root
       const normalizedPath = dashboardPath.replace(/\/+$/, '');
       server.get(`${normalizedPath}*`, (req, res) => {
         const remaining = req.path.slice(normalizedPath.length) || '/';

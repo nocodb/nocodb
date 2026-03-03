@@ -2,7 +2,8 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { INITIAL_LEFT_SIDEBAR_WIDTH, MAX_WIDTH_FOR_MOBILE_MODE, MINI_SIDEBAR_V2_RAIL_WIDTH } from '~/lib/constants'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
-  const route = useRoute()
+  const router = useRouter()
+  const route = router.currentRoute
 
   const { width } = useWindowSize()
 
@@ -26,7 +27,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       'index-typeOrId-baseId-index-index',
       'index-typeOrId-settings-page',
       'index-typeOrId-baseId-index-settings-page',
-    ].includes(route.name as string)
+    ].includes(route.value.name as string)
   })
 
   const isLeftSidebarOpen = computed({
@@ -110,7 +111,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   /** Derive the correct sidebar tab from the current route name. */
   const routeDerivedTab = computed<SidebarTab | null>(() => {
-    const name = route.name?.toString() ?? ''
+    const name = route.value.name?.toString() ?? ''
 
     // Workspace-level settings
     if (name === 'index-typeOrId-settings-page') return 'settings'
@@ -134,11 +135,17 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     return null
   })
 
-  watch(routeDerivedTab, (newTab) => {
-    if (newTab !== null && activeSidebarTab.value !== newTab) {
-      activeSidebarTab.value = newTab
-    }
-  })
+  watch(
+    routeDerivedTab,
+    (newTab) => {
+      if (newTab !== null && activeSidebarTab.value !== newTab) {
+        activeSidebarTab.value = newTab
+      }
+    },
+    {
+      immediate: true,
+    },
+  )
 
   const toggleFullScreenState = () => {
     if (isFullScreen.value) {

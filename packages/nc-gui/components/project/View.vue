@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
-import { ProjectRoles } from 'nocodb-sdk'
+import { PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
@@ -31,6 +31,7 @@ const {
   blockSync,
   showUpgradeToUseSync,
   isWsAuditEnabled,
+  isEEFeatureBlocked,
 } = useEeConfig()
 
 const currentBase = computedAsync(async () => {

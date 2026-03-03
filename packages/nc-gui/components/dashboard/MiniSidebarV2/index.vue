@@ -34,22 +34,19 @@ watch(
 
 <style lang="scss">
 .nc-mini-sidebar-v2 {
-  @apply flex-none flex flex-col justify-between items-center z-502 relative bg-nc-bg-gray-minisidebar border-r-1 border-nc-border-gray-medium nc-h-screen;
+  @apply flex-none flex flex-col justify-between items-center z-502 relative bg-nc-bg-gray-minisidebar border-r-1 border-nc-border-gray-medium nc-h-screen nc-scrollbar-thin overflow-x-hidden;
   transition: width 0.2s ease;
   flex-shrink: 0;
 
   &--rail {
     width: 64px;
     min-width: 64px;
-
-    @apply nc-scrollbar-thin overflow-x-hidden;
   }
 
   &--dock {
     width: 64px;
     min-width: 64px;
     overflow: visible;
-    border-right: none;
   }
 }
 </style>

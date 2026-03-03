@@ -119,7 +119,7 @@ const openKeyboardShortcutDialog = () => {
       'sticky bottom-0 bg-nc-bg-gray-minisidebar': isMiniSidebar,
     }"
   >
-    <div class="flex items-center justify-center h-14">
+    <div class="flex items-center justify-center h-13">
       <NcDropdown
         v-model:visible="isMenuOpen"
         placement="topLeft"

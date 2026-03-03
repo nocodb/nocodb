@@ -374,7 +374,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <style lang="scss" scoped>
 .nc-dock {
-  @apply flex flex-col items-center h-full w-full overflow-visible border-r border-nc-border-gray-medium;
+  @apply flex flex-col items-center h-full w-full overflow-visible;
   padding: 14px 0;
   gap: 6px;
   backdrop-filter: blur(28px);

@@ -8756,8 +8756,7 @@
             "description": "Operations that trigger the hook."
           },
           "notification": {
-            "type": "object",
-            "description": "Notification configuration including type and payload."
+            "$ref": "#/components/schemas/HookNotificationV3"
           },
           "active": {
             "type": "boolean",
@@ -8824,8 +8823,7 @@
             "description": "Operations that trigger the hook."
           },
           "notification": {
-            "type": "object",
-            "description": "Notification configuration including type and payload."
+            "$ref": "#/components/schemas/HookNotificationV3"
           },
           "active": {
             "type": "boolean",
@@ -8868,8 +8866,7 @@
             "description": "Operations that trigger the hook."
           },
           "notification": {
-            "type": "object",
-            "description": "Notification configuration including type and payload."
+            "$ref": "#/components/schemas/HookNotificationV3"
           },
           "active": {
             "type": "boolean",
@@ -8881,6 +8878,243 @@
               "type": "string"
             },
             "description": "Field IDs that trigger the hook when modified."
+          }
+        }
+      },
+      "HookNotificationV3Url": {
+        "title": "URL",
+        "type": "object",
+        "description": "URL webhook notification. Sends an HTTP request when triggered.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["URL"],
+            "description": "Notification channel type."
+          },
+          "payload": {
+            "type": "object",
+            "description": "HTTP request configuration.",
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+                "description": "HTTP method for the webhook request."
+              },
+              "path": {
+                "type": "string",
+                "description": "URL to send the webhook to. Supports Handlebars templates."
+              },
+              "body": {
+                "type": "string",
+                "description": "Request body. Supports Handlebars templates."
+              },
+              "headers": {
+                "type": "array",
+                "description": "Custom HTTP headers to include in the request.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Header name."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Header value. Supports Handlebars templates."
+                    },
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether this header is active."
+                    }
+                  }
+                }
+              },
+              "parameters": {
+                "type": "array",
+                "description": "Query parameters to append to the URL.",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "Query parameter name."
+                    },
+                    "value": {
+                      "type": "string",
+                      "description": "Query parameter value. Supports Handlebars templates."
+                    },
+                    "enabled": {
+                      "type": "boolean",
+                      "description": "Whether this parameter is active."
+                    }
+                  }
+                }
+              },
+              "auth": {
+                "type": "string",
+                "description": "Authentication configuration. Supports Handlebars templates."
+              }
+            },
+            "required": ["method", "path"]
+          },
+          "trigger_form": {
+            "type": "boolean",
+            "description": "If true, the hook only fires when submitted via a specific form."
+          },
+          "trigger_form_id": {
+            "type": "string",
+            "description": "Form view ID that triggers this hook. Only applicable when trigger_form is true."
+          },
+          "include_user": {
+            "type": "boolean",
+            "description": "If true, includes the triggering user's info in the webhook payload."
+          }
+        },
+        "required": ["type", "payload"]
+      },
+      "HookNotificationV3Email": {
+        "title": "Email",
+        "type": "object",
+        "description": "Email notification via configured email adapter.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["Email"],
+            "description": "Notification channel type."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Email configuration.",
+            "properties": {
+              "to": {
+                "type": "string",
+                "description": "Recipient email address. Supports Handlebars templates."
+              },
+              "subject": {
+                "type": "string",
+                "description": "Email subject line. Supports Handlebars templates."
+              },
+              "body": {
+                "type": "string",
+                "description": "Email body (HTML). Supports Handlebars templates."
+              }
+            },
+            "required": ["to", "subject", "body"]
+          },
+          "trigger_form": {
+            "type": "boolean",
+            "description": "If true, the hook only fires when submitted via a specific form."
+          },
+          "trigger_form_id": {
+            "type": "string",
+            "description": "Form view ID that triggers this hook. Only applicable when trigger_form is true."
+          },
+          "include_user": {
+            "type": "boolean",
+            "description": "If true, includes the triggering user's info in the webhook payload."
+          }
+        },
+        "required": ["type", "payload"]
+      },
+      "HookNotificationV3Script": {
+        "title": "Script",
+        "type": "object",
+        "description": "Script notification. Executes a saved script when triggered.",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["Script"],
+            "description": "Notification channel type."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Script execution configuration.",
+            "properties": {
+              "scriptId": {
+                "type": "string",
+                "description": "Identifier of the script to execute."
+              },
+              "method": {
+                "type": "string",
+                "description": "HTTP method used to invoke the script endpoint.",
+                "default": "POST"
+              },
+              "path": {
+                "type": "string",
+                "description": "Script execution endpoint path."
+              }
+            },
+            "required": ["scriptId"]
+          },
+          "trigger_form": {
+            "type": "boolean",
+            "description": "If true, the hook only fires when submitted via a specific form."
+          },
+          "trigger_form_id": {
+            "type": "string",
+            "description": "Form view ID that triggers this hook. Only applicable when trigger_form is true."
+          },
+          "include_user": {
+            "type": "boolean",
+            "description": "If true, includes the triggering user's info in the webhook payload."
+          }
+        },
+        "required": ["type", "payload"]
+      },
+      "HookNotificationV3Messaging": {
+        "title": "Messaging",
+        "type": "object",
+        "description": "Messaging notification via plugin adapter (Slack, Discord, Telegram, etc.).",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["Slack", "Discord", "Telegram", "Whatsapp", "Twilio"],
+            "description": "Messaging platform type."
+          },
+          "payload": {
+            "type": "object",
+            "description": "Messaging configuration.",
+            "properties": {
+              "body": {
+                "type": "string",
+                "description": "Message body. Supports Handlebars templates."
+              }
+            },
+            "required": ["body"]
+          },
+          "trigger_form": {
+            "type": "boolean",
+            "description": "If true, the hook only fires when submitted via a specific form."
+          },
+          "trigger_form_id": {
+            "type": "string",
+            "description": "Form view ID that triggers this hook. Only applicable when trigger_form is true."
+          },
+          "include_user": {
+            "type": "boolean",
+            "description": "If true, includes the triggering user's info in the webhook payload."
+          }
+        },
+        "required": ["type", "payload"]
+      },
+      "HookNotificationV3": {
+        "oneOf": [
+          { "$ref": "#/components/schemas/HookNotificationV3Url" },
+          { "$ref": "#/components/schemas/HookNotificationV3Email" },
+          { "$ref": "#/components/schemas/HookNotificationV3Script" },
+          { "$ref": "#/components/schemas/HookNotificationV3Messaging" }
+        ],
+        "discriminator": {
+          "propertyName": "type",
+          "mapping": {
+            "URL": "#/components/schemas/HookNotificationV3Url",
+            "Email": "#/components/schemas/HookNotificationV3Email",
+            "Script": "#/components/schemas/HookNotificationV3Script",
+            "Slack": "#/components/schemas/HookNotificationV3Messaging",
+            "Discord": "#/components/schemas/HookNotificationV3Messaging",
+            "Telegram": "#/components/schemas/HookNotificationV3Messaging",
+            "Whatsapp": "#/components/schemas/HookNotificationV3Messaging",
+            "Twilio": "#/components/schemas/HookNotificationV3Messaging"
           }
         }
       },

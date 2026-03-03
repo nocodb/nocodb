@@ -3853,7 +3853,7 @@
               }
             }
           },
-          "404": { "description": "Dashboard not found." },
+          "422": { "description": "Dashboard not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -3899,7 +3899,7 @@
               }
             }
           },
-          "404": { "description": "Dashboard not found." },
+          "422": { "description": "Dashboard not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -3964,7 +3964,7 @@
               }
             }
           },
-          "404": { "description": "Dashboard not found." },
+          "422": { "description": "Dashboard not found." },
           "500": { "description": "Server error." }
         }
       }
@@ -4002,7 +4002,7 @@
               }
             }
           },
-          "404": { "description": "Dashboard not found." },
+          "422": { "description": "Dashboard not found." },
           "500": { "description": "Server error." }
         }
       },
@@ -4048,7 +4048,7 @@
               }
             }
           },
-          "404": { "description": "Dashboard not found." },
+          "422": { "description": "Dashboard not found." },
           "500": { "description": "Server error." }
         }
       }

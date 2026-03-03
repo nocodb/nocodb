@@ -68,6 +68,7 @@ export class HooksV3Service {
     },
     transformFn: (data) => {
       data.event = eventFromV3[data.event] ?? data.event ?? 'after';
+      data.version = 'v3';
       return data;
     },
   });

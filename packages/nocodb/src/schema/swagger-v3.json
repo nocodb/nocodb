@@ -11768,10 +11768,6 @@
           "created_by": {
             "type": "string",
             "description": "User ID of the dashboard creator."
-          },
-          "owned_by": {
-            "type": "string",
-            "description": "User ID of the dashboard owner."
           }
         },
         "required": ["id", "title", "base_id", "workspace_id", "created_at", "updated_at"]

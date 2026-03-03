@@ -9,7 +9,7 @@ export type DashboardV3ListItemType = {
   created_at: string;
   updated_at: string;
   created_by: string;
-  owned_by: string;
+
 };
 
 export type DashboardV3ListResponseType = {

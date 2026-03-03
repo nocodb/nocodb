@@ -242,7 +242,6 @@ const dashboardBuilder = builderGenerator<
     'created_at',
     'updated_at',
     'created_by',
-    'owned_by',
   ],
   mappings: {
     fk_workspace_id: 'workspace_id',
@@ -265,7 +264,6 @@ const dashboardListItemBuilder = builderGenerator<
     'created_at',
     'updated_at',
     'created_by',
-    'owned_by',
   ],
   mappings: {
     fk_workspace_id: 'workspace_id',

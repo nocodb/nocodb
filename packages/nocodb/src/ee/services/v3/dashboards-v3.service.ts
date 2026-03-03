@@ -104,6 +104,11 @@ const COLUMN_TO_FIELD_KEYS: Record<string, string> = {
   column_id: 'field_id',
 };
 
+// Value mappings: internal → API
+const DATA_SOURCE_VALUES: Record<string, string> = {
+  model: 'table',
+};
+
 // Pre-computed inverse mappings (snake_case → camelCase)
 const INV_CONFIG_KEYS = invertMapping(CONFIG_KEYS);
 const INV_DATA_KEYS = invertMapping(DATA_KEYS);
@@ -114,6 +119,7 @@ const INV_PERMISSIONS_KEYS = invertMapping(PERMISSIONS_KEYS);
 const INV_FORMATTING_KEYS = invertMapping(FORMATTING_KEYS);
 const INV_FONT_KEYS = invertMapping(FONT_KEYS);
 const INV_COLUMN_TO_FIELD_KEYS = invertMapping(COLUMN_TO_FIELD_KEYS);
+const INV_DATA_SOURCE_VALUES = invertMapping(DATA_SOURCE_VALUES);
 
 /**
  * Convert widget config from internal camelCase to API snake_case.
@@ -125,6 +131,12 @@ function mapConfigToSnakeCase(
   if (!config) return config;
 
   const result = renameKeys(config, CONFIG_KEYS);
+
+  // Map data_source value: internal → API (e.g. "model" → "table")
+  if (result.data_source) {
+    result.data_source =
+      DATA_SOURCE_VALUES[result.data_source] ?? result.data_source;
+  }
 
   if (result.data && typeof result.data === 'object') {
     const data = renameKeys(result.data, DATA_KEYS);
@@ -181,6 +193,12 @@ function mapConfigToCamelCase(
   if (!config) return config;
 
   const result = renameKeys(config, INV_CONFIG_KEYS);
+
+  // Map dataSource value: API → internal (e.g. "table" → "model")
+  if (result.dataSource) {
+    result.dataSource =
+      INV_DATA_SOURCE_VALUES[result.dataSource] ?? result.dataSource;
+  }
 
   if (result.data && typeof result.data === 'object') {
     const data = renameKeys(result.data, INV_DATA_KEYS);

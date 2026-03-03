@@ -11820,7 +11820,7 @@
         "properties": {
           "data_source": {
             "type": "string",
-            "enum": ["model", "view", "filter"],
+            "enum": ["table", "view", "filter"],
             "description": "Data source type."
           },
           "metric": {
@@ -11848,7 +11848,7 @@
         "properties": {
           "data_source": {
             "type": "string",
-            "enum": ["model", "view", "filter"],
+            "enum": ["table", "view", "filter"],
             "description": "Data source type."
           },
           "metric": {
@@ -11887,7 +11887,7 @@
         "description": "Options for a pie chart widget (type=chart, chart_type=pie).",
         "properties": {
           "chart_type": { "type": "string", "enum": ["pie"] },
-          "data_source": { "type": "string", "enum": ["model", "view", "filter"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "data": {
             "type": "object",
             "properties": {
@@ -11948,7 +11948,7 @@
         "description": "Options for a donut chart widget (type=chart, chart_type=donut). Same structure as pie chart.",
         "properties": {
           "chart_type": { "type": "string", "enum": ["donut"] },
-          "data_source": { "type": "string", "enum": ["model", "view", "filter"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "data": {
             "type": "object",
             "properties": {
@@ -12009,7 +12009,7 @@
         "description": "Options for a bar chart widget (type=chart, chart_type=bar).",
         "properties": {
           "chart_type": { "type": "string", "enum": ["bar"] },
-          "data_source": { "type": "string", "enum": ["model", "view", "filter"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "data": {
             "type": "object",
             "properties": {
@@ -12073,7 +12073,7 @@
         "description": "Options for a line chart widget (type=chart, chart_type=line). Same data structure as bar chart with additional line-specific appearance options.",
         "properties": {
           "chart_type": { "type": "string", "enum": ["line"] },
-          "data_source": { "type": "string", "enum": ["model", "view", "filter"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "data": {
             "type": "object",
             "properties": {
@@ -12136,7 +12136,7 @@
         "description": "Options for a scatter chart widget (type=chart, chart_type=scatter). Same data structure as bar chart.",
         "properties": {
           "chart_type": { "type": "string", "enum": ["scatter"] },
-          "data_source": { "type": "string", "enum": ["model", "view", "filter"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "data": {
             "type": "object",
             "properties": {
@@ -12232,7 +12232,7 @@
         "type": "object",
         "description": "Options for a table widget (type=table).",
         "properties": {
-          "data_source": { "type": "string", "enum": ["model", "view", "filter"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
           "columns": {
             "type": "array",
             "items": { "type": "string" },

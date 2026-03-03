@@ -99,14 +99,21 @@ export class BaseTeamsV3Service {
       workspaceTeamAssignments.map((a) => [a.principal_ref_id, a]),
     );
 
-    // Get team details for base teams (including those also assigned to workspace)
-    const baseTeams = await Promise.all(
-      baseTeamAssignments.map(async (assignment) => {
-        const team = await Team.get(context, assignment.principal_ref_id);
-        if (!team) {
-          return null;
-        }
+    // Load all referenced teams in one query
+    const allTeamIds = [
+      ...new Set([
+        ...baseTeamAssignments.map((a) => a.principal_ref_id),
+        ...workspaceTeamAssignments.map((a) => a.principal_ref_id),
+      ]),
+    ];
+    const teamsMap = await Team.getByIds(context, allTeamIds);
 
+    // Build base teams list from batch result
+    const baseTeams = baseTeamAssignments
+      .filter((a) => teamsMap.has(a.principal_ref_id))
+      .map((assignment) => {
+        const team = teamsMap.get(assignment.principal_ref_id);
+        if (!team) return null;
         const meta = parseMetaProp(team);
         const workspaceAssignment = workspaceAssignmentMap.get(
           assignment.principal_ref_id,
@@ -127,47 +134,42 @@ export class BaseTeamsV3Service {
               WorkspaceUserRoles,
               WorkspaceUserRoles.OWNER
             >) || null,
-          created_at: assignment.created_at!,
-          updated_at: assignment.updated_at!,
+          created_at: assignment.created_at ?? null,
+          updated_at: assignment.updated_at ?? null,
         };
-      }),
-    );
+      })
+      .filter(Boolean);
 
-    // Get team details for workspace teams that are NOT assigned to base
-    const workspaceOnlyTeams = await Promise.all(
-      workspaceTeamAssignments
-        .filter((assignment) => !baseTeamIds.has(assignment.principal_ref_id))
-        .map(async (assignment) => {
-          const team = await Team.get(context, assignment.principal_ref_id);
-          if (!team) {
-            return null;
-          }
+    // Build workspace-only teams list from batch result
+    const workspaceOnlyTeams = workspaceTeamAssignments
+      .filter(
+        (a) =>
+          !baseTeamIds.has(a.principal_ref_id) &&
+          teamsMap.has(a.principal_ref_id),
+      )
+      .map((assignment) => {
+        const team = teamsMap.get(assignment.principal_ref_id);
+        if (!team) return null;
+        const meta = parseMetaProp(team);
 
-          const meta = parseMetaProp(team);
+        return {
+          team_id: team.id,
+          team_title: team.title,
+          team_icon: meta.icon || null,
+          team_icon_type: meta.icon_type || null,
+          team_badge_color: meta.badge_color || null,
+          base_role: null,
+          workspace_role: assignment.roles as Exclude<
+            WorkspaceUserRoles,
+            WorkspaceUserRoles.OWNER
+          >,
+          created_at: assignment.created_at ?? null,
+          updated_at: assignment.updated_at ?? null,
+        };
+      })
+      .filter(Boolean);
 
-          return {
-            team_id: team.id,
-            team_title: team.title,
-            team_icon: meta.icon || null,
-            team_icon_type: meta.icon_type || null,
-            team_badge_color: meta.badge_color || null,
-            base_role: null,
-            workspace_role: assignment.roles as Exclude<
-              WorkspaceUserRoles,
-              WorkspaceUserRoles.OWNER
-            >,
-            created_at: assignment.created_at!,
-            updated_at: assignment.updated_at!,
-          };
-        }),
-    );
-
-    // Filter out null results and combine both lists
-    const validBaseTeams = baseTeams.filter((team) => team !== null);
-    const validWorkspaceOnlyTeams = workspaceOnlyTeams.filter(
-      (team) => team !== null,
-    );
-    const allTeams = [...validBaseTeams, ...validWorkspaceOnlyTeams];
+    const allTeams = [...baseTeams, ...workspaceOnlyTeams];
 
     return { list: allTeams };
   }
@@ -270,8 +272,8 @@ export class BaseTeamsV3Service {
       team_icon_type: meta.icon_type || null,
       team_badge_color: meta.badge_color || null,
       base_role: assignment.roles as Exclude<ProjectRoles, ProjectRoles.OWNER>,
-      created_at: assignment.created_at!,
-      updated_at: assignment.updated_at!,
+      created_at: assignment.created_at ?? null,
+      updated_at: assignment.updated_at ?? null,
     };
 
     // Emit base team invite event
@@ -287,16 +289,20 @@ export class BaseTeamsV3Service {
     await this.paymentService.reseatSubscription(base.fk_workspace_id!);
 
     // Notify team owners via email
-    const teamAssignments = await PrincipalAssignment.list(context, {
-      resource_type: ResourceType.TEAM,
-      resource_id: team.id,
-      principal_type: PrincipalType.USER,
-    });
+    const teamAssignments = await PrincipalAssignment.listByResourceIds(
+      context,
+      ResourceType.TEAM,
+      [team.id],
+      { principal_type: PrincipalType.USER },
+    );
     const ownerAssignments = teamAssignments.filter(
-      (assignment) => assignment.roles === TeamUserRoles.OWNER,
+      (a) => a.roles === TeamUserRoles.OWNER,
+    );
+    const ownersMap = await User.getByIds(
+      ownerAssignments.map((a) => a.principal_ref_id),
     );
     for (const ownerAssignment of ownerAssignments) {
-      const owner = await User.get(ownerAssignment.principal_ref_id);
+      const owner = ownersMap.get(ownerAssignment.principal_ref_id);
       if (owner) {
         await this.mailService.sendMail(
           {
@@ -336,6 +342,48 @@ export class BaseTeamsV3Service {
     const teams = Array.isArray(param.team) ? param.team : [param.team];
     const results = [];
 
+    // Load all teams and existing base assignments upfront
+    const teamIds = teams.map((t) => t.team_id);
+    const [teamsMap, existingBaseAssignments] = await Promise.all([
+      Team.getByIds(context, teamIds),
+      PrincipalAssignment.listByResourceIds(
+        context,
+        ResourceType.BASE,
+        [param.baseId],
+        { principal_type: PrincipalType.TEAM },
+      ),
+    ]);
+    const existingAssignmentMap = new Map(
+      existingBaseAssignments.map((a) => [a.principal_ref_id, a]),
+    );
+
+    // Pre-fetch team member assignments and owner users for notifications
+    const teamMemberAssignments = await PrincipalAssignment.listByResourceIds(
+      context,
+      ResourceType.TEAM,
+      teamIds,
+      { principal_type: PrincipalType.USER },
+    );
+    const ownerAssignmentsByTeamId = new Map<
+      string,
+      typeof teamMemberAssignments
+    >();
+    for (const a of teamMemberAssignments) {
+      if (a.roles === TeamUserRoles.OWNER) {
+        const list = ownerAssignmentsByTeamId.get(a.resource_id) || [];
+        list.push(a);
+        ownerAssignmentsByTeamId.set(a.resource_id, list);
+      }
+    }
+    const allOwnerUserIds = [
+      ...new Set(
+        teamMemberAssignments
+          .filter((a) => a.roles === TeamUserRoles.OWNER)
+          .map((a) => a.principal_ref_id),
+      ),
+    ];
+    const ownersMap = await User.getByIds(allOwnerUserIds);
+
     for (const team of teams) {
       validatePayload(
         'swagger-v3.json#/components/schemas/BaseTeamUpdate',
@@ -344,7 +392,7 @@ export class BaseTeamsV3Service {
       );
 
       // Check if team exists
-      const teamData = await Team.get(context, team.team_id);
+      const teamData = teamsMap.get(team.team_id);
       if (!teamData) {
         NcError.get(context).teamNotFound(team.team_id);
       }
@@ -367,14 +415,7 @@ export class BaseTeamsV3Service {
         );
       }
 
-      // Check if team is assigned to base
-      const existingAssignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.BASE,
-        param.baseId,
-        PrincipalType.TEAM,
-        team.team_id,
-      );
+      const existingAssignment = existingAssignmentMap.get(team.team_id);
 
       // Check if current user has sufficient privilege to update this team's role
       if (existingAssignment) {
@@ -446,21 +487,15 @@ export class BaseTeamsV3Service {
           ProjectRoles,
           ProjectRoles.OWNER
         >,
-        created_at: updatedAssignment.created_at!,
-        updated_at: updatedAssignment.updated_at!,
+        created_at: updatedAssignment.created_at ?? null,
+        updated_at: updatedAssignment.updated_at ?? null,
       });
 
-      // Notify all team owners via email about role update
-      const teamAssignments = await PrincipalAssignment.list(context, {
-        resource_type: ResourceType.TEAM,
-        resource_id: teamData.id,
-        principal_type: PrincipalType.USER,
-      });
-      const ownerAssignments = teamAssignments.filter(
-        (assignment) => assignment.roles === TeamUserRoles.OWNER,
-      );
-      for (const ownerAssignment of ownerAssignments) {
-        const owner = await User.get(ownerAssignment.principal_ref_id);
+      // Notify team owners via email about role update (using pre-fetched data)
+      const teamOwners = ownerAssignmentsByTeamId.get(teamData.id) || [];
+
+      for (const ownerAssignment of teamOwners) {
+        const owner = ownersMap.get(ownerAssignment.principal_ref_id);
         if (owner) {
           await this.mailService.sendMail(
             {
@@ -479,7 +514,6 @@ export class BaseTeamsV3Service {
         }
       }
 
-      // Emit base team update event
       this.appHooksService.emit(AppEvents.PROJECT_TEAM_UPDATE, {
         context,
         req: param.req,
@@ -514,6 +548,43 @@ export class BaseTeamsV3Service {
 
     const teams = Array.isArray(param.team) ? param.team : [param.team];
 
+    // Load all teams and existing base assignments upfront
+    const teamIds = teams.map((t) => t.team_id);
+    const [teamsMap, existingBaseAssignments] = await Promise.all([
+      Team.getByIds(context, teamIds),
+      PrincipalAssignment.listByResourceIds(
+        context,
+        ResourceType.BASE,
+        [param.baseId],
+        { principal_type: PrincipalType.TEAM },
+      ),
+    ]);
+    const existingAssignmentMap = new Map(
+      existingBaseAssignments.map((a) => [a.principal_ref_id, a]),
+    );
+
+    // Load all team member assignments for notification + cache clearing
+    const allTeamMemberAssignments =
+      await PrincipalAssignment.listByResourceIds(
+        context,
+        ResourceType.TEAM,
+        teamIds,
+        { principal_type: PrincipalType.USER },
+      );
+    const membersByTeamId = new Map<string, typeof allTeamMemberAssignments>();
+    for (const a of allTeamMemberAssignments) {
+      if (!membersByTeamId.has(a.resource_id)) {
+        membersByTeamId.set(a.resource_id, []);
+      }
+      membersByTeamId.get(a.resource_id)?.push(a);
+    }
+
+    // Load all owner users for notifications
+    const ownerUserIds = allTeamMemberAssignments
+      .filter((a) => a.roles === TeamUserRoles.OWNER)
+      .map((a) => a.principal_ref_id);
+    const ownersMap = await User.getByIds([...new Set(ownerUserIds)]);
+
     for (const teamIdObj of teams) {
       validatePayload(
         'swagger-v3.json#/components/schemas/BaseTeamDelete',
@@ -521,16 +592,9 @@ export class BaseTeamsV3Service {
         true,
       );
 
-      const team = await Team.get(context, teamIdObj.team_id);
+      const team = teamsMap.get(teamIdObj.team_id);
 
-      // Check if team is assigned to base
-      const existingAssignment = await PrincipalAssignment.get(
-        context,
-        ResourceType.BASE,
-        param.baseId,
-        PrincipalType.TEAM,
-        teamIdObj.team_id,
-      );
+      const existingAssignment = existingAssignmentMap.get(teamIdObj.team_id);
       if (!existingAssignment) {
         NcError.get(context).invalidRequestBody(
           `Team ${teamIdObj.team_id} is not assigned to this base`,
@@ -548,13 +612,6 @@ export class BaseTeamsV3Service {
         );
       }
 
-      // Get all users in the team before deleting the assignment
-      const teamUsers = await PrincipalAssignment.list(context, {
-        resource_type: ResourceType.TEAM,
-        resource_id: teamIdObj.team_id,
-        principal_type: PrincipalType.USER,
-      });
-
       // Delete the assignment
       await PrincipalAssignment.delete(
         context,
@@ -565,21 +622,17 @@ export class BaseTeamsV3Service {
       );
 
       // Clear user cache for all users in the team
-      for (const userAssignment of teamUsers) {
-        await User.clearCache(userAssignment.principal_ref_id);
-      }
+      const teamMembers = membersByTeamId.get(teamIdObj.team_id) ?? [];
+      await Promise.all(
+        teamMembers.map((a) => User.clearCache(a.principal_ref_id)),
+      );
 
-      // Notify all team owners via email about removal
-      const teamAssignments = await PrincipalAssignment.list(context, {
-        resource_type: ResourceType.TEAM,
-        resource_id: teamIdObj.team_id,
-        principal_type: PrincipalType.USER,
-      });
-      const ownerAssignments = teamAssignments.filter(
-        (assignment) => assignment.roles === TeamUserRoles.OWNER,
+      // Notify team owners via email about removal
+      const ownerAssignments = teamMembers.filter(
+        (a) => a.roles === TeamUserRoles.OWNER,
       );
       for (const ownerAssignment of ownerAssignments) {
-        const owner = await User.get(ownerAssignment.principal_ref_id);
+        const owner = ownersMap.get(ownerAssignment.principal_ref_id);
         if (owner) {
           await this.mailService.sendMail(
             {
@@ -728,8 +781,8 @@ export class BaseTeamsV3Service {
           WorkspaceUserRoles,
           WorkspaceUserRoles.OWNER
         >) || null,
-      created_at: (baseAssignment || workspaceAssignment)!.created_at!,
-      updated_at: (baseAssignment || workspaceAssignment)!.updated_at!,
+      created_at: (baseAssignment || workspaceAssignment)?.created_at ?? null,
+      updated_at: (baseAssignment || workspaceAssignment)?.updated_at ?? null,
     };
   }
 }

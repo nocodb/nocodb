@@ -1,5 +1,6 @@
-import type { NcContext } from '~/interface/config';
 import type { PrincipalType, ResourceType } from '~/utils/globals';
+import { NcContext } from '~/interface/config';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
@@ -278,6 +279,16 @@ export default class PrincipalAssignment {
    * @param ncMeta Database metadata instance
    * @returns Array of PrincipalAssignment instances
    */
+  @NcCache({
+    key: (args) => {
+      const filter = args[1] || {};
+      return `${filter.resource_type || ''}:${filter.resource_id || ''}:${
+        filter.principal_type || ''
+      }:${filter.principal_ref_id || ''}:${filter.roles || ''}:${
+        filter.deleted ?? ''
+      }`;
+    },
+  })
   public static async list(
     context: NcContext,
     filter?: {
@@ -373,6 +384,88 @@ export default class PrincipalAssignment {
       },
       ncMeta,
     );
+  }
+
+  /**
+   * List assignments for multiple resource IDs of the same type.
+   * Single query instead of N individual listByResource calls.
+   */
+  public static async listByResourceIds(
+    context: NcContext,
+    resourceType: ResourceType,
+    resourceIds: string[],
+    filter?: {
+      principal_type?: PrincipalType;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<PrincipalAssignment[]> {
+    if (!resourceIds.length) return [];
+
+    const condition: Record<string, any> = {
+      resource_type: resourceType,
+    };
+
+    if (filter?.principal_type) {
+      condition.principal_type = filter.principal_type;
+    }
+
+    const assignments = await ncMeta.metaList2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.PRINCIPAL_ASSIGNMENTS,
+      {
+        condition,
+        xcCondition: {
+          _and: [
+            { resource_id: { in: resourceIds } },
+            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+          ],
+        },
+      },
+    );
+
+    return assignments.map((a) => this.castType(a));
+  }
+
+  /**
+   * List assignments for multiple principal IDs of the same type.
+   * Single query instead of N individual listByPrincipal calls.
+   */
+  public static async listByPrincipalIds(
+    context: NcContext,
+    principalType: PrincipalType,
+    principalRefIds: string[],
+    filter?: {
+      resource_type?: ResourceType;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<PrincipalAssignment[]> {
+    if (!principalRefIds.length) return [];
+
+    const condition: Record<string, any> = {
+      principal_type: principalType,
+    };
+
+    if (filter?.resource_type) {
+      condition.resource_type = filter.resource_type;
+    }
+
+    const assignments = await ncMeta.metaList2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.PRINCIPAL_ASSIGNMENTS,
+      {
+        condition,
+        xcCondition: {
+          _and: [
+            { principal_ref_id: { in: principalRefIds } },
+            { _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }] },
+          ],
+        },
+      },
+    );
+
+    return assignments.map((a) => this.castType(a));
   }
 
   /**

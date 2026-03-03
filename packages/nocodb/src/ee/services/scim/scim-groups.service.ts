@@ -542,11 +542,13 @@ export class ScimGroupsService {
       .map((a) => a.principal_ref_id);
 
     // Include deactivated users — SCIM groups must reflect all assigned members
-    const members = await Promise.all(
-      userIds.map((userId) =>
-        WorkspaceUser.get(workspaceId, userId, { include_deleted: true }),
-      ),
-    );
+    const members = [];
+    for (const userId of userIds) {
+      const wu = await WorkspaceUser.get(workspaceId, userId, {
+        include_deleted: true,
+      });
+      members.push(wu);
+    }
 
     return members.filter((wu) => wu && wu.scim_managed);
   }
@@ -567,20 +569,21 @@ export class ScimGroupsService {
       workspaceId,
     );
 
-    // Targeted lookup per member (uses indexed scim_external_id column)
-    const targetMembers = (
-      await Promise.all(
-        scimMembers.map((m) =>
-          WorkspaceUser.getByScimExternalId(workspaceId, m.value, {
-            include_deleted: true,
-          }),
-        ),
-      )
-    ).filter((wu) => wu); // Filter out not found
+    // Lookup target members sequentially (uses indexed scim_external_id column)
+    const targetMembers = [];
+    for (const m of scimMembers) {
+      const wu = await WorkspaceUser.getByScimExternalId(workspaceId, m.value, {
+        include_deleted: true,
+      });
+      if (wu) targetMembers.push(wu);
+    }
+
+    const targetUserIds = new Set(targetMembers.map((tm) => tm.fk_user_id));
+    const currentUserIds = new Set(currentMembers.map((cm) => cm.fk_user_id));
 
     // Remove members not in target list
     for (const member of currentMembers) {
-      if (!targetMembers.find((tm) => tm.fk_user_id === member.fk_user_id)) {
+      if (!targetUserIds.has(member.fk_user_id)) {
         await PrincipalAssignment.delete(
           context,
           ResourceType.TEAM,
@@ -593,10 +596,7 @@ export class ScimGroupsService {
 
     // Add new members
     for (const member of targetMembers) {
-      const exists = currentMembers.find(
-        (cm) => cm.fk_user_id === member.fk_user_id,
-      );
-      if (!exists) {
+      if (!currentUserIds.has(member.fk_user_id)) {
         await PrincipalAssignment.insert(context, {
           resource_type: ResourceType.TEAM,
           resource_id: teamId,
@@ -757,7 +757,7 @@ export class ScimGroupsService {
         .map((a) => a.principal_ref_id),
     );
 
-    // Targeted lookup per member (uses indexed scim_external_id column)
+    // Lookup and insert members sequentially (uses indexed scim_external_id column)
     for (const member of members) {
       const wu = await WorkspaceUser.getByScimExternalId(
         workspaceId,
@@ -785,7 +785,7 @@ export class ScimGroupsService {
     workspaceId: string,
     members: any[],
   ) {
-    // Targeted lookup per member (uses indexed scim_external_id column)
+    // Lookup and delete members sequentially (uses indexed scim_external_id column)
     for (const member of members) {
       const wu = await WorkspaceUser.getByScimExternalId(
         workspaceId,

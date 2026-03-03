@@ -1097,7 +1097,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId &&
       !(isInternalWorkspaceScope || isInternalOrgScope)
     ) {
-      req.ncBase = await Base.get(context, req.ncBaseId);
+      if (!req.ncBase || req.ncBase.id !== req.ncBaseId) {
+        req.ncBase = await Base.get(context, req.ncBaseId);
+      }
       if (req.ncBase) {
         const base = req.ncBase as Base;
         req.ncWorkspaceId = base.fk_workspace_id;
@@ -1151,10 +1153,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         );
       }
     } else if (req.ncWorkspaceId) {
-      req.ncWorkspace =
-        req.ncWorkspaceId !== 'nc'
-          ? await Workspace.get(req.ncWorkspaceId)
-          : null;
+      if (req.ncWorkspaceId !== 'nc') {
+        if (!req.ncWorkspace || req.ncWorkspace.id !== req.ncWorkspaceId) {
+          req.ncWorkspace = await Workspace.get(req.ncWorkspaceId);
+        }
+      } else {
+        req.ncWorkspace = null;
+      }
 
       if (!req.ncWorkspace) {
         NcError.workspaceNotFound(req.ncWorkspaceId);
@@ -1204,7 +1209,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     markPersonalViewIfNeeded(req, view);
 
     if (req.ncWorkspaceId) {
-      req.ncWorkspace = await Workspace.get(req.ncWorkspaceId);
+      if (!req.ncWorkspace || req.ncWorkspace.id !== req.ncWorkspaceId) {
+        req.ncWorkspace = await Workspace.get(req.ncWorkspaceId);
+      }
 
       if (!req.ncWorkspace) {
         NcError.workspaceNotFound(req.ncWorkspaceId);

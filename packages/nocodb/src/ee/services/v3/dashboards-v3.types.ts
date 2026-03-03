@@ -26,7 +26,7 @@ export type WidgetV3Type = {
   meta: Record<string, unknown>;
   order: number | null;
   position: { x: number; y: number; w: number; h: number } | null;
-  model_id: string | null;
+  table_id: string | null;
   view_id: string | null;
   error: boolean;
   created_at: string;
@@ -69,7 +69,7 @@ export type WidgetV3CreateRequestType = {
   options?: Record<string, unknown>;
   meta?: Record<string, unknown>;
   position?: { x: number; y: number; w: number; h: number };
-  model_id?: string;
+  table_id?: string;
   view_id?: string;
 };
 
@@ -80,6 +80,6 @@ export type WidgetV3UpdateRequestType = {
   meta?: Record<string, unknown>;
   order?: number;
   position?: { x: number; y: number; w: number; h: number };
-  model_id?: string;
+  table_id?: string;
   view_id?: string;
 };

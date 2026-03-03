@@ -292,7 +292,7 @@ const widgetBuilder = builderGenerator<Widget, WidgetV3Type>({
   mappings: {
     fk_dashboard_id: 'dashboard_id',
     config: 'options',
-    fk_model_id: 'model_id',
+    fk_model_id: 'table_id',
     fk_view_id: 'view_id',
   },
   booleanProps: ['error'],
@@ -603,7 +603,7 @@ export class DashboardsV3Service {
   private mapWidgetRequestToInternal(
     body: WidgetV3CreateRequestType | WidgetV3UpdateRequestType,
   ): Partial<Widget> {
-    const { model_id, view_id, type, options, ...rest } = body as Record<
+    const { table_id, view_id, type, options, ...rest } = body as Record<
       string,
       unknown
     >;
@@ -615,7 +615,7 @@ export class DashboardsV3Service {
           options as Record<string, unknown>,
         ),
       }),
-      ...(model_id !== undefined && { fk_model_id: model_id as string }),
+      ...(table_id !== undefined && { fk_model_id: table_id as string }),
       ...(view_id !== undefined && { fk_view_id: view_id as string }),
     };
   }

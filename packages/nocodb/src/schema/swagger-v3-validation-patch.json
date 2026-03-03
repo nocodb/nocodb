@@ -143,7 +143,7 @@
               "h": { "type": "number" }
             }
           },
-          "model_id": {
+          "table_id": {
             "type": ["string", "null"],
             "description": "Unique identifier for the associated table."
           },
@@ -225,7 +225,7 @@
               "h": { "type": "number" }
             }
           },
-          "model_id": {
+          "table_id": {
             "type": ["string", "null"],
             "description": "Unique identifier for the associated table."
           },

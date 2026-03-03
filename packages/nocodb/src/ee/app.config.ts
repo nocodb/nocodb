@@ -18,36 +18,90 @@ const config: AppConfig = {
 
   throttler: {
     data: {
-      ttl: +process.env.NC_DATA_API_TTL || 1000,
-      max_apis: +process.env.NC_DATA_COUNT || 5,
-      block_duration: +process.env.NC_DATA_BLOCK_DURATION || 30000,
+      ttl:
+        +process.env.NC_RATE_LIMIT_DATA_API_DURATION ||
+        +process.env.NC_DATA_API_TTL ||
+        1000,
+      max_apis:
+        +process.env.NC_RATE_LIMIT_DATA_API_MAX_REQUESTS ||
+        +process.env.NC_DATA_COUNT ||
+        5,
+      block_duration:
+        +process.env.NC_RATE_LIMIT_DATA_API_BLOCK_DURATION ||
+        +process.env.NC_DATA_BLOCK_DURATION ||
+        30000,
     },
     meta: {
-      ttl: +process.env.NC_META_API_TTL || 60000,
-      max_apis: +process.env.NC_META_COUNT || 60,
-      block_duration: +process.env.NC_META_BLOCK_DURATION || 30000,
+      ttl:
+        +process.env.NC_RATE_LIMIT_META_API_DURATION ||
+        +process.env.NC_META_API_TTL ||
+        60000,
+      max_apis:
+        +process.env.NC_RATE_LIMIT_META_API_MAX_REQUESTS ||
+        +process.env.NC_META_COUNT ||
+        60,
+      block_duration:
+        +process.env.NC_RATE_LIMIT_META_API_BLOCK_DURATION ||
+        +process.env.NC_META_BLOCK_DURATION ||
+        30000,
     },
     scim: {
-      ttl: +process.env.NC_SCIM_API_TTL || 60000,
-      max_apis: +process.env.NC_SCIM_COUNT || 500,
-      block_duration: +process.env.NC_SCIM_BLOCK_DURATION || 30000,
+      ttl:
+        +process.env.NC_RATE_LIMIT_SCIM_DURATION ||
+        +process.env.NC_SCIM_API_TTL ||
+        60000,
+      max_apis:
+        +process.env.NC_RATE_LIMIT_SCIM_MAX_REQUESTS ||
+        +process.env.NC_SCIM_COUNT ||
+        500,
+      block_duration:
+        +process.env.NC_RATE_LIMIT_SCIM_BLOCK_DURATION ||
+        +process.env.NC_SCIM_BLOCK_DURATION ||
+        30000,
     },
 
     // todo: decide on xc-auth API limits
     data_gui: {
-      ttl: +process.env.NC_DATA_GUI_API_TTL || 1000,
-      max_apis: +process.env.NC_DATA_GUI_COUNT || 30000,
-      block_duration: +process.env.NC_DATA_GUI_BLOCK_DURATION || 0,
+      ttl:
+        +process.env.NC_RATE_LIMIT_DATA_GUI_DURATION ||
+        +process.env.NC_DATA_GUI_API_TTL ||
+        1000,
+      max_apis:
+        +process.env.NC_RATE_LIMIT_DATA_GUI_MAX_REQUESTS ||
+        +process.env.NC_DATA_GUI_COUNT ||
+        30000,
+      block_duration:
+        +process.env.NC_RATE_LIMIT_DATA_GUI_BLOCK_DURATION ||
+        +process.env.NC_DATA_GUI_BLOCK_DURATION ||
+        0,
     },
     meta_gui: {
-      ttl: +process.env.NC_META_GUI_API_TTL || 1000,
-      max_apis: +process.env.NC_META_GUI_COUNT || 1000,
-      block_duration: +process.env.NC_META_GUI_BLOCK_DURATION || 0,
+      ttl:
+        +process.env.NC_RATE_LIMIT_META_GUI_DURATION ||
+        +process.env.NC_META_GUI_API_TTL ||
+        1000,
+      max_apis:
+        +process.env.NC_RATE_LIMIT_META_GUI_MAX_REQUESTS ||
+        +process.env.NC_META_GUI_COUNT ||
+        1000,
+      block_duration:
+        +process.env.NC_RATE_LIMIT_META_GUI_BLOCK_DURATION ||
+        +process.env.NC_META_GUI_BLOCK_DURATION ||
+        0,
     },
     public: {
-      ttl: +process.env.NC_PUBLIC_API_TTL || 1000,
-      max_apis: +process.env.NC_PUBLIC_COUNT || 10,
-      block_duration: +process.env.NC_PUBLIC_BLOCK_DURATION || 0,
+      ttl:
+        +process.env.NC_RATE_LIMIT_PUBLIC_API_DURATION ||
+        +process.env.NC_PUBLIC_API_TTL ||
+        1000,
+      max_apis:
+        +process.env.NC_RATE_LIMIT_PUBLIC_API_MAX_REQUESTS ||
+        +process.env.NC_PUBLIC_COUNT ||
+        10,
+      block_duration:
+        +process.env.NC_RATE_LIMIT_PUBLIC_API_BLOCK_DURATION ||
+        +process.env.NC_PUBLIC_BLOCK_DURATION ||
+        0,
     },
     calc_execution_time: false,
   },
@@ -83,7 +137,12 @@ const config: AppConfig = {
   },
   auth: {
     emailPattern:
-      process.env.NC_EMAIL_PATTERN && new RegExp(process.env.NC_EMAIL_PATTERN),
+      (process.env.NC_USER_ALLOWED_EMAIL_PATTERN ||
+        process.env.NC_AUTH_EMAIL_PATTERN) &&
+      new RegExp(
+        process.env.NC_USER_ALLOWED_EMAIL_PATTERN ||
+          process.env.NC_AUTH_EMAIL_PATTERN,
+      ),
     disableEmailAuth: !!process.env.NC_DISABLE_EMAIL_AUTH,
   },
   mainSubDomain: process.env.NC_MAIN_SUBDOMAIN ?? 'app',

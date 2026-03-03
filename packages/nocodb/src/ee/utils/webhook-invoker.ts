@@ -17,6 +17,9 @@ import {
 import { isEE, isOnPrem } from '~/utils';
 import { parseMetaProp } from '~/utils/modelUtils';
 
+const webhookLogLevel =
+  process.env.NC_WEBHOOK_LOG_LEVEL || process.env.NC_AUTOMATION_LOG_LEVEL;
+
 export class WebhookInvoker extends WebhookInvokerCE {
   override async invoke(
     context: NcContext,
@@ -243,8 +246,8 @@ export class WebhookInvoker extends WebhookInvokerCE {
               await NcPluginMgrv2.emailAdapter(false)
             )?.mailSend(parsedPayload);
             if (
-              process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-              (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+              webhookLogLevel === 'ALL' ||
+              (isEE && !webhookLogLevel)
             ) {
               hookLog = {
                 ...hook,
@@ -278,8 +281,8 @@ export class WebhookInvoker extends WebhookInvokerCE {
             );
 
             if (
-              process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-              (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+              webhookLogLevel === 'ALL' ||
+              (isEE && !webhookLogLevel)
             ) {
               hookLog = {
                 ...hook,
@@ -324,8 +327,8 @@ export class WebhookInvoker extends WebhookInvokerCE {
             );
 
             if (
-              process.env.NC_AUTOMATION_LOG_LEVEL === 'ALL' ||
-              (isEE && !process.env.NC_AUTOMATION_LOG_LEVEL)
+              webhookLogLevel === 'ALL' ||
+              (isEE && !webhookLogLevel)
             ) {
               hookLog = {
                 ...hook,
@@ -364,7 +367,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
         this.logger.error(e.message, e.stack);
       }
       if (
-        ['ERROR', 'ALL'].includes(process.env.NC_AUTOMATION_LOG_LEVEL) ||
+        ['ERROR', 'ALL'].includes(webhookLogLevel) ||
         isEE
       ) {
         hookLog = {
@@ -403,9 +406,9 @@ export class WebhookInvoker extends WebhookInvokerCE {
           ) {
             throw new Error(
               `Connection to a private network IP is blocked for security reasons.` +
-                // shoe env var only if it's not EE or it's on-prem
+                // show env var only if it's not EE or it's on-prem
                 (!isEE || isOnPrem
-                  ? `If this is intentional, set NC_ALLOW_LOCAL_HOOKS=true to allow local network webhooks.`
+                  ? ` If this is intentional, set NC_WEBHOOK_ALLOW_PRIVATE_NETWORK=true to allow local network webhooks.`
                   : ''),
             );
           }

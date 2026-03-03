@@ -70,7 +70,7 @@ export default function () {
     return true;
   }
 
-  describe.only('Team Hierarchy — Remaining Coverage', () => {
+  describe('Team Hierarchy — Remaining Coverage', () => {
     let context: any = {};
     let workspaceId: string;
     let featureMock: any;

@@ -5,6 +5,16 @@ import express from 'express';
 import type { NestMiddleware } from '@nestjs/common';
 import type { Request, Response } from 'express';
 
+// Use the real Node.js require, not rspack's transformed version.
+// rspack replaces require.resolve() with a module ID string at compile
+// time, which breaks path resolution for nc-lib-gui.
+// eslint-disable-next-line no-restricted-globals
+declare const __non_webpack_require__: typeof require;
+const _require =
+  typeof __non_webpack_require__ !== 'undefined'
+    ? __non_webpack_require__
+    : require;
+
 @Injectable()
 export class GuiMiddleware implements NestMiddleware, OnModuleInit {
   private staticRouter: express.Router | null = null;
@@ -23,7 +33,7 @@ export class GuiMiddleware implements NestMiddleware, OnModuleInit {
     try {
       candidates.push(
         path.join(
-          path.dirname(require.resolve('nc-lib-gui/package.json')),
+          path.dirname(_require.resolve('nc-lib-gui/package.json')),
           'lib',
           'dist',
         ),
@@ -34,17 +44,19 @@ export class GuiMiddleware implements NestMiddleware, OnModuleInit {
 
     for (const distPath of candidates) {
       try {
-        const indexPath = path.join(distPath, 'index.html');
-        if (!fs.existsSync(indexPath)) continue;
+        if (!fs.existsSync(path.join(distPath, 'index.html'))) continue;
 
-        this.indexHtml = fs.readFileSync(indexPath, 'utf-8');
+        this.indexHtml = fs.readFileSync(
+          path.join(distPath, 'index.html'),
+          'utf-8',
+        );
 
         const router = express.Router();
         router.use('/', express.static(distPath));
         this.staticRouter = router;
         return;
       } catch {
-        // Try next candidate
+        // skip invalid candidate
       }
     }
   }

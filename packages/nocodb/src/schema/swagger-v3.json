@@ -2483,7 +2483,7 @@
                           "table_id": "tbl456def",
                           "title": "Send Email on Insert",
                           "description": "Sends email notification when a new record is inserted",
-                          "event": "after",
+                          "event": "record",
                           "operation": ["insert"],
                           "notification": {
                             "type": "URL",
@@ -2548,7 +2548,7 @@
                 "Webhook Example": {
                   "value": {
                     "title": "New Record Webhook",
-                    "event": "after",
+                    "event": "record",
                     "operation": ["insert"],
                     "notification": {
                       "type": "URL",
@@ -2578,7 +2578,7 @@
                       "id": "hk1abc123xyz",
                       "table_id": "tbl456def",
                       "title": "New Record Webhook",
-                      "event": "after",
+                      "event": "record",
                       "operation": ["insert"],
                       "notification": {
                         "type": "URL",
@@ -2651,7 +2651,7 @@
                       "table_id": "tbl456def",
                       "title": "Send Email on Insert",
                       "description": "Sends email notification when a new record is inserted",
-                      "event": "after",
+                      "event": "record",
                       "operation": ["insert"],
                       "notification": {
                         "type": "URL",
@@ -2740,7 +2740,7 @@
                       "id": "hk1abc123xyz",
                       "table_id": "tbl456def",
                       "title": "Updated Hook Title",
-                      "event": "after",
+                      "event": "record",
                       "operation": ["insert"],
                       "notification": {
                         "type": "URL",
@@ -8744,8 +8744,8 @@
           },
           "event": {
             "type": "string",
-            "enum": ["after", "before", "manual"],
-            "description": "Event trigger type."
+            "enum": ["record", "before", "manual"],
+            "description": "Event trigger type. 'record' triggers after the operation completes."
           },
           "operation": {
             "type": "array",
@@ -8811,8 +8811,9 @@
           },
           "event": {
             "type": "string",
-            "enum": ["after", "before", "manual"],
-            "description": "Event trigger type."
+            "enum": ["record", "manual"],
+            "default": "record",
+            "description": "Event trigger type. Defaults to 'record' (triggers after the operation completes)."
           },
           "operation": {
             "type": "array",
@@ -8839,7 +8840,7 @@
             "description": "Field IDs that trigger the hook when modified."
           }
         },
-        "required": ["title", "event", "operation", "notification"]
+        "required": ["title", "operation", "notification"]
       },
       "HookV3Update": {
         "type": "object",
@@ -8855,8 +8856,8 @@
           },
           "event": {
             "type": "string",
-            "enum": ["after", "before", "manual"],
-            "description": "Event trigger type."
+            "enum": ["record", "manual"],
+            "description": "Event trigger type. 'record' triggers after the operation completes."
           },
           "operation": {
             "type": "array",

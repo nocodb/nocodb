@@ -5,6 +5,16 @@ import { Hook } from '~/models';
 import { HooksService } from '~/services/hooks.service';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 
+// Internal event → user-facing event
+const eventToV3: Record<string, string> = {
+  after: 'record',
+};
+
+// User-facing event → internal event
+const eventFromV3: Record<string, string> = {
+  record: 'after',
+};
+
 @Injectable()
 export class HooksV3Service {
   // Response builder: transforms internal Hook model to V3 API response format
@@ -29,6 +39,10 @@ export class HooksV3Service {
       snakeCase: true,
       metaProps: ['notification'],
     },
+    transformFn: (data) => {
+      data.event = eventToV3[data.event] ?? data.event;
+      return data;
+    },
   });
 
   // Request builder: transforms V3 API request format to internal Hook model format
@@ -51,6 +65,10 @@ export class HooksV3Service {
     meta: {
       snakeCase: true,
       metaProps: ['notification'],
+    },
+    transformFn: (data) => {
+      data.event = eventFromV3[data.event] ?? data.event ?? 'after';
+      return data;
     },
   });
 

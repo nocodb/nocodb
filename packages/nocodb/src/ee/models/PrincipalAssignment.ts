@@ -1,5 +1,6 @@
-import type { NcContext } from '~/interface/config';
 import type { PrincipalType, ResourceType } from '~/utils/globals';
+import { NcContext } from '~/interface/config';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
 import NocoCache from '~/cache/NocoCache';
@@ -278,6 +279,16 @@ export default class PrincipalAssignment {
    * @param ncMeta Database metadata instance
    * @returns Array of PrincipalAssignment instances
    */
+  @NcCache({
+    key: (args) => {
+      const filter = args[1] || {};
+      return `${filter.resource_type || ''}:${filter.resource_id || ''}:${
+        filter.principal_type || ''
+      }:${filter.principal_ref_id || ''}:${filter.roles || ''}:${
+        filter.deleted ?? ''
+      }`;
+    },
+  })
   public static async list(
     context: NcContext,
     filter?: {

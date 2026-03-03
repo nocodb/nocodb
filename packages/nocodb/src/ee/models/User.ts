@@ -500,6 +500,11 @@ export default class User extends UserCE implements UserType {
       } as any;
     }
 
+    // Scoped cache context for team role extraction — the three team functions
+    // run in parallel and all query PrincipalAssignment.list(USER, userId, TEAM),
+    // so @NcCache deduplicates the identical call into a single DB round-trip.
+    const cachedCtx: NcContext = { ...context, cache: true };
+
     const [
       workspaceRoles,
       _baseRoles,
@@ -585,7 +590,7 @@ export default class User extends UserCE implements UserType {
       new Promise((resolve) => {
         if (args.workspaceId ?? context.workspace_id) {
           extractUserTeamRoles(
-            context,
+            cachedCtx,
             user.id,
             args.workspaceId ?? context.workspace_id,
           )
@@ -608,7 +613,7 @@ export default class User extends UserCE implements UserType {
       // extract base-team roles for base
       new Promise((resolve) => {
         if (args.baseId) {
-          extractUserBaseTeamRoles(context, user.id, args.baseId)
+          extractUserBaseTeamRoles(cachedCtx, user.id, args.baseId)
             .then((roles) => {
               resolve(roles);
             })
@@ -623,7 +628,7 @@ export default class User extends UserCE implements UserType {
       // direct team memberships (all teams user belongs to, with paths)
       // used by frontend for permission subject matching (self_only / self_and_descendants)
       args.workspaceId ?? context.workspace_id
-        ? extractUserDirectTeams(context, user.id)
+        ? extractUserDirectTeams(cachedCtx, user.id)
         : Promise.resolve([] as { team_id: string; path: string }[]),
     ]);
     let baseRoles = _baseRoles;

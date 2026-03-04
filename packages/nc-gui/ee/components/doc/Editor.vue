@@ -1475,6 +1475,12 @@ onBeforeUnmount(() => {
   gap: 0;
   border: 1px solid var(--nc-border-gray-medium);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  // Match the 28px size used inside .bubble-menu.embed-mode so
+  // link + comment buttons are the same size as formatting buttons
+  > .nc-button.ant-btn {
+    @apply !h-7 !min-w-7 !px-1 !py-0.5;
+  }
   // overflow: visible so the highlight color picker dropdown (positioned
   // absolutely below the toolbar) is not clipped.
   overflow: visible;

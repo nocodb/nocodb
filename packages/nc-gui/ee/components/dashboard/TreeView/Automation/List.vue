@@ -209,7 +209,7 @@ watchEffect(() => {
             <div>
               {{
                 $t('general.createEntity', {
-                  entity: $t('objects.automation'),
+                  entity: $t('objects.workflow'),
                 })
               }}
             </div>
@@ -252,7 +252,7 @@ watchEffect(() => {
       v-else-if="!allEntities.length && !isUIAllowed('workflowCreateOrEdit')"
       class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
     >
-      {{ $t('placeholder.noAutomations') }}
+      {{ $t('placeholder.noWorkflows') }}
     </div>
     <div
       v-else

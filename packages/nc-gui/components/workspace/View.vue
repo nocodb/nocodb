@@ -11,7 +11,7 @@ const route = router.currentRoute
 
 const { t } = useI18n()
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { hideSidebar, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isUIAllowed, isBaseRolesLoaded, loadRoles } = useRoles()
 
@@ -131,6 +131,14 @@ watch(
 )
 
 const { shouldShow: btbShouldShow } = useBackToBase()
+
+onMounted(() => {
+  hideSidebar.value = true
+})
+
+onBeforeUnmount(() => {
+  hideSidebar.value = false
+})
 </script>
 
 <template>
@@ -302,7 +310,7 @@ const { shouldShow: btbShouldShow } = useBackToBase()
 }
 
 :deep(.ant-tabs-tab) {
-  @apply pt-1.5 pb-2;
+  @apply pt-2 pb-3;
 }
 
 .ant-tabs-content-top {

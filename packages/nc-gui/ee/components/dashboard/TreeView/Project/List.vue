@@ -17,7 +17,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading, resolvedProject } = storeToRefs(basesStore)
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -44,23 +44,6 @@ const { refreshCommandPalette } = useCommandPalette()
 const { addUndo, defineProjectScope } = useUndoRedo()
 
 const baseCreateDlg = ref(false)
-
-const openedBase = computed(() => {
-  return basesList.value.find((b) => b.id === activeProjectId.value)
-})
-
-const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-settings-page')
-
-// On ws-admin routes without a baseId, resolve a base from last visited or first available
-const resolvedBaseForAdmin = computed(() => {
-  if (openedBase.value) return openedBase.value
-  if (!isWsAdminRoute.value) return undefined
-
-  const lastVisitedBaseId = ncLastVisitedBase().get()
-  return basesList.value.find((b) => b.id === lastVisitedBaseId) || basesList.value[0]
-})
-
-const effectiveBase = computed(() => openedBase.value || resolvedBaseForAdmin.value)
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main'; value?: any }>({})
 
@@ -377,11 +360,11 @@ useEventListener(document, 'contextmenu', handleContext, true)
 
 <template>
   <div class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch nc-treeview-container-active-base">
-    <template v-if="effectiveBase?.id && !effectiveBase.isLoading">
+    <template v-if="resolvedProject?.id && !resolvedProject.isLoading">
       <div class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
         <ProjectWrapper
-          :base-role="effectiveBase?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
-          :base="effectiveBase"
+          :base-role="resolvedProject?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
+          :base="resolvedProject"
         >
           <DashboardTreeViewProjectHome>
             <template #footer>

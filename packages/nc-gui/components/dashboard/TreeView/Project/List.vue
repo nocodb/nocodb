@@ -14,7 +14,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading, resolvedProject } = storeToRefs(basesStore)
 
 const { activeWorkspaceId, activeWorkspace } = storeToRefs(useWorkspace())
 
@@ -41,10 +41,6 @@ const { allRecentViews } = storeToRefs(useViewsStore())
 const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineProjectScope } = useUndoRedo()
-
-const openedBase = computed(() => {
-  return basesList.value.find((b) => b.id === activeProjectId.value)
-})
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'source' | 'table' | 'main' | 'layout'; value?: any }>({})
 
@@ -322,10 +318,10 @@ watch(
   <div class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch nc-treeview-container-active-base">
     <!-- Project Home -->
     <div
-      v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
+      v-if="activeProjectId && resolvedProject?.id && !resolvedProject.isLoading"
       class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
     >
-      <ProjectWrapper :base-role="openedBase?.project_role" :base="openedBase">
+      <ProjectWrapper :base-role="resolvedProject?.project_role" :base="resolvedProject">
         <DashboardTreeViewProjectHome>
           <template #footer>
             <slot name="footer"></slot>

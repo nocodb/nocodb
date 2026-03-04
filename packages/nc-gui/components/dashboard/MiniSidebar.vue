@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { PlanFeatureTypes } from 'nocodb-sdk'
+
 provide(IsMiniSidebarInj, ref(true))
 
 const router = useRouter()
@@ -38,6 +40,16 @@ const { setActiveCmdView } = useCommand()
 const { isChatWootEnabled } = useProvideChatwoot()
 
 const { isPanelExpanded: isChatPanelExpanded, toggleChatPanel } = useChatPanel()
+
+const { blockAiChat, showUpgradeToUseAiChat } = useEeConfig()
+
+const handleChatToggle = () => {
+  if (blockAiChat.value) {
+    showUpgradeToUseAiChat()
+    return
+  }
+  toggleChatPanel()
+}
 
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
@@ -100,6 +112,23 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       navigateToProjectPage()
       break
     }
+  }
+})
+
+// Cmd/Ctrl + Shift + A — toggle AI chat
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if (!isEeUI) return
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (
+    cmdOrCtrl &&
+    e.shiftKey &&
+    e.code === 'KeyA' &&
+    !isActiveInputElementExist(e) &&
+    !isNcDropdownOpen() &&
+    !isDrawerOrModalExist()
+  ) {
+    e.preventDefault()
+    handleChatToggle()
   }
 })
 </script>
@@ -262,16 +291,27 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
       </DashboardMiniSidebarItemWrapper>
 
       <DashboardMiniSidebarItemWrapper v-if="isEeUI">
-        <NcTooltip :title="$t('labels.aiChat')" placement="right" hide-on-click :arrow="false">
+        <NcTooltip placement="right" hide-on-click :arrow="false">
+          <template #title>
+            <div class="flex items-center gap-1">{{ $t('labels.aiChat') }} {{ renderCmdOrCtrlKey(true) }} ⇧ A</div>
+          </template>
           <div
             v-e="['c:chat:toggle']"
-            class="nc-mini-sidebar-btn-full-width"
+            class="nc-mini-sidebar-btn-full-width relative"
             data-testid="nc-sidebar-chat-btn"
-            @click="toggleChatPanel"
+            @click="handleChatToggle"
           >
-            <div class="nc-mini-sidebar-btn" :class="{ active: isChatPanelExpanded }">
+            <div class="nc-mini-sidebar-btn" :class="{ active: isChatPanelExpanded && !blockAiChat }">
               <GeneralIcon icon="ncMessageSquare" class="h-4 w-4" />
             </div>
+            <LazyPaymentUpgradeBadge
+              :feature="PlanFeatureTypes.FEATURE_AI_CHAT"
+              content=""
+              class="!absolute bottom-1 right-1"
+              show-as-lock
+              remove-click
+              size="xs"
+            />
           </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>

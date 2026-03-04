@@ -56,6 +56,7 @@ import type { NcContext } from '~/interface/config';
 import type { ToolSet } from 'ai';
 import Base from '~/models/Base';
 import User from '~/models/User';
+import { hasPermission } from '~/helpers/aclHelper';
 
 export interface ChatToolDefinition {
   name: string;
@@ -158,13 +159,24 @@ export class ChatToolRegistry {
       // Base-scoped tools require base_roles. No base context = no base tools.
       if (!baseRoles || !Object.keys(baseRoles).length) return false;
 
+      // Role hierarchy gate — user must meet the minimum role level.
       const requiredLevel = ROLE_HIERARCHY[t.requiredRole] || 0;
+      let meetsRoleLevel = false;
       for (const [role, hasRole] of Object.entries(baseRoles)) {
         if (hasRole && (ROLE_HIERARCHY[role] || 0) >= requiredLevel) {
-          return true;
+          meetsRoleLevel = true;
+          break;
         }
       }
-      return false;
+      if (!meetsRoleLevel) return false;
+
+      // Granular ACL gate — if the tool declares a permission, verify
+      // the user's roles actually grant it (include/exclude check).
+      if (t.permission && !hasPermission(baseRoles, t.permission)) {
+        return false;
+      }
+
+      return true;
     });
   }
 
@@ -196,6 +208,18 @@ export class ChatToolRegistry {
           'No base context available. Please ask the user to select a base first.',
         isError: true,
       };
+    }
+
+    // Enforce granular ACL — even if getAvailableTools filtered, this is the
+    // authoritative gate (defense in depth against stale tool lists or direct calls).
+    if (toolDef.permission) {
+      const roles = extractRolesObj((req as any).user?.base_roles);
+      if (!hasPermission(roles, toolDef.permission)) {
+        return {
+          result: `You do not have permission to perform "${toolDef.permission}".`,
+          isError: true,
+        };
+      }
     }
 
     try {
@@ -302,14 +326,25 @@ export class ChatToolRegistry {
 
     // 7. Check user's role on the TARGET base meets the inner tool's requiredRole
     const requiredLevel = ROLE_HIERARCHY[innerTool.requiredRole] || 0;
-    let hasPermission = false;
+    let meetsRoleLevel = false;
     for (const [role, hasRole] of Object.entries(baseRoles)) {
       if (hasRole && (ROLE_HIERARCHY[role] || 0) >= requiredLevel) {
-        hasPermission = true;
+        meetsRoleLevel = true;
         break;
       }
     }
-    if (!hasPermission) {
+    if (!meetsRoleLevel) {
+      return {
+        result: `Insufficient permissions on this base for "${innerToolName}".`,
+        isError: true,
+      };
+    }
+
+    // 7b. Granular ACL check on the TARGET base's roles
+    if (
+      innerTool.permission &&
+      !hasPermission(baseRoles, innerTool.permission)
+    ) {
       return {
         result: `Insufficient permissions on this base for "${innerToolName}".`,
         isError: true,

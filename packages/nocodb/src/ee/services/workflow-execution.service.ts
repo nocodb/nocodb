@@ -41,7 +41,7 @@ import { BaseUser, Column, Integration, User, Workflow } from '~/models';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { TablesService } from '~/services/tables.service';
 import { NcError } from '~/helpers/ncError';
-import rolePermissions from '~/utils/acl';
+import { hasPermission } from '~/helpers/aclHelper';
 import {
   buildWorkflowGraph,
   determineStartNode,
@@ -191,19 +191,7 @@ export class WorkflowExecutionService {
       get(target, prop, receiver) {
         const aclOp = operationMap[prop as string];
         if (aclOp) {
-          const isAllowed = Object.entries(roles).some(
-            ([roleName, hasRole]) => {
-              if (!hasRole || !rolePermissions[roleName]) return false;
-              const perms = rolePermissions[roleName];
-              return (
-                perms === '*' ||
-                (perms.exclude && !perms.exclude[aclOp]) ||
-                (perms.include && perms.include[aclOp])
-              );
-            },
-          );
-
-          if (!isAllowed) {
+          if (!hasPermission(roles, aclOp)) {
             return () => {
               NcError.insufficientPrivilege(
                 `Workflow execution role does not have permission to perform '${aclOp}'`,

@@ -112,7 +112,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-  type SidebarTab = 'data' | 'automations' | 'agents' | 'settings'
+  type SidebarTab = 'data' | 'workflows' | 'agents' | 'settings'
 
   const activeSidebarTab = ref<SidebarTab>('data')
 
@@ -128,12 +128,12 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       if (name.startsWith('index-typeOrId-baseId-index-settings')) return 'settings'
 
       if (
-        name.startsWith('index-typeOrId-baseId-index-automations') ||
+        name.startsWith('index-typeOrId-baseId-index-workflows') ||
         name.startsWith('index-typeOrId-baseId-index-automation-') ||
         name.startsWith('index-typeOrId-baseId-index-scripts') ||
-        name.startsWith('index-typeOrId-baseId-index-workflows')
+        name.startsWith('index-typeOrId-baseId-index-automations')
       ) {
-        return 'automations'
+        return 'workflows'
       }
 
       return 'data'

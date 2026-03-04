@@ -128,7 +128,7 @@ watch(activeWorkflowId, () => {
       class="nc-project-home-section-header w-full cursor-pointer"
       @click.stop="onExpand"
     >
-      <div>{{ $t('general.automations') }}</div>
+      <div>{{ $t('objects.workflows') }}</div>
       <div class="flex-1" />
       <GeneralIcon
         icon="chevronRight"

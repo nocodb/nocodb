@@ -8,7 +8,7 @@ const baseId = route.params.baseId as string
 const slugs = route.params.slugs as string[]
 
 router.replace({
-  name: 'index-typeOrId-baseId-index-automations-scripts-scriptId-slugs',
+  name: 'index-typeOrId-baseId-index-scripts-scriptId-slugs',
   params: {
     typeOrId,
     baseId,

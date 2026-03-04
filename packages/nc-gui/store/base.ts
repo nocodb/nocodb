@@ -274,12 +274,7 @@ export const useBase = defineStore('baseStore', () => {
     const basUrl = `/nc/${id}`
 
     if (projectPage) {
-      const slug: Record<string, string> = {
-        'collaborator': 'members',
-        'data-source': 'data-sources',
-        'base-settings': 'settings',
-      }
-      return `${basUrl}/settings/${slug[projectPage] || projectPage}`
+      return `${basUrl}/settings/${baseSettingsTabToSlug[projectPage] || projectPage}`
     }
 
     return basUrl

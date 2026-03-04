@@ -454,7 +454,7 @@ export const useScriptStore = defineStore('script', () => {
       }
 
       router.replace({
-        name: 'index-typeOrId-baseId-index-automations-scripts-scriptId-slugs',
+        name: 'index-typeOrId-baseId-index-scripts-scriptId-slugs',
         params: {
           ...route.params,
           slugs: newSlug,

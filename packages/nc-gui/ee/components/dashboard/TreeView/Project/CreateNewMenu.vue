@@ -27,7 +27,7 @@ const { isEEFeatureBlocked, showUpgradeToUseScripts, showUpgradeToUseSync } = us
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
-const isAutomationsTab = computed(() => activeSidebarTab.value === 'automations')
+const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
 
 const showBaseOption = (source: SourceType) => {
   return (
@@ -55,7 +55,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
 <template>
   <NcMenu variant="large" data-testid="nc-home-create-new-menu" @click="vVisible = false">
     <!-- Data tab items: table, dashboard, sync -->
-    <template v-if="!isAutomationsTab">
+    <template v-if="!isWorkflowsTab">
       <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-table" @click="emits('newTable')">
         <div class="w-full flex items-center">
           <div class="flex-1 flex items-center gap-2 cursor-pointer">
@@ -132,7 +132,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
     </template>
 
     <!-- Automations tab items: workflow, script -->
-    <template v-if="isAutomationsTab">
+    <template v-if="isWorkflowsTab">
       <NcMenuItem
         class="nc-menu-item-integration"
         inner-class="w-full"

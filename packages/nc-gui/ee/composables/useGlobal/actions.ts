@@ -280,7 +280,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       : ''
 
     const scriptPath = scriptId
-      ? `/automations/scripts/${scriptId}${toReadableUrlSlug([scriptTitle]) ? `/${toReadableUrlSlug([scriptTitle])}` : ''}`
+      ? `/scripts/${scriptId}${toReadableUrlSlug([scriptTitle]) ? `/${toReadableUrlSlug([scriptTitle])}` : ''}`
       : ''
 
     const dashboardPath = dashboardId
@@ -288,7 +288,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
       : ''
 
     const workflowPath = workflowId
-      ? `/automations/workflows/${workflowId}${
+      ? `/workflows/${workflowId}${
           toReadableUrlSlug([workflowTitle]) ? `/${toReadableUrlSlug([workflowTitle])}` : ''
         }`
       : ''

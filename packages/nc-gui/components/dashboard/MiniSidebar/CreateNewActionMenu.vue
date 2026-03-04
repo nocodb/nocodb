@@ -33,7 +33,7 @@ const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
 const isDataTab = computed(() => activeSidebarTab.value === 'data')
 
-const isAutomationsTab = computed(() => activeSidebarTab.value === 'automations')
+const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
 
 const isVisibleCreateNew = ref(false)
 
@@ -317,20 +317,20 @@ const hasDashboardCreateAccess = computed(() => {
             <NcDivider />
             <NcTooltip
               :title="
-                !isAutomationsTab
-                  ? $t('tooltip.switchToAutomationsTab', { type: $t('general.script').toLowerCase() })
+                !isWorkflowsTab
+                  ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.script').toLowerCase() })
                   : !isBaseHomePage
                     ? $t('tooltip.navigateToBaseToCreateScript')
                     : !hasScriptCreateAccess
                       ? $t('tooltip.youDontHaveAccessToCreateNewScript')
                       : ''
               "
-              :disabled="isAutomationsTab && isBaseHomePage && hasScriptCreateAccess"
+              :disabled="isWorkflowsTab && isBaseHomePage && hasScriptCreateAccess"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--script-create"
-                :disabled="!isAutomationsTab || !isBaseHomePage || !hasScriptCreateAccess"
+                :disabled="!isWorkflowsTab || !isBaseHomePage || !hasScriptCreateAccess"
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncScript" />
@@ -340,20 +340,20 @@ const hasDashboardCreateAccess = computed(() => {
             </NcTooltip>
             <NcTooltip
               :title="
-                !isAutomationsTab
-                  ? $t('tooltip.switchToAutomationsTab', { type: $t('general.workflow').toLowerCase() })
+                !isWorkflowsTab
+                  ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.workflow').toLowerCase() })
                   : !isBaseHomePage
                     ? $t('tooltip.navigateToBaseToCreateWorkflow')
                     : !hasWorkflowCreateAccess
                       ? $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
                       : ''
               "
-              :disabled="isAutomationsTab && isBaseHomePage && hasWorkflowCreateAccess"
+              :disabled="isWorkflowsTab && isBaseHomePage && hasWorkflowCreateAccess"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--workflow-create"
-                :disabled="!isAutomationsTab || !isBaseHomePage || !hasWorkflowCreateAccess"
+                :disabled="!isWorkflowsTab || !isBaseHomePage || !hasWorkflowCreateAccess"
                 @click="openNewWorkflowModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncAutomation" />

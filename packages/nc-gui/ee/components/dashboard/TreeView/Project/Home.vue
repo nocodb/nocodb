@@ -144,7 +144,7 @@ const hasTableCreatePermission = computed(() => {
       </template>
 
       <!-- Automation/Workflows tab -->
-      <template v-else-if="activeSidebarTab === 'automations'">
+      <template v-else-if="activeSidebarTab === 'workflows'">
         <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header hide-create-button />
       </template>
 

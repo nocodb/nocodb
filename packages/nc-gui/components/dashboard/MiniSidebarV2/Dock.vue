@@ -87,8 +87,8 @@ const onTabClick = async (tabKey: string) => {
   const basePath = getBasePath()
   if (!basePath) return
 
-  if (tabKey === 'automations') {
-    await navigateTo(`${basePath}/automations`)
+  if (tabKey === 'workflows') {
+    await navigateTo(`${basePath}/workflows`)
   } else {
     await navigateTo(basePath)
   }
@@ -122,11 +122,11 @@ const mainItems = computed<NavItem[]>(() => [
   ...(isEeUI && !isMobileMode.value
     ? [
         {
-          key: 'automations',
+          key: 'workflows',
           icon: 'ncAutomation',
-          label: 'Automations',
+          label: 'Workflows',
           disabled: !hasAvailableBases.value,
-          onClick: () => onTabClick('automations'),
+          onClick: () => onTabClick('workflows'),
         },
       ]
     : []),

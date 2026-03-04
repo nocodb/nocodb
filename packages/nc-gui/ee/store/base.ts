@@ -5,19 +5,6 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import type Record from '~icons/nc-icons/record'
 
 export const useBase = defineStore('baseStore', () => {
-  const pageToSlug: Record<string, string> = {
-    'collaborator': 'members',
-    'data-source': 'data-sources',
-    'permissions': 'permissions',
-    'syncs': 'syncs',
-    'base-settings': 'settings',
-    'audits': 'audits',
-    'workflows': 'workflows',
-    'overview': 'overview',
-    'mcp': 'mcp',
-    'snapshots': 'snapshots',
-  }
-
   const { $e } = useNuxtApp()
 
   const { api, isLoading } = useApi()
@@ -369,7 +356,7 @@ export const useBase = defineStore('baseStore', () => {
     const basUrl = `/${workspaceId}/${id}`
 
     if (projectPage) {
-      const slug = pageToSlug[projectPage] || projectPage
+      const slug = baseSettingsTabToSlug[projectPage] || projectPage
       return `${basUrl}/settings/${slug}`
     }
 
@@ -439,7 +426,7 @@ export const useBase = defineStore('baseStore', () => {
   }) => {
     const wsId = route.value.params.typeOrId
     const bId = route.value.params.baseId
-    const slug = pageToSlug[page] || page
+    const slug = baseSettingsTabToSlug[page] || page
     const query = action ? { action } : undefined
 
     navigateTo({ path: `/${wsId}/${bId}/settings/${slug}`, query })

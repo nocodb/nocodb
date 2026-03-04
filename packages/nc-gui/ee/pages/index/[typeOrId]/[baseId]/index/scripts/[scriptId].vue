@@ -1,18 +1,11 @@
 <script setup lang="ts">
-const route = useRoute()
-const router = useRouter()
+const scriptStore = useScriptStore()
 
-router.replace({
-  name: 'index-typeOrId-baseId-index-automations-scripts-scriptId',
-  params: {
-    typeOrId: route.params.typeOrId,
-    baseId: route.params.baseId,
-    scriptId: route.params.scriptId,
-  },
-  query: route.query,
-})
+const { activeScript } = storeToRefs(scriptStore)
+
+useProvideScriptStore(activeScript)
 </script>
 
 <template>
-  <NcSpanHidden />
+  <SmartsheetScript />
 </template>

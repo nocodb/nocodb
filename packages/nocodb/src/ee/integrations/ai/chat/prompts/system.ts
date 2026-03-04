@@ -164,16 +164,27 @@ Viewer → read-only | Editor → + records, views, filters | Creator → + tabl
 Tools are filtered to your role. Permission errors mean the user needs a higher role.`);
 
   // ─── Schema ────────────────────────────────────────────────────────────────
-  parts.push(`
+  if (schemaContext) {
+    parts.push(`
 ## Base Schema
 
 ${schemaContext}`);
 
-  if (currentTableContext) {
-    parts.push(`
+    if (currentTableContext) {
+      parts.push(`
 ## Current Context
 
 ${currentTableContext}`);
+    }
+  } else {
+    parts.push(`
+## No Base Selected
+
+The user is not currently inside a base. You can use \`list_bases\` to show available bases, \
+but you cannot use tools that operate on tables, fields, views, or records. \
+If the user asks to do something that requires a base, use \`list_bases\` to show what's available \
+and ask them to open one from the sidebar — for example: \
+"You have these bases: [list]. Open one from the sidebar and I'll be able to work with your tables and data."`);
   }
 
   return parts.join('\n');

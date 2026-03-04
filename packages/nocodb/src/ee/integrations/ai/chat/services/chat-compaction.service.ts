@@ -1,17 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { IntegrationCategoryType } from 'nocodb-sdk';
 import { COMPACTION_SYSTEM_PROMPT } from '../prompts';
+import {
+  COMPACTION_THRESHOLD,
+  KEEP_RECENT_MESSAGES,
+  TOKEN_BUDGET,
+} from '../constants';
 import { ChatContextService } from './chat-context.service';
 import type { ChatMessageType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
 import Integration from '~/models/Integration';
 import { NcError } from '~/helpers/catchError';
-import {
-  COMPACTION_THRESHOLD,
-  KEEP_RECENT_MESSAGES,
-  TOKEN_BUDGET,
-} from '../constants';
 
 @Injectable()
 export class ChatCompactionService {

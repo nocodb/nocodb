@@ -5,10 +5,13 @@ import {
   ChatMessageRole,
   ChatToolCallStatus,
   EventType,
+  extractRolesObj,
   IntegrationCategoryType,
   PlanFeatureTypes,
+  ProjectRoles,
 } from 'nocodb-sdk';
 import { ChatToolRegistry } from '../tools/chat-tool-registry';
+import { MAX_STEPS, MESSAGE_MAX_LENGTH } from '../constants';
 import { ChatContextService } from './chat-context.service';
 import { ChatCompactionService } from './chat-compaction.service';
 import type {
@@ -22,13 +25,14 @@ import type { AiIntegration } from '@noco-local-integrations/core';
 import ChatSession from '~/models/ChatSession';
 import ChatMessage from '~/models/ChatMessage';
 import Integration from '~/models/Integration';
+import Base from '~/models/Base';
+import User from '~/models/User';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import NocoSocket from '~/socket/NocoSocket';
-import { MAX_STEPS, MESSAGE_MAX_LENGTH } from '../constants';
 
 interface ChatCallbacks {
   onToken?: (content: string) => void;
@@ -88,7 +92,7 @@ export class ChatService {
     },
   ) {
     return ChatSession.list(context, {
-      baseId: context.base_id,
+      workspaceId: context.workspace_id,
       userId: params.req.user?.id,
     });
   }
@@ -103,6 +107,13 @@ export class ChatService {
     const session = await ChatSession.get(context, params.sessionId);
 
     if (!session) {
+      NcError.get(context).genericNotFound('Chat session', params.sessionId);
+    }
+
+    // Defense-in-depth: verify the session belongs to this workspace.
+    // ChatSession.get() looks up by id only (RootScopes.WORKSPACE) — this
+    // prevents a guessed session ID from leaking across workspaces.
+    if (session.fk_workspace_id !== context.workspace_id) {
       NcError.get(context).genericNotFound('Chat session', params.sessionId);
     }
 
@@ -182,6 +193,13 @@ export class ChatService {
     // 3. Check feature gate
     await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_CHAT);
 
+    // 3b. Validate base belongs to this workspace and user has access (if provided)
+    const validatedBaseId = await this.validateBaseId(
+      context,
+      body.base_id,
+      req,
+    );
+
     // 4. Persist user message
     await ChatMessage.insert(context, {
       fk_session_id: sessionId,
@@ -197,6 +215,7 @@ export class ChatService {
       sessionId,
       firstUserMessage: body.content,
       approvals: body.approvals || {},
+      baseId: validatedBaseId,
     };
 
     await this.jobsService.add(JobTypes.ChatMessage, jobData);
@@ -208,16 +227,29 @@ export class ChatService {
       sessionId: string;
       messageId: string;
       decisions: Record<string, 'approved' | 'denied'>;
+      baseId?: string;
       req: NcRequest;
     },
   ): Promise<void> {
-    const { sessionId, messageId, decisions, req } = params;
+    const { sessionId, messageId, decisions, baseId, req } = params;
+
+    // Validate decision values — TypeScript types have no runtime enforcement
+    for (const [key, value] of Object.entries(decisions)) {
+      if (value !== 'approved' && value !== 'denied') {
+        NcError.get(context).badRequest(
+          `Invalid decision value for tool call ${key}`,
+        );
+      }
+    }
 
     // Verify session ownership
     await this.sessionGet(context, { sessionId, req });
 
     // Check feature gate
     await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_CHAT);
+
+    // Validate base belongs to this workspace and user has access (if provided)
+    const validatedBaseId = await this.validateBaseId(context, baseId, req);
 
     // Validate the message belongs to this session
     const msg = await ChatMessage.get(context, messageId);
@@ -236,6 +268,7 @@ export class ChatService {
       sessionId,
       messageId,
       decisions,
+      baseId: validatedBaseId,
     };
 
     await this.jobsService.add(JobTypes.ChatApproval, jobData);
@@ -252,10 +285,11 @@ export class ChatService {
       req: NcRequest;
       approvals?: Record<string, 'approved' | 'denied'>;
       firstUserMessage?: string;
+      baseId?: string;
     },
     callbacks?: ChatCallbacks,
   ): Promise<void> {
-    const { sessionId, req, approvals = {}, firstUserMessage } = params;
+    const { sessionId, req, approvals = {}, firstUserMessage, baseId } = params;
 
     // Load session (may have been updated since job was queued)
     const session = await ChatSession.get(context, sessionId);
@@ -264,10 +298,13 @@ export class ChatService {
       return;
     }
 
-    // Defense-in-depth: re-verify ownership even though the job was enqueued
-    // after an ownership check. Guards against any future code path that bypasses
-    // the HTTP-layer validation.
-    if (session.fk_user_id !== req.user?.id) {
+    // Defense-in-depth: re-verify workspace + ownership even though the job
+    // was enqueued after an ownership check. Guards against any future code
+    // path that bypasses the HTTP-layer validation.
+    if (
+      session.fk_workspace_id !== context.workspace_id ||
+      session.fk_user_id !== req.user?.id
+    ) {
       this.logger.warn(
         `processAgentTurn: user ${req.user?.id} does not own session ${sessionId} (owner: ${session.fk_user_id})`,
       );
@@ -299,22 +336,28 @@ export class ChatService {
       return;
     }
 
+    // Build a sub-context with base_id so tools and system prompt get schema context
+    const toolContext = await this.buildToolContext(context, baseId, req);
+
     // Build tools
     const availableTools = this.toolRegistry.getAvailableTools(req);
     const vercelTools = this.toolRegistry.toVercelTools(
       availableTools,
-      context,
+      toolContext,
       req,
       approvals,
     );
 
-    // Build system prompt
+    // Build system prompt — pass baseId for schema context (may be undefined)
     const userRole = this.getUserRole(req);
-    const systemPrompt = await this.contextService.buildSystemPrompt(context, {
-      baseId: context.base_id,
-      userRole,
-      req,
-    });
+    const systemPrompt = await this.contextService.buildSystemPrompt(
+      toolContext,
+      {
+        baseId,
+        userRole,
+        req,
+      },
+    );
 
     // Build messages (with compaction)
     const existingMessages = await ChatMessage.list(context, { sessionId });
@@ -517,7 +560,7 @@ export class ChatService {
       await result.text;
     } catch (e) {
       this.logger.error('Error consuming chat stream', e.stack);
-      callbacks?.onError?.(e.message || 'Stream error');
+      callbacks?.onError?.('Stream error');
     }
   }
 
@@ -531,16 +574,26 @@ export class ChatService {
       sessionId: string;
       messageId: string;
       decisions: Record<string, 'approved' | 'denied'>;
+      baseId?: string;
       req: NcRequest;
     },
   ): Promise<ChatContentBlock[] | null> {
-    const { sessionId, messageId, decisions, req } = params;
+    const { sessionId, messageId, decisions, baseId, req } = params;
 
     const session = await ChatSession.get(context, sessionId);
-    if (!session || session.fk_user_id !== req.user?.id) return null;
+    if (
+      !session ||
+      session.fk_workspace_id !== context.workspace_id ||
+      session.fk_user_id !== req.user?.id
+    ) {
+      return null;
+    }
 
     const msg = await ChatMessage.get(context, messageId);
     if (!msg || msg.fk_session_id !== sessionId) return null;
+
+    // Build a sub-context with base_id so tools execute within the correct base
+    const toolContext = await this.buildToolContext(context, baseId, req);
 
     // Build updated parts: execute approved tools inline, record denials
     const updatedParts: ChatContentBlock[] = [];
@@ -558,7 +611,7 @@ export class ChatService {
 
       if (decision === 'approved') {
         const { result, isError } = await this.toolRegistry.executeTool(
-          context,
+          toolContext,
           p.name,
           p.input || {},
           req,
@@ -599,7 +652,7 @@ export class ChatService {
   buildSocketCallbacks(
     userId: string,
     sessionId: string,
-    baseId: string,
+    workspaceId: string,
     logger: { error: (msg: string) => void },
   ): ChatCallbacks {
     const broadcast = (
@@ -634,12 +687,76 @@ export class ChatService {
           isError: false,
         }),
       onDone: ({ messageId, parts }) =>
-        broadcast({ action: 'message-done', baseId, messageId, parts }),
+        broadcast({ action: 'message-done', workspaceId, messageId, parts }),
       onError: (error) => {
         logger.error(`Chat failed for session ${sessionId}: ${error}`);
         broadcast({ action: 'error', error });
       },
     };
+  }
+
+  /**
+   * Validates that the optional baseId belongs to the current workspace
+   * and the requesting user has at least viewer access to it.
+   * Returns the verified baseId or undefined if not provided.
+   */
+  private async validateBaseId(
+    context: NcContext,
+    baseId: string | undefined,
+    req: NcRequest,
+  ): Promise<string | undefined> {
+    if (!baseId) return undefined;
+
+    const base = await Base.get(context, baseId);
+    if (!base) {
+      NcError.get(context).genericNotFound('Base', baseId);
+    }
+
+    if (base.fk_workspace_id !== context.workspace_id) {
+      NcError.get(context).badRequest('Base does not belong to this workspace');
+    }
+
+    // Verify the user has at least viewer access to this base
+    const userWithRoles = await User.getWithRoles(
+      { ...context, base_id: baseId },
+      req.user.id,
+      { baseId, workspaceId: context.workspace_id },
+    );
+
+    const baseRoles = extractRolesObj(userWithRoles.base_roles);
+    if (
+      !baseRoles ||
+      baseRoles[ProjectRoles.NO_ACCESS] ||
+      !Object.values(baseRoles).some(Boolean)
+    ) {
+      NcError.get(context).genericNotFound('Base', baseId);
+    }
+
+    return baseId;
+  }
+
+  /**
+   * Builds a tool-execution context: extends the workspace context with
+   * base_id (if provided) and resolves the user's base_roles on req.
+   * Job context only carries workspace roles — downstream services and
+   * tool permission checks need base-level roles.
+   */
+  private async buildToolContext(
+    context: NcContext,
+    baseId: string | undefined,
+    req: NcRequest,
+  ): Promise<NcContext> {
+    const toolContext = baseId ? { ...context, base_id: baseId } : context;
+
+    if (baseId && !req.user.base_roles) {
+      const userWithRoles = await User.getWithRoles(toolContext, req.user.id, {
+        baseId,
+        workspaceId: context.workspace_id,
+      });
+      req.user.base_roles = userWithRoles.base_roles;
+    }
+
+    return toolContext;
   }
 
   private getUserRole(req: NcRequest): string {

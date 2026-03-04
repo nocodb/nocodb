@@ -13,7 +13,7 @@ export class ChatApprovalProcessor {
   constructor(private readonly chatService: ChatService) {}
 
   async job(job: Job<ChatApprovalJobData>): Promise<void> {
-    const { context, user, sessionId, messageId, decisions } = job.data;
+    const { context, user, sessionId, messageId, decisions, baseId } = job.data;
 
     const req = { user } as NcRequest;
 
@@ -24,6 +24,7 @@ export class ChatApprovalProcessor {
         sessionId,
         messageId,
         decisions,
+        baseId,
         req,
       });
     } catch (e) {
@@ -60,14 +61,14 @@ export class ChatApprovalProcessor {
     const callbacks = this.chatService.buildSocketCallbacks(
       user.id as string,
       sessionId,
-      context.base_id,
+      context.workspace_id,
       this.logger,
     );
 
     try {
       await this.chatService.processAgentTurn(
         context,
-        { sessionId, req, approvals: {} },
+        { sessionId, req, approvals: {}, baseId },
         callbacks,
       );
     } catch (e) {

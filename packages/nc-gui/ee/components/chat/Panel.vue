@@ -9,6 +9,9 @@ const chatStore = useChatStore()
 const { activeMessages, isSendingMessage, activeSession, sessionList, isLoadingSessions, activeStreamingParts } =
   storeToRefs(chatStore)
 
+const workspaceStore = useWorkspace()
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
 const { base } = storeToRefs(useBase())
 
 const { t } = useI18n()
@@ -82,22 +85,22 @@ const scrollToBottom = () => {
 watch(() => activeMessages.value.length, scrollToBottom)
 watch(() => activeStreamingParts.value?.length, scrollToBottom)
 
-// Initialize: ensure socket listener and load sessions when panel opens and base is ready
+// Initialize: ensure socket listener and load sessions when panel opens and workspace is ready
 watch(
-  [isPanelExpanded, () => base.value?.id],
-  async ([expanded, baseId], [, oldBaseId]) => {
-    if (baseId && baseId !== oldBaseId) {
-      // Base changed — reset and re-init
+  [isPanelExpanded, activeWorkspaceId],
+  async ([expanded, wsId], [, oldWsId]) => {
+    if (wsId && wsId !== oldWsId) {
+      // Workspace changed — reset and re-init
       hasInitialized.value = false
       chatStore.reset()
     }
 
-    if (expanded && baseId) {
+    if (expanded && wsId) {
       chatStore.initChatSocket()
 
       if (!hasInitialized.value) {
         hasInitialized.value = true
-        await chatStore.loadSessions(baseId)
+        await chatStore.loadSessions(wsId)
       }
     }
   },
@@ -108,35 +111,35 @@ watch(
 watch(
   () => chatStore.activeSessionId,
   async (sessionId) => {
-    if (sessionId && base.value?.id) {
-      await chatStore.loadMessages(base.value.id, sessionId)
+    if (sessionId && activeWorkspaceId.value) {
+      await chatStore.loadMessages(activeWorkspaceId.value, sessionId)
     }
   },
 )
 
 const handleSend = async (content: string) => {
-  if (!base.value?.id) return
+  if (!activeWorkspaceId.value) return
 
   $e('a:chat:message:send')
 
   // Create session if none exists
   if (!chatStore.activeSessionId) {
-    const session = await chatStore.createSession(base.value.id)
+    const session = await chatStore.createSession(activeWorkspaceId.value)
     if (!session?.id) return
   }
 
-  await chatStore.sendMessage(base.value.id, chatStore.activeSessionId!, content)
+  await chatStore.sendMessage(activeWorkspaceId.value, chatStore.activeSessionId!, content, base.value?.id)
 }
 
 const handleNewSession = async () => {
-  if (!base.value?.id) return
+  if (!activeWorkspaceId.value) return
   showSessionList.value = false
-  await chatStore.createSession(base.value.id)
+  await chatStore.createSession(activeWorkspaceId.value)
 }
 
 const handleDeleteSession = async (sessionId: string) => {
-  if (!base.value?.id) return
-  await chatStore.deleteSession(base.value.id, sessionId)
+  if (!activeWorkspaceId.value) return
+  await chatStore.deleteSession(activeWorkspaceId.value, sessionId)
 }
 
 const handleSelectSession = (sessionId: string) => {
@@ -161,19 +164,19 @@ const handleSkipInput = () => {
 }
 
 const handleApprove = async (messageId: string, toolCallId: string) => {
-  if (!base.value?.id || !chatStore.activeSessionId) return
+  if (!activeWorkspaceId.value || !chatStore.activeSessionId) return
   $e('a:chat:tool:approve')
-  await chatStore.approveToolCalls(base.value.id, chatStore.activeSessionId, messageId, {
+  await chatStore.approveToolCalls(activeWorkspaceId.value, chatStore.activeSessionId, messageId, {
     [toolCallId]: 'approved',
-  })
+  }, base.value?.id)
 }
 
 const handleDeny = async (messageId: string, toolCallId: string) => {
-  if (!base.value?.id || !chatStore.activeSessionId) return
+  if (!activeWorkspaceId.value || !chatStore.activeSessionId) return
   $e('a:chat:tool:deny')
-  await chatStore.approveToolCalls(base.value.id, chatStore.activeSessionId, messageId, {
+  await chatStore.approveToolCalls(activeWorkspaceId.value, chatStore.activeSessionId, messageId, {
     [toolCallId]: 'denied',
-  })
+  }, base.value?.id)
 }
 </script>
 
@@ -195,7 +198,7 @@ const handleDeny = async (messageId: string, toolCallId: string) => {
         >
           <!-- Left: icon + session switcher -->
           <div class="flex items-center gap-1.5 min-w-0">
-            <GeneralIcon icon="ncMessageSquare" class="flex-none w-4 h-4 text-nc-content-brand" />
+            <GeneralIcon icon="ncAutoAwesome" class="flex-none w-4 h-4 text-nc-content-brand" />
 
             <NcDropdown v-model:visible="showSessionList" placement="bottomLeft" :trigger="['click']">
               <button

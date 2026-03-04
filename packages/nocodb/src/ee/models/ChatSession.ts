@@ -10,6 +10,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 
 export default class ChatSession
@@ -18,8 +19,7 @@ export default class ChatSession
 {
   id?: string;
   title?: string;
-  fk_base_id: string;
-  fk_workspace_id?: string;
+  fk_workspace_id: string;
   fk_user_id?: string;
   summary?: string;
   total_input_tokens?: number;
@@ -52,8 +52,8 @@ export default class ChatSession
 
     if (!session) {
       session = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.CHAT_SESSIONS,
         {
           id: sessionId,
@@ -75,10 +75,10 @@ export default class ChatSession
   public static async list(
     context: NcContext,
     {
-      baseId,
+      workspaceId,
       userId,
     }: {
-      baseId: string;
+      workspaceId: string;
       userId?: string;
     },
     ncMeta = Noco.ncMeta,
@@ -88,17 +88,17 @@ export default class ChatSession
     const cachedList = await NocoCache.getList(
       context,
       CacheScope.CHAT_SESSION,
-      [baseId, userId],
+      [workspaceId, userId],
     );
     const { list: sessionsList, isNoneList } = cachedList;
 
     if (!isNoneList && !sessionsList.length) {
       const rows = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
+        RootScopes.WORKSPACE,
+        RootScopes.WORKSPACE,
         MetaTable.CHAT_SESSIONS,
         {
-          condition: { fk_user_id: userId },
+          condition: { fk_workspace_id: workspaceId, fk_user_id: userId },
           orderBy: { updated_at: 'desc' },
         },
       );
@@ -106,7 +106,7 @@ export default class ChatSession
       await NocoCache.setList(
         context,
         CacheScope.CHAT_SESSION,
-        [baseId, userId],
+        [workspaceId, userId],
         rows,
       );
 
@@ -124,12 +124,13 @@ export default class ChatSession
     const insertObj = extractProps(session, [
       'id',
       'title',
+      'fk_workspace_id',
       'fk_user_id',
     ]);
 
     const { id } = await ncMeta.metaInsert2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.CHAT_SESSIONS,
       insertObj,
     );
@@ -139,7 +140,7 @@ export default class ChatSession
         await NocoCache.appendToList(
           context,
           CacheScope.CHAT_SESSION,
-          [context.base_id, chatSession.fk_user_id],
+          [chatSession.fk_workspace_id, chatSession.fk_user_id],
           `${CacheScope.CHAT_SESSION}:${id}`,
         );
       }
@@ -162,8 +163,8 @@ export default class ChatSession
     ]);
 
     await ncMeta.metaUpdate(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.CHAT_SESSIONS,
       updateObj,
       {
@@ -190,8 +191,8 @@ export default class ChatSession
     await ChatMessage.deleteBySessionId(context, sessionId);
 
     await ncMeta.metaDelete(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
       MetaTable.CHAT_SESSIONS,
       {
         id: sessionId,

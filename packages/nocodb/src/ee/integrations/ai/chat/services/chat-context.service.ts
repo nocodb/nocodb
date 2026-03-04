@@ -4,11 +4,11 @@ import {
   buildDynamicSystemPromptText,
   buildStaticSystemPromptText,
 } from '../prompts';
+import { MAX_HISTORY_TOKENS } from '../constants';
 import type { ChatMessageType } from 'nocodb-sdk';
 import type { ModelMessage, SystemModelMessage } from 'ai';
 import type { NcContext } from '~/interface/config';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
-import { MAX_HISTORY_TOKENS } from '../constants';
 
 // Static content is identical for every request — build once and reuse.
 const STATIC_SYSTEM_PROMPT = buildStaticSystemPromptText();
@@ -27,7 +27,7 @@ export class ChatContextService {
   async buildSystemPrompt(
     context: NcContext,
     params: {
-      baseId: string;
+      baseId?: string;
       tableId?: string;
       viewId?: string;
       userRole: string;
@@ -36,44 +36,48 @@ export class ChatContextService {
   ): Promise<SystemModelMessage[]> {
     const { baseId, tableId, userRole, req } = params;
 
-    const serializedSchema = await this.aiSchemaService.serializeSchema(
-      context,
-      {
-        baseId,
-        tableIds: tableId ? [tableId] : undefined,
-        req,
-      },
-    );
-
-    const schemaLines: string[] = [];
-
-    for (const table of serializedSchema.tables) {
-      const cols = table.columns
-        .map((c) => {
-          let desc = `${c.title} (${c.type})`;
-          if (c.options?.length) {
-            desc += ` [${c.options.join(', ')}]`;
-          }
-          return desc;
-        })
-        .join(', ');
-      schemaLines.push(`Table "${table.title}": ${cols}`);
-    }
-
-    if (serializedSchema.relationships?.length) {
-      const rels = serializedSchema.relationships
-        .map((r) => `${r.from} ${r.type} ${r.to}`)
-        .join('; ');
-      schemaLines.push(`Relationships: ${rels}`);
-    }
-
-    const schemaContext = schemaLines.join('\n');
-
+    let schemaContext = '';
     let currentTableContext: string | undefined;
-    if (tableId && serializedSchema.tables?.length) {
-      const table = serializedSchema.tables[0];
-      if (table?.title) {
-        currentTableContext = `User is viewing table "${table.title}".`;
+
+    if (baseId) {
+      const serializedSchema = await this.aiSchemaService.serializeSchema(
+        context,
+        {
+          baseId,
+          tableIds: tableId ? [tableId] : undefined,
+          req,
+        },
+      );
+
+      const schemaLines: string[] = [];
+
+      for (const table of serializedSchema.tables) {
+        const cols = table.columns
+          .map((c) => {
+            let desc = `${c.title} (${c.type})`;
+            if (c.options?.length) {
+              desc += ` [${c.options.join(', ')}]`;
+            }
+            return desc;
+          })
+          .join(', ');
+        schemaLines.push(`Table "${table.title}": ${cols}`);
+      }
+
+      if (serializedSchema.relationships?.length) {
+        const rels = serializedSchema.relationships
+          .map((r) => `${r.from} ${r.type} ${r.to}`)
+          .join('; ');
+        schemaLines.push(`Relationships: ${rels}`);
+      }
+
+      schemaContext = schemaLines.join('\n');
+
+      if (tableId && serializedSchema.tables?.length) {
+        const table = serializedSchema.tables[0];
+        if (table?.title) {
+          currentTableContext = `User is viewing table "${table.title}".`;
+        }
       }
     }
 

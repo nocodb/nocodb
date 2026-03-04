@@ -5,6 +5,7 @@ import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
 import { ERROR_HINT_MAX_LENGTH } from '../constants';
 
 // Schema tools
+import { listBasesTool } from './schema/list-bases.tool';
 import { listTablesTool } from './schema/list-tables.tool';
 import { describeTableTool } from './schema/describe-table.tool';
 import { createTableTool } from './schema/create-table.tool';
@@ -80,6 +81,7 @@ export class ChatToolRegistry {
   private registerAllTools() {
     this.tools = [
       // Schema tools
+      listBasesTool,
       listTablesTool,
       describeTableTool,
       createTableTool,

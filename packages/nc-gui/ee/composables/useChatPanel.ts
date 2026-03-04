@@ -1,28 +1,29 @@
 export const useChatPanel = createSharedComposable(() => {
-  const router = useRouter()
-  const route = router.currentRoute
-
   const { isPanelExpanded: isExtensionPanelExpanded } = useExtensions()
   const { isPanelExpanded: isActionPanelExpanded } = useActionPane()
+
+  const workspaceStore = useWorkspace()
+  const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
   const { $e } = useNuxtApp()
 
   // User preference persisted across sessions
   const panelPreference = useLocalStorage('nc-chat-panel-expanded', false)
 
-  const hasBaseContext = computed(() => !!route.value.params.baseId)
+  const hasWorkspaceContext = computed(() => !!activeWorkspaceId.value)
 
   const isPanelExpanded = computed({
-    get: () => panelPreference.value && hasBaseContext.value,
+    get: () => panelPreference.value && hasWorkspaceContext.value,
     set: (val: boolean) => {
       panelPreference.value = val
     },
   })
 
-  const chatPanelWidth = ref(420)
-
   const MIN_WIDTH = 320
   const MAX_WIDTH = 720
+  const DEFAULT_WIDTH = 420
+
+  const chatPanelWidth = useLocalStorage('nc-chat-panel-width', DEFAULT_WIDTH)
 
   const isResizing = ref(false)
 
@@ -86,7 +87,7 @@ export const useChatPanel = createSharedComposable(() => {
     isPanelExpanded,
     chatPanelWidth,
     isResizing,
-    hasBaseContext,
+    hasWorkspaceContext,
     startResize,
     toggleChatPanel,
   }

@@ -13,10 +13,11 @@ import { NcContext, NcRequest } from 'nocodb-sdk';
 import { ChatService } from '../services/chat.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { License } from '~/decorators/license.decorator';
+
+const PREFIX = '/api/v2/internal/:workspaceId';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -24,8 +25,8 @@ import { License } from '~/decorators/license.decorator';
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
-  @Get(`${PREFIX_APIV3_METABASE}/chat/sessions`)
-  @Acl('chatSessionList', { scope: 'base' })
+  @Get(`${PREFIX}/chat/sessions`)
+  @Acl('chatSessionList', { scope: 'workspace' })
   async sessionList(
     @TenantContext() context: NcContext,
     @Request() req: NcRequest,
@@ -33,8 +34,8 @@ export class ChatController {
     return await this.chatService.sessionList(context, { req });
   }
 
-  @Get(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId`)
-  @Acl('chatSessionGet', { scope: 'base' })
+  @Get(`${PREFIX}/chat/sessions/:sessionId`)
+  @Acl('chatSessionGet', { scope: 'workspace' })
   async sessionGet(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
@@ -43,8 +44,8 @@ export class ChatController {
     return await this.chatService.sessionGet(context, { sessionId, req });
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/chat/sessions`)
-  @Acl('chatSessionCreate', { scope: 'base' })
+  @Post(`${PREFIX}/chat/sessions`)
+  @Acl('chatSessionCreate', { scope: 'workspace' })
   async sessionCreate(
     @TenantContext() context: NcContext,
     @Body() body: { title?: string },
@@ -56,8 +57,8 @@ export class ChatController {
     });
   }
 
-  @Delete(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId`)
-  @Acl('chatSessionDelete', { scope: 'base' })
+  @Delete(`${PREFIX}/chat/sessions/:sessionId`)
+  @Acl('chatSessionDelete', { scope: 'workspace' })
   async sessionDelete(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
@@ -66,8 +67,8 @@ export class ChatController {
     return await this.chatService.sessionDelete(context, { sessionId, req });
   }
 
-  @Get(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId/messages`)
-  @Acl('chatMessageList', { scope: 'base' })
+  @Get(`${PREFIX}/chat/sessions/:sessionId/messages`)
+  @Acl('chatMessageList', { scope: 'workspace' })
   async messageList(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
@@ -77,14 +78,16 @@ export class ChatController {
   ) {
     return await this.chatService.messageList(context, {
       sessionId,
-      limit: limit ? parseInt(limit, 10) : undefined,
-      offset: offset ? parseInt(offset, 10) : undefined,
+      limit: limit
+        ? Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200)
+        : undefined,
+      offset: offset ? Math.max(parseInt(offset, 10) || 0, 0) : undefined,
       req,
     });
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId/messages`)
-  @Acl('chatMessageSend', { scope: 'base' })
+  @Post(`${PREFIX}/chat/sessions/:sessionId/messages`)
+  @Acl('chatMessageSend', { scope: 'workspace' })
   async messageSend(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
@@ -92,6 +95,7 @@ export class ChatController {
     body: {
       content: string;
       approvals?: Record<string, 'approved' | 'denied'>;
+      base_id?: string;
     },
     @Request() req: NcRequest,
   ) {
@@ -101,6 +105,7 @@ export class ChatController {
       body: {
         content: body.content,
         approvals: body.approvals,
+        base_id: body.base_id,
       },
       req,
     });
@@ -108,15 +113,17 @@ export class ChatController {
     return {};
   }
 
-  @Post(
-    `${PREFIX_APIV3_METABASE}/chat/sessions/:sessionId/messages/:messageId/approve`,
-  )
-  @Acl('chatMessageSend', { scope: 'base' })
+  @Post(`${PREFIX}/chat/sessions/:sessionId/messages/:messageId/approve`)
+  @Acl('chatMessageSend', { scope: 'workspace' })
   async approveToolCalls(
     @TenantContext() context: NcContext,
     @Param('sessionId') sessionId: string,
     @Param('messageId') messageId: string,
-    @Body() body: { decisions: Record<string, 'approved' | 'denied'> },
+    @Body()
+    body: {
+      decisions: Record<string, 'approved' | 'denied'>;
+      base_id?: string;
+    },
     @Request() req: NcRequest,
   ) {
     // Enqueues a Bull job — continuation delivered via Socket.IO CHAT_EVENT
@@ -124,6 +131,7 @@ export class ChatController {
       sessionId,
       messageId,
       decisions: body.decisions || {},
+      baseId: body.base_id,
       req,
     });
 

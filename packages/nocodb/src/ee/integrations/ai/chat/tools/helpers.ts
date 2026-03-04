@@ -1,7 +1,7 @@
+import { TRUNCATE_RESULT_MAX_LENGTH } from '../constants';
 import type { NcContext } from '~/interface/config';
 import type { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
-import { TRUNCATE_RESULT_MAX_LENGTH } from '../constants';
 import Model from '~/models/Model';
 import View from '~/models/View';
 import Noco from '~/Noco';
@@ -14,6 +14,12 @@ export async function resolveTableByName(
   tableName: string,
   _ncMeta = Noco.ncMeta,
 ): Promise<Model> {
+  if (!context.base_id) {
+    NcError.get(context).badRequest(
+      'No base context available. Please select a base first.',
+    );
+  }
+
   const models = await Model.list(context, {
     base_id: context.base_id,
   });

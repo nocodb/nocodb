@@ -18,6 +18,20 @@ export const useChatStore = defineStore('chatStore', () => {
 
   const activeSessionId = ref<string | null>(null)
 
+  // Persist activeSessionId per workspace so it survives page refresh
+  const _sessionStorageKey = (wsId: string) => `nc-chat-active-session-${wsId}`
+
+  watch(activeSessionId, (id) => {
+    const wsId = useWorkspace().activeWorkspaceId.value
+    if (wsId) {
+      if (id) {
+        localStorage.setItem(_sessionStorageKey(wsId), id)
+      } else {
+        localStorage.removeItem(_sessionStorageKey(wsId))
+      }
+    }
+  })
+
   const isLoadingSessions = ref(false)
 
   const isSendingMessage = ref(false)
@@ -62,6 +76,18 @@ export const useChatStore = defineStore('chatStore', () => {
       (a, b) => new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime(),
     )
   })
+
+  const loadMessages = async (wsId: string, sessionId: string) => {
+    try {
+      const { data } = await $api.instance.get(`/api/v2/internal/${wsId}/chat/sessions/${sessionId}/messages`)
+
+      const messagesList = (data?.list || data || []) as ChatMessageType[]
+
+      messages.value.set(sessionId, messagesList)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Socket.IO — subscribe once to CHAT_EVENT for all sessions
@@ -179,9 +205,9 @@ export const useChatStore = defineStore('chatStore', () => {
             messages.value.set(sessionId, [...currentMsgs, finalMessage])
           } else {
             // No streaming state (e.g. reconnected mid-stream) — fall back to API
-            const bId = payload.baseId
-            if (bId) {
-              loadMessages(bId, sessionId).catch(() => {})
+            const wsId = payload.workspaceId
+            if (wsId) {
+              loadMessages(wsId, sessionId).catch(() => {})
             }
           }
 
@@ -211,11 +237,11 @@ export const useChatStore = defineStore('chatStore', () => {
   // Session management
   // ---------------------------------------------------------------------------
 
-  const loadSessions = async (bId: string) => {
+  const loadSessions = async (wsId: string) => {
     try {
       isLoadingSessions.value = true
 
-      const { data } = await $api.instance.get(`/api/v3/meta/bases/${bId}/chat/sessions`)
+      const { data } = await $api.instance.get(`/api/v2/internal/${wsId}/chat/sessions`)
 
       const sessionsList = (data?.list || data || []) as ChatSessionType[]
 
@@ -225,9 +251,14 @@ export const useChatStore = defineStore('chatStore', () => {
         }
       }
 
-      // Auto-select first session if none active
+      // Restore persisted session or auto-select first
       if (!activeSessionId.value && sessionsList.length > 0) {
-        activeSessionId.value = sessionsList[0].id || null
+        const persisted = localStorage.getItem(_sessionStorageKey(wsId))
+        if (persisted && sessions.value.has(persisted)) {
+          activeSessionId.value = persisted
+        } else {
+          activeSessionId.value = sessionsList[0].id || null
+        }
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -236,9 +267,9 @@ export const useChatStore = defineStore('chatStore', () => {
     }
   }
 
-  const createSession = async (bId: string, title?: string): Promise<ChatSessionType | undefined> => {
+  const createSession = async (wsId: string, title?: string): Promise<ChatSessionType | undefined> => {
     try {
-      const { data: session } = await $api.instance.post(`/api/v3/meta/bases/${bId}/chat/sessions`, {
+      const { data: session } = await $api.instance.post(`/api/v2/internal/${wsId}/chat/sessions`, {
         title: title || 'New Chat',
       })
 
@@ -255,9 +286,9 @@ export const useChatStore = defineStore('chatStore', () => {
     }
   }
 
-  const deleteSession = async (bId: string, sessionId: string) => {
+  const deleteSession = async (wsId: string, sessionId: string) => {
     try {
-      await $api.instance.delete(`/api/v3/meta/bases/${bId}/chat/sessions/${sessionId}`)
+      await $api.instance.delete(`/api/v2/internal/${wsId}/chat/sessions/${sessionId}`)
 
       sessions.value.delete(sessionId)
       messages.value.delete(sessionId)
@@ -272,23 +303,11 @@ export const useChatStore = defineStore('chatStore', () => {
     }
   }
 
-  const loadMessages = async (bId: string, sessionId: string) => {
-    try {
-      const { data } = await $api.instance.get(`/api/v3/meta/bases/${bId}/chat/sessions/${sessionId}/messages`)
-
-      const messagesList = (data?.list || data || []) as ChatMessageType[]
-
-      messages.value.set(sessionId, messagesList)
-    } catch (e: any) {
-      message.error(await extractSdkResponseErrorMsg(e))
-    }
-  }
-
   // ---------------------------------------------------------------------------
   // Messaging
   // ---------------------------------------------------------------------------
 
-  const sendMessage = async (bId: string, sessionId: string, content: string) => {
+  const sendMessage = async (wsId: string, sessionId: string, content: string, baseId?: string) => {
     if (isSendingMessage.value) return
 
     // Push optimistic user message immediately
@@ -307,8 +326,9 @@ export const useChatStore = defineStore('chatStore', () => {
 
     try {
       // POST enqueues the job — real response arrives via Socket.IO CHAT_EVENT
-      await $api.instance.post(`/api/v3/meta/bases/${bId}/chat/sessions/${sessionId}/messages`, {
+      await $api.instance.post(`/api/v2/internal/${wsId}/chat/sessions/${sessionId}/messages`, {
         content,
+        base_id: baseId,
       })
       // isSendingMessage stays true until 'message-done' or 'error' socket event
     } catch (e: any) {
@@ -316,15 +336,16 @@ export const useChatStore = defineStore('chatStore', () => {
       message.error(await extractSdkResponseErrorMsg(e))
 
       // Re-fetch to sync state on error
-      await loadMessages(bId, sessionId)
+      await loadMessages(wsId, sessionId)
     }
   }
 
   const approveToolCalls = async (
-    bId: string,
+    wsId: string,
     sessionId: string,
     messageId: string,
     decisions: Record<string, 'approved' | 'denied'>,
+    baseId?: string,
   ) => {
     // Optimistic update: approved → RUNNING (will execute), denied → DENIED
     const currentMsgs = messages.value.get(sessionId)
@@ -349,14 +370,15 @@ export const useChatStore = defineStore('chatStore', () => {
 
     try {
       // POST enqueues the approval job — continuation arrives via Socket.IO CHAT_EVENT
-      await $api.instance.post(`/api/v3/meta/bases/${bId}/chat/sessions/${sessionId}/messages/${messageId}/approve`, {
+      await $api.instance.post(`/api/v2/internal/${wsId}/chat/sessions/${sessionId}/messages/${messageId}/approve`, {
         decisions,
+        base_id: baseId,
       })
       // isSendingMessage stays true until 'message-done' or 'error' socket event
     } catch (e: any) {
       isSendingMessage.value = false
       message.error(await extractSdkResponseErrorMsg(e))
-      await loadMessages(bId, sessionId)
+      await loadMessages(wsId, sessionId)
     }
   }
 

@@ -205,6 +205,14 @@ const permissionScopes = {
     'scimConfigCreate',
     'scimConfigUpdate',
     'scimConfigDelete',
+
+    // Chat
+    'chatSessionCreate',
+    'chatSessionList',
+    'chatSessionGet',
+    'chatSessionDelete',
+    'chatMessageList',
+    'chatMessageSend',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -330,14 +338,6 @@ const permissionScopes = {
     'aiUtils',
     'aiData',
     'aiBaseSchema',
-
-    // Chat
-    'chatSessionCreate',
-    'chatSessionList',
-    'chatSessionGet',
-    'chatSessionDelete',
-    'chatMessageList',
-    'chatMessageSend',
 
     // Snapshots
 
@@ -588,6 +588,14 @@ const rolePermissions:
       workspaceTeamGet: true,
       workspaceTeamUpdate: true,
       workspaceTeamRemove: true,
+
+      // Chat
+      chatSessionCreate: true,
+      chatSessionList: true,
+      chatSessionGet: true,
+      chatSessionDelete: true,
+      chatMessageList: true,
+      chatMessageSend: true,
     },
   },
   [WorkspaceUserRoles.COMMENTER]: {
@@ -710,14 +718,6 @@ const rolePermissions:
       sendRecordEmail: true,
       // Sandbox
       sandboxGet: true,
-
-      // Chat
-      chatSessionCreate: true,
-      chatSessionList: true,
-      chatSessionGet: true,
-      chatSessionDelete: true,
-      chatMessageList: true,
-      chatMessageSend: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

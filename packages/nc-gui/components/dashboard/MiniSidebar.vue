@@ -39,7 +39,7 @@ const { setActiveCmdView } = useCommand()
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
-const { isPanelExpanded: isChatPanelExpanded, hasBaseContext: hasChatBaseContext, toggleChatPanel } = useChatPanel()
+const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
 
 const { blockAiChat, showUpgradeToUseAiChat } = useEeConfig()
 
@@ -294,7 +294,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
 
-      <DashboardMiniSidebarItemWrapper v-if="isEeUI && isChatEnabled && hasChatBaseContext">
+      <DashboardMiniSidebarItemWrapper v-if="isEeUI && isChatEnabled && hasChatWorkspaceContext">
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.aiChat') }} {{ renderCmdOrCtrlKey(true) }} ⇧ A</div>

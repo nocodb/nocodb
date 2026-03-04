@@ -63,6 +63,10 @@ export const createTableTool: ChatToolDefinition = {
     },
     req: NcRequest,
   ) {
+    if (!context.base_id) {
+      return 'No base context available. Please ask the user to select a base first.';
+    }
+
     const tablesV3Service: TablesV3Service = Noco.nestApp.get(TablesV3Service);
 
     const table = await tablesV3Service.tableCreate(context, {

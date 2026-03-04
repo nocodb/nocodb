@@ -29,7 +29,7 @@ export const askUserTool: ChatToolDefinition = {
           'Use multiple questions to gather several decisions at once.',
       ),
   },
-  scope: 'base',
+  scope: 'workspace',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   async execute(

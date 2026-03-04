@@ -17,6 +17,10 @@ export const listTablesTool: ChatToolDefinition = {
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   async execute(context: NcContext, _args: any, req: NcRequest) {
+    if (!context.base_id) {
+      return 'No base context available. Please ask the user to select a base first.';
+    }
+
     const tablesService: TablesService = Noco.nestApp.get(TablesService);
 
     const tables = await tablesService.getAccessibleTables(context, {

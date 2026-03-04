@@ -372,7 +372,7 @@ watch(
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
         <SmartsheetTopbarManagedAppStatus />
         <SmartsheetTopbarSandboxStatus />
-        <LazyGeneralShareProject />
+        <LazyGeneralShareProject v-if="!props.tab" />
       </div>
     </div>
     <div

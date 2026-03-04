@@ -27,6 +27,10 @@ export default class ChatMessage {
     return null;
   }
 
+  static async update(..._args) {
+    return null;
+  }
+
   static async delete(..._args) {
     return null;
   }

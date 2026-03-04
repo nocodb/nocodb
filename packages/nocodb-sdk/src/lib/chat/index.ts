@@ -11,6 +11,7 @@ export enum ChatToolCallStatus {
   SUCCESS = 'success',
   ERROR = 'error',
   AWAITING_APPROVAL = 'awaiting_approval',
+  AWAITING_INPUT = 'awaiting_input',
   DENIED = 'denied',
 }
 

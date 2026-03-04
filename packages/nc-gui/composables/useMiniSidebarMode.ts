@@ -7,8 +7,6 @@ export const useMiniSidebarMode = createSharedComposable(() => {
 
   const isRail = computed(() => mode.value === 'rail')
 
-  const isDock = computed(() => mode.value === 'dock')
-
   const toggleMode = () => {
     mode.value = mode.value === 'rail' ? 'dock' : 'rail'
   }
@@ -16,7 +14,6 @@ export const useMiniSidebarMode = createSharedComposable(() => {
   return {
     mode,
     isRail,
-    isDock,
     toggleMode,
   }
 })

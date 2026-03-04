@@ -11,7 +11,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { navigateToProject } = useGlobal()
+const { navigateToProject, isMobileMode } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
@@ -119,7 +119,7 @@ const mainItems = computed<NavItem[]>(() => [
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
-  ...(isEeUI
+  ...(isEeUI && !isMobileMode.value
     ? [
         {
           key: 'automations',
@@ -131,7 +131,7 @@ const mainItems = computed<NavItem[]>(() => [
       ]
     : []),
   { key: 'divider', icon: '', label: '' },
-  { key: 'notification', icon: 'ncNotification', label: 'Notification' },
+  ...(!isMobileMode.value ? [{ key: 'notification', icon: 'ncNotification', label: 'Notification' }] : []),
   { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
 ])
 

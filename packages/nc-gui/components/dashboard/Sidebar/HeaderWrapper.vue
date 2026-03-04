@@ -40,8 +40,8 @@ const showSidebarBtn = computed(() => {
       </div>
 
       <div class="flex items-center gap-0.5">
-        <DashboardSidebarViewOptions v-if="isEeUI && !isSharedBase && activeSidebarTab === 'data'" />
-        <NcTooltip v-if="!isSharedBase" class="flex" placement="bottom" hide-on-click>
+        <DashboardSidebarViewOptions v-if="isEeUI && !isMobileMode && !isSharedBase && activeSidebarTab === 'data'" />
+        <NcTooltip v-if="!isMobileMode && !isSharedBase" class="flex" placement="bottom" hide-on-click>
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
           </template>
@@ -57,6 +57,7 @@ const showSidebarBtn = computed(() => {
           </NcButton>
         </NcTooltip>
         <NcTooltip
+          v-if="showSidebarBtn"
           class="flex"
           :class="{
             '!opacity-100': !isLeftSidebarOpen,
@@ -69,7 +70,6 @@ const showSidebarBtn = computed(() => {
             {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}
           </template>
           <NcButton
-            v-if="showSidebarBtn"
             v-e="['c:leftSidebar:hideToggle']"
             :type="isMobileMode ? 'secondary' : 'text'"
             :size="isMobileMode ? 'medium' : 'small'"

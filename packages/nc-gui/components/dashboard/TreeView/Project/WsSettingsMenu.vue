@@ -124,7 +124,7 @@ const activeWsSettingsTab = computed(() => {
       {{ $t('title.sso') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="!isEEFeatureBlocked && !isMobileMode && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"
+      v-if="!isEEFeatureBlocked && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"
       v-e="['c:settings:ws:general']"
       icon="ncMoreHorizontal"
       data-testid="ws-settings"

@@ -4,18 +4,20 @@ provide(IsMiniSidebarInj, ref(true))
 const sidebarStore = useSidebarStore()
 
 const { isRail } = useMiniSidebarMode()
+
+const { isMobileMode } = useGlobal()
 </script>
 
 <template>
   <div
     class="nc-mini-sidebar-v2"
     :class="{
-      'nc-mini-sidebar-v2--rail': isRail,
-      'nc-mini-sidebar-v2--dock': !isRail,
+      'nc-mini-sidebar-v2--rail': isRail || isMobileMode,
+      'nc-mini-sidebar-v2--dock': !isRail && !isMobileMode,
     }"
     data-testid="nc-mini-sidebar-v2"
   >
-    <DashboardMiniSidebarV2Rail v-if="isRail" />
+    <DashboardMiniSidebarV2Rail v-if="isRail || isMobileMode" />
     <DashboardMiniSidebarV2Dock v-else />
   </div>
 </template>

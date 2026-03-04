@@ -5,67 +5,37 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { navigateToProject, isMobileMode } = useGlobal()
+const { navigateToProject, isMobileMode, appInfo } = useGlobal()
+
+const { meta: metaKey, control } = useMagicKeys()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId, activeWorkspace, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading } =
-  storeToRefs(workspaceStore)
+const {
+  activeWorkspaceId,
+  activeWorkspace,
+  isWorkspaceSettingsPageOpened,
+  isIntegrationsPageOpened,
+  isWorkspacesLoading,
+  isTemplatesPageOpened,
+} = storeToRefs(workspaceStore)
 
-const basesStore = useBases()
+const {
+  navigateToWorkspaceSettings,
+  navigateToIntegrations: _navigateToIntegrations,
+  navigateToTemplates: _navigateToTemplates,
+  isTemplatesFeatureEnabled,
+} = workspaceStore
 
-const { basesList, openedProject } = storeToRefs(basesStore)
+const { basesList } = storeToRefs(useBases())
 
-const sidebarStore = useSidebarStore()
-
-const { activeSidebarTab } = storeToRefs(sidebarStore)
-
-const { selectedTheme } = useTheme()
-
-const { isChatWootEnabled } = useProvideChatwoot()
-
-const { isModalVisible: isChatVisible } = useChatWoot()
-
-const toggleChatSupport = () => {
-  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
-    return
-  }
-  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
-  window.$chatwoot.toggle(toggleText)
-}
-
-const isBaseOpen = computed(() => {
-  return route.value.name?.toString().startsWith('index-typeOrId-baseId-')
-})
-
-const isWsAdminRoute = computed(() => route.value.name === 'index-typeOrId-settings-page')
-
-// Resolve a base for icon display when not on a base route (e.g. ws-admin)
-const resolvedProject = computed(() => {
-  if (openedProject.value) return openedProject.value
-  if (!isWsAdminRoute.value) return undefined
-
-  const lastVisitedBaseId = ncLastVisitedBase().get()
-  return basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
-})
-
-const baseIconColor = computed(() => {
-  if (!resolvedProject.value) return undefined
-  const meta = parseProp(resolvedProject.value.meta)
-  return meta.iconColor
-})
-
-const showBaseIcon = computed(() => (isBaseOpen.value && openedProject.value) || (isWsAdminRoute.value && resolvedProject.value))
-
-const isBaseListModalOpen = ref(false)
-
-const miniSidebarTabs = computed(() => [
-  { key: 'data' as const, icon: 'ncTableOutline', activeIcon: 'ncTableFilled', label: 'Data' },
-  { key: 'automations' as const, icon: 'ncAutomation', activeIcon: 'ncAutomationsFilled', label: 'Automate' },
-  // { key: 'agents' as const, icon: 'ncSupportAgent', activeIcon: 'ncSupportAgent', label: 'Agents' },
-])
+const { isSharedBase } = storeToRefs(useBase())
 
 const { isUIAllowed } = useRoles()
+
+const { setActiveCmdView } = useCommand()
+
+const { isChatWootEnabled } = useProvideChatwoot()
 
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
@@ -81,43 +51,27 @@ const navigateToProjectPage = () => {
   navigateToProject({ workspaceId: isEeUI ? activeWorkspaceId.value : undefined, baseId: baseToNavigate?.id })
 }
 
-const hasAvailableBases = computed(() => !!basesList.value?.length)
-
-const getBasePath = () => {
-  const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-  const baseId = route.value.params.baseId
-  if (baseId) return `/${wsId}/${baseId}`
-
-  // Resolve a base from last visited or first available
-  const lastVisitedBaseId = ncLastVisitedBase().get()
-  const resolvedBase = basesList.value?.find((b) => b.id === lastVisitedBaseId) || basesList.value?.[0]
-  return resolvedBase?.id ? `/${wsId}/${resolvedBase.id}` : ''
-}
-
-const onTabClick = async (tabKey: string) => {
-  if (tabKey === 'settings') {
-    activeSidebarTab.value = 'settings'
-    // If a base is open, navigate to base settings; otherwise ws-level settings
-    if (isBaseOpen.value) {
-      navigateTo(`${getBasePath()}/settings`)
-    } else {
-      const wsId = route.value.params.typeOrId || activeWorkspaceId.value
-      navigateTo(`/${wsId}/settings/ws-members`)
-    }
+const navigateToSettings = () => {
+  if (isEeUI && !appInfo.value?.ee && !appInfo.value?.isOnPrem) {
+    navigateTo('/account/users/list')
     return
   }
 
-  // Navigate first, then update tab — avoids stale API calls from the current page
-  const basePath = getBasePath()
-  if (!basePath) return
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
-  if (tabKey === 'automations') {
-    await navigateTo(`${basePath}/automations`)
-  } else {
-    await navigateTo(basePath)
-  }
+  navigateToWorkspaceSettings('', cmdOrCtrl)
+}
 
-  activeSidebarTab.value = tabKey as any
+const navigateToTemplates = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  _navigateToTemplates('', cmdOrCtrl)
+}
+
+const navigateToIntegrations = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  _navigateToIntegrations('', cmdOrCtrl)
 }
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -150,21 +104,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <template>
   <div class="nc-mini-sidebar" data-testid="nc-mini-sidebar">
-    <div class="flex flex-col items-center w-full">
-      <!-- Base color icon at top-left -->
-      <DashboardMiniSidebarItemWrapper v-if="showBaseIcon" size="small" show-in-mobile>
-        <div
-          class="h-[var(--topbar-height)] sticky top-0 bg-nc-bg-gray-minisidebar flex items-center justify-center cursor-pointer"
-          @click="isBaseListModalOpen = true"
-        >
-          <div class="nc-stacked-base-icon">
-            <GeneralProjectIcon :color="baseIconColor" class="h-5.5 w-5.5 relative z-1" />
-          </div>
-        </div>
-      </DashboardMiniSidebarItemWrapper>
-
-      <!-- Workspace selector (when no base open and not on ws-admin with resolved base) -->
-      <DashboardMiniSidebarItemWrapper v-if="!showBaseIcon" size="small" show-in-mobile>
+    <div class="flex flex-col items-center">
+      <DashboardMiniSidebarItemWrapper size="small" show-in-mobile>
         <div
           class="min-h-9 sticky top-0 bg-nc-bg-gray-minisidebar"
           :class="{
@@ -181,61 +122,187 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </div>
       </DashboardMiniSidebarItemWrapper>
 
-      <!-- Data / Workflows / Agents tabs -->
-      <DashboardMiniSidebarItem
-        v-for="tab in miniSidebarTabs"
-        :key="tab.key"
-        v-e="[`c:sidebar:minitab:${tab.key}`]"
-        :icon="tab.icon"
-        :active-icon="tab.activeIcon"
-        :label="tab.label"
-        :active="activeSidebarTab === tab.key"
-        :disabled="!hasAvailableBases"
-        :data-testid="`nc-mini-sidebar-tab-${tab.key}`"
-        @click="onTabClick(tab.key)"
-      />
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip placement="right" hide-on-click :arrow="false">
+          <template #title>
+            <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
+          </template>
+          <div
+            v-e="['c:quick-actions']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-cmd-k-btn"
+            @click="setActiveCmdView('cmd-k')"
+          >
+            <div class="nc-mini-sidebar-btn">
+              <GeneralIcon icon="search" class="h-4 w-4" />
+            </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip placement="right" hide-on-click :arrow="false">
+          <template #title>
+            <div class="flex items-center gap-1">{{ $t('labels.recentViews') }} {{ renderCmdOrCtrlKey(true) }} L</div>
+          </template>
+          <div
+            v-e="['c:quick-actions']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-cmd-l-btn"
+            @click="setActiveCmdView('cmd-l')"
+          >
+            <div class="nc-mini-sidebar-btn">
+              <MdiClockOutline class="h-4 w-4" />
+            </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip placement="right" hide-on-click :arrow="false">
+          <template #title>
+            <div class="flex items-center gap-1">{{ $t('labels.searchDocumentation') }} {{ renderCmdOrCtrlKey(true) }} J</div>
+          </template>
+          <div
+            v-e="['c:quick-actions']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-cmd-j-btn"
+            @click="setActiveCmdView('cmd-j')"
+          >
+            <div class="nc-mini-sidebar-btn">
+              <GeneralIcon icon="ncFile" class="h-4 w-4" />
+            </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <div
+        v-if="(!isMobileMode || isEeUI) && (isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators'))"
+        class="px-2 my-2 w-full"
+      >
+        <NcDivider class="!my-0 !border-nc-border-gray-dark" />
+      </div>
+      <DashboardMiniSidebarItemWrapper
+        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators')"
+        :show-in-mobile="isEeUI"
+      >
+        <NcTooltip
+          :title="isEeUI ? `${$t('objects.workspace')} ${$t('labels.settings')}` : $t('title.teamAndSettings')"
+          placement="right"
+          hide-on-click
+          :arrow="false"
+        >
+          <div
+            v-e="['c:team:settings']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-team-settings-btn"
+            @click="navigateToSettings"
+          >
+            <div
+              class="nc-mini-sidebar-btn"
+              :class="{
+                active: isWorkspaceSettingsPageOpened,
+              }"
+            >
+              <GeneralIcon icon="ncSettings" class="h-4 w-4" />
+            </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <DashboardMiniSidebarItemWrapper v-if="isUIAllowed('workspaceIntegrations')">
+        <NcTooltip
+          :title="isEeUI ? `${$t('objects.workspace')} ${$t('general.integrations')}` : $t('general.integrations')"
+          placement="right"
+          hide-on-click
+          :arrow="false"
+        >
+          <div
+            v-e="['c:integrations']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-integrations-btn"
+            @click="navigateToIntegrations"
+          >
+            <div
+              class="nc-mini-sidebar-btn"
+              :class="{
+                active: isIntegrationsPageOpened,
+              }"
+            >
+              <GeneralIcon icon="integration" class="h-4 w-4" />
+            </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <div v-if="!isMobileMode" class="px-2 w-full">
+        <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
+      </div>
+      <DashboardMiniSidebarItemWrapper v-if="isTemplatesFeatureEnabled">
+        <NcTooltip :title="$t('general.templates')" placement="right" hide-on-click :arrow="false">
+          <div
+            v-e="['c:templates']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-templates-btn"
+            @click="navigateToTemplates"
+          >
+            <div
+              class="nc-mini-sidebar-btn"
+              :class="{
+                active: isTemplatesPageOpened,
+              }"
+            >
+              <GeneralIcon icon="globe" class="h-4 w-4" />
+            </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
 
-      <!-- Notifications -->
-      <DashboardMiniSidebarItem variant="item" label="Activity" tooltip="Activity">
-        <NotificationMenu />
-      </DashboardMiniSidebarItem>
-
-      <!-- Divider -->
-      <div class="w-8 border-t border-nc-border-gray-medium my-1"></div>
-
-      <!-- Settings menu -->
-      <DashboardMiniSidebarItem
-        v-if="isUIAllowed('workspaceSettings') || isUIAllowed('workspaceCollaborators') || isUIAllowed('workspaceIntegrations')"
-        icon="ncSettings"
-        label="Settings"
-        :active="activeSidebarTab === 'settings' || isWorkspaceSettingsPageOpened || isIntegrationsPageOpened"
-        data-testid="nc-sidebar-settings-btn"
-        @click="onTabClick('settings')"
-      />
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
+          <NotificationMenu />
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
     </div>
-    <div class="flex flex-col items-center pb-1 w-full">
-      <!-- Chat support -->
-      <DashboardMiniSidebarItem
-        v-if="isChatWootEnabled"
-        v-e="['c:sidebar:chat-support']"
-        icon="ncSupportAgent"
-        label="Support"
-        data-testid="nc-sidebar-chat-support-btn"
-        @click="toggleChatSupport"
-      />
-
-      <!-- Theme toggle -->
-      <DashboardMiniSidebarItem variant="item" :tooltip="`Appearance (beta): ${selectedTheme}`" hide-on-click-disabled>
+    <div class="flex flex-col items-center">
+      <DashboardMiniSidebarItemWrapper>
         <DashboardMiniSidebarTheme />
-      </DashboardMiniSidebarItem>
+      </DashboardMiniSidebarItemWrapper>
 
-      <!-- Divider -->
-      <div class="w-8 border-t border-nc-border-gray-medium my-1"></div>
+      <DashboardMiniSidebarItemWrapper>
+        <NcTooltip :title="$t('general.help')" placement="right" hide-on-click :arrow="false">
+          <DashboardMiniSidebarHelp />
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+      <template v-if="!isMobileMode">
+        <!--   Disabled for now since feed is not actively maintained -->
+        <!--
+        <DashboardMiniSidebarItemWrapper>
+          <NcTooltip
+            v-if="appInfo.feedEnabled"
+            :title="`${$t('title.whatsNew')}!`"
+            placement="right"
+            hide-on-click
+            :arrow="false"
+          >
+            <DashboardSidebarFeed />
+          </NcTooltip>
+        </DashboardMiniSidebarItemWrapper> -->
+        <DashboardMiniSidebarItemWrapper v-if="isChatWootEnabled">
+          <NcTooltip :title="`${$t('labels.chatWithNocoDBSupport')}!`" placement="right" hide-on-click :arrow="false">
+            <DashboardSidebarChatSupport />
+          </NcTooltip>
+        </DashboardMiniSidebarItemWrapper>
+        <div class="px-2 w-full">
+          <NcDivider class="!my-2 !border-nc-border-gray-dark" />
+        </div>
+        <DashboardMiniSidebarItemWrapper>
+          <NcTooltip v-if="!isSharedBase" :title="$t('labels.createNew')" placement="right" hide-on-click :arrow="false">
+            <DashboardMiniSidebarCreateNewActionMenu />
+          </NcTooltip>
+        </DashboardMiniSidebarItemWrapper>
+      </template>
+      <div v-else class="px-2 w-full">
+        <NcDivider class="!my-2 !border-nc-border-gray-dark" />
+      </div>
 
       <DashboardSidebarUserInfo />
     </div>
-
-    <WorkspaceBaseListModal v-model:visible="isBaseListModalOpen" />
   </div>
 </template>
 
@@ -287,96 +354,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
     &.hovered {
       @apply bg-nc-bg-gray-medium;
-    }
-  }
-
-  .nc-mini-sidebar-labeled-btn,
-  .nc-mini-sidebar-labeled-item {
-    @apply flex flex-col items-center justify-center gap-0.5 py-2 rounded-md cursor-pointer text-nc-content-gray-muted transition-all duration-150;
-    width: calc(100% - 6px);
-    margin-left: 3px;
-    margin-right: 3px;
-    min-height: 34px;
-
-    @media (max-width: 1279px) {
-      @apply py-2.5;
-    }
-
-    &:hover:not(.active):not(.disabled) {
-      @apply bg-nc-bg-gray-medium text-nc-content-gray;
-    }
-
-    &.disabled {
-      @apply opacity-40 cursor-not-allowed;
-    }
-  }
-
-  .nc-mini-sidebar-labeled-btn {
-    &.active {
-      @apply !text-nc-content-brand;
-    }
-  }
-
-  .nc-mini-sidebar-labeled-item {
-    // Suppress inner button hover — outer container handles it
-    .nc-mini-sidebar-btn-full-width {
-      @apply !h-auto !w-auto !p-0;
-
-      &:hover .nc-mini-sidebar-btn {
-        @apply !bg-transparent;
-      }
-    }
-
-    .nc-mini-sidebar-btn {
-      @apply !h-auto !w-auto !p-0 !bg-transparent;
-
-      &:hover,
-      &.hovered {
-        @apply !bg-transparent;
-      }
-    }
-
-    .nc-button {
-      @apply !h-auto !min-h-0 !p-0 !bg-transparent;
-
-      &:hover,
-      &.hovered {
-        @apply !bg-transparent;
-      }
-    }
-  }
-
-  .nc-mini-sidebar-label {
-    @apply text-[10px] leading-tight select-none;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-
-    @media (max-width: 1440px) {
-      @apply !hidden;
-    }
-  }
-
-  .nc-stacked-base-icon {
-    @apply relative;
-
-    &::before,
-    &::after {
-      content: '';
-      @apply absolute rounded-sm;
-      background: var(--nc-border-gray-medium);
-    }
-
-    &::before {
-      @apply inset-x-0.75 -bottom-0.75;
-      height: 4px;
-      border-radius: 0 0 3px 3px;
-    }
-
-    &::after {
-      @apply inset-x-1.5 -bottom-1.25;
-      height: 3px;
-      border-radius: 0 0 2px 2px;
-      opacity: 0.6;
     }
   }
 }

@@ -209,7 +209,7 @@ const openKeyboardShortcutDialog = () => {
               <NcDivider />
 
               <!-- Todo: Add dock mode menu item once it is done -->
-              <NcMenuItem @click="toggleMode">
+              <NcMenuItem v-if="!isMobileMode" @click="toggleMode">
                 <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon mt-0.5" />
                 <span class="menu-btn">Dock Mode</span>
                 <NcBadgeBeta />

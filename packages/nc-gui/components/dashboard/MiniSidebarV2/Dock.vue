@@ -399,11 +399,6 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 .nc-dock-bottom-group {
   @apply flex flex-col items-center w-full;
   margin-top: auto;
-  transition: margin-top 0.25s ease;
-
-  &.is-hovering {
-    margin-top: 0;
-  }
 }
 
 .nc-dock-magnify-wrapper {

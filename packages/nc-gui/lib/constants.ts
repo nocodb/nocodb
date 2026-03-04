@@ -33,8 +33,7 @@ export const EXTERNAL_SOURCE_VISIBLE_ROWS = 100
 
 export const MINI_SIDEBAR_WIDTH = 48
 
-export const MINI_SIDEBAR_V2_RAIL_WIDTH = 64
-export const MINI_SIDEBAR_V2_DOCK_WIDTH = 72
+export const NEW_MINI_SIDEBAR_WIDTH = 64
 
 export const clientMousePositionDefaultValue = { clientX: 0, clientY: 0 }
 

@@ -2,9 +2,8 @@ import ChatMessageCE from 'src/models/ChatMessage';
 import type { ChatMessageType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
-import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
-import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
 const JSON_FIELDS = ['parts'];
@@ -31,38 +30,23 @@ export default class ChatMessage
   public static async get(
     context: NcContext,
     messageId: string,
-    ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncChatMessages,
   ) {
     if (!messageId) {
       return null;
     }
 
-    let message =
-      messageId &&
-      (await NocoCache.get(
-        context,
-        `${CacheScope.CHAT_MESSAGE}:${messageId}`,
-        CacheGetType.TYPE_OBJECT,
-      ));
+    let message = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.CHAT_MESSAGES,
+      {
+        id: messageId,
+      },
+    );
 
-    if (!message) {
-      message = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.CHAT_MESSAGES,
-        {
-          id: messageId,
-        },
-      );
-
-      if (message) {
-        message = prepareForResponse(message, JSON_FIELDS);
-        await NocoCache.set(
-          context,
-          `${CacheScope.CHAT_MESSAGE}:${message.id}`,
-          message,
-        );
-      }
+    if (message) {
+      message = prepareForResponse(message, JSON_FIELDS);
     }
 
     return message && new ChatMessage(message);
@@ -79,12 +63,8 @@ export default class ChatMessage
       limit?: number;
       offset?: number;
     },
-    ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncChatMessages,
   ) {
-    // Chat messages are append-only and frequently updated (approval flow, compaction).
-    // Session list caching is intentionally bypassed here: after approval, continueAfterApproval
-    // inserts a new message via appendToList which creates a partial cache list, causing
-    // messageList to return incomplete data. Always fetch from DB for correctness.
     const messagesList = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
@@ -111,7 +91,7 @@ export default class ChatMessage
   static async insert(
     context: NcContext,
     message: Partial<ChatMessage>,
-    ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncChatMessages,
   ) {
     const insertObj = prepareForDb(
       extractProps(message, [
@@ -142,7 +122,7 @@ export default class ChatMessage
     context: NcContext,
     messageId: string,
     data: Partial<Pick<ChatMessage, 'parts' | 'content'>>,
-    ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncChatMessages,
   ) {
     const updateObj = prepareForDb(
       extractProps(data, ['parts', 'content']),
@@ -157,17 +137,13 @@ export default class ChatMessage
       { id: messageId },
     );
 
-    // Evict stale entry — list cache is intentionally not used for messages,
-    // so a plain del is sufficient (no parent list to walk up to).
-    await NocoCache.del(context, `${CacheScope.CHAT_MESSAGE}:${messageId}`);
-
     return ChatMessage.get(context, messageId, ncMeta);
   }
 
   static async delete(
     context: NcContext,
     messageId: string,
-    ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncChatMessages,
   ) {
     await ncMeta.metaDelete(
       context.workspace_id,
@@ -177,43 +153,29 @@ export default class ChatMessage
         id: messageId,
       },
     );
-
-    await NocoCache.del(context, `${CacheScope.CHAT_MESSAGE}:${messageId}`);
   }
 
   static async deleteBySessionId(
     context: NcContext,
     sessionId: string,
-    ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncChatMessages,
   ) {
-    // Fetch IDs first so we can bust the cache for each message
-    const messages = await this.list(context, { sessionId }, ncMeta);
-
-    // Bulk delete — contextCondition adds base_id/fk_workspace_id scoping automatically
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
       MetaTable.CHAT_MESSAGES,
       { fk_session_id: sessionId },
     );
-
-    // Evict all message cache entries in a single round trip
-    await NocoCache.del(
-      context,
-      messages.map((m) => `${CacheScope.CHAT_MESSAGE}:${m.id}`),
-    );
   }
 
   static async countByWorkspaceAndMonth(
     _context: NcContext,
     workspaceId: string,
-    ncMeta = Noco.ncMeta,
+    ncMeta = Noco.ncChatMessages,
   ) {
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // knexConnection is intentional: metaCount only supports equality conditions,
-    // but we need a date-range filter (>=) and workspace-wide scope across all bases.
     const result = await ncMeta
       .knexConnection(MetaTable.CHAT_MESSAGES)
       .where('fk_workspace_id', workspaceId)

@@ -186,8 +186,9 @@ export default class ChatSession
     sessionId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    // Delete all messages in this session first
-    await ChatMessage.deleteBySessionId(context, sessionId, ncMeta);
+    // Delete all messages in this session first.
+    // Don't pass ncMeta — messages use their own satellite DB (Noco.ncChatMessages).
+    await ChatMessage.deleteBySessionId(context, sessionId);
 
     await ncMeta.metaDelete(
       context.workspace_id,

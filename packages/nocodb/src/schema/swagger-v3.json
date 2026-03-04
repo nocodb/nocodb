@@ -12174,10 +12174,10 @@
           "position": {
             "type": ["object", "null"],
             "properties": {
-              "x": { "type": "number" },
-              "y": { "type": "number" },
-              "w": { "type": "number" },
-              "h": { "type": "number" }
+              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
+              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
+              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
+              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
             },
             "description": "Position and size of the widget on the dashboard grid."
           },
@@ -12285,10 +12285,10 @@
             "type": "object",
             "description": "Position and size of the widget on the dashboard grid.",
             "properties": {
-              "x": { "type": "number" },
-              "y": { "type": "number" },
-              "w": { "type": "number" },
-              "h": { "type": "number" }
+              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
+              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
+              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
+              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
             }
           },
           "table_id": {
@@ -12333,10 +12333,10 @@
             "type": "object",
             "description": "Position and size of the widget on the dashboard grid.",
             "properties": {
-              "x": { "type": "number" },
-              "y": { "type": "number" },
-              "w": { "type": "number" },
-              "h": { "type": "number" }
+              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
+              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
+              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
+              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
             }
           },
           "table_id": {

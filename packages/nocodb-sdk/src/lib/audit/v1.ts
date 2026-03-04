@@ -125,6 +125,7 @@ enum AuditV1OperationTypes {
   USER_SIGNOUT = 'USER_SIGNOUT',
   TABLE_UPDATE = 'TABLE_UPDATE',
   TABLE_RENAME = 'TABLE_RENAME',
+  VIEW_COLUMN_CREATE = 'VIEW_FIELD_CREATE',
   VIEW_COLUMN_UPDATE = 'VIEW_FIELD_UPDATE',
   UI_ACL = 'UI_ACL',
   AIRTABLE_IMPORT = 'AIRTABLE_IMPORT',
@@ -464,6 +465,15 @@ export interface ColumnRenamePayload {
   field_id: string;
   old_field_title: string;
   new_field_title: string;
+}
+
+export interface ViewColumnCreatePayload {
+  view_type: string;
+  field_id: string;
+  view_id: string;
+  view_title: string;
+  field_title: string;
+  show: boolean;
 }
 
 export interface ViewColumnUpdatePayload extends UpdatePayload {
@@ -1564,6 +1574,10 @@ const descriptionTemplates = {
     audit: AuditV1<RlsPolicyDeletePayload>
   ) =>
     `RLS policy '${audit.details.policy_id}' has been deleted from table '${audit.details.table_id}'`,
+  [AuditV1OperationTypes.VIEW_COLUMN_CREATE]: (
+    audit: AuditV1<ViewColumnCreatePayload>
+  ) =>
+    `Field '${audit.details.field_title}' added to ${audit.details.view_type} '${audit.details.view_title}'`,
   [AuditV1OperationTypes.DATA_EXPORT]: (audit: AuditV1<DataExportPayload>) =>
     `User '${audit.user}' exported ${audit.details.export_type} from table '${audit.details.table_title}'`,
   [AuditV1OperationTypes.DATA_IMPORT]: (audit: AuditV1<DataImportPayload>) =>

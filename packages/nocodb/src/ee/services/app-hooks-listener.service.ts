@@ -95,6 +95,7 @@ import type {
   UpdatePayload,
   UserInvitePayload,
   UserProfileUpdatePayload,
+  ViewColumnCreatePayload,
   ViewColumnUpdatePayload,
   ViewCreatePayload,
   ViewDeletePayload,
@@ -202,6 +203,7 @@ import type {
   UserSigninEvent,
   UserSigninFailedEvent,
   UserSignupEvent,
+  ViewColumnEvent,
   ViewColumnUpdateEvent,
   ViewCreateEvent,
   ViewDeleteEvent,
@@ -1147,6 +1149,29 @@ export class AppHooksListenerService
                   fk_user_id: param.user.id,
                   email: param.user.email,
                 },
+                context: param.context,
+                req: param.req,
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.VIEW_COLUMN_CREATE:
+        {
+          const param = data as ViewColumnEvent;
+          await this.auditInsert(
+            await generateAuditV1Payload<ViewColumnCreatePayload>(
+              AuditV1OperationTypes.VIEW_COLUMN_CREATE,
+              {
+                details: {
+                  field_id: param.column.id,
+                  field_title: param.column.title,
+                  view_id: param.view.id,
+                  view_type: viewTypeAlias[param.view.type],
+                  view_title: param.view.title,
+                  show: param.viewColumn?.show ?? true,
+                },
+                fk_model_id: param.view.fk_model_id,
                 context: param.context,
                 req: param.req,
               },

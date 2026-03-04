@@ -8,7 +8,7 @@ const basesStore = useBases()
 const { resolvedProject } = storeToRefs(basesStore)
 
 const sidebarStore = useSidebarStore()
-const { activeSidebarTab } = storeToRefs(sidebarStore)
+const { activeSidebarTab, hideSidebar } = storeToRefs(sidebarStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -42,6 +42,10 @@ const navigateToBaseSettings = (page: string) => {
   const wsId = route.value.params.typeOrId
   const slug = settingsTabToSlug[page] || page
   navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
+
+  if (isMobileMode.value) {
+    hideSidebar.value = true
+  }
 }
 
 const activeBaseSettingsTab = computed(() => {

@@ -8,7 +8,7 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
 
 const sidebarStore = useSidebarStore()
-const { activeSidebarTab } = storeToRefs(sidebarStore)
+const { activeSidebarTab, hideSidebar } = storeToRefs(sidebarStore)
 
 const { appInfo, isMobileMode } = useGlobal()
 
@@ -41,6 +41,10 @@ const navigateToWsSettings = (page: string) => {
   const wsId = route.value.params.typeOrId
   const slug = wsSettingsTabToSlug[page] || page
   navigateTo(`/${wsId}/settings/${slug}`)
+
+  if (isMobileMode.value) {
+    hideSidebar.value = true
+  }
 }
 
 const activeWsSettingsTab = computed(() => {

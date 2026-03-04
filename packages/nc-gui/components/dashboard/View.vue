@@ -38,6 +38,11 @@ const animationDuration = 250
 
 const viewportWidth = ref(window.innerWidth)
 
+const { isPanelExpanded: isChatPanelExpanded, chatPanelWidth: chatPanelWidthPx, isResizing: isChatResizing } =
+  useChatPanel()
+
+const chatOffset = computed(() => (isChatPanelExpanded.value ? chatPanelWidthPx.value : 0))
+
 const currentSidebarSize = computed({
   get: () => sideBarSize.value.current,
   set: (val) => {
@@ -134,7 +139,10 @@ function handleMouseMove(e: MouseEvent) {
 }
 
 function onWindowResize(e?: any): void {
-  viewportWidth.value = window.innerWidth
+  // During chat toggle the watcher handles viewportWidth & percentage directly — skip here
+  if (isChatToggling.value) return
+
+  viewportWidth.value = window.innerWidth - chatOffset.value
 
   // if user hide sidebar and refresh the page then sidebar will be visible again so we have to set sidebar width
   if (!e && isLeftSidebarOpen.value && !sideBarSize.value.current && !isMobileMode.value) {
@@ -219,26 +227,57 @@ const isMiniSidebarVisible = computed(() => {
     !isFullScreen.value
   )
 })
+
+const isChatToggling = ref(false)
+
+const contentWidthStyle = computed(() => {
+  const chatPart = chatOffset.value ? ` - ${chatOffset.value}px` : ''
+  const base = isMiniSidebarVisible.value ? `100vw - var(--mini-sidebar-width)${chatPart}` : `100vw${chatPart}`
+  return {
+    width: `calc(${base})`,
+    transition: isChatResizing.value || isChatToggling.value ? 'none' : undefined,
+  }
+})
+
+// Force Splitpanes to recalculate when chat panel opens/closes/resizes
+// Suppress all transitions so the sidebar doesn't visually shift
+watch([isChatPanelExpanded, chatPanelWidthPx], () => {
+  isChatToggling.value = true
+  document.documentElement.classList.add('nc-chat-toggling')
+
+  // Update viewportWidth immediately
+  viewportWidth.value = window.innerWidth - chatOffset.value
+
+  // Compute percentage relative to actual Splitpanes container width (not viewportWidth)
+  // to preserve sidebar pixel width exactly — container = viewportWidth - miniSidebar
+  const containerWidth = isMiniSidebarVisible.value
+    ? viewportWidth.value - miniSidebarWidth.value
+    : viewportWidth.value
+  if (containerWidth > 0) {
+    leftSidebarWidthPercent.value = (currentSidebarSize.value / containerWidth) * 100
+  }
+
+  nextTick(() => {
+    window.dispatchEvent(new Event('resize'))
+    setTimeout(() => {
+      isChatToggling.value = false
+      document.documentElement.classList.remove('nc-chat-toggling')
+    }, 50)
+  })
+})
 </script>
 
 <template>
   <div class="h-full flex items-stretch">
     <DashboardMiniSidebarV2 v-if="isMiniSidebarVisible" />
 
-    <div
-      :class="{
-        'w-[calc(100vw_-_var(--mini-sidebar-width))] flex-none': isMiniSidebarVisible,
-        'nc-w-screen flex-none': !isMiniSidebarVisible,
-      }"
-    >
+    <div class="flex-none overflow-hidden" :style="contentWidthStyle">
       <DashboardTopbar v-if="showTopbar" :workspace-id="workspaceId" />
       <Splitpanes
         class="nc-sidebar-content-resizable-wrapper h-full"
         :class="{
           'sidebar-closed': !isLeftSidebarOpen,
           'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
-          '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isMiniSidebarVisible && !isSharedBase,
-          '!nc-w-screen': !isMiniSidebarVisible || isSharedBase,
         }"
         @ready="() => onWindowResize()"
         @resize="(event: any) => onResize(event[0].size)"
@@ -374,5 +413,10 @@ const isMiniSidebarVisible = computed(() => {
   > .splitpanes__pane {
     transition: none !important;
   }
+}
+
+// Suppress pane transitions when chat panel is toggling to prevent sidebar shift
+:root.nc-chat-toggling .splitpanes__pane {
+  transition: none !important;
 }
 </style>

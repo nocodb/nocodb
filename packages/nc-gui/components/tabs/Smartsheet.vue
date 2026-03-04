@@ -99,8 +99,6 @@ const extensionPaneRef = ref()
 
 const actionPaneRef = ref()
 
-const chatPaneRef = ref()
-
 /*
  * NOTE:
  * Splitpanes internally schedules async resize/redo logic.
@@ -194,22 +192,18 @@ const { isPanelExpanded, extensionPanelSize } = useExtensions()
 
 const { isPanelExpanded: isActionPanelExpanded, actionPanelSize } = useActionPane()
 
-const { isPanelExpanded: isChatPanelExpanded, chatPanelSize } = useChatPanel()
-
 const contentSize = computed(() => {
   if (isPanelExpanded.value && extensionPanelSize.value) {
     return 100 - extensionPanelSize.value
   } else if (isActionPanelExpanded.value && actionPanelSize.value) {
     return 100 - actionPanelSize.value
-  } else if (isChatPanelExpanded.value && chatPanelSize.value) {
-    return 100 - chatPanelSize.value
   } else {
     return 100
   }
 })
 
 const contentMaxSize = computed(() => {
-  if (!isPanelExpanded.value && !isActionPanelExpanded.value && !isChatPanelExpanded.value) {
+  if (!isPanelExpanded.value && !isActionPanelExpanded.value) {
     return 100
   } else {
     return ((windowSize.value - leftSidebarWidth.value - 300) / (windowSize.value - leftSidebarWidth.value)) * 100
@@ -223,9 +217,6 @@ const onResize = () => {
   if (isActionPanelExpanded.value && !actionPaneRef.value?.isReady) {
     actionPaneRef.value?.onReady()
   }
-  if (isChatPanelExpanded.value && !chatPaneRef.value?.isReady) {
-    chatPaneRef.value?.onReady()
-  }
 }
 
 const onResized = (sizes: { min: number; max: number; size: number }[]) => {
@@ -233,7 +224,6 @@ const onResized = (sizes: { min: number; max: number; size: number }[]) => {
     if (!sizes[1]?.size) return
     if (isPanelExpanded.value) extensionPanelSize.value = sizes[1]!.size
     if (isActionPanelExpanded.value) actionPanelSize.value = sizes[1]!.size
-    if (isChatPanelExpanded.value) chatPanelSize.value = sizes[1]!.size
   }
 }
 
@@ -248,12 +238,6 @@ const onReady = () => {
     // wait until action pane animation complete
     setTimeout(() => {
       actionPaneRef.value?.onReady()
-    }, 300)
-  }
-  if (isChatPanelExpanded.value && chatPaneRef.value) {
-    // wait until chat pane animation complete
-    setTimeout(() => {
-      chatPaneRef.value?.onReady()
     }, 300)
   }
 }
@@ -312,7 +296,6 @@ watch(isViewsLoading, async () => {
           :class="{
             'nc-is-open-extensions': isPanelExpanded,
             'nc-is-open-actions': isActionPanelExpanded,
-            'nc-is-open-chat': isChatPanelExpanded,
           }"
           @ready="() => onReady()"
           @resize="onResize"
@@ -351,7 +334,6 @@ watch(isViewsLoading, async () => {
           </Pane>
           <LazyExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
           <LazyActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
-          <LazyChatPanel v-if="isChatPanelExpanded" ref="chatPaneRef" />
         </Splitpanes>
         <div v-else class="flex items-center justify-center h-full w-full">
           <a-spin size="large" />
@@ -372,7 +354,7 @@ watch(isViewsLoading, async () => {
 }
 
 .nc-extensions-content-resizable-wrapper {
-  &:not(.nc-is-open-extensions) &:not(.nc-is-open-actions) &:not(.nc-is-open-chat) > {
+  &:not(.nc-is-open-extensions) &:not(.nc-is-open-actions) > {
     .splitpanes__splitter {
       @apply hidden;
     }

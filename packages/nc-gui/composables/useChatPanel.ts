@@ -1,13 +1,22 @@
 export const useChatPanel = createSharedComposable(() => {
   const isPanelExpanded = ref(false)
 
-  const chatPanelSize = ref(35)
+  const chatPanelWidth = ref(420)
+
+  const isResizing = ref(false)
+
+  const hasBaseContext = ref(false)
+
+  const startResize = (_e: MouseEvent) => {}
 
   const toggleChatPanel = () => {}
 
   return {
     isPanelExpanded,
-    chatPanelSize,
+    chatPanelWidth,
+    isResizing,
+    hasBaseContext,
+    startResize,
     toggleChatPanel,
   }
 })

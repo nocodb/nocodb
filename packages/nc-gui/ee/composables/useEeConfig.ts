@@ -168,6 +168,14 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  const blockAddNewDocumentPage = computed(() => {
+    return (
+      isPaymentEnabled.value &&
+      getStatLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE) >=
+        getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE)
+    )
+  })
+
   const blockAddNewScript = computed(() => {
     return (
       isPaymentEnabled.value &&
@@ -953,6 +961,23 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showDocumentPagePlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewDocumentPage.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToAddMoreDocumentPages'),
+      content: t('upgrade.upgradeToAddMoreDocumentPagesSubtitle', {
+        activePlan: activePlanTitle.value,
+        limit: getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE),
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE,
+    })
+
+    return true
+  }
+
   const showScriptPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewScript.value) return
 
@@ -1727,7 +1752,9 @@ export const useEeConfig = createSharedComposable(() => {
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
+    blockAddNewDocumentPage,
     showDashboardPlanLimitExceededModal,
+    showDocumentPagePlanLimitExceededModal,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,

@@ -30,6 +30,7 @@ export enum PlanLimitTypes {
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
   LIMIT_SANDBOX_PER_BASE = 'limit_sandbox',
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
+  LIMIT_DOCUMENT_PAGE_PER_WORKSPACE = 'limit_document_page',
 }
 
 export enum PlanFeatureTypes {
@@ -248,6 +249,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
   [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
+  [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE]:
+    'to add more document pages in a workspace.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {

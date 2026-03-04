@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType } from 'nocodb-sdk';
+import { AppEvents, EventType, PlanLimitTypes } from 'nocodb-sdk';
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
+import { checkLimit } from '~/helpers/paymentHelpers';
 import { Document } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
@@ -67,6 +68,13 @@ export class DocumentsService {
     payload: Partial<DocumentType>,
     req: NcRequest,
   ) {
+    await checkLimit({
+      workspaceId: context.workspace_id,
+      type: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} document pages for your plan.`,
+    });
+
     payload.fk_workspace_id = context.workspace_id;
     payload.base_id = context.base_id;
     payload.created_by = req.user.id;

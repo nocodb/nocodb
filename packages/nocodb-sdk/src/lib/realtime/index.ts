@@ -1,5 +1,5 @@
 import { NotificationType, UserType } from '~/lib/Api';
-import type { ChatContentBlock } from '~/lib/chat';
+import type { ChatContentBlock, ChatMessageType, ChatSessionType } from '~/lib/chat';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -191,7 +191,17 @@ export type PresencePayload =
   | PresenceBatchPayload;
 
 export interface ChatEventPayload extends BaseSocketPayload {
-  action: 'token' | 'tool-start' | 'tool-call' | 'tool-result' | 'message-done' | 'message-update' | 'error';
+  action:
+    | 'token'
+    | 'tool-start'
+    | 'tool-call'
+    | 'tool-result'
+    | 'message-done'
+    | 'message-update'
+    | 'error'
+    | 'session-create'
+    | 'session-delete'
+    | 'user-message';
   sessionId: string;
   // action: 'token'
   content?: string;
@@ -209,6 +219,10 @@ export interface ChatEventPayload extends BaseSocketPayload {
   parts?: ChatContentBlock[];
   // action: 'error'
   error?: string;
+  // action: 'session-create' | 'session-delete'
+  session?: ChatSessionType;
+  // action: 'user-message'
+  message?: ChatMessageType;
 }
 
 export type SocketEventPayload =

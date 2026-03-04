@@ -5747,10 +5747,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           // Handle JSON array strings from lookup aggregation (json_agg)
           // e.g. '["userId1", "userId2"]' from HM/MM lookup on User fields
           let userIds: string[];
-          if (
-            typeof d[col.id] === 'string' &&
-            d[col.id].startsWith('[')
-          ) {
+          if (typeof d[col.id] === 'string' && d[col.id].startsWith('[')) {
             try {
               const parsed = JSON.parse(d[col.id]);
               userIds = Array.isArray(parsed)

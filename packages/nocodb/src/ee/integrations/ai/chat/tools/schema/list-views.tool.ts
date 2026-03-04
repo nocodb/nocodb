@@ -33,7 +33,7 @@ export const listViewsTool: ChatToolDefinition = {
 
     const views = await viewsService.viewList(context, {
       tableId: model.id,
-      user: (req as any).user,
+      user: req.user,
     });
 
     return views.map((v: any) => ({

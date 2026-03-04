@@ -231,6 +231,11 @@ export const OpenidStrategyProvider: FactoryProvider = {
       },
     };
 
-    return new OpenidStrategy(clientConfig, config, usersService, appHooksService);
+    return new OpenidStrategy(
+      clientConfig,
+      config,
+      usersService,
+      appHooksService,
+    );
   },
 };

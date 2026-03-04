@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
+import type { TableFieldBaseCreateV3Type } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
@@ -71,11 +72,11 @@ export const createTableTool: ChatToolDefinition = {
         title: args.title,
         fields: (args.fields || []).map((f) => ({
           title: f.title,
-          type: f.type as any,
+          type: f.type as TableFieldBaseCreateV3Type['type'],
           ...(f.choices ? { choices: f.choices } : {}),
         })),
       },
-      user: (req as any).user,
+      user: req.user,
       req,
     });
 

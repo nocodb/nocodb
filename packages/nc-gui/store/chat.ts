@@ -10,6 +10,8 @@ export const useChatStore = defineStore('chatStore', () => {
 
   const isLoadingSessions = ref(false)
 
+  const isLoadingMessages = ref(false)
+
   const isSendingMessage = ref(false)
 
   const activeSession = computed<ChatSessionType | undefined>(() => {
@@ -52,6 +54,7 @@ export const useChatStore = defineStore('chatStore', () => {
     messages,
     activeSessionId,
     isLoadingSessions,
+    isLoadingMessages,
     isSendingMessage,
     activeSession,
     activeMessages,

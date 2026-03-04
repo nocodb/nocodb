@@ -22,10 +22,8 @@ export const listTablesTool: ChatToolDefinition = {
     const tables = await tablesService.getAccessibleTables(context, {
       baseId: context.base_id,
       includeM2M: false,
-      roles: extractRolesObj(
-        (req as any).user?.base_roles || (req as any).user?.roles,
-      ),
-      user: (req as any).user,
+      roles: extractRolesObj(req.user?.base_roles || req.user?.roles),
+      user: req.user,
     });
 
     return tables.map((t: any) => ({

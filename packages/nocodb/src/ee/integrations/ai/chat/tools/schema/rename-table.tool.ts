@@ -37,7 +37,7 @@ export const renameTableTool: ChatToolDefinition = {
     await tablesV3Service.tableUpdate(context, {
       tableId: model.id,
       table: { title: args.new_name },
-      user: (req as any).user,
+      user: req.user,
       req,
     });
 

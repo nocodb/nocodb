@@ -480,10 +480,7 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.USER_SIGNUP, data: UserSignupEvent): void;
   emit(event: AppEvents.USER_INVITE, data: UserInviteEvent): void;
   emit(event: AppEvents.USER_SIGNIN, data: UserSigninEvent): void;
-  emit(
-    event: AppEvents.USER_SIGNIN_FAILED,
-    data: UserSigninFailedEvent,
-  ): void;
+  emit(event: AppEvents.USER_SIGNIN_FAILED, data: UserSigninFailedEvent): void;
   emit(event: AppEvents.USER_SIGNOUT, data: UserSignoutEvent): void;
   emit(event: AppEvents.APIS_CREATED, data: ApiCreatedEvent): void;
   emit(

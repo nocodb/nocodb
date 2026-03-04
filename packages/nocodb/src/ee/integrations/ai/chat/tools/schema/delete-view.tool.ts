@@ -42,7 +42,7 @@ export const deleteViewTool: ChatToolDefinition = {
 
     await viewsService.viewDelete(context, {
       viewId: view.id,
-      user: (req as any).user,
+      user: req.user,
       req,
     });
 

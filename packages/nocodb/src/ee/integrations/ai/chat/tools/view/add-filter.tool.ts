@@ -5,6 +5,7 @@ import {
   resolveTableByName,
   resolveViewByName,
 } from '../helpers';
+import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
@@ -87,11 +88,11 @@ export const addFilterTool: ChatToolDefinition = {
       viewId: view.id,
       filter: {
         fk_column_id: column.id,
-        comparison_op: args.operator as any,
+        comparison_op: args.operator as FilterType['comparison_op'],
         value: args.value ?? null,
-        logical_op: args.logical_op as any,
+        logical_op: args.logical_op as FilterType['logical_op'],
       },
-      user: (req as any).user,
+      user: req.user,
       req,
     });
 

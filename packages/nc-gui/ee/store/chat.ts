@@ -20,6 +20,8 @@ export const useChatStore = defineStore('chatStore', () => {
 
   const activeSessionId = ref<string | null>(null)
 
+  const isLoadingMessages = ref(false)
+
   // Track the workspace we loaded sessions for — used to persist activeSessionId
   const _currentWsId = ref<string | null>(null)
 
@@ -87,14 +89,26 @@ export const useChatStore = defineStore('chatStore', () => {
       return
     }
 
+    isLoadingMessages.value = true
+
     try {
       const { data } = await $api.instance.get(`/api/v2/internal/${wsId}/chat/sessions/${sessionId}/messages`)
 
       const messagesList = (data?.list || data || []) as ChatMessageType[]
 
       messages.value.set(sessionId, messagesList)
+
+      // If the last message is from the user, an LLM turn is likely in progress
+      // (e.g. opened in another tab). Set sending state so the UI shows the
+      // loading indicator; socket 'message-done' or 'error' will clear it.
+      const lastMsg = messagesList[messagesList.length - 1]
+      if (lastMsg?.role === ChatMessageRole.USER) {
+        isSendingMessage.value = true
+      }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isLoadingMessages.value = false
     }
   }
 
@@ -236,6 +250,44 @@ export const useChatStore = defineStore('chatStore', () => {
           streamingStates.value.delete(sessionId)
           isSendingMessage.value = false
           message.error(payload.error || t('msg.error.aiAgentError'))
+          break
+        }
+
+        // ── Cross-tab sync events ──
+
+        case 'session-create': {
+          if (payload.session?.id && !sessions.value.has(payload.session.id)) {
+            sessions.value.set(payload.session.id, payload.session)
+          }
+          break
+        }
+
+        case 'session-delete': {
+          sessions.value.delete(sessionId)
+          messages.value.delete(sessionId)
+          streamingStates.value.delete(sessionId)
+
+          // Switch away if we were viewing the deleted session
+          if (activeSessionId.value === sessionId) {
+            activeSessionId.value = sessionList.value[0]?.id || null
+          }
+          break
+        }
+
+        case 'user-message': {
+          if (payload.message) {
+            const currentMsgs = messages.value.get(sessionId) || []
+
+            // Avoid duplicates (the tab that sent the message already has it optimistically)
+            if (!currentMsgs.some((m) => m.id === payload.message!.id)) {
+              messages.value.set(sessionId, [...currentMsgs, payload.message])
+            }
+
+            // Mark as sending — the LLM turn is about to start
+            if (sessionId === activeSessionId.value) {
+              isSendingMessage.value = true
+            }
+          }
           break
         }
       }
@@ -431,6 +483,7 @@ export const useChatStore = defineStore('chatStore', () => {
     messages,
     activeSessionId,
     isLoadingSessions,
+    isLoadingMessages,
     isSendingMessage,
     streamingStates,
     activeSession,

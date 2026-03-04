@@ -53,20 +53,20 @@ export class JobsService implements OnModuleInit {
     let jobData;
 
     if (options?.jobId) {
-      const existingJob = await Job.get(context, options.jobId);
-      if (existingJob) {
-        jobData = existingJob;
-
-        if (existingJob.status !== JobStatus.WAITING) {
-          await Job.update(context, existingJob.id, {
-            status: JobStatus.WAITING,
-          });
-        }
+      if (SKIP_STORING_JOB_META.includes(name as JobTypes)) {
+        jobData = {
+          id: options.jobId,
+        };
       } else {
-        if (SKIP_STORING_JOB_META.includes(name as JobTypes)) {
-          jobData = {
-            id: options.jobId,
-          };
+        const existingJob = await Job.get(context, options.jobId);
+        if (existingJob) {
+          jobData = existingJob;
+
+          if (existingJob.status !== JobStatus.WAITING) {
+            await Job.update(context, existingJob.id, {
+              status: JobStatus.WAITING,
+            });
+          }
         } else {
           jobData = await Job.insert(context, {
             id: `${options.jobId}`,

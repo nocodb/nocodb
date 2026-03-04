@@ -82,6 +82,14 @@ export class ChatService {
       sessionId: session.id,
     });
 
+    // Broadcast to all connected clients of this user (cross-tab sync).
+    // Pass socketId so the sender tab can skip the event (it already has the data).
+    this.broadcastToUser(
+      params.req.user?.id,
+      { action: 'session-create', sessionId: session.id, session },
+      params.req.ncSocketId,
+    );
+
     return session;
   }
 
@@ -142,6 +150,12 @@ export class ChatService {
       sessionId: session.id,
     });
 
+    this.broadcastToUser(
+      params.req.user?.id,
+      { action: 'session-delete', sessionId: session.id },
+      params.req.ncSocketId,
+    );
+
     return true;
   }
 
@@ -201,12 +215,18 @@ export class ChatService {
     );
 
     // 4. Persist user message
-    await ChatMessage.insert(context, {
+    const userMessage = await ChatMessage.insert(context, {
       fk_session_id: sessionId,
       fk_workspace_id: context.workspace_id,
       role: ChatMessageRole.USER,
       content: body.content,
     });
+
+    this.broadcastToUser(
+      req.user?.id,
+      { action: 'user-message', sessionId, message: userMessage },
+      req.ncSocketId,
+    );
 
     // 5. Enqueue job — response delivered via Socket.IO
     const jobData: Omit<ChatMessageJobData, 'jobName'> = {
@@ -218,7 +238,9 @@ export class ChatService {
       baseId: validatedBaseId,
     };
 
-    await this.jobsService.add(JobTypes.ChatMessage, jobData);
+    await this.jobsService.add(JobTypes.ChatMessage, jobData, {
+      jobId: `chat:msg:${sessionId}`,
+    });
   }
 
   async approveToolCalls(
@@ -271,7 +293,9 @@ export class ChatService {
       baseId: validatedBaseId,
     };
 
-    await this.jobsService.add(JobTypes.ChatApproval, jobData);
+    await this.jobsService.add(JobTypes.ChatApproval, jobData, {
+      jobId: `chat:approval:${sessionId}:${messageId}`,
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -402,16 +426,16 @@ export class ChatService {
           callbacks?.onToken?.(chunk.text);
         }
         if (chunk.type === 'tool-input-start') {
-          const c = chunk as any;
-          const toolCallId = c.toolCallId || c.id || '';
-          const toolName = c.toolName || c.name || '';
           contentBlocks.push({
             type: 'tool_use',
-            id: toolCallId,
-            name: toolName,
+            id: chunk.id,
+            name: chunk.toolName,
             status: ChatToolCallStatus.RUNNING,
           });
-          callbacks?.onToolStart?.({ toolCallId, toolName });
+          callbacks?.onToolStart?.({
+            toolCallId: chunk.id,
+            toolName: chunk.toolName,
+          });
         }
       },
       onStepFinish: ({ toolCalls, toolResults }) => {
@@ -421,31 +445,30 @@ export class ChatService {
             (b): b is Extract<ChatContentBlock, { type: 'tool_use' }> =>
               b.type === 'tool_use' && b.id === tc.toolCallId,
           );
-          if (block) block.input = (tc as any).input;
+          if (block) block.input = tc.input;
 
           callbacks?.onToolCall?.({
             toolCallId: tc.toolCallId,
             toolName: tc.toolName,
-            input: (tc as any).input,
+            input: tc.input,
           });
         }
 
         // Update output + status on matching tool_use blocks
         for (const tr of toolResults || []) {
-          const raw = (tr as any).output;
           const block = contentBlocks.find(
             (b): b is Extract<ChatContentBlock, { type: 'tool_use' }> =>
               b.type === 'tool_use' && b.id === tr.toolCallId,
           );
           if (block) {
-            block.output = raw;
+            block.output = tr.output;
             block.is_error = false;
           }
 
           callbacks?.onToolResult?.({
             toolCallId: tr.toolCallId,
             toolName: tr.toolName,
-            result: raw,
+            result: tr.output,
           });
         }
       },
@@ -454,7 +477,7 @@ export class ChatService {
           // Resolve final status for each tool_use block from step results
           for (const step of steps || []) {
             for (const tr of step.toolResults || []) {
-              const raw = (tr as any).output;
+              const raw = tr.output;
               const block = contentBlocks.find(
                 (b): b is Extract<ChatContentBlock, { type: 'tool_use' }> =>
                   b.type === 'tool_use' && b.id === tr.toolCallId,
@@ -542,7 +565,7 @@ export class ChatService {
             await ChatSession.update(context, sessionId, { title });
           }
 
-          await integration.storeInsert(context, req.user?.id, usage as any);
+          await integration.storeInsert(context, req.user?.id, usage);
 
           callbacks?.onDone?.({
             messageId: assistantMessage.id,
@@ -775,5 +798,21 @@ export class ChatService {
       workspaceRole,
       baseRole: Object.keys(baseRoles).find((r) => baseRoles[r]) ?? null,
     };
+  }
+
+  private broadcastToUser(
+    userId: string,
+    payload: Omit<ChatEventPayload, 'event' | 'timestamp' | 'socketId'>,
+    socketId?: string,
+  ) {
+    if (!userId) return;
+    NocoSocket.broadcastEventToUser(
+      userId,
+      {
+        event: EventType.CHAT_EVENT,
+        payload,
+      },
+      socketId,
+    );
   }
 }

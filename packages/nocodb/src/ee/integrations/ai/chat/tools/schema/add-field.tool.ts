@@ -106,7 +106,7 @@ export const addFieldTool: ChatToolDefinition = {
       tableId: model.id,
       column: columnPayload as any,
       req,
-      user: (req as any).user,
+      user: req.user,
     });
 
     return column;

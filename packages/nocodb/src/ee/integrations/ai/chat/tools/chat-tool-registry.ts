@@ -54,6 +54,7 @@ import { clearGroupByTool } from './view/clear-group-by.tool';
 import type { NcRequest } from '~/interface/config';
 import type { NcContext } from '~/interface/config';
 import type { ToolSet } from 'ai';
+import deepClone from '~/helpers/deepClone';
 import Base from '~/models/Base';
 import User from '~/models/User';
 import { hasPermission } from '~/helpers/aclHelper';
@@ -149,7 +150,7 @@ export class ChatToolRegistry {
   }
 
   getAvailableTools(req: NcRequest): ChatToolDefinition[] {
-    const baseRoles = extractRolesObj((req as any).user?.base_roles);
+    const baseRoles = extractRolesObj(req.user?.base_roles);
 
     return this.tools.filter((t) => {
       // Workspace-scoped tools are available to any authenticated user —
@@ -213,7 +214,7 @@ export class ChatToolRegistry {
     // Enforce granular ACL — even if getAvailableTools filtered, this is the
     // authoritative gate (defense in depth against stale tool lists or direct calls).
     if (toolDef.permission) {
-      const roles = extractRolesObj((req as any).user?.base_roles);
+      const roles = extractRolesObj(req.user?.base_roles);
       if (!hasPermission(roles, toolDef.permission)) {
         return {
           result: `You do not have permission to perform "${toolDef.permission}".`,
@@ -352,21 +353,21 @@ export class ChatToolRegistry {
     }
 
     // 8. Execute inner tool with the target base context.
-    // Temporarily set base_roles so downstream services see the correct roles.
+    // Clone user via rfdc to avoid mutating the shared req object
+    // (concurrent base_proxy calls would race on req.user.base_roles otherwise).
     const proxiedContext = { ...context, base_id: targetBaseId };
-    const originalBaseRoles = req.user.base_roles;
-    req.user.base_roles = userWithRoles.base_roles;
+    const clonedUser = deepClone(req.user);
+    clonedUser.base_roles = userWithRoles.base_roles;
+    const proxiedReq = Object.create(req, {
+      user: { value: clonedUser, writable: true, enumerable: true },
+    });
 
-    try {
-      return await this.executeTool(
-        proxiedContext,
-        innerToolName,
-        tool_args,
-        req,
-      );
-    } finally {
-      req.user.base_roles = originalBaseRoles;
-    }
+    return this.executeTool(
+      proxiedContext,
+      innerToolName,
+      tool_args,
+      proxiedReq,
+    );
   }
 
   toVercelTools(

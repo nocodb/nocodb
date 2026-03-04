@@ -396,7 +396,7 @@ export class AppHooksListenerService
                 },
                 context: param.context,
                 req: param.req,
-                ...(((param.user as any)?.extra?.workspace_id)
+                ...((param.user as any)?.extra?.workspace_id
                   ? { fk_workspace_id: (param.user as any).extra.workspace_id }
                   : {}),
               },

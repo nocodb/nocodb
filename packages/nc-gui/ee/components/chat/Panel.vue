@@ -6,8 +6,15 @@ const { isPanelExpanded, chatPanelWidth, isResizing, startResize } = useChatPane
 
 const chatStore = useChatStore()
 
-const { activeMessages, isSendingMessage, activeSession, sessionList, isLoadingSessions, activeStreamingParts } =
-  storeToRefs(chatStore)
+const {
+  activeMessages,
+  isSendingMessage,
+  isLoadingMessages,
+  activeSession,
+  sessionList,
+  isLoadingSessions,
+  activeStreamingParts,
+} = storeToRefs(chatStore)
 
 const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
@@ -279,7 +286,7 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
 
         <!-- Messages -->
         <div ref="messageListRef" class="flex-1 overflow-y-auto nc-scrollbar-thin">
-          <div v-if="isLoadingSessions" class="flex items-center justify-center h-full">
+          <div v-if="isLoadingSessions || isLoadingMessages" class="flex items-center justify-center h-full">
             <GeneralLoader size="large" />
           </div>
           <template v-else>

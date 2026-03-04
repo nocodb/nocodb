@@ -72,7 +72,7 @@ export const modifyFieldTool: ChatToolDefinition = {
       columnId: column.id,
       column: updatePayload,
       req,
-      user: (req as any).user,
+      user: req.user,
     });
 
     return result;

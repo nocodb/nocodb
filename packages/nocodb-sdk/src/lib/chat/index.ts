@@ -27,8 +27,7 @@ export enum ChatStreamEventType {
 export interface ChatSessionType {
   id?: string;
   title?: string;
-  fk_base_id: string;
-  fk_workspace_id?: string;
+  fk_workspace_id: string;
   fk_user_id?: string;
   summary?: string;
   total_input_tokens?: number;
@@ -71,6 +70,7 @@ export interface ChatMessageType {
 export interface ChatSendMessageType {
   content: string;
   approvals?: Record<string, 'approved' | 'denied'>;
+  base_id?: string;
 }
 
 export interface ChatToolDefinitionType {

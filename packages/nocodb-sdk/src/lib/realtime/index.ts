@@ -203,7 +203,7 @@ export interface ChatEventPayload extends BaseSocketPayload {
   output?: any;
   isError?: boolean;
   // action: 'message-done'
-  baseId?: string;
+  workspaceId?: string;
   messageId?: string;
   /** Final ordered content blocks — single source of truth for the persisted message. */
   parts?: ChatContentBlock[];

@@ -28,17 +28,17 @@ export const useChatStore = defineStore('chatStore', () => {
     )
   })
 
-  const loadSessions = async (_baseId: string) => {}
+  const loadSessions = async (_wsId: string) => {}
 
-  const createSession = async (_baseId: string, _title?: string): Promise<ChatSessionType | undefined> => {
+  const createSession = async (_wsId: string, _title?: string): Promise<ChatSessionType | undefined> => {
     return undefined
   }
 
-  const deleteSession = async (_baseId: string, _sessionId: string) => {}
+  const deleteSession = async (_wsId: string, _sessionId: string) => {}
 
-  const loadMessages = async (_baseId: string, _sessionId: string) => {}
+  const loadMessages = async (_wsId: string, _sessionId: string) => {}
 
-  const sendMessage = async (_baseId: string, _sessionId: string, _content: string) => {}
+  const sendMessage = async (_wsId: string, _sessionId: string, _content: string, _baseId?: string) => {}
 
   const reset = () => {
     sessions.value.clear()

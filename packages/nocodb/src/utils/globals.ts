@@ -183,8 +183,6 @@ export const BaseRelatedMetaTables = [
   MetaTable.AUTOMATIONS,
   MetaTable.AUTOMATION_EXECUTIONS,
   MetaTable.DEPENDENCY_TRACKER,
-  MetaTable.CHAT_SESSIONS,
-  MetaTable.CHAT_MESSAGES,
 ];
 
 export enum MetaTableOldV2 {
@@ -242,13 +240,11 @@ export const orderedMetaTables = [
   MetaTable.SSO_CLIENT_DOMAIN,
   MetaTable.SSO_CLIENT,
 
-  // Notification / Comments / Chat
+  // Notification / Comments
   MetaTable.NOTIFICATION,
   MetaTable.COMMENTS_REACTIONS,
   MetaTable.USER_COMMENTS_NOTIFICATIONS_PREFERENCE,
   MetaTable.COMMENTS,
-  MetaTable.CHAT_MESSAGES,
-  MetaTable.CHAT_SESSIONS,
 
   // View types (children before parents)
   MetaTable.MAP_VIEW_COLUMNS,
@@ -570,6 +566,8 @@ export const RootScopeTables = {
 
     MetaTable.PRINCIPAL_ASSIGNMENTS,
     MetaTable.SCIM_CONFIG,
+    MetaTable.CHAT_SESSIONS,
+    MetaTable.CHAT_MESSAGES,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };

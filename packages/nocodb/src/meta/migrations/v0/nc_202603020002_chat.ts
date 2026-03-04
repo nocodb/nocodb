@@ -9,8 +9,7 @@ const up = async (knex: Knex) => {
   // Chat sessions
   await knex.schema.createTable(MetaTable.CHAT_SESSIONS, (table) => {
     table.string('id', 20).notNullable();
-    table.string('base_id', 20).notNullable();
-    table.string('fk_workspace_id', 20);
+    table.string('fk_workspace_id', 20).notNullable();
     table.string('fk_user_id', 20);
     table.string('title', 255);
     table.text('summary');
@@ -19,8 +18,7 @@ const up = async (knex: Knex) => {
     table.integer('message_count').defaultTo(0);
     table.timestamps(true, true);
 
-    table.primary(['base_id', 'id']);
-    table.index('fk_workspace_id', 'nc_chat_sessions_ws_idx');
+    table.primary(['fk_workspace_id', 'id']);
     table.index('fk_user_id', 'nc_chat_sessions_user_idx');
   });
 

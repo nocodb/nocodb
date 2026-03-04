@@ -153,7 +153,7 @@ const { shouldShow: btbShouldShow } = useBackToBase()
 
 const isSettingsSidebar = computed(() => !!props.tab)
 
-provide('isSettingsSidebar', isSettingsSidebar)
+provide(IsSettingsSidebarInj, isSettingsSidebar)
 
 // Map ws-* tab prop to NcTabs key (e.g. 'ws-collaborators' → 'collaborators')
 const wsTabToNcTabKey: Record<string, string> = {

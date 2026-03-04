@@ -641,6 +641,21 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     } else {
       await navigateTo(path)
     }
+
+    if (cmdOrCtrl) {
+      await navigateTo(
+        router.resolve({
+          name: 'index-typeOrId-settings-page',
+          params: { typeOrId: workspaceId, page: 'ws-integrations' },
+          query,
+        }).href,
+        {
+          open: navigateToBlankTargetOpenOption,
+        },
+      )
+    } else {
+      router.push({ name: 'index-typeOrId-settings-page', params: { typeOrId: workspaceId, page: 'ws-integrations' }, query })
+    }
   }
 
   function setLoadingState(isLoading = false) {

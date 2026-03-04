@@ -262,7 +262,7 @@ watch(
 
 const isSettingsSidebar = computed(() => !!props.tab)
 
-provide('isSettingsSidebar', isSettingsSidebar)
+provide(IsSettingsSidebarInj, isSettingsSidebar)
 
 onMounted(async () => {
   await until(() => !!currentBase.value?.id).toBeTruthy()

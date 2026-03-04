@@ -71,7 +71,7 @@ const userSearchText = ref('')
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
-const isSettingsSidebar = inject<Ref<boolean>>('isSettingsSidebar', ref(false))
+const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
 
 const isOnlyOneOwner = computed(() => {
   return collaborators.value?.filter((collab) => collab.roles === WorkspaceUserRoles.OWNER).length === 1

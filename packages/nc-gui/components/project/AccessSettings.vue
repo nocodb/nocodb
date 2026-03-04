@@ -41,7 +41,7 @@ const { orgId, org } = storeToRefs(orgStore)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
-const isSettingsSidebar = inject<Ref<boolean>>('isSettingsSidebar', ref(false))
+const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
 
 const { $api, $eventBus } = useNuxtApp()
 

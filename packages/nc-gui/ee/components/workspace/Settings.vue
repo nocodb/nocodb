@@ -39,7 +39,7 @@ const isDeleteModalVisible = ref(false)
 const toBeDeletedWorkspaceTitle = ref('')
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
-const isSettingsSidebar = inject<Ref<boolean>>('isSettingsSidebar', ref(false))
+const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
 
 const deleteWsInputRef = ref<HTMLInputElement>()
 

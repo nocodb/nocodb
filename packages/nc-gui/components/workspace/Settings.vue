@@ -11,7 +11,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { isUIAllowed } = useRoles()
 
-const isSettingsSidebar = inject<Ref<boolean>>('isSettingsSidebar', ref(false))
+const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
 
 const formValidator = ref()
 const isErrored = ref(false)

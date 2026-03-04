@@ -88,6 +88,271 @@ Use these for global CSS rules when WindiCSS classes aren't sufficient:
 }
 ```
 
+## WindiCSS Configuration Reference
+
+> **Source:** `windi.config.ts` — imports from `utils/colorsUtils.ts` and custom plugins.
+
+### Screens (breakpoints)
+
+Defined in `windi.config.ts` → `theme.extend.screens`:
+
+```ts
+'xs': { max: '480px' },    // mobile-only (max-width)
+'sm': { min: '480px' },    // tablet and up
+'md': { min: '820px' },    // desktop and up
+'2xl': { min: '1780px' },  // large screens
+'3xl': { min: '1920px' },
+'4xl': { min: '2560px' },
+'5xl': { min: '3200px' },
+```
+
+### Font sizes (custom)
+
+```ts
+tiny:  ['11px', '14px']
+small: ['13px', '16px']
+small1: ['13px', '18px']
+```
+
+Usage: `text-tiny`, `text-small`, `text-small1`
+
+### Font weights (adjusted for Inter font)
+
+Inter renders weights heavier than standard, so values are shifted:
+
+| Class | Value | Effective |
+|-------|-------|-----------|
+| `font-thin` | 200 | 200 |
+| `font-light` | 400 | 400 |
+| `font-normal` / `font-default` | 500 | 400 |
+| `font-medium` | 600 | 500 |
+| `font-semibold` | 550 | 550 |
+| `font-bold` | 700 | 600 |
+| `font-black` | 800 | 700 |
+
+### Shortcuts (global)
+
+```
+color-transition     → transition-colors duration-100 ease-in
+nc-scrollbar-thin    → thin scrollbar with gray track
+nc-content-max-w     → max-w-[97.5rem]
+```
+
+### Dark mode
+
+`darkMode: 'class'` — toggle with `.dark` on root element. Use `dark:` prefix:
+
+```html
+<div class="bg-white dark:bg-gray-900">...</div>
+```
+
+---
+
+## Internal Plugins
+
+### `ncTypographyPlugin` (`assets/nc-typography-plugin.ts`)
+
+Figma-aligned text presets. Use **instead of** raw `text-sm font-medium` combos. All support responsive variants.
+
+| Class | Size | Line-height | Weight |
+|-------|------|-------------|--------|
+| `text-heading1` | 64px | 92px | 700 |
+| `text-heading2` | 40px | 64px | 700 |
+| `text-heading3` | 24px | 36px | 700 |
+| `text-subHeading1` | 20px | 32px | 700 |
+| `text-subHeading2` | 16px | 24px | 700 |
+| `text-bodyLg` | 16px | 28px | 500 |
+| `text-bodyLgBold` | 16px | 28px | 700 |
+| `text-body` | 14px | 24px | 500 |
+| `text-bodyBold` | 14px | 24px | 700 |
+| `text-bodyDefaultSm` | 13px | 18px | 500 |
+| `text-bodyDefaultSmBold` | 13px | 18px | 700 |
+| `text-bodySm` | 12px | 18px | 500 |
+| `text-bodySmBold` | 12px | 18px | 700 |
+| `text-caption` | 14px | 20px | 500 |
+| `text-captionSm` | 12px | 14px | 500 |
+| `text-captionXs` | 10px | 14px | 500 |
+| `text-sidebarDefault` | 14px | 20px | 550 |
+
+Responsive example:
+
+```html
+<h1 class="text-heading3 sm:text-heading2 md:text-heading1">Title</h1>
+```
+
+### `ncWindicssShortcutsPlugin` (`assets/nc-windicss-shortcuts-plugin.ts`)
+
+Viewport-safe screen utilities that handle mobile browser chrome (address bar, bottom nav):
+
+| Class | Fallback chain |
+|-------|----------------|
+| `nc-h-screen` | `100svh` → `100dvh` → `100vh` |
+| `nc-min-h-screen` | `min-height: 100svh` → `100dvh` → `100vh` |
+| `nc-w-screen` | `100svw` → `100dvw` → `100vw` |
+| `nc-min-w-screen` | `min-width: 100svw` → `100dvw` → `100vw` |
+
+**Always use `nc-h-screen` instead of `h-screen`** in layouts and full-height containers.
+
+---
+
+## Color System
+
+> **Source:** `utils/colorsUtils.ts` — defines all color layers. See also `assets/css/variables.css` for CSS custom properties.
+
+### Layer 1: `themeVariables` — Semantic tokens (prefer these)
+
+These map to CSS variables that **change with light/dark theme**. They are the design system's core tokens.
+
+Registered via `ncBuildColorsWithOpacity()` which enables opacity modifiers (e.g., `text-nc-content-gray/50`).
+
+#### Content colors (`text-*`)
+
+| Class | Variants |
+|-------|----------|
+| `text-nc-content-gray` | `-extreme`, `-emphasis`, (default), `-subtle`, `-subtle2`, `-muted`, `-disabled` |
+| `text-nc-content-brand` | (default), `-disabled`, `-hover` |
+| `text-nc-content-inverted-primary` | (default), `-hover`, `-disabled` |
+| `text-nc-content-inverted-secondary` | (default), `-hover`, `-disabled` |
+| `text-nc-content-red` | `-dark`, `-medium`, `-light` |
+| `text-nc-content-green` | `-dark`, `-medium`, `-light` |
+| `text-nc-content-yellow` | `-dark`, `-medium`, `-light` |
+| `text-nc-content-blue` | `-dark`, `-medium`, `-light` |
+| `text-nc-content-purple` | `-dark`, `-medium`, `-light` |
+| `text-nc-content-pink` | `-dark`, `-medium`, `-light` |
+| `text-nc-content-orange` | `-dark`, `-medium`, `-light` |
+| `text-nc-content-maroon` | `-dark`, `-medium`, `-light` |
+
+#### Background colors (`bg-*`)
+
+| Class | Variants |
+|-------|----------|
+| `bg-nc-bg-default` | (white) |
+| `bg-nc-bg-brand` | (default), `-inverted` |
+| `bg-nc-bg-gray` | `-extralight`, `-sidebar`, `-minisidebar`, `-light`, `-medium`, `-dark`, `-extradark` |
+| `bg-nc-bg-red` | `-light`, `-dark` |
+| `bg-nc-bg-green` | `-light`, `-dark` |
+| `bg-nc-bg-yellow` | `-light`, `-dark` |
+| `bg-nc-bg-blue` | `-light`, `-dark` |
+| `bg-nc-bg-purple` | `-light`, `-dark` |
+| `bg-nc-bg-pink` | `-light`, `-dark` |
+| `bg-nc-bg-orange` | `-light`, `-dark` |
+| `bg-nc-bg-maroon` | `-light`, `-dark` |
+
+#### Border colors (`border-*`)
+
+| Class | Variants |
+|-------|----------|
+| `border-nc-border-brand` | (default), `-medium` |
+| `border-nc-border-gray` | `-extralight`, `-light`, `-medium`, `-dark`, `-extradark`, `-underline` |
+| `border-nc-border-red` | (default) |
+| `border-nc-border-green` | (default) |
+| `border-nc-border-purple` | (default), `-medium`, `-light` |
+
+#### Fill colors (`bg-*`, `fill-*`, `text-*`)
+
+| Class | Variants |
+|-------|----------|
+| `bg-nc-fill-primary` | (default), `-hover`, `-disabled`, `-disabled2` |
+| `bg-nc-fill-secondary` | (default), `-hover`, `-disabled` |
+| `bg-nc-fill-warning` | (default), `-hover`, `-disabled` |
+| `bg-nc-fill-success` | (default), `-hover`, `-disabled` |
+| `bg-nc-fill-red` | `-dark`, `-medium`, `-light` |
+| `bg-nc-fill-green` | `-dark`, `-medium`, `-light` |
+
+### Layer 2: `themeV4Colors` with `nc-` prefix — Raw palette shades
+
+V4 palette registered with `nc-` prefix to avoid conflicts with V3 colors. Adapts to dark mode via CSS variables.
+
+Use when no semantic token fits:
+
+```html
+<div class="bg-nc-brand-50 text-nc-gray-700 border-nc-purple-200">...</div>
+```
+
+Available palettes: `nc-base`, `nc-brand`, `nc-gray`, `nc-red`, `nc-green`, `nc-yellow`, `nc-blue`, `nc-purple`, `nc-pink`, `nc-orange`, `nc-maroon`
+
+Each has shades: `20`, `50`, `100`–`900` (plus `inverted` on some).
+
+### Layer 3: `themeV3Colors` — Static colors (no `nc-` prefix)
+
+Hardcoded hex values — **same in all themes** (no dark mode adaptation). Use for enum chips, data viz, or when you need a fixed color.
+
+```html
+<span class="text-brand-500 bg-red-50">...</span>
+```
+
+### CSS Variables (`assets/css/variables.css`)
+
+The actual CSS custom property values live in `assets/css/variables.css` (~1037 lines). This is what powers the color system at runtime.
+
+**Structure:**
+
+```
+:root {
+  /* Spacing tokens */
+  --spacing-00: 0px  →  --spacing-13: 160px
+
+  /* Font sizes */
+  --font-size-h1: 64px, --font-size-h2: 40px, --font-size-h3: 24px
+
+  /* Reference tokens (raw palette) — used by semantic tokens */
+  --color-brand-50: #f0f3ff     --rgb-color-brand-50: 240, 243, 255
+  --color-gray-100: #f4f4f5     --rgb-color-gray-100: 244, 244, 245
+  /* ... palettes: brand, gray, green, red, maroon, pink, orange, yellow, blue, purple */
+
+  /* Semantic tokens — content */
+  --nc-content-gray-extreme: var(--color-base-black)
+  --nc-content-gray-emphasis: var(--color-gray-900)
+  --nc-content-gray: var(--color-gray-800)
+  --nc-content-gray-subtle: var(--color-gray-700)
+  --nc-content-gray-subtle2: var(--color-gray-600)
+  --nc-content-gray-muted: var(--color-gray-500)
+  --nc-content-gray-disabled: var(--color-gray-400)
+  --nc-content-brand: var(--color-brand-500)
+
+  /* Semantic tokens — background */
+  --nc-bg-default: var(--color-base-white)
+  --nc-bg-brand: var(--color-brand-50)
+  --nc-bg-gray-extralight: var(--color-gray-50)
+  --nc-bg-gray-light: var(--color-gray-100)
+  --nc-bg-gray-medium: var(--color-gray-200)
+  --nc-bg-gray-dark: var(--color-gray-300)
+
+  /* Semantic tokens — fill */
+  --nc-fill-primary: var(--color-brand-500)
+  --nc-fill-primary-hover: var(--color-brand-600)
+  --nc-fill-warning: var(--color-red-500)
+  --nc-fill-success: var(--color-green-500)
+
+  /* Semantic tokens — border */
+  --nc-border-brand: var(--color-brand-500)
+  --nc-border-gray-light: var(--color-gray-100)
+  --nc-border-gray-medium: var(--color-gray-200)
+  --nc-border-gray-dark: var(--color-gray-300)
+}
+```
+
+The `--rgb-color-*` variants enable opacity support via `ncBuildColorsWithOpacity()` — this is why `text-nc-content-gray/50` (50% opacity) works.
+
+**Use CSS variables directly in `<style>` blocks** when WindiCSS classes aren't expressive enough:
+
+```scss
+.my-component {
+  color: var(--nc-content-brand);
+  background: var(--nc-bg-gray-light);
+  border: 1px solid var(--nc-border-gray-medium);
+}
+```
+
+### Which color to use?
+
+1. **Semantic token exists?** → use `themeVariables` class (`text-nc-content-*`, `bg-nc-bg-*`, `border-nc-border-*`, `bg-nc-fill-*`)
+2. **Need a raw shade that adapts to dark mode?** → use `nc-` prefixed V4 color (`bg-nc-brand-100`, `text-nc-gray-700`)
+3. **Must be same in all themes** (enum chips, data viz) → use V3 color without prefix (`text-brand-500`)
+4. **Complex style in `<style>`?** → use CSS variables from `variables.css` (`var(--nc-content-brand)`, `var(--nc-bg-gray-light)`)
+
+---
+
 ## Prefer WindiCSS Over Pure CSS
 
 **Always prefer WindiCSS utility classes** over writing raw CSS in `<style>` blocks for responsive work.
@@ -96,7 +361,7 @@ Use these for global CSS rules when WindiCSS classes aren't sufficient:
 
 ```html
 <!-- WindiCSS responsive utilities — clean, scannable, consistent -->
-<div class="p-2 sm:p-3 md:p-4 text-sm sm:text-base">
+<div class="p-2 sm:p-3 md:p-4 text-bodySm sm:text-body">
   <NcButton class="w-full sm:w-auto" size="small">Save</NcButton>
 </div>
 ```
@@ -136,8 +401,8 @@ Use these for global CSS rules when WindiCSS classes aren't sufficient:
 
 ### Modals / Dialogs
 
-- Desktop: centered modal with `NcModal size="md"`
-- Mobile: full-screen (`size="fullscreen"` or `xs:` overrides)
+- `NcModal` sizes are already responsive — **do NOT change modal `size` prop**
+- Fix the **content inside** modals to flow properly on small screens (stacking, padding, overflow)
 
 ### Touch targets
 
@@ -185,3 +450,140 @@ const { isMobileMode, isTabletMode } = storeToRefs(configStore)
 - [ ] Use `nc-h-screen` instead of `h-screen`
 - [ ] Modals go full-screen on mobile
 - [ ] Sidebar overlays on mobile/tablet, splitpane on desktop
+
+---
+
+## Implementation Plan (Priority Order)
+
+### Phase 1 — Workspace
+
+All workspace-related UI — actions, modals, context menus, inline editing, etc.
+
+- [ ] Workspace create modal
+- [ ] Workspace rename / edit inline
+- [ ] Workspace context menu / action menu
+- [ ] Workspace delete UI (inside ws settings)
+- [ ] Workspace invite / share dialog
+- [ ] Workspace switcher dropdown
+
+> **Key files:** `components/workspace/`, `components/dlg/`, `components/dashboard/TreeView/`
+
+### Phase 2 — Base
+
+All base-related UI.
+
+- [ ] Base create modal (all variants — empty, from template, import, etc.)
+- [ ] Base duplicate modal
+- [ ] Base delete modal
+- [ ] Base rename / edit inline
+- [ ] Base context menu / action menu
+- [ ] Base share & collaborate dialog
+- [ ] Base color / icon picker
+- [ ] Base import (CSV, Excel, Airtable, etc.)
+
+> **Key files:** `components/dlg/Base*`, `components/dashboard/TreeView/Project*`
+
+### Phase 3 — Table
+
+All table-related UI.
+
+- [ ] Table create modal
+- [ ] Table duplicate modal
+- [ ] Table delete modal
+- [ ] Table rename / edit inline
+- [ ] Table context menu / action menu
+- [ ] Table import dialog
+- [ ] Table reorder / drag-and-drop (if applicable on mobile)
+
+> **Key files:** `components/dlg/Table*`, `components/dashboard/TreeView/Table/`
+
+### Phase 4 — Scripts & Dashboards
+
+- [ ] Script create / delete modals
+- [ ] Script rename / context menu
+- [ ] Dashboard create / delete modals
+- [ ] Dashboard rename / context menu
+
+### Phase 5 — Views
+
+All view-related UI.
+
+- [ ] View create modal (all view types: grid, form, gallery, kanban, calendar)
+- [ ] View duplicate / delete modals
+- [ ] View rename / edit inline
+- [ ] View context menu / action menu (ViewActionMenu)
+- [ ] View lock / unlock dialog
+- [ ] View share dialog
+- [ ] View toolbar (filter, sort, group, search, fields, row height)
+- [ ] View topbar (breadcrumbs, view switcher)
+
+> **Key files:** `components/dlg/View*`, `components/smartsheet/toolbar/`, `components/dashboard/TreeView/Views/`
+
+### Phase 6 — Workspace & Base List
+
+- [ ] Workspace / base list page — **already done, no changes needed** (verify only)
+
+### Phase 7 — Settings Pages
+
+**7.1 Workspace Settings**
+- [ ] Members / collaborators page
+- [ ] Integrations page
+- [ ] Billing / plan page (EE)
+- [ ] Audit log page
+- [ ] Settings layout / nav
+
+**7.2 Base Settings**
+- [ ] Data sources
+- [ ] ERD
+- [ ] Misc settings
+- [ ] Settings layout / nav
+
+> Some settings pages may already be fixed — check before modifying.
+
+### Phase 8 — In-Base Experience
+
+- [ ] Managed Apps view
+- [ ] Sandboxes UI
+- [ ] AI Builder interface
+
+### Phase 9 — View Content (Main Data UI)
+
+**9.1 Grid View**
+- [ ] Grid horizontal scroll on small screens
+- [ ] Column headers / cell sizing
+- [ ] Toolbar responsive (already has `isToolbarIconMode` at <768px)
+- [ ] Topbar breadcrumbs
+
+**9.2 Form View**
+- [ ] Form field stacking
+- [ ] Form builder sidebar
+
+**9.3 Gallery View**
+- [ ] Card grid: 1-col mobile, 2-col tablet, 3+ desktop
+
+**9.4 Kanban View**
+- [ ] Lane horizontal scroll / single-lane mobile
+
+**9.5 Calendar View**
+- [ ] Day view default on mobile
+- [ ] Compact header
+
+**9.6 Expanded Form (Record Detail)**
+- [ ] Full-screen on mobile
+- [ ] Field list scrollable
+- [ ] Comments / activity panel
+
+### Phase 10 — Shared Views
+
+- [ ] Shared grid view
+- [ ] Shared form view
+- [ ] Shared gallery view
+- [ ] Shared kanban view
+- [ ] Shared calendar view
+- [ ] Password-protected shared view dialog
+
+> **Out of scope (low priority):**
+> - Workflows / Automations — no mobile editing support yet
+> - Workflow editor canvas — skip entirely for now
+
+> **Pattern:** NcModal sizes are already responsive — only fix the content inside (layout, padding, overflow, stacking).

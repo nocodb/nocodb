@@ -39,7 +39,7 @@ const { setActiveCmdView } = useCommand()
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
-const { isPanelExpanded: isChatPanelExpanded, toggleChatPanel } = useChatPanel()
+const { isPanelExpanded: isChatPanelExpanded, hasBaseContext: hasChatBaseContext, toggleChatPanel } = useChatPanel()
 
 const { blockAiChat, showUpgradeToUseAiChat } = useEeConfig()
 
@@ -294,7 +294,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
 
-      <DashboardMiniSidebarItemWrapper v-if="isEeUI && isChatEnabled">
+      <DashboardMiniSidebarItemWrapper v-if="isEeUI && isChatEnabled && hasChatBaseContext">
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.aiChat') }} {{ renderCmdOrCtrlKey(true) }} ⇧ A</div>
@@ -306,7 +306,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
             @click="handleChatToggle"
           >
             <div class="nc-mini-sidebar-btn" :class="{ active: isChatPanelExpanded && !blockAiChat }">
-              <GeneralIcon icon="ncMessageSquare" class="h-4 w-4" />
+              <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
             </div>
             <LazyPaymentUpgradeBadge
               :feature="PlanFeatureTypes.FEATURE_AI_CHAT"

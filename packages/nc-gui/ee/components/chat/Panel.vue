@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { Pane } from 'splitpanes'
-import 'splitpanes/dist/splitpanes.css'
 import type { ChatContentBlock } from 'nocodb-sdk'
 import { ChatMessageRole, ChatToolCallStatus } from 'nocodb-sdk'
 
-const { isPanelExpanded, chatPanelSize } = useChatPanel()
+const { isPanelExpanded, chatPanelWidth, isResizing, startResize } = useChatPanel()
 
 const chatStore = useChatStore()
 
@@ -17,11 +15,8 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const isReady = ref(false)
-
 const messageListRef = ref<HTMLDivElement>()
 
-onMounted(() => chatStore.initChatSocket())
 onUnmounted(() => chatStore.destroyChatSocket())
 
 const hasInitialized = ref(false)
@@ -75,28 +70,6 @@ const pendingUserInput = computed(() => {
   return null
 })
 
-const panelSize = computed(() => {
-  if (isPanelExpanded.value) {
-    return chatPanelSize.value
-  }
-  return 0
-})
-
-defineExpose({
-  onReady: () => {
-    isReady.value = true
-  },
-  isReady,
-})
-
-watch(isPanelExpanded, (newValue) => {
-  if (newValue && !isReady.value) {
-    setTimeout(() => {
-      isReady.value = true
-    }, 300)
-  }
-})
-
 const scrollToBottom = () => {
   nextTick(() => {
     if (messageListRef.value) {
@@ -109,25 +82,26 @@ const scrollToBottom = () => {
 watch(() => activeMessages.value.length, scrollToBottom)
 watch(() => activeStreamingParts.value?.length, scrollToBottom)
 
-// Initialize: load sessions when panel opens
+// Initialize: ensure socket listener and load sessions when panel opens and base is ready
 watch(
-  isPanelExpanded,
-  async (expanded) => {
-    if (expanded && base.value?.id && !hasInitialized.value) {
-      hasInitialized.value = true
-      await chatStore.loadSessions(base.value.id)
+  [isPanelExpanded, () => base.value?.id],
+  async ([expanded, baseId], [, oldBaseId]) => {
+    if (baseId && baseId !== oldBaseId) {
+      // Base changed — reset and re-init
+      hasInitialized.value = false
+      chatStore.reset()
+    }
+
+    if (expanded && baseId) {
+      chatStore.initChatSocket()
+
+      if (!hasInitialized.value) {
+        hasInitialized.value = true
+        await chatStore.loadSessions(baseId)
+      }
     }
   },
   { immediate: true },
-)
-
-// Reset initialization when base changes
-watch(
-  () => base.value?.id,
-  () => {
-    hasInitialized.value = false
-    chatStore.reset()
-  },
 )
 
 // Load messages when active session changes
@@ -204,24 +178,20 @@ const handleDeny = async (messageId: string, toolCallId: string) => {
 </script>
 
 <template>
-  <Pane
-    v-show="isPanelExpanded || isReady"
-    :size="panelSize"
-    max-size="60%"
-    class="nc-chat-pane"
-    :style="
-      !isReady
-        ? {
-            maxWidth: `${chatPanelSize}%`,
-          }
-        : {}
-    "
-  >
-    <Transition name="layout" :duration="150">
-      <div v-show="isPanelExpanded" class="flex flex-col h-full">
+  <Transition name="nc-chat-slide">
+    <div
+      v-show="isPanelExpanded"
+      class="nc-chat-panel"
+      :class="{ 'nc-chat-panel-resizing': isResizing }"
+      :style="{ width: `${chatPanelWidth}px` }"
+    >
+      <!-- Resize handle -->
+      <div class="nc-chat-resize-handle" @mousedown="startResize" />
+
+      <div class="flex flex-col h-full min-w-0">
         <!-- Header -->
         <div
-          class="h-[var(--toolbar-height)] flex items-center justify-between gap-2 px-3 border-b-1 border-nc-border-gray-medium bg-nc-bg-default"
+          class="h-[var(--topbar-height)] flex items-center justify-between gap-2 px-3 border-b-1 border-nc-border-gray-medium bg-nc-bg-default flex-none"
         >
           <!-- Left: icon + session switcher -->
           <div class="flex items-center gap-1.5 min-w-0">
@@ -343,15 +313,51 @@ const handleDeny = async (messageId: string, toolCallId: string) => {
         <!-- Input -->
         <ChatInput :disabled="isSendingMessage" @send="handleSend" />
       </div>
-    </Transition>
-  </Pane>
+    </div>
+  </Transition>
 </template>
 
 <style lang="scss" scoped>
-.nc-chat-pane {
-  @apply flex flex-col bg-nc-bg-gray-extralight rounded-l-xl border-1 border-nc-border-gray-medium z-30 -mt-1px;
+.nc-chat-panel {
+  @apply fixed top-0 right-0 h-full flex flex-col bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium;
 
+  z-index: 100;
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
+}
+
+.nc-chat-slide-enter-active,
+.nc-chat-slide-leave-active {
+  transition: opacity 150ms ease;
+}
+
+.nc-chat-slide-enter-from,
+.nc-chat-slide-leave-to {
+  opacity: 0;
+}
+
+.nc-chat-resize-handle {
+  @apply absolute top-0 h-full cursor-col-resize z-50;
+  left: -4px;
+  width: 12px;
+
+  &::before {
+    content: '';
+    @apply absolute top-0 h-full w-0.5 rounded-full;
+    left: 4px;
+    opacity: 0;
+    background-color: var(--nc-border-gray-medium);
+    transition: opacity 150ms ease, width 150ms ease;
+  }
+
+  &:hover::before {
+    opacity: 1;
+    width: 3px;
+  }
+}
+
+.nc-chat-panel-resizing .nc-chat-resize-handle::before {
+  @apply bg-nc-border-gray-medium;
+  width: 3px;
 }
 
 .nc-chat-session-menu {

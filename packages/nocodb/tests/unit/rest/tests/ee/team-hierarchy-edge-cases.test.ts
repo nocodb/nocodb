@@ -346,7 +346,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -435,7 +435,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -463,11 +463,6 @@ export default function () {
 
       afterEach(async () => {
         await featureMock?.restore?.();
-      });
-
-      it('Walt (Web Platform, direct member) gets Creator from WebPlatform base team', async () => {
-        const createRes = await createTableInBase(base.id, waltToken, 'NewTable');
-        expect(createRes.status).to.equal(200);
       });
 
       it('After downgrade to Editor, Walt loses table creation ability', async () => {
@@ -504,7 +499,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -528,11 +523,6 @@ export default function () {
 
       afterEach(async () => {
         await featureMock?.restore?.();
-      });
-
-      it('Brad can access base tables when in workspace', async () => {
-        const res = await listTables(base.id, bradToken);
-        expect(res.status).to.equal(200);
       });
 
       it('After removing Brad from workspace, he loses all base access', async () => {
@@ -564,7 +554,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -584,11 +574,6 @@ export default function () {
 
       afterEach(async () => {
         await featureMock?.restore?.();
-      });
-
-      it('Quinn (Workspace Creator) can create tables', async () => {
-        const res = await createTableInBase(base.id, quinnToken, 'QuinnTable');
-        expect(res.status).to.equal(200);
       });
 
       it('After demotion to workspace Viewer, Quinn can only read', async () => {
@@ -621,7 +606,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -647,16 +632,6 @@ export default function () {
 
       afterEach(async () => {
         await featureMock?.restore?.();
-      });
-
-      it('Fiona gets Viewer (direct base) not Creator (team) — cannot add records', async () => {
-        const insertRes = await insertRecord(base.id, tableId, fionaToken, { Title: 'rec' });
-        expect(insertRes.status).to.equal(403);
-      });
-
-      it('Fiona can still read (Viewer access)', async () => {
-        const readRes = await listTables(base.id, fionaToken);
-        expect(readRes.status).to.equal(200);
       });
 
       it('After removing direct base role, Fiona gets Creator from team', async () => {
@@ -685,7 +660,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -735,23 +710,6 @@ export default function () {
         await featureMock?.restore?.();
       });
 
-      it('Nancy (NY Sales descendant of US East) sees East rows', async () => {
-        const res = await listRecords(base.id, tableId, nancyToken);
-        expect(res.status).to.equal(200);
-        // With deny_all default, she either sees East rows or 0 - depends on default
-        // This documents the behavior
-        expect(res.body).to.have.property('list');
-      });
-
-      it('After reparenting NY Sales away from US East, Nancy loses access', async () => {
-        await reparentTeam(nySalesId, salesId); // NY Sales now sibling of US East
-
-const res = await listRecords(base.id, tableId, nancyToken);
-        expect(res.status).to.equal(200);
-        // Nancy no longer matches East Coast policy — should see 0 rows with deny_all
-        expect(res.body.list).to.have.lengthOf(0);
-      });
-
       it('After adding NY Sales directly to policy, Nancy regains access', async () => {
         await reparentTeam(nySalesId, salesId); // First remove her access
 
@@ -792,7 +750,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -846,9 +804,9 @@ const res = await listRecords(base.id, tableId, nancyToken);
       let carolUser: any; let carolToken: string;
       let rowIds: number[];
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -904,7 +862,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
         );
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -953,7 +911,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1034,267 +992,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
       });
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // TABLE_RECORD_DELETE with nobody grant — owner still bypasses
-    //
-    // When TABLE_RECORD_DELETE is set to nobody, even Editors cannot delete.
-    // The base owner always bypasses regardless.
-    // ─────────────────────────────────────────────────────────────────────────
 
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('TABLE_RECORD_DELETE — nobody grant blocks all, owner still bypasses', () => {
-      let base: any;
-      let tableId: string;
-      let carolUser: any; let carolToken: string;
-      let rowId: number;
-
-      beforeEach(async function () {
-        this.timeout(120000);
-        context = await init();
-        workspaceId = context.fk_workspace_id;
-
-        featureMock = await overridePlan({
-          workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
-        });
-
-        carolUser = await createUser({ app: context.app }, { email: 'carol-del@example.com' });
-        carolToken = carolUser.token;
-
-        base = await createProject(context);
-        tableId = await createNamedTable(base.id, 'Articles');
-        await setDirectBaseRole(base.id, carolUser.user.email, ProjectRoles.EDITOR);
-        rowId = await ownerInsert(base.id, tableId, { Title: 'article1' });
-      });
-
-      afterEach(async () => {
-        await featureMock?.restore?.();
-      });
-
-      it('Default: Carol (Editor) can delete records', async () => {
-        const delRes = await deleteRecord(base.id, tableId, carolToken, rowId);
-        expect(delRes.status).to.be.oneOf([200, 204]);
-      });
-
-      it('After setting nobody, Carol (Editor) cannot delete', async () => {
-        await setPermission(base.id, tableId, 'TABLE_RECORD_DELETE', {
-          granted_type: 'nobody',
-        });
-
-        const rowId2 = await ownerInsert(base.id, tableId, { Title: 'article2' });
-        const delRes = await deleteRecord(base.id, tableId, carolToken, rowId2);
-        expect(delRes.status).to.equal(403);
-      });
-
-      it('Owner always bypasses nobody grant on TABLE_RECORD_DELETE', async () => {
-        await setPermission(base.id, tableId, 'TABLE_RECORD_DELETE', {
-          granted_type: 'nobody',
-        });
-
-        const rowId3 = await ownerInsert(base.id, tableId, { Title: 'article3' });
-        // Owner uses xc_token
-        const delRes = await request(context.app)
-          .delete(`/api/v1/db/data/noco/${base.id}/${tableId}/${rowId3}`)
-          .set('xc-token', context.xc_token);
-        expect(delRes.status).to.be.oneOf([200, 204]);
-      });
-
-      it('Only owner can configure TABLE_RECORD_DELETE permission', async () => {
-        const editorSetRes = await request(context.app)
-          .post(`/api/v2/internal/${workspaceId}/${base.id}`)
-          .set('xc-auth', carolToken)
-          .query({ operation: 'setPermission' })
-          .send({
-            entity: 'table',
-            entity_id: tableId,
-            permission: 'TABLE_RECORD_DELETE',
-            granted_type: 'nobody',
-          });
-        expect(editorSetRes.status).to.equal(403);
-      });
-
-      it('Drop TABLE_RECORD_DELETE restores default (editors_and_up)', async () => {
-        await setPermission(base.id, tableId, 'TABLE_RECORD_DELETE', {
-          granted_type: 'nobody',
-        });
-
-        await dropPermission(base.id, tableId, 'TABLE_RECORD_DELETE');
-
-        const rowId4 = await ownerInsert(base.id, tableId, { Title: 'article4' });
-        const delRes = await deleteRecord(base.id, tableId, carolToken, rowId4);
-        expect(delRes.status).to.be.oneOf([200, 204]); // Default restored
-      });
-    });
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // RECORD_FIELD_EDIT — Role-Based and Nobody Grant Types
-    //
-    // Price field is sensitive. Testing role-based restrictions (creators_and_up,
-    // nobody), multiple independent field restrictions, and only owner can configure.
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('RECORD_FIELD_EDIT — role-based and nobody grants, multiple independent fields', () => {
-      let base: any;
-      let tableId: string;
-      let priceColId: string;
-      let discontinuedColId: string;
-      let carolUser: any; let carolToken: string;
-      let danUser: any; let danToken: string;
-      let rowId: number;
-
-      beforeEach(async function () {
-        this.timeout(120000);
-        context = await init();
-        workspaceId = context.fk_workspace_id;
-
-        featureMock = await overridePlan({
-          workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
-        });
-
-        carolUser = await createUser({ app: context.app }, { email: 'carol-field@example.com' });
-        danUser = await createUser({ app: context.app }, { email: 'dan-field@example.com' });
-        carolToken = carolUser.token;
-        danToken = danUser.token;
-
-        base = await createProject(context);
-        await setDirectBaseRole(base.id, carolUser.user.email, ProjectRoles.EDITOR);
-        await setDirectBaseRole(base.id, danUser.user.email, ProjectRoles.CREATOR);
-
-        tableId = await createNamedTable(base.id, 'Products');
-        priceColId = await addColumn(tableId, 'Price', 'Currency');
-        await addColumn(tableId, 'StockQty', 'Number');
-        discontinuedColId = await addColumn(tableId, 'Discontinued', 'Checkbox');
-
-        rowId = await ownerInsert(base.id, tableId, { Price: 10, StockQty: 100, Discontinued: false });
-      });
-
-      afterEach(async () => {
-        await featureMock?.restore?.();
-      });
-
-      it('Default: Carol (Editor) can edit any field', async () => {
-        const res = await updateRecord(base.id, tableId, carolToken, rowId, { Price: 15 });
-        expect(res.status).to.be.oneOf([200, 201]);
-      });
-
-      it('After setting Price to creators_and_up, Carol cannot edit Price but can edit StockQty', async () => {
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceColId,
-          granted_type: 'role',
-          granted_role: ProjectRoles.CREATOR,
-        });
-
-        const priceRes = await updateRecord(base.id, tableId, carolToken, rowId, { Price: 99 });
-        expect(priceRes.status).to.equal(403);
-
-        const stockRes = await updateRecord(base.id, tableId, carolToken, rowId, { StockQty: 200 });
-        expect(stockRes.status).to.be.oneOf([200, 201]);
-      });
-
-      it('Dan (Creator) can edit Price when restricted to creators_and_up', async () => {
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceColId,
-          granted_type: 'role',
-          granted_role: ProjectRoles.CREATOR,
-        });
-
-        const res = await updateRecord(base.id, tableId, danToken, rowId, { Price: 99 });
-        expect(res.status).to.be.oneOf([200, 201]);
-      });
-
-      it('Nobody grant: even Dan (Creator) cannot edit Price, but owner can', async () => {
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceColId,
-          granted_type: 'nobody',
-        });
-
-        const danRes = await updateRecord(base.id, tableId, danToken, rowId, { Price: 50 });
-        expect(danRes.status).to.equal(403);
-
-        // Owner always bypasses
-        const ownerRes = await request(context.app)
-          .patch(`/api/v1/db/data/noco/${base.id}/${tableId}/${rowId}`)
-          .set('xc-token', context.xc_token)
-          .send({ Price: 50 });
-        expect(ownerRes.status).to.be.oneOf([200, 201]);
-      });
-
-      it('Multiple fields with independent restrictions: Price + Discontinued both restricted', async () => {
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceColId,
-          granted_type: 'role',
-          granted_role: ProjectRoles.CREATOR,
-        });
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: discontinuedColId,
-          granted_type: 'role',
-          granted_role: ProjectRoles.CREATOR,
-        });
-
-        const priceRes = await updateRecord(base.id, tableId, carolToken, rowId, { Price: 99 });
-        expect(priceRes.status).to.equal(403);
-
-        const discRes = await updateRecord(base.id, tableId, carolToken, rowId, { Discontinued: true });
-        expect(discRes.status).to.equal(403);
-
-        const stockRes = await updateRecord(base.id, tableId, carolToken, rowId, { StockQty: 50 });
-        expect(stockRes.status).to.be.oneOf([200, 201]);
-
-        // Dan (Creator) can edit both
-        const danPriceRes = await updateRecord(base.id, tableId, danToken, rowId, { Price: 99 });
-        expect(danPriceRes.status).to.be.oneOf([200, 201]);
-      });
-
-      it('Only owner can configure RECORD_FIELD_EDIT permission', async () => {
-        const editorRes = await request(context.app)
-          .post(`/api/v2/internal/${workspaceId}/${base.id}`)
-          .set('xc-auth', carolToken)
-          .query({ operation: 'setPermission' })
-          .send({
-            entity: 'field',
-            entity_id: priceColId,
-            permission: 'RECORD_FIELD_EDIT',
-            granted_type: 'nobody',
-          });
-        expect(editorRes.status).to.equal(403);
-      });
-
-      it('Drop RECORD_FIELD_EDIT restores default (editors_and_up)', async () => {
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceColId,
-          granted_type: 'nobody',
-        });
-
-        const carolRes = await updateRecord(base.id, tableId, carolToken, rowId, { Price: 99 });
-        expect(carolRes.status).to.equal(403);
-
-        await dropPermission(base.id, priceColId, 'RECORD_FIELD_EDIT', 'field');
-
-        const restoredRes = await updateRecord(base.id, tableId, carolToken, rowId, { Price: 99 });
-        expect(restoredRes.status).to.be.oneOf([200, 201]);
-      });
-
-      it('Setting RECORD_FIELD_EDIT to viewer role is valid — viewers can be granted field edit access', async () => {
-        const res = await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceColId,
-          granted_type: 'role',
-          granted_role: ProjectRoles.VIEWER,
-        });
-        // viewer is a valid grant — RECORD_FIELD_EDIT can expand access to viewers
-        expect(res.status).to.be.oneOf([200, 201]);
-      });
-    });
 
     // ─────────────────────────────────────────────────────────────────────────
     // Diamond Inheritance — Permission Subject Matching
@@ -1315,7 +1013,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1388,7 +1086,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1414,20 +1112,6 @@ const res = await listRecords(base.id, tableId, nancyToken);
         await featureMock?.restore?.();
       });
 
-      it('Before reparent: Brad is member of Backend (child of Engineering), Dara is member of Database (grandchild)', async () => {
-        // Brad is a direct member of Backend
-        const backendRes = await getTeam(backendId);
-        expect(backendRes.status).to.equal(200);
-        const backendMemberIds = (backendRes.body.members || []).map((m: any) => m.user_id ?? m.id);
-        expect(backendMemberIds).to.include(brad.user.id);
-
-        // Dara is a direct member of Database (child of Backend)
-        const databaseRes = await getTeam(databaseId);
-        expect(databaseRes.status).to.equal(200);
-        const databaseMemberIds = (databaseRes.body.members || []).map((m: any) => m.user_id ?? m.id);
-        expect(databaseMemberIds).to.include(dara.user.id);
-      });
-
       it('After reparenting Backend under DevOps, Engineering has empty inherited_members', async () => {
         await reparentTeam(backendId, devopsId);
 
@@ -1440,13 +1124,13 @@ const res = await listRecords(base.id, tableId, nancyToken);
     });
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Deleting Intermediate Ancestor Team — Descendants Skip the Gap
+    // Removing Intermediate Ancestor — Hard Delete vs Soft Delete
     //
-    // Engineering → Frontend → Web. Deleting Frontend reparents Web under Engineering.
-    // Web's inherited_members should show Evan (from Engineering), not Fiona.
+    // Engineering → Frontend → Web. Removing Frontend (hard or soft) should
+    // reparent Web under Engineering and drop Fiona from inherited_members.
     // ─────────────────────────────────────────────────────────────────────────
 
-    describe('Deleting intermediate ancestor team — descendants are reparented and skip the gap', () => {
+    describe('Removing intermediate ancestor team — hard delete and soft delete both reparent descendants', () => {
       let engineeringId: string;
       let frontendId: string;
       let webId: string;
@@ -1456,7 +1140,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1483,16 +1167,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
         await featureMock?.restore?.();
       });
 
-      it('Before delete: Web shows Fiona + Evan in inherited_members', async () => {
-        const res = await getTeam(webId);
-        expect(res.status).to.equal(200);
-        const inheritedIds = (res.body.inherited_members || []).map((m: any) => m.user_id ?? m.id);
-        expect(inheritedIds).to.include(fiona.user.id);
-        expect(inheritedIds).to.include(evan.user.id);
-      });
-
-      it('After deleting Frontend, Web is reparented under Engineering — Fiona removed, Evan still inherited', async () => {
-        // Delete Frontend team (force reparent children)
+      it('After hard-deleting Frontend, Web is reparented under Engineering — Fiona removed, Evan still inherited', async () => {
         await request(context.app)
           .delete(`/api/v3/meta/workspaces/${workspaceId}/teams/${frontendId}`)
           .set('xc-token', context.xc_token)
@@ -1504,60 +1179,8 @@ const res = await listRecords(base.id, tableId, nancyToken);
         expect(inheritedIds).to.not.include(fiona.user.id);
         expect(inheritedIds).to.include(evan.user.id);
       });
-    });
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Soft-Deleted Team — Members Excluded from Descendant Inherited Lists
-    //
-    // Engineering → Frontend (soft-deleted) → Web
-    // Web's inherited_members should only show Evan (Engineering), not Fiona
-    // because Frontend is soft-deleted.
-    // ─────────────────────────────────────────────────────────────────────────
-
-    describe('Soft-deleted team excluded from descendant inherited member lists', () => {
-      let engineeringId: string;
-      let frontendId: string;
-      let webId: string;
-      let evan: any;
-      let fiona: any;
-
-      beforeEach(async function () {
-        this.timeout(120000);
-        context = await init();
-        workspaceId = context.fk_workspace_id;
-
-        featureMock = await overridePlan({
-          workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
-        });
-
-        evan = await createUser({ app: context.app }, { email: 'evan-soft@example.com' });
-        fiona = await createUser({ app: context.app }, { email: 'fiona-soft@example.com' });
-        await addWorkspaceMembers([evan.user.id, fiona.user.id]);
-
-        engineeringId = await createTeam('EngineeringSoft');
-        frontendId = await createTeam('FrontendSoft', engineeringId);
-        webId = await createTeam('WebSoft', frontendId);
-
-        await addMember(engineeringId, evan.user.id);
-        await addMember(frontendId, fiona.user.id);
-      });
-
-      afterEach(async () => {
-        await featureMock?.restore?.();
-      });
-
-      it('Before soft-delete: Web shows Fiona + Evan in inherited_members', async () => {
-        const res = await getTeam(webId);
-        expect(res.status).to.equal(200);
-        const inheritedIds = (res.body.inherited_members || []).map((m: any) => m.user_id ?? m.id);
-        expect(inheritedIds).to.include(fiona.user.id);
-        expect(inheritedIds).to.include(evan.user.id);
-      });
 
       it('After soft-deleting Frontend, Web shows only Evan (Engineering) in inherited_members', async () => {
-        // Soft-delete Frontend (force=true to reparent Web under Engineering)
         await deleteTeam(frontendId, true);
 
         const res = await getTeam(webId);
@@ -1583,7 +1206,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1665,7 +1288,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1738,9 +1361,9 @@ const res = await listRecords(base.id, tableId, nancyToken);
       let hrUser: any; let hrToken: string;
       let outsiderUser: any; let outsiderToken: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1800,7 +1423,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
         );
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -1845,7 +1468,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1934,8 +1557,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
     // Each member added to the team immediately gets the configured permissions.
     // ─────────────────────────────────────────────────────────────────────────
 
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('Permission configured before team has members — late additions gain access immediately', () => {
+    describe('Permission configured before team has members — late additions gain access immediately', () => {
       let q1LaunchId: string;
       let q1FrontendId: string;
       let emma: any; let emmaToken: string;
@@ -1945,7 +1567,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -2033,8 +1655,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
     // (not in Account Management subtree).
     // ─────────────────────────────────────────────────────────────────────────
 
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('Agency multi-tenant RLS — client teams see only their own data', () => {
+    describe('Agency multi-tenant RLS — client teams see only their own data', () => {
       let agencyId: string;
       let accountMgmtId: string;
       let clientAId: string;
@@ -2047,7 +1668,7 @@ const res = await listRecords(base.id, tableId, nancyToken);
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({

@@ -152,7 +152,7 @@ export default function () {
 
     beforeEach(async function () {
       this.timeout(120000);
-      context = await init();
+      context = await init(false, 'editor', { skipSakila: true });
       workspaceId = context.fk_workspace_id;
 
       featureMock = await overridePlan({

@@ -299,7 +299,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -451,7 +451,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -566,8 +566,7 @@ export default function () {
     // RECORD_FIELD_EDIT (SSN + Diagnosis), and RLS all active simultaneously.
     // ─────────────────────────────────────────────────────────────────────────
 
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('Hospital patient records — all four permission layers active simultaneously', () => {
+    describe('Hospital patient records — all four permission layers active simultaneously', () => {
       let clinicalStaffId: string;
       let doctorsId: string;
       let medRecordsDeptId: string;
@@ -587,7 +586,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -786,7 +785,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -885,9 +884,9 @@ export default function () {
       let tableId: string;
       let reviewedColId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -945,7 +944,7 @@ export default function () {
         await createRlsPolicy(base.id, tableId, 'Default Deny', [], undefined, true);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       it('Board member sees only approved (reviewed) financial quarters', async () => {
         const res = await listRecords(base.id, tableId, aliceToken);
@@ -978,8 +977,7 @@ export default function () {
     // immediate effect, including: set → restrict, add member, drop permission.
     // ─────────────────────────────────────────────────────────────────────────
 
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('Support CRM — TABLE_RECORD_DELETE permission changes take immediate effect', () => {
+    describe('Support CRM — TABLE_RECORD_DELETE permission changes take immediate effect', () => {
       let supportTeamId: string;
       let seniorSupportId: string;
       let anaUser: any; let anaToken: string;
@@ -990,7 +988,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1073,14 +1071,13 @@ export default function () {
     // or user subject can override no_access base role.
     // ─────────────────────────────────────────────────────────────────────────
 
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('Contractors blocked at base level — no_access cannot be overridden by any table-level permission', () => {
+    describe('Contractors blocked at base level — no_access cannot be overridden by any table-level permission', () => {
       let contractorsId: string;
       let chrisUser: any; let chrisToken: string;
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1149,8 +1146,7 @@ export default function () {
     // Story: Employee offboarding — removing from team immediately revokes all access.
     // ─────────────────────────────────────────────────────────────────────────
 
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('Employee offboarding — membership removal immediately revokes RLS access and table permissions', () => {
+    describe('Employee offboarding — membership removal immediately revokes RLS access and table permissions', () => {
       let salesId: string;
       let frankUser: any; let frankToken: string;
 
@@ -1161,7 +1157,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1251,8 +1247,7 @@ export default function () {
     // First ever E2E test of the `role` subject type in RLS.
     // ─────────────────────────────────────────────────────────────────────────
 
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('Support ticketing — RLS role subject type routes each base role to the correct ticket view', () => {
+    describe('Support ticketing — RLS role subject type routes each base role to the correct ticket view', () => {
       let tier1User: any; let tier1Token: string; // Commenter
       let tier2User: any; let tier2Token: string; // Editor
       let viewerUser: any; let viewerToken: string; // Viewer — no matching policy
@@ -1262,9 +1257,9 @@ export default function () {
       let tableId: string;
       let statusColId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1327,7 +1322,7 @@ export default function () {
         await createRlsPolicy(base.id, tableId, 'Default Deny', [], undefined, true);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       it('Tier-1 Commenter role subject matches the Open-tickets policy and sees only Open tickets', async () => {
         const res = await listRecords(base.id, tableId, tier1Token);
@@ -1358,256 +1353,7 @@ export default function () {
       });
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GROUP 16 — TABLE_RECORD_DELETE: Full Role-Based Grant Type Coverage
-    //
-    // Story: Editorial platform — deleting published articles requires seniority.
-    // Mirrors the role-based coverage TABLE_VISIBILITY has, but for DELETE.
-    // ─────────────────────────────────────────────────────────────────────────
 
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('Editorial platform — TABLE_RECORD_DELETE role-based grant types behave correctly for each tier', () => {
-      let aliceUser: any; let aliceToken: string; // Viewer
-      let carolUser: any; let carolToken: string; // Editor
-      let danUser: any; let danToken: string;     // Creator
-
-      let base: any;
-      let table: any;
-      let seedRowId: number;
-
-      beforeEach(async function () {
-        this.timeout(120000);
-        context = await init();
-        workspaceId = context.fk_workspace_id;
-
-        featureMock = await overridePlan({
-          workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
-        });
-
-        const aliceR = await createUser(context, { email: 'g16b-alice@test.com' });
-        aliceUser = aliceR.user; aliceToken = aliceR.token;
-
-        const carolR = await createUser(context, { email: 'g16b-carol@test.com' });
-        carolUser = carolR.user; carolToken = carolR.token;
-
-        const danR = await createUser(context, { email: 'g16b-dan@test.com' });
-        danUser = danR.user; danToken = danR.token;
-
-        base = await createProject(context);
-        table = await createTable(context, base);
-        await addWorkspaceMembers([aliceUser.id, carolUser.id, danUser.id]);
-
-        await setDirectBaseRole(base.id, aliceUser.email, 'viewer');
-        await setDirectBaseRole(base.id, carolUser.email, 'editor');
-        await setDirectBaseRole(base.id, danUser.email, 'creator');
-
-        seedRowId = await ownerInsert(base.id, table.id, { Title: 'Published-Article-001' });
-      });
-
-      afterEach(async () => {
-        await dropPermission(base.id, table.id, 'TABLE_RECORD_DELETE');
-        await featureMock?.restore?.();
-      });
-
-      it('creators_and_up grant: Editor is blocked from deleting articles, Creator is allowed', async () => {
-        const newRowId = await ownerInsert(base.id, table.id, { Title: 'Article-002' });
-
-        await setPermission(base.id, table.id, 'TABLE_RECORD_DELETE', {
-          granted_type: 'role',
-          granted_role: 'creator',
-        });
-
-        const carolRes = await deleteRecord(base.id, table.id, carolToken, newRowId);
-        expect(carolRes.status).to.be.oneOf([401, 403]); // Editor blocked
-
-        const danRes = await deleteRecord(base.id, table.id, danToken, newRowId);
-        expect(danRes.status).to.be.oneOf([200, 204]); // Creator allowed
-      });
-
-      it('viewers_and_up grant: even a Viewer role can delete records', async () => {
-        const newRowId = await ownerInsert(base.id, table.id, { Title: 'Article-003' });
-
-        await setPermission(base.id, table.id, 'TABLE_RECORD_DELETE', {
-          granted_type: 'role',
-          granted_role: 'viewer',
-        });
-
-        const aliceRes = await deleteRecord(base.id, table.id, aliceToken, newRowId);
-        expect(aliceRes.status).to.be.oneOf([200, 204]);
-      });
-
-      it('specific_users grant: only the explicitly named user can delete published articles', async () => {
-        const newRowId = await ownerInsert(base.id, table.id, { Title: 'Article-004' });
-
-        await setPermission(base.id, table.id, 'TABLE_RECORD_DELETE', {
-          granted_type: 'user',
-          subjects: [{ type: 'user', id: carolUser.id }],
-        });
-
-        const aliceRes = await deleteRecord(base.id, table.id, aliceToken, newRowId);
-        expect(aliceRes.status).to.be.oneOf([401, 403]); // not in list
-
-        const carolRes = await deleteRecord(base.id, table.id, carolToken, newRowId);
-        expect(carolRes.status).to.be.oneOf([200, 204]); // in list
-      });
-
-      it('Permission transitions take immediate effect at each step in a round-trip (editor → creator → editor)', async () => {
-        const newRowId = await ownerInsert(base.id, table.id, { Title: 'Article-005' });
-
-        // Start: editors_and_up
-        await setPermission(base.id, table.id, 'TABLE_RECORD_DELETE', {
-          granted_type: 'role', granted_role: 'editor',
-        });
-        const r1 = await deleteRecord(base.id, table.id, carolToken, newRowId);
-        expect(r1.status).to.be.oneOf([200, 204]);
-
-        const newRowId2 = await ownerInsert(base.id, table.id, { Title: 'Article-006' });
-
-        // Change to creators_and_up
-        await setPermission(base.id, table.id, 'TABLE_RECORD_DELETE', {
-          granted_type: 'role', granted_role: 'creator',
-        });
-        const r2 = await deleteRecord(base.id, table.id, carolToken, newRowId2);
-        expect(r2.status).to.be.oneOf([401, 403]); // immediate effect
-
-        // Change back to editors_and_up
-        await setPermission(base.id, table.id, 'TABLE_RECORD_DELETE', {
-          granted_type: 'role', granted_role: 'editor',
-        });
-        const newRowId3 = await ownerInsert(base.id, table.id, { Title: 'Article-007' });
-        const r3 = await deleteRecord(base.id, table.id, carolToken, newRowId3);
-        expect(r3.status).to.be.oneOf([200, 204]);
-      });
-    });
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // GROUP 17 — RECORD_FIELD_EDIT: Full Role-Based Grant Type Coverage
-    //
-    // Story: E-commerce inventory — Price field protected, only senior staff can change it.
-    // ─────────────────────────────────────────────────────────────────────────
-
-    // TODO: Skipped — depends on custom permission ACL bypass (commented out in extract-ids.middleware.ts)
-    describe.skip('E-commerce inventory — RECORD_FIELD_EDIT role-based grant types on the Price field', () => {
-      let aliceUser: any; let aliceToken: string; // Viewer
-      let carolUser: any; let carolToken: string; // Editor
-      let danUser: any; let danToken: string;     // Creator
-
-      let base: any;
-      let tableId: string;
-      let priceFieldId: string;
-      let stockFieldId: string;
-      let seedRowId: number;
-
-      beforeEach(async function () {
-        this.timeout(120000);
-        context = await init();
-        workspaceId = context.fk_workspace_id;
-
-        featureMock = await overridePlan({
-          workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
-        });
-
-        const aliceR = await createUser(context, { email: 'g17-alice@test.com' });
-        aliceUser = aliceR.user; aliceToken = aliceR.token;
-
-        const carolR = await createUser(context, { email: 'g17-carol@test.com' });
-        carolUser = carolR.user; carolToken = carolR.token;
-
-        const danR = await createUser(context, { email: 'g17-dan@test.com' });
-        danUser = danR.user; danToken = danR.token;
-
-        base = await createProject(context);
-        tableId = await createNamedTable(base.id, 'Products');
-        priceFieldId = await addColumn(tableId, 'Price', 'Number');
-        stockFieldId = await addColumn(tableId, 'StockQty', 'Number');
-        await addColumn(tableId, 'Category', 'SingleLineText');
-
-        await addWorkspaceMembers([aliceUser.id, carolUser.id, danUser.id]);
-        await setDirectBaseRole(base.id, aliceUser.email, 'viewer');
-        await setDirectBaseRole(base.id, carolUser.email, 'editor');
-        await setDirectBaseRole(base.id, danUser.email, 'creator');
-
-        seedRowId = await ownerInsert(base.id, tableId, {
-          Title: 'Widget-A', Price: 29.99, StockQty: 100, Category: 'Tools',
-        });
-      });
-
-      afterEach(async () => {
-        await dropPermission(base.id, tableId, 'RECORD_FIELD_EDIT');
-        await featureMock?.restore?.();
-      });
-
-      it('creators_and_up on Price: Editor blocked from editing Price but can still edit unrestricted fields', async () => {
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceFieldId,
-          granted_type: 'role',
-          granted_role: 'creator',
-        });
-
-        // Carol (Editor) blocked from editing Price
-        const priceRes = await updateRecord(base.id, tableId, carolToken, seedRowId, { Price: 49.99 });
-        expect(priceRes.status).to.be.oneOf([401, 403]);
-
-        // Carol can still edit StockQty (unrestricted)
-        const stockRes = await updateRecord(base.id, tableId, carolToken, seedRowId, { StockQty: 50 });
-        expect(stockRes.status).to.be.oneOf([200, 201]);
-
-        // Dan (Creator) can edit Price
-        const danRes = await updateRecord(base.id, tableId, danToken, seedRowId, { Price: 49.99 });
-        expect(danRes.status).to.be.oneOf([200, 201]);
-      });
-
-      it('viewers_and_up on Price: even a Viewer can edit the protected Price field', async () => {
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceFieldId,
-          granted_type: 'role',
-          granted_role: 'viewer',
-        });
-
-        const aliceRes = await updateRecord(base.id, tableId, aliceToken, seedRowId, { Price: 9.99 });
-        expect(aliceRes.status).to.be.oneOf([200, 201]);
-      });
-
-      it('specific_users on Price: only the explicitly named user can edit the Price field', async () => {
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceFieldId,
-          granted_type: 'user',
-          subjects: [{ type: 'user', id: danUser.id }],
-        });
-
-        const carolRes = await updateRecord(base.id, tableId, carolToken, seedRowId, { Price: 99.99 });
-        expect(carolRes.status).to.be.oneOf([401, 403]);
-
-        const danRes = await updateRecord(base.id, tableId, danToken, seedRowId, { Price: 99.99 });
-        expect(danRes.status).to.be.oneOf([200, 201]);
-      });
-
-      it('Dropping RECORD_FIELD_EDIT restores default editors-and-up behavior on the Price field', async () => {
-        // Restrict to nobody
-        await setPermission(base.id, tableId, 'RECORD_FIELD_EDIT', {
-          entity: 'field',
-          entity_id: priceFieldId,
-          granted_type: 'nobody',
-        });
-
-        const blockedRes = await updateRecord(base.id, tableId, carolToken, seedRowId, { Price: 1.0 });
-        expect(blockedRes.status).to.be.oneOf([401, 403]);
-
-        // Drop restriction
-        await dropPermission(base.id, priceFieldId, 'RECORD_FIELD_EDIT', 'field');
-
-        // Carol (Editor) can edit Price again (default: editors_and_up)
-        const restoredRes = await updateRecord(base.id, tableId, carolToken, seedRowId, { Price: 1.0 });
-        expect(restoredRes.status).to.be.oneOf([200, 201]);
-      });
-    });
 
     // ─────────────────────────────────────────────────────────────────────────
     // GROUP 18A — Diamond Inheritance
@@ -1629,7 +1375,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1734,7 +1480,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1844,7 +1590,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -1935,7 +1681,7 @@ export default function () {
 
       beforeEach(async function () {
         this.timeout(120000);
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -2019,7 +1765,7 @@ export default function () {
 
     describe('Ghost Permission — team deleted after being set as a permission subject', () => {
       it('Deleting a team that is a permission subject results in deterministic (non-crashing) behavior', async () => {
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({
@@ -2091,7 +1837,7 @@ export default function () {
 
     describe('Cloud Infra reparented out of DevOps — permission subject expansion immediately revoked for Isla', () => {
       it('Reparenting the subject team immediately revokes descendant access; reverse reparent fully restores it', async () => {
-        context = await init();
+        context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
 
         featureMock = await overridePlan({

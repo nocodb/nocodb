@@ -2212,7 +2212,7 @@ export class ColumnsService implements IColumnsService {
         );
       }
 
-      const originalCdf = colBody.cdf;
+      const originalColBody = { ...colBody };
       colBody = await getColumnPropsFromUIDT(colBody, source);
 
       // AutoNumber columns are read-only — prevent manual updates via data API
@@ -2220,12 +2220,15 @@ export class ColumnsService implements IColumnsService {
         colBody.readonly = true;
       }
 
-      if (
-        typeof colBody.cdf !== 'undefined' &&
-        typeof originalCdf === 'undefined'
-      ) {
-        // do not override cdf when request is undefined
-        colBody.cdf = originalCdf;
+      // set the request cdf only if it exists in request
+      if ('cdf' in originalColBody) {
+        colBody.cdf = originalColBody.cdf;
+      }
+      // otherwise, we remove the default preset cdf,
+      // since it isn't needed during column update (but do at column add)
+      // if we don't, then the cdf will be overridden unintentionally
+      else {
+        delete colBody.cdf;
       }
 
       await this.updateMetaAndDatabase(context, {

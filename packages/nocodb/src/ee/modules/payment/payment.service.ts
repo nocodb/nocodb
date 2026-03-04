@@ -1220,6 +1220,8 @@ export class PaymentService {
     ncMeta = Noco.ncMeta,
     initiator?: string,
   ) {
+    if (!process.env.NC_STRIPE_SECRET_KEY) return;
+
     try {
       const workspaceOrOrg = await getWorkspaceOrOrg(workspaceOrOrgId, ncMeta);
       if (!workspaceOrOrg) return;

@@ -3,6 +3,7 @@ import { RelationTypes, UITypes } from '~/lib';
 enum AuditV1OperationTypes {
   USER_SIGNUP = 'USER_SIGNUP',
   USER_SIGNIN = 'USER_SIGNIN',
+  USER_SIGNIN_FAILED = 'USER_SIGNIN_FAILED',
   USER_INVITE = 'USER_INVITE',
 
   WORKSPACE_USER_INVITE = 'WORKSPACE_USER_INVITE',
@@ -352,7 +353,16 @@ export type BulkAuditV1OperationTypes =
   | AuditV1OperationTypes.DATA_BULK_UPDATE
   | AuditV1OperationTypes.DATA_BULK_DELETE;
 
-export interface UserSigninPayload {}
+export interface UserSigninPayload {
+  provider?: string;
+  sso_client_type?: string;
+}
+
+export interface UserSigninFailedPayload {
+  email?: string;
+  provider?: string;
+  reason?: string;
+}
 
 export interface UserSignupPayload {}
 
@@ -1032,7 +1042,7 @@ export interface DataExportPayload {
   view_title: string;
   table_id: string;
   table_title: string;
-  export_type: 'excel' | 'csv';
+  export_type: 'excel' | 'csv' | 'json';
 }
 
 export interface DataImportPayload {
@@ -1326,7 +1336,11 @@ const descriptionTemplates = {
   [AuditV1OperationTypes.USER_SIGNUP]: (audit: AuditV1<UserSignupPayload>) =>
     `User '${audit.user}' signed up`,
   [AuditV1OperationTypes.USER_SIGNIN]: (audit: AuditV1<UserSigninPayload>) =>
-    `User '${audit.user}' signed in`,
+    `User '${audit.user}' signed in${audit.details.provider ? ` via ${audit.details.provider}` : ''}`,
+  [AuditV1OperationTypes.USER_SIGNIN_FAILED]: (
+    audit: AuditV1<UserSigninFailedPayload>
+  ) =>
+    `Failed sign-in attempt${audit.details.email ? ` for '${audit.details.email}'` : ''}${audit.details.provider ? ` via ${audit.details.provider}` : ''}${audit.details.reason ? ` - ${audit.details.reason}` : ''}`,
   [AuditV1OperationTypes.USER_INVITE]: (audit: AuditV1<UserInvitePayload>) =>
     `User '${audit.user}' invited '${audit.details.user_email}'`,
   [AuditV1OperationTypes.USER_PASSWORD_CHANGE]: (
@@ -1550,6 +1564,10 @@ const descriptionTemplates = {
     audit: AuditV1<RlsPolicyDeletePayload>
   ) =>
     `RLS policy '${audit.details.policy_id}' has been deleted from table '${audit.details.table_id}'`,
+  [AuditV1OperationTypes.DATA_EXPORT]: (audit: AuditV1<DataExportPayload>) =>
+    `User '${audit.user}' exported ${audit.details.export_type} from table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.DATA_IMPORT]: (audit: AuditV1<DataImportPayload>) =>
+    `User '${audit.user}' imported ${audit.details.import_type} into table '${audit.details.table_title}'`,
 };
 
 function auditDescription(audit: AuditV1) {

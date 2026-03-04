@@ -7,6 +7,8 @@ import {
 } from 'nocodb-sdk';
 import { AppHooksListenerService as AppHooksListenerServiceCE } from 'src/services/app-hooks-listener.service';
 import type {
+  UserSigninPayload,
+  UserSigninFailedPayload,
   APITokenCreatePayload,
   APITokenDeletePayload,
   BaseCreatePayload,
@@ -198,6 +200,7 @@ import type {
   UserPasswordResetEvent,
   UserProfileUpdateEvent,
   UserSigninEvent,
+  UserSigninFailedEvent,
   UserSignupEvent,
   ViewColumnUpdateEvent,
   ViewCreateEvent,
@@ -382,10 +385,40 @@ export class AppHooksListenerService
           param.req.user = param.user;
 
           await this.auditInsert(
-            await generateAuditV1Payload(AuditV1OperationTypes.USER_SIGNIN, {
-              context: param.context,
-              req: param.req,
-            }),
+            await generateAuditV1Payload<UserSigninPayload>(
+              AuditV1OperationTypes.USER_SIGNIN,
+              {
+                details: {
+                  provider: (param.user as any)?.provider,
+                  sso_client_type: (param.user as any)?.extra?.sso_client_type,
+                },
+                context: param.context,
+                req: param.req,
+                ...(((param.user as any)?.extra?.workspace_id)
+                  ? { fk_workspace_id: (param.user as any).extra.workspace_id }
+                  : {}),
+              },
+            ),
+          );
+        }
+        break;
+      case AppEvents.USER_SIGNIN_FAILED:
+        {
+          const param = data as UserSigninFailedEvent;
+
+          await this.auditInsert(
+            await generateAuditV1Payload<UserSigninFailedPayload>(
+              AuditV1OperationTypes.USER_SIGNIN_FAILED,
+              {
+                details: {
+                  email: param.email,
+                  provider: param.provider,
+                  reason: param.reason,
+                },
+                context: param.context,
+                req: param.req,
+              },
+            ),
           );
         }
         break;

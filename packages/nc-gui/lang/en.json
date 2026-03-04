@@ -1243,7 +1243,7 @@
     "aiChat": "AI Chat",
     "newChat": "New Chat",
     "recentChats": "Recent",
-    "chatWith": "Chat with your data",
+    "chatWith": "What can I help you build?",
     "mcpSetup": "MCP Setup",
     "mcpTokenVisibilityInfo": "Save your MCP Client Config",
     "mcpTokenVisibilityInfoDescription": "You can view your MCP client config only once—make sure to save it securely",
@@ -2476,7 +2476,7 @@
     "organizeViewsIntoSections": "Organize views into collapsible sections"
   },
   "placeholder": {
-    "askAnything": "Ask anything about your data...",
+    "askAnything": "Describe what you need in plain language",
     "somethingElse": "Something else",
     "searchWorkflows": "Search Workflows",
     "searchWorkspacesAndBases": "Search workspaces and bases...",
@@ -2567,9 +2567,9 @@
   "msg": {
     "noActionsAvailable": "No actions available",
     "chat": {
-      "starterDescribe": "What tables do I have?",
-      "starterRecords": "Show me the last 10 records",
-      "starterFilter": "Help me create a filter",
+      "starterDescribe": "Help me build a CRM from scratch",
+      "starterRecords": "Organize my data with views and filters",
+      "starterFilter": "Summarize what's in my base",
       "working": "Working\u2026",
       "showMore": "+{count} more",
       "showLess": "Show less",
@@ -2577,7 +2577,10 @@
       "toolInput": "Input",
       "toolOutput": "Output",
       "toolError": "Error",
-      "showMoreLines": "Show {count} more lines"
+      "showMoreLines": "Show {count} more lines",
+      "approveAllTools": "Approve All",
+      "denyAllTools": "Deny All",
+      "pendingApprovalCount": "{count} action requires approval | {count} actions require approval"
     },
     "autoNumberFieldInfo": "Automatically generates a unique incremented number for each record. Values are read-only and cannot be edited.",
     "selectAttachmentFieldDescription": "Which field would you like to upload these files to?",

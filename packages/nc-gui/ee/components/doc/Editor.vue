@@ -1035,8 +1035,8 @@ onBeforeUnmount(() => {
               <NcMenuItem
                 v-e="['c:doc:comments:toggle']"
                 @click="
-                  toggleCommentsPanel()
-                  isPageMenuOpen = false
+                  toggleCommentsPanel();
+                  isPageMenuOpen = false;
                 "
               >
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMessageCircle" />

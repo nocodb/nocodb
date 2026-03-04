@@ -126,6 +126,8 @@ export type { ReusableParams } from '~/services/columns.service.type';
 
 const deepClone = rfdc();
 
+const META_ONLY_COLUMN_PROPS = new Set(['description']);
+
 // todo: move
 export enum Altered {
   NEW_COLUMN = 1,
@@ -500,6 +502,13 @@ export class ColumnsService implements IColumnsService {
       await Column.update(context, param.columnId, {
         description: param.column.description,
       });
+    }
+    const payloadHasNonMetaProps = Object.keys(param.column).some(
+      (k) => !META_ONLY_COLUMN_PROPS.has(k),
+    );
+    if (!payloadHasNonMetaProps) {
+      await table.getColumns(context);
+      return table;
     }
 
     // These are the column types whose meta is allowed to be updated

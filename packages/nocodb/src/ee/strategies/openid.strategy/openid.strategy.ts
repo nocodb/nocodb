@@ -30,18 +30,19 @@ export class OpenidStrategy extends PassportStrategy(
     private usersService: UsersService,
     private appHooksService: AppHooksService,
   ) {
-    super(clientConfig, (_issuer, _subject, profile, done) =>
-      this.validate(_issuer, _subject, profile, done),
+    super(clientConfig, (req, _issuer, _subject, profile, done) =>
+      this.validate(req, _issuer, _subject, profile, done),
     );
   }
 
-  async validate(_issuer, _subject, profile, done) {
+  async validate(req, _issuer, _subject, profile, done) {
     const email = profile.email || profile?._json?.email;
 
     if (!email) {
       this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
         provider: 'openid',
         reason: 'User account is missing email id',
+        req,
       });
       return done({ msg: `User account is missing email id` });
     }
@@ -67,8 +68,7 @@ export class OpenidStrategy extends PassportStrategy(
               user_name: null,
               display_name: profile._json?.name,
               salt,
-              // todo: check if req available
-              req: null,
+              req,
             })
             .then((user) => {
               done(null, { ...sanitiseUserObj(user), provider: 'openid' });
@@ -78,6 +78,7 @@ export class OpenidStrategy extends PassportStrategy(
                 email,
                 provider: 'openid',
                 reason: 'Registration failed',
+                req,
               });
               done(e);
             });
@@ -88,6 +89,7 @@ export class OpenidStrategy extends PassportStrategy(
           email,
           provider: 'openid',
           reason: 'User lookup failed',
+          req,
         });
         return done(err);
       });
@@ -163,6 +165,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
 
     // OpenID Connect
     const clientConfig = {
+      passReqToCallback: true,
       issuer: process.env.NC_SSO_OIDC_ISSUER,
       authorizationURL: process.env.NC_SSO_OIDC_AUTHORIZATION_URL,
       tokenURL: process.env.NC_SSO_OIDC_TOKEN_URL,

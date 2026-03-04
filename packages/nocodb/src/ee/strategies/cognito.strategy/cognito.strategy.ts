@@ -11,7 +11,6 @@ import type { AppConfig } from '~/interface/config';
 import { sanitiseUserObj } from '~/utils';
 import { UsersService } from '~/services/users/users.service';
 import { User } from '~/models';
-import { NcError } from '~/helpers/catchError';
 import { isDisposableEmail } from '~/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
@@ -85,8 +84,10 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
             reason: 'Disposable email',
             req,
           });
-          NcError.badRequest(
-            'For the security and integrity of NocoDB platform, we require users to sign up with a permanent email address. Please provide a valid, long-term email address to continue.',
+          return callback(
+            new Error(
+              'For the security and integrity of NocoDB platform, we require users to sign up with a permanent email address. Please provide a valid, long-term email address to continue.',
+            ),
           );
         }
 

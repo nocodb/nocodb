@@ -4764,11 +4764,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (missingDisplayValues.length > 0) {
       for (let i = 0; i < missingDisplayValues.length; i += 100) {
-        const chunk = missingDisplayValues.slice(i * 100, (i + 1) * 100);
+        const chunk = missingDisplayValues.slice(i, i + 100);
 
         const displayValues = await this.list(
           {
             pks: chunk.map((auditObj) => auditObj.rowId).join(','),
+            fieldsSet: new Set(
+              [model.primaryKey?.title, displayValueColumn?.title].filter(
+                Boolean,
+              ),
+            ),
           },
           {
             limitOverride: chunk.length,
@@ -4786,11 +4791,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (missingRefDisplayValues.length > 0) {
       for (let i = 0; i < missingRefDisplayValues.length; i += 100) {
-        const chunk = missingRefDisplayValues.slice(i * 100, (i + 1) * 100);
+        const chunk = missingRefDisplayValues.slice(i, i + 100);
 
         const refDisplayValues = await refBaseModel.list(
           {
             pks: chunk.map((auditObj) => auditObj.refRowId).join(','),
+            fieldsSet: new Set(
+              [refModel.primaryKey?.title, refDisplayValueColumn?.title].filter(
+                Boolean,
+              ),
+            ),
           },
           {
             limitOverride: chunk.length,

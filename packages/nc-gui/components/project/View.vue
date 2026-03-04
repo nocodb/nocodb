@@ -103,6 +103,8 @@ const workflowCount = computed(() => {
 
 const projectPageTab = computed({
   get() {
+    if (props.showOverviewTab) return 'overview'
+
     return _projectPageTab.value
   },
   set(value) {
@@ -130,7 +132,7 @@ watch(
   () => route.value.query?.page,
   async (newVal, oldVal) => {
     // When tab is controlled by route path (admin pages), skip query-based logic
-    if (props.tab) return
+    if (props.tab || props.showOverviewTab) return
 
     if (!('baseId' in route.value.params)) return
     // if (route.value.name !== 'index-typeOrId-baseId-index-index') return
@@ -207,6 +209,8 @@ const settingsPageTitle = computed(() => {
 })
 
 watch(projectPageTab, () => {
+  if (props.showOverviewTab) return
+
   $e(`a:project:view:tab-change:${projectPageTab.value}`)
 
   // When tab is controlled by route path (settings pages), navigate to clean URL
@@ -234,6 +238,9 @@ watch(
     if (newTab) {
       projectPageTab.value = newTab
     }
+  },
+  {
+    immediate: true,
   },
 )
 
@@ -378,11 +385,11 @@ watch(
       <NcTabs
         v-model:active-key="projectPageTab"
         class="w-full h-full"
-        :class="{ 'hide-tabs': props.tab || projectPageTab === 'overview' }"
-        :tab-bar-style="props.tab || projectPageTab === 'overview' ? { display: 'none' } : undefined"
+        :class="{ 'hide-tabs': props.tab || showOverviewTab }"
+        :tab-bar-style="props.tab || showOverviewTab ? { display: 'none' } : undefined"
       >
         <a-tab-pane
-          v-if="!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode"
+          v-if="showOverviewTab || (!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode)"
           key="overview"
           class="nc-project-overview-tab-content"
         >

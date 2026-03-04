@@ -1,3 +1,3 @@
 <template>
-  <ProjectView />
+  <ProjectView show-overview-tab />
 </template>

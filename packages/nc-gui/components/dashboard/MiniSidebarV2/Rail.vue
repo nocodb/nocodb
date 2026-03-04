@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+
 interface NavItem {
   key: string
   icon: string
@@ -26,6 +28,8 @@ const sidebarStore = useSidebarStore()
 const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
+
+const { isUIAllowed, workspaceRoles } = useRoles()
 
 const themeIcon = computed(
   () =>
@@ -154,7 +158,11 @@ const mainItems = computed<NavItem[]>(() => [
           key: 'workflows',
           icon: 'ncAutomation',
           label: 'Workflows',
-          disabled: !hasAvailableBases.value,
+          disabled:
+            !hasAvailableBases.value ||
+            !isUIAllowed('scriptList', {
+              roles: resolvedProject.value?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles.value),
+            }),
           onClick: () => {
             onTabClick('workflows')
           },

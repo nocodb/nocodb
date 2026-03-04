@@ -47,11 +47,8 @@ const navigateToBaseSettings = (page: string) => {
 const activeBaseSettingsTab = computed(() => {
   if (activeSidebarTab.value !== 'settings') return ''
   const page = route.value.params.page as string
-  return page ? baseSettingsSlugToTab[page] || '' : ''
-})
 
-watchEffect(() => {
-  console.log("'activeBaseSettingsTab'", activeBaseSettingsTab.value)
+  return page ? baseSettingsSlugToTab[page] || '' : 'members'
 })
 
 // Use injected base role for immediate permission checks; load full roles in background

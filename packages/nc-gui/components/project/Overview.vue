@@ -77,7 +77,7 @@ const onCreateBaseClick = () => {
     </div>
 
     <div
-      class="flex flex-row gap-6 flex-wrap max-w-[1000px]"
+      class="nc-overview-actions flex flex-row gap-6 flex-wrap max-w-[1000px]"
       :class="{
         'pointer-events-none': base?.isLoading,
       }"
@@ -151,7 +151,22 @@ const onCreateBaseClick = () => {
       </template>
     </div>
 
+    <div v-if="!base.isLoading" class="nc-overview-empty-placeholder">
+      <NcEmptyPlaceholder :title="$t('msg.noActionsAvailable')" />
+    </div>
+
     <ProjectImportModal v-if="defaultBase" v-model:visible="isImportModalOpen" :source="defaultBase" />
     <LazyDashboardSettingsDataSourcesCreateBase v-if="isNewBaseModalOpen" v-model:open="isNewBaseModalOpen" is-modal />
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-overview-empty-placeholder {
+  @apply mt-10;
+  display: none;
+}
+
+.nc-overview-actions:empty ~ .nc-overview-empty-placeholder {
+  display: block;
+}
+</style>

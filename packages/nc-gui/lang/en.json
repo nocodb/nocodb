@@ -2554,6 +2554,7 @@
     "searchRecordTemplates": "Search record templates"
   },
   "msg": {
+    "noActionsAvailable": "No actions available",
     "autoNumberFieldInfo": "Automatically generates a unique incremented number for each record. Values are read-only and cannot be edited.",
     "selectAttachmentFieldDescription": "Which field would you like to upload these files to?",
     "replaceVersionAndGoLive": "Replace {version} and go live",

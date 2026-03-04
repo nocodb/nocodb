@@ -460,7 +460,11 @@ const setup = async ({
           console.error('Failed to parse local storage', e);
         }
 
-        if (initialLocalStorage?.token) return;
+        // In history-mode routing, page.goto() to a different path triggers a
+        // full page reload (unlike hash-mode where only the hash changed).
+        // After sign-out, token is null but the key exists in localStorage.
+        // Use 'in' check so we don't re-inject the admin token after sign-out.
+        if ('token' in initialLocalStorage) return;
 
         window.localStorage.setItem(
           'nocodb-gui-v2',

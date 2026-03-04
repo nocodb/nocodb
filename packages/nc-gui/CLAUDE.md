@@ -121,7 +121,7 @@ pnpm lint            # Lint + auto-fix
 
 ## Key Config
 
-- `nuxt.config.ts` — SSR disabled (`ssr: false`), hash-based routing
+- `nuxt.config.ts` — SSR disabled (`ssr: false`), history-mode routing
 - `ee/nuxt.config.ts` — Extends base config with `extends: ['../']`
 - Types from `nocodb-sdk` — always import from `'nocodb-sdk'`, never duplicate
 

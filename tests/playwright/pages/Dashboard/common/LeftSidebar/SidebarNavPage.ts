@@ -27,16 +27,7 @@ export type SettingsMenuItem = BaseSettingsMenuItem | WsSettingsMenuItem;
 /**
  * Tab / panel keys for MiniSidebarV2.
  */
-type MiniSidebarV2TabType =
-  | 'data'
-  | 'automations'
-  | 'notification'
-  | 'theme'
-  | 'agents'
-  | 'settings'
-  | 'support'
-  | 'bookmarks'
-  | 'more';
+type MiniSidebarV2TabType = 'data' | 'workflows' | 'notification' | 'theme' | 'agents' | 'settings' | 'support';
 
 export class SidebarNavPage extends BasePage {
   readonly sidebar: Locator;
@@ -96,9 +87,9 @@ export class SidebarNavPage extends BasePage {
    * Navigates to the Automation section via MiniSidebarV2.
    * Falls back silently if V2 is not present.
    */
-  async navigateToAutomationTab(): Promise<void> {
+  async navigateToWorkflowsTab(): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('automations');
+      await this.clickMiniSidebarV2Tab('workflows');
       await this.rootPage.waitForLoadState('networkidle');
     }
   }

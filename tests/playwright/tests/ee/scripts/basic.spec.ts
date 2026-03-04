@@ -36,7 +36,7 @@ test.describe('Scripts - Basic Functionality', () => {
     // 1. Verify we're on the script page with correct URL
     await expect(dashboard.scripts.get()).toBeVisible();
     const url = dashboard.rootPage.url();
-    expect(url).toContain('/automations/scripts/');
+    expect(url).toContain('/scripts/');
     expect(url).toContain(scriptId);
 
     // 2. Verify Monaco editor is visible and has content

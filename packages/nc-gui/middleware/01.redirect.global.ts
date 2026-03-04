@@ -51,11 +51,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo(`/${to.params.typeOrId}/settings/ws-integrations`, { replace: true })
   }
 
-  // Redirect old base-level ws-* settings pages to ws-level
-  if (to.params.baseId && to.params.page && typeof to.params.page === 'string' && to.params.page.startsWith('ws-')) {
-    return navigateTo(`/${to.params.typeOrId}/settings/${to.params.page}`, { replace: true })
-  }
-
   // Redirect old ?page= query param routes to new /settings/{slug} paths
   const page = to.query.page as string | undefined
 

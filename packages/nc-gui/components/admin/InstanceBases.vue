@@ -69,7 +69,11 @@ const columns = computed(() => {
 
 const customRow = (base: Record<string, any>) => ({
   onClick: () => {
-    navigateTo(`/#/nc/${base.workspace_id}/${base.id}`)
+    if (isEeUI) {
+      navigateTo(`/${base.workspace_id}/${base.id}`)
+    } else {
+      navigateTo(`/#/nc/${base.workspace_id}/${base.id}`)
+    }
   },
 })
 

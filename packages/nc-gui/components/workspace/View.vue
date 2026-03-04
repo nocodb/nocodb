@@ -194,7 +194,7 @@ const { shouldShow: btbShouldShow } = useBackToBase()
     </template>
 
     <!-- Back-to-base full-width bar: shown between breadcrumb and tabs (breadcrumb variant only) -->
-    <DashboardBackToBaseBreadcrumbVariant />
+    <DashboardBackToBaseBreadcrumbVariant v-if="!props.workspaceId" />
 
     <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
       <template #leftExtra>

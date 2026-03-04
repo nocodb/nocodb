@@ -8,7 +8,7 @@ const basesStore = useBases()
 const { resolvedProject } = storeToRefs(basesStore)
 
 const sidebarStore = useSidebarStore()
-const { activeSidebarTab, hideSidebar } = storeToRefs(sidebarStore)
+const { activeSidebarTab, isLeftSidebarOpen } = storeToRefs(sidebarStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -44,7 +44,7 @@ const navigateToBaseSettings = (page: string) => {
   navigateTo(`/${wsId}/${baseId}/settings/${slug}`)
 
   if (isMobileMode.value) {
-    hideSidebar.value = true
+    isLeftSidebarOpen.value = false
   }
 }
 

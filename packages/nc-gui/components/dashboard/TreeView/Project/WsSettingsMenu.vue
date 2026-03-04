@@ -8,7 +8,7 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, isTeamsEnabled } = storeToRefs(workspaceStore)
 
 const sidebarStore = useSidebarStore()
-const { activeSidebarTab, hideSidebar } = storeToRefs(sidebarStore)
+const { activeSidebarTab, isLeftSidebarOpen } = storeToRefs(sidebarStore)
 
 const { appInfo, isMobileMode } = useGlobal()
 
@@ -43,7 +43,7 @@ const navigateToWsSettings = (page: string) => {
   navigateTo(`/${wsId}/settings/${slug}`)
 
   if (isMobileMode.value) {
-    hideSidebar.value = true
+    isLeftSidebarOpen.value = false
   }
 }
 

@@ -8,6 +8,8 @@ const { base } = storeToRefs(baseStore)
 
 const isNewBaseModalOpen = ref(false)
 
+const { isMobileMode } = useGlobal()
+
 const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
@@ -89,7 +91,7 @@ const onCreateBaseClick = () => {
         <!-- Data actions (shown on Data tab) -->
         <template v-if="activeSidebarTab === 'data'">
           <ProjectActionItem
-            v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+            v-if="!isMobileMode && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
             v-e="['c:table:import']"
             data-testid="proj-view-btn__import-data"
             :label="`${$t('activity.import')} ${$t('general.data')}`"
@@ -113,12 +115,12 @@ const onCreateBaseClick = () => {
             </template>
           </ProjectActionItem>
 
-          <ProjectActionCreateEmptyDashboard />
+          <ProjectActionCreateEmptyDashboard v-if="!isMobileMode" />
 
-          <ProjectActionCreateNewSync :base-id="base?.id" />
+          <ProjectActionCreateNewSync v-if="!isMobileMode" :base-id="base?.id" />
 
           <NcTooltip
-            v-if="isUIAllowed('sourceCreate')"
+            v-if="!isMobileMode && isUIAllowed('sourceCreate')"
             placement="bottom"
             :disabled="!isDataSourceLimitReached"
             class="flex-none flex"
@@ -128,6 +130,7 @@ const onCreateBaseClick = () => {
             </template>
 
             <ProjectActionItem
+              v-if="!isMobileMode"
               v-e="['c:table:create-source']"
               data-testid="proj-view-btn__create-source"
               :disabled="isDataSourceLimitReached"
@@ -143,7 +146,7 @@ const onCreateBaseClick = () => {
         </template>
 
         <!-- Automation actions (shown on Automation tab) -->
-        <template v-if="activeSidebarTab === 'workflows'">
+        <template v-if="activeSidebarTab === 'workflows' && !isMobileMode">
           <ProjectActionCreateEmptyWorkflow />
           <ProjectActionCreateEmptyScript />
           <ProjectActionScriptsByNocoDB />

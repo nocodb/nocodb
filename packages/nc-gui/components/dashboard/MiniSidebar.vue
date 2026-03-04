@@ -43,6 +43,10 @@ const { isPanelExpanded: isChatPanelExpanded, toggleChatPanel } = useChatPanel()
 
 const { blockAiChat, showUpgradeToUseAiChat } = useEeConfig()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const isChatEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CHAT))
+
 const handleChatToggle = () => {
   if (blockAiChat.value) {
     showUpgradeToUseAiChat()
@@ -117,7 +121,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI) return
+  if (!isEeUI || !isChatEnabled.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -290,7 +294,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
 
-      <DashboardMiniSidebarItemWrapper v-if="isEeUI">
+      <DashboardMiniSidebarItemWrapper v-if="isEeUI && isChatEnabled">
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.aiChat') }} {{ renderCmdOrCtrlKey(true) }} ⇧ A</div>

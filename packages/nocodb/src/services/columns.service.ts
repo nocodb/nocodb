@@ -455,8 +455,12 @@ export class ColumnsService implements IColumnsService {
 
     const isSyncedColumn = table.synced && column.readonly;
 
+    const allowUpdateSystemField =
+      process.env.NC_SYSTEM_FIELD_API_UPDATE === 'true' ||
+      param.forceUpdateSystem;
+
     if (
-      !param.forceUpdateSystem &&
+      !allowUpdateSystemField &&
       ((column.system &&
         [
           UITypes.CreatedBy,

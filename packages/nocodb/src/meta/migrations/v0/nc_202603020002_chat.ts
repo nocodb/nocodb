@@ -1,4 +1,8 @@
 import type { Knex } from 'knex';
+import {
+  up as createChatMessages,
+  down as dropChatMessages,
+} from '~/meta/migrations/chat-messages/nc_001_init';
 import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
@@ -20,27 +24,12 @@ const up = async (knex: Knex) => {
     table.index('fk_user_id', 'nc_chat_sessions_user_idx');
   });
 
-  // Chat messages
-  await knex.schema.createTable(MetaTable.CHAT_MESSAGES, (table) => {
-    table.string('id', 20).notNullable();
-    table.string('fk_session_id', 20).notNullable();
-    table.string('base_id', 20).notNullable();
-    table.string('fk_workspace_id', 20);
-    table.string('role', 20).notNullable();
-    table.text('content');
-    table.text('parts');
-    table.string('model', 100);
-    table.integer('input_tokens').defaultTo(0);
-    table.integer('output_tokens').defaultTo(0);
-    table.timestamps(true, true);
-
-    table.primary(['base_id', 'id']);
-    table.index('fk_session_id', 'nc_chat_messages_session_idx');
-  });
+  // Chat messages — delegated to canonical migration (shared with satellite DB)
+  await createChatMessages(knex);
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTableIfExists(MetaTable.CHAT_MESSAGES);
+  await dropChatMessages(knex);
   await knex.schema.dropTableIfExists(MetaTable.CHAT_SESSIONS);
 };
 

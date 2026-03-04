@@ -52,7 +52,7 @@ export default class ChatSession
 
     if (!session) {
       session = await ncMeta.metaGet2(
-        RootScopes.WORKSPACE,
+        context.workspace_id,
         RootScopes.WORKSPACE,
         MetaTable.CHAT_SESSIONS,
         {
@@ -94,11 +94,11 @@ export default class ChatSession
 
     if (!isNoneList && !sessionsList.length) {
       const rows = await ncMeta.metaList2(
-        RootScopes.WORKSPACE,
+        context.workspace_id,
         RootScopes.WORKSPACE,
         MetaTable.CHAT_SESSIONS,
         {
-          condition: { fk_workspace_id: workspaceId, fk_user_id: userId },
+          condition: { fk_user_id: userId },
           orderBy: { updated_at: 'desc' },
         },
       );
@@ -129,7 +129,7 @@ export default class ChatSession
     ]);
 
     const { id } = await ncMeta.metaInsert2(
-      RootScopes.WORKSPACE,
+      context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_SESSIONS,
       insertObj,
@@ -163,7 +163,7 @@ export default class ChatSession
     ]);
 
     await ncMeta.metaUpdate(
-      RootScopes.WORKSPACE,
+      context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_SESSIONS,
       updateObj,
@@ -191,7 +191,7 @@ export default class ChatSession
     await ChatMessage.deleteBySessionId(context, sessionId);
 
     await ncMeta.metaDelete(
-      RootScopes.WORKSPACE,
+      context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_SESSIONS,
       {

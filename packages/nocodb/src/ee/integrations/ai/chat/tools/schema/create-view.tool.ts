@@ -4,7 +4,12 @@ import { resolveTableByName } from '../helpers';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
-import View from '~/models/View';
+import { GridsService } from '~/services/grids.service';
+import { FormsService } from '~/services/forms.service';
+import { GalleriesService } from '~/services/galleries.service';
+import { KanbansService } from '~/services/kanbans.service';
+import { CalendarsService } from '~/services/calendars.service';
+import Noco from '~/Noco';
 
 const VIEW_TYPE_MAP: Record<string, ViewTypes> = {
   grid: ViewTypes.GRID,
@@ -54,14 +59,52 @@ export const createViewTool: ChatToolDefinition = {
       throw new Error(`Invalid view type: ${args.type}`);
     }
 
-    const view = await View.insert(context, {
-      view: {
-        title: args.title,
-        type: viewType,
-        fk_model_id: model.id,
-      } as any,
-      req,
-    });
+    const viewBody = { title: args.title };
+    const serviceParam = { tableId: model.id!, req };
+    let view;
+
+    switch (viewType) {
+      case ViewTypes.GRID: {
+        const svc: GridsService = Noco.nestApp.get(GridsService);
+        view = await svc.gridViewCreate(context, {
+          ...serviceParam,
+          grid: viewBody,
+        });
+        break;
+      }
+      case ViewTypes.FORM: {
+        const svc: FormsService = Noco.nestApp.get(FormsService);
+        view = await svc.formViewCreate(context, {
+          ...serviceParam,
+          body: viewBody,
+        });
+        break;
+      }
+      case ViewTypes.GALLERY: {
+        const svc: GalleriesService = Noco.nestApp.get(GalleriesService);
+        view = await svc.galleryViewCreate(context, {
+          ...serviceParam,
+          gallery: viewBody,
+        });
+        break;
+      }
+      case ViewTypes.KANBAN: {
+        const svc: KanbansService = Noco.nestApp.get(KanbansService);
+        view = await svc.kanbanViewCreate(context, {
+          ...serviceParam,
+          kanban: viewBody,
+        });
+        break;
+      }
+      case ViewTypes.CALENDAR: {
+        const svc: CalendarsService = Noco.nestApp.get(CalendarsService);
+        view = await svc.calendarViewCreate(context, {
+          ...serviceParam,
+          calendar: viewBody,
+        });
+        break;
+      }
+    }
 
     return {
       id: view.id,

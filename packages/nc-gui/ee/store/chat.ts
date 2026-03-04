@@ -10,6 +10,8 @@ interface StreamingState {
 export const useChatStore = defineStore('chatStore', () => {
   const { $api, $ncSocket } = useNuxtApp()
 
+  const { t } = useI18n()
+
   const { token, user } = useGlobal()
 
   const sessions = ref<Map<string, ChatSessionType>>(new Map())
@@ -41,6 +43,7 @@ export const useChatStore = defineStore('chatStore', () => {
 
   // Socket.IO listener cleanup
   let socketListenerId: string | null = null
+  let disconnectUnsub: (() => void) | null = null
 
   const activeSession = computed<ChatSessionType | undefined>(() => {
     if (!activeSessionId.value) return undefined
@@ -96,6 +99,13 @@ export const useChatStore = defineStore('chatStore', () => {
   const initChatSocket = () => {
     if (socketListenerId) return
     if (!user.value?.id) return
+
+    // Reset isSendingMessage if socket disconnects mid-stream to avoid permanently locked UI
+    disconnectUnsub = $ncSocket.on('disconnect', () => {
+      if (isSendingMessage.value) {
+        isSendingMessage.value = false
+      }
+    })
 
     socketListenerId = $ncSocket.onMessage(`user:${user.value.id}`, (data: any) => {
       if (data.event !== EventType.CHAT_EVENT) return
@@ -219,7 +229,7 @@ export const useChatStore = defineStore('chatStore', () => {
         case 'error': {
           streamingStates.value.delete(sessionId)
           isSendingMessage.value = false
-          message.error(payload.error || 'An error occurred in the AI agent')
+          message.error(payload.error || t('msg.error.aiAgentError'))
           break
         }
       }
@@ -230,6 +240,10 @@ export const useChatStore = defineStore('chatStore', () => {
     if (socketListenerId) {
       $ncSocket.offMessage(socketListenerId)
       socketListenerId = null
+    }
+    if (disconnectUnsub) {
+      disconnectUnsub()
+      disconnectUnsub = null
     }
   }
 

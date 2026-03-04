@@ -46,7 +46,7 @@ export const modifyFieldTool: ChatToolDefinition = {
   permission: 'columnUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.CREATOR,
-  isDangerous: false,
+  isDangerous: true,
   async execute(
     context: NcContext,
     args: {

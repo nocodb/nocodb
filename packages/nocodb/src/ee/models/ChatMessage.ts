@@ -31,19 +31,23 @@ export default class ChatMessage
   public static async get(
     context: NcContext,
     messageId: string,
-    ncMeta = Noco.ncChatMessages,
+    sessionId?: string,
+    ncMeta: any = Noco.ncChatMessages,
   ) {
     if (!messageId) {
       return null;
     }
 
+    const condition: Record<string, string> = { id: messageId };
+    if (sessionId) {
+      condition.fk_session_id = sessionId;
+    }
+
     let message = await ncMeta.metaGet2(
-      RootScopes.WORKSPACE,
+      context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_MESSAGES,
-      {
-        id: messageId,
-      },
+      condition,
     );
 
     if (message) {
@@ -67,7 +71,7 @@ export default class ChatMessage
     ncMeta = Noco.ncChatMessages,
   ) {
     const messagesList = await ncMeta.metaList2(
-      RootScopes.WORKSPACE,
+      context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_MESSAGES,
       {
@@ -110,13 +114,13 @@ export default class ChatMessage
     );
 
     const { id } = await ncMeta.metaInsert2(
-      RootScopes.WORKSPACE,
+      context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_MESSAGES,
       insertObj,
     );
 
-    return ChatMessage.get(context, id, ncMeta);
+    return ChatMessage.get(context, id, undefined, ncMeta);
   }
 
   static async update(
@@ -131,14 +135,14 @@ export default class ChatMessage
     );
 
     await ncMeta.metaUpdate(
-      RootScopes.WORKSPACE,
+      context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_MESSAGES,
       updateObj,
       { id: messageId },
     );
 
-    return ChatMessage.get(context, messageId, ncMeta);
+    return ChatMessage.get(context, messageId, undefined, ncMeta);
   }
 
   static async delete(
@@ -147,7 +151,7 @@ export default class ChatMessage
     ncMeta = Noco.ncChatMessages,
   ) {
     await ncMeta.metaDelete(
-      RootScopes.WORKSPACE,
+      context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_MESSAGES,
       {
@@ -162,7 +166,7 @@ export default class ChatMessage
     ncMeta = Noco.ncChatMessages,
   ) {
     await ncMeta.metaDelete(
-      RootScopes.WORKSPACE,
+      context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_MESSAGES,
       { fk_session_id: sessionId },

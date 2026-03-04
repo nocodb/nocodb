@@ -251,9 +251,9 @@ export class ChatService {
     // Validate base belongs to this workspace and user has access (if provided)
     const validatedBaseId = await this.validateBaseId(context, baseId, req);
 
-    // Validate the message belongs to this session
-    const msg = await ChatMessage.get(context, messageId);
-    if (!msg || msg.fk_session_id !== sessionId) {
+    // Validate the message belongs to this session (scoped at DB level)
+    const msg = await ChatMessage.get(context, messageId, sessionId);
+    if (!msg) {
       NcError.get(context).genericNotFound('Chat message', messageId);
     }
 
@@ -589,8 +589,8 @@ export class ChatService {
       return null;
     }
 
-    const msg = await ChatMessage.get(context, messageId);
-    if (!msg || msg.fk_session_id !== sessionId) return null;
+    const msg = await ChatMessage.get(context, messageId, sessionId);
+    if (!msg) return null;
 
     // Build a sub-context with base_id so tools execute within the correct base
     const toolContext = await this.buildToolContext(context, baseId, req);

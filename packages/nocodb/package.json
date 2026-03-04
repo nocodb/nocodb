@@ -75,7 +75,7 @@
     "@aws-sdk/client-cognito-identity-provider": "^3.816.0",
     "@aws-sdk/client-kinesis": "^3.817.0",
     "@aws-sdk/client-s3": "^3.743.0",
-    "@aws-sdk/client-ses": "^3.743.0",
+    "@aws-sdk/client-sesv2": "^3.1001.0",
     "@aws-sdk/client-sns": "^3.743.0",
     "@aws-sdk/lib-storage": "^3.743.0",
     "@aws-sdk/s3-request-presigner": "^3.743.0",

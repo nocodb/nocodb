@@ -2510,7 +2510,7 @@ export default function () {
       let fionaUser: any; let fionaToken: string; // Frontend Lead
       let waltUser: any; let waltToken: string;   // Web Platform dev
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -2536,7 +2536,7 @@ export default function () {
         await addMember(webTeamId, waltUser.id);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
 
       /**
@@ -2928,7 +2928,7 @@ export default function () {
       let base: any;
       let payrollTableId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -2973,7 +2973,7 @@ export default function () {
         });
       });
 
-      afterEach(async () => {
+      after(async () => {
         await dropPermission(base.id, payrollTableId, 'TABLE_VISIBILITY');
         await featureMock?.restore?.();
       });
@@ -3067,7 +3067,7 @@ export default function () {
       let row1Id: number; // East row (Acme Corp)
       let row4Id: number; // West row (Umbrella)
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -3140,7 +3140,7 @@ export default function () {
         await createRlsPolicy(base.id, tableId, 'Default Deny', [], undefined, true);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       /**
        * Luis is in LA Team, a descendant of West Coast.
@@ -3246,7 +3246,7 @@ export default function () {
       let base: any;
       let tableId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -3316,7 +3316,7 @@ export default function () {
         await createRlsPolicy(base.id, tableId, 'Default Deny', [], undefined, true);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       /**
        * Rosa is in AlphaReps (descendant of SDRAlpha), NOT directly in SDRAlpha.
@@ -3447,7 +3447,7 @@ export default function () {
     // ─────────────────────────────────────────────────────────────────────────
 
     describe('Complex Edge Cases', () => {
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -3459,7 +3459,7 @@ export default function () {
         });
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       /**
        * The Accidental Escalation: TABLE_VISIBILITY does NOT elevate a user's role.
@@ -4204,7 +4204,7 @@ export default function () {
       let contractorsId: string;
       let chrisUser: any; let chrisToken: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -4220,15 +4220,14 @@ export default function () {
         const chrisR = await createUser(context, { email: 'g13-chris@test.com' });
         chrisUser = chrisR.user; chrisToken = chrisR.token;
         await addMember(contractorsId, chrisUser.id);
+        await addWorkspaceMembers([chrisUser.id]);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       it('no_access base role blocks access even when TABLE_VISIBILITY is open to all viewers', async () => {
         const base = await createProject(context);
         const table = await createTable(context, base);
-
-        await addWorkspaceMembers([chrisUser.id]);
         await assignBaseTeamRole(base.id, contractorsId, 'no-access');
 
         // Set TABLE_VISIBILITY to viewers_and_up (open)
@@ -4252,7 +4251,6 @@ export default function () {
         const base = await createProject(context);
         const table = await createTable(context, base);
 
-        await addWorkspaceMembers([chrisUser.id]);
         await assignBaseTeamRole(base.id, contractorsId, 'no-access');
 
         // Explicitly add Chris to TABLE_RECORD_ADD permission
@@ -4284,7 +4282,7 @@ export default function () {
       let seedRowId: number;
       let regionColId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -4330,7 +4328,7 @@ export default function () {
         await createRlsPolicy(base.id, table.id, 'Default Deny', [], undefined, true);
       });
 
-      afterEach(async () => {
+      after(async () => {
         await dropPermission(base.id, table.id, 'TABLE_RECORD_ADD');
         await featureMock?.restore?.();
       });
@@ -4386,7 +4384,7 @@ export default function () {
       let tableId: string;
       let statusColId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -4451,7 +4449,7 @@ export default function () {
         await createRlsPolicy(base.id, tableId, 'Default Deny', [], undefined, true);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       it('Tier-1 Commenter role subject matches the Open-tickets policy and sees only Open tickets', async () => {
         const res = await listRecords(base.id, tableId, tier1Token);
@@ -4500,7 +4498,7 @@ export default function () {
       let base: any;
       let table: any;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -4541,7 +4539,7 @@ export default function () {
         await assignBaseTeamRole(base.id, platformEngId, ProjectRoles.EDITOR);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       /**
        * 18A.1 — Sophie (in ProductEng) gets Creator; Sam (SolEngineering, no assignment) gets 403
@@ -4636,7 +4634,7 @@ export default function () {
         await addMember(devopsId, domUser.id);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       /**
        * 18B.1 — Before reparent: Database team shows Backend + Engineering as inherited sources
@@ -4806,7 +4804,7 @@ export default function () {
       let baseB: any;
       let baseC: any;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -4833,7 +4831,7 @@ export default function () {
         baseC = await createProject(context);
       });
 
-      afterEach(async () => { await featureMock?.restore?.(); });
+      after(async () => { await featureMock?.restore?.(); });
 
       it('Workspace team Editor role applies consistently to every existing base in the workspace', async () => {
         const a = await listTables(baseA.id, domToken);
@@ -5038,7 +5036,7 @@ export default function () {
       let evan: any; let evanToken: string;
       let fiona: any; let fionaToken: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5063,7 +5061,7 @@ export default function () {
         await addMember(frontendId, fiona.user.id);
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5127,7 +5125,7 @@ export default function () {
       let base: any;
       let tableId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5155,7 +5153,7 @@ export default function () {
         await assignBaseTeamRole(base.id, webId, ProjectRoles.CREATOR);
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5191,7 +5189,7 @@ export default function () {
       let base: any;
       let tableId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5215,7 +5213,7 @@ export default function () {
         await assignBaseTeamRole(base.id, backendId, ProjectRoles.EDITOR);
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5246,7 +5244,7 @@ export default function () {
       let base: any;
       let tableId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5266,7 +5264,7 @@ export default function () {
         tableId = await createNamedTable(base.id, 'Items');
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5298,7 +5296,7 @@ export default function () {
       let base: any;
       let tableId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5324,7 +5322,7 @@ export default function () {
         await setDirectBaseRole(base.id, fiona.user.email, ProjectRoles.VIEWER);
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5352,7 +5350,7 @@ export default function () {
       let tableId: string;
       let policyId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5400,7 +5398,7 @@ export default function () {
         await createRlsPolicy(base.id, tableId, 'Default Deny', [], undefined, true);
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5442,7 +5440,7 @@ export default function () {
       let prodBase: any;
       let tableId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5466,7 +5464,7 @@ export default function () {
         await assignBaseTeamRole(prodBase.id, devopsId, ProjectRoles.VIEWER);
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5603,7 +5601,7 @@ export default function () {
       let execTeamId: string;
       let policyId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5654,7 +5652,7 @@ export default function () {
         await createRlsPolicy(base.id, tableId, 'Default Deny', [], undefined, true);
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5705,7 +5703,7 @@ export default function () {
       let tableId: string;
       let rowId: number;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5746,7 +5744,7 @@ export default function () {
         });
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5778,7 +5776,7 @@ export default function () {
       let brad: any;
       let dara: any;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5802,7 +5800,7 @@ export default function () {
         await addMember(databaseId, dara.user.id);
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -5830,7 +5828,7 @@ export default function () {
       let pilotGroupId: string;
       let pia: any; let piaToken: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -5872,7 +5870,7 @@ export default function () {
         );
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -6292,7 +6290,7 @@ export default function () {
       let base: any;
       let tableId: string;
 
-      beforeEach(async function () {
+      before(async function () {
         this.timeout(120000);
         context = await init(false, 'editor', { skipSakila: true });
         workspaceId = context.fk_workspace_id;
@@ -6364,7 +6362,7 @@ export default function () {
         );
       });
 
-      afterEach(async () => {
+      after(async () => {
         await featureMock?.restore?.();
       });
 
@@ -6411,10 +6409,7 @@ export default function () {
         }
       });
     });
-
-    }); // end describe('Edge Cases')
-
-  }); // end describe('Team Hierarchy v3')
-
+    });
+  });
 }
 

@@ -491,7 +491,7 @@ const enabledOptions = computed(() => {
         >
           <template #title>{{ table.title }}</template>
           <span
-            :class="openedTableId === table.id ? 'text-nc-content-gray' : 'text-nc-content-gray-muted'"
+            :class="openedTableId === table.id ? 'text-nc-content-gray' : 'text-nc-content-gray-subtle'"
             :data-testid="`nc-tbl-title-${table.title}`"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onRenameMenuClick(table)"

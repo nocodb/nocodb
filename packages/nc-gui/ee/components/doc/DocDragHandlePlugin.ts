@@ -55,6 +55,7 @@ const DRAGGABLE_TYPES = new Set([
   'fileAttachment',
   'table',
   'horizontalRule',
+  'columns',
 ])
 
 /** How far into the content area (from the left edge) the gutter zone extends */

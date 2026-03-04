@@ -17,6 +17,7 @@ import { DocCodeBlockExtension } from './DocCodeBlockExtension'
 import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
+import { DocColumnsExtension, DocColumnExtension } from './DocColumnsExtension'
 import { DocMathExtension } from './DocMathExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
 import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
@@ -290,6 +291,8 @@ const _tiptapEditor = useEditor({
       currentUser: unref(user.value),
     }),
     CalloutExtension,
+    DocColumnsExtension,
+    DocColumnExtension,
     DocMathExtension,
     DocFileAttachmentExtension,
     DocEmbedExtension,
@@ -2378,6 +2381,25 @@ onBeforeUnmount(() => {
 
       .nc-callout-icon {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='%23ef4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='8' x2='12' y2='12'/%3E%3Cline x1='12' y1='16' x2='12.01' y2='16'/%3E%3C/svg%3E");
+      }
+    }
+  }
+
+  // 2-Column layout
+  .nc-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin: 0.75em 0;
+
+    .nc-column {
+      min-width: 0; // prevent grid blowout from long content
+
+      > *:first-child {
+        margin-top: 0;
+      }
+      > *:last-child {
+        margin-bottom: 0;
       }
     }
   }

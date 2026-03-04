@@ -133,6 +133,10 @@ export function useDocumentExport({ editor, title }: { editor: Ref<Editor | unde
   pre code { background: none; padding: 0; color: inherit; }
   hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
   a { color: #2563eb; }
+  .nc-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 0.75em 0; }
+  .nc-column { min-width: 0; }
+  .nc-column > *:first-child { margin-top: 0; }
+  .nc-column > *:last-child { margin-bottom: 0; }
 </style>
 </head>
 <body>
@@ -164,6 +168,10 @@ ${editor.value.getHTML()}
   pre code { background: none; padding: 0; color: inherit; }
   hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
   a { color: #2563eb; text-decoration: underline; }
+  .nc-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 0.75em 0; }
+  .nc-column { min-width: 0; }
+  .nc-column > *:first-child { margin-top: 0; }
+  .nc-column > *:last-child { margin-bottom: 0; }
   @media print { body { padding: 0; } }
 </style>
 </head>

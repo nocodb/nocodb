@@ -9,6 +9,8 @@ interface Props {
   disabled?: boolean
   /** Dropdown trigger — active state shows hover bg only, no indicator or text color */
   isDropdown?: boolean
+  /** Hide the left-side active indicator bar and active background */
+  plainActive?: boolean
   panelKey?: string
 }
 
@@ -20,6 +22,7 @@ const props = withDefaults(defineProps<Props>(), {
   active: false,
   disabled: false,
   isDropdown: false,
+  plainActive: false,
   panelKey: undefined,
 })
 
@@ -48,12 +51,12 @@ const disableTooltipForNewSidebar = true
 
     <div
       class="nc-rail-item"
-      :class="{ active, disabled, 'is-dropdown': isDropdown }"
+      :class="{ active, disabled, 'is-dropdown': isDropdown, 'plain-active': plainActive }"
       :data-panel="panelKey"
       @click="!disabled && emits('click')"
     >
       <!-- Active indicator bar -->
-      <span class="nc-rail-item-indicator" />
+      <span v-if="!plainActive" class="nc-rail-item-indicator" />
 
       <slot v-if="$slots.default" />
 
@@ -119,6 +122,11 @@ const disableTooltipForNewSidebar = true
     .nc-rail-item-label {
       opacity: 1;
     }
+  }
+
+  // Plain active: no background, no indicator — text color preserved from slot content
+  &.plain-active.active {
+    background: transparent;
   }
 
   // Dropdown active state: hover bg only, no indicator or text color change

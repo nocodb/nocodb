@@ -7,6 +7,25 @@ useUsers()
 
 const { toggleMode } = useMiniSidebarMode()
 
+const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
+
+const themeLabel = computed(() =>
+  ({
+    light: 'Light',
+    dark: 'Dark',
+    system: 'System',
+  }[selectedTheme.value]),
+)
+
+const themeIcon = computed(
+  () =>
+    ({
+      light: 'ncSun',
+      dark: 'ncMoon',
+      system: 'ncSunMoon',
+    }[selectedTheme.value] as IconMapKey),
+)
+
 const { isExperimentalFeatureModalOpen } = useBetaFeatureToggle()
 
 const { leftSidebarState } = storeToRefs(useSidebarStore())
@@ -170,69 +189,27 @@ const openKeyboardShortcutDialog = () => {
         </NcTooltip>
         <template #overlay>
           <NcMenu variant="medium">
-            <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
-              <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40 md:min-w-70">
-                <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
-                <GeneralIcon v-else icon="signout" class="menu-icon" />
-                <span class="menu-btn"> {{ $t('general.logout') }}</span>
-              </div>
-            </NcMenuItem>
-
-            <NcDivider />
-            <a-popover
-              key="language"
-              class="lang-menu !py-1.5"
-              placement="rightBottom"
-              overlay-class-name="nc-lang-menu-overlay !z-1050"
-            >
-              <NcMenuItem inner-class="w-full">
-                <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
-                  <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
-                  {{ $t('labels.language') }}
-                  <div class="flex items-center text-nc-content-gray-disabled text-xs">
-                    {{ $t('labels.community.communityTranslated') }}
-                  </div>
-                  <div class="flex-1" />
-
-                  <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
+            <template v-if="!isMobileMode">
+              <!-- Log Out (furthest from cursor) -->
+              <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
+                <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40 md:min-w-70">
+                  <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
+                  <GeneralIcon v-else icon="signout" class="menu-icon" />
+                  <span class="menu-btn"> {{ $t('general.logout') }}</span>
                 </div>
               </NcMenuItem>
 
-              <template #content>
-                <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
-                  <LazyGeneralLanguageMenu />
-                </div>
-              </template>
-            </a-popover>
-
-            <template v-if="!isMobileMode">
               <NcDivider />
 
-              <!-- Todo: Add dock mode menu item once it is done -->
-              <NcMenuItem v-if="!isMobileMode" @click="toggleMode">
+              <!-- Discovery / Meta -->
+              <NcMenuItem @click="toggleMode">
                 <GeneralIcon icon="ncPlaceholderIcon" class="menu-icon mt-0.5" />
                 <span class="menu-btn">Dock Mode</span>
                 <NcBadgeBeta />
               </NcMenuItem>
-
-              <DashboardSidebarEEMenuOption v-if="isEeUI" />
               <NcMenuItem @click="openExperimentationMenu">
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
-              </NcMenuItem>
-              <NcMenuItem
-                v-e="['c:user:keyboard-shortcuts']"
-                data-testid="nc-sidebar-keyboard-shortcuts"
-                @click="openKeyboardShortcutDialog"
-              >
-                <GeneralIcon icon="ncKeyboard" class="menu-icon" />
-                <div class="flex items-center justify-between flex-1">
-                  <span class="menu-btn"> {{ $t('title.keyboardShortcut') }} </span>
-                  <span class="flex items-center gap-0.5 text-nc-content-gray-muted ml-1">
-                    <kbd class="nc-user-menu-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
-                    <kbd class="nc-user-menu-kbd">/</kbd>
-                  </span>
-                </div>
               </NcMenuItem>
               <NcSubMenu class="py-0" variant="medium">
                 <template #title>
@@ -347,12 +324,67 @@ const openKeyboardShortcutDialog = () => {
                   </NcMenuItem>
                 </a>
               </NcSubMenu>
+
+              <NcDivider />
+
+              <!-- Power user tools -->
+              <NcMenuItem
+                v-e="['c:user:keyboard-shortcuts']"
+                data-testid="nc-sidebar-keyboard-shortcuts"
+                @click="openKeyboardShortcutDialog"
+              >
+                <GeneralIcon icon="ncKeyboard" class="menu-icon" />
+                <div class="flex items-center justify-between flex-1">
+                  <span class="menu-btn"> {{ $t('title.keyboardShortcut') }} </span>
+                  <span class="flex items-center gap-0.5 text-nc-content-gray-muted ml-1">
+                    <kbd class="nc-user-menu-kbd">{{ renderCmdOrCtrlKey() }}</kbd>
+                    <kbd class="nc-user-menu-kbd">/</kbd>
+                  </span>
+                </div>
+              </NcMenuItem>
+              <DashboardSidebarEEMenuOption v-if="isEeUI" />
               <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens">
                 <NcMenuItem>
                   <GeneralIcon icon="ncKey2" class="menu-icon mt-0.5" />
                   <span class="menu-btn"> {{ $t('title.apiTokens') }} </span>
                 </NcMenuItem>
               </nuxt-link>
+
+              <NcDivider />
+
+              <!-- Preferences (most used, closest to avatar) -->
+              <a-popover
+                key="language"
+                class="lang-menu !py-1.5"
+                placement="rightBottom"
+                overlay-class-name="nc-lang-menu-overlay !z-1050"
+              >
+                <NcMenuItem inner-class="w-full">
+                  <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
+                    <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
+                    {{ $t('labels.language') }}
+                    <div class="flex items-center text-nc-content-gray-disabled text-xs">
+                      {{ $t('labels.community.communityTranslated') }}
+                    </div>
+                    <div class="flex-1" />
+
+                    <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
+                  </div>
+                </NcMenuItem>
+
+                <template #content>
+                  <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
+                    <LazyGeneralLanguageMenu />
+                  </div>
+                </template>
+              </a-popover>
+              <NcMenuItem v-if="isThemeEnabled" v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">
+                <GeneralIcon :icon="themeIcon" class="menu-icon" />
+                <span class="menu-btn">{{ themeLabel }}</span>
+                <span class="text-nc-content-gray-muted text-xs ml-auto">Appearance</span>
+              </NcMenuItem>
+
+              <!-- Account Settings (closest to avatar) -->
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">
                 <NcMenuItem>
                   <GeneralIcon icon="ncSettings" class="menu-icon" />
@@ -375,6 +407,14 @@ const openKeyboardShortcutDialog = () => {
               </nuxt-link>
             </template>
             <template v-else-if="isMiniSidebar">
+              <NcMenuItem data-testid="nc-sidebar-user-logout" @click="logout">
+                <div v-e="['c:user:logout']" class="flex gap-2 items-center min-w-40">
+                  <GeneralLoader v-if="isLoggingOut" class="!ml-0.5 !mr-0.5 !max-h-4.5 !-mt-0.5" />
+                  <GeneralIcon v-else icon="signout" class="menu-icon" />
+                  <span class="menu-btn"> {{ $t('general.logout') }}</span>
+                </div>
+              </NcMenuItem>
+
               <NcDivider />
 
               <NcMenuItemLabel>

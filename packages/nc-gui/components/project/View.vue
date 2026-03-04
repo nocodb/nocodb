@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { useTitle } from '@vueuse/core'
 import { PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk'
+import { Pane, Splitpanes } from 'splitpanes'
+import 'splitpanes/dist/splitpanes.css'
 
 const props = defineProps<{
   baseId?: string
@@ -61,6 +63,24 @@ const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
 const { isMobileMode, appInfo } = useGlobal()
 
 const baseSettingsState = ref('')
+
+const chatPaneRef = ref()
+
+const { isPanelExpanded: isChatPanelExpanded, chatPanelSize } = useChatPanel()
+
+const overviewContentSize = computed(() =>
+  isChatPanelExpanded.value && chatPanelSize.value ? 100 - chatPanelSize.value : 100,
+)
+
+const onOverviewChatResize = (sizes: Array<{ size: number }>) => {
+  if (isChatPanelExpanded.value) chatPanelSize.value = sizes[1]!.size
+}
+
+const onOverviewSplitReady = () => {
+  if (isChatPanelExpanded.value && chatPaneRef.value && !chatPaneRef.value.isReady) {
+    chatPaneRef.value.onReady()
+  }
+}
 
 const userCount = computed(() => {
   // if private base and don't have owner permission then return
@@ -377,17 +397,22 @@ watch(
     </div>
     <div
       v-if="!showEmptySkeleton"
-      class="flex nc-base-view-tab"
+      class="flex nc-base-view-tab overflow-hidden"
       :style="{
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <NcTabs
-        v-model:active-key="projectPageTab"
-        class="w-full h-full"
-        :class="{ 'hide-tabs': props.tab || showOverviewTab }"
-        :tab-bar-style="props.tab || showOverviewTab ? { display: 'none' } : undefined"
-      >
+      <Splitpanes class="h-full w-full" @resize="onOverviewChatResize" @ready="onOverviewSplitReady">
+        <Pane class="flex flex-col min-w-0 h-full" :size="overviewContentSize">
+          <NcTabs
+            v-model:active-key="projectPageTab"
+            class="w-full h-full"
+            :class="{ 'hide-tabs': props.tab || showOverviewTab }"
+            :tab-bar-style="props.tab || showOverviewTab ? { display: 'none' } : undefined"
+          >
+        <template #leftExtra>
+          <div class="w-3"></div>
+        </template>
         <a-tab-pane
           v-if="showOverviewTab || (!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode)"
           key="overview"
@@ -533,7 +558,10 @@ watch(
           </template>
           <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
         </a-tab-pane>
-      </NcTabs>
+          </NcTabs>
+        </Pane>
+        <LazyChatPanel v-if="isChatPanelExpanded" ref="chatPaneRef" />
+      </Splitpanes>
     </div>
   </div>
 </template>
@@ -544,6 +572,9 @@ watch(
 }
 :deep(.ant-tabs-nav) {
   @apply !mb-0 !pl-0;
+}
+:deep(.nc-project-overview-tab-content.ant-tabs-tabpane) {
+  @apply !h-full;
 }
 
 .tab-title {

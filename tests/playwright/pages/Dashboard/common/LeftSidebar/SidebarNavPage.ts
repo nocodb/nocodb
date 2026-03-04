@@ -70,7 +70,7 @@ export class SidebarNavPage extends BasePage {
     await tabLocator.waitFor({ state: 'visible' });
 
     // For panel tabs, skip clicking if already active
-    if (['data', 'automations', 'settings'].includes(tab)) {
+    if (['data', 'workflows', 'settings'].includes(tab)) {
       const classList = await tabLocator.getAttribute('class');
       if (classList?.includes('active')) return;
     }

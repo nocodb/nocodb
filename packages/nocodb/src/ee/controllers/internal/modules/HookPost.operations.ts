@@ -14,10 +14,7 @@ export class HookPostOperations
   constructor(
     private readonly hookSubscribersService: HookSubscribersService,
   ) {}
-  operations = [
-    'hookAddSubscribers' as const,
-    'hookRemoveSubscriber' as const,
-  ];
+  operations = ['hookAddSubscribers' as const, 'hookRemoveSubscriber' as const];
   httpMethod = 'POST' as const;
 
   async handle(

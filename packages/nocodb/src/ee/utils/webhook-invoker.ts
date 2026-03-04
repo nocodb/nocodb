@@ -245,10 +245,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
             const res = await (
               await NcPluginMgrv2.emailAdapter(false)
             )?.mailSend(parsedPayload);
-            if (
-              webhookLogLevel === 'ALL' ||
-              (isEE && !webhookLogLevel)
-            ) {
+            if (webhookLogLevel === 'ALL' || (isEE && !webhookLogLevel)) {
               hookLog = {
                 ...hook,
                 operation: hookName?.split('.')?.[1] as any,
@@ -280,10 +277,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
               },
             );
 
-            if (
-              webhookLogLevel === 'ALL' ||
-              (isEE && !webhookLogLevel)
-            ) {
+            if (webhookLogLevel === 'ALL' || (isEE && !webhookLogLevel)) {
               hookLog = {
                 ...hook,
                 operation: hookName?.split('.')?.[1] as any,
@@ -326,10 +320,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
               ),
             );
 
-            if (
-              webhookLogLevel === 'ALL' ||
-              (isEE && !webhookLogLevel)
-            ) {
+            if (webhookLogLevel === 'ALL' || (isEE && !webhookLogLevel)) {
               hookLog = {
                 ...hook,
                 operation: hookName?.split('.')?.[1] as any,
@@ -366,10 +357,7 @@ export class WebhookInvoker extends WebhookInvokerCE {
       } else {
         this.logger.error(e.message, e.stack);
       }
-      if (
-        ['ERROR', 'ALL'].includes(webhookLogLevel) ||
-        isEE
-      ) {
+      if (['ERROR', 'ALL'].includes(webhookLogLevel) || isEE) {
         hookLog = {
           ...hook,
           operation: hookName?.split('.')?.[1] as any,

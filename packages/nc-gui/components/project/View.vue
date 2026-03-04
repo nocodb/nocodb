@@ -372,12 +372,12 @@ watch(
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
         <SmartsheetTopbarManagedAppStatus />
         <SmartsheetTopbarSandboxStatus />
-        <LazyGeneralShareProject />
+        <LazyGeneralShareProject v-if="!props.tab" />
       </div>
     </div>
     <div
       v-if="!showEmptySkeleton"
-      class="flex nc-base-view-tab"
+      class="flex nc-base-view-tab overflow-hidden"
       :style="{
         height: 'calc(100% - var(--topbar-height))',
       }"
@@ -388,6 +388,9 @@ watch(
         :class="{ 'hide-tabs': props.tab || showOverviewTab }"
         :tab-bar-style="props.tab || showOverviewTab ? { display: 'none' } : undefined"
       >
+        <template #leftExtra>
+          <div class="w-3"></div>
+        </template>
         <a-tab-pane
           v-if="showOverviewTab || (!isAdminPanel && !props.tab && isOverviewTabVisible && !isMobileMode)"
           key="overview"
@@ -545,6 +548,9 @@ watch(
 :deep(.ant-tabs-nav) {
   @apply !mb-0 !pl-0;
 }
+:deep(.nc-project-overview-tab-content.ant-tabs-tabpane) {
+  @apply !h-full;
+}
 
 .tab-title {
   @apply flex flex-row items-center gap-x-1.5 px-1 py-[1px] text-[13px];
@@ -571,26 +577,6 @@ watch(
   }
 
   :deep(.ant-tabs-content) {
-    @apply text-nc-content-gray-subtle;
-    font-size: 13px;
-
-    // Apply 13px and muted text to all elements inside admin content
-    th,
-    td,
-    label,
-    span,
-    div,
-    p,
-    a,
-    input,
-    textarea,
-    select,
-    button,
-    .ant-input,
-    .nc-button {
-      font-size: 13px;
-    }
-
     > .ant-tabs-tabpane > div {
       @apply nc-content-max-w mx-auto;
     }

@@ -85,7 +85,6 @@ interface HookErrorDigestPayload {
   workspaceId: string;
 }
 
-
 type MailParams =
   | CEMailParams // Base CE types
   | {
@@ -196,12 +195,20 @@ type MailParams =
         oldBaseRole: string;
         baseRole: string;
       };
-    } | {
-  mailEvent: MailEvent.WORKFLOW_ERROR_DIGEST;
-  payload: WorkflowErrorDigestPayload;
-} | {
-  mailEvent: MailEvent.HOOK_ERROR_DIGEST;
-  payload: HookErrorDigestPayload;
-};
+    }
+  | {
+      mailEvent: MailEvent.WORKFLOW_ERROR_DIGEST;
+      payload: WorkflowErrorDigestPayload;
+    }
+  | {
+      mailEvent: MailEvent.HOOK_ERROR_DIGEST;
+      payload: HookErrorDigestPayload;
+    };
 
-export { MailEvent, MailParams, RawMailParams, WorkflowErrorDigestPayload, HookErrorDigestPayload };
+export {
+  MailEvent,
+  MailParams,
+  RawMailParams,
+  WorkflowErrorDigestPayload,
+  HookErrorDigestPayload,
+};

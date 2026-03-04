@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 interface NavItem {
   key: string
@@ -15,8 +15,6 @@ const route = router.currentRoute
 
 const { navigateToProject, isMobileMode } = useGlobal()
 
-const { t } = useI18n()
-
 const { $e } = useNuxtApp()
 
 const workspaceStore = useWorkspace()
@@ -31,18 +29,7 @@ const sidebarStore = useSidebarStore()
 
 const { activeSidebarTab } = storeToRefs(sidebarStore)
 
-const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
-
 const { isUIAllowed, workspaceRoles } = useRoles()
-
-const themeIcon = computed(
-  () =>
-    ({
-      light: 'ncSun',
-      dark: 'ncMoon',
-      system: 'ncSunMoon',
-    }[selectedTheme.value] as IconMapKey),
-)
 
 const notificationStore = useNotification()
 
@@ -50,24 +37,20 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-const { isChatWootEnabled } = useProvideChatwoot()
+const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
 
-const { isModalVisible: isChatVisible } = useChatWoot()
+const { blockAiChat, showUpgradeToUseAiChat } = useEeConfig()
 
-const toggleChatSupport = () => {
-  $e('c:nocodb:chat-support')
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
-    message.info({
-      title: t('msg.info.supportChatUnavailable'),
-      content: t('msg.info.supportChatUnavailableSubtitle'),
-    })
+const isChatEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CHAT))
 
+const handleChatToggle = () => {
+  if (blockAiChat.value) {
+    showUpgradeToUseAiChat()
     return
   }
-
-  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
-  window.$chatwoot.toggle(toggleText)
+  toggleChatPanel()
 }
 
 const isBaseOpen = computed(() => {
@@ -153,6 +136,23 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
+// Cmd/Ctrl + Shift + A — toggle AI chat
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if (!isEeUI || !isChatEnabled.value) return
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (
+    cmdOrCtrl &&
+    e.shiftKey &&
+    e.code === 'KeyA' &&
+    !isActiveInputElementExist(e) &&
+    !isNcDropdownOpen() &&
+    !isDrawerOrModalExist()
+  ) {
+    e.preventDefault()
+    handleChatToggle()
+  }
+})
+
 // ── Main nav items (add/remove/reorder here) ──
 const mainItems = computed<NavItem[]>(() => [
   {
@@ -181,20 +181,7 @@ const mainItems = computed<NavItem[]>(() => [
         },
       ]
     : []),
-  { key: 'divider', icon: 'ncDivider', label: 'divider' },
-  ...(!isMobileMode.value ? [{ key: 'notification', icon: 'ncNotification', label: 'Notification' }] : []),
-  { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
 ])
-
-// ── Bottom items (pushed down by margin-top: auto) ──
-const bottomItems = computed<NavItem[]>(
-  () =>
-    [
-      isChatWootEnabled.value && !isMobileMode.value
-        ? { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }
-        : null,
-    ].filter(Boolean) as NavItem[],
-)
 </script>
 
 <template>
@@ -219,91 +206,95 @@ const bottomItems = computed<NavItem[]>(
     <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
 
     <!-- Main nav items -->
-    <template v-for="(item, idx) of mainItems">
-      <NcDivider
-        v-if="item.key === 'divider'"
-        :key="`${item.key}-${idx}`"
-        class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium"
-      />
+    <DashboardMiniSidebarV2RailItem
+      v-for="(item, idx) of mainItems"
+      :key="idx"
+      :icon="item.icon"
+      :label="item.label"
+      :panel-key="item.key"
+      :active="activeSidebarTab === item.key"
+      :disabled="item.disabled"
+      :disable-tooltip="true"
+      @click="item.onClick?.()"
+    />
 
-      <!-- Notifications -->
-      <NcDropdown
-        v-else-if="item.key === 'notification'"
-        :key="`notification-${idx}`"
-        v-model:visible="isNotificationOpen"
-        placement="right"
-        overlay-class-name="!shadow-none"
-        :overlay-style="{ marginLeft: '8px' }"
-        :trigger="['click']"
-      >
-        <DashboardMiniSidebarV2RailItem
-          label="Activity"
-          tooltip="Activity"
-          panel-key="notification"
-          data-testid="nc-sidebar-notification-btn"
-          :active="isNotificationOpen"
-          :disable-tooltip="isNotificationOpen"
-          is-dropdown
-        >
-          <template #icon>
-            <div class="relative flex items-center justify-center">
-              <span
-                v-if="unreadCount"
-                class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
-                style="background: #e75a8d"
-              />
-              <GeneralIcon icon="notification" class="nc-rail-item-icon" />
-            </div>
-          </template>
-        </DashboardMiniSidebarV2RailItem>
-        <template #overlay>
-          <NotificationCard @close="isNotificationOpen = false" />
-        </template>
-      </NcDropdown>
-
-      <DashboardMiniSidebarV2RailItem
-        v-else
-        :key="idx"
-        :icon="item.icon"
-        :label="item.label"
-        :panel-key="item.key"
-        :active="activeSidebarTab === item.key"
-        :disabled="item.disabled"
-        :disable-tooltip="true"
-        @click="item.onClick?.()"
-      />
-    </template>
+    <!-- AI Chat -->
+    <DashboardMiniSidebarV2RailItem
+      v-if="isEeUI && isChatEnabled && hasChatWorkspaceContext && !isMobileMode"
+      v-e="['c:chat:toggle']"
+      label="Chat"
+      panel-key="chat"
+      data-testid="nc-sidebar-chat-btn"
+      :active="isChatPanelExpanded && !blockAiChat"
+      :disable-tooltip="true"
+      plain-active
+      @click="handleChatToggle"
+    >
+      <template #icon>
+        <div class="relative flex items-center justify-center">
+          <GeneralIcon icon="ncAutoAwesome" class="nc-rail-item-icon !text-nc-content-brand" />
+          <LazyPaymentUpgradeBadge
+            :feature="PlanFeatureTypes.FEATURE_AI_CHAT"
+            content=""
+            class="!absolute -bottom-1 -right-1"
+            show-as-lock
+            remove-click
+            size="xs"
+          />
+        </div>
+      </template>
+    </DashboardMiniSidebarV2RailItem>
 
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">
-      <!-- Theme toggle -->
+      <!-- Settings -->
       <DashboardMiniSidebarV2RailItem
-        v-if="isThemeEnabled"
-        v-e="['c:nocodb:theme']"
-        :label="selectedTheme === 'light' ? 'Light' : selectedTheme === 'dark' ? 'Dark' : 'System'"
+        icon="ncSettings"
+        label="Settings"
+        panel-key="settings"
+        :active="activeSidebarTab === 'settings'"
         :disable-tooltip="true"
-        panel-key="theme"
-        data-testid="nc-sidebar-theme"
-        @click="toggleTheme"
-      >
-        <template #icon>
-          <GeneralIcon :icon="themeIcon" class="nc-rail-item-icon" />
-        </template>
-      </DashboardMiniSidebarV2RailItem>
-
-      <DashboardMiniSidebarV2RailItem
-        v-for="item in bottomItems"
-        :key="item.key"
-        :icon="item.icon"
-        :label="item.label"
-        :panel-key="item.key"
-        @click="item.onClick?.()"
+        @click="onTabClick('settings')"
       />
     </div>
 
     <NcDivider class="!w-8 !min-w-8 !max-w-8 pt-1.5 pb-1 !border-nc-border-gray-medium" />
 
     <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
+
+    <!-- Activity / Notifications -->
+    <NcDropdown
+      v-if="!isMobileMode"
+      v-model:visible="isNotificationOpen"
+      placement="right"
+      overlay-class-name="!shadow-none"
+      :overlay-style="{ marginLeft: '8px' }"
+      :trigger="['click']"
+    >
+      <DashboardMiniSidebarV2RailItem
+        label="Activity"
+        tooltip="Activity"
+        panel-key="notification"
+        data-testid="nc-sidebar-notification-btn"
+        :active="isNotificationOpen"
+        :disable-tooltip="isNotificationOpen"
+        is-dropdown
+      >
+        <template #icon>
+          <div class="relative flex items-center justify-center">
+            <span
+              v-if="unreadCount"
+              class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
+              style="background: #e75a8d"
+            />
+            <GeneralIcon icon="notification" class="nc-rail-item-icon" />
+          </div>
+        </template>
+      </DashboardMiniSidebarV2RailItem>
+      <template #overlay>
+        <NotificationCard @close="isNotificationOpen = false" />
+      </template>
+    </NcDropdown>
 
     <!-- User Avatar -->
     <DashboardSidebarUserInfo />

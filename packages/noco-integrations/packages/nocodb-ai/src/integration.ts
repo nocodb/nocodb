@@ -10,9 +10,9 @@ import type {
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 const modelMap: Record<string, string> = {
-  high: 'gpt-4o',
-  medium: 'gpt-4o-mini',
-  low: 'gpt-4o-mini',
+  high: 'gpt-5.2',
+  medium: 'gpt-5-mini',
+  low: 'gpt-5-nano',
 };
 
 export class NocodbAiIntegration extends AiIntegration {

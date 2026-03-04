@@ -1,0 +1,82 @@
+import { z } from 'zod';
+import { isLinksOrLTAR, ProjectRoles } from 'nocodb-sdk';
+import { resolveTableByName } from '../helpers';
+import type { NcContext } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import type { ChatToolDefinition } from '../chat-tool-registry';
+import Model from '~/models/Model';
+
+export const describeTableTool: ChatToolDefinition = {
+  name: 'describe_table',
+  description:
+    'Get the full schema of a table: all user-visible fields with their name, type, ' +
+    'required flag, display field flag, and available options for SingleSelect/MultiSelect fields. ' +
+    'For LinkToAnotherRecord fields, shows the related table name and relationship type (om, mo, mm, oo).',
+  parameters: {
+    table_name: z
+      .string()
+      .describe(
+        'The title of the table to describe (case-insensitive). Use list_tables to get valid names.',
+      ),
+  },
+  permission: 'tableGet',
+  scope: 'base',
+  requiredRole: ProjectRoles.VIEWER,
+  isDangerous: false,
+  readonly: true,
+  async execute(
+    context: NcContext,
+    args: { table_name: string },
+    _req: NcRequest,
+  ) {
+    const model = await resolveTableByName(context, args.table_name);
+    const columns = await model.getColumns(context);
+
+    return {
+      id: model.id,
+      title: model.title,
+      description: model.description || null,
+      columns: await Promise.all(
+        columns
+          .filter((c) => !c.system)
+          .map(async (c) => {
+            const col: Record<string, any> = {
+              id: c.id,
+              title: c.title,
+              type: c.uidt,
+              required: !!c.rqd,
+              primary: !!c.pv,
+              description: c.description || null,
+            };
+
+            if (c.colOptions?.options?.length) {
+              col.options = c.colOptions.options.map((o: any) => o.title);
+            }
+
+            // Enrich link fields with related table name and relation type
+            if (isLinksOrLTAR(c) && c.colOptions) {
+              const relationType = c.colOptions.type;
+              const relatedModelId = c.colOptions.fk_related_model_id;
+
+              if (relationType) {
+                col.relation_type = relationType;
+              }
+
+              if (relatedModelId) {
+                try {
+                  const relatedModel = await Model.get(context, relatedModelId);
+                  if (relatedModel) {
+                    col.related_table = relatedModel.title;
+                  }
+                } catch {
+                  // Ignore — related table may have been deleted
+                }
+              }
+            }
+
+            return col;
+          }),
+      ),
+    };
+  },
+};

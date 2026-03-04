@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { Hook, Model, User, Workspace, WorkflowSubscriber } from '~/models';
+import { Hook, Model, User, WorkflowSubscriber, Workspace } from '~/models';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { processConcurrently } from '~/utils';
@@ -61,9 +61,7 @@ export class HookErrorNotificationProcessor {
 
         const hook = await Hook.get(context, group.fk_hook_id);
         if (!hook) {
-          this.logger.warn(
-            `Hook ${group.fk_hook_id} not found, skipping`,
-          );
+          this.logger.warn(`Hook ${group.fk_hook_id} not found, skipping`);
           await this.markAsNotified(group, cutoffTime);
           continue;
         }
@@ -162,13 +160,11 @@ export class HookErrorNotificationProcessor {
     this.logger.debug('HookErrorNotificationProcessor job completed');
   }
 
-  private async markAsNotified(
-    group: FailedHookLogGroup,
-    cutoffTime: string,
-  ) {
+  private async markAsNotified(group: FailedHookLogGroup, cutoffTime: string) {
     const ncMeta = Noco.ncMeta;
 
-    await ncMeta.knexConnection(MetaTable.HOOK_LOGS)
+    await ncMeta
+      .knexConnection(MetaTable.HOOK_LOGS)
       .where('fk_hook_id', group.fk_hook_id)
       .where('base_id', group.base_id)
       .whereNotNull('error')

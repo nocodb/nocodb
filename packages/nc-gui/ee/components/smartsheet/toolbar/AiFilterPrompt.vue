@@ -34,6 +34,8 @@ const { isParentOpen } = toRefs(props)
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { predictFilters, aiIntegrationAvailable, isAiFeaturesEnabled } = useNocoAi()
 
 const meta = inject(MetaInj, ref())
@@ -118,15 +120,14 @@ const handleSubmit = async () => {
     } else {
       // Telemetry: AI returned no usable filters for the given description
       $e('a:filter:ai:empty-result')
-      message.info('No matching filters could be generated for that description.')
+      message.info(t('title.aiFilterNoResults'))
     }
   } catch (e: any) {
     // Telemetry: track AI filter prediction failure
     $e('a:filter:ai:error')
     // Note: API-level errors (e.g. AI integration not found, rate limits) are already
     // shown to the user as toast messages by useNocoAi's callAiSchemaApi (skipMsgToast=false).
-    // This catch handles unexpected errors only — logged for debugging.
-    console.error('AI filter prediction failed:', e)
+    // This catch handles unexpected errors only.
   } finally {
     isLoading.value = false
   }

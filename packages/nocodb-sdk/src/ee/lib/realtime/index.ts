@@ -25,6 +25,7 @@ import {
   PresencePayload,
   SocketEventPayload as SocketEventPayloadOSS,
   SocketEventPayloadMap as SocketEventPayloadMapOSS,
+  ChatEventPayload,
 } from 'src/lib/realtime';
 
 // export common types
@@ -45,6 +46,7 @@ export {
   PresenceLeavePayload,
   PresenceBatchPayload,
   PresencePayload,
+  ChatEventPayload,
 };
 
 export interface DashboardPayload extends BaseSocketPayload {
@@ -101,7 +103,8 @@ export type SocketEventPayload =
   | SocketEventPayloadOSS
   | DashboardPayload
   | WidgetPayload
-  | TeamPayload;
+  | TeamPayload
+  | ChatEventPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = SocketEventPayloadMapOSS & {
@@ -111,6 +114,7 @@ export type SocketEventPayloadMap = SocketEventPayloadMapOSS & {
   [EventType.TEAM_EVENT]: TeamPayload;
   [EventType.WORKFLOW_EVENT]: WorkflowPayload;
   [EventType.WORKFLOW_EXECUTION_EVENT]: WorkflowExecutionPayload;
+  [EventType.CHAT_EVENT]: ChatEventPayload;
 };
 
 // Helper type to get payload type for a specific event

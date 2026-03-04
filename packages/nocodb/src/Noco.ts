@@ -17,6 +17,7 @@ import type http from 'http';
 import type Sharp from 'sharp';
 import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import type { AuditService } from '~/meta/audit.service';
+import type { ChatMessagesService } from '~/meta/chat-messages.service';
 import type { AppSettings } from '~/interface/AppSettings';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
@@ -52,6 +53,7 @@ export default class Noco {
   public readonly baseRouter: express.Router;
   public static _ncMeta: any;
   public static _ncAudit: any;
+  public static _ncChatMessages: any;
   public static appHooksService: AppHooksService;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
@@ -110,12 +112,20 @@ export default class Noco {
     return this._ncAudit ?? this._ncMeta;
   }
 
+  public static get ncChatMessages(): ChatMessagesService {
+    return this._ncChatMessages ?? this._ncMeta;
+  }
+
   public get ncMeta(): any {
     return Noco._ncMeta;
   }
 
   public get ncAudit(): AuditService {
     return Noco._ncAudit;
+  }
+
+  public get ncChatMessages(): ChatMessagesService {
+    return Noco._ncChatMessages;
   }
 
   public static getConfig(): any {
@@ -286,6 +296,8 @@ export default class Noco {
   }
 
   public static async prepareAuditService() {}
+
+  public static async prepareChatMessagesService() {}
 
   public static async getAppSettings(refresh = false): Promise<AppSettings> {
     // Force refresh or first load

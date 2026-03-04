@@ -92,7 +92,12 @@ const requiredEnvKeys = [
 
 export const SamlStrategyProvider: FactoryProvider = {
   provide: SamlStrategy,
-  inject: [UsersService, ConfigService<AppConfig>, MetaService, AppHooksService],
+  inject: [
+    UsersService,
+    ConfigService<AppConfig>,
+    MetaService,
+    AppHooksService,
+  ],
   useFactory: async (
     usersService: UsersService,
     config: ConfigService<AppConfig>,
@@ -133,6 +138,12 @@ export const SamlStrategyProvider: FactoryProvider = {
       // logoutCallbackUrl: '/login/callback',
     };
 
-    return new SamlStrategy(clientConfig, config, usersService, metaService, appHooksService);
+    return new SamlStrategy(
+      clientConfig,
+      config,
+      usersService,
+      metaService,
+      appHooksService,
+    );
   },
 };

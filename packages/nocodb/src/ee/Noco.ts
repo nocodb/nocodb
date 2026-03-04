@@ -3,6 +3,7 @@ import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import { NcLogger } from '~/utils/logger/NcLogger';
 import { AuditService } from '~/meta/audit.service';
+import { ChatMessagesService } from '~/meta/chat-messages.service';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
 export default class Noco extends NocoCE {
@@ -36,6 +37,61 @@ export default class Noco extends NocoCE {
 
       if (migrateAudit) {
         await this.migrateAuditFromMeta();
+      }
+    }
+  }
+
+  public static async prepareChatMessagesService() {
+    if (process.env.NC_CHAT_DB) {
+      const chatConfig = await NcConfig.create({
+        meta: {
+          metaUrl: process.env.NC_CHAT_DB,
+        },
+      });
+
+      Noco._ncChatMessages = new ChatMessagesService(chatConfig);
+
+      const migrateChatMessages =
+        !(await Noco.ncChatMessages.knexConnection.schema.hasTable(
+          MetaTable.CHAT_MESSAGES,
+        ));
+
+      await Noco.ncChatMessages.init();
+
+      if (migrateChatMessages) {
+        await this.migrateChatMessagesFromMeta();
+      }
+    }
+  }
+
+  private static async migrateChatMessagesFromMeta() {
+    const batchSize = 500;
+    let offset = 0;
+    let processedCount = 0;
+    let hasMoreRecords = true;
+
+    while (hasMoreRecords) {
+      const batch = await Noco.ncMeta
+        .knexConnection(MetaTable.CHAT_MESSAGES)
+        .select('*')
+        .orderBy('id', 'asc')
+        .limit(batchSize)
+        .offset(offset);
+
+      if (batch.length === 0) {
+        hasMoreRecords = false;
+        break;
+      }
+
+      await Noco.ncChatMessages
+        .knexConnection(MetaTable.CHAT_MESSAGES)
+        .insert(batch);
+
+      processedCount += batch.length;
+      offset += batchSize;
+
+      if (batch.length < batchSize) {
+        hasMoreRecords = false;
       }
     }
   }

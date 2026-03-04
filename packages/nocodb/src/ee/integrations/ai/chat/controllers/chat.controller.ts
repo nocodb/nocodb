@@ -1,0 +1,140 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
+import { NcContext, NcRequest } from 'nocodb-sdk';
+import { ChatService } from '../services/chat.service';
+import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { License } from '~/decorators/license.decorator';
+
+const PREFIX = '/api/v2/internal/:workspaceId';
+
+@Controller()
+@UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License('Chat')
+export class ChatController {
+  constructor(private readonly chatService: ChatService) {}
+
+  @Get(`${PREFIX}/chat/sessions`)
+  @Acl('chatSessionList', { scope: 'workspace' })
+  async sessionList(
+    @TenantContext() context: NcContext,
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatService.sessionList(context, { req });
+  }
+
+  @Get(`${PREFIX}/chat/sessions/:sessionId`)
+  @Acl('chatSessionGet', { scope: 'workspace' })
+  async sessionGet(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatService.sessionGet(context, { sessionId, req });
+  }
+
+  @Post(`${PREFIX}/chat/sessions`)
+  @Acl('chatSessionCreate', { scope: 'workspace' })
+  async sessionCreate(
+    @TenantContext() context: NcContext,
+    @Body() body: { title?: string },
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatService.sessionCreate(context, {
+      title: body.title,
+      req,
+    });
+  }
+
+  @Delete(`${PREFIX}/chat/sessions/:sessionId`)
+  @Acl('chatSessionDelete', { scope: 'workspace' })
+  async sessionDelete(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatService.sessionDelete(context, { sessionId, req });
+  }
+
+  @Get(`${PREFIX}/chat/sessions/:sessionId/messages`)
+  @Acl('chatMessageList', { scope: 'workspace' })
+  async messageList(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Query('limit') limit: string,
+    @Query('offset') offset: string,
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatService.messageList(context, {
+      sessionId,
+      limit: limit
+        ? Math.min(Math.max(parseInt(limit, 10) || 50, 1), 200)
+        : undefined,
+      offset: offset ? Math.max(parseInt(offset, 10) || 0, 0) : undefined,
+      req,
+    });
+  }
+
+  @Post(`${PREFIX}/chat/sessions/:sessionId/messages`)
+  @Acl('chatMessageSend', { scope: 'workspace' })
+  async messageSend(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Body()
+    body: {
+      content: string;
+      approvals?: Record<string, 'approved' | 'denied'>;
+      base_id?: string;
+    },
+    @Request() req: NcRequest,
+  ) {
+    // Enqueues a Bull job — response delivered via Socket.IO CHAT_EVENT
+    await this.chatService.sendMessage(context, {
+      sessionId,
+      body: {
+        content: body.content,
+        approvals: body.approvals,
+        base_id: body.base_id,
+      },
+      req,
+    });
+
+    return {};
+  }
+
+  @Post(`${PREFIX}/chat/sessions/:sessionId/messages/:messageId/approve`)
+  @Acl('chatMessageSend', { scope: 'workspace' })
+  async approveToolCalls(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Param('messageId') messageId: string,
+    @Body()
+    body: {
+      decisions: Record<string, 'approved' | 'denied'>;
+      base_id?: string;
+    },
+    @Request() req: NcRequest,
+  ) {
+    // Enqueues a Bull job — continuation delivered via Socket.IO CHAT_EVENT
+    await this.chatService.approveToolCalls(context, {
+      sessionId,
+      messageId,
+      decisions: body.decisions || {},
+      baseId: body.base_id,
+      req,
+    });
+
+    return {};
+  }
+}

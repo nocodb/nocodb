@@ -87,10 +87,10 @@ import type {
   TableUpdatePayload,
   TeamCreatePayload,
   TeamDeletePayload,
-  TeamMovePayload,
   TeamMemberAddPayload,
   TeamMemberDeletePayload,
   TeamMemberUpdatePayload,
+  TeamMovePayload,
   TeamUpdatePayload,
   UpdatePayload,
   UserInvitePayload,
@@ -189,10 +189,10 @@ import type {
   TableUpdateEvent,
   TeamCreateEvent,
   TeamDeleteEvent,
-  TeamMoveEvent,
   TeamMemberAddEvent,
   TeamMemberDeleteEvent,
   TeamMemberUpdateEvent,
+  TeamMoveEvent,
   TeamUpdateEvent,
   UserEmailVerificationEvent,
   UserInviteEvent,
@@ -396,7 +396,7 @@ export class AppHooksListenerService
                 },
                 context: param.context,
                 req: param.req,
-                ...(((param.user as any)?.extra?.workspace_id)
+                ...((param.user as any)?.extra?.workspace_id
                   ? { fk_workspace_id: (param.user as any).extra.workspace_id }
                   : {}),
               },

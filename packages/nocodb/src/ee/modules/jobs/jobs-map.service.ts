@@ -31,6 +31,8 @@ import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow/workflow-r
 import { WorkflowTestProcessor } from '~/modules/jobs/jobs/workflow/workflow-test.processor';
 import { WorkflowErrorNotificationProcessor } from '~/modules/jobs/jobs/workflow/workflow-error-notification.processor';
 import { HookErrorNotificationProcessor } from '~/modules/jobs/jobs/hook-error-notification.processor';
+import { ChatMessageProcessor } from '~/modules/jobs/jobs/chat-message.processor';
+import { ChatApprovalProcessor } from '~/modules/jobs/jobs/chat-approval.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -66,6 +68,8 @@ export class JobsMap extends JobsMapCE {
     protected readonly workflowTestProcessor: WorkflowTestProcessor,
     protected readonly workflowErrorNotificationProcessor: WorkflowErrorNotificationProcessor,
     protected readonly hookErrorNotificationProcessor: HookErrorNotificationProcessor,
+    protected readonly chatMessageProcessor: ChatMessageProcessor,
+    protected readonly chatApprovalProcessor: ChatApprovalProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -176,6 +180,12 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.HookErrorNotification]: {
         this: this.hookErrorNotificationProcessor,
+      },
+      [JobTypes.ChatMessage]: {
+        this: this.chatMessageProcessor,
+      },
+      [JobTypes.ChatApproval]: {
+        this: this.chatApprovalProcessor,
       },
     };
   }

@@ -68,12 +68,7 @@ const onCreateBaseClick = () => {
 </script>
 
 <template>
-  <div
-    class="nc-all-tables-view p-6 nc-scrollbar-thin"
-    :style="{
-      height: 'calc(100vh - var(--topbar-height))',
-    }"
-  >
+  <div class="nc-all-tables-view p-6 nc-scrollbar-thin h-full overflow-y-auto">
     <div class="text-subHeading2 text-nc-content-gray mb-5">
       {{ activeSidebarTab === 'workflows' ? $t('objects.workflow') : $t('general.data') }} {{ $t('labels.actions') }}
     </div>
@@ -91,6 +86,18 @@ const onCreateBaseClick = () => {
         <!-- Data actions (shown on Data tab) -->
         <template v-if="activeSidebarTab === 'data'">
           <ProjectActionItem
+            v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+            :label="$t('dashboards.create_new_table')"
+            :subtext="$t('msg.subText.startFromScratch')"
+            data-testid="proj-view-btn__add-new-table"
+            @click="openTableCreateDialog()"
+          >
+            <template #icon>
+              <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-nc-content-brand" />
+            </template>
+          </ProjectActionItem>
+
+          <ProjectActionItem
             v-if="!isMobileMode && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
             v-e="['c:table:import']"
             data-testid="proj-view-btn__import-data"
@@ -100,18 +107,6 @@ const onCreateBaseClick = () => {
           >
             <template #icon>
               <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-nc-content-orange-dark" />
-            </template>
-          </ProjectActionItem>
-
-          <ProjectActionItem
-            v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-            :label="$t('dashboards.create_new_table')"
-            :subtext="$t('msg.subText.startFromScratch')"
-            data-testid="proj-view-btn__add-new-table"
-            @click="openTableCreateDialog()"
-          >
-            <template #icon>
-              <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-nc-content-brand" />
             </template>
           </ProjectActionItem>
 

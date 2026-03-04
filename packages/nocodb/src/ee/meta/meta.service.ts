@@ -126,6 +126,8 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.RECORD_TEMPLATES]: 'rt',
       [MetaTable.RLS_POLICIES]: 'rlp',
       [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
+      [MetaTable.CHAT_SESSIONS]: 'cs',
+      [MetaTable.CHAT_MESSAGES]: 'cm',
     };
 
     const prefix = prefixMap[target] || 'nc';

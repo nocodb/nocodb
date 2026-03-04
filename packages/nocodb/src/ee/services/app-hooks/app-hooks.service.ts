@@ -4,6 +4,8 @@ import type {
   BaseTeamDeleteEvent,
   BaseTeamInviteEvent,
   BaseTeamUpdateEvent,
+  ChatSessionCreateEvent,
+  ChatSessionDeleteEvent,
   ColumnEvent,
   FilterEvent,
   ProjectCreateEvent,
@@ -457,6 +459,16 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: ScimUserEvent) => void,
   ): () => void;
 
+  // Chat Events
+  on(
+    event: AppEvents.CHAT_SESSION_CREATE,
+    listener: (data: ChatSessionCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.CHAT_SESSION_DELETE,
+    listener: (data: ChatSessionDeleteEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -468,10 +480,7 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.USER_SIGNUP, data: UserSignupEvent): void;
   emit(event: AppEvents.USER_INVITE, data: UserInviteEvent): void;
   emit(event: AppEvents.USER_SIGNIN, data: UserSigninEvent): void;
-  emit(
-    event: AppEvents.USER_SIGNIN_FAILED,
-    data: UserSigninFailedEvent,
-  ): void;
+  emit(event: AppEvents.USER_SIGNIN_FAILED, data: UserSigninFailedEvent): void;
   emit(event: AppEvents.USER_SIGNOUT, data: UserSignoutEvent): void;
   emit(event: AppEvents.APIS_CREATED, data: ApiCreatedEvent): void;
   emit(
@@ -821,6 +830,16 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.VIEW_SECTION_DELETE,
     data: ViewSectionDeleteEvent,
+  ): void;
+
+  // Chat Events
+  emit(
+    event: AppEvents.CHAT_SESSION_CREATE,
+    data: ChatSessionCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.CHAT_SESSION_DELETE,
+    data: ChatSessionDeleteEvent,
   ): void;
 
   emit(event, data): void {

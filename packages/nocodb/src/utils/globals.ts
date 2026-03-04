@@ -121,6 +121,8 @@ export enum MetaTable {
   RLS_POLICIES = 'nc_rls_policies',
   RLS_POLICY_SUBJECTS = 'nc_rls_policy_subjects',
   VIEW_SECTIONS = 'nc_view_sections',
+  CHAT_SESSIONS = 'nc_chat_sessions',
+  CHAT_MESSAGES = 'nc_chat_messages',
 }
 
 export const BaseRelatedMetaTables = [
@@ -488,6 +490,7 @@ export enum CacheScope {
   RECORD_TEMPLATE = 'recordTemplate',
   RLS_POLICY = 'rlsPolicy',
   VIEW_SECTION = 'viewSection',
+  CHAT_SESSION = 'chatSession',
 }
 
 export enum CacheGetType {
@@ -563,6 +566,8 @@ export const RootScopeTables = {
 
     MetaTable.PRINCIPAL_ASSIGNMENTS,
     MetaTable.SCIM_CONFIG,
+    MetaTable.CHAT_SESSIONS,
+    MetaTable.CHAT_MESSAGES,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };

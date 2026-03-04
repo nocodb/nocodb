@@ -30,11 +30,7 @@ export class HookSubscribersService {
     });
   }
 
-  async addSubscribers(
-    context: NcContext,
-    hookId: string,
-    userIds: string[],
-  ) {
+  async addSubscribers(context: NcContext, hookId: string, userIds: string[]) {
     const hook = await Hook.get(context, hookId);
 
     if (!hook) {
@@ -51,11 +47,7 @@ export class HookSubscribersService {
 
     for (const userId of filteredUserIds) {
       const existingSubscription =
-        await WorkflowSubscriber.getByWorkflowAndUser(
-          context,
-          hookId,
-          userId,
-        );
+        await WorkflowSubscriber.getByWorkflowAndUser(context, hookId, userId);
 
       if (!existingSubscription) {
         const subscriber = await WorkflowSubscriber.insert(context, {

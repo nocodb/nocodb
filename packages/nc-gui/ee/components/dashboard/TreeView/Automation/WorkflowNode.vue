@@ -318,7 +318,7 @@ const deleteWorkflow = () => {
 
 <template>
   <div
-    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-[13px] !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-muted text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :data-testid="`view-sidebar-workflow-${vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
@@ -355,7 +355,7 @@ const deleteWorkflow = () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:workflow:open']" class="text-sm flex items-center w-full gap-1" data-testid="workflow-item">
+      <div v-e="['a:workflow:open']" class="text-bodyDefaultSm font-medium flex items-center w-full gap-1" data-testid="workflow-item">
         <div
           v-e="['c:workflow:emoji-picker']"
           :data-testid="`view-sidebar-drag-handle-${vModel.title}`"

@@ -63,6 +63,22 @@ const currentWorkspace = computedAsync(async () => {
   return ws
 })
 
+// --- Inline mode (settings sidebar) ---
+
+// Map ws-* tab prop to NcTabs key (e.g. 'ws-collaborators' → 'collaborators')
+const wsTabToNcTabKey: Record<string, string> = {
+  'ws-collaborators': 'collaborators',
+  'ws-teams': 'teams',
+  'ws-integrations': 'integrations',
+  'ws-billing': 'billing',
+  'ws-audits': 'audits',
+  'ws-sso': 'sso',
+  'ws-settings': 'settings',
+}
+
+// Inverse: NcTabs key → ws-* tab name for route generation
+const ncTabKeyToWsTab: Record<string, string> = Object.fromEntries(Object.entries(wsTabToNcTabKey).map(([k, v]) => [v, k]))
+
 const tab = computed({
   get() {
     return (props.tab && wsTabToNcTabKey[props.tab]) ?? 'collaborators'
@@ -92,6 +108,24 @@ const tab = computed({
       navigateTo(`/${wsId}/settings/${slug}`)
     }
   },
+})
+
+const isSettingsSidebar = computed(() => !!props.tab)
+
+provide(IsSettingsSidebarInj, isSettingsSidebar)
+
+const settingsPageTitle = computed(() => {
+  if (!props.tab) return ''
+  const tabTitles: Record<string, string> = {
+    'ws-collaborators': t('labels.inviteUsersToWorkspace'),
+    'ws-teams': t('labels.manageTeams'),
+    'ws-integrations': t('general.integrations'),
+    'ws-billing': t('general.billing'),
+    'ws-audits': t('title.audits'),
+    'ws-sso': t('title.sso'),
+    'ws-settings': t('general.general'),
+  }
+  return tabTitles[props.tab] || ''
 })
 
 const isWorkspaceSsoAvail = computed(() => {
@@ -148,40 +182,6 @@ watch(
 )
 
 const { shouldShow: btbShouldShow } = useBackToBase()
-
-// --- Inline mode (settings sidebar) ---
-
-const isSettingsSidebar = computed(() => !!props.tab)
-
-provide(IsSettingsSidebarInj, isSettingsSidebar)
-
-// Map ws-* tab prop to NcTabs key (e.g. 'ws-collaborators' → 'collaborators')
-const wsTabToNcTabKey: Record<string, string> = {
-  'ws-collaborators': 'collaborators',
-  'ws-teams': 'teams',
-  'ws-integrations': 'integrations',
-  'ws-billing': 'billing',
-  'ws-audits': 'audits',
-  'ws-sso': 'sso',
-  'ws-settings': 'settings',
-}
-
-// Inverse: NcTabs key → ws-* tab name for route generation
-const ncTabKeyToWsTab: Record<string, string> = Object.fromEntries(Object.entries(wsTabToNcTabKey).map(([k, v]) => [v, k]))
-
-const settingsPageTitle = computed(() => {
-  if (!props.tab) return ''
-  const tabTitles: Record<string, string> = {
-    'ws-collaborators': t('labels.inviteUsersToWorkspace'),
-    'ws-teams': t('labels.manageTeams'),
-    'ws-integrations': t('general.integrations'),
-    'ws-billing': t('general.billing'),
-    'ws-audits': t('title.audits'),
-    'ws-sso': t('title.sso'),
-    'ws-settings': t('general.general'),
-  }
-  return tabTitles[props.tab] || ''
-})
 
 // When in settings sidebar mode, load data for specific tabs on navigation
 watch(

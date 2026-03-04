@@ -2,15 +2,11 @@
 import Automation from '../Automation/index.vue'
 import Data from '../Data/index.vue'
 
-const router = useRouter()
-const route = router.currentRoute
-
 const sidebarStore = useSidebarStore()
 
-const { isLeftSidebarOpen, activeSidebarTab } = storeToRefs(sidebarStore)
+const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { isSharedBase } = storeToRefs(useBase())
-const { baseUrl, navigateToProjectPage: _navigateToBaseProjectPage } = useBase()
 
 const workflowStore = useWorkflowStore()
 
@@ -21,10 +17,6 @@ const { openNewDashboardModal } = useDashboardStore()
 const base = inject(ProjectInj)!
 
 const baseRole = inject(ProjectRoleInj)!
-
-const basesStore = useBases()
-
-const { meta: metaKey, control } = useMagicKeys()
 
 const { isUIAllowed } = useRoles()
 
@@ -38,36 +30,6 @@ const addNewProjectChildEntity = async (showSourceSelector = true) => {
   if (!projectNodeRef.value) return
 
   projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
-}
-
-const openBaseHomePage = async () => {
-  const isSharedBase = route.value.params.typeOrId === 'base'
-
-  if (isMobileMode.value && isLeftSidebarOpen.value && route.value.name === 'index-typeOrId-baseId-index-index') {
-    isLeftSidebarOpen.value = false
-
-    return
-  }
-
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  await navigateTo(
-    `${cmdOrCtrl ? '#' : ''}${baseUrl({
-      id: base.value.id!,
-      type: 'database',
-      isSharedBase,
-      projectPage: !isUIAllowed('projectOverviewTab') || isMobileMode.value ? 'collaborator' : undefined,
-    })}`,
-    cmdOrCtrl
-      ? {
-          open: navigateToBlankTargetOpenOption,
-        }
-      : undefined,
-  )
-
-  if (isMobileMode.value && isLeftSidebarOpen.value) {
-    isLeftSidebarOpen.value = false
-  }
 }
 
 const isVisibleCreateNew = ref(false)

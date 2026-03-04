@@ -77,9 +77,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
               :popup-offset="[8, -2]"
             >
               <template #title>
-                <div
-                  class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand"
-                >
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand">
                   <GeneralIcon icon="ncChevronRight" />
                 </div>
               </template>
@@ -172,9 +170,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
             @click.stop
           >
             <template #title>
-              <div
-                class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand"
-              >
+              <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand">
                 <GeneralIcon icon="ncChevronRight" />
               </div>
             </template>

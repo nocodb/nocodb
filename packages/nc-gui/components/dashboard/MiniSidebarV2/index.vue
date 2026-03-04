@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 provide(IsMiniSidebarInj, ref(true))
 
-const sidebarStore = useSidebarStore()
-
 const { isRail } = useMiniSidebarMode()
 
 const { isMobileMode } = useGlobal()

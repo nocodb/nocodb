@@ -183,10 +183,10 @@ const hasDashboardCreateAccess = computed(() => {
               !isDataTab
                 ? $t('tooltip.switchToDataTab', { type: $t('objects.table').toLowerCase() })
                 : !isBaseHomePage
-                  ? $t('tooltip.navigateToBaseToCreateTable')
-                  : !hasTableCreateAccess
-                    ? $t('tooltip.youDontHaveAccessToCreateNewTable')
-                    : ''
+                ? $t('tooltip.navigateToBaseToCreateTable')
+                : !hasTableCreateAccess
+                ? $t('tooltip.youDontHaveAccessToCreateNewTable')
+                : ''
             "
             :disabled="isDataTab && isBaseHomePage && hasTableCreateAccess"
             placement="right"
@@ -207,10 +207,10 @@ const hasDashboardCreateAccess = computed(() => {
                 !isDataTab
                   ? $t('tooltip.switchToDataTab', { type: $t('general.dashboard').toLowerCase() })
                   : !isBaseHomePage
-                    ? $t('tooltip.navigateToBaseToCreateDashboard')
-                    : !hasDashboardCreateAccess
-                      ? $t('tooltip.youDontHaveAccessToCreateNewDashboard')
-                      : ''
+                  ? $t('tooltip.navigateToBaseToCreateDashboard')
+                  : !hasDashboardCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewDashboard')
+                  : ''
               "
               :disabled="isDataTab && isBaseHomePage && hasDashboardCreateAccess"
               placement="right"
@@ -232,10 +232,10 @@ const hasDashboardCreateAccess = computed(() => {
               !isDataTab
                 ? $t('tooltip.switchToDataTab', { type: $t('objects.view').toLowerCase() })
                 : !base || !activeTable
-                  ? $t('tooltip.navigateToTableToCreateView')
-                  : !hasViewCreateAccess
-                    ? $t('tooltip.youDontHaveAccessToCreateNewView')
-                    : ''
+                ? $t('tooltip.navigateToTableToCreateView')
+                : !hasViewCreateAccess
+                ? $t('tooltip.youDontHaveAccessToCreateNewView')
+                : ''
             "
             :disabled="isDataTab && !!base && !!activeTable && hasViewCreateAccess"
             placement="right"
@@ -320,10 +320,10 @@ const hasDashboardCreateAccess = computed(() => {
                 !isWorkflowsTab
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.script').toLowerCase() })
                   : !isBaseHomePage
-                    ? $t('tooltip.navigateToBaseToCreateScript')
-                    : !hasScriptCreateAccess
-                      ? $t('tooltip.youDontHaveAccessToCreateNewScript')
-                      : ''
+                  ? $t('tooltip.navigateToBaseToCreateScript')
+                  : !hasScriptCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewScript')
+                  : ''
               "
               :disabled="isWorkflowsTab && isBaseHomePage && hasScriptCreateAccess"
               placement="right"
@@ -343,10 +343,10 @@ const hasDashboardCreateAccess = computed(() => {
                 !isWorkflowsTab
                   ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.workflow').toLowerCase() })
                   : !isBaseHomePage
-                    ? $t('tooltip.navigateToBaseToCreateWorkflow')
-                    : !hasWorkflowCreateAccess
-                      ? $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
-                      : ''
+                  ? $t('tooltip.navigateToBaseToCreateWorkflow')
+                  : !hasWorkflowCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
+                  : ''
               "
               :disabled="isWorkflowsTab && isBaseHomePage && hasWorkflowCreateAccess"
               placement="right"

@@ -355,7 +355,11 @@ const deleteDashboard = () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:dashboard:open']" class="text-bodyDefaultSm font-medium flex items-center flex-1 w-full gap-1" data-testid="dashboard-item">
+      <div
+        v-e="['a:dashboard:open']"
+        class="text-bodyDefaultSm font-medium flex items-center flex-1 w-full gap-1"
+        data-testid="dashboard-item"
+      >
         <div
           v-e="['c:dashboard:emoji-picker']"
           class="flex min-w-6"

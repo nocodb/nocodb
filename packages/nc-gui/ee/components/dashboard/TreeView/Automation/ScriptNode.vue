@@ -360,7 +360,11 @@ const deleteScript = () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:script:open']" class="text-bodyDefaultSm font-medium flex items-center w-full gap-1" data-testid="script-item">
+      <div
+        v-e="['a:script:open']"
+        class="text-bodyDefaultSm font-medium flex items-center w-full gap-1"
+        data-testid="script-item"
+      >
         <div
           v-e="['c:script:emoji-picker']"
           :data-testid="`view-sidebar-drag-handle-${vModel.title}`"

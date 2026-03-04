@@ -355,7 +355,11 @@ const deleteWorkflow = () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:workflow:open']" class="text-bodyDefaultSm font-medium flex items-center w-full gap-1" data-testid="workflow-item">
+      <div
+        v-e="['a:workflow:open']"
+        class="text-bodyDefaultSm font-medium flex items-center w-full gap-1"
+        data-testid="workflow-item"
+      >
         <div
           v-e="['c:workflow:emoji-picker']"
           :data-testid="`view-sidebar-drag-handle-${vModel.title}`"

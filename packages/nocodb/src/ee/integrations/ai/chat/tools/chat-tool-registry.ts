@@ -2,7 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { tool } from 'ai';
 import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
-import { ERROR_HINT_MAX_LENGTH } from '../constants';
+import {
+  ERROR_HINT_MAX_LENGTH,
+  TRUNCATE_RESULT_MAX_LENGTH,
+} from '../constants';
 
 // Schema tools
 import { listBasesTool } from './schema/list-bases.tool';
@@ -153,15 +156,40 @@ export class ChatToolRegistry {
       };
     }
 
-    // Role-based filtering already applied in getAvailableTools()
-    // The controller endpoint also enforces ACL via @Acl decorator
+    // Enforce scope: base-scoped tools require base_id in context.
+    // This is the structural guardrail — individual tools don't need to check.
+    if (toolDef.scope === 'base' && !context.base_id) {
+      return {
+        result:
+          'No base context available. Please ask the user to select a base first.',
+        isError: true,
+      };
+    }
 
     try {
       // Strip socket_id so realtime broadcasts reach all clients including the requester.
       // The chat request carries the user's socket ID via xc-socket-id header, which would
       // otherwise cause the frontend to suppress the event (assuming it originated from itself).
       const toolContext = { ...context, socket_id: undefined };
-      const result = await toolDef.execute(toolContext, args, req);
+      let result = await toolDef.execute(toolContext, args, req);
+
+      // Truncate large results to prevent blowing up the LLM context window.
+      // Applied centrally so individual tools don't need to remember.
+      if (
+        typeof result === 'string' &&
+        result.length > TRUNCATE_RESULT_MAX_LENGTH
+      ) {
+        result =
+          result.slice(0, TRUNCATE_RESULT_MAX_LENGTH) + '\n... (truncated)';
+      } else if (result && typeof result !== 'string') {
+        const serialized = JSON.stringify(result, null, 2);
+        if (serialized.length > TRUNCATE_RESULT_MAX_LENGTH) {
+          result =
+            serialized.slice(0, TRUNCATE_RESULT_MAX_LENGTH) +
+            '\n... (truncated)';
+        }
+      }
+
       return { result, isError: false };
     } catch (e) {
       this.logger.error(`Tool ${toolName} failed: ${e.message}`, e.stack);

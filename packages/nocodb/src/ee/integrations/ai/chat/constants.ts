@@ -13,8 +13,10 @@ export const TOKEN_BUDGET = 16000;
 /** Number of most-recent messages to always keep uncompacted. */
 export const KEEP_RECENT_MESSAGES = 6;
 
-/** Default max character length for truncated tool results. */
-export const TRUNCATE_RESULT_MAX_LENGTH = 4000;
+/** Default max character length for truncated tool results.
+ * ~30k chars ≈ 7500 tokens — generous enough for large record sets
+ * while staying well within the TOKEN_BUDGET (16k tokens) after compaction. */
+export const TRUNCATE_RESULT_MAX_LENGTH = 30_000;
 
 /** Max characters kept from an error message when building an LLM-facing hint. */
 export const ERROR_HINT_MAX_LENGTH = 128;

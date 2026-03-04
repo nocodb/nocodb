@@ -1,4 +1,3 @@
-import { TRUNCATE_RESULT_MAX_LENGTH } from '../constants';
 import type { NcContext } from '~/interface/config';
 import type { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -14,12 +13,6 @@ export async function resolveTableByName(
   tableName: string,
   _ncMeta = Noco.ncMeta,
 ): Promise<Model> {
-  if (!context.base_id) {
-    NcError.get(context).badRequest(
-      'No base context available. Please select a base first.',
-    );
-  }
-
   const models = await Model.list(context, {
     base_id: context.base_id,
   });
@@ -114,16 +107,4 @@ export async function getPrimaryKeyTitle(
   const columns = await model.getColumns(context);
   const pkCol = columns.find((c) => c.pk);
   return pkCol?.title;
-}
-
-/**
- * Truncate a result to prevent overly large tool responses from blowing up context.
- */
-export function truncateResult(
-  data: any,
-  maxLength = TRUNCATE_RESULT_MAX_LENGTH,
-): string {
-  const str = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
-  if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength) + '\n... (truncated)';
 }

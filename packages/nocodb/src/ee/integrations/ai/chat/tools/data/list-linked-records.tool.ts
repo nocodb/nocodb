@@ -1,10 +1,6 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import {
-  resolveColumnByName,
-  resolveTableByName,
-  truncateResult,
-} from '../helpers';
+import { resolveColumnByName, resolveTableByName } from '../helpers';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
@@ -81,6 +77,6 @@ export const listLinkedRecordsTool: ChatToolDefinition = {
       req,
     });
 
-    return truncateResult(result);
+    return result;
   },
 };

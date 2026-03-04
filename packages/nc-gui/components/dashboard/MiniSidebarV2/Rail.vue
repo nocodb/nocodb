@@ -190,7 +190,7 @@ const mainItems = computed<NavItem[]>(() => [
 const bottomItems = computed<NavItem[]>(
   () =>
     [
-      isChatWootEnabled.value
+      isChatWootEnabled.value && !isMobileMode.value
         ? { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }
         : null,
     ].filter(Boolean) as NavItem[],
@@ -303,7 +303,7 @@ const bottomItems = computed<NavItem[]>(
 
     <NcDivider class="!w-8 !min-w-8 !max-w-8 pt-1.5 pb-1 !border-nc-border-gray-medium" />
 
-    <DashboardMiniSidebarCreateNewActionMenu />
+    <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
 
     <!-- User Avatar -->
     <DashboardSidebarUserInfo />

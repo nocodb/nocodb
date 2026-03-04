@@ -33,6 +33,8 @@ const currentIcon = computed(() => {
   if (props.active && props.activeIcon) return props.activeIcon
   return props.icon
 })
+
+const disableTooltipForNewSidebar = true
 </script>
 
 <template>
@@ -40,7 +42,7 @@ const currentIcon = computed(() => {
     class="w-full flex justify-center relative"
     placement="right"
     :arrow="false"
-    :disabled="!tooltipText || disableTooltip"
+    :disabled="!tooltipText || disableTooltip || disableTooltipForNewSidebar"
   >
     <template #title>{{ tooltipText }}</template>
 
@@ -70,15 +72,16 @@ const currentIcon = computed(() => {
 
 <style lang="scss" scoped>
 .nc-rail-item {
-  @apply flex flex-col gap-1.5 items-center justify-center pt-2.5 pb-1.5 cursor-pointer transition-all duration-150 rounded-[10px];
-  width: 53px;
+  @apply flex flex-col items-center justify-center cursor-pointer transition-all duration-150 rounded-lg;
+  width: 36px;
+  height: 36px;
 
   &:not(.active) {
     @apply text-nc-content-gray-muted;
   }
 
   .nc-rail-item-indicator {
-    @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-[3px] h-[36px] opacity-0 pointer-events-none rounded-r-sm;
+    @apply absolute left-0 top-1/2 transform -translate-y-1/2 w-[3px] h-[28px] opacity-0 pointer-events-none rounded-r-sm;
     @apply bg-nc-content-brand;
     transition: opacity 0.2s;
   }
@@ -88,7 +91,7 @@ const currentIcon = computed(() => {
   }
 
   .nc-rail-item-label {
-    @apply select-none text-captionXs text-[9px] font-medium leading-tight tracking-tight opacity-85;
+    @apply select-none text-captionXs text-[9px] font-medium leading-tight tracking-tight opacity-85 hidden;
   }
 
   &:hover:not(.active):not(.disabled) {
@@ -130,6 +133,21 @@ const currentIcon = computed(() => {
 
   &.disabled {
     @apply opacity-40 cursor-not-allowed;
+  }
+
+  // Expanded layout with labels when sidebar is 64px
+  @media (min-width: 1280px) {
+    @apply gap-1.5 pt-2.5 pb-1.5 rounded-[10px];
+    width: 53px;
+    height: auto;
+
+    .nc-rail-item-label {
+      display: block;
+    }
+
+    .nc-rail-item-indicator {
+      @apply h-[36px];
+    }
   }
 }
 </style>

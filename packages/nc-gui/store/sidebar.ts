@@ -19,7 +19,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const { isMobileMode, leftSidebarSize: _leftSidebarSize, isLeftSidebarOpen: _isLeftSidebarOpen } = useGlobal()
 
   const miniSidebarWidth = computed(() => {
-    return isMobileMode.value ? MINI_SIDEBAR_WIDTH : NEW_MINI_SIDEBAR_WIDTH
+    if (isMobileMode.value) return MINI_SIDEBAR_WIDTH
+    return width.value >= 1280 ? NEW_MINI_SIDEBAR_WIDTH : MINI_SIDEBAR_WIDTH
   })
 
   const isFullScreen = ref(false)

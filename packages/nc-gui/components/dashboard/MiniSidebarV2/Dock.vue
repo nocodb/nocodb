@@ -50,7 +50,7 @@ const { unreadCount } = toRefs(notificationStore)
 
 const isNotificationOpen = ref(false)
 
-useProvideChatwoot()
+const { isChatWootEnabled } = useProvideChatwoot()
 
 const { isModalVisible: isChatVisible } = useChatWoot()
 
@@ -154,10 +154,15 @@ const mainItems = computed<NavItem[]>(() => [
   { key: 'settings', icon: 'ncSettings', label: 'Settings', onClick: () => onTabClick('settings') },
 ])
 
-// ── Bottom items ──
-const bottomItems = computed<NavItem[]>(() => [
-  { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() },
-])
+// ── Bottom items (pushed down by margin-top: auto) ──
+const bottomItems = computed<NavItem[]>(
+  () =>
+    [
+      isChatWootEnabled.value && !isMobileMode.value
+        ? { key: 'support', icon: 'ncSupportAgent', label: 'Support', onClick: () => toggleChatSupport() }
+        : null,
+    ].filter(Boolean) as NavItem[],
+)
 
 // ── Fish-eye magnification ──
 const dockRef = ref<HTMLElement>()
@@ -378,7 +383,12 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
     <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
 
-    <div :ref="(el: any) => setItemRef('create', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('create')">
+    <div
+      v-if="!isMobileMode"
+      :ref="(el: any) => setItemRef('create', el)"
+      class="nc-dock-magnify-wrapper"
+      :style="getMagnifyStyle('create')"
+    >
       <DashboardMiniSidebarCreateNewActionMenu />
     </div>
 

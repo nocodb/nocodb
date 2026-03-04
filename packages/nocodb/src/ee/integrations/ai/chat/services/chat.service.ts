@@ -349,12 +349,12 @@ export class ChatService {
     );
 
     // Build system prompt — pass baseId for schema context (may be undefined)
-    const userRole = this.getUserRole(req);
+    const userRoles = this.getUserRoles(req);
     const systemPrompt = await this.contextService.buildSystemPrompt(
       toolContext,
       {
         baseId,
-        userRole,
+        userRoles,
         req,
       },
     );
@@ -759,16 +759,21 @@ export class ChatService {
     return toolContext;
   }
 
-  private getUserRole(req: NcRequest): string {
-    const roles = req.user?.base_roles || (req.user as any)?.roles;
-    if (!roles) return 'viewer';
+  private getUserRoles(req: NcRequest): {
+    workspaceRole: string;
+    baseRole: string | null;
+  } {
+    const wsRoles = extractRolesObj(req.user?.workspace_roles) ?? {};
+    const baseRoles = extractRolesObj(req.user?.base_roles) ?? {};
 
-    if (typeof roles === 'string') return roles;
-
-    // Find highest role
-    for (const role of ['owner', 'creator', 'editor', 'commenter', 'viewer']) {
-      if (roles[role]) return role;
+    const workspaceRole = Object.keys(wsRoles).find((r) => wsRoles[r]);
+    if (!workspaceRole) {
+      NcError.unauthorized('No workspace role found');
     }
-    return 'viewer';
+
+    return {
+      workspaceRole,
+      baseRole: Object.keys(baseRoles).find((r) => baseRoles[r]) ?? null,
+    };
   }
 }

@@ -9,6 +9,7 @@ import type { ChatMessageType } from 'nocodb-sdk';
 import type { ModelMessage, SystemModelMessage } from 'ai';
 import type { NcContext } from '~/interface/config';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
+import Base from '~/models/Base';
 
 // Static content is identical for every request — build once and reuse.
 const STATIC_SYSTEM_PROMPT = buildStaticSystemPromptText();
@@ -30,24 +31,27 @@ export class ChatContextService {
       baseId?: string;
       tableId?: string;
       viewId?: string;
-      userRole: string;
+      userRoles: { workspaceRole: string; baseRole: string | null };
       req: any;
     },
   ): Promise<SystemModelMessage[]> {
-    const { baseId, tableId, userRole, req } = params;
+    const { baseId, tableId, userRoles, req } = params;
 
     let schemaContext = '';
+    let currentBaseName: string | undefined;
     let currentTableContext: string | undefined;
 
     if (baseId) {
-      const serializedSchema = await this.aiSchemaService.serializeSchema(
-        context,
-        {
+      const [base, serializedSchema] = await Promise.all([
+        Base.get(context, baseId),
+        this.aiSchemaService.serializeSchema(context, {
           baseId,
           tableIds: tableId ? [tableId] : undefined,
           req,
-        },
-      );
+        }),
+      ]);
+
+      currentBaseName = base?.title;
 
       const schemaLines: string[] = [];
 
@@ -93,8 +97,9 @@ export class ChatContextService {
         role: 'system',
         content: buildDynamicSystemPromptText({
           schemaContext,
+          currentBaseName,
           currentTableContext,
-          userRole,
+          userRoles,
         }),
       },
     ];
@@ -171,10 +176,21 @@ export class ChatContextService {
               }
           > = [];
 
+          // Only include tool calls that have a corresponding output.
+          // Incomplete tool calls (awaiting approval, denied, etc.) must be
+          // excluded — providers reject tool-call blocks without matching
+          // tool-result blocks in the conversation history.
+          const completedToolIds = new Set(
+            toolBlocks.filter((p) => p.output !== undefined).map((p) => p.id),
+          );
+
           for (const part of msg.parts) {
             if (part.type === 'text' && part.text) {
               contentParts.push({ type: 'text', text: part.text });
-            } else if (part.type === 'tool_use') {
+            } else if (
+              part.type === 'tool_use' &&
+              completedToolIds.has(part.id)
+            ) {
               contentParts.push({
                 type: 'tool-call' as const,
                 toolCallId: part.id,

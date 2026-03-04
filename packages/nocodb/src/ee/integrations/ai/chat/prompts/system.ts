@@ -18,7 +18,7 @@ export function buildStaticSystemPromptText(): string {
   // Short, direct, action-oriented. Sets the tone for everything that follows.
   parts.push(`You are NocoDB's AI assistant. NocoDB is a no-code database platform \
 with a spreadsheet interface (like Airtable) where users manage data through tables, \
-fields, views, and records. You have direct tool access to the user's base. \
+fields, views, and records. You have direct tool access to the user's workspace and bases. \
 Act confidently, narrate concisely, get things done.`);
 
   // ─── How You Work ────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ watched them execute live.
 6. **Suggest** a natural next step when it makes sense \
 ("Want me to add sample data?" or "You could set up a kanban view for this.").
 
-**You already have the base schema in context.** Use it. Only call \`describe_table\` \
+**You already have the current base schema in context.** Use it. Only call \`describe_table\` \
 when you need details not in your context — e.g. after a tool just modified the schema, \
 or for a table added mid-conversation. Never call it redundantly.
 
@@ -144,47 +144,63 @@ Workflow: (1) create both tables → (2) \`add_field\` LinkToAnotherRecord → \
 
 export function buildDynamicSystemPromptText({
   schemaContext,
+  currentBaseName,
   currentTableContext,
-  userRole,
+  userRoles,
 }: {
   schemaContext: string;
+  currentBaseName?: string;
   currentTableContext?: string;
-  userRole: string;
+  userRoles: { workspaceRole: string; baseRole: string | null };
 }): string {
   const parts: string[] = [];
 
-  // ─── User Role ─────────────────────────────────────────────────────────────
-  // Compressed — the model knows what viewer/editor/creator mean.
+  // ─── User Roles ────────────────────────────────────────────────────────────
+  // Always present. Workspace role is always known; base role only when inside a base.
+  const roleLines = [`Workspace role: **${userRoles.workspaceRole}**`];
+  if (userRoles.baseRole) {
+    roleLines.push(`Base role: **${userRoles.baseRole}**`);
+  } else {
+    roleLines.push('Base role: **none** (no base selected)');
+  }
+
   parts.push(`## Current User
 
-Role: **${userRole}**
+${roleLines.join('\n')}
 
 Viewer → read-only | Editor → + records, views, filters | Creator → + tables, fields | Owner → full access
 
-Tools are filtered to your role. Permission errors mean the user needs a higher role.`);
+Base tools are filtered to your base role. No base role = only workspace-level tools available.`);
 
   // ─── Schema ────────────────────────────────────────────────────────────────
   if (schemaContext) {
+    const baseHeading = currentBaseName
+      ? `## Active Base: ${currentBaseName}`
+      : `## Active Base`;
+
+    let contextLine = '';
+    if (currentTableContext) {
+      contextLine = `\n${currentTableContext}`;
+    }
+
     parts.push(`
-## Base Schema
+${baseHeading}
+
+**All operations target this base by default.** Do not call \`list_bases\` or ask \
+which base to use — the user already has this base open. Only use \`base_proxy\` \
+if the user explicitly mentions a different base.${contextLine}
 
 ${schemaContext}`);
-
-    if (currentTableContext) {
-      parts.push(`
-## Current Context
-
-${currentTableContext}`);
-    }
   } else {
     parts.push(`
 ## No Base Selected
 
-The user is not currently inside a base. You can use \`list_bases\` to show available bases, \
-but you cannot use tools that operate on tables, fields, views, or records. \
-If the user asks to do something that requires a base, use \`list_bases\` to show what's available \
-and ask them to open one from the sidebar — for example: \
-"You have these bases: [list]. Open one from the sidebar and I'll be able to work with your tables and data."`);
+The user is not currently inside a base. You can:
+- Use \`list_bases\` to show available bases.
+- Use \`base_proxy\` to **read** data from any base the user has access to \
+(e.g. query records, describe tables, count records).
+- For **write** operations (create, update, delete), ask the user to open the target base \
+from the sidebar first.`);
   }
 
   return parts.join('\n');

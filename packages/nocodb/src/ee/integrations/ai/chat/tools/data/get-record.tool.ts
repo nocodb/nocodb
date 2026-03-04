@@ -30,6 +30,7 @@ export const getRecordTool: ChatToolDefinition = {
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
+  readonly: true,
   async execute(
     context: NcContext,
     args: { table_name: string; row_id: string },

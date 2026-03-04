@@ -32,6 +32,7 @@ export const askUserTool: ChatToolDefinition = {
   scope: 'workspace',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
+  readonly: true,
   async execute(
     _context: NcContext,
     args: { questions: { question: string; options: string[] }[] },

@@ -15,6 +15,7 @@ export const listTablesTool: ChatToolDefinition = {
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
+  readonly: true,
   async execute(context: NcContext, _args: any, req: NcRequest) {
     const tablesService: TablesService = Noco.nestApp.get(TablesService);
 

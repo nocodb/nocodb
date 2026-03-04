@@ -45,6 +45,7 @@ export const listLinkedRecordsTool: ChatToolDefinition = {
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
+  readonly: true,
   async execute(
     context: NcContext,
     args: {

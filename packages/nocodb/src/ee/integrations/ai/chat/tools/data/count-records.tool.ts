@@ -36,6 +36,7 @@ export const countRecordsTool: ChatToolDefinition = {
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
+  readonly: true,
   async execute(
     context: NcContext,
     args: { table_name: string; where?: string },

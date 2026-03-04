@@ -22,7 +22,35 @@ const { block } = toRefs(props)
 
 const { t } = useI18n()
 
+const basesStore = useBases()
+
+const { bases } = storeToRefs(basesStore)
+
 const isExpanded = ref(false)
+
+// Unwrap base_proxy — show the inner tool name/args instead of the wrapper.
+const isProxy = computed(() => block.value.name === 'base_proxy')
+
+const proxyBaseName = computed(() => {
+  if (!isProxy.value) return null
+  const baseId = block.value.input?.base_id as string | undefined
+  if (!baseId) return null
+  return bases.value.get(baseId)?.title ?? null
+})
+
+const effectiveName = computed(() => {
+  if (isProxy.value && block.value.input?.tool_name) {
+    return block.value.input.tool_name as string
+  }
+  return block.value.name
+})
+
+const effectiveInput = computed(() => {
+  if (isProxy.value) {
+    return (block.value.input?.tool_args as Record<string, unknown>) ?? {}
+  }
+  return block.value.input
+})
 
 const isError = computed(() => block.value.status === ChatToolCallStatus.ERROR || block.value.is_error)
 const isRunning = computed(() => block.value.status === ChatToolCallStatus.RUNNING)
@@ -31,7 +59,7 @@ const isAwaitingApproval = computed(() => block.value.status === ChatToolCallSta
 const isDenied = computed(() => block.value.status === ChatToolCallStatus.DENIED)
 
 const toolCategory = computed(() => {
-  const name = block.value.name
+  const name = effectiveName.value
   if (
     name === 'list_tables' ||
     name.startsWith('describe_') ||
@@ -91,7 +119,7 @@ const categoryTextColor = computed(() => {
 
 // Extract the most useful inline argument to show next to the tool name
 const keyArg = computed(() => {
-  const args = block.value.input
+  const args = effectiveInput.value
   if (!args || typeof args !== 'object') return null
   // Priority: table_name > title > first string value
   if (args.table_name) return args.table_name
@@ -100,15 +128,15 @@ const keyArg = computed(() => {
   return firstStr || null
 })
 
-const displayName = computed(() => block.value.name.replace(/_/g, ' '))
+const displayName = computed(() => effectiveName.value.replace(/_/g, ' '))
 
 const formattedArgs = computed(() => {
   try {
-    const args = block.value.input
+    const args = effectiveInput.value
     if (!args || Object.keys(args).length === 0) return null
     return JSON.stringify(args, null, 2)
   } catch {
-    return String(block.value.input)
+    return String(effectiveInput.value)
   }
 })
 
@@ -135,7 +163,7 @@ const visibleOutput = computed(() => {
 
 <template>
   <div
-    class="nc-chat-tool-call w-72 rounded-lg overflow-hidden transition-all duration-150"
+    class="nc-chat-tool-call w-full rounded-lg overflow-hidden transition-all duration-150"
     :class="{
       'border-1 border-nc-border-red-medium bg-nc-bg-red-light': isError,
       'border-1 border-nc-border-yellow bg-nc-bg-yellow-light': isAwaitingApproval,
@@ -166,6 +194,14 @@ const visibleOutput = computed(() => {
       <!-- Tool name -->
       <span class="text-[12px] font-medium leading-none capitalize truncate" :class="categoryTextColor">
         {{ displayName }}
+      </span>
+
+      <!-- Target base name for proxied tools -->
+      <span
+        v-if="proxyBaseName"
+        class="text-[10px] text-nc-content-purple bg-nc-bg-purple-light rounded px-1 py-0.5 max-w-[120px] truncate leading-none flex-shrink-0"
+      >
+        {{ proxyBaseName }}
       </span>
 
       <!-- Key arg pill -->

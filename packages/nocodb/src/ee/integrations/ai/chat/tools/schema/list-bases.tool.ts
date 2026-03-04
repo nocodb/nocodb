@@ -7,14 +7,15 @@ import Base from '~/models/Base';
 export const listBasesTool: ChatToolDefinition = {
   name: 'list_bases',
   description:
-    "List all bases in the current workspace. Returns each base's id and title. " +
-    'Use this when the user is not inside a base, or wants to know which bases are available. ' +
-    'Note: you can only operate on the base the user currently has open — ' +
-    'if they want to work on a different base, ask them to open it from the sidebar.',
+    "List all bases in the current workspace that the user can access. Returns each base's id and title. " +
+    'Use this to discover available bases. ' +
+    'To read data from a different base, use base_proxy with the base id. ' +
+    'For write operations on another base, ask the user to navigate to it first.',
   parameters: {},
   scope: 'workspace',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
+  readonly: true,
   async execute(context: NcContext, _args: any, req: NcRequest) {
     // Use listByWorkspaceAndUser to respect private base access rules —
     // Base.list() returns ALL bases including ones the user cannot access.

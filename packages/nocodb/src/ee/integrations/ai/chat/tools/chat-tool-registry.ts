@@ -36,6 +36,9 @@ import { unlinkRecordsTool } from './data/unlink-records.tool';
 // Ask user tool
 import { askUserTool } from './ask-user.tool';
 
+// Cross-base proxy
+import { baseProxyTool } from './base-proxy.tool';
+
 // View tools
 import { listViewFieldsTool } from './view/list-view-fields.tool';
 import { updateViewFieldsTool } from './view/update-view-fields.tool';
@@ -51,6 +54,8 @@ import { clearGroupByTool } from './view/clear-group-by.tool';
 import type { NcRequest } from '~/interface/config';
 import type { NcContext } from '~/interface/config';
 import type { ToolSet } from 'ai';
+import Base from '~/models/Base';
+import User from '~/models/User';
 
 export interface ChatToolDefinition {
   name: string;
@@ -60,6 +65,12 @@ export interface ChatToolDefinition {
   scope: 'base' | 'workspace';
   requiredRole: ProjectRoles;
   isDangerous: boolean;
+  /** True for pure read operations. Defaults to false (mutating) — the safe default.
+   *  Only readonly tools can be executed cross-base via base_proxy. */
+  readonly?: boolean;
+  /** Resolve `{{KEY}}` placeholders in the description at startup.
+   *  Receives the full tool list, returns key-value pairs to replace. */
+  descriptionVars?: (tools: ChatToolDefinition[]) => Record<string, string>;
   execute(context: NcContext, args: any, req: NcRequest): Promise<any>;
 }
 
@@ -121,19 +132,34 @@ export class ChatToolRegistry {
       clearGroupByTool,
       // Interaction tool
       askUserTool,
+      // Cross-base proxy
+      baseProxyTool,
     ];
+
+    // Hydrate {{placeholders}} in tool descriptions with computed values.
+    for (const t of this.tools) {
+      if (!t.descriptionVars) continue;
+      for (const [key, value] of Object.entries(
+        t.descriptionVars(this.tools),
+      )) {
+        t.description = t.description.replace(`{{${key}}}`, value);
+      }
+    }
   }
 
   getAvailableTools(req: NcRequest): ChatToolDefinition[] {
-    const userRoles = extractRolesObj(
-      (req as any).user?.base_roles || (req as any).user?.roles,
-    );
+    const baseRoles = extractRolesObj((req as any).user?.base_roles);
 
     return this.tools.filter((t) => {
-      const requiredLevel = ROLE_HIERARCHY[t.requiredRole] || 0;
+      // Workspace-scoped tools are available to any authenticated user —
+      // controller-level ACL already verified workspace membership.
+      if (t.scope === 'workspace') return true;
 
-      // User has sufficient role if any of their roles meets the threshold
-      for (const [role, hasRole] of Object.entries(userRoles)) {
+      // Base-scoped tools require base_roles. No base context = no base tools.
+      if (!baseRoles || !Object.keys(baseRoles).length) return false;
+
+      const requiredLevel = ROLE_HIERARCHY[t.requiredRole] || 0;
+      for (const [role, hasRole] of Object.entries(baseRoles)) {
         if (hasRole && (ROLE_HIERARCHY[role] || 0) >= requiredLevel) {
           return true;
         }
@@ -148,6 +174,12 @@ export class ChatToolRegistry {
     args: any,
     req: NcRequest,
   ): Promise<{ result: any; isError: boolean }> {
+    // base_proxy is intercepted here — its execute() is never called directly.
+    // All cross-base access funnels through this single code path.
+    if (toolName === 'base_proxy') {
+      return this.executeBaseProxy(context, args, req);
+    }
+
     const toolDef = this.tools.find((t) => t.name === toolName);
     if (!toolDef) {
       return {
@@ -200,6 +232,105 @@ export class ChatToolRegistry {
         result: `Tool "${toolName}" failed: ${hint}`,
         isError: true,
       };
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cross-base proxy — single gateway for all cross-base tool execution.
+  // Resolves the target base, verifies user access, checks per-base roles,
+  // then delegates to the inner tool via executeTool.
+  // ---------------------------------------------------------------------------
+
+  private async executeBaseProxy(
+    context: NcContext,
+    args: {
+      base_id: string;
+      tool_name: string;
+      tool_args: Record<string, any>;
+    },
+    req: NcRequest,
+  ): Promise<{ result: any; isError: boolean }> {
+    const { base_id: targetBaseId, tool_name: innerToolName, tool_args } = args;
+
+    // 1. Reject self-reference
+    if (innerToolName === 'base_proxy') {
+      return { result: 'Cannot proxy base_proxy recursively.', isError: true };
+    }
+
+    // 2. Look up inner tool
+    const innerTool = this.tools.find((t) => t.name === innerToolName);
+    if (!innerTool) {
+      return { result: `Unknown tool: ${innerToolName}`, isError: true };
+    }
+
+    // 3. Only base-scoped tools can be proxied
+    if (innerTool.scope !== 'base') {
+      return {
+        result: `Tool "${innerToolName}" does not require base context — call it directly.`,
+        isError: true,
+      };
+    }
+
+    // 4. Only read-only tools can be proxied — block all write/mutating operations
+    if (!innerTool.readonly) {
+      return {
+        result:
+          `Tool "${innerToolName}" is not a read-only operation and cannot be executed cross-base. ` +
+          'Ask the user to navigate to the target base first.',
+        isError: true,
+      };
+    }
+
+    // 5. Resolve base — must exist and belong to this workspace
+    const base = await Base.get(context, targetBaseId);
+    if (!base || base.fk_workspace_id !== context.workspace_id) {
+      return { result: 'Base not found in this workspace.', isError: true };
+    }
+
+    // 6. Verify user has access and resolve per-base roles
+    const userWithRoles = await User.getWithRoles(
+      { ...context, base_id: targetBaseId },
+      req.user.id,
+      { baseId: targetBaseId, workspaceId: context.workspace_id },
+    );
+
+    const baseRoles = extractRolesObj(userWithRoles.base_roles);
+    if (!baseRoles || !Object.values(baseRoles).some(Boolean)) {
+      // Intentionally vague — don't reveal whether the base exists
+      return { result: 'Base not found in this workspace.', isError: true };
+    }
+
+    // 7. Check user's role on the TARGET base meets the inner tool's requiredRole
+    const requiredLevel = ROLE_HIERARCHY[innerTool.requiredRole] || 0;
+    let hasPermission = false;
+    for (const [role, hasRole] of Object.entries(baseRoles)) {
+      if (hasRole && (ROLE_HIERARCHY[role] || 0) >= requiredLevel) {
+        hasPermission = true;
+        break;
+      }
+    }
+    if (!hasPermission) {
+      return {
+        result: `Insufficient permissions on this base for "${innerToolName}".`,
+        isError: true,
+      };
+    }
+
+    // 8. Execute inner tool with the target base context.
+    // Temporarily set base_roles so downstream services see the correct roles.
+    const proxiedContext = { ...context, base_id: targetBaseId };
+    const originalBaseRoles = req.user.base_roles;
+    req.user.base_roles = userWithRoles.base_roles;
+
+    try {
+      return await this.executeTool(
+        proxiedContext,
+        innerToolName,
+        tool_args,
+        req,
+      );
+    } finally {
+      req.user.base_roles = originalBaseRoles;
     }
   }
 

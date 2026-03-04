@@ -317,10 +317,7 @@ watch(
 <template>
   <div class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch nc-treeview-container-active-base">
     <!-- Project Home -->
-    <div
-      v-if="activeProjectId && resolvedProject?.id && !resolvedProject.isLoading"
-      class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-    >
+    <div v-if="resolvedProject?.id && !resolvedProject.isLoading" class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
       <ProjectWrapper :base-role="resolvedProject?.project_role" :base="resolvedProject">
         <DashboardTreeViewProjectHome>
           <template #footer>

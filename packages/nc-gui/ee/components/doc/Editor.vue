@@ -18,6 +18,7 @@ import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
 import { DocColumnsExtension, DocColumnExtension } from './DocColumnsExtension'
+import { DocColumnsToolbarExtension } from './DocColumnsToolbarPlugin'
 import { DocMathExtension } from './DocMathExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
 import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
@@ -293,6 +294,7 @@ const _tiptapEditor = useEditor({
     CalloutExtension,
     DocColumnsExtension,
     DocColumnExtension,
+    DocColumnsToolbarExtension,
     DocMathExtension,
     DocFileAttachmentExtension,
     DocEmbedExtension,
@@ -1647,6 +1649,53 @@ onBeforeUnmount(() => {
   display: none;
   z-index: 10;
   pointer-events: none;
+}
+
+// Column ratio toolbar — positioned absolutely inside .nc-doc-editor-body (same as drag handle)
+.nc-columns-toolbar {
+  position: absolute;
+  display: none;
+  gap: 2px;
+  background: var(--nc-bg-default);
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 6px;
+  padding: 2px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  user-select: none;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    padding: 4px 6px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--nc-bg-gray-light);
+    }
+
+    &.active {
+      background: var(--nc-bg-brand);
+    }
+
+    .bar {
+      height: 14px;
+      border-radius: 2px;
+      background: currentColor;
+    }
+
+    &.active .bar {
+      color: var(--nc-content-brand);
+    }
+
+    &:not(.active) .bar {
+      color: var(--nc-content-gray-muted);
+    }
+  }
 }
 
 // Doc editor typography — no prose class, clean styles

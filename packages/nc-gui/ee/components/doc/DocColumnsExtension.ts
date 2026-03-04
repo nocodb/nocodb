@@ -20,11 +20,40 @@
  */
 import { Node, mergeAttributes } from '@tiptap/core'
 
+// --- Column ratio ---
+//
+// Stored as a number: the left column's width percentage (15–85).
+// CSS is generated as `${ratio}% ${100-ratio}%`.
+// Toolbar presets are a convenience — the attribute accepts any value
+// in the valid range, so a future drag-to-resize can set arbitrary values.
+
+/** Minimum / maximum left column percentage */
+export const COL_RATIO_MIN = 15
+export const COL_RATIO_MAX = 85
+export const COL_RATIO_DEFAULT = 50
+
+/** Preset ratios shown in the toolbar (left column %) */
+export const COLUMN_RATIO_PRESETS = [50, 33, 67, 25, 75] as const
+export type ColumnRatioPreset = (typeof COLUMN_RATIO_PRESETS)[number]
+
+/** Clamp a ratio to the valid range */
+export function clampRatio(value: number): number {
+  return Math.max(COL_RATIO_MIN, Math.min(COL_RATIO_MAX, Math.round(value)))
+}
+
+/** Convert a left-column percentage to grid-template-columns value */
+export function ratioToGrid(ratio: number): string {
+  const clamped = clampRatio(ratio)
+  return `${clamped}% ${100 - clamped}%`
+}
+
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     columns: {
       setColumns: () => ReturnType
       unsetColumns: () => ReturnType
+      /** Set left column width as a percentage (15–85) */
+      setColumnRatio: (ratio: number) => ReturnType
     }
   }
 }
@@ -35,6 +64,27 @@ export const DocColumnsExtension = Node.create({
   content: 'column column',
   defining: true,
   isolating: true,
+
+  addAttributes() {
+    return {
+      ratio: {
+        default: COL_RATIO_DEFAULT,
+        parseHTML: (el: HTMLElement) => {
+          const raw = el.getAttribute('data-col-ratio')
+          if (!raw) return COL_RATIO_DEFAULT
+          const parsed = Number(raw)
+          return Number.isFinite(parsed) ? clampRatio(parsed) : COL_RATIO_DEFAULT
+        },
+        renderHTML: (attrs: Record<string, any>) => {
+          const ratio = typeof attrs.ratio === 'number' ? clampRatio(attrs.ratio) : COL_RATIO_DEFAULT
+          return {
+            'data-col-ratio': ratio,
+            'style': `grid-template-columns: ${ratioToGrid(ratio)}`,
+          }
+        },
+      },
+    }
+  },
 
   parseHTML() {
     return [{ tag: 'div[data-columns]' }]
@@ -64,6 +114,34 @@ export const DocColumnsExtension = Node.create({
               ],
             })
             .run()
+        },
+
+      setColumnRatio:
+        (ratio: number) =>
+        ({ state, tr, dispatch }) => {
+          if (typeof ratio !== 'number' || !Number.isFinite(ratio)) return false
+
+          const clamped = clampRatio(ratio)
+          const { $from } = state.selection
+
+          // Walk ancestors to find the columns node
+          let columnsPos = -1
+          let columnsNode = null as any
+          for (let d = $from.depth; d > 0; d--) {
+            if ($from.node(d).type.name === 'columns') {
+              columnsPos = $from.before(d)
+              columnsNode = $from.node(d)
+              break
+            }
+          }
+          if (columnsPos < 0 || !columnsNode) return false
+
+          if (dispatch) {
+            tr.setNodeMarkup(columnsPos, undefined, { ...columnsNode.attrs, ratio: clamped })
+            dispatch(tr)
+          }
+
+          return true
         },
 
       unsetColumns:

@@ -85,11 +85,6 @@ const APPEARANCE_KEYS: Record<string, string> = {
   showValue: 'show_value',
 };
 
-const PERMISSIONS_KEYS: Record<string, string> = {
-  allowUserToPrint: 'allow_user_to_print',
-  allowUsersToViewRecords: 'allow_users_to_view_records',
-};
-
 const FORMATTING_KEYS: Record<string, string> = {
   horizontalAlign: 'horizontal_align',
   verticalAlign: 'vertical_align',
@@ -115,7 +110,6 @@ const INV_DATA_KEYS = invertMapping(DATA_KEYS);
 const INV_CATEGORY_AXIS_KEYS = invertMapping(CATEGORY_AXIS_KEYS);
 const INV_Y_AXIS_KEYS = invertMapping(Y_AXIS_KEYS);
 const INV_APPEARANCE_KEYS = invertMapping(APPEARANCE_KEYS);
-const INV_PERMISSIONS_KEYS = invertMapping(PERMISSIONS_KEYS);
 const INV_FORMATTING_KEYS = invertMapping(FORMATTING_KEYS);
 const INV_FONT_KEYS = invertMapping(FONT_KEYS);
 const INV_COLUMN_TO_FIELD_KEYS = invertMapping(COLUMN_TO_FIELD_KEYS);
@@ -176,10 +170,6 @@ function mapConfigToSnakeCase(
     result.appearance = appearance;
   }
 
-  if (result.permissions && typeof result.permissions === 'object') {
-    result.permissions = renameKeys(result.permissions, PERMISSIONS_KEYS);
-  }
-
   return result;
 }
 
@@ -236,10 +226,6 @@ function mapConfigToCamelCase(
     }
 
     result.appearance = appearance;
-  }
-
-  if (result.permissions && typeof result.permissions === 'object') {
-    result.permissions = renameKeys(result.permissions, INV_PERMISSIONS_KEYS);
   }
 
   return result;

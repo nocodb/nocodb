@@ -11884,13 +11884,6 @@
                 }
               }
             }
-          },
-          "permissions": {
-            "type": "object",
-            "properties": {
-              "allow_user_to_print": { "type": "boolean" },
-              "allow_users_to_view_records": { "type": "boolean" }
-            }
           }
         },
         "required": ["chart_type"]
@@ -11944,13 +11937,6 @@
                   }
                 }
               }
-            }
-          },
-          "permissions": {
-            "type": "object",
-            "properties": {
-              "allow_user_to_print": { "type": "boolean" },
-              "allow_users_to_view_records": { "type": "boolean" }
             }
           }
         },
@@ -12009,13 +11995,6 @@
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
               "color_schema": { "type": "string", "enum": ["default", "custom"] }
             }
-          },
-          "permissions": {
-            "type": "object",
-            "properties": {
-              "allow_user_to_print": { "type": "boolean" },
-              "allow_users_to_view_records": { "type": "boolean" }
-            }
           }
         },
         "required": ["chart_type"]
@@ -12071,13 +12050,6 @@
               "show_value_in_chart": { "type": "boolean" },
               "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
               "color_schema": { "type": "string", "enum": ["default", "custom"] }
-            }
-          },
-          "permissions": {
-            "type": "object",
-            "properties": {
-              "allow_user_to_print": { "type": "boolean" },
-              "allow_users_to_view_records": { "type": "boolean" }
             }
           }
         },

@@ -4,8 +4,7 @@ export default class ChatMessage {
   fk_workspace_id?: string;
   role?: string;
   content?: string | null;
-  tool_calls?: any[];
-  tool_results?: any[];
+  parts?: any[];
   model?: string;
   input_tokens?: number;
   output_tokens?: number;

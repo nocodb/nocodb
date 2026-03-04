@@ -38,30 +38,34 @@ export interface ChatSessionType {
   updated_at?: string;
 }
 
+/**
+ * Self-contained content block — single source of truth for assistant messages.
+ * Mirrors Anthropic's content block format.
+ */
+export type ChatContentBlock =
+  | { type: 'text'; text: string }
+  | {
+      type: 'tool_use';
+      id: string;
+      name: string;
+      input?: Record<string, any>;
+      status: ChatToolCallStatus;
+      output?: any;
+      is_error?: boolean;
+    };
+
 export interface ChatMessageType {
   id?: string;
   fk_session_id: string;
   role: ChatMessageRole;
+  /** Text content — used for user messages. Assistant messages use `parts`. */
   content?: string | null;
-  tool_calls?: ChatToolCallType[];
-  tool_results?: ChatToolResultType[];
+  /** Ordered content blocks — single source of truth for assistant messages. */
+  parts?: ChatContentBlock[];
   model?: string;
   input_tokens?: number;
   output_tokens?: number;
   created_at?: string;
-}
-
-export interface ChatToolCallType {
-  id: string;
-  name: string;
-  arguments: Record<string, any>;
-  status: ChatToolCallStatus;
-}
-
-export interface ChatToolResultType {
-  tool_call_id: string;
-  output: any;
-  is_error: boolean;
 }
 
 export interface ChatSendMessageType {

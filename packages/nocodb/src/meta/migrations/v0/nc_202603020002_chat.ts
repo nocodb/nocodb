@@ -28,8 +28,7 @@ const up = async (knex: Knex) => {
     table.string('fk_workspace_id', 20);
     table.string('role', 20).notNullable();
     table.text('content');
-    table.text('tool_calls');
-    table.text('tool_results');
+    table.text('parts');
     table.string('model', 100);
     table.integer('input_tokens').defaultTo(0);
     table.integer('output_tokens').defaultTo(0);

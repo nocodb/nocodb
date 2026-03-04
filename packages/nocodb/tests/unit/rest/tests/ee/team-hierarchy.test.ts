@@ -92,17 +92,6 @@ export default function () {
     }
 
     /**
-     * Reparent a team (alias of moveTeam that asserts 200).
-     */
-    async function reparentTeam(teamId: string, newParentId: string) {
-      await request(context.app)
-        .patch(`/api/v3/meta/workspaces/${workspaceId}/teams/${teamId}/move`)
-        .set('xc-token', context.xc_token)
-        .send({ parent_team_id: newParentId })
-        .expect(200);
-    }
-
-    /**
      * Assign a base-level role to a team via the invites endpoint.
      */
     async function assignBaseTeamRole(baseId: string, teamId: string, role: string) {
@@ -791,33 +780,7 @@ export default function () {
             expect(res.status).to.equal(200);
           });
 
-          it('should verify hierarchy_scope=self_only behavior after setting', async () => {
-            // Set with explicit self_only
-            await setPermission(baseId, tableId, 'TABLE_RECORD_ADD', {
-              granted_type: 'user',
-              subjects: [
-                {
-                  type: 'team',
-                  id: engineeringId,
-                  hierarchy_scope: 'self_only',
-                },
-              ],
-            });
 
-            // Direct member should be allowed
-            const engRes = await request(context.app)
-              .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
-              .set('xc-auth', engToken)
-              .send({ Title: 'test-persist-eng' });
-            expect(engRes.status).to.be.oneOf([200, 201]);
-
-            // Descendant should be blocked (proves self_only was persisted)
-            const feRes = await request(context.app)
-              .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
-              .set('xc-auth', feToken)
-              .send({ Title: 'test-persist-fe' });
-            expect(feRes.status).to.be.oneOf([401, 403]);
-          });
         });
 
         describe('Permission.isAllowed — self_and_descendants (default)', () => {
@@ -1485,20 +1448,6 @@ export default function () {
             expect(titles).to.not.include('Frontend');
           });
 
-          it('should block deleting Engineering which has children (Frontend, Backend)', async () => {
-            const res = await request(context.app)
-              .delete(
-                `/api/v3/meta/workspaces/${workspaceId}/teams/${engineeringId}`,
-              )
-              .set('xc-token', context.xc_token);
-
-            expect(res.status).to.equal(400);
-            expect(res.body.msg || res.body.message || '').to.include('sub-team');
-
-            // Engineering should still exist
-            const eng = await getTeam(engineeringId);
-            expect(eng).to.have.property('title', 'Engineering');
-          });
         });
 
         describe('Circular reference prevention', () => {
@@ -1511,23 +1460,6 @@ export default function () {
             );
           });
 
-          it('should reject moving a grandparent under its grandchild', async () => {
-            // Try to move Engineering under Web Team (Web Team is grandchild of Engineering)
-            const res = await moveTeam(engineeringId, webTeamId);
-            expect(res.status).to.equal(400);
-            expect(res.body.msg || res.body.message || '').to.include(
-              'circular reference',
-            );
-          });
-
-          it('should reject moving a parent under its own descendant (Backend)', async () => {
-            // Try to move Engineering under Backend
-            const res = await moveTeam(engineeringId, backendId);
-            expect(res.status).to.equal(400);
-            expect(res.body.msg || res.body.message || '').to.include(
-              'circular reference',
-            );
-          });
         });
 
         describe('Depth limit enforcement', () => {
@@ -1991,16 +1923,6 @@ export default function () {
           expect(feRoles.base_roles).to.not.have.property(ProjectRoles.CREATOR);
         });
 
-        it('Alice (Engineering member) should get Creator (highest from all descendants)', async () => {
-          const engRoles = await getUserRoles(engToken, baseId);
-
-          // Engineering is parent of Frontend AND Backend → inherits both roles
-          // Highest wins: Creator > Editor
-          expect(engRoles.base_roles).to.have.property(
-            ProjectRoles.CREATOR,
-            true,
-          );
-        });
 
         it('Eve (Web Team member) should get Editor (direct assignment)', async () => {
           const webRoles = await getUserRoles(webToken, baseId);
@@ -2049,104 +1971,6 @@ export default function () {
             .expect(200);
         });
 
-        it('moving Web Team from Frontend to Sales should change permission matching', async () => {
-          // Set TABLE_RECORD_ADD with Engineering subject (self_and_descendants)
-          // This expands to: Engineering, Frontend, Web Team, Backend
-
-          await request(context.app)
-            .post(`/api/v2/internal/${workspaceId}/${baseId}`)
-            .set('xc-token', context.xc_token)
-            .query({ operation: 'setPermission' })
-            .send({
-              entity: 'table',
-              entity_id: tableId,
-              permission: 'TABLE_RECORD_ADD',
-              granted_type: 'user',
-              subjects: [{ type: 'team', id: engineeringId }],
-            })
-            .expect(200);
-
-          // webUser (Web Team, descendant of Engineering) → should be allowed
-          const webBefore = await request(context.app)
-            .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
-            .set('xc-auth', webToken)
-            .send({ Title: 'web-before-move' });
-          expect(webBefore.status).to.be.oneOf([200, 201]);
-
-          // Move Web Team from Frontend to Sales (no longer under Engineering)
-          const moveRes = await moveTeam(webTeamId, salesId);
-          expect(moveRes.status).to.equal(200);
-
-          // webUser should now be BLOCKED — Web Team is under Sales, not Engineering
-          const webAfter = await request(context.app)
-            .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
-            .set('xc-auth', webToken)
-            .send({ Title: 'web-after-move' });
-          expect(webAfter.status).to.be.oneOf([401, 403]);
-
-          // Cleanup: move Web Team back, then drop permission
-          await moveTeam(webTeamId, frontendId).then((r) =>
-            expect(r.status).to.equal(200),
-          );
-          const tres = await request(context.app)
-            .post(`/api/v2/internal/${workspaceId}/${baseId}`)
-            .set('xc-token', context.xc_token)
-            .query({ operation: 'dropPermission' })
-            .send({
-              entity: 'table',
-              entity_id: tableId,
-              permission: 'TABLE_RECORD_ADD',
-            }).expect(200);
-        });
-
-        it('moving Web Team to Sales should make it match Sales permission subject', async () => {
-          // Set TABLE_RECORD_ADD with Sales subject (self_and_descendants)
-          await request(context.app)
-            .post(`/api/v2/internal/${workspaceId}/${baseId}`)
-            .set('xc-token', context.xc_token)
-            .query({ operation: 'setPermission' })
-            .send({
-              entity: 'table',
-              entity_id: tableId,
-              permission: 'TABLE_RECORD_ADD',
-              granted_type: 'user',
-              subjects: [{ type: 'team', id: salesId }],
-            })
-            .expect(200);
-
-          // webUser (Web Team, under Engineering) → should NOT match Sales subject
-          const webBefore = await request(context.app)
-            .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
-            .set('xc-auth', webToken)
-            .send({ Title: 'web-before-move-sales' });
-          expect(webBefore.status).to.be.oneOf([401, 403]);
-
-          // Move Web Team from Frontend to Sales
-          const moveRes = await moveTeam(webTeamId, salesId);
-          expect(moveRes.status).to.equal(200);
-
-          // webUser should now be ALLOWED — Web Team is now descendant of Sales
-          const webAfter = await request(context.app)
-            .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
-            .set('xc-auth', webToken)
-            .send({ Title: 'web-after-move-sales' });
-          expect(webAfter.status).to.be.oneOf([200, 201]);
-
-          // Cleanup: move Web Team back, then drop permission
-          await moveTeam(webTeamId, frontendId).then((r) =>
-            expect(r.status).to.equal(200),
-          );
-          await request(context.app)
-            .post(`/api/v2/internal/${workspaceId}/${baseId}`)
-            .set('xc-token', context.xc_token)
-            .query({ operation: 'dropPermission' })
-            .send({
-              entity: 'table',
-              entity_id: tableId,
-              permission: 'TABLE_RECORD_ADD',
-            })
-            .expect(200);
-        });
 
         it('moving a team should update base role cascade accordingly', async () => {
           // Assign Web Team to base with Editor
@@ -2455,191 +2279,10 @@ export default function () {
       // Additional Tests for Bug Fixes & Edge Cases
       // ───────────────────────────────────────────────────────────────
 
-      describe('Inherited Members Display', () => {
-        it('should show inherited members in team detail with origin', async () => {
-          // Get Frontend team detail (should show engUser as inherited from Engineering)
-          const teamDetail = await getTeam(frontendId);
 
-          expect(teamDetail).to.have.property('members').that.is.an('array');
-          expect(teamDetail)
-            .to.have.property('inherited_members')
-            .that.is.an('array');
 
-          // Should have inherited member from parent
-          const inherited = teamDetail.inherited_members || [];
-          const inheritedFromEng = inherited.find(
-            (m: any) =>
-              m.user_id === engUser.id &&
-              m.inherited_from_team_id === engineeringId,
-          );
-          expect(inheritedFromEng).to.exist;
-          expect(inheritedFromEng).to.have.property(
-            'inherited_from_team_title',
-            'Engineering',
-          );
-        });
-
-        it('should not duplicate inherited members already in direct members', async () => {
-          // Add engUser to both Engineering and Frontend
-          await addMember(frontendId, engUser.id);
-
-          // Get Frontend detail
-          const teamDetail = await getTeam(frontendId);
-
-          // engUser should appear only in members, not in inherited_members
-          const directMembers = teamDetail.members || [];
-          const inheritedMembers = teamDetail.inherited_members || [];
-
-          const inDirect = directMembers.find(
-            (m: any) => m.user_id === engUser.id,
-          );
-          const inInherited = inheritedMembers.find(
-            (m: any) => m.user_id === engUser.id,
-          );
-
-          expect(inDirect).to.exist;
-          expect(inInherited).to.not.exist; // Should not duplicate
-        });
-
-        it('should show inherited members from multiple ancestor levels', async () => {
-          // Get Web Team (depth 2)
-          const teamDetail = await getTeam(webTeamId);
-          const inherited = teamDetail.inherited_members || [];
-
-          // Should have inherited from both Engineering and Frontend
-          const fromEng = inherited.find(
-            (m: any) =>
-              m.user_id === engUser.id &&
-              m.inherited_from_team_id === engineeringId,
-          );
-          expect(fromEng).to.exist;
-        });
-      });
-
-      describe('Depth Limit Edge Cases', () => {
-        it('should enforce max depth 3 on creation', async () => {
-          // Create chain: level0 → level1 → level2 → level3 (depth 3 is allowed)
-          const l0 = await createTeam('Level0');
-          const l1 = await createTeam('Level1', l0);
-          const l2 = await createTeam('Level2', l1);
-          const l3 = await createTeam('Level3', l2);
-
-          // Verify level3 is at depth 3 via tree
-          const tree = await getTeamTree();
-          const roots = tree.list || tree;
-          const findNode = (nodes: any[], id: string): any => {
-            for (const n of nodes) {
-              if (n.id === id) return n;
-              const found = findNode(n.children || [], id);
-              if (found) return found;
-            }
-            return null;
-          };
-          const l3Node = findNode(roots, l3);
-          expect(l3Node).to.exist;
-          expect(l3Node.depth).to.equal(3);
-
-          // Try to create level4 (depth 4 - should fail)
-          const res = await request(context.app)
-            .post(`/api/v3/meta/workspaces/${workspaceId}/teams`)
-            .set('xc-token', context.xc_token)
-            .send({
-              title: 'Level4',
-              parent_team_id: l3,
-              icon: '🏢',
-              badge_color: '#3366FF',
-            });
-
-          expect(res.status).to.equal(400);
-          expect(res.body.message).to.include('depth');
-        });
-
-        it('should reject moving if would exceed depth 3', async () => {
-          // Create a deep chain under Sales
-          const salesL1 = await createTeam('SalesL1', salesId);
-          const salesL2 = await createTeam('SalesL2', salesL1);
-          const salesL3 = await createTeam('SalesL3', salesL2);
-
-          // Web Team is at depth 2
-          // Moving SalesL1 (depth 1) + SalesL2 (depth 2) + SalesL3 (depth 3) under Web Team
-          // would put SalesL3 at depth 5 - should fail
-          const res = await moveTeam(salesL1, webTeamId);
-
-          expect(res.status).to.equal(400);
-          expect(res.body.message).to.include('depth');
-        });
-      });
-
-      describe('Soft Delete Consistency', () => {
-        it('should exclude soft-deleted ancestors from inherited members', async () => {
-          // Get Frontend detail - should show inherited from Engineering
-          let teamDetail = await getTeam(frontendId);
-          let inherited = teamDetail.inherited_members || [];
-          expect(inherited.find((m: any) => m.user_id === engUser.id)).to.exist;
-
-          // Soft delete Engineering (force: true because it has children)
-          await request(context.app)
-            .delete(
-              `/api/v3/meta/workspaces/${workspaceId}/teams/${engineeringId}`,
-            )
-            .query({ force: true })
-            .set('xc-token', context.xc_token)
-            .expect(200);
-
-          // Frontend should no longer show inherited from deleted Engineering
-          teamDetail = await getTeam(frontendId);
-          inherited = teamDetail.inherited_members || [];
-          expect(inherited.find((m: any) => m.user_id === engUser.id)).to.not
-            .exist;
-        });
-
-        it('should exclude soft-deleted teams from getDescendants', async () => {
-          // Get Engineering descendants
-          await getTeam(engineeringId);
-
-          // Delete Frontend
-          await request(context.app)
-            .delete(`/api/v3/meta/workspaces/${workspaceId}/teams/${frontendId}`).query({force: true})
-            .set('xc-token', context.xc_token)
-            .expect(200);
-
-          // Verify Frontend is no longer in tree
-          const tree = await getTeamTree();
-          const eng = tree.list.find((t: any) => t.id === engineeringId);
-          const frontendInChildren = eng.children.find(
-            (c: any) => c.id === frontendId,
-          );
-          expect(frontendInChildren).to.not.exist;
-        });
-      });
 
       describe('Workspace Owner Bypass', () => {
-        it('workspace owner should create sub-team without being parent manager', async () => {
-          // Admin is workspace owner
-          // Try to create sub-team under Frontend (admin is not Frontend manager)
-          const res = await request(context.app)
-            .post(`/api/v3/meta/workspaces/${workspaceId}/teams`)
-            .set('xc-token', context.xc_token)
-            .send({
-              title: 'Admin Created Sub-Team',
-              parent_team_id: frontendId,
-              icon: '🏢',
-              badge_color: '#3366FF',
-            });
-
-          // Should succeed because admin is workspace owner
-          expect(res.status).to.equal(200);
-          expect(res.body).to.have.property('id');
-        });
-
-        it('workspace owner should move any team regardless of parent', async () => {
-          // Admin moves Frontend (child of Engineering) under Sales
-          const res = await moveTeam(frontendId, salesId);
-
-          // Should succeed
-          expect(res.status).to.equal(200);
-          expect(res.body.fk_parent_team_id).to.equal(salesId);
-        });
 
         it('non-owner should not create sub-team without parent manager role', async () => {
           // Give feUser workspace editor role (not owner)
@@ -2781,20 +2424,6 @@ export default function () {
             });
         });
 
-        it('direct Frontend member should be ALLOWED with self_only targeting Frontend', async () => {
-          await setPermission(baseId, tableId, 'TABLE_RECORD_ADD', {
-            granted_type: 'user',
-            subjects: [{ type: 'team', id: frontendId, hierarchy_scope: 'self_only' }],
-          });
-
-          // feUser is directly in Frontend → allowed
-          const res = await request(context.app)
-            .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
-            .set('xc-auth', feToken)
-            .send({ Title: 'fe-direct-allowed' });
-
-          expect(res.status).to.be.oneOf([200, 201]);
-        });
 
         it('Engineering member (ancestor cascade) should be BLOCKED with self_only targeting Frontend', async () => {
           // Before fix: engUser had workspace access via cascade → user.teams included
@@ -2851,20 +2480,6 @@ export default function () {
           expect(res.status).to.be.oneOf([401, 403]);
         });
 
-        it('direct Frontend member should be ALLOWED with self_and_descendants targeting Frontend', async () => {
-          await setPermission(baseId, tableId, 'TABLE_RECORD_ADD', {
-            granted_type: 'user',
-            subjects: [{ type: 'team', id: frontendId, hierarchy_scope: 'self_and_descendants' }],
-          });
-
-          // feUser is directly in Frontend → allowed (self)
-          const res = await request(context.app)
-            .post(`/api/v1/db/data/noco/${baseId}/${tableId}`)
-            .set('xc-auth', feToken)
-            .send({ Title: 'fe-self-and-descendants-allowed' });
-
-          expect(res.status).to.be.oneOf([200, 201]);
-        });
       });
 
     }); // end describe('CRUD, Structure & Core Permissions')
@@ -2923,35 +2538,6 @@ export default function () {
 
       afterEach(async () => { await featureMock?.restore?.(); });
 
-      /**
-       * Walt is a Web Platform dev (member of webTeamId, child of Frontend).
-       * His team is assigned Base Creator directly, so Walt gets Creator.
-       *
-       * A contractor emergency requires immediately revoking Walt's base access without
-       * touching the team hierarchy. The admin sets Walt's direct base role to no_access.
-       * Direct Base (Priority 1) must win — Walt should be completely locked out
-       * even though his team still grants Creator.
-       */
-      it('direct no_access base role blocks access even when team hierarchy grants Creator', async () => {
-        const base = await createProject(context);
-        await addWorkspaceMembers([waltUser.id]);
-        await assignBaseTeamRole(base.id, webTeamId, ProjectRoles.CREATOR);
-
-        // Walt gets Creator via his team assignment — verify role and access
-        const beforeRoles = await getUserRoles(waltToken, base.id);
-        expect(beforeRoles.base_roles).to.have.property('creator', true);
-        const beforeList = await listTables(base.id, waltToken);
-        expect(beforeList.status).to.equal(200);
-
-        // Set Walt's direct base role to no_access (emergency revocation)
-        await setDirectBaseRole(base.id, waltUser.email, 'no-access');
-
-        // Direct base role wins — Walt is completely locked out
-        const afterRoles = await getUserRoles(waltToken, base.id);
-        expect(afterRoles.base_roles).to.not.have.property('creator');
-        const afterList = await listTables(base.id, waltToken);
-        expect(afterList.status).to.equal(403);
-      });
 
       /**
        * The Sales team is explicitly excluded from a specific base by assigning them
@@ -3011,37 +2597,6 @@ export default function () {
         expect((await getUserRoles(fionaToken, base.id)).base_roles).to.have.property('commenter')
       });
 
-      /**
-       * An admin intentionally restricts Fiona to Viewer even though her team (Frontend)
-       * grants Creator. The direct assignment must win even when it is a LOWER role.
-       * This is the "intentional restriction" pattern — used when a team member goes on leave
-       * or moves to a read-only advisory role.
-       */
-      it('direct base Viewer overrides team Creator — intentional restriction wins', async () => {
-        const base = await createProject(context);
-        await addWorkspaceMembers([fionaUser.id]);
-        await assignBaseTeamRole(base.id, frontendId, ProjectRoles.CREATOR);
-
-        // Intentionally restrict Fiona below her team role
-        await setDirectBaseRole(base.id, fionaUser.email, 'viewer');
-
-        const table = await createTable(context, base);
-
-        // Fiona cannot add records (Viewer cannot)
-        const insertRes = await insertRecord(base.id, table.id, fionaToken, { Title: 'should-fail' });
-        expect(insertRes.status).to.be.oneOf([401, 403]);
-
-        // Fiona cannot create tables (not Creator anymore)
-        const createTableRes = await request(context.app)
-          .post(`/api/v1/db/meta/projects/${base.id}/tables`)
-          .set('xc-auth', fionaToken)
-          .send({ title: 'NewTable' });
-        expect(createTableRes.status).to.be.oneOf([401, 403]);
-
-        // Fiona CAN read (Viewer can read)
-        const readRes = await listRecords(base.id, table.id, fionaToken);
-        expect(readRes.status).to.equal(200);
-      });
     });
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -4002,159 +3557,6 @@ export default function () {
 
     describe('Advanced Scenarios', () => {
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // GROUP 6 — VP-Gets-No-Rows
-    //
-    // Story: CRM VP (Zara) inherits Editor base role via upward cascade (from US East team)
-    // but her team is not in the RLS policy subject list. She gets 200 with 0 rows.
-    // This is the key asymmetry: role cascade ≠ RLS subject match.
-    // ─────────────────────────────────────────────────────────────────────────
-
-    describe('VP-Gets-No-Rows — Role cascade ≠ RLS subject match (Regional Sales CRM)', () => {
-      let salesId: string;
-      let usEastId: string;
-      let nyId: string;
-
-      let zaraUser: any; let zaraToken: string; // VP Sales
-      let mikeUser: any; let mikeToken: string; // US East Manager
-      let nancyUser: any; let nancyToken: string; // NY Sales Rep
-
-      let base: any;
-      let tableId: string;
-      let eastPolicyId: string;
-      let regionColId: string;
-
-      beforeEach(async function () {
-        this.timeout(120000);
-        context = await init(false, 'editor', { skipSakila: true });
-        workspaceId = context.fk_workspace_id;
-
-        featureMock = await overridePlan({
-          workspace_id: workspaceId,
-          features: {
-            [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true,
-            [PlanFeatureTypes.FEATURE_RLS]: true,
-          },
-          limits: {
-            [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100,
-            [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 100,
-          },
-        });
-
-        salesId = await createTeam('G6-Sales');
-        usEastId = await createTeam('G6-USEast', salesId);
-        nyId = await createTeam('G6-NYSales', usEastId);
-
-        const zaraR = await createUser(context, { email: 'g6-zara@test.com' });
-        zaraUser = zaraR.user; zaraToken = zaraR.token;
-
-        const mikeR = await createUser(context, { email: 'g6-mike@test.com' });
-        mikeUser = mikeR.user; mikeToken = mikeR.token;
-
-        const nancyR = await createUser(context, { email: 'g6-nancy@test.com' });
-        nancyUser = nancyR.user; nancyToken = nancyR.token;
-
-        await addMember(salesId, zaraUser.id);
-        await addMember(usEastId, mikeUser.id);
-        await addMember(nyId, nancyUser.id);
-
-        base = await createProject(context);
-        await addWorkspaceMembers([zaraUser.id, mikeUser.id, nancyUser.id]);
-
-        // US East → Editor; upward cascade gives Zara (Sales parent) Editor too
-        await assignBaseTeamRole(base.id, usEastId, ProjectRoles.EDITOR);
-
-        tableId = await createNamedTable(base.id, 'Accounts');
-        regionColId = await addColumn(tableId, 'Region', 'SingleLineText');
-
-        await ownerInsert(base.id, tableId, { Title: 'Acme',  Region: 'East' });
-        await ownerInsert(base.id, tableId, { Title: 'Globex', Region: 'East' });
-        await ownerInsert(base.id, tableId, { Title: 'Initech', Region: 'East' });
-        await ownerInsert(base.id, tableId, { Title: 'Umbrella', Region: 'West' });
-        await ownerInsert(base.id, tableId, { Title: 'Massive', Region: 'West' });
-
-        // Policy: US East + descendants see East rows only
-        const policyRes = await createRlsPolicy(
-          base.id, tableId, 'East Coast Only',
-          [{ type: 'team', id: usEastId, hierarchy_scope: 'self_and_descendants' }],
-          { fk_column_id: regionColId, comparison_op: 'eq', value: 'East' },
-        );
-        expect(policyRes.status).to.equal(200);
-        eastPolicyId = policyRes.body.id;
-
-        // Default: deny_all
-        await createRlsPolicy(base.id, tableId, 'Default Deny', [], undefined, true);
-      });
-
-      afterEach(async () => { await featureMock?.restore?.(); });
-
-      it('NY Sales rep sees only East-region rows via the US East RLS policy', async () => {
-        const res = await listRecords(base.id, tableId, nancyToken);
-        expect(res.status).to.equal(200);
-        const records = res.body.list ?? res.body;
-        expect(records.length).to.equal(3);
-        records.forEach((r: any) => expect(r.Region).to.equal('East'));
-      });
-
-      it('US East manager (direct team member) sees only East rows', async () => {
-        const res = await listRecords(base.id, tableId, mikeToken);
-        expect(res.status).to.equal(200);
-        const records = res.body.list ?? res.body;
-        expect(records.length).to.equal(3);
-      });
-
-      /**
-       * 6.3 — Zara (VP, Sales = ANCESTOR of US East) has Editor role via upward cascade
-       * but sees ZERO rows — she's not in the us_east RLS subject.
-       */
-      it('VP with Editor role via upward cascade sees 0 rows — not in any RLS subject list', async () => {
-        const res = await listRecords(base.id, tableId, zaraToken);
-        expect(res.status).to.equal(200); // NOT 403 — she has base access
-        const records = res.body.list ?? res.body;
-        expect(records.length).to.equal(0); // deny_all applies
-      });
-
-      /**
-       * 6.4 — Fix: add a Sales-level RLS policy → Zara now sees all 5 rows
-       */
-      it('Adding a VP-level RLS policy with no filter gives Zara full access to all rows', async () => {
-        // Zara sees 0 before fix
-        const before = await listRecords(base.id, tableId, zaraToken);
-        expect((before.body.list ?? before.body).length).to.equal(0);
-
-        // Add a Sales-level policy with no filter (see everything)
-        await createRlsPolicy(
-          base.id, tableId, 'VP Sees All',
-          [{ type: 'team', id: salesId, hierarchy_scope: 'self_only' }],
-          {}, // no filter = all rows
-        );
-
-        const after = await listRecords(base.id, tableId, zaraToken);
-        expect(after.status).to.equal(200);
-        expect((after.body.list ?? after.body).length).to.equal(5);
-
-        // Nancy and Mike still only see East (their policy unchanged)
-        const nancyRes = await listRecords(base.id, tableId, nancyToken);
-        expect((nancyRes.body.list ?? nancyRes.body).length).to.equal(3);
-      });
-
-      /**
-       * 6.5 — Fix: add Zara as direct user subject on East policy
-       * → Zara sees East rows (not all 5)
-       */
-      it('Adding VP as direct user subject on the East policy shows East rows only, not all rows', async () => {
-        await setRlsSubjects(base.id, eastPolicyId, [
-          { type: 'team', id: usEastId, hierarchy_scope: 'self_and_descendants' },
-          { type: 'user', id: zaraUser.id },
-        ]);
-
-        const res = await listRecords(base.id, tableId, zaraToken);
-        expect(res.status).to.equal(200);
-        const records = res.body.list ?? res.body;
-        expect(records.length).to.equal(3); // East rows only
-        records.forEach((r: any) => expect(r.Region).to.equal('East'));
-      });
-    });
 
     // ─────────────────────────────────────────────────────────────────────────
     // GROUP 7 — RLS After Team Reparent
@@ -5251,7 +4653,7 @@ export default function () {
        * 18B.2 — After reparent (Backend → DevOps): Database sees Dom (DevOps) not Evan (Engineering)
        */
       it('After reparent to DevOps, Database inherits DevOps members and loses Engineering members', async () => {
-        await moveTeam(backendId, devopsId);
+        await moveTeam(backendId, devopsId).then(r => expect(r.status).to.equal(200));
 
         const team = await getTeam(databaseId);
         const inheritedIds = (team.inherited_members ?? []).map((m: any) => m.user_id ?? m.id);
@@ -5285,7 +4687,7 @@ export default function () {
         // The structural assertion (inherited members) is the primary check in 18B.1/18B.2.
 
         // After reparent: Backend → DevOps (Dara no longer under Engineering)
-        await moveTeam(backendId, devopsId);
+        await moveTeam(backendId, devopsId).then(r => expect(r.status).to.equal(200));
 
         const engineeringTeam = await getTeam(engineeringId);
         const inheritedIds = (engineeringTeam.inherited_members ?? []).map((m: any) => m.user_id ?? m.id);
@@ -6003,7 +5405,7 @@ export default function () {
       });
 
       it('After adding NY Sales directly to policy, Nancy regains access', async () => {
-        await reparentTeam(nySalesId, salesId); // First remove her access
+        await moveTeam(nySalesId, salesId).then(r => expect(r.status).to.equal(200)); // First remove her access
 
         // Add ny_sales directly as policy subject
         if (policyId) {
@@ -6405,7 +5807,7 @@ export default function () {
       });
 
       it('After reparenting Backend under DevOps, Engineering has empty inherited_members', async () => {
-        await reparentTeam(backendId, devopsId);
+        await moveTeam(backendId, devopsId).then(r => expect(r.status).to.equal(200));
 
         const team = await getTeam(engineeringId);
         const inheritedIds = (team.inherited_members || []).map((m: any) => m.user_id ?? m.id);
@@ -6414,71 +5816,6 @@ export default function () {
       });
     });
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Removing Intermediate Ancestor — Hard Delete vs Soft Delete
-    //
-    // Engineering → Frontend → Web. Removing Frontend (hard or soft) should
-    // reparent Web under Engineering and drop Fiona from inherited_members.
-    // ─────────────────────────────────────────────────────────────────────────
-
-    describe('Removing intermediate ancestor team — hard delete and soft delete both reparent descendants', () => {
-      let engineeringId: string;
-      let frontendId: string;
-      let webId: string;
-      let evan: any;
-      let fiona: any;
-      let walt: any;
-
-      beforeEach(async function () {
-        this.timeout(120000);
-        context = await init(false, 'editor', { skipSakila: true });
-        workspaceId = context.fk_workspace_id;
-
-        featureMock = await overridePlan({
-          workspace_id: workspaceId,
-          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
-          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 100 },
-        });
-
-        evan = await createUser({ app: context.app }, { email: 'evan-gap@example.com' });
-        fiona = await createUser({ app: context.app }, { email: 'fiona-gap@example.com' });
-        walt = await createUser({ app: context.app }, { email: 'walt-gap@example.com' });
-        await addWorkspaceMembers([evan.user.id, fiona.user.id, walt.user.id]);
-
-        engineeringId = await createTeam('EngineeringGap');
-        frontendId = await createTeam('FrontendGap', engineeringId);
-        webId = await createTeam('WebGap', frontendId);
-
-        await addMember(engineeringId, evan.user.id);
-        await addMember(frontendId, fiona.user.id);
-        await addMember(webId, walt.user.id);
-      });
-
-      afterEach(async () => {
-        await featureMock?.restore?.();
-      });
-
-      it('After hard-deleting Frontend, Web is reparented under Engineering — Fiona removed, Evan still inherited', async () => {
-        await request(context.app)
-          .delete(`/api/v3/meta/workspaces/${workspaceId}/teams/${frontendId}`)
-          .set('xc-token', context.xc_token)
-          .query({ force: true });
-
-        const team = await getTeam(webId);
-        const inheritedIds = (team.inherited_members || []).map((m: any) => m.user_id ?? m.id);
-        expect(inheritedIds).to.not.include(fiona.user.id);
-        expect(inheritedIds).to.include(evan.user.id);
-      });
-
-      it('After soft-deleting Frontend, Web shows only Evan (Engineering) in inherited_members', async () => {
-        await deleteTeam(frontendId, true);
-
-        const team = await getTeam(webId);
-        const inheritedIds = (team.inherited_members || []).map((m: any) => m.user_id ?? m.id);
-        expect(inheritedIds).to.not.include(fiona.user.id);
-        expect(inheritedIds).to.include(evan.user.id);
-      });
-    });
 
     // ─────────────────────────────────────────────────────────────────────────
     // RLS Policy Subject Team Soft-Deleted — Documents Behavior

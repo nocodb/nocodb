@@ -141,8 +141,10 @@ const openKeyboardShortcutDialog = () => {
     <div class="flex items-center justify-center h-13">
       <NcDropdown
         v-model:visible="isMenuOpen"
-        placement="topLeft"
-        :overlay-class-name="`!min-w-44 md:!min-w-64 ${isMiniSidebar ? '!left-1' : ''}`"
+        placement="rightBottom"
+        overlay-class-name="!min-w-44 md:!min-w-64 nc-user-menu-dropdown"
+        :overlay-style="{ marginLeft: '8px' }"
+        :trigger="['click']"
       >
         <NcTooltip :disabled="isMobileMode" placement="right" hide-on-click :arrow="false">
           <template #title>
@@ -498,6 +500,42 @@ const openKeyboardShortcutDialog = () => {
 </style>
 
 <style lang="scss">
+.nc-user-menu-dropdown.nc-user-menu-dropdown {
+  padding-left: 14px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+
+  > .nc-menu {
+    @apply rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    bottom: 12px;
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-right: 7px solid var(--nc-border-gray-medium);
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 9px;
+    bottom: 13px;
+    width: 0;
+    height: 0;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid var(--nc-bg-default);
+  }
+}
+
 .nc-lang-menu-overlay {
   .ant-popover-arrow-content {
     @apply dark:(border-1 border-nc-border-gray-medium);

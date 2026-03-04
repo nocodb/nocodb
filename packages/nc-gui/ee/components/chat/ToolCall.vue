@@ -13,11 +13,6 @@ const props = withDefaults(defineProps<Props>(), {
   index: 0,
 })
 
-const emits = defineEmits<{
-  approve: [toolCallId: string]
-  deny: [toolCallId: string]
-}>()
-
 const { block } = toRefs(props)
 
 const { t } = useI18n()
@@ -174,11 +169,7 @@ const visibleOutput = computed(() => {
     :style="{ '--i': index }"
   >
     <!-- Compact header row -->
-    <div
-      class="flex items-center gap-1.5 px-2.5 py-1.5 select-none"
-      :class="{ 'cursor-pointer': !isAwaitingApproval }"
-      @click="!isAwaitingApproval && (isExpanded = !isExpanded)"
-    >
+    <div class="flex items-center gap-1.5 px-2.5 py-1.5 select-none cursor-pointer" @click="isExpanded = !isExpanded">
       <!-- Status indicator -->
       <div class="flex-none w-3.5 h-3.5 flex items-center justify-center">
         <GeneralLoader v-if="isRunning || isPending" :size="12" />
@@ -214,29 +205,7 @@ const visibleOutput = computed(() => {
 
       <div class="flex-1 min-w-0" />
 
-      <!-- Inline Allow / Deny for awaiting approval -->
-      <template v-if="isAwaitingApproval">
-        <NcButton
-          size="xxsmall"
-          type="text"
-          class="!text-nc-content-red-dark !h-5 !px-1.5 text-[11px] font-medium"
-          @click.stop="emits('deny', block.id)"
-        >
-          {{ t('general.deny') }}
-        </NcButton>
-        <NcButton
-          size="xxsmall"
-          type="primary"
-          class="!h-5 !px-2 text-[11px] font-medium"
-          @click.stop="emits('approve', block.id)"
-        >
-          {{ t('general.allow') }}
-        </NcButton>
-      </template>
-
-      <!-- Chevron (hidden for awaiting approval — buttons take its place) -->
       <GeneralIcon
-        v-else
         icon="chevronDown"
         class="flex-none w-3 h-3 text-nc-content-gray-muted transition-transform duration-200"
         :class="{ 'rotate-180': isExpanded }"

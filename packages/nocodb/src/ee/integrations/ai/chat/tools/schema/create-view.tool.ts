@@ -60,7 +60,7 @@ export const createViewTool: ChatToolDefinition = {
     }
 
     const viewBody = { title: args.title };
-    const serviceParam = { tableId: model.id!, req };
+    const serviceParam = { tableId: model.id!, user: req.user, req };
     let view;
 
     switch (viewType) {

@@ -20,18 +20,15 @@ export const useChatStore = defineStore('chatStore', () => {
 
   const activeSessionId = ref<string | null>(null)
 
+  // Track the workspace we loaded sessions for — used to persist activeSessionId
+  const _currentWsId = ref<string | null>(null)
+
   // Persist activeSessionId per workspace so it survives page refresh
   const _sessionStorageKey = (wsId: string) => `nc-chat-active-session-${wsId}`
 
   watch(activeSessionId, (id) => {
-    const wsId = useWorkspace().activeWorkspaceId.value
-    if (wsId) {
-      if (id) {
-        localStorage.setItem(_sessionStorageKey(wsId), id)
-      } else {
-        localStorage.removeItem(_sessionStorageKey(wsId))
-      }
-    }
+    if (!id || !_currentWsId.value) return
+    localStorage.setItem(_sessionStorageKey(_currentWsId.value), id)
   })
 
   const isLoadingSessions = ref(false)
@@ -40,6 +37,9 @@ export const useChatStore = defineStore('chatStore', () => {
 
   // Streaming state per session — ordered ChatContentBlock[] built live before message-done
   const streamingStates = ref<Map<string, StreamingState>>(new Map())
+
+  // Sessions created locally this client session — skip loadMessages for these
+  const _freshSessionIds = new Set<string>()
 
   // Socket.IO listener cleanup
   let socketListenerId: string | null = null
@@ -81,6 +81,12 @@ export const useChatStore = defineStore('chatStore', () => {
   })
 
   const loadMessages = async (wsId: string, sessionId: string) => {
+    // Skip fetch for sessions just created locally — they have no server-side messages yet
+    if (_freshSessionIds.has(sessionId)) {
+      _freshSessionIds.delete(sessionId)
+      return
+    }
+
     try {
       const { data } = await $api.instance.get(`/api/v2/internal/${wsId}/chat/sessions/${sessionId}/messages`)
 
@@ -252,6 +258,8 @@ export const useChatStore = defineStore('chatStore', () => {
   // ---------------------------------------------------------------------------
 
   const loadSessions = async (wsId: string) => {
+    _currentWsId.value = wsId
+
     try {
       isLoadingSessions.value = true
 
@@ -290,6 +298,7 @@ export const useChatStore = defineStore('chatStore', () => {
       if (session.id) {
         sessions.value.set(session.id, session)
         messages.value.set(session.id, [])
+        _freshSessionIds.add(session.id)
         activeSessionId.value = session.id
       }
 
@@ -404,6 +413,8 @@ export const useChatStore = defineStore('chatStore', () => {
     sessions.value.clear()
     messages.value.clear()
     streamingStates.value.clear()
+    _freshSessionIds.clear()
+    _currentWsId.value = null
     activeSessionId.value = null
     isLoadingSessions.value = false
     isSendingMessage.value = false

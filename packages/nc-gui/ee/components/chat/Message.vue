@@ -20,8 +20,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emits = defineEmits<{
-  approve: [messageId: string, toolCallId: string]
-  deny: [messageId: string, toolCallId: string]
+  approveAll: [messageId: string, toolCallIds: string[]]
+  denyAll: [messageId: string, toolCallIds: string[]]
 }>()
 
 const { message, content, role, isStreaming, streamingParts } = toRefs(props)
@@ -75,6 +75,18 @@ const displaySegments = computed<DisplaySegment[]>(() => {
   return filtered
 })
 
+// Collect all AWAITING_APPROVAL tool IDs from this message
+const pendingApprovalIds = computed(() => {
+  return displayParts.value
+    .filter(
+      (p): p is Extract<ChatContentBlock, { type: 'tool_use' }> =>
+        p.type === 'tool_use' && p.status === ChatToolCallStatus.AWAITING_APPROVAL,
+    )
+    .map((p) => p.id)
+})
+
+const hasPendingApprovals = computed(() => pendingApprovalIds.value.length > 0)
+
 // Track which tool groups are expanded (keyed by first tool's id)
 const expandedGroups = ref(new Set<string>())
 
@@ -84,6 +96,16 @@ const toggleGroup = (groupKey: string) => {
   } else {
     expandedGroups.value.add(groupKey)
   }
+}
+
+// Check if a tool group has any tools awaiting approval
+const groupHasPendingApproval = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[]) => {
+  return blocks.some((b) => b.status === ChatToolCallStatus.AWAITING_APPROVAL)
+}
+
+// A group is considered expanded if manually expanded OR forced by pending approvals
+const isGroupExpanded = (blocks: Extract<ChatContentBlock, { type: 'tool_use' }>[]) => {
+  return expandedGroups.value.has(blocks[0].id) || groupHasPendingApproval(blocks)
 }
 
 // Check if a tool group has any tools still in progress
@@ -137,61 +159,72 @@ const renderedContent = computed(() => {
             <!-- Tool group: single tool → show directly; multiple → collapsible group -->
             <template v-else-if="seg.kind === 'tools'">
               <!-- Single tool — no grouping needed -->
-              <ChatToolCall
-                v-if="seg.blocks.length === 1"
-                :block="seg.blocks[0]"
-                :index="0"
-                @approve="emits('approve', message?.id!, $event)"
-                @deny="emits('deny', message?.id!, $event)"
-              />
+              <ChatToolCall v-if="seg.blocks.length === 1" :block="seg.blocks[0]" :index="0" />
 
               <!-- Multiple consecutive tools — collapsed group -->
               <div v-else class="nc-chat-tool-group">
                 <!-- Always show first tool -->
-                <ChatToolCall
-                  :block="seg.blocks[0]"
-                  :index="0"
-                  @approve="emits('approve', message?.id!, $event)"
-                  @deny="emits('deny', message?.id!, $event)"
-                />
+                <ChatToolCall :block="seg.blocks[0]" :index="0" />
 
-                <!-- "+N more" toggle with group progress -->
+                <!-- "+N more" toggle — hidden when group has pending approvals (forced open) -->
                 <button
+                  v-if="!groupHasPendingApproval(seg.blocks)"
                   class="nc-chat-tool-group-toggle flex items-center gap-1 px-2.5 py-1 text-[11px] text-nc-content-gray-subtle hover:text-nc-content-gray transition-colors"
                   @click="toggleGroup(seg.blocks[0].id)"
                 >
-                  <!-- Loader while group has running tools -->
                   <GeneralLoader v-if="isGroupRunning(seg.blocks)" :size="12" class="flex-none" />
                   <GeneralIcon
                     v-else
                     icon="chevronDown"
                     class="flex-none w-3 h-3 transition-transform duration-200"
-                    :class="{ 'rotate-180': expandedGroups.has(seg.blocks[0].id) }"
+                    :class="{ 'rotate-180': isGroupExpanded(seg.blocks) }"
                   />
                   <span v-if="isGroupRunning(seg.blocks)">
                     {{ `${completedCount(seg.blocks)}/${seg.blocks.length}` }}
                   </span>
-                  <span v-else-if="!expandedGroups.has(seg.blocks[0].id)">
+                  <span v-else-if="!isGroupExpanded(seg.blocks)">
                     {{ `+${seg.blocks.length - 1} more` }}
                   </span>
                   <span v-else>{{ t('msg.chat.showLess') }}</span>
                 </button>
 
                 <!-- Expanded: remaining tools -->
-                <template v-if="expandedGroups.has(seg.blocks[0].id)">
-                  <ChatToolCall
-                    v-for="(b, bi) in seg.blocks.slice(1)"
-                    :key="b.id"
-                    :block="b"
-                    :index="bi + 1"
-                    @approve="emits('approve', message?.id!, $event)"
-                    @deny="emits('deny', message?.id!, $event)"
-                  />
+                <template v-if="isGroupExpanded(seg.blocks)">
+                  <ChatToolCall v-for="(b, bi) in seg.blocks.slice(1)" :key="b.id" :block="b" :index="bi + 1" />
                 </template>
               </div>
             </template>
           </template>
         </div>
+
+        <!-- Batch approval bar — always visible, never collapsed -->
+        <div
+          v-if="hasPendingApprovals"
+          class="nc-chat-approval-bar flex items-center justify-between gap-2 mt-2 pt-2 border-t-1 border-nc-border-yellow"
+        >
+          <span class="text-[12px] font-medium text-nc-content-yellow-dark">
+            {{ t('msg.chat.pendingApprovalCount', { count: pendingApprovalIds.length }, pendingApprovalIds.length) }}
+          </span>
+          <div class="flex items-center gap-1.5">
+            <NcButton
+              size="xxsmall"
+              type="text"
+              class="!text-nc-content-red-dark !h-5.5 !px-2 text-[11px] font-medium"
+              @click="emits('denyAll', message?.id!, pendingApprovalIds)"
+            >
+              {{ t('msg.chat.denyAllTools') }}
+            </NcButton>
+            <NcButton
+              size="xxsmall"
+              type="primary"
+              class="!h-5.5 !px-2.5 text-[11px] font-medium"
+              @click="emits('approveAll', message?.id!, pendingApprovalIds)"
+            >
+              {{ t('msg.chat.approveAllTools') }}
+            </NcButton>
+          </div>
+        </div>
+
         <!-- Streaming indicator: shown at the end of the message while AI is still working -->
         <div v-if="isStreaming" class="flex items-center gap-1 mt-2 pt-1.5 border-t-1 border-nc-border-gray-light">
           <span class="nc-chat-dot" />

@@ -29,9 +29,11 @@ Act confidently, narrate concisely, get things done.`);
 
 1. **Understand** the request. If it's ambiguous, use \`ask_user\` with options — don't guess. \
 Never narrate the questions in text — the tool renders them in the UI.
-2. **Plan** multi-step tasks in one sentence **before any tool calls**: \
-"I'll create the tables, link them, then add sample data." \
-This text MUST appear before the first tool_use block in your response — never after.
+2. **Plan then execute immediately.** State the plan in one sentence, then start calling tools \
+in the **same response**. Never stop after the plan to wait for confirmation — the only reason \
+to pause is if the request is ambiguous and you need to \`ask_user\` first. \
+Example: "I'll create the tables, link them, then add sample data." [tool calls follow immediately] \
+This plan text MUST appear before the first tool_use block — never after.
 3. **Execute** in phases. Call all tools for a phase together. \
 Narrate only between phases, never between individual tools.
 4. **Recover** from errors silently. If a tool fails: fix the input and retry, \
@@ -74,9 +76,7 @@ What NOT to do:
 - "I created a Companies table with fields: Name, Website, Industry…" ← **recapping tool results**
 - "Now I'll create the Contacts table." [create_table] "Now creating Deals." [create_table] ← **narrating each tool**
 - Bullet lists of fields, records, or options created ← **the tool cards already show this**
-
-**Data queries are different.** When the user asks about their data, the answer IS \
-your content — format as a readable table or direct answer.`);
+- Rendering data as markdown tables ← **the user already has a spreadsheet; summarize insights instead**`);
 
   // ─── Rules ───────────────────────────────────────────────────────────────
   // Compressed operational rules. Behavioral stuff is in "How You Work" above.

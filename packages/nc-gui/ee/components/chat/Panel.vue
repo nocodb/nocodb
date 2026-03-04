@@ -102,17 +102,20 @@ watch(
         hasInitialized.value = true
         await chatStore.loadSessions(wsId)
       }
+
+      scrollToBottom()
     }
   },
   { immediate: true },
 )
 
-// Load messages when active session changes
+// Load messages when active session changes, then scroll to bottom
 watch(
   () => chatStore.activeSessionId,
   async (sessionId) => {
     if (sessionId && activeWorkspaceId.value) {
       await chatStore.loadMessages(activeWorkspaceId.value, sessionId)
+      scrollToBottom()
     }
   },
 )
@@ -131,10 +134,9 @@ const handleSend = async (content: string) => {
   await chatStore.sendMessage(activeWorkspaceId.value, chatStore.activeSessionId!, content, base.value?.id)
 }
 
-const handleNewSession = async () => {
-  if (!activeWorkspaceId.value) return
+const handleNewSession = () => {
   showSessionList.value = false
-  await chatStore.createSession(activeWorkspaceId.value)
+  chatStore.activeSessionId = null
 }
 
 const handleDeleteSession = async (sessionId: string) => {
@@ -163,20 +165,20 @@ const handleSkipInput = () => {
   }
 }
 
-const handleApprove = async (messageId: string, toolCallId: string) => {
+const handleApproveAll = async (messageId: string, toolCallIds: string[]) => {
   if (!activeWorkspaceId.value || !chatStore.activeSessionId) return
-  $e('a:chat:tool:approve')
-  await chatStore.approveToolCalls(activeWorkspaceId.value, chatStore.activeSessionId, messageId, {
-    [toolCallId]: 'approved',
-  }, base.value?.id)
+  $e('a:chat:tool:approve', { count: toolCallIds.length })
+  const decisions: Record<string, 'approved' | 'denied'> = {}
+  for (const id of toolCallIds) decisions[id] = 'approved'
+  await chatStore.approveToolCalls(activeWorkspaceId.value, chatStore.activeSessionId, messageId, decisions, base.value?.id)
 }
 
-const handleDeny = async (messageId: string, toolCallId: string) => {
+const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
   if (!activeWorkspaceId.value || !chatStore.activeSessionId) return
-  $e('a:chat:tool:deny')
-  await chatStore.approveToolCalls(activeWorkspaceId.value, chatStore.activeSessionId, messageId, {
-    [toolCallId]: 'denied',
-  }, base.value?.id)
+  $e('a:chat:tool:deny', { count: toolCallIds.length })
+  const decisions: Record<string, 'approved' | 'denied'> = {}
+  for (const id of toolCallIds) decisions[id] = 'denied'
+  await chatStore.approveToolCalls(activeWorkspaceId.value, chatStore.activeSessionId, messageId, decisions, base.value?.id)
 }
 </script>
 
@@ -292,8 +294,8 @@ const handleDeny = async (messageId: string, toolCallId: string) => {
                 :message="msg"
                 :streaming-parts="msg.id.startsWith('streaming-') ? activeStreamingParts : undefined"
                 :is-streaming="msg.id.startsWith('streaming-') && isSendingMessage"
-                @approve="handleApprove"
-                @deny="handleDeny"
+                @approve-all="handleApproveAll"
+                @deny-all="handleDenyAll"
               />
 
               <!-- Loading indicator: shown only before first streaming part arrives -->

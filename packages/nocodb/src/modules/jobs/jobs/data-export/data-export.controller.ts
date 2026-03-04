@@ -8,17 +8,19 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { AppEvents } from 'nocodb-sdk';
 import type { DataExportJobData } from '~/interface/Jobs';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { BasesService } from '~/services/bases.service';
-import { View } from '~/models';
+import { Model, View } from '~/models';
 import { JobTypes } from '~/interface/Jobs';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -26,6 +28,7 @@ export class DataExportController {
   constructor(
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly basesService: BasesService,
+    protected readonly appHooksService: AppHooksService,
   ) {}
 
   @Post(['/api/v2/export/:viewId/:exportAs'])
@@ -56,6 +59,18 @@ export class DataExportController {
       exportAs,
       ncSiteUrl: req.ncSiteUrl,
     });
+
+    const table = await Model.get(context, view.fk_model_id);
+
+    if (table) {
+      this.appHooksService.emit(AppEvents.DATA_EXPORT, {
+        context,
+        req,
+        view,
+        table,
+        type: exportAs,
+      });
+    }
 
     return {
       id: job.id,

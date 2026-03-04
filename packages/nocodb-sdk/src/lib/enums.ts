@@ -70,6 +70,7 @@ export enum AppEvents {
 
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
+  USER_SIGNIN_FAILED = 'user.signin.failed',
   USER_INVITE = 'user.invite',
   USER_UPDATE = 'user.update',
   USER_PASSWORD_RESET = 'user.password.reset',

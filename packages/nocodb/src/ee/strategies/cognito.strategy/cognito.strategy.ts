@@ -5,19 +5,21 @@ import { CognitoJwtVerifier } from 'aws-jwt-verify';
 import { Strategy } from 'passport-custom';
 import { ConfigService } from '@nestjs/config';
 import bcrypt from 'bcryptjs';
+import { AppEvents } from 'nocodb-sdk';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import type { AppConfig } from '~/interface/config';
 import { sanitiseUserObj } from '~/utils';
 import { UsersService } from '~/services/users/users.service';
 import { User } from '~/models';
-import { NcError } from '~/helpers/catchError';
 import { isDisposableEmail } from '~/helpers';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
   constructor(
     private configService: ConfigService<AppConfig>,
     private usersService: UsersService,
+    private appHooksService: AppHooksService,
   ) {
     super();
   }
@@ -27,6 +29,11 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
       if (
         !this.configService.get('cognito.aws_user_pools_id', { infer: true })
       ) {
+        this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+          provider: 'cognito',
+          reason: 'Cognito is not configured',
+          req,
+        });
         return callback(new Error('Cognito is not configured'));
       }
 
@@ -46,11 +53,22 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         const rawEmail = (payload as any)['email']?.toLowerCase();
 
         if (!rawEmail) {
+          this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+            provider: 'cognito',
+            reason: 'Invalid token - no email',
+            req,
+          });
           return callback('Invalid token');
         }
 
         // Reject plus addressing (always abusive)
         if (rawEmail.split('@')[0].includes('+')) {
+          this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+            email: rawEmail,
+            provider: 'cognito',
+            reason: 'Plus addressing not allowed',
+            req,
+          });
           return callback(
             new Error(
               'Email aliases with "+" are not allowed. Please use your primary email address.',
@@ -60,8 +78,16 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
 
         // check if email is disposable and throw error
         if (isDisposableEmail(rawEmail)) {
-          NcError.badRequest(
-            'For the security and integrity of NocoDB platform, we require users to sign up with a permanent email address. Please provide a valid, long-term email address to continue.',
+          this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+            email: rawEmail,
+            provider: 'cognito',
+            reason: 'Disposable email',
+            req,
+          });
+          return callback(
+            new Error(
+              'For the security and integrity of NocoDB platform, we require users to sign up with a permanent email address. Please provide a valid, long-term email address to continue.',
+            ),
           );
         }
 
@@ -94,12 +120,28 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
             provider: 'cognito',
           });
         } catch (err) {
+          this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+            email: rawEmail,
+            provider: 'cognito',
+            reason: 'Registration failed',
+            req,
+          });
           return callback(new Error('Token validation failed'));
         }
       } else {
+        this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+          provider: 'cognito',
+          reason: 'No token found',
+          req,
+        });
         return callback(new Error('No token found'));
       }
     } catch (error) {
+      this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+        provider: 'cognito',
+        reason: 'Token verification failed',
+        req,
+      });
       return callback(error);
     }
   }
@@ -107,11 +149,12 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
 
 export const CognitoStrategyProvider: FactoryProvider = {
   provide: CognitoStrategy,
-  inject: [UsersService, ConfigService<AppConfig>],
+  inject: [UsersService, ConfigService<AppConfig>, AppHooksService],
   useFactory: async (
     usersService: UsersService,
     config: ConfigService<AppConfig>,
+    appHooksService: AppHooksService,
   ) => {
-    return new CognitoStrategy(config, usersService);
+    return new CognitoStrategy(config, usersService, appHooksService);
   },
 };

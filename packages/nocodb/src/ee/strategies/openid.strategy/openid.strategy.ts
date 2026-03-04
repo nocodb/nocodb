@@ -7,6 +7,7 @@ import { Strategy as OpenIDConnectStrategy } from '@govtechsg/passport-openidcon
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import boxen from 'boxen';
+import { AppEvents } from 'nocodb-sdk';
 import type { Request } from 'express';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import type { AppConfig } from '~/interface/config';
@@ -16,6 +17,7 @@ import NocoCache from '~/cache/NocoCache';
 import { CacheGetType } from '~/utils/globals';
 import { UsersService } from '~/services/users/users.service';
 import { sanitiseUserObj } from '~/utils';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class OpenidStrategy extends PassportStrategy(
@@ -26,16 +28,22 @@ export class OpenidStrategy extends PassportStrategy(
     @Optional() clientConfig: any,
     private configService: ConfigService<AppConfig>,
     private usersService: UsersService,
+    private appHooksService: AppHooksService,
   ) {
-    super(clientConfig, (_issuer, _subject, profile, done) =>
-      this.validate(_issuer, _subject, profile, done),
+    super(clientConfig, (req, _issuer, _subject, profile, done) =>
+      this.validate(req, _issuer, _subject, profile, done),
     );
   }
 
-  async validate(_issuer, _subject, profile, done) {
+  async validate(req, _issuer, _subject, profile, done) {
     const email = profile.email || profile?._json?.email;
 
     if (!email) {
+      this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+        provider: 'openid',
+        reason: 'User account is missing email id',
+        req,
+      });
       return done({ msg: `User account is missing email id` });
     }
 
@@ -60,16 +68,29 @@ export class OpenidStrategy extends PassportStrategy(
               user_name: null,
               display_name: profile._json?.name,
               salt,
-              // todo: check if req available
-              req: null,
+              req,
             })
             .then((user) => {
               done(null, { ...sanitiseUserObj(user), provider: 'openid' });
             })
-            .catch((e) => done(e));
+            .catch((e) => {
+              this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+                email,
+                provider: 'openid',
+                reason: 'Registration failed',
+                req,
+              });
+              done(e);
+            });
         }
       })
       .catch((err) => {
+        this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+          email,
+          provider: 'openid',
+          reason: 'User lookup failed',
+          req,
+        });
         return done(err);
       });
   }
@@ -112,10 +133,11 @@ const requiredEnvKeys = [
 
 export const OpenidStrategyProvider: FactoryProvider = {
   provide: OpenidStrategy,
-  inject: [UsersService, ConfigService<AppConfig>],
+  inject: [UsersService, ConfigService<AppConfig>, AppHooksService],
   useFactory: async (
     usersService: UsersService,
     config: ConfigService<AppConfig>,
+    appHooksService: AppHooksService,
   ) => {
     if (!['openid', 'oidc'].includes(process.env.NC_SSO?.toLowerCase())) {
       return null;
@@ -143,6 +165,7 @@ export const OpenidStrategyProvider: FactoryProvider = {
 
     // OpenID Connect
     const clientConfig = {
+      passReqToCallback: true,
       issuer: process.env.NC_SSO_OIDC_ISSUER,
       authorizationURL: process.env.NC_SSO_OIDC_AUTHORIZATION_URL,
       tokenURL: process.env.NC_SSO_OIDC_TOKEN_URL,
@@ -208,6 +231,6 @@ export const OpenidStrategyProvider: FactoryProvider = {
       },
     };
 
-    return new OpenidStrategy(clientConfig, config, usersService);
+    return new OpenidStrategy(clientConfig, config, usersService, appHooksService);
   },
 };

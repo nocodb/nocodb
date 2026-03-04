@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { AppEvents } from 'nocodb-sdk';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
 import { User } from '~/models';
 import { MetaService } from '~/meta/meta.service';
 import Debug from '~/db/util/Debug';
 import { NcError } from '~/helpers/catchError';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 const debug = new Debug('nc:sso:short-lived-token-strategy');
 
@@ -14,7 +16,10 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
   Strategy,
   'short-lived-token',
 ) {
-  constructor(config: Record<any, any>) {
+  constructor(
+    config: Record<any, any>,
+    private appHooksService: AppHooksService,
+  ) {
     super({
       ...config,
       jwtFromRequest: ExtractJwt.fromHeader('xc-short-token'),
@@ -32,6 +37,12 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
 
     if (!user) {
       debug.error('User not found');
+      this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+        email: jwtPayload.email,
+        provider: jwtPayload.provider ?? 'sso',
+        reason: 'User not found',
+        req,
+      });
       NcError.userNotFound(jwtPayload?.email);
     }
 
@@ -58,8 +69,11 @@ export class ShortLivedTokenStrategy extends PassportStrategy(
 
 export const ShortLivedTokenStrategyProvider: FactoryProvider = {
   provide: ShortLivedTokenStrategy,
-  inject: [MetaService],
-  useFactory: async (metaService: MetaService) => {
+  inject: [MetaService, AppHooksService],
+  useFactory: async (
+    metaService: MetaService,
+    appHooksService: AppHooksService,
+  ) => {
     const config = metaService.config;
 
     const options = {
@@ -67,6 +81,6 @@ export const ShortLivedTokenStrategyProvider: FactoryProvider = {
       ...config.auth.jwt.options,
     };
 
-    return new ShortLivedTokenStrategy(options);
+    return new ShortLivedTokenStrategy(options, appHooksService);
   },
 };

@@ -236,7 +236,7 @@ const showCancelSubscriptionModal = () => {
       'cancelText': t('labels.cancel'),
       'onCancel': closeDialog,
       'onOk': async () => {
-        navigateTo(`/${currentWorkspace.value?.id}/settings?tab=billing&autoScroll=plan`)
+        navigateTo(`/${currentWorkspace.value?.id}/settings/ws-billing?autoScroll=plan`)
 
         closeDialog()
       },

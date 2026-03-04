@@ -590,7 +590,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     ncNavigateTo({ workspaceId })
   }
 
-  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean, _query: Record<string, string> = {}) => {
+  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
     if (!workspaceId) {
       throw new Error('Workspace not selected')
@@ -628,7 +628,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
-  const navigateToIntegrations = async (workspaceId?: string, cmdOrCtrl?: boolean, _query: Record<string, string> = {}) => {
+  const navigateToIntegrations = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
 
     if (!workspaceId) {

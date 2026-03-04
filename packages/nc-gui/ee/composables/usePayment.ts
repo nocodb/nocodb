@@ -256,7 +256,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     window.location.href = isOrgBilling.value
       ? `/#/admin/${orgId.value}/billing?afterUpgrade=true`
-      : `/#/${activeWorkspaceOrOrgId.value}/settings?tab=billing${afterUpgrade ? '&afterUpgrade=true' : ''}`
+      : `/#/${activeWorkspaceOrOrgId.value}/settings/ws-billing${afterUpgrade ? '?afterUpgrade=true' : ''}`
   }
 
   const cancelSubscription = async () => {
@@ -270,7 +270,7 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     window.location.href = isOrgBilling.value
       ? `/#/admin/${orgId.value}/billing`
-      : `/#/${activeWorkspaceOrOrgId.value}/settings?tab=billing`
+      : `/#/${activeWorkspaceOrOrgId.value}/settings/ws-billing`
   }
 
   const getCustomerPortalSession = async () => {

@@ -124,7 +124,7 @@ onMounted(() => {
       icon="audit"
       data-testid="base-audit"
       :active="activeBaseSettingsTab === 'audits'"
-      @click="navigateToBaseSettings('audit')"
+      @click="navigateToBaseSettings('audits')"
     >
       {{ $t('title.audits') }}
     </NcSidebarMenuItem>

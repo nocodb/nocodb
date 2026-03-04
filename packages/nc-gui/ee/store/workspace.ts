@@ -635,13 +635,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       throw new Error('Workspace not selected')
     }
 
-    const path = `/${workspaceId}/settings/ws-integrations`
-    if (cmdOrCtrl) {
-      await navigateTo(path, { open: navigateToBlankTargetOpenOption })
-    } else {
-      await navigateTo(path)
-    }
-
     if (cmdOrCtrl) {
       await navigateTo(
         router.resolve({

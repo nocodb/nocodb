@@ -2220,16 +2220,21 @@ export class ColumnsService implements IColumnsService {
         colBody.readonly = true;
       }
 
-      // set the request cdf only if it exists in request
-      if ('cdf' in originalColBody) {
-        colBody.cdf = originalColBody.cdf;
-      }
-      // otherwise, we remove the default preset cdf,
-      // since it isn't needed during column update (but do at column add)
-      // if we don't, then the cdf will be overridden unintentionally
-      else {
-        delete colBody.cdf;
-      }
+      const setPropsFromRequest = (...props: string[]) => {
+        for (const prop of props) {
+          // set the request props only if it exists in request
+          if (prop in originalColBody) {
+            colBody[prop] = originalColBody[prop];
+          }
+          // otherwise, we remove the default preset cdf,
+          // since it isn't needed during column update (but do at column add)
+          // if we don't, then the cdf will be overridden unintentionally
+          else {
+            delete colBody[prop];
+          }
+        }
+      };
+      setPropsFromRequest('cdf', 'rqd');
 
       await this.updateMetaAndDatabase(context, {
         table,

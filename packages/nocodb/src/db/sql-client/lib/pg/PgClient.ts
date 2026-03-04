@@ -2603,8 +2603,10 @@ class PGClient extends KnexClient {
         //upQuery = `ALTER TABLE "${args.columns[0].tn}" ${upQuery};`;
         //downQuery = `ALTER TABLE "${args.columns[0].tn}" ${downQuery};`;
       }
-      debugTableUpdateQuery(upQuery);
-      if (upQuery !== '') await this.sqlClient.raw(upQuery);
+      if (upQuery && upQuery !== '') {
+        debugTableUpdateQuery(upQuery);
+        await this.sqlClient.raw(upQuery);
+      }
 
       // console.log(upQuery);
 

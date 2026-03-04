@@ -1,6 +1,7 @@
 import type { NcContext } from '~/interface/config';
 import type { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { TRUNCATE_RESULT_MAX_LENGTH } from '../constants';
 import Model from '~/models/Model';
 import View from '~/models/View';
 import Noco from '~/Noco';
@@ -112,7 +113,10 @@ export async function getPrimaryKeyTitle(
 /**
  * Truncate a result to prevent overly large tool responses from blowing up context.
  */
-export function truncateResult(data: any, maxLength = 4000): string {
+export function truncateResult(
+  data: any,
+  maxLength = TRUNCATE_RESULT_MAX_LENGTH,
+): string {
   const str = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
   if (str.length <= maxLength) return str;
   return str.slice(0, maxLength) + '\n... (truncated)';

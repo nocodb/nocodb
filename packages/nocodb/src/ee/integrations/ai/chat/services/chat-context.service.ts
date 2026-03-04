@@ -8,8 +8,7 @@ import type { ChatMessageType } from 'nocodb-sdk';
 import type { ModelMessage, SystemModelMessage } from 'ai';
 import type { NcContext } from '~/interface/config';
 import { AiSchemaService } from '~/integrations/ai/module/services/ai-schema.service';
-
-const MAX_HISTORY_TOKENS = 8000;
+import { MAX_HISTORY_TOKENS } from '../constants';
 
 // Static content is identical for every request — build once and reuse.
 const STATIC_SYSTEM_PROMPT = buildStaticSystemPromptText();

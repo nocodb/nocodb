@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { tool } from 'ai';
 import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
+import { ERROR_HINT_MAX_LENGTH } from '../constants';
 
 // Schema tools
 import { listTablesTool } from './schema/list-tables.tool';
@@ -164,7 +165,7 @@ export class ChatToolRegistry {
       this.logger.error(`Tool ${toolName} failed: ${e.message}`, e.stack);
       // Trim the error message — enough for the LLM to give a useful hint (e.g. "field not found")
       // without leaking internal DB details that appear further into long error strings.
-      const hint = String(e.message || '').slice(0, 128);
+      const hint = String(e.message || '').slice(0, ERROR_HINT_MAX_LENGTH);
       return {
         result: `Tool "${toolName}" failed: ${hint}`,
         isError: true,

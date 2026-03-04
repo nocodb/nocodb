@@ -52,7 +52,7 @@ export const updateRecordsTool: ChatToolDefinition = {
   permission: 'dataUpdate',
   scope: 'base',
   requiredRole: ProjectRoles.EDITOR,
-  isDangerous: false,
+  isDangerous: true,
   async execute(
     context: NcContext,
     args: {

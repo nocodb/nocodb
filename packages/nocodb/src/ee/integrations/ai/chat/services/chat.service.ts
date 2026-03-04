@@ -28,8 +28,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import NocoSocket from '~/socket/NocoSocket';
-
-const MAX_STEPS = 10;
+import { MAX_STEPS, MESSAGE_MAX_LENGTH } from '../constants';
 
 interface ChatCallbacks {
   onToken?: (content: string) => void;
@@ -171,9 +170,9 @@ export class ChatService {
     if (!body.content || body.content.length === 0) {
       NcError.get(context).badRequest('Message content cannot be empty');
     }
-    if (body.content.length > 10_000) {
+    if (body.content.length > MESSAGE_MAX_LENGTH) {
       NcError.get(context).badRequest(
-        'Message too long (max 10,000 characters)',
+        `Message too long (max ${MESSAGE_MAX_LENGTH.toLocaleString()} characters)`,
       );
     }
 
@@ -287,7 +286,9 @@ export class ChatService {
       return;
     }
 
-    let wrapper: ReturnType<typeof integration.getIntegrationWrapper<AiIntegration>>;
+    let wrapper: ReturnType<
+      typeof integration.getIntegrationWrapper<AiIntegration>
+    >;
     let model: ReturnType<AiIntegration['getModel']>;
     try {
       wrapper = integration.getIntegrationWrapper<AiIntegration>();

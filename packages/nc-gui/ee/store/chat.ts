@@ -289,6 +289,8 @@ export const useChatStore = defineStore('chatStore', () => {
   // ---------------------------------------------------------------------------
 
   const sendMessage = async (bId: string, sessionId: string, content: string) => {
+    if (isSendingMessage.value) return
+
     // Push optimistic user message immediately
     const userMessage: ChatMessageType = {
       id: `temp-${Date.now()}`,

@@ -7,10 +7,11 @@ import type { NcContext } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
 import Integration from '~/models/Integration';
 import { NcError } from '~/helpers/catchError';
-
-const COMPACTION_THRESHOLD = 0.8;
-const TOKEN_BUDGET = 16000;
-const KEEP_RECENT_MESSAGES = 6;
+import {
+  COMPACTION_THRESHOLD,
+  KEEP_RECENT_MESSAGES,
+  TOKEN_BUDGET,
+} from '../constants';
 
 @Injectable()
 export class ChatCompactionService {

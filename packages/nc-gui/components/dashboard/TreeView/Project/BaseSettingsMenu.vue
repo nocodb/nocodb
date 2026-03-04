@@ -12,8 +12,6 @@ const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
-const base = inject(ProjectInj)!
-
 const baseRole = inject(ProjectRoleInj)!
 
 const { isMobileMode } = useGlobal()

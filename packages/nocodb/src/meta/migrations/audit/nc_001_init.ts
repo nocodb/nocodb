@@ -4,9 +4,9 @@ import { MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.AUDIT, (table) => {
     if (knex.client.config.client === 'pg') {
-      table.uuid('id').primary();
+      table.uuid('id');
     } else {
-      table.string('id', 36).primary();
+      table.string('id', 36);
     }
 
     table.string('user', 255);
@@ -35,20 +35,19 @@ const up = async (knex: Knex) => {
     table.specificType('version', 'smallint').defaultTo(0);
 
     table.timestamps(true, true);
-  });
 
-  await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
-    table.index(['fk_workspace_id', 'base_id'], 'nc_audit_v2_tenant_idx');
-
+    table.primary(['id'], { constraintName: 'nc_audit_v2_pkx' });
+    table.index(['fk_workspace_id'], 'nc_audit_v2_fk_workspace_idx');
+    table.index(['base_id', 'fk_workspace_id'], 'nc_audit_v2_tenant_idx');
     table.index(
-      ['fk_workspace_id', 'base_id', 'fk_model_id', 'row_id'],
+      ['base_id', 'fk_model_id', 'row_id', 'fk_workspace_id'],
       'nc_record_audit_v2_tenant_idx',
     );
   });
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTable(MetaTable.AUDIT);
+  await knex.schema.dropTableIfExists(MetaTable.AUDIT);
 };
 
 export { up, down };

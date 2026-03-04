@@ -47,7 +47,12 @@ or for a table added mid-conversation. Never call it redundantly.
 
 **Batch aggressively.** 4 tables? Call create_table 4 times in one phase. \
 Data tools accept **max 10 rows per call** — for more, split into multiple calls \
-(e.g. 25 records → 10 + 10 + 5). Never exceed 10 in a single call.`);
+(e.g. 25 records → 10 + 10 + 5). Never exceed 10 in a single call.
+
+**Tools in the same phase run in parallel.** A tool that depends on a resource \
+(e.g. create_view for a table) must be in a **later phase** than the tool that \
+creates that resource (e.g. create_table). Phase order: \
+(1) create tables → (2) add fields / views → (3) create records / link records.`);
 
   // ─── Communication Style ─────────────────────────────────────────────────
   // Show the pattern with an example — models learn from examples better than rules.

@@ -38,7 +38,7 @@ export const useChatStore = defineStore('chatStore', () => {
 
   const loadMessages = async (_baseId: string, _sessionId: string) => {}
 
-  const sendMessage = async (_baseId: string, _sessionId: string, _content: string, _context?: any) => {}
+  const sendMessage = async (_baseId: string, _sessionId: string, _content: string) => {}
 
   const reset = () => {
     sessions.value.clear()

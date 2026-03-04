@@ -260,7 +260,10 @@ export class ChatService {
 
     // Load session (may have been updated since job was queued)
     const session = await ChatSession.get(context, sessionId);
-    if (!session) return;
+    if (!session) {
+      callbacks?.onError?.('Session no longer exists');
+      return;
+    }
 
     // Defense-in-depth: re-verify ownership even though the job was enqueued
     // after an ownership check. Guards against any future code path that bypasses
@@ -284,8 +287,16 @@ export class ChatService {
       return;
     }
 
-    const wrapper = integration.getIntegrationWrapper<AiIntegration>();
-    const model = wrapper.getModel();
+    let wrapper: ReturnType<typeof integration.getIntegrationWrapper<AiIntegration>>;
+    let model: ReturnType<AiIntegration['getModel']>;
+    try {
+      wrapper = integration.getIntegrationWrapper<AiIntegration>();
+      model = wrapper.getModel();
+    } catch (e) {
+      this.logger.error('Failed to initialise AI provider', e.stack);
+      callbacks?.onError?.('Failed to initialise AI provider');
+      return;
+    }
 
     // Build tools
     const availableTools = this.toolRegistry.getAvailableTools(req);
@@ -500,14 +511,9 @@ export class ChatService {
       },
     });
 
-    // Consume the stream so all callbacks fire
+    // Consume the stream and await onFinish (SDK awaits it internally)
     try {
-      const reader = result.toTextStreamResponse().body.getReader();
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const { done } = await reader.read();
-        if (done) break;
-      }
+      await result.text;
     } catch (e) {
       this.logger.error('Error consuming chat stream', e.stack);
       callbacks?.onError?.(e.message || 'Stream error');

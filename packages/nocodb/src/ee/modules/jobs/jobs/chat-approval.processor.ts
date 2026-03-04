@@ -64,10 +64,25 @@ export class ChatApprovalProcessor {
       this.logger,
     );
 
-    await this.chatService.processAgentTurn(
-      context,
-      { sessionId, req, approvals: {} },
-      callbacks,
-    );
+    try {
+      await this.chatService.processAgentTurn(
+        context,
+        { sessionId, req, approvals: {} },
+        callbacks,
+      );
+    } catch (e) {
+      this.logger.error(
+        `Failed to continue LLM turn for session ${sessionId}`,
+        e.stack,
+      );
+      NocoSocket.broadcastEventToUser(user.id as string, {
+        event: EventType.CHAT_EVENT,
+        payload: {
+          action: 'error',
+          sessionId,
+          error: 'Failed to continue conversation after approval',
+        },
+      });
+    }
   }
 }

@@ -54,7 +54,10 @@ const toolCategory = computed(() => {
     name.startsWith('create_record') ||
     name.startsWith('update_record') ||
     name.startsWith('delete_record') ||
-    name.startsWith('count_')
+    name.startsWith('count_') ||
+    name.startsWith('link_') ||
+    name.startsWith('unlink_') ||
+    name.startsWith('list_linked_')
   ) {
     return 'data'
   }

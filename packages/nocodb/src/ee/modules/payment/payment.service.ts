@@ -1333,6 +1333,8 @@ export class PaymentService {
     ncMeta = Noco.ncMeta,
     initiator?: string,
   ) {
+    if (!process.env.NC_STRIPE_SECRET_KEY) return;
+
     // we don't want to block the request
     this.reseatSubscriptionAwaited(workspaceOrOrgId, ncMeta, initiator).catch(
       () => {

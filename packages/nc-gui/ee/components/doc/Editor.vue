@@ -20,6 +20,7 @@ import { CalloutExtension } from './CalloutExtension'
 import { DocMathExtension } from './DocMathExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
 import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
+import { DocDragHandleExtension } from './DocDragHandlePlugin'
 import { DocSearchExtension } from './DocSearchExtension'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
@@ -294,6 +295,7 @@ const _tiptapEditor = useEditor({
     DocEmbedExtension,
     DocActiveBlockExtension,
     DocHeadingCollapseExtension,
+    DocDragHandleExtension,
     DocSearchExtension,
   ],
   editorProps: {
@@ -1595,6 +1597,49 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
+// Drag handle — positioned absolutely inside .nc-doc-editor-body (which has position: relative)
+.nc-doc-drag-handle {
+  position: absolute;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  cursor: grab;
+  border-radius: 4px;
+  color: var(--nc-content-gray-muted);
+  transition: opacity 0.15s ease, color 0.15s ease;
+  z-index: 10;
+  user-select: none;
+
+  &:hover {
+    background: var(--nc-bg-gray-light);
+    color: var(--nc-content-gray-subtle);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+// Drop indicator line shown between blocks during drag-and-drop reorder
+.nc-doc-drop-indicator {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--nc-border-gray-medium);
+  border-radius: 1px;
+  display: none;
+  z-index: 10;
+  pointer-events: none;
+}
+
 // Doc editor typography — no prose class, clean styles
 .nc-doc-editor-content.ProseMirror {
   // Highlight marks — keep text colour from parent, match native selection height
@@ -1775,6 +1820,15 @@ onBeforeUnmount(() => {
     outline: 2px solid var(--nc-fill-primary);
     outline-offset: 2px;
     border-radius: 2px;
+  }
+
+  // Drag-selected node outline — only shown while the drag handle is active.
+  // Scoped to body.nc-doc-dragging to avoid overriding existing
+  // ProseMirror-selectednode styles for images, embeds, etc.
+  body.nc-doc-dragging & .ProseMirror-selectednode {
+    outline: 2px solid var(--nc-fill-primary);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 
   // Search match highlight decorations (DocSearchExtension).
@@ -2554,5 +2608,14 @@ onBeforeUnmount(() => {
   padding: 6px 12px;
   font-size: 12px;
   color: var(--nc-content-gray-subtle2);
+}
+
+// Global cursor override during drag-handle reorder.
+// Applied to body so the cursor stays consistent even when moving
+// over iframes, images, or other elements that set their own cursor.
+body.nc-doc-dragging,
+body.nc-doc-dragging .nc-doc-editor-inner,
+body.nc-doc-dragging .nc-doc-editor-inner * {
+  cursor: grabbing !important;
 }
 </style>

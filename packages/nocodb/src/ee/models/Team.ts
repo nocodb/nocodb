@@ -100,7 +100,7 @@ export default class Team {
 
     return this.get(context, id, ncMeta).then(async (team) => {
       await NocoCache.appendToList(
-        context,
+        'root',
         CacheScope.TEAM,
         [baseCacheKey],
         `${CacheScope.TEAM}:${id}`,
@@ -117,7 +117,7 @@ export default class Team {
     let teamData =
       teamId &&
       (await NocoCache.get(
-        context,
+        'root',
         `${CacheScope.TEAM}:${teamId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -136,7 +136,7 @@ export default class Team {
       }
 
       if (teamData) {
-        await NocoCache.set(context, `${CacheScope.TEAM}:${teamId}`, teamData);
+        await NocoCache.set('root', `${CacheScope.TEAM}:${teamId}`, teamData);
       }
     }
 
@@ -160,7 +160,7 @@ export default class Team {
     const baseCacheKey = context.workspace_id ?? context.org_id;
     const cacheKey = include_deleted ? `${baseCacheKey}:deleted` : baseCacheKey;
 
-    const cachedList = await NocoCache.getList(context, CacheScope.TEAM, [
+    const cachedList = await NocoCache.getList('root', CacheScope.TEAM, [
       cacheKey,
     ]);
 
@@ -193,7 +193,7 @@ export default class Team {
         },
       );
 
-      await NocoCache.setList(context, CacheScope.TEAM, [cacheKey], teamList);
+      await NocoCache.setList('root', CacheScope.TEAM, [cacheKey], teamList);
     }
 
     return teamList.map((team) => this.castType(team));
@@ -238,7 +238,7 @@ export default class Team {
     );
 
     await NocoCache.update(
-      context,
+      'root',
       `${CacheScope.TEAM}:${teamId}`,
       preparedTeam,
     );
@@ -263,7 +263,7 @@ export default class Team {
     );
 
     await NocoCache.deepDel(
-      context,
+      'root',
       `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -301,15 +301,15 @@ export default class Team {
       { id: teamId },
     );
 
-    await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
+    await NocoCache.del('root', `${CacheScope.TEAM}:${teamId}`);
 
     // Invalidate both active and deleted cache lists
     const baseCacheKey = context.workspace_id ?? context.org_id;
-    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}`);
-    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
+    await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}`);
+    await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
 
     await NocoCache.deepDel(
-      context,
+      'root',
       `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -337,15 +337,15 @@ export default class Team {
       id: teamId,
     });
 
-    await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
+    await NocoCache.del('root', `${CacheScope.TEAM}:${teamId}`);
 
     // Invalidate both active and deleted cache lists
     const baseCacheKey = context.workspace_id ?? context.org_id;
-    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}`);
-    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
+    await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}`);
+    await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}:deleted`);
 
     await NocoCache.deepDel(
-      context,
+      'root',
       `${CacheScope.TEAM}:${teamId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -407,7 +407,7 @@ export default class Team {
     // Check cache first for each ID
     for (const id of uniqueIds) {
       const cached = await NocoCache.get(
-        context,
+        'root',
         `${CacheScope.TEAM}:${id}`,
         CacheGetType.TYPE_OBJECT,
       );
@@ -435,8 +435,16 @@ export default class Team {
         },
       );
 
+      const baseCacheKey = context.workspace_id ?? context.org_id;
+
       for (const row of rows) {
-        await NocoCache.set(context, `${CacheScope.TEAM}:${row.id}`, row);
+        await NocoCache.set('root', `${CacheScope.TEAM}:${row.id}`, row);
+        await NocoCache.appendToList(
+          'root',
+          CacheScope.TEAM,
+          [baseCacheKey],
+          `${CacheScope.TEAM}:${row.id}`,
+        );
         result.set(row.id, this.castType(row));
       }
     }
@@ -730,7 +738,7 @@ export default class Team {
           },
           { id: desc.id },
         );
-        await NocoCache.update(context, `${CacheScope.TEAM}:${desc.id}`, {
+        await NocoCache.update('root', `${CacheScope.TEAM}:${desc.id}`, {
           path: updatedPath,
           depth: updatedDepth,
         });
@@ -738,9 +746,9 @@ export default class Team {
     }
 
     // Clear caches for this team and its list
-    await NocoCache.del(context, `${CacheScope.TEAM}:${teamId}`);
+    await NocoCache.del('root', `${CacheScope.TEAM}:${teamId}`);
     const baseCacheKey = context.workspace_id ?? context.org_id;
-    await NocoCache.del(context, `${CacheScope.TEAM}:${baseCacheKey}`);
+    await NocoCache.del('root', `${CacheScope.TEAM}:${baseCacheKey}`);
 
     // Clear dependent caches
     await this.clearDependentCaches(context, teamId, ncMeta);
@@ -827,7 +835,7 @@ export default class Team {
         // Exclude the team itself
         const ancestorIds = parts.slice(0, -1);
         for (const ancestorId of ancestorIds) {
-          await NocoCache.del(context, `${CacheScope.TEAM}:${ancestorId}`);
+          await NocoCache.del('root', `${CacheScope.TEAM}:${ancestorId}`);
         }
       }
     } catch (error) {

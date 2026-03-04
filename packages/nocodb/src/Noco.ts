@@ -220,6 +220,15 @@ export default class Noco {
         const remaining = req.path.slice(normalizedPath.length) || '/';
         res.redirect(remaining);
       });
+    } else {
+      // Default root deployment: respond 200 for health checks (HEAD/non-browser GET).
+      // Browser requests pass through to GuiMiddleware for SPA fallback.
+      server.get('/', (req, res, next) => {
+        if (req.headers.accept?.includes('text/html')) {
+          return next();
+        }
+        res.sendStatus(200);
+      });
     }
 
     await Integration.init();

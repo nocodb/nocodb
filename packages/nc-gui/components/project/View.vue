@@ -577,26 +577,6 @@ watch(
   }
 
   :deep(.ant-tabs-content) {
-    @apply text-nc-content-gray-subtle;
-    font-size: 13px;
-
-    // Apply 13px and muted text to all elements inside admin content
-    th,
-    td,
-    label,
-    span,
-    div,
-    p,
-    a,
-    input,
-    textarea,
-    select,
-    button,
-    .ant-input,
-    .nc-button {
-      font-size: 13px;
-    }
-
     > .ant-tabs-tabpane > div {
       @apply nc-content-max-w mx-auto;
     }

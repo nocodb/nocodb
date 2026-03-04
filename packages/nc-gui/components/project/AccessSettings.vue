@@ -666,7 +666,7 @@ onBeforeUnmount(() => {
               @click="isInviteModalVisible = true"
             >
               <div class="flex items-center gap-2">
-                <GeneralIcon icon="plus" class="h-4 w-4" />
+                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
                 {{ $t('activity.addMembers') }}
               </div>
             </NcButton>

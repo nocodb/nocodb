@@ -14,15 +14,27 @@ const { isSharedBase } = storeToRefs(useBase())
 
 const baseRole = inject(ProjectRoleInj)!
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, appInfo } = useGlobal()
 
 const { isUIAllowed, baseRoles, loadRoles } = useRoles()
 
-const { isWsAuditEnabled, showUpgradeToUseTableAndFieldPermissions, showUpgradeToUseSync, isEEFeatureBlocked } = useEeConfig()
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const {
+  isWsAuditEnabled,
+  showUpgradeToUseTableAndFieldPermissions,
+  showUpgradeToUseSync,
+  showUpgradeToUseSnapshots,
+  isEEFeatureBlocked,
+} = useEeConfig()
 
 const navigateToBaseSettings = (page: string) => {
   if (page === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) return
   if (page === 'syncs' && showUpgradeToUseSync()) return
+  if (page === 'snapshots' && isEEFeatureBlocked.value) {
+    showUpgradeToUseSnapshots()
+    return
+  }
 
   const baseId = resolvedProject.value?.id
   if (!baseId) return
@@ -36,6 +48,10 @@ const activeBaseSettingsTab = computed(() => {
   if (activeSidebarTab.value !== 'settings') return ''
   const page = route.value.params.page as string
   return page ? baseSettingsSlugToTab[page] || '' : ''
+})
+
+watchEffect(() => {
+  console.log("'activeBaseSettingsTab'", activeBaseSettingsTab.value)
 })
 
 // Use injected base role for immediate permission checks; load full roles in background
@@ -112,6 +128,22 @@ onMounted(() => {
       {{ $t('title.audits') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
+      v-if="
+        isEeUI &&
+        appInfo?.ee &&
+        isUIAllowed('workflowCreateOrEdit', { roles: effectiveRoles }) &&
+        isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
+        !isMobileMode
+      "
+      v-e="['c:settings:base:workflows']"
+      icon="ncAutomation"
+      data-testid="base-workflows"
+      :active="activeBaseSettingsTab === 'workflows'"
+      @click="navigateToBaseSettings('workflows')"
+    >
+      {{ $t('objects.workflows') }}
+    </NcSidebarMenuItem>
+    <NcSidebarMenuItem
       v-if="isUIAllowed('manageMCP', { roles: effectiveRoles }) && !isMobileMode"
       v-e="['c:settings:base:mcp']"
       icon="mcp"
@@ -135,6 +167,10 @@ onMounted(() => {
       @click="navigateToBaseSettings('snapshots')"
     >
       {{ $t('labels.manageSnapshots') }}
+
+      <template #extraRight>
+        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" />
+      </template>
     </NcSidebarMenuItem>
 
     <NcSidebarMenuItem

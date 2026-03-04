@@ -4,7 +4,8 @@ import { PlanFeatureTypes, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId?: string
-  tab?: string
+  tab?: ProjectPageType
+  showOverviewTab?: boolean
   showEmptySkeleton?: boolean
 }>()
 

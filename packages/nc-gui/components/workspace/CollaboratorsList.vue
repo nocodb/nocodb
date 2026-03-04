@@ -490,21 +490,6 @@ watch(inviteDlg, (newVal) => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              size="small"
-              :type="isTeamsEnabled ? 'secondary' : 'primary'"
-              :disabled="isCollaboratorsLoading"
-              data-testid="nc-add-member-btn"
-              :text-color="isTeamsEnabled ? 'primary' : undefined"
-              @click="blockWorkspaceMembers ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                {{ $t('activity.addMembers') }}
-                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockWorkspaceMembers" remove-click />
-              </div>
-            </NcButton>
-
-            <NcButton
               v-if="isTeamsEnabled && !isAdminPanel"
               v-e="['c:workspace:team-add']"
               size="small"
@@ -524,6 +509,20 @@ watch(inviteDlg, (newVal) => {
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncBuilding" />
                 {{ $t('labels.addTeams') }}
+              </div>
+            </NcButton>
+
+            <NcButton
+              size="small"
+              type="primary"
+              :disabled="isCollaboratorsLoading"
+              data-testid="nc-add-member-btn"
+              @click="blockWorkspaceMembers ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                {{ $t('activity.addMembers') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockWorkspaceMembers" remove-click />
               </div>
             </NcButton>
           </div>

@@ -15,6 +15,10 @@ const route = router.currentRoute
 
 const { navigateToProject, isMobileMode } = useGlobal()
 
+const { t } = useI18n()
+
+const { $e } = useNuxtApp()
+
 const workspaceStore = useWorkspace()
 
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
@@ -51,7 +55,14 @@ useProvideChatwoot()
 const { isModalVisible: isChatVisible } = useChatWoot()
 
 const toggleChatSupport = () => {
+  $e('c:nocodb:chat-support')
+
   if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
+    message.info({
+      title: t('msg.info.supportChatUnavailable'),
+      content: t('msg.info.supportChatUnavailableSubtitle'),
+    })
+
     return
   }
   const toggleText = (isChatVisible.value ? 'hide' : 'show') as any

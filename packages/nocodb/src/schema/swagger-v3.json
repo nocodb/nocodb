@@ -11751,10 +11751,6 @@
             "type": ["number", "null"],
             "description": "Display order of the dashboard."
           },
-          "meta": {
-            "type": "object",
-            "description": "Metadata for the dashboard."
-          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -12287,10 +12283,6 @@
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
           },
-          "meta": {
-            "type": "object",
-            "description": "Metadata for the widget."
-          },
           "order": {
             "type": ["number", "null"],
             "description": "Display order of the widget."
@@ -12354,10 +12346,6 @@
           "description": {
             "type": ["string", "null"],
             "description": "Description of the dashboard."
-          },
-          "options": {
-            "type": "object",
-            "description": "Additional options for the dashboard."
           }
         }
       },
@@ -12376,10 +12364,6 @@
           "order": {
             "type": "number",
             "description": "Display order of the dashboard."
-          },
-          "options": {
-            "type": "object",
-            "description": "Additional options for the dashboard."
           }
         }
       },
@@ -12415,10 +12399,6 @@
               { "$ref": "#/components/schemas/WidgetOptionsTable" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
-          },
-          "meta": {
-            "type": "object",
-            "description": "Additional metadata for the widget."
           },
           "position": {
             "type": "object",
@@ -12466,10 +12446,6 @@
               { "$ref": "#/components/schemas/WidgetOptionsTable" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
-          },
-          "meta": {
-            "type": "object",
-            "description": "Additional metadata for the widget."
           },
           "order": {
             "type": "number",

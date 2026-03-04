@@ -256,14 +256,12 @@ const dashboardBuilder = builderGenerator<
     'base_id',
     'fk_workspace_id',
     'order',
-    'meta',
     'created_at',
     'updated_at',
     'created_by',
   ],
   mappings: {
     fk_workspace_id: 'workspace_id',
-    meta: 'options',
   },
 });
 
@@ -278,14 +276,12 @@ const dashboardListItemBuilder = builderGenerator<
     'base_id',
     'fk_workspace_id',
     'order',
-    'meta',
     'created_at',
     'updated_at',
     'created_by',
   ],
   mappings: {
     fk_workspace_id: 'workspace_id',
-    meta: 'options',
   },
 });
 
@@ -297,7 +293,6 @@ const widgetBuilder = builderGenerator<Widget, WidgetV3Type>({
     'fk_dashboard_id',
     'type',
     'config',
-    'meta',
     'order',
     'position',
     'fk_model_id',
@@ -500,13 +495,10 @@ export class DashboardsV3Service {
       context,
     );
 
-    const { options, ...rest } = body;
-
     const dashboard = await this.dashboardsService.dashboardCreate(
       context,
       {
-        ...rest,
-        ...(options !== undefined && { meta: options }),
+        ...body,
         base_id: baseId,
       },
       req,
@@ -530,15 +522,10 @@ export class DashboardsV3Service {
       context,
     );
 
-    const { options: updateOptions, ...updateRest } = body;
-
     const dashboard = await this.dashboardsService.dashboardUpdate(
       context,
       dashboardId,
-      {
-        ...updateRest,
-        ...(updateOptions !== undefined && { meta: updateOptions }),
-      },
+      body,
       req,
     );
 

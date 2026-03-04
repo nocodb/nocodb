@@ -5,11 +5,9 @@ export type DashboardV3ListItemType = {
   base_id: string;
   workspace_id: string;
   order: number | null;
-  options: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   created_by: string;
-
 };
 
 export type DashboardV3ListResponseType = {
@@ -23,7 +21,6 @@ export type WidgetV3Type = {
   dashboard_id: string;
   type: string;
   options: Record<string, unknown>;
-  meta: Record<string, unknown>;
   order: number | null;
   position: { x: number; y: number; w: number; h: number } | null;
   table_id: string | null;
@@ -50,14 +47,12 @@ export type DashboardV3DataResponseType = {
 export type DashboardV3CreateRequestType = {
   title: string;
   description?: string | null;
-  options?: Record<string, unknown>;
 };
 
 export type DashboardV3UpdateRequestType = {
   title?: string;
   description?: string | null;
   order?: number;
-  options?: Record<string, unknown>;
 };
 
 // --- Widget request types ---
@@ -67,7 +62,6 @@ export type WidgetV3CreateRequestType = {
   description?: string | null;
   type: string;
   options?: Record<string, unknown>;
-  meta?: Record<string, unknown>;
   position?: { x: number; y: number; w: number; h: number };
   table_id?: string;
   view_id?: string;
@@ -77,7 +71,6 @@ export type WidgetV3UpdateRequestType = {
   title?: string;
   description?: string | null;
   options?: Record<string, unknown>;
-  meta?: Record<string, unknown>;
   order?: number;
   position?: { x: number; y: number; w: number; h: number };
   table_id?: string;

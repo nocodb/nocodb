@@ -67,7 +67,10 @@ export class DocumentsPostOperations
         return await this.documentsService.reorder(
           context,
           payload.docId,
-          { order: payload.order, ...(('parent_id' in payload) && { parent_id: payload.parent_id }) },
+          {
+            order: payload.order,
+            ...('parent_id' in payload && { parent_id: payload.parent_id }),
+          },
           req,
         );
       }

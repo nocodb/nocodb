@@ -189,10 +189,7 @@ defineExpose({ focusSearch })
 
 <template>
   <!-- @keydown.stop prevents keystrokes from reaching ProseMirror while the bar has focus -->
-  <div
-    class="nc-doc-search-bar"
-    @keydown.stop
-  >
+  <div class="nc-doc-search-bar" @keydown.stop>
     <!-- Row 1: Search input + toggles + navigation -->
     <div class="nc-doc-search-row">
       <div class="nc-doc-search-input-wrapper">
@@ -234,24 +231,14 @@ defineExpose({ focusSearch })
 
       <!-- Previous match -->
       <NcTooltip :title="t('labels.previous')" placement="bottom">
-        <button
-          class="nc-doc-search-nav-btn"
-          :disabled="matchCount === 0"
-          data-testid="nc-doc-search-prev"
-          @click="goPrev"
-        >
+        <button class="nc-doc-search-nav-btn" :disabled="matchCount === 0" data-testid="nc-doc-search-prev" @click="goPrev">
           <GeneralIcon icon="chevronUpSmall" />
         </button>
       </NcTooltip>
 
       <!-- Next match -->
       <NcTooltip :title="t('labels.next')" placement="bottom">
-        <button
-          class="nc-doc-search-nav-btn"
-          :disabled="matchCount === 0"
-          data-testid="nc-doc-search-next"
-          @click="goNext"
-        >
+        <button class="nc-doc-search-nav-btn" :disabled="matchCount === 0" data-testid="nc-doc-search-next" @click="goNext">
           <GeneralIcon icon="chevronDownSmall" />
         </button>
       </NcTooltip>
@@ -287,11 +274,7 @@ defineExpose({ focusSearch })
 
       <!-- Close search bar -->
       <NcTooltip :title="t('general.close')" placement="bottom">
-        <button
-          class="nc-doc-search-nav-btn"
-          data-testid="nc-doc-search-close"
-          @click="close"
-        >
+        <button class="nc-doc-search-nav-btn" data-testid="nc-doc-search-close" @click="close">
           <GeneralIcon icon="close" />
         </button>
       </NcTooltip>
@@ -310,23 +293,11 @@ defineExpose({ focusSearch })
         />
       </div>
 
-      <NcButton
-        size="xs"
-        type="text"
-        :disabled="matchCount === 0"
-        data-testid="nc-doc-replace-btn"
-        @click="replaceCurrent"
-      >
+      <NcButton size="xs" type="text" :disabled="matchCount === 0" data-testid="nc-doc-replace-btn" @click="replaceCurrent">
         {{ t('general.replace') }}
       </NcButton>
 
-      <NcButton
-        size="xs"
-        type="text"
-        :disabled="matchCount === 0"
-        data-testid="nc-doc-replace-all-btn"
-        @click="replaceAll"
-      >
+      <NcButton size="xs" type="text" :disabled="matchCount === 0" data-testid="nc-doc-replace-all-btn" @click="replaceAll">
         {{ t('labels.replaceAll') }}
       </NcButton>
     </div>

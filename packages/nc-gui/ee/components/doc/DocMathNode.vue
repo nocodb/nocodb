@@ -1,24 +1,23 @@
 <script lang="ts">
 // Module-level singleton — shared across all DocMathNode instances.
 // KaTeX CSS is injected once as a side-effect import (Vite deduplicates it).
-type KatexRender = (tex: string, opts: Record<string, any>) => string
-let _katexPromise: Promise<KatexRender> | null = null
-
-function loadKatex(): Promise<KatexRender> {
-  if (!_katexPromise) {
-    _katexPromise = Promise.all([
-      import('katex'),
-      import('katex/dist/katex.min.css'),
-    ]).then(([mod]) => mod.default.renderToString)
-  }
-  return _katexPromise
-}
 </script>
 
 <script setup lang="ts">
 import { NodeViewWrapper } from '@tiptap/vue-3'
 import type { Node } from '@tiptap/pm/model'
 import type { Editor } from '@tiptap/core'
+type KatexRender = (tex: string, opts: Record<string, any>) => string
+const props = defineProps<Props>()
+
+let _katexPromise: Promise<KatexRender> | null = null
+
+function loadKatex(): Promise<KatexRender> {
+  if (!_katexPromise) {
+    _katexPromise = Promise.all([import('katex'), import('katex/dist/katex.min.css')]).then(([mod]) => mod.default.renderToString)
+  }
+  return _katexPromise
+}
 
 interface Props {
   node: Node
@@ -28,8 +27,6 @@ interface Props {
   deleteNode: () => void
   getPos: () => number
 }
-
-const props = defineProps<Props>()
 
 const isEditing = ref(false)
 const editValue = ref('')
@@ -155,12 +152,7 @@ watch(
     </span>
 
     <!-- Empty placeholder -->
-    <span
-      v-else
-      class="nc-inline-math-display nc-math-placeholder"
-      contenteditable="false"
-      @click="startEditing"
-    >
+    <span v-else class="nc-inline-math-display nc-math-placeholder" contenteditable="false" @click="startEditing">
       equation
     </span>
   </NodeViewWrapper>

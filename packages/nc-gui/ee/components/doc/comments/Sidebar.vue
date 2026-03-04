@@ -22,7 +22,10 @@ const { docId } = toRefs(props)
 const { user } = useGlobal()
 
 // Provide MetaInj stub so SmartsheetExpandedFormRichComment's @mentions lookup doesn't crash
-provide(MetaInj, computed(() => ({ base_id: props.baseId } as TableType)))
+provide(
+  MetaInj,
+  computed(() => ({ base_id: props.baseId } as TableType)),
+)
 
 const { isUIAllowed } = useRoles()
 
@@ -69,9 +72,7 @@ const filterUnresolvedOnly = ref(false)
 const filterMyCommentsOnly = ref(false)
 const filterInlineOnly = ref(false)
 
-const hasActiveFilters = computed(
-  () => filterUnresolvedOnly.value || filterMyCommentsOnly.value || filterInlineOnly.value,
-)
+const hasActiveFilters = computed(() => filterUnresolvedOnly.value || filterMyCommentsOnly.value || filterInlineOnly.value)
 
 const filteredThreadedComments = computed(() => {
   let threads = threadedComments.value
@@ -79,9 +80,7 @@ const filteredThreadedComments = computed(() => {
     threads = threads.filter((t) => !t.resolved_by)
   }
   if (filterMyCommentsOnly.value) {
-    threads = threads.filter(
-      (t) => t.created_by === user.value?.id || t.replies?.some((r) => r.created_by === user.value?.id),
-    )
+    threads = threads.filter((t) => t.created_by === user.value?.id || t.replies?.some((r) => r.created_by === user.value?.id))
   }
   if (filterInlineOnly.value) {
     threads = threads.filter((t) => !!t.anchor_id)
@@ -178,7 +177,9 @@ watch(
       oldEd.off('update', editorUpdateHandler)
     }
     if (!ed) return
-    editorUpdateHandler = () => { editorDocVersion.value++ }
+    editorUpdateHandler = () => {
+      editorDocVersion.value++
+    }
     ed.on('update', editorUpdateHandler)
     editorDocVersion.value++
   },
@@ -186,9 +187,12 @@ watch(
 )
 
 // Also recompute when comments load (marks may already exist in editor)
-watch(() => comments.value?.length, () => {
-  editorDocVersion.value++
-})
+watch(
+  () => comments.value?.length,
+  () => {
+    editorDocVersion.value++
+  },
+)
 
 // Build a map of anchor_id → referenced text by walking ProseMirror doc marks.
 // Used to show the quoted text snippet on inline (anchor-based) comments.
@@ -354,7 +358,8 @@ function scrollEditorToAnchor(anchorId: string) {
   // Center the mark in the scroll container
   const markRect = markEl.getBoundingClientRect()
   const containerRect = scrollContainer.getBoundingClientRect()
-  const scrollTarget = scrollContainer.scrollTop + (markRect.top - containerRect.top) - (containerRect.height - markEl.offsetHeight) / 2
+  const scrollTarget =
+    scrollContainer.scrollTop + (markRect.top - containerRect.top) - (containerRect.height - markEl.offsetHeight) / 2
   scrollContainer.scrollTo({ top: Math.max(0, scrollTarget), behavior: 'smooth' })
 
   // Flash-highlight to draw attention
@@ -394,7 +399,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
 </script>
 
 <template>
-  <div class="nc-doc-comments-sidebar flex flex-col border-l-1 border-nc-border-gray-medium bg-nc-bg-default overflow-hidden" data-testid="nc-doc-comments-sidebar">
+  <div
+    class="nc-doc-comments-sidebar flex flex-col border-l-1 border-nc-border-gray-medium bg-nc-bg-default overflow-hidden"
+    data-testid="nc-doc-comments-sidebar"
+  >
     <!-- Header -->
     <div class="flex items-center justify-between px-3 py-2.5 border-b-1 border-nc-border-gray-medium flex-none">
       <div class="flex items-center gap-2">
@@ -415,10 +423,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
           >
             <div class="relative">
               <GeneralIcon icon="ncFilter" />
-              <div
-                v-if="hasActiveFilters"
-                class="bg-primary w-1.25 h-1.25 rounded-full absolute -top-0.5 -right-0.5"
-              />
+              <div v-if="hasActiveFilters" class="bg-primary w-1.25 h-1.25 rounded-full absolute -top-0.5 -right-0.5" />
             </div>
           </NcButton>
           <template #overlay>
@@ -470,7 +475,10 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
     </div>
 
     <!-- Filtered empty state — comments exist but all hidden by filters -->
-    <div v-else-if="filteredThreadedComments.length === 0" class="flex flex-col my-1 text-center justify-center flex-1 overflow-hidden">
+    <div
+      v-else-if="filteredThreadedComments.length === 0"
+      class="flex flex-col my-1 text-center justify-center flex-1 overflow-hidden"
+    >
       <div class="text-3xl text-nc-content-gray-subtle">
         <GeneralIcon icon="ncFilter" />
       </div>
@@ -493,7 +501,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
         >
           <!-- Parent: edit mode -->
           <div v-if="threadItem.id === editCommentValue?.id && hasEditPermission" class="p-2">
-            <div class="nc-doc-comment-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-comment-box-focused">
+            <div
+              class="nc-doc-comment-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-comment-box-focused"
+            >
               <SmartsheetExpandedFormRichComment
                 v-model:value="editValue"
                 autofocus
@@ -547,7 +557,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
 
             <!-- Reply: edit mode -->
             <div v-if="replyItem.id === editCommentValue?.id && hasEditPermission" class="p-2">
-              <div class="nc-doc-reply-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-reply-box-focused">
+              <div
+                class="nc-doc-reply-box rounded-lg border-1 border-nc-border-gray-medium overflow-hidden nc-doc-reply-box-focused"
+              >
                 <SmartsheetExpandedFormRichComment
                   v-model:value="editValue"
                   autofocus
@@ -561,13 +573,25 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
                 />
                 <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
                   <NcTooltip>
-                    <NcButton size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="cancelEdit">
+                    <NcButton
+                      size="xsmall"
+                      type="text"
+                      class="!text-nc-content-gray-muted"
+                      @mousedown.prevent
+                      @click="cancelEdit"
+                    >
                       <GeneralIcon icon="close" class="text-xs" />
                     </NcButton>
                     <template #title>{{ $t('general.cancel') }}</template>
                   </NcTooltip>
                   <NcTooltip>
-                    <NcButton size="xsmall" type="primary" :disabled="!editValue.trim()" @mousedown.prevent @click="onEditComment">
+                    <NcButton
+                      size="xsmall"
+                      type="primary"
+                      :disabled="!editValue.trim()"
+                      @mousedown.prevent
+                      @click="onEditComment"
+                    >
                       <GeneralIcon icon="ncSendAlt" />
                     </NcButton>
                     <template #title>{{ $t('general.save') }}</template>
@@ -618,13 +642,27 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
                 />
                 <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
                   <NcTooltip>
-                    <NcButton v-e="['c:doc:comment:reply:cancel']" size="xsmall" type="text" class="!text-nc-content-gray-muted" @mousedown.prevent @click="onCancelReply">
+                    <NcButton
+                      v-e="['c:doc:comment:reply:cancel']"
+                      size="xsmall"
+                      type="text"
+                      class="!text-nc-content-gray-muted"
+                      @mousedown.prevent
+                      @click="onCancelReply"
+                    >
                       <GeneralIcon icon="close" class="text-xs" />
                     </NcButton>
                     <template #title>{{ $t('general.cancel') }}</template>
                   </NcTooltip>
                   <NcTooltip>
-                    <NcButton v-e="['c:doc:comment:reply:save']" size="xsmall" type="primary" :disabled="!replyText.trim()" @mousedown.prevent @click="onSaveReply">
+                    <NcButton
+                      v-e="['c:doc:comment:reply:save']"
+                      size="xsmall"
+                      type="primary"
+                      :disabled="!replyText.trim()"
+                      @mousedown.prevent
+                      @click="onSaveReply"
+                    >
                       <GeneralIcon icon="ncSendAlt" />
                     </NcButton>
                     <template #title>{{ $t('general.reply') }}</template>
@@ -670,7 +708,15 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
         />
         <div class="flex items-center justify-end gap-1 px-1.5 pb-1.5">
           <NcTooltip>
-            <NcButton v-e="['c:doc:comment:save']" size="xsmall" type="primary" :disabled="!comment.trim()" @mousedown.prevent @click="onSaveComment" data-testid="nc-doc-comment-save-btn">
+            <NcButton
+              v-e="['c:doc:comment:save']"
+              size="xsmall"
+              type="primary"
+              :disabled="!comment.trim()"
+              data-testid="nc-doc-comment-save-btn"
+              @mousedown.prevent
+              @click="onSaveComment"
+            >
               <GeneralIcon icon="ncSendAlt" />
             </NcButton>
             <template #title>{{ $t('general.comment') }}</template>

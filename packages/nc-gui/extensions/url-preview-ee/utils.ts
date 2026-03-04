@@ -68,7 +68,8 @@ const matchDrive = (url: string) => {
 urlMatchers.push(['Drive', matchDrive])
 
 // Google Maps — place, coordinates, search, and short links
-const GOOGLE_MAPS_PLACE_COORDS_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/place\/[^\/]+\/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+)z/
+const GOOGLE_MAPS_PLACE_COORDS_RE =
+  /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/place\/[^\/]+\/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+)z/
 const GOOGLE_MAPS_PLACE_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/place\/([^\/\?@]+)/
 const GOOGLE_MAPS_AT_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+)z/
 const GOOGLE_MAPS_SEARCH_PATH_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/search\/([^\/\?]+)/

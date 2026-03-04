@@ -35,15 +35,15 @@ import type { Editor } from '@tiptap/core'
 
 interface SearchMatch {
   from: number // Absolute document position (inclusive)
-  to: number   // Absolute document position (exclusive)
+  to: number // Absolute document position (exclusive)
 }
 
 interface SearchState {
   query: string
   caseSensitive: boolean
   regex: boolean
-  matches: SearchMatch[]  // All matches in document order
-  activeIndex: number     // Index into `matches` for the current/highlighted match
+  matches: SearchMatch[] // All matches in document order
+  activeIndex: number // Index into `matches` for the current/highlighted match
 }
 
 // ── Plugin key (exported for DocSearchReplace.vue to read state) ─────────
@@ -187,7 +187,7 @@ function createSearchPlugin() {
           return { ...DEFAULT_STATE }
         }
 
-        let state = { ...prevState }
+        const state = { ...prevState }
         let needRescan = false
 
         // Query changed → rescan from scratch, reset active index

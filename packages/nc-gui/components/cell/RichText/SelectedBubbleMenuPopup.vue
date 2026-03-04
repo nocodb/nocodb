@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import { RichTextBubbleMenuOptions } from '#imports'
+import type { RichTextBubbleMenuOptions } from '#imports'
 
 interface Props {
   editor: Editor

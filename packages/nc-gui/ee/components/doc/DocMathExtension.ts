@@ -7,7 +7,7 @@
  * Stored in ProseMirror doc as:
  *   { type: 'inlineMath', attrs: { latex: 'E=mc^2' } }
  */
-import { Node, InputRule, mergeAttributes, nodePasteRule } from '@tiptap/core'
+import { InputRule, Node, mergeAttributes, nodePasteRule } from '@tiptap/core'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import { NodeSelection } from '@tiptap/pm/state'
 import DocMathNode from './DocMathNode.vue'

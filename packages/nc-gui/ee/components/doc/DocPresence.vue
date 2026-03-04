@@ -119,11 +119,11 @@ const getLocationLabel = (collab: (typeof activeCollaborators.value)[number]) =>
         {{ presenceEnabled ? 'Hide my presence' : 'Show my presence' }}
       </template>
       <NcButton
+        v-e="['c:doc:presence:visibility:toggle']"
         size="xsmall"
         type="text"
         class="!w-6 !h-6 !p-0"
         :aria-label="presenceEnabled ? 'Hide my presence' : 'Show my presence'"
-        v-e="['c:doc:presence:visibility:toggle']"
         @click="presenceEnabled = !presenceEnabled"
       >
         <GeneralIcon :icon="presenceEnabled ? 'ncEye' : 'ncEyeOff'" class="w-3.5 h-3.5 text-nc-content-gray-subtle" />

@@ -280,7 +280,6 @@ export const orderedMetaTables = [
   MetaTable.COLUMN_VALIDATIONS,
   MetaTable.COLUMNS,
 
-
   // Model-related
   MetaTable.RECORD_TEMPLATES,
   MetaTable.DEPENDENCY_TRACKER,

@@ -4,17 +4,17 @@ import { NotificationsService as NotificationsServiceCE } from 'src/services/not
 import { TeamUserRoles } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
 import type {
+  BaseTeamInviteEvent,
+  DocumentCommentCreateEvent,
+  DocumentUserMentionEvent,
   ProjectInviteEvent,
   RowCommentEvent,
   RowMentionEvent,
   TeamMemberAddEvent,
   WelcomeEvent,
   WorkspaceRequestUpgradeEvent,
-  WorkspaceUserInviteEvent,
-  BaseTeamInviteEvent,
   WorkspaceTeamInviteEvent,
-  DocumentCommentCreateEvent,
-  DocumentUserMentionEvent,
+  WorkspaceUserInviteEvent,
 } from '~/services/app-hooks/interfaces';
 import type { NcRequest } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -313,10 +313,7 @@ export class NotificationsService extends NotificationsServiceCE {
           const doc = await Document.get(req.context, docId);
           if (!doc) break;
 
-          const base = (await Base.get(
-            req.context,
-            doc.base_id,
-          )) as BaseType;
+          const base = (await Base.get(req.context, doc.base_id)) as BaseType;
 
           const baseUsers = await BaseUser.getUsersList(req.context, {
             base_id: base.id,
@@ -368,8 +365,7 @@ export class NotificationsService extends NotificationsServiceCE {
         break;
       }
       case AppEvents.DOCUMENT_USER_MENTION: {
-        const { doc, user, mentions, req } =
-          data as DocumentUserMentionEvent;
+        const { doc, user, mentions, req } = data as DocumentUserMentionEvent;
 
         try {
           const base = (await Base.get(req.context, doc.base_id)) as BaseType;

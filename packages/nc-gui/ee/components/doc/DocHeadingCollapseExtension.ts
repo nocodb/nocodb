@@ -186,9 +186,8 @@ const collapsePlugin = new Plugin<CollapsePluginState>({
         collapsed = remapCollapsed(collapsed, tr)
       }
 
-      const activeHeadingPos = (tr.docChanged || tr.selectionSet)
-        ? findActiveHeadingPos(newState.doc, newState.selection)
-        : pluginState.activeHeadingPos
+      const activeHeadingPos =
+        tr.docChanged || tr.selectionSet ? findActiveHeadingPos(newState.doc, newState.selection) : pluginState.activeHeadingPos
 
       if (collapsed === pluginState.collapsed && activeHeadingPos === pluginState.activeHeadingPos) {
         return pluginState
@@ -254,12 +253,7 @@ const collapsePlugin = new Plugin<CollapsePluginState>({
 
           if (from >= headingEnd && from < sectionEnd) {
             const headingContentEnd = headingPos + node.nodeSize - 1
-            tr.setSelection(
-              view.state.selection.constructor.near(
-                tr.doc.resolve(headingContentEnd),
-                -1,
-              ),
-            )
+            tr.setSelection(view.state.selection.constructor.near(tr.doc.resolve(headingContentEnd), -1))
           }
         }
 

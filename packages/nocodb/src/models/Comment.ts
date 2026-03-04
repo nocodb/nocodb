@@ -302,10 +302,7 @@ export default class Comment implements CommentType {
   /**
    * Count comments per document (for sidebar badge).
    */
-  public static async docCommentsCount(
-    context: NcContext,
-    docIds: string[],
-  ) {
+  public static async docCommentsCount(context: NcContext, docIds: string[]) {
     const results = await Noco.ncMeta
       .knex(MetaTable.COMMENTS)
       .count('id', { as: 'count' })

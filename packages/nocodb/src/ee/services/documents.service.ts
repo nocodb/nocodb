@@ -183,9 +183,9 @@ export class DocumentsService {
       const oldMentions = new Set(
         extractMentionsFromProseMirror(existing.content),
       );
-      const newMentions = extractMentionsFromProseMirror(payload.content).filter(
-        (id) => !oldMentions.has(id),
-      );
+      const newMentions = extractMentionsFromProseMirror(
+        payload.content,
+      ).filter((id) => !oldMentions.has(id));
       if (newMentions.length) {
         this.appHooksService.emit(AppEvents.DOCUMENT_USER_MENTION, {
           context,

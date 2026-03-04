@@ -1,5 +1,13 @@
 import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView, isVirtualCol } from 'nocodb-sdk'
-import type { DashboardPayload, DocumentCommentPayload, DocumentPayload, MetaPayload, ScriptPayload, WidgetPayload, WorkflowPayload } from 'nocodb-sdk'
+import type {
+  DashboardPayload,
+  DocumentCommentPayload,
+  DocumentPayload,
+  MetaPayload,
+  ScriptPayload,
+  WidgetPayload,
+  WorkflowPayload,
+} from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 export const useRealtime = createSharedComposable(() => {
@@ -614,9 +622,7 @@ export const useRealtime = createSharedComposable(() => {
         if (deletedDoc.parent_id) {
           const parent = baseDocs.find((d) => d.id === deletedDoc.parent_id)
           if (parent) {
-            const remainingSiblings = baseDocs.some(
-              (d) => d.parent_id === deletedDoc.parent_id && !idsToRemove.has(d.id!),
-            )
+            const remainingSiblings = baseDocs.some((d) => d.parent_id === deletedDoc.parent_id && !idsToRemove.has(d.id!))
             parent.has_children = remainingSiblings
           }
         }

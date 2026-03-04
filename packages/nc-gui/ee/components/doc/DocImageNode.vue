@@ -128,9 +128,12 @@ const onCaptionKeydown = (e: KeyboardEvent) => {
   }
 }
 
-watch(() => props.node.attrs.caption, (val) => {
-  captionText.value = val || ''
-})
+watch(
+  () => props.node.attrs.caption,
+  (val) => {
+    captionText.value = val || ''
+  },
+)
 
 // --- Download ---
 const downloadImage = async () => {

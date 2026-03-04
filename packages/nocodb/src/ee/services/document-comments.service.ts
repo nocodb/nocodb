@@ -62,10 +62,7 @@ export class DocumentCommentsService {
     return res;
   }
 
-  async commentList(
-    context: NcContext,
-    param: { fk_doc_id: string },
-  ) {
+  async commentList(context: NcContext, param: { fk_doc_id: string }) {
     if (!param.fk_doc_id) {
       NcError.badRequest('fk_doc_id is required');
     }
@@ -164,10 +161,7 @@ export class DocumentCommentsService {
     return res;
   }
 
-  async commentCount(
-    context: NcContext,
-    param: { docIds: string[] },
-  ) {
+  async commentCount(context: NcContext, param: { docIds: string[] }) {
     if (!param.docIds?.length) {
       return [];
     }
@@ -236,10 +230,7 @@ export class DocumentCommentsService {
     return result;
   }
 
-  async reactionList(
-    context: NcContext,
-    param: { commentIds: string[] },
-  ) {
+  async reactionList(context: NcContext, param: { commentIds: string[] }) {
     if (!param.commentIds?.length) return {};
 
     const map = await CommentReaction.listByComments(context, param.commentIds);

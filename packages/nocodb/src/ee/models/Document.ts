@@ -1,5 +1,5 @@
-import type { DocumentType, NcContext } from 'nocodb-sdk';
 import DocumentCE from 'src/models/Document';
+import type { DocumentType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {

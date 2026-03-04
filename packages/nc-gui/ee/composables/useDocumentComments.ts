@@ -1,4 +1,4 @@
-import type { CommentType, CommentReactionsType } from 'nocodb-sdk'
+import type { CommentReactionsType, CommentType } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
 export const REACTION_EMOJIS = ['👍', '👎', '😄', '😢', '🎉', '🚀'] as const
@@ -94,29 +94,26 @@ export const useDocumentComments = createSharedComposable(() => {
   })
 
   const parsedHtmlComments = computed(() => {
-    return comments.value.reduce(
-      (acc, comment) => {
-        if (comment.id) {
-          let commentValue = unref(comment.comment) ?? ''
-          if (comment.updated_at !== comment.created_at && comment.updated_at) {
-            const str = timeAgo(comment.updated_at).replace(' ', '_')
-            commentValue += ` [(edited)](a~~~###~~~Edited_${str}) `
-          }
-          acc[comment.id] =
-            NcMarkdownParser.parse(
-              commentValue,
-              {
-                enableMention: !!isEeUI,
-                users: unref(baseUsers.value),
-                currentUser: unref(user.value),
-              },
-              true,
-            ) ?? ''
+    return comments.value.reduce((acc, comment) => {
+      if (comment.id) {
+        let commentValue = unref(comment.comment) ?? ''
+        if (comment.updated_at !== comment.created_at && comment.updated_at) {
+          const str = timeAgo(comment.updated_at).replace(' ', '_')
+          commentValue += ` [(edited)](a~~~###~~~Edited_${str}) `
         }
-        return acc
-      },
-      {} as Record<string, string>,
-    )
+        acc[comment.id] =
+          NcMarkdownParser.parse(
+            commentValue,
+            {
+              enableMention: !!isEeUI,
+              users: unref(baseUsers.value),
+              currentUser: unref(user.value),
+            },
+            true,
+          ) ?? ''
+      }
+      return acc
+    }, {} as Record<string, string>)
   })
 
   const enrichComment = (comment: CommentType): DocCommentExtended => {
@@ -264,7 +261,7 @@ export const useDocumentComments = createSharedComposable(() => {
             resolved_display_name: original.resolved_by ? undefined : user.value?.display_name,
             resolved_display_name_short: original.resolved_by
               ? undefined
-              : (user.value?.display_name ?? extractNameFromEmail(user.value?.email)),
+              : user.value?.display_name ?? extractNameFromEmail(user.value?.email),
             resolved_by_meta: original.resolved_by ? undefined : user.value?.meta,
           }
         }
@@ -299,17 +296,13 @@ export const useDocumentComments = createSharedComposable(() => {
       comments.value = [...comments.value, enrichComment(commentData)]
     } else if (action === 'update') {
       if (!commentData.id) return
-      comments.value = comments.value.map((c) =>
-        c.id === commentData.id ? enrichComment(commentData) : c,
-      )
+      comments.value = comments.value.map((c) => (c.id === commentData.id ? enrichComment(commentData) : c))
     } else if (action === 'delete') {
       if (!commentData.id) return
       comments.value = comments.value.filter((c) => c.id !== commentData.id)
     } else if (action === 'resolve') {
       if (!commentData.id) return
-      comments.value = comments.value.map((c) =>
-        c.id === commentData.id ? enrichComment(commentData) : c,
-      )
+      comments.value = comments.value.map((c) => (c.id === commentData.id ? enrichComment(commentData) : c))
     }
   }
 

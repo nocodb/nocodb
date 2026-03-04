@@ -202,11 +202,7 @@ const isFixedHeight = computed(() => !!(liveHeight.value || customHeight.value))
       </button>
 
       <!-- Bottom height-resize handle -->
-      <div
-        v-if="editor?.isEditable"
-        class="nc-embed-resize-handle"
-        @mousedown="onResizeHeightStart"
-      >
+      <div v-if="editor?.isEditable" class="nc-embed-resize-handle" @mousedown="onResizeHeightStart">
         <div class="nc-embed-resize-bar" />
       </div>
     </div>

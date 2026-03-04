@@ -83,8 +83,20 @@ const isTitleVisible = ref(true)
 
 const editor = shallowRef<Editor | undefined>()
 
-const { doc, title, lastSavedTitle, isSaving, isLoaded, isStale, staleUpdatedBy, debouncedSave, loadAndSetDoc, reloadDocument, flushOnUnmount, activeDocument } =
-  useDocumentAutoSave({ editor, activeProjectId, isEditable })
+const {
+  doc,
+  title,
+  lastSavedTitle,
+  isSaving,
+  isLoaded,
+  isStale,
+  staleUpdatedBy,
+  debouncedSave,
+  loadAndSetDoc,
+  reloadDocument,
+  flushOnUnmount,
+  activeDocument,
+} = useDocumentAutoSave({ editor, activeProjectId, isEditable })
 
 const {
   pasteLinkMenu,
@@ -165,7 +177,11 @@ const onEditorClick = (e: MouseEvent) => {
 }
 
 // Resolve pending anchor once comments are loaded
-const { comments: docComments, scrollToComment: scrollToDocComment, isCommentsLoading: isDocCommentsLoading } = useDocumentComments()
+const {
+  comments: docComments,
+  scrollToComment: scrollToDocComment,
+  isCommentsLoading: isDocCommentsLoading,
+} = useDocumentComments()
 
 // Comment count: prefer live list length once comments have been loaded (panel opened),
 // otherwise fall back to the count returned by the document API.
@@ -960,449 +976,455 @@ onBeforeUnmount(() => {
   <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden">
     <!-- Editor area — relative wrapper for floating menu + scroll content -->
     <div class="relative flex-1 min-w-0 h-full overflow-hidden">
-    <!-- Sticky title bar — appears when document title scrolls out of view -->
-    <Transition name="nc-doc-sticky-slide">
-      <div v-if="!isTitleVisible && isLoaded" class="nc-doc-sticky-header">
-        <span class="nc-doc-sticky-title truncate">{{ title || $t('general.untitled') }}</span>
-      </div>
-    </Transition>
-
-    <!-- Page actions — floats at top-right, outside scroll flow -->
-    <div class="nc-doc-page-menu">
-      <DocPresence />
-      <NcTooltip :title="$t('general.comments')" placement="bottom">
-        <NcButton
-          size="small"
-          type="text"
-          :class="{ '!bg-nc-bg-brand-soft': isCommentsPanelOpen }"
-          @click="toggleCommentsPanel()"
-        >
-          <GeneralIcon icon="ncMessageCircle" :class="isCommentsPanelOpen ? 'text-nc-content-brand' : ''" />
-        </NcButton>
-      </NcTooltip>
-      <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
-        <NcButton size="small" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
-          <GeneralIcon icon="threeDotHorizontal" />
-        </NcButton>
-        <template #overlay>
-          <NcMenu variant="small" class="!min-w-52">
-            <NcMenuItemCopyId
-              v-if="doc"
-              :id="doc.id"
-              v-e="['c:document:copy-id']"
-              tooltip="Click to copy Document ID"
-              :label="`DOCUMENT ID: ${doc.id}`"
-              data-testid="nc-doc-page-copy-id"
-            />
-            <div :key="activeFont" class="nc-doc-font-selector" data-testid="nc-doc-font-selector" @click.stop>
-              <button
-                v-for="f in (['default', 'serif', 'mono'] as const)"
-                :key="f"
-                v-e="['c:doc:font:change', { font: f }]"
-                class="nc-doc-font-option"
-                :class="{ 'nc-doc-font-option-active': activeFont === f }"
-                @click="setDocFont(f)"
-              >
-                <span class="nc-doc-font-preview" :class="`nc-doc-font-preview-${f}`">Ag</span>
-                <span class="nc-doc-font-label">{{ $t(`labels.font${f.charAt(0).toUpperCase() + f.slice(1)}`) }}</span>
-              </button>
-            </div>
-            <NcDivider />
-            <NcMenuItem v-e="['c:doc:copy-link']" @click="onCopyPageLink">
-              <GeneralIcon class="text-nc-content-gray-subtle" :icon="isLinkCopied ? 'check' : 'link'" />
-              {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
-            </NcMenuItem>
-            <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
-              <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
-              {{ $t('general.duplicate') }}
-            </NcMenuItem>
-            <NcMenuItem v-e="['c:doc:comments:toggle']" @click="toggleCommentsPanel(); isPageMenuOpen = false">
-              <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMessageCircle" />
-              {{ $t('general.comments') }}
-            </NcMenuItem>
-            <NcMenuItem v-e="['c:doc:full-width:toggle']" @click="toggleFullWidth">
-              <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMoveHorizontal" />
-              {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
-            </NcMenuItem>
-            <NcDivider />
-            <NcSubMenu key="download" variant="small">
-              <template #title>
-                <GeneralIcon class="text-nc-content-gray-subtle" icon="download" />
-                {{ $t('general.downloadAs') }}
-              </template>
-              <NcMenuItem @click="onDownloadMarkdown">
-                {{ $t('general.markdown') }}
-              </NcMenuItem>
-              <NcMenuItem @click="onDownloadHTML">
-                {{ $t('general.html') }}
-              </NcMenuItem>
-              <NcMenuItem @click="onDownloadPDF">
-                {{ $t('general.pdf') }}
-              </NcMenuItem>
-            </NcSubMenu>
-            <NcDivider />
-            <NcMenuItem v-if="isUIAllowed('documentDelete')" class="!text-red-500 !hover:bg-red-50" @click="onDeletePage">
-              <GeneralIcon icon="delete" />
-              {{ $t('general.delete') }}
-            </NcMenuItem>
-            <NcDivider />
-            <div class="nc-doc-menu-info">
-              <span>{{ $t('labels.wordCount', { count: wordCount }) }}</span>
-              <span v-if="updatedByLabel">{{ $t('labels.lastEditedBy', { user: updatedByLabel }) }}</span>
-              <span v-if="updatedAgo">{{ updatedAgo }}</span>
-            </div>
-          </NcMenu>
-        </template>
-      </NcDropdown>
-    </div>
-
-    <!-- Search & Replace bar — floats at top-right above editor content -->
-    <DocSearchReplace
-      v-if="isSearchOpen && editor"
-      ref="searchBarRef"
-      class="nc-doc-search-below-sticky"
-      :editor="editor"
-      @close="isSearchOpen = false"
-    />
-
-    <!-- Scroll area for editor content -->
-    <div ref="scrollContainerRef" class="flex flex-col h-full overflow-y-auto" :class="`nc-doc-font-${activeFont}`">
-    <div v-if="isStale" class="nc-doc-stale-banner w-full mx-auto px-6 sm:px-10 lg:px-16 pt-4" :class="{ 'max-w-[900px]': !isFullWidth }">
-      <NcAlert type="info" :closable="false" align="center" class="!bg-nc-bg-brand">
-        <template #message>
-          <div class="flex items-center justify-between gap-2">
-            <span class="text-sm">
-              {{
-                staleUserLabel
-                  ? $t('msg.documentUpdatedByUser', { user: staleUserLabel })
-                  : $t('msg.documentUpdated')
-              }}
-            </span>
-            <NcButton size="small" type="secondary" @click="reloadDocument">
-              {{ $t('general.reload') }}
-            </NcButton>
-          </div>
-        </template>
-      </NcAlert>
-    </div>
-
-    <!-- Cover image banner -->
-    <div v-if="coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
-      <img :src="coverImageSrc" class="nc-doc-cover-image" />
-      <div v-if="isUIAllowed('documentUpdate')" class="nc-doc-cover-controls">
-        <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-change" @click="onAddOrChangeCover">
-          {{ $t('labels.changeCover') }}
-        </NcButton>
-        <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-remove" @click="onRemoveCover">
-          {{ $t('labels.removeCover') }}
-        </NcButton>
-      </div>
-    </div>
-
-    <div class="nc-doc-editor-inner w-full mx-auto px-6 sm:px-10 lg:px-16" :class="{ 'max-w-[900px]': !isFullWidth }">
-      <!-- Title -->
-      <div class="nc-doc-editor-header pt-12 pb-4">
-        <div
-          v-if="!coverImageSrc && isUIAllowed('documentUpdate')"
-          class="nc-doc-add-cover"
-          data-testid="nc-doc-add-cover"
-          @click="onAddOrChangeCover"
-        >
-          <GeneralIcon icon="ncImage" class="!w-3.5 !h-3.5" />
-          {{ $t('labels.addCover') }}
+      <!-- Sticky title bar — appears when document title scrolls out of view -->
+      <Transition name="nc-doc-sticky-slide">
+        <div v-if="!isTitleVisible && isLoaded" class="nc-doc-sticky-header">
+          <span class="nc-doc-sticky-title truncate">{{ title || $t('general.untitled') }}</span>
         </div>
-        <div class="nc-doc-title-row flex items-center">
-          <div class="nc-doc-editor-icon-wrapper flex-shrink-0" data-testid="nc-doc-opened-page-icon-picker">
-            <LazyGeneralEmojiPicker
-              :key="doc?.meta?.icon"
-              :clearable="true"
-              :emoji="doc?.meta?.icon"
-              :readonly="!isUIAllowed('documentUpdate')"
-              class="nc-doc-editor-icon"
-              size="large"
-              @emoji-selected="updateDocumentIcon($event)"
-            >
-              <template #default>
-                <GeneralIcon class="nc-doc-editor-icon-default text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
-              </template>
-            </LazyGeneralEmojiPicker>
-          </div>
-          <input
-            ref="titleInput"
-            v-model="title"
-            :readonly="!isEditable"
-            class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
-            data-testid="docs-page-title"
-            :placeholder="$t('general.untitled')"
-            @blur="onTitleBlur"
-            @keydown="onTitleKeydown"
-          />
-        </div>
-        <div class="nc-doc-subtitle flex items-center mt-2 text-sm">
-          <span v-if="updatedByLabel && updatedAgo">
-            {{ $t('general.updatedBy') }} {{ updatedByLabel }} {{ updatedAgo }}
-          </span>
-          <span v-if="isSaving">{{ $t('general.saving') }}...</span>
-          <span v-if="hasTaskItems" class="nc-doc-task-progress">
-            <svg width="14" height="14" viewBox="0 0 14 14">
-              <circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--nc-border-gray-medium)" stroke-width="2" />
-              <circle
-                cx="7"
-                cy="7"
-                r="5.5"
-                fill="none"
-                stroke="var(--nc-fill-primary)"
-                stroke-width="2"
-                stroke-linecap="round"
-                :stroke-dasharray="2 * Math.PI * 5.5"
-                :stroke-dashoffset="2 * Math.PI * 5.5 * (1 - (taskTotal ? taskCompleted / taskTotal : 0))"
-                transform="rotate(-90 7 7)"
-              />
-            </svg>
-            {{ $t('labels.taskProgress', { completed: taskCompleted, total: taskTotal }) }}
-          </span>
-          <span
-            v-e="['c:doc:comments:subtitle-toggle']"
-            class="nc-doc-subtitle-comments"
+      </Transition>
+
+      <!-- Page actions — floats at top-right, outside scroll flow -->
+      <div class="nc-doc-page-menu">
+        <DocPresence />
+        <NcTooltip :title="$t('general.comments')" placement="bottom">
+          <NcButton
+            size="small"
+            type="text"
+            :class="{ '!bg-nc-bg-brand-soft': isCommentsPanelOpen }"
             @click="toggleCommentsPanel()"
           >
-            <GeneralIcon icon="ncMessageCircle" class="!w-3.5 !h-3.5" />
-            <template v-if="commentCount">
-              {{ commentCount }} {{ commentCount === 1 ? $t('general.comment') : $t('general.comments') }}
-            </template>
-            <template v-else>
-              {{ $t('general.comment') }}
-            </template>
-          </span>
-        </div>
-      </div>
-
-      <!-- Editor — always mounted so ProseMirror view stays attached -->
-      <div class="nc-doc-editor-body pb-48 relative" data-testid="docs-page-content" @click="onEditorBodyClick">
-        <template v-if="editor">
-          <!-- Bubble menu: appears on text selection (including inside table cells) -->
-          <BubbleMenu
-            :editor="editor"
-            :update-delay="250"
-            :tippy-options="{ duration: 100, maxWidth: 'none' }"
-            :should-show="showRichTextMenu"
-          >
-            <!-- Link URL input mode — replaces the formatting toolbar -->
-            <div
-              v-if="isLinkInputMode"
-              class="nc-doc-link-input flex items-center gap-1 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg py-1 px-1"
-            >
-              <input
-                ref="linkInputRef"
-                v-model="linkInputUrl"
-                class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
-                placeholder="Enter a link"
-                @keydown.enter.prevent="applyLink"
-                @keydown.escape.prevent="cancelLinkInput"
+            <GeneralIcon icon="ncMessageCircle" :class="isCommentsPanelOpen ? 'text-nc-content-brand' : ''" />
+          </NcButton>
+        </NcTooltip>
+        <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
+          <NcButton size="small" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
+            <GeneralIcon icon="threeDotHorizontal" />
+          </NcButton>
+          <template #overlay>
+            <NcMenu variant="small" class="!min-w-52">
+              <NcMenuItemCopyId
+                v-if="doc"
+                :id="doc.id"
+                v-e="['c:document:copy-id']"
+                tooltip="Click to copy Document ID"
+                :label="`DOCUMENT ID: ${doc.id}`"
+                data-testid="nc-doc-page-copy-id"
               />
-              <NcTooltip placement="top">
-                <template #title>{{ $t('general.open') }}</template>
-                <NcButton
-                  size="small"
-                  type="text"
-                  :disabled="!linkInputUrl.trim()"
-                  @click="
-                    () => {
-                      if (linkInputUrl.trim())
-                        window.open(
-                          linkInputUrl.trim().startsWith('http') ? linkInputUrl.trim() : `https://${linkInputUrl.trim()}`,
-                          '_blank',
-                          'noopener,noreferrer',
-                        )
-                    }
-                  "
+              <div :key="activeFont" class="nc-doc-font-selector" data-testid="nc-doc-font-selector" @click.stop>
+                <button
+                  v-for="f in (['default', 'serif', 'mono'] as const)"
+                  :key="f"
+                  v-e="['c:doc:font:change', { font: f }]"
+                  class="nc-doc-font-option"
+                  :class="{ 'nc-doc-font-option-active': activeFont === f }"
+                  @click="setDocFont(f)"
                 >
-                  <GeneralIcon icon="externalLink" />
-                </NcButton>
-              </NcTooltip>
-              <NcTooltip placement="top">
-                <template #title>{{ $t('general.remove') }}</template>
-                <NcButton
-                  size="small"
-                  type="text"
-                  class="!hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
-                  @click="
-                    () => {
-                      linkInputUrl = ''
-                      applyLink()
-                    }
-                  "
-                >
-                  <GeneralIcon icon="close" />
-                </NcButton>
-              </NcTooltip>
-              <NcTooltip placement="top">
-                <template #title>{{ $t('general.apply') }}</template>
-                <NcButton size="small" type="text" @click="applyLink">
-                  <GeneralIcon icon="returnKey" class="!w-3.5 !h-3.5" />
-                </NcButton>
-              </NcTooltip>
-            </div>
-
-            <!-- Default formatting toolbar + custom link button -->
-            <div v-else class="nc-doc-bubble-toolbar flex items-center">
-              <CellRichTextSelectedBubbleMenu
-                :editor="editor"
-                embed-mode
-                hide-mention
-                :hidden-options="[
-                  RichTextBubbleMenuOptions.link,
-                  RichTextBubbleMenuOptions.image,
-                  RichTextBubbleMenuOptions.table,
-                ]"
-              />
-              <NcTooltip placement="top">
-                <template #title>{{ $t('general.link') }}</template>
-                <NcButton
-                  size="small"
-                  type="text"
-                  :class="{ 'is-active': editor.isActive('link') }"
-                  :disabled="editor.isActive('codeBlock')"
-                  @click="openLinkInput"
-                >
-                  <GeneralIcon icon="link2" />
-                </NcButton>
-              </NcTooltip>
-              <NcTooltip placement="top">
-                <template #title>{{ $t('tooltip.addComment') }}</template>
-                <NcButton
-                  v-if="isEditable"
-                  size="small"
-                  type="text"
-                  data-testid="nc-doc-comment-add-btn"
-                  @mousedown.prevent
-                  @click="onAddInlineComment"
-                >
-                  <GeneralIcon icon="comment" />
-                </NcButton>
-              </NcTooltip>
-            </div>
-          </BubbleMenu>
-
-          <!-- Link edit bubble menu: appears when cursor is on existing link text -->
-          <BubbleMenu
-            v-if="isEditable"
-            :editor="editor"
-            :tippy-options="{ duration: 100, maxWidth: 450 }"
-            :should-show="checkLinkMark"
-          >
-            <div
-              v-if="isLinkEditVisible"
-              class="nc-doc-link-input flex items-center gap-1 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg py-1 px-1"
-            >
-              <input
-                ref="linkEditInputRef"
-                v-model="linkEditUrl"
-                class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
-                placeholder="Enter a link"
-                @change="onLinkEditChange"
-                @keydown.enter.prevent="
-                  ;($event.target as HTMLInputElement)?.blur()
-                  editor?.commands.focus()
+                  <span class="nc-doc-font-preview" :class="`nc-doc-font-preview-${f}`">Ag</span>
+                  <span class="nc-doc-font-label">{{ $t(`labels.font${f.charAt(0).toUpperCase() + f.slice(1)}`) }}</span>
+                </button>
+              </div>
+              <NcDivider />
+              <NcMenuItem v-e="['c:doc:copy-link']" @click="onCopyPageLink">
+                <GeneralIcon class="text-nc-content-gray-subtle" :icon="isLinkCopied ? 'check' : 'link'" />
+                {{ isLinkCopied ? $t('general.copied') : $t('activity.copyLink') }}
+              </NcMenuItem>
+              <NcMenuItem v-if="isUIAllowed('documentCreate')" @click="onDuplicatePage">
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
+                {{ $t('general.duplicate') }}
+              </NcMenuItem>
+              <NcMenuItem
+                v-e="['c:doc:comments:toggle']"
+                @click="
+                  toggleCommentsPanel()
+                  isPageMenuOpen = false
                 "
-                @keydown.escape.prevent="editor?.commands.focus()"
-              />
-              <NcTooltip placement="top">
-                <template #title>{{ $t('general.open') }}</template>
-                <NcButton size="small" type="text" :disabled="!linkEditUrl.trim()" @click="openLinkExternal">
-                  <GeneralIcon icon="externalLink" />
-                </NcButton>
-              </NcTooltip>
-              <NcTooltip placement="top">
-                <template #title>{{ $t('general.remove') }}</template>
-                <NcButton
-                  size="small"
-                  type="text"
-                  class="!hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
-                  @click="deleteLinkEdit"
-                >
-                  <GeneralIcon icon="delete" />
-                </NcButton>
-              </NcTooltip>
-            </div>
-          </BubbleMenu>
-
-          <EditorContent :editor="editor" @click="onEditorClick" />
-
-          <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->
-          <DocTableMenu v-if="isEditable" :editor="editor" />
-        </template>
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMessageCircle" />
+                {{ $t('general.comments') }}
+              </NcMenuItem>
+              <NcMenuItem v-e="['c:doc:full-width:toggle']" @click="toggleFullWidth">
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMoveHorizontal" />
+                {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
+              </NcMenuItem>
+              <NcDivider />
+              <NcSubMenu key="download" variant="small">
+                <template #title>
+                  <GeneralIcon class="text-nc-content-gray-subtle" icon="download" />
+                  {{ $t('general.downloadAs') }}
+                </template>
+                <NcMenuItem @click="onDownloadMarkdown">
+                  {{ $t('general.markdown') }}
+                </NcMenuItem>
+                <NcMenuItem @click="onDownloadHTML">
+                  {{ $t('general.html') }}
+                </NcMenuItem>
+                <NcMenuItem @click="onDownloadPDF">
+                  {{ $t('general.pdf') }}
+                </NcMenuItem>
+              </NcSubMenu>
+              <NcDivider />
+              <NcMenuItem v-if="isUIAllowed('documentDelete')" class="!text-red-500 !hover:bg-red-50" @click="onDeletePage">
+                <GeneralIcon icon="delete" />
+                {{ $t('general.delete') }}
+              </NcMenuItem>
+              <NcDivider />
+              <div class="nc-doc-menu-info">
+                <span>{{ $t('labels.wordCount', { count: wordCount }) }}</span>
+                <span v-if="updatedByLabel">{{ $t('labels.lastEditedBy', { user: updatedByLabel }) }}</span>
+                <span v-if="updatedAgo">{{ updatedAgo }}</span>
+              </div>
+            </NcMenu>
+          </template>
+        </NcDropdown>
       </div>
-    </div>
 
-    <!-- Delete page modal — matches table delete styling -->
-    <GeneralDeleteModal v-model:visible="isDeleteModalOpen" entity-name="Page" :on-delete="confirmDeletePage">
-      <template #entity-preview>
-        <div class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle">
-          <GeneralIcon icon="ncFileText" class="text-nc-content-gray-subtle" />
-          <div
-            class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
-            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-          >
-            {{ title || $t('general.untitled') }}
+      <!-- Search & Replace bar — floats at top-right above editor content -->
+      <DocSearchReplace
+        v-if="isSearchOpen && editor"
+        ref="searchBarRef"
+        class="nc-doc-search-below-sticky"
+        :editor="editor"
+        @close="isSearchOpen = false"
+      />
+
+      <!-- Scroll area for editor content -->
+      <div ref="scrollContainerRef" class="flex flex-col h-full overflow-y-auto" :class="`nc-doc-font-${activeFont}`">
+        <div
+          v-if="isStale"
+          class="nc-doc-stale-banner w-full mx-auto px-6 sm:px-10 lg:px-16 pt-4"
+          :class="{ 'max-w-[900px]': !isFullWidth }"
+        >
+          <NcAlert type="info" :closable="false" align="center" class="!bg-nc-bg-brand">
+            <template #message>
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-sm">
+                  {{ staleUserLabel ? $t('msg.documentUpdatedByUser', { user: staleUserLabel }) : $t('msg.documentUpdated') }}
+                </span>
+                <NcButton size="small" type="secondary" @click="reloadDocument">
+                  {{ $t('general.reload') }}
+                </NcButton>
+              </div>
+            </template>
+          </NcAlert>
+        </div>
+
+        <!-- Cover image banner -->
+        <div v-if="coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
+          <img :src="coverImageSrc" class="nc-doc-cover-image" />
+          <div v-if="isUIAllowed('documentUpdate')" class="nc-doc-cover-controls">
+            <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-change" @click="onAddOrChangeCover">
+              {{ $t('labels.changeCover') }}
+            </NcButton>
+            <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-remove" @click="onRemoveCover">
+              {{ $t('labels.removeCover') }}
+            </NcButton>
           </div>
         </div>
-      </template>
-    </GeneralDeleteModal>
 
-    <!-- Paste link embed popup — teleported to body to avoid style interference -->
-    <Teleport to="body">
-      <div
-        v-if="pasteLinkMenu.visible"
-        class="nc-paste-link-menu"
-        :style="{ top: `${pasteLinkMenu.top}px`, left: `${pasteLinkMenu.left}px` }"
-      >
-        <div class="nc-paste-link-item" :class="{ active: pasteLinkActiveIndex === 0 }" @click="keepAsLink">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="flex-shrink-0 text-nc-content-gray-subtle"
-          >
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-          </svg>
-          <span>{{ $t('general.keepAsLink') }}</span>
+        <div class="nc-doc-editor-inner w-full mx-auto px-6 sm:px-10 lg:px-16" :class="{ 'max-w-[900px]': !isFullWidth }">
+          <!-- Title -->
+          <div class="nc-doc-editor-header pt-12 pb-4">
+            <div
+              v-if="!coverImageSrc && isUIAllowed('documentUpdate')"
+              class="nc-doc-add-cover"
+              data-testid="nc-doc-add-cover"
+              @click="onAddOrChangeCover"
+            >
+              <GeneralIcon icon="ncImage" class="!w-3.5 !h-3.5" />
+              {{ $t('labels.addCover') }}
+            </div>
+            <div class="nc-doc-title-row flex items-center">
+              <div class="nc-doc-editor-icon-wrapper flex-shrink-0" data-testid="nc-doc-opened-page-icon-picker">
+                <LazyGeneralEmojiPicker
+                  :key="doc?.meta?.icon"
+                  :clearable="true"
+                  :emoji="doc?.meta?.icon"
+                  :readonly="!isUIAllowed('documentUpdate')"
+                  class="nc-doc-editor-icon"
+                  size="large"
+                  @emoji-selected="updateDocumentIcon($event)"
+                >
+                  <template #default>
+                    <GeneralIcon class="nc-doc-editor-icon-default text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
+                  </template>
+                </LazyGeneralEmojiPicker>
+              </div>
+              <input
+                ref="titleInput"
+                v-model="title"
+                :readonly="!isEditable"
+                class="nc-doc-title w-full text-3xl font-semibold outline-none bg-transparent nc-doc-title-input"
+                data-testid="docs-page-title"
+                :placeholder="$t('general.untitled')"
+                @blur="onTitleBlur"
+                @keydown="onTitleKeydown"
+              />
+            </div>
+            <div class="nc-doc-subtitle flex items-center mt-2 text-sm">
+              <span v-if="updatedByLabel && updatedAgo">
+                {{ $t('general.updatedBy') }} {{ updatedByLabel }} {{ updatedAgo }}
+              </span>
+              <span v-if="isSaving">{{ $t('general.saving') }}...</span>
+              <span v-if="hasTaskItems" class="nc-doc-task-progress">
+                <svg width="14" height="14" viewBox="0 0 14 14">
+                  <circle cx="7" cy="7" r="5.5" fill="none" stroke="var(--nc-border-gray-medium)" stroke-width="2" />
+                  <circle
+                    cx="7"
+                    cy="7"
+                    r="5.5"
+                    fill="none"
+                    stroke="var(--nc-fill-primary)"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    :stroke-dasharray="2 * Math.PI * 5.5"
+                    :stroke-dashoffset="2 * Math.PI * 5.5 * (1 - (taskTotal ? taskCompleted / taskTotal : 0))"
+                    transform="rotate(-90 7 7)"
+                  />
+                </svg>
+                {{ $t('labels.taskProgress', { completed: taskCompleted, total: taskTotal }) }}
+              </span>
+              <span v-e="['c:doc:comments:subtitle-toggle']" class="nc-doc-subtitle-comments" @click="toggleCommentsPanel()">
+                <GeneralIcon icon="ncMessageCircle" class="!w-3.5 !h-3.5" />
+                <template v-if="commentCount">
+                  {{ commentCount }} {{ commentCount === 1 ? $t('general.comment') : $t('general.comments') }}
+                </template>
+                <template v-else>
+                  {{ $t('general.comment') }}
+                </template>
+              </span>
+            </div>
+          </div>
+
+          <!-- Editor — always mounted so ProseMirror view stays attached -->
+          <div class="nc-doc-editor-body pb-48 relative" data-testid="docs-page-content" @click="onEditorBodyClick">
+            <template v-if="editor">
+              <!-- Bubble menu: appears on text selection (including inside table cells) -->
+              <BubbleMenu
+                :editor="editor"
+                :update-delay="250"
+                :tippy-options="{ duration: 100, maxWidth: 'none' }"
+                :should-show="showRichTextMenu"
+              >
+                <!-- Link URL input mode — replaces the formatting toolbar -->
+                <div
+                  v-if="isLinkInputMode"
+                  class="nc-doc-link-input flex items-center gap-1 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg py-1 px-1"
+                >
+                  <input
+                    ref="linkInputRef"
+                    v-model="linkInputUrl"
+                    class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
+                    placeholder="Enter a link"
+                    @keydown.enter.prevent="applyLink"
+                    @keydown.escape.prevent="cancelLinkInput"
+                  />
+                  <NcTooltip placement="top">
+                    <template #title>{{ $t('general.open') }}</template>
+                    <NcButton
+                      size="small"
+                      type="text"
+                      :disabled="!linkInputUrl.trim()"
+                      @click="
+                        () => {
+                          if (linkInputUrl.trim())
+                            window.open(
+                              linkInputUrl.trim().startsWith('http') ? linkInputUrl.trim() : `https://${linkInputUrl.trim()}`,
+                              '_blank',
+                              'noopener,noreferrer',
+                            )
+                        }
+                      "
+                    >
+                      <GeneralIcon icon="externalLink" />
+                    </NcButton>
+                  </NcTooltip>
+                  <NcTooltip placement="top">
+                    <template #title>{{ $t('general.remove') }}</template>
+                    <NcButton
+                      size="small"
+                      type="text"
+                      class="!hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
+                      @click="
+                        () => {
+                          linkInputUrl = ''
+                          applyLink()
+                        }
+                      "
+                    >
+                      <GeneralIcon icon="close" />
+                    </NcButton>
+                  </NcTooltip>
+                  <NcTooltip placement="top">
+                    <template #title>{{ $t('general.apply') }}</template>
+                    <NcButton size="small" type="text" @click="applyLink">
+                      <GeneralIcon icon="returnKey" class="!w-3.5 !h-3.5" />
+                    </NcButton>
+                  </NcTooltip>
+                </div>
+
+                <!-- Default formatting toolbar + custom link button -->
+                <div v-else class="nc-doc-bubble-toolbar flex items-center">
+                  <CellRichTextSelectedBubbleMenu
+                    :editor="editor"
+                    embed-mode
+                    hide-mention
+                    :hidden-options="[
+                      RichTextBubbleMenuOptions.link,
+                      RichTextBubbleMenuOptions.image,
+                      RichTextBubbleMenuOptions.table,
+                    ]"
+                  />
+                  <NcTooltip placement="top">
+                    <template #title>{{ $t('general.link') }}</template>
+                    <NcButton
+                      size="small"
+                      type="text"
+                      :class="{ 'is-active': editor.isActive('link') }"
+                      :disabled="editor.isActive('codeBlock')"
+                      @click="openLinkInput"
+                    >
+                      <GeneralIcon icon="link2" />
+                    </NcButton>
+                  </NcTooltip>
+                  <NcTooltip placement="top">
+                    <template #title>{{ $t('tooltip.addComment') }}</template>
+                    <NcButton
+                      v-if="isEditable"
+                      size="small"
+                      type="text"
+                      data-testid="nc-doc-comment-add-btn"
+                      @mousedown.prevent
+                      @click="onAddInlineComment"
+                    >
+                      <GeneralIcon icon="comment" />
+                    </NcButton>
+                  </NcTooltip>
+                </div>
+              </BubbleMenu>
+
+              <!-- Link edit bubble menu: appears when cursor is on existing link text -->
+              <BubbleMenu
+                v-if="isEditable"
+                :editor="editor"
+                :tippy-options="{ duration: 100, maxWidth: 450 }"
+                :should-show="checkLinkMark"
+              >
+                <div
+                  v-if="isLinkEditVisible"
+                  class="nc-doc-link-input flex items-center gap-1 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg py-1 px-1"
+                >
+                  <input
+                    ref="linkEditInputRef"
+                    v-model="linkEditUrl"
+                    class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
+                    placeholder="Enter a link"
+                    @change="onLinkEditChange"
+                    @keydown.enter.prevent="
+                      ;($event.target as HTMLInputElement)?.blur()
+                      editor?.commands.focus()
+                    "
+                    @keydown.escape.prevent="editor?.commands.focus()"
+                  />
+                  <NcTooltip placement="top">
+                    <template #title>{{ $t('general.open') }}</template>
+                    <NcButton size="small" type="text" :disabled="!linkEditUrl.trim()" @click="openLinkExternal">
+                      <GeneralIcon icon="externalLink" />
+                    </NcButton>
+                  </NcTooltip>
+                  <NcTooltip placement="top">
+                    <template #title>{{ $t('general.remove') }}</template>
+                    <NcButton
+                      size="small"
+                      type="text"
+                      class="!hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
+                      @click="deleteLinkEdit"
+                    >
+                      <GeneralIcon icon="delete" />
+                    </NcButton>
+                  </NcTooltip>
+                </div>
+              </BubbleMenu>
+
+              <EditorContent :editor="editor" @click="onEditorClick" />
+
+              <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->
+              <DocTableMenu v-if="isEditable" :editor="editor" />
+            </template>
+          </div>
         </div>
-        <div class="nc-paste-link-item" :class="{ active: pasteLinkActiveIndex === 1 }" @click="convertToEmbed">
-          <span
-            v-if="embedPlatformIcons[pasteLinkMenu.platform]"
-            class="nc-paste-link-platform-icon flex-shrink-0"
-            v-html="embedPlatformIcons[pasteLinkMenu.platform]"
-          />
-          <svg
-            v-else
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="flex-shrink-0 text-nc-content-gray-subtle"
+
+        <!-- Delete page modal — matches table delete styling -->
+        <GeneralDeleteModal v-model:visible="isDeleteModalOpen" entity-name="Page" :on-delete="confirmDeletePage">
+          <template #entity-preview>
+            <div
+              class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
+            >
+              <GeneralIcon icon="ncFileText" class="text-nc-content-gray-subtle" />
+              <div
+                class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+                :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+              >
+                {{ title || $t('general.untitled') }}
+              </div>
+            </div>
+          </template>
+        </GeneralDeleteModal>
+
+        <!-- Paste link embed popup — teleported to body to avoid style interference -->
+        <Teleport to="body">
+          <div
+            v-if="pasteLinkMenu.visible"
+            class="nc-paste-link-menu"
+            :style="{ top: `${pasteLinkMenu.top}px`, left: `${pasteLinkMenu.left}px` }"
           >
-            <rect x="2" y="3" width="20" height="14" rx="2" />
-            <polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none" />
-          </svg>
-          <span>{{ $t('general.embed') }}</span>
-        </div>
+            <div class="nc-paste-link-item" :class="{ active: pasteLinkActiveIndex === 0 }" @click="keepAsLink">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="flex-shrink-0 text-nc-content-gray-subtle"
+              >
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+              <span>{{ $t('general.keepAsLink') }}</span>
+            </div>
+            <div class="nc-paste-link-item" :class="{ active: pasteLinkActiveIndex === 1 }" @click="convertToEmbed">
+              <span
+                v-if="embedPlatformIcons[pasteLinkMenu.platform]"
+                class="nc-paste-link-platform-icon flex-shrink-0"
+                v-html="embedPlatformIcons[pasteLinkMenu.platform]"
+              />
+              <svg
+                v-else
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                width="16"
+                height="16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="flex-shrink-0 text-nc-content-gray-subtle"
+              >
+                <rect x="2" y="3" width="20" height="14" rx="2" />
+                <polygon points="10 9 15 12 10 15 10 9" fill="currentColor" stroke="none" />
+              </svg>
+              <span>{{ $t('general.embed') }}</span>
+            </div>
+          </div>
+        </Teleport>
       </div>
-    </Teleport>
-    </div><!-- /scroll area -->
-    </div><!-- /relative wrapper -->
+      <!-- /scroll area -->
+    </div>
+    <!-- /relative wrapper -->
 
     <!-- Comments sidebar — slides in from the right alongside editor -->
     <DocCommentsSidebar
@@ -1690,16 +1712,31 @@ onBeforeUnmount(() => {
     mask-repeat: no-repeat;
     cursor: pointer;
   }
-  h1.nc-heading-collapsed::before { top: calc(1.625em * 1.3 - 16px - 2px); }
-  h2.nc-heading-collapsed::before { top: calc(1.3em * 1.35 - 16px - 2px); }
-  h3.nc-heading-collapsed::before { top: calc(1.125em * 1.4 - 16px - 2px); }
+  h1.nc-heading-collapsed::before {
+    top: calc(1.625em * 1.3 - 16px - 2px);
+  }
+  h2.nc-heading-collapsed::before {
+    top: calc(1.3em * 1.35 - 16px - 2px);
+  }
+  h3.nc-heading-collapsed::before {
+    top: calc(1.125em * 1.4 - 16px - 2px);
+  }
 
   // --- Expanded state (editor focused): text labels + hover chevrons ---
   &.ProseMirror-focused {
     // Text labels — hidden for the heading with the cursor and for collapsed headings
-    h1:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before { content: 'H1'; top: calc(1.625em * 1.3 - 12px - 2px); }
-    h2:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before { content: 'H2'; top: calc(1.3em * 1.35 - 12px - 2px); }
-    h3:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before { content: 'H3'; top: calc(1.125em * 1.4 - 12px - 2px); }
+    h1:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before {
+      content: 'H1';
+      top: calc(1.625em * 1.3 - 12px - 2px);
+    }
+    h2:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before {
+      content: 'H2';
+      top: calc(1.3em * 1.35 - 12px - 2px);
+    }
+    h3:not(.nc-heading-collapsed):not(.nc-heading-has-cursor)::before {
+      content: 'H3';
+      top: calc(1.125em * 1.4 - 12px - 2px);
+    }
 
     // Hover: replace label with down chevron (▼)
     h1:not(.nc-heading-collapsed):hover::before,
@@ -1716,9 +1753,15 @@ onBeforeUnmount(() => {
       mask-repeat: no-repeat;
       cursor: pointer;
     }
-    h1:not(.nc-heading-collapsed):hover::before { top: calc(1.625em * 1.3 - 16px - 2px); }
-    h2:not(.nc-heading-collapsed):hover::before { top: calc(1.3em * 1.35 - 16px - 2px); }
-    h3:not(.nc-heading-collapsed):hover::before { top: calc(1.125em * 1.4 - 16px - 2px); }
+    h1:not(.nc-heading-collapsed):hover::before {
+      top: calc(1.625em * 1.3 - 16px - 2px);
+    }
+    h2:not(.nc-heading-collapsed):hover::before {
+      top: calc(1.3em * 1.35 - 16px - 2px);
+    }
+    h3:not(.nc-heading-collapsed):hover::before {
+      top: calc(1.125em * 1.4 - 16px - 2px);
+    }
 
     // Blockquotes: no collapse support
     blockquote h1::before,
@@ -2355,7 +2398,6 @@ onBeforeUnmount(() => {
     animation: comment-mark-flash 1.5s ease-out forwards;
   }
 }
-
 
 @keyframes comment-mark-flash {
   0% {

@@ -33,21 +33,14 @@ const navigateTo = () => {
     <div class="!mb-2">
       <div>
         <span class="font-semibold">{{ displayName }} </span>
-        <template v-if="isCommentMention">
-          has mentioned you in a comment on
-        </template>
-        <template v-else>
-          has mentioned you in
-        </template>
+        <template v-if="isCommentMention"> has mentioned you in a comment on </template>
+        <template v-else> has mentioned you in </template>
         <span class="font-semibold">{{ body.doc?.title }}</span>
         in
         <span class="font-semibold">{{ body.base?.title }}</span>
       </div>
     </div>
-    <span
-      v-if="body.workspace?.title"
-      class="capitalize text-nc-content-gray-subtle2 bg-nc-bg-gray-medium rounded-lg !mt-2 px-2"
-    >
+    <span v-if="body.workspace?.title" class="capitalize text-nc-content-gray-subtle2 bg-nc-bg-gray-medium rounded-lg !mt-2 px-2">
       {{ body.workspace.title }}
     </span>
   </NotificationItemWrapper>

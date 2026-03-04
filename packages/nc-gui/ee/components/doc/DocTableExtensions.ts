@@ -19,7 +19,7 @@ import { mergeAttributes } from '@tiptap/core'
 import Table from '@tiptap/extension-table'
 import TableCell from '@tiptap/extension-table-cell'
 import TableHeader from '@tiptap/extension-table-header'
-import { addRowBefore, addRowAfter, selectedRect, TableMap } from '@tiptap/pm/tables'
+import { TableMap, addRowAfter, addRowBefore, selectedRect } from '@tiptap/pm/tables'
 import { TextSelection, type Transaction } from '@tiptap/pm/state'
 
 /**

@@ -746,6 +746,11 @@ const onDuplicatePage = async () => {
   })
 }
 
+const onToggleCommentsPanel = () => {
+  toggleCommentsPanel()
+  isPageMenuOpen.value = false
+}
+
 const isDeleteModalOpen = ref(false)
 
 const onDeletePage = () => {
@@ -1032,13 +1037,7 @@ onBeforeUnmount(() => {
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="duplicate" />
                 {{ $t('general.duplicate') }}
               </NcMenuItem>
-              <NcMenuItem
-                v-e="['c:doc:comments:toggle']"
-                @click="
-                  toggleCommentsPanel();
-                  isPageMenuOpen = false;
-                "
-              >
+              <NcMenuItem v-e="['c:doc:comments:toggle']" @click="onToggleCommentsPanel">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMessageCircle" />
                 {{ $t('general.comments') }}
               </NcMenuItem>

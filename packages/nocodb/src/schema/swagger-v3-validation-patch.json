@@ -122,7 +122,7 @@
           },
           "type": {
             "type": "string",
-            "enum": ["chart", "metric", "gauge", "text", "table", "iframe"],
+            "enum": ["chart", "metric", "text", "iframe"],
             "description": "Type of the widget."
           },
           "options": {
@@ -162,8 +162,7 @@
                     { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
                     { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
                     { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
-                    { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
-                    { "$ref": "#/components/schemas/WidgetOptionsScatterChart" }
+                    { "$ref": "#/components/schemas/WidgetOptionsLineChart" }
                   ]
                 }
               }
@@ -174,16 +173,8 @@
             "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsMetric" } } }
           },
           {
-            "if": { "properties": { "type": { "const": "gauge" } }, "required": ["type"] },
-            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsGauge" } } }
-          },
-          {
             "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] },
             "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsText" } } }
-          },
-          {
-            "if": { "properties": { "type": { "const": "table" } }, "required": ["type"] },
-            "then": { "properties": { "options": { "$ref": "#/components/schemas/WidgetOptionsTable" } } }
           },
           {
             "if": { "properties": { "type": { "const": "iframe" } }, "required": ["type"] },

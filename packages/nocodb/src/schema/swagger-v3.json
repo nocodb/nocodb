@@ -11838,46 +11838,6 @@
           }
         }
       },
-      "WidgetOptionsGauge": {
-        "type": "object",
-        "description": "Options for a gauge widget (type=gauge).",
-        "properties": {
-          "data_source": {
-            "type": "string",
-            "enum": ["table", "view", "filter"],
-            "description": "Data source type."
-          },
-          "metric": {
-            "type": "object",
-            "description": "Metric aggregation configuration.",
-            "properties": {
-              "type": { "type": "string", "enum": ["count", "summary"] },
-              "field_id": { "type": "string" },
-              "aggregation": { "type": "string", "enum": ["sum", "avg", "count", "min", "max"] }
-            },
-            "required": ["type", "aggregation"]
-          },
-          "appearance": {
-            "type": "object",
-            "properties": {
-              "ranges": {
-                "type": "array",
-                "description": "Gauge range segments.",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "color": { "type": "string", "description": "Hex color." },
-                    "min": { "type": "number" },
-                    "max": { "type": "number" },
-                    "label": { "type": "string" }
-                  }
-                }
-              },
-              "show_value": { "type": "boolean", "description": "Whether to show the numeric value." }
-            }
-          }
-        }
-      },
       "WidgetOptionsPieChart": {
         "type": "object",
         "description": "Options for a pie chart widget (type=chart, chart_type=pie).",
@@ -12127,67 +12087,6 @@
         },
         "required": ["chart_type"]
       },
-      "WidgetOptionsScatterChart": {
-        "type": "object",
-        "description": "Options for a scatter chart widget (type=chart, chart_type=scatter). Same data structure as bar chart.",
-        "properties": {
-          "chart_type": { "type": "string", "enum": ["scatter"] },
-          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
-          "data": {
-            "type": "object",
-            "properties": {
-              "x_axis": {
-                "type": "object",
-                "properties": {
-                  "field_id": { "type": "string" },
-                  "sort_by": { "type": "string", "enum": ["xAxis", "yAxis"] },
-                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
-                  "include_empty_records": { "type": "boolean" },
-                  "include_others": { "type": "boolean" },
-                  "category_limit": { "type": "number" }
-                },
-                "required": ["field_id"]
-              },
-              "y_axis": {
-                "type": "object",
-                "properties": {
-                  "start_at_zero": { "type": "boolean" },
-                  "fields": {
-                    "type": "array",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "field_id": { "type": "string" },
-                        "aggregation": { "type": "string" }
-                      },
-                      "required": ["field_id", "aggregation"]
-                    }
-                  },
-                  "group_by": { "type": ["string", "null"] }
-                }
-              }
-            }
-          },
-          "appearance": {
-            "type": "object",
-            "properties": {
-              "size": { "type": "string", "enum": ["small", "medium", "large"] },
-              "show_count_in_legend": { "type": "boolean" },
-              "show_value_in_chart": { "type": "boolean" },
-              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
-              "color_schema": { "type": "string", "enum": ["default", "custom"] }
-            }
-          },
-          "permissions": {
-            "type": "object",
-            "properties": {
-              "allow_user_to_print": { "type": "boolean" },
-              "allow_users_to_view_records": { "type": "boolean" }
-            }
-          }
-        },
-        "required": ["chart_type"]
-      },
       "WidgetOptionsText": {
         "type": "object",
         "description": "Options for a text widget (type=text). Formatting is nested inside appearance.",
@@ -12224,18 +12123,6 @@
           }
         }
       },
-      "WidgetOptionsTable": {
-        "type": "object",
-        "description": "Options for a table widget (type=table).",
-        "properties": {
-          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
-          "columns": {
-            "type": "array",
-            "items": { "type": "string" },
-            "description": "Column IDs to display."
-          }
-        }
-      },
       "WidgetOptionsIframe": {
         "type": "object",
         "description": "Options for an iframe widget (type=iframe).",
@@ -12265,21 +12152,18 @@
           },
           "type": {
             "type": "string",
-            "enum": ["chart", "metric", "gauge", "text", "table", "iframe"],
+            "enum": ["chart", "metric", "text", "iframe"],
             "description": "Type of the widget."
           },
           "options": {
             "description": "Widget configuration. Structure depends on widget type. See WidgetOptions* schemas.",
             "oneOf": [
               { "$ref": "#/components/schemas/WidgetOptionsMetric" },
-              { "$ref": "#/components/schemas/WidgetOptionsGauge" },
               { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
               { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsScatterChart" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
-              { "$ref": "#/components/schemas/WidgetOptionsTable" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
           },
@@ -12382,21 +12266,18 @@
           },
           "type": {
             "type": "string",
-            "enum": ["chart", "metric", "gauge", "text", "table", "iframe"],
+            "enum": ["chart", "metric", "text", "iframe"],
             "description": "Type of the widget."
           },
           "options": {
             "description": "Widget configuration. Structure depends on widget type.",
             "oneOf": [
               { "$ref": "#/components/schemas/WidgetOptionsMetric" },
-              { "$ref": "#/components/schemas/WidgetOptionsGauge" },
               { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
               { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsScatterChart" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
-              { "$ref": "#/components/schemas/WidgetOptionsTable" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
           },
@@ -12436,14 +12317,11 @@
             "description": "Widget configuration. Structure depends on widget type.",
             "oneOf": [
               { "$ref": "#/components/schemas/WidgetOptionsMetric" },
-              { "$ref": "#/components/schemas/WidgetOptionsGauge" },
               { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
               { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
               { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
               { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
-              { "$ref": "#/components/schemas/WidgetOptionsScatterChart" },
               { "$ref": "#/components/schemas/WidgetOptionsText" },
-              { "$ref": "#/components/schemas/WidgetOptionsTable" },
               { "$ref": "#/components/schemas/WidgetOptionsIframe" }
             ]
           },

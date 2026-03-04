@@ -180,7 +180,7 @@ export class DocumentCommentsService {
     const comment = await Comment.get(context, param.commentId);
 
     if (!comment || !comment.fk_doc_id) {
-      throw new Error('Comment not found');
+      NcError.get(context).genericNotFound('Comment', param.commentId);
     }
 
     const res = await Comment.resolve(context, param.commentId, {

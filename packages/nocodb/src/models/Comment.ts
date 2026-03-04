@@ -63,7 +63,7 @@ export default class Comment implements CommentType {
         limit: pagination?.limit,
         offset: pagination?.offset,
         xcCondition: {
-          _or: [{ is_deleted: { eq: null } }, { is_deleted: { eq: true } }],
+          _or: [{ is_deleted: { eq: null } }, { is_deleted: { neq: true } }],
         },
       },
     );

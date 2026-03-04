@@ -1,5 +1,6 @@
 import NocoCE from 'src/Noco';
 import type { INestApplication } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import { NcLogger } from '~/utils/logger/NcLogger';
 import { AuditService } from '~/meta/audit.service';
@@ -7,6 +8,8 @@ import { ChatMessagesService } from '~/meta/chat-messages.service';
 import { DocsContentService } from '~/meta/docs-content.service';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
+
+const logger = new Logger('Noco');
 export default class Noco extends NocoCE {
   protected static initCustomLogger(nestApp: INestApplication) {
     this.ee = true;
@@ -163,11 +166,11 @@ export default class Noco extends NocoCE {
       offset += batchSize;
 
       if (processedCount % 10000 === 0) {
-        console.log(`Migrated ${processedCount} document content records...`);
+        logger.log(`Migrated ${processedCount} document content records...`);
       }
 
       if (batch.length < batchSize) {
-        console.log(
+        logger.log(
           `Migration of doc content completed. Migrated ${processedCount} records.`,
         );
         hasMoreRecords = false;

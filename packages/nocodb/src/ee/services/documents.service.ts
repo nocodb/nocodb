@@ -81,7 +81,7 @@ export class DocumentsService {
         'utf8',
       );
       if (contentSize > MAX_DOC_CONTENT_SIZE) {
-        NcError.badRequest(
+        NcError.unprocessableEntity(
           `Document content exceeds maximum size (${Math.round(
             MAX_DOC_CONTENT_SIZE / 1024 / 1024,
           )}MB)`,
@@ -137,11 +137,11 @@ export class DocumentsService {
     // Version is mandatory to prevent silent overwrites by API consumers
     // that omit it.
     if (payload.version === undefined || payload.version === null) {
-      NcError.badRequest('version is required for document updates');
+      NcError.unprocessableEntity('version is required for document updates');
     }
 
     if (payload.version !== existing.version) {
-      NcError.badRequest(
+      NcError.unprocessableEntity(
         'Document has been modified by another user. Please reload and try again.',
       );
     }
@@ -153,7 +153,7 @@ export class DocumentsService {
         'utf8',
       );
       if (contentSize > MAX_DOC_CONTENT_SIZE) {
-        NcError.badRequest(
+        NcError.unprocessableEntity(
           `Document content exceeds maximum size (${Math.round(
             MAX_DOC_CONTENT_SIZE / 1024 / 1024,
           )}MB)`,
@@ -276,17 +276,21 @@ export class DocumentsService {
       if (targetParentId) {
         const parent = await Document.get(context, targetParentId);
         if (!parent) {
-          NcError.badRequest('Target parent document not found');
+          NcError.unprocessableEntity('Target parent document not found');
         }
         if (parent.base_id !== doc.base_id) {
-          NcError.badRequest('Cannot move document to a different base');
+          NcError.unprocessableEntity(
+            'Cannot move document to a different base',
+          );
         }
         if (targetParentId === docId) {
-          NcError.badRequest('Cannot move document under itself');
+          NcError.unprocessableEntity('Cannot move document under itself');
         }
         const descendantIds = await Document.getDescendantIds(context, docId);
         if (descendantIds.includes(targetParentId)) {
-          NcError.badRequest('Cannot move document under its own descendant');
+          NcError.unprocessableEntity(
+            'Cannot move document under its own descendant',
+          );
         }
       }
 
@@ -306,6 +310,10 @@ export class DocumentsService {
         req.user.id,
       );
     } else {
+      // Pass version to satisfy Document.update() validation — use
+      // the current version so the increment is a no-op metadata bump.
+      updateFields.version = doc.version;
+      updateFields.updated_by = req.user.id;
       updated = await Document.update(context, docId, updateFields);
     }
 

@@ -56,6 +56,9 @@ export class DocumentCommentsGetOperations
           NcError.badRequest('Missing required parameter: docIds');
         }
         const docIds = docIdsParam.split(',').filter(Boolean);
+        if (docIds.length > 100) {
+          NcError.unprocessableEntity('Too many docIds (max 100)');
+        }
         return await this.documentCommentsService.commentCount(context, {
           docIds,
         });
@@ -66,6 +69,9 @@ export class DocumentCommentsGetOperations
           NcError.badRequest('Missing required parameter: commentIds');
         }
         const commentIds = commentIdsParam.split(',').filter(Boolean);
+        if (commentIds.length > 100) {
+          NcError.unprocessableEntity('Too many commentIds (max 100)');
+        }
         return await this.documentCommentsService.reactionList(context, {
           commentIds,
         });

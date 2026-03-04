@@ -673,8 +673,13 @@ export class PublicDatasService {
       param.query.fields.forEach(listArgs.fieldsSet.add, listArgs.fieldsSet);
 
       param.query.fields.forEach((f) => {
-        if (ast[f] === undefined) {
-          ast[f] = 1;
+        // fields can be column IDs or titles, but AST uses titles as keys
+        // (getAst with extractOnlyPrimaries returns early with title-keyed AST).
+        // Resolve to title so nocoExecute can match against data objects.
+        const col = model.columns.find((c) => c.id === f || c.title === f);
+        const key = col?.title ?? f;
+        if (ast[key] === undefined) {
+          ast[key] = 1;
         }
       });
     }

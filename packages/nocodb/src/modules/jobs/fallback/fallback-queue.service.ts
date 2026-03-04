@@ -232,4 +232,12 @@ export class QueueService {
       this.queueMemory.splice(fIndex, 1);
     }
   }
+
+  // Reset all static state — used by test cleanup to prevent memory leaks
+  static reset() {
+    QueueService.queue.clear();
+    QueueService.queueMemory.length = 0;
+    QueueService.queueIdCounter = 1;
+    QueueService.processed = 0;
+  }
 }

@@ -32,9 +32,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const workspaces = ref<Map<string, any>>(new Map())
   const workspacesList = computed<any[]>(() => Array.from(workspaces.value.values()).sort((a, b) => a.updated_at - b.updated_at))
 
-  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
+  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings-page')
 
-  const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
+  const isIntegrationsPageOpened = computed(
+    () =>
+      route.value.name === 'index-typeOrId-integrations' ||
+      (route.value.name === 'index-typeOrId-settings-page' && route.value.params.page === 'ws-integrations'),
+  )
 
   const isTemplatesPageOpened = computed(() => false)
 
@@ -282,12 +286,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const navigateToWorkspaceSettings = async (_?: string, cmdOrCtrl?: boolean) => {
     const workspaceId = activeWorkspaceId.value
+    const path = `/${workspaceId}/settings/ws-settings`
     if (cmdOrCtrl) {
-      await navigateTo(router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } }).href, {
+      await navigateTo(path, {
         open: navigateToBlankTargetOpenOption,
       })
     } else {
-      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId } })
+      await navigateTo(path)
     }
   }
 

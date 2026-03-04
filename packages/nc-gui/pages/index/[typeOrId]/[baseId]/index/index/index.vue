@@ -143,10 +143,9 @@ watch(
     () => isSharedBase.value,
     () => activeTables.value.length,
     () => isUIAllowed('projectOverviewTab'),
-    () => route.value.query.page,
     () => route.value.query.openTable === 'true',
   ],
-  ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newPage, newOpenTable]) => {
+  ([newIsSharedBase, newActiveTablesLength, isOverviewTabVisible, newOpenTable]) => {
     // If no tables are active or if new sidebar is not enabled then return
     if (!newActiveTablesLength || !activeTables.value[0]?.base_id) {
       hideEmptySkeleton()
@@ -154,7 +153,7 @@ watch(
     }
 
     // If page is defined or overview tab is visible then return
-    if (!newIsSharedBase && (newPage || isOverviewTabVisible) && !newOpenTable) {
+    if (!newIsSharedBase && isOverviewTabVisible && !newOpenTable) {
       hideEmptySkeleton()
       return
     }
@@ -169,5 +168,5 @@ watch(
 </script>
 
 <template>
-  <ProjectView v-if="!hideProjectViewPage" :show-empty-skeleton="!showProjectViewPage || showEmptySkeleton" />
+  <ProjectView v-if="!hideProjectViewPage" :show-empty-skeleton="!showProjectViewPage || showEmptySkeleton" show-overview-tab />
 </template>

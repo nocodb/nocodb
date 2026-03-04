@@ -346,6 +346,11 @@ import NcPhoneMissedIcon from '~icons/nc-icons-v2/phone-missed.svg'
 import NcEdit2Icon from '~icons/nc-icons-v2/edit-2.svg'
 import NcCornerLeftUpIcon from '~icons/nc-icons-v2/corner-left-up.svg'
 import NcHomeIcon from '~icons/nc-icons-v2/home.svg'
+import NcHomeFilledIcon from '~icons/nc-icons-v2/home-filled.svg'
+import NcTableOutlineIcon from '~icons/nc-icons-v2/table-outline.svg'
+import NcTableFilledIcon from '~icons/nc-icons-v2/table-filled.svg'
+import NcTableIcon from '~icons/nc-icons-v2/nc-table.svg'
+import NcAutomationsFilledIcon from '~icons/nc-icons-v2/automations-filled.svg'
 import NcGitlabIcon from '~icons/nc-icons-v2/gitlab.svg'
 import NcSmartphoneIcon from '~icons/nc-icons-v2/smartphone.svg'
 import NcMoreHorizontalIcon from '~icons/nc-icons-v2/more-horizontal.svg'
@@ -510,6 +515,7 @@ import NcEyeIcon from '~icons/nc-icons-v2/eye.svg'
 import NcPhoneOffIcon from '~icons/nc-icons-v2/phone-off.svg'
 import NcExternalLinkIcon from '~icons/nc-icons-v2/external-link.svg'
 import NcZapIcon from '~icons/nc-icons-v2/zap.svg'
+import NcAgentIcon from '~icons/nc-icons-v2/agent.svg'
 import NcMoreVerticalIcon from '~icons/nc-icons-v2/more-vertical.svg'
 import NcMicOffIcon from '~icons/nc-icons-v2/mic-off.svg'
 import NcShareIcon from '~icons/nc-icons-v2/share.svg'
@@ -1408,6 +1414,10 @@ export const iconMap = {
   'ncEdit2': NcEdit2Icon,
   'ncCornerLeftUp': NcCornerLeftUpIcon,
   'ncHome': NcHomeIcon,
+  'ncHomeFilled': h(NcHomeFilledIcon, { stroke: 'transparent' }),
+  'ncTableOutline': NcTableOutlineIcon,
+  'ncTableFilled': h(NcTableFilledIcon, { stroke: 'transparent' }),
+  'ncAutomationsFilled': h(NcAutomationsFilledIcon, { stroke: 'transparent' }),
   'ncGitlab': NcGitlabIcon,
   'ncSmartphone': NcSmartphoneIcon,
   'ncMoreHorizontal': NcMoreHorizontalIcon,
@@ -1572,6 +1582,8 @@ export const iconMap = {
   'ncPhoneOff': NcPhoneOffIcon,
   'ncExternalLink': NcExternalLinkIcon,
   'ncZap': NcZapIcon,
+  'ncAgent': h(NcAgentIcon, { stroke: 'transparent' }),
+  'ncTable': h(NcTableIcon, { stroke: 'transparent' }),
   'ncMoreVertical': NcMoreVerticalIcon,
   'ncMicOff': NcMicOffIcon,
   'ncShare': NcShareIcon,
@@ -4022,6 +4034,14 @@ export const searchableMap = {
   ncZap: {
     icon: NcZapIcon,
     keywords: ['Lightning', 'Electricity', 'Energy', 'Shock', 'Bolt'],
+  },
+  ncAgent: {
+    icon: h(NcAgentIcon, { stroke: 'transparent' }),
+    keywords: ['Robot', 'Agent', 'AI', 'Bot', 'Automation'],
+  },
+  ncTable: {
+    icon: h(NcTableIcon, { stroke: 'transparent' }),
+    keywords: ['Table', 'Grid', 'Data', 'Spreadsheet', 'Database'],
   },
   ncMoreVertical: {
     icon: NcMoreVerticalIcon,

@@ -25,6 +25,10 @@ const { appInfo } = useGlobal()
 
 const { isEEFeatureBlocked, showUpgradeToUseScripts, showUpgradeToUseSync } = useEeConfig()
 
+const { activeSidebarTab } = storeToRefs(useSidebarStore())
+
+const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
+
 const showBaseOption = (source: SourceType) => {
   return (
     (source.enabled || (base.value.sources || []).length > 1) &&
@@ -50,25 +54,120 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
 
 <template>
   <NcMenu variant="large" data-testid="nc-home-create-new-menu" @click="vVisible = false">
-    <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-table" @click="emits('newTable')">
-      <div class="w-full flex items-center">
-        <div class="flex-1 flex items-center gap-2 cursor-pointer">
-          <GeneralIcon icon="table" class="!w-4 !h-4" />
-          {{ $t('objects.table') }}
+    <!-- Data tab items: table, dashboard, sync -->
+    <template v-if="!isWorkflowsTab">
+      <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-table" @click="emits('newTable')">
+        <div class="w-full flex items-center">
+          <div class="flex-1 flex items-center gap-2 cursor-pointer">
+            <GeneralIcon icon="table" class="!w-4 !h-4" />
+            {{ $t('objects.table') }}
+          </div>
+          <template v-if="source && showBaseOption(source)">
+            <div class="px-1 cursor-default flex items-center h-5 -my-2" @click.stop>
+              <div class="h-3.5 w-px flex-none bg-nc-border-gray-medium" />
+            </div>
+
+            <DashboardTreeViewBaseOptions
+              v-model:base="base"
+              :source="source"
+              variant="large"
+              submenu-class="nc-sub-menu-item-icon-only"
+              title-class="!p-0 hover:bg-nc-bg-brand dark:hover:bg-nc-bg-gray-medium group"
+              show-noco-db-import
+              :popup-offset="[8, -2]"
+            >
+              <template #title>
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand">
+                  <GeneralIcon icon="ncChevronRight" />
+                </div>
+              </template>
+              <template #expandIcon> </template>
+              <template #label>
+                <NcMenuItemLabel>
+                  <span class="normal-case min-w-[180px]"> {{ $t('labels.importOptions') }} </span>
+                </NcMenuItemLabel>
+              </template>
+            </DashboardTreeViewBaseOptions>
+          </template>
         </div>
-        <template v-if="source && showBaseOption(source)">
-          <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
-            <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
+      </NcMenuItem>
+
+      <NcMenuItem inner-class="w-full" data-testid="create-new-dashboard" @click="emits('emptyDashboard')">
+        <GeneralIcon icon="dashboards" />
+        {{ $t('labels.dashboard') }}
+        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+      </NcMenuItem>
+
+      <ProjectSyncCreateProvider>
+        <template #default="{ createSyncClick }">
+          <NcMenuItem
+            class="nc-menu-item-integration"
+            inner-class="w-full"
+            data-testid="create-new-sync"
+            @click="
+              () => {
+                if (!appInfo.value?.ee) {
+                  showUpgradeToUseSync()
+                  return
+                }
+                createSyncClick()
+              }
+            "
+          >
+            <GeneralIcon icon="ncZap" />
+            {{ $t('labels.sync') }}
+            <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+            <div class="flex-1 w-full" />
+            <div class="flex items-center">
+              <div v-for="icon in syncIcons" :key="icon" class="nc-integration-icon-wrapper">
+                <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
+              </div>
+              <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+10</div>
+            </div>
+          </NcMenuItem>
+        </template>
+      </ProjectSyncCreateProvider>
+    </template>
+
+    <!-- Automations tab items: workflow, script -->
+    <template v-if="isWorkflowsTab">
+      <NcMenuItem
+        class="nc-menu-item-integration"
+        inner-class="w-full"
+        data-testid="create-new-workflow"
+        @click="emits('emptyWorkflow')"
+      >
+        <GeneralIcon icon="ncAutomation" />
+        {{ $t('general.workflow') }}
+        <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
+        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+        <div class="flex-1 w-full" />
+        <div class="flex items-center">
+          <div v-for="icon in automationIcons" :key="icon" class="nc-integration-icon-wrapper">
+            <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
+          </div>
+          <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+4</div>
+        </div>
+      </NcMenuItem>
+
+      <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-script" @click="emits('emptyScript')">
+        <div class="w-full flex items-center">
+          <div class="flex-1 flex items-center gap-2 cursor-pointer">
+            <GeneralIcon icon="ncScript" />
+            {{ $t('objects.script') }}
+            <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
           </div>
 
-          <DashboardTreeViewBaseOptions
-            v-model:base="base"
-            :source="source"
+          <div class="px-1 cursor-default flex items-center h-5 -my-2" @click.stop>
+            <div class="h-3.5 w-px flex-none bg-nc-border-gray-medium" />
+          </div>
+
+          <NcSubMenu
             variant="large"
-            submenu-class="nc-sub-menu-item-icon-only"
+            class="nc-sub-menu-item-icon-only"
             title-class="!p-0 hover:bg-nc-bg-brand dark:hover:bg-nc-bg-gray-medium group"
-            show-noco-db-import
             :popup-offset="[8, -2]"
+            @click.stop
           >
             <template #title>
               <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand">
@@ -76,108 +175,22 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
               </div>
             </template>
             <template #expandIcon> </template>
-            <template #label>
-              <NcMenuItemLabel>
-                <span class="normal-case min-w-[180px]"> {{ $t('labels.importOptions') }} </span>
-              </NcMenuItemLabel>
-            </template>
-          </DashboardTreeViewBaseOptions>
-        </template>
-      </div>
-    </NcMenuItem>
 
-    <NcMenuItem inner-class="w-full" data-testid="create-new-dashboard" @click="emits('emptyDashboard')">
-      <GeneralIcon icon="dashboards" />
-      {{ $t('labels.dashboard') }}
-      <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
-    </NcMenuItem>
-    <NcMenuItem
-      class="nc-menu-item-integration"
-      inner-class="w-full"
-      data-testid="create-new-workflow"
-      @click="emits('emptyWorkflow')"
-    >
-      <GeneralIcon icon="ncAutomation" />
-      {{ $t('general.workflow') }}
-      <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
-      <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
-      <div class="flex-1 w-full" />
-      <div class="flex items-center">
-        <div v-for="icon in automationIcons" :key="icon" class="nc-integration-icon-wrapper">
-          <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
+            <NcMenuItemLabel>
+              <span class="normal-case min-w-[180px]"> {{ $t('labels.newScript') }} </span>
+            </NcMenuItemLabel>
+            <NcMenuItem @click="emits('emptyScript')">
+              <GeneralIcon icon="ncScript" class="w-4 h-4 text-nc-content-brand" />
+              {{ $t('labels.emptyScript') }}
+            </NcMenuItem>
+            <NcMenuItem @click="openMarketPlace">
+              <GeneralIcon icon="ncScript" class="w-4 h-4 text-nc-content-maroon-dark" />
+              {{ $t('labels.scriptByNocoDB') }}
+            </NcMenuItem>
+          </NcSubMenu>
         </div>
-        <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+4</div>
-      </div>
-    </NcMenuItem>
-    <ProjectSyncCreateProvider>
-      <template #default="{ createSyncClick }">
-        <NcMenuItem
-          class="nc-menu-item-integration"
-          inner-class="w-full"
-          data-testid="create-new-sync"
-          @click="
-            () => {
-              if (!appInfo.value?.ee) {
-                showUpgradeToUseSync()
-                return
-              }
-              createSyncClick()
-            }
-          "
-        >
-          <GeneralIcon icon="ncZap" />
-          {{ $t('labels.sync') }}
-          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
-          <div class="flex-1 w-full" />
-          <div class="flex items-center">
-            <div v-for="icon in syncIcons" :key="icon" class="nc-integration-icon-wrapper">
-              <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
-            </div>
-            <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+10</div>
-          </div>
-        </NcMenuItem>
-      </template>
-    </ProjectSyncCreateProvider>
-    <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-script" @click="emits('emptyScript')">
-      <div class="w-full flex items-center">
-        <div class="flex-1 flex items-center gap-2 cursor-pointer">
-          <GeneralIcon icon="ncScript" />
-          {{ $t('objects.script') }}
-          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
-        </div>
-
-        <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>
-          <div class="h-7 w-px flex-none bg-nc-border-gray-medium" />
-        </div>
-
-        <NcSubMenu
-          variant="large"
-          class="nc-sub-menu-item-icon-only"
-          title-class="!p-0 hover:bg-nc-bg-brand dark:hover:bg-nc-bg-gray-medium group"
-          :popup-offset="[8, -2]"
-          @click.stop
-        >
-          <template #title>
-            <div class="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer group-hover:text-nc-content-brand">
-              <GeneralIcon icon="ncChevronRight" />
-            </div>
-          </template>
-          <template #expandIcon> </template>
-
-          <NcMenuItemLabel>
-            <span class="normal-case min-w-[180px]"> {{ $t('labels.newScript') }} </span>
-          </NcMenuItemLabel>
-          <NcMenuItem @click="emits('emptyScript')">
-            <GeneralIcon icon="ncScript" class="w-4 h-4 text-nc-content-brand" />
-            {{ $t('labels.emptyScript') }}
-          </NcMenuItem>
-          <NcMenuItem @click="openMarketPlace">
-            <GeneralIcon icon="ncScript" class="w-4 h-4 text-nc-content-maroon-dark" />
-            {{ $t('labels.scriptByNocoDB') }}
-          </NcMenuItem>
-        </NcSubMenu>
-      </div>
-    </NcMenuItem>
+      </NcMenuItem>
+    </template>
   </NcMenu>
 </template>
 

@@ -2,13 +2,12 @@
 import Automation from '../Automation/index.vue'
 import Data from '../Data/index.vue'
 
-const router = useRouter()
-const route = router.currentRoute
+const sidebarStore = useSidebarStore()
 
-const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+const { activeSidebarTab } = storeToRefs(sidebarStore)
 
 const { isSharedBase } = storeToRefs(useBase())
-const { baseUrl } = useBase()
+
 const workflowStore = useWorkflowStore()
 
 const { openNewWorkflowModal } = workflowStore
@@ -19,63 +18,18 @@ const base = inject(ProjectInj)!
 
 const baseRole = inject(ProjectRoleInj)!
 
-const basesStore = useBases()
-
-const { activeProjectId } = storeToRefs(basesStore)
-
-const { meta: metaKey, control } = useMagicKeys()
-
 const { isUIAllowed } = useRoles()
 
-const { isMobileMode, appInfo } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const { isDark } = useTheme()
 
 const projectNodeRef = ref()
 
-// If only base is open, i.e in case of docs, base view is open and not the page view
-const baseViewOpen = computed(() => {
-  const routeNameSplit = String(route.value?.name).split('baseId-index-index')
-  if (routeNameSplit.length <= 1) return false
-
-  const routeNameAfterProjectView = routeNameSplit[routeNameSplit.length - 1]
-  return routeNameAfterProjectView.split('-').length === 2 || routeNameAfterProjectView.split('-').length === 1
-})
-
 const addNewProjectChildEntity = async (showSourceSelector = true) => {
   if (!projectNodeRef.value) return
 
   projectNodeRef.value?.addNewProjectChildEntity?.(showSourceSelector)
-}
-
-const openBaseHomePage = async () => {
-  const isSharedBase = route.value.params.typeOrId === 'base'
-
-  if (isMobileMode.value && isLeftSidebarOpen.value && route.value.name === 'index-typeOrId-baseId-index-index') {
-    isLeftSidebarOpen.value = false
-
-    return
-  }
-
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
-
-  await navigateTo(
-    `${cmdOrCtrl ? '#' : ''}${baseUrl({
-      id: base.value.id!,
-      type: 'database',
-      isSharedBase,
-      projectPage: !isUIAllowed('projectOverviewTab') || isMobileMode.value ? 'collaborator' : undefined,
-    })}`,
-    cmdOrCtrl
-      ? {
-          open: navigateToBlankTargetOpenOption,
-        }
-      : undefined,
-  )
-
-  if (isMobileMode.value && isLeftSidebarOpen.value) {
-    isLeftSidebarOpen.value = false
-  }
 }
 
 const isVisibleCreateNew = ref(false)
@@ -114,9 +68,7 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <DashboardTreeViewProjectHomeSearchInput placeholder="Search table, view, script" />
-
-      <div v-if="!isSharedBase" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
+      <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
@@ -125,14 +77,10 @@ const hasTableCreatePermission = computed(() => {
               full-width
               class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-brand !hover:(text-nc-content-brand-disabled) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
-              icon-position="right"
               data-testid="nc-home-create-new-btn"
             >
-              <template #icon>
-                <GeneralIcon icon="chevronDown" class="flex-none" />
-              </template>
               <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncPlusCircleSolid" />
+                <GeneralIcon icon="ncPlusCircle" />
 
                 <div>{{ $t('labels.createNew') }}</div>
               </div>
@@ -149,36 +97,32 @@ const hasTableCreatePermission = computed(() => {
             </template>
           </NcDropdown>
         </div>
-
-        <NcButton
-          v-e="['c:base:home']"
-          type="text"
-          size="xsmall"
-          class="nc-sidebar-top-button !h-8 w-full !pl-0"
-          :centered="false"
-          :class="{
-            '!text-nc-content-brand-disabled !bg-nc-bg-brand !hover:bg-nc-bg-brand nc-sidebar-item-dark active':
-              activeProjectId === base.id && baseViewOpen,
-            '!hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle)': !(activeProjectId === base.id && baseViewOpen),
-          }"
-          data-testid="nc-sidebar-base-overview-btn"
-          @click="openBaseHomePage"
-        >
-          <div
-            class="flex items-center gap-2 pl-3 pr-1"
-            :class="{
-              'font-semibold': activeProjectId === base.id && baseViewOpen,
-            }"
-          >
-            <GeneralIcon icon="home1" class="!h-4 w-4" />
-            <div>{{ $t('general.overview') }}</div>
-          </div>
-        </NcButton>
       </div>
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
-      <Data :base-id="base.id" />
-      <Automation v-if="!isSharedBase && !isMobileMode && appInfo.ee" :base-id="base.id" />
+      <!-- Data tab -->
+      <template v-if="activeSidebarTab === 'data'">
+        <Data :base-id="base.id" hide-header />
+      </template>
+
+      <!-- Automation/Workflows tab -->
+      <template v-else-if="activeSidebarTab === 'workflows'">
+        <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header hide-create-button />
+      </template>
+
+      <!-- Agents tab: placeholder -->
+      <template v-else-if="activeSidebarTab === 'agents'">
+        <div class="flex items-center justify-center h-32 text-nc-content-gray-muted text-bodySm">
+          {{ $t('general.comingSoon') }}
+        </div>
+      </template>
+
+      <!-- Admin panel -->
+      <template v-else-if="activeSidebarTab === 'settings'">
+        <DashboardTreeViewProjectBaseSettingsMenu v-if="!isSharedBase" />
+        <div v-if="!isSharedBase && !isMobileMode" class="mx-3 border-t border-nc-border-gray-medium"></div>
+        <DashboardTreeViewProjectWsSettingsMenu />
+      </template>
     </div>
 
     <slot name="footer"> </slot>
@@ -229,8 +173,6 @@ const hasTableCreatePermission = computed(() => {
 }
 
 :deep(.nc-home-create-new-btn.nc-button) {
-  @apply !pr-1.5;
-
   &:not(.active) {
     @apply hover:bg-nc-bg-brand;
   }

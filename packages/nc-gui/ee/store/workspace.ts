@@ -93,9 +93,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
-  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
+  const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings-page')
 
-  const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
+  const isIntegrationsPageOpened = computed(
+    () =>
+      route.value.name === 'index-typeOrId-integrations' ||
+      (route.value.name === 'index-typeOrId-settings-page' && route.value.params.page === 'ws-integrations'),
+  )
 
   const isTemplatesPageOpened = computed(() => (route.value.name as string)?.startsWith('index-typeOrId-templates'))
 
@@ -586,18 +590,17 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     ncNavigateTo({ workspaceId })
   }
 
-  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean, query: Record<string, string> = {}) => {
+  const navigateToWorkspaceSettings = async (workspaceId?: string, cmdOrCtrl?: boolean) => {
     workspaceId = workspaceId || activeWorkspaceId.value!
     if (!workspaceId) {
       throw new Error('Workspace not selected')
     }
 
+    const path = `/${workspaceId}/settings/ws-settings`
     if (cmdOrCtrl) {
-      await navigateTo(router.resolve({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query }).href, {
-        open: navigateToBlankTargetOpenOption,
-      })
+      await navigateTo(path, { open: navigateToBlankTargetOpenOption })
     } else {
-      router.push({ name: 'index-typeOrId-settings', params: { typeOrId: workspaceId }, query })
+      await navigateTo(path)
     }
   }
 
@@ -635,8 +638,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (cmdOrCtrl) {
       await navigateTo(
         router.resolve({
-          name: 'index-typeOrId-integrations',
-          params: { typeOrId: workspaceId },
+          name: 'index-typeOrId-settings-page',
+          params: { typeOrId: workspaceId, page: 'ws-integrations' },
           query,
         }).href,
         {
@@ -644,7 +647,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         },
       )
     } else {
-      router.push({ name: 'index-typeOrId-integrations', params: { typeOrId: workspaceId }, query })
+      router.push({ name: 'index-typeOrId-settings-page', params: { typeOrId: workspaceId, page: 'ws-integrations' }, query })
     }
   }
 

@@ -318,7 +318,7 @@ const deleteDashboard = () => {
 
 <template>
   <div
-    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-muted text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :data-testid="`view-sidebar-dashboard-${vModel.title}`"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
@@ -355,7 +355,11 @@ const deleteDashboard = () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:dashboard:open']" class="text-sm flex items-center flex-1 w-full gap-1" data-testid="dashboard-item">
+      <div
+        v-e="['a:dashboard:open']"
+        class="text-bodyDefaultSm font-medium flex items-center flex-1 w-full gap-1"
+        data-testid="dashboard-item"
+      >
         <div
           v-e="['c:dashboard:emoji-picker']"
           class="flex min-w-6"
@@ -388,7 +392,7 @@ const deleteDashboard = () => {
           v-model:value="_title"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
-            'font-semibold !text-nc-content-brand-disabled': activeDashboardId === vModel.id,
+            'font-medium !text-nc-content-brand-disabled': activeDashboardId === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -406,7 +410,7 @@ const deleteDashboard = () => {
           <div
             data-testid="sidebar-dashboard-title w-full"
             :class="{
-              'font-semibold text-nc-content-brand-disabled': activeDashboardId === vModel.id,
+              'font-medium text-nc-content-brand-disabled': activeDashboardId === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           >

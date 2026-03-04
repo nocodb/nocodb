@@ -39,6 +39,8 @@ const isDeleteModalVisible = ref(false)
 const toBeDeletedWorkspaceTitle = ref('')
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
+
 const deleteWsInputRef = ref<HTMLInputElement>()
 
 const form = reactive<{
@@ -234,7 +236,7 @@ const showCancelSubscriptionModal = () => {
       'cancelText': t('labels.cancel'),
       'onCancel': closeDialog,
       'onOk': async () => {
-        navigateTo(`/${currentWorkspace.value?.id}/settings?tab=billing&autoScroll=plan`)
+        navigateTo(`/${currentWorkspace.value?.id}/settings/ws-billing?autoScroll=plan`)
 
         closeDialog()
       },
@@ -321,7 +323,8 @@ const onCancel = () => {
   <div
     class="nc-workspace-settings-container overflow-auto nc-scrollbar-thin"
     :class="{
-      'nc-is-admin-panel': isAdminPanel,
+      'nc-is-settings-sidebar': isSettingsSidebar,
+      'nc-is-admin-panel': !isSettingsSidebar && isAdminPanel,
     }"
   >
     <PaymentBanner v-if="!isAdminPanel" />
@@ -545,6 +548,14 @@ const onCancel = () => {
 
 <style lang="scss" scoped>
 .nc-workspace-settings-container {
+  &.nc-is-settings-sidebar {
+    @apply h-[calc(100vh-var(--topbar-height))];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-var(--topbar-height))];
+    }
+  }
+
   &.nc-is-admin-panel {
     @apply h-[calc(100vh-144px)];
 
@@ -553,7 +564,7 @@ const onCancel = () => {
     }
   }
 
-  &:not(.nc-is-admin-panel) {
+  &:not(.nc-is-admin-panel):not(.nc-is-settings-sidebar) {
     @apply h-[calc(100vh-var(--topbar-height)-44px)];
 
     @supports (height: 100dvh) {

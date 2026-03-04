@@ -418,7 +418,7 @@ const enabledOptions = computed(() => {
     <div class="flex items-center py-0.5">
       <div
         v-e="['a:table:open']"
-        class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium"
+        class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium text-bodyDefaultSm font-medium"
         :class="{
           'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
           'pl-8 !xs:(pl-7)': sourceIndex !== 0,
@@ -453,15 +453,19 @@ const enabledOptions = computed(() => {
                       {{ $t('general.changeIcon') }}
                     </template>
 
-                    <component :is="iconMap.ncZap" v-if="table?.synced" class="nc-table-icon w-4 text-sm !text-nc-gray-600/75" />
+                    <component
+                      :is="iconMap.ncZap"
+                      v-if="table?.synced"
+                      class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
+                    />
 
                     <component
                       :is="iconMap.table"
                       v-else-if="table.type === 'table'"
-                      class="nc-table-icon w-4 text-sm !text-nc-gray-600/75"
+                      class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
                     />
 
-                    <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-gray-600/75" />
+                    <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-content-gray-muted" />
                   </NcTooltip>
                 </template>
               </LazyGeneralEmojiPicker>
@@ -487,7 +491,7 @@ const enabledOptions = computed(() => {
         >
           <template #title>{{ table.title }}</template>
           <span
-            class="text-nc-content-gray-subtle"
+            :class="openedTableId === table.id ? 'text-nc-content-gray' : 'text-nc-content-gray-muted'"
             :data-testid="`nc-tbl-title-${table.title}`"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onRenameMenuClick(table)"

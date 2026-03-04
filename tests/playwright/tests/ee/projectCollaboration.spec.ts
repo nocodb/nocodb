@@ -61,7 +61,7 @@ test.describe('Base Collaboration', () => {
       isToolbarOperationsRestricted: boolean;
     }
   ) => {
-    await dashboard.leftSidebar.clickTeamAndSettings();
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('ws-collaborators');
 
     // add all users as WS viewers
 
@@ -71,9 +71,8 @@ test.describe('Base Collaboration', () => {
 
     // tab access validation
     await baseViewPage.verifyAccess('Owner');
-    await baseViewPage.openOverview();
 
-    await baseViewPage.tab_accessSettings.click();
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('collaborator');
 
     // update roles
 

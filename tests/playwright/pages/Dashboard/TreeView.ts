@@ -17,7 +17,11 @@ export class TreeViewPage extends BasePage {
     this.base = base;
     this.quickImportButton = dashboard.get().locator('.nc-import-menu');
     this.createNewButton = this.get().locator('.nc-home-create-new-btn');
-    this.miniSidebar = this.dashboard.get().getByTestId('nc-mini-sidebar');
+    // Prefer V2 mini sidebar; fall back to V1 for shared-base scenarios where no sidebar exists
+    this.miniSidebar = this.dashboard
+      .get()
+      .locator('[data-testid="nc-mini-sidebar-v2"],[data-testid="nc-mini-sidebar"]')
+      .first();
   }
 
   get() {
@@ -120,6 +124,8 @@ export class TreeViewPage extends BasePage {
     } else {
       // Just close the modal if no baseTitle is specified
       await this.dashboard.leftSidebar.closeBaseListModal();
+
+      await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
     }
 
     if (sourceTitle) {
@@ -148,15 +154,19 @@ export class TreeViewPage extends BasePage {
       await this.get().locator(`[data-testid="nc-tbl-title-${title}"]`).click({
         // x:10, y:10
       });
-
-      await this.rootPage.waitForLoadState('networkidle');
     }
+
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async openScript({ title, baseTitle }: { title: string; baseTitle?: string }) {
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
     }
+
+    await this.dashboard.leftSidebar.sidebarNav.navigateToWorkflowsTab();
 
     const scriptNode = this.get().getByTestId(`view-sidebar-script-${title}`);
 
@@ -169,6 +179,10 @@ export class TreeViewPage extends BasePage {
     await scriptNode.click({
       // x:10, y:10
     });
+
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async createEntity({
@@ -184,9 +198,15 @@ export class TreeViewPage extends BasePage {
     await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
 
     if (type === 'script') {
+      await this.dashboard.leftSidebar.sidebarNav.navigateToWorkflowsTab();
+
       await this.createNewButton.click();
       await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
       await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+
+      // Wait for navigation
+      await this.rootPage.waitForTimeout(1000);
+      await this.rootPage.waitForLoadState('networkidle');
     } else {
       if (skipOpeningModal) return;
 
@@ -197,6 +217,9 @@ export class TreeViewPage extends BasePage {
 
           await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
 
+          // Wait for navigation
+          await this.rootPage.waitForTimeout(1000);
+          await this.rootPage.waitForLoadState('networkidle');
           break;
         }
       }
@@ -204,10 +227,16 @@ export class TreeViewPage extends BasePage {
   }
 
   async createScript({ title, baseTitle }: { title: string; baseTitle: string }) {
+    await this.dashboard.leftSidebar.sidebarNav.navigateToWorkflowsTab();
+
     await this.createEntity({ type: 'script', skipOpeningModal: false, baseTitle });
     await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
     await this.dashboard.get().getByPlaceholder('Enter script name').fill(title);
     await this.dashboard.get().locator('.ant-modal.active').locator('button:has-text("Create Script")').click();
+
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async createTable({
@@ -220,6 +249,8 @@ export class TreeViewPage extends BasePage {
     mode?: string;
     baseTitle: string;
   }) {
+    await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
+
     await this.createEntity({ type: 'table', skipOpeningModal, baseTitle });
 
     await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
@@ -246,7 +277,6 @@ export class TreeViewPage extends BasePage {
 
     // Wait for newly create table navigation and auto scroll
     await this.rootPage.waitForTimeout(1000);
-
     await this.rootPage.waitForLoadState('networkidle');
 
     return tableId;
@@ -268,6 +298,8 @@ export class TreeViewPage extends BasePage {
     // Ensure the base is active/open in the sidebar (opens from modal if needed)
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    } else {
+      await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
     }
 
     if (sourceTitle) {
@@ -288,6 +320,8 @@ export class TreeViewPage extends BasePage {
   async deleteTable({ title, baseTitle }: { title: string; baseTitle?: string }) {
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    } else {
+      await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
     }
 
     const tableTitle = title.replace(/ /g, '');
@@ -315,6 +349,8 @@ export class TreeViewPage extends BasePage {
   async renameTable({ title, newTitle, baseTitle }: { title: string; newTitle: string; baseTitle?: string }) {
     if (baseTitle) {
       await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
+    } else {
+      await this.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
     }
 
     const tableTitle = title.replace(/ /g, '');

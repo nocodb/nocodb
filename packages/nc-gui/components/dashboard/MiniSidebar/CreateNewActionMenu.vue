@@ -29,6 +29,12 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isEEFeatureBlocked, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
 
+const { activeSidebarTab } = storeToRefs(useSidebarStore())
+
+const isDataTab = computed(() => activeSidebarTab.value === 'data')
+
+const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
+
 const isVisibleCreateNew = ref(false)
 
 const baseCreateDlg = ref(false)
@@ -151,7 +157,7 @@ const hasDashboardCreateAccess = computed(() => {
     <NcDropdown v-model:visible="isVisibleCreateNew" placement="right" overlay-class-name="!min-w-48">
       <div class="w-full py-1 flex items-center justify-center">
         <div
-          class="border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium"
+          class="border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
           :class="{
             'border-nc-border-gray-dark': !isVisibleCreateNew,
             'active border-primary shadow-selected': isVisibleCreateNew,
@@ -174,14 +180,20 @@ const hasDashboardCreateAccess = computed(() => {
           </NcMenuItem>
           <NcTooltip
             :title="
-              hasTableCreateAccess ? $t('tooltip.navigateToBaseToCreateTable') : $t('tooltip.youDontHaveAccessToCreateNewTable')
+              !isDataTab
+                ? $t('tooltip.switchToDataTab', { type: $t('objects.table').toLowerCase() })
+                : !isBaseHomePage
+                ? $t('tooltip.navigateToBaseToCreateTable')
+                : !hasTableCreateAccess
+                ? $t('tooltip.youDontHaveAccessToCreateNewTable')
+                : ''
             "
-            :disabled="!(!isBaseHomePage || !hasTableCreateAccess)"
+            :disabled="isDataTab && isBaseHomePage && hasTableCreateAccess"
             placement="right"
           >
             <NcMenuItem
               data-testid="mini-sidebar-table-create"
-              :disabled="!isBaseHomePage || !hasTableCreateAccess"
+              :disabled="!isDataTab || !isBaseHomePage || !hasTableCreateAccess"
               @click="openTableCreateDialog"
             >
               <GeneralIcon icon="table" />
@@ -192,16 +204,20 @@ const hasDashboardCreateAccess = computed(() => {
           <template v-if="isEeUI">
             <NcTooltip
               :title="
-                hasDashboardCreateAccess
+                !isDataTab
+                  ? $t('tooltip.switchToDataTab', { type: $t('general.dashboard').toLowerCase() })
+                  : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateDashboard')
-                  : $t('tooltip.youDontHaveAccessToCreateNewDashboard')
+                  : !hasDashboardCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewDashboard')
+                  : ''
               "
-              :disabled="!(!isBaseHomePage || !hasDashboardCreateAccess)"
+              :disabled="isDataTab && isBaseHomePage && hasDashboardCreateAccess"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--dashboard-create"
-                :disabled="!isBaseHomePage || !hasDashboardCreateAccess"
+                :disabled="!isDataTab || !isBaseHomePage || !hasDashboardCreateAccess"
                 @click="openNewDashboardModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="dashboards" />
@@ -213,16 +229,22 @@ const hasDashboardCreateAccess = computed(() => {
 
           <NcTooltip
             :title="
-              hasViewCreateAccess ? $t('tooltip.navigateToTableToCreateView') : $t('tooltip.youDontHaveAccessToCreateNewView')
+              !isDataTab
+                ? $t('tooltip.switchToDataTab', { type: $t('objects.view').toLowerCase() })
+                : !base || !activeTable
+                ? $t('tooltip.navigateToTableToCreateView')
+                : !hasViewCreateAccess
+                ? $t('tooltip.youDontHaveAccessToCreateNewView')
+                : ''
             "
-            :disabled="!(!base || !activeTable || !hasViewCreateAccess)"
+            :disabled="isDataTab && !!base && !!activeTable && hasViewCreateAccess"
             placement="right"
           >
             <NcSubMenu
               class="py-0"
               data-testid="mini-sidebar-view-create"
               variant="small"
-              :disabled="!base || !activeTable || !hasViewCreateAccess"
+              :disabled="!isDataTab || !base || !activeTable || !hasViewCreateAccess"
             >
               <template #title>
                 <GeneralIcon icon="grid" />
@@ -295,16 +317,20 @@ const hasDashboardCreateAccess = computed(() => {
             <NcDivider />
             <NcTooltip
               :title="
-                hasScriptCreateAccess
+                !isWorkflowsTab
+                  ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.script').toLowerCase() })
+                  : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateScript')
-                  : $t('tooltip.youDontHaveAccessToCreateNewScript')
+                  : !hasScriptCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewScript')
+                  : ''
               "
-              :disabled="!(!isBaseHomePage || !hasScriptCreateAccess)"
+              :disabled="isWorkflowsTab && isBaseHomePage && hasScriptCreateAccess"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--script-create"
-                :disabled="!isBaseHomePage || !hasScriptCreateAccess"
+                :disabled="!isWorkflowsTab || !isBaseHomePage || !hasScriptCreateAccess"
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncScript" />
@@ -314,16 +340,20 @@ const hasDashboardCreateAccess = computed(() => {
             </NcTooltip>
             <NcTooltip
               :title="
-                hasWorkflowCreateAccess
+                !isWorkflowsTab
+                  ? $t('tooltip.switchToWorkflowsTab', { type: $t('general.workflow').toLowerCase() })
+                  : !isBaseHomePage
                   ? $t('tooltip.navigateToBaseToCreateWorkflow')
-                  : $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
+                  : !hasWorkflowCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
+                  : ''
               "
-              :disabled="!(!isBaseHomePage || !hasWorkflowCreateAccess)"
+              :disabled="isWorkflowsTab && isBaseHomePage && hasWorkflowCreateAccess"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--workflow-create"
-                :disabled="!isBaseHomePage || !hasWorkflowCreateAccess"
+                :disabled="!isWorkflowsTab || !isBaseHomePage || !hasWorkflowCreateAccess"
                 @click="openNewWorkflowModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncAutomation" />

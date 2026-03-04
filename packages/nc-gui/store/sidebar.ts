@@ -1,8 +1,14 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { INITIAL_LEFT_SIDEBAR_WIDTH, MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
+import {
+  INITIAL_LEFT_SIDEBAR_WIDTH,
+  MAX_WIDTH_FOR_MOBILE_MODE,
+  MINI_SIDEBAR_WIDTH,
+  NEW_MINI_SIDEBAR_WIDTH,
+} from '~/lib/constants'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
-  const route = useRoute()
+  const router = useRouter()
+  const route = router.currentRoute
 
   const { width } = useWindowSize()
 
@@ -13,7 +19,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const { isMobileMode, leftSidebarSize: _leftSidebarSize, isLeftSidebarOpen: _isLeftSidebarOpen } = useGlobal()
 
   const miniSidebarWidth = computed(() => {
-    return MINI_SIDEBAR_WIDTH
+    if (isMobileMode.value) return MINI_SIDEBAR_WIDTH
+    return width.value >= 1280 ? NEW_MINI_SIDEBAR_WIDTH : MINI_SIDEBAR_WIDTH
   })
 
   const isFullScreen = ref(false)
@@ -24,7 +31,11 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
   const { activeViewTitleOrId } = storeToRefs(viewsStore)
 
   const allowHideLeftSidebarForCurrentRoute = computed(() => {
-    return ['index-typeOrId-baseId-index-index', 'index-typeOrId-settings'].includes(route.name as string)
+    return [
+      'index-typeOrId-baseId-index-index',
+      'index-typeOrId-settings-page',
+      'index-typeOrId-baseId-index-settings-page',
+    ].includes(route.value.name as string)
   })
 
   const isLeftSidebarOpen = computed({
@@ -98,7 +109,51 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const hideSidebar = ref(false)
 
+  const isBaseSettingsFullPage = ref(false)
+
   const showTopbar = ref(false)
+
+  type SidebarTab = 'data' | 'workflows' | 'agents' | 'settings'
+
+  const activeSidebarTab = ref<SidebarTab>('data')
+
+  /** Derive the correct sidebar tab from the current route name. */
+  const routeDerivedTab = computed<SidebarTab | null>(() => {
+    const name = route.value.name?.toString() ?? ''
+
+    // Workspace-level settings
+    if (name === 'index-typeOrId-settings-page') return 'settings'
+
+    // Base routes — only derive tab when a baseId is present
+    if (name.startsWith('index-typeOrId-baseId-')) {
+      if (name.startsWith('index-typeOrId-baseId-index-settings')) return 'settings'
+
+      if (
+        name.startsWith('index-typeOrId-baseId-index-workflows') ||
+        name.startsWith('index-typeOrId-baseId-index-automation-') ||
+        name.startsWith('index-typeOrId-baseId-index-scripts') ||
+        name.startsWith('index-typeOrId-baseId-index-automations')
+      ) {
+        return 'workflows'
+      }
+
+      return 'data'
+    }
+
+    return null
+  })
+
+  watch(
+    routeDerivedTab,
+    (newTab) => {
+      if (newTab !== null && activeSidebarTab.value !== newTab) {
+        activeSidebarTab.value = newTab
+      }
+    },
+    {
+      immediate: true,
+    },
+  )
 
   const toggleFullScreenState = () => {
     if (isFullScreen.value) {
@@ -142,11 +197,13 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     formRightSidebarWidthPercent,
     hideMiniSidebar,
     hideSidebar,
+    isBaseSettingsFullPage,
     showTopbar,
     miniSidebarWidth,
     isFullScreen,
     toggleFullScreenState,
     allowHideLeftSidebarForCurrentRoute,
+    activeSidebarTab,
   }
 })
 

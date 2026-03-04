@@ -40,7 +40,7 @@ export default defineNuxtRouteMiddleware(() => {
     } else if (returnToPage === 'account') {
       url = `/#/account/workspace/${workspaceId}/settings?${params.toString()}`
     } else {
-      url = `/#/${workspaceId}/settings?tab=billing&${params.toString()}`
+      url = `/#/${workspaceId}/settings/ws-billing?${params.toString()}`
     }
 
     window.location.href = url

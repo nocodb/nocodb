@@ -15,7 +15,7 @@ export class WorkspaceSettingsObject extends BasePage {
   }
 
   async open() {
-    await this.dashboard.leftSidebar.clickTeamAndSettings();
+    await this.dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('ws-settings');
   }
 
   async clickSettingsTab() {
@@ -23,7 +23,8 @@ export class WorkspaceSettingsObject extends BasePage {
   }
 
   async renameWorkspace({ newTitle }: { newTitle: string }) {
-    await this.clickSettingsTab();
+    await this.dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('ws-settings');
+
     await this.get().getByTestId('nc-workspace-settings-settings-rename-input').fill(newTitle);
     const submitAction = () => this.rootPage.keyboard.press('Enter');
 

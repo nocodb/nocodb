@@ -273,7 +273,11 @@ export const useBase = defineStore('baseStore', () => {
 
     const basUrl = `/nc/${id}`
 
-    return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
+    if (projectPage) {
+      return `${basUrl}/settings/${baseSettingsTabToSlug[projectPage] || projectPage}`
+    }
+
+    return basUrl
   }
 
   const loadManagedApp = async () => {}
@@ -306,17 +310,12 @@ export const useBase = defineStore('baseStore', () => {
     page: 'overview' | 'collaborator' | 'data-source'
     action?: string
   }) => {
-    await router.push({
-      name: 'index-typeOrId-baseId-index-index',
-      params: {
-        typeOrId: route.value.params.typeOrId,
-        baseId: route.value.params.baseId,
-      },
-      query: {
-        page,
-        ...(action ? { action } : {}),
-      },
-    })
+    const wsId = route.value.params.typeOrId
+    const bId = route.value.params.baseId
+    const slug = baseSettingsTabToSlug[page] || page
+    const query = action ? { action } : undefined
+
+    navigateTo({ path: `/${wsId}/${bId}/settings/${slug}`, query })
   }
 
   return {

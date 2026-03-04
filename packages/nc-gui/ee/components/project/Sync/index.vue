@@ -188,7 +188,7 @@ onMounted(async () => {
           </template>
         </a-input>
         <NuxtLink href="https://nocodb.com/docs/product-docs/noco-sync" target="_blank" rel="noopener noreferrer">
-          <NcButton v-e="['c:sync:docs']" type="text" size="small" class="!px-2 !w-22">
+          <NcButton v-e="['c:sync:docs']" type="text" size="small" class="!px-2 !w-22 !text-nc-content-gray-subtle2">
             <div class="flex gap-2 items-center">
               {{ $t('title.docs') }}
               <GeneralIcon icon="ncExternalLink" />

@@ -347,7 +347,7 @@ export class CommandPaletteService {
               type: 'navigate',
               payload: `/${script.workspace_id}/${
                 script.base_id
-              }/automations/${encodeURIComponent(script.id)}`,
+              }/scripts/${encodeURIComponent(script.id)}`,
             },
           });
         }

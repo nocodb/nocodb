@@ -3,6 +3,7 @@ import { PlanLimitTypes, PlanTitles, type SourceType, type TableType } from 'noc
 
 defineProps<{
   baseId: string
+  hideHeader?: boolean
 }>()
 
 const emits = defineEmits(['createTable'])
@@ -220,7 +221,7 @@ onKeyStroke('Escape', () => {
 
 <template>
   <div class="nc-project-home-section">
-    <div class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
+    <div v-if="!hideHeader" class="nc-project-home-section-header !cursor-pointer" @click.stop="isExpanded = !isExpanded">
       <div class="flex-1">{{ $t('objects.tables') }}</div>
 
       <GeneralIcon

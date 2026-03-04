@@ -1,3 +1,3 @@
 <template>
-  <WorkspaceView />
+  <NcSpanHidden />
 </template>

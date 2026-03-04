@@ -11,13 +11,15 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
+const { activeWorkspaceId, activeWorkspace } = storeToRefs(useWorkspace())
 
 const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, isProjectsLoaded, isProjectsLoading, resolvedProject } = storeToRefs(basesStore)
+
+const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
 const baseStore = useBase()
 
@@ -42,10 +44,6 @@ const { refreshCommandPalette } = useCommandPalette()
 const { addUndo, defineProjectScope } = useUndoRedo()
 
 const baseCreateDlg = ref(false)
-
-const openedBase = computed(() => {
-  return basesList.value.find((b) => b.id === activeProjectId.value)
-})
 
 const contextMenuTarget = reactive<{ type?: 'base' | 'base' | 'table' | 'main'; value?: any }>({})
 
@@ -362,14 +360,11 @@ useEventListener(document, 'contextmenu', handleContext, true)
 
 <template>
   <div class="nc-treeview-container relative w-full h-full overflow-hidden flex items-stretch nc-treeview-container-active-base">
-    <template v-if="activeProjectId && openedBase?.id && !openedBase.isLoading">
-      <div
-        v-if="activeProjectId && openedBase?.id && !openedBase.isLoading"
-        class="absolute w-full h-full top-0 left-0 z-5 flex flex-col"
-      >
+    <template v-if="resolvedProject?.id && !resolvedProject.isLoading">
+      <div class="absolute w-full h-full top-0 left-0 z-5 flex flex-col">
         <ProjectWrapper
-          :base-role="openedBase?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
-          :base="openedBase"
+          :base-role="resolvedProject?.project_role || extractBaseRoleFromWorkspaceRole(workspaceRoles)"
+          :base="resolvedProject"
         >
           <DashboardTreeViewProjectHome>
             <template #footer>
@@ -378,10 +373,29 @@ useEventListener(document, 'contextmenu', handleContext, true)
           </DashboardTreeViewProjectHome>
         </ProjectWrapper>
       </div>
-      <DashboardTreeViewProjectListSkeleton v-else />
 
       <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
+
+    <div
+      v-else-if="isProjectsLoaded && !isProjectsLoading && !basesList.length && activeSidebarTab === 'settings'"
+      class="nc-treeview-active-base flex flex-col h-full"
+    >
+      <div>
+        <DashboardSidebarHeaderWrapper>
+          <NcTooltip class="truncate font-semibold text-sm text-nc-content-gray" show-on-truncate-only>
+            <template #title>{{ activeWorkspace?.title }}</template>
+            {{ activeWorkspace?.title }}
+          </NcTooltip>
+        </DashboardSidebarHeaderWrapper>
+      </div>
+
+      <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
+        <DashboardTreeViewProjectWsSettingsMenu />
+      </div>
+
+      <slot name="footer" />
+    </div>
     <div v-else-if="isProjectsLoaded && !isProjectsLoading && !basesList.length" class="nc-treeview-empty-state">
       <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBasesFound')" class="!mb-1" />
 

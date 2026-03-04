@@ -58,20 +58,36 @@ export class ViewSidebarPage extends BasePage {
 
   async createGalleryView({ title }: { title: string }) {
     await this.createView({ title, type: ViewTypes.GALLERY });
+
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async createGridView({ title }: { title: string }) {
     await this.createView({ title, type: ViewTypes.GRID });
+
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async createFormView({ title }: { title: string }) {
     await this.createView({ title, type: ViewTypes.FORM });
+
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async openView({ title }: { title: string }) {
     await this.get().waitFor({ state: 'visible' });
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).waitFor({ state: 'visible' });
     await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).click();
+
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async createKanbanView({ title }: { title: string }) {
@@ -87,6 +103,7 @@ export class ViewSidebarPage extends BasePage {
 
   async createMapView({ title }: { title: string }) {
     await this.createView({ title, type: ViewTypes.MAP });
+    await this.rootPage.waitForTimeout(1500);
   }
 
   // Todo: Make selection better
@@ -138,6 +155,10 @@ export class ViewSidebarPage extends BasePage {
       });
 
     await this.rootPage.getByTestId('nc-delete-modal-delete-btn').click();
+
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async renameView({ title, newTitle }: { title: string; newTitle: string }) {
@@ -170,6 +191,10 @@ export class ViewSidebarPage extends BasePage {
 
     await this.rootPage.locator(`[data-testid="view-sidebar-view-actions-${title}"]`).waitFor({ state: 'hidden' });
     // await this.verifyToast({ message: 'View created successfully' });
+
+    // Wait for navigation
+    await this.rootPage.waitForTimeout(1000);
+    await this.rootPage.waitForLoadState('networkidle');
   }
 
   async changeViewIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {

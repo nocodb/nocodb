@@ -287,7 +287,7 @@ watch(isDropdownOpen, async () => {
 
 <template>
   <div
-    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-muted text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray) cursor-pointer"
     :class="{
       '!pl-7.5 !xs:(pl-6.5)': isDefaultBaseLocal && !isInSection,
       '!pl-14': !isDefaultBaseLocal && !isInSection,
@@ -338,7 +338,11 @@ watch(isDropdownOpen, async () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
+      <div
+        v-e="['a:view:open', { view: vModel.type }]"
+        class="text-bodyDefaultSm font-medium flex items-center w-full gap-1"
+        data-testid="view-item"
+      >
         <div
           v-e="['c:view:emoji-picker']"
           class="flex min-w-6"
@@ -366,7 +370,7 @@ watch(isDropdownOpen, async () => {
           v-model:value="_title"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
-            '!font-semibold !text-nc-content-brand-disabled': activeView?.id === vModel.id,
+            '!font-medium !text-nc-content-brand-disabled': activeView?.id === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -387,7 +391,7 @@ watch(isDropdownOpen, async () => {
           <div
             data-testid="sidebar-view-title"
             :class="{
-              'font-semibold text-nc-content-brand-disabled': activeView?.id === vModel.id,
+              'font-medium text-nc-content-brand-disabled': activeView?.id === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onDblClick"

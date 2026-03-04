@@ -9,15 +9,19 @@ const { isLoading } = toRefs(props)
 
 const workspaceStore = useWorkspace()
 
-const { isLeftSidebarOpen, allowHideLeftSidebarForCurrentRoute } = storeToRefs(useSidebarStore())
+const { isLeftSidebarOpen, allowHideLeftSidebarForCurrentRoute, activeSidebarTab } = storeToRefs(useSidebarStore())
 
 const { activeWorkspace, isWorkspacesLoading } = storeToRefs(workspaceStore)
+
+const { isSharedBase } = storeToRefs(useBase())
 
 const { activeViewTitleOrId } = storeToRefs(useViewsStore())
 
 const { activeTableId } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
+
+const { setActiveCmdView } = useCommand()
 
 const showSidebarBtn = computed(() => {
   if (isMobileMode.value) {
@@ -35,39 +39,57 @@ const showSidebarBtn = computed(() => {
         <slot> Bases </slot>
       </div>
 
-      <NcTooltip
-        class="flex"
-        :class="{
-          '!opacity-100': !isLeftSidebarOpen,
-        }"
-        placement="bottom"
-        hide-on-click
-        :disabled="!!isMobileMode"
-      >
-        <template #title>
-          {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}
-        </template>
-        <NcButton
+      <div class="flex items-center gap-0.5">
+        <DashboardSidebarViewOptions v-if="isEeUI && !isMobileMode && !isSharedBase && activeSidebarTab === 'data'" />
+        <NcTooltip v-if="!isMobileMode && !isSharedBase" class="flex" placement="bottom" hide-on-click>
+          <template #title>
+            <div class="flex items-center gap-1">{{ $t('labels.quickSearch') }} {{ renderCmdOrCtrlKey(true) }} K</div>
+          </template>
+          <NcButton
+            v-e="['c:quick-actions']"
+            type="text"
+            size="small"
+            class="!text-nc-content-gray-muted !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
+            data-testid="nc-sidebar-search-btn"
+            @click="setActiveCmdView('cmd-k')"
+          >
+            <GeneralIcon icon="search" class="!text-current" />
+          </NcButton>
+        </NcTooltip>
+        <NcTooltip
           v-if="showSidebarBtn"
-          v-e="['c:leftSidebar:hideToggle']"
-          :type="isMobileMode ? 'secondary' : 'text'"
-          :size="isMobileMode ? 'medium' : 'small'"
-          class="nc-sidebar-left-toggle-icon !text-nc-content-gray-subtle !hover:text-nc-content-gray !xs:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
-          @click="isLeftSidebarOpen = !isLeftSidebarOpen"
+          class="flex"
+          :class="{
+            '!opacity-100': !isLeftSidebarOpen,
+          }"
+          placement="bottom"
+          hide-on-click
+          :disabled="!!isMobileMode"
         >
-          <div class="flex items-center text-inherit">
-            <GeneralIcon v-if="isMobileMode" icon="close" />
-            <GeneralIcon
-              v-else
-              icon="doubleLeftArrow"
-              class="duration-150 transition-all !text-lg -mt-0.5 !text-nc-content-gray-muted bg-opacity-50"
-              :class="{
-                'transform rotate-180': !isLeftSidebarOpen,
-              }"
-            />
-          </div>
-        </NcButton>
-      </NcTooltip>
+          <template #title>
+            {{ isLeftSidebarOpen ? `${$t('title.hideSidebar')}` : `${$t('title.showSidebar')}` }}
+          </template>
+          <NcButton
+            v-e="['c:leftSidebar:hideToggle']"
+            :type="isMobileMode ? 'secondary' : 'text'"
+            :size="isMobileMode ? 'medium' : 'small'"
+            class="nc-sidebar-left-toggle-icon !text-nc-content-gray-subtle !hover:text-nc-content-gray !xs:(h-10.5 max-h-10.5 max-w-10.5) !md:(hover:bg-nc-bg-gray-medium) !rounded-md"
+            @click="isLeftSidebarOpen = !isLeftSidebarOpen"
+          >
+            <div class="flex items-center text-inherit">
+              <GeneralIcon v-if="isMobileMode" icon="close" />
+              <GeneralIcon
+                v-else
+                icon="doubleLeftArrow"
+                class="duration-150 transition-all !text-lg -mt-0.5 !text-nc-content-gray-muted bg-opacity-50"
+                :class="{
+                  'transform rotate-180': !isLeftSidebarOpen,
+                }"
+              />
+            </div>
+          </NcButton>
+        </NcTooltip>
+      </div>
     </template>
     <template v-else>
       <a-skeleton-input :active="true" class="!flex-1 !h-7 !rounded overflow-hidden" />

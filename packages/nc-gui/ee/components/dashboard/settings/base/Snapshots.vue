@@ -122,33 +122,24 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
   </div>
 
   <div class="flex flex-col w-full">
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-      {{ $t('general.baseSnapshots') }}
-    </div>
-
-    <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
-      {{ $t('labels.snapShotSubText') }}
-    </div>
-
-    <div class="flex items-center mt-6 gap-5">
+    <div class="flex items-center justify-end">
       <NcButton
         :disabled="isUnsavedSnapshotsPending || isCooldownPeriodReached"
-        type="ghost"
-        class="!text-nc-content-brand"
+        type="primary"
         data-testid="add-new-snapshot"
         size="small"
-        :class="{
-          '!text-nc-content-inverted-primary-disabled': isUnsavedSnapshotsPending || isCooldownPeriodReached,
-        }"
         @click="addNewSnapshot"
       >
-        {{ $t('labels.newSnapshot') }}
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="plus" />
+          {{ $t('labels.newSnapshot') }}
+        </div>
       </NcButton>
     </div>
 
     <div
       v-if="isSnapshotCreationFailed"
-      class="mt-5 p-4 flex gap-4 border-1 relative rounded-lg border-nc-border-gray-extralight justify-between"
+      class="mt-4 p-4 flex gap-4 border-1 relative rounded-lg border-nc-border-gray-extralight justify-between"
     >
       <div class="flex w-full gap-4">
         <GeneralIcon icon="ncInfoSolid" class="text-red-700 mt-1" />
@@ -168,7 +159,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
 
     <div
       v-else-if="isCooldownPeriodReached"
-      class="mt-5 p-4 flex gap-4 border-1 rounded-lg border-nc-border-gray-extralight justify-between"
+      class="mt-4 p-4 flex gap-4 border-1 rounded-lg border-nc-border-gray-extralight justify-between"
     >
       <div class="flex w-full gap-4">
         <GeneralIcon icon="alertTriangleSolid" class="text-orange-500 mt-1" />
@@ -194,7 +185,7 @@ const restoreSnapshot = (s: SnapshotExtendedType) => {
       header-row-height="44px"
       row-height="44px"
       :data="sortedSnapshots"
-      class="h-full mt-5"
+      class="h-full mt-4"
       body-row-class-name="nc-base-settings-snapshot-item no-border-last"
     >
       <template #bodyCell="{ column, record: snapshot }">

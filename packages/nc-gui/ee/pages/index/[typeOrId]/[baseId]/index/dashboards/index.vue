@@ -1,5 +1,3 @@
-<script setup lang="ts"></script>
-
 <template>
-  <ProjectView />
+  <ProjectView show-overview-tab />
 </template>

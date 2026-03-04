@@ -14,7 +14,7 @@ const { appInfo } = useGlobal()
 const { isEEFeatureBlocked, showUpgradeForEEFeature } = useEeConfig()
 
 const label = computed(() => {
-  return `${t('general.create')} ${t('general.empty')} ${t('objects.dashboard')}`
+  return `${t('general.create')} ${t('objects.dashboard')}`
 })
 
 async function openNewDashboardModal() {

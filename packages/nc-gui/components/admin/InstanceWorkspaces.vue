@@ -62,7 +62,11 @@ const columns = [
 
 const customRow = (ws: Record<string, any>) => ({
   onClick: () => {
-    navigateTo(`/#/nc/${ws.id}`)
+    if (isEeUI) {
+      navigateTo(`/${ws.id}`)
+    } else {
+      navigateTo(`/#/nc/${ws.id}`)
+    }
   },
 })
 

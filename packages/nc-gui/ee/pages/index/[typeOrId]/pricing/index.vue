@@ -82,7 +82,7 @@ useEventListener('message', (event) => {
       $e('c:payment:pricing:choose-current-plan:navigate-to-billing', {
         activePlan: activePlan.value?.title || PlanTitles.FREE,
       })
-      navigateTo(`/${activeWorkspace.value?.id}/settings?tab=billing`)
+      navigateTo(`/${activeWorkspace.value?.id}/settings/ws-billing`)
       return
     }
 

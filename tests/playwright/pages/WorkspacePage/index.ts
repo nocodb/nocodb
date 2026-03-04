@@ -4,6 +4,7 @@ import { HeaderPage } from './HeaderPage';
 import { LeftSideBarPage } from './LeftSideBarPage';
 import { ContainerPage } from './ContainerPage';
 import { CollaborationPage } from './CollaborationPage';
+import { SidebarNavPage } from '../Dashboard/common/LeftSidebar/SidebarNavPage';
 
 /*
   Workspace page
@@ -19,6 +20,7 @@ import { CollaborationPage } from './CollaborationPage';
 export class WorkspacePage extends BasePage {
   readonly header: HeaderPage;
   readonly leftSideBar: LeftSideBarPage;
+  readonly sidebarNav: SidebarNavPage;
   readonly container: ContainerPage;
   readonly collaboration: CollaborationPage;
 
@@ -26,6 +28,7 @@ export class WorkspacePage extends BasePage {
     super(rootPage);
     this.header = new HeaderPage(this);
     this.leftSideBar = new LeftSideBarPage(this);
+    this.sidebarNav = new SidebarNavPage(rootPage);
     this.container = new ContainerPage(this);
     this.collaboration = new CollaborationPage(this);
   }
@@ -160,9 +163,9 @@ export class WorkspacePage extends BasePage {
   // }
 
   async verifyAccess(role: string) {
-    const collaborators = this.container.collaborators;
-    const billing = this.container.billing;
-    const settings = this.container.settings;
+    const collaborators = this.sidebarNav.getSettingsMenuItemLocator('ws-collaborators');
+    const billing = this.sidebarNav.getSettingsMenuItemLocator('ws-billing');
+    const settings = this.sidebarNav.getSettingsMenuItemLocator('ws-settings');
 
     if (role === 'owner') {
       expect(await billing.isVisible()).toBeTruthy();

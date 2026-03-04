@@ -193,7 +193,7 @@ const onChangeColor = (color: string) => {
 
 <template>
   <div
-    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer rounded-md pr-[3px]"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-muted text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer rounded-md pr-[3px]"
     :class="{
       '!pl-7.5 !xs:(pl-6.5)': isDefaultSource !== false,
       '!pl-14 !xs:(pl-13)': isDefaultSource === false,
@@ -220,7 +220,11 @@ const onChangeColor = (color: string) => {
           </div>
         </div>
       </template>
-      <div v-e="['a:view-section:open']" class="text-sm flex items-center w-full gap-1" data-testid="section-item">
+      <div
+        v-e="['a:view-section:open']"
+        class="text-bodyDefaultSm font-medium flex items-center w-full gap-1"
+        data-testid="section-item"
+      >
         <div
           class="flex min-w-6"
           :data-testid="`view-sidebar-drag-handle-${section.title}`"

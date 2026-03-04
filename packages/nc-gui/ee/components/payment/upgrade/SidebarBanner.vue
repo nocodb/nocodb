@@ -75,7 +75,7 @@ const showUpgradeToHigherPlanBanner = computed(() => {
 const showBanner = computed(() => {
   const isFreePlan = activePlan && activePlanTitle.value === PlanTitles.FREE
 
-  if (route.name === 'index-typeOrId-settings' && route.query?.tab === 'billing') {
+  if (route.name === 'index-typeOrId-settings-page' && route.params?.page === 'ws-billing') {
     return false
   }
 

@@ -390,11 +390,11 @@ watch(
 )
 
 const openBaseSettings = async (baseId: string) => {
-  await navigateTo(`/nc/${baseId}?page=base-settings`)
+  await navigateTo(`/nc/${baseId}/settings/settings`)
 }
 
 const openMcpSettings = async (baseId: string) => {
-  await navigateTo(`/nc/${baseId}?page=base-settings&tab=mcp`)
+  await navigateTo(`/nc/${baseId}/settings/mcp`)
 }
 
 const showNodeTooltip = ref(true)
@@ -506,10 +506,8 @@ defineExpose({
             class="nc-sidebar-node base-title-node flex-grow rounded-md group flex items-center w-full"
           >
             <div
-              class="flex items-center"
-              :class="{
-                'mr-1': !isProjectHeader,
-              }"
+              v-if="!isProjectHeader"
+              class="flex items-center mr-1"
               @click="onProjectClick(base)"
               @mouseenter="showNodeTooltip = false"
               @mouseleave="showNodeTooltip = true"
@@ -523,7 +521,6 @@ defineExpose({
                     :type="base?.type"
                     :model-value="parseProp(base.meta).iconColor"
                     size="small"
-                    :icon-class="isProjectHeader ? 'h-6 w-6' : ''"
                     :readonly="
                       (base?.type && base?.type !== 'database') || !isUIAllowed('baseRename') || isProjectNodeContextMenuOpen
                     "

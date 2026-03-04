@@ -109,7 +109,7 @@ export const useBase = defineStore('baseStore', () => {
   // todo: refactor path param name and variable name
   const baseType = computed(() => route.value.params.typeOrId as string)
 
-  const { navigateToProject, appInfo } = useGlobal()
+  const { appInfo } = useGlobal()
 
   const idUserMap = computed(() => {
     return (basesStore.basesUser.get(baseId.value) || []).reduce((acc, user) => {
@@ -355,7 +355,12 @@ export const useBase = defineStore('baseStore', () => {
     const workspaceId = workspaceStore.activeWorkspaceId
     const basUrl = `/${workspaceId}/${id}`
 
-    return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
+    if (projectPage) {
+      const slug = baseSettingsTabToSlug[projectPage] || projectPage
+      return `${basUrl}/settings/${slug}`
+    }
+
+    return basUrl
   }
 
   // Load managed app info and current version
@@ -419,25 +424,12 @@ export const useBase = defineStore('baseStore', () => {
     page: 'overview' | 'collaborator' | 'data-source' | 'permissions'
     action?: string
   }) => {
-    // await router.push({
-    //   name: 'index-typeOrId-baseId-index-index',
-    //   params: {
-    //     typeOrId: route.value.params.typeOrId,
-    //     baseId: route.value.params.baseId,
-    //   },
-    //   query: {
-    //     page,
-    //   },
-    // })
+    const wsId = route.value.params.typeOrId
+    const bId = route.value.params.baseId
+    const slug = baseSettingsTabToSlug[page] || page
+    const query = action ? { action } : undefined
 
-    navigateToProject({
-      workspaceId: route.value.params.typeOrId,
-      baseId: route.value.params.baseId,
-      query: {
-        page,
-        ...(action ? { action } : {}),
-      },
-    })
+    navigateTo({ path: `/${wsId}/${bId}/settings/${slug}`, query })
   }
 
   return {

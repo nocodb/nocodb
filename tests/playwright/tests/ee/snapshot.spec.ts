@@ -17,7 +17,7 @@ test.describe('Snapshots', () => {
   test('Create Snapshot', async () => {
     await dashboard.gotoSettings();
 
-    await dashboard.baseView.settings.changeTab('snapshots');
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('snapshots');
 
     await dashboard.baseView.settings.createSnapshot({ snapshotName: 'Test Snapshot' });
 
@@ -27,7 +27,7 @@ test.describe('Snapshots', () => {
   test('Restore Snapshot', async () => {
     await dashboard.gotoSettings();
 
-    await dashboard.baseView.settings.changeTab('snapshots');
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('snapshots');
 
     await dashboard.baseView.settings.createSnapshot({ snapshotName: 'Test Snapshot' });
 
@@ -39,7 +39,7 @@ test.describe('Snapshots', () => {
   test('Delete Snapshot', async ({ page }) => {
     await dashboard.gotoSettings();
 
-    await dashboard.baseView.settings.changeTab('snapshots');
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('snapshots');
 
     await dashboard.baseView.settings.createSnapshot({ snapshotName: 'Test Snapshot' });
 

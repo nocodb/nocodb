@@ -4,7 +4,10 @@ import BasePage from '../../../Base';
 import { isEE } from '../../../../setup/db';
 import { NcContext } from '../../../../setup';
 import { BaseListModalPage } from '../BaseListModal';
+import { SidebarNavPage } from './SidebarNavPage';
+import type { SettingsMenuItem } from './SidebarNavPage';
 
+/** Action types for the original MiniSidebar (v1) */
 type MiniSidebarActionType =
   | 'ws'
   | 'base'
@@ -17,20 +20,48 @@ type MiniSidebarActionType =
   | 'notification'
   | 'userInfo';
 
+/**
+ * Tab / panel keys for MiniSidebarV2 (new-sidebar-2 branch).
+ *
+ * Rail main items  : 'data', 'automations', 'settings'
+ * Rail bottom items: 'theme', 'support'
+ * Dock main items  : 'data', 'automations', 'settings'
+ * Dock bottom items: 'support'
+ * Both             : 'notification' (dropdown)
+ */
+type MiniSidebarV2TabType =
+  | 'data'
+  | 'automations'
+  | 'notification'
+  | 'theme'
+  | 'agents'
+  | 'settings'
+  | 'support'
+  | 'bookmarks'
+  | 'more';
+
 export class LeftSidebarPage extends BasePage {
   readonly base: any;
   readonly dashboard: DashboardPage;
   readonly baseListModal: BaseListModalPage;
+  readonly sidebarNav: SidebarNavPage;
 
   readonly btn_workspace: Locator;
   readonly btn_newProject: Locator;
-  // readonly btn_cmdK: Locator;
   readonly btn_teamAndSettings: Locator;
 
   readonly modal_workspace: Locator;
   readonly modal_baseList: Locator;
 
+  /** Legacy MiniSidebar (v1) container */
   readonly miniSidebar: Locator;
+
+  /**
+   * MiniSidebarV2 container — present on the new-sidebar-2 branch.
+   * Can be in rail mode ([data-testid="nc-mini-sidebar-v2-rail"]) or
+   * dock mode ([data-testid="nc-mini-sidebar-v2-dock"]) depending on user setting.
+   */
+  readonly miniSidebarV2: Locator;
 
   readonly active_base: Locator;
 
@@ -38,18 +69,17 @@ export class LeftSidebarPage extends BasePage {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
     this.baseListModal = new BaseListModalPage(dashboard);
+    this.sidebarNav = new SidebarNavPage(dashboard.rootPage);
 
     this.btn_workspace = this.get().locator('.nc-workspace-menu');
-    // Create button is now inside the modal's header, not the sidebar
-    // Using rootPage to search anywhere in the page (modal or sidebar)
     this.btn_newProject = this.rootPage.locator('[data-testid="nc-sidebar-create-base-btn"]');
-    // this.btn_cmdK = this.get().locator('[data-testid="nc-sidebar-search-btn"]');
     this.btn_teamAndSettings = this.get().locator('[data-testid="nc-sidebar-team-settings-btn"]');
 
     this.modal_workspace = this.rootPage.locator('.nc-dropdown-workspace-menu');
     this.modal_baseList = this.rootPage.locator('.nc-workspace-base-list-modal-wrapper');
 
     this.miniSidebar = this.dashboard.get().locator('[data-testid="nc-mini-sidebar"]');
+    this.miniSidebarV2 = this.dashboard.get().locator('[data-testid="nc-mini-sidebar-v2"]');
 
     this.active_base = this.get().locator('.nc-treeview-container.nc-treeview-container-active-base');
   }
@@ -58,54 +88,152 @@ export class LeftSidebarPage extends BasePage {
     return this.dashboard.get().locator('.nc-sidebar');
   }
 
-  /**
-   * In shared base/view minisidebar will be hidden
-   */
+  // ─────────────────────────────────────────────────────────────────────────
+  // Visibility helpers
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Returns true if the legacy MiniSidebar (v1) is present in the DOM. */
   async isMiniSidebarVisible() {
     return (await this.miniSidebar.count()) > 0;
   }
 
+  /** Returns true if MiniSidebarV2 is present in the DOM. */
+  async isMiniSidebarV2Visible() {
+    return (await this.miniSidebarV2.count()) > 0;
+  }
+
   /**
-   * Opens or verifies the base list modal is open
-   * @param open - If true, opens the modal if it's not already open
-   * @returns boolean indicating if modal is open
+   * Returns the active mini-sidebar container (V2 preferred, falls back to V1).
+   * Useful when code needs to work with both sidebar generations.
    */
-  async verifyBaseListOpen(open: boolean = false) {
+  async getActiveMiniSidebar(): Promise<Locator> {
+    if (await this.isMiniSidebarV2Visible()) return this.miniSidebarV2;
+    return this.miniSidebar;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // MiniSidebarV2 — navigation tab helpers
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Returns the locator for a tab/panel item inside MiniSidebarV2.
+   * Items are identified by their `data-panel` attribute which is set via
+   * the `panelKey` prop on `RailItem` / `DockItem`.
+   */
+  getMiniSidebarV2TabLocator(tab: MiniSidebarV2TabType): Locator {
+    return this.miniSidebarV2.locator(`[data-panel="${tab}"]`);
+  }
+
+  /**
+   * Clicks a tab in MiniSidebarV2 and waits for the navigation transition.
+   *
+   * @param tab - One of the MiniSidebarV2TabType keys ('data', 'automations', 'settings', …)
+   */
+  async clickMiniSidebarV2Tab(tab: MiniSidebarV2TabType): Promise<void> {
+    await this.miniSidebarV2.waitFor({ state: 'visible' });
+    const tabLocator = this.getMiniSidebarV2TabLocator(tab);
+    await tabLocator.waitFor({ state: 'visible' });
+    await tabLocator.click();
+    await this.rootPage.waitForTimeout(500);
+  }
+
+  /**
+   * Asserts that the given tab is currently active (has the `active` class).
+   */
+  async verifyMiniSidebarV2ActiveTab(tab: MiniSidebarV2TabType): Promise<void> {
+    const tabLocator = this.getMiniSidebarV2TabLocator(tab);
+    await expect(tabLocator).toHaveClass(/active/);
+  }
+
+  /**
+   * Asserts that the given tab is NOT active.
+   */
+  async verifyMiniSidebarV2InactiveTab(tab: MiniSidebarV2TabType): Promise<void> {
+    const tabLocator = this.getMiniSidebarV2TabLocator(tab);
+    await expect(tabLocator).not.toHaveClass(/active/);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // MiniSidebarV2 — logo / base list modal
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Opens the base list modal by clicking the logo in MiniSidebarV2.
+   * The logo element carries data-testid="nc-mini-sidebar-v2-logo".
+   */
+  async openBaseListModalViaV2(): Promise<void> {
+    if (await this.modal_baseList.isVisible()) return;
+
+    const logo = this.miniSidebarV2.getByTestId('nc-mini-sidebar-v2-logo');
+    await logo.waitFor({ state: 'visible' });
+    await logo.click();
+    await this.baseListModal.waitForOpen();
+    await this.rootPage.waitForTimeout(300);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Base list modal — works with both V1 and V2
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Opens or verifies the base list modal is open.
+   * Tries V2 sidebar first, falls back to V1 workspace button.
+   *
+   * @param open - If true, opens the modal when it is not already visible.
+   */
+  async verifyBaseListOpen(open: boolean = false): Promise<boolean> {
     const isModalOpen = await this.modal_baseList.isVisible();
 
     if (!isModalOpen && open) {
-      // Click workspace menu to open the base list modal
-      await this.miniSidebarActionClick({ type: 'ws' });
-      await this.baseListModal.waitForOpen();
+      if (await this.isMiniSidebarV2Visible()) {
+        await this.openBaseListModalViaV2();
+      } else {
+        await this.miniSidebarActionClick({ type: 'ws' });
+        await this.baseListModal.waitForOpen();
+      }
     }
 
-    // Wait for the modal transition to complete
     await this.rootPage.waitForTimeout(300);
-
-    return await this.modal_baseList.isVisible();
+    return this.modal_baseList.isVisible();
   }
 
-  /**
-   * Opens the base list modal
-   */
-  async openBaseListModal() {
-    if (!(await this.modal_baseList.isVisible())) {
+  /** Opens the base list modal (V2 first, V1 fallback). */
+  async openBaseListModal(): Promise<void> {
+    if (await this.modal_baseList.isVisible()) return;
+
+    if (await this.isMiniSidebarV2Visible()) {
+      await this.openBaseListModalViaV2();
+    } else {
       await this.miniSidebarActionClick({ type: 'ws' });
       await this.baseListModal.waitForOpen();
     }
   }
 
-  /**
-   * Closes the base list modal if open
-   */
-  async closeBaseListModal() {
+  /** Closes the base list modal if open. */
+  async closeBaseListModal(): Promise<void> {
     await this.baseListModal.close();
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // MiniSidebarV2 — navigation shortcuts (delegated to SidebarNavPage)
+  // ─────────────────────────────────────────────────────────────────────────
+
   /**
-   * Opens the create base menu using keyboard shortcut (Option/Alt + D)
+   * Opens the notification panel via MiniSidebarV2.
+   * Falls back silently if V2 is not present.
    */
-  async openCreateBaseMenuViaShortcut() {
+  async openNotificationPanel(): Promise<void> {
+    if (await this.isMiniSidebarV2Visible()) {
+      await this.clickMiniSidebarV2Tab('notification');
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Common actions
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Opens the create base menu using keyboard shortcut (Option/Alt + D). */
+  async openCreateBaseMenuViaShortcut(): Promise<void> {
     await this.rootPage.keyboard.press('Alt+d');
     await this.rootPage.waitForTimeout(300);
   }
@@ -130,11 +258,19 @@ export class LeftSidebarPage extends BasePage {
 
     await this.rootPage.locator('.nc-sidebar-header.nc-active-project').waitFor({ state: 'visible' });
 
-    // Open base list if it's not already open
     await this.verifyBaseListOpen(true);
   }
 
-  async clickTeamAndSettings() {
+  /**
+   * @deprecated Use navigateToSettingsPage instead
+   */
+  async clickTeamAndSettings(): Promise<void> {
+    // V2: team & settings is accessed via the 'settings' rail/dock tab
+    if (await this.isMiniSidebarV2Visible()) {
+      await this.navigateToSettingsPage('ws-settings');
+      return;
+    }
+
     await this.miniSidebarActionClick({
       type: 'teamAndSettings',
       fallback: async () => {
@@ -143,7 +279,11 @@ export class LeftSidebarPage extends BasePage {
     });
   }
 
-  async clickWorkspace() {
+  async clickWorkspace(): Promise<void> {
+    if (await this.isMiniSidebarV2Visible()) {
+      await this.openBaseListModalViaV2();
+      return;
+    }
     await this.miniSidebarActionClick({
       type: 'ws',
       fallback: async () => {
@@ -152,26 +292,23 @@ export class LeftSidebarPage extends BasePage {
     });
   }
 
-  async clickHome() {}
+  async clickHome(): Promise<void> {}
 
-  async getWorkspaceName() {
-    return await this.get().locator('.nc-sidebar-header').getAttribute('data-workspace-title');
+  async getWorkspaceName(): Promise<string | null> {
+    return this.get().locator('.nc-sidebar-header').getAttribute('data-workspace-title');
   }
 
-  async verifyWorkspaceName({ title }: { title: string }) {
+  async verifyWorkspaceName({ title }: { title: string }): Promise<void> {
     return expect(await this.getWorkspaceName()).toContain(title);
   }
 
-  async createWorkspace({ title }: { title: string }) {
-    // Open the base list modal
+  async createWorkspace({ title }: { title: string }): Promise<void> {
     await this.openBaseListModal();
 
-    // Click the "New Workspace" button in the modal
     const newWorkspaceBtn = this.modal_baseList.locator('button:has-text("New Workspace")');
     await newWorkspaceBtn.waitFor();
     await newWorkspaceBtn.click();
 
-    // Fill in the workspace creation dialog
     const inputModal = this.rootPage.locator('div.ant-modal.active').last();
     await inputModal.waitFor();
     await inputModal.locator('input').clear();
@@ -179,20 +316,16 @@ export class LeftSidebarPage extends BasePage {
     await inputModal.locator('button.ant-btn-primary').click();
   }
 
-  async verifyWorkspaceCount({ count }: { count: number }) {
-    // Open the base list modal
+  async verifyWorkspaceCount({ count }: { count: number }): Promise<void> {
     await this.openBaseListModal();
 
-    // Count workspace nodes in the modal
     const workspaceNodes = this.modal_baseList.locator('.nc-workspace-node');
     await expect(workspaceNodes).toHaveCount(count);
 
-    // Close the modal
     await this.closeBaseListModal();
   }
 
-  getWorkspaceNode(workspaceTitle: string) {
-    // Use the title class for precise matching
+  getWorkspaceNode(workspaceTitle: string): Locator {
     return this.modal_baseList.locator('.nc-workspace-node').filter({
       has: this.rootPage.locator('.nc-workspace-node-title', { hasText: workspaceTitle }),
     });
@@ -204,13 +337,11 @@ export class LeftSidebarPage extends BasePage {
     return classAttr?.includes('nc-selected-workspace-node') ?? false;
   }
 
-  async getWorkspaceList() {
+  async getWorkspaceList(): Promise<string[]> {
     const ws: string[] = [];
 
-    // Open the base list modal
     await this.openBaseListModal();
 
-    // Get workspace titles from the modal using the title class
     const titles = this.modal_baseList.locator('.nc-workspace-node-title');
     const count = await titles.count();
 
@@ -219,39 +350,36 @@ export class LeftSidebarPage extends BasePage {
       if (title) ws.push(title.trim());
     }
 
-    // Close the modal
     await this.closeBaseListModal();
 
     return ws;
   }
 
-  async openWorkspace(param: { title: string }) {
-    // Open the base list modal
+  async openWorkspace(param: { title: string }): Promise<void> {
     await this.openBaseListModal();
     await this.rootPage.waitForTimeout(300);
 
-    // Check if this workspace is already selected/active
     if (await this.isWorkspaceSelected(param.title)) {
-      // Already on this workspace, just close the modal
       await this.closeBaseListModal();
       return;
     }
 
-    // Find and click the navigate icon for the workspace
     const workspaceNode = this.getWorkspaceNode(param.title);
     await workspaceNode.locator('.nc-workspace-node-navigate-icon').click();
 
-    // Wait for navigation
     await this.rootPage.waitForTimeout(2000);
 
-    // Close modal if still open
     await this.closeBaseListModal();
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Legacy MiniSidebar (v1) helpers — kept for backward compatibility
+  // ─────────────────────────────────────────────────────────────────────────
 
   async getMiniSidebarActionLocator({ type }: { type: MiniSidebarActionType }): Promise<Locator | undefined> {
     await this.miniSidebar.waitFor();
 
-    const locators = {
+    const locators: Record<MiniSidebarActionType, Locator> = {
       ws: this.miniSidebar.getByTestId('nc-workspace-menu'),
       base: this.miniSidebar.getByTestId('nc-sidebar-project-btn'),
       'cmd-k': this.miniSidebar.getByTestId('nc-sidebar-cmd-k-btn'),
@@ -288,19 +416,54 @@ export class LeftSidebarPage extends BasePage {
 
     if (miniSidebarActionLocator) {
       await miniSidebarActionLocator.click();
-
-      // wait for transition to complete
       await this.rootPage.waitForTimeout(500);
     }
   }
 
+  /**
+   * Verifies the visibility of mini sidebar actions.
+   *
+   * When MiniSidebarV2 is active, V1 action types are mapped to their V2
+   * equivalents where possible. Types with no V2 equivalent are skipped.
+   *
+   * V1 → V2 mapping:
+   *   teamAndSettings → settings tab ([data-panel="settings"])
+   *   notification    → notification tab ([data-panel="notification"])
+   *   userInfo        → [data-testid="nc-sidebar-userinfo"] (still rendered via DashboardSidebarUserInfo)
+   *   cmd-k, cmd-l, cmd-j, integration, feeds → no V2 equivalent; assertion skipped
+   */
   async verifyMiniSidebarActions({
     types = [],
     isVisible = true,
   }: {
     types: MiniSidebarActionType[];
     isVisible: boolean;
-  }) {
+  }): Promise<void> {
+    if (await this.isMiniSidebarV2Visible()) {
+      const v2Mapping: Partial<Record<MiniSidebarActionType, MiniSidebarV2TabType | 'userInfo'>> = {
+        teamAndSettings: 'settings',
+        notification: 'notification',
+      };
+
+      for (const type of types) {
+        const v2Key = v2Mapping[type];
+
+        if (v2Key === 'userInfo') {
+          const locator = this.rootPage.getByTestId('nc-sidebar-userinfo');
+          if (isVisible) await expect(locator).toBeVisible();
+          else await expect(locator).not.toBeVisible();
+        } else if (v2Key) {
+          const locator = this.getMiniSidebarV2TabLocator(v2Key as MiniSidebarV2TabType);
+          if (isVisible) await expect(locator).toBeVisible();
+          else await expect(locator).not.toBeVisible();
+        }
+        // types with no V2 equivalent (cmd-k, cmd-l, cmd-j, integration, feeds) are skipped
+      }
+
+      return;
+    }
+
+    // V1 path
     for (const type of types) {
       const locator = await this.getMiniSidebarActionLocator({ type });
 

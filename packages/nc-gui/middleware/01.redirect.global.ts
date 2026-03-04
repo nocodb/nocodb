@@ -1,4 +1,6 @@
-export default defineNuxtRouteMiddleware(async () => {
+import { baseSettingsTabToSlug } from '~/utils/settingsRouteUtils'
+
+export default defineNuxtRouteMiddleware(async (to) => {
   // Get the query params from the URL
   const params = new URLSearchParams(window.location.search)
 
@@ -25,5 +27,47 @@ export default defineNuxtRouteMiddleware(async () => {
 
     // Redirect to the combined URL
     window.location.href = url
+    return
+  }
+
+  // Redirect old workspace settings/integrations routes to new ws-level settings paths
+  if (to.name === 'index-typeOrId-settings') {
+    const wsId = to.params.typeOrId as string
+    const tab = (to.query.tab as string) || 'settings'
+    const slugMap: Record<string, string> = {
+      settings: 'ws-settings',
+      collaborator: 'ws-members',
+      collaborators: 'ws-members',
+      teams: 'ws-teams',
+      integrations: 'ws-integrations',
+      billing: 'ws-billing',
+      audits: 'ws-audits',
+      sso: 'ws-sso',
+    }
+    return navigateTo(`/${wsId}/settings/${slugMap[tab] || 'ws-settings'}`, { replace: true })
+  }
+
+  if (to.name === 'index-typeOrId-integrations') {
+    return navigateTo(`/${to.params.typeOrId}/settings/ws-integrations`, { replace: true })
+  }
+
+  // Redirect old ?page= query param routes to new /settings/{slug} paths
+  const page = to.query.page as string | undefined
+
+  if (page && to.params.baseId) {
+    // Special case: ?page=base-settings&tab=mcp → /settings/mcp
+    if (page === 'base-settings' && to.query.tab === 'mcp') {
+      return navigateTo(`/${to.params.typeOrId}/${to.params.baseId}/settings/mcp`, { replace: true })
+    }
+
+    const slug = baseSettingsTabToSlug[page]
+
+    if (slug) {
+      // Forward remaining query params (excluding page and tab)
+      const { page: _, tab: __, ...rest } = to.query
+      const query = Object.keys(rest).length ? rest : undefined
+
+      return navigateTo({ path: `/${to.params.typeOrId}/${to.params.baseId}/settings/${slug}`, query }, { replace: true })
+    }
   }
 })

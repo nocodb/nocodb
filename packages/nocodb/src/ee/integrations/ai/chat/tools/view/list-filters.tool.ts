@@ -50,6 +50,7 @@ export const listFiltersTool: ChatToolDefinition = {
       id: f.id,
       field_name: colMap.get(f.fk_column_id) || f.fk_column_id,
       operator: f.comparison_op,
+      ...(f.comparison_sub_op && { sub_operator: f.comparison_sub_op }),
       value: f.value,
       logical_op: f.logical_op || 'and',
     }));

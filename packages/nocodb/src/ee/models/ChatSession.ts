@@ -98,7 +98,7 @@ export default class ChatSession
         context.base_id,
         MetaTable.CHAT_SESSIONS,
         {
-          condition: { base_id: baseId, fk_user_id: userId },
+          condition: { fk_user_id: userId },
           orderBy: { updated_at: 'desc' },
         },
       );
@@ -124,7 +124,6 @@ export default class ChatSession
     const insertObj = extractProps(session, [
       'id',
       'title',
-      'fk_workspace_id',
       'fk_user_id',
     ]);
 

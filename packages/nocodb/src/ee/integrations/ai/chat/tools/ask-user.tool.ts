@@ -29,7 +29,6 @@ export const askUserTool: ChatToolDefinition = {
           'Use multiple questions to gather several decisions at once.',
       ),
   },
-  permission: 'tableList',
   scope: 'base',
   requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,

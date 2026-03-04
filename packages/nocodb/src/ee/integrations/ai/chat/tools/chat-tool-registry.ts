@@ -52,7 +52,7 @@ export interface ChatToolDefinition {
   name: string;
   description: string;
   parameters: Record<string, z.ZodType>;
-  permission: string;
+  permission?: string;
   scope: 'base' | 'workspace';
   requiredRole: ProjectRoles;
   isDangerous: boolean;

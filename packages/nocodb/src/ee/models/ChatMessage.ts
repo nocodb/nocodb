@@ -97,7 +97,6 @@ export default class ChatMessage
       extractProps(message, [
         'id',
         'fk_session_id',
-        'fk_workspace_id',
         'role',
         'content',
         'parts',

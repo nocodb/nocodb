@@ -168,5 +168,5 @@ watch(
 </script>
 
 <template>
-  <ProjectView v-if="!hideProjectViewPage" :show-empty-skeleton="!showProjectViewPage || showEmptySkeleton" />
+  <ProjectView v-if="!hideProjectViewPage" :show-empty-skeleton="!showProjectViewPage || showEmptySkeleton" show-overview-tab />
 </template>

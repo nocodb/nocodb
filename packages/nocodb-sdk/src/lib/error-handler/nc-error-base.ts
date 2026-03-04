@@ -390,6 +390,13 @@ export class NcErrorBase {
     this.forbidden(`Source '${name}' schema is read-only`);
   }
 
+  systemFieldNonModifiable(): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SYSTEM_FIELD_NON_MODIFIABLE,
+      {},
+    );
+  }
+
   integrationNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_INTEGRATION_NOT_FOUND, {
       params: id,

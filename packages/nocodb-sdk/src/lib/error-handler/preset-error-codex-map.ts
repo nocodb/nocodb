@@ -423,4 +423,8 @@ export const presetErrorCodexMap: Partial<
     message: 'Your license has been suspended. Please contact support.',
     code: 403,
   },
+  [NcErrorType.ERR_SYSTEM_FIELD_NON_MODIFIABLE]: {
+    message: 'System field cannot be modified',
+    code: 422,
+  },
 };

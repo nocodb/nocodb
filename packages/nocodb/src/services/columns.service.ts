@@ -455,6 +455,23 @@ export class ColumnsService implements IColumnsService {
 
     const isSyncedColumn = table.synced && column.readonly;
 
+    if (
+      !param.forceUpdateSystem &&
+      ((column.system &&
+        [
+          UITypes.CreatedBy,
+          UITypes.CreatedTime,
+          UITypes.LastModifiedBy,
+          UITypes.LastModifiedTime,
+          UITypes.ID,
+          UITypes.Order,
+        ].includes(column.uidt)) ||
+        // somehow current external meta sync do not mark pk as system
+        column.pk)
+    ) {
+      NcError.get(context).systemFieldNonModifiable();
+    }
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }

@@ -236,7 +236,7 @@ defineExpose({ onKeyDown })
   gap: 10px;
   padding: 7px 14px;
   cursor: pointer;
-  transition: background-color 0.1s;
+  transition: background-color 0.12s ease;
 }
 
 .nc-slash-menu-item.is-selected {
@@ -263,6 +263,7 @@ defineExpose({ onKeyDown })
   width: 20px;
   color: var(--nc-content-gray);
   flex-shrink: 0;
+  transition: color 0.12s ease;
 }
 
 .nc-slash-menu-icon svg {
@@ -277,6 +278,7 @@ defineExpose({ onKeyDown })
   line-height: 1;
   flex: 1;
   min-width: 0;
+  transition: color 0.12s ease;
 }
 
 .nc-slash-menu-shortcut {

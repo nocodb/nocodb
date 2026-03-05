@@ -508,7 +508,8 @@ const openKeyboardShortcutDialog = () => {
   border-radius: 0 !important;
 
   > .nc-menu {
-    @apply rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default;
+    @apply rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-default;
+    box-shadow: 0px 8px 24px -4px rgba(0, 0, 0, 0.18), 0px 4px 8px -2px rgba(0, 0, 0, 0.1);
   }
 
   &::before {

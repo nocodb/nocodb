@@ -584,6 +584,32 @@ const enabledOptions = computed(() => {
                     </div>
                   </NcMenuItem>
 
+                  <LazyGeneralEmojiPicker
+                    v-if="canUserEditEmote"
+                    :key="`menu-icon-${table.meta?.icon}`"
+                    :emoji="table.meta?.icon"
+                    size="small"
+                    @emoji-selected="
+                      (icon) => {
+                        setIcon(icon, table)
+                        isOptionsOpen = false
+                      }
+                    "
+                  >
+                    <template #default>
+                      <NcMenuItem
+                        v-e="['c:table:change-icon']"
+                        :data-testid="`sidebar-table-change-icon-${table.title}`"
+                        class="nc-table-change-icon"
+                      >
+                        <div class="flex gap-2 items-center">
+                          <GeneralIcon icon="ncSmile" class="opacity-80" />
+                          {{ $t('general.changeIcon') }}
+                        </div>
+                      </NcMenuItem>
+                    </template>
+                  </LazyGeneralEmojiPicker>
+
                   <NcMenuItem
                     v-if="enabledOptions.tableDuplicate"
                     :data-testid="`sidebar-table-duplicate-${table.title}`"

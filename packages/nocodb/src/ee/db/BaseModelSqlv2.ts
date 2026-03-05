@@ -104,7 +104,6 @@ import {
   resolveRlsDynamicValues,
   resolveRlsPolicies,
 } from '~/utils/rls-resolver';
-import Team from '~/ee/models/Team';
 import {
   getExpandedTeamIds,
   getMemberUserIdsForTeamsAndDescendants,
@@ -2295,6 +2294,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
     ignoreRls?: boolean;
+    extractOnlyPrimaries?: boolean;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -2303,6 +2303,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const { ast } = await getAst(this.context, {
       model: this.model,
       query: args.args || {},
+      extractOnlyPrimaries: args.extractOnlyPrimaries,
     });
 
     const chunkedPks = chunkArray(pks, chunkSize);

@@ -326,6 +326,7 @@ export interface IBaseModelSqlV2 {
     chunkSize?: number;
     apiVersion?: NcApiVersion;
     args?: any;
+    extractOnlyPrimaries?: boolean;
   }): Promise<any[]>;
 
   list(

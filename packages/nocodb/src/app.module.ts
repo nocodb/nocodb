@@ -21,7 +21,10 @@ import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { UrlEncodeMiddleware } from '~/middlewares/url-encode.middleware';
 import { OAuthModule } from '~/modules/oauth/oauth.module';
-import { backendRoutePrefixes } from '~/utils/backend-route-prefixes';
+import {
+  backendRouteExcludePatterns,
+  backendRoutePrefixes,
+} from '~/utils/backend-route-prefixes';
 
 export const ceModuleConfig = {
   imports: [
@@ -59,22 +62,30 @@ export class AppModule {
       method: RequestMethod.ALL,
     }));
 
+    // GUI — serve frontend static files + SPA fallback (GET only, non-backend paths)
+    // exclude uses path-to-regexp patterns (prefix/(.*)), forRoutes uses Express prefix matching
     consumer
-      // 1. GUI — serve frontend static files + SPA fallback (GET only, non-backend paths)
       .apply(GuiMiddleware)
-      .exclude(...backendRoutes)
-      .forRoutes({ path: '*', method: RequestMethod.GET })
-      // 2. Body parsers + global middleware — backend routes only
+      .exclude(
+        ...backendRouteExcludePatterns.map((path) => ({
+          path,
+          method: RequestMethod.ALL,
+        })),
+      )
+      .forRoutes({ path: '*', method: RequestMethod.GET });
+
+    // Body parsers + global middleware — backend routes only
+    consumer
       .apply(RawBodyMiddleware)
       .forRoutes({
         path: '/api/payment/webhook',
         method: RequestMethod.POST,
-      })
-      .apply(JsonBodyMiddleware)
-      .forRoutes(...backendRoutes)
-      .apply(UrlEncodeMiddleware)
-      .forRoutes(...backendRoutes)
-      .apply(GlobalMiddleware)
-      .forRoutes(...backendRoutes);
+      });
+
+    consumer.apply(JsonBodyMiddleware).forRoutes(...backendRoutes);
+
+    consumer.apply(UrlEncodeMiddleware).forRoutes(...backendRoutes);
+
+    consumer.apply(GlobalMiddleware).forRoutes(...backendRoutes);
   }
 }

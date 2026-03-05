@@ -4788,9 +4788,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       for (const obj of auditObjs) {
         const displayValue =
-          obj.displayValue || dvMap.get(`${obj.model.id}:${obj.rowId}`);
+          obj.displayValue ?? dvMap.get(`${obj.model.id}:${obj.rowId}`);
         const refDisplayValue =
-          obj.refDisplayValue ||
+          obj.refDisplayValue ??
           dvMap.get(`${obj.refModel.id}:${obj.refRowId}`);
 
         const opType =

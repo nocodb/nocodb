@@ -64,12 +64,12 @@ const hasTableCreatePermission = computed(() => {
               type="text"
               size="small"
               full-width
-              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-brand !hover:(text-nc-content-brand-disabled) !xs:hidden !w-full !px-3"
+              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-gray !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
               data-testid="nc-home-create-new-btn"
             >
               <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncPlusCircleSolid" />
+                <GeneralIcon icon="ncPlusCircleSolid" class="!text-nc-content-brand" />
 
                 <div>{{ $t('labels.createNew') }}</div>
               </div>

@@ -18,6 +18,7 @@ import aggregationTest from './tests/aggregation.test';
 import dataAPIsV3Test from './tests/dataAPIsV3.test';
 import bulkV1Test from './tests/bulk-v1.test';
 import metaTestV3 from './tests/metaApiV3/index.test';
+import { internalTests } from './tests/internal/index.test';
 import tableTests from './tests/meta-apis/table.test';
 import { paymentTest } from './tests/payment/payment.test';
 
@@ -86,6 +87,7 @@ function restTests() {
   // v3 API tests
   if (testVersion.includes('v3')) {
     metaTestV3();
+    internalTests();
   }
 }
 

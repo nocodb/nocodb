@@ -27,6 +27,7 @@ import ChatMessage from '~/models/ChatMessage';
 import Integration from '~/models/Integration';
 import Base from '~/models/Base';
 import User from '~/models/User';
+import Permission from '~/models/Permission';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -951,6 +952,22 @@ export class ChatService implements OnModuleInit {
         workspaceId: context.workspace_id,
       });
       req.user.base_roles = userWithRoles.base_roles;
+    }
+
+    // Replicate middleware context flags that services rely on.
+    // Chat tools bypass the HTTP middleware pipeline, so compute them here.
+    if (baseId) {
+      const base = await Base.get(toolContext, baseId);
+      if (base) {
+        // schema_locked — blocks mutating tools when managed app has no draft
+        await Base.populateManagedAppInfo(base);
+        toolContext.schema_locked = !!(
+          base.managed_app_schema_locked || base.is_sandbox_master
+        );
+      }
+
+      // permissions — needed for table visibility checks inside services
+      toolContext.permissions = await Permission.list(toolContext, baseId);
     }
 
     return toolContext;

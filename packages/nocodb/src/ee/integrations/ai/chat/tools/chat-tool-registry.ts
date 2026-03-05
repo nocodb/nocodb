@@ -201,6 +201,17 @@ export class ChatToolRegistry {
       };
     }
 
+    // Enforce schema lock: when a managed app has a published version (no draft)
+    // or the base is a sandbox master, mutating tools are blocked.
+    if (context.schema_locked && !toolDef.readonly) {
+      return {
+        result:
+          'Schema is locked. This base has a published managed app version — ' +
+          'create a new draft with create_managed_app_draft before making changes.',
+        isError: true,
+      };
+    }
+
     // Enforce scope: base-scoped tools require base_id in context.
     // This is the structural guardrail — individual tools don't need to check.
     if (toolDef.scope === 'base' && !context.base_id) {

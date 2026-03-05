@@ -2762,7 +2762,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.runOps(postInsertOps.map((f) => f(rowId)));
 
-      // batch-fetch display values and write link audits + update lastModified
+      // batch-fetch display values and write link audits
       try {
         if (
           postInsertAuditEntries.length &&
@@ -2784,41 +2784,58 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             displayValueProps,
           );
 
-          // Write audits sequentially
+          // Write audits with per-entry isolation
           for (let i = 0; i < resolvedEntries.length; i++) {
             const entry = resolvedEntries[i];
             const displayValue = displayValues[i * 2];
             const refDisplayValue = displayValues[i * 2 + 1];
 
-            await Audit.insert(
-              await generateAuditV1Payload<DataLinkPayload>(
-                AuditV1OperationTypes.DATA_LINK,
-                {
-                  context: {
-                    ...this.context,
-                    source_id: entry.model.source_id,
-                    fk_model_id: entry.model.id,
-                    row_id: this.extractPksValues(entry.rowId, true) as string,
+            try {
+              await Audit.insert(
+                await generateAuditV1Payload<DataLinkPayload>(
+                  AuditV1OperationTypes.DATA_LINK,
+                  {
+                    context: {
+                      ...this.context,
+                      source_id: entry.model.source_id,
+                      fk_model_id: entry.model.id,
+                      row_id: this.extractPksValues(
+                        entry.rowId,
+                        true,
+                      ) as string,
+                    },
+                    details: {
+                      table_title: entry.model.title,
+                      ref_table_title: entry.refModel.title,
+                      link_field_title: entry.columnTitle,
+                      link_field_id: entry.columnId,
+                      row_id: entry.rowId,
+                      ref_row_id: entry.refRowId,
+                      display_value: displayValue,
+                      ref_display_value: refDisplayValue,
+                      type: entry.type,
+                    },
+                    req: entry.req,
                   },
-                  details: {
-                    table_title: entry.model.title,
-                    ref_table_title: entry.refModel.title,
-                    link_field_title: entry.columnTitle,
-                    link_field_id: entry.columnId,
-                    row_id: entry.rowId,
-                    ref_row_id: entry.refRowId,
-                    display_value: displayValue,
-                    ref_display_value: refDisplayValue,
-                    type: entry.type,
-                  },
-                  req: entry.req,
-                },
-              ),
-            );
+                ),
+              );
+            } catch (e) {
+              logger.error(
+                `[nestedInsert] audit write failed: ${e.message}`,
+                e.stack,
+              );
+            }
           }
         }
+      } catch (e) {
+        logger.error(
+          `[nestedInsert] audit batch failed: ${e.message}`,
+          e.stack,
+        );
+      }
 
-        // update lastModified for linked tables
+      // update lastModified for linked tables (independent of audit success)
+      try {
         for (const entry of postInsertLastModifiedEntries) {
           await this.updateLastModified({
             model: entry.model,
@@ -2843,7 +2860,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       } catch (e) {
         logger.error(
-          `[nestedInsert] audit/lastModified failed: ${e.message}`,
+          `[nestedInsert] lastModified failed: ${e.message}`,
           e.stack,
         );
       }
@@ -4761,35 +4778,42 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               ? AuditV1OperationTypes.DATA_LINK
               : AuditV1OperationTypes.DATA_UNLINK;
 
-          await Audit.insert(
-            await generateAuditV1Payload<DataLinkPayload | DataUnlinkPayload>(
-              opType,
-              {
-                context: {
-                  ...this.context,
-                  source_id: obj.model.source_id,
-                  fk_model_id: obj.model.id,
-                  row_id: this.extractPksValues(obj.rowId, true) as string,
+          try {
+            await Audit.insert(
+              await generateAuditV1Payload<DataLinkPayload | DataUnlinkPayload>(
+                opType,
+                {
+                  context: {
+                    ...this.context,
+                    source_id: obj.model.source_id,
+                    fk_model_id: obj.model.id,
+                    row_id: this.extractPksValues(obj.rowId, true) as string,
+                  },
+                  details: {
+                    table_title: obj.model.title,
+                    ref_table_title: obj.refModel.title,
+                    link_field_title: obj.columnTitle,
+                    link_field_id: obj.columnId,
+                    row_id: obj.rowId,
+                    ref_row_id: obj.refRowId,
+                    display_value: displayValue,
+                    ref_display_value: refDisplayValue,
+                    type: obj.type,
+                  },
+                  req: obj.req,
                 },
-                details: {
-                  table_title: obj.model.title,
-                  ref_table_title: obj.refModel.title,
-                  link_field_title: obj.columnTitle,
-                  link_field_id: obj.columnId,
-                  row_id: obj.rowId,
-                  ref_row_id: obj.refRowId,
-                  display_value: displayValue,
-                  ref_display_value: refDisplayValue,
-                  type: obj.type,
-                },
-                req: obj.req,
-              },
-            ),
-          );
+              ),
+            );
+          } catch (e) {
+            logger.error(
+              `[addChild] audit write failed: ${e.message}`,
+              e.stack,
+            );
+          }
         }
       }
     } catch (e) {
-      logger.error(`[addChild] audit write failed: ${e.message}`, e.stack);
+      logger.error(`[addChild] audit batch failed: ${e.message}`, e.stack);
     }
   }
 
@@ -5084,35 +5108,42 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const refDisplayValue =
             obj.refDisplayValue || fetchedValues[fetchIdx++];
 
-          await Audit.insert(
-            await generateAuditV1Payload<DataUnlinkPayload>(
-              AuditV1OperationTypes.DATA_UNLINK,
-              {
-                context: {
-                  ...this.context,
-                  source_id: obj.model.source_id,
-                  fk_model_id: obj.model.id,
-                  row_id: this.extractPksValues(obj.rowId, true) as string,
+          try {
+            await Audit.insert(
+              await generateAuditV1Payload<DataUnlinkPayload>(
+                AuditV1OperationTypes.DATA_UNLINK,
+                {
+                  context: {
+                    ...this.context,
+                    source_id: obj.model.source_id,
+                    fk_model_id: obj.model.id,
+                    row_id: this.extractPksValues(obj.rowId, true) as string,
+                  },
+                  details: {
+                    table_title: obj.model.title,
+                    ref_table_title: obj.refModel.title,
+                    link_field_title: obj.columnTitle,
+                    link_field_id: obj.columnId,
+                    row_id: obj.rowId,
+                    ref_row_id: obj.refRowId,
+                    display_value: displayValue,
+                    ref_display_value: refDisplayValue,
+                    type: obj.type,
+                  },
+                  req: obj.req,
                 },
-                details: {
-                  table_title: obj.model.title,
-                  ref_table_title: obj.refModel.title,
-                  link_field_title: obj.columnTitle,
-                  link_field_id: obj.columnId,
-                  row_id: obj.rowId,
-                  ref_row_id: obj.refRowId,
-                  display_value: displayValue,
-                  ref_display_value: refDisplayValue,
-                  type: obj.type,
-                },
-                req: obj.req,
-              },
-            ),
-          );
+              ),
+            );
+          } catch (e) {
+            logger.error(
+              `[removeChild] audit write failed: ${e.message}`,
+              e.stack,
+            );
+          }
         }
       }
     } catch (e) {
-      logger.error(`[removeChild] audit write failed: ${e.message}`, e.stack);
+      logger.error(`[removeChild] audit batch failed: ${e.message}`, e.stack);
     }
   }
 

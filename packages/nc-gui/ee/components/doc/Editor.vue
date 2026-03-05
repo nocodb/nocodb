@@ -1059,12 +1059,15 @@ onBeforeUnmount(() => {
                   {{ $t('general.downloadAs') }}
                 </template>
                 <NcMenuItem @click="onDownloadMarkdown">
+                  <GeneralIcon icon="ncHash" />
                   {{ $t('general.markdown') }}
                 </NcMenuItem>
                 <NcMenuItem @click="onDownloadHTML">
+                  <GeneralIcon icon="code" />
                   {{ $t('general.html') }}
                 </NcMenuItem>
                 <NcMenuItem @click="onDownloadPDF">
+                  <GeneralIcon icon="pdfFile" />
                   {{ $t('general.pdf') }}
                 </NcMenuItem>
               </NcSubMenu>

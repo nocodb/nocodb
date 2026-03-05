@@ -1,4 +1,5 @@
 import type { Editor } from '@tiptap/vue-3'
+import DOMPurify from 'dompurify'
 
 /**
  * Download helpers for exporting document content as Markdown, HTML, or PDF.
@@ -107,6 +108,9 @@ export function useDocumentExport({ editor, title }: { editor: Ref<Editor | unde
       .trim()
   }
 
+  /** Sanitize editor HTML to prevent XSS in exported documents. */
+  const sanitizeContent = (html: string) => DOMPurify.sanitize(html)
+
   const downloadMarkdown = () => {
     if (!editor.value) return
     const md = `# ${title.value || 'Untitled'}\n\n${htmlToMarkdown(editor.value.getHTML())}`
@@ -116,6 +120,7 @@ export function useDocumentExport({ editor, title }: { editor: Ref<Editor | unde
   const downloadHTML = () => {
     if (!editor.value) return
     const safeTitle = escapeHtml(title.value || 'Untitled')
+    const safeContent = sanitizeContent(editor.value.getHTML())
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -141,7 +146,7 @@ export function useDocumentExport({ editor, title }: { editor: Ref<Editor | unde
 </head>
 <body>
 <h1>${safeTitle}</h1>
-${editor.value.getHTML()}
+${safeContent}
 </body>
 </html>`
     downloadFile(html, 'html', 'text/html;charset=utf-8')
@@ -150,6 +155,7 @@ ${editor.value.getHTML()}
   const downloadPDF = () => {
     if (!editor.value) return
     const safeTitle = escapeHtml(title.value || 'Untitled')
+    const safeContent = sanitizeContent(editor.value.getHTML())
     // Open a print-ready window with styled content, then trigger print-to-PDF
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -177,7 +183,7 @@ ${editor.value.getHTML()}
 </head>
 <body>
 <h1>${safeTitle}</h1>
-${editor.value.getHTML()}
+${safeContent}
 <script>window.onload = function() { window.print(); }<\/script>
 </body>
 </html>`

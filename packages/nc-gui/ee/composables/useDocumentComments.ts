@@ -1,8 +1,6 @@
 import type { CommentReactionsType, CommentType } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
-export const REACTION_EMOJIS = ['👍', '👎', '😄', '😢', '🎉', '🚀'] as const
-
 export interface ReactionSummaryItem {
   emoji: string
   count: number

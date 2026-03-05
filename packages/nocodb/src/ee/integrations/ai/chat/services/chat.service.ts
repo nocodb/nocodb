@@ -70,6 +70,8 @@ export class ChatService {
       req: NcRequest;
     },
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_CHAT);
+
     const session = await ChatSession.insert(context, {
       title: params.title || 'New Chat',
       fk_workspace_id: context.workspace_id,
@@ -99,6 +101,8 @@ export class ChatService {
       req: NcRequest;
     },
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_CHAT);
+
     return ChatSession.list(context, {
       workspaceId: context.workspace_id,
       userId: params.req.user?.id,
@@ -112,6 +116,8 @@ export class ChatService {
       req: NcRequest;
     },
   ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_CHAT);
+
     const session = await ChatSession.get(context, params.sessionId);
 
     if (!session) {

@@ -10,7 +10,7 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_WEBHOOK_CUSTOM_PAYLOAD]: PlanTitles.FREE,
   [PlanFeatureTypes.FEATURE_DISCUSSION_MODE]: PlanTitles.FREE,
   [PlanFeatureTypes.FEATURE_GROUP_BY_AGGREGATIONS]: PlanTitles.FREE,
-  [PlanFeatureTypes.FEATURE_AI_CHAT]: PlanTitles.FREE,
+  [PlanFeatureTypes.FEATURE_AI_CHAT]: PlanTitles.PLUS,
 
   // Plus features
   [PlanFeatureTypes.FEATURE_AI]: PlanTitles.PLUS,

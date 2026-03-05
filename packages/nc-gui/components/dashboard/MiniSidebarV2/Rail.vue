@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 interface NavItem {
   key: string
@@ -39,17 +39,9 @@ const isNotificationOpen = ref(false)
 
 const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
 
-const { blockAiChat, showUpgradeToUseAiChat } = useEeConfig()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isChatEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CHAT))
+const { blockAiChat } = useEeConfig()
 
 const handleChatToggle = () => {
-  if (blockAiChat.value) {
-    showUpgradeToUseAiChat()
-    return
-  }
   toggleChatPanel()
 }
 
@@ -138,7 +130,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || !isChatEnabled.value) return
+  if (!isEeUI || blockAiChat.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -220,28 +212,18 @@ const mainItems = computed<NavItem[]>(() => [
 
     <!-- AI Chat -->
     <DashboardMiniSidebarV2RailItem
-      v-if="isEeUI && isChatEnabled && hasChatWorkspaceContext && !isMobileMode"
+      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && !isMobileMode"
       v-e="['c:chat:toggle']"
       label="Chat"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
-      :active="isChatPanelExpanded && !blockAiChat"
+      :active="isChatPanelExpanded"
       :disable-tooltip="true"
       plain-active
       @click="handleChatToggle"
     >
       <template #icon>
-        <div class="relative flex items-center justify-center">
-          <GeneralIcon icon="ncAutoAwesome" class="nc-rail-item-icon !text-nc-content-brand" />
-          <LazyPaymentUpgradeBadge
-            :feature="PlanFeatureTypes.FEATURE_AI_CHAT"
-            content=""
-            class="!absolute -bottom-1 -right-1"
-            show-as-lock
-            remove-click
-            size="xs"
-          />
-        </div>
+        <GeneralIcon icon="ncAutoAwesome" class="nc-rail-item-icon !text-nc-content-brand" />
       </template>
     </DashboardMiniSidebarV2RailItem>
 

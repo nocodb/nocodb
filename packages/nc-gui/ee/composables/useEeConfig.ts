@@ -260,6 +260,8 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockAiChat = computed(() => {
+    if (isEEFeatureBlocked.value) return true
+
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_CHAT)
   })
 

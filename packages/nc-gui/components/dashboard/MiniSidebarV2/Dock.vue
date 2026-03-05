@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes, extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
+import { extractBaseRoleFromWorkspaceRole } from 'nocodb-sdk'
 
 interface NavItem {
   key: string
@@ -39,17 +39,9 @@ const isNotificationOpen = ref(false)
 
 const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
 
-const { blockAiChat, showUpgradeToUseAiChat } = useEeConfig()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isChatEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CHAT))
+const { blockAiChat } = useEeConfig()
 
 const handleChatToggle = () => {
-  if (blockAiChat.value) {
-    showUpgradeToUseAiChat()
-    return
-  }
   toggleChatPanel()
 }
 
@@ -245,7 +237,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || !isChatEnabled.value) return
+  if (!isEeUI || blockAiChat.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -304,28 +296,18 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
     <!-- AI Chat -->
     <DashboardMiniSidebarV2DockItem
-      v-if="isEeUI && isChatEnabled && hasChatWorkspaceContext && !isMobileMode"
+      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && !isMobileMode"
       :ref="(el: any) => setItemRef('chat', el)"
       v-e="['c:chat:toggle']"
       label="Chat"
       panel-key="chat"
       data-testid="nc-sidebar-chat-btn"
-      :active="isChatPanelExpanded && !blockAiChat"
+      :active="isChatPanelExpanded"
       :scale="getScale('chat')"
       class="nc-dock-chat-item"
       @click="handleChatToggle"
     >
-      <div class="relative flex items-center justify-center">
-        <GeneralIcon icon="ncAutoAwesome" class="nc-dock-item-icon !text-nc-content-brand" />
-        <LazyPaymentUpgradeBadge
-          :feature="PlanFeatureTypes.FEATURE_AI_CHAT"
-          content=""
-          class="!absolute -bottom-1 -right-1"
-          show-as-lock
-          remove-click
-          size="xs"
-        />
-      </div>
+      <GeneralIcon icon="ncAutoAwesome" class="nc-dock-item-icon !text-nc-content-brand" />
     </DashboardMiniSidebarV2DockItem>
 
     <!-- Bottom group -->
@@ -362,7 +344,11 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       :overlay-style="{ marginLeft: '8px' }"
       :trigger="['click']"
     >
-      <div :ref="(el: any) => setItemRef('notification', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('notification')">
+      <div
+        :ref="(el: any) => setItemRef('notification', el)"
+        class="nc-dock-magnify-wrapper"
+        :style="getMagnifyStyle('notification')"
+      >
         <DashboardMiniSidebarV2DockItem
           :label="isNotificationOpen ? undefined : 'Activity'"
           panel-key="notification"

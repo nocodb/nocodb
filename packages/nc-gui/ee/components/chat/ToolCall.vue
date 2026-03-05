@@ -123,6 +123,13 @@ const keyArg = computed(() => {
   return firstStr || null
 })
 
+const { $e } = useNuxtApp()
+
+function toggleExpanded() {
+  isExpanded.value = !isExpanded.value
+  if (isExpanded.value) $e('c:chat:tool-call:expand', { tool: effectiveName.value })
+}
+
 const displayName = computed(() => effectiveName.value.replace(/_/g, ' '))
 
 const formattedArgs = computed(() => {
@@ -169,7 +176,7 @@ const visibleOutput = computed(() => {
     :style="{ '--i': index }"
   >
     <!-- Compact header row -->
-    <div class="flex items-center gap-1.5 px-2.5 py-1.5 select-none cursor-pointer" @click="isExpanded = !isExpanded">
+    <div class="flex items-center gap-1.5 px-2.5 py-1.5 select-none cursor-pointer" @click="toggleExpanded">
       <!-- Status indicator -->
       <div class="flex-none w-3.5 h-3.5 flex items-center justify-center">
         <GeneralLoader v-if="isRunning || isPending" :size="12" />

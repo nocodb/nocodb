@@ -4779,9 +4779,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // Batch-fetch missing display values into a KV map
       const missingDvProps: { model: Model; id: any }[] = [];
       for (const obj of auditObjs) {
-        if (!obj.displayValue)
+        if (obj.displayValue === undefined)
           missingDvProps.push({ model: obj.model, id: obj.rowId });
-        if (!obj.refDisplayValue)
+        if (obj.refDisplayValue === undefined)
           missingDvProps.push({ model: obj.refModel, id: obj.refRowId });
       }
       const dvMap = await this.fetchDisplayValueMap(missingDvProps);

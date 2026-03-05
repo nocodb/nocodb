@@ -126,6 +126,8 @@ export enum InstanceCommands {
   RELEASE = 'release',
   ASSIGN_WORKER_GROUP = 'assignWorkerGroup',
   STOP_OTHER_WORKER_GROUPS = 'stopOtherWorkerGroups',
+  ABORT_CHAT_STREAM = 'abortChatStream',
+  ABORT_CHAT_STREAM_ACK = 'abortChatStreamAck',
 }
 
 export interface JobData {

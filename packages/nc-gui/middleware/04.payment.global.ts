@@ -33,16 +33,19 @@ export default defineNuxtRouteMiddleware(() => {
     const workspaceId = params.get('workspaceId')
     const returnToPage = params.get('returnToPage')
 
-    let url = ''
+    let targetPath = ''
 
     if (returnToPage === 'org') {
-      url = `/admin/${workspaceId}/billing?${params.toString()}`
+      targetPath = `/admin/${workspaceId}/billing`
     } else if (returnToPage === 'account') {
-      url = `/account/workspace/${workspaceId}/settings?${params.toString()}`
+      targetPath = `/account/workspace/${workspaceId}/settings`
     } else {
-      url = `/${workspaceId}/settings/ws-billing?${params.toString()}`
+      targetPath = `/${workspaceId}/settings/ws-billing`
     }
 
-    window.location.href = url
+    // Only redirect if we're not already on the target path (prevents loop)
+    if (window.location.pathname.endsWith(targetPath)) return
+
+    window.location.href = `${targetPath}?${params.toString()}`
   }
 })

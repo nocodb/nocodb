@@ -121,13 +121,21 @@ export default class BaseUser {
       CacheDelDirection.PARENT_TO_CHILD,
     );
 
-    const res = await this.get(context, base_id, fk_user_id, ncMeta);
-
     cleanCommandPaletteCacheForUser(fk_user_id).catch(() => {
       logger.error('Error cleaning command palette cache');
     });
 
-    return res;
+    return this.get(context, base_id, fk_user_id, ncMeta).then(
+      async (baseUser) => {
+        await NocoCache.appendToList(
+          context,
+          CacheScope.BASE_USER,
+          [base_id],
+          `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
+        );
+        return baseUser;
+      },
+    );
   }
 
   // public static async update(id, user: Partial<BaseUser>, ncMeta = Noco.ncMeta) {

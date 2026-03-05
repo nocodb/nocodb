@@ -76,6 +76,20 @@ const enableEditModeForSource = (sourceId: string) => {
   })
 }
 
+const toggleSourceExpand = (sourceId: string) => {
+  const key = `collapse-${sourceId}`
+  const idx = activeKey.value.indexOf(key)
+  if (idx >= 0) {
+    activeKey.value.splice(idx, 1)
+  } else {
+    activeKey.value.push(key)
+  }
+}
+
+const isSourceExpanded = (sourceId: string) => {
+  return activeKey.value.includes(`collapse-${sourceId}`)
+}
+
 const showBaseOption = (source: SourceType) => {
   return ['airtableImport', 'csvImport', 'jsonImport', 'excelImport'].some((permission) => isUIAllowed(permission, { source }))
 }
@@ -243,33 +257,12 @@ onKeyStroke('Escape', () => {
                   v-else-if="source && source.enabled"
                   v-model:active-key="activeKey"
                   v-e="['c:source:toggle-expand']"
-                  class="!mx-0 !px-0 nc-sidebar-source-node"
+                  class="!mx-0 !px-0 nc-sidebar-source-node nc-source-collapse-no-arrow"
                   :class="[{ hidden: searchActive && !!filterQuery }]"
-                  expand-icon-position="right"
                   :bordered="false"
                   ghost
                 >
-                  <template #expandIcon="{ isActive, header }">
-                    <NcButton
-                      v-if="
-                        !(
-                          header?.[0]?.props?.['data-sourceId'] &&
-                          sourceRenameHelpers[header?.[0]?.props?.['data-sourceId']]?.editMode
-                        )
-                      "
-                      v-e="['c:external:base:expand']"
-                      type="text"
-                      size="xxsmall"
-                      class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100 !mr-0 mt-0.5"
-                      :class="{ '!opacity-100 !inline-block': isBasesOptionsOpen[source!.id!] }"
-                    >
-                      <GeneralIcon
-                        icon="chevronDown"
-                        class="flex-none cursor-pointer transform transition-transform duration-500 rotate-270"
-                        :class="{ '!rotate-360': isActive }"
-                      />
-                    </NcButton>
-                  </template>
+                  <template #expandIcon> </template>
                   <a-collapse-panel :key="`collapse-${source.id}`">
                     <template #header>
                       <div
@@ -277,7 +270,6 @@ onKeyStroke('Escape', () => {
                         class="nc-sidebar-node min-w-20 w-full h-full flex flex-row group py-0.5 !mr-0"
                         :class="{
                           'pr-0.5': source.id && sourceRenameHelpers[source.id]?.editMode,
-                          'pr-6.5': !(source.id && sourceRenameHelpers[source.id]?.editMode),
                         }"
                       >
                         <div
@@ -285,7 +277,34 @@ onKeyStroke('Escape', () => {
                           class="source-context flex items-center gap-2 text-nc-content-gray nc-sidebar-node-title"
                           @contextmenu="setMenuContext('source', source)"
                         >
-                          <GeneralBaseLogo class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
+                          <div
+                            class="hidden !xs:(flex items-center justify-center -mr-2) w-6 h-6 flex-none cursor-pointer"
+                            @click.stop="toggleSourceExpand(source.id!)"
+                          >
+                            <GeneralIcon
+                              icon="chevronRight"
+                              class="transform transition-transform duration-200 !text-nc-content-gray-subtle2 text-[16px]"
+                              :class="{ '!rotate-90': isSourceExpanded(source.id!) }"
+                            />
+                          </div>
+                          <div class="flex items-center nc-source-icon-wrapper min-w-6 h-6 relative" @click.stop>
+                            <NcButton
+                              v-e="['c:source:toggle-expand']"
+                              type="text"
+                              size="xxsmall"
+                              class="nc-source-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md !xs:hidden"
+                              @click.stop="toggleSourceExpand(source.id!)"
+                            >
+                              <GeneralIcon
+                                icon="chevronRight"
+                                class="cursor-pointer transform transition-transform duration-200 !text-current text-[16px]"
+                                :class="{ '!rotate-90': isSourceExpanded(source.id!) }"
+                              />
+                            </NcButton>
+                            <div class="flex items-center">
+                              <GeneralBaseLogo class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)" />
+                            </div>
+                          </div>
                           {{ $t('general.default') }}
                         </div>
                         <div
@@ -293,24 +312,49 @@ onKeyStroke('Escape', () => {
                           class="source-context flex flex-grow items-center gap-1 text-nc-content-gray min-w-1/20 max-w-full"
                           @contextmenu="setMenuContext('source', source)"
                         >
-                          <NcTooltip
-                            :tooltip-style="{ 'min-width': 'max-content' }"
-                            :overlay-inner-style="{ 'min-width': 'max-content' }"
-                            :mouse-leave-delay="0.3"
-                            placement="topLeft"
-                            trigger="hover"
-                            class="flex items-center"
+                          <div
+                            class="hidden !xs:(flex items-center justify-center -mr-1) w-6 h-6 flex-none cursor-pointer"
+                            @click.stop="toggleSourceExpand(source.id!)"
                           >
-                            <template #title>
-                              <component :is="getSourceTooltip(source)" />
-                            </template>
-                            <div class="flex-none w-6 flex items-center justify-center">
-                              <GeneralBaseLogo
-                                :color="getSourceIconColor(source)"
-                                class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)"
+                            <GeneralIcon
+                              icon="chevronRight"
+                              class="transform transition-transform duration-200 !text-nc-content-gray-subtle2 text-[16px]"
+                              :class="{ '!rotate-90': isSourceExpanded(source.id!) }"
+                            />
+                          </div>
+                          <div class="flex items-center nc-source-icon-wrapper min-w-6 h-6 relative" @click.stop>
+                            <NcButton
+                              v-e="['c:source:toggle-expand']"
+                              type="text"
+                              size="xxsmall"
+                              class="nc-source-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md !xs:hidden"
+                              @click.stop="toggleSourceExpand(source.id!)"
+                            >
+                              <GeneralIcon
+                                icon="chevronRight"
+                                class="cursor-pointer transform transition-transform duration-200 !text-current text-[16px]"
+                                :class="{ '!rotate-90': isSourceExpanded(source.id!) }"
                               />
-                            </div>
-                          </NcTooltip>
+                            </NcButton>
+                            <NcTooltip
+                              :tooltip-style="{ 'min-width': 'max-content' }"
+                              :overlay-inner-style="{ 'min-width': 'max-content' }"
+                              :mouse-leave-delay="0.3"
+                              placement="topLeft"
+                              trigger="hover"
+                              class="flex items-center"
+                            >
+                              <template #title>
+                                <component :is="getSourceTooltip(source)" />
+                              </template>
+                              <div class="flex-none w-6 flex items-center justify-center">
+                                <GeneralBaseLogo
+                                  :color="getSourceIconColor(source)"
+                                  class="flex-none min-w-4 !xs:(min-w-4.25 w-4.25 text-sm)"
+                                />
+                              </div>
+                            </NcTooltip>
+                          </div>
                           <a-input
                             v-if="source.id && sourceRenameHelpers[source.id]?.editMode"
                             ref="input"
@@ -443,3 +487,31 @@ onKeyStroke('Escape', () => {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-source-collapse-no-arrow {
+  :deep(.ant-collapse-arrow) {
+    @apply !hidden;
+  }
+
+  .nc-source-chevron-btn {
+    @apply transition-opacity duration-150;
+  }
+
+  :deep(.nc-source-icon-wrapper > :not(.nc-source-chevron-btn)) {
+    @apply transition-opacity duration-150;
+  }
+
+  @media (min-width: 481px) {
+    :deep(.ant-collapse-header:hover) {
+      .nc-source-chevron-btn {
+        @apply !opacity-100;
+      }
+
+      .nc-source-icon-wrapper > :not(.nc-source-chevron-btn) {
+        @apply !opacity-0;
+      }
+    }
+  }
+}
+</style>

@@ -430,7 +430,7 @@ const enabledOptions = computed(() => {
         class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium text-bodyDefaultSm font-medium"
         :class="{
           'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
-          'pl-8 !xs:(pl-7)': sourceIndex !== 0,
+          'pl-8': sourceIndex !== 0,
           'pl-2 xs:(pl-2)': sourceIndex === 0,
         }"
         :data-testid="`nc-tbl-side-node-${table.title}`"
@@ -440,13 +440,25 @@ const enabledOptions = computed(() => {
         <div class="flex flex-row h-full items-center">
           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
             <GeneralLoader v-if="table.isViewsLoading" class="flex items-center w-6 h-full !text-nc-content-gray-subtle2" />
-            <div v-else class="flex items-center nc-table-icon-wrapper min-w-6 relative" @click.stop>
-              <!-- Expand/collapse chevron shown on hover (Notion-style) -->
+            <!-- Mobile: plain chevron before icon -->
+            <div
+              v-if="!table.isViewsLoading"
+              class="hidden !xs:(flex items-center justify-center) w-6 h-6 flex-none cursor-pointer"
+              @click.stop="onExpand"
+            >
+              <GeneralIcon
+                icon="chevronRight"
+                class="transform transition-transform duration-200 !text-nc-content-gray-subtle2 text-[16px]"
+                :class="{ '!rotate-90': isExpanded }"
+              />
+            </div>
+            <div v-if="!table.isViewsLoading" class="flex items-center nc-table-icon-wrapper min-w-6 relative" @click.stop>
+              <!-- Desktop: combo chevron overlay -->
               <NcButton
                 v-e="['c:table:toggle-expand']"
                 type="text"
                 size="xxsmall"
-                class="nc-table-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md"
+                class="nc-table-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md !xs:hidden"
                 @click.stop="onExpand"
               >
                 <GeneralIcon
@@ -460,7 +472,7 @@ const enabledOptions = computed(() => {
               <div
                 ref="emojiPickerRef"
                 v-e="['c:table:emoji-picker']"
-                class="flex items-center group-hover:invisible pointer-events-none"
+                class="flex items-center group-hover:opacity-0 xs:group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
               >
                 <LazyGeneralEmojiPicker
                   :key="table.meta?.icon"

@@ -57,6 +57,8 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
+      <div v-if="activeSidebarTab !== 'settings'" class="border-t border-nc-border-gray-medium"></div>
+
       <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
@@ -84,7 +86,6 @@ const hasTableCreatePermission = computed(() => {
           </NcDropdown>
         </div>
       </div>
-      <div v-if="activeSidebarTab !== 'settings'" class="mx-3 border-t border-nc-border-gray-medium"></div>
     </div>
 
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">

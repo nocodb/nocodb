@@ -239,5 +239,6 @@ export class QueueService {
     QueueService.queueMemory.length = 0;
     QueueService.queueIdCounter = 1;
     QueueService.processed = 0;
+    QueueService._emitter.clearListeners();
   }
 }

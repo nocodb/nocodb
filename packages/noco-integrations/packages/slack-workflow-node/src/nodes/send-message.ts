@@ -301,10 +301,77 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         ts: Date.now(),
       });
 
+      // Convert mentions to Slack's special syntax
+      // Broadcast: @everyone, @channel, @here → <!keyword>
+      // User: <@display name> or <@username> → <@USER_ID>
+      // User group: handled by link_names parameter
+      let finalMessage = message
+        .replace(/@everyone\b/g, '<!everyone>')
+        .replace(/@channel\b/g, '<!channel>')
+        .replace(/@here\b/g, '<!here>');
+
+      // Resolve <@name> user mentions to <@USER_ID> format
+      const userMentionPattern = /<@([^>]+)>/g;
+      const mentionMatches = [...finalMessage.matchAll(userMentionPattern)];
+
+      if (mentionMatches.length > 0) {
+        // Fetch workspace users to resolve names to IDs
+        const members = await auth.use(async (client) => {
+          const allMembers: any[] = [];
+          let cursor: string | undefined;
+
+          do {
+            const response = await client.users.list({
+              limit: 1000,
+              cursor,
+            });
+
+            allMembers.push(...(response.members || []));
+            cursor = response.response_metadata?.next_cursor || undefined;
+          } while (cursor);
+
+          return allMembers;
+        });
+
+        // Build lookup maps: username → ID, display_name → ID, real_name → ID
+        const nameToId = new Map<string, string>();
+
+        for (const member of members) {
+          if (member.deleted || member.is_bot) continue;
+
+          if (member.name) {
+            nameToId.set(member.name.toLowerCase(), member.id);
+          }
+
+          if (member.profile?.display_name) {
+            nameToId.set(member.profile.display_name.toLowerCase(), member.id);
+          }
+
+          if (member.real_name) {
+            nameToId.set(member.real_name.toLowerCase(), member.id);
+          }
+        }
+
+        // Replace <@name> with <@USER_ID> where a match is found
+        // If name is already a Slack user ID (U...), leave it as-is
+        for (const match of mentionMatches) {
+          const name = match[1].trim();
+
+          if (/^U[A-Z0-9]+$/.test(name)) continue;
+
+          const slackUserId = nameToId.get(name.toLowerCase());
+
+          if (slackUserId) {
+            finalMessage = finalMessage.replace(match[0], `<@${slackUserId}>`);
+          }
+        }
+      }
+
       const result = await auth.use(async (client) => {
         const postMessageArgs: any = {
           channel: target,
-          text: message,
+          text: finalMessage,
+          link_names: true,
           unfurl_links: unfurlLinks,
         };
 

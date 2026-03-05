@@ -240,12 +240,7 @@ onKeyStroke('Escape', () => {
         <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
           <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
             <div class="transition-height duration-200">
-              <DashboardTreeViewTableList
-                :base="base"
-                :base-id="baseId"
-                :source-index="0"
-                :show-create-table-btn="false"
-              />
+              <DashboardTreeViewTableList :base="base" :base-id="baseId" :source-index="0" />
             </div>
           </div>
 

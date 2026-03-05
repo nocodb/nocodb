@@ -249,12 +249,7 @@ onKeyStroke('Escape', () => {
         <div class="flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
           <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
             <div class="transition-height duration-200">
-              <DashboardTreeViewTableList
-                :base="base"
-                :base-id="baseId"
-                :source-index="0"
-                :show-create-table-btn="false"
-              />
+              <DashboardTreeViewTableList :base="base" :base-id="baseId" :source-index="0" />
             </div>
           </div>
 
@@ -483,12 +478,7 @@ onKeyStroke('Escape', () => {
                       :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
                       :nc-source="source.id"
                     >
-                      <DashboardTreeViewTableList
-                        :base="base"
-                        :base-id="baseId"
-                        :source-index="baseIndex"
-                        :show-create-table-btn="false"
-                      />
+                      <DashboardTreeViewTableList :base="base" :base-id="baseId" :source-index="baseIndex" />
                     </div>
                   </a-collapse-panel>
                 </a-collapse>

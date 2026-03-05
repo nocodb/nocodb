@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import { PlanFeatureTypes, PlanTitles, type TableType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import type { NcDropdownPlacement } from '#imports'
 
 const props = defineProps<{
   // Prop used to align the dropdown to the left in sidebar
   alignLeftLevel: number | undefined
   source: Source
-  placement?: string
+  placement?: NcDropdownPlacement
 }>()
 
 const emits = defineEmits<{
@@ -122,7 +123,13 @@ function onCreateSection() {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen" :overlay-class-name="overlayClassName" :placement="placement || 'bottomLeft'" destroy-popup-on-hide @click.stop="isOpen = true">
+  <NcDropdown
+    v-model:visible="isOpen"
+    :overlay-class-name="overlayClassName"
+    :placement="placement || 'bottomLeft'"
+    destroy-popup-on-hide
+    @click.stop="isOpen = true"
+  >
     <slot />
     <template #overlay>
       <NcMenu class="max-w-48" variant="small">

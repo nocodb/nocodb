@@ -446,12 +446,7 @@ onMounted(() => {
               :key="`sortable-${source.id}-${source.id && source.id in keys ? keys[source.id] : '0'}`"
               :nc-source="source.id"
             >
-              <DashboardTreeViewTableList
-                :base="base"
-                :base-id="baseId"
-                :source-index="baseIndex"
-                :show-create-table-btn="false"
-              />
+              <DashboardTreeViewTableList :base="base" :base-id="baseId" :source-index="baseIndex" />
             </div>
           </a-collapse-panel>
         </a-collapse>

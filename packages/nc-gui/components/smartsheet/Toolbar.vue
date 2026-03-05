@@ -174,6 +174,9 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         <SmartsheetToolbarCalendarToggleSideBar />
       </template>
 
+      <!-- Kept mounted but visually hidden — the component registers record template
+           state/listeners that the AddNewRowMenu depends on. Will be fully removed
+           once record templates are decoupled from the toolbar lifecycle. -->
       <SmartsheetToolbarRecordTemplatesButton
         v-if="isEeUI && isGrid && isUIAllowed('viewOperations') && !isPublic && !isSharedBase && !isMobileMode"
         class="hidden sr-only"

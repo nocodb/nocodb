@@ -468,7 +468,9 @@ const enabledOptions = computed(() => {
                 />
               </NcButton>
 
-              <!-- Table icon/emoji (hidden on hover, replaced by chevron) -->
+              <!-- Table icon/emoji (hidden on hover, replaced by chevron).
+                   pointer-events-none is intentional — icon changes are triggered via the
+                   "Change Icon" context menu item which programmatically opens the picker. -->
               <div
                 ref="emojiPickerRef"
                 v-e="['c:table:emoji-picker']"

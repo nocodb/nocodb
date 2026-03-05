@@ -369,6 +369,8 @@ const deleteWorkflow = () => {
         class="text-bodyDefaultSm font-medium flex items-center w-full gap-1"
         data-testid="workflow-item"
       >
+        <!-- pointer-events-none is intentional — icon changes are triggered via the
+             "Change Icon" context menu item which programmatically opens the picker. -->
         <div
           ref="emojiPickerRef"
           v-e="['c:workflow:emoji-picker']"

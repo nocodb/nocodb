@@ -166,10 +166,7 @@ export default function () {
         'message',
         'error',
       ]);
-      expect(errLong.body.message).to.equal('Invalid request body');
-      expect(errLong.body.details[0].message).to.equal(
-        'must NOT have more than 50 characters',
-      );
+      expect(errLong.body.message).to.contains(`'title' must be at most 50 characters`);
     });
     it('Read Base v3', async () => {
       const baseObj = await _createBase(baseData);

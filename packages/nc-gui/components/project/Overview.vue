@@ -14,9 +14,19 @@ const { isUIAllowed } = useRoles()
 
 const { $e } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { showExternalSourcePlanLimitExceededModal } = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
+
+const tabActionLabel = computed(() => {
+  const labels: Record<string, string> = {
+    workflows: t('objects.workflow'),
+    docs: t('objects.document'),
+  }
+  return labels[activeSidebarTab.value] ?? t('general.data')
+})
 
 const isImportModalOpen = ref(false)
 
@@ -70,7 +80,7 @@ const onCreateBaseClick = () => {
 <template>
   <div class="nc-all-tables-view p-6 nc-scrollbar-thin h-full overflow-y-auto">
     <div class="text-subHeading2 text-nc-content-gray mb-5">
-      {{ activeSidebarTab === 'workflows' ? $t('objects.workflow') : $t('general.data') }} {{ $t('labels.actions') }}
+      {{ tabActionLabel }} {{ $t('labels.actions') }}
     </div>
 
     <div

@@ -12,7 +12,7 @@ export const useChatStore = defineStore('chatStore', () => {
 
   const { t } = useI18n()
 
-  const { token, user } = useGlobal()
+  const { token, user, ncNavigateTo } = useGlobal()
 
   const sessions = ref<Map<string, ChatSessionType>>(new Map())
 
@@ -117,6 +117,41 @@ export const useChatStore = defineStore('chatStore', () => {
   }
 
   // ---------------------------------------------------------------------------
+  // UI action handler — tools can return __ui_action payloads to trigger navigation
+  // ---------------------------------------------------------------------------
+
+  const workspaceStore = useWorkspace()
+
+  const handleUiAction = (output: string) => {
+    try {
+      const parsed = typeof output === 'string' ? JSON.parse(output) : output
+      if (!parsed?.__ui_action) return
+
+      const wsId = workspaceStore.activeWorkspaceId
+
+      switch (parsed.__ui_action) {
+        case 'navigate_base':
+          if (parsed.base_id) {
+            ncNavigateTo({ workspaceId: wsId, baseId: parsed.base_id })
+          }
+          break
+        case 'open_table':
+          if (parsed.table_id) {
+            ncNavigateTo({ workspaceId: wsId, baseId: parsed.base_id, tableId: parsed.table_id })
+          }
+          break
+        case 'open_view':
+          if (parsed.table_id && parsed.view_id) {
+            ncNavigateTo({ workspaceId: wsId, baseId: parsed.base_id, tableId: parsed.table_id, viewId: parsed.view_id })
+          }
+          break
+      }
+    } catch {
+      // Not JSON or no action — ignore
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Socket.IO — subscribe once to CHAT_EVENT for all sessions
   // ---------------------------------------------------------------------------
 
@@ -214,6 +249,7 @@ export const useChatStore = defineStore('chatStore', () => {
             )
             streamingStates.value.set(sessionId, { ...state, parts })
           }
+
           break
         }
 
@@ -225,6 +261,13 @@ export const useChatStore = defineStore('chatStore', () => {
               m.id === payload.messageId ? { ...m, parts: payload.parts as ChatContentBlock[] } : m,
             )
             messages.value.set(sessionId, updated)
+
+            // Handle UI actions from newly completed tool_use blocks
+            for (const p of payload.parts) {
+              if (p.type === 'tool_use' && p.output && !p.is_error) {
+                handleUiAction(p.output)
+              }
+            }
           }
           break
         }
@@ -252,6 +295,16 @@ export const useChatStore = defineStore('chatStore', () => {
             const wsId = payload.workspaceId
             if (wsId) {
               loadMessages(wsId, sessionId).catch(() => {})
+            }
+          }
+
+          // Handle UI actions from completed tool_use blocks
+          const doneParts = payload.parts?.length ? payload.parts : streaming?.parts
+          if (doneParts) {
+            for (const p of doneParts) {
+              if (p.type === 'tool_use' && p.output && !p.is_error) {
+                handleUiAction(p.output)
+              }
             }
           }
 

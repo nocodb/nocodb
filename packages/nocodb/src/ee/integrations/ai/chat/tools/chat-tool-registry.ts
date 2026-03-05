@@ -39,6 +39,11 @@ import { askUserTool } from './ask-user.tool';
 // Cross-base proxy
 import { baseProxyTool } from './base-proxy.tool';
 
+// UI tools
+import { navigateBaseTool } from './ui/navigate-base.tool';
+import { openTableTool } from './ui/open-table.tool';
+import { openViewTool } from './ui/open-view.tool';
+
 // View tools
 import { listViewFieldsTool } from './view/list-view-fields.tool';
 import { updateViewFieldsTool } from './view/update-view-fields.tool';
@@ -132,6 +137,10 @@ export class ChatToolRegistry {
       removeSortTool,
       setGroupByTool,
       clearGroupByTool,
+      // UI tools
+      navigateBaseTool,
+      openTableTool,
+      openViewTool,
       // Interaction tool
       askUserTool,
       // Cross-base proxy

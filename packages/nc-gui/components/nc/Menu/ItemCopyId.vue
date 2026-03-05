@@ -3,21 +3,13 @@ interface Props {
   id?: string
   tooltip?: string
   label?: string
-  /** Render as a section header label with entity name left, copyable ID right */
-  inline?: boolean
-  /** Entity name shown on the left when inline (e.g. "Table", "View") */
-  entityLabel?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  inline: false,
-})
+const props = withDefaults(defineProps<Props>(), {})
 
 const { id } = toRefs(props)
 
 const { copy } = useCopy()
-
-const { t } = useI18n()
 
 const isCopied = ref<boolean>(false)
 
@@ -46,24 +38,7 @@ const onClickCopy = async () => {
 </script>
 
 <template>
-  <!-- Inline mode: section header with entity name + copyable ID -->
-  <div v-if="inline" class="nc-ant-dropdown-menu-item-label">
-    <div class="flex items-center justify-between w-full">
-      <span>{{ entityLabel }}</span>
-      <NcTooltip :title="isCopied ? $t('general.copied') : (tooltip || $t('labels.clickToCopy'))">
-        <button
-          class="nc-copy-id-btn flex items-center gap-1 text-[10px] text-nc-content-gray-subtle2 hover:text-nc-content-gray-muted cursor-pointer font-normal transition-colors"
-          @click.stop="onClickCopy"
-        >
-          <span class="truncate max-w-24">{{ id }}</span>
-          <GeneralIcon :icon="isCopied ? 'check' : 'copy'" class="h-3 w-3 flex-none" />
-        </button>
-      </NcTooltip>
-    </div>
-  </div>
-
-  <!-- Classic mode: full-width copyable row -->
-  <div v-else class="w-full">
+  <div class="w-full">
     <NcTooltip
       :attrs="{
         class: 'w-full',
@@ -105,9 +80,3 @@ const onClickCopy = async () => {
     </NcTooltip>
   </div>
 </template>
-
-<style lang="scss" scoped>
-.nc-ant-dropdown-menu-item-label {
-  @apply flex items-center min-h-7 py-3 px-2 mx-2 xs:(text-base px-3.5 mx-0) font-bold uppercase text-xs text-nc-content-gray-muted;
-}
-</style>

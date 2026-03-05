@@ -563,9 +563,12 @@ const enabledOptions = computed(() => {
                 <NcMenuItemCopyId
                   v-if="table"
                   :id="table.id"
-                  inline
-                  :entity-label="$t('objects.table')"
                   :tooltip="$t('labels.clickToCopyTableID')"
+                  :label="
+                    $t('labels.tableIdColon', {
+                      tableId: table.id,
+                    })
+                  "
                   :data-testid="`sidebar-table-copy-id-${table.title}`"
                 />
 
@@ -578,6 +581,7 @@ const enabledOptions = computed(() => {
                       enabledOptions.tablePermission)
                   "
                 >
+                  <NcDivider v-if="enabledOptions.tableRename || enabledOptions.tableDuplicate" />
                   <NcMenuItem
                     v-if="enabledOptions.tableRename"
                     :data-testid="`sidebar-table-rename-${table.title}`"

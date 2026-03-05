@@ -355,10 +355,14 @@ defineOptions({
         <NcMenuItemCopyId
           v-if="view"
           :id="view.id"
-          inline
-          :entity-label="$t('objects.view')"
           :tooltip="$t('labels.clickToCopyViewID')"
+          :label="
+            $t('labels.viewIdColon', {
+              viewId: view?.id,
+            })
+          "
         />
+        <NcDivider />
 
         <!-- Upload -->
         <template v-if="isUploadAllowed && view.type !== ViewTypes.FORM">

@@ -781,9 +781,12 @@ onBeforeUnmount(() => {
                   <NcMenu variant="small">
                     <NcMenuItemCopyId
                       :id="record.id"
-                      inline
-                      :entity-label="record.isTeam ? $t('objects.team') : $t('objects.user')"
                       :tooltip="record.isTeam ? $t(`labels.clickToCopyTeamID`) : $t(`labels.clickToCopyUserID`)"
+                      :label="
+                        record.isTeam
+                          ? $t(`labels.teamIdColon`, { teamId: record.id })
+                          : $t(`labels.userIdColon`, { userId: record.id })
+                      "
                     />
                   </NcMenu>
                 </template>

@@ -77,7 +77,7 @@ export default function () {
           })
           .expect(400);
         expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
-        expect(result.body.message).to.eq(`Invalid request body`);
+        expect(result.body.message).to.includes(`'title' must not be empty`);
       });
 
       it('will handle base title over 50 chars', async () => {
@@ -90,7 +90,7 @@ export default function () {
           })
           .expect(400);
         expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
-        expect(result.body.message).to.eq(`Invalid request body`);
+        expect(result.body.message).to.includes(`'title' must be at most 50 characters`);
       });
 
       it('will handle base meta props invalid', async () => {
@@ -158,7 +158,7 @@ export default function () {
           })
           .expect(400);
         expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
-        expect(result.body.message).to.eq(`Invalid request body`);
+        expect(result.body.message).to.includes(`'title' must not be empty`);
       });
     });
 

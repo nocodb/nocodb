@@ -20,10 +20,6 @@ function instancePathToFieldName(instancePath: string): string {
       if (/^\d+$/.test(segment)) {
         return `[${segment}]`;
       }
-      // If previous segment was numeric (already bracketed), no dot prefix needed
-      if (i > 0 && /^\d+$/.test(arr[i - 1])) {
-        return `.${segment}`;
-      }
       return i === 0 ? segment : `.${segment}`;
     })
     .join('');

@@ -440,11 +440,7 @@ const enabledOptions = computed(() => {
         <div class="flex flex-row h-full items-center">
           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
             <GeneralLoader v-if="table.isViewsLoading" class="flex items-center w-6 h-full !text-nc-content-gray-subtle2" />
-            <div
-              v-else
-              class="flex items-center nc-table-icon-wrapper min-w-6 relative"
-              @click.stop
-            >
+            <div v-else class="flex items-center nc-table-icon-wrapper min-w-6 relative" @click.stop>
               <!-- Expand/collapse chevron shown on hover (Notion-style) -->
               <NcButton
                 v-e="['c:table:toggle-expand']"
@@ -464,10 +460,7 @@ const enabledOptions = computed(() => {
               <div
                 ref="emojiPickerRef"
                 v-e="['c:table:emoji-picker']"
-                class="flex items-center group-hover:invisible"
-                :class="{
-                  'pointer-events-none': !canUserEditEmote,
-                }"
+                class="flex items-center group-hover:invisible pointer-events-none"
               >
                 <LazyGeneralEmojiPicker
                   :key="table.meta?.icon"
@@ -476,26 +469,20 @@ const enabledOptions = computed(() => {
                   :readonly="!canUserEditEmote || isMobileMode"
                   @emoji-selected="setIcon($event, table)"
                 >
-                  <template #default="{ isOpen }">
-                    <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote || isOpen">
-                      <template #title>
-                        {{ $t('general.changeIcon') }}
-                      </template>
+                  <template #default>
+                    <component
+                      :is="iconMap.ncZap"
+                      v-if="table?.synced"
+                      class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
+                    />
 
-                      <component
-                        :is="iconMap.ncZap"
-                        v-if="table?.synced"
-                        class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
-                      />
+                    <component
+                      :is="iconMap.table"
+                      v-else-if="table.type === 'table'"
+                      class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
+                    />
 
-                      <component
-                        :is="iconMap.table"
-                        v-else-if="table.type === 'table'"
-                        class="nc-table-icon w-4 text-sm !text-nc-content-gray-muted"
-                      />
-
-                      <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-content-gray-muted" />
-                    </NcTooltip>
+                    <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-content-gray-muted" />
                   </template>
                 </LazyGeneralEmojiPicker>
               </div>
@@ -594,18 +581,12 @@ const enabledOptions = computed(() => {
                     </div>
                   </NcMenuItem>
 
-                  <NcMenuItem
-                    v-if="canUserEditEmote"
+                  <NcMenuItemChangeIcon
                     v-e="['c:table:change-icon']"
+                    :disabled="!!(!canUserEditEmote || isMobileMode)"
                     :data-testid="`sidebar-table-change-icon-${table.title}`"
-                    class="nc-table-change-icon"
-                    @click="onChangeIcon"
-                  >
-                    <div class="flex gap-2 items-center">
-                      <GeneralIcon icon="ncSmile" class="opacity-80" />
-                      {{ $t('general.changeIcon') }}
-                    </div>
-                  </NcMenuItem>
+                    @change-icon="onChangeIcon"
+                  />
 
                   <NcMenuItem
                     v-if="enabledOptions.tableDuplicate"

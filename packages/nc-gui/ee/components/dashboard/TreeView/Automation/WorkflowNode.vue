@@ -42,6 +42,8 @@ const base = inject(ProjectInj, ref())
 
 const input = ref<HTMLInputElement>()
 
+const emojiPickerRef = ref<HTMLElement>()
+
 const isDropdownOpen = ref(false)
 
 const isEditing = ref(false)
@@ -169,6 +171,13 @@ const onRenameMenuClick = () => {
       focusInput()
     })
   }
+}
+
+const onChangeIcon = () => {
+  isDropdownOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
 }
 
 async function onRenameWorkflow(workflow: WorkflowType, originalTitle?: string, undo = false) {
@@ -361,9 +370,10 @@ const deleteWorkflow = () => {
         data-testid="workflow-item"
       >
         <div
+          ref="emojiPickerRef"
           v-e="['c:workflow:emoji-picker']"
           :data-testid="`view-sidebar-drag-handle-${vModel.title}`"
-          class="flex min-w-6"
+          class="flex min-w-6 pointer-events-none"
           @mouseenter="showWorkflowNodeTooltip = false"
           @mouseleave="showWorkflowNodeTooltip = true"
         >
@@ -371,9 +381,9 @@ const deleteWorkflow = () => {
             :key="props.workflow?.meta?.icon"
             :clearable="true"
             :emoji="props.workflow?.meta?.icon"
-            :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             class="nc-workflow-icon"
             size="small"
+            :readonly="isMobileMode || !isUIAllowed('workflowCreateOrEdit')"
             @emoji-selected="updateWorkflowIcon($event, vModel)"
           >
             <template #default>
@@ -484,6 +494,7 @@ const deleteWorkflow = () => {
                     <GeneralIcon class="text-nc-content-gray-subtle" icon="ncAlignLeft" />
                     {{ $t('labels.editDescription') }}
                   </NcMenuItem>
+                  <NcMenuItemChangeIcon v-e="['c:workflow:change-icon']" @change-icon="onChangeIcon" />
                   <NcDivider />
                   <NcMenuItem
                     v-e="['c:workflow:duplicate']"

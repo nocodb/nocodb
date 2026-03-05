@@ -38,6 +38,8 @@ const base = inject(ProjectInj, ref())
 
 const input = ref<HTMLInputElement>()
 
+const emojiPickerRef = ref<HTMLElement>()
+
 const isDropdownOpen = ref(false)
 
 const isEditing = ref(false)
@@ -164,6 +166,13 @@ const onRenameMenuClick = () => {
       focusInput()
     })
   }
+}
+
+const onChangeIcon = () => {
+  isDropdownOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
 }
 
 async function onRenameDashboard(dashboard: DashboardType, originalTitle?: string, undo = false) {
@@ -361,8 +370,9 @@ const deleteDashboard = () => {
         data-testid="dashboard-item"
       >
         <div
+          ref="emojiPickerRef"
           v-e="['c:dashboard:emoji-picker']"
-          class="flex min-w-6"
+          class="flex min-w-6 pointer-events-none"
           :data-testid="`view-sidebar-drag-handle-${vModel.title}`"
           @mouseenter="showDashboardNodeTooltip = false"
           @mouseleave="showDashboardNodeTooltip = true"
@@ -483,6 +493,7 @@ const deleteDashboard = () => {
                     <GeneralIcon icon="ncAlignLeft" class="text-nc-content-gray-subtle" />
                     {{ $t('labels.editDescription') }}
                   </NcMenuItem>
+                  <NcMenuItemChangeIcon v-e="['c:dashboard:change-icon']" @change-icon="onChangeIcon" />
 
                   <NcDivider />
 

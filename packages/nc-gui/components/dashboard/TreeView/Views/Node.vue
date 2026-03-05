@@ -73,6 +73,8 @@ const { openViewDescriptionDialog: _openViewDescriptionDialog } = inject(TreeVie
 
 const input = ref<HTMLInputElement>()
 
+const emojiPickerRef = ref<HTMLElement>()
+
 const isDropdownOpen = ref(false)
 
 /** Is editing the view name enabled */
@@ -183,6 +185,13 @@ const onRenameMenuClick = () => {
       focusInput()
     })
   }
+}
+
+const onChangeIcon = () => {
+  isDropdownOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
 }
 
 /** Rename a view */
@@ -344,8 +353,9 @@ watch(isDropdownOpen, async () => {
         data-testid="view-item"
       >
         <div
+          ref="emojiPickerRef"
           v-e="['c:view:emoji-picker']"
-          class="flex min-w-6"
+          class="flex min-w-6 pointer-events-none"
           :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`"
           @mouseenter="showViewNodeTooltip = false"
           @mouseleave="showViewNodeTooltip = true"
@@ -355,7 +365,7 @@ watch(isDropdownOpen, async () => {
             :emoji="props.view?.meta?.icon"
             size="small"
             :clearable="true"
-            :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
+            :readonly="isLocked || isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             @emoji-selected="emits('selectIcon', $event)"
           >
             <template #default>
@@ -469,6 +479,7 @@ watch(isDropdownOpen, async () => {
                 in-sidebar
                 @close-modal="isDropdownOpen = false"
                 @rename="onRenameMenuClick"
+                @change-icon="onChangeIcon"
                 @delete="onDelete"
                 @description-update="openViewDescriptionDialog(vModel)"
               />

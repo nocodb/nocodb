@@ -15,7 +15,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate'])
+const emits = defineEmits(['rename', 'closeModal', 'delete', 'descriptionUpdate', 'changeIcon'])
 
 const { isUIAllowed, isDataReadOnly } = useRoles()
 
@@ -347,6 +347,11 @@ defineOptions({
 
           {{ $t('labels.editDescription') }}
         </NcMenuItem>
+        <NcMenuItemChangeIcon
+          v-if="lockType !== LockType.Locked"
+          v-e="['c:view:change-icon']"
+          @change-icon="emits('changeIcon')"
+        />
         <NcDivider />
       </template>
 

@@ -25,6 +25,9 @@ export const useChatStore = defineStore('chatStore', () => {
   // Track the workspace we loaded sessions for — used to persist activeSessionId
   const _currentWsId = ref<string | null>(null)
 
+  // Sessions that were cancelled — ignore further socket events until next user action
+  const _cancelledSessionIds = new Set<string>()
+
   // Persist activeSessionId per workspace so it survives page refresh
   const _sessionStorageKey = (wsId: string) => `nc-chat-active-session-${wsId}`
 
@@ -133,6 +136,16 @@ export const useChatStore = defineStore('chatStore', () => {
       const payload = data as ChatEventPayload
       const { action, sessionId } = payload
       if (!sessionId) return
+
+      // Ignore events for sessions the user cancelled.
+      // The terminal event (message-done or error) clears the flag so the
+      // next turn on this session works normally.
+      if (_cancelledSessionIds.has(sessionId)) {
+        if (action === 'error' || action === 'message-done') {
+          _cancelledSessionIds.delete(sessionId)
+        }
+        return
+      }
 
       switch (action) {
         case 'tool-start': {
@@ -386,6 +399,9 @@ export const useChatStore = defineStore('chatStore', () => {
   const sendMessage = async (wsId: string, sessionId: string, content: string, baseId?: string) => {
     if (isSendingMessage.value) return
 
+    // Clear cancelled flag — user is starting a fresh turn
+    _cancelledSessionIds.delete(sessionId)
+
     // Push optimistic user message immediately
     const userMessage: ChatMessageType = {
       id: `temp-${Date.now()}`,
@@ -425,6 +441,9 @@ export const useChatStore = defineStore('chatStore', () => {
     decisions: Record<string, 'approved' | 'denied'>,
     baseId?: string,
   ) => {
+    // Clear cancelled flag — user is taking an action
+    _cancelledSessionIds.delete(sessionId)
+
     // Optimistic update: approved → RUNNING (will execute), denied → DENIED
     const currentMsgs = messages.value.get(sessionId)
     if (currentMsgs) {
@@ -464,9 +483,46 @@ export const useChatStore = defineStore('chatStore', () => {
   // Cleanup
   // ---------------------------------------------------------------------------
 
-  const cancelSending = () => {
-    if (!activeSessionId.value) return
-    streamingStates.value.delete(activeSessionId.value)
+  const cancelSending = async () => {
+    const sessionId = activeSessionId.value
+    if (!sessionId) return
+
+    // Block socket events immediately — streaming freezes visually (no more appending)
+    _cancelledSessionIds.add(sessionId)
+
+    // Tell the backend to abort and wait for it to finish
+    if (_currentWsId.value) {
+      try {
+        await $api.instance.post(`/api/v2/internal/${_currentWsId.value}/chat/sessions/${sessionId}/abort`)
+      } catch {
+        // best-effort
+      }
+    }
+
+    // Promote frozen streaming content to a final message.
+    // The backend persists the same partial content; we blocked the socket
+    // message-done so we materialise it locally from what we already have.
+    // Resolve still-RUNNING tool_use blocks to ERROR (stream was cancelled).
+    const streaming = streamingStates.value.get(sessionId)
+    if (streaming && streaming.parts.length) {
+      const resolvedParts = streaming.parts.map((p) =>
+        p.type === 'tool_use' && p.status === ChatToolCallStatus.RUNNING ? { ...p, status: ChatToolCallStatus.ERROR } : p,
+      ) as ChatContentBlock[]
+
+      const currentMsgs = messages.value.get(sessionId) || []
+      messages.value.set(sessionId, [
+        ...currentMsgs,
+        {
+          id: streaming.id,
+          fk_session_id: sessionId,
+          role: ChatMessageRole.ASSISTANT,
+          parts: resolvedParts,
+          created_at: new Date().toISOString(),
+        } as ChatMessageType,
+      ])
+    }
+
+    streamingStates.value.delete(sessionId)
     isSendingMessage.value = false
   }
 
@@ -475,6 +531,7 @@ export const useChatStore = defineStore('chatStore', () => {
     messages.value.clear()
     streamingStates.value.clear()
     _freshSessionIds.clear()
+    _cancelledSessionIds.clear()
     _currentWsId.value = null
     activeSessionId.value = null
     isLoadingSessions.value = false

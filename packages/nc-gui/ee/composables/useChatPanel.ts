@@ -21,6 +21,18 @@ export const useChatPanel = createSharedComposable(() => {
     },
   })
 
+  // Clear persisted preference when chat is blocked so it doesn't reopen on refresh.
+  // `immediate` catches the case where blockAiChat is already true on init (e.g. on-prem unlicensed).
+  watch(
+    blockAiChat,
+    (blocked) => {
+      if (blocked && panelPreference.value) {
+        panelPreference.value = false
+      }
+    },
+    { immediate: true },
+  )
+
   const MIN_WIDTH = 320
   const MAX_WIDTH = 720
   const DEFAULT_WIDTH = 420

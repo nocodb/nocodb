@@ -96,6 +96,9 @@ export interface IBaseModelSqlV2 {
   readOnlyPrimariesByPkFromModel(
     props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
   ): Promise<any[]>;
+  fetchDisplayValueMap(
+    props: { model: Model; id: any }[],
+  ): Promise<Map<string, any>>;
   extractPksValues(data: any, asString?: boolean): any;
   readByPk(
     id?: any,

@@ -458,6 +458,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
   }
 
+  public async fetchDisplayValueMap(
+    props: { model: Model; id: any }[],
+  ): Promise<Map<string, any>> {
+    const dvMap = new Map<string, any>();
+    if (!props.length) return dvMap;
+    const values = await this.readOnlyPrimariesByPkFromModel(props);
+    for (let i = 0; i < props.length; i++) {
+      dvMap.set(`${props[i].model.id}:${props[i].id}`, values[i]);
+    }
+    return dvMap;
+  }
+
   public async exist(id?: any): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
     await this.model.getColumns(this.context);
@@ -2775,20 +2787,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             refRowId: entry.refRowIdIsInsertedRow ? rowId : entry.refRowId,
           }));
 
-          // Batch-fetch all display values
-          const displayValueProps = resolvedEntries.flatMap((entry) => [
-            { model: entry.model, id: entry.rowId },
-            { model: entry.refModel, id: entry.refRowId },
-          ]);
-          const displayValues = await this.readOnlyPrimariesByPkFromModel(
-            displayValueProps,
+          // Batch-fetch all display values into a KV map
+          const dvMap = await this.fetchDisplayValueMap(
+            resolvedEntries.flatMap((entry) => [
+              { model: entry.model, id: entry.rowId },
+              { model: entry.refModel, id: entry.refRowId },
+            ]),
           );
 
           // Write audits with per-entry isolation
-          for (let i = 0; i < resolvedEntries.length; i++) {
-            const entry = resolvedEntries[i];
-            const displayValue = displayValues[i * 2];
-            const refDisplayValue = displayValues[i * 2 + 1];
+          for (const entry of resolvedEntries) {
+            const displayValue = dvMap.get(`${entry.model.id}:${entry.rowId}`);
+            const refDisplayValue = dvMap.get(
+              `${entry.refModel.id}:${entry.refRowId}`,
+            );
 
             try {
               await Audit.insert(
@@ -4751,69 +4763,76 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
+    await this.writeLinkAudits(
+      relationManager.getAuditUpdateObj(cookie),
+      'addChild',
+    );
+  }
+
+  private async writeLinkAudits(
+    auditObjs: ReturnType<RelationManager['getAuditUpdateObj']>,
+    callerTag: string,
+  ) {
     try {
-      const auditObjs = relationManager.getAuditUpdateObj(cookie);
-      if (auditObjs.length && (await this.isDataAuditEnabled())) {
-        // Batch-fetch any missing display values
-        const missingProps = auditObjs.flatMap((obj) => [
-          ...(!obj.displayValue ? [{ model: obj.model, id: obj.rowId }] : []),
-          ...(!obj.refDisplayValue
-            ? [{ model: obj.refModel, id: obj.refRowId }]
-            : []),
-        ]);
+      if (!auditObjs.length || !(await this.isDataAuditEnabled())) return;
 
-        const fetchedValues =
-          missingProps.length > 0
-            ? await this.readOnlyPrimariesByPkFromModel(missingProps)
-            : [];
+      // Batch-fetch missing display values into a KV map
+      const missingDvProps: { model: Model; id: any }[] = [];
+      for (const obj of auditObjs) {
+        if (!obj.displayValue)
+          missingDvProps.push({ model: obj.model, id: obj.rowId });
+        if (!obj.refDisplayValue)
+          missingDvProps.push({ model: obj.refModel, id: obj.refRowId });
+      }
+      const dvMap = await this.fetchDisplayValueMap(missingDvProps);
 
-        let fetchIdx = 0;
-        for (const obj of auditObjs) {
-          const displayValue = obj.displayValue || fetchedValues[fetchIdx++];
-          const refDisplayValue =
-            obj.refDisplayValue || fetchedValues[fetchIdx++];
+      for (const obj of auditObjs) {
+        const displayValue =
+          obj.displayValue || dvMap.get(`${obj.model.id}:${obj.rowId}`);
+        const refDisplayValue =
+          obj.refDisplayValue ||
+          dvMap.get(`${obj.refModel.id}:${obj.refRowId}`);
 
-          const opType =
-            obj.opSubType === AuditOperationSubTypes.LINK_RECORD
-              ? AuditV1OperationTypes.DATA_LINK
-              : AuditV1OperationTypes.DATA_UNLINK;
+        const opType =
+          obj.opSubType === AuditOperationSubTypes.LINK_RECORD
+            ? AuditV1OperationTypes.DATA_LINK
+            : AuditV1OperationTypes.DATA_UNLINK;
 
-          try {
-            await Audit.insert(
-              await generateAuditV1Payload<DataLinkPayload | DataUnlinkPayload>(
-                opType,
-                {
-                  context: {
-                    ...this.context,
-                    source_id: obj.model.source_id,
-                    fk_model_id: obj.model.id,
-                    row_id: this.extractPksValues(obj.rowId, true) as string,
-                  },
-                  details: {
-                    table_title: obj.model.title,
-                    ref_table_title: obj.refModel.title,
-                    link_field_title: obj.columnTitle,
-                    link_field_id: obj.columnId,
-                    row_id: obj.rowId,
-                    ref_row_id: obj.refRowId,
-                    display_value: displayValue,
-                    ref_display_value: refDisplayValue,
-                    type: obj.type,
-                  },
-                  req: obj.req,
+        try {
+          await Audit.insert(
+            await generateAuditV1Payload<DataLinkPayload | DataUnlinkPayload>(
+              opType,
+              {
+                context: {
+                  ...this.context,
+                  source_id: obj.model.source_id,
+                  fk_model_id: obj.model.id,
+                  row_id: this.extractPksValues(obj.rowId, true) as string,
                 },
-              ),
-            );
-          } catch (e) {
-            logger.error(
-              `[addChild] audit write failed: ${e.message}`,
-              e.stack,
-            );
-          }
+                details: {
+                  table_title: obj.model.title,
+                  ref_table_title: obj.refModel.title,
+                  link_field_title: obj.columnTitle,
+                  link_field_id: obj.columnId,
+                  row_id: obj.rowId,
+                  ref_row_id: obj.refRowId,
+                  display_value: displayValue,
+                  ref_display_value: refDisplayValue,
+                  type: obj.type,
+                },
+                req: obj.req,
+              },
+            ),
+          );
+        } catch (e) {
+          logger.error(
+            `[${callerTag}] audit write failed: ${e.message}`,
+            e.stack,
+          );
         }
       }
     } catch (e) {
-      logger.error(`[addChild] audit batch failed: ${e.message}`, e.stack);
+      logger.error(`[${callerTag}] audit batch failed: ${e.message}`, e.stack);
     }
   }
 
@@ -5086,65 +5105,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
-    try {
-      const auditObjs = relationManager.getAuditUpdateObj(cookie);
-      if (auditObjs.length && (await this.isDataAuditEnabled())) {
-        // Batch-fetch any missing display values
-        const missingProps = auditObjs.flatMap((obj) => [
-          ...(!obj.displayValue ? [{ model: obj.model, id: obj.rowId }] : []),
-          ...(!obj.refDisplayValue
-            ? [{ model: obj.refModel, id: obj.refRowId }]
-            : []),
-        ]);
-
-        const fetchedValues =
-          missingProps.length > 0
-            ? await this.readOnlyPrimariesByPkFromModel(missingProps)
-            : [];
-
-        let fetchIdx = 0;
-        for (const obj of auditObjs) {
-          const displayValue = obj.displayValue || fetchedValues[fetchIdx++];
-          const refDisplayValue =
-            obj.refDisplayValue || fetchedValues[fetchIdx++];
-
-          try {
-            await Audit.insert(
-              await generateAuditV1Payload<DataUnlinkPayload>(
-                AuditV1OperationTypes.DATA_UNLINK,
-                {
-                  context: {
-                    ...this.context,
-                    source_id: obj.model.source_id,
-                    fk_model_id: obj.model.id,
-                    row_id: this.extractPksValues(obj.rowId, true) as string,
-                  },
-                  details: {
-                    table_title: obj.model.title,
-                    ref_table_title: obj.refModel.title,
-                    link_field_title: obj.columnTitle,
-                    link_field_id: obj.columnId,
-                    row_id: obj.rowId,
-                    ref_row_id: obj.refRowId,
-                    display_value: displayValue,
-                    ref_display_value: refDisplayValue,
-                    type: obj.type,
-                  },
-                  req: obj.req,
-                },
-              ),
-            );
-          } catch (e) {
-            logger.error(
-              `[removeChild] audit write failed: ${e.message}`,
-              e.stack,
-            );
-          }
-        }
-      }
-    } catch (e) {
-      logger.error(`[removeChild] audit batch failed: ${e.message}`, e.stack);
-    }
+    await this.writeLinkAudits(
+      relationManager.getAuditUpdateObj(cookie),
+      'removeChild',
+    );
   }
 
   public async afterRemoveChild({

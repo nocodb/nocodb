@@ -126,6 +126,8 @@ export type { ReusableParams } from '~/services/columns.service.type';
 
 const deepClone = rfdc();
 
+const META_ONLY_COLUMN_PROPS = new Set(['description']);
+
 // todo: move
 export enum Altered {
   NEW_COLUMN = 1,
@@ -455,6 +457,27 @@ export class ColumnsService implements IColumnsService {
 
     const isSyncedColumn = table.synced && column.readonly;
 
+    const allowUpdateSystemField =
+      process.env.NC_SYSTEM_FIELD_API_UPDATE === 'true' ||
+      param.forceUpdateSystem;
+
+    if (
+      !allowUpdateSystemField &&
+      ((column.system &&
+        [
+          UITypes.CreatedBy,
+          UITypes.CreatedTime,
+          UITypes.LastModifiedBy,
+          UITypes.LastModifiedTime,
+          UITypes.ID,
+          UITypes.Order,
+        ].includes(column.uidt)) ||
+        // somehow current external meta sync do not mark pk as system
+        column.pk)
+    ) {
+      NcError.get(context).systemFieldNonModifiable();
+    }
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -479,6 +502,13 @@ export class ColumnsService implements IColumnsService {
       await Column.update(context, param.columnId, {
         description: param.column.description,
       });
+    }
+    const payloadHasNonMetaProps = Object.keys(param.column).some(
+      (k) => !META_ONLY_COLUMN_PROPS.has(k),
+    );
+    if (!payloadHasNonMetaProps) {
+      await table.getColumns(context);
+      return table;
     }
 
     // These are the column types whose meta is allowed to be updated
@@ -2212,7 +2242,7 @@ export class ColumnsService implements IColumnsService {
         );
       }
 
-      const originalCdf = colBody.cdf;
+      const originalColBody = { ...colBody };
       colBody = await getColumnPropsFromUIDT(colBody, source);
 
       // AutoNumber columns are read-only — prevent manual updates via data API
@@ -2220,13 +2250,21 @@ export class ColumnsService implements IColumnsService {
         colBody.readonly = true;
       }
 
-      if (
-        typeof colBody.cdf !== 'undefined' &&
-        typeof originalCdf === 'undefined'
-      ) {
-        // do not override cdf when request is undefined
-        colBody.cdf = originalCdf;
-      }
+      const setPropsFromRequest = (...props: string[]) => {
+        for (const prop of props) {
+          // set the request props only if it exists in request
+          if (prop in originalColBody) {
+            colBody[prop] = originalColBody[prop];
+          }
+          // otherwise, we remove the default preset cdf,
+          // since it isn't needed during column update (but do at column add)
+          // if we don't, then the cdf will be overridden unintentionally
+          else {
+            delete colBody[prop];
+          }
+        }
+      };
+      setPropsFromRequest('cdf', 'rqd');
 
       await this.updateMetaAndDatabase(context, {
         table,

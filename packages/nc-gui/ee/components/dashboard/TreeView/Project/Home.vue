@@ -110,7 +110,7 @@ const hasTableCreatePermission = computed(() => {
 
       <!-- Documents tab -->
       <template v-else-if="activeSidebarTab === 'docs'">
-        <Documents v-if="!isSharedBase && !isMobileMode" :base-id="base.id" />
+        <Documents v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header />
       </template>
 
       <!-- Automation/Workflows tab -->

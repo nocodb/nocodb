@@ -275,13 +275,13 @@ function onStopEdit() {
 
 <template>
   <div
-    class="nc-sidebar-node !rounded-md !pr-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !rounded-md !pr-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm font-medium !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :style="indentStyle"
     :data-testid="`view-sidebar-doc-${doc.title}`"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
-    <div v-e="['a:document:open']" class="text-sm flex items-center w-full gap-0.5" data-testid="doc-item">
+    <div v-e="['a:document:open']" class="flex items-center w-full gap-0.5" data-testid="doc-item">
       <!-- Chevron — always visible (Notion pattern) -->
       <div
         class="nc-doc-chevron flex-none flex items-center justify-center w-5 h-5 rounded-sm cursor-pointer hover:bg-nc-bg-gray-medium"
@@ -331,7 +331,7 @@ function onStopEdit() {
         ref="input"
         v-model:value="_title"
         :class="{
-          'font-semibold !text-nc-content-brand-disabled': activeDocumentId === doc.id,
+          'font-medium !text-nc-content-brand-disabled': activeDocumentId === doc.id,
         }"
         :style="{
           fontWeight: 'inherit',
@@ -349,7 +349,7 @@ function onStopEdit() {
         <template #title> {{ doc.title || $t('general.untitled') }}</template>
         <div
           :class="{
-            'font-semibold text-nc-content-brand-disabled': activeDocumentId === doc.id,
+            'font-medium text-nc-content-brand-disabled': activeDocumentId === doc.id,
           }"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
           data-testid="sidebar-doc-title"

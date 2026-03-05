@@ -1,7 +1,13 @@
 <script setup lang="ts">
-const props = defineProps<{
-  baseId: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    baseId: string
+    hideHeader?: boolean
+  }>(),
+  {
+    hideHeader: false,
+  },
+)
 
 const baseId = toRef(props, 'baseId')
 
@@ -43,7 +49,12 @@ watch(
 
 <template>
   <div class="nc-tree-item nc-documents-node-wrapper nc-project-home-section text-sm select-none w-full nc-base-tree-documents">
-    <div v-e="['c:documents:toggle-expand']" class="nc-project-home-section-header w-full cursor-pointer" @click.stop="onExpand">
+    <div
+      v-if="!hideHeader"
+      v-e="['c:documents:toggle-expand']"
+      class="nc-project-home-section-header w-full cursor-pointer"
+      @click.stop="onExpand"
+    >
       <div>{{ $t('objects.documents') }}</div>
       <div class="flex-1" />
       <GeneralIcon
@@ -52,6 +63,6 @@ watch(
         :class="{ '!rotate-90': isExpanded }"
       />
     </div>
-    <DashboardTreeViewDocumentsList v-if="isExpanded" :base-id="baseId" />
+    <DashboardTreeViewDocumentsList v-if="isExpanded || hideHeader" :base-id="baseId" />
   </div>
 </template>

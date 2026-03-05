@@ -282,19 +282,22 @@ function onStopEdit() {
     @click.prevent="handleOnClick"
   >
     <div v-e="['a:document:open']" class="flex items-center w-full gap-0.5" data-testid="doc-item">
-      <!-- Chevron — always visible (Notion pattern) -->
+      <!-- Chevron — always visible; muted when no children -->
       <div
-        class="nc-doc-chevron flex-none flex items-center justify-center w-5 h-5 rounded-sm cursor-pointer hover:bg-nc-bg-gray-medium"
-        :class="{ 'opacity-0 pointer-events-none': !showChevron }"
-        @click.stop="onToggleCollapse"
+        class="nc-doc-chevron flex-none flex items-center justify-center w-5 h-5 rounded-md"
+        :class="showChevron ? 'cursor-pointer hover:bg-nc-bg-gray-medium' : 'cursor-default'"
+        @click.stop="showChevron && onToggleCollapse()"
         @dblclick.stop
       >
         <GeneralLoader v-if="loadingChildren" size="auto" class="!w-3.5 !h-3.5" />
         <GeneralIcon
           v-else
           icon="chevronRight"
-          class="nc-doc-chevron-icon text-nc-content-gray-muted !text-[14px] transform transition-transform duration-150"
-          :class="{ '!rotate-90': !collapsed && showChevron }"
+          class="nc-doc-chevron-icon !text-[14px] transform transition-transform duration-150"
+          :class="[
+            showChevron ? 'text-nc-content-gray-muted' : 'text-nc-content-gray-muted/50',
+            { '!rotate-90': !collapsed && showChevron },
+          ]"
         />
       </div>
 

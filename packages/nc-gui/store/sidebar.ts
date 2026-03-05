@@ -113,7 +113,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-  type SidebarTab = 'data' | 'workflows' | 'agents' | 'settings'
+  type SidebarTab = 'data' | 'docs' | 'workflows' | 'agents' | 'settings'
 
   const activeSidebarTab = ref<SidebarTab>('data')
 
@@ -127,6 +127,10 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     // Base routes — only derive tab when a baseId is present
     if (name.startsWith('index-typeOrId-baseId-')) {
       if (name.startsWith('index-typeOrId-baseId-index-settings')) return 'settings'
+
+      if (name.startsWith('index-typeOrId-baseId-index-docs')) {
+        return 'docs'
+      }
 
       if (
         name.startsWith('index-typeOrId-baseId-index-workflows') ||

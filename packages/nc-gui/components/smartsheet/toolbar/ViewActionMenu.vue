@@ -48,10 +48,6 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
 
-const { isViewActionsEnabled, toggleActionPanel } = useActionPane()
-
-const { openManager: openRecordTemplateManager } = useRecordTemplate()
-
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
 const currentSourceId = computed(() => table.value?.source_id)
@@ -270,16 +266,6 @@ const copyViewConfigMenuItemStatus = computed(() => {
   return getCopyViewConfigBtnAccessStatus(view.value, 'view-action-menu')
 })
 
-const onRunActions = () => {
-  toggleActionPanel()
-  emits('closeModal')
-}
-
-const onNewFormRecordTemplate = () => {
-  openRecordTemplateManager()
-  emits('closeModal')
-}
-
 defineOptions({
   inheritAttrs: false,
 })
@@ -306,33 +292,21 @@ defineOptions({
     data-id="toolbar-actions"
     variant="small"
   >
-    <template v-if="showOnlyCopyId">
-      <NcMenuItemCopyId
-        v-if="view"
-        :id="view.id"
-        :tooltip="$t('labels.clickToCopyViewID')"
-        :label="
-          $t('labels.viewIdColon', {
-            viewId: view?.id,
-          })
-        "
-      />
-    </template>
-    <template v-else>
-      <!-- Sidebar-only: Rename & Description -->
-      <template v-if="inSidebar && isUIAllowed('viewCreateOrEdit')">
-        <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
-          <GeneralIcon icon="rename" class="opacity-80" />
-          {{
-            $t('general.renameEntity', {
-              entity:
-                view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
-            })
-          }}
-        </NcMenuItem>
-        <NcTooltip v-else>
-          <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
-          <NcMenuItem disabled>
+    <NcMenuItemCopyId
+      v-if="view"
+      :id="view.id"
+      :tooltip="$t('labels.clickToCopyViewID')"
+      :label="
+        $t('labels.viewIdColon', {
+          viewId: view?.id,
+        })
+      "
+    />
+    <template v-if="!showOnlyCopyId">
+      <template v-if="isUIAllowed('viewCreateOrEdit')">
+        <NcDivider />
+        <template v-if="inSidebar">
+          <NcMenuItem v-if="lockType !== LockType.Locked" @click="onRenameMenuClick">
             <GeneralIcon icon="rename" class="opacity-80" />
             {{
               $t('general.renameEntity', {
@@ -341,36 +315,97 @@ defineOptions({
               })
             }}
           </NcMenuItem>
-        </NcTooltip>
-        <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
-          <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
+          <NcTooltip v-else>
+            <template #title> {{ $t('msg.info.disabledAsViewLocked') }} </template>
+            <NcMenuItem disabled>
+              <GeneralIcon icon="rename" class="opacity-80" />
+              {{
+                $t('general.renameEntity', {
+                  entity:
+                    view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+                })
+              }}
+            </NcMenuItem>
+          </NcTooltip>
+          <NcMenuItem v-show="lockType !== LockType.Locked" @click="onDescriptionUpdateClick">
+            <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
 
-          {{ $t('labels.editDescription') }}
+            {{ $t('labels.editDescription') }}
+          </NcMenuItem>
+          <NcMenuItemChangeIcon
+            v-if="lockType !== LockType.Locked"
+            v-e="['c:view:change-icon']"
+            @change-icon="emits('changeIcon')"
+          />
+        </template>
+        <NcMenuItem @click="onDuplicate">
+          <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
+          <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
+          {{
+            $t('general.duplicateEntity', {
+              entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
+            })
+          }}
         </NcMenuItem>
-        <NcMenuItemChangeIcon
-          v-if="lockType !== LockType.Locked"
-          v-e="['c:view:change-icon']"
-          @change-icon="emits('changeIcon')"
+
+        <SmartsheetToolbarViewActionMenuMoveToSection
+          v-if="isEeUI"
+          :view="view"
+          :table="table"
+          :in-sidebar="inSidebar"
+          @close-modal="emits('closeModal')"
         />
-        <NcDivider />
       </template>
 
-      <!-- ── View ── -->
-      <template v-if="isUIAllowed('viewCreateOrEdit')">
-        <NcMenuItemCopyId
-          v-if="view"
-          :id="view.id"
-          :tooltip="$t('labels.clickToCopyViewID')"
-          :label="
-            $t('labels.viewIdColon', {
-              viewId: view?.id,
-            })
-          "
-        />
+      <SmartsheetToolbarNotAllowedTooltip
+        v-if="copyViewConfigMenuItemStatus.isVisible"
+        :enabled="copyViewConfigMenuItemStatus.isDisabled"
+      >
+        <template #title>
+          <div class="max-w-70">
+            {{ copyViewConfigMenuItemStatus.tooltip }}
+          </div>
+        </template>
+        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER">
+          <template #default="{ click }">
+            <NcMenuItem
+              inner-class="w-full"
+              :disabled="copyViewConfigMenuItemStatus.isDisabled"
+              @click="click(PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER, () => onClickCopyViewConfig())"
+            >
+              <div
+                v-e="[
+                  'c:navdraw:copy-view-config-from-another-view',
+                  {
+                    sidebar: props.inSidebar,
+                  },
+                ]"
+                class="w-full flex flex-row items-center gap-x-2"
+              >
+                <GeneralIcon icon="ncSettings2" class="opacity-80" />
+                <div>
+                  {{ $t('objects.copyViewConfig.copyAnotherViewConfig') }}
+                </div>
+                <div class="flex-1 w-full mr-1" />
+                <LazyPaymentUpgradeBadge
+                  :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER"
+                  :limit-or-feature="'to access copy view configuration from another view feature.' as PlanFeatureTypes"
+                  :content="
+                    $t('upgrade.upgradeToAccessCopyViewConfigFromAnotherViewSubtitle', {
+                      plan: getPlanTitle(PlanTitles.PLUS),
+                    })
+                  "
+                  show-as-lock
+                  :on-click-callback="() => emits('closeModal')"
+                />
+              </div>
+            </NcMenuItem>
+          </template>
+        </PaymentUpgradeBadgeProvider>
+      </SmartsheetToolbarNotAllowedTooltip>
+      <template v-if="view.type !== ViewTypes.FORM">
         <NcDivider />
-
-        <!-- Upload -->
-        <template v-if="isUploadAllowed && view.type !== ViewTypes.FORM">
+        <template v-if="isUploadAllowed">
           <NcSubMenu key="upload" variant="small">
             <template #title>
               <div
@@ -430,9 +465,7 @@ defineOptions({
             </template>
           </NcSubMenu>
         </template>
-
-        <!-- Download -->
-        <NcSubMenu v-if="view.type !== ViewTypes.FORM" key="download" variant="small">
+        <NcSubMenu key="download" variant="small">
           <template #title>
             <div
               v-e="[
@@ -450,19 +483,10 @@ defineOptions({
 
           <LazySmartsheetToolbarExportSubActions />
         </NcSubMenu>
+      </template>
 
-        <!-- Duplicate view -->
-        <NcMenuItem @click="onDuplicate">
-          <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
-          <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
-          {{
-            $t('general.duplicateEntity', {
-              entity: view.type !== ViewTypes.FORM ? $t('objects.view').toLowerCase() : $t('objects.viewType.form').toLowerCase(),
-            })
-          }}
-        </NcMenuItem>
-
-        <!-- View mode submenu -->
+      <template v-if="isUIAllowed('viewCreateOrEdit')">
+        <NcDivider />
         <NcSubMenu
           key="lock-type"
           variant="small"
@@ -479,7 +503,6 @@ defineOptions({
               ]"
               class="flex flex-row items-center gap-x-3"
             >
-              <component :is="viewLockIcons[lockType].icon" class="w-4 h-4 opacity-80" />
               <div>
                 {{ $t('labels.viewMode') }}
               </div>
@@ -541,17 +564,6 @@ defineOptions({
             <SmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
           </NcMenuItem>
         </NcSubMenu>
-
-        <!-- Move to section (EE) -->
-        <SmartsheetToolbarViewActionMenuMoveToSection
-          v-if="isEeUI"
-          :view="view"
-          :table="table"
-          :in-sidebar="inSidebar"
-          @close-modal="emits('closeModal')"
-        />
-
-        <!-- Assign as personal view (EE) -->
         <template v-if="isEeUI">
           <SmartsheetToolbarNotAllowedTooltip
             v-if="isPersonalView"
@@ -638,8 +650,6 @@ defineOptions({
             </PaymentUpgradeBadgeProvider>
           </SmartsheetToolbarNotAllowedTooltip>
         </template>
-
-        <!-- Field header visibility (Gallery/Kanban EE) -->
         <PaymentUpgradeBadgeProvider
           v-if="isFieldHeaderVisibilityOptionVisible"
           :feature="PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY"
@@ -667,81 +677,8 @@ defineOptions({
             </NcMenuItem>
           </template>
         </PaymentUpgradeBadgeProvider>
-
-        <!-- Copy another view's config (last in View section) -->
-        <SmartsheetToolbarNotAllowedTooltip
-          v-if="copyViewConfigMenuItemStatus.isVisible"
-          :enabled="copyViewConfigMenuItemStatus.isDisabled"
-        >
-          <template #title>
-            <div class="max-w-70">
-              {{ copyViewConfigMenuItemStatus.tooltip }}
-            </div>
-          </template>
-          <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER">
-            <template #default="{ click }">
-              <NcMenuItem
-                inner-class="w-full"
-                :disabled="copyViewConfigMenuItemStatus.isDisabled"
-                @click="click(PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER, () => onClickCopyViewConfig())"
-              >
-                <div
-                  v-e="[
-                    'c:navdraw:copy-view-config-from-another-view',
-                    {
-                      sidebar: props.inSidebar,
-                    },
-                  ]"
-                  class="w-full flex flex-row items-center gap-x-2"
-                >
-                  <GeneralIcon icon="ncSettings2" class="opacity-80" />
-                  <div>
-                    {{ $t('objects.copyViewConfig.copyAnotherViewConfig') }}
-                  </div>
-                  <div class="flex-1 w-full mr-1" />
-                  <LazyPaymentUpgradeBadge
-                    :feature="PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER"
-                    :limit-or-feature="'to access copy view configuration from another view feature.' as PlanFeatureTypes"
-                    :content="
-                      $t('upgrade.upgradeToAccessCopyViewConfigFromAnotherViewSubtitle', {
-                        plan: getPlanTitle(PlanTitles.PLUS),
-                      })
-                    "
-                    show-as-lock
-                    :on-click-callback="() => emits('closeModal')"
-                  />
-                </div>
-              </NcMenuItem>
-            </template>
-          </PaymentUpgradeBadgeProvider>
-        </SmartsheetToolbarNotAllowedTooltip>
       </template>
 
-      <!-- Table section items moved to DlgTableDetails modal -->
-
-      <!-- Run Actions (EE) -->
-      <NcMenuItem
-        v-if="isEeUI && isViewActionsEnabled && view.type !== ViewTypes.FORM"
-        v-e="['c:view:run-actions']"
-        data-testid="nc-view-action-run-actions"
-        @click="onRunActions"
-      >
-        <GeneralIcon icon="ncZap" class="opacity-80" />
-        {{ $t('labels.runActions') }}
-      </NcMenuItem>
-
-      <!-- New Form Record Template (Form view only, EE) -->
-      <NcMenuItem
-        v-if="isEeUI && view.type === ViewTypes.FORM"
-        v-e="['c:view:new-form-record-template']"
-        data-testid="nc-view-action-form-record-template"
-        @click="onNewFormRecordTemplate"
-      >
-        <GeneralIcon icon="ncFileText" class="opacity-80" />
-        {{ $t('objects.recordTemplate') }}
-      </NcMenuItem>
-
-      <!-- ── Delete ── -->
       <template v-if="isUIAllowed('viewCreateOrEdit')">
         <NcDivider />
         <NcTooltip

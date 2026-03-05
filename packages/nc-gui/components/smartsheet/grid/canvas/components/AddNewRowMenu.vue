@@ -136,26 +136,6 @@ const templatesList = computed(() => {
       </template>
     </NcList>
 
-    <NcDivider class="!my-0" />
-
-    <NcList
-      :value="!selectedTemplate ? `${!!isAddNewRecordGridMode}` : ''"
-      :list="defaultOptions"
-      variant="small"
-      class="!h-auto !pt-1"
-      :item-height="30"
-      reset-hover-effect-on-mouse-leave
-      @change="
-        (option) => {
-          option.click()
-        }
-      "
-    >
-      <template #listItemExtraLeft="{ option }">
-        <component :is="option.icon" class="nc-view-icon text-inherit" />
-      </template>
-    </NcList>
-
     <template v-if="!blockRecordTemplates && templates.length">
       <NcDivider class="!my-0" />
       <NcList
@@ -178,6 +158,26 @@ const templatesList = computed(() => {
         </template>
       </NcList>
     </template>
+
+    <NcDivider class="!my-0" />
+
+    <NcList
+      :value="!selectedTemplate ? `${!!isAddNewRecordGridMode}` : ''"
+      :list="defaultOptions"
+      variant="small"
+      class="!h-auto !pt-1"
+      :item-height="30"
+      reset-hover-effect-on-mouse-leave
+      @change="
+        (option) => {
+          option.click()
+        }
+      "
+    >
+      <template #listItemExtraLeft="{ option }">
+        <component :is="option.icon" class="nc-view-icon text-inherit" />
+      </template>
+    </NcList>
   </div>
 </template>
 

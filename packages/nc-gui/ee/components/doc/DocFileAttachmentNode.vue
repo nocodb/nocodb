@@ -138,7 +138,7 @@ const onDownload = () => {
       <!-- File info -->
       <div class="nc-file-attachment-info">
         <div class="nc-file-attachment-name" :title="node.attrs.fileName">
-          {{ node.attrs.fileName || 'Untitled' }}
+          {{ node.attrs.fileName || $t('general.untitled') }}
         </div>
         <div v-if="formattedSize" class="nc-file-attachment-size">
           {{ formattedSize }}

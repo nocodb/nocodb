@@ -748,7 +748,7 @@ const onDuplicatePage = async () => {
   if (!fullDoc) return
 
   await createDocument(base.value.id, {
-    title: t('labels.copyOfPage', { title: fullDoc.title || t('general.untitled') }),
+    title: t('labels.copyOfDocument', { title: fullDoc.title || t('general.untitled') }),
     content: fullDoc.content,
   })
 }
@@ -1018,7 +1018,7 @@ onBeforeUnmount(() => {
                 v-if="doc"
                 :id="doc.id"
                 v-e="['c:document:copy-id']"
-                tooltip="Click to copy Document ID"
+                :tooltip="$t('labels.copyDocumentId')"
                 :label="`DOCUMENT ID: ${doc.id}`"
                 data-testid="nc-doc-page-copy-id"
               />
@@ -1220,7 +1220,7 @@ onBeforeUnmount(() => {
                     ref="linkInputRef"
                     v-model="linkInputUrl"
                     class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
-                    placeholder="Enter a link"
+                    :placeholder="$t('placeholder.enterALink')"
                     @keydown.enter.prevent="applyLink"
                     @keydown.escape.prevent="cancelLinkInput"
                   />
@@ -1323,7 +1323,7 @@ onBeforeUnmount(() => {
                     ref="linkEditInputRef"
                     v-model="linkEditUrl"
                     class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
-                    placeholder="Enter a link"
+                    :placeholder="$t('placeholder.enterALink')"
                     @change="onLinkEditChange"
                     @keydown.enter.prevent="
                       ;($event.target as HTMLInputElement)?.blur()

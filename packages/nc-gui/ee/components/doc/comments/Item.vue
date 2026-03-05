@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { REACTION_EMOJIS } from 'nocodb-sdk'
 import type { DocCommentExtended, ReactionSummaryItem } from '~/composables/useDocumentComments'
-import { REACTION_EMOJIS } from '~/composables/useDocumentComments'
 
 interface Props {
   comment: DocCommentExtended
@@ -33,16 +33,17 @@ const { comment } = toRefs(props)
 
 const { user } = useGlobal()
 
+const { t } = useI18n()
+
 const { isUIAllowed } = useRoles()
 
 const hasEditPermission = computed(() => isUIAllowed('documentCommentUpdate'))
 
 const createdByLabel = computed(() => {
-  // Matches existing pattern in EntryComment.vue, Sidebar/Comments.vue etc.
-  if (comment.value.created_by === user.value?.id) return 'You'
+  if (comment.value.created_by === user.value?.id) return t('general.you')
   if (comment.value.created_display_name_short?.trim()) return comment.value.created_display_name_short
   if (comment.value.created_by_email) return comment.value.created_by_email
-  return 'Unknown'
+  return t('general.unknown')
 })
 
 const isInlineComment = computed(() => !!comment.value.anchor_id)

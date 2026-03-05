@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType } from 'nocodb-sdk';
+import { AppEvents, EventType, REACTION_EMOJIS } from 'nocodb-sdk';
 import type {
   DocumentCommentReqType,
   DocumentCommentUpdateReqType,
@@ -214,6 +214,10 @@ export class DocumentCommentsService {
   ) {
     if (!param.commentId || !param.reaction) {
       NcError.badRequest('commentId and reaction are required');
+    }
+
+    if (!REACTION_EMOJIS.includes(param.reaction as any)) {
+      NcError.badRequest('Invalid reaction');
     }
 
     const comment = await Comment.get(context, param.commentId);

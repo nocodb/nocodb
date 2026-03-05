@@ -98,7 +98,10 @@ watch(isDropdownOpen, (open) => {
   if (open) {
     searchQuery.value = ''
     activeIndex.value = -1
-    nextTick(() => searchInputRef.value?.focus())
+
+    forcedNextTick(() => {
+      searchInputRef.value?.focus()
+    })
   }
 })
 
@@ -249,7 +252,8 @@ const showToolbar = computed(() => isDropdownOpen.value || isHovered.value || pr
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
+  height: 28px;
+  padding: 0 8px;
   border: none;
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.1);

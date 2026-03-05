@@ -39,6 +39,10 @@ const rolePermissions = {
       adminPanel: true,
       orgAdminPanel: true,
       globalAudits: true,
+      orgDomainAdd: true,
+      orgDomainVerify: true,
+      orgDomainUpdate: true,
+      orgDomainDelete: true,
     },
   },
   [OrgUserRoles.CREATOR]: {
@@ -47,10 +51,6 @@ const rolePermissions = {
   [CloudOrgUserRoles.CREATOR]: {
     include: {
       orgDomainList: true,
-      orgDomainAdd: true,
-      orgDomainVerify: true,
-      orgDomainUpdate: true,
-      orgDomainDelete: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {

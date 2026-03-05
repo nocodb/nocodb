@@ -158,6 +158,7 @@ const hasDashboardCreateAccess = computed(() => {
       v-model:visible="isVisibleCreateNew"
       placement="rightBottom"
       overlay-class-name="!min-w-48 nc-create-new-dropdown"
+      :align="{ offset: [12, 3] }"
     >
       <div class="w-full py-1 flex items-center justify-center">
         <div
@@ -379,21 +380,13 @@ const hasDashboardCreateAccess = computed(() => {
 }
 
 .nc-create-new-dropdown.nc-create-new-dropdown {
-  padding-left: 14px;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-
-  > .nc-menu {
-    @apply rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default;
-  }
+  overflow: visible !important;
 
   &::before {
     content: '';
     position: absolute;
-    left: 8px;
-    bottom: 12px;
+    left: -6px;
+    bottom: 11px;
     width: 0;
     height: 0;
     border-top: 7px solid transparent;
@@ -404,7 +397,7 @@ const hasDashboardCreateAccess = computed(() => {
   &::after {
     content: '';
     position: absolute;
-    left: 9px;
+    left: -5px;
     bottom: 13px;
     width: 0;
     height: 0;

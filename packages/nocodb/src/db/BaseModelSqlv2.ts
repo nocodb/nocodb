@@ -81,7 +81,10 @@ import { selectObject } from '~/db/BaseModelSqlv2/select-object';
 import { relationDataFetcher } from '~/db/BaseModelSqlv2/relation-data-fetcher';
 import { NestedLinkPreparator } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
-import { addOrRemoveLinks } from '~/db/BaseModelSqlv2/add-remove-links';
+import {
+  addOrRemoveLinks,
+  extractCorrespondingLinkColumn,
+} from '~/db/BaseModelSqlv2/add-remove-links';
 import applyAggregation from '~/db/aggregation';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';
@@ -382,7 +385,30 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ): Promise<any[]> {
     if (!props.length) return [];
 
-    // Group by model to batch-fetch via chunkList (1 SQL query per chunk)
+    // Small inputs (1-2 items): direct readByPk is cheaper than chunkList setup
+    if (props.length <= 2) {
+      const results: any[] = [];
+      for (const { model, id, extractDisplayValueData = true } of props) {
+        results.push(
+          await this.readByPkFromModel(
+            model,
+            undefined,
+            extractDisplayValueData,
+            id,
+            false,
+            {},
+            {
+              ignoreView: true,
+              getHiddenColumn: true,
+              extractOnlyPrimaries: true,
+            },
+          ),
+        );
+      }
+      return results;
+    }
+
+    // Bulk: group by model and batch-fetch via chunkList (1 SQL query per chunk)
     const modelGroups = new Map<string, { model: Model; pks: Set<string> }>();
 
     for (const { model, id } of props) {
@@ -430,6 +456,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
       return record ?? null;
     });
+  }
+
+  public async fetchDisplayValueMap(
+    props: { model: Model; id: any }[],
+  ): Promise<Map<string, any>> {
+    const dvMap = new Map<string, any>();
+    if (!props.length) return dvMap;
+    const values = await this.readOnlyPrimariesByPkFromModel(props);
+    for (let i = 0; i < props.length; i++) {
+      dvMap.set(`${props[i].model.id}:${props[i].id}`, values[i]);
+    }
+    return dvMap;
   }
 
   public async exist(id?: any): Promise<any> {
@@ -2593,14 +2631,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       let rowId = null;
 
       const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
-      // eslint-disable-next-line prefer-const
-      let { postInsertOps, preInsertOps, postInsertAuditOps } =
-        await this.prepareNestedLinkQb({
-          nestedCols,
-          data,
-          insertObj,
-          req: request,
-        });
+      let {
+        postInsertOps,
+        preInsertOps,
+        // eslint-disable-next-line prefer-const
+        postInsertAuditEntries,
+        // eslint-disable-next-line prefer-const
+        postInsertLastModifiedEntries,
+      } = await this.prepareNestedLinkQb({
+        nestedCols,
+        data,
+        insertObj,
+        req: request,
+      });
       const attachmentOperations =
         await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
           this,
@@ -2731,9 +2774,107 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.runOps(postInsertOps.map((f) => f(rowId)));
 
-      // run link audit operations after link insert
-      for (const f of postInsertAuditOps) {
-        await f(rowId);
+      // batch-fetch display values and write link audits
+      try {
+        if (
+          postInsertAuditEntries.length &&
+          (await this.isDataAuditEnabled())
+        ) {
+          // Resolve rowId for entries that reference the inserted row
+          const resolvedEntries = postInsertAuditEntries.map((entry) => ({
+            ...entry,
+            rowId: entry.rowIdIsInsertedRow ? rowId : entry.rowId,
+            refRowId: entry.refRowIdIsInsertedRow ? rowId : entry.refRowId,
+          }));
+
+          // Batch-fetch all display values into a KV map
+          const dvMap = await this.fetchDisplayValueMap(
+            resolvedEntries.flatMap((entry) => [
+              { model: entry.model, id: entry.rowId },
+              { model: entry.refModel, id: entry.refRowId },
+            ]),
+          );
+
+          // Write audits with per-entry isolation
+          for (const entry of resolvedEntries) {
+            const displayValue = dvMap.get(`${entry.model.id}:${entry.rowId}`);
+            const refDisplayValue = dvMap.get(
+              `${entry.refModel.id}:${entry.refRowId}`,
+            );
+
+            try {
+              await Audit.insert(
+                await generateAuditV1Payload<DataLinkPayload>(
+                  AuditV1OperationTypes.DATA_LINK,
+                  {
+                    context: {
+                      ...this.context,
+                      source_id: entry.model.source_id,
+                      fk_model_id: entry.model.id,
+                      row_id: this.extractPksValues(
+                        entry.rowId,
+                        true,
+                      ) as string,
+                    },
+                    details: {
+                      table_title: entry.model.title,
+                      ref_table_title: entry.refModel.title,
+                      link_field_title: entry.columnTitle,
+                      link_field_id: entry.columnId,
+                      row_id: entry.rowId,
+                      ref_row_id: entry.refRowId,
+                      display_value: displayValue,
+                      ref_display_value: refDisplayValue,
+                      type: entry.type,
+                    },
+                    req: entry.req,
+                  },
+                ),
+              );
+            } catch (e) {
+              logger.error(
+                `[nestedInsert] audit write failed: ${e.message}`,
+                e.stack,
+              );
+            }
+          }
+        }
+      } catch (e) {
+        logger.error(
+          `[nestedInsert] audit batch failed: ${e.message}`,
+          e.stack,
+        );
+      }
+
+      // update lastModified for linked tables (independent of audit success)
+      try {
+        for (const entry of postInsertLastModifiedEntries) {
+          await this.updateLastModified({
+            model: entry.model,
+            rowIds: [rowId],
+            cookie: entry.req,
+            updatedColIds: [entry.col.id],
+          });
+
+          const refTableLinkColumnId = (
+            await extractCorrespondingLinkColumn(this.context, {
+              ltarColumn: entry.col,
+              referencedTable: entry.refBaseModel.model,
+            })
+          )?.id;
+
+          await entry.refBaseModel.updateLastModified({
+            model: entry.refModel,
+            rowIds: entry.nestedData,
+            cookie: entry.req,
+            updatedColIds: [refTableLinkColumnId],
+          });
+        }
+      } catch (e) {
+        logger.error(
+          `[nestedInsert] lastModified failed: ${e.message}`,
+          e.stack,
+        );
       }
 
       if (this.model.primaryKey && rowId !== null && rowId !== undefined) {
@@ -4622,40 +4763,77 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
-    await Promise.allSettled(
-      relationManager.getAuditUpdateObj(cookie).map((updateObj) => {
-        if (updateObj.opSubType === AuditOperationSubTypes.LINK_RECORD) {
-          this.afterAddChild({
-            columnTitle: updateObj.columnTitle,
-            columnId: updateObj.columnId,
-            refColumnTitle: updateObj.refColumnTitle,
-            rowId: updateObj.rowId,
-            refRowId: updateObj.refRowId,
-            req: updateObj.req,
-            model: updateObj.model,
-            refModel: updateObj.refModel,
-            displayValue: updateObj.displayValue,
-            refDisplayValue: updateObj.refDisplayValue,
-            type: updateObj.type,
-          });
-        }
-        if (updateObj.opSubType === AuditOperationSubTypes.UNLINK_RECORD) {
-          this.afterRemoveChild({
-            columnTitle: updateObj.columnTitle,
-            columnId: updateObj.columnId,
-            refColumnTitle: updateObj.refColumnTitle,
-            rowId: updateObj.rowId,
-            refRowId: updateObj.refRowId,
-            req: updateObj.req,
-            model: updateObj.model,
-            refModel: updateObj.refModel,
-            displayValue: updateObj.displayValue,
-            refDisplayValue: updateObj.refDisplayValue,
-            type: updateObj.type,
-          });
-        }
-      }),
+    await this.writeLinkAudits(
+      relationManager.getAuditUpdateObj(cookie),
+      'addChild',
     );
+  }
+
+  private async writeLinkAudits(
+    auditObjs: ReturnType<RelationManager['getAuditUpdateObj']>,
+    callerTag: string,
+  ) {
+    try {
+      if (!auditObjs.length || !(await this.isDataAuditEnabled())) return;
+
+      // Batch-fetch missing display values into a KV map
+      const missingDvProps: { model: Model; id: any }[] = [];
+      for (const obj of auditObjs) {
+        if (obj.displayValue === undefined)
+          missingDvProps.push({ model: obj.model, id: obj.rowId });
+        if (obj.refDisplayValue === undefined)
+          missingDvProps.push({ model: obj.refModel, id: obj.refRowId });
+      }
+      const dvMap = await this.fetchDisplayValueMap(missingDvProps);
+
+      for (const obj of auditObjs) {
+        const displayValue =
+          obj.displayValue || dvMap.get(`${obj.model.id}:${obj.rowId}`);
+        const refDisplayValue =
+          obj.refDisplayValue ||
+          dvMap.get(`${obj.refModel.id}:${obj.refRowId}`);
+
+        const opType =
+          obj.opSubType === AuditOperationSubTypes.LINK_RECORD
+            ? AuditV1OperationTypes.DATA_LINK
+            : AuditV1OperationTypes.DATA_UNLINK;
+
+        try {
+          await Audit.insert(
+            await generateAuditV1Payload<DataLinkPayload | DataUnlinkPayload>(
+              opType,
+              {
+                context: {
+                  ...this.context,
+                  source_id: obj.model.source_id,
+                  fk_model_id: obj.model.id,
+                  row_id: this.extractPksValues(obj.rowId, true) as string,
+                },
+                details: {
+                  table_title: obj.model.title,
+                  ref_table_title: obj.refModel.title,
+                  link_field_title: obj.columnTitle,
+                  link_field_id: obj.columnId,
+                  row_id: obj.rowId,
+                  ref_row_id: obj.refRowId,
+                  display_value: displayValue,
+                  ref_display_value: refDisplayValue,
+                  type: obj.type,
+                },
+                req: obj.req,
+              },
+            ),
+          );
+        } catch (e) {
+          logger.error(
+            `[${callerTag}] audit write failed: ${e.message}`,
+            e.stack,
+          );
+        }
+      }
+    } catch (e) {
+      logger.error(`[${callerTag}] audit batch failed: ${e.message}`, e.stack);
+    }
   }
 
   public async afterAddChild({
@@ -4927,22 +5105,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
-    await Promise.allSettled(
-      relationManager.getAuditUpdateObj(cookie).map(async (updateObj) => {
-        await this.afterRemoveChild({
-          columnTitle: updateObj.columnTitle,
-          columnId: updateObj.columnId,
-          refColumnTitle: updateObj.refColumnTitle,
-          rowId: updateObj.rowId,
-          refRowId: updateObj.refRowId,
-          req: updateObj.req,
-          model: updateObj.model,
-          refModel: updateObj.refModel,
-          displayValue: updateObj.displayValue,
-          refDisplayValue: updateObj.refDisplayValue,
-          type: updateObj.type,
-        });
-      }),
+    await this.writeLinkAudits(
+      relationManager.getAuditUpdateObj(cookie),
+      'removeChild',
     );
   }
 

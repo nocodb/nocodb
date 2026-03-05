@@ -341,17 +341,20 @@ export class RelationManager {
     const { baseModel } = this.relationContext;
 
     // Batch-fetch display values for all evicted rows
-    const displayValues = await baseModel.readOnlyPrimariesByPkFromModel(
+    const dvMap = await baseModel.fetchDisplayValueMap(
       removedPairs.flatMap((pair) => [
         { model: parentTable, id: pair.parentFk },
         { model: childTable, id: pair.childFk },
       ]),
     );
 
-    for (let i = 0; i < removedPairs.length; i++) {
-      const pair = removedPairs[i];
-      const parentDisplayValue = displayValues[i * 2];
-      const childDisplayValue = displayValues[i * 2 + 1];
+    for (const pair of removedPairs) {
+      const parentDisplayValue = dvMap.get(
+        `${parentTable.id}:${pair.parentFk}`,
+      );
+      const childDisplayValue = dvMap.get(
+        `${childTable.id}:${pair.childFk}`,
+      );
 
       this.auditUpdateObj.push({
         rowId: pair.parentFk,

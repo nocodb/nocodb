@@ -373,15 +373,11 @@ onKeyStroke('Escape', () => {
                               >
                                 <NcMenuItemCopyId
                                   :id="source.id"
+                                  inline
+                                  :entity-label="$t('general.source')"
                                   :tooltip="$t('labels.clickToCopySourceID')"
-                                  :label="
-                                    $t('labels.sourceIdColon', {
-                                      sourceId: source.id,
-                                    })
-                                  "
                                   @click.stop
                                 />
-                                <NcDivider />
 
                                 <NcMenuItem
                                   v-if="isUIAllowed('baseRename')"

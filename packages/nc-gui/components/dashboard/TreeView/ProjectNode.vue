@@ -686,12 +686,9 @@ defineExpose({
           <NcMenuItemCopyId
             v-if="contextMenuTarget.value"
             :id="contextMenuTarget.value.id"
+            inline
+            :entity-label="$t('objects.table')"
             :tooltip="$t('labels.clickToCopyTableID')"
-            :label="
-              $t('labels.tableIdColon', {
-                tableId: contextMenuTarget.value?.id,
-              })
-            "
           />
 
           <template
@@ -700,7 +697,6 @@ defineExpose({
               isUIAllowed('tableDelete', { source: getSource(contextMenuTarget.value?.source_id) })
             "
           >
-            <NcDivider />
             <NcMenuItem
               v-if="isUIAllowed('tableRename', { source: getSource(contextMenuTarget.value?.source_id) })"
               @click="tableRenameId = `${contextMenuTarget.value?.id}:${contextMenuTarget.value?.source_id}`"

@@ -184,13 +184,12 @@ const onMenuClick = (e: Event) => {
 
           <template #overlay>
             <NcMenu class="!min-w-50" variant="small">
-              <!-- Copy Base ID -->
               <NcMenuItemCopyId
                 :id="base.id"
+                inline
+                :entity-label="$t('objects.project')"
                 :tooltip="$t('labels.clickToCopyBaseID')"
-                :label="$t('labels.baseIdColon', { baseId: base.id })"
               />
-              <NcDivider />
 
               <!-- Rename -->
               <NcMenuItem v-if="isOptionVisible.baseRename" data-testid="nc-base-node-rename" @click="enableEditMode">

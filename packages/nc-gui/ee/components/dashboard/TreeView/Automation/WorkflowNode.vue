@@ -456,15 +456,11 @@ const deleteWorkflow = () => {
                 <NcMenuItemCopyId
                   v-if="workflow?.id"
                   :id="workflow.id"
-                  :label="
-                    $t('labels.workflowIdColon', {
-                      workflowId: workflow?.id,
-                    })
-                  "
+                  inline
+                  :entity-label="$t('objects.workflow')"
                   :tooltip="$t('labels.clickToCopyWorkflowID')"
                 />
                 <template v-if="!isSharedBase && isUIAllowed('workflowCreateOrEdit')">
-                  <NcDivider />
                   <NcMenuItem
                     v-e="['c:workflow:rename']"
                     :data-testid="`sidebar-workflow-rename-${workflow.title}`"

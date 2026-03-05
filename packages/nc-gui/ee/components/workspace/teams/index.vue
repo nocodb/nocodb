@@ -495,8 +495,9 @@ onMounted(async () => {
                 <NcMenu variant="medium">
                   <NcMenuItemCopyId
                     :id="record.id"
+                    inline
+                    :entity-label="$t('objects.team')"
                     :tooltip="$t(`labels.clickToCopyTeamID`)"
-                    :label="$t(`labels.teamIdColon`, { teamId: record.id })"
                   />
 
                   <NcDivider v-if="record.is_member || isWsOwner || hasEditPermission" />

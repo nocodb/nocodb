@@ -263,12 +263,9 @@ const columns = [
                     <NcMenu variant="small">
                       <NcMenuItemCopyId
                         :id="el.id"
+                        inline
+                        :entity-label="$t('objects.user')"
                         :tooltip="$t('labels.clickToCopyUserID')"
-                        :label="
-                          $t('labels.userIdColon', {
-                            userId: el.id,
-                          })
-                        "
                       />
 
                       <template v-if="!el.roles?.includes('super')">

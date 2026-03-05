@@ -2012,15 +2012,11 @@ onBeforeRouteUpdate((_to, from, next) => {
                             <template v-if="fieldStatus(field) !== 'add'">
                               <NcMenuItemCopyId
                                 :id="field.id"
+                                inline
+                                :entity-label="$t('objects.field')"
                                 data-testid="nc-field-item-action-copy-id"
                                 :tooltip="$t('msg.clickToCopyFieldId')"
-                                :label="
-                                  $t('labels.idColon', {
-                                    id: field.id,
-                                  })
-                                "
                               />
-                              <NcDivider />
                             </template>
 
                             <NcMenuItem
@@ -2182,13 +2178,10 @@ onBeforeRouteUpdate((_to, from, next) => {
                           <NcMenu variant="small" class="!min-w-55">
                             <NcMenuItemCopyId
                               :id="displayColumn.id"
+                              inline
+                              :entity-label="$t('objects.field')"
                               data-testid="nc-field-item-action-copy-id"
                               :tooltip="$t('msg.clickToCopyFieldId')"
-                              :label="
-                                $t('labels.idColon', {
-                                  id: displayColumn.id,
-                                })
-                              "
                             />
                           </NcMenu>
                         </template>

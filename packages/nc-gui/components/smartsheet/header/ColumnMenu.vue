@@ -638,16 +638,11 @@ const onDeleteColumn = () => {
     <NcMenuItemCopyId
       v-if="column"
       :id="column.id!"
+      inline
+      :entity-label="$t('objects.field')"
       data-testid="nc-field-item-action-copy-id"
       :tooltip="$t('msg.clickToCopyFieldId')"
-      :label="
-        $t('labels.idColon', {
-          id: column.id,
-        })
-      "
     />
-
-    <NcDivider />
     <GeneralSourceRestrictionTooltip
       v-if="isUIAllowed('fieldAlter')"
       message="Field properties cannot be edited."

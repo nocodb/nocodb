@@ -274,14 +274,10 @@ onMounted(async () => {
                     <NcMenuItemCopyId
                       v-if="record"
                       :id="record.id"
+                      inline
+                      :entity-label="$t('labels.sync')"
                       :tooltip="$t('labels.clickToCopySyncID')"
-                      :label="
-                        $t('labels.syncIdColon', {
-                          syncId: record.id,
-                        })
-                      "
                     />
-                    <NcDivider />
                     <NcMenuItem @click="handleEditSync(record.id)">
                       <GeneralIcon icon="edit" />
                       <span>{{ $t('general.edit') }}</span>

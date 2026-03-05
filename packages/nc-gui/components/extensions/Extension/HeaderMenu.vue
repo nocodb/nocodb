@@ -25,15 +25,11 @@ const { extensionAccess } = useExtensions()
         <NcMenu variant="small">
           <NcMenuItemCopyId
             :id="extension.id!"
+            inline
+            :entity-label="$t('general.extension')"
             data-testid="nc-extension-item-action-copy-id"
             :tooltip="$t('labels.clickToCopyExtensionID')"
-            :label="
-              $t('labels.extensionIdColon', {
-                extensionId: extension.id,
-              })
-            "
           />
-          <NcDivider v-if="extensionAccess.create || extensionAccess.update || extensionAccess.delete" />
           <template v-if="!activeError">
             <NcMenuItem v-if="extensionAccess.create" data-rec="true" @click="emits('rename')">
               <GeneralIcon icon="edit" />

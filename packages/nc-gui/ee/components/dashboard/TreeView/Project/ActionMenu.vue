@@ -82,17 +82,12 @@ const isOptionVisible = computed(() => {
     variant="small"
     @click="emits('clickMenu', $event)"
   >
-    <!-- Copy Base ID -->
     <NcMenuItemCopyId
       :id="base.id"
+      inline
+      :entity-label="$t('objects.project')"
       :tooltip="$t('labels.clickToCopyBaseID')"
-      :label="
-        $t('labels.baseIdColon', {
-          baseId: base.id,
-        })
-      "
     />
-    <NcDivider />
 
     <NcMenuItem v-if="isUIAllowed('baseRename')" data-testid="nc-sidebar-base-rename" @click="emits('rename')">
       <GeneralIcon icon="rename" />

@@ -456,15 +456,11 @@ const deleteDashboard = () => {
                 <NcMenuItemCopyId
                   v-if="dashboard?.id"
                   :id="dashboard.id"
+                  inline
+                  :entity-label="$t('objects.dashboard')"
                   :tooltip="$t('labels.clickToCopyDashboardID')"
-                  :label="
-                    $t('labels.dashboardIdColon', {
-                      dashboardId: dashboard?.id,
-                    })
-                  "
                 />
                 <template v-if="!isSharedBase && isUIAllowed('dashboardEdit')">
-                  <NcDivider />
                   <NcMenuItem
                     v-e="['c:dashboard:rename']"
                     :data-testid="`sidebar-dashboard-rename-${dashboard.title}`"

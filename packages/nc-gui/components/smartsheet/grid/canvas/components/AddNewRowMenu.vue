@@ -98,6 +98,46 @@ const templatesList = computed(() => {
 
 <template>
   <div>
+    <!-- Manage Templates -->
+    <NcList
+      value=""
+      :list="[
+        {
+          label: $t('activity.manageTemplates'),
+          value: 'manage-templates',
+        },
+      ]"
+      variant="small"
+      class="!h-auto !pt-1"
+      :item-height="30"
+      reset-hover-effect-on-mouse-leave
+      @change="
+        () => {
+          if (showUpgradeToUseRecordTemplates()) return
+
+          onOpenTemplateManager?.()
+        }
+      "
+    >
+      <template #listItemExtraLeft>
+        <GeneralIcon icon="settings" class="w-4 h-4" />
+      </template>
+      <template #listItemExtraRight>
+        <PaymentUpgradeBadge
+          :feature="PlanFeatureTypes.FEATURE_RECORD_TEMPLATES"
+          :content="
+            $t('upgrade.upgradeToUseRecordTemplatesSubtitle', {
+              plan: PlanTitles.PLUS,
+            })
+          "
+          remove-click
+          class="-my-1"
+        />
+      </template>
+    </NcList>
+
+    <NcDivider class="!my-0" />
+
     <NcList
       :value="!selectedTemplate ? `${!!isAddNewRecordGridMode}` : ''"
       :list="defaultOptions"
@@ -138,46 +178,6 @@ const templatesList = computed(() => {
         </template>
       </NcList>
     </template>
-
-    <!-- Manage Templates -->
-    <NcDivider class="!my-0" />
-
-    <NcList
-      value=""
-      :list="[
-        {
-          label: $t('activity.manageTemplates'),
-          value: 'manage-templates',
-        },
-      ]"
-      variant="small"
-      class="!h-auto !pt-1"
-      :item-height="30"
-      reset-hover-effect-on-mouse-leave
-      @change="
-        () => {
-          if (showUpgradeToUseRecordTemplates()) return
-
-          onOpenTemplateManager?.()
-        }
-      "
-    >
-      <template #listItemExtraLeft>
-        <GeneralIcon icon="settings" class="w-4 h-4" />
-      </template>
-      <template #listItemExtraRight>
-        <PaymentUpgradeBadge
-          :feature="PlanFeatureTypes.FEATURE_RECORD_TEMPLATES"
-          :content="
-            $t('upgrade.upgradeToUseRecordTemplatesSubtitle', {
-              plan: PlanTitles.PLUS,
-            })
-          "
-          remove-click
-          class="-my-1"
-        />
-      </template>
-    </NcList>
   </div>
 </template>
 

@@ -504,16 +504,12 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                           <NcMenu variant="small">
                             <NcMenuItemCopyId
                               :id="sources[0].id"
+                              inline
+                              :entity-label="$t('general.source')"
                               :tooltip="$t('labels.clickToCopySourceID')"
-                              :label="
-                                $t('labels.sourceIdColon', {
-                                  sourceId: sources[0].id,
-                                })
-                              "
                             />
 
                             <template v-if="!sources[0].is_meta && !sources[0].is_local">
-                              <NcDivider />
 
                               <NcMenuItem @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)">
                                 <GeneralIcon icon="edit" />
@@ -592,16 +588,12 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                           <NcMenu variant="small">
                             <NcMenuItemCopyId
                               :id="source.id"
+                              inline
+                              :entity-label="$t('general.source')"
                               :tooltip="$t('labels.clickToCopySourceID')"
-                              :label="
-                                $t('labels.sourceIdColon', {
-                                  sourceId: source.id,
-                                })
-                              "
                             />
 
                             <template v-if="!source.is_meta && !source.is_local">
-                              <NcDivider />
 
                               <NcMenuItem @click="handleClickRow(source, 'edit')">
                                 <GeneralIcon icon="edit" />

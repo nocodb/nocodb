@@ -463,15 +463,11 @@ const deleteScript = () => {
                 <NcMenuItemCopyId
                   v-if="script?.id"
                   :id="script.id"
-                  :label="
-                    $t('labels.scriptIdColon', {
-                      scriptId: script?.id,
-                    })
-                  "
+                  inline
+                  :entity-label="$t('objects.script')"
                   :tooltip="$t('labels.clickToCopyScriptID')"
                 />
                 <template v-if="!isSharedBase && isUIAllowed('scriptCreateOrEdit')">
-                  <NcDivider />
                   <NcMenuItem
                     v-e="['c:script:rename']"
                     :data-testid="`sidebar-script-rename-${script.title}`"

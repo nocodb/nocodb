@@ -380,9 +380,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async readOnlyPrimariesByPkFromModel(
     props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
   ): Promise<any[]> {
-    return await Promise.all(
-      props.map(({ model, id, extractDisplayValueData = true }) =>
-        this.readByPkFromModel(
+    const results: any[] = [];
+    for (const { model, id, extractDisplayValueData = true } of props) {
+      results.push(
+        await this.readByPkFromModel(
           model,
           undefined,
           extractDisplayValueData,
@@ -395,8 +396,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             extractOnlyPrimaries: true,
           },
         ),
-      ),
-    );
+      );
+    }
+    return results;
   }
 
   public async exist(id?: any): Promise<any> {

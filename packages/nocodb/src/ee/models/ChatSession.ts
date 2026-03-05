@@ -195,13 +195,18 @@ export default class ChatSession
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const condition = { id: sessionId, fk_workspace_id: context.workspace_id };
+    if (!sessionId || !context.workspace_id) {
+      return null;
+    }
 
-    await ncMeta.knex(MetaTable.CHAT_SESSIONS).where(condition).increment({
-      total_input_tokens: inputTokens,
-      total_output_tokens: outputTokens,
-      message_count: 1,
-    });
+    await ncMeta
+      .knex(MetaTable.CHAT_SESSIONS)
+      .where({ id: sessionId, fk_workspace_id: context.workspace_id })
+      .increment({
+        total_input_tokens: inputTokens,
+        total_output_tokens: outputTokens,
+        message_count: 1,
+      });
 
     if (title) {
       await ncMeta.metaUpdate(

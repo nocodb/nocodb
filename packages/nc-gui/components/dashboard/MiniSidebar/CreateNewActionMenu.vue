@@ -161,7 +161,7 @@ const hasDashboardCreateAccess = computed(() => {
     >
       <div class="w-full py-1 flex items-center justify-center">
         <div
-          class="border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
+          class="nc-mini-sidebar-plus-btn border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
           :class="{
             'border-nc-border-gray-dark': !isVisibleCreateNew,
             'active border-primary shadow-selected': isVisibleCreateNew,
@@ -374,6 +374,10 @@ const hasDashboardCreateAccess = computed(() => {
 </template>
 
 <style lang="scss">
+.nc-mini-sidebar-plus-btn svg {
+  stroke-width: 2.5;
+}
+
 .nc-create-new-dropdown.nc-create-new-dropdown {
   padding-left: 14px;
   background: transparent !important;

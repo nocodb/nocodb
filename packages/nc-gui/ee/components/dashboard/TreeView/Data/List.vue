@@ -247,24 +247,7 @@ watchEffect(() => {
 <template>
   <div>
     <div
-      v-if="!allEntities.length && hasTableCreatePermission"
-      class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
-      role="button"
-      @click="openTableCreateDialog"
-    >
-      <div class="nc-project-home-section-item">
-        <GeneralIcon icon="plus" />
-        <div>
-          {{
-            $t('general.createEntity', {
-              entity: $t('objects.table'),
-            })
-          }}
-        </div>
-      </div>
-    </div>
-    <div
-      v-else-if="!allEntities.length && !hasTableCreatePermission"
+      v-if="!allEntities.length && !hasTableCreatePermission"
       class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
     >
       {{ $t('placeholder.noTables') }}

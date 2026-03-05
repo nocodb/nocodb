@@ -7,6 +7,7 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
+import { TextSelection } from '@tiptap/pm/state'
 import { marked } from 'marked'
 import { DocHighlightExtension } from './DocHighlightExtension'
 import { DocCommentMarkExtension } from './DocCommentMarkExtension'
@@ -371,6 +372,28 @@ const _tiptapEditor = useEditor({
         event.preventDefault()
         view.dispatch(state.tr.insertText('  ', $from.pos, selection.to))
         return true
+      }
+
+      // Progressive select-all (Notion-like):
+      // 1st Cmd+A → select all text in the current block
+      // 2nd Cmd+A → select entire document (default ProseMirror behavior)
+      if (event.key === 'a' && (event.metaKey || event.ctrlKey) && !event.shiftKey && !event.altKey) {
+        // Find the innermost text block (paragraph, heading, codeBlock, etc.)
+        const blockStart = $from.start($from.depth)
+        const blockEnd = $from.end($from.depth)
+
+        // Check if the entire block text is already selected
+        const blockFullySelected = selection.from === blockStart && selection.to === blockEnd
+
+        if (!blockFullySelected) {
+          // First Cmd+A: select all text in the current block
+          event.preventDefault()
+          view.dispatch(state.tr.setSelection(TextSelection.create(state.doc, blockStart, blockEnd)))
+          return true
+        }
+
+        // Block already fully selected — fall through to ProseMirror's default selectAll (entire doc)
+        return false
       }
 
       if (event.key !== 'Backspace') return false

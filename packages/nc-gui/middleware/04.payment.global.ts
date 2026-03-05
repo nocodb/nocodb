@@ -48,7 +48,7 @@ export default defineNuxtRouteMiddleware(() => {
     }
 
     // Only redirect if we're not already on the target path (prevents loop)
-    if (window.location.pathname.endsWith(targetPath)) return
+    if (window.location.pathname === targetPath) return
 
     window.location.href = `${targetPath}?${params.toString()}`
   }

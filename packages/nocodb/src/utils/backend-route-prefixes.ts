@@ -10,7 +10,6 @@ export const backendRoutePrefixes = [
   '/dltemp',
   '/p',
   '/data',
-  '/nc',
   '/internal',
   '/jobs',
   '/.well-known',
@@ -18,6 +17,9 @@ export const backendRoutePrefixes = [
 
 // path-to-regexp v3 (used by NestJS .exclude()): '/*' is a literal asterisk,
 // NOT a wildcard. Use '/:path*' for prefix matching across sub-paths.
-export const backendRouteExcludePatterns = backendRoutePrefixes.map(
-  (p) => p + '/:path*',
-);
+export const backendRouteExcludePatterns = [
+  ...backendRoutePrefixes.map((p) => p + '/:path*'),
+  // /nc is a frontend route prefix (/nc/{baseId}, /nc/integrations, /nc/feed, etc.)
+  // but old-datas controller has API endpoints at /nc/:baseId/api/v1/* — exclude only those.
+  '/nc/:baseId/api/v1/:path*',
+];

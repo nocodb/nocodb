@@ -8,7 +8,9 @@ export default async function (app) {
   await nestApp.init();
 
   const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/';
-  app.get('/', (_req, res) => res.redirect(dashboardPath));
+  if (dashboardPath !== '/') {
+    app.get('/', (_req, res) => res.redirect(dashboardPath));
+  }
   app.use(nestApp.getHttpAdapter().getInstance());
 
   return { app, nestApp };

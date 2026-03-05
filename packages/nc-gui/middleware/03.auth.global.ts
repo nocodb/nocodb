@@ -228,7 +228,7 @@ async function checkForRedirect() {
   if (window.location.search && /\bui-redirect=/.test(window.location.search)) {
     let url
     try {
-      url = decodeURIComponent(window.location.search.split('=')[1])
+      url = new URLSearchParams(window.location.search).get('ui-redirect')
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }

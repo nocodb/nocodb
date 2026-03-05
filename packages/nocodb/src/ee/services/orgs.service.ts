@@ -157,6 +157,10 @@ export class OrgsService {
     return res;
   }
 
+  async deleteDomain(param: { domainId: string }) {
+    return await Domain.delete(param.domainId);
+  }
+
   async updateOrg(param: {
     orgId: string;
     org: any;

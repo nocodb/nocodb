@@ -228,16 +228,10 @@ export class OrgsController {
   })
   async deleteDomain(
     @Req() req: NcRequest,
-    @Body() body: { orgId: string; workspaceId: string; workspaceName: string },
+    @Param('domainId') domainId: string,
   ) {
-    // TODO: move this to middleware/guard
-    if (req.ncWorkspaceId) {
-      await checkIfWorkspaceSSOAvail(req.ncWorkspaceId);
-    }
-    return this.orgsService.deleteWorkspace({
-      workspaceId: body.workspaceId,
-      req,
-      user: req.user,
+    return this.orgsService.deleteDomain({
+      domainId,
     });
   }
 }

@@ -183,10 +183,20 @@ export function formatAjvErrors(errors: ErrorObject[]): ErrorObject[] {
   // Collapse oneOf/anyOf: remove sub-branch errors
   const collapsed = errors.filter((e) => !isOneOfAnyOfSubError(e));
 
-  return collapsed.map((error) => ({
-    ...error,
-    message: formatSingleError(error),
-  }));
+  // Deduplicate by formatted message (sub-branch errors from $ref-resolved
+  // oneOf/anyOf branches produce identical messages that slip past the
+  // schemaPath-based filter above)
+  const seen = new Set<string>();
+  return collapsed
+    .map((error) => ({
+      ...error,
+      message: formatSingleError(error),
+    }))
+    .filter((error) => {
+      if (seen.has(error.message)) return false;
+      seen.add(error.message);
+      return true;
+    });
 }
 
 /**

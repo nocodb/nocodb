@@ -1,6 +1,4 @@
 <script lang="ts" setup>
-import { PlanFeatureTypes } from 'nocodb-sdk'
-
 provide(IsMiniSidebarInj, ref(true))
 
 const router = useRouter()
@@ -41,17 +39,9 @@ const { isChatWootEnabled } = useProvideChatwoot()
 
 const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
 
-const { blockAiChat, showUpgradeToUseAiChat } = useEeConfig()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
-const isChatEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CHAT))
+const { blockAiChat } = useEeConfig()
 
 const handleChatToggle = () => {
-  if (blockAiChat.value) {
-    showUpgradeToUseAiChat()
-    return
-  }
   toggleChatPanel()
 }
 
@@ -121,7 +111,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 // Cmd/Ctrl + Shift + A — toggle AI chat
 useEventListener(document, 'keydown', (e: KeyboardEvent) => {
-  if (!isEeUI || !isChatEnabled.value) return
+  if (!isEeUI || blockAiChat.value) return
   const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
   if (
     cmdOrCtrl &&
@@ -294,7 +284,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
 
-      <DashboardMiniSidebarItemWrapper v-if="isEeUI && isChatEnabled && hasChatWorkspaceContext">
+      <DashboardMiniSidebarItemWrapper v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext">
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex items-center gap-1">{{ $t('labels.aiChat') }} {{ renderCmdOrCtrlKey(true) }} ⇧ A</div>
@@ -305,17 +295,9 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
             data-testid="nc-sidebar-chat-btn"
             @click="handleChatToggle"
           >
-            <div class="nc-mini-sidebar-btn" :class="{ active: isChatPanelExpanded && !blockAiChat }">
+            <div class="nc-mini-sidebar-btn" :class="{ active: isChatPanelExpanded }">
               <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
             </div>
-            <LazyPaymentUpgradeBadge
-              :feature="PlanFeatureTypes.FEATURE_AI_CHAT"
-              content=""
-              class="!absolute bottom-1 right-1"
-              show-as-lock
-              remove-click
-              size="xs"
-            />
           </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>

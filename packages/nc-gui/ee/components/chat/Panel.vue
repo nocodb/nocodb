@@ -142,16 +142,19 @@ const handleSend = async (content: string) => {
 }
 
 const handleNewSession = () => {
+  $e('c:chat:session:new')
   showSessionList.value = false
   chatStore.activeSessionId = null
 }
 
 const handleDeleteSession = async (sessionId: string) => {
   if (!activeWorkspaceId.value) return
+  $e('a:chat:session:delete')
   await chatStore.deleteSession(activeWorkspaceId.value, sessionId)
 }
 
 const handleSelectSession = (sessionId: string) => {
+  $e('c:chat:session:select')
   chatStore.activeSessionId = sessionId
   showSessionList.value = false
 }

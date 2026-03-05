@@ -5,6 +5,8 @@ export const useChatPanel = createSharedComposable(() => {
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
+  const { blockAiChat } = useEeConfig()
+
   const { $e } = useNuxtApp()
 
   // User preference persisted across sessions
@@ -13,7 +15,7 @@ export const useChatPanel = createSharedComposable(() => {
   const hasWorkspaceContext = computed(() => !!activeWorkspaceId.value)
 
   const isPanelExpanded = computed({
-    get: () => panelPreference.value && hasWorkspaceContext.value,
+    get: () => panelPreference.value && hasWorkspaceContext.value && !blockAiChat.value,
     set: (val: boolean) => {
       panelPreference.value = val
     },
@@ -57,9 +59,7 @@ export const useChatPanel = createSharedComposable(() => {
       isActionPanelExpanded.value = false
     }
     isPanelExpanded.value = !isPanelExpanded.value
-    if (isPanelExpanded.value) {
-      $e('c:chat:open')
-    }
+    $e(isPanelExpanded.value ? 'c:chat:open' : 'c:chat:close')
   }
 
   // Expose chat panel width as a CSS variable so viewport-based layouts can account for it

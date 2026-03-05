@@ -40,7 +40,6 @@ const {
   onOpenCopyViewConfigFromAnotherViewModal,
   getCopyViewConfigBtnAccessStatus,
   hasOnlyOneGridViewInTable,
-  onViewsTabChange,
 } = viewsStore
 
 const { base } = storeToRefs(useBase())
@@ -270,13 +269,6 @@ const isUploadAllowed = computed(() => {
 const copyViewConfigMenuItemStatus = computed(() => {
   return getCopyViewConfigBtnAccessStatus(view.value, 'view-action-menu')
 })
-
-const isSqlView = computed(() => table.value?.type === 'view')
-
-const openDetailsTab = (tab: string) => {
-  onViewsTabChange(tab)
-  emits('closeModal')
-}
 
 const onRunActions = () => {
   toggleActionPanel()
@@ -716,51 +708,7 @@ defineOptions({
         </SmartsheetToolbarNotAllowedTooltip>
       </template>
 
-      <!-- ── Table ── -->
-      <template v-if="!isSqlView">
-        <NcDivider />
-        <NcMenuItemLabel>
-          {{ $t('objects.table') }}
-        </NcMenuItemLabel>
-
-        <!-- Permissions -->
-        <NcMenuItem
-          v-if="isEeUI && isUIAllowed('fieldAdd')"
-          data-testid="nc-view-action-permissions"
-          @click="openDetailsTab('permissions')"
-        >
-          <GeneralIcon icon="ncLock" class="opacity-80" />
-          {{ $t('general.permissions') }}
-        </NcMenuItem>
-
-        <!-- Relations -->
-        <NcMenuItem
-          data-testid="nc-view-action-relations"
-          @click="openDetailsTab('relation')"
-        >
-          <GeneralIcon icon="ncErd" class="opacity-80" />
-          {{ $t('title.relations') }}
-        </NcMenuItem>
-
-        <!-- Webhooks -->
-        <NcMenuItem
-          v-if="isUIAllowed('hookList')"
-          data-testid="nc-view-action-webhooks"
-          @click="openDetailsTab('webhook')"
-        >
-          <GeneralIcon icon="ncWebhook" class="opacity-80" />
-          {{ $t('objects.webhooks') }}
-        </NcMenuItem>
-
-        <!-- API Snippets -->
-        <NcMenuItem
-          data-testid="nc-view-action-api-snippets"
-          @click="openDetailsTab('api')"
-        >
-          <GeneralIcon icon="ncCode" class="opacity-80" />
-          {{ $t('labels.apiSnippet') }}
-        </NcMenuItem>
-      </template>
+      <!-- Table section items moved to DlgTableDetails modal -->
 
       <!-- Run Actions (EE) -->
       <NcMenuItem

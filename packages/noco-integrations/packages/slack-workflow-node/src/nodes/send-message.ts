@@ -305,6 +305,7 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         const postMessageArgs: any = {
           channel: target,
           text: message,
+          link_names: true,
           unfurl_links: unfurlLinks,
         };
 

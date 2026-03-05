@@ -7,8 +7,8 @@ on:
         description: 'Test set number'
         required: false
         type: string
-      no_prefix:
-        description: 'Do not use prefix (use schema) during test'
+      reflection:
+        description: 'Enable PG data reflection (no table prefix) during test'
         required: false
         type: boolean
   # Triggered manually
@@ -18,8 +18,8 @@ on:
         description: 'Test set number'
         required: false
         type: string
-      no_prefix:
-        description: 'Do not use prefix (use schema) during test'
+      reflection:
+        description: 'Enable PG data reflection (no table prefix) during test'
         required: false
         type: boolean
 
@@ -79,4 +79,4 @@ jobs:
       - name: run unit tests
         working-directory: ./packages/nocodb
         run: |
-          pnpm run test:unit:pg:ee${{ inputs.no_prefix && '-no-prefix' || '' }} --forbid-only ${{ inputs.test_set && '--test-set-' || '' }}${{ inputs.test_set }}
+          pnpm run test:unit:pg:ee${{ inputs.reflection && ':reflection' || '' }} --forbid-only ${{ inputs.test_set && '--test-set-' || '' }}${{ inputs.test_set }}

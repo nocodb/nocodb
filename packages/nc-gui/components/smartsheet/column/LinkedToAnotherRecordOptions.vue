@@ -227,14 +227,21 @@ const refViews = computed(() => {
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
-// Set version based on uidt
-// Links (V1 UI) always sends version=1; LinkToAnotherRecord (V2 UI) sends version=2
+// Set version based on relation type and uidt
+// hm/bt are V1-only relation types; om/mo are V2 relation types
+// For mm/oo, version follows the uidt (LinkToAnotherRecord → V2, Links → V1)
 watch(
   [() => vModel.value.type, () => vModel.value.uidt],
   () => {
     if (isEdit.value) return
 
-    if (vModel.value.uidt === UITypes.LinkToAnotherRecord) {
+    const type = vModel.value.type
+
+    if (type === RelationTypes.HAS_MANY || type === RelationTypes.BELONGS_TO) {
+      vModel.value.version = LinksVersion.V1
+    } else if (type === RelationTypes.ONE_TO_MANY || type === RelationTypes.MANY_TO_ONE) {
+      vModel.value.version = LinksVersion.V2
+    } else if (vModel.value.uidt === UITypes.LinkToAnotherRecord) {
       vModel.value.version = LinksVersion.V2
     } else if (vModel.value.uidt === UITypes.Links) {
       vModel.value.version = LinksVersion.V1

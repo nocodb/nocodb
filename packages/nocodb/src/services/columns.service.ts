@@ -4749,13 +4749,28 @@ export class ColumnsService implements IColumnsService {
 
     const reuse = param.reuse ?? {};
 
+    const relationType = (param.column as LinkToAnotherColumnReqType).type;
+
+    // Determine version based on relation type when not explicitly provided:
+    // - hm/bt are V1-only relation types (use foreign key)
+    // - om/mo are V2-only relation types (use junction table)
+    // - mm/oo default to V2
+    if ((param.column as any).version == null) {
+      if (
+        relationType === RelationTypes.HAS_MANY ||
+        relationType === RelationTypes.BELONGS_TO
+      ) {
+        (param.column as any).version = LinksVersion.V1;
+      } else {
+        (param.column as any).version = LinksVersion.V2;
+      }
+    }
+
     // v2 LTAR uses junction table for all relation types (like mm)
-    // v1 is the default - v2 is only used when explicitly requested via version param
     const isMMLike =
       (param.column as any).version === LinksVersion.V2 ||
       // traditional MM is always treated as MM-like regardless of version
-      (param.column as LinkToAnotherColumnReqType).type ===
-        RelationTypes.MANY_TO_MANY;
+      relationType === RelationTypes.MANY_TO_MANY;
 
     // get table and refTable models
     const table = await Model.getWithInfo(context, {

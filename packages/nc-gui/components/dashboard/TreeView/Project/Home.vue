@@ -84,6 +84,7 @@ const hasTableCreatePermission = computed(() => {
           </NcDropdown>
         </div>
       </div>
+      <div v-if="activeSidebarTab !== 'settings'" class="mx-3 border-t border-nc-border-gray-medium"></div>
     </div>
 
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">

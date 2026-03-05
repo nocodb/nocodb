@@ -148,7 +148,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
           </NcTooltip>
 
           <!-- Resolve button (unresolved state) — only on top-level comments, not replies -->
-          <NcTooltip v-if="!isReply && !comment.resolved_by && hasEditPermission">
+          <NcTooltip v-if="!isReply && !comment.resolved_by && hasEditPermission" placement="topRight">
             <NcButton
               class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light"
               size="xsmall"
@@ -162,7 +162,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         </div>
 
         <!-- Resolved badge — always visible (green checkmark), only on top-level comments -->
-        <NcTooltip v-if="!isReply && comment.resolved_by">
+        <NcTooltip v-if="!isReply && comment.resolved_by" placement="topRight">
           <template #title>{{ `${$t('activity.resolvedBy')} ${comment.resolved_display_name_short}` }}</template>
           <NcButton
             class="nc-doc-resolve-badge !w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light"
@@ -170,7 +170,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
             type="text"
             @click.stop="emit('resolve')"
           >
-            <GeneralIcon class="text-xs text-nc-content-green-dark" icon="checkCircle" />
+            <GeneralIcon class="text-xs text-green-700" icon="checkCircle" />
           </NcButton>
         </NcTooltip>
       </div>

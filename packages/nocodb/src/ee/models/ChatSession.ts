@@ -181,6 +181,47 @@ export default class ChatSession
     return this.get(context, sessionId, ncMeta);
   }
 
+  static async incrementTokens(
+    context: NcContext,
+    sessionId: string,
+    {
+      inputTokens,
+      outputTokens,
+      title,
+    }: {
+      inputTokens: number;
+      outputTokens: number;
+      title?: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!sessionId || !context.workspace_id) {
+      return null;
+    }
+
+    await ncMeta
+      .knex(MetaTable.CHAT_SESSIONS)
+      .where({ id: sessionId, fk_workspace_id: context.workspace_id })
+      .increment({
+        total_input_tokens: inputTokens,
+        total_output_tokens: outputTokens,
+        message_count: 1,
+      });
+
+    if (title) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        RootScopes.WORKSPACE,
+        MetaTable.CHAT_SESSIONS,
+        { title },
+        { id: sessionId },
+      );
+    }
+
+    // Invalidate cache so next get() fetches fresh data
+    await NocoCache.del(context, `${CacheScope.CHAT_SESSION}:${sessionId}`);
+  }
+
   static async delete(
     context: NcContext,
     sessionId: string,

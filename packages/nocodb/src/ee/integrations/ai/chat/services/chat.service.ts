@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { stepCountIs, streamText } from 'ai';
 import {
   AppEvents,
@@ -30,9 +30,10 @@ import User from '~/models/User';
 import { NcError } from '~/helpers/catchError';
 import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { JobTypes } from '~/interface/Jobs';
+import { InstanceCommands, JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import NocoSocket from '~/socket/NocoSocket';
+import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 
 interface ChatCallbacks {
   onToken?: (content: string) => void;
@@ -52,8 +53,11 @@ interface ChatCallbacks {
 }
 
 @Injectable()
-export class ChatService {
+export class ChatService implements OnModuleInit {
   private readonly logger = new Logger(ChatService.name);
+
+  // Active abort controllers keyed by sessionId — allows cancelling in-flight LLM streams
+  private readonly activeStreams = new Map<string, AbortController>();
 
   constructor(
     private readonly contextService: ChatContextService,
@@ -62,6 +66,41 @@ export class ChatService {
     private readonly appHooksService: AppHooksService,
     private readonly jobsService: NocoJobsService,
   ) {}
+
+  // Pending abort ack resolvers keyed by sessionId
+  private readonly abortAckResolvers = new Map<string, () => void>();
+
+  onModuleInit() {
+    if (!JobsRedis.available) return;
+
+    // Worker side: receive abort command → abort stream → ack back to primary
+    JobsRedis.workerCallbacks[InstanceCommands.ABORT_CHAT_STREAM] = async (
+      sessionId: string,
+    ) => {
+      const aborted = this.abortStream(sessionId);
+      if (aborted) {
+        try {
+          await JobsRedis.emitPrimaryCommand(
+            InstanceCommands.ABORT_CHAT_STREAM_ACK,
+            sessionId,
+          );
+        } catch (e) {
+          this.logger.error(e.message, e.stack);
+        }
+      }
+    };
+
+    // Primary side: receive ack → resolve the pending promise
+    JobsRedis.primaryCallbacks[InstanceCommands.ABORT_CHAT_STREAM_ACK] = async (
+      sessionId: string,
+    ) => {
+      const resolve = this.abortAckResolvers.get(sessionId);
+      if (resolve) {
+        resolve();
+        this.abortAckResolvers.delete(sessionId);
+      }
+    };
+  }
 
   async sessionCreate(
     context: NcContext,
@@ -235,6 +274,13 @@ export class ChatService {
     );
 
     // 5. Enqueue job — response delivered via Socket.IO
+    const chatJobId = `chat:msg:${sessionId}`;
+
+    // Remove any stale job for this session (e.g. previous job failed, user
+    // cancelled, or job completed but wasn't cleaned up yet). Without this,
+    // Bull silently drops the new job because the jobId already exists.
+    await this.removeStaleJob(chatJobId, sessionId);
+
     const jobData: Omit<ChatMessageJobData, 'jobName'> = {
       context,
       user: req.user,
@@ -245,7 +291,8 @@ export class ChatService {
     };
 
     await this.jobsService.add(JobTypes.ChatMessage, jobData, {
-      jobId: `chat:msg:${sessionId}`,
+      jobId: chatJobId,
+      removeOnFail: true,
     });
   }
 
@@ -290,6 +337,10 @@ export class ChatService {
     // optimistic UI update (AWAITING_APPROVAL → RUNNING) locally.
 
     // Enqueue job to execute approved tools and continue the conversation
+    const approvalJobId = `chat:approval:${sessionId}:${messageId}`;
+
+    await this.removeStaleJob(approvalJobId, sessionId);
+
     const jobData: Omit<ChatApprovalJobData, 'jobName'> = {
       context,
       user: req.user,
@@ -300,7 +351,8 @@ export class ChatService {
     };
 
     await this.jobsService.add(JobTypes.ChatApproval, jobData, {
-      jobId: `chat:approval:${sessionId}:${messageId}`,
+      jobId: approvalJobId,
+      removeOnFail: true,
     });
   }
 
@@ -413,14 +465,23 @@ export class ChatService {
     // Text blocks accumulate token-by-token; tool_use blocks are inserted inline.
     const contentBlocks: ChatContentBlock[] = [];
 
+    // Abort any previous in-flight stream on this worker, then register ours.
+    // Cross-worker abort is handled via Redis PubSub (ABORT_CHAT_STREAM command).
+    this.abortStream(sessionId);
+    const abortController = new AbortController();
+    this.activeStreams.set(sessionId, abortController);
+
     // Stream the LLM response
     const result = streamText({
       model,
       system: systemPrompt,
       messages: coreMessages,
       tools: vercelTools,
+      abortSignal: abortController.signal,
       stopWhen: stepCountIs(MAX_STEPS),
       onChunk: ({ chunk }) => {
+        if (abortController.signal.aborted) return;
+
         if (chunk.type === 'text-delta') {
           const last = contentBlocks[contentBlocks.length - 1];
           if (last && last.type === 'text') {
@@ -445,6 +506,8 @@ export class ChatService {
         }
       },
       onStepFinish: ({ toolCalls, toolResults }) => {
+        if (abortController.signal.aborted) return;
+
         // Update input on matching tool_use blocks
         for (const tc of toolCalls || []) {
           const block = contentBlocks.find(
@@ -479,6 +542,9 @@ export class ChatService {
         }
       },
       onFinish: async ({ usage, steps }) => {
+        // Skip persistence if the stream was aborted (superseded by a new message)
+        if (abortController.signal.aborted) return;
+
         try {
           // Resolve final status for each tool_use block from step results
           for (const step of steps || []) {
@@ -554,22 +620,20 @@ export class ChatService {
             output_tokens: usage?.outputTokens || 0,
           });
 
-          await ChatSession.update(context, sessionId, {
-            total_input_tokens:
-              (session.total_input_tokens || 0) + (usage?.inputTokens || 0),
-            total_output_tokens:
-              (session.total_output_tokens || 0) + (usage?.outputTokens || 0),
-            message_count: (session.message_count || 0) + 1,
-          });
-
-          // Auto-generate title on first user message
+          // Atomic increment to avoid stale-read race when turns overlap
+          let autoTitle: string | undefined;
           if ((session.message_count || 0) === 0 && firstUserMessage) {
-            const title =
+            autoTitle =
               firstUserMessage.length > 50
                 ? firstUserMessage.slice(0, 47) + '...'
                 : firstUserMessage;
-            await ChatSession.update(context, sessionId, { title });
           }
+
+          await ChatSession.incrementTokens(context, sessionId, {
+            inputTokens: usage?.inputTokens || 0,
+            outputTokens: usage?.outputTokens || 0,
+            title: autoTitle,
+          });
 
           await integration.storeInsert(context, req.user?.id, usage);
 
@@ -588,8 +652,17 @@ export class ChatService {
     try {
       await result.text;
     } catch (e) {
-      this.logger.error('Error consuming chat stream', e.stack);
-      callbacks?.onError?.('Stream error');
+      if (abortController.signal.aborted) {
+        this.logger.log(`Chat stream aborted for session ${sessionId}`);
+      } else {
+        this.logger.error('Error consuming chat stream', e.stack);
+        callbacks?.onError?.('Stream error');
+      }
+    } finally {
+      // Clean up only if this is still the active controller (not superseded)
+      if (this.activeStreams.get(sessionId) === abortController) {
+        this.activeStreams.delete(sessionId);
+      }
     }
   }
 
@@ -804,6 +877,69 @@ export class ChatService {
       workspaceRole,
       baseRole: Object.keys(baseRoles).find((r) => baseRoles[r]) ?? null,
     };
+  }
+
+  /**
+   * Abort any in-flight LLM stream for the given session (local process).
+   * Called directly on the worker that owns the stream.
+   * @returns true if a stream was actually aborted
+   */
+  private abortStream(sessionId: string): boolean {
+    const controller = this.activeStreams.get(sessionId);
+    if (controller) {
+      controller.abort();
+      this.activeStreams.delete(sessionId);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Remove a stale Bull job so the jobId slot can be reused.
+   * For active jobs: broadcasts an abort signal via Redis PubSub, waits for
+   * an ack from the worker (up to 5 s), then force-fails the job to free
+   * the jobId slot. Falls back to optimistic force-fail on timeout.
+   */
+  private async removeStaleJob(
+    jobId: string,
+    sessionId: string,
+  ): Promise<void> {
+    try {
+      const job = await this.jobsService.getJob(jobId);
+      if (!job) return;
+
+      const state = await job.getState();
+      if (state === 'active') {
+        if (JobsRedis.available) {
+          // Wait for ack from worker with 5s timeout
+          const ackPromise = new Promise<void>((resolve) => {
+            this.abortAckResolvers.set(sessionId, resolve);
+          });
+
+          let timer: ReturnType<typeof setTimeout>;
+          const timeout = new Promise<void>((resolve) => {
+            timer = setTimeout(resolve, 5_000);
+          });
+
+          await JobsRedis.emitWorkerCommand(
+            InstanceCommands.ABORT_CHAT_STREAM,
+            sessionId,
+          );
+
+          await Promise.race([ackPromise, timeout]);
+
+          clearTimeout(timer!);
+        }
+
+        await job.moveToFailed({ message: 'superseded' }, true);
+      } else {
+        await job.remove();
+      }
+    } catch {
+      // Job already removed or in a transient state — safe to ignore
+    } finally {
+      this.abortAckResolvers.delete(sessionId);
+    }
   }
 
   private broadcastToUser(

@@ -3,16 +3,6 @@ import rfdc from 'rfdc'
 const deepClone = rfdc()
 const FEATURES = [
   {
-    id: 'chat',
-    title: 'AI Chat & Act',
-    description: 'Chat with AI to query, modify, and manage your base using natural language.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isAdvanced: true,
-    isEE: true,
-  },
-  {
     id: 'sandbox',
     title: 'Sandbox',
     description: 'Allow users to create sandbox environments for testing schema changes before merging.',

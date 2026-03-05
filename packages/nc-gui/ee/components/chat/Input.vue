@@ -9,6 +9,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   send: [content: string]
+  cancel: []
 }>()
 
 const { disabled } = toRefs(props)
@@ -66,6 +67,18 @@ const handleKeyDown = (e: KeyboardEvent) => {
       />
 
       <NcButton
+        v-if="disabled"
+        v-e="['c:chat:cancel-sending']"
+        size="small"
+        type="secondary"
+        class="flex-none"
+        @click="emit('cancel')"
+      >
+        <GeneralIcon icon="ncStopCircle" class="w-4 h-4" />
+      </NcButton>
+
+      <NcButton
+        v-else
         v-e="['c:chat:send-message']"
         size="small"
         type="primary"

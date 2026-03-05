@@ -326,7 +326,7 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
         </Transition>
 
         <!-- Input -->
-        <ChatInput :disabled="isSendingMessage" @send="handleSend" />
+        <ChatInput :disabled="isSendingMessage" @send="handleSend" @cancel="chatStore.cancelSending" />
       </div>
     </div>
   </Transition>

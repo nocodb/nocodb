@@ -101,6 +101,7 @@ export const useChatStore = defineStore('chatStore', () => {
       // If the last message is from the user, an LLM turn is likely in progress
       // (e.g. opened in another tab). Set sending state so the UI shows the
       // loading indicator; socket 'message-done' or 'error' will clear it.
+      // If it gets stuck, the user can cancel via the stop button.
       const lastMsg = messagesList[messagesList.length - 1]
       if (lastMsg?.role === ChatMessageRole.USER) {
         isSendingMessage.value = true
@@ -407,11 +408,13 @@ export const useChatStore = defineStore('chatStore', () => {
       })
       // isSendingMessage stays true until 'message-done' or 'error' socket event
     } catch (e: any) {
-      isSendingMessage.value = false
       message.error(await extractSdkResponseErrorMsg(e))
 
-      // Re-fetch to sync state on error
+      // Re-fetch to sync state on error, then clear sending flag.
+      // Order matters: loadMessages has a heuristic that sets isSendingMessage
+      // when the last message is from the user, so we must reset AFTER it.
       await loadMessages(wsId, sessionId)
+      isSendingMessage.value = false
     }
   }
 
@@ -451,15 +454,21 @@ export const useChatStore = defineStore('chatStore', () => {
       })
       // isSendingMessage stays true until 'message-done' or 'error' socket event
     } catch (e: any) {
-      isSendingMessage.value = false
       message.error(await extractSdkResponseErrorMsg(e))
       await loadMessages(wsId, sessionId)
+      isSendingMessage.value = false
     }
   }
 
   // ---------------------------------------------------------------------------
   // Cleanup
   // ---------------------------------------------------------------------------
+
+  const cancelSending = () => {
+    if (!activeSessionId.value) return
+    streamingStates.value.delete(activeSessionId.value)
+    isSendingMessage.value = false
+  }
 
   const reset = () => {
     sessions.value.clear()
@@ -496,6 +505,7 @@ export const useChatStore = defineStore('chatStore', () => {
     loadMessages,
     sendMessage,
     approveToolCalls,
+    cancelSending,
     initChatSocket,
     destroyChatSocket,
     reset,

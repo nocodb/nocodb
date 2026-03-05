@@ -94,7 +94,7 @@ const disableTooltipForNewSidebar = true
   }
 
   .nc-rail-item-label {
-    @apply select-none text-[10px] font-bold leading-tight tracking-tight hidden;
+    @apply select-none text-captionXsBold leading-tight tracking-tight hidden;
   }
 
   &:hover:not(.active):not(.disabled) {

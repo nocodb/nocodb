@@ -86,6 +86,17 @@ export class ChatController {
     });
   }
 
+  @Post(`${PREFIX}/chat/sessions/:sessionId/abort`)
+  @Acl('chatMessageSend', { scope: 'workspace' })
+  async abortSession(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Request() req: NcRequest,
+  ) {
+    await this.chatService.abortSession(context, { sessionId, req });
+    return {};
+  }
+
   @Post(`${PREFIX}/chat/sessions/:sessionId/messages`)
   @Acl('chatMessageSend', { scope: 'workspace' })
   async messageSend(

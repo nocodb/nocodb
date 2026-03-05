@@ -356,6 +356,52 @@ export class ChatService implements OnModuleInit {
     });
   }
 
+  /**
+   * Abort any in-flight chat job for the given session.
+   * Called from the controller when the user clicks "stop".
+   */
+  async abortSession(
+    context: NcContext,
+    params: {
+      sessionId: string;
+      req: NcRequest;
+    },
+  ): Promise<void> {
+    const { sessionId, req } = params;
+
+    // Verify session ownership
+    await this.sessionGet(context, { sessionId, req });
+
+    // Abort the in-flight stream (handles both message and approval jobs).
+    // removeStaleJob sends an abort signal via Redis PubSub for cross-worker,
+    // and aborts locally if the stream is on this process.
+    try {
+      await this.removeStaleJob(`chat:msg:${sessionId}`, sessionId);
+    } catch {
+      // Job may not exist — still abort the stream directly
+    }
+
+    // Also abort locally in case only an approval job is running
+    // (removeStaleJob above targets the message job ID specifically).
+    this.abortStream(sessionId);
+
+    // Cross-worker: broadcast abort for approval jobs whose jobId we don't know
+    if (JobsRedis.available) {
+      try {
+        await JobsRedis.emitWorkerCommand(
+          InstanceCommands.ABORT_CHAT_STREAM,
+          sessionId,
+        );
+      } catch {
+        // best-effort
+      }
+    }
+
+    // No broadcast needed — the aborted stream's onFinish persists partial
+    // content and sends message-done. The calling tab awaits this endpoint
+    // and handles cleanup itself; other tabs receive message-done via socket.
+  }
+
   // ---------------------------------------------------------------------------
   // Core LLM turn — called from job processors
   // ---------------------------------------------------------------------------
@@ -542,7 +588,7 @@ export class ChatService implements OnModuleInit {
         }
       },
       onFinish: async ({ usage, steps }) => {
-        // Skip persistence if the stream was aborted (superseded by a new message)
+        // Skip if aborted — partial content is persisted in the catch block below
         if (abortController.signal.aborted) return;
 
         try {
@@ -654,6 +700,55 @@ export class ChatService implements OnModuleInit {
     } catch (e) {
       if (abortController.signal.aborted) {
         this.logger.log(`Chat stream aborted for session ${sessionId}`);
+
+        // Persist partial content so the conversation history is consistent.
+        // Mark any still-RUNNING tool_use blocks as ERROR (cancelled).
+        for (const block of contentBlocks) {
+          if (
+            block.type === 'tool_use' &&
+            block.status === ChatToolCallStatus.RUNNING
+          ) {
+            block.status = ChatToolCallStatus.ERROR;
+          }
+        }
+
+        // Remove trailing empty text blocks
+        while (
+          contentBlocks.length > 0 &&
+          contentBlocks[contentBlocks.length - 1].type === 'text' &&
+          !(
+            contentBlocks[contentBlocks.length - 1] as {
+              type: 'text';
+              text: string;
+            }
+          ).text
+        ) {
+          contentBlocks.pop();
+        }
+
+        if (contentBlocks.length > 0) {
+          try {
+            const partialMessage = await ChatMessage.insert(context, {
+              fk_session_id: sessionId,
+              fk_workspace_id: context.workspace_id,
+              role: ChatMessageRole.ASSISTANT,
+              parts: contentBlocks,
+              model: 'unknown',
+              input_tokens: 0,
+              output_tokens: 0,
+            });
+
+            callbacks?.onDone?.({
+              messageId: partialMessage.id,
+              parts: contentBlocks,
+            });
+          } catch (persistErr) {
+            this.logger.error(
+              'Failed to persist partial chat response',
+              persistErr.stack,
+            );
+          }
+        }
       } else {
         this.logger.error('Error consuming chat stream', e.stack);
         callbacks?.onError?.('Stream error');

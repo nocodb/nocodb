@@ -4,6 +4,8 @@ import { ChatMessageRole, ChatToolCallStatus } from 'nocodb-sdk'
 
 const { isPanelExpanded, chatPanelWidth, isResizing, startResize } = useChatPanel()
 
+const { blockAiChat } = useEeConfig()
+
 const chatStore = useChatStore()
 
 const {
@@ -92,17 +94,19 @@ const scrollToBottom = () => {
 watch(() => activeMessages.value.length, scrollToBottom)
 watch(() => activeStreamingParts.value?.length, scrollToBottom)
 
-// Initialize: ensure socket listener and load sessions when panel opens and workspace is ready
+// Initialize: ensure socket listener and load sessions when panel opens and workspace is ready.
+// Also watch blockAiChat — on cloud, blockAiChat starts false (data not loaded) so isPanelExpanded
+// may briefly be true from localStorage. We skip initialization while blockAiChat hasn't resolved.
 watch(
-  [isPanelExpanded, activeWorkspaceId],
-  async ([expanded, wsId], [, oldWsId]) => {
+  [isPanelExpanded, activeWorkspaceId, blockAiChat],
+  async ([expanded, wsId, blocked], [, oldWsId]) => {
     if (wsId && wsId !== oldWsId) {
       // Workspace changed — reset and re-init
       hasInitialized.value = false
       chatStore.reset()
     }
 
-    if (expanded && wsId) {
+    if (expanded && wsId && !blocked) {
       chatStore.initChatSocket()
 
       if (!hasInitialized.value) {

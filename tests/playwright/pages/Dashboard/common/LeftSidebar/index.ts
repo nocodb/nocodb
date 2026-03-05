@@ -5,7 +5,6 @@ import { isEE } from '../../../../setup/db';
 import { NcContext } from '../../../../setup';
 import { BaseListModalPage } from '../BaseListModal';
 import { SidebarNavPage } from './SidebarNavPage';
-import type { SettingsMenuItem } from './SidebarNavPage';
 
 /** Action types for the original MiniSidebar (v1) */
 type MiniSidebarActionType =
@@ -19,26 +18,6 @@ type MiniSidebarActionType =
   | 'feeds'
   | 'notification'
   | 'userInfo';
-
-/**
- * Tab / panel keys for MiniSidebarV2 (new-sidebar-2 branch).
- *
- * Rail main items  : 'data', 'automations', 'settings'
- * Rail bottom items: 'theme', 'support'
- * Dock main items  : 'data', 'automations', 'settings'
- * Dock bottom items: 'support'
- * Both             : 'notification' (dropdown)
- */
-type MiniSidebarV2TabType =
-  | 'data'
-  | 'automations'
-  | 'notification'
-  | 'theme'
-  | 'agents'
-  | 'settings'
-  | 'support'
-  | 'bookmarks'
-  | 'more';
 
 export class LeftSidebarPage extends BasePage {
   readonly base: any;
@@ -56,13 +35,6 @@ export class LeftSidebarPage extends BasePage {
   /** Legacy MiniSidebar (v1) container */
   readonly miniSidebar: Locator;
 
-  /**
-   * MiniSidebarV2 container — present on the new-sidebar-2 branch.
-   * Can be in rail mode ([data-testid="nc-mini-sidebar-v2-rail"]) or
-   * dock mode ([data-testid="nc-mini-sidebar-v2-dock"]) depending on user setting.
-   */
-  readonly miniSidebarV2: Locator;
-
   readonly active_base: Locator;
 
   constructor(dashboard: DashboardPage) {
@@ -79,7 +51,6 @@ export class LeftSidebarPage extends BasePage {
     this.modal_baseList = this.rootPage.locator('.nc-workspace-base-list-modal-wrapper');
 
     this.miniSidebar = this.dashboard.get().locator('[data-testid="nc-mini-sidebar"]');
-    this.miniSidebarV2 = this.dashboard.get().locator('[data-testid="nc-mini-sidebar-v2"]');
 
     this.active_base = this.get().locator('.nc-treeview-container.nc-treeview-container-active-base');
   }
@@ -97,9 +68,9 @@ export class LeftSidebarPage extends BasePage {
     return (await this.miniSidebar.count()) > 0;
   }
 
-  /** Returns true if MiniSidebarV2 is present in the DOM. */
+  /** Returns true if MiniSidebarV2 is present in the DOM. Delegates to SidebarNavPage. */
   async isMiniSidebarV2Visible() {
-    return (await this.miniSidebarV2.count()) > 0;
+    return this.sidebarNav.isMiniSidebarV2Visible();
   }
 
   /**
@@ -107,50 +78,8 @@ export class LeftSidebarPage extends BasePage {
    * Useful when code needs to work with both sidebar generations.
    */
   async getActiveMiniSidebar(): Promise<Locator> {
-    if (await this.isMiniSidebarV2Visible()) return this.miniSidebarV2;
+    if (await this.isMiniSidebarV2Visible()) return this.sidebarNav.miniSidebarV2;
     return this.miniSidebar;
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // MiniSidebarV2 — navigation tab helpers
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /**
-   * Returns the locator for a tab/panel item inside MiniSidebarV2.
-   * Items are identified by their `data-panel` attribute which is set via
-   * the `panelKey` prop on `RailItem` / `DockItem`.
-   */
-  getMiniSidebarV2TabLocator(tab: MiniSidebarV2TabType): Locator {
-    return this.miniSidebarV2.locator(`[data-panel="${tab}"]`);
-  }
-
-  /**
-   * Clicks a tab in MiniSidebarV2 and waits for the navigation transition.
-   *
-   * @param tab - One of the MiniSidebarV2TabType keys ('data', 'automations', 'settings', …)
-   */
-  async clickMiniSidebarV2Tab(tab: MiniSidebarV2TabType): Promise<void> {
-    await this.miniSidebarV2.waitFor({ state: 'visible' });
-    const tabLocator = this.getMiniSidebarV2TabLocator(tab);
-    await tabLocator.waitFor({ state: 'visible' });
-    await tabLocator.click();
-    await this.rootPage.waitForTimeout(500);
-  }
-
-  /**
-   * Asserts that the given tab is currently active (has the `active` class).
-   */
-  async verifyMiniSidebarV2ActiveTab(tab: MiniSidebarV2TabType): Promise<void> {
-    const tabLocator = this.getMiniSidebarV2TabLocator(tab);
-    await expect(tabLocator).toHaveClass(/active/);
-  }
-
-  /**
-   * Asserts that the given tab is NOT active.
-   */
-  async verifyMiniSidebarV2InactiveTab(tab: MiniSidebarV2TabType): Promise<void> {
-    const tabLocator = this.getMiniSidebarV2TabLocator(tab);
-    await expect(tabLocator).not.toHaveClass(/active/);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -164,7 +93,7 @@ export class LeftSidebarPage extends BasePage {
   async openBaseListModalViaV2(): Promise<void> {
     if (await this.modal_baseList.isVisible()) return;
 
-    const logo = this.miniSidebarV2.getByTestId('nc-mini-sidebar-v2-logo');
+    const logo = this.sidebarNav.miniSidebarV2.getByTestId('nc-mini-sidebar-v2-logo');
     await logo.waitFor({ state: 'visible' });
     await logo.click();
     await this.baseListModal.waitForOpen();
@@ -224,7 +153,7 @@ export class LeftSidebarPage extends BasePage {
    */
   async openNotificationPanel(): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
-      await this.clickMiniSidebarV2Tab('notification');
+      await this.sidebarNav.clickMiniSidebarV2Tab('notification');
     }
   }
 
@@ -262,12 +191,12 @@ export class LeftSidebarPage extends BasePage {
   }
 
   /**
-   * @deprecated Use navigateToSettingsPage instead
+   * @deprecated Use sidebarNav.navigateToSettingsPage instead
    */
   async clickTeamAndSettings(): Promise<void> {
     // V2: team & settings is accessed via the 'settings' rail/dock tab
     if (await this.isMiniSidebarV2Visible()) {
-      await this.navigateToSettingsPage('ws-settings');
+      await this.sidebarNav.navigateToSettingsPage('ws-settings');
       return;
     }
 
@@ -440,7 +369,7 @@ export class LeftSidebarPage extends BasePage {
     isVisible: boolean;
   }): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
-      const v2Mapping: Partial<Record<MiniSidebarActionType, MiniSidebarV2TabType | 'userInfo'>> = {
+      const v2Mapping: Partial<Record<MiniSidebarActionType, string>> = {
         teamAndSettings: 'settings',
         notification: 'notification',
       };
@@ -453,7 +382,7 @@ export class LeftSidebarPage extends BasePage {
           if (isVisible) await expect(locator).toBeVisible();
           else await expect(locator).not.toBeVisible();
         } else if (v2Key) {
-          const locator = this.getMiniSidebarV2TabLocator(v2Key as MiniSidebarV2TabType);
+          const locator = this.sidebarNav.getMiniSidebarV2TabLocator(v2Key as any);
           if (isVisible) await expect(locator).toBeVisible();
           else await expect(locator).not.toBeVisible();
         }

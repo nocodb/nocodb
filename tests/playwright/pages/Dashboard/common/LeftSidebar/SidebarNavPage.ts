@@ -27,7 +27,16 @@ export type SettingsMenuItem = BaseSettingsMenuItem | WsSettingsMenuItem;
 /**
  * Tab / panel keys for MiniSidebarV2.
  */
-type MiniSidebarV2TabType = 'data' | 'workflows' | 'notification' | 'theme' | 'agents' | 'settings' | 'support';
+type MiniSidebarV2TabType =
+  | 'data'
+  | 'docs'
+  | 'workflows'
+  | 'chat'
+  | 'notification'
+  | 'theme'
+  | 'agents'
+  | 'settings'
+  | 'support';
 
 export class SidebarNavPage extends BasePage {
   readonly sidebar: Locator;
@@ -68,6 +77,22 @@ export class SidebarNavPage extends BasePage {
     await this.rootPage.waitForTimeout(500);
   }
 
+  /**
+   * Asserts that the given tab is currently active (has the `active` class).
+   */
+  async verifyMiniSidebarV2ActiveTab(tab: MiniSidebarV2TabType): Promise<void> {
+    const tabLocator = this.getMiniSidebarV2TabLocator(tab);
+    await expect(tabLocator).toHaveClass(/active/);
+  }
+
+  /**
+   * Asserts that the given tab is NOT active.
+   */
+  async verifyMiniSidebarV2InactiveTab(tab: MiniSidebarV2TabType): Promise<void> {
+    const tabLocator = this.getMiniSidebarV2TabLocator(tab);
+    await expect(tabLocator).not.toHaveClass(/active/);
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // Tab navigation
   // ─────────────────────────────────────────────────────────────────────────
@@ -79,6 +104,17 @@ export class SidebarNavPage extends BasePage {
   async navigateToDataTab(): Promise<void> {
     if (await this.isMiniSidebarV2Visible()) {
       await this.clickMiniSidebarV2Tab('data');
+      await this.rootPage.waitForLoadState('networkidle');
+    }
+  }
+
+  /**
+   * Navigates to the Documents section via MiniSidebarV2.
+   * Falls back silently if V2 is not present.
+   */
+  async navigateToDocsTab(): Promise<void> {
+    if (await this.isMiniSidebarV2Visible()) {
+      await this.clickMiniSidebarV2Tab('docs');
       await this.rootPage.waitForLoadState('networkidle');
     }
   }

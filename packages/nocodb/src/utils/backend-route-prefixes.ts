@@ -14,11 +14,10 @@ export const backendRoutePrefixes = [
   '/internal',
   '/jobs',
   '/.well-known',
-  '/row-color-',
 ];
 
-// Same prefixes with path-to-regexp wildcard for NestJS .exclude() which
-// uses pathToRegexp() matching (not Express prefix matching).
+// path-to-regexp v3 (used by NestJS .exclude()): '/*' is a literal asterisk,
+// NOT a wildcard. Use '/:path*' for prefix matching across sub-paths.
 export const backendRouteExcludePatterns = backendRoutePrefixes.map(
-  (p) => p + '/(.*)',
+  (p) => p + '/:path*',
 );

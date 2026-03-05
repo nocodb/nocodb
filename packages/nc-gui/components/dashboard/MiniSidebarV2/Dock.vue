@@ -52,21 +52,10 @@ const isNotificationOpen = ref(false)
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
-const { isModalVisible: isChatVisible } = useChatWoot()
+const { blockAiChat } = useEeConfig()
 
-const toggleChatSupport = () => {
-  $e('c:nocodb:chat-support')
-
-  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
-    message.info({
-      title: t('msg.info.supportChatUnavailable'),
-      content: t('msg.info.supportChatUnavailableSubtitle'),
-    })
-
-    return
-  }
-  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
-  window.$chatwoot.toggle(toggleText)
+const handleChatToggle = () => {
+  toggleChatPanel()
 }
 
 const isBaseOpen = computed(() => {
@@ -271,6 +260,23 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
   }
 })
+
+// Cmd/Ctrl + Shift + A — toggle AI chat
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if (!isEeUI || blockAiChat.value) return
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (
+    cmdOrCtrl &&
+    e.shiftKey &&
+    e.code === 'KeyA' &&
+    !isActiveInputElementExist(e) &&
+    !isNcDropdownOpen() &&
+    !isDrawerOrModalExist()
+  ) {
+    e.preventDefault()
+    handleChatToggle()
+  }
+})
 </script>
 
 <template>
@@ -308,50 +314,21 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium"
       />
 
-      <NcDropdown
-        v-else-if="item.key === 'notification'"
-        :key="`notification-${idx}`"
-        v-model:visible="isNotificationOpen"
-        placement="right"
-        overlay-class-name="!shadow-none"
-        :overlay-style="{ marginLeft: '8px' }"
-        :trigger="['click']"
-      >
-        <DashboardMiniSidebarV2DockItem
-          :ref="(el: any) => setItemRef('notification', el)"
-          :label="isNotificationOpen ? undefined : 'Activity'"
-          panel-key="notification"
-          data-testid="nc-sidebar-notification-btn"
-          :active="isNotificationOpen"
-          :scale="getScale('notification')"
-        >
-          <div class="relative flex items-center justify-center">
-            <span
-              v-if="unreadCount"
-              class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
-              style="background: #e75a8d"
-            />
-            <GeneralIcon icon="notification" class="nc-dock-item-icon" />
-          </div>
-        </DashboardMiniSidebarV2DockItem>
-        <template #overlay>
-          <NotificationCard @close="isNotificationOpen = false" />
-        </template>
-      </NcDropdown>
-
-      <DashboardMiniSidebarV2DockItem
-        v-else
-        :key="idx"
-        :ref="(el: any) => setItemRef(item.key, el)"
-        :icon="item.icon"
-        :label="item.label"
-        :panel-key="item.key"
-        :active="activeSidebarTab === item.key"
-        :disabled="item.disabled"
-        :scale="getScale(item.key)"
-        @click="item.onClick?.()"
-      />
-    </template>
+    <!-- AI Chat -->
+    <DashboardMiniSidebarV2DockItem
+      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && !isMobileMode"
+      :ref="(el: any) => setItemRef('chat', el)"
+      v-e="['c:chat:toggle']"
+      label="Chat"
+      panel-key="chat"
+      data-testid="nc-sidebar-chat-btn"
+      :active="isChatPanelExpanded"
+      :scale="getScale('chat')"
+      class="nc-dock-chat-item"
+      @click="handleChatToggle"
+    >
+      <GeneralIcon icon="ncAutoAwesome" class="nc-dock-item-icon !text-nc-content-brand" />
+    </DashboardMiniSidebarV2DockItem>
 
     <!-- Bottom group -->
     <div class="nc-dock-bottom-group" :class="{ 'is-hovering': isHovering }">
@@ -391,6 +368,42 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     >
       <DashboardMiniSidebarCreateNewActionMenu />
     </div>
+
+    <!-- Activity / Notifications -->
+    <NcDropdown
+      v-if="!isMobileMode"
+      v-model:visible="isNotificationOpen"
+      placement="right"
+      overlay-class-name="!shadow-none"
+      :overlay-style="{ marginLeft: '8px' }"
+      :trigger="['click']"
+    >
+      <div
+        :ref="(el: any) => setItemRef('notification', el)"
+        class="nc-dock-magnify-wrapper"
+        :style="getMagnifyStyle('notification')"
+      >
+        <DashboardMiniSidebarV2DockItem
+          :label="isNotificationOpen ? undefined : 'Activity'"
+          panel-key="notification"
+          data-testid="nc-sidebar-notification-btn"
+          :active="isNotificationOpen"
+          :scale="1"
+        >
+          <div class="relative flex items-center justify-center">
+            <span
+              v-if="unreadCount"
+              class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
+              style="background: #e75a8d"
+            />
+            <GeneralIcon icon="notification" class="nc-dock-item-icon" />
+          </div>
+        </DashboardMiniSidebarV2DockItem>
+      </div>
+      <template #overlay>
+        <NotificationCard @close="isNotificationOpen = false" />
+      </template>
+    </NcDropdown>
 
     <!-- User Avatar -->
     <div :ref="(el: any) => setItemRef('user', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('user')">

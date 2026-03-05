@@ -52,22 +52,10 @@ const isNotificationOpen = ref(false)
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
-const { isModalVisible: isChatVisible } = useChatWoot()
+const { blockAiChat } = useEeConfig()
 
-const toggleChatSupport = () => {
-  $e('c:nocodb:chat-support')
-
-  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
-    message.info({
-      title: t('msg.info.supportChatUnavailable'),
-      content: t('msg.info.supportChatUnavailableSubtitle'),
-    })
-
-    return
-  }
-
-  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
-  window.$chatwoot.toggle(toggleText)
+const handleChatToggle = () => {
+  toggleChatPanel()
 }
 
 const isBaseOpen = computed(() => {
@@ -153,6 +141,23 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
+// Cmd/Ctrl + Shift + A — toggle AI chat
+useEventListener(document, 'keydown', (e: KeyboardEvent) => {
+  if (!isEeUI || blockAiChat.value) return
+  const cmdOrCtrl = isMac() ? e.metaKey : e.ctrlKey
+  if (
+    cmdOrCtrl &&
+    e.shiftKey &&
+    e.code === 'KeyA' &&
+    !isActiveInputElementExist(e) &&
+    !isNcDropdownOpen() &&
+    !isDrawerOrModalExist()
+  ) {
+    e.preventDefault()
+    handleChatToggle()
+  }
+})
+
 // ── Main nav items (add/remove/reorder here) ──
 const mainItems = computed<NavItem[]>(() => [
   {
@@ -226,53 +231,22 @@ const bottomItems = computed<NavItem[]>(
         class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium"
       />
 
-      <!-- Notifications -->
-      <NcDropdown
-        v-else-if="item.key === 'notification'"
-        :key="`notification-${idx}`"
-        v-model:visible="isNotificationOpen"
-        placement="right"
-        overlay-class-name="!shadow-none"
-        :overlay-style="{ marginLeft: '8px' }"
-        :trigger="['click']"
-      >
-        <DashboardMiniSidebarV2RailItem
-          label="Activity"
-          tooltip="Activity"
-          panel-key="notification"
-          data-testid="nc-sidebar-notification-btn"
-          :active="isNotificationOpen"
-          :disable-tooltip="isNotificationOpen"
-          is-dropdown
-        >
-          <template #icon>
-            <div class="relative flex items-center justify-center">
-              <span
-                v-if="unreadCount"
-                class="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full border border-white dark:border-[#1a1a1a]"
-                style="background: #e75a8d"
-              />
-              <GeneralIcon icon="notification" class="nc-rail-item-icon" />
-            </div>
-          </template>
-        </DashboardMiniSidebarV2RailItem>
-        <template #overlay>
-          <NotificationCard @close="isNotificationOpen = false" />
-        </template>
-      </NcDropdown>
-
-      <DashboardMiniSidebarV2RailItem
-        v-else
-        :key="idx"
-        :icon="item.icon"
-        :label="item.label"
-        :panel-key="item.key"
-        :active="activeSidebarTab === item.key"
-        :disabled="item.disabled"
-        :disable-tooltip="true"
-        @click="item.onClick?.()"
-      />
-    </template>
+    <!-- AI Chat -->
+    <DashboardMiniSidebarV2RailItem
+      v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && !isMobileMode"
+      v-e="['c:chat:toggle']"
+      label="Chat"
+      panel-key="chat"
+      data-testid="nc-sidebar-chat-btn"
+      :active="isChatPanelExpanded"
+      :disable-tooltip="true"
+      plain-active
+      @click="handleChatToggle"
+    >
+      <template #icon>
+        <GeneralIcon icon="ncAutoAwesome" class="nc-rail-item-icon !text-nc-content-brand" />
+      </template>
+    </DashboardMiniSidebarV2RailItem>
 
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">

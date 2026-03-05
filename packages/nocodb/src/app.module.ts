@@ -21,6 +21,7 @@ import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { UrlEncodeMiddleware } from '~/middlewares/url-encode.middleware';
 import { OAuthModule } from '~/modules/oauth/oauth.module';
+import { backendRoutePrefixes } from '~/utils/backend-route-prefixes';
 
 export const ceModuleConfig = {
   imports: [
@@ -53,19 +54,27 @@ export const ceModuleConfig = {
 export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
+    const backendRoutes = backendRoutePrefixes.map((path) => ({
+      path,
+      method: RequestMethod.ALL,
+    }));
+
     consumer
+      // 1. GUI — serve frontend static files + SPA fallback (GET only, non-backend paths)
+      .apply(GuiMiddleware)
+      .exclude(...backendRoutes)
+      .forRoutes({ path: '*', method: RequestMethod.GET })
+      // 2. Body parsers + global middleware — backend routes only
       .apply(RawBodyMiddleware)
       .forRoutes({
         path: '/api/payment/webhook',
         method: RequestMethod.POST,
       })
       .apply(JsonBodyMiddleware)
-      .forRoutes('*')
+      .forRoutes(...backendRoutes)
       .apply(UrlEncodeMiddleware)
-      .forRoutes('*')
-      .apply(GuiMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.GET })
+      .forRoutes(...backendRoutes)
       .apply(GlobalMiddleware)
-      .forRoutes({ path: '*', method: RequestMethod.ALL });
+      .forRoutes(...backendRoutes);
   }
 }

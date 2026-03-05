@@ -71,20 +71,6 @@ export class GuiMiddleware implements NestMiddleware, OnModuleInit {
   use(req: Request, res: Response, next: () => void) {
     if (!this.staticRouter) return next();
 
-    // Never intercept backend routes — let NestJS controllers handle them.
-    // This covers all non-dashboard route prefixes used by the backend.
-    if (
-      req.path.startsWith('/api/') ||
-      req.path.startsWith('/sso/') ||
-      req.path.startsWith('/auth/') ||
-      req.path.startsWith('/download/') ||
-      req.path.startsWith('/dl/') ||
-      req.path.startsWith('/dltemp/') ||
-      req.path.startsWith('/p/')
-    ) {
-      return next();
-    }
-
     // Try serving a static asset (JS, CSS, images, fonts)
     this.staticRouter(req, res, () => {
       // No static file matched. For browser navigation requests

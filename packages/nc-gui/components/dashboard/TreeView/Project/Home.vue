@@ -57,7 +57,7 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section pt-0.5 !pb-0 flex flex-col">
+      <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section !pt-1 !pb-0.5 flex flex-col">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
@@ -69,7 +69,7 @@ const hasTableCreatePermission = computed(() => {
               data-testid="nc-home-create-new-btn"
             >
               <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncPlusCircleSolid" class="!text-nc-content-brand" />
+                <GeneralIcon icon="ncPlusCircle" class="!text-nc-content-brand" />
 
                 <div>{{ $t('labels.createNew') }}</div>
               </div>

@@ -77,6 +77,12 @@ export default async function () {
 
     await dropTablesAllNonExternalProjects();
     await cleanupMetaTables();
+
+    // Force garbage collection between test suites to prevent OOM
+    // on CI runners with limited memory (8GB)
+    if (global.gc) {
+      global.gc();
+    }
   } catch (e) {
     console.error('cleanupMeta', e);
   }

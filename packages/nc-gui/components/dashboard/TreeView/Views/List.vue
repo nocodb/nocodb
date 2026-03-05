@@ -7,8 +7,6 @@ import Sortable from 'sortablejs'
 interface Props {
   /** When provided, only these views are displayed (EE per-section usage) */
   sectionViews?: ViewType[]
-  /** When true, the "Create View" button is hidden (EE manages it at index level) */
-  hideCreateViewBtn?: boolean
   /** When true, applies extra indentation for views nested inside a section */
   isInSection?: boolean
 }
@@ -29,7 +27,6 @@ interface Emits {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  hideCreateViewBtn: false,
   isInSection: false,
 })
 
@@ -41,15 +38,11 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { $api } = useNuxtApp()
 
-const { activeTableId } = storeToRefs(useTablesStore())
-
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
 const { baseHomeSearchQuery } = storeToRefs(useBases())
-
-const { isSharedBase } = storeToRefs(useBase())
 
 const { $e } = useNuxtApp()
 
@@ -95,14 +88,6 @@ function markItem(id: string) {
 }
 
 const source = computed(() => base.value?.sources?.find((b) => b.id === table.value.source_id))
-
-const isDefaultSource = computed(() => {
-  if (base.value?.sources?.length === 1) return true
-
-  if (!source.value) return false
-
-  return isDefaultBase(source.value)
-})
 
 /** validate view title */
 function validate(view: ViewType) {
@@ -425,37 +410,6 @@ const filteredViews = computed(() => {
 
 <template>
   <div>
-    <template v-if="!isSharedBase && !hideCreateViewBtn">
-      <DashboardTreeViewCreateViewBtn
-        v-if="isUIAllowed('viewCreateOrEdit')"
-        :align-left-level="isDefaultSource ? 1 : 2"
-        :class="{
-          '!pl-7.5 !xs:(pl-7.5)': isDefaultSource,
-          '!pl-13.6 !xs:(pl-15)': !isDefaultSource,
-        }"
-        :source="source"
-      >
-        <div
-          :class="{
-            'text-nc-content-brand hover:text-nc-content-brand-disabled': activeTableId === table.id,
-            'text-nc-content-gray-muted hover:text-nc-content-brand': activeTableId !== table.id,
-          }"
-          class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
-          role="button"
-        >
-          <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
-            <GeneralIcon icon="plus" class="nc-create-view-btn-icon" />
-            <div class="pl-1.75">
-              {{
-                $t('general.createEntity', {
-                  entity: $t('objects.view'),
-                })
-              }}
-            </div>
-          </div>
-        </div>
-      </DashboardTreeViewCreateViewBtn>
-    </template>
     <div
       v-if="filteredViews.length"
       ref="menuRef"

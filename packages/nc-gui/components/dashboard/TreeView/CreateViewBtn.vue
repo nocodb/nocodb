@@ -5,6 +5,7 @@ const props = defineProps<{
   // Prop used to align the dropdown to the left in sidebar
   alignLeftLevel: number | undefined
   source: Source
+  placement?: string
 }>()
 
 const emits = defineEmits<{
@@ -121,7 +122,7 @@ function onCreateSection() {
 </script>
 
 <template>
-  <NcDropdown v-model:visible="isOpen" :overlay-class-name="overlayClassName" destroy-popup-on-hide @click.stop="isOpen = true">
+  <NcDropdown v-model:visible="isOpen" :overlay-class-name="overlayClassName" :placement="placement || 'bottomLeft'" destroy-popup-on-hide @click.stop="isOpen = true">
     <slot />
     <template #overlay>
       <NcMenu class="max-w-48" variant="small">
@@ -133,7 +134,6 @@ function onCreateSection() {
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.GRID && isViewListLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
 
@@ -157,14 +157,6 @@ function onCreateSection() {
               </div>
 
               <GeneralLoader v-if="toBeCreateType === ViewTypes.FORM && isViewListLoading" />
-              <GeneralIcon
-                v-else
-                class="plus"
-                icon="plus"
-                :class="{
-                  '!text-current': !!source.is_data_readonly || isSqlView || isSyncedTable,
-                }"
-              />
             </div>
           </NcMenuItem>
         </NcTooltip>
@@ -176,7 +168,6 @@ function onCreateSection() {
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.GALLERY && isViewListLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
         <NcMenuItem data-testid="sidebar-view-create-kanban" @click="onOpenModal({ type: ViewTypes.KANBAN })">
@@ -187,7 +178,6 @@ function onCreateSection() {
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.KANBAN && isViewListLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
         <NcMenuItem data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
@@ -198,7 +188,6 @@ function onCreateSection() {
             </div>
 
             <GeneralLoader v-if="toBeCreateType === ViewTypes.CALENDAR && isViewListLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
         <template v-if="isListViewEnabled">
@@ -215,7 +204,6 @@ function onCreateSection() {
                 </div>
 
                 <GeneralLoader v-if="toBeCreateType === ViewTypes.LIST && isViewListLoading" />
-                <GeneralIcon v-else class="plus" icon="plus" :class="{ '!text-current': !isPgSource }" />
               </div>
             </NcMenuItem>
           </NcTooltip>
@@ -250,7 +238,6 @@ function onCreateSection() {
             </template>
             <template v-else>
               <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
-              <GeneralIcon v-else class="plus" icon="plus" />
             </template>
           </div>
         </NcMenuItem>
@@ -283,7 +270,6 @@ function onCreateSection() {
             </template>
             <template v-else>
               <GeneralLoader v-if="toBeCreateType === ViewTypes.TIMELINE && isViewListLoading" />
-              <GeneralIcon v-else class="plus" icon="plus" />
             </template>
           </div>
         </NcMenuItem>
@@ -323,10 +309,6 @@ function onCreateSection() {
 
   .item-inner {
     @apply flex flex-row items-center gap-x-1.75;
-  }
-
-  .plus {
-    @apply text-nc-content-gray-muted;
   }
 }
 

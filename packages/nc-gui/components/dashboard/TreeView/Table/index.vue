@@ -230,8 +230,7 @@ onKeyStroke('Escape', () => {
                 :base="base"
                 :base-id="baseId"
                 :source-index="0"
-                :show-create-table-btn="hasTableCreatePermission"
-                @create-table="emits('createTable')"
+                :show-create-table-btn="false"
               />
             </div>
           </div>

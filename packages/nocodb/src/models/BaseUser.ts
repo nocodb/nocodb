@@ -446,6 +446,9 @@ export default class BaseUser {
       CacheDelDirection.PARENT_TO_CHILD,
     );
 
+    // TODO: also invalidate per-user cache entry `${CacheScope.BASE_USER}:${baseId}:${userId}`
+    // Currently stale no_access roles can persist in cache after deletion, causing intermittent 403s
+
     cleanCommandPaletteCacheForUser(userId).catch(() => {
       logger.error('Error cleaning command palette cache');
     });

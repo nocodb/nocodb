@@ -64,7 +64,7 @@ const hasTableCreatePermission = computed(() => {
               type="text"
               size="small"
               full-width
-              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-gray !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
+              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
               data-testid="nc-home-create-new-btn"
             >

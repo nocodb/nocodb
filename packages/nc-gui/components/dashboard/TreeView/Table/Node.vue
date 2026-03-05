@@ -69,6 +69,15 @@ const isTableRlsDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
 
+const emojiPickerRef = ref<HTMLElement>()
+
+const onChangeIcon = () => {
+  isOptionsOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
+}
+
 const input = ref<HTMLInputElement>()
 
 /** Is editing the table name enabled */
@@ -453,6 +462,7 @@ const enabledOptions = computed(() => {
 
               <!-- Table icon/emoji (hidden on hover, replaced by chevron) -->
               <div
+                ref="emojiPickerRef"
                 v-e="['c:table:emoji-picker']"
                 class="flex items-center group-hover:invisible"
                 :class="{
@@ -584,31 +594,18 @@ const enabledOptions = computed(() => {
                     </div>
                   </NcMenuItem>
 
-                  <LazyGeneralEmojiPicker
+                  <NcMenuItem
                     v-if="canUserEditEmote"
-                    :key="`menu-icon-${table.meta?.icon}`"
-                    :emoji="table.meta?.icon"
-                    size="small"
-                    @emoji-selected="
-                      (icon) => {
-                        setIcon(icon, table)
-                        isOptionsOpen = false
-                      }
-                    "
+                    v-e="['c:table:change-icon']"
+                    :data-testid="`sidebar-table-change-icon-${table.title}`"
+                    class="nc-table-change-icon"
+                    @click="onChangeIcon"
                   >
-                    <template #default>
-                      <NcMenuItem
-                        v-e="['c:table:change-icon']"
-                        :data-testid="`sidebar-table-change-icon-${table.title}`"
-                        class="nc-table-change-icon"
-                      >
-                        <div class="flex gap-2 items-center">
-                          <GeneralIcon icon="ncSmile" class="opacity-80" />
-                          {{ $t('general.changeIcon') }}
-                        </div>
-                      </NcMenuItem>
-                    </template>
-                  </LazyGeneralEmojiPicker>
+                    <div class="flex gap-2 items-center">
+                      <GeneralIcon icon="ncSmile" class="opacity-80" />
+                      {{ $t('general.changeIcon') }}
+                    </div>
+                  </NcMenuItem>
 
                   <NcMenuItem
                     v-if="enabledOptions.tableDuplicate"

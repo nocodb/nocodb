@@ -8979,7 +8979,7 @@
             "description": "Icon prefix to the table name that needs to be displayed in-lieu of the default table icon."
           }
         },
-        "oneOf": [
+        "anyOf": [
           {
             "title": "Rename Table",
             "required": [
@@ -9004,7 +9004,10 @@
               "meta"
             ]
           }
-        ]
+        ],
+        "errorMessage": {
+          "anyOf": "At least one of 'title', 'description', 'display_field_id', or 'meta' must be provided."
+        }
       },
       "Sort": {
         "type": "object",

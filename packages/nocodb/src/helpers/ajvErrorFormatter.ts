@@ -91,7 +91,9 @@ function formatSingleError(error: ErrorObject): string {
       return `'${field}' must be ${addArticle(p.type)}`;
 
     case 'enum':
-      return `'${field}' must be one of: ${(p.allowedValues as string[]).join(', ')}`;
+      return `'${field}' must be one of: ${(p.allowedValues as string[]).join(
+        ', ',
+      )}`;
 
     case 'const':
       return `'${field}' must be '${p.allowedValue}'`;
@@ -124,13 +126,19 @@ function formatSingleError(error: ErrorObject): string {
       return `'${field}' must match the required format`;
 
     case 'format':
-      return `'${field}' must be a valid ${FORMAT_LABELS[p.format] || p.format}`;
+      return `'${field}' must be a valid ${
+        FORMAT_LABELS[p.format] || p.format
+      }`;
 
     case 'minItems':
-      return `'${field}' must contain at least ${p.limit} item${p.limit === 1 ? '' : 's'}`;
+      return `'${field}' must contain at least ${p.limit} item${
+        p.limit === 1 ? '' : 's'
+      }`;
 
     case 'maxItems':
-      return `'${field}' must contain at most ${p.limit} item${p.limit === 1 ? '' : 's'}`;
+      return `'${field}' must contain at most ${p.limit} item${
+        p.limit === 1 ? '' : 's'
+      }`;
 
     case 'uniqueItems':
       return `'${field}' must not contain duplicate values`;

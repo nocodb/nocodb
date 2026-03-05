@@ -1,5 +1,6 @@
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import ajvErrors from 'ajv-errors';
 import type { ErrorObject } from 'ajv';
 import type { NextFunction, Request, Response } from 'express';
 import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
@@ -19,6 +20,7 @@ const ajv = new Ajv({ strictSchema: false, strict: false, allErrors: true }); //
 ajv.addSchema(swagger, 'swagger.json');
 ajv.addSchema(swaggerV3Validation, 'swagger-v3.json');
 addFormats(ajv);
+ajvErrors(ajv);
 
 // A middleware generator to validate the request body
 export const getAjvValidatorMw = (schema: string) => {

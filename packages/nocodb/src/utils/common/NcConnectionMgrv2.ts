@@ -23,6 +23,7 @@ export default class NcConnectionMgrv2 {
         await this.connectionRefs[baseId][sourceId].destroy();
       }
     }
+    this.connectionRefs = {};
   }
 
   public static async deleteAwait(source: Source) {

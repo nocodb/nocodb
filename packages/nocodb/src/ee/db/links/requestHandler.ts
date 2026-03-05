@@ -1,6 +1,7 @@
 import {
   arrFlatMap,
   AuditV1OperationTypes,
+  EventType,
   type NcContext,
   parseProp,
   RelationTypes,
@@ -17,7 +18,6 @@ import type {
 } from '~/db/links/types';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { DBQueryClient } from '~/dbQueryClient';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import {
   getBaseModelSqlFromModelId,
   getOppositeRelationType,
@@ -25,7 +25,7 @@ import {
 import { Column, Model } from '~/models';
 import { batchUpdate } from '~/utils';
 import { NcError } from '~/helpers/ncError';
-import { singleQueryList } from '~/services/data-opt/pg-helpers';
+import NocoSocket from '~/socket/NocoSocket';
 import { Profiler } from '~/helpers/profiler';
 
 /**
@@ -1171,77 +1171,14 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       options: { transaction: knex },
     });
 
-    this.profiler.log('attachToTransaction broadcast');
-    // broadcast
-    knex.attachToTransaction(() => {
-      baseModel
-        .getNonTransactionalClone()
-        .broadcastLinkUpdates([...sourceRowIds]);
-    });
-    knex.attachToTransaction(() => {
-      relatedBaseModel
-        .getNonTransactionalClone()
-        .broadcastLinkUpdates([...relatedRowIds]);
-    });
-
     const baseModelPvCol =
       baseModel.model.columns.find((col) => col.pv) ??
       baseModel.model.primaryKey;
-    const sourceRowResult = (
-      (await singleQueryList(context, {
-        model: baseModel.model,
-        source: await baseModel.getSource(),
-        params: {
-          fields: [baseModel.model.primaryKey.id, baseModelPvCol.id].join(','),
-          filterArr: [
-            {
-              fk_column_id: baseModel.model.primaryKey.id,
-              op: 'in',
-              values: [...sourceRowIds],
-            },
-          ],
-          [QUERY_STRING_FIELD_ID_ON_RESULT]: true,
-        },
-      })) as any
-    ).list as Record<string, any>[];
-    const sourceRowResultMap = new Map(
-      sourceRowResult.map((k) => [
-        k[baseModel.model.primaryKey.id],
-        k[baseModelPvCol.id],
-      ]),
-    );
 
     const relatedModelPvCol =
       (await relatedBaseModel.model.getColumns(relatedContext)).find(
         (col) => col.pv,
       ) ?? relatedBaseModel.model.primaryKey;
-
-    const relatedRowResult = (
-      (await singleQueryList(relatedContext, {
-        model: relatedBaseModel.model,
-        source: await relatedBaseModel.getSource(),
-        params: {
-          fields: [
-            relatedBaseModel.model.primaryKey.id,
-            relatedModelPvCol.id,
-          ].join(','),
-          filterArr: [
-            {
-              fk_column_id: relatedBaseModel.model.primaryKey.id,
-              op: 'in',
-              values: [...sourceRowIds],
-            },
-          ],
-          [QUERY_STRING_FIELD_ID_ON_RESULT]: true,
-        },
-      })) as any
-    ).list as Record<string, any>[];
-    const relatedRowResultMap = new Map(
-      relatedRowResult.map((k) => [
-        k[relatedBaseModel.model.primaryKey.id],
-        k[relatedModelPvCol.id],
-      ]),
-    );
 
     const linkInArray = arrFlatMap(
       payload.links.map((l) =>
@@ -1266,6 +1203,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
       rowId: string;
       linkId: string;
     }[];
+
     let relatedColumn: Column;
     if (colOptions.type === RelationTypes.MANY_TO_MANY) {
       relatedColumn = relatedBaseModel.model.columns.find(
@@ -1285,11 +1223,72 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         (col) => col.id === colOptions.fk_parent_column_id,
       );
     }
-    this.profiler.log('attachToTransaction audit');
 
+    this.profiler.log('attachToTransaction broadcast+audit');
+
+    // Single post-commit callback: fetch once, broadcast, then audit — all sequential
+    // to avoid concurrent pool connections from parallel fire-and-forget ops
     knex.attachToTransaction(() => {
-      const awaitingProcess = async () => {
-        // UNLINK for table
+      const process = async () => {
+        const sourceBaseModel = baseModel.getNonTransactionalClone();
+        const relatedBaseModelClone =
+          relatedBaseModel.getNonTransactionalClone();
+
+        // 1. Fetch + broadcast source rows (realtime priority)
+        const sourceRows = await sourceBaseModel.chunkList({
+          pks: [...sourceRowIds],
+          chunkSize: 100,
+        });
+
+        for (const item of sourceRows) {
+          NocoSocket.broadcastEvent(context, {
+            event: EventType.DATA_EVENT,
+            payload: {
+              action: 'update',
+              payload: item,
+              id: sourceBaseModel.extractPksValues(item),
+            },
+            scopes: [baseModel.model.id],
+          });
+        }
+
+        // 2. Fetch + broadcast related rows
+        const relatedRows = await relatedBaseModelClone.chunkList({
+          pks: [...relatedRowIds],
+          chunkSize: 100,
+        });
+
+        for (const item of relatedRows) {
+          NocoSocket.broadcastEvent(relatedContext, {
+            event: EventType.DATA_EVENT,
+            payload: {
+              action: 'update',
+              payload: item,
+              id: relatedBaseModelClone.extractPksValues(item),
+            },
+            scopes: [relatedBaseModel.model.id],
+          });
+        }
+
+        // 3. Build display value maps from fetched data
+        const sourceRowResultMap = new Map(
+          sourceRows.map((row) => [
+            sourceBaseModel.extractPksValues(row, true),
+            row[baseModelPvCol.title],
+          ]),
+        );
+        const relatedRowResultMap = new Map(
+          relatedRows.map((row) => [
+            relatedBaseModelClone.extractPksValues(row, true),
+            row[relatedModelPvCol.title],
+          ]),
+        );
+
+        // 4. Audit — sequential, lower priority
+        // Calls on baseModel: displayValue from sourceRowResultMap, refDisplayValue from relatedRowResultMap
+        // Calls on relatedBaseModel: displayValue from relatedRowResultMap, refDisplayValue from sourceRowResultMap
+
+        // UNLINK for source table
         await baseModel.afterAddOrRemoveChild(
           {
             opType: AuditV1OperationTypes.DATA_UNLINK,
@@ -1301,20 +1300,19 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
             refColumnId: relatedColumn.id,
             req: cookie,
           },
-          unlinkInArray.map((link) => {
-            return {
-              rowId: link.rowId,
-              refRowId: link.linkId,
-              displayValue: relatedRowResultMap.get(link.rowId),
-              refDisplayValue: relatedRowResultMap.get(link.linkId),
-              type: colOptions.type as RelationTypes,
-            };
-          }),
+          unlinkInArray.map((link) => ({
+            rowId: link.rowId,
+            refRowId: link.linkId,
+            displayValue: sourceRowResultMap.get(link.rowId),
+            refDisplayValue: relatedRowResultMap.get(link.linkId),
+            type: colOptions.type as RelationTypes,
+          })),
         );
+
         // UNLINK for related table
         await relatedBaseModel.afterAddOrRemoveChild(
           {
-            opType: AuditV1OperationTypes.DATA_LINK,
+            opType: AuditV1OperationTypes.DATA_UNLINK,
             model: relatedBaseModel.model,
             refModel: baseModel.model,
             columnTitle: relatedColumn.title,
@@ -1323,18 +1321,16 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
             refColumnId: column.id,
             req: cookie,
           },
-          unlinkInArray.map((link) => {
-            return {
-              rowId: link.linkId,
-              refRowId: link.rowId,
-              displayValue: sourceRowResultMap.get(link.linkId),
-              refDisplayValue: sourceRowResultMap.get(link.rowId),
-              type: getOppositeRelationType(colOptions.type as RelationTypes),
-            };
-          }),
+          unlinkInArray.map((link) => ({
+            rowId: link.linkId,
+            refRowId: link.rowId,
+            displayValue: relatedRowResultMap.get(link.linkId),
+            refDisplayValue: sourceRowResultMap.get(link.rowId),
+            type: getOppositeRelationType(colOptions.type as RelationTypes),
+          })),
         );
 
-        // LINK for table
+        // LINK for source table
         await baseModel.afterAddOrRemoveChild(
           {
             opType: AuditV1OperationTypes.DATA_LINK,
@@ -1346,16 +1342,15 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
             refColumnId: relatedColumn.id,
             req: cookie,
           },
-          linkInArray.map((link) => {
-            return {
-              rowId: link.rowId,
-              refRowId: link.linkId,
-              displayValue: relatedRowResultMap.get(link.rowId),
-              refDisplayValue: relatedRowResultMap.get(link.linkId),
-              type: colOptions.type as RelationTypes,
-            };
-          }),
+          linkInArray.map((link) => ({
+            rowId: link.rowId,
+            refRowId: link.linkId,
+            displayValue: sourceRowResultMap.get(link.rowId),
+            refDisplayValue: relatedRowResultMap.get(link.linkId),
+            type: colOptions.type as RelationTypes,
+          })),
         );
+
         // LINK for related table
         await relatedBaseModel.afterAddOrRemoveChild(
           {
@@ -1368,18 +1363,17 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
             refColumnId: column.id,
             req: cookie,
           },
-          linkInArray.map((link) => {
-            return {
-              rowId: link.linkId,
-              refRowId: link.rowId,
-              displayValue: sourceRowResultMap.get(link.linkId),
-              refDisplayValue: sourceRowResultMap.get(link.rowId),
-              type: getOppositeRelationType(colOptions.type as RelationTypes),
-            };
-          }),
+          linkInArray.map((link) => ({
+            rowId: link.linkId,
+            refRowId: link.rowId,
+            displayValue: relatedRowResultMap.get(link.linkId),
+            refDisplayValue: sourceRowResultMap.get(link.rowId),
+            type: getOppositeRelationType(colOptions.type as RelationTypes),
+          })),
         );
       };
-      awaitingProcess().catch(logger.error);
+
+      process().catch(logger.error);
     });
   }
 }

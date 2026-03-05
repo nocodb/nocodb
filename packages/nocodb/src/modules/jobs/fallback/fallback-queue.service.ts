@@ -228,7 +228,7 @@ export class QueueService {
   // remove job from memory
   private removeJob(job: Job) {
     const fIndex = this.queueMemory.findIndex((q) => q.id === job.id);
-    if (fIndex) {
+    if (fIndex !== -1) {
       this.queueMemory.splice(fIndex, 1);
     }
   }

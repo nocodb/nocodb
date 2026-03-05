@@ -844,22 +844,22 @@ export class DataTableService {
         relatedModel,
       );
 
-      await Promise.all([
-        filteredRowsToLink.length &&
-          baseModel.addLinks({
-            colId: column.id,
-            childIds: filteredRowsToLink,
-            rowId: operationMap.paste.rowId,
-            cookie: param.cookie,
-          }),
-        filteredRowsToUnlink.length &&
-          baseModel.removeLinks({
-            colId: column.id,
-            childIds: filteredRowsToUnlink,
-            rowId: operationMap.paste.rowId,
-            cookie: param.cookie,
-          }),
-      ]);
+      if (filteredRowsToUnlink.length) {
+        await baseModel.removeLinks({
+          colId: column.id,
+          childIds: filteredRowsToUnlink,
+          rowId: operationMap.paste.rowId,
+          cookie: param.cookie,
+        });
+      }
+      if (filteredRowsToLink.length) {
+        await baseModel.addLinks({
+          colId: column.id,
+          childIds: filteredRowsToLink,
+          rowId: operationMap.paste.rowId,
+          cookie: param.cookie,
+        });
+      }
 
       return { link: filteredRowsToLink, unlink: filteredRowsToUnlink };
     }

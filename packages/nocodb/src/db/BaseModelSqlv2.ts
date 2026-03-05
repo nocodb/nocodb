@@ -380,23 +380,56 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async readOnlyPrimariesByPkFromModel(
     props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
   ): Promise<any[]> {
-    return await Promise.all(
-      props.map(({ model, id, extractDisplayValueData = true }) =>
-        this.readByPkFromModel(
-          model,
-          undefined,
-          extractDisplayValueData,
-          id,
-          false,
-          {},
-          {
-            ignoreView: true,
-            getHiddenColumn: true,
-            extractOnlyPrimaries: true,
-          },
-        ),
-      ),
-    );
+    if (!props.length) return [];
+
+    // Group by model to batch-fetch via chunkList (1 SQL query per chunk)
+    const modelGroups = new Map<string, { model: Model; pks: Set<string> }>();
+
+    for (const { model, id } of props) {
+      let group = modelGroups.get(model.id);
+      if (!group) {
+        group = { model, pks: new Set() };
+        modelGroups.set(model.id, group);
+      }
+      group.pks.add(String(id));
+    }
+
+    // Fetch all records per model using chunkList (batched SQL queries)
+    const recordsByModel = new Map<string, Map<string, any>>();
+
+    for (const [modelId, { model, pks }] of modelGroups) {
+      const context = { ...this.context, base_id: model.base_id };
+      const baseModel =
+        this.model.id === modelId
+          ? this
+          : await Model.getBaseModelSQL(context, {
+              model,
+              dbDriver: this.dbDriver,
+            });
+
+      const records = await baseModel.chunkList({
+        pks: [...pks],
+        extractOnlyPrimaries: true,
+      });
+
+      await model.getCachedColumns(context);
+
+      const pkMap = new Map<string, any>();
+      for (const record of records) {
+        const pk = baseModel.extractPksValues(record, true);
+        pkMap.set(String(pk), record);
+      }
+      recordsByModel.set(modelId, pkMap);
+    }
+
+    // Reassemble results in original order
+    return props.map(({ model, id, extractDisplayValueData = true }) => {
+      const record = recordsByModel.get(model.id)?.get(String(id));
+      if (extractDisplayValueData) {
+        return record ? record[model.displayValue.title] ?? null : '';
+      }
+      return record ?? null;
+    });
   }
 
   public async exist(id?: any): Promise<any> {
@@ -3022,6 +3055,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     chunkSize?: number;
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
+    extractOnlyPrimaries?: boolean;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -3032,6 +3066,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { ast } = await getAst(this.context, {
       model: this.model,
       query: args.args || {},
+      extractOnlyPrimaries: args.extractOnlyPrimaries,
     });
 
     for (const chunk of chunkedPks) {
@@ -4764,11 +4799,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (missingDisplayValues.length > 0) {
       for (let i = 0; i < missingDisplayValues.length; i += 100) {
-        const chunk = missingDisplayValues.slice(i * 100, (i + 1) * 100);
+        const chunk = missingDisplayValues.slice(i, i + 100);
 
         const displayValues = await this.list(
           {
             pks: chunk.map((auditObj) => auditObj.rowId).join(','),
+            fieldsSet: new Set(
+              [model.primaryKey?.title, displayValueColumn?.title].filter(
+                Boolean,
+              ),
+            ),
           },
           {
             limitOverride: chunk.length,
@@ -4786,11 +4826,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (missingRefDisplayValues.length > 0) {
       for (let i = 0; i < missingRefDisplayValues.length; i += 100) {
-        const chunk = missingRefDisplayValues.slice(i * 100, (i + 1) * 100);
+        const chunk = missingRefDisplayValues.slice(i, i + 100);
 
         const refDisplayValues = await refBaseModel.list(
           {
             pks: chunk.map((auditObj) => auditObj.refRowId).join(','),
+            fieldsSet: new Set(
+              [refModel.primaryKey?.title, refDisplayValueColumn?.title].filter(
+                Boolean,
+              ),
+            ),
           },
           {
             limitOverride: chunk.length,

@@ -609,22 +609,20 @@ export class ChatService implements OnModuleInit {
             output_tokens: usage?.outputTokens || 0,
           });
 
-          await ChatSession.update(context, sessionId, {
-            total_input_tokens:
-              (session.total_input_tokens || 0) + (usage?.inputTokens || 0),
-            total_output_tokens:
-              (session.total_output_tokens || 0) + (usage?.outputTokens || 0),
-            message_count: (session.message_count || 0) + 1,
-          });
-
-          // Auto-generate title on first user message
+          // Atomic increment to avoid stale-read race when turns overlap
+          let autoTitle: string | undefined;
           if ((session.message_count || 0) === 0 && firstUserMessage) {
-            const title =
+            autoTitle =
               firstUserMessage.length > 50
                 ? firstUserMessage.slice(0, 47) + '...'
                 : firstUserMessage;
-            await ChatSession.update(context, sessionId, { title });
           }
+
+          await ChatSession.incrementTokens(context, sessionId, {
+            inputTokens: usage?.inputTokens || 0,
+            outputTokens: usage?.outputTokens || 0,
+            title: autoTitle,
+          });
 
           await integration.storeInsert(context, req.user?.id, usage);
 

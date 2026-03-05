@@ -1069,7 +1069,7 @@ onBeforeUnmount(() => {
                 </NcMenuItem>
               </NcSubMenu>
               <NcDivider />
-              <NcMenuItem v-if="isUIAllowed('documentDelete')" class="!text-red-500 !hover:bg-red-50" @click="onDeletePage">
+              <NcMenuItem v-if="isUIAllowed('documentDelete')" danger @click="onDeletePage">
                 <GeneralIcon icon="delete" />
                 {{ $t('general.delete') }}
               </NcMenuItem>

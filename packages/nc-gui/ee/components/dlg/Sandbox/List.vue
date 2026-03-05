@@ -217,7 +217,7 @@ watch(
               </NcButton>
               <template #overlay>
                 <NcMenu>
-                  <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="deleteSandbox(sandbox)">
+                  <NcMenuItem danger @click.stop="deleteSandbox(sandbox)">
                     <GeneralLoader v-if="isDeleting === sandbox.id" size="small" />
                     <GeneralIcon v-else icon="delete" class="w-4 h-4" />
                     <span>{{ t('labels.deleteSandbox') }}</span>

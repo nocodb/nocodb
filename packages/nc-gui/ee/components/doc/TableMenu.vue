@@ -454,7 +454,7 @@ onBeforeUnmount(() => {
         />
         <template #overlay>
           <NcMenu variant="small">
-            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click="onDeleteTable">
+            <NcMenuItem danger @click="onDeleteTable">
               <GeneralIcon icon="delete" />
               {{ $t('labels.deleteTable') }}
             </NcMenuItem>

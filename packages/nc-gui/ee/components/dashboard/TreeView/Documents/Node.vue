@@ -431,12 +431,7 @@ function onStopEdit() {
               </NcMenuItem>
               <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />
-                <NcMenuItem
-                  v-e="['c:document:delete']"
-                  :data-testid="`sidebar-doc-delete-${doc.title}`"
-                  class="!text-red-500 !hover:bg-red-50"
-                  @click="onDelete"
-                >
+                <NcMenuItem v-e="['c:document:delete']" :data-testid="`sidebar-doc-delete-${doc.title}`" danger @click="onDelete">
                   <GeneralIcon icon="delete" />
                   {{ $t('labels.deleteDocument') }}
                 </NcMenuItem>

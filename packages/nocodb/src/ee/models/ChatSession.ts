@@ -220,8 +220,6 @@ export default class ChatSession
 
     // Invalidate cache so next get() fetches fresh data
     await NocoCache.del(context, `${CacheScope.CHAT_SESSION}:${sessionId}`);
-
-    return this.get(context, sessionId, ncMeta);
   }
 
   static async delete(

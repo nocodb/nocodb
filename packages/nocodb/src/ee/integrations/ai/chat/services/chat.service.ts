@@ -79,10 +79,14 @@ export class ChatService implements OnModuleInit {
     ) => {
       const aborted = this.abortStream(sessionId);
       if (aborted) {
-        await JobsRedis.emitPrimaryCommand(
-          InstanceCommands.ABORT_CHAT_STREAM_ACK,
-          sessionId,
-        );
+        try {
+          await JobsRedis.emitPrimaryCommand(
+            InstanceCommands.ABORT_CHAT_STREAM_ACK,
+            sessionId,
+          );
+        } catch (e) {
+          this.logger.error(e.message, e.stack);
+        }
       }
     };
 
@@ -476,6 +480,8 @@ export class ChatService implements OnModuleInit {
       abortSignal: abortController.signal,
       stopWhen: stepCountIs(MAX_STEPS),
       onChunk: ({ chunk }) => {
+        if (abortController.signal.aborted) return;
+
         if (chunk.type === 'text-delta') {
           const last = contentBlocks[contentBlocks.length - 1];
           if (last && last.type === 'text') {
@@ -500,6 +506,8 @@ export class ChatService implements OnModuleInit {
         }
       },
       onStepFinish: ({ toolCalls, toolResults }) => {
+        if (abortController.signal.aborted) return;
+
         // Update input on matching tool_use blocks
         for (const tc of toolCalls || []) {
           const block = contentBlocks.find(
@@ -534,6 +542,9 @@ export class ChatService implements OnModuleInit {
         }
       },
       onFinish: async ({ usage, steps }) => {
+        // Skip persistence if the stream was aborted (superseded by a new message)
+        if (abortController.signal.aborted) return;
+
         try {
           // Resolve final status for each tool_use block from step results
           for (const step of steps || []) {
@@ -905,9 +916,10 @@ export class ChatService implements OnModuleInit {
             this.abortAckResolvers.set(sessionId, resolve);
           });
 
-          const timeout = new Promise<void>((resolve) =>
-            setTimeout(resolve, 5_000),
-          );
+          let timer: ReturnType<typeof setTimeout>;
+          const timeout = new Promise<void>((resolve) => {
+            timer = setTimeout(resolve, 5_000);
+          });
 
           await JobsRedis.emitWorkerCommand(
             InstanceCommands.ABORT_CHAT_STREAM,
@@ -916,8 +928,7 @@ export class ChatService implements OnModuleInit {
 
           await Promise.race([ackPromise, timeout]);
 
-          // Clean up resolver if timed out
-          this.abortAckResolvers.delete(sessionId);
+          clearTimeout(timer!);
         }
 
         await job.moveToFailed({ message: 'superseded' }, true);
@@ -926,6 +937,8 @@ export class ChatService implements OnModuleInit {
       }
     } catch {
       // Job already removed or in a transient state — safe to ignore
+    } finally {
+      this.abortAckResolvers.delete(sessionId);
     }
   }
 

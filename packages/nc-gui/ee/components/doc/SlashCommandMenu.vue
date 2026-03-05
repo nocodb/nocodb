@@ -239,21 +239,9 @@ defineExpose({ onKeyDown })
   transition: background-color 0.12s ease;
 }
 
-.nc-slash-menu-item.is-selected {
-  background-color: var(--nc-fill-primary);
-}
-
-.nc-slash-menu-item.is-selected .nc-slash-menu-label {
-  color: var(--nc-content-inverted-primary);
-}
-
-.nc-slash-menu-item.is-selected .nc-slash-menu-icon {
-  color: var(--nc-content-inverted-primary);
-}
-
-/* Only override stroke on icons that use currentColor (non-brand icons) */
-.nc-slash-menu-item.is-selected .nc-slash-menu-icon svg[stroke='currentColor'] {
-  stroke: var(--nc-content-inverted-primary);
+.nc-slash-menu-item.is-selected,
+.nc-slash-menu-item:hover {
+  background-color: var(--nc-bg-gray-light);
 }
 
 .nc-slash-menu-icon {
@@ -267,8 +255,8 @@ defineExpose({ onKeyDown })
 }
 
 .nc-slash-menu-icon svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .nc-slash-menu-label {
@@ -306,11 +294,6 @@ defineExpose({ onKeyDown })
   border-radius: 3px;
 }
 
-.nc-slash-menu-item.is-selected .nc-slash-menu-shortcut kbd {
-  color: var(--nc-content-inverted-primary);
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.2);
-}
 
 /* Input mode styles */
 .nc-slash-input-mode {

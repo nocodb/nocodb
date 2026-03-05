@@ -35,59 +35,59 @@ export interface SlashCommandItem {
  * a short description, an icon name (GeneralIcon), and the editor command to run.
  */
 // Inline SVG icons — keeps the menu independent of Nuxt auto-imports
-const svg = (d: string, vb = '0 0 24 24') =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`
+const svg = (d: string, vb = '0 0 16 16') =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`
 
 const icons = {
-  h1: svg('<path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17 12l3-2v8"/>'),
-  h2: svg('<path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M21 18h-4c0-4 4-3 4-6 0-1.5-2-2.5-4-1"/>'),
+  h1: svg('<path d="M2.67 8h5.33"/><path d="M2.67 12V4"/><path d="M8 12V4"/><path d="M11.33 8l2-1.33v5.33"/>'),
+  h2: svg('<path d="M2.67 8h5.33"/><path d="M2.67 12V4"/><path d="M8 12V4"/><path d="M14 12h-2.67c0-2.67 2.67-2 2.67-4 0-1-1.33-1.67-2.67-.67"/>'),
   h3: svg(
-    '<path d="M4 12h8"/><path d="M4 18V6"/><path d="M12 18V6"/><path d="M17.5 10.5c1.7-1 3.5 0 3.5 1.5a2 2 0 0 1-2 2"/><path d="M17 17.5c2 1.5 4 .3 4-1.5a2 2 0 0 0-2-2"/>',
+    '<path d="M2.67 8h5.33"/><path d="M2.67 12V4"/><path d="M8 12V4"/><path d="M11.67 7c1.13-.67 2.33 0 2.33 1a1.33 1.33 0 0 1-1.33 1.33"/><path d="M11.33 11.67c1.33 1 2.67.2 2.67-1a1.33 1.33 0 0 0-1.33-1.33"/>',
   ),
   bulletList: svg(
-    '<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+    '<line x1="5.33" y1="4" x2="14" y2="4"/><line x1="5.33" y1="8" x2="14" y2="8"/><line x1="5.33" y1="12" x2="14" y2="12"/><line x1="2" y1="4" x2="2.01" y2="4"/><line x1="2" y1="8" x2="2.01" y2="8"/><line x1="2" y1="12" x2="2.01" y2="12"/>',
   ),
   numberedList: svg(
-    '<line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>',
+    '<line x1="6.67" y1="4" x2="14" y2="4"/><line x1="6.67" y1="8" x2="14" y2="8"/><line x1="6.67" y1="12" x2="14" y2="12"/><path d="M2.67 4h.67v2.67"/><path d="M2.67 6.67h1.33"/><path d="M4 12H2.67c0-.67 1.33-1.33 1.33-2s-.67-1-1.33-.67"/>',
   ),
   taskList: svg(
-    '<rect x="3" y="5" width="4" height="4" rx="1"/><line x1="11" y1="7" x2="21" y2="7"/><rect x="3" y="15" width="4" height="4" rx="1"/><line x1="11" y1="17" x2="21" y2="17"/><path d="M4 16l1.5 1.5L7 15.5"/>',
+    '<rect x="2" y="3.33" width="2.67" height="2.67" rx=".67"/><line x1="7.33" y1="4.67" x2="14" y2="4.67"/><rect x="2" y="10" width="2.67" height="2.67" rx=".67"/><line x1="7.33" y1="11.33" x2="14" y2="11.33"/><path d="M2.67 10.67l1 1L4.67 10.33"/>',
   ),
   quote: svg(
-    '<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/>',
+    '<path d="M2 14c2 0 4.67-.67 4.67-5.33V3.33c0-.83-.5-1.34-1.33-1.33H2.67c-.83 0-1.33.5-1.33 1.31V7.33c0 .83.5 1.33 1.33 1.33.67 0 .67 0 .67.67v.67c0 .67-.67 1.33-1.33 1.33s-.67.01-.67.69V14z"/><path d="M10 14c2 0 4.67-.67 4.67-5.33V3.33c0-.83-.5-1.34-1.33-1.33h-2.67c-.83 0-1.33.5-1.33 1.31V7.33c0 .83.5 1.33 1.33 1.33h.5c0 1.5.17 2.67-1.83 2.67v2z"/>',
   ),
-  code: svg('<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>'),
+  code: svg('<polyline points="10.67 12 14.67 8 10.67 4"/><polyline points="5.33 4 1.33 8 5.33 12"/>'),
   table: svg(
-    '<rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/>',
+    '<rect x="2" y="2" width="12" height="12" rx="1.33"/><line x1="2" y1="6" x2="14" y2="6"/><line x1="2" y1="10" x2="14" y2="10"/><line x1="6" y1="2" x2="6" y2="14"/><line x1="10" y1="2" x2="10" y2="14"/>',
   ),
   image: svg(
-    '<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>',
+    '<rect x="2" y="2" width="12" height="12" rx="1.33" ry="1.33"/><circle cx="5.67" cy="5.67" r="1"/><polyline points="14 10 10.67 6.67 3.33 14"/>',
   ),
-  divider: svg('<line x1="5" y1="12" x2="19" y2="12"/>'),
-  columns: svg('<rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/>'),
+  divider: svg('<line x1="3.33" y1="8" x2="12.67" y2="8"/>'),
+  columns: svg('<rect x="2" y="2" width="4.67" height="12" rx=".67"/><rect x="9.33" y="2" width="4.67" height="12" rx=".67"/>'),
   file: svg(
-    '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>',
+    '<path d="M9.33 1.33H4a1.33 1.33 0 0 0-1.33 1.33v10.67A1.33 1.33 0 0 0 4 14.67h8A1.33 1.33 0 0 0 13.33 13.33V5.33z"/><polyline points="9.33 1.33 9.33 5.33 13.33 5.33"/><line x1="8" y1="12" x2="8" y2="8"/><line x1="6" y1="10" x2="10" y2="10"/>',
   ),
   // Callout icons — black versions for slash menu (colored versions live in CalloutExtension)
-  note: svg('<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>'),
+  note: svg('<circle cx="8" cy="8" r="6.67"/><line x1="8" y1="10.67" x2="8" y2="8"/><line x1="8" y1="5.33" x2="8.01" y2="5.33"/>'),
   warning: svg(
-    '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    '<path d="M6.86 2.57L1.21 12a1.33 1.33 0 0 0 1.14 2h11.3a1.33 1.33 0 0 0 1.14-2L9.14 2.57a1.33 1.33 0 0 0-2.28 0z"/><line x1="8" y1="6" x2="8" y2="8.67"/><line x1="8" y1="11.33" x2="8.01" y2="11.33"/>',
   ),
   tip: svg(
-    '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1-3c1.9.5 3.3 1.6 4.4 3.1a12.3 12.3 0 0 1 2 5.6c-2-.8-3.5-1.8-4.5-3.2a9 9 0 0 1-.8-2.5z"/>',
+    '<path d="M4.67 13.33h6.67"/><path d="M6.67 13.33c3.67-1.67.53-4.27 2-6.67"/><path d="M6.33 6.27c.73.53 1.2 1.47 1.53 2.47-1.33.27-2.33.27-3.2-.2-.8-.4-1.53-1.27-2-2.8 1.87-.33 2.93 0 3.67.53z"/><path d="M9.4 4a4.67 4.67 0 0 0-.73-2c1.27.33 2.2 1.07 2.93 2.07a8.2 8.2 0 0 1 1.33 3.73c-1.33-.53-2.33-1.2-3-2.13a6 6 0 0 1-.53-1.67z"/>',
   ),
   important: svg(
-    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>',
+    '<circle cx="8" cy="8" r="6.67"/><line x1="8" y1="5.33" x2="8" y2="8"/><line x1="8" y1="10.67" x2="8.01" y2="10.67"/>',
   ),
   // Math icon
-  equation: svg('<path d="M4 20h16"/><path d="M4 4h7l-3 16"/><path d="M14 12h6"/><path d="M14 8l6 8"/><path d="M20 8l-6 8"/>'),
+  equation: svg('<path d="M2.67 13.33h10.67"/><path d="M2.67 2.67h4.67l-2 10.67"/><path d="M9.33 8h4"/><path d="M9.33 5.33l4 5.33"/><path d="M13.33 5.33l-4 5.33"/>'),
   // Date/time icons
   calendar: svg(
-    '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+    '<rect x="2" y="2.67" width="12" height="12" rx="1.33" ry="1.33"/><line x1="10.67" y1="1.33" x2="10.67" y2="4"/><line x1="5.33" y1="1.33" x2="5.33" y2="4"/><line x1="2" y1="6.67" x2="14" y2="6.67"/>',
   ),
-  clock: svg('<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>'),
+  clock: svg('<circle cx="8" cy="8" r="6.67"/><polyline points="8 4 8 8 10.67 9.33"/>'),
   calendarClock: svg(
-    '<path d="M3 10h18"/><path d="M16 2v4"/><path d="M8 2v4"/><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M12 14l2 2 2-2"/><path d="M12 10v4"/>',
+    '<path d="M2 6.67h12"/><path d="M10.67 1.33v2.67"/><path d="M5.33 1.33v2.67"/><rect x="2" y="2.67" width="12" height="12" rx="1.33"/><path d="M8 9.33l1.33 1.33 1.33-1.33"/><path d="M8 6.67v2.67"/>',
   ),
   // Embed icons — colored brand logos (raw SVG, no stroke helper)
   youtube: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18"><rect width="18" height="18" rx="4" fill="#FF0000"/><polygon points="7 5.5 13 9 7 12.5" fill="white"/></svg>`,

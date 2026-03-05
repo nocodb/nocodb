@@ -211,8 +211,14 @@ export default class Noco {
     server.use(express.static(path.join(__dirname, 'public')));
 
     if (dashboardPath.startsWith('http')) {
-      // Test/split mode: frontend runs separately, redirect root to it
-      server.get('/', (_req, res) => res.redirect(dashboardPath));
+      // Test/split mode: frontend runs separately, redirect browser to it.
+      // Non-browser requests (health checks, curl) get 200 instead of redirect.
+      server.get('/', (req, res) => {
+        if (req.headers.accept?.includes('text/html')) {
+          return res.redirect(dashboardPath);
+        }
+        res.sendStatus(200);
+      });
     } else if (dashboardPath !== '/' && dashboardPath !== '') {
       // Non-root dashboard path: redirect old path to root
       const normalizedPath = dashboardPath.replace(/\/+$/, '');

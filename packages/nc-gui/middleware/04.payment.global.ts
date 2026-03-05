@@ -33,6 +33,10 @@ export default defineNuxtRouteMiddleware(() => {
     const workspaceId = params.get('workspaceId')
     const returnToPage = params.get('returnToPage')
 
+    // If no workspaceId in query, we're already on the correct page
+    // (e.g. updateSubscription navigates directly with workspace in path)
+    if (!workspaceId) return
+
     let targetPath = ''
 
     if (returnToPage === 'org') {

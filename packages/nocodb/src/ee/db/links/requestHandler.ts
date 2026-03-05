@@ -1312,7 +1312,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
         // UNLINK for related table
         await relatedBaseModel.afterAddOrRemoveChild(
           {
-            opType: AuditV1OperationTypes.DATA_LINK,
+            opType: AuditV1OperationTypes.DATA_UNLINK,
             model: relatedBaseModel.model,
             refModel: baseModel.model,
             columnTitle: relatedColumn.title,

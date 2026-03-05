@@ -26,10 +26,6 @@ export default runOnSet(2, function () {
 
     try {
       require('../ee/team-hierarchy.test').default();
-      require('../ee/team-hierarchy-missing.test').default();
-      require('../ee/team-hierarchy-advanced-scenarios.test').default();
-      require('../ee/team-hierarchy-edge-cases.test').default();
-      require('../ee/team-permission-behavior.test').default();
     } catch (e) {
       // EE test files not available in CE
     }

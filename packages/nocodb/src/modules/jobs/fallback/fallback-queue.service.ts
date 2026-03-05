@@ -232,4 +232,14 @@ export class QueueService {
       this.queueMemory.splice(fIndex, 1);
     }
   }
+
+  // Reset queue state — used by test cleanup to prevent memory leaks.
+  // Does NOT clear emitter listeners — they are registered once in the
+  // constructor and must survive across test runs.
+  static reset() {
+    QueueService.queue.clear();
+    QueueService.queueMemory.length = 0;
+    QueueService.queueIdCounter = 1;
+    QueueService.processed = 0;
+  }
 }

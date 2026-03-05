@@ -30,7 +30,12 @@ const serverInit = async () => {
 
 const isFirstTimeRun = () => !server;
 
-export default async function init(forceReset = false, roles = 'editor') {
+export default async function init(
+  forceReset = false,
+  roles = 'editor',
+  options?: { skipSakila?: boolean },
+) {
+  const { skipSakila = false } = options ?? {};
   const { default: TestDbMngr } = await import('../TestDbMngr');
 
   if (isFirstTimeRun()) {
@@ -41,9 +46,9 @@ export default async function init(forceReset = false, roles = 'editor') {
     Noco._nestApp = nestApp;
   }
 
-  // if (isSakila) {
-  await cleanUpSakila(forceReset);
-  // }
+  if (!skipSakila) {
+    await cleanUpSakila(forceReset);
+  }
   await cleanupMeta();
 
   const { token, user } = await createUser({ app: server }, { roles });

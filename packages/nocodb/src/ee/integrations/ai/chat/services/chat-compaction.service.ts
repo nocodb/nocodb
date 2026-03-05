@@ -4,7 +4,7 @@ import { COMPACTION_SYSTEM_PROMPT } from '../prompts';
 import {
   COMPACTION_THRESHOLD,
   KEEP_RECENT_MESSAGES,
-  TOKEN_BUDGET,
+  MAX_HISTORY_TOKENS,
 } from '../constants';
 import { ChatContextService } from './chat-context.service';
 import type { ChatMessageType } from 'nocodb-sdk';
@@ -24,31 +24,58 @@ export class ChatCompactionService {
     params: {
       messages: ChatMessageType[];
       existingSummary?: string;
-      tokenBudget?: number;
+      maxHistoryTokens?: number;
     },
   ): Promise<{
     summary?: string;
     activeMessages: ChatMessageType[];
   }> {
-    const { messages, existingSummary, tokenBudget = TOKEN_BUDGET } = params;
+    const {
+      messages,
+      existingSummary,
+      maxHistoryTokens = MAX_HISTORY_TOKENS,
+    } = params;
 
-    // Estimate total tokens in message history
+    // Single budget: MAX_HISTORY_TOKENS is the one source of truth.
+    // Compaction triggers when messages exceed COMPACTION_THRESHOLD of this
+    // budget, and the output (summary + recent messages) is guaranteed to
+    // fit within it — no secondary trimming needed downstream.
     let totalTokens = 0;
     for (const msg of messages) {
       totalTokens += this.contextService.estimateMessageTokens(msg);
     }
 
     // If under threshold, return all messages unchanged
-    if (totalTokens < tokenBudget * COMPACTION_THRESHOLD) {
+    if (totalTokens < maxHistoryTokens * COMPACTION_THRESHOLD) {
       return {
         summary: existingSummary,
         activeMessages: messages,
       };
     }
 
-    // Over threshold — compact older messages into summary
-    const recentMessages = messages.slice(-KEEP_RECENT_MESSAGES);
-    const olderMessages = messages.slice(0, -KEEP_RECENT_MESSAGES);
+    // Over threshold — keep as many recent messages as fit in the budget
+    // (after reserving space for the summary), and summarize the rest.
+    const summaryBudget = Math.floor(maxHistoryTokens * 0.15); // ~15% for summary
+    const messageBudget = maxHistoryTokens - summaryBudget;
+
+    // Walk backwards from the newest message to find how many fit
+    let keepCount = 0;
+    let recentTokens = 0;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const msgTokens = this.contextService.estimateMessageTokens(messages[i]);
+      if (recentTokens + msgTokens > messageBudget) break;
+      recentTokens += msgTokens;
+      keepCount++;
+    }
+
+    // Always keep at least KEEP_RECENT_MESSAGES (unless there aren't that many)
+    keepCount = Math.max(
+      keepCount,
+      Math.min(KEEP_RECENT_MESSAGES, messages.length),
+    );
+
+    const recentMessages = messages.slice(-keepCount);
+    const olderMessages = messages.slice(0, -keepCount);
 
     if (olderMessages.length === 0) {
       return {

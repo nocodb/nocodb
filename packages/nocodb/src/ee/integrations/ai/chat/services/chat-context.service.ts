@@ -4,7 +4,6 @@ import {
   buildDynamicSystemPromptText,
   buildStaticSystemPromptText,
 } from '../prompts';
-import { MAX_HISTORY_TOKENS } from '../constants';
 import type { ChatMessageType } from 'nocodb-sdk';
 import type { ModelMessage, SystemModelMessage } from 'ai';
 import type { NcContext } from '~/interface/config';
@@ -19,11 +18,11 @@ export class ChatContextService {
   constructor(private readonly aiSchemaService: AiSchemaService) {}
 
   /**
-   * Returns the system prompt as two SystemModelMessage blocks:
+   * Returns the system prompt as SystemModelMessage blocks:
    * 1. Static block (Identity + Rules + Field Types + Filter Operators + Query Syntax)
    *    tagged with cache_control so Anthropic caches it at the API-key level.
-   *    Shared across all users hitting the same AI integration.
    * 2. Dynamic block (user role + base schema + current context) — never cached.
+   * 3. (optional) Compaction summary of older conversation history.
    */
   async buildSystemPrompt(
     context: NcContext,
@@ -32,6 +31,7 @@ export class ChatContextService {
       tableId?: string;
       viewId?: string;
       userRoles: { workspaceRole: string; baseRole: string | null };
+      summary?: string;
       req: any;
     },
   ): Promise<SystemModelMessage[]> {
@@ -85,7 +85,7 @@ export class ChatContextService {
       }
     }
 
-    return [
+    const blocks: SystemModelMessage[] = [
       {
         role: 'system',
         content: STATIC_SYSTEM_PROMPT,
@@ -103,50 +103,31 @@ export class ChatContextService {
         }),
       },
     ];
+
+    // Inject compaction summary as a dedicated system block so it's always
+    // visible to the LLM as first-class context — not a user message that
+    // providers may handle inconsistently.
+    if (params.summary) {
+      blocks.push({
+        role: 'system',
+        content: `## Conversation History (compacted)\n\n${params.summary}`,
+      });
+    }
+
+    return blocks;
   }
 
   buildMessages(params: {
     messages: ChatMessageType[];
     newUserMessage: string;
-    summary?: string;
-    maxHistoryTokens?: number;
   }): ModelMessage[] {
-    const {
-      messages,
-      newUserMessage,
-      summary,
-      maxHistoryTokens = MAX_HISTORY_TOKENS,
-    } = params;
+    const { messages, newUserMessage } = params;
 
     const coreMessages: ModelMessage[] = [];
 
-    // Add summary of older messages if available
-    if (summary) {
-      coreMessages.push({
-        role: 'system',
-        content: `Previous conversation summary:\n${summary}`,
-      });
-    }
-
-    // Add message history within token budget.
-    // Iterate from the END (newest first) so the most recent messages —
-    // including the latest user message — are always included. Older
-    // messages are dropped first when the budget is exhausted.
-    let tokenEstimate = summary ? this.estimateTokens(summary) : 0;
-
-    // First pass: walk backwards to find the oldest message we can fit
-    let startIndex = messages.length;
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const msgTokens = this.estimateMessageTokens(messages[i]);
-      if (tokenEstimate + msgTokens > maxHistoryTokens) {
-        break;
-      }
-      tokenEstimate += msgTokens;
-      startIndex = i;
-    }
-
-    // Second pass: emit messages in chronological order from startIndex
-    for (let i = startIndex; i < messages.length; i++) {
+    // Compaction already guarantees the messages fit within the token budget.
+    // Include all messages in chronological order — no secondary trimming.
+    for (let i = 0; i < messages.length; i++) {
       const msg = messages[i];
 
       if (msg.role === ChatMessageRole.USER) {
@@ -255,18 +236,14 @@ export class ChatContextService {
    */
   buildHistoryMessages(params: {
     messages: ChatMessageType[];
-    summary?: string;
-    maxHistoryTokens?: number;
   }): ModelMessage[] {
-    const { messages, summary, maxHistoryTokens = MAX_HISTORY_TOKENS } = params;
+    const { messages } = params;
 
     // Reuse buildMessages but pass an empty continuation marker so the LLM
     // responds to the tool results rather than a new user message.
     return this.buildMessages({
       messages,
       newUserMessage: '',
-      summary,
-      maxHistoryTokens,
     }).filter((m) => !(m.role === 'user' && (m.content as string) === ''));
   }
 

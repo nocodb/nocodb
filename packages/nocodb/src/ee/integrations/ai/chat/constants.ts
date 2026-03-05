@@ -1,21 +1,19 @@
 /** Maximum number of agentic tool-use steps per LLM turn. */
 export const MAX_STEPS = 10;
 
-/** Approximate token budget for conversation history passed to the LLM. */
+/** Single token budget for conversation history passed to the LLM.
+ * Compaction and message building both use this as the source of truth. */
 export const MAX_HISTORY_TOKENS = 8000;
 
-/** When estimated token usage exceeds this fraction of TOKEN_BUDGET, trigger compaction. */
+/** When estimated token usage exceeds this fraction of MAX_HISTORY_TOKENS, trigger compaction. */
 export const COMPACTION_THRESHOLD = 0.8;
-
-/** Total token budget for the compacted conversation window. */
-export const TOKEN_BUDGET = 16000;
 
 /** Number of most-recent messages to always keep uncompacted. */
 export const KEEP_RECENT_MESSAGES = 6;
 
 /** Default max character length for truncated tool results.
  * ~30k chars ≈ 7500 tokens — generous enough for large record sets
- * while staying well within the TOKEN_BUDGET (16k tokens) after compaction. */
+ * while staying well within the history budget after compaction. */
 export const TRUNCATE_RESULT_MAX_LENGTH = 30_000;
 
 /** Max characters kept from an error message when building an LLM-facing hint. */

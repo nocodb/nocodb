@@ -477,17 +477,6 @@ export class ChatService implements OnModuleInit {
       approvals,
     );
 
-    // Build system prompt — pass baseId for schema context (may be undefined)
-    const userRoles = this.getUserRoles(req);
-    const systemPrompt = await this.contextService.buildSystemPrompt(
-      toolContext,
-      {
-        baseId,
-        userRoles,
-        req,
-      },
-    );
-
     // Build messages (with compaction)
     const existingMessages = await ChatMessage.list(context, { sessionId });
 
@@ -501,11 +490,24 @@ export class ChatService implements OnModuleInit {
       await ChatSession.update(context, sessionId, { summary });
     }
 
+    // Build system prompt — pass baseId for schema context and summary for
+    // compacted history. Summary lives in the system prompt (not messages
+    // array) so all providers handle it consistently.
+    const userRoles = this.getUserRoles(req);
+    const systemPrompt = await this.contextService.buildSystemPrompt(
+      toolContext,
+      {
+        baseId,
+        userRoles,
+        summary,
+        req,
+      },
+    );
+
     // User message is already in the DB at this point, so use buildHistoryMessages
     // (which treats all messages as history without appending a new user message)
     const coreMessages = this.contextService.buildHistoryMessages({
       messages: activeMessages,
-      summary,
     });
 
     // Build ordered ChatContentBlock[] as streaming arrives.

@@ -1,6 +1,6 @@
 import path from 'path';
 import fs from 'fs';
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import express from 'express';
 import type { NestMiddleware } from '@nestjs/common';
 import type { Request, Response } from 'express';
@@ -17,11 +17,11 @@ const _require =
     : require;
 
 @Injectable()
-export class GuiMiddleware implements NestMiddleware, OnModuleInit {
+export class GuiMiddleware implements NestMiddleware {
   private staticRouter: express.Router | null = null;
   private indexHtml: string | null = null;
 
-  onModuleInit() {
+  constructor() {
     // In split-frontend mode (NC_DASHBOARD_URL is a full URL pointing to
     // a separate frontend server, e.g. http://localhost:3000), the backend
     // should not serve frontend files at all.

@@ -144,7 +144,7 @@ export class AuthController extends AuthControllerCE {
     res.redirect(
       `https://${state.host}/?code=${req.query.code}&state=${req.query.state}${
         state.continueAfterSignIn
-          ? `&continueAfterSignIn=${state.continueAfterSignIn}`
+          ? `&continueAfterSignIn=${encodeURIComponent(state.continueAfterSignIn)}`
           : ''
       }`,
     );

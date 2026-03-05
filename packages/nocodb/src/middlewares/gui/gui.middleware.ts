@@ -5,6 +5,7 @@ import express from 'express';
 import type { NestMiddleware } from '@nestjs/common';
 import type { Request, Response } from 'express';
 
+// TODO: remove once nc-lib-gui is removed
 // Use the real Node.js require, not rspack's transformed version.
 // rspack replaces require.resolve() with a module ID string at compile
 // time, which breaks path resolution for nc-lib-gui.

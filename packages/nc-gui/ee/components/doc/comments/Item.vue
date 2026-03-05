@@ -80,7 +80,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         <!-- Hover-only actions: 3-dot menu, reply, resolve (unresolved only) -->
         <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           <NcDropdown v-if="isOwner || hasEditPermission" overlay-class-name="!min-w-[140px]" placement="bottomRight">
-            <NcButton class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light" size="xsmall" type="text" @click.stop>
+            <NcButton class="nc-doc-comment-action-btn" size="xxsmall" type="text" @click.stop>
               <GeneralIcon class="text-xs" icon="threeDotVertical" />
             </NcButton>
             <template #overlay>
@@ -104,11 +104,11 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
             </template>
           </NcDropdown>
 
-          <NcTooltip v-if="hasEditPermission">
+          <NcTooltip v-if="hasEditPermission" class="flex">
             <NcButton
               v-e="['c:doc:comment:reply']"
-              class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light"
-              size="xsmall"
+              class="nc-doc-comment-action-btn"
+              size="xxsmall"
               type="text"
               @click.stop="emit('reply')"
             >
@@ -118,12 +118,12 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
           </NcTooltip>
 
           <!-- Reaction picker — NcTooltip outside NcDropdown for alignment, dropdown gets NcButton as direct child -->
-          <NcTooltip v-if="hasEditPermission">
+          <NcTooltip v-if="hasEditPermission" class="flex">
             <NcDropdown placement="bottomRight">
               <NcButton
                 v-e="['c:doc:comment:react']"
-                class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light"
-                size="xsmall"
+                class="nc-doc-comment-action-btn"
+                size="xxsmall"
                 type="text"
                 data-testid="nc-doc-comment-react-btn"
                 @click.stop
@@ -148,13 +148,8 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
           </NcTooltip>
 
           <!-- Resolve button (unresolved state) — only on top-level comments, not replies -->
-          <NcTooltip v-if="!isReply && !comment.resolved_by && hasEditPermission" placement="topRight">
-            <NcButton
-              class="!w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light"
-              size="xsmall"
-              type="text"
-              @click.stop="emit('resolve')"
-            >
+          <NcTooltip v-if="!isReply && !comment.resolved_by && hasEditPermission" class="flex" placement="topRight">
+            <NcButton class="nc-doc-comment-action-btn" size="xxsmall" type="text" @click.stop="emit('resolve')">
               <GeneralIcon class="text-xs" icon="checkCircle" />
             </NcButton>
             <template #title>{{ $t('general.resolve') }}</template>
@@ -162,11 +157,11 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
         </div>
 
         <!-- Resolved badge — always visible (green checkmark), only on top-level comments -->
-        <NcTooltip v-if="!isReply && comment.resolved_by" placement="topRight">
+        <NcTooltip v-if="!isReply && comment.resolved_by" class="flex" placement="topRight">
           <template #title>{{ `${$t('activity.resolvedBy')} ${comment.resolved_display_name_short}` }}</template>
           <NcButton
-            class="nc-doc-resolve-badge !w-5 !h-5 !bg-transparent !hover:bg-nc-bg-gray-light"
-            size="xsmall"
+            class="nc-doc-resolve-badge nc-doc-comment-action-btn"
+            size="xxsmall"
             type="text"
             @click.stop="emit('resolve')"
           >
@@ -216,6 +211,10 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
   :deep(p) {
     @apply !m-0 !leading-5;
   }
+}
+
+.nc-doc-comment-action-btn {
+  @apply !bg-transparent hover:!bg-nc-bg-gray-medium;
 }
 
 // Pop-in animation when resolve badge appears (unresolved → resolved)

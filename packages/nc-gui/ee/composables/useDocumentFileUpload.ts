@@ -67,8 +67,8 @@ export function useDocumentFileUpload() {
         const att = uploaded[0]
         const storedRef = att.path || att.url
         if (storedRef) {
-          // Find the node with matching blob URL and update its attrs
-          updateFileNode(editor, blobUrl, { path: storedRef, src: '' })
+          // Keep blob URL in src as reference until save injects FileReference id.
+          updateFileNode(editor, blobUrl, { path: storedRef })
         } else {
           removeFileNode(editor, blobUrl)
         }
@@ -78,7 +78,6 @@ export function useDocumentFileUpload() {
     } catch {
       removeFileNode(editor, blobUrl)
     } finally {
-      URL.revokeObjectURL(blobUrl)
       uploadCount.value--
     }
   }

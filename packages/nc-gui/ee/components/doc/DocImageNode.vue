@@ -23,17 +23,18 @@ const { buildProxyUrl } = useDocumentImageUpload()
 const { t } = useI18n()
 
 // --- Resolved image source ---
-// With cookie auth, images with a `path` use the proxy URL directly as <img src>.
+// With cookie auth, images with an `id` (FileReference) use the proxy URL directly as <img src>.
 // The browser sends the nc_token cookie automatically — no fetch+blob needed.
 const resolvedSrc = computed(() => {
-  const { path, src } = props.node.attrs
-  if (path) return buildProxyUrl(path)
+  const { id, src } = props.node.attrs
+  if (id) return buildProxyUrl(id)
   if (src) return src // blob preview during upload or external URL
   return ''
 })
 
 const isLoading = computed(() => {
-  // Only show loading during upload (blob src, no permanent path yet)
+  // Only show loading during upload (no path yet, no src yet).
+  // path is set when upload completes; id is set later when doc is saved.
   const { path, src } = props.node.attrs
   return !path && !src
 })
@@ -186,13 +187,13 @@ watch(
 
 // --- Download ---
 const downloadImage = async () => {
-  const { path } = props.node.attrs
-  if (!path && !resolvedSrc.value) return
+  const { id } = props.node.attrs
+  if (!id && !resolvedSrc.value) return
 
   try {
     // Fetch via proxy URL with credentials (cookie) — needed for download
     // because <a download> doesn't work cross-origin
-    const url = path ? buildProxyUrl(path) : resolvedSrc.value
+    const url = id ? buildProxyUrl(id) : resolvedSrc.value
     const response = await fetch(url, { credentials: 'include' })
     const blob = await response.blob()
     const blobUrl = URL.createObjectURL(blob)
@@ -223,7 +224,12 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
 </script>
 
 <template>
-  <NodeViewWrapper class="nc-doc-image-wrapper" :class="[alignClass, { 'is-selected': selected }]" as="div" @click="onWrapperClick">
+  <NodeViewWrapper
+    class="nc-doc-image-wrapper"
+    :class="[alignClass, { 'is-selected': selected }]"
+    as="div"
+    @click="onWrapperClick"
+  >
     <!-- Floating toolbar -->
     <div v-if="showToolbar" class="nc-doc-image-toolbar" contenteditable="false">
       <button

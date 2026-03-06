@@ -41,22 +41,20 @@ export function useDocumentImageUpload() {
     })
   }
 
-  /** Build the proxy URL for a doc attachment. Used as <img src> — auth via cookie. */
-  function buildProxyUrl(urlOrPath: string): string {
+  /** Build the proxy URL for a doc attachment by FileReference ID. Used as <img src> — auth via cookie. */
+  function buildProxyUrl(fileRefId: string): string {
     const baseId = base?.value?.id
     const docIdVal = docId?.value
-    if (!baseId || !docIdVal || !urlOrPath) return ''
-    return `${appInfo.value.ncSiteUrl}/api/v2/meta/bases/${baseId}/docs/${docIdVal}/attachment?urlOrPath=${encodeURIComponent(
-      urlOrPath,
-    )}`
+    if (!baseId || !docIdVal || !fileRefId) return ''
+    return `${appInfo.value.ncSiteUrl}/api/v2/data/bases/${baseId}/docs/${docIdVal}/attachment/${encodeURIComponent(fileRefId)}`
   }
 
   /**
    * Fetch a doc attachment via the auth-protected proxy and return a blob URL.
    * The auth token is sent in the request header — never exposed in the URL.
    */
-  async function fetchDocAttachment(urlOrPath: string): Promise<string> {
-    const url = buildProxyUrl(urlOrPath)
+  async function fetchDocAttachment(fileRefId: string): Promise<string> {
+    const url = buildProxyUrl(fileRefId)
     if (!url) return ''
     try {
       const response = await fetch(url, {
@@ -94,7 +92,10 @@ export function useDocumentImageUpload() {
         const att = uploaded[0]
         const storedRef = att.path || att.url
         if (storedRef) {
-          updateImageNode(editor, blobUrl, { path: storedRef, src: '' })
+          // Keep blob URL in src as preview until save injects FileReference id.
+          // The id is created by reconcileFileReferences on the next save;
+          // until then, resolvedSrc falls back to the blob src.
+          updateImageNode(editor, blobUrl, { path: storedRef })
         } else {
           removeImageNode(editor, blobUrl)
         }
@@ -104,7 +105,6 @@ export function useDocumentImageUpload() {
     } catch {
       removeImageNode(editor, blobUrl)
     } finally {
-      URL.revokeObjectURL(blobUrl)
       uploadCount.value--
     }
   }

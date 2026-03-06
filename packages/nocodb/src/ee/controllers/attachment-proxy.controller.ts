@@ -1,5 +1,5 @@
 import path from 'path';
-import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -7,7 +7,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { AttachmentsService } from '~/services/attachments.service';
-import { PresignedUrl } from '~/models';
+import { FileReference, PresignedUrl } from '~/models';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { isPreviewAllowed, localFileExists } from '~/helpers/attachmentHelpers';
 
@@ -16,33 +16,35 @@ import { isPreviewAllowed, localFileExists } from '~/helpers/attachmentHelpers';
 export class AttachmentProxyController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
-  @Get('/api/v2/meta/bases/:baseId/docs/:docId/attachment')
+  @Get('/api/v2/data/bases/:baseId/docs/:docId/attachment/:fileId')
   @Acl('documentGet')
   async serveDocAttachment(
-    @TenantContext() _context: NcContext,
-    @Param('docId') _docId: string,
-    @Query('urlOrPath') urlOrPath: string,
+    @TenantContext() context: NcContext,
+    @Param('docId') docId: string,
+    @Param('fileId') fileRefId: string,
     @Res() res: Response,
   ) {
-    return this.serveAttachment(urlOrPath, res);
-  }
+    const fileRef = await FileReference.get(context, fileRefId);
 
-  private async serveAttachment(urlOrPath: string, res: Response) {
-    if (!urlOrPath) {
-      return res.status(400).send('Missing urlOrPath parameter');
+    if (!fileRef || fileRef.deleted || fileRef.fk_doc_id !== docId) {
+      return res.status(404).send('Attachment not found');
     }
 
+    return this.serveAttachment(fileRef.file_url, res);
+  }
+
+  private async serveAttachment(fileUrl: string, res: Response) {
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
     const isExternalStorage =
       typeof (storageAdapter as any).getSignedUrl === 'function';
 
     if (isExternalStorage) {
-      const isUrl = /^https?:\/\//i.test(urlOrPath);
+      const isUrl = /^https?:\/\//i.test(fileUrl);
 
-      let pathOrUrl = urlOrPath;
+      let pathOrUrl = fileUrl;
       if (!isUrl) {
         // Convert local-style path (e.g. "download/noco/docs/file.png") to storage key
-        const stripped = urlOrPath.replace(/^download\//, '');
+        const stripped = fileUrl.replace(/^download\//, '');
         pathOrUrl = path.join('nc', 'uploads', stripped);
       }
 
@@ -56,7 +58,7 @@ export class AttachmentProxyController {
     }
 
     // Local storage: resolve and serve file directly
-    const stripped = urlOrPath.replace(/^download\//, '');
+    const stripped = fileUrl.replace(/^download\//, '');
 
     try {
       const file = await this.attachmentsService.getFile({

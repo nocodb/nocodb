@@ -194,6 +194,21 @@ export class DocumentsService {
       }
     }
 
+    // Reconcile cover image FileReference so the proxy can validate ownership.
+    if (payload.meta) {
+      try {
+        await this.reconcileCoverImage(
+          context,
+          docId,
+          payload.meta,
+          existing.meta,
+          req,
+        );
+      } catch (e) {
+        this.logger.error(e.message, e.stack);
+      }
+    }
+
     const doc = await Document.update(context, docId, payload);
 
     this.appHooksService.emit(AppEvents.DOCUMENT_UPDATE, {
@@ -383,6 +398,49 @@ export class DocumentsService {
     }
 
     return updated;
+  }
+
+  /**
+   * Reconcile the cover image FileReference.
+   *
+   * When cover_image changes, creates a new FileReference and stores its ID
+   * in meta.cover_image_file_ref_id. When cover is removed, soft-deletes the
+   * old FileReference. Mutates `newMeta` in-place before Document.update().
+   */
+  protected async reconcileCoverImage(
+    context: NcContext,
+    docId: string,
+    newMeta: Record<string, any>,
+    existingMeta: Record<string, any> | undefined,
+    req: NcRequest,
+  ) {
+    const storageAdapter = await NcPluginMgrv2.storageAdapter();
+    const oldPath = existingMeta?.cover_image;
+    const oldFileRefId = existingMeta?.cover_image_file_ref_id;
+    const newPath = newMeta.cover_image;
+
+    // Cover removed — soft-delete old FileReference
+    if (!newPath && oldFileRefId) {
+      await FileReference.delete(context, oldFileRefId);
+      delete newMeta.cover_image_file_ref_id;
+      return;
+    }
+
+    // Cover changed — create new FileReference, soft-delete old one
+    if (newPath && newPath !== oldPath) {
+      const newId = await FileReference.insert(context, {
+        storage: storageAdapter.name,
+        file_url: newPath,
+        file_size: 0,
+        fk_user_id: req.user?.id ?? 'anonymous',
+        fk_doc_id: docId,
+      });
+      newMeta.cover_image_file_ref_id = newId;
+
+      if (oldFileRefId) {
+        await FileReference.delete(context, oldFileRefId);
+      }
+    }
   }
 
   /**

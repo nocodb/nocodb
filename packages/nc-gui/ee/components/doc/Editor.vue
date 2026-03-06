@@ -925,9 +925,11 @@ const updateDocumentIcon = async (icon: string) => {
 }
 
 const coverImageSrc = computed(() => {
-  const coverPath = docMeta.value.cover_image
-  if (!coverPath || !base.value?.id || !doc.value?.id) return ''
-  return `${appInfo.value.ncSiteUrl}/api/v2/meta/bases/${base.value.id}/docs/${doc.value.id}/attachment?urlOrPath=${encodeURIComponent(coverPath)}`
+  const coverFileRefId = docMeta.value.cover_image_file_ref_id
+  if (!coverFileRefId || !base.value?.id || !doc.value?.id) return ''
+  return `${appInfo.value.ncSiteUrl}/api/v2/data/bases/${base.value.id}/docs/${doc.value.id}/attachment/${encodeURIComponent(
+    coverFileRefId,
+  )}`
 })
 
 const onAddOrChangeCover = async () => {
@@ -954,8 +956,12 @@ const onAddOrChangeCover = async () => {
       version: doc.value.version,
     })
 
-    if (updated?.version && doc.value) {
+    if (updated && doc.value) {
       doc.value.version = updated.version
+      // Backend injects cover_image_file_ref_id — sync it back
+      if (updated.meta) {
+        doc.value.meta = parseProp(updated.meta)
+      }
     }
 
     $e('a:doc:cover:update')
@@ -970,6 +976,7 @@ const onRemoveCover = async () => {
   try {
     const meta = { ...docMeta.value }
     delete meta.cover_image
+    delete meta.cover_image_file_ref_id
 
     doc.value.meta = meta
 
@@ -978,8 +985,11 @@ const onRemoveCover = async () => {
       version: doc.value.version,
     })
 
-    if (updated?.version && doc.value) {
+    if (updated && doc.value) {
       doc.value.version = updated.version
+      if (updated.meta) {
+        doc.value.meta = parseProp(updated.meta)
+      }
     }
 
     $e('a:doc:cover:remove')
@@ -1493,12 +1503,7 @@ onBeforeUnmount(() => {
                 </div>
 
                 <!-- Link edit popover -->
-                <div
-                  v-if="isLinkEditOpen"
-                  :style="linkHoverStyle"
-                  class="nc-link-edit-popover"
-                  @mouseenter="keepLinkHoverAlive"
-                >
+                <div v-if="isLinkEditOpen" :style="linkHoverStyle" class="nc-link-edit-popover" @mouseenter="keepLinkHoverAlive">
                   <div class="nc-link-edit-field">
                     <label class="nc-link-edit-label">{{ $t('labels.pageOrUrl') }}</label>
                     <input
@@ -1521,11 +1526,7 @@ onBeforeUnmount(() => {
                         <span v-if="parseProp(page.meta)?.icon" class="nc-link-page-suggestion-icon">{{
                           parseProp(page.meta).icon
                         }}</span>
-                        <GeneralIcon
-                          v-else
-                          icon="ncFileText"
-                          class="nc-link-page-suggestion-icon text-nc-content-gray-subtle"
-                        />
+                        <GeneralIcon v-else icon="ncFileText" class="nc-link-page-suggestion-icon text-nc-content-gray-subtle" />
                         <span class="nc-link-page-suggestion-title truncate">{{ page.title || $t('general.untitled') }}</span>
                       </div>
                     </div>

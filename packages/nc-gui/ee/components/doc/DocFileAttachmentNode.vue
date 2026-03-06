@@ -91,7 +91,8 @@ const formattedSize = computed(() => {
 })
 
 const isUploading = computed(() => {
-  // Still uploading if no permanent path yet but we have a blob src
+  // Still uploading if no permanent path yet but we have a blob src.
+  // path is set when upload completes; id is set later when doc is saved.
   const { path, src } = props.node.attrs
   return !path && src?.startsWith('blob:')
 })
@@ -100,15 +101,15 @@ const isUploading = computed(() => {
 const isDownloading = ref(false)
 
 const onDownload = async () => {
-  const { path, src, fileName } = props.node.attrs
+  const { id, src, fileName } = props.node.attrs
   if (isUploading.value || isDownloading.value) return
 
   let blobUrl = ''
-  if (path) {
+  if (id) {
     isDownloading.value = true
     try {
       // Fetch via proxy URL with cookie credentials for download
-      const url = buildProxyUrl(path)
+      const url = buildProxyUrl(id)
       const response = await fetch(url, { credentials: 'include' })
       if (response.ok) {
         const blob = await response.blob()
@@ -116,7 +117,7 @@ const onDownload = async () => {
       }
     } catch {
       // Fallback to header-based auth
-      blobUrl = await fetchDocAttachment(path)
+      blobUrl = await fetchDocAttachment(id)
     }
     isDownloading.value = false
   } else if (src) {
@@ -131,7 +132,7 @@ const onDownload = async () => {
   a.click()
 
   // Revoke the temporary blob (skip if it's the upload blob)
-  if (path && blobUrl.startsWith('blob:')) {
+  if (id && blobUrl.startsWith('blob:')) {
     URL.revokeObjectURL(blobUrl)
   }
 }

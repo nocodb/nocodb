@@ -3,10 +3,10 @@ import { expect } from 'chai';
 import request from 'supertest';
 import { PlanFeatureTypes } from 'nocodb-sdk';
 import init from '../../../../init';
+import { createProject } from '../../../../factory/base';
+import { createTable } from '../../../../factory/table';
 import { isEE } from '../../../../utils/helpers';
 import { overrideFeature } from '../../../../utils/plan.utils';
-import { Base, Model } from '~/models';
-import { RootScopes } from '~/utils/globals';
 
 export const hookMutationTests = function () {
   if (!isEE()) {
@@ -17,51 +17,29 @@ export const hookMutationTests = function () {
     let context: Awaited<ReturnType<typeof init>>;
     let initBase: any;
     let table: any;
-    let ctx: any;
     let featureMock: any;
     let workspaceId: string;
     let baseId: string;
     let INTERNAL_API_BASE: string;
     let defaultViewId: string;
-    let titleColumnId: string;
 
     beforeEach(async () => {
       context = await init();
       workspaceId = context.fk_workspace_id!;
 
-      // Create base
-      const baseResult = await request(context.app)
-        .post(`/api/v3/meta/workspaces/${workspaceId}/bases`)
-        .set('xc-token', context.xc_token)
-        .send({ title: 'HookMutTestBase' })
-        .expect(200);
-
-      initBase = await Base.getByTitleOrId(
-        { workspace_id: RootScopes.BASE, base_id: RootScopes.BASE } as any,
-        baseResult.body.id,
-      );
+      // Create base using V1 API (ensures proper source config for physical tables)
+      initBase = await createProject(context);
       baseId = initBase.id;
 
-      // Create table with fields
-      const tableResult = await request(context.app)
-        .post(`/api/v3/meta/bases/${initBase.id}/tables`)
-        .set('xc-token', context.xc_token)
-        .send({
-          title: 'HookMutTable',
-          fields: [
-            { title: 'Title', type: 'SingleLineText' },
-            { title: 'Number', type: 'Number' },
-          ],
-        })
-        .expect(200);
-
-      // Get table model
-      const source = (await initBase.getSources())[0];
-      ctx = { base_id: initBase.id, workspace_id: workspaceId };
-      table = await Model.getByAliasOrId(ctx, {
-        source_id: source.id,
-        aliasOrId: tableResult.body.id,
-        base_id: initBase.id,
+      // Create table using V1 API (ensures physical table creation)
+      table = await createTable(context, initBase, {
+        table_name: 'HookMutTable',
+        title: 'HookMutTable',
+        columns: [
+          { column_name: 'id', title: 'Id', uidt: 'ID' },
+          { column_name: 'title', title: 'Title', uidt: 'SingleLineText' },
+          { column_name: 'number', title: 'Number', uidt: 'Number' },
+        ],
       });
 
       // Override feature flag
@@ -81,11 +59,6 @@ export const hookMutationTests = function () {
         .expect(200);
 
       defaultViewId = viewListRes.body.list[0].id;
-
-      // Get title column
-      const columns = await table.getColumns(ctx);
-      const titleColumn = columns.find((col: any) => col.title === 'Title');
-      titleColumnId = titleColumn.id;
     });
 
     afterEach(async () => {
@@ -248,6 +221,8 @@ export const hookMutationTests = function () {
 
     describe('hookTest (POST)', () => {
       it('should test a hook', async () => {
+        // Use Email notification type — Email adapter is not configured in
+        // test env so mailSend is a no-op (avoids unreachable URL errors).
         const response = await request(context.app)
           .post(INTERNAL_API_BASE)
           .query({ operation: 'hookTest', tableId: table.id })
@@ -259,17 +234,19 @@ export const hookMutationTests = function () {
               operation: ['insert'],
               version: 'v3',
               notification: {
-                type: 'URL',
+                type: 'Email',
                 payload: {
-                  method: 'POST',
-                  body: '{{ json data }}',
-                  headers: [{}],
-                  parameters: [{}],
-                  path: 'https://example.com/webhook',
+                  to: 'test@example.com',
+                  subject: 'Test',
+                  body: 'Test body',
                 },
               },
             },
-            payload: {},
+            payload: {
+              data: {
+                rows: [{ Title: 'TestRow' }],
+              },
+            },
           })
           .expect(200);
 

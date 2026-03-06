@@ -5,7 +5,7 @@ import { filterSortMutationTests } from './filter-sort-mutations.test';
 import { hookMutationTests } from './hook-mutations.test';
 
 export const internalUiPostTests = function () {
-  describe.only('UiPost Operations', () => {
+  describe('UiPost Operations', () => {
     tableColumnMutationTests();
     viewMutationTests();
     viewRowColoringTests();

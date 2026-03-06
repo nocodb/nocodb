@@ -111,12 +111,7 @@ const {
   dismissPasteLinkMenu,
   keepAsLink,
   convertToEmbed,
-  isLinkInputMode,
-  linkInputUrl,
-  linkInputRef,
   openLinkInput,
-  applyLink,
-  cancelLinkInput,
   linkHoverUrl,
   linkHoverEl,
   isLinkHoverVisible,
@@ -1338,65 +1333,8 @@ onBeforeUnmount(() => {
                 :tippy-options="{ duration: 100, maxWidth: 'none' }"
                 :should-show="showRichTextMenu"
               >
-                <!-- Link URL input mode — replaces the formatting toolbar -->
-                <div
-                  v-if="isLinkInputMode"
-                  class="nc-doc-link-input flex items-center gap-1 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg py-1 px-1"
-                >
-                  <input
-                    ref="linkInputRef"
-                    v-model="linkInputUrl"
-                    class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
-                    :placeholder="$t('placeholder.enterALink')"
-                    @keydown.enter.prevent="applyLink"
-                    @keydown.escape.prevent="cancelLinkInput"
-                  />
-                  <NcTooltip placement="top">
-                    <template #title>{{ $t('general.open') }}</template>
-                    <NcButton
-                      size="small"
-                      type="text"
-                      :disabled="!linkInputUrl.trim()"
-                      @click="
-                        () => {
-                          if (linkInputUrl.trim())
-                            window.open(
-                              linkInputUrl.trim().startsWith('http') ? linkInputUrl.trim() : `https://${linkInputUrl.trim()}`,
-                              '_blank',
-                              'noopener,noreferrer',
-                            )
-                        }
-                      "
-                    >
-                      <GeneralIcon icon="externalLink" />
-                    </NcButton>
-                  </NcTooltip>
-                  <NcTooltip placement="top">
-                    <template #title>{{ $t('general.remove') }}</template>
-                    <NcButton
-                      size="small"
-                      type="text"
-                      class="!hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
-                      @click="
-                        () => {
-                          linkInputUrl = ''
-                          applyLink()
-                        }
-                      "
-                    >
-                      <GeneralIcon icon="close" />
-                    </NcButton>
-                  </NcTooltip>
-                  <NcTooltip placement="top">
-                    <template #title>{{ $t('general.apply') }}</template>
-                    <NcButton size="small" type="text" @click="applyLink">
-                      <GeneralIcon icon="returnKey" class="!w-3.5 !h-3.5" />
-                    </NcButton>
-                  </NcTooltip>
-                </div>
-
-                <!-- Default formatting toolbar + custom link button -->
-                <div v-else class="nc-doc-bubble-toolbar flex items-center">
+                <!-- Formatting toolbar + custom link button -->
+                <div class="nc-doc-bubble-toolbar flex items-center">
                   <CellRichTextSelectedBubbleMenu
                     :editor="editor"
                     embed-mode

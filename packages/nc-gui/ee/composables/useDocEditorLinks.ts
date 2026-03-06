@@ -43,78 +43,49 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     dismissPasteLinkMenu()
   }
 
-  // --- Link input inside bubble menu ---
-  const isLinkInputMode = ref(false)
-  const linkInputUrl = ref('')
-  const linkInputRef = ref<HTMLInputElement>()
-  // Snapshot the selection range so we can re-apply after the input steals focus
-  const linkSelectionRange = ref<{ from: number; to: number } | null>(null)
-  // Suppress onSelectionUpdate reset while our code is manipulating the selection
-  const isLinkInputSuppressSelectionReset = ref(false)
+  // --- Link input from bubble menu toolbar ---
+  // Reuses the edit popover (linkEditUrl/linkEditTitle/linkEditRange/isLinkEditOpen).
+  // A synthetic anchor element is used for positioning when opened from the toolbar
+  // (since there's no real <a> element to anchor to).
+  let syntheticAnchor: HTMLElement | null = null
 
+  /** Opens the link edit popover from the bubble menu toolbar link button. */
   const openLinkInput = () => {
     const ed = editor.value
     if (!ed) return
 
-    // If selected text is already a link, prefill the URL
     const { from, to } = ed.state.selection
-    linkSelectionRange.value = { from, to }
 
+    // Get existing link URL if the selection is already linked
     const linkMark = ed.state.doc
       .resolve(from)
       .marks()
       .find((m: any) => m.type.name === 'link')
-    linkInputUrl.value = linkMark?.attrs?.href || ''
 
-    isLinkInputSuppressSelectionReset.value = true
-    isLinkInputMode.value = true
-    nextTick(() => {
-      linkInputRef.value?.focus()
-      linkInputRef.value?.select()
-      // Re-enable selection reset after the focus change settles
-      nextTick(() => {
-        isLinkInputSuppressSelectionReset.value = false
-      })
-    })
-  }
+    linkEditUrl.value = linkMark?.attrs?.href || ''
+    linkEditTitle.value = ed.state.doc.textBetween(from, to, '') || ''
+    linkEditRange.value = { from, to }
 
-  const applyLink = () => {
-    const ed = editor.value
-    if (!ed || !linkSelectionRange.value) return
-
-    isLinkInputSuppressSelectionReset.value = true
-
-    const { from, to } = linkSelectionRange.value
-    let href = linkInputUrl.value.trim()
-
-    if (href) {
-      // Auto-prepend https:// if no protocol
-      if (!/^[a-zA-Z]+:\/\//.test(href) && !href.startsWith('/')) {
-        href = `https://${href}`
+    // Create a synthetic anchor for positioning below the selection
+    try {
+      const coords = ed.view.coordsAtPos(from)
+      const container = ed.view.dom.closest('.relative') as HTMLElement | null
+      if (container) {
+        const containerRect = container.getBoundingClientRect()
+        syntheticAnchor = document.createElement('span')
+        syntheticAnchor.style.cssText = `position:absolute;top:${coords.top - containerRect.top}px;left:${coords.left - containerRect.left}px;height:${coords.bottom - coords.top}px;width:0;pointer-events:none;`
+        container.appendChild(syntheticAnchor)
+        linkHoverEl.value = syntheticAnchor as any
       }
-      ed.chain().focus().setTextSelection({ from, to }).setLink({ href }).run()
-    } else {
-      ed.chain().focus().setTextSelection({ from, to }).unsetLink().run()
+    } catch {
+      // Fallback — popover may not position correctly
     }
 
-    isLinkInputMode.value = false
-    linkInputUrl.value = ''
-    linkSelectionRange.value = null
+    isLinkEditOpen.value = true
+    isLinkHoverVisible.value = false
     nextTick(() => {
-      isLinkInputSuppressSelectionReset.value = false
-    })
-  }
-
-  const cancelLinkInput = () => {
-    isLinkInputSuppressSelectionReset.value = true
-    isLinkInputMode.value = false
-    linkInputUrl.value = ''
-    if (linkSelectionRange.value) {
-      editor.value?.chain().focus().setTextSelection(linkSelectionRange.value).run()
-    }
-    linkSelectionRange.value = null
-    nextTick(() => {
-      isLinkInputSuppressSelectionReset.value = false
+      linkEditInputRef.value?.focus()
+      linkEditInputRef.value?.select()
     })
   }
 
@@ -246,6 +217,11 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     isLinkHoverVisible.value = false
     linkHoverEl.value = null
     linkEditRange.value = null
+    // Clean up synthetic anchor from toolbar-initiated edit
+    if (syntheticAnchor) {
+      syntheticAnchor.remove()
+      syntheticAnchor = null
+    }
     editor.value?.commands.focus()
   }
 
@@ -293,8 +269,6 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
    *  but NOT on multi-cell CellSelection or image NodeSelection (those have their own UI). */
   const showRichTextMenu = ({ editor: e }: { editor: any }) => {
     if (!isEditable.value) return false
-    // Keep bubble menu visible while link input is open
-    if (isLinkInputMode.value) return true
     const { selection } = e.state
     if (selection instanceof CellSelection) return false
     // Hide for image / file attachment selections — they have their own UI
@@ -310,12 +284,10 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     return !selection.empty
   }
 
-  /** Handle onSelectionUpdate: dismiss link input when user changes selection */
+  /** Handle onSelectionUpdate: close link edit when user changes selection */
   const onSelectionUpdate = () => {
-    if (isLinkInputMode.value && !isLinkInputSuppressSelectionReset.value) {
-      isLinkInputMode.value = false
-      linkInputUrl.value = ''
-      linkSelectionRange.value = null
+    if (isLinkEditOpen.value) {
+      closeLinkEdit()
     }
   }
 
@@ -327,13 +299,8 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     keepAsLink,
     convertToEmbed,
 
-    // Link input (bubble menu)
-    isLinkInputMode,
-    linkInputUrl,
-    linkInputRef,
+    // Link input (bubble menu toolbar)
     openLinkInput,
-    applyLink,
-    cancelLinkInput,
 
     // Link hover preview + edit popover
     linkHoverUrl,

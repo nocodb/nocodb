@@ -33,7 +33,10 @@ export class GuiMiddleware implements NestMiddleware {
     const dashboardUrl = process.env.NC_DASHBOARD_URL || '/';
     if (dashboardUrl.startsWith('http')) return;
 
-    this.dashboardPath = dashboardUrl.replace(/\/+$/, '') || '/';
+    // NC_DASHBOARD_URL as a subpath is now redirect-only (handled in
+    // Noco.ts).  The frontend always lives at root, so dashboardPath
+    // is always '/'.  Only NC_PUBLIC_URL controls the base path.
+    this.dashboardPath = '/';
 
     // Collect candidate paths for the frontend dist directory
     const candidates: string[] = [];
@@ -65,25 +68,19 @@ export class GuiMiddleware implements NestMiddleware {
           'utf-8',
         );
 
-        // Compute the browser-visible base path for the <base> tag.
-        // This combines the NC_PUBLIC_URL pathname (reverse-proxy prefix that
-        // gets stripped before reaching the backend) with NC_DASHBOARD_URL
-        // (the backend-visible subpath).
+        // Compute the browser-visible base path from NC_PUBLIC_URL only.
+        // NC_DASHBOARD_URL no longer affects the base — it's redirect-only.
         //
         // Examples:
-        //   NC_PUBLIC_URL unset,       NC_DASHBOARD_URL=/          → /
-        //   NC_PUBLIC_URL unset,       NC_DASHBOARD_URL=/dashboard → /dashboard/
-        //   NC_PUBLIC_URL=host/nocodb, NC_DASHBOARD_URL=/          → /nocodb/
-        //   NC_PUBLIC_URL=host/nocodb, NC_DASHBOARD_URL=/dashboard → /nocodb/dashboard/
-        let browserBase = this.dashboardPath;
+        //   NC_PUBLIC_URL unset                    → /
+        //   NC_PUBLIC_URL=https://host/nocodb      → /nocodb/
+        let browserBase = '/';
         const publicUrl = process.env.NC_PUBLIC_URL;
         if (publicUrl) {
           try {
             const publicPath = new URL(publicUrl).pathname.replace(/\/+$/, '');
             if (publicPath && publicPath !== '/') {
-              browserBase =
-                publicPath +
-                (this.dashboardPath === '/' ? '' : this.dashboardPath);
+              browserBase = publicPath;
             }
           } catch {
             // invalid NC_PUBLIC_URL, ignore
@@ -105,26 +102,6 @@ export class GuiMiddleware implements NestMiddleware {
           rawHtml = rawHtml.replace(
             /baseURL:"\/"/g,
             `baseURL:"${baseHref}"`,
-          );
-        }
-
-        // When NC_DASHBOARD_URL adds a subpath (e.g. /abc), the <base> tag
-        // is /testpath/abc/ but the API lives at /testpath/ (no /abc).
-        // Set ncBackendUrl so useApi() uses the correct API base path
-        // instead of falling back to the <base> tag.
-        if (this.dashboardPath !== '/') {
-          let apiBase = '/';
-          if (publicUrl) {
-            try {
-              const pp = new URL(publicUrl).pathname.replace(/\/+$/, '');
-              if (pp && pp !== '/') apiBase = `${pp}/`;
-            } catch {
-              // ignore
-            }
-          }
-          rawHtml = rawHtml.replace(
-            /ncBackendUrl:""/g,
-            `ncBackendUrl:"${apiBase}"`,
           );
         }
 
@@ -150,15 +127,7 @@ export class GuiMiddleware implements NestMiddleware {
           },
         };
 
-        router.use(this.dashboardPath, express.static(distPath, staticOptions));
-
-        // When the dashboard is at a subpath, also mount static assets at
-        // root so that absolute asset paths (e.g. /_nuxt/entry.js) still
-        // resolve. The frontend build uses relative paths via <base> tag,
-        // but this provides backward compat for any absolute references.
-        if (this.dashboardPath !== '/') {
-          router.use('/', express.static(distPath, staticOptions));
-        }
+        router.use('/', express.static(distPath, staticOptions));
 
         this.staticRouter = router;
         return;
@@ -215,8 +184,8 @@ export class GuiMiddleware implements NestMiddleware {
   }
 
   /**
-   * Returns the normalized dashboard path (e.g. '/dashboard' or '/').
-   * Used by GlobalExceptionFilter to scope the SPA fallback.
+   * Returns the dashboard path — always '/' since NC_DASHBOARD_URL is
+   * redirect-only.  Used by GlobalExceptionFilter to scope SPA fallback.
    */
   getDashboardPath(): string {
     return this.dashboardPath;

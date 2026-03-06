@@ -209,13 +209,27 @@ export default class Noco {
         }
         res.sendStatus(200);
       });
-    } else if (dashboardPath === '/' || dashboardPath === '') {
-      // Default root deployment: redirect old /dashboard/* URLs to /*
-      // for backward compatibility with pre-history-mode bookmarks
-      server.get('/dashboard*', (req, res) => {
-        const remaining = req.path.slice('/dashboard'.length) || '/';
-        res.redirect(remaining);
-      });
+    } else {
+      // NC_DASHBOARD_URL as a subpath is a redirect source only — the
+      // frontend always lives at root.  Redirect custom dashboard paths
+      // so that bookmarks/email links still work.
+      if (dashboardPath && dashboardPath !== '/' && dashboardPath !== '') {
+        const normalizedPath = dashboardPath.replace(/\/+$/, '');
+        server.get(`${normalizedPath}*`, (req, res) => {
+          const remaining = req.path.slice(normalizedPath.length) || '/';
+          const qs = req.originalUrl.slice(req.path.length);
+          res.redirect(remaining + qs);
+        });
+      }
+      // Always redirect old /dashboard/* URLs for backward compat
+      // (unless NC_DASHBOARD_URL is already /dashboard)
+      if (dashboardPath !== '/dashboard') {
+        server.get('/dashboard*', (req, res) => {
+          const remaining = req.path.slice('/dashboard'.length) || '/';
+          const qs = req.originalUrl.slice(req.path.length);
+          res.redirect(remaining + qs);
+        });
+      }
       // Respond 200 for health checks (HEAD/non-browser GET).
       // Browser requests pass through to GuiMiddleware for SPA fallback.
       server.get('/', (req, res, next) => {

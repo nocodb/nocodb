@@ -122,22 +122,39 @@ export class CommentsService {
 
     await CommentReaction.deleteByComment(context, param.commentId);
 
-    // Cascade soft-delete replies and their reactions
-    if (!comment.parent_comment_id) {
-      const replies = await Comment.listReplies(context, param.commentId);
-      for (const reply of replies) {
-        await CommentReaction.deleteByComment(context, reply.id);
-      }
-      await Comment.deleteReplies(context, param.commentId);
-    }
-
     const model = await Model.getByIdOrName(context, {
       id: comment.fk_model_id,
     });
 
+    const base = await Base.getByTitleOrId(context, model.base_id);
+
+    // Cascade soft-delete replies and their reactions
+    if (!comment.parent_comment_id) {
+      const replies = await Comment.listReplies(context, param.commentId);
+
+      if (replies.length) {
+        const replyIds = replies.map((r) => r.id).filter(Boolean);
+
+        await CommentReaction.deleteByCommentIds(context, replyIds);
+        await Comment.deleteReplies(context, param.commentId);
+
+        for (const reply of replies) {
+          this.appHooksService.emit(AppEvents.COMMENT_DELETE, {
+            base,
+            model,
+            user: param.user,
+            comment: reply,
+            rowId: reply.row_id,
+            req: param.req,
+            context,
+          });
+        }
+      }
+    }
+
     this.appHooksService.emit(AppEvents.COMMENT_DELETE, {
-      base: await Base.getByTitleOrId(context, model.base_id),
-      model: model,
+      base,
+      model,
       user: param.user,
       comment: comment,
       rowId: comment.row_id,

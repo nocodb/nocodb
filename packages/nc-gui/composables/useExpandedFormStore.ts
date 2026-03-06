@@ -909,7 +909,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                     if (!comment.reactions) comment.reactions = []
 
                     if (action === 'reactionAdd') {
-                      comment.reactions.push(payload)
+                      const exists = comment.reactions.some(
+                        (r) => r.reaction === payload.reaction && r.created_by === payload.created_by,
+                      )
+                      if (!exists) {
+                        comment.reactions.push(payload)
+                      }
                     } else {
                       comment.reactions = comment.reactions.filter(
                         (r) => !(r.reaction === payload.reaction && r.created_by === payload.created_by),

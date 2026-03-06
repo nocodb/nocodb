@@ -116,8 +116,8 @@ const saveComment = async () => {
       isExpandedFormCommentMode.value = true
     })
     scrollComments()
-  } catch (e) {
-    console.error(e)
+  } catch {
+    // Error already handled by _saveComment
   }
 }
 
@@ -161,8 +161,8 @@ const saveReply = async () => {
   try {
     await _saveComment(tempCom, parentId)
     scrollComments()
-  } catch (e) {
-    console.error(e)
+  } catch {
+    // Error already handled by _saveComment
   }
 }
 
@@ -701,10 +701,10 @@ onBeforeUnmount(() => {
           <!-- Reply input -->
           <div v-if="replyingTo === commentItem.id && hasEditPermission" class="nc-comment-reply-input pl-12 pr-3 py-2">
             <div class="flex items-center gap-2 mb-1">
-              <span class="text-xs text-nc-content-gray-muted">Replying</span>
-              <button class="text-xs text-nc-content-gray-muted hover:text-nc-content-gray" @click="cancelReply">
-                ✕
-              </button>
+              <span class="text-xs text-nc-content-gray-muted">{{ $t('general.reply') }}</span>
+              <NcButton class="!w-5 !h-5 !bg-transparent" size="xsmall" type="text" @click="cancelReply">
+                <GeneralIcon class="text-nc-content-gray-muted" icon="close" />
+              </NcButton>
             </div>
             <SmartsheetExpandedFormRichComment
               ref="replyInputRef"

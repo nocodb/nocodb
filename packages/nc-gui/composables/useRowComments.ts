@@ -105,6 +105,9 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
     if (!tempC) return
 
+    // Save full state for revert (comment + its replies)
+    const prevComments = [...comments.value]
+
     try {
       // Remove comment and its replies (if it's a parent)
       comments.value = comments.value.filter((c) => c.id !== commentId && c.parent_comment_id !== commentId)
@@ -136,7 +139,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
           },
         ),
       )
-      comments.value = [...comments.value, tempC]
+      comments.value = prevComments
     }
   }
 
@@ -328,6 +331,13 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     // Optimistic update
     const ext = comment as CommentTypeExtended
     if (!ext.reactions) ext.reactions = []
+
+    // Prevent duplicate from double-click
+    const alreadyReacted = ext.reactions.some(
+      (r) => r.reaction === emoji && r.created_by === user.value?.id,
+    )
+    if (alreadyReacted) return
+
     ext.reactions.push({
       comment_id: commentId,
       reaction: emoji,

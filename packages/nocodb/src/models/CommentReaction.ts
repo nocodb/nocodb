@@ -124,4 +124,17 @@ export default class CommentReaction implements CommentReactionType {
       },
     );
   }
+
+  public static async deleteByCommentIds(
+    context: NcContext,
+    commentIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!commentIds.length) return;
+
+    return ncMeta
+      .knex(MetaTable.COMMENTS_REACTIONS)
+      .whereIn('comment_id', commentIds)
+      .delete();
+  }
 }

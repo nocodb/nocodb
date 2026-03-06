@@ -724,16 +724,18 @@ watch(
 )
 
 const onTitleBlur = () => {
-  if (!isEditable.value) return
+  if (!isEditable.value || !doc.value) return
 
   const effectiveTitle = title.value || 'Untitled'
 
-  // Eagerly sync title to the store so the sidebar + URL slug update immediately
-  if (doc.value && effectiveTitle !== doc.value.title) {
+  // Eagerly sync title to the store so the sidebar + URL slug update immediately.
+  // Guard: only sync if activeDocument still matches the editor's doc (navigation may
+  // have changed activeDocumentId before blur fires).
+  if (effectiveTitle !== doc.value.title) {
     doc.value.title = effectiveTitle
   }
-  if (activeDocument.value && effectiveTitle !== activeDocument.value.title) {
-    activeDocument.value.title = effectiveTitle
+  if (activeDocument.value?.id === doc.value.id && effectiveTitle !== activeDocument.value?.title) {
+    activeDocument.value!.title = effectiveTitle
   }
 
   // Compare against last-saved title to decide whether to persist.
@@ -751,11 +753,12 @@ const debouncedTitleSync = useDebounceFn(() => {
   if (!isLoaded.value || !doc.value) return
 
   const effectiveTitle = title.value || 'Untitled'
-  if (effectiveTitle !== activeDocument.value?.title) {
+  if (effectiveTitle !== doc.value.title) {
     doc.value.title = effectiveTitle
-    if (activeDocument.value) {
-      activeDocument.value.title = effectiveTitle
-    }
+  }
+  // Guard: only sync to store if activeDocument still matches the editor's doc
+  if (activeDocument.value?.id === doc.value.id && effectiveTitle !== activeDocument.value?.title) {
+    activeDocument.value!.title = effectiveTitle
   }
   // Trigger a save if the title differs from what was last persisted
   if (effectiveTitle !== lastSavedTitle.value) {

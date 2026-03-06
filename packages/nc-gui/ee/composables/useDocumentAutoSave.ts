@@ -44,6 +44,8 @@ export function useDocumentAutoSave({
     () => activeDocument.value?.version,
     (storeVersion) => {
       if (!doc.value || !activeDocument.value || !isLoaded.value || isSaving.value) return
+      // Guard: only sync if activeDocument matches the editor's local doc
+      if (activeDocument.value.id !== doc.value.id) return
       if (!storeVersion || storeVersion <= (doc.value.version ?? 0)) return
       if (activeDocument.value.updated_by !== user.value?.id) return
 

@@ -23,6 +23,7 @@ import { DocColumnsToolbarExtension } from './DocColumnsToolbarPlugin'
 import { DocMathExtension } from './DocMathExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
 import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
+import { DocHeadingAnchorExtension } from './DocHeadingAnchorExtension'
 import { DocDragHandleExtension } from './DocDragHandlePlugin'
 import { DocSearchExtension } from './DocSearchExtension'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
@@ -126,6 +127,8 @@ const {
 } = useDocEditorLinks({ editor, isEditable })
 
 const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
+
+useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
 
 const { copy } = useCopy()
 
@@ -301,6 +304,7 @@ const _tiptapEditor = useEditor({
     DocEmbedExtension,
     DocActiveBlockExtension,
     DocHeadingCollapseExtension,
+    DocHeadingAnchorExtension,
     DocDragHandleExtension,
     DocSearchExtension,
   ],
@@ -1899,6 +1903,58 @@ onBeforeUnmount(() => {
     }
   }
 
+  // Heading anchor icon — inline after heading text, zero-width so it doesn't
+  // affect text flow. Appears on heading hover right next to the last word.
+  .nc-heading-anchor-icon {
+    display: inline;
+    width: 0;
+    overflow: visible;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    user-select: none;
+    pointer-events: none;
+
+    &::after {
+      content: '';
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      margin-left: 6px;
+      padding: 2px;
+      vertical-align: middle;
+      background-color: var(--nc-content-gray-disabled);
+      mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='currentColor'%3E%3Cpath d='M7.775 3.275a.75.75 0 001.06 1.06l1.25-1.25a2 2 0 112.83 2.83l-2.5 2.5a2 2 0 01-2.83 0 .75.75 0 00-1.06 1.06 3.5 3.5 0 004.95 0l2.5-2.5a3.5 3.5 0 00-4.95-4.95l-1.25 1.25zm-4.69 9.64a2 2 0 010-2.83l2.5-2.5a2 2 0 012.83 0 .75.75 0 001.06-1.06 3.5 3.5 0 00-4.95 0l-2.5 2.5a3.5 3.5 0 004.95 4.95l1.25-1.25a.75.75 0 00-1.06-1.06l-1.25 1.25a2 2 0 01-2.83 0z'/%3E%3C/svg%3E");
+      mask-size: 16px 16px;
+      mask-repeat: no-repeat;
+      cursor: pointer;
+      pointer-events: auto;
+      border-radius: 4px;
+    }
+
+    &:hover::after {
+      background-color: var(--nc-content-brand);
+    }
+  }
+
+  h1 > .nc-heading-anchor-icon::after {
+    vertical-align: baseline;
+    position: relative;
+    top: -0.1em;
+  }
+
+  h1:hover > .nc-heading-anchor-icon,
+  h2:hover > .nc-heading-anchor-icon,
+  h3:hover > .nc-heading-anchor-icon {
+    opacity: 1;
+  }
+
+  // Scroll-target highlight — brief flash when scrolling to an anchored heading
+  h1[data-heading-anchor]:target,
+  h2[data-heading-anchor]:target,
+  h3[data-heading-anchor]:target {
+    animation: nc-heading-flash 1.5s ease;
+  }
+
   // Active divider — show a selection border when a horizontal rule is selected
   hr.nc-active-block {
     outline: 2px solid var(--nc-fill-primary);
@@ -2711,6 +2767,18 @@ onBeforeUnmount(() => {
   padding: 6px 12px;
   font-size: 12px;
   color: var(--nc-content-gray-subtle2);
+}
+
+// Heading anchor scroll-target flash animation (must be at top level for SCSS)
+@keyframes nc-heading-flash {
+  0%,
+  30% {
+    background: color-mix(in srgb, var(--nc-fill-primary) 15%, transparent);
+    border-radius: 4px;
+  }
+  100% {
+    background: transparent;
+  }
 }
 
 // Global cursor override during drag-handle reorder.

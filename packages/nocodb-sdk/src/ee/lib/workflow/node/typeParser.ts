@@ -8,6 +8,11 @@ import { WorkflowNodeFilterDataType } from '~/ee/lib/workflow/node/ifTypes';
 function variableTypeToFilterDataType(
   variable: VariableDefinition
 ): WorkflowNodeFilterDataType | undefined {
+  // Any type with isArray should be treated as MULTI_SELECT (e.g. MultiSelect is string + isArray)
+  if (variable.isArray) {
+    return WorkflowNodeFilterDataType.MULTI_SELECT;
+  }
+
   switch (variable.type) {
     case 'string':
       return WorkflowNodeFilterDataType.TEXT;
@@ -21,10 +26,6 @@ function variableTypeToFilterDataType(
     case 'datetime':
       return WorkflowNodeFilterDataType.DATETIME;
     case 'object':
-      // Check if it's an array
-      if ((variable as any).isArray) {
-        return WorkflowNodeFilterDataType.MULTI_SELECT;
-      }
       // Check if it's an object with children (nested structure)
       if (variable.children && variable.children.length > 0) {
         // For structured objects with children, don't auto-select type
@@ -495,7 +496,19 @@ export function extractDataTypeFromWorkflowNodeExpression(
   fieldExpression: string,
   flatVariables: VariableDefinition[]
 ): WorkflowNodeFilterDataType | undefined {
-  if (!fieldExpression || !fieldExpression.includes('{{')) return undefined;
+  if (!fieldExpression) return undefined;
+
+  // Plain text (no expression) — detect literal type
+  if (!fieldExpression.includes('{{')) {
+    const trimmed = fieldExpression.trim();
+    if (trimmed === 'true' || trimmed === 'false') {
+      return WorkflowNodeFilterDataType.BOOLEAN;
+    }
+    if (trimmed !== '' && !isNaN(Number(trimmed))) {
+      return WorkflowNodeFilterDataType.NUMBER;
+    }
+    return WorkflowNodeFilterDataType.TEXT;
+  }
 
   try {
     // Check if the field is ONLY an expression (no surrounding text)

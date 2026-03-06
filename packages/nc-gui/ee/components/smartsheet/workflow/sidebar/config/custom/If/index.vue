@@ -32,7 +32,7 @@ const flatVariables = computed(() => {
 })
 
 const isWorkflowNodeConditionGroup = (item: WorkflowNodeConditionItem): item is WorkflowNodeConditionGroup => {
-  return 'is_group' in item && item.is_group === true
+  return 'is_group' in item && item.is_group
 }
 
 const conditionsCount = computed(() => {

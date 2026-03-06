@@ -36,6 +36,27 @@ export function useDocumentAutoSave({
   // Used to allow saving empty documents when the user intentionally clears content.
   const hasUserEdited = ref(false)
 
+  const { user } = useGlobal()
+
+  // When the store version advances due to current user's action (e.g. sidebar rename),
+  // sync local doc fields so the stale banner doesn't appear for your own changes.
+  watch(
+    () => activeDocument.value?.version,
+    (storeVersion) => {
+      if (!doc.value || !activeDocument.value || !isLoaded.value || isSaving.value) return
+      if (!storeVersion || storeVersion <= (doc.value.version ?? 0)) return
+      if (activeDocument.value.updated_by !== user.value?.id) return
+
+      doc.value.version = storeVersion
+      doc.value.updated_at = activeDocument.value.updated_at
+      doc.value.updated_by = activeDocument.value.updated_by
+      if (activeDocument.value.title) {
+        title.value = activeDocument.value.title
+        lastSavedTitle.value = activeDocument.value.title
+      }
+    },
+  )
+
   /** Whether the document is stale (another user saved a newer version). */
   const isStale = computed(() => {
     if (!doc.value || !activeDocument.value) return false

@@ -6,11 +6,43 @@ export const SYSTEM_COLUMNS = ['id', 'title', 'created_at', 'updated_at']
 
 export const EMPTY_TITLE_PLACEHOLDER_DOCS = 'Untitled'
 
-export const MAX_WIDTH_FOR_MOBILE_MODE = 480
+/**
+ * Shared breakpoint definitions (min-width px values).
+ * Used by both WindiCSS screens config and useBreakpoints() in JS.
+ * `xs` is excluded — it's the default (< sm) and a max-width alias in WindiCSS.
+ */
+export const NC_BREAKPOINTS = {
+  'sm': 480,
+  'md': 820,
+  'lg': 1024,
+  'xl': 1280,
+  '2xl': 1780,
+  '3xl': 1920,
+  '4xl': 2560,
+  '5xl': 3200,
+} as const
 
-export const MAX_WIDTH_FOR_TABLET_MODE = 820
+export const MAX_WIDTH_FOR_MOBILE_MODE = NC_BREAKPOINTS.sm
 
-export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8080'
+export type NcBreakpoint = 'xs' | keyof typeof NC_BREAKPOINTS
+
+/**
+ * WindiCSS screen definitions derived from NC_BREAKPOINTS.
+ * `xs` is max-width (mobile-only), all others are min-width.
+ */
+export const NC_SCREEN_BREAKPOINTS = {
+  'xs': { max: `${NC_BREAKPOINTS.sm}px` },
+  'sm': { min: `${NC_BREAKPOINTS.sm}px` },
+  'md': { min: `${NC_BREAKPOINTS.md}px` },
+  'lg': { min: `${NC_BREAKPOINTS.lg}px` },
+  'xl': { min: `${NC_BREAKPOINTS.xl}px` },
+  '2xl': { min: `${NC_BREAKPOINTS['2xl']}px` },
+  '3xl': { min: `${NC_BREAKPOINTS['3xl']}px` },
+  '4xl': { min: `${NC_BREAKPOINTS['4xl']}px` },
+  '5xl': { min: `${NC_BREAKPOINTS['5xl']}px` },
+}
+
+export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8081'
 
 export const GROUP_BY_VARS = {
   NULL: '__nc_null__',

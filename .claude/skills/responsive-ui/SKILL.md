@@ -4,12 +4,16 @@ Guidelines for making NocoDB UI responsive. Follow these conventions for all res
 
 ## Breakpoints
 
-| Name | CSS class prefix | Width range | JS detection |
-|------|-----------------|-------------|--------------|
-| **Mobile** | `xs:` (max) / default | `< 480px` | `isMobileMode` |
-| **Tablet** | `sm:` (min 480px) | `480px – 819px` | `isTabletMode` |
-| **Desktop** | `md:` (min 820px) | `≥ 820px` | `!isMobileMode && !isTabletMode` |
-| **Large** | `2xl:` / `3xl:` / `4xl:` | `≥ 1780px` / `≥ 1920px` / `≥ 2560px` | — |
+All breakpoints are defined once in `lib/constants.ts` (`NC_BREAKPOINTS` + `NC_SCREEN_BREAKPOINTS`) and shared by both WindiCSS and JS.
+
+| Name              | CSS prefix                        | Width                                             | `activeBreakpoint` | JS shorthand                |
+| ----------------- | --------------------------------- | ------------------------------------------------- | ------------------ | --------------------------- |
+| **Mobile**        | `xs:` (max) / default             | `< 480px`                                         | `'xs'`             | `isMobileMode`              |
+| **Tablet**        | `sm:` (min 480px)                 | `480px – 819px`                                   | `'sm'`             | `activeBreakpoint === 'sm'` |
+| **Desktop**       | `md:` (min 820px)                 | `820px – 1023px`                                  | `'md'`             | —                           |
+| **Large Desktop** | `lg:` (min 1024px)                | `1024px – 1279px`                                 | `'lg'`             | —                           |
+| **XL**            | `xl:` (min 1280px)                | `1280px – 1779px`                                 | `'xl'`             | —                           |
+| **2XL+**          | `2xl:` / `3xl:` / `4xl:` / `5xl:` | `≥ 1780px` / `≥ 1920px` / `≥ 2560px` / `≥ 3200px` | `'2xl'` – `'5xl'`  | —                           |
 
 ### Mobile-first approach
 
@@ -26,56 +30,78 @@ WindiCSS grouped syntax `sm:(class1 class2)` keeps responsive overrides readable
 
 ### Constants (`lib/constants.ts`)
 
+Single source of truth for all breakpoint values, shared by WindiCSS config and JS:
+
 ```ts
-MAX_WIDTH_FOR_MOBILE_MODE = 480   // matches xs breakpoint
-MAX_WIDTH_FOR_TABLET_MODE = 820   // matches md breakpoint boundary
+// Min-width breakpoints (used by useBreakpoints + WindiCSS screens)
+export const NC_BREAKPOINTS = {
+  sm: 480,
+  md: 820,
+  lg: 1024,
+  xl: 1280,
+  "2xl": 1780,
+  "3xl": 1920,
+  "4xl": 2560,
+  "5xl": 3200,
+} as const;
+
+// Type for activeBreakpoint — includes 'xs' (below smallest min-width)
+export type NcBreakpoint = "xs" | keyof typeof NC_BREAKPOINTS;
+
+// WindiCSS screen definitions (generated from NC_BREAKPOINTS)
+export const NC_SCREEN_BREAKPOINTS = {
+  xs: { max: "480px" },
+  sm: { min: "480px" },
+  md: { min: "820px" },
+  // ... etc
+};
 ```
 
 ## JS Reactive State
 
-### From `useConfigStore` (Pinia store)
+### From `useGlobal()` — source of truth
 
 ```ts
-const configStore = useConfigStore()
-const { isMobileMode, isTabletMode } = storeToRefs(configStore)
+const { isMobileMode, activeBreakpoint } = useGlobal();
+// isMobileMode: boolean — true when viewport < 480px
+// activeBreakpoint: NcBreakpoint — 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl'
 ```
 
-### From `useSidebarStore` (also exposes `isTabletMode`)
+### From `useConfigStore` (Pinia store) — detects changes
 
 ```ts
-const sidebarStore = useSidebarStore()
-const { isMobileMode, isTabletMode } = storeToRefs(sidebarStore)
-// isMobileMode comes from useGlobal(), isTabletMode from configStore
+const configStore = useConfigStore();
+const { isMobileMode, activeBreakpoint } = storeToRefs(configStore);
 ```
 
-### From `useGlobal()` (`isMobileMode` + `isTabletMode`)
+### Compact view pattern (mobile + tablet)
 
 ```ts
-const { isMobileMode, isTabletMode } = useGlobal()
+const { activeBreakpoint } = useGlobal();
+const isCompactView = computed(
+  () => activeBreakpoint.value === "xs" || activeBreakpoint.value === "sm"
+);
 ```
 
 ### State flow
 
 ```
-useGlobal()          — source of truth (persisted in localStorage)
-  ├── isMobileMode   — set by useConfigStore on resize
-  └── isTabletMode   — set by useConfigStore on resize
+useConfigStore()     — uses VueUse useBreakpoints(NC_BREAKPOINTS), syncs to useGlobal
+  ├── isMobileMode       — breakpoints.smaller('sm') → true when < 480px
+  └── activeBreakpoint   — computed from breakpoints.active() → 'xs'|'sm'|'md'|...
 
-useConfigStore()     — detects viewport changes, syncs to useGlobal, sets body classes
-  ├── isMobileMode   — ref, updated on resize (width < 480)
-  └── isTabletMode   — ref, updated on resize (!mobile && width < 820)
-
-useSidebarStore()    — re-exports isTabletMode from configStore for sidebar-specific logic
-  └── isTabletMode   — storeToRefs(useConfigStore())
+useGlobal()          — receives values from useConfigStore, exposes globally
+  ├── isMobileMode       — boolean ref, set by configStore watcher
+  └── activeBreakpoint   — NcBreakpoint ref, set by configStore watcher
 ```
 
 ### Body CSS classes (set by `useConfigStore`)
 
-| Viewport | Body class |
-|----------|-----------|
-| `< 480px` | `.mobile` |
-| `480px – 819px` | `.tablet` |
-| `≥ 820px` | `.desktop` |
+| Viewport        | Body class |
+| --------------- | ---------- |
+| `< 480px`       | `.mobile`  |
+| `480px – 819px` | `.tablet`  |
+| `≥ 820px`       | `.desktop` |
 
 Use these for global CSS rules when WindiCSS classes aren't sufficient:
 
@@ -94,13 +120,15 @@ Use these for global CSS rules when WindiCSS classes aren't sufficient:
 
 ### Screens (breakpoints)
 
-Defined in `windi.config.ts` → `theme.extend.screens`:
+Imported from `NC_SCREEN_BREAKPOINTS` in `lib/constants.ts` (single source of truth):
 
 ```ts
-'xs': { max: '480px' },    // mobile-only (max-width)
-'sm': { min: '480px' },    // tablet and up
-'md': { min: '820px' },    // desktop and up
-'2xl': { min: '1780px' },  // large screens
+'xs':  { max: '480px' },    // mobile-only (max-width)
+'sm':  { min: '480px' },    // tablet and up
+'md':  { min: '820px' },    // desktop and up
+'lg':  { min: '1024px' },   // large desktop
+'xl':  { min: '1280px' },   // extra large
+'2xl': { min: '1780px' },   // ultra wide
 '3xl': { min: '1920px' },
 '4xl': { min: '2560px' },
 '5xl': { min: '3200px' },
@@ -109,9 +137,9 @@ Defined in `windi.config.ts` → `theme.extend.screens`:
 ### Font sizes (custom)
 
 ```ts
-tiny:  ['11px', '14px']
-small: ['13px', '16px']
-small1: ['13px', '18px']
+tiny: ["11px", "14px"];
+small: ["13px", "16px"];
+small1: ["13px", "18px"];
 ```
 
 Usage: `text-tiny`, `text-small`, `text-small1`
@@ -120,15 +148,15 @@ Usage: `text-tiny`, `text-small`, `text-small1`
 
 Inter renders weights heavier than standard, so values are shifted:
 
-| Class | Value | Effective |
-|-------|-------|-----------|
-| `font-thin` | 200 | 200 |
-| `font-light` | 400 | 400 |
-| `font-normal` / `font-default` | 500 | 400 |
-| `font-medium` | 600 | 500 |
-| `font-semibold` | 550 | 550 |
-| `font-bold` | 700 | 600 |
-| `font-black` | 800 | 700 |
+| Class                          | Value | Effective |
+| ------------------------------ | ----- | --------- |
+| `font-thin`                    | 200   | 200       |
+| `font-light`                   | 400   | 400       |
+| `font-normal` / `font-default` | 500   | 400       |
+| `font-medium`                  | 600   | 500       |
+| `font-semibold`                | 550   | 550       |
+| `font-bold`                    | 700   | 600       |
+| `font-black`                   | 800   | 700       |
 
 ### Shortcuts (global)
 
@@ -154,25 +182,25 @@ nc-content-max-w     → max-w-[97.5rem]
 
 Figma-aligned text presets. Use **instead of** raw `text-sm font-medium` combos. All support responsive variants.
 
-| Class | Size | Line-height | Weight |
-|-------|------|-------------|--------|
-| `text-heading1` | 64px | 92px | 700 |
-| `text-heading2` | 40px | 64px | 700 |
-| `text-heading3` | 24px | 36px | 700 |
-| `text-subHeading1` | 20px | 32px | 700 |
-| `text-subHeading2` | 16px | 24px | 700 |
-| `text-bodyLg` | 16px | 28px | 500 |
-| `text-bodyLgBold` | 16px | 28px | 700 |
-| `text-body` | 14px | 24px | 500 |
-| `text-bodyBold` | 14px | 24px | 700 |
-| `text-bodyDefaultSm` | 13px | 18px | 500 |
-| `text-bodyDefaultSmBold` | 13px | 18px | 700 |
-| `text-bodySm` | 12px | 18px | 500 |
-| `text-bodySmBold` | 12px | 18px | 700 |
-| `text-caption` | 14px | 20px | 500 |
-| `text-captionSm` | 12px | 14px | 500 |
-| `text-captionXs` | 10px | 14px | 500 |
-| `text-sidebarDefault` | 14px | 20px | 550 |
+| Class                    | Size | Line-height | Weight |
+| ------------------------ | ---- | ----------- | ------ |
+| `text-heading1`          | 64px | 92px        | 700    |
+| `text-heading2`          | 40px | 64px        | 700    |
+| `text-heading3`          | 24px | 36px        | 700    |
+| `text-subHeading1`       | 20px | 32px        | 700    |
+| `text-subHeading2`       | 16px | 24px        | 700    |
+| `text-bodyLg`            | 16px | 28px        | 500    |
+| `text-bodyLgBold`        | 16px | 28px        | 700    |
+| `text-body`              | 14px | 24px        | 500    |
+| `text-bodyBold`          | 14px | 24px        | 700    |
+| `text-bodyDefaultSm`     | 13px | 18px        | 500    |
+| `text-bodyDefaultSmBold` | 13px | 18px        | 700    |
+| `text-bodySm`            | 12px | 18px        | 500    |
+| `text-bodySmBold`        | 12px | 18px        | 700    |
+| `text-caption`           | 14px | 20px        | 500    |
+| `text-captionSm`         | 12px | 14px        | 500    |
+| `text-captionXs`         | 10px | 14px        | 500    |
+| `text-sidebarDefault`    | 14px | 20px        | 550    |
 
 Responsive example:
 
@@ -184,12 +212,12 @@ Responsive example:
 
 Viewport-safe screen utilities that handle mobile browser chrome (address bar, bottom nav):
 
-| Class | Fallback chain |
-|-------|----------------|
-| `nc-h-screen` | `100svh` → `100dvh` → `100vh` |
+| Class             | Fallback chain                            |
+| ----------------- | ----------------------------------------- |
+| `nc-h-screen`     | `100svh` → `100dvh` → `100vh`             |
 | `nc-min-h-screen` | `min-height: 100svh` → `100dvh` → `100vh` |
-| `nc-w-screen` | `100svw` → `100dvw` → `100vw` |
-| `nc-min-w-screen` | `min-width: 100svw` → `100dvw` → `100vw` |
+| `nc-w-screen`     | `100svw` → `100dvw` → `100vw`             |
+| `nc-min-w-screen` | `min-width: 100svw` → `100dvw` → `100vw`  |
 
 **Always use `nc-h-screen` instead of `h-screen`** in layouts and full-height containers.
 
@@ -207,57 +235,57 @@ Registered via `ncBuildColorsWithOpacity()` which enables opacity modifiers (e.g
 
 #### Content colors (`text-*`)
 
-| Class | Variants |
-|-------|----------|
-| `text-nc-content-gray` | `-extreme`, `-emphasis`, (default), `-subtle`, `-subtle2`, `-muted`, `-disabled` |
-| `text-nc-content-brand` | (default), `-disabled`, `-hover` |
-| `text-nc-content-inverted-primary` | (default), `-hover`, `-disabled` |
-| `text-nc-content-inverted-secondary` | (default), `-hover`, `-disabled` |
-| `text-nc-content-red` | `-dark`, `-medium`, `-light` |
-| `text-nc-content-green` | `-dark`, `-medium`, `-light` |
-| `text-nc-content-yellow` | `-dark`, `-medium`, `-light` |
-| `text-nc-content-blue` | `-dark`, `-medium`, `-light` |
-| `text-nc-content-purple` | `-dark`, `-medium`, `-light` |
-| `text-nc-content-pink` | `-dark`, `-medium`, `-light` |
-| `text-nc-content-orange` | `-dark`, `-medium`, `-light` |
-| `text-nc-content-maroon` | `-dark`, `-medium`, `-light` |
+| Class                                | Variants                                                                         |
+| ------------------------------------ | -------------------------------------------------------------------------------- |
+| `text-nc-content-gray`               | `-extreme`, `-emphasis`, (default), `-subtle`, `-subtle2`, `-muted`, `-disabled` |
+| `text-nc-content-brand`              | (default), `-disabled`, `-hover`                                                 |
+| `text-nc-content-inverted-primary`   | (default), `-hover`, `-disabled`                                                 |
+| `text-nc-content-inverted-secondary` | (default), `-hover`, `-disabled`                                                 |
+| `text-nc-content-red`                | `-dark`, `-medium`, `-light`                                                     |
+| `text-nc-content-green`              | `-dark`, `-medium`, `-light`                                                     |
+| `text-nc-content-yellow`             | `-dark`, `-medium`, `-light`                                                     |
+| `text-nc-content-blue`               | `-dark`, `-medium`, `-light`                                                     |
+| `text-nc-content-purple`             | `-dark`, `-medium`, `-light`                                                     |
+| `text-nc-content-pink`               | `-dark`, `-medium`, `-light`                                                     |
+| `text-nc-content-orange`             | `-dark`, `-medium`, `-light`                                                     |
+| `text-nc-content-maroon`             | `-dark`, `-medium`, `-light`                                                     |
 
 #### Background colors (`bg-*`)
 
-| Class | Variants |
-|-------|----------|
-| `bg-nc-bg-default` | (white) |
-| `bg-nc-bg-brand` | (default), `-inverted` |
-| `bg-nc-bg-gray` | `-extralight`, `-sidebar`, `-minisidebar`, `-light`, `-medium`, `-dark`, `-extradark` |
-| `bg-nc-bg-red` | `-light`, `-dark` |
-| `bg-nc-bg-green` | `-light`, `-dark` |
-| `bg-nc-bg-yellow` | `-light`, `-dark` |
-| `bg-nc-bg-blue` | `-light`, `-dark` |
-| `bg-nc-bg-purple` | `-light`, `-dark` |
-| `bg-nc-bg-pink` | `-light`, `-dark` |
-| `bg-nc-bg-orange` | `-light`, `-dark` |
-| `bg-nc-bg-maroon` | `-light`, `-dark` |
+| Class              | Variants                                                                              |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `bg-nc-bg-default` | (white)                                                                               |
+| `bg-nc-bg-brand`   | (default), `-inverted`                                                                |
+| `bg-nc-bg-gray`    | `-extralight`, `-sidebar`, `-minisidebar`, `-light`, `-medium`, `-dark`, `-extradark` |
+| `bg-nc-bg-red`     | `-light`, `-dark`                                                                     |
+| `bg-nc-bg-green`   | `-light`, `-dark`                                                                     |
+| `bg-nc-bg-yellow`  | `-light`, `-dark`                                                                     |
+| `bg-nc-bg-blue`    | `-light`, `-dark`                                                                     |
+| `bg-nc-bg-purple`  | `-light`, `-dark`                                                                     |
+| `bg-nc-bg-pink`    | `-light`, `-dark`                                                                     |
+| `bg-nc-bg-orange`  | `-light`, `-dark`                                                                     |
+| `bg-nc-bg-maroon`  | `-light`, `-dark`                                                                     |
 
 #### Border colors (`border-*`)
 
-| Class | Variants |
-|-------|----------|
-| `border-nc-border-brand` | (default), `-medium` |
-| `border-nc-border-gray` | `-extralight`, `-light`, `-medium`, `-dark`, `-extradark`, `-underline` |
-| `border-nc-border-red` | (default) |
-| `border-nc-border-green` | (default) |
-| `border-nc-border-purple` | (default), `-medium`, `-light` |
+| Class                     | Variants                                                                |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `border-nc-border-brand`  | (default), `-medium`                                                    |
+| `border-nc-border-gray`   | `-extralight`, `-light`, `-medium`, `-dark`, `-extradark`, `-underline` |
+| `border-nc-border-red`    | (default)                                                               |
+| `border-nc-border-green`  | (default)                                                               |
+| `border-nc-border-purple` | (default), `-medium`, `-light`                                          |
 
 #### Fill colors (`bg-*`, `fill-*`, `text-*`)
 
-| Class | Variants |
-|-------|----------|
-| `bg-nc-fill-primary` | (default), `-hover`, `-disabled`, `-disabled2` |
-| `bg-nc-fill-secondary` | (default), `-hover`, `-disabled` |
-| `bg-nc-fill-warning` | (default), `-hover`, `-disabled` |
-| `bg-nc-fill-success` | (default), `-hover`, `-disabled` |
-| `bg-nc-fill-red` | `-dark`, `-medium`, `-light` |
-| `bg-nc-fill-green` | `-dark`, `-medium`, `-light` |
+| Class                  | Variants                                       |
+| ---------------------- | ---------------------------------------------- |
+| `bg-nc-fill-primary`   | (default), `-hover`, `-disabled`, `-disabled2` |
+| `bg-nc-fill-secondary` | (default), `-hover`, `-disabled`               |
+| `bg-nc-fill-warning`   | (default), `-hover`, `-disabled`               |
+| `bg-nc-fill-success`   | (default), `-hover`, `-disabled`               |
+| `bg-nc-fill-red`       | `-dark`, `-medium`, `-light`                   |
+| `bg-nc-fill-green`     | `-dark`, `-medium`, `-light`                   |
 
 ### Layer 2: `themeV4Colors` with `nc-` prefix — Raw palette shades
 
@@ -372,8 +400,12 @@ The `--rgb-color-*` variants enable opacity support via `ncBuildColorsWithOpacit
 /* Avoid: raw media queries for things WindiCSS handles */
 .my-component {
   padding: 8px;
-  @media (min-width: 480px) { padding: 12px; }
-  @media (min-width: 820px) { padding: 16px; }
+  @media (min-width: 480px) {
+    padding: 12px;
+  }
+  @media (min-width: 820px) {
+    padding: 16px;
+  }
 }
 ```
 
@@ -388,11 +420,11 @@ The `--rgb-color-*` variants enable opacity support via `ncBuildColorsWithOpacit
 
 ### Sidebar behavior
 
-| Viewport | Sidebar |
-|----------|---------|
-| Mobile | Full-screen overlay (0% or 100%) |
-| Tablet | Auto-collapsed, overlay on open |
-| Desktop | Resizable splitpane (15–60%) |
+| Viewport | Sidebar                          |
+| -------- | -------------------------------- |
+| Mobile   | Full-screen overlay (0% or 100%) |
+| Tablet   | Auto-collapsed, overlay on open  |
+| Desktop  | Resizable splitpane (15–60%)     |
 
 ### Toolbar
 
@@ -462,7 +494,9 @@ Desktop commonly has 2-column or side-by-side input layouts. On mobile, these mu
 
 ```html
 <!-- Card grid: 1 col mobile, 2 col tablet, 3 col desktop -->
-<div class="grid grid-cols-1 gap-3 sm:(grid-cols-2 gap-4) md:(grid-cols-3 gap-6)">
+<div
+  class="grid grid-cols-1 gap-3 sm:(grid-cols-2 gap-4) md:(grid-cols-3 gap-6)"
+>
   <Card v-for="item in items" :key="item.id" />
 </div>
 ```
@@ -492,6 +526,7 @@ When content exceeds the viewport width on mobile:
 ```
 
 **Rules:**
+
 - Never let content overflow hidden — always add `overflow-x-auto` or `overflow-y-auto`
 - For horizontal scrollable areas, add `-mx-4 px-4` to extend scroll edge-to-edge while keeping content padded
 - Tables and wide forms should get `overflow-x-auto` wrapper on mobile
@@ -504,13 +539,12 @@ Reduce padding and gaps on mobile — content needs more room:
 ```html
 <!-- Smaller padding on mobile, normal on desktop -->
 <div class="p-3 sm:p-4 md:p-6">
-  <div class="flex flex-col gap-2 sm:gap-3 md:gap-4">
-    ...
-  </div>
+  <div class="flex flex-col gap-2 sm:gap-3 md:gap-4">...</div>
 </div>
 ```
 
 **Common patterns:**
+
 - Modal content: `px-4 py-3 sm:(px-6 py-4) md:(px-8 py-6)`
 - Section gaps: `gap-2 sm:gap-3 md:gap-4`
 - Card padding: `p-3 sm:p-4`
@@ -532,10 +566,7 @@ Never use fixed widths that exceed mobile viewport. Always add `max-w-full`:
 For `a-modal` with `:width` prop, also add max-width style:
 
 ```html
-<a-modal
-  width="600px"
-  :style="{ maxWidth: '95vw' }"
->
+<a-modal width="600px" :style="{ maxWidth: '95vw' }"></a-modal>
 ```
 
 ### 6. Button layouts
@@ -569,7 +600,9 @@ Use `flex-col-reverse` so the primary action is visually first on mobile.
 </div>
 
 <!-- AFTER: wraps on mobile -->
-<div class="flex flex-col gap-2 sm:(flex-row items-center justify-between gap-3)">
+<div
+  class="flex flex-col gap-2 sm:(flex-row items-center justify-between gap-3)"
+>
   <h2>text-heading3 sm:text-subHeading1">Title</h2>
   <div class="flex gap-2 w-full sm:w-auto">
     <SearchInput class="flex-1 sm:flex-none sm:w-[200px]" />
@@ -598,7 +631,9 @@ For settings pages with sidebar + content:
 
 ```html
 <div class="flex flex-col md:flex-row nc-h-screen">
-  <nav class="w-full md:w-[240px] md:shrink-0 border-b md:(border-b-0 border-r)">
+  <nav
+    class="w-full md:w-[240px] md:shrink-0 border-b md:(border-b-0 border-r)"
+  >
     <!-- Navigation -->
   </nav>
   <main class="flex-1 overflow-y-auto nc-scrollbar-thin">
@@ -667,7 +702,12 @@ For drastically different mobile vs desktop layouts that CSS alone can't handle:
 
 ```vue
 <script setup lang="ts">
-const { isMobileMode } = useGlobal()
+const { isMobileMode, activeBreakpoint } = useGlobal();
+
+// Compact view = mobile + tablet
+const isCompactView = computed(
+  () => activeBreakpoint.value === "xs" || activeBreakpoint.value === "sm"
+);
 </script>
 
 <template>
@@ -679,22 +719,28 @@ const { isMobileMode } = useGlobal()
 
   <!-- Show/hide sections -->
   <DetailsSidebar v-if="!isMobileMode" />
+
+  <!-- Breakpoint-specific logic (e.g., compact view for mobile + tablet) -->
+  <MobileSearch v-if="isCompactView" />
+  <DesktopSearch v-else />
 </template>
 ```
 
 **Prefer CSS breakpoints** (`sm:`, `md:`) over `v-if="isMobileMode"` when possible — CSS is more performant and doesn't cause re-renders.
 
+Use `activeBreakpoint` when you need finer control than just mobile/desktop (e.g., tablet-specific behavior).
+
 ### 14. Common anti-patterns to avoid
 
-| Don't | Do Instead |
-|-------|-----------|
-| Only change container `max-w` / `min-w` | Also fix content layout inside (inputs, labels, buttons) |
-| Use `overflow-hidden` on scrollable content | Use `overflow-x-auto` or `overflow-y-auto` |
-| Hard-code widths without `max-w-full` | Add `max-w-full` or use `w-full sm:w-[fixed]` |
-| Hide content on mobile with `display:none` | Reorganize layout to fit — only hide non-essential items |
-| Nest many `v-if="isMobileMode"` checks | Use CSS breakpoints for layout; JS only for props/behavior |
-| Change `NcModal` `size` prop | Fix content inside modal — modal sizes are already responsive |
-| Add responsive classes to `:deep(.ant-*)` | Use wrapper divs with responsive classes, or body class selectors |
+| Don't                                       | Do Instead                                                        |
+| ------------------------------------------- | ----------------------------------------------------------------- |
+| Only change container `max-w` / `min-w`     | Also fix content layout inside (inputs, labels, buttons)          |
+| Use `overflow-hidden` on scrollable content | Use `overflow-x-auto` or `overflow-y-auto`                        |
+| Hard-code widths without `max-w-full`       | Add `max-w-full` or use `w-full sm:w-[fixed]`                     |
+| Hide content on mobile with `display:none`  | Reorganize layout to fit — only hide non-essential items          |
+| Nest many `v-if="isMobileMode"` checks      | Use CSS breakpoints for layout; JS only for props/behavior        |
+| Change `NcModal` `size` prop                | Fix content inside modal — modal sizes are already responsive     |
+| Add responsive classes to `:deep(.ant-*)`   | Use wrapper divs with responsive classes, or body class selectors |
 
 ---
 
@@ -703,15 +749,19 @@ const { isMobileMode } = useGlobal()
 Use `nc-h-screen` instead of `h-screen` to handle mobile browser chrome:
 
 ```html
-<div class="nc-h-screen">  <!-- 100svh with dvh/vh fallbacks -->
+<div class="nc-h-screen"><!-- 100svh with dvh/vh fallbacks --></div>
 ```
 
 ## Template: Responsive Component
 
 ```vue
 <script setup lang="ts">
-const configStore = useConfigStore()
-const { isMobileMode, isTabletMode } = storeToRefs(configStore)
+const { isMobileMode, activeBreakpoint } = useGlobal();
+
+// Use activeBreakpoint for finer control when needed
+const isCompactView = computed(
+  () => activeBreakpoint.value === "xs" || activeBreakpoint.value === "sm"
+);
 </script>
 
 <template>
@@ -730,7 +780,7 @@ const { isMobileMode, isTabletMode } = storeToRefs(configStore)
 
 - [ ] Use WindiCSS breakpoint classes (`sm:`, `md:`) instead of raw media queries
 - [ ] Mobile-first: default styles = mobile, then `sm:` for tablet, `md:` for desktop
-- [ ] Use `isMobileMode` / `isTabletMode` from `useConfigStore` for JS logic
+- [ ] Use `isMobileMode` / `activeBreakpoint` from `useGlobal()` for JS logic
 - [ ] Touch targets ≥ 44px on mobile
 - [ ] Test at 375px (mobile), 768px (tablet), 1280px (desktop)
 - [ ] Use `nc-h-screen` instead of `h-screen`
@@ -820,6 +870,7 @@ All view-related UI.
 ### Phase 7 — Settings Pages
 
 **7.1 Workspace Settings**
+
 - [ ] Members / collaborators page
 - [ ] Integrations page
 - [ ] Billing / plan page (EE)
@@ -827,6 +878,7 @@ All view-related UI.
 - [ ] Settings layout / nav
 
 **7.2 Base Settings**
+
 - [ ] Data sources
 - [ ] ERD
 - [ ] Misc settings
@@ -843,26 +895,32 @@ All view-related UI.
 ### Phase 9 — View Content (Main Data UI)
 
 **9.1 Grid View**
+
 - [ ] Grid horizontal scroll on small screens
 - [ ] Column headers / cell sizing
 - [ ] Toolbar responsive (already has `isToolbarIconMode` at <768px)
 - [ ] Topbar breadcrumbs
 
 **9.2 Form View**
+
 - [ ] Form field stacking
 - [ ] Form builder sidebar
 
 **9.3 Gallery View**
+
 - [ ] Card grid: 1-col mobile, 2-col tablet, 3+ desktop
 
 **9.4 Kanban View**
+
 - [ ] Lane horizontal scroll / single-lane mobile
 
 **9.5 Calendar View**
+
 - [ ] Day view default on mobile
 - [ ] Compact header
 
 **9.6 Expanded Form (Record Detail)**
+
 - [ ] Full-screen on mobile
 - [ ] Field list scrollable
 - [ ] Comments / activity panel
@@ -877,6 +935,7 @@ All view-related UI.
 - [ ] Password-protected shared view dialog
 
 > **Out of scope (low priority):**
+>
 > - Workflows / Automations — no mobile editing support yet
 > - Workflow editor canvas — skip entirely for now
 

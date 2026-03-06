@@ -50,7 +50,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
 
   const { width } = useWindowSize()
   const isViewPortMobile = () => {
-    return width.value < MAX_WIDTH_FOR_MOBILE_MODE
+    return width.value < NC_BREAKPOINTS.sm
   }
 
   /** State */
@@ -65,7 +65,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     latestRelease: null,
     hiddenRelease: null,
     isMobileMode: null,
-    isTabletMode: null,
+    activeBreakpoint: null,
     lastOpenedWorkspaceId: null,
     gridViewPageSize: 25,
     leftSidebarSize: {

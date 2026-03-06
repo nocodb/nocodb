@@ -1,5 +1,6 @@
 import { getActivePinia } from 'pinia'
 import type { Actions, AppInfo, Getters, State } from './types'
+import type { NcBreakpoint } from '~/lib/constants'
 
 export function useGlobalActions(state: State, _getters: Getters): Actions {
   const isTokenUpdatedTab = useState('isTokenUpdatedTab', () => false)
@@ -8,8 +9,8 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     state.isMobileMode.value = isMobileMode
   }
 
-  const setIsTabletMode = (isTabletMode: boolean) => {
-    state.isTabletMode.value = isTabletMode
+  const setActiveBreakpoint = (breakpoint: NcBreakpoint) => {
+    state.activeBreakpoint.value = breakpoint
   }
 
   /** Sign out by deleting the token from localStorage */
@@ -231,7 +232,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     refreshToken,
     loadAppInfo,
     setIsMobileMode,
-    setIsTabletMode,
+    setActiveBreakpoint,
     navigateToProject,
     getBaseUrl,
     ncNavigateTo,

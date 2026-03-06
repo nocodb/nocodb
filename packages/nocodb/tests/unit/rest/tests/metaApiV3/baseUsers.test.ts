@@ -389,6 +389,248 @@ export default function () {
       expect(deletedUser.base_role).to.be.equal('no-access');
     });
 
+    it('Invite Base User v3 - Duplicate user', async () => {
+      const { user } = await createUser(context, {
+        email: 'user-dup@nocodb.com',
+      });
+
+      const inviteData = [
+        {
+          user_id: user.id,
+          base_role: 'editor',
+        },
+      ];
+
+      // First invite
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send(inviteData)
+        .expect(200);
+
+      // Second invite - same user should fail
+      const duplicateInvite = await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send(inviteData)
+        .expect(400);
+
+      expect(duplicateInvite.body).to.be.an('object');
+      expect(
+        duplicateInvite.body.msg || duplicateInvite.body.message,
+      ).to.include('already exists');
+    });
+
+    it('Invite Base User v3 - Invalid role', async () => {
+      const inviteData = [
+        {
+          email: 'user-invalid-role@nocodb.com',
+          base_role: 'superadmin',
+        },
+      ];
+
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send(inviteData)
+        .expect(400);
+    });
+
+    it('Invite Base User v3 - Both email and user_id provided', async () => {
+      const { user } = await createUser(context, {
+        email: 'user-both@nocodb.com',
+      });
+
+      const inviteData = [
+        {
+          user_id: user.id,
+          email: user.email,
+          base_role: 'editor',
+        },
+      ];
+
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send(inviteData)
+        .expect(400);
+    });
+
+    it('Invite Base User v3 - Non-existent user_id', async () => {
+      const inviteData = [
+        {
+          user_id: 'non-existent-user-id',
+          base_role: 'editor',
+        },
+      ];
+
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send(inviteData)
+        .expect(404);
+    });
+
+    it('Update Base User v3 - Bulk (multiple users)', async () => {
+      const user1 = await createUser(context, {
+        email: 'user-upd1@nocodb.com',
+      });
+      const user2 = await createUser(context, {
+        email: 'user-upd2@nocodb.com',
+      });
+
+      // Invite both users
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send([
+          { user_id: user1.user.id, base_role: 'editor' },
+          { user_id: user2.user.id, base_role: 'editor' },
+        ])
+        .expect(200);
+
+      // Bulk update both users
+      const updateData = [
+        { user_id: user1.user.id, base_role: 'viewer' },
+        { user_id: user2.user.id, base_role: 'commenter' },
+      ];
+
+      const updateBaseUsers = await request(context.app)
+        .patch(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send(updateData)
+        .expect(200);
+
+      const updatedUsers = updateBaseUsers.body;
+      expect(updatedUsers).to.be.an('array').with.lengthOf(2);
+
+      const upd1 = updatedUsers.find((u) => u.user_id === user1.user.id);
+      expect(upd1).to.have.property('base_role', 'viewer');
+
+      const upd2 = updatedUsers.find((u) => u.user_id === user2.user.id);
+      expect(upd2).to.have.property('base_role', 'commenter');
+    });
+
+    it('Update Base User v3 - Missing user_id', async () => {
+      const updateData = [
+        {
+          base_role: 'viewer',
+        },
+      ];
+
+      await request(context.app)
+        .patch(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send(updateData)
+        .expect(400);
+    });
+
+    it('Update Base User v3 - Missing base_role', async () => {
+      const { user } = await createUser(context, {
+        email: 'user-norole@nocodb.com',
+      });
+
+      // Invite first
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send([{ user_id: user.id, base_role: 'editor' }])
+        .expect(200);
+
+      const updateData = [
+        {
+          user_id: user.id,
+        },
+      ];
+
+      await request(context.app)
+        .patch(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send(updateData)
+        .expect(400);
+    });
+
+    it('Update Base User v3 - Invalid role', async () => {
+      const { user } = await createUser(context, {
+        email: 'user-badrole@nocodb.com',
+      });
+
+      // Invite first
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send([{ user_id: user.id, base_role: 'editor' }])
+        .expect(200);
+
+      const updateData = [
+        {
+          user_id: user.id,
+          base_role: 'superadmin',
+        },
+      ];
+
+      await request(context.app)
+        .patch(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send(updateData)
+        .expect(400);
+    });
+
+    it('Delete Base User v3 - Bulk by user_id', async () => {
+      const user1 = await createUser(context, {
+        email: 'user-del1@nocodb.com',
+      });
+      const user2 = await createUser(context, {
+        email: 'user-del2@nocodb.com',
+      });
+
+      // Invite both users
+      await request(context.app)
+        .post(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send([
+          { user_id: user1.user.id, base_role: 'editor' },
+          { user_id: user2.user.id, base_role: 'viewer' },
+        ])
+        .expect(200);
+
+      // Bulk delete
+      await request(context.app)
+        .delete(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send([
+          { user_id: user1.user.id },
+          { user_id: user2.user.id },
+        ])
+        .expect(200);
+
+      // Verify both are no-access
+      const getBaseUsers = await request(context.app)
+        .get(`/api/v3/meta/bases/${baseId}?include[]=members`)
+        .set('xc-token', context.xc_token)
+        .expect(200);
+
+      const members = getBaseUsers.body.individual_members.base_members;
+
+      const deletedUser1 = members.find(
+        (u) => u.user_id === user1.user.id,
+      );
+      expect(deletedUser1.base_role).to.be.equal('no-access');
+
+      const deletedUser2 = members.find(
+        (u) => u.user_id === user2.user.id,
+      );
+      expect(deletedUser2.base_role).to.be.equal('no-access');
+    });
+
+    it('Delete Base User v3 - Missing user_id', async () => {
+      await request(context.app)
+        .delete(`/api/v3/meta/bases/${baseId}/members`)
+        .set('xc-token', context.xc_token)
+        .send([{}])
+        .expect(400);
+    });
+
     // not supported anymore
     it.skip('Delete Base User v3 - using Email', async () => {
       const { user } = await createUser(context, {

@@ -29,7 +29,7 @@ export default {
 
     const navigateToHome = () => {
       error.value = null
-      window.location.href = '/'
+      navigateTo('/')
     }
 
     const close = () => {

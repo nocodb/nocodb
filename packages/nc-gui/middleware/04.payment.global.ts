@@ -11,9 +11,7 @@ export default defineNuxtRouteMiddleware(() => {
   if (upgrade) {
     const url = `/upgrade?${params.toString()}`
 
-    window.location.href = url
-
-    return
+    return navigateTo(url)
   }
 
   if (pricing) {
@@ -24,9 +22,7 @@ export default defineNuxtRouteMiddleware(() => {
 
     const url = `/${workspaceId}/pricing${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 
-    window.location.href = url
-
-    return
+    return navigateTo(url)
   }
 
   if (afterPayment || afterManage || afterUpgrade) {
@@ -50,6 +46,6 @@ export default defineNuxtRouteMiddleware(() => {
     // Only redirect if we're not already on the target path (prevents loop)
     if (window.location.pathname === targetPath) return
 
-    window.location.href = `${targetPath}?${params.toString()}`
+    return navigateTo(`${targetPath}?${params.toString()}`)
   }
 })

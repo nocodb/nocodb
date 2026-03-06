@@ -52,9 +52,13 @@ export function useDocumentAutoSave({
       doc.value.version = storeVersion
       doc.value.updated_at = activeDocument.value.updated_at
       doc.value.updated_by = activeDocument.value.updated_by
-      if (activeDocument.value.title) {
+      if (activeDocument.value.title && activeDocument.value.title !== doc.value.title) {
+        doc.value.title = activeDocument.value.title
         title.value = activeDocument.value.title
         lastSavedTitle.value = activeDocument.value.title
+      }
+      if (activeDocument.value.meta !== undefined) {
+        doc.value.meta = activeDocument.value.meta
       }
     },
   )

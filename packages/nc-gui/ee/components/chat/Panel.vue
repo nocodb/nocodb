@@ -35,6 +35,40 @@ const hasInitialized = ref(false)
 
 const showSessionList = ref(false)
 
+// Inline rename state
+const renamingSessionId = ref<string | null>(null)
+const renameValue = ref('')
+const isRenaming = ref(false)
+
+const renameInputRef = ref<HTMLInputElement>()
+
+const startRename = (sessionId: string | undefined, currentTitle: string) => {
+  if (!sessionId) return
+  renamingSessionId.value = sessionId
+  renameValue.value = currentTitle || ''
+  nextTick(() => {
+    renameInputRef.value?.focus()
+    renameInputRef.value?.select()
+  })
+}
+
+const confirmRename = async (sessionId: string | null) => {
+  if (!sessionId || isRenaming.value) return
+  isRenaming.value = true
+
+  const trimmed = renameValue.value.trim()
+  if (trimmed && activeWorkspaceId.value) {
+    $e('a:chat:session:rename')
+    await chatStore.renameSession(activeWorkspaceId.value, sessionId, trimmed)
+  }
+  renamingSessionId.value = null
+  isRenaming.value = false
+}
+
+const cancelRename = () => {
+  renamingSessionId.value = null
+}
+
 // Track dismissed ask_user cards (local — resets when session changes)
 const dismissedInputIds = ref(new Set<string>())
 
@@ -82,17 +116,28 @@ const pendingUserInput = computed(() => {
   return null
 })
 
-const scrollToBottom = () => {
+const isNearBottom = ref(true)
+
+const checkIfNearBottom = () => {
+  const el = messageListRef.value
+  if (!el) return
+  isNearBottom.value = el.scrollHeight - el.scrollTop - el.clientHeight < 80
+}
+
+const scrollToBottom = (force = false) => {
   nextTick(() => {
-    if (messageListRef.value) {
+    if (messageListRef.value && (force || isNearBottom.value)) {
       messageListRef.value.scrollTop = messageListRef.value.scrollHeight
+      isNearBottom.value = true
     }
   })
 }
 
+const showScrollButton = computed(() => !isNearBottom.value && activeMessages.value.length > 0)
+
 // Auto-scroll when a new message is appended or streaming content updates
-watch(() => activeMessages.value.length, scrollToBottom)
-watch(() => activeStreamingParts.value?.length, scrollToBottom)
+watch(() => activeMessages.value.length, () => scrollToBottom())
+watch(activeStreamingParts, () => scrollToBottom(), { deep: true })
 
 // Initialize: ensure socket listener and load sessions when panel opens and workspace is ready.
 // Also watch blockAiChat — on cloud, blockAiChat starts false (data not loaded) so isPanelExpanded
@@ -114,7 +159,7 @@ watch(
         await chatStore.loadSessions(wsId)
       }
 
-      scrollToBottom()
+      scrollToBottom(true)
     }
   },
   { immediate: true },
@@ -126,7 +171,7 @@ watch(
   async (sessionId) => {
     if (sessionId && activeWorkspaceId.value) {
       await chatStore.loadMessages(activeWorkspaceId.value, sessionId)
-      scrollToBottom()
+      scrollToBottom(true)
     }
   },
 )
@@ -143,6 +188,7 @@ const handleSend = async (content: string) => {
   }
 
   await chatStore.sendMessage(activeWorkspaceId.value, chatStore.activeSessionId!, content, base.value?.id)
+  scrollToBottom(true)
 }
 
 const handleNewSession = () => {
@@ -212,87 +258,121 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
         <div
           class="h-[var(--topbar-height)] flex items-center justify-between gap-2 px-3 border-b-1 border-nc-border-gray-medium bg-nc-bg-default flex-none"
         >
-          <!-- Left: icon + session switcher -->
-          <div class="flex items-center gap-1.5 min-w-0">
+          <!-- Left: icon + title -->
+          <div class="flex items-center gap-1.5 min-w-0 flex-1">
             <GeneralIcon icon="ncAutoAwesome" class="flex-none w-4 h-4 text-nc-content-brand" />
 
-            <NcDropdown v-model:visible="showSessionList" placement="bottomLeft" :trigger="['click']">
-              <button
-                class="flex items-center gap-1 max-w-[200px] px-1.5 py-0.5 rounded transition-colors min-w-0"
-                :class="sessionList.length > 1 ? 'hover:bg-nc-bg-gray-light cursor-pointer' : 'cursor-default'"
-                :disabled="sessionList.length <= 1"
-                @click.capture="sessionList.length <= 1 && $event.stopPropagation()"
+            <!-- Inline rename input (shown on double-click) -->
+            <input
+              v-if="renamingSessionId"
+              ref="renameInputRef"
+              v-model="renameValue"
+              class="flex-1 min-w-0 text-sm font-semibold text-nc-content-gray bg-nc-bg-default border-1 border-nc-fill-primary rounded px-1.5 py-0.5 outline-none"
+              @keydown.enter.prevent.stop="confirmRename(renamingSessionId)"
+              @keydown.escape.prevent.stop="cancelRename"
+              @keydown.stop
+              @blur="confirmRename(renamingSessionId)"
+            />
+
+            <!-- Title with dropdown (when not renaming) -->
+            <template v-else>
+              <NcDropdown
+                v-if="sessionList.length > 1"
+                v-model:visible="showSessionList"
+                placement="bottomLeft"
+                :trigger="['click']"
+                class="min-w-0 flex-1"
               >
-                <span class="text-sm font-semibold text-nc-content-gray truncate">
-                  {{ activeSession?.title || t('labels.newChat') }}
-                </span>
-                <GeneralIcon
-                  v-if="sessionList.length > 1"
-                  icon="chevronDown"
-                  class="flex-none w-3.5 h-3.5 text-nc-content-gray-subtle transition-transform duration-200"
-                  :class="{ 'rotate-180': showSessionList }"
-                />
-              </button>
+                <button
+                  class="flex items-center gap-1 min-w-0 max-w-full px-1.5 py-0.5 rounded transition-colors hover:bg-nc-bg-gray-light cursor-pointer"
+                  @dblclick.stop="startRename(activeSession?.id!, activeSession?.title || '')"
+                >
+                  <span class="text-sm font-semibold text-nc-content-gray truncate">
+                    {{ activeSession?.title || t('labels.newChat') }}
+                  </span>
+                  <GeneralIcon
+                    icon="chevronDown"
+                    class="flex-none w-3.5 h-3.5 text-nc-content-gray-subtle transition-transform duration-200"
+                    :class="{ 'rotate-180': showSessionList }"
+                  />
+                </button>
 
-              <template #overlay>
-                <div class="nc-chat-session-menu">
-                  <!-- Session list -->
-                  <template v-if="sessionList.length > 0">
-                    <div class="px-3 py-1">
-                      <span class="text-[11px] font-semibold text-nc-content-gray-muted uppercase tracking-wider">
-                        {{ t('labels.recentChats') }}
-                      </span>
-                    </div>
-
-                    <div class="flex flex-col gap-y-0.5">
-                      <div
-                        v-for="session in sessionList"
-                        :key="session.id"
-                        class="group flex items-center gap-2 px-3 py-2 mx-1 rounded-md cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
-                        :class="{ 'bg-nc-bg-gray-light': session.id === activeSession?.id }"
-                        @click="handleSelectSession(session.id!)"
-                      >
-                        <!-- Active dot -->
-                        <div class="flex-none w-4 flex items-center justify-center">
-                          <div v-if="session.id === activeSession?.id" class="w-1.5 h-1.5 rounded-full bg-nc-content-brand" />
-                        </div>
-
-                        <span
-                          class="flex-1 min-w-0 truncate text-sm"
-                          :class="
-                            session.id === activeSession?.id ? 'text-nc-content-gray font-medium' : 'text-nc-content-gray-subtle'
-                          "
-                        >
-                          {{ session.title || t('labels.newChat') }}
+                <template #overlay>
+                  <div class="nc-chat-session-menu">
+                    <template v-if="sessionList.length > 0">
+                      <div class="px-3 py-1">
+                        <span class="text-[11px] font-semibold text-nc-content-gray-muted uppercase tracking-wider">
+                          {{ t('labels.recentChats') }}
                         </span>
-
-                        <!-- Delete — always in layout; opacity reveals on group-hover to avoid shift -->
-                        <NcButton
-                          size="xxsmall"
-                          type="text"
-                          class="nc-chat-delete-btn flex-none !-mr-0.5 !bg-transparent hover:!bg-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-                          @click.stop="handleDeleteSession(session.id!)"
-                        >
-                          <GeneralIcon icon="delete" class="w-3.5 h-3.5" />
-                        </NcButton>
                       </div>
-                    </div>
-                  </template>
-                </div>
-              </template>
-            </NcDropdown>
+
+                      <div class="flex flex-col gap-y-0.5 max-h-[280px] overflow-y-auto nc-scrollbar-thin">
+                        <div
+                          v-for="session in sessionList"
+                          :key="session.id"
+                          class="group flex items-center gap-2 px-3 py-1.5 mx-1 rounded-md cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
+                          :class="{ 'bg-nc-bg-brand-soft': session.id === activeSession?.id }"
+                          @click="handleSelectSession(session.id!)"
+                        >
+                          <GeneralIcon icon="ncMessageSquare" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
+
+                          <NcTooltip class="flex-1 min-w-0 truncate text-[13px]" show-on-truncate-only>
+                            <template #title>{{ session.title || t('labels.newChat') }}</template>
+                            <span
+                              :class="
+                                session.id === activeSession?.id
+                                  ? 'text-nc-content-brand font-medium'
+                                  : 'text-nc-content-gray-subtle'
+                              "
+                            >
+                              {{ session.title || t('labels.newChat') }}
+                            </span>
+                          </NcTooltip>
+
+                          <!-- Delete — reveals on hover -->
+                          <NcButton
+                            size="xxsmall"
+                            type="text"
+                            class="flex-none !bg-transparent hover:!bg-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150"
+                            @click.stop="handleDeleteSession(session.id!)"
+                          >
+                            <GeneralIcon icon="delete" class="w-3.5 h-3.5 text-nc-content-gray-muted hover:text-nc-content-red" />
+                          </NcButton>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
+                </template>
+              </NcDropdown>
+
+              <span
+                v-else
+                class="text-sm font-semibold text-nc-content-gray truncate cursor-default"
+                @dblclick="activeSession?.id && startRename(activeSession.id, activeSession.title || '')"
+              >
+                {{ activeSession?.title || t('labels.newChat') }}
+              </span>
+            </template>
           </div>
 
-          <!-- Right: new chat -->
-          <NcTooltip :title="t('labels.newChat')" placement="bottom" :arrow="false">
-            <NcButton size="small" type="text" class="nc-chat-header-btn" @click="handleNewSession">
-              <GeneralIcon icon="plus" />
-            </NcButton>
-          </NcTooltip>
+          <!-- Right: new chat + close -->
+          <div class="flex items-center gap-0.5">
+            <NcTooltip :title="t('labels.newChat')" placement="bottom" :arrow="false">
+              <NcButton size="small" type="text" class="nc-chat-header-btn" @click="handleNewSession">
+                <GeneralIcon icon="plus" />
+              </NcButton>
+            </NcTooltip>
+
+            <NcTooltip :title="t('general.close')" placement="bottom" :arrow="false">
+              <NcButton size="small" type="text" class="nc-chat-header-btn" @click="isPanelExpanded = false">
+                <GeneralIcon icon="close" class="w-4 h-4" />
+              </NcButton>
+            </NcTooltip>
+          </div>
         </div>
 
         <!-- Messages -->
-        <div ref="messageListRef" class="flex-1 overflow-y-auto nc-scrollbar-thin">
+        <div ref="messageListRef" class="flex-1 overflow-y-auto nc-scrollbar-thin relative" @scroll="checkIfNearBottom">
           <div v-if="isLoadingSessions || isLoadingMessages" class="flex items-center justify-center h-full">
             <GeneralLoader size="large" />
           </div>
@@ -318,6 +398,17 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
           </template>
         </div>
 
+        <!-- Scroll to bottom button -->
+        <Transition name="nc-fade">
+          <div v-if="showScrollButton" class="nc-chat-scroll-btn-wrapper">
+            <NcTooltip :title="$t('general.scrollToBottom')" placement="top" :arrow="false">
+              <NcButton size="small" type="secondary" class="nc-chat-scroll-btn" @click="scrollToBottom(true)">
+                <GeneralIcon icon="arrowDown" class="w-4 h-4" />
+              </NcButton>
+            </NcTooltip>
+          </div>
+        </Transition>
+
         <!-- Option picker card (shown when AI asks a question) -->
         <Transition name="nc-slide-up">
           <ChatOptions
@@ -338,7 +429,7 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
 
 <style lang="scss" scoped>
 .nc-chat-panel {
-  @apply fixed top-0 right-0 h-full flex flex-col bg-nc-bg-gray-extralight border-l-1 border-nc-border-gray-medium;
+  @apply fixed top-0 right-0 h-full flex flex-col bg-nc-bg-default border-l-1 border-nc-border-gray-medium;
 
   z-index: 100;
   box-shadow: 0px 0px 16px 0px rgba(0, 0, 0, 0.16), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
@@ -380,7 +471,7 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
 }
 
 .nc-chat-session-menu {
-  @apply py-1.5 min-w-[220px] max-w-[280px];
+  @apply py-1.5 min-w-[280px] max-w-[360px];
 }
 
 .nc-chat-header-btn {
@@ -406,6 +497,29 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
   &:hover :deep(svg) {
     color: var(--nc-content-red-dark);
   }
+}
+
+.nc-chat-scroll-btn-wrapper {
+  @apply flex justify-center;
+  margin-top: -32px;
+  position: relative;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.nc-chat-scroll-btn {
+  @apply !rounded-full !w-8 !h-8 !shadow-md !border-nc-border-gray-medium;
+  pointer-events: auto;
+}
+
+.nc-fade-enter-active,
+.nc-fade-leave-active {
+  transition: opacity 150ms ease;
+}
+
+.nc-fade-enter-from,
+.nc-fade-leave-to {
+  opacity: 0;
 }
 
 .nc-slide-up-enter-active,

@@ -788,6 +788,7 @@ import NcLogoPowerLogoColored from '~icons/nc-icons-v2/power-logo-colored.svg'
 import NcLogoClickupColored from '~icons/nc-icons-v2/clickup-colored.svg'
 
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
+import NcSendHorizontal from '~icons/nc-icons-v2/send-horizontal.svg'
 import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
 import NcBasePrivate from '~icons/nc-icons-v2/base-private.svg'
 import NcBaseOutlineDuo from '~icons/nc-icons-v2/base-outline-duo.svg'
@@ -1816,6 +1817,7 @@ export const iconMap = {
   'ncLogoClickupColored': h(NcLogoClickupColored, { stroke: 'transparent' }),
 
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
+  'ncSendHorizontal': NcSendHorizontal,
   'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
   'ncPaintRoller': NcPaintRoller,

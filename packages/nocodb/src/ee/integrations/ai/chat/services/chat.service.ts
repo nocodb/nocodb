@@ -179,6 +179,31 @@ export class ChatService implements OnModuleInit {
     return session;
   }
 
+  async sessionUpdate(
+    context: NcContext,
+    params: {
+      sessionId: string;
+      title: string;
+      req: NcRequest;
+    },
+  ) {
+    await this.sessionGet(context, params);
+
+    await ChatSession.update(context, params.sessionId, {
+      title: params.title,
+    });
+
+    const updated = await ChatSession.get(context, params.sessionId);
+
+    this.broadcastToUser(
+      params.req.user?.id,
+      { action: 'session-update', sessionId: params.sessionId, session: updated },
+      params.req.ncSocketId,
+    );
+
+    return updated;
+  }
+
   async sessionDelete(
     context: NcContext,
     params: {

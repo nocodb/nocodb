@@ -445,6 +445,19 @@ export const useChatStore = defineStore('chatStore', () => {
     }
   }
 
+  const renameSession = async (wsId: string, sessionId: string, title: string) => {
+    try {
+      await $api.instance.patch(`/api/v2/internal/${wsId}/chat/sessions/${sessionId}`, { title })
+
+      const session = sessions.value.get(sessionId)
+      if (session) {
+        session.title = title
+      }
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Messaging
   // ---------------------------------------------------------------------------
@@ -612,6 +625,7 @@ export const useChatStore = defineStore('chatStore', () => {
     loadSessions,
     createSession,
     deleteSession,
+    renameSession,
     loadMessages,
     sendMessage,
     approveToolCalls,

@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Request,
@@ -52,6 +53,21 @@ export class ChatController {
     @Request() req: NcRequest,
   ) {
     return await this.chatService.sessionCreate(context, {
+      title: body.title,
+      req,
+    });
+  }
+
+  @Patch(`${PREFIX}/chat/sessions/:sessionId`)
+  @Acl('chatSessionUpdate', { scope: 'workspace' })
+  async sessionUpdate(
+    @TenantContext() context: NcContext,
+    @Param('sessionId') sessionId: string,
+    @Body() body: { title: string },
+    @Request() req: NcRequest,
+  ) {
+    return await this.chatService.sessionUpdate(context, {
+      sessionId,
       title: body.title,
       req,
     });

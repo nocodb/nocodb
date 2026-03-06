@@ -200,6 +200,7 @@ export interface ChatEventPayload extends BaseSocketPayload {
     | 'message-update'
     | 'error'
     | 'session-create'
+    | 'session-update'
     | 'session-delete'
     | 'user-message';
   sessionId: string;
@@ -219,7 +220,7 @@ export interface ChatEventPayload extends BaseSocketPayload {
   parts?: ChatContentBlock[];
   // action: 'error'
   error?: string;
-  // action: 'session-create' | 'session-delete'
+  // action: 'session-create' | 'session-update' | 'session-delete'
   session?: ChatSessionType;
   // action: 'user-message'
   message?: ChatMessageType;

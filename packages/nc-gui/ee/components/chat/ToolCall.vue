@@ -165,7 +165,7 @@ const visibleOutput = computed(() => {
 
 <template>
   <div
-    class="nc-chat-tool-call w-full rounded-lg overflow-hidden transition-all duration-150"
+    class="nc-chat-tool-call rounded-lg overflow-hidden transition-all duration-150"
     :class="{
       'border-1 border-nc-border-red-medium bg-nc-bg-red-light': isError,
       'border-1 border-nc-border-yellow bg-nc-bg-yellow-light': isAwaitingApproval,
@@ -176,18 +176,11 @@ const visibleOutput = computed(() => {
     :style="{ '--i': index }"
   >
     <!-- Compact header row -->
-    <div class="flex items-center gap-1.5 px-2.5 py-1.5 select-none cursor-pointer" @click="toggleExpanded">
-      <!-- Status indicator -->
-      <div class="flex-none w-3.5 h-3.5 flex items-center justify-center">
-        <GeneralLoader v-if="isRunning || isPending" :size="12" />
-        <GeneralIcon v-else-if="isAwaitingApproval" icon="ncAlertCircle" class="w-3.5 h-3.5 text-nc-content-yellow-dark" />
-        <span v-else-if="isError" class="w-2 h-2 rounded-full bg-nc-fill-red" />
-        <span v-else-if="isDenied" class="w-2 h-2 rounded-full bg-nc-bg-gray-medium" />
-        <span v-else class="w-2 h-2 rounded-full bg-nc-fill-green" />
-      </div>
-
-      <!-- Category icon -->
-      <GeneralIcon :icon="categoryIcon" class="flex-none w-3.5 h-3.5" :class="categoryTextColor" />
+    <div class="flex items-center gap-1.5 px-2 py-1.5 select-none cursor-pointer" @click="toggleExpanded">
+      <!-- Status / Category icon -->
+      <GeneralLoader v-if="isRunning || isPending" :size="14" class="flex-none" />
+      <GeneralIcon v-else-if="isAwaitingApproval" icon="ncAlertCircle" class="flex-none w-3.5 h-3.5 text-nc-content-yellow-dark" />
+      <GeneralIcon v-else :icon="categoryIcon" class="flex-none w-3.5 h-3.5" :class="categoryTextColor" />
 
       <!-- Tool name -->
       <span class="text-[12px] font-medium leading-none capitalize truncate" :class="categoryTextColor">
@@ -221,7 +214,7 @@ const visibleOutput = computed(() => {
 
     <!-- Expanded content -->
     <Transition name="nc-tool-expand">
-      <div v-if="isExpanded" class="border-t-1 border-nc-border-gray-light px-2.5 py-2 space-y-2">
+      <div v-if="isExpanded" class="border-t-1 border-nc-border-gray-light px-2 py-2 space-y-2">
         <!-- Arguments -->
         <div v-if="formattedArgs" class="space-y-1">
           <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">

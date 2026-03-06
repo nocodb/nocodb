@@ -15,7 +15,7 @@ export const useUpdateChecker = createSharedComposable(() => {
 
   const { t } = getI18n().global
 
-  const { $api } = useNuxtApp()
+  const { $api, $e } = useNuxtApp()
 
   const { appInfo } = useGlobal()
 
@@ -47,6 +47,7 @@ export const useUpdateChecker = createSharedComposable(() => {
                 NcButton,
                 {
                   onClick: () => {
+                    $e('a:ui:reload-to-update')
                     location.reload()
                   },
                   size: 'small',

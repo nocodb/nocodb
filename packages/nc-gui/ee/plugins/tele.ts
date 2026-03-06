@@ -66,6 +66,8 @@ function initPostHog(_clientId: string) {
 const debounceTime = 3000 // Debounce time: 1000ms
 const maxWaitTime = 10000 // Max wait time: 10000ms
 
+const TELE_PENDING_STORAGE_KEY = 'nc_tele_pending_events'
+
 class EventBatcher {
   private queue: any[] = []
   // private batchSize: number
@@ -87,6 +89,43 @@ class EventBatcher {
     // if (this.queue.length >= this.batchSize) {
     this.processQueue()
     // }
+  }
+
+  /**
+   * Persist pending queued events to localStorage.
+   * Call before `location.reload()` so events survive the page reload.
+   */
+  flush() {
+    ;(this.processQueue as any).cancel?.()
+
+    if (!this.queue.length) return
+
+    try {
+      const existing = JSON.parse(localStorage.getItem(TELE_PENDING_STORAGE_KEY) || '[]')
+      localStorage.setItem(TELE_PENDING_STORAGE_KEY, JSON.stringify([...existing, ...this.queue.splice(0, this.queue.length)]))
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  /**
+   * Restore events saved by `flush()` from localStorage and send them.
+   * Call after page reload to dispatch the persisted events.
+   */
+  restore() {
+    try {
+      const raw = localStorage.getItem(TELE_PENDING_STORAGE_KEY)
+      if (!raw) return
+
+      localStorage.removeItem(TELE_PENDING_STORAGE_KEY)
+
+      const events = JSON.parse(raw)
+      if (events?.length) {
+        this.batchProcessor(events)
+      }
+    } catch {
+      localStorage.removeItem(TELE_PENDING_STORAGE_KEY)
+    }
   }
 
   private processQueue = useDebounceFn(
@@ -192,6 +231,12 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   // put inside app:created hook to ensure global state is available
   nuxtApp.hooks.hook('app:created', () => {
+    eventBatcher.restore()
+
+    window.addEventListener('beforeunload', () => {
+      eventBatcher.flush()
+    })
+
     const globalState = useGlobal()
 
     // if tele enabled at some point, init Posthog

@@ -1513,7 +1513,7 @@ onBeforeUnmount(() => {
 
   // Match the 28px size used inside .bubble-menu.embed-mode so
   // link + comment buttons are the same size as formatting buttons
-  > .nc-button.ant-btn {
+  .nc-button.ant-btn {
     @apply !h-7 !min-w-7 !px-1 !py-0.5;
   }
   // overflow: visible so the highlight color picker dropdown (positioned

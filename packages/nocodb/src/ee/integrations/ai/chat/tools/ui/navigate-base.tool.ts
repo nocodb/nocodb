@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProjectRoles } from 'nocodb-sdk';
+import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
@@ -14,7 +14,7 @@ export const navigateBaseTool: ChatToolDefinition = {
     base_id: z.string().describe('The ID of the base to navigate to.'),
   },
   scope: 'workspace',
-  requiredRole: ProjectRoles.VIEWER,
+  requiredRole: WorkspaceUserRoles.VIEWER,
   isDangerous: true,
   readonly: true,
   async execute(

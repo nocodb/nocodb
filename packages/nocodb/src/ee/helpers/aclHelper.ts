@@ -3,12 +3,13 @@ import rolePermissions from '~/utils/acl';
 /**
  * Check whether a set of roles grants a specific ACL operation.
  *
- * Mirrors the inline logic used by AclMiddleware and workflow-execution.service.
- * Centralised here so that chat tools, workflows, and any future caller
- * share a single source of truth.
+ * Caller is responsible for passing the scope-appropriate roles
+ * (workspace_roles for workspace scope, base_roles for base scope).
+ * The role keys themselves (e.g. 'workspace-level-viewer' vs 'owner')
+ * resolve to the correct entries in rolePermissions.
  *
- * @param roles   - Decoded role map, e.g. `{ owner: true, editor: false }`
- * @param operation - ACL operation name, e.g. `'tableCreate'`, `'dataInsert'`
+ * @param roles     - Decoded role map, e.g. `{ 'workspace-level-viewer': true }`
+ * @param operation - ACL operation name, e.g. `'tableCreate'`, `'workspaceBaseList'`
  */
 export function hasPermission(
   roles: Record<string, boolean>,

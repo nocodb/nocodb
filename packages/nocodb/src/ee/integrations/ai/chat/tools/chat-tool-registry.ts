@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { tool } from 'ai';
-import { extractRolesObj, ProjectRoles } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  OrderedProjectRoles,
+  OrderedWorkspaceRoles,
+} from 'nocodb-sdk';
 import {
   ERROR_HINT_MAX_LENGTH,
   TRUNCATE_RESULT_MAX_LENGTH,
@@ -56,6 +60,7 @@ import { listSortsTool } from './view/list-sorts.tool';
 import { removeSortTool } from './view/remove-sort.tool';
 import { setGroupByTool } from './view/set-group-by.tool';
 import { clearGroupByTool } from './view/clear-group-by.tool';
+import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { NcContext } from '~/interface/config';
 import type { ToolSet } from 'ai';
@@ -69,26 +74,39 @@ export interface ChatToolDefinition {
   description: string;
   parameters: Record<string, z.ZodType>;
   permission?: string;
-  scope: 'base' | 'workspace';
-  requiredRole: ProjectRoles;
+  /** 'base' = requires base context + role check, 'workspace' = workspace-level (no base needed),
+   *  'common' = always available regardless of scope (e.g. ask_user) */
+  scope: 'base' | 'workspace' | 'common';
+  requiredRole: ProjectRoles | WorkspaceUserRoles | null;
   isDangerous: boolean;
   /** True for pure read operations. Defaults to false (mutating) — the safe default.
    *  Only readonly tools can be executed cross-base via base_proxy. */
   readonly?: boolean;
+  /** True for tools that only work in browser UI sessions (navigate_base, open_table, open_view, ask_user).
+   *  These are auto-injected for internal chat preview sessions but excluded from external agent channels. */
+  uiOnly?: boolean;
+  /** Tool category for the frontend tool picker: 'schema' | 'data' | 'view' | 'ui' | 'interaction' */
+  category?: string;
   /** Resolve `{{KEY}}` placeholders in the description at startup.
    *  Receives the full tool list, returns key-value pairs to replace. */
   descriptionVars?: (tools: ChatToolDefinition[]) => Record<string, string>;
   execute(context: NcContext, args: any, req: NcRequest): Promise<any>;
 }
 
-const ROLE_HIERARCHY: Record<string, number> = {
-  [ProjectRoles.OWNER]: 5,
-  [ProjectRoles.CREATOR]: 4,
-  [ProjectRoles.EDITOR]: 3,
-  [ProjectRoles.COMMENTER]: 2,
-  [ProjectRoles.VIEWER]: 1,
-  [ProjectRoles.NO_ACCESS]: 0,
-};
+// Derive role-hierarchy maps from the SDK ordered arrays so they stay in sync
+// automatically. OrderedProjectRoles / OrderedWorkspaceRoles are sorted from
+// most-powerful (index 0) to least-powerful — we invert the index so higher
+// numbers mean more power, matching the comparison in meetsRequiredRole.
+function buildHierarchy(ordered: readonly string[]): Record<string, number> {
+  const hierarchy: Record<string, number> = {};
+  for (let i = 0; i < ordered.length; i++) {
+    hierarchy[ordered[i]] = ordered.length - 1 - i;
+  }
+  return hierarchy;
+}
+
+const BASE_ROLE_HIERARCHY = buildHierarchy(OrderedProjectRoles);
+const WS_ROLE_HIERARCHY = buildHierarchy(OrderedWorkspaceRoles);
 
 @Injectable()
 export class ChatToolRegistry {
@@ -100,8 +118,8 @@ export class ChatToolRegistry {
   }
 
   private registerAllTools() {
-    this.tools = [
-      // Schema tools
+    // Schema tools
+    const schemaTools: ChatToolDefinition[] = [
       listBasesTool,
       listTablesTool,
       describeTableTool,
@@ -115,7 +133,10 @@ export class ChatToolRegistry {
       deleteViewTool,
       renameViewTool,
       listViewsTool,
-      // Data tools
+    ].map((t) => ({ ...t, category: 'schema' }));
+
+    // Data tools
+    const dataTools: ChatToolDefinition[] = [
       queryRecordsTool,
       getRecordTool,
       createRecordsTool,
@@ -125,7 +146,10 @@ export class ChatToolRegistry {
       listLinkedRecordsTool,
       linkRecordsTool,
       unlinkRecordsTool,
-      // View tools
+    ].map((t) => ({ ...t, category: 'data' }));
+
+    // View tools
+    const viewTools: ChatToolDefinition[] = [
       listViewFieldsTool,
       updateViewFieldsTool,
       setDisplayFieldTool,
@@ -137,14 +161,32 @@ export class ChatToolRegistry {
       removeSortTool,
       setGroupByTool,
       clearGroupByTool,
-      // UI tools
+    ].map((t) => ({ ...t, category: 'view' }));
+
+    // UI tools — browser-only, auto-injected for internal sessions
+    const uiTools: ChatToolDefinition[] = [
       navigateBaseTool,
       openTableTool,
       openViewTool,
-      // Interaction tool
-      askUserTool,
-      // Cross-base proxy
-      baseProxyTool,
+    ].map((t) => ({ ...t, category: 'ui', uiOnly: true }));
+
+    // Interaction tool — browser-only
+    const interactionTools: ChatToolDefinition[] = [
+      { ...askUserTool, category: 'interaction', uiOnly: true },
+    ];
+
+    // Cross-base proxy
+    const proxyTools: ChatToolDefinition[] = [
+      { ...baseProxyTool, category: 'schema' },
+    ];
+
+    this.tools = [
+      ...schemaTools,
+      ...dataTools,
+      ...viewTools,
+      ...uiTools,
+      ...interactionTools,
+      ...proxyTools,
     ];
 
     // Hydrate {{placeholders}} in tool descriptions with computed values.
@@ -158,31 +200,98 @@ export class ChatToolRegistry {
     }
   }
 
+  getToolDefinitions(): Array<{
+    name: string;
+    description: string;
+    scope: 'base' | 'workspace' | 'common';
+    isDangerous: boolean;
+    readonly: boolean;
+    uiOnly: boolean;
+    category: string;
+  }> {
+    return this.tools
+      .filter(
+        (t) =>
+          // Agents are base-bound — exclude workspace-scoped tools (list_bases, navigate_base, base_proxy)
+          // 'common' tools (ask_user) pass through — they work in any scope
+          t.scope !== 'workspace',
+      )
+      .map((t) => ({
+        name: t.name,
+        description: t.description,
+        scope: t.scope,
+        isDangerous: t.isDangerous,
+        readonly: !!t.readonly,
+        uiOnly: !!t.uiOnly,
+        category: t.category || 'schema',
+      }));
+  }
+
+  /**
+   * Resolve roles and hierarchy for a tool scope — mirrors getUserRoleForScope
+   * from extract-ids middleware.
+   */
+  private getRolesForScope(
+    scope: 'base' | 'workspace' | 'common',
+    req: NcRequest,
+  ): {
+    roles: Record<string, boolean> | undefined;
+    hierarchy: Record<string, number>;
+  } {
+    if (scope === 'workspace') {
+      return {
+        roles: extractRolesObj(req.user?.workspace_roles),
+        hierarchy: WS_ROLE_HIERARCHY,
+      };
+    }
+    // 'base' (default) and any future scopes
+    return {
+      roles: extractRolesObj(req.user?.base_roles),
+      hierarchy: BASE_ROLE_HIERARCHY,
+    };
+  }
+
+  /**
+   * Check if user meets the minimum role level for a tool.
+   */
+  private meetsRequiredRole(
+    roles: Record<string, boolean> | undefined,
+    requiredRole: string | null,
+    scope: 'base' | 'workspace',
+  ): boolean {
+    // null = no role required, any authenticated user passes
+    if (requiredRole === null) return true;
+
+    if (!roles || !Object.keys(roles).length) return false;
+
+    const hierarchy =
+      scope === 'workspace' ? WS_ROLE_HIERARCHY : BASE_ROLE_HIERARCHY;
+    const requiredLevel = hierarchy[requiredRole] || 0;
+    for (const [role, hasRole] of Object.entries(roles)) {
+      if (hasRole && (hierarchy[role] || 0) >= requiredLevel) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   getAvailableTools(req: NcRequest): ChatToolDefinition[] {
-    const baseRoles = extractRolesObj(req.user?.base_roles);
-
     return this.tools.filter((t) => {
-      // Workspace-scoped tools are available to any authenticated user —
+      // Common tools are available to any authenticated user —
       // controller-level ACL already verified workspace membership.
-      if (t.scope === 'workspace') return true;
+      if (t.scope === 'common') return true;
 
-      // Base-scoped tools require base_roles. No base context = no base tools.
-      if (!baseRoles || !Object.keys(baseRoles).length) return false;
+      // Resolve roles based on tool scope (workspace_roles or base_roles)
+      const { roles } = this.getRolesForScope(t.scope, req);
 
       // Role hierarchy gate — user must meet the minimum role level.
-      const requiredLevel = ROLE_HIERARCHY[t.requiredRole] || 0;
-      let meetsRoleLevel = false;
-      for (const [role, hasRole] of Object.entries(baseRoles)) {
-        if (hasRole && (ROLE_HIERARCHY[role] || 0) >= requiredLevel) {
-          meetsRoleLevel = true;
-          break;
-        }
+      if (!this.meetsRequiredRole(roles, t.requiredRole, t.scope)) {
+        return false;
       }
-      if (!meetsRoleLevel) return false;
 
       // Granular ACL gate — if the tool declares a permission, verify
       // the user's roles actually grant it (include/exclude check).
-      if (t.permission && !hasPermission(baseRoles, t.permission)) {
+      if (t.permission && !hasPermission(roles, t.permission)) {
         return false;
       }
 
@@ -231,11 +340,20 @@ export class ChatToolRegistry {
       };
     }
 
-    // Enforce granular ACL — even if getAvailableTools filtered, this is the
-    // authoritative gate (defense in depth against stale tool lists or direct calls).
-    if (toolDef.permission) {
-      const roles = extractRolesObj(req.user?.base_roles);
-      if (!hasPermission(roles, toolDef.permission)) {
+    // Defense in depth — re-verify role hierarchy at execution time.
+    // getAvailableTools already filtered, but this guards against stale tool
+    // lists or direct calls. Common-scope tools skip (only need authentication).
+    if (toolDef.scope !== 'common') {
+      const { roles } = this.getRolesForScope(toolDef.scope, req);
+      if (!this.meetsRequiredRole(roles, toolDef.requiredRole, toolDef.scope)) {
+        return {
+          result: 'Insufficient permissions for this tool.',
+          isError: true,
+        };
+      }
+
+      // Granular ACL — roles already resolved for the correct scope above.
+      if (toolDef.permission && !hasPermission(roles, toolDef.permission)) {
         return {
           result: `You do not have permission to perform "${toolDef.permission}".`,
           isError: true,
@@ -346,15 +464,8 @@ export class ChatToolRegistry {
     }
 
     // 7. Check user's role on the TARGET base meets the inner tool's requiredRole
-    const requiredLevel = ROLE_HIERARCHY[innerTool.requiredRole] || 0;
-    let meetsRoleLevel = false;
-    for (const [role, hasRole] of Object.entries(baseRoles)) {
-      if (hasRole && (ROLE_HIERARCHY[role] || 0) >= requiredLevel) {
-        meetsRoleLevel = true;
-        break;
-      }
-    }
-    if (!meetsRoleLevel) {
+    // Base proxy only proxies base-scoped tools, so always use base hierarchy.
+    if (!this.meetsRequiredRole(baseRoles, innerTool.requiredRole, 'base')) {
       return {
         result: `Insufficient permissions on this base for "${innerToolName}".`,
         isError: true,

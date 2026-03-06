@@ -12,22 +12,24 @@ import type { Editor } from '@tiptap/core'
 export function useDocumentFileUpload() {
   const { batchUploadFiles } = useAttachment()
 
-  const isUploading = ref(false)
+  const uploadCount = ref(0)
+  const isUploading = computed(() => uploadCount.value > 0)
 
-  /** Open native file picker for any file type. Returns selected File or null. */
-  function openFilePicker(): Promise<File | null> {
+  /** Open native file picker for any file type. Returns selected files (supports multiple). */
+  function openFilePicker(options?: { multiple?: boolean }): Promise<File[]> {
     return new Promise((resolve) => {
       const input = document.createElement('input')
       input.type = 'file'
+      if (options?.multiple) input.multiple = true
       input.style.display = 'none'
       input.addEventListener('change', () => {
-        const file = input.files?.[0] || null
+        const files = Array.from(input.files || [])
         input.remove()
-        resolve(file)
+        resolve(files)
       })
       input.addEventListener('cancel', () => {
         input.remove()
-        resolve(null)
+        resolve([])
       })
       document.body.appendChild(input)
       input.click()
@@ -37,29 +39,27 @@ export function useDocumentFileUpload() {
   /**
    * Upload a file and insert a fileAttachment node into the editor.
    *
-   * Flow:
-   * 1. Create a blob URL as temporary reference
-   * 2. Insert fileAttachment node with blob src (path = null)
-   * 3. Upload file to storage API
-   * 4. On success: walk doc to find the node with matching src, update its path
-   * 5. On failure: remove the placeholder node
+   * If `existingBlobUrl` is provided, skip node insertion (already inserted)
+   * and only perform the upload + attr swap.
    */
-  async function uploadAndInsert(editor: Editor, file: File) {
-    const blobUrl = URL.createObjectURL(file)
+  async function uploadAndInsert(editor: Editor, file: File, existingBlobUrl?: string) {
+    const blobUrl = existingBlobUrl || URL.createObjectURL(file)
 
-    // Insert placeholder node with file metadata
-    editor
-      .chain()
-      .focus()
-      .insertFileAttachment({
-        src: blobUrl,
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-      })
-      .run()
+    if (!existingBlobUrl) {
+      // Insert placeholder node with file metadata
+      editor
+        .chain()
+        .focus()
+        .insertFileAttachment({
+          src: blobUrl,
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+        })
+        .run()
+    }
 
-    isUploading.value = true
+    uploadCount.value++
     try {
       const uploaded = await batchUploadFiles([file], 'noco/docs')
 
@@ -79,7 +79,7 @@ export function useDocumentFileUpload() {
       removeFileNode(editor, blobUrl)
     } finally {
       URL.revokeObjectURL(blobUrl)
-      isUploading.value = false
+      uploadCount.value--
     }
   }
 

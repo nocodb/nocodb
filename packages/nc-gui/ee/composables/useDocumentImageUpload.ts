@@ -16,9 +16,10 @@ export function useDocumentImageUpload() {
   const base = inject(ProjectInj, ref())
   const docId = inject<Ref<string>>('DocIdInj', ref(''))
 
-  const isUploading = ref(false)
+  const uploadCount = ref(0)
+  const isUploading = computed(() => uploadCount.value > 0)
 
-  /** Open native file picker restricted to images. Returns selected File or null. */
+  /** Open native file picker restricted to images. Returns single File or null (unlike file picker which supports multiple). */
   function openFilePicker(): Promise<File | null> {
     return new Promise((resolve) => {
       const input = document.createElement('input')
@@ -70,26 +71,22 @@ export function useDocumentImageUpload() {
   }
 
   /**
-   * Upload a file and insert an image node into the editor.
+   * Upload an image and insert a node into the editor.
    *
-   * Flow:
-   * 1. Create a blob preview URL for instant feedback
-   * 2. Insert image node with blob src (path = null)
-   * 3. Upload file to storage API
-   * 4. On success: walk the doc to find the node with matching blob src,
-   *    update its attrs with permanent path (src cleared — DocImageNode
-   *    will fetch through the proxy on next resolveSrc)
-   * 5. On failure: remove the placeholder node
+   * If `existingBlobUrl` is provided, skip node insertion (already inserted)
+   * and only perform the upload + attr swap.
    */
-  async function uploadAndInsert(editor: Editor, file: File) {
+  async function uploadAndInsert(editor: Editor, file: File, existingBlobUrl?: string) {
     if (!file.type.startsWith('image/')) return
 
-    const blobUrl = URL.createObjectURL(file)
+    const blobUrl = existingBlobUrl || URL.createObjectURL(file)
 
-    // Insert placeholder image with blob preview
-    editor.chain().focus().setImage({ src: blobUrl, alt: file.name }).run()
+    if (!existingBlobUrl) {
+      // Insert placeholder image with blob preview
+      editor.chain().focus().setImage({ src: blobUrl, alt: file.name }).run()
+    }
 
-    isUploading.value = true
+    uploadCount.value++
     try {
       const uploaded = await batchUploadFiles([file], 'noco/docs')
 
@@ -108,7 +105,7 @@ export function useDocumentImageUpload() {
       removeImageNode(editor, blobUrl)
     } finally {
       URL.revokeObjectURL(blobUrl)
-      isUploading.value = false
+      uploadCount.value--
     }
   }
 

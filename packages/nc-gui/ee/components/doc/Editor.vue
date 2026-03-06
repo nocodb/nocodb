@@ -492,11 +492,36 @@ const _tiptapEditor = useEditor({
         const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })
         if (pos) ed.commands.setTextSelection(pos.pos)
 
-        for (const img of images) {
-          uploadAndInsert(ed, img)
+        // Batch-insert image placeholder nodes in a single transaction
+        if (images.length) {
+          const imgEntries = images.map((img) => ({
+            file: img,
+            blobUrl: URL.createObjectURL(img),
+          }))
+          const imgNodes = imgEntries.map(({ file, blobUrl }) => ({
+            type: 'image' as const,
+            attrs: { src: blobUrl, alt: file.name },
+          }))
+          ed.chain().focus().insertContent(imgNodes).run()
+          for (const { file, blobUrl } of imgEntries) {
+            uploadAndInsert(ed, file, blobUrl)
+          }
         }
-        for (const file of nonImages) {
-          uploadAndInsertFile(ed, file)
+
+        // Batch-insert file attachment placeholder nodes in a single transaction
+        if (nonImages.length) {
+          const fileEntries = nonImages.map((file) => ({
+            file,
+            blobUrl: URL.createObjectURL(file),
+          }))
+          const fileNodes = fileEntries.map(({ file, blobUrl }) => ({
+            type: 'fileAttachment' as const,
+            attrs: { src: blobUrl, fileName: file.name, fileSize: file.size, fileType: file.type },
+          }))
+          ed.chain().focus().insertContent(fileNodes).run()
+          for (const { file, blobUrl } of fileEntries) {
+            uploadAndInsertFile(ed, file, blobUrl)
+          }
         }
       }
       return true
@@ -509,8 +534,17 @@ const _tiptapEditor = useEditor({
         event.preventDefault()
         const ed = editor.value
         if (ed) {
-          for (const img of images) {
-            uploadAndInsert(ed, img)
+          const imgEntries = images.map((img) => ({
+            file: img,
+            blobUrl: URL.createObjectURL(img),
+          }))
+          const imgNodes = imgEntries.map(({ file, blobUrl }) => ({
+            type: 'image' as const,
+            attrs: { src: blobUrl, alt: file.name },
+          }))
+          ed.chain().focus().insertContent(imgNodes).run()
+          for (const { file, blobUrl } of imgEntries) {
+            uploadAndInsert(ed, file, blobUrl)
           }
         }
         return true
@@ -653,8 +687,26 @@ watch(editor, (ed) => {
   }
   if (ed?.storage?.fileAttachment) {
     ed.storage.fileAttachment.openUpload = async () => {
-      const file = await openFileAttachmentPicker()
-      if (file) uploadAndInsertFile(ed, file)
+      const files = await openFileAttachmentPicker({ multiple: true })
+      if (!files.length) return
+
+      // Insert all placeholder nodes in one transaction, then upload in parallel
+      const blobEntries = files.map((file) => ({
+        file,
+        blobUrl: URL.createObjectURL(file),
+      }))
+
+      const nodes = blobEntries.map(({ file, blobUrl }) => ({
+        type: 'fileAttachment' as const,
+        attrs: { src: blobUrl, fileName: file.name, fileSize: file.size, fileType: file.type },
+      }))
+
+      ed.chain().focus().insertContent(nodes).run()
+
+      // Upload each file and swap blob → permanent path
+      for (const { file, blobUrl } of blobEntries) {
+        uploadAndInsertFile(ed, file, blobUrl)
+      }
     }
   }
   if (ed?.storage?.embed) {

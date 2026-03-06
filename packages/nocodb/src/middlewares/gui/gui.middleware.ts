@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
 import { Injectable } from '@nestjs/common';
@@ -19,8 +20,11 @@ const _require =
 @Injectable()
 export class GuiMiddleware implements NestMiddleware {
   private staticRouter: express.Router | null = null;
-  private indexHtml: string | null = null;
   private dashboardPath: string = '/';
+
+  // Pre-computed index.html response — avoids string→Buffer on every request
+  private indexHtmlBuffer: Buffer | null = null;
+  private indexHtmlEtag: string | null = null;
 
   constructor() {
     // In split-frontend mode (NC_DASHBOARD_URL is a full URL pointing to
@@ -92,10 +96,30 @@ export class GuiMiddleware implements NestMiddleware {
           `<head><base href="${baseHref}">`,
         );
 
-        this.indexHtml = rawHtml;
+        // Pre-compute Buffer and ETag once — avoids per-request overhead
+        this.indexHtmlBuffer = Buffer.from(rawHtml, 'utf-8');
+        this.indexHtmlEtag = `"${crypto.createHash('md5').update(this.indexHtmlBuffer).digest('hex')}"`;
 
         const router = express.Router();
-        router.use('/', express.static(distPath));
+        router.use(
+          '/',
+          express.static(distPath, {
+            // Don't serve index.html for directory requests — the SPA
+            // fallback in GlobalExceptionFilter handles that with the
+            // <base>-injected version.
+            index: false,
+            // Nuxt build output uses content-hashed filenames (e.g.
+            // app.B3xH9k.js), so assets can be cached indefinitely.
+            maxAge: '1y',
+            immutable: true,
+            // HTML files may change between deployments — don't cache them.
+            setHeaders: (res, filePath) => {
+              if (filePath.endsWith('.html')) {
+                res.setHeader('Cache-Control', 'no-cache');
+              }
+            },
+          }),
+        );
         this.staticRouter = router;
         return;
       } catch {
@@ -107,6 +131,16 @@ export class GuiMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: () => void) {
     if (!this.staticRouter) return next();
 
+    // Skip static file lookup for backend routes — avoids unnecessary
+    // filesystem checks on API calls.
+    if (
+      req.path.startsWith('/api/') ||
+      req.path.startsWith('/auth/') ||
+      req.path.startsWith('/sso/')
+    ) {
+      return next();
+    }
+
     // Try serving a static asset (JS, CSS, images, fonts).
     // If no file matches, fall through to NestJS controllers.
     // SPA fallback (index.html for unmatched routes) is handled by
@@ -117,15 +151,32 @@ export class GuiMiddleware implements NestMiddleware {
   }
 
   /**
-   * Returns the index.html content (with <base> tag injected) for SPA
-   * fallback, or null if nc-lib-gui is not available.
+   * Sends the pre-buffered index.html with proper caching headers.
+   * Handles ETag/If-None-Match for 304 responses.
+   * Returns false if index.html is not available.
    */
-  getIndexHtml(): string | null {
-    return this.indexHtml;
+  sendIndexHtml(req: Request, res: Response): boolean {
+    if (!this.indexHtmlBuffer) return false;
+
+    // Return 304 if the browser already has the current version
+    if (this.indexHtmlEtag && req.headers['if-none-match'] === this.indexHtmlEtag) {
+      res.status(304).end();
+      return true;
+    }
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Content-Length', this.indexHtmlBuffer.length);
+    res.setHeader('Cache-Control', 'no-cache');
+    if (this.indexHtmlEtag) {
+      res.setHeader('ETag', this.indexHtmlEtag);
+    }
+    res.end(this.indexHtmlBuffer);
+    return true;
   }
 
   /**
    * Returns the normalized dashboard path (e.g. '/dashboard' or '/').
+   * Used by GlobalExceptionFilter to scope the SPA fallback.
    */
   getDashboardPath(): string {
     return this.dashboardPath;

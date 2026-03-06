@@ -180,18 +180,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       // This runs AFTER controllers, so backend routes like /mcp are tried first.
       // When a subpath is configured (e.g. /dashboard), only serve the SPA for
       // routes under that subpath.
-      const indexHtml = this.guiMiddleware?.getIndexHtml();
-      const basePath = this.guiMiddleware?.getDashboardPath() ?? '/';
-      if (
-        indexHtml &&
-        request.method === 'GET' &&
-        (basePath === '/' || request.path.startsWith(basePath)) &&
-        !request.path.startsWith('/api/') &&
-        !path.extname(request.path) &&
-        request.headers.accept?.includes('text/html')
-      ) {
-        response.setHeader('Content-Type', 'text/html');
-        return response.send(indexHtml);
+      if (this.guiMiddleware && this.isSpaRequest(request)) {
+        const served = this.guiMiddleware.sendIndexHtml(request, response);
+        if (served) return;
       }
 
       this.logger.debug(exception.message, exception.stack);
@@ -327,5 +318,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
   protected logError(exception: any, _request: any) {
     this.logger.error(exception.message, exception.stack);
+  }
+
+  /**
+   * Check if this is a browser navigation request that should receive the
+   * SPA index.html fallback (not an API call, not a static file request).
+   */
+  private isSpaRequest(request: Request): boolean {
+    if (request.method !== 'GET') return false;
+    if (!request.headers.accept?.includes('text/html')) return false;
+    if (path.extname(request.path)) return false;
+    if (request.path.startsWith('/api/')) return false;
+
+    const basePath = this.guiMiddleware?.getDashboardPath() ?? '/';
+    if (basePath !== '/' && !request.path.startsWith(basePath)) return false;
+
+    return true;
   }
 }

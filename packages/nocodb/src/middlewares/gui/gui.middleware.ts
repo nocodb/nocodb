@@ -86,10 +86,16 @@ export class GuiMiddleware implements NestMiddleware {
         // Sanitize: only allow path characters to prevent HTML/JS injection
         baseHref = baseHref.replace(/[^a-zA-Z0-9\/_\-\.]/g, '');
 
-        rawHtml = rawHtml.replace(
-          '<head>',
-          `<head><base href="${baseHref}">`,
-        );
+        // Replace the build-time <base href="/"> with the actual base path,
+        // or inject one if the build doesn't include it.
+        if (rawHtml.includes('<base ')) {
+          rawHtml = rawHtml.replace(/<base[^>]*>/, `<base href="${baseHref}">`);
+        } else {
+          rawHtml = rawHtml.replace(
+            '<head>',
+            `<head><base href="${baseHref}">`,
+          );
+        }
 
         // Patch Nuxt's runtime config baseURL to match the actual base path.
         // The frontend is built with baseURL:"/", but when deployed at a

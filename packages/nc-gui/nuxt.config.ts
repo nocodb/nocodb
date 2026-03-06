@@ -60,6 +60,10 @@ export default defineNuxtConfig({
      */
     cdnURL: process.env.NC_CDN_URL || (process.env.NODE_ENV === 'production' ? './' : undefined),
     head: {
+      // Default <base href="/"> ensures relative asset paths (from cdnURL: './')
+      // resolve correctly in history-mode routing.  The backend's GuiMiddleware
+      // replaces this with the actual subpath for proxy deployments.
+      base: { href: '/' },
       link: [
         {
           rel: 'icon',

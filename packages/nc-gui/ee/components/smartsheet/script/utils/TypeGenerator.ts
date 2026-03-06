@@ -5473,7 +5473,8 @@ declare interface ConfigItem {
     const properties: string[] = []
 
     for (const field of schema) {
-      const fieldName = field.key.split('.').pop() || 'unknown'
+      const bracketMatch = field.key.match(/\['([^']+)'\]$/)
+      const fieldName = bracketMatch ? bracketMatch[1] : field.key.split('.').pop() || 'unknown'
       // Sanitize field name for TypeScript (handle special characters)
       const safeName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(fieldName) ? fieldName : `"${fieldName}"`
       const fieldType = this.generateTypeFromVariableDefinition(field, true)
@@ -6580,7 +6581,8 @@ declare interface ConfigItem {
         }
 
         this.formatJSDoc([`Variable: ${variableName}`])
-        this.write(`${variableName}: ${tsType};`)
+        const safeName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(variableName) ? variableName : `"${variableName}"`
+        this.write(`${safeName}: ${tsType};`)
       })
 
       this.indent_out()

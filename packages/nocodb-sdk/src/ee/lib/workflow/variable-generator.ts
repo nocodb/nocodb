@@ -688,6 +688,42 @@ export async function getFieldVariable(
         },
       },
     ];
+  } else if (
+    column.uidt === UITypes.LastModifiedBy ||
+    column.uidt === UITypes.CreatedBy
+  ) {
+    variable.children = [
+      {
+        key: `${variable.key}.id`,
+        name: 'id',
+        type: VariableType.String,
+        groupKey: VariableGroupKey.Fields,
+        extra: {
+          icon: 'cellSystemKey',
+          description: 'User ID',
+        },
+      },
+      {
+        key: `${variable.key}.email`,
+        name: 'email',
+        type: VariableType.String,
+        groupKey: VariableGroupKey.Fields,
+        extra: {
+          icon: 'cellEmail',
+          description: 'User email',
+        },
+      },
+      {
+        key: `${variable.key}.display_name`,
+        name: 'display_name',
+        type: VariableType.String,
+        groupKey: VariableGroupKey.Fields,
+        extra: {
+          icon: 'cellText',
+          description: 'User display name',
+        },
+      },
+    ];
   } else if (column.uidt === UITypes.LinkToAnotherRecord && isArray) {
     variable.children = [
       {

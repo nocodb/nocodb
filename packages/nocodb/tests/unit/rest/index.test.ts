@@ -85,6 +85,7 @@ function restTests() {
 
   // v3 API tests
   if (testVersion.includes('v3')) {
+    internalTests();
     metaTestV3();
   }
 }

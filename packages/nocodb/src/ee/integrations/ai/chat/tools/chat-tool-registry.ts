@@ -50,6 +50,7 @@ import { loadToolsTool } from './load-tools.tool';
 import { navigateBaseTool } from './ui/navigate-base.tool';
 import { openTableTool } from './ui/open-table.tool';
 import { openViewTool } from './ui/open-view.tool';
+import { openDashboardTool } from './ui/open-dashboard.tool';
 
 // View tools
 import { listViewFieldsTool } from './view/list-view-fields.tool';
@@ -191,6 +192,7 @@ export class ChatToolRegistry {
       navigateBaseTool,
       openTableTool,
       openViewTool,
+      openDashboardTool,
     ].map((t) => ({ ...t, category: 'ui', uiOnly: true }));
 
     // Dashboard & Widget tools

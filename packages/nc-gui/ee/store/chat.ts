@@ -140,6 +140,11 @@ export const useChatStore = defineStore('chatStore', () => {
             ncNavigateTo({ workspaceId: wsId, baseId: parsed.base_id, tableId: parsed.table_id })
           }
           break
+        case 'open_dashboard':
+          if (parsed.dashboard_id) {
+            ncNavigateTo({ workspaceId: wsId, baseId: parsed.base_id, dashboardId: parsed.dashboard_id })
+          }
+          break
         case 'open_view':
           if (parsed.table_id && parsed.view_id) {
             ncNavigateTo({ workspaceId: wsId, baseId: parsed.base_id, tableId: parsed.table_id, viewId: parsed.view_id })

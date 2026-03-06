@@ -165,13 +165,12 @@ const displayTitle = computed(() => props.currentTitle || activeDocument.value?.
 
 <style lang="scss" scoped>
 .nc-doc-breadcrumb {
-  @apply flex items-center text-body text-nc-content-gray-subtle max-w-full min-w-0;
+  @apply flex items-center text-body text-nc-content-gray-subtle max-w-full w-full min-w-0;
 
   .nc-doc-breadcrumb-item {
     @apply h-7 px-2 leading-7 overflow-hidden;
-    max-width: 160px;
+    max-width: 20%;
     flex: 0 1 auto;
-    min-width: min(60px, max-content);
 
     &.nc-clickable {
       @apply cursor-pointer select-none rounded-md hover:(bg-nc-bg-gray-light text-nc-content-gray);
@@ -179,7 +178,7 @@ const displayTitle = computed(() => props.currentTitle || activeDocument.value?.
 
     &.active {
       @apply !font-medium !text-nc-content-gray;
-      max-width: 240px;
+      max-width: 45%;
       flex: 1 1 auto;
 
       &.nc-doc-breadcrumb-item-full-size {

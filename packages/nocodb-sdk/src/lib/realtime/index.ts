@@ -51,7 +51,7 @@ export interface DataPayload extends BaseSocketPayload {
 
 export interface CommentPayload extends BaseSocketPayload {
   id: string; // rowId
-  action: 'add' | 'update' | 'delete';
+  action: 'add' | 'update' | 'delete' | 'reactionAdd' | 'reactionRemove';
   payload: Record<string, any>;
 }
 

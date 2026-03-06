@@ -129,6 +129,8 @@ export class UiPostOperations
     'commentUpdate' as const,
     'commentDelete' as const,
     'commentResolve' as const,
+    'commentReactionAdd' as const,
+    'commentReactionRemove' as const,
     'syncSourceCreate' as const,
     'syncSourceUpdate' as const,
     'syncSourceDelete' as const,
@@ -607,6 +609,20 @@ export class UiPostOperations
       case 'commentDelete':
         return await this.commentsService.commentDelete(context, {
           commentId: payload.commentId,
+          user: req.user,
+          req,
+        });
+      case 'commentReactionAdd':
+        return await this.commentsService.reactionAdd(context, {
+          commentId: payload.commentId,
+          reaction: payload.reaction,
+          user: req.user,
+          req,
+        });
+      case 'commentReactionRemove':
+        return await this.commentsService.reactionRemove(context, {
+          commentId: payload.commentId,
+          reaction: payload.reaction,
           user: req.user,
           req,
         });

@@ -11,6 +11,7 @@ import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Comment from '~/models/Comment';
+import CommentReaction from '~/models/CommentReaction';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import NocoSocket from '~/socket/NocoSocket';
@@ -99,6 +100,8 @@ export class CommentsService {
 
     const res = await Comment.delete(context, param.commentId);
 
+    await CommentReaction.deleteByComment(context, param.commentId);
+
     const model = await Model.getByIdOrName(context, {
       id: comment.fk_model_id,
     });
@@ -139,7 +142,35 @@ export class CommentsService {
       };
     },
   ) {
-    return await Comment.list(context, param.query);
+    const comments = await Comment.list(context, param.query);
+
+    const commentIds = comments
+      .map((c) => c.id)
+      .filter(Boolean) as string[];
+
+    if (commentIds.length) {
+      const reactions = await CommentReaction.listByCommentIds(
+        context,
+        commentIds,
+      );
+
+      const reactionsByComment = new Map<
+        string,
+        CommentReaction[]
+      >();
+      for (const r of reactions) {
+        const list = reactionsByComment.get(r.comment_id) || [];
+        list.push(r);
+        reactionsByComment.set(r.comment_id, list);
+      }
+
+      for (const comment of comments) {
+        (comment as Record<string, unknown>).reactions =
+          reactionsByComment.get(comment.id) || [];
+      }
+    }
+
+    return comments;
   }
 
   async commentsCount(
@@ -222,5 +253,123 @@ export class CommentsService {
     );
 
     return res;
+  }
+
+  async reactionAdd(
+    context: NcContext,
+    param: {
+      commentId: string;
+      reaction: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    if (
+      !param.reaction ||
+      typeof param.reaction !== 'string' ||
+      param.reaction.length > 64
+    ) {
+      NcError.get(context).badRequest('Invalid reaction');
+    }
+
+    const comment = await Comment.get(context, param.commentId);
+
+    if (!comment) {
+      NcError.get(context).genericNotFound('Comment', param.commentId);
+    }
+
+    const existing = await CommentReaction.getByUserReaction(context, {
+      commentId: param.commentId,
+      reaction: param.reaction,
+      userId: param.user.id,
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    const model = await Model.getByIdOrName(context, {
+      id: comment.fk_model_id,
+    });
+
+    const res = await CommentReaction.insert(context, {
+      comment_id: param.commentId,
+      row_id: comment.row_id,
+      reaction: param.reaction,
+      source_id: comment.source_id,
+      fk_model_id: comment.fk_model_id,
+      base_id: comment.base_id,
+      created_by: param.user.id,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.COMMENT_EVENT,
+        payload: {
+          action: 'reactionAdd',
+          payload: res,
+          id: comment.row_id,
+        },
+        scopes: [model.id],
+      },
+      context.socket_id,
+    );
+
+    return res;
+  }
+
+  async reactionRemove(
+    context: NcContext,
+    param: {
+      commentId: string;
+      reaction: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    if (
+      !param.reaction ||
+      typeof param.reaction !== 'string' ||
+      param.reaction.length > 64
+    ) {
+      NcError.get(context).badRequest('Invalid reaction');
+    }
+
+    const comment = await Comment.get(context, param.commentId);
+
+    if (!comment) {
+      NcError.get(context).genericNotFound('Comment', param.commentId);
+    }
+
+    await CommentReaction.delete(context, {
+      commentId: param.commentId,
+      reaction: param.reaction,
+      userId: param.user.id,
+    });
+
+    const model = await Model.getByIdOrName(context, {
+      id: comment.fk_model_id,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.COMMENT_EVENT,
+        payload: {
+          action: 'reactionRemove',
+          payload: {
+            comment_id: param.commentId,
+            reaction: param.reaction,
+            created_by: param.user.id,
+          },
+          id: comment.row_id,
+        },
+        scopes: [model.id],
+      },
+      context.socket_id,
+    );
+
+    return true;
   }
 }

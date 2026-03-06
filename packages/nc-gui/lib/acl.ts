@@ -163,6 +163,8 @@ const rolePermissions = {
       commentDelete: true,
       commentResolve: true,
       commentEdit: true,
+      commentReactionAdd: true,
+      commentReactionRemove: true,
     },
   },
   [ProjectRoles.VIEWER]: {

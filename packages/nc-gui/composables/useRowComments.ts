@@ -1,4 +1,4 @@
-import type { ColumnType, CommentType, MetaType, TableType } from 'nocodb-sdk'
+import type { ColumnType, CommentReactionType, CommentType, GroupedCommentReactionType, MetaType, TableType } from 'nocodb-sdk'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 
 export interface CommentTypeExtended extends CommentType {
@@ -8,6 +8,7 @@ export interface CommentTypeExtended extends CommentType {
   resolved_display_name_short?: string
   created_by_meta?: MetaType
   resolved_by_meta?: MetaType
+  reactions?: CommentReactionType[]
 }
 
 const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
@@ -274,6 +275,142 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
+  const groupedReactions = computed(() => {
+    const result: Record<string, GroupedCommentReactionType[]> = {}
+
+    for (const comment of comments.value) {
+      if (!comment.id) continue
+
+      const reactions = (comment as CommentTypeExtended).reactions || []
+      const grouped = new Map<string, { users: { id: string; email?: string; display_name?: string }[] }>()
+
+      for (const r of reactions) {
+        if (!r.reaction) continue
+        if (!grouped.has(r.reaction)) {
+          grouped.set(r.reaction, { users: [] })
+        }
+        const u = baseUsers.value.find((bu) => bu.id === r.created_by)
+        grouped.get(r.reaction)!.users.push({
+          id: r.created_by || '',
+          email: u?.email,
+          display_name: u?.display_name ?? undefined,
+        })
+      }
+
+      result[comment.id] = Array.from(grouped.entries()).map(([emoji, data]) => ({
+        reaction: emoji,
+        count: data.users.length,
+        users: data.users,
+        isMyReaction: data.users.some((u) => u.id === user.value?.id),
+      }))
+    }
+
+    return result
+  })
+
+  const addReaction = async (commentId: string, emoji: string) => {
+    if (!isUIAllowed('commentReactionAdd')) return
+
+    const comment = comments.value.find((c) => c.id === commentId)
+    if (!comment) return
+
+    // Optimistic update
+    const ext = comment as CommentTypeExtended
+    if (!ext.reactions) ext.reactions = []
+    ext.reactions.push({
+      comment_id: commentId,
+      reaction: emoji,
+      created_by: user.value?.id,
+      created_at: new Date().toISOString(),
+    })
+    // Trigger reactivity
+    comments.value = [...comments.value]
+
+    try {
+      await $api.internal.postOperation(
+        (meta.value as any).fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'commentReactionAdd',
+        },
+        {
+          commentId,
+          reaction: emoji,
+        },
+      )
+    } catch (e: unknown) {
+      // Revert optimistic update
+      ext.reactions = ext.reactions.filter(
+        (r) => !(r.reaction === emoji && r.created_by === user.value?.id),
+      )
+      comments.value = [...comments.value]
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
+    }
+  }
+
+  const removeReaction = async (commentId: string, emoji: string) => {
+    if (!isUIAllowed('commentReactionRemove')) return
+
+    const comment = comments.value.find((c) => c.id === commentId)
+    if (!comment) return
+
+    const ext = comment as CommentTypeExtended
+    if (!ext.reactions) return
+
+    // Save for revert
+    const removedReaction = ext.reactions.find(
+      (r) => r.reaction === emoji && r.created_by === user.value?.id,
+    )
+    if (!removedReaction) return
+
+    // Optimistic update
+    ext.reactions = ext.reactions.filter(
+      (r) => !(r.reaction === emoji && r.created_by === user.value?.id),
+    )
+    comments.value = [...comments.value]
+
+    try {
+      await $api.internal.postOperation(
+        (meta.value as any).fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'commentReactionRemove',
+        },
+        {
+          commentId,
+          reaction: emoji,
+        },
+      )
+    } catch (e: unknown) {
+      // Revert
+      ext.reactions.push(removedReaction)
+      comments.value = [...comments.value]
+      message.error(
+        await extractSdkResponseErrorMsg(
+          e as Error & {
+            response: any
+          },
+        ),
+      )
+    }
+  }
+
+  const toggleReaction = async (commentId: string, emoji: string) => {
+    const grouped = groupedReactions.value[commentId] || []
+    const existing = grouped.find((r) => r.reaction === emoji)
+    if (existing?.isMyReaction) {
+      await removeReaction(commentId, emoji)
+    } else {
+      await addReaction(commentId, emoji)
+    }
+  }
+
   const primaryKey = computed(() => {
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
@@ -288,6 +425,10 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     isCommentsLoading,
     primaryKey,
     parsedHtmlComments,
+    groupedReactions,
+    addReaction,
+    removeReaction,
+    toggleReaction,
   }
 })
 

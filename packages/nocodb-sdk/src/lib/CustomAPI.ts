@@ -234,6 +234,26 @@ export interface CommentCountParamsType {
   fk_model_id: string;
 }
 
+export interface CommentReactionType {
+  id?: string;
+  row_id?: string;
+  comment_id?: string;
+  reaction?: string;
+  source_id?: string;
+  fk_model_id?: string;
+  base_id?: string;
+  fk_workspace_id?: string;
+  created_by?: string;
+  created_at?: string;
+}
+
+export interface GroupedCommentReactionType {
+  reaction: string;
+  count: number;
+  users: { id: string; email?: string; display_name?: string }[];
+  isMyReaction: boolean;
+}
+
 export interface AuditListParamsType {
   offset?: string;
   limit?: string;

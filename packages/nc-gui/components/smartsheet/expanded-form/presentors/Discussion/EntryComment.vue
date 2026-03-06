@@ -19,9 +19,12 @@ const meta = inject(MetaInj, ref())
 
 /* stores */
 
-const { loadComments, resolveComment, updateComment, deleteComment, primaryKey } = useRowCommentsOrThrow()
+const { loadComments, resolveComment, updateComment, deleteComment, primaryKey, groupedReactions, toggleReaction } =
+  useRowCommentsOrThrow()
 
 const { isUIAllowed } = useRoles()
+
+const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉']
 
 /* flags */
 
@@ -262,6 +265,70 @@ async function copyComment(comment: CommentType) {
         read-only
         sync-value-change
       />
+
+      <!-- Reactions row -->
+      <div
+        v-if="props.comment.id && (groupedReactions[props.comment.id]?.length || !editCommentValue)"
+        class="flex items-center gap-1 flex-wrap px-4 pb-2.5"
+      >
+        <NcTooltip
+          v-for="gr in groupedReactions[props.comment.id] || []"
+          :key="gr.reaction"
+        >
+          <template #title>
+            {{ gr.users.map((u) => (u.id === user?.id ? 'You' : u.display_name || u.email || 'User')).join(', ') }}
+          </template>
+          <button
+            class="nc-comment-reaction-chip"
+            :class="{ 'nc-active': gr.isMyReaction }"
+            data-testid="nc-comment-reaction-chip"
+            @click="toggleReaction(props.comment.id!, gr.reaction)"
+          >
+            <span class="text-sm leading-none">{{ gr.reaction }}</span>
+            <span class="text-xs leading-none">{{ gr.count }}</span>
+          </button>
+        </NcTooltip>
+
+        <NcDropdown
+          v-if="isUIAllowed('commentReactionAdd') && !editCommentValue"
+          :trigger="['click']"
+          placement="bottomLeft"
+          overlay-class-name="nc-reaction-picker-dropdown"
+        >
+          <button
+            v-e="['c:comment-expand:reaction:open']"
+            class="nc-comment-reaction-add"
+            data-testid="nc-comment-reaction-add"
+          >
+            <GeneralIcon icon="ncSmile" class="text-nc-content-gray-muted" />
+            <span class="text-nc-content-gray-muted text-xs">+</span>
+          </button>
+          <template #overlay>
+            <div class="nc-reaction-quick-pick" @click.stop>
+              <button
+                v-for="emoji in QUICK_REACTIONS"
+                :key="emoji"
+                class="nc-reaction-quick-btn"
+                @click="toggleReaction(props.comment.id!, emoji)"
+              >
+                {{ emoji }}
+              </button>
+              <NcDivider type="vertical" class="!h-6 !mx-0.5" />
+              <NcDropdown :trigger="['click']" placement="bottomLeft">
+                <button class="nc-reaction-quick-btn">
+                  <GeneralIcon icon="ncPlus" class="text-nc-content-gray-subtle" />
+                </button>
+                <template #overlay>
+                  <GeneralEmojiPicker
+                    disable-clearing
+                    @emoji-selected="(emoji: string) => { toggleReaction(props.comment.id!, emoji) }"
+                  />
+                </template>
+              </NcDropdown>
+            </div>
+          </template>
+        </NcDropdown>
+      </div>
     </div>
   </div>
 </template>
@@ -278,5 +345,27 @@ async function copyComment(comment: CommentType) {
     content: '';
     @apply absolute -bottom-4 left-15.8 h-4 border-l-1 border-nc-border-gray-dark;
   }
+}
+
+.nc-comment-reaction-chip {
+  @apply inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full border-1 border-nc-border-gray-medium
+    bg-nc-bg-default hover:bg-nc-bg-gray-light cursor-pointer transition-colors;
+
+  &.nc-active {
+    @apply border-nc-border-brand bg-nc-bg-brand-soft;
+  }
+}
+
+.nc-comment-reaction-add {
+  @apply inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full border-1 border-dashed border-nc-border-gray-medium
+    bg-nc-bg-default hover:bg-nc-bg-gray-light cursor-pointer transition-colors;
+}
+
+.nc-reaction-quick-pick {
+  @apply flex items-center gap-0.5 p-1.5 bg-nc-bg-default rounded-lg;
+}
+
+.nc-reaction-quick-btn {
+  @apply w-8 h-8 flex items-center justify-center rounded-md text-lg hover:bg-nc-bg-gray-light cursor-pointer transition-colors;
 }
 </style>

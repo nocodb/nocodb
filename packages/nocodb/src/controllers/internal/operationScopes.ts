@@ -115,6 +115,8 @@ export const OPERATION_SCOPES = {
   commentUpdate: 'base',
   commentDelete: 'base',
   commentResolve: 'base',
+  commentReactionAdd: 'base',
+  commentReactionRemove: 'base',
   dataList: 'base',
   linkDataList: 'base',
   dataInsert: 'base',

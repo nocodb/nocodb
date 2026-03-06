@@ -894,6 +894,21 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                   }
                 } else if (action === 'delete') {
                   comments.value = comments.value.filter((comment) => comment.id !== commentId)
+                } else if (action === 'reactionAdd' || action === 'reactionRemove') {
+                  const comment = comments.value.find((c) => c.id === payload.comment_id)
+                  if (comment) {
+                    if (!comment.reactions) comment.reactions = []
+
+                    if (action === 'reactionAdd') {
+                      comment.reactions.push(payload)
+                    } else {
+                      comment.reactions = comment.reactions.filter(
+                        (r) => !(r.reaction === payload.reaction && r.created_by === payload.created_by),
+                      )
+                    }
+
+                    comments.value = [...comments.value]
+                  }
                 }
               }
             },

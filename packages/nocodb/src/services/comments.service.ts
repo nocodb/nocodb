@@ -33,6 +33,26 @@ export class CommentsService {
   ) {
     validatePayload('swagger.json#/components/schemas/CommentReq', param.body);
 
+    if (param.body.parent_comment_id) {
+      const parentComment = await Comment.get(
+        context,
+        param.body.parent_comment_id,
+      );
+
+      if (!parentComment || parentComment.is_deleted) {
+        NcError.get(context).genericNotFound(
+          'Comment',
+          param.body.parent_comment_id,
+        );
+      }
+
+      if (parentComment.parent_comment_id) {
+        NcError.get(context).badRequest(
+          'Nested replies are not supported',
+        );
+      }
+    }
+
     const res = await Comment.insert(context, {
       ...param.body,
       created_by: param.user?.id,
@@ -101,6 +121,15 @@ export class CommentsService {
     const res = await Comment.delete(context, param.commentId);
 
     await CommentReaction.deleteByComment(context, param.commentId);
+
+    // Cascade soft-delete replies and their reactions
+    if (!comment.parent_comment_id) {
+      const replies = await Comment.listReplies(context, param.commentId);
+      for (const reply of replies) {
+        await CommentReaction.deleteByComment(context, reply.id);
+      }
+      await Comment.deleteReplies(context, param.commentId);
+    }
 
     const model = await Model.getByIdOrName(context, {
       id: comment.fk_model_id,

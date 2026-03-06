@@ -28,6 +28,8 @@ const {
   resolveComment,
   isCommentsLoading,
   comments,
+  threadedComments,
+  replyingTo,
   loadComments,
   updateComment,
   saveComment: _saveComment,
@@ -52,6 +54,10 @@ const hoveredCommentId = ref<null | string>(null)
 const commentInputRef = ref<any>()
 
 const comment = ref('')
+
+const replyComment = ref('')
+
+const replyInputRef = ref<any>()
 
 const router = useRouter()
 
@@ -109,6 +115,51 @@ const saveComment = async () => {
     await nextTick(() => {
       isExpandedFormCommentMode.value = true
     })
+    scrollComments()
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const cancelReply = () => {
+  replyingTo.value = null
+  replyComment.value = ''
+}
+
+const saveReply = async () => {
+  if (!replyComment.value.trim() || !replyingTo.value) return
+
+  while (replyComment.value.endsWith('<br />') || replyComment.value.endsWith('\n')) {
+    if (replyComment.value.endsWith('<br />')) {
+      replyComment.value = replyComment.value.slice(0, -6)
+    } else {
+      replyComment.value = replyComment.value.slice(0, -2)
+    }
+  }
+
+  const parentId = replyingTo.value
+
+  comments.value = [
+    ...comments.value,
+    {
+      id: `temp-${new Date().getTime()}`,
+      comment: replyComment.value,
+      parent_comment_id: parentId,
+      created_at: new Date().toISOString(),
+      created_by: user.value?.id,
+      created_by_email: user.value?.email,
+      created_display_name: user.value?.display_name ?? '',
+      created_display_name_short: user.value?.display_name ?? extractNameFromEmail(user.value?.email),
+      created_by_meta: user.value?.meta ?? '',
+    },
+  ]
+
+  const tempCom = replyComment.value
+  replyComment.value = ''
+  replyingTo.value = null
+
+  try {
+    await _saveComment(tempCom, parentId)
     scrollComments()
   } catch (e) {
     console.error(e)
@@ -322,7 +373,7 @@ onBeforeUnmount(() => {
       </div>
       <div v-else ref="commentsWrapperEl" class="flex flex-col h-full py-1 nc-scrollbar-thin">
         <div
-          v-for="(commentItem, index) of comments"
+          v-for="(commentItem, index) of threadedComments"
           :key="commentItem.id"
           :class="[
             {
@@ -344,12 +395,11 @@ onBeforeUnmount(() => {
               <div
                 class="flex items-start gap-3 flex-1"
                 :class="{
-                  'w-[calc(100%)] group-hover:w-[calc(100%_-_50px)]': !appInfo.ee,
-                  'w-[calc(100%_-_44px)] group-hover:w-[calc(100%_-_72px)]': appInfo.ee && commentItem.resolved_by,
-                  'w-[calc(100%_-_16px)] group-hover:w-[calc(100%_-_72px)]':
-                    appInfo.ee && !commentItem.resolved_by && hasEditPermission,
-                  'w-[calc(100%_-_16px)] group-hover:w-[calc(100%_-_44px)]':
-                    appInfo.ee && !commentItem.resolved_by && !hasEditPermission,
+                  'w-[calc(100%_-_78px)]': !appInfo.ee && hasEditPermission,
+                  'w-[calc(100%_-_50px)]': !appInfo.ee && !hasEditPermission,
+                  'w-[calc(100%_-_100px)]': appInfo.ee && hasEditPermission,
+                  'w-[calc(100%_-_56px)]': appInfo.ee && commentItem.resolved_by && !hasEditPermission,
+                  'w-[calc(100%_-_44px)]': appInfo.ee && !commentItem.resolved_by && !hasEditPermission,
                 }"
               >
                 <GeneralUserIcon
@@ -404,9 +454,22 @@ onBeforeUnmount(() => {
                 </div>
               </div>
               <div class="flex items-center">
+                <NcTooltip v-if="hasEditPermission && !editCommentValue">
+                  <NcButton
+                    v-e="['c:comment-expand:comment:reply']"
+                    class="nc-reply-comment-btn !w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-150"
+                    size="xsmall"
+                    type="text"
+                    data-testid="nc-comment-reply-btn"
+                    @click="replyingTo = replyingTo === commentItem.id ? null : commentItem.id!"
+                  >
+                    <GeneralIcon class="text-md" icon="ncCornerDownLeft" />
+                  </NcButton>
+                  <template #title>{{ $t('general.reply') }}</template>
+                </NcTooltip>
                 <NcDropdown
                   v-if="!editCommentValue"
-                  class="nc-comment-more-actions !hidden !group-hover:block"
+                  class="nc-comment-more-actions opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-150"
                   overlay-class-name="!min-w-[160px]"
                   placement="bottomRight"
                 >
@@ -419,6 +482,16 @@ onBeforeUnmount(() => {
                   </NcButton>
                   <template #overlay>
                     <NcMenu variant="small">
+                      <NcMenuItem
+                        v-if="hasEditPermission"
+                        v-e="['c:comment-expand:comment:reply']"
+                        @click="replyingTo = replyingTo === commentItem.id ? null : commentItem.id!"
+                      >
+                        <div class="flex gap-2 items-center">
+                          <GeneralIcon icon="ncCornerDownLeft" class="cursor-pointer" />
+                          {{ $t('general.reply') }}
+                        </div>
+                      </NcMenuItem>
                       <NcMenuItem
                         v-if="user && commentItem.created_by_email === user.email && hasEditPermission"
                         v-e="['c:comment-expand:comment:edit']"
@@ -450,7 +523,7 @@ onBeforeUnmount(() => {
                 <div v-if="appInfo.ee">
                   <NcTooltip v-if="!commentItem.resolved_by && hasEditPermission">
                     <NcButton
-                      class="nc-resolve-comment-btn !w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium !hidden !group-hover:block"
+                      class="nc-resolve-comment-btn !w-7 !h-7 !bg-transparent !hover:bg-nc-bg-gray-medium opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-150"
                       size="xsmall"
                       type="text"
                       @click="resolveComment(commentItem.id!)"
@@ -572,7 +645,80 @@ onBeforeUnmount(() => {
                   </template>
                 </NcDropdown>
               </div>
+
             </div>
+          </div>
+
+          <!-- Replies -->
+          <div v-if="commentItem.replies?.length" class="nc-comment-replies">
+            <div
+              v-for="reply of commentItem.replies"
+              :key="reply.id"
+              class="nc-comment-item nc-comment-reply"
+            >
+              <div class="group gap-2 overflow-hidden pl-12 pr-3 py-1.5 transition-colors hover:bg-nc-bg-gray-light">
+                <div class="flex items-start gap-2">
+                  <GeneralUserIcon
+                    :user="{
+                      display_name: reply.created_display_name,
+                      email: reply.created_by_email,
+                      meta: reply.created_by_meta,
+                    }"
+                    class="mt-0.5"
+                    size="small"
+                  />
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <span class="truncate text-nc-content-gray font-medium !text-small !leading-[18px]">
+                        {{ createdBy(reply) }}
+                      </span>
+                      <span class="text-xs text-nc-content-gray-muted flex-shrink-0">
+                        {{ timeAgo(reply.created_at!) }}
+                      </span>
+                      <div class="flex-1" />
+                      <NcButton
+                        v-if="!editCommentValue && user && reply.created_by_email === user.email && hasEditPermission"
+                        v-e="['c:row-expand:reply:delete']"
+                        class="nc-comment-more-actions opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity duration-150 !w-6 !h-6 !bg-transparent !hover:bg-nc-bg-gray-medium"
+                        size="xsmall"
+                        type="text"
+                        @click="deleteComment(reply.id!)"
+                      >
+                        <GeneralIcon class="text-md" icon="delete" />
+                      </NcButton>
+                    </div>
+                    <div
+                      v-dompurify-html="parsedHtmlComments[reply.id]"
+                      class="nc-rich-text-content !text-small !leading-18px !text-nc-content-gray mt-0.5"
+                      @click="handleDompurifyLinkClick"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Reply input -->
+          <div v-if="replyingTo === commentItem.id && hasEditPermission" class="nc-comment-reply-input pl-12 pr-3 py-2">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs text-nc-content-gray-muted">Replying</span>
+              <button class="text-xs text-nc-content-gray-muted hover:text-nc-content-gray" @click="cancelReply">
+                ✕
+              </button>
+            </div>
+            <SmartsheetExpandedFormRichComment
+              ref="replyInputRef"
+              v-model:value="replyComment"
+              :hide-options="false"
+              :placeholder="`${$t('general.reply')}...`"
+              class="expanded-form-comment-input !py-2 !px-2 cursor-text border-1 rounded-lg w-full bg-transparent !text-nc-content-gray !text-small !leading-18px !max-h-[160px]"
+              autofocus
+              data-testid="expanded-form-reply-input"
+              @keydown="handleKeyPress"
+              @keydown.enter.exact.prevent="saveReply"
+              @keydown.esc="cancelReply"
+              @save="saveReply"
+            />
           </div>
         </div>
       </div>
@@ -615,8 +761,10 @@ onBeforeUnmount(() => {
 
 .nc-hovered-comment {
   .nc-expand-form-more-actions,
-  .nc-resolve-comment-btn {
-    @apply !block;
+  .nc-resolve-comment-btn,
+  .nc-reply-comment-btn,
+  .nc-comment-more-actions {
+    @apply !opacity-100 !pointer-events-auto;
   }
 }
 
@@ -650,6 +798,10 @@ onBeforeUnmount(() => {
 
 .nc-reaction-quick-btn {
   @apply w-8 h-8 flex items-center justify-center rounded-md text-lg hover:bg-nc-bg-gray-light cursor-pointer transition-colors;
+}
+
+.nc-comment-reply-input {
+  @apply border-l-2 border-nc-border-gray-medium ml-3;
 }
 </style>
 

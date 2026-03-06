@@ -85,8 +85,17 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
-    const { comments, resolveComment, loadComments, updateComment, deleteComment, saveComment, isCommentsLoading } =
-      useProvideRowComments(meta, row)
+    const {
+      comments,
+      threadedComments,
+      replyingTo,
+      resolveComment,
+      loadComments,
+      updateComment,
+      deleteComment,
+      saveComment,
+      isCommentsLoading,
+    } = useProvideRowComments(meta, row)
 
     const { isUIAllowed } = useRoles()
 
@@ -934,6 +943,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       deleteComment,
       loadAudits,
       comments,
+      threadedComments,
+      replyingTo,
       audits,
       isAuditLoading,
       clearColumns,

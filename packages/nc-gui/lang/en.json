@@ -337,6 +337,7 @@
     "activate": "Activate",
     "action": "Action",
     "insert": "Insert",
+    "reply": "Reply",
     "delete": "Delete",
     "deleteEntity": "Delete {entity}",
     "bulkInsert": "Bulk Insert",

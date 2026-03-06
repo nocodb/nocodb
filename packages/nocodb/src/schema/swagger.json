@@ -22900,6 +22900,11 @@
             "type": "string",
             "description": "Row ID",
             "example": "3"
+          },
+          "parent_comment_id": {
+            "type": "string",
+            "description": "Parent Comment ID for threaded replies",
+            "example": "cmt043cx4r30343ff"
           }
         },
         "required": [

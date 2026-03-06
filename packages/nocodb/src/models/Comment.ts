@@ -194,6 +194,36 @@ export default class Comment implements CommentType {
     return true;
   }
 
+  static async deleteReplies(
+    context: NcContext,
+    parentCommentId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta
+      .knex(MetaTable.COMMENTS)
+      .where('parent_comment_id', parentCommentId)
+      .update({ is_deleted: true });
+
+    return true;
+  }
+
+  static async listReplies(
+    context: NcContext,
+    parentCommentId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Comment[]> {
+    const replies = await ncMeta
+      .knex(MetaTable.COMMENTS)
+      .select(`${MetaTable.COMMENTS}.*`)
+      .where('parent_comment_id', parentCommentId)
+      .where(function () {
+        this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+      })
+      .orderBy('created_at', 'asc');
+
+    return replies.map((r) => new Comment(r));
+  }
+
   static async deleteModelComments(
     context: NcContext,
     fk_model_id: string,

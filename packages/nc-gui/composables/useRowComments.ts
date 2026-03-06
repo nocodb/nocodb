@@ -11,6 +11,10 @@ export interface CommentTypeExtended extends CommentType {
   reactions?: CommentReactionType[]
 }
 
+export interface ThreadedCommentType extends CommentTypeExtended {
+  replies: CommentTypeExtended[]
+}
+
 const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const isCommentsLoading = ref(false)
 
@@ -102,7 +106,8 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     if (!tempC) return
 
     try {
-      comments.value = comments.value.filter((c) => c.id !== commentId)
+      // Remove comment and its replies (if it's a parent)
+      comments.value = comments.value.filter((c) => c.id !== commentId && c.parent_comment_id !== commentId)
 
       await $api.internal.postOperation(
         (meta.value as any).fk_workspace_id!,
@@ -184,7 +189,7 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
-  const saveComment = async (comment: string) => {
+  const saveComment = async (comment: string, parentCommentId?: string) => {
     try {
       if (!row.value || !comment) {
         comments.value = comments.value.filter((c) => !c.id?.startsWith('temp-'))
@@ -195,17 +200,23 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
 
       if (!rowId) return
 
+      const payload: Record<string, string> = {
+        fk_model_id: meta.value?.id as string,
+        row_id: rowId,
+        comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
+      }
+
+      if (parentCommentId) {
+        payload.parent_comment_id = parentCommentId
+      }
+
       await $api.internal.postOperation(
         (meta.value as any).fk_workspace_id!,
         meta.value!.base_id!,
         {
           operation: 'commentRow',
         },
-        {
-          fk_model_id: meta.value?.id as string,
-          row_id: rowId,
-          comment: `${comment}`.replace(/(<br \/>)+$/g, ''),
-        },
+        payload,
       )
 
       // Increase Comment Count in rowMeta
@@ -411,12 +422,40 @@ const [useProvideRowComments, useRowComments] = useInjectionState((meta: Ref<Tab
     }
   }
 
+  const replyingTo = ref<string | null>(null)
+
+  const threadedComments = computed<ThreadedCommentType[]>(() => {
+    const topLevel: ThreadedCommentType[] = []
+    const repliesMap = new Map<string, CommentTypeExtended[]>()
+
+    for (const c of comments.value) {
+      if (c.parent_comment_id) {
+        const list = repliesMap.get(c.parent_comment_id) || []
+        list.push(c)
+        repliesMap.set(c.parent_comment_id, list)
+      }
+    }
+
+    for (const c of comments.value) {
+      if (!c.parent_comment_id) {
+        topLevel.push({
+          ...c,
+          replies: repliesMap.get(c.id!) || [],
+        })
+      }
+    }
+
+    return topLevel
+  })
+
   const primaryKey = computed(() => {
     return extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
   })
 
   return {
     comments,
+    threadedComments,
+    replyingTo,
     loadComments,
     saveComment,
     updateComment,

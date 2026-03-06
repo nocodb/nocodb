@@ -295,10 +295,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       if (!params?.ignoreLoading) isCollaboratorsLoading.value = false
-
-      workspaceTeamList(workspaceId ?? activeWorkspace.value!.id!).catch(() => {
-        // ignore
-      })
     }
   }
 
@@ -454,10 +450,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     if (force || !wsState || !(wsState as any)?.payment) {
       await loadWorkspace(workspaceId)
       await loadRoles(route.value.params.baseId)
-      // todo: handle in a better way
-      loadTeams({ workspaceId }).catch(() => {
-        // ignore
-      })
     }
 
     if (activeWorkspace.value?.status === WorkspaceStatus.CREATED) {
@@ -708,7 +700,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       teams.value = list
     } catch (e: any) {
       teams.value = []
-      message.error(await extractSdkResponseErrorMsg(e))
+      // Silently ignore forbidden errors (e.g. free plan without team management access)
+      if (e?.response?.status !== 403) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     } finally {
       isTeamsLoading.value = false
     }
@@ -1171,7 +1166,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       return list || []
     } catch (e: any) {
       workspaceTeams.value = []
-      message.error(await extractSdkResponseErrorMsg(e))
+      // Silently ignore forbidden errors (e.g. free plan without team management access)
+      if (e?.response?.status !== 403) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
     } finally {
       isLoadingWorkspaceTeams.value = false
     }
@@ -1299,7 +1297,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
    */
   watch(activeWorkspaceId, async () => {
     await loadRoles(undefined, {}, activeWorkspaceId.value)
-    if (activeWorkspaceId.value) await loadTeams({ workspaceId: activeWorkspaceId.value! })
   })
 
   // When plan data loads, trigger team loading if teams are available
@@ -1312,6 +1309,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       if (blockTeamsManagement.value) return
 
       loadTeams({ workspaceId: activeWorkspaceId.value! }).catch(() => {
+        // ignore
+      })
+      workspaceTeamList(activeWorkspaceId.value!).catch(() => {
         // ignore
       })
     },

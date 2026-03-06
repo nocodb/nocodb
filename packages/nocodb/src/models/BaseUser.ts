@@ -447,11 +447,11 @@ export default class BaseUser {
       },
     );
 
-    // delete list cache to refresh list
+    // delete individual cache and remove from parent list
     await NocoCache.deepDel(
       context,
-      `${CacheScope.BASE_USER}:${baseId}:list`,
-      CacheDelDirection.PARENT_TO_CHILD,
+      `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     cleanCommandPaletteCacheForUser(userId).catch(() => {

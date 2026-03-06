@@ -158,10 +158,11 @@ const hasDashboardCreateAccess = computed(() => {
       v-model:visible="isVisibleCreateNew"
       placement="rightBottom"
       overlay-class-name="!min-w-48 nc-create-new-dropdown"
+      :align="{ offset: [12, 3] }"
     >
       <div class="w-full py-1 flex items-center justify-center">
         <div
-          class="border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
+          class="nc-mini-sidebar-plus-btn border-1 w-7 h-7 flex-none rounded-full overflow-hidden transition-all duration-300 flex items-center justify-center bg-nc-bg-gray-medium cursor-pointer"
           :class="{
             'border-nc-border-gray-dark': !isVisibleCreateNew,
             'active border-primary shadow-selected': isVisibleCreateNew,
@@ -374,22 +375,18 @@ const hasDashboardCreateAccess = computed(() => {
 </template>
 
 <style lang="scss">
-.nc-create-new-dropdown.nc-create-new-dropdown {
-  padding-left: 14px;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
+.nc-mini-sidebar-plus-btn svg {
+  stroke-width: 2.5;
+}
 
-  > .nc-menu {
-    @apply rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default;
-  }
+.nc-create-new-dropdown.nc-create-new-dropdown {
+  overflow: visible !important;
 
   &::before {
     content: '';
     position: absolute;
-    left: 8px;
-    bottom: 12px;
+    left: -6px;
+    bottom: 11px;
     width: 0;
     height: 0;
     border-top: 7px solid transparent;
@@ -400,7 +397,7 @@ const hasDashboardCreateAccess = computed(() => {
   &::after {
     content: '';
     position: absolute;
-    left: 9px;
+    left: -5px;
     bottom: 13px;
     width: 0;
     height: 0;

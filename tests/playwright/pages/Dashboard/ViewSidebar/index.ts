@@ -198,8 +198,18 @@ export class ViewSidebarPage extends BasePage {
   }
 
   async changeViewIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
-    await this.rootPage.waitForTimeout(1000);
-    await this.get().locator(`[data-testid="view-sidebar-view-${title}"] .nc-view-icon`).click();
+    await this.get().locator(`[data-testid="view-sidebar-view-${title}"]`).hover();
+    await this.get()
+      .locator(`[data-testid="view-sidebar-view-${title}"]`)
+      .locator('.nc-sidebar-view-node-context-btn')
+      .click();
+
+    await this.rootPage
+      .locator(`[data-testid="view-sidebar-view-actions-${title}"]`)
+      .locator('.nc-menu-item-change-icon')
+      .click({
+        force: true,
+      });
 
     await this.rootPage.locator('.emoji-mart-search').type(icon);
     const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');

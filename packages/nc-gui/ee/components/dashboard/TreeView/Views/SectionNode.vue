@@ -195,8 +195,8 @@ const onChangeColor = (color: string) => {
   <div
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-muted text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer rounded-md pr-[3px]"
     :class="{
-      '!pl-7.5 !xs:(pl-6.5)': isDefaultSource !== false,
-      '!pl-14 !xs:(pl-13)': isDefaultSource === false,
+      '!pl-7.5': !!isDefaultSource,
+      '!pl-14': !isDefaultSource,
     }"
     :data-testid="`view-sidebar-section-${section.title}`"
     @click.prevent="handleOnClick"
@@ -231,7 +231,7 @@ const onChangeColor = (color: string) => {
           @mouseenter="showSectionNodeTooltip = false"
           @mouseleave="showSectionNodeTooltip = true"
         >
-          <NcButton type="text" size="xsmall" class="!px-0">
+          <NcButton type="text" size="xxsmall" class="!px-0 !h-6 !w-6">
             <GeneralIcon :icon="isExpanded ? 'ncFolderOpen' : 'ncFolderClosed'" class="w-4 h-4" :style="{ color: iconColor }" />
           </NcButton>
         </div>

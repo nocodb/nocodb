@@ -505,14 +505,45 @@ defineExpose({
             :data-testid="`nc-sidebar-base-title-${base.title}`"
             class="nc-sidebar-node base-title-node flex-grow rounded-md group flex items-center w-full"
           >
+            <!-- Mobile: plain chevron before icon -->
             <div
               v-if="!isProjectHeader"
-              class="flex items-center mr-1"
-              @click="onProjectClick(base)"
-              @mouseenter="showNodeTooltip = false"
-              @mouseleave="showNodeTooltip = true"
+              class="hidden !xs:(flex items-center justify-center) w-6 h-6 flex-none cursor-pointer"
+              @click.stop="onProjectClick(base, true, true)"
             >
-              <div class="flex items-center select-none w-6 h-full">
+              <GeneralIcon
+                icon="chevronRight"
+                class="transform transition-transform duration-200 !text-nc-content-gray-subtle2 text-[16px]"
+                :class="{ '!rotate-90': base.isExpanded }"
+              />
+            </div>
+            <div
+              v-if="!isProjectHeader"
+              class="flex items-center mr-1 nc-base-icon-wrapper min-w-6 h-6 relative"
+              @click.stop
+            >
+              <!-- Desktop: combo chevron overlay -->
+              <NcButton
+                v-e="['c:base:toggle-expand']"
+                type="text"
+                size="xxsmall"
+                class="nc-base-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md !xs:hidden"
+                @click.stop="onProjectClick(base, true, true)"
+                @mouseenter="showNodeTooltip = false"
+                @mouseleave="showNodeTooltip = true"
+              >
+                <GeneralIcon
+                  icon="chevronRight"
+                  class="cursor-pointer transform transition-transform duration-200 !text-current text-[16px]"
+                  :class="{ '!rotate-90': base.isExpanded }"
+                />
+              </NcButton>
+              <div
+                class="flex items-center select-none w-6 h-full group-hover:opacity-0 xs:group-hover:opacity-100 transition-opacity duration-150"
+                @click="onProjectClick(base)"
+                @mouseenter="showNodeTooltip = false"
+                @mouseleave="showNodeTooltip = true"
+              >
                 <a-spin v-if="base.isLoading" class="!ml-1.25 !flex !flex-row !items-center !my-0.5 w-8" :indicator="indicator" />
 
                 <div v-else>
@@ -634,22 +665,6 @@ defineExpose({
                   </NcTooltip>
                 </NcButton>
 
-                <NcButton
-                  type="text"
-                  size="xxsmall"
-                  class="nc-sidebar-node-btn nc-sidebar-expand !xs:opacity-100 !mr-0 mt-0.5"
-                  :class="{
-                    '!opacity-100': isOptionsOpen,
-                  }"
-                  @click="onProjectClick(base, true, true)"
-                  @mouseenter="showNodeTooltip = false"
-                  @mouseleave="showNodeTooltip = true"
-                >
-                  <GeneralIcon
-                    icon="chevronRight"
-                    class="group-hover:visible cursor-pointer transform transition-transform duration-200 text-[20px]"
-                  />
-                </NcButton>
               </template>
             </template>
           </div>

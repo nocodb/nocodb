@@ -57,19 +57,19 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section pt-1 !pb-2 flex flex-col gap-2">
+      <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section !pt-1 !pb-0.5 flex flex-col">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"
               size="small"
               full-width
-              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-brand !hover:(text-nc-content-brand-disabled) !xs:hidden !w-full !px-3"
+              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
               data-testid="nc-home-create-new-btn"
             >
               <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncPlusCircleSolid" />
+                <GeneralIcon icon="ncPlusCircle" class="!text-nc-content-brand" />
 
                 <div>{{ $t('labels.createNew') }}</div>
               </div>
@@ -110,6 +110,10 @@ const hasTableCreatePermission = computed(() => {
 </template>
 
 <style lang="scss" scoped>
+:deep(.nc-sidebar-header) {
+  @apply border-b-1 border-nc-border-gray-medium;
+}
+
 :deep(.ant-collapse-header) {
   @apply !mx-0 !pl-2 h-7 !xs:(pl-2 h-[3rem]) !pr-0.5 !py-0 hover:bg-nc-bg-gray-medium xs:(hover:bg-nc-bg-brand) !rounded-md;
 

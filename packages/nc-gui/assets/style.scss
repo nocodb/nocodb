@@ -867,6 +867,10 @@ a {
   @apply !text-right;
 }
 
+.ant-message-notice.nc-update-notification-center {
+  @apply !text-center;
+}
+
 .ant-pagination {
   @apply !flex !flex-row !gap-1;
 }

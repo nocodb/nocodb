@@ -9,12 +9,13 @@ const { toggleMode } = useMiniSidebarMode()
 
 const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
 
-const themeLabel = computed(() =>
-  ({
-    light: 'Light',
-    dark: 'Dark',
-    system: 'System',
-  }[selectedTheme.value]),
+const themeLabel = computed(
+  () =>
+    ({
+      light: 'Light',
+      dark: 'Dark',
+      system: 'System',
+    }[selectedTheme.value]),
 )
 
 const themeIcon = computed(
@@ -142,9 +143,8 @@ const openKeyboardShortcutDialog = () => {
       <NcDropdown
         v-model:visible="isMenuOpen"
         placement="rightBottom"
-        overlay-class-name="!min-w-44 md:!min-w-64 nc-user-menu-dropdown"
-        :overlay-style="{ marginLeft: '8px' }"
-        :trigger="['click']"
+        :overlay-class-name="`!min-w-44 md:!min-w-64 nc-user-menu-dropdown`"
+        :align="{ offset: [12, 3] }"
       >
         <NcTooltip :disabled="isMobileMode" placement="right" hide-on-click :arrow="false">
           <template #title>
@@ -501,20 +501,12 @@ const openKeyboardShortcutDialog = () => {
 
 <style lang="scss">
 .nc-user-menu-dropdown.nc-user-menu-dropdown {
-  padding-left: 14px;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  border-radius: 0 !important;
-
-  > .nc-menu {
-    @apply rounded-lg border-1 border-nc-border-gray-medium shadow-lg bg-nc-bg-default;
-  }
+  overflow: visible !important;
 
   &::before {
     content: '';
     position: absolute;
-    left: 8px;
+    left: -6px;
     bottom: 12px;
     width: 0;
     height: 0;
@@ -526,7 +518,7 @@ const openKeyboardShortcutDialog = () => {
   &::after {
     content: '';
     position: absolute;
-    left: 9px;
+    left: -5px;
     bottom: 13px;
     width: 0;
     height: 0;

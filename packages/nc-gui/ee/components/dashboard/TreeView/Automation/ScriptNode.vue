@@ -44,6 +44,8 @@ const base = inject(ProjectInj, ref())
 
 const input = ref<HTMLInputElement>()
 
+const emojiPickerRef = ref<HTMLElement>()
+
 const isDropdownOpen = ref(false)
 
 const isEditing = ref(false)
@@ -169,6 +171,13 @@ const onRenameMenuClick = () => {
       focusInput()
     })
   }
+}
+
+const onChangeIcon = () => {
+  isDropdownOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
 }
 
 async function onRenameScript(script: ScriptType, originalTitle?: string, undo = false) {
@@ -365,10 +374,13 @@ const deleteScript = () => {
         class="text-bodyDefaultSm font-medium flex items-center w-full gap-1"
         data-testid="script-item"
       >
+        <!-- pointer-events-none is intentional — icon changes are triggered via the
+             "Change Icon" context menu item which programmatically opens the picker. -->
         <div
+          ref="emojiPickerRef"
           v-e="['c:script:emoji-picker']"
           :data-testid="`view-sidebar-drag-handle-${vModel.title}`"
-          class="flex min-w-6"
+          class="flex min-w-6 pointer-events-none"
           @mouseenter="showScriptNodeTooltip = false"
           @mouseleave="showScriptNodeTooltip = true"
           @click.stop
@@ -378,9 +390,9 @@ const deleteScript = () => {
             :key="props.script?.meta?.icon"
             :clearable="true"
             :emoji="props.script?.meta?.icon"
-            :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             class="nc-script-icon"
             size="small"
+            :readonly="isMobileMode || !isUIAllowed('scriptCreateOrEdit')"
             @emoji-selected="updateScriptIcon($event, vModel)"
           >
             <template #default>
@@ -491,6 +503,7 @@ const deleteScript = () => {
                     <GeneralIcon class="text-nc-content-gray-subtle" icon="ncAlignLeft" />
                     {{ $t('labels.editDescription') }}
                   </NcMenuItem>
+                  <NcMenuItemChangeIcon v-e="['c:script:change-icon']" @change-icon="onChangeIcon" />
                   <NcDivider />
                   <NcMenuItem
                     v-e="['c:script:duplicate']"

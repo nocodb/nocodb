@@ -392,7 +392,15 @@ export class TreeViewPage extends BasePage {
   async changeTableIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     const tableTitle = title.replace(/ /g, '');
 
-    await this.get().locator(`.nc-base-tree-tbl-${tableTitle} .nc-table-icon-wrapper`).click();
+    await this.waitForTableOptions({ title });
+
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator('.nc-tbl-context-menu').click();
+
+    await this.rootPage.getByTestId(`sidebar-table-context-menu-list-${tableTitle}`).waitFor({ state: 'visible' });
+    await this.rootPage
+      .getByTestId(`sidebar-table-context-menu-list-${tableTitle}`)
+      .locator('.nc-menu-item-change-icon')
+      .click();
 
     await this.rootPage.locator('.emoji-mart-search > input').fill(icon);
     const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');

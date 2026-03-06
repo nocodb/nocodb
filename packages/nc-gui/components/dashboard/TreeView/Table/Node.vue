@@ -69,6 +69,15 @@ const isTableRlsDialogVisible = ref(false)
 
 const isOptionsOpen = ref(false)
 
+const emojiPickerRef = ref<HTMLElement>()
+
+const onChangeIcon = () => {
+  isOptionsOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
+}
+
 const input = ref<HTMLInputElement>()
 
 /** Is editing the table name enabled */
@@ -421,7 +430,7 @@ const enabledOptions = computed(() => {
         class="flex-none flex-1 table-context flex items-center gap-1 h-full nc-tree-item-inner nc-sidebar-node pr-0.75 mb-0.25 rounded-md h-7 w-full group cursor-pointer hover:bg-nc-bg-gray-medium text-bodyDefaultSm font-medium"
         :class="{
           'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
-          'pl-8 !xs:(pl-7)': sourceIndex !== 0,
+          'pl-8': sourceIndex !== 0,
           'pl-2 xs:(pl-2)': sourceIndex === 0,
         }"
         :data-testid="`nc-tbl-side-node-${table.title}`"
@@ -431,28 +440,50 @@ const enabledOptions = computed(() => {
         <div class="flex flex-row h-full items-center">
           <div class="flex w-auto" :data-testid="`tree-view-table-draggable-handle-${table.title}`">
             <GeneralLoader v-if="table.isViewsLoading" class="flex items-center w-6 h-full !text-nc-content-gray-subtle2" />
+            <!-- Mobile: plain chevron before icon -->
             <div
-              v-else
-              v-e="['c:table:emoji-picker']"
-              class="flex items-center nc-table-icon-wrapper min-w-6"
-              :class="{
-                'pointer-events-none': !canUserEditEmote,
-              }"
-              @click.stop
+              v-if="!table.isViewsLoading"
+              class="hidden !xs:(flex items-center justify-center) w-6 h-6 flex-none cursor-pointer"
+              @click.stop="onExpand"
             >
-              <LazyGeneralEmojiPicker
-                :key="table.meta?.icon"
-                :emoji="table.meta?.icon"
-                size="small"
-                :readonly="!canUserEditEmote || isMobileMode"
-                @emoji-selected="setIcon($event, table)"
+              <GeneralIcon
+                icon="chevronRight"
+                class="transform transition-transform duration-200 !text-nc-content-gray-subtle2 text-[16px]"
+                :class="{ '!rotate-90': isExpanded }"
+              />
+            </div>
+            <div v-if="!table.isViewsLoading" class="flex items-center nc-table-icon-wrapper min-w-6 relative" @click.stop>
+              <!-- Desktop: combo chevron overlay -->
+              <NcButton
+                v-e="['c:table:toggle-expand']"
+                type="text"
+                size="xxsmall"
+                class="nc-table-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 text-nc-content-gray-subtle2 hover:text-nc-content-gray !rounded-md !xs:hidden"
+                @click.stop="onExpand"
               >
-                <template #default="{ isOpen }">
-                  <NcTooltip class="flex" placement="topLeft" hide-on-click :disabled="!canUserEditEmote || isOpen">
-                    <template #title>
-                      {{ $t('general.changeIcon') }}
-                    </template>
+                <GeneralIcon
+                  icon="chevronRight"
+                  class="cursor-pointer transform transition-transform duration-200 !text-current text-[16px]"
+                  :class="{ '!rotate-90': isExpanded }"
+                />
+              </NcButton>
 
+              <!-- Table icon/emoji (hidden on hover, replaced by chevron).
+                   pointer-events-none is intentional — icon changes are triggered via the
+                   "Change Icon" context menu item which programmatically opens the picker. -->
+              <div
+                ref="emojiPickerRef"
+                v-e="['c:table:emoji-picker']"
+                class="flex items-center group-hover:opacity-0 xs:group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
+              >
+                <LazyGeneralEmojiPicker
+                  :key="table.meta?.icon"
+                  :emoji="table.meta?.icon"
+                  size="small"
+                  :readonly="!canUserEditEmote || isMobileMode"
+                  @emoji-selected="setIcon($event, table)"
+                >
+                  <template #default>
                     <component
                       :is="iconMap.ncZap"
                       v-if="table?.synced"
@@ -466,9 +497,9 @@ const enabledOptions = computed(() => {
                     />
 
                     <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-content-gray-muted" />
-                  </NcTooltip>
-                </template>
-              </LazyGeneralEmojiPicker>
+                  </template>
+                </LazyGeneralEmojiPicker>
+              </div>
             </div>
           </div>
         </div>
@@ -564,6 +595,13 @@ const enabledOptions = computed(() => {
                     </div>
                   </NcMenuItem>
 
+                  <NcMenuItemChangeIcon
+                    v-e="['c:table:change-icon']"
+                    :disabled="!!(!canUserEditEmote || isMobileMode)"
+                    :data-testid="`sidebar-table-change-icon-${table.title}`"
+                    @change-icon="onChangeIcon"
+                  />
+
                   <NcMenuItem
                     v-if="enabledOptions.tableDuplicate"
                     :data-testid="`sidebar-table-duplicate-${table.title}`"
@@ -656,22 +694,28 @@ const enabledOptions = computed(() => {
             </template>
           </NcDropdown>
 
-          <NcButton
-            v-e="['c:table:toggle-expand']"
-            type="text"
-            size="xxsmall"
-            class="nc-sidebar-node-btn nc-sidebar-expand text-nc-content-gray-subtle2 hover:text-nc-content-gray"
-            :class="{
-              '!opacity-100 !visible': isOptionsOpen,
-            }"
-            @click.stop="onExpand"
+          <DashboardTreeViewCreateViewBtn
+            v-if="!isSharedBase && isUIAllowed('viewCreateOrEdit')"
+            :align-left-level="undefined"
+            :source="source"
+            placement="bottomRight"
           >
-            <GeneralIcon
-              icon="chevronRight"
-              class="nc-sidebar-source-node-btns cursor-pointer transform transition-transform duration-200 !text-current text-[20px]"
-              :class="{ '!rotate-90': isExpanded }"
-            />
-          </NcButton>
+            <NcButton
+              v-e="['c:table:create-view']"
+              type="text"
+              size="xxsmall"
+              class="nc-sidebar-node-btn nc-sidebar-expand text-nc-content-gray-subtle2 hover:text-nc-content-gray"
+              :class="{
+                '!opacity-100 !visible': isOptionsOpen,
+              }"
+              data-testid="nc-sidebar-table-create-view-btn"
+              @click.stop
+            >
+              <NcTooltip :title="$t('activity.createView')" hide-on-click>
+                <GeneralIcon icon="plus" class="!text-current text-[16px]" />
+              </NcTooltip>
+            </NcButton>
+          </DashboardTreeViewCreateViewBtn>
         </div>
       </div>
     </div>

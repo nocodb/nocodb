@@ -6,13 +6,9 @@ import Sortable from 'sortablejs'
 const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
 
-const { isSharedBase } = storeToRefs(useBase())
-
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
-
-const { activeTableId } = storeToRefs(useTablesStore())
 
 const { $e } = useNuxtApp()
 
@@ -321,36 +317,6 @@ watch(
 
 <template>
   <div>
-    <!-- Create View button (EE version with section creation support) -->
-    <template v-if="!isSharedBase">
-      <DashboardTreeViewCreateViewBtn
-        v-if="isUIAllowed('viewCreateOrEdit')"
-        :align-left-level="isDefaultSource ? 1 : 2"
-        :class="{
-          '!pl-7.5 !xs:(pl-7.5)': isDefaultSource,
-          '!pl-13.6 !xs:(pl-15)': !isDefaultSource,
-        }"
-        :source="source"
-        @create-section="onCreateSection"
-      >
-        <div
-          :class="{
-            'text-nc-content-brand hover:text-nc-content-brand-disabled': activeTableId === table.id,
-            'text-nc-content-gray-muted hover:text-nc-content-brand': activeTableId !== table.id,
-          }"
-          class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
-          role="button"
-        >
-          <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
-            <GeneralIcon icon="plus" class="nc-create-view-btn-icon" />
-            <div class="pl-1.75">
-              {{ $t('general.createEntity', { entity: $t('objects.view') }) }}
-            </div>
-          </div>
-        </div>
-      </DashboardTreeViewCreateViewBtn>
-    </template>
-
     <!-- Sections exist: section sortable + per-section view lists -->
     <template v-if="showDefaultFolder">
       <!-- Real sections sortable container (only real sections, not default) -->
@@ -375,7 +341,7 @@ watch(
           <DashboardTreeViewViewsList
             v-if="expandedSections[section.id!] || getActiveViewForSection(section.id).length"
             :section-views="expandedSections[section.id!] ? getViewsInSection(section.id) : getActiveViewForSection(section.id)"
-            :hide-create-view-btn="true"
+
             :is-in-section="true"
           />
         </div>
@@ -410,7 +376,7 @@ watch(
 
     <!-- No sections: flat view list (Create View button already rendered above) -->
     <template v-else>
-      <DashboardTreeViewViewsList :hide-create-view-btn="true" />
+      <DashboardTreeViewViewsList />
     </template>
 
     <!-- Delete section confirmation modal -->

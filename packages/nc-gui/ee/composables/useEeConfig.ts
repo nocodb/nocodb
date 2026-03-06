@@ -608,15 +608,17 @@ export const useEeConfig = createSharedComposable(() => {
 
     const searchQuery = new URLSearchParams(paramsObj).toString()
 
+    const wsId = workspaceId || activeWorkspaceId.value
+    if (!wsId) return
+
+    const pricingPath = `/${wsId}/pricing${searchQuery ? `?${searchQuery}` : ''}`
+
     if (newTab) {
-      window.open(
-        `/?pricing=true&workspaceId=${workspaceId || activeWorkspaceId.value}${searchQuery ? `&${searchQuery}` : ''}`,
-        '_blank',
-      )
+      window.open(pricingPath, '_blank')
       return
     }
 
-    navigateTo(`/${workspaceId || activeWorkspaceId.value}/pricing${searchQuery ? `?${searchQuery}` : ''}`)
+    navigateTo(pricingPath)
   }
 
   const handleOnPremUpgrade = ({

@@ -1,37 +1,33 @@
-export default defineNuxtRouteMiddleware(() => {
-  const params = new URLSearchParams(window.location.search)
-  const afterPayment = params.get('afterPayment')
-  const afterManage = params.get('afterManage')
-  const afterUpgrade = params.get('afterUpgrade')
+export default defineNuxtRouteMiddleware((to) => {
+  // Use to.query (the incoming route) instead of window.location.search.
+  // During client-side navigateTo(), window.location hasn't updated yet
+  // when middleware runs for the new route, causing stale param reads and loops.
+  const query = to.query
 
-  const upgrade = params.get('upgrade')
+  const afterPayment = query.afterPayment
+  const afterManage = query.afterManage
+  const afterUpgrade = query.afterUpgrade
 
-  const pricing = params.get('pricing')
+  const upgrade = query.upgrade
+
+  const pricing = query.pricing
 
   if (upgrade) {
-    const url = `/upgrade?${params.toString()}`
-
-    window.location.href = url
-
-    return
+    const { upgrade: _, ...rest } = query
+    return navigateTo({ path: '/upgrade', query: rest })
   }
 
   if (pricing) {
-    const workspaceId = params.get('workspaceId')
+    const workspaceId = query.workspaceId as string
+    if (!workspaceId) return
 
-    const searchParams = new URLSearchParams(params.toString())
-    searchParams.delete('workspaceId')
-
-    const url = `/${workspaceId}/pricing${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
-
-    window.location.href = url
-
-    return
+    const { pricing: _, workspaceId: __, ...rest } = query
+    return navigateTo({ path: `/${workspaceId}/pricing`, query: rest })
   }
 
   if (afterPayment || afterManage || afterUpgrade) {
-    const workspaceId = params.get('workspaceId')
-    const returnToPage = params.get('returnToPage')
+    const workspaceId = query.workspaceId as string
+    const returnToPage = query.returnToPage as string
 
     // If no workspaceId in query, we're already on the correct page
     // (e.g. updateSubscription navigates directly with workspace in path)
@@ -47,9 +43,9 @@ export default defineNuxtRouteMiddleware(() => {
       targetPath = `/${workspaceId}/settings/ws-billing`
     }
 
-    // Only redirect if we're not already on the target path (prevents loop)
-    if (window.location.pathname === targetPath) return
+    // Only redirect if we're not already on the target path (prevents loop).
+    if (to.path === targetPath) return
 
-    window.location.href = `${targetPath}?${params.toString()}`
+    return navigateTo({ path: targetPath, query })
   }
 })

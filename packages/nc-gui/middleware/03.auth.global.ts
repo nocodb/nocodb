@@ -63,11 +63,15 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   /** if shared base allow without validating */
   if (to.params.typeOrId === 'base') return
 
+  /** In history mode, root URLs with payment query params (e.g. /?upgrade=true) are meaningful routes that should be preserved */
+  const hasPaymentRedirectParams = to.query.upgrade || to.query.pricing || to.query.afterPayment || to.query.afterManage || to.query.afterUpgrade
+
   /** if auth is required or unspecified (same `as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
     /** If this is the first usern navigate to signup page directly */
     if (state.appInfo.value.firstUser) {
-      const continuePath = to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? stripContinueParam(to.fullPath) : undefined
+      const continuePath =
+        to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasPaymentRedirectParams) ? stripContinueParam(to.fullPath) : undefined
       const query = continuePath ? { continueAfterSignIn: continuePath } : {}
       if (continuePath) {
         localStorage.setItem('continueAfterSignIn', continuePath)
@@ -88,7 +92,8 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     /** if user is still not signed in, redirect to signin page */
     if (!state.signedIn.value) {
-      const signinContinuePath = to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? stripContinueParam(to.fullPath) : undefined
+      const signinContinuePath =
+        to.fullPath !== '/' && (to.fullPath.match(/^\/(?!\?)/) || hasPaymentRedirectParams) ? stripContinueParam(to.fullPath) : undefined
       if (signinContinuePath) {
         localStorage.setItem('continueAfterSignIn', signinContinuePath)
       }

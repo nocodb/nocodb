@@ -117,14 +117,23 @@ const {
   openLinkInput,
   applyLink,
   cancelLinkInput,
+  linkHoverUrl,
+  linkHoverEl,
+  isLinkHoverVisible,
+  isLinkEditOpen,
   linkEditUrl,
-  isLinkEditVisible,
+  linkEditTitle,
   linkEditInputRef,
-  checkLinkMark,
-  onLinkEditChange,
+  hideLinkHover,
+  dismissLinkHover,
+  keepLinkHoverAlive,
+  copyLinkUrl,
+  openLinkEdit,
+  saveLinkEdit,
   deleteLinkEdit,
-  dismissLinkEdit,
-  openLinkExternal,
+  closeLinkEdit,
+  setupLinkHover,
+  cleanupLinkHover,
   showRichTextMenu,
   onSelectionUpdate,
 } = useDocEditorLinks({ editor, isEditable })
@@ -506,8 +515,8 @@ const _tiptapEditor = useEditor({
           event.preventDefault()
           const ed = editor.value
           if (ed) {
-            // Set pending flag synchronously so checkLinkMark suppresses the
-            // link edit bubble before pasteLinkMenu.visible is set in the timeout
+            // Set pending flag synchronously so the link hover preview is suppressed
+            // before pasteLinkMenu.visible is set in the timeout
             isPasteLinkPending.value = true
 
             // Insert URL as linked text
@@ -953,15 +962,80 @@ const onDownloadPDF = () => {
   downloadPDF()
 }
 
-// Dismiss paste-link menu on click outside
+// Dismiss paste-link menu and link edit popover on click outside
 const onDocClick = (e: MouseEvent) => {
-  if (!pasteLinkMenu.value.visible) return
   const target = e.target as HTMLElement
+
+  // Close link edit popover
+  if (isLinkEditOpen.value && !target.closest('.nc-link-edit-popover')) {
+    closeLinkEdit()
+  }
+
+  // Close link hover preview
+  if (isLinkHoverVisible.value && !target.closest('.nc-link-hover-preview') && !target.closest('a[href]')) {
+    dismissLinkHover()
+  }
+
+  if (!pasteLinkMenu.value.visible) return
   if (target.closest('.nc-paste-link-menu')) return
   dismissPasteLinkMenu()
 }
 onMounted(() => document.addEventListener('click', onDocClick, true))
 onBeforeUnmount(() => document.removeEventListener('click', onDocClick, true))
+
+// Setup link hover listeners on editor content container
+const editorContentRef = ref<HTMLElement | null>(null)
+
+// Position is derived from getBoundingClientRect which doesn't trigger Vue reactivity
+// on scroll. Use a ref updated explicitly when hover/edit state changes.
+const linkHoverStyle = ref<Record<string, string>>({ display: 'none' })
+
+const updateLinkHoverPosition = () => {
+  if (!linkHoverEl.value || (!isLinkHoverVisible.value && !isLinkEditOpen.value)) {
+    linkHoverStyle.value = { display: 'none' }
+    return
+  }
+  const rect = linkHoverEl.value.getBoundingClientRect()
+  const containerRect = editorContentRef.value?.getBoundingClientRect()
+  if (!containerRect) {
+    linkHoverStyle.value = { display: 'none' }
+    return
+  }
+  linkHoverStyle.value = {
+    position: 'absolute',
+    top: `${rect.bottom - containerRect.top + 4}px`,
+    left: `${rect.left - containerRect.left}px`,
+    zIndex: '50',
+  }
+}
+
+watch([isLinkHoverVisible, isLinkEditOpen], updateLinkHoverPosition)
+
+const isLinkCopiedTooltip = ref(false)
+const onCopyLinkUrl = async () => {
+  await copyLinkUrl()
+  isLinkCopiedTooltip.value = true
+  setTimeout(() => {
+    isLinkCopiedTooltip.value = false
+  }, 1500)
+}
+
+let cleanupHoverListeners: (() => void) | undefined
+
+watch(editorContentRef, (el, _oldEl, onCleanup) => {
+  if (el) {
+    cleanupHoverListeners = setupLinkHover(el)
+    onCleanup(() => {
+      cleanupHoverListeners?.()
+      cleanupHoverListeners = undefined
+    })
+  }
+})
+
+onBeforeUnmount(() => {
+  cleanupHoverListeners?.()
+  cleanupLinkHover()
+})
 
 // Intercept Cmd/Ctrl+F at document level so it works even when the editor
 // doesn't have focus (e.g. cursor is in the title input or page body).
@@ -1354,50 +1428,64 @@ onBeforeUnmount(() => {
                 </div>
               </BubbleMenu>
 
-              <!-- Link edit bubble menu: appears when cursor is on existing link text -->
-              <BubbleMenu
-                v-if="isEditable"
-                :editor="editor"
-                :tippy-options="{ duration: 100, maxWidth: 450 }"
-                :should-show="checkLinkMark"
-              >
-                <div
-                  v-if="isLinkEditVisible"
-                  class="nc-doc-link-input flex items-center gap-1 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg py-1 px-1"
-                >
-                  <input
-                    ref="linkEditInputRef"
-                    v-model="linkEditUrl"
-                    class="flex-1 min-w-60 px-2 py-1 text-sm bg-transparent outline-none text-nc-content-gray placeholder-nc-content-gray-muted"
-                    :placeholder="$t('placeholder.enterALink')"
-                    @change="onLinkEditChange"
-                    @keydown.enter.prevent="
-                      ;($event.target as HTMLInputElement)?.blur()
-                      editor?.commands.focus()
-                    "
-                    @keydown.escape.prevent="dismissLinkEdit(); editor?.commands.focus()"
-                  />
-                  <NcTooltip placement="top">
-                    <template #title>{{ $t('general.open') }}</template>
-                    <NcButton size="small" type="text" :disabled="!linkEditUrl.trim()" @click="openLinkExternal">
-                      <GeneralIcon icon="externalLink" />
-                    </NcButton>
-                  </NcTooltip>
-                  <NcTooltip placement="top">
-                    <template #title>{{ $t('general.remove') }}</template>
-                    <NcButton
-                      size="small"
-                      type="text"
-                      class="!hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
-                      @click="deleteLinkEdit"
-                    >
-                      <GeneralIcon icon="delete" />
-                    </NcButton>
-                  </NcTooltip>
-                </div>
-              </BubbleMenu>
+              <div ref="editorContentRef" class="relative">
+                <EditorContent :editor="editor" @click="onEditorClick" />
 
-              <EditorContent :editor="editor" @click="onEditorClick" />
+                <!-- Link hover preview (Notion-style) -->
+                <div
+                  v-if="isLinkHoverVisible && !isLinkEditOpen"
+                  :style="linkHoverStyle"
+                  class="nc-link-hover-preview"
+                  @mouseenter="keepLinkHoverAlive"
+                  @mouseleave="hideLinkHover"
+                >
+                  <GeneralIcon icon="globe" class="nc-link-hover-icon" />
+                  <span class="nc-link-hover-url truncate">{{ linkHoverUrl }}</span>
+                  <NcTooltip :title="isLinkCopiedTooltip ? $t('general.copied') : $t('general.copy')" placement="top">
+                    <GeneralIcon
+                      :icon="isLinkCopiedTooltip ? 'check' : 'copy'"
+                      class="nc-link-hover-action"
+                      @click="onCopyLinkUrl"
+                    />
+                  </NcTooltip>
+                  <span v-if="isEditable" class="nc-link-hover-edit" @click="openLinkEdit">{{ $t('general.edit') }}</span>
+                </div>
+
+                <!-- Link edit popover -->
+                <div
+                  v-if="isLinkEditOpen"
+                  :style="linkHoverStyle"
+                  class="nc-link-edit-popover"
+                  @mouseenter="keepLinkHoverAlive"
+                >
+                  <div class="nc-link-edit-field">
+                    <label class="nc-link-edit-label">{{ $t('labels.pageOrUrl') }}</label>
+                    <input
+                      ref="linkEditInputRef"
+                      v-model="linkEditUrl"
+                      class="nc-link-edit-input"
+                      :placeholder="$t('placeholder.enterALink')"
+                      @keydown.enter.prevent="saveLinkEdit"
+                      @keydown.escape.prevent="closeLinkEdit"
+                    />
+                  </div>
+                  <div class="nc-link-edit-field">
+                    <label class="nc-link-edit-label">{{ $t('labels.linkTitle') }}</label>
+                    <input
+                      v-model="linkEditTitle"
+                      class="nc-link-edit-input"
+                      :placeholder="$t('placeholder.enterTitle')"
+                      @keydown.enter.prevent="saveLinkEdit"
+                      @keydown.escape.prevent="closeLinkEdit"
+                    />
+                  </div>
+                  <div class="nc-link-edit-divider" />
+                  <div class="nc-link-edit-remove" @click="deleteLinkEdit">
+                    <GeneralIcon icon="delete" />
+                    <span>{{ $t('labels.removeLink') }}</span>
+                  </div>
+                </div>
+              </div>
 
               <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->
               <DocTableMenu v-if="isEditable" :editor="editor" />
@@ -1549,6 +1637,118 @@ onBeforeUnmount(() => {
 
   .nc-button {
     @apply !my-auto;
+  }
+}
+
+// --- Link hover preview (Notion-style) ---
+.nc-link-hover-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--nc-bg-default);
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  max-width: 400px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.nc-link-hover-icon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--nc-content-gray-muted);
+}
+
+.nc-link-hover-url {
+  color: var(--nc-content-gray);
+  min-width: 0;
+}
+
+.nc-link-hover-action {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  color: var(--nc-content-gray-muted);
+
+  &:hover {
+    color: var(--nc-content-gray);
+  }
+}
+
+.nc-link-hover-edit {
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--nc-content-gray-muted);
+  font-weight: 500;
+  padding-left: 4px;
+  border-left: 1px solid var(--nc-border-gray-medium);
+
+  &:hover {
+    color: var(--nc-content-gray);
+  }
+}
+
+// --- Link edit popover ---
+.nc-link-edit-popover {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: var(--nc-bg-default);
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  width: 300px;
+  font-size: 13px;
+}
+
+.nc-link-edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.nc-link-edit-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--nc-content-gray-muted);
+}
+
+.nc-link-edit-input {
+  padding: 6px 10px;
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 6px;
+  background: var(--nc-bg-default);
+  color: var(--nc-content-gray);
+  font-size: 13px;
+  outline: none;
+
+  &:focus {
+    border-color: var(--nc-fill-primary);
+  }
+}
+
+.nc-link-edit-divider {
+  height: 1px;
+  background: var(--nc-border-gray-medium);
+  margin-bottom: 8px;
+}
+
+.nc-link-edit-remove {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  cursor: pointer;
+  color: var(--nc-content-gray-muted);
+  border-radius: 4px;
+
+  &:hover {
+    color: var(--nc-content-red-dark);
   }
 }
 
@@ -2021,6 +2221,13 @@ onBeforeUnmount(() => {
     color: var(--nc-content-gray-disabled);
     pointer-events: none;
     height: 0;
+  }
+
+  // Slash command inline placeholder — "Type to search" hint after "/"
+  .nc-slash-placeholder {
+    color: var(--nc-content-gray-disabled);
+    pointer-events: none;
+    user-select: none;
   }
 
   // Lists — distinct markers for the first 3 nesting levels,

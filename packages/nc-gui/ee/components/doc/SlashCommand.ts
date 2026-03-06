@@ -11,6 +11,8 @@
 import { Extension } from '@tiptap/core'
 import Suggestion from '@tiptap/suggestion'
 import type { Editor, Range } from '@tiptap/core'
+import { Plugin, PluginKey } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { createApp, h, ref } from 'vue'
 import tippy from 'tippy.js'
 import type { Instance as TippyInstance } from 'tippy.js'
@@ -80,7 +82,7 @@ const icons = {
     '<circle cx="8" cy="8" r="6.67"/><line x1="8" y1="5.33" x2="8" y2="8"/><line x1="8" y1="10.67" x2="8.01" y2="10.67"/>',
   ),
   // Math icon
-  equation: svg('<path d="M2.67 13.33h10.67"/><path d="M2.67 2.67h4.67l-2 10.67"/><path d="M9.33 8h4"/><path d="M9.33 5.33l4 5.33"/><path d="M13.33 5.33l-4 5.33"/>'),
+  equation: svg('<rect width="12" height="12" x="2" y="2" rx="1.33"/><path d="M10.67 5.93V4.67H5.33l2.67 3.33-2.67 3.33h5.34v-1.26"/>'),
   // Date/time icons
   calendar: svg(
     '<rect x="2" y="2.67" width="12" height="12" rx="1.33" ry="1.33"/><line x1="10.67" y1="1.33" x2="10.67" y2="4"/><line x1="5.33" y1="1.33" x2="5.33" y2="4"/><line x1="2" y1="6.67" x2="14" y2="6.67"/>',
@@ -448,6 +450,8 @@ function embedCommands(): SlashCommandItem[] {
  * Rendering uses Vue's `createApp` to mount `SlashCommandMenu.vue` into
  * a tippy.js popup anchored to the cursor position.
  */
+const slashPlaceholderKey = new PluginKey<{ active: boolean; pos: number }>('slashPlaceholder')
+
 export const SlashCommandExtension = Extension.create({
   name: 'slashCommand',
 
@@ -469,10 +473,20 @@ export const SlashCommandExtension = Extension.create({
           const itemsRef = ref<SlashCommandItem[]>([])
           const commandRef = ref<((item: SlashCommandItem) => void) | null>(null)
 
+          // Helper to update the placeholder decoration state
+          const setPlaceholder = (editor: Editor, active: boolean, pos = 0) => {
+            editor.view.dispatch(
+              editor.view.state.tr.setMeta(slashPlaceholderKey, { active, pos }),
+            )
+          }
+
           return {
             onStart: (props: any) => {
               itemsRef.value = props.items
               commandRef.value = props.command
+
+              // Show "Type to search" placeholder after the "/"
+              setPlaceholder(props.editor, true, props.range.to)
 
               const el = document.createElement('div')
 
@@ -508,6 +522,10 @@ export const SlashCommandExtension = Extension.create({
             onUpdate: (props: any) => {
               itemsRef.value = props.items
               commandRef.value = props.command
+
+              // Hide placeholder once user starts typing a query
+              setPlaceholder(props.editor, !props.query, props.range.to)
+
               if (popup && props.clientRect) {
                 popup.setProps({ getReferenceClientRect: props.clientRect })
               }
@@ -525,7 +543,8 @@ export const SlashCommandExtension = Extension.create({
               return false
             },
 
-            onExit: () => {
+            onExit: (props: any) => {
+              setPlaceholder(props.editor, false)
               popup?.destroy()
               vueApp?.unmount()
               popup = undefined
@@ -546,6 +565,35 @@ export const SlashCommandExtension = Extension.create({
       Suggestion({
         editor: this.editor,
         ...this.options.suggestion,
+      }),
+      // Inline placeholder decoration — shows "Type to search" after "/"
+      new Plugin({
+        key: slashPlaceholderKey,
+        state: {
+          init: () => ({ active: false, pos: 0 }),
+          apply(tr, prev) {
+            const meta = tr.getMeta(slashPlaceholderKey)
+            if (meta) return meta
+            // Map position through document changes
+            if (prev.active && tr.docChanged) {
+              return { active: true, pos: tr.mapping.map(prev.pos) }
+            }
+            return prev
+          },
+        },
+        props: {
+          decorations(state) {
+            const { active, pos } = slashPlaceholderKey.getState(state) || { active: false, pos: 0 }
+            if (!active) return DecorationSet.empty
+            const widget = Decoration.widget(pos, () => {
+              const span = document.createElement('span')
+              span.className = 'nc-slash-placeholder'
+              span.textContent = 'Type to search'
+              return span
+            }, { side: 1 })
+            return DecorationSet.create(state.doc, [widget])
+          },
+        },
       }),
     ]
   },

@@ -5,7 +5,7 @@ import { CellSelection } from '@tiptap/pm/tables'
  * Encapsulates all link-related state and logic for the document editor:
  * - Paste-link embed menu (link vs embed choice)
  * - Inline link input in the bubble menu (create/edit links)
- * - Link edit bubble menu (for clicking on existing links)
+ * - Link hover preview + edit popover (Notion-style, triggered on mouse hover)
  * - Rich text bubble menu visibility logic
  */
 export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor | undefined>; isEditable: Ref<boolean> }) {
@@ -21,8 +21,8 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     left: number
   }>({ visible: false, url: '', platform: '', embedUrl: '', from: 0, to: 0, top: 0, left: 0 })
 
-  // Flag set synchronously before link insertion so checkLinkMark can suppress
-  // the link edit bubble even before the deferred pasteLinkMenu.visible = true
+  // Flag set synchronously before link insertion so the link hover preview
+  // is suppressed even before the deferred pasteLinkMenu.visible = true
   const isPasteLinkPending = ref(false)
 
   const dismissPasteLinkMenu = () => {
@@ -118,92 +118,174 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     })
   }
 
-  // --- Link options bubble menu (for clicking on existing links) ---
+  // --- Link hover preview + edit popover (Notion-style) ---
+  const linkHoverUrl = ref('')
+  const linkHoverTitle = ref('')
+  const linkHoverEl = ref<HTMLAnchorElement | null>(null)
+  const isLinkHoverVisible = ref(false)
+  const isLinkEditOpen = ref(false)
   const linkEditUrl = ref('')
-  const linkEditMark = ref<any>(null)
-  const isLinkEditVisible = ref(false)
+  const linkEditTitle = ref('')
   const linkEditInputRef = ref<HTMLInputElement>()
-  // When user dismisses the link edit bubble via Escape, suppress re-showing
-  // until the cursor moves away from the link mark
-  const isLinkEditDismissed = ref(false)
+  // Store the link element's ProseMirror position range for applying edits
+  const linkEditRange = ref<{ from: number; to: number } | null>(null)
 
-  const dismissLinkEdit = () => {
-    isLinkEditDismissed.value = true
-    isLinkEditVisible.value = false
+  let hoverTimeout: ReturnType<typeof setTimeout> | undefined
+  let leaveTimeout: ReturnType<typeof setTimeout> | undefined
+
+  const showLinkHover = (el: HTMLAnchorElement) => {
+    if (leaveTimeout) {
+      clearTimeout(leaveTimeout)
+      leaveTimeout = undefined
+    }
+    if (isLinkEditOpen.value) return
+    if (pasteLinkMenu.value.visible || isPasteLinkPending.value) return
+
+    linkHoverEl.value = el
+    linkHoverUrl.value = el.getAttribute('href') || ''
+    linkHoverTitle.value = el.textContent || ''
+    isLinkHoverVisible.value = true
   }
 
-  const checkLinkMark = ({ editor: e }: { editor: any }) => {
-    if (!e.view.editable) return false
-
-    // Hide link edit bubble while paste-link embed menu is open (or about to open)
-    if (pasteLinkMenu.value.visible || isPasteLinkPending.value) {
-      isLinkEditVisible.value = false
-      return false
-    }
-
-    const { selection } = e.state
-    const isTextSelected = selection.from !== selection.to
-    if (isTextSelected) return false
-
-    const activeNode = selection.$from?.nodeBefore || selection.$from?.nodeAfter
-    const linkMark = activeNode?.marks?.find((m: any) => m.type.name === 'link')
-    if (!linkMark) {
-      isLinkEditVisible.value = false
-      // Cursor moved off a link — clear the dismiss flag so it can re-open next time
-      isLinkEditDismissed.value = false
-      return false
-    }
-
-    // User explicitly dismissed this bubble — stay hidden until cursor leaves the link
-    if (isLinkEditDismissed.value) {
-      isLinkEditVisible.value = false
-      return false
-    }
-
-    linkEditMark.value = linkMark
-    linkEditUrl.value = linkMark.attrs?.href || ''
-    const wasVisible = isLinkEditVisible.value
-    isLinkEditVisible.value = true
-    // Auto-select URL text only on initial open, not on every shouldShow poll
-    if (!wasVisible) {
-      nextTick(() => {
-        linkEditInputRef.value?.focus()
-        linkEditInputRef.value?.select()
-      })
-    }
-    return true
+  const hideLinkHover = () => {
+    leaveTimeout = setTimeout(() => {
+      if (!isLinkEditOpen.value) {
+        isLinkHoverVisible.value = false
+        linkHoverEl.value = null
+      }
+    }, 150)
   }
 
-  const onLinkEditChange = () => {
+  const dismissLinkHover = () => {
+    if (leaveTimeout) {
+      clearTimeout(leaveTimeout)
+      leaveTimeout = undefined
+    }
+    isLinkHoverVisible.value = false
+    linkHoverEl.value = null
+  }
+
+  const keepLinkHoverAlive = () => {
+    if (leaveTimeout) {
+      clearTimeout(leaveTimeout)
+      leaveTimeout = undefined
+    }
+  }
+
+  const copyLinkUrl = async () => {
+    if (linkHoverUrl.value) {
+      await navigator.clipboard.writeText(linkHoverUrl.value)
+    }
+  }
+
+  /** Find the ProseMirror range of the link anchor element by DOM position */
+  const findLinkRange = (el: HTMLAnchorElement): { from: number; to: number } | null => {
     const ed = editor.value
-    if (!ed) return
+    if (!ed) return null
+    const view = ed.view
+
+    // Resolve the start and end DOM positions of the <a> element directly —
+    // avoids matching the wrong node when adjacent links share the same URL
+    const from = view.posAtDOM(el, 0)
+    const to = view.posAtDOM(el, el.childNodes.length)
+    if (from < 0 || to < 0 || from >= to) return null
+    return { from, to }
+  }
+
+  const openLinkEdit = () => {
+    if (!linkHoverEl.value) return
+    linkEditUrl.value = linkHoverUrl.value
+    linkEditTitle.value = linkHoverTitle.value
+    linkEditRange.value = findLinkRange(linkHoverEl.value)
+    isLinkEditOpen.value = true
+    isLinkHoverVisible.value = false
+    nextTick(() => {
+      linkEditInputRef.value?.focus()
+      linkEditInputRef.value?.select()
+    })
+  }
+
+  const saveLinkEdit = () => {
+    const ed = editor.value
+    if (!ed || !linkEditRange.value) return
 
     let href = linkEditUrl.value.trim()
     if (href && !/^[a-zA-Z]+:\/\//.test(href) && !href.startsWith('/')) {
       href = `https://${href}`
     }
 
-    if (href) {
-      // Find the range of the link mark around the cursor
-      const { $from } = ed.state.selection
-      const range = $from.nodeBefore
-        ? { from: $from.pos - $from.nodeBefore.nodeSize, to: $from.pos }
-        : { from: $from.pos, to: $from.pos + ($from.nodeAfter?.nodeSize || 0) }
+    const { from, to } = linkEditRange.value
+    const newTitle = linkEditTitle.value.trim()
 
-      ed.chain().setTextSelection(range).extendMarkRange('link').setLink({ href }).setTextSelection($from.pos).run()
+    if (!href) {
+      // URL cleared — remove the link mark entirely
+      ed.chain().setTextSelection({ from, to }).extendMarkRange('link').unsetLink().run()
+    } else if (newTitle) {
+      // Replace both text and link mark
+      ed.chain()
+        .setTextSelection({ from, to })
+        .insertContent({ type: 'text', text: newTitle, marks: [{ type: 'link', attrs: { href } }] })
+        .run()
+    } else {
+      ed.chain().setTextSelection({ from, to }).extendMarkRange('link').setLink({ href }).run()
     }
+
+    closeLinkEdit()
   }
 
   const deleteLinkEdit = () => {
     const ed = editor.value
-    if (!ed) return
-    ed.chain().focus().extendMarkRange('link').unsetLink().run()
-    isLinkEditVisible.value = false
+    if (!ed || !linkEditRange.value) return
+    const { from, to } = linkEditRange.value
+    ed.chain().setTextSelection({ from, to }).extendMarkRange('link').unsetLink().run()
+    closeLinkEdit()
   }
 
-  const openLinkExternal = () => {
-    if (linkEditUrl.value) {
-      window.open(linkEditUrl.value, '_blank', 'noopener,noreferrer')
+  const closeLinkEdit = () => {
+    isLinkEditOpen.value = false
+    isLinkHoverVisible.value = false
+    linkHoverEl.value = null
+    linkEditRange.value = null
+    editor.value?.commands.focus()
+  }
+
+  /** Setup hover listeners on the editor container (event delegation).
+   *  Returns a cleanup function that removes the listeners. */
+  const setupLinkHover = (container: HTMLElement): (() => void) => {
+    const onMouseOver = (e: MouseEvent) => {
+      const linkEl = (e.target as HTMLElement).closest?.('a[href]') as HTMLAnchorElement | null
+      if (linkEl) {
+        if (hoverTimeout) clearTimeout(hoverTimeout)
+        hoverTimeout = setTimeout(() => showLinkHover(linkEl), 200)
+      }
+    }
+    const onMouseOut = (e: MouseEvent) => {
+      const linkEl = (e.target as HTMLElement).closest?.('a[href]') as HTMLAnchorElement | null
+      if (linkEl) {
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          hoverTimeout = undefined
+        }
+        hideLinkHover()
+      }
+    }
+    container.addEventListener('mouseover', onMouseOver)
+    container.addEventListener('mouseout', onMouseOut)
+    return () => {
+      container.removeEventListener('mouseover', onMouseOver)
+      container.removeEventListener('mouseout', onMouseOut)
+    }
+  }
+
+  /** Clear pending timeouts — call from onBeforeUnmount */
+  const cleanupLinkHover = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      hoverTimeout = undefined
+    }
+    if (leaveTimeout) {
+      clearTimeout(leaveTimeout)
+      leaveTimeout = undefined
     }
   }
 
@@ -253,16 +335,24 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     applyLink,
     cancelLinkInput,
 
-    // Link edit (existing links)
+    // Link hover preview + edit popover
+    linkHoverUrl,
+    linkHoverEl,
+    isLinkHoverVisible,
+    isLinkEditOpen,
     linkEditUrl,
-    linkEditMark,
-    isLinkEditVisible,
+    linkEditTitle,
     linkEditInputRef,
-    checkLinkMark,
-    onLinkEditChange,
+    hideLinkHover,
+    dismissLinkHover,
+    keepLinkHoverAlive,
+    copyLinkUrl,
+    openLinkEdit,
+    saveLinkEdit,
     deleteLinkEdit,
-    dismissLinkEdit,
-    openLinkExternal,
+    closeLinkEdit,
+    setupLinkHover,
+    cleanupLinkHover,
 
     // Bubble menu visibility
     showRichTextMenu,

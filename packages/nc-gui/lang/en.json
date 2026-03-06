@@ -1193,6 +1193,9 @@
     "manyToOne": "Many to One"
   },
   "labels": {
+    "pageOrUrl": "Page or URL",
+    "linkTitle": "Link title",
+    "removeLink": "Remove link",
     "fullWidth": "Full width",
     "exitFullWidth": "Exit full width",
     "fontDefault": "Default",
@@ -2551,6 +2554,7 @@
     "searchLanguages": "Search languages...",
     "enterUrl": "Enter URL...",
     "enterALink": "Enter a link",
+    "enterTitle": "Enter title",
     "searchWorkflows": "Search Workflows",
     "searchWorkspacesAndBases": "Search workspaces and bases...",
     "searchByTitle": "Search by title or description",

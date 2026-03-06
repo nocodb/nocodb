@@ -46,10 +46,10 @@ const documentsStore = useDocumentsStore()
 const { createDocument, deleteDocument, loadDocument, updateDocument } = documentsStore
 
 const { $e } = useNuxtApp()
-const { user } = useGlobal()
+const { user, appInfo } = useGlobal()
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
-const { openFilePicker, uploadAndInsert, buildProxyUrl } = useDocumentImageUpload()
+const { openFilePicker, uploadAndInsert } = useDocumentImageUpload()
 const { batchUploadFiles } = useAttachment()
 const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
 
@@ -104,6 +104,8 @@ const {
   flushOnUnmount,
   activeDocument,
 } = useDocumentAutoSave({ editor, activeProjectId, isEditable })
+
+const docMeta = computed(() => parseProp(doc.value?.meta))
 
 const {
   pasteLinkMenu,
@@ -686,7 +688,7 @@ watch(
     if (newId && newBaseId) {
       await loadAndSetDoc(newId)
 
-      const loadedFont = parseProp(doc.value?.meta).font
+      const loadedFont = docMeta.value.font
       activeFont.value = loadedFont === 'serif' || loadedFont === 'mono' ? loadedFont : 'default'
 
       nextTick(() => countTasks())
@@ -833,7 +835,7 @@ const updateDocumentIcon = async (icon: string) => {
   if (!doc.value?.id || !base.value?.id) return
   try {
     doc.value.meta = {
-      ...parseProp(doc.value.meta),
+      ...docMeta.value,
       icon,
     }
 
@@ -854,9 +856,9 @@ const updateDocumentIcon = async (icon: string) => {
 }
 
 const coverImageSrc = computed(() => {
-  const coverPath = parseProp(doc.value?.meta).cover_image
-  if (!coverPath) return ''
-  return buildProxyUrl(coverPath)
+  const coverPath = docMeta.value.cover_image
+  if (!coverPath || !base.value?.id || !doc.value?.id) return ''
+  return `${appInfo.value.ncSiteUrl}/api/v2/meta/bases/${base.value.id}/docs/${doc.value.id}/attachment?urlOrPath=${encodeURIComponent(coverPath)}`
 })
 
 const onAddOrChangeCover = async () => {
@@ -873,7 +875,7 @@ const onAddOrChangeCover = async () => {
     if (!storedRef) return
 
     doc.value.meta = {
-      ...parseProp(doc.value.meta),
+      ...docMeta.value,
       cover_image: storedRef,
     }
 
@@ -896,7 +898,7 @@ const onRemoveCover = async () => {
   if (!doc.value?.id || !base.value?.id) return
 
   try {
-    const meta = parseProp(doc.value.meta)
+    const meta = { ...docMeta.value }
     delete meta.cover_image
 
     doc.value.meta = meta
@@ -916,7 +918,7 @@ const onRemoveCover = async () => {
   }
 }
 
-const isFullWidth = computed(() => parseProp(doc.value?.meta).full_width === true)
+const isFullWidth = computed(() => docMeta.value.full_width === true)
 
 const activeFont = ref<'default' | 'serif' | 'mono'>('default')
 
@@ -924,7 +926,7 @@ const setDocFont = async (font: 'default' | 'serif' | 'mono') => {
   if (!doc.value?.id || !base.value?.id || font === activeFont.value) return
   activeFont.value = font
   try {
-    doc.value.meta = { ...parseProp(doc.value.meta), font }
+    doc.value.meta = { ...docMeta.value, font }
     const updated = await updateDocument(base.value.id, doc.value.id, {
       meta: doc.value.meta,
       version: doc.value.version,
@@ -944,7 +946,7 @@ const toggleFullWidth = async () => {
   if (!doc.value?.id || !base.value?.id) return
   const newVal = !isFullWidth.value
   try {
-    doc.value.meta = { ...parseProp(doc.value.meta), full_width: newVal }
+    doc.value.meta = { ...docMeta.value, full_width: newVal }
     const updated = await updateDocument(base.value.id, doc.value.id, {
       meta: doc.value.meta,
       version: doc.value.version,
@@ -1097,9 +1099,6 @@ watch(
 onBeforeUnmount(() => {
   titleObserver?.disconnect()
   titleObserver = null
-})
-
-onBeforeUnmount(() => {
   flushOnUnmount()
   editor.value?.destroy()
 })
@@ -1282,9 +1281,9 @@ onBeforeUnmount(() => {
             <div class="nc-doc-title-row flex items-center">
               <div class="nc-doc-editor-icon-wrapper flex-shrink-0" data-testid="nc-doc-opened-page-icon-picker">
                 <LazyGeneralEmojiPicker
-                  :key="doc?.meta?.icon"
+                  :key="docMeta?.icon"
                   :clearable="true"
-                  :emoji="doc?.meta?.icon"
+                  :emoji="docMeta?.icon"
                   :readonly="!isUIAllowed('documentUpdate')"
                   class="nc-doc-editor-icon"
                   size="large"
@@ -1442,22 +1441,22 @@ onBeforeUnmount(() => {
                     <!-- Page suggestion dropdown -->
                     <div v-if="pageSuggestions.length" class="nc-link-page-suggestions">
                       <div
-                        v-for="(doc, idx) in pageSuggestions"
-                        :key="doc.id"
+                        v-for="(page, idx) in pageSuggestions"
+                        :key="page.id"
                         class="nc-link-page-suggestion-item"
                         :class="{ 'is-selected': idx === pageSuggestionIndex }"
-                        @click="selectPageSuggestion(doc)"
+                        @click="selectPageSuggestion(page)"
                         @mouseenter="pageSuggestionIndex = idx"
                       >
-                        <span v-if="parseProp(doc.meta)?.icon" class="nc-link-page-suggestion-icon">{{
-                          parseProp(doc.meta).icon
+                        <span v-if="parseProp(page.meta)?.icon" class="nc-link-page-suggestion-icon">{{
+                          parseProp(page.meta).icon
                         }}</span>
                         <GeneralIcon
                           v-else
                           icon="ncFileText"
                           class="nc-link-page-suggestion-icon text-nc-content-gray-subtle"
                         />
-                        <span class="nc-link-page-suggestion-title truncate">{{ doc.title || $t('general.untitled') }}</span>
+                        <span class="nc-link-page-suggestion-title truncate">{{ page.title || $t('general.untitled') }}</span>
                       </div>
                     </div>
                     <!-- No matching pages — hint to use as URL -->

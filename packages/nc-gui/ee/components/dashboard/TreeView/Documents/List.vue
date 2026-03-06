@@ -12,10 +12,8 @@ const { baseId } = toRefs(props)
 
 const { isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
-const { isUIAllowed } = useRoles()
-
 const documentsStore = useDocumentsStore()
-const { createDocument, moveDocument } = documentsStore
+const { moveDocument } = documentsStore
 const { activeDocumentId, documents: allDocuments, documentTree, expandedDocIds } = storeToRefs(documentsStore)
 
 const baseDocuments = computed(() => allDocuments.value.get(baseId.value) ?? [])
@@ -273,10 +271,6 @@ const initSortable = (el: HTMLElement) => {
   el.addEventListener('dragover', onDragOver)
 }
 
-const onCreateDocument = async () => {
-  await createDocument(baseId.value)
-}
-
 watchEffect(() => {
   if (listRef.value) {
     initSortable(listRef.value)
@@ -293,26 +287,12 @@ onBeforeUnmount(() => {
 
 <template>
   <div data-testid="nc-docs-sidebar-pages-list">
-    <!-- Empty state: no create permission -->
+    <!-- Empty state: no documents yet -->
     <div
-      v-if="!baseDocuments.length && !isUIAllowed('documentCreate')"
+      v-if="!baseDocuments.length"
       class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
     >
       {{ $t('labels.noDocuments') }}
-    </div>
-
-    <!-- Empty state: show "+ New document" CTA -->
-    <div
-      v-else-if="!baseDocuments.length && isUIAllowed('documentCreate')"
-      class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
-      role="button"
-      data-testid="nc-docs-sidebar-add-page"
-      @click="onCreateDocument"
-    >
-      <div class="nc-project-home-section-item">
-        <GeneralIcon icon="plus" />
-        <div>{{ $t('labels.newDocument') }}</div>
-      </div>
     </div>
 
     <!-- Flat document list — blue indicator line as the sole drag visual -->

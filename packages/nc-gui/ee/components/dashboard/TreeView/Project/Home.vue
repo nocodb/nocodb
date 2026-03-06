@@ -72,7 +72,24 @@ const hasTableCreatePermission = computed(() => {
 
       <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section !pt-1 !pb-0.5 flex flex-col">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
-          <NcDropdown v-model:visible="isVisibleCreateNew">
+          <!-- Docs tab: direct create (no dropdown — only one option) -->
+          <NcButton
+            v-if="activeSidebarTab === 'docs'"
+            type="text"
+            size="small"
+            full-width
+            class="nc-home-create-new-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
+            data-testid="nc-home-create-new-btn"
+            @click="createDocument(base.id!)"
+          >
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="ncPlusCircle" class="!text-nc-content-brand" />
+              <div>{{ $t('labels.createNew') }}</div>
+            </div>
+          </NcButton>
+
+          <!-- Other tabs: dropdown with multiple options -->
+          <NcDropdown v-else v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"
               size="small"

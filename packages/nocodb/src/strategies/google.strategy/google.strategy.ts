@@ -105,7 +105,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       ...options,
       clientID: process.env.NC_GOOGLE_CLIENT_ID ?? '',
       clientSecret: process.env.NC_GOOGLE_CLIENT_SECRET ?? '',
-      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
+      callbackURL: req.dashboardUrl,
       passReqToCallback: true,
       scope: ['profile', 'email'],
       state: req.query.state,

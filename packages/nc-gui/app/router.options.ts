@@ -4,7 +4,7 @@ import { createWebHistory } from 'vue-router'
 export default <RouterConfig>{
   history: () => {
     // Read the <base> tag injected by the backend's GuiMiddleware.
-    // It encodes the NC_DASHBOARD_URL subpath (e.g. '/dashboard/').
+    // It encodes the NC_PUBLIC_URL subpath (e.g. '/nocodb/').
     // In dev mode (no <base> tag), falls back to '/'.
     let base = '/'
     if (typeof document !== 'undefined') {

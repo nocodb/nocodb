@@ -4,7 +4,10 @@ export default ({
 }: {
   ncSiteUrl: string;
   dashboardPath: string;
-}): string => `<!DOCTYPE html>
+}): string => {
+  // Build signin URL avoiding double-slashes when dashboardPath is '/'
+  const signinBase = (ncSiteUrl.replace(/\/+$/, '') + (dashboardPath === '/' ? '' : dashboardPath));
+  return `<!DOCTYPE html>
 <html>
 <head>
     <title>NocoDB API Documentation</title>
@@ -44,9 +47,7 @@ export default ({
     
       // if invalid token then redirect to signin page
       if (xmlhttp.status === 401) {
-        window.location.href = ${JSON.stringify(ncSiteUrl)} + ${JSON.stringify(
-  dashboardPath,
-)} + '/signin?continueAfterSignIn=' + encodeURIComponent(window.location.href);
+        window.location.href = ${JSON.stringify(signinBase)} + '/signin?continueAfterSignIn=' + encodeURIComponent(window.location.href);
         return;
       } 
     
@@ -102,3 +103,4 @@ export default ({
 </script>
 </body>
 </html>`;
+}

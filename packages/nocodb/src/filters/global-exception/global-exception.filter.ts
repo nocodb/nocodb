@@ -33,6 +33,7 @@ import {
   UnprocessableEntity,
 } from '~/helpers/catchError';
 import { GuiMiddleware } from '~/middlewares/gui/gui.middleware';
+import { backendRoutePrefixes } from '~/utils/backend-route-prefixes';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
@@ -328,10 +329,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     if (request.method !== 'GET') return false;
     if (!request.headers.accept?.includes('text/html')) return false;
     if (path.extname(request.path)) return false;
-    if (request.path.startsWith('/api/')) return false;
 
-    const basePath = this.guiMiddleware?.getDashboardPath() ?? '/';
-    if (basePath !== '/' && !request.path.startsWith(basePath)) return false;
+    // Skip all backend route prefixes — these should return JSON errors, not SPA HTML
+    if (backendRoutePrefixes.some((p) => request.path.startsWith(`${p}/`) || request.path === p)) {
+      return false;
+    }
 
     return true;
   }

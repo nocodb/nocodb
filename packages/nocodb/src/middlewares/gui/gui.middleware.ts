@@ -20,7 +20,6 @@ const _require =
 @Injectable()
 export class GuiMiddleware implements NestMiddleware {
   private staticRouter: express.Router | null = null;
-  private dashboardPath: string = '/';
 
   // Pre-computed index.html response — avoids string→Buffer on every request
   private indexHtmlBuffer: Buffer | null = null;
@@ -32,11 +31,6 @@ export class GuiMiddleware implements NestMiddleware {
     // should not serve frontend files at all.
     const dashboardUrl = process.env.NC_DASHBOARD_URL || '/';
     if (dashboardUrl.startsWith('http')) return;
-
-    // NC_DASHBOARD_URL as a subpath is now redirect-only (handled in
-    // Noco.ts).  The frontend always lives at root, so dashboardPath
-    // is always '/'.  Only NC_PUBLIC_URL controls the base path.
-    this.dashboardPath = '/';
 
     // Collect candidate paths for the frontend dist directory
     const candidates: string[] = [];
@@ -86,8 +80,12 @@ export class GuiMiddleware implements NestMiddleware {
             // invalid NC_PUBLIC_URL, ignore
           }
         }
-        const baseHref =
+        let baseHref =
           browserBase === '/' ? '/' : `${browserBase}/`;
+
+        // Sanitize: only allow path characters to prevent HTML/JS injection
+        baseHref = baseHref.replace(/[^a-zA-Z0-9\/_\-\.]/g, '');
+
         rawHtml = rawHtml.replace(
           '<head>',
           `<head><base href="${baseHref}">`,
@@ -98,10 +96,11 @@ export class GuiMiddleware implements NestMiddleware {
         // subpath the router history base differs.  Without this patch,
         // Vue Router's to.fullPath includes the base (e.g. /sub/signup
         // instead of /signup), causing double-prefix redirects.
+        // Match only when preceded by { or , to target config objects.
         if (baseHref !== '/') {
           rawHtml = rawHtml.replace(
-            /baseURL:"\/"/g,
-            `baseURL:"${baseHref}"`,
+            /([{,])baseURL:"\/"/g,
+            `$1baseURL:"${baseHref}"`,
           );
         }
 
@@ -183,11 +182,4 @@ export class GuiMiddleware implements NestMiddleware {
     return true;
   }
 
-  /**
-   * Returns the dashboard path — always '/' since NC_DASHBOARD_URL is
-   * redirect-only.  Used by GlobalExceptionFilter to scope SPA fallback.
-   */
-  getDashboardPath(): string {
-    return this.dashboardPath;
-  }
 }

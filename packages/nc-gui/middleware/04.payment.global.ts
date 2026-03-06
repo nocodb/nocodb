@@ -1,4 +1,4 @@
-export default defineNuxtRouteMiddleware(() => {
+export default defineNuxtRouteMiddleware((to) => {
   const params = new URLSearchParams(window.location.search)
   const afterPayment = params.get('afterPayment')
   const afterManage = params.get('afterManage')
@@ -43,8 +43,9 @@ export default defineNuxtRouteMiddleware(() => {
       targetPath = `/${workspaceId}/settings/ws-billing`
     }
 
-    // Only redirect if we're not already on the target path (prevents loop)
-    if (window.location.pathname === targetPath) return
+    // Only redirect if we're not already on the target path (prevents loop).
+    // Use route path (without base prefix) to work under subpath deployments.
+    if (to.path === targetPath) return
 
     return navigateTo(`${targetPath}?${params.toString()}`)
   }

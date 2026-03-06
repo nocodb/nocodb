@@ -136,6 +136,8 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     })
   }
 
+  const router = useRouter()
+
   const ncNavigateTo = ({
     workspaceId: _workspaceId,
     baseId,
@@ -177,7 +179,6 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     }
 
     if (newTab) {
-      const router = useRouter()
       window.open(`${window.location.origin}${router.resolve(path).href}`, '_blank')
     } else {
       return navigateTo({

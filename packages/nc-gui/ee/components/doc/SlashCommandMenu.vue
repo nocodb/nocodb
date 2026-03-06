@@ -136,6 +136,10 @@ const onKeyDown = (event: KeyboardEvent): boolean => {
     return false
   }
 
+  // Don't consume keyboard events when the menu has no matching items —
+  // let ProseMirror handle arrow keys, Enter, etc. normally
+  if (!props.items.length) return false
+
   if (event.key === 'ArrowUp') {
     selectedIndex.value = (selectedIndex.value + props.items.length - 1) % props.items.length
     scrollToSelected()

@@ -596,9 +596,12 @@ export const useRealtime = createSharedComposable(() => {
           if (doc.updated_at !== undefined) existing.updated_at = doc.updated_at
           if (doc.updated_by !== undefined) existing.updated_by = doc.updated_by
 
-          // Re-sort by order
-          baseDocs.sort((a, b) => (a.order || 0) - (b.order || 0))
-          documents.value.set(baseId, baseDocs)
+          // Re-sort only when order changed — avoids triggering full reactivity
+          // on every autosave which causes subtitle (comment count etc.) to flicker
+          if (doc.order !== undefined) {
+            baseDocs.sort((a, b) => (a.order || 0) - (b.order || 0))
+            documents.value.set(baseId, baseDocs)
+          }
         }
         break
       }

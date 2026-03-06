@@ -191,10 +191,11 @@ const {
 } = useDocumentComments()
 
 // Comment count: prefer live list length once comments have been loaded (panel opened),
-// otherwise fall back to the count returned by the document API.
+// otherwise fall back to the count from the local doc ref (not the store's activeDocument,
+// which re-evaluates on every autosave field patch and causes subtitle flicker).
 const commentCount = computed(() => {
   if (docComments.value.length) return docComments.value.length
-  return activeDocument.value?.comment_count ?? 0
+  return doc.value?.comment_count ?? 0
 })
 
 watch(isDocCommentsLoading, (loading, wasLoading) => {
@@ -1936,10 +1937,23 @@ onBeforeUnmount(() => {
     }
   }
 
+  // Scale anchor icon proportionally to heading size
   h1 > .nc-heading-anchor-icon::after {
     vertical-align: baseline;
     position: relative;
     top: -0.1em;
+  }
+
+  h2 > .nc-heading-anchor-icon::after {
+    width: 15px;
+    height: 15px;
+    mask-size: 15px 15px;
+  }
+
+  h3 > .nc-heading-anchor-icon::after {
+    width: 14px;
+    height: 14px;
+    mask-size: 14px 14px;
   }
 
   h1:hover > .nc-heading-anchor-icon,

@@ -292,6 +292,7 @@ export enum AppEvents {
   VIEW_SECTION_DELETE = 'viewSection.delete',
 
   CHAT_SESSION_CREATE = 'chat.session.create',
+  CHAT_SESSION_UPDATE = 'chat.session.update',
   CHAT_SESSION_DELETE = 'chat.session.delete',
   CHAT_MESSAGE_CREATE = 'chat.message.create',
   CHAT_TOOL_EXECUTE = 'chat.tool.execute',

@@ -329,6 +329,16 @@ export const useChatStore = defineStore('chatStore', () => {
           break
         }
 
+        case 'session-update': {
+          if (payload.session?.id) {
+            const existing = sessions.value.get(payload.session.id)
+            if (existing) {
+              Object.assign(existing, payload.session)
+            }
+          }
+          break
+        }
+
         case 'session-delete': {
           sessions.value.delete(sessionId)
           messages.value.delete(sessionId)

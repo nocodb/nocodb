@@ -66,7 +66,15 @@ const confirmRename = async (sessionId: string | null) => {
 }
 
 const cancelRename = () => {
+  const wasRenaming = !!renamingSessionId.value
   renamingSessionId.value = null
+  // Suppress the @blur → confirmRename that fires after escape
+  if (wasRenaming) {
+    isRenaming.value = true
+    nextTick(() => {
+      isRenaming.value = false
+    })
+  }
 }
 
 // Track dismissed ask_user cards (local — resets when session changes)
@@ -118,11 +126,11 @@ const pendingUserInput = computed(() => {
 
 const isNearBottom = ref(true)
 
-const checkIfNearBottom = () => {
+const checkIfNearBottom = useThrottleFn(() => {
   const el = messageListRef.value
   if (!el) return
   isNearBottom.value = el.scrollHeight - el.scrollTop - el.clientHeight < 80
-}
+}, 100)
 
 const scrollToBottom = (force = false) => {
   nextTick(() => {
@@ -133,11 +141,13 @@ const scrollToBottom = (force = false) => {
   })
 }
 
+const debouncedScrollToBottom = useDebounceFn(() => scrollToBottom(), 100)
+
 const showScrollButton = computed(() => !isNearBottom.value && activeMessages.value.length > 0)
 
 // Auto-scroll when a new message is appended or streaming content updates
 watch(() => activeMessages.value.length, () => scrollToBottom())
-watch(activeStreamingParts, () => scrollToBottom(), { deep: true })
+watch(activeStreamingParts, () => debouncedScrollToBottom(), { deep: true })
 
 // Initialize: ensure socket listener and load sessions when panel opens and workspace is ready.
 // Also watch blockAiChat — on cloud, blockAiChat starts false (data not loaded) so isPanelExpanded
@@ -188,7 +198,6 @@ const handleSend = async (content: string) => {
   }
 
   await chatStore.sendMessage(activeWorkspaceId.value, chatStore.activeSessionId!, content, base.value?.id)
-  scrollToBottom(true)
 }
 
 const handleNewSession = () => {
@@ -267,6 +276,7 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
               v-if="renamingSessionId"
               ref="renameInputRef"
               v-model="renameValue"
+              data-testid="nc-chat-rename-input"
               class="flex-1 min-w-0 text-sm font-semibold text-nc-content-gray bg-nc-bg-default border-1 border-nc-fill-primary rounded px-1.5 py-0.5 outline-none"
               @keydown.enter.prevent.stop="confirmRename(renamingSessionId)"
               @keydown.escape.prevent.stop="cancelRename"
@@ -285,7 +295,7 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
               >
                 <button
                   class="flex items-center gap-1 min-w-0 max-w-full px-1.5 py-0.5 rounded transition-colors hover:bg-nc-bg-gray-light cursor-pointer"
-                  @dblclick.stop="startRename(activeSession?.id!, activeSession?.title || '')"
+                  @dblclick.stop="startRename(activeSession?.id, activeSession?.title || '')"
                 >
                   <span class="text-sm font-semibold text-nc-content-gray truncate">
                     {{ activeSession?.title || t('labels.newChat') }}
@@ -364,7 +374,7 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
             </NcTooltip>
 
             <NcTooltip :title="t('general.close')" placement="bottom" :arrow="false">
-              <NcButton size="small" type="text" class="nc-chat-header-btn" @click="isPanelExpanded = false">
+              <NcButton size="small" type="text" class="nc-chat-header-btn" data-testid="nc-chat-close-btn" @click="isPanelExpanded = false">
                 <GeneralIcon icon="close" class="w-4 h-4" />
               </NcButton>
             </NcTooltip>
@@ -372,7 +382,8 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
         </div>
 
         <!-- Messages -->
-        <div ref="messageListRef" class="flex-1 overflow-y-auto nc-scrollbar-thin relative" @scroll="checkIfNearBottom">
+        <div class="flex-1 overflow-hidden relative">
+          <div ref="messageListRef" class="h-full overflow-y-auto nc-scrollbar-thin" @scroll="checkIfNearBottom">
           <div v-if="isLoadingSessions || isLoadingMessages" class="flex items-center justify-center h-full">
             <GeneralLoader size="large" />
           </div>
@@ -396,18 +407,19 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
               <ChatMessage v-if="isSendingMessage && !activeStreamingParts?.length" :is-streaming="true" role="assistant" />
             </div>
           </template>
-        </div>
-
-        <!-- Scroll to bottom button -->
-        <Transition name="nc-fade">
-          <div v-if="showScrollButton" class="nc-chat-scroll-btn-wrapper">
-            <NcTooltip :title="$t('general.scrollToBottom')" placement="top" :arrow="false">
-              <NcButton size="small" type="secondary" class="nc-chat-scroll-btn" @click="scrollToBottom(true)">
-                <GeneralIcon icon="arrowDown" class="w-4 h-4" />
-              </NcButton>
-            </NcTooltip>
           </div>
-        </Transition>
+
+          <!-- Scroll to bottom button -->
+          <Transition name="nc-fade">
+            <div v-if="showScrollButton" class="nc-chat-scroll-btn-wrapper" data-testid="nc-chat-scroll-to-bottom">
+              <NcTooltip :title="$t('general.scrollToBottom')" placement="top" :arrow="false">
+                <NcButton size="small" type="secondary" class="nc-chat-scroll-btn" @click="scrollToBottom(true)">
+                  <GeneralIcon icon="arrowDown" class="w-4 h-4" />
+                </NcButton>
+              </NcTooltip>
+            </div>
+          </Transition>
+        </div>
 
         <!-- Option picker card (shown when AI asks a question) -->
         <Transition name="nc-slide-up">
@@ -500,9 +512,8 @@ const handleDenyAll = async (messageId: string, toolCallIds: string[]) => {
 }
 
 .nc-chat-scroll-btn-wrapper {
-  @apply flex justify-center;
-  margin-top: -32px;
-  position: relative;
+  @apply absolute left-0 right-0 flex justify-center;
+  bottom: 8px;
   z-index: 10;
   pointer-events: none;
 }

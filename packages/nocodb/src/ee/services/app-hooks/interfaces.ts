@@ -396,6 +396,10 @@ export interface ChatSessionCreateEvent extends NcBaseEvent {
   sessionId: string;
 }
 
+export interface ChatSessionUpdateEvent extends NcBaseEvent {
+  sessionId: string;
+}
+
 export interface ChatSessionDeleteEvent extends NcBaseEvent {
   sessionId: string;
 }

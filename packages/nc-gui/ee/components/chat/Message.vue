@@ -137,7 +137,7 @@ const renderedContent = computed(() => {
     <template v-if="isUser">
       <div class="flex justify-end">
         <div class="max-w-[80%] rounded-xl px-3 py-2.5 bg-nc-brand-50">
-          <div class="text-sm whitespace-pre-wrap break-words leading-relaxed text-nc-gray-600">
+          <div class="text-sm whitespace-pre-wrap break-words leading-relaxed text-nc-content-gray">
             {{ messageContent }}
           </div>
         </div>
@@ -162,7 +162,7 @@ const renderedContent = computed(() => {
                 <div
                   v-if="seg.kind === 'text' && seg.text"
                   v-dompurify-html="renderMarkdown(seg.text)"
-                  class="nc-chat-markdown nc-rich-text-content text-nc-gray-600 break-words"
+                  class="nc-chat-markdown nc-rich-text-content text-nc-content-gray break-words"
                 />
 
                 <!-- Tool group: single tool → show directly; multiple → collapsible group -->
@@ -248,7 +248,7 @@ const renderedContent = computed(() => {
             <div
               v-if="renderedContent"
               v-dompurify-html="renderedContent"
-              class="nc-chat-markdown nc-rich-text-content text-nc-gray-600 break-words"
+              class="nc-chat-markdown nc-rich-text-content text-nc-content-gray break-words"
             />
           </template>
 
@@ -301,7 +301,7 @@ const renderedContent = computed(() => {
   }
 }
 
-// Chat markdown — 13px to match grid cells, generous spacing
+// Chat markdown — 14px with generous spacing
 .nc-chat-markdown {
   font-size: 14px;
   line-height: 1.6;

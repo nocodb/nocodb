@@ -5,6 +5,7 @@ import type {
   BaseTeamInviteEvent,
   BaseTeamUpdateEvent,
   ChatSessionCreateEvent,
+  ChatSessionUpdateEvent,
   ChatSessionDeleteEvent,
   ColumnEvent,
   FilterEvent,
@@ -465,6 +466,10 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: ChatSessionCreateEvent) => void,
   ): () => void;
   on(
+    event: AppEvents.CHAT_SESSION_UPDATE,
+    listener: (data: ChatSessionUpdateEvent) => void,
+  ): () => void;
+  on(
     event: AppEvents.CHAT_SESSION_DELETE,
     listener: (data: ChatSessionDeleteEvent) => void,
   ): () => void;
@@ -836,6 +841,10 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.CHAT_SESSION_CREATE,
     data: ChatSessionCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.CHAT_SESSION_UPDATE,
+    data: ChatSessionUpdateEvent,
   ): void;
   emit(
     event: AppEvents.CHAT_SESSION_DELETE,

@@ -209,15 +209,14 @@ export default class Noco {
         }
         res.sendStatus(200);
       });
-    } else if (dashboardPath !== '/' && dashboardPath !== '') {
-      // Subpath deployment: redirect root to the dashboard subpath
-      const normalizedPath = dashboardPath.replace(/\/+$/, '');
-      server.get(`${normalizedPath}*`, (req, res) => {
-        const remaining = req.path.slice(normalizedPath.length) || '/';
+    } else if (dashboardPath === '/' || dashboardPath === '') {
+      // Default root deployment: redirect old /dashboard/* URLs to /*
+      // for backward compatibility with pre-history-mode bookmarks
+      server.get('/dashboard*', (req, res) => {
+        const remaining = req.path.slice('/dashboard'.length) || '/';
         res.redirect(remaining);
       });
-    } else {
-      // Default root deployment: respond 200 for health checks (HEAD/non-browser GET).
+      // Respond 200 for health checks (HEAD/non-browser GET).
       // Browser requests pass through to GuiMiddleware for SPA fallback.
       server.get('/', (req, res, next) => {
         if (req.headers.accept?.includes('text/html')) {

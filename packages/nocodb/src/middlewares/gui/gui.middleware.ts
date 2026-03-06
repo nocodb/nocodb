@@ -61,13 +61,32 @@ export class GuiMiddleware implements NestMiddleware {
           'utf-8',
         );
 
-        // Inject <base> tag so the frontend knows its runtime base path.
-        // The frontend's app/router.options.ts reads this to set the
-        // Vue Router base for history-mode routing.
+        // Compute the browser-visible base path for the <base> tag.
+        // This combines the NC_PUBLIC_URL pathname (reverse-proxy prefix that
+        // gets stripped before reaching the backend) with NC_DASHBOARD_URL
+        // (the backend-visible subpath).
+        //
+        // Examples:
+        //   NC_PUBLIC_URL unset,       NC_DASHBOARD_URL=/          → /
+        //   NC_PUBLIC_URL unset,       NC_DASHBOARD_URL=/dashboard → /dashboard/
+        //   NC_PUBLIC_URL=host/nocodb, NC_DASHBOARD_URL=/          → /nocodb/
+        //   NC_PUBLIC_URL=host/nocodb, NC_DASHBOARD_URL=/dashboard → /nocodb/dashboard/
+        let browserBase = this.dashboardPath;
+        const publicUrl = process.env.NC_PUBLIC_URL;
+        if (publicUrl) {
+          try {
+            const publicPath = new URL(publicUrl).pathname.replace(/\/+$/, '');
+            if (publicPath && publicPath !== '/') {
+              browserBase =
+                publicPath +
+                (this.dashboardPath === '/' ? '' : this.dashboardPath);
+            }
+          } catch {
+            // invalid NC_PUBLIC_URL, ignore
+          }
+        }
         const baseHref =
-          this.dashboardPath === '/'
-            ? '/'
-            : `${this.dashboardPath}/`;
+          browserBase === '/' ? '/' : `${browserBase}/`;
         rawHtml = rawHtml.replace(
           '<head>',
           `<head><base href="${baseHref}">`,

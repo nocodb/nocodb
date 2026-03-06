@@ -65,6 +65,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     latestRelease: null,
     hiddenRelease: null,
     isMobileMode: null,
+    isTabletMode: null,
     lastOpenedWorkspaceId: null,
     gridViewPageSize: 25,
     leftSidebarSize: {

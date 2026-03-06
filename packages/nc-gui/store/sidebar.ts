@@ -2,6 +2,7 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import {
   INITIAL_LEFT_SIDEBAR_WIDTH,
   MAX_WIDTH_FOR_MOBILE_MODE,
+  MAX_WIDTH_FOR_TABLET_MODE,
   MINI_SIDEBAR_WIDTH,
   NEW_MINI_SIDEBAR_WIDTH,
 } from '~/lib/constants'
@@ -12,8 +13,16 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const { width } = useWindowSize()
 
+  const configStore = useConfigStore()
+
+  const { isTabletMode } = storeToRefs(configStore)
+
   const isViewPortMobile = () => {
     return width.value < MAX_WIDTH_FOR_MOBILE_MODE
+  }
+
+  const isViewPortTablet = () => {
+    return !isViewPortMobile() && width.value < MAX_WIDTH_FOR_TABLET_MODE
   }
 
   const { isMobileMode, leftSidebarSize: _leftSidebarSize, isLeftSidebarOpen: _isLeftSidebarOpen } = useGlobal()
@@ -205,6 +214,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     showTopbar,
     miniSidebarWidth,
     isFullScreen,
+    isTabletMode,
     toggleFullScreenState,
     allowHideLeftSidebarForCurrentRoute,
     activeSidebarTab,

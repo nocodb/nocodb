@@ -8,6 +8,8 @@ export const EMPTY_TITLE_PLACEHOLDER_DOCS = 'Untitled'
 
 export const MAX_WIDTH_FOR_MOBILE_MODE = 480
 
+export const MAX_WIDTH_FOR_TABLET_MODE = 820
+
 export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8080'
 
 export const GROUP_BY_VARS = {

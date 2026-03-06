@@ -8,6 +8,10 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     state.isMobileMode.value = isMobileMode
   }
 
+  const setIsTabletMode = (isTabletMode: boolean) => {
+    state.isTabletMode.value = isTabletMode
+  }
+
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = async ({
     redirectToSignin,
@@ -227,6 +231,7 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     refreshToken,
     loadAppInfo,
     setIsMobileMode,
+    setIsTabletMode,
     navigateToProject,
     getBaseUrl,
     ncNavigateTo,

@@ -69,6 +69,7 @@ export interface StoredState {
   latestRelease: string | null
   hiddenRelease: string | null
   isMobileMode: boolean | null
+  isTabletMode: boolean | null
   lastOpenedWorkspaceId: string | null
   gridViewPageSize: number
   leftSidebarSize: {
@@ -116,6 +117,7 @@ export interface Actions {
   }) => Promise<string | null | void>
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
+  setIsTabletMode: (isTabletMode: boolean) => void
   navigateToProject: (params: { workspaceId?: string; baseId?: string; query?: any }) => void
   /**
    * params `tableTitle, viewTitle, scriptTitle ,dashboardTitle,workflowTitle` will be used for readable url slug

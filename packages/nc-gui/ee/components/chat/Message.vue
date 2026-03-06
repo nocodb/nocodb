@@ -137,7 +137,7 @@ const renderedContent = computed(() => {
     <template v-if="isUser">
       <div class="flex justify-end">
         <div class="max-w-[80%] rounded-xl px-3 py-2.5 bg-nc-brand-50">
-          <div class="text-sm whitespace-pre-wrap break-words leading-relaxed text-nc-content-gray">
+          <div class="whitespace-pre-wrap break-words leading-relaxed text-nc-content-gray" style="font-size: 13px">
             {{ messageContent }}
           </div>
         </div>
@@ -301,9 +301,9 @@ const renderedContent = computed(() => {
   }
 }
 
-// Chat markdown — 14px with generous spacing
+// Chat markdown — 13px compact
 .nc-chat-markdown {
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
 
   :deep(p) {
@@ -367,6 +367,26 @@ const renderedContent = computed(() => {
 
   :deep(blockquote) {
     @apply border-l-2 border-nc-border-gray-medium pl-3 my-3 text-nc-content-gray-subtle;
+  }
+
+  :deep(table) {
+    @apply w-full my-3 border-collapse text-[13px];
+  }
+
+  :deep(th) {
+    @apply text-left font-semibold text-nc-content-gray-subtle bg-nc-bg-gray-light px-2.5 py-1.5 border-b-1 border-nc-border-gray-medium;
+  }
+
+  :deep(td) {
+    @apply text-left text-nc-content-gray px-2.5 py-1.5 border-b-1 border-nc-border-gray-light;
+  }
+
+  :deep(tr:last-child td) {
+    @apply border-b-0;
+  }
+
+  :deep(table) {
+    @apply overflow-x-auto block;
   }
 }
 

@@ -512,7 +512,6 @@ export default async function formulaQueryBuilderv2({
       columns,
       getAliasCount,
     });
-
     let sqlLength = 0;
     try {
       sqlLength = qb?.builder?.toSQL?.().sql?.length ?? 0;

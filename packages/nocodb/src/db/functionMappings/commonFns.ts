@@ -114,21 +114,23 @@ export default {
       }
     }
 
-    // helper: wrap an AST argument with STRING() cast via the function
-    // mapping system (DB-agnostic: PG uses ::text, MySQL uses CAST AS CHAR,
-    // SQLite passes through).  Clones the arg to avoid fnName mutation on the
-    // original AST node.
-    const castToString = async (arg: any) =>
-      (
-        await args.fn({
-          type: 'CallExpression',
-          arguments: [{ ...arg }],
-          callee: { type: 'Identifier', name: 'STRING' },
-        } as any)
-      ).builder;
+    // helper: resolve an AST argument and wrap with a DB-specific text cast.
+    // PG: (?)::text, MySQL: CAST(? AS CHAR), SQLite: passthrough.
+    // Returns { builder } (not a bare Raw) to avoid async-function thenable
+    // unwrapping — knex.Raw implements .then() which would execute the SQL.
+    const castToString = async (arg: any) => {
+      const { builder } = await args.fn(arg);
+      const client = args.knex.clientType();
+      if (client === 'pg' || client === 'postgre') {
+        return { builder: args.knex.raw(`(?)::text`, [builder]) };
+      } else if (client === 'mysql' || client === 'mysql2' || client === 'maridb') {
+        return { builder: args.knex.raw(`CAST(? AS CHAR)`, [builder]) };
+      }
+      return { builder };
+    };
 
     const switchVal = hasCompareTypeMismatch
-      ? await castToString(args.pt.arguments[0])
+      ? (await castToString(args.pt.arguments[0])).builder
       : (await args.fn(args.pt.arguments[0])).builder;
 
     // used it for null value check
@@ -138,7 +140,7 @@ export default {
       let val;
       // cast to string if the return value types are different
       if (returnArgsType.size > 1) {
-        val = await castToString(args.pt.arguments[i * 2 + 2]);
+        val = (await castToString(args.pt.arguments[i * 2 + 2])).builder;
       } else {
         val = (await args.fn(args.pt.arguments[i * 2 + 2])).builder;
       }
@@ -168,7 +170,7 @@ export default {
       } else {
         // cast WHEN comparison values to string if types differ
         const whenVal = hasCompareTypeMismatch
-          ? await castToString(args.pt.arguments[i * 2 + 1])
+          ? (await castToString(args.pt.arguments[i * 2 + 1])).builder
           : (await args.fn(args.pt.arguments[i * 2 + 1])).builder;
         query.push(
           args.knex.raw(`\n\tWHEN ? THEN ?`, [whenVal, val]),
@@ -181,9 +183,9 @@ export default {
       let val;
       // cast to string if the return value types are different
       if (returnArgsType.size > 1) {
-        val = await castToString(
+        val = (await castToString(
           args.pt.arguments[args.pt.arguments.length - 1],
-        );
+        )).builder;
       } else {
         val = (await args.fn(args.pt.arguments[args.pt.arguments.length - 1]))
           .builder;

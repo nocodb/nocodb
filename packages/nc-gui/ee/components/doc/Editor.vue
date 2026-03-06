@@ -112,6 +112,12 @@ const {
   keepAsLink,
   convertToEmbed,
   openLinkInput,
+  pageSuggestions,
+  pageSuggestionIndex,
+  hasNoPageSuggestions,
+  selectPageSuggestion,
+  onLinkEditUrlKeyDown,
+  resolvePageFromUrl,
   linkHoverUrl,
   linkHoverEl,
   isLinkHoverVisible,
@@ -171,11 +177,17 @@ const pendingAnchorId = ref<string | null>(null)
 const onEditorClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
 
-  // Click on a link — open in new tab (Notion-style)
+  // Click on a link — navigate internally for page links, open in new tab for external
   const linkEl = target.closest('a[href]') as HTMLAnchorElement | null
   if (linkEl?.href) {
     e.preventDefault()
-    window.open(linkEl.href, '_blank', 'noopener,noreferrer')
+    const href = linkEl.getAttribute('href') || ''
+    // Internal page link — resolves to a known document
+    if (resolvePageFromUrl(href)) {
+      navigateTo(href)
+    } else {
+      window.open(linkEl.href, '_blank', 'noopener,noreferrer')
+    }
     return
   }
 
@@ -1006,6 +1018,9 @@ const updateLinkHoverPosition = () => {
 
 watch([isLinkHoverVisible, isLinkEditOpen], updateLinkHoverPosition)
 
+// Resolve internal page links to their document for hover display
+const linkHoverPage = computed(() => resolvePageFromUrl(linkHoverUrl.value))
+
 const isLinkCopiedTooltip = ref(false)
 const onCopyLinkUrl = async () => {
   await copyLinkUrl()
@@ -1384,8 +1399,17 @@ onBeforeUnmount(() => {
                   @mouseenter="keepLinkHoverAlive"
                   @mouseleave="hideLinkHover"
                 >
-                  <GeneralIcon icon="globe" class="nc-link-hover-icon" />
-                  <span class="nc-link-hover-url truncate">{{ linkHoverUrl }}</span>
+                  <template v-if="linkHoverPage">
+                    <span v-if="parseProp(linkHoverPage.meta)?.icon" class="nc-link-hover-icon">
+                      {{ parseProp(linkHoverPage.meta).icon }}
+                    </span>
+                    <GeneralIcon v-else icon="ncFileText" class="nc-link-hover-icon text-nc-content-gray-subtle" />
+                    <span class="nc-link-hover-url truncate">{{ linkHoverPage.title || $t('general.untitled') }}</span>
+                  </template>
+                  <template v-else>
+                    <GeneralIcon icon="globe" class="nc-link-hover-icon" />
+                    <span class="nc-link-hover-url truncate">{{ linkHoverUrl }}</span>
+                  </template>
                   <NcTooltip :title="isLinkCopiedTooltip ? $t('general.copied') : $t('general.copy')" placement="top">
                     <GeneralIcon
                       :icon="isLinkCopiedTooltip ? 'check' : 'copy'"
@@ -1410,9 +1434,33 @@ onBeforeUnmount(() => {
                       v-model="linkEditUrl"
                       class="nc-link-edit-input"
                       :placeholder="$t('placeholder.enterALink')"
-                      @keydown.enter.prevent="saveLinkEdit"
-                      @keydown.escape.prevent="closeLinkEdit"
+                      @keydown="onLinkEditUrlKeyDown"
                     />
+                    <!-- Page suggestion dropdown -->
+                    <div v-if="pageSuggestions.length" class="nc-link-page-suggestions">
+                      <div
+                        v-for="(doc, idx) in pageSuggestions"
+                        :key="doc.id"
+                        class="nc-link-page-suggestion-item"
+                        :class="{ 'is-selected': idx === pageSuggestionIndex }"
+                        @click="selectPageSuggestion(doc)"
+                        @mouseenter="pageSuggestionIndex = idx"
+                      >
+                        <span v-if="parseProp(doc.meta)?.icon" class="nc-link-page-suggestion-icon">{{
+                          parseProp(doc.meta).icon
+                        }}</span>
+                        <GeneralIcon
+                          v-else
+                          icon="ncFileText"
+                          class="nc-link-page-suggestion-icon text-nc-content-gray-subtle"
+                        />
+                        <span class="nc-link-page-suggestion-title truncate">{{ doc.title || $t('general.untitled') }}</span>
+                      </div>
+                    </div>
+                    <!-- No matching pages — hint to use as URL -->
+                    <div v-else-if="hasNoPageSuggestions" class="nc-link-page-no-results">
+                      {{ $t('msg.noResults') }}
+                    </div>
                   </div>
                   <div class="nc-link-edit-field">
                     <label class="nc-link-edit-label">{{ $t('labels.linkTitle') }}</label>
@@ -1675,6 +1723,52 @@ onBeforeUnmount(() => {
   &:focus {
     border-color: var(--nc-fill-primary);
   }
+}
+
+// --- Page suggestion dropdown ---
+.nc-link-page-suggestions {
+  margin-top: 4px;
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 6px;
+  background: var(--nc-bg-default);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.nc-link-page-suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+
+  &.is-selected,
+  &:hover {
+    background-color: var(--nc-bg-gray-light);
+  }
+}
+
+.nc-link-page-suggestion-icon {
+  flex-shrink: 0;
+  width: 16px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nc-link-page-suggestion-title {
+  font-size: 13px;
+  color: var(--nc-content-gray);
+  line-height: 1.3;
+}
+
+.nc-link-page-no-results {
+  margin-top: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--nc-content-gray-muted);
 }
 
 .nc-link-edit-divider {

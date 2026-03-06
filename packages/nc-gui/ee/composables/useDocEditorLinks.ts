@@ -1,11 +1,12 @@
 import type { Editor } from '@tiptap/vue-3'
 import { CellSelection } from '@tiptap/pm/tables'
+import type { DocumentType } from 'nocodb-sdk'
 
 /**
  * Encapsulates all link-related state and logic for the document editor:
  * - Paste-link embed menu (link vs embed choice)
- * - Inline link input in the bubble menu (create/edit links)
  * - Link hover preview + edit popover (Notion-style, triggered on mouse hover)
+ * - Page suggestion autocomplete in the link edit popover
  * - Rich text bubble menu visibility logic
  */
 export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor | undefined>; isEditable: Ref<boolean> }) {
@@ -144,9 +145,12 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
   }
 
   const copyLinkUrl = async () => {
-    if (linkHoverUrl.value) {
-      await navigator.clipboard.writeText(linkHoverUrl.value)
-    }
+    if (!linkHoverUrl.value) return
+    // Internal page links are stored as route paths — resolve to full URL for clipboard
+    const url = extractDocIdFromUrl(linkHoverUrl.value)
+      ? `${window.location.origin}#${linkHoverUrl.value}`
+      : linkHoverUrl.value
+    await navigator.clipboard.writeText(url)
   }
 
   /** Find the ProseMirror range of the link anchor element by DOM position */
@@ -176,13 +180,56 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     })
   }
 
+  /** Handle all keyboard events in the URL input — page suggestions + save/cancel */
+  const onLinkEditUrlKeyDown = (e: KeyboardEvent) => {
+    const suggestions = pageSuggestions.value
+
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      closeLinkEdit()
+      return
+    }
+
+    if (suggestions.length) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        pageSuggestionIndex.value = (pageSuggestionIndex.value + 1) % suggestions.length
+        scrollSuggestionIntoView()
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        pageSuggestionIndex.value = (pageSuggestionIndex.value + suggestions.length - 1) % suggestions.length
+        scrollSuggestionIntoView()
+        return
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        selectPageSuggestion(suggestions[pageSuggestionIndex.value])
+        return
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      saveLinkEdit()
+      return
+    }
+  }
+
   const saveLinkEdit = () => {
     const ed = editor.value
     if (!ed || !linkEditRange.value) return
 
     let href = linkEditUrl.value.trim()
     if (href && !/^[a-zA-Z]+:\/\//.test(href) && !href.startsWith('/')) {
-      href = `https://${href}`
+      // If text matches a page title, link to that page instead of treating as URL
+      const matchingPage = activeDocuments.value.find(
+        (doc) => doc.id !== currentDocId.value && doc.title?.toLowerCase() === href.toLowerCase(),
+      )
+      if (matchingPage) {
+        href = buildPageUrl(matchingPage)
+      } else {
+        href = `https://${href}`
+      }
     }
 
     const { from, to } = linkEditRange.value
@@ -253,6 +300,86 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     }
   }
 
+  // --- Page suggestion autocomplete ---
+  const documentsStore = useDocumentsStore()
+  const { activeDocuments, activeDocumentId: currentDocId } = storeToRefs(documentsStore)
+
+  const basesStore = useBases()
+  const { activeProjectId } = storeToRefs(basesStore)
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+  const pageSuggestionIndex = ref(0)
+
+  /** Returns true if input looks like a URL rather than a page title search */
+  const looksLikeUrl = (text: string): boolean => {
+    return /^https?:\/\//.test(text) || /^www\./.test(text)
+  }
+
+  /** Filtered page suggestions based on linkEditUrl text.
+   *  Only shows when text looks like a search (not a URL). */
+  const pageSuggestions = computed<DocumentType[]>(() => {
+    const query = linkEditUrl.value.trim().toLowerCase()
+    if (!query || !isLinkEditOpen.value) return []
+    if (looksLikeUrl(query)) return []
+
+    return activeDocuments.value
+      .filter((doc) => doc.id !== currentDocId.value && doc.title?.toLowerCase().includes(query))
+      .slice(0, 6)
+  })
+
+  /** Returns true if query has no matches but doesn't look like a URL (for empty-state hint) */
+  const hasNoPageSuggestions = computed(() => {
+    const query = linkEditUrl.value.trim().toLowerCase()
+    if (!query || !isLinkEditOpen.value) return false
+    if (looksLikeUrl(query)) return false
+    return pageSuggestions.value.length === 0
+  })
+
+  /** Extract doc ID from an internal page link URL.
+   *  Matches routes like /{wsId}/{baseId}/docs/{docId} or /{wsId}/{baseId}/docs/{docId}/{slug} */
+  const extractDocIdFromUrl = (url: string): string | null => {
+    const match = url.match(/^\/[^/]+\/[^/]+\/docs\/([^/]+)/)
+    return match ? match[1] : null
+  }
+
+  /** Build internal page URL for a document — mirrors ncNavigateTo route format */
+  const buildPageUrl = (doc: DocumentType): string => {
+    const slug = toReadableUrlSlug([doc.title])
+    const docPath = `/docs/${doc.id}${slug ? `/${slug}` : ''}`
+    const wsId = activeWorkspaceId.value || 'app'
+    const baseId = activeProjectId.value || doc.base_id
+    return `/${wsId}/${baseId}${docPath}`
+  }
+
+  /** Resolve a URL to its DocumentType if it's an internal page link */
+  const resolvePageFromUrl = (url: string): DocumentType | null => {
+    const docId = extractDocIdFromUrl(url)
+    if (!docId) return null
+    return activeDocuments.value.find((d) => d.id === docId) || null
+  }
+
+  /** Select a page from the suggestion list */
+  const selectPageSuggestion = (doc: DocumentType) => {
+    linkEditUrl.value = buildPageUrl(doc)
+    linkEditTitle.value = doc.title || ''
+    pageSuggestionIndex.value = 0
+    // Save immediately after selecting a page
+    saveLinkEdit()
+  }
+
+  watch(pageSuggestions, () => {
+    pageSuggestionIndex.value = 0
+  })
+
+  /** Scroll the selected suggestion item into view */
+  const scrollSuggestionIntoView = () => {
+    nextTick(() => {
+      const container = document.querySelector('.nc-link-page-suggestions')
+      const selected = container?.querySelector('.is-selected') as HTMLElement | null
+      selected?.scrollIntoView({ block: 'nearest' })
+    })
+  }
+
   /** Clear pending timeouts — call from onBeforeUnmount */
   const cleanupLinkHover = () => {
     if (hoverTimeout) {
@@ -301,6 +428,14 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
 
     // Link input (bubble menu toolbar)
     openLinkInput,
+
+    // Page suggestion autocomplete
+    pageSuggestions,
+    pageSuggestionIndex,
+    hasNoPageSuggestions,
+    selectPageSuggestion,
+    onLinkEditUrlKeyDown,
+    resolvePageFromUrl,
 
     // Link hover preview + edit popover
     linkHoverUrl,

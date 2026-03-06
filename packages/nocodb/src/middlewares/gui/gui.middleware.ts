@@ -101,25 +101,33 @@ export class GuiMiddleware implements NestMiddleware {
         this.indexHtmlEtag = `"${crypto.createHash('md5').update(this.indexHtmlBuffer).digest('hex')}"`;
 
         const router = express.Router();
-        router.use(
-          this.dashboardPath,
-          express.static(distPath, {
-            // Don't serve index.html for directory requests — the SPA
-            // fallback in GlobalExceptionFilter handles that with the
-            // <base>-injected version.
-            index: false,
-            // Nuxt build output uses content-hashed filenames (e.g.
-            // app.B3xH9k.js), so assets can be cached indefinitely.
-            maxAge: '1y',
-            immutable: true,
-            // HTML files may change between deployments — don't cache them.
-            setHeaders: (res, filePath) => {
-              if (filePath.endsWith('.html')) {
-                res.setHeader('Cache-Control', 'no-cache');
-              }
-            },
-          }),
-        );
+        const staticOptions: Parameters<typeof express.static>[1] = {
+          // Don't serve index.html for directory requests — the SPA
+          // fallback in GlobalExceptionFilter handles that with the
+          // <base>-injected version.
+          index: false,
+          // Nuxt build output uses content-hashed filenames (e.g.
+          // app.B3xH9k.js), so assets can be cached indefinitely.
+          maxAge: '1y',
+          immutable: true,
+          // HTML files may change between deployments — don't cache them.
+          setHeaders: (res, filePath) => {
+            if (filePath.endsWith('.html')) {
+              res.setHeader('Cache-Control', 'no-cache');
+            }
+          },
+        };
+
+        router.use(this.dashboardPath, express.static(distPath, staticOptions));
+
+        // When the dashboard is at a subpath, also mount static assets at
+        // root so that absolute asset paths (e.g. /_nuxt/entry.js) still
+        // resolve. The frontend build uses relative paths via <base> tag,
+        // but this provides backward compat for any absolute references.
+        if (this.dashboardPath !== '/') {
+          router.use('/', express.static(distPath, staticOptions));
+        }
+
         this.staticRouter = router;
         return;
       } catch {

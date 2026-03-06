@@ -15,13 +15,12 @@ export class GlobalMiddleware implements NestMiddleware {
       req.protocol + '://' + req.get('host');
     req.ncFullUrl = req.protocol + '://' + req.get('host') + req.originalUrl;
 
-    const dashboardPath = this.config.get('dashboardPath', {
-      infer: true,
-    });
+    const dashboardUrl = process.env.NC_DASHBOARD_URL;
 
-    // used for playwright tests so env is not documented
+    // If NC_DASHBOARD_URL is a full URL (split-frontend mode), use it directly.
+    // Otherwise the frontend lives at root, so dashboardUrl = siteUrl.
     req.dashboardUrl =
-      process.env.NC_DASHBOARD_URL || req.ncSiteUrl + dashboardPath;
+      dashboardUrl?.startsWith('http') ? dashboardUrl : req.ncSiteUrl;
     next();
   }
 }

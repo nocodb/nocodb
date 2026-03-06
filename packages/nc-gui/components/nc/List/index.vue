@@ -469,7 +469,11 @@ const handleResetHoverEffectOnMouseLeave = () => {
   <div
     ref="listRef"
     tabindex="-1"
-    class="flex flex-col nc-list-root pt-2 w-64 !focus:(shadow-none outline-none ring-0)"
+    class="flex flex-col nc-list-root w-64 !focus:(shadow-none outline-none ring-0)"
+    :class="{
+      'pt-1': variant === 'small',
+      'pt-2': variant !== 'small',
+    }"
     @keydown.arrow-down.prevent="onArrowDown"
     @keydown.arrow-up.prevent="onArrowUp"
     @keydown.enter.prevent="handleSelectOption(list[activeOptionIndex], undefined, $event)"

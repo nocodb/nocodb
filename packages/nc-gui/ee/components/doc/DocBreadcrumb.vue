@@ -11,7 +11,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const documentsStore = useDocumentsStore()
-const { activeDocument, activeDocuments } = storeToRefs(documentsStore)
+const { activeDocument } = storeToRefs(documentsStore)
 const { getDocumentAncestors } = documentsStore
 
 const { ncNavigateTo } = useGlobal()
@@ -29,25 +29,43 @@ const rootAncestor = computed(() => (ancestors.value.length > 0 ? ancestors.valu
 
 const parentAncestor = computed(() => (ancestors.value.length > 1 ? ancestors.value[ancestors.value.length - 1] : null))
 
+// Single middle ancestor shown inline (when exactly 3 ancestors: root, middle, parent)
+const middleAncestor = computed(() => (ancestors.value.length === 3 ? ancestors.value[1] : null))
+
 // Collapsed middle ancestors (between root and parent) shown in dropdown
 const collapsedMiddle = computed(() => {
-  if (ancestors.value.length <= 2) return []
+  if (ancestors.value.length <= 3) return []
   return ancestors.value.slice(1, ancestors.value.length - 1)
 })
 
-const hasCollapsed = computed(() => ancestors.value.length >= 2)
+const hasCollapsed = computed(() => collapsedMiddle.value.length > 0)
 
 const isEllipsisOpen = ref(false)
 
 // Dropdown: show collapsed ancestor chain as nested tree (parent path, not siblings)
-const dropdownItems = computed(() => {
+const dropdownItems = computed<NcListItemType[]>(() => {
   if (!collapsedMiddle.value.length) return []
 
   return collapsedMiddle.value.map((ancestor, index) => ({
-    doc: ancestor,
-    depth: index,
+    value: ancestor.id!,
+    label: ancestor.title || t('general.untitled'),
+    ncIcon: ancestor.meta?.icon,
+    ncDepth: index,
   }))
 })
+
+const collapsedDocsMap = computed(() => {
+  const map = new Map<string, DocumentType>()
+  for (const doc of collapsedMiddle.value) {
+    if (doc.id) map.set(doc.id, doc)
+  }
+  return map
+})
+
+const handleDropdownSelect = (option: NcListItemType) => {
+  const doc = collapsedDocsMap.value.get(option.value as string)
+  if (doc) navigateToDoc(doc)
+}
 
 const navigateToDoc = (doc: DocumentType) => {
   if (!doc.id || !activeProjectId.value) return
@@ -77,9 +95,17 @@ const displayTitle = computed(() => props.currentTitle || activeDocument.value?.
       <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
     </template>
 
-    <!-- 2. `...` dropdown -->
+    <!-- 2a. Single middle ancestor shown inline -->
+    <template v-if="middleAncestor">
+      <div class="nc-doc-breadcrumb-item nc-clickable" @click="navigateToDoc(middleAncestor)">
+        <span class="nc-doc-breadcrumb-text">{{ middleAncestor.title || $t('general.untitled') }}</span>
+      </div>
+      <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />
+    </template>
+
+    <!-- 2b. `...` dropdown -->
     <template v-if="hasCollapsed">
-      <NcDropdown v-model:visible="isEllipsisOpen" placement="bottomLeft" overlay-class-name="!min-w-52 !max-w-72 nc-scrollbar-thin">
+      <NcDropdown v-model:visible="isEllipsisOpen" placement="bottomLeft">
         <div
           class="nc-doc-breadcrumb-item nc-clickable nc-doc-breadcrumb-ellipsis"
           @click.stop="isEllipsisOpen = !isEllipsisOpen"
@@ -87,22 +113,31 @@ const displayTitle = computed(() => props.currentTitle || activeDocument.value?.
           ...
         </div>
         <template #overlay>
-          <NcMenu variant="small">
-            <NcMenuItem v-for="item in dropdownItems" :key="item.doc.id" @click="navigateToDoc(item.doc)">
-              <GeneralIcon
-                v-if="item.depth > 0"
-                icon="ncCornerDownRight"
-                class="flex-none text-nc-content-gray-muted !w-3 !h-3 ml-1 -mr-0.5"
-              />
-              <LazyGeneralEmojiPicker v-if="getDocIcon(item.doc)" :emoji="getDocIcon(item.doc)" readonly size="xsmall" />
-              <GeneralIcon v-else icon="ncFileText" class="flex-none text-nc-content-gray-muted !w-4 !h-4" />
-
-              <NcTooltip class="truncate" show-on-truncate-only>
-                <template #title> {{ item.doc.title || $t('general.untitled') }}</template>
-                {{ item.doc.title || $t('general.untitled') }}
-              </NcTooltip>
-            </NcMenuItem>
-          </NcMenu>
+          <NcList
+            v-model:open="isEllipsisOpen"
+            :list="dropdownItems"
+            :show-search-always="dropdownItems.length > 4"
+            :search-input-placeholder="$t('general.search')"
+            variant="small"
+            class="!w-64"
+            @change="handleDropdownSelect"
+          >
+            <template #listItem="{ option }">
+              <div class="flex items-center gap-2 truncate"">
+                <GeneralIcon
+                  v-if="option.ncDepth > 0"
+                  icon="ncCornerDownRight"
+                  class="flex-none text-nc-content-gray-muted !w-3 !h-3 ml-1 -mr-0.5"
+                />
+                <LazyGeneralEmojiPicker v-if="option.ncIcon" :emoji="option.ncIcon" readonly size="xsmall" />
+                <GeneralIcon v-else icon="ncFileText" class="flex-none text-nc-content-gray-muted !w-4 !h-4" />
+                <NcTooltip class="truncate" show-on-truncate-only>
+                  <template #title>{{ option.label }}</template>
+                  {{ option.label }}
+                </NcTooltip>
+              </div>
+            </template>
+          </NcList>
         </template>
       </NcDropdown>
       <GeneralIcon icon="ncSlash1" class="nc-doc-breadcrumb-divider" />

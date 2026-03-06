@@ -312,14 +312,31 @@ async function extractColumnIdentifierType({
             column: col,
           }
         );
-      const parsedTree = await unifiedMeta.getParsedTree(
+      let parsedTree = await unifiedMeta.getParsedTree(
         unifiedMeta.getContextFromObject(col),
         { colOptions, getMeta }
       );
-      // parsedTree may not exists when formula column create / update
+
+      // Re-validate if stored parsed_tree lacks dataType (legacy data)
+      if ((!parsedTree || !parsedTree.dataType) && colOptions?.formula) {
+        parsedTree = await validateFormulaAndExtractTreeWithType({
+          // formula may include double curly brackets in previous version
+          // convert to single curly bracket here for compatibility
+          formula: colOptions.formula
+            .replaceAll('{{', '{')
+            .replaceAll('}}', '}'),
+          columns,
+          clientOrSqlUi,
+          getMeta,
+        });
+      }
+
       if (parsedTree) {
+        res.dataType = parsedTree.dataType || FormulaDataTypes.UNKNOWN;
         res.isDataArray = parsedTree.isDataArray;
         res.referencedColumn = parsedTree.referencedColumn;
+      } else {
+        res.dataType = FormulaDataTypes.UNKNOWN;
       }
       break;
     }

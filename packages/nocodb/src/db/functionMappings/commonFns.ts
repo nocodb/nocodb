@@ -91,7 +91,42 @@ export default {
       );
     }
 
-    const switchVal = (await args.fn(args.pt.arguments[0])).builder;
+    // Check type mismatch between switch value and WHEN comparison values.
+    // Strict-typed DBs (e.g. PG) require matching types in CASE WHEN.
+    const switchType = args.pt.arguments[0]?.dataType;
+    let hasCompareTypeMismatch = false;
+    if (
+      switchType &&
+      switchType !== FormulaDataTypes.NULL &&
+      switchType !== FormulaDataTypes.UNKNOWN
+    ) {
+      for (let i = 0; i < count; i++) {
+        const whenType = args.pt.arguments[i * 2 + 1]?.dataType;
+        if (
+          whenType &&
+          whenType !== switchType &&
+          whenType !== FormulaDataTypes.NULL &&
+          whenType !== FormulaDataTypes.UNKNOWN
+        ) {
+          hasCompareTypeMismatch = true;
+          break;
+        }
+      }
+    }
+
+    // helper: wrap an argument with STRING() cast
+    const castToString = async (arg: any) =>
+      (
+        await args.fn({
+          type: 'CallExpression',
+          arguments: [arg],
+          callee: { type: 'Identifier', name: 'STRING' },
+        } as any)
+      ).builder;
+
+    const switchVal = hasCompareTypeMismatch
+      ? await castToString(args.pt.arguments[0])
+      : (await args.fn(args.pt.arguments[0])).builder;
 
     // used it for null value check
     const elseValPrefixes: Knex.Raw[] = [];
@@ -100,16 +135,7 @@ export default {
       let val;
       // cast to string if the return value types are different
       if (returnArgsType.size > 1) {
-        val = (
-          await args.fn({
-            type: 'CallExpression',
-            arguments: [args.pt.arguments[i * 2 + 2]],
-            callee: {
-              type: 'Identifier',
-              name: 'STRING',
-            },
-          } as any)
-        ).builder;
+        val = await castToString(args.pt.arguments[i * 2 + 2]);
       } else {
         val = (await args.fn(args.pt.arguments[i * 2 + 2])).builder;
       }
@@ -138,11 +164,12 @@ export default {
           args.knex.raw(`\n\tWHEN ? IS NULL THEN ?`, [switchVal, val]),
         );
       } else {
+        // cast WHEN comparison values to string if types differ
+        const whenVal = hasCompareTypeMismatch
+          ? await castToString(args.pt.arguments[i * 2 + 1])
+          : (await args.fn(args.pt.arguments[i * 2 + 1])).builder;
         query.push(
-          args.knex.raw(`\n\tWHEN ? THEN ?`, [
-            (await args.fn(args.pt.arguments[i * 2 + 1])).builder,
-            val,
-          ]),
+          args.knex.raw(`\n\tWHEN ? THEN ?`, [whenVal, val]),
         );
       }
     }

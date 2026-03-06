@@ -261,11 +261,8 @@ const onWorkflowNodeComparisonOpChange = (comparison_op: WorkflowNodeComparisonO
 
 // When the first condition's logical_op changes, update all siblings
 const onLogicalOpChange = (logicalOp: 'and' | 'or') => {
-  updateItem({ logical_op: logicalOp })
-
-  if (!isGroup.value) {
-    emit('updateAllSiblings', props.path, logicalOp)
-  }
+  // emit updateAllSiblings — it updates ALL items at the same level
+  emit('updateAllSiblings', props.path, logicalOp)
 }
 
 const logicalOps = [

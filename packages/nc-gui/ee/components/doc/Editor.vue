@@ -1971,8 +1971,8 @@ onBeforeUnmount(() => {
 
   // Active divider — show a selection border when a horizontal rule is selected
   hr.nc-active-block {
-    outline: 2px solid var(--nc-fill-primary);
-    outline-offset: 2px;
+    outline: 1px solid var(--nc-fill-primary);
+    outline-offset: 1px;
     border-radius: 2px;
   }
 
@@ -2190,7 +2190,7 @@ onBeforeUnmount(() => {
   // Uses a pseudo-element so the line sits in the vertical middle.
   hr {
     border: none;
-    height: 1.5em;
+    height: 1em;
     display: flex;
     align-items: center;
 

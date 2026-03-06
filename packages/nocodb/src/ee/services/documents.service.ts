@@ -1,13 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, EventType, PlanLimitTypes } from 'nocodb-sdk';
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { checkLimit } from '~/helpers/paymentHelpers';
-import { Document } from '~/models';
+import { Document, FileReference } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { extractMentionsFromProseMirror } from '~/utils/richTextHelper';
 
 /**
@@ -23,6 +24,8 @@ const MAX_DOC_CONTENT_SIZE = 5 * 1024 * 1024;
 
 @Injectable()
 export class DocumentsService {
+  protected logger = new Logger(DocumentsService.name);
+
   constructor(protected readonly appHooksService: AppHooksService) {}
 
   /**
@@ -176,6 +179,21 @@ export class DocumentsService {
       payload.title = payload.title?.trim() || 'Untitled';
     }
 
+    // Reconcile FileReferences BEFORE saving — injects IDs into payload.content
+    // so the persisted content contains FileReference IDs (same as attachment columns).
+    if (payload.content) {
+      try {
+        await this.reconcileFileReferences(
+          context,
+          docId,
+          payload.content,
+          req,
+        );
+      } catch (e) {
+        this.logger.error(e.message, e.stack);
+      }
+    }
+
     const doc = await Document.update(context, docId, payload);
 
     this.appHooksService.emit(AppEvents.DOCUMENT_UPDATE, {
@@ -227,6 +245,10 @@ export class DocumentsService {
     }
 
     await Document.softDelete(context, docId);
+
+    // Cascade: soft-delete all file references for this document and its descendants
+    const descendantIds = await Document.getDescendantIds(context, docId);
+    await FileReference.bulkDeleteForDocs(context, [docId, ...descendantIds]);
 
     // Cascade: soft-delete all comments for this document
     await Comment.deleteDocComments(context, docId);
@@ -361,5 +383,72 @@ export class DocumentsService {
     }
 
     return updated;
+  }
+
+  /**
+   * Reconcile FileReferences for a doc's content.
+   *
+   * Same pattern as attachment columns in BaseModelSqlv2.prepareNocoData:
+   * - Walk ProseMirror JSON, collect image/fileAttachment nodes
+   * - Nodes with path but no id → FileReference.insert() → inject id (mutates content in-place)
+   * - Diff old tracked IDs vs new content IDs → FileReference.delete() for removed ones
+   *
+   * Must be called BEFORE Document.update() so injected IDs are persisted.
+   */
+  protected async reconcileFileReferences(
+    context: NcContext,
+    docId: string,
+    content: Record<string, any>,
+    req: NcRequest,
+  ) {
+    // 1. Walk content and collect all file nodes
+    const fileNodes: {
+      node: Record<string, any>;
+      id?: string;
+      path?: string;
+    }[] = [];
+
+    const walk = (node: Record<string, any>) => {
+      if (
+        (node.type === 'image' || node.type === 'fileAttachment') &&
+        node.attrs?.path
+      ) {
+        fileNodes.push({
+          node,
+          id: node.attrs.id || undefined,
+          path: node.attrs.path,
+        });
+      }
+      if (Array.isArray(node.content)) {
+        for (const child of node.content) walk(child);
+      }
+    };
+    walk(content);
+
+    // 2. Create FileReferences for new files (path but no id) — mutates content in-place
+    const storageAdapter = await NcPluginMgrv2.storageAdapter();
+
+    for (const fileNode of fileNodes) {
+      if (!fileNode.id && fileNode.path) {
+        const newId = await FileReference.insert(context, {
+          storage: storageAdapter.name,
+          file_url: fileNode.path,
+          file_size: fileNode.node.attrs?.fileSize || 0,
+          fk_user_id: req.user?.id ?? 'anonymous',
+          fk_doc_id: docId,
+        });
+        fileNode.node.attrs.id = newId;
+        fileNode.id = newId;
+      }
+    }
+
+    // 3. Diff: soft-delete FileReferences no longer in content
+    const newIds = new Set(fileNodes.map((n) => n.id).filter(Boolean));
+    const existingIds = await FileReference.listIdsForDoc(context, docId);
+
+    const removedIds = existingIds.filter((id) => !newIds.has(id));
+    if (removedIds.length) {
+      await FileReference.delete(context, removedIds);
+    }
   }
 }

@@ -19,6 +19,14 @@ export const DocImageExtension = Image.extend({
     return {
       // Inherit src, alt, title from base Image
       ...Image.config.addAttributes?.call(this),
+      id: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-id'),
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.id) return {}
+          return { 'data-id': attrs.id }
+        },
+      },
       path: {
         default: null,
         parseHTML: (el: HTMLElement) => el.getAttribute('data-path'),

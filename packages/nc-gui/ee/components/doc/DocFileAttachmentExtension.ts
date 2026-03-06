@@ -23,6 +23,14 @@ export const DocFileAttachmentExtension = Node.create({
 
   addAttributes() {
     return {
+      id: {
+        default: null,
+        parseHTML: (el: HTMLElement) => el.getAttribute('data-id'),
+        renderHTML: (attrs: Record<string, any>) => {
+          if (!attrs.id) return {}
+          return { 'data-id': attrs.id }
+        },
+      },
       path: {
         default: null,
         parseHTML: (el: HTMLElement) => el.getAttribute('data-path'),

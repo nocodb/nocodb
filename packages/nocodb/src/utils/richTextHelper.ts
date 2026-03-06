@@ -34,6 +34,36 @@ export const extractMentionsFromProseMirror = (
   return Array.from(new Set(mentions));
 };
 
+/**
+ * Extract FileReference IDs from image and fileAttachment nodes in ProseMirror JSON.
+ *
+ * Image nodes have `type: "image"` with `attrs.id` (FileReference ID).
+ * File attachment nodes have `type: "fileAttachment"` with `attrs.id`.
+ * Returns deduplicated array of FileReference IDs.
+ */
+export const extractFileReferenceIds = (
+  doc: Record<string, any> | null | undefined,
+): string[] => {
+  if (!doc) return [];
+
+  const ids: string[] = [];
+
+  const walk = (node: Record<string, any>) => {
+    if (
+      (node.type === 'image' || node.type === 'fileAttachment') &&
+      node.attrs?.id
+    ) {
+      ids.push(node.attrs.id);
+    }
+    if (Array.isArray(node.content)) {
+      for (const child of node.content) walk(child);
+    }
+  };
+
+  walk(doc);
+  return Array.from(new Set(ids));
+};
+
 export const extractMentions = (richText: string) => {
   const mentions: string[] = [];
 

@@ -21,6 +21,7 @@ import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { UrlEncodeMiddleware } from '~/middlewares/url-encode.middleware';
 import { OAuthModule } from '~/modules/oauth/oauth.module';
+import { backendRouteExcludePatterns } from '~/utils/backend-route-prefixes';
 
 export const ceModuleConfig = {
   imports: [
@@ -45,6 +46,7 @@ export const ceModuleConfig = {
       provide: APP_GUARD,
       useClass: ExtractIdsMiddleware,
     },
+    GuiMiddleware,
   ],
 };
 
@@ -52,19 +54,29 @@ export const ceModuleConfig = {
 export class AppModule {
   // Global Middleware
   configure(consumer: MiddlewareConsumer) {
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+    // GUI — serve frontend static files + SPA fallback (GET only, non-backend paths)
+    consumer
+      .apply(GuiMiddleware)
+      .exclude(
+        ...backendRouteExcludePatterns.map((path) => ({
+          path,
+          method: RequestMethod.ALL,
+        })),
+      )
+      .forRoutes({ path: '*', method: RequestMethod.GET });
+
     consumer
       .apply(RawBodyMiddleware)
       .forRoutes({
         path: '/api/payment/webhook',
         method: RequestMethod.POST,
-      })
-      .apply(JsonBodyMiddleware)
-      .forRoutes('*')
-      .apply(UrlEncodeMiddleware)
-      .forRoutes('*')
-      .apply(GuiMiddleware)
-      .forRoutes({ path: `${dashboardPath}*`, method: RequestMethod.GET })
+      });
+
+    consumer.apply(JsonBodyMiddleware).forRoutes('*');
+
+    consumer.apply(UrlEncodeMiddleware).forRoutes('*');
+
+    consumer
       .apply(GlobalMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }

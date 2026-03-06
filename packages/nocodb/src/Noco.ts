@@ -207,11 +207,34 @@ export default class Noco {
     await nestApp.enableShutdownHooks();
     NcDebug.log('Shutdown hooks enabled');
 
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/';
     server.use(express.static(path.join(__dirname, 'public')));
 
-    if (dashboardPath !== '/' && dashboardPath !== '') {
-      server.get('/', (_req, res) => res.redirect(dashboardPath));
+    if (dashboardPath.startsWith('http')) {
+      // Test/split mode: frontend runs separately, redirect browser to it.
+      // Non-browser requests (health checks, curl) get 200 instead of redirect.
+      server.get('/', (req, res) => {
+        if (req.headers.accept?.includes('text/html')) {
+          return res.redirect(dashboardPath);
+        }
+        res.sendStatus(200);
+      });
+    } else if (dashboardPath !== '/' && dashboardPath !== '') {
+      // Non-root dashboard path: redirect old path to root
+      const normalizedPath = dashboardPath.replace(/\/+$/, '');
+      server.get(`${normalizedPath}*`, (req, res) => {
+        const remaining = req.path.slice(normalizedPath.length) || '/';
+        res.redirect(remaining);
+      });
+    } else {
+      // Default root deployment: respond 200 for health checks (HEAD/non-browser GET).
+      // Browser requests pass through to GuiMiddleware for SPA fallback.
+      server.get('/', (req, res, next) => {
+        if (req.headers.accept?.includes('text/html')) {
+          return next();
+        }
+        res.sendStatus(200);
+      });
     }
 
     await Integration.init();

@@ -63,7 +63,7 @@ watch(passwordDebounced, async (newPassword) => {
 
 function sharedDashboardUrl() {
   if (!activeDashboard.value?.uuid) return null
-  return `${dashboardUrl.value}#/nc/dashboard/${activeDashboard.value.uuid}`
+  return `${dashboardUrl.value}/nc/dashboard/${activeDashboard.value.uuid}`
 }
 
 const togglePasswordProtected = async () => {

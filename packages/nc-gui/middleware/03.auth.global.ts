@@ -3,6 +3,16 @@ import { NcErrorType } from 'nocodb-sdk'
 import type { UseGlobalReturn } from '../composables/useGlobal/types'
 import type { Actions } from '~/composables/useGlobal/types'
 
+/** Strip continueAfterSignIn param from a path to prevent recursive nesting */
+function stripContinueParam(fullPath: string) {
+  const qIndex = fullPath.indexOf('?')
+  if (qIndex === -1) return fullPath
+  const params = new URLSearchParams(fullPath.slice(qIndex))
+  params.delete('continueAfterSignIn')
+  const remaining = params.toString()
+  return remaining ? `${fullPath.slice(0, qIndex)}?${remaining}` : fullPath.slice(0, qIndex)
+}
+
 /**
  * Global auth middleware
  *
@@ -39,15 +49,6 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
   await checkForRedirect()
 
-  /** If baseHostname defined block home page access under subdomains, and redirect to workspace page */
-  if (
-    state.appInfo.value.baseHostName &&
-    !location.hostname?.startsWith(`${state.appInfo.value.mainSubDomain}.`) &&
-    to.path === '/'
-  ) {
-    return navigateTo(`/${location.hostname.split('.')[0]}`)
-  }
-
   /** if user isn't signed in and google auth is enabled, try to check if sign-in data is present */
   if (!state.signedIn.value && state.appInfo.value.googleAuthEnabled) {
     await tryGoogleAuth(api, state.signIn)
@@ -66,9 +67,10 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
     /** If this is the first usern navigate to signup page directly */
     if (state.appInfo.value.firstUser) {
-      const query = to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {}
-      if (query.continueAfterSignIn) {
-        localStorage.setItem('continueAfterSignIn', query.continueAfterSignIn)
+      const continuePath = to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? stripContinueParam(to.fullPath) : undefined
+      const query = continuePath ? { continueAfterSignIn: continuePath } : {}
+      if (continuePath) {
+        localStorage.setItem('continueAfterSignIn', continuePath)
       }
 
       return navigateTo({
@@ -86,10 +88,13 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 
     /** if user is still not signed in, redirect to signin page */
     if (!state.signedIn.value) {
-      localStorage.setItem('continueAfterSignIn', to.fullPath)
+      const signinContinuePath = to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? stripContinueParam(to.fullPath) : undefined
+      if (signinContinuePath) {
+        localStorage.setItem('continueAfterSignIn', signinContinuePath)
+      }
       return navigateTo({
         path: '/signin',
-        query: to.fullPath !== '/' && to.fullPath.match(/^\/(?!\?)/) ? { continueAfterSignIn: to.fullPath } : {},
+        query: signinContinuePath ? { continueAfterSignIn: signinContinuePath } : {},
       })
     }
   } else if (to.meta.requiresAuth === false && state.signedIn.value) {
@@ -155,12 +160,13 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
-    const newURL = window.location.href.split('?')[0]
-    window.history.pushState(
-      'object',
-      document.title,
-      `${extraProps?.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
-    )
+    const cleanURL = new URL(window.location.href)
+    cleanURL.searchParams.delete('short-token')
+    cleanURL.searchParams.delete('continueAfterSignIn')
+    if (extraProps?.continueAfterSignIn) {
+      cleanURL.searchParams.set('continueAfterSignIn', extraProps.continueAfterSignIn)
+    }
+    window.history.pushState('object', document.title, cleanURL.toString())
     window.location.reload()
   }
 }
@@ -180,7 +186,7 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
         {},
         {
           headers: {
-            'xc-short-token': window.location.search.split('=')[1],
+            'xc-short-token': new URLSearchParams(window.location.search).get('short-token'),
           } as any,
         },
       )
@@ -206,12 +212,13 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
-    const newURL = window.location.href.split('?')[0]
-    window.history.pushState(
-      'object',
-      document.title,
-      `${extraProps?.continueAfterSignIn ? `${newURL}#/?continueAfterSignIn=${extraProps.continueAfterSignIn}` : newURL}`,
-    )
+    const cleanURL = new URL(window.location.href)
+    cleanURL.searchParams.delete('short-token')
+    cleanURL.searchParams.delete('continueAfterSignIn')
+    if (extraProps?.continueAfterSignIn) {
+      cleanURL.searchParams.set('continueAfterSignIn', extraProps.continueAfterSignIn)
+    }
+    window.history.pushState('object', document.title, cleanURL.toString())
     window.location.reload()
   }
 }
@@ -221,13 +228,13 @@ async function checkForRedirect() {
   if (window.location.search && /\bui-redirect=/.test(window.location.search)) {
     let url
     try {
-      url = decodeURIComponent(window.location.search.split('=')[1])
+      url = new URLSearchParams(window.location.search).get('ui-redirect')
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
 
-    const newURL = window.location.href.split('?')[0]
-    window.history.pushState('object', document.title, `${newURL}#${url}`)
-    window.location.reload()
+    if (url) {
+      return navigateTo(url, { replace: true })
+    }
   }
 }

@@ -35,7 +35,7 @@ xmlhttp.onload = function () {
   if (xmlhttp.status === 401) {
     window.location.href = ${JSON.stringify(ncSiteUrl)} + ${JSON.stringify(
   dashboardPath,
-)} + '#/signin?continueAfterSignIn=' + encodeURIComponent(window.location.href);
+)} + '/signin?continueAfterSignIn=' + encodeURIComponent(window.location.href);
     return;
   } 
 

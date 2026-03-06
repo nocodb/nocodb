@@ -20,7 +20,7 @@ export class SignupPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.locator('[href="#/signup"]').click();
+    await this.rootPage.locator('[href="/signup"]').click();
   }
 
   get() {

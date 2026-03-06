@@ -460,7 +460,11 @@ const setup = async ({
           console.error('Failed to parse local storage', e);
         }
 
-        if (initialLocalStorage?.token) return;
+        // In history-mode routing, page.goto() to a different path triggers a
+        // full page reload (unlike hash-mode where only the hash changed).
+        // After sign-out, token is null but the key exists in localStorage.
+        // Use 'in' check so we don't re-inject the admin token after sign-out.
+        if ('token' in initialLocalStorage) return;
 
         window.localStorage.setItem(
           'nocodb-gui-v2',
@@ -487,15 +491,15 @@ const setup = async ({
 
     switch (baseType) {
       case ProjectTypes.DOCUMENTATION:
-        baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}/doc`;
+        baseUrl = url ? url : `/${base.fk_workspace_id}/${base.id}/doc`;
         break;
       case ProjectTypes.DATABASE:
-        baseUrl = url ? url : `/#/${base.fk_workspace_id}/${base.id}`;
+        baseUrl = url ? url : `/${base.fk_workspace_id}/${base.id}`;
         break;
     }
   } else {
-    // sample: http://localhost:3000/#/ws/default/base/pdknlfoc5e7bx4w
-    baseUrl = url ? url : `/#/nc/${base.id}`;
+    // sample: http://localhost:3000/nc/pdknlfoc5e7bx4w
+    baseUrl = url ? url : `/nc/${base.id}`;
   }
 
   await page.addInitScript(() => (window.isPlaywright = true));

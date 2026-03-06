@@ -20,13 +20,13 @@ export class AccountUsersPage extends BasePage {
   async goto({ waitForResponse = true }: { waitForResponse?: boolean }) {
     if (waitForResponse) {
       return this.waitForResponse({
-        uiAction: async () => await this.rootPage.goto('/#/account/users'),
+        uiAction: async () => await this.rootPage.goto('/account/users'),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: `api/v1/users`,
       });
     } else {
       await this.rootPage.waitForTimeout(1000);
-      return this.rootPage.goto('/#/account/users');
+      return this.rootPage.goto('/account/users');
     }
   }
 

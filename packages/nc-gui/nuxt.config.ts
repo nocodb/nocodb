@@ -22,7 +22,7 @@ export default defineNuxtConfig({
 
   router: {
     options: {
-      hashMode: true,
+      hashMode: false,
     },
   },
   chatwoot: {
@@ -53,14 +53,14 @@ export default defineNuxtConfig({
     // todo: enable it back after fixing the issue with layout transition
     layoutTransition: false,
 
-    /** In production build we need to load assets using relative path, to achieve the result we are using cdnURL */
-    cdnURL: process.env.NODE_ENV === 'production' ? process.env.NC_CDN_URL || '.' : undefined,
+    /** In production build we need to load assets using absolute path for history-mode routing */
+    cdnURL: process.env.NODE_ENV === 'production' ? process.env.NC_CDN_URL || '/' : undefined,
     head: {
       link: [
         {
           rel: 'icon',
           type: 'image/x-icon',
-          href: './favicon.ico',
+          href: '/favicon.ico',
         },
 
         ...(process.env.NC_CDN_URL

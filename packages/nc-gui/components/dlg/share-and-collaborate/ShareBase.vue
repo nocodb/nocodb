@@ -28,7 +28,7 @@ const { appInfo } = useGlobal()
 const url = computed(() => {
   if (!sharedBase.value || !sharedBase.value.uuid) return ''
 
-  return encodeURI(`${dashboardUrl.value}#/base/${sharedBase.value.uuid}`)
+  return encodeURI(`${dashboardUrl.value}/base/${sharedBase.value.uuid}`)
 })
 
 const loadBase = async () => {

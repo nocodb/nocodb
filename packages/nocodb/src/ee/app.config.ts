@@ -146,7 +146,7 @@ const config: AppConfig = {
     disableEmailAuth: !!process.env.NC_DISABLE_EMAIL_AUTH,
   },
   mainSubDomain: process.env.NC_MAIN_SUBDOMAIN ?? 'app',
-  dashboardPath: process.env.NC_DASHBOARD_URL ?? '/dashboard',
+  dashboardPath: process.env.NC_DASHBOARD_URL ?? '/',
 };
 
 export default config;

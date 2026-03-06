@@ -91,7 +91,7 @@ test.describe('Grid view personal', () => {
     });
 
     await dashboard.signOut();
-    await dashboard.rootPage.goto('/#/signup');
+    await dashboard.rootPage.goto('/signup');
 
     await loginPage.signIn({
       email: user1.email,

@@ -143,7 +143,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     isCloud: false,
     automationLogLevel: 'OFF',
     disableEmailAuth: false,
-    dashboardPath: '/dashboard',
+    dashboardPath: '/',
     inviteOnlySignup: false,
     giftUrl: '',
     isOnPrem: false,

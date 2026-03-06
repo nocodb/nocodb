@@ -318,7 +318,7 @@ function sharedViewUrl(withPrefill = true) {
       viewType = 'view'
   }
 
-  const baseUrl = `${dashboardUrl.value}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`
+  const baseUrl = `${dashboardUrl.value}/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`
   const queryParams = []
 
   // Add prefill parameters

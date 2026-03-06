@@ -49,7 +49,7 @@ const initializeForm = async () => {
 
     if (res.recover) {
       message.info(`Your subscription has been recovered.`)
-      window.location.href = `/#/${activeWorkspace.value?.id}/settings/ws-billing`
+      window.location.href = `/${activeWorkspace.value?.id}/settings/ws-billing`
       return
     }
 

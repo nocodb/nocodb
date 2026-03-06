@@ -65,7 +65,7 @@ const customRow = (ws: Record<string, any>) => ({
     if (isEeUI) {
       navigateTo(`/${ws.id}`)
     } else {
-      navigateTo(`/#/nc/${ws.id}`)
+      navigateTo(`/nc/${ws.id}`)
     }
   },
 })

@@ -60,7 +60,7 @@ const saveUser = async () => {
 }
 
 const inviteUrl = computed(() =>
-  usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
+  usersData.value.invitationToken ? `${dashboardUrl.value}/signup/${usersData.value.invitationToken}` : null,
 )
 
 const clickInviteMore = () => {

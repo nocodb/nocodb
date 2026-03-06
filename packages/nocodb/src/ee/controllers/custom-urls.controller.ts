@@ -36,34 +36,24 @@ export class CustomUrlsController {
       customPath,
     );
 
-    const urlParams = new URLSearchParams();
-
     if (originalPath) {
-      // Append the original path as 'hash-redirect'
-      urlParams.append('hash-redirect', originalPath);
+      let redirectUrl = originalPath.startsWith('/')
+        ? originalPath
+        : `/${originalPath}`;
 
-      // Add query params only if it is nocodb form
-      // URL encode the queryParams to ensure they are passed correctly as a string
+      // Append query params for forms
       if (originalPath.includes('/form/')) {
-        const encodedQueryParams = encodeURIComponent(
-          new URLSearchParams(queryParams).toString(),
-        );
-
-        urlParams.append('hash-query-params', encodedQueryParams);
+        const qs = new URLSearchParams(queryParams).toString();
+        if (qs) {
+          redirectUrl += `?${qs}`;
+        }
       }
 
-      // Redirect with the combined query parameters
-      return res.redirect(
-        `${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`,
-      );
+      return res.redirect(redirectUrl);
     }
 
     // Redirect to not found page
-    urlParams.append('hash-redirect', '/error/404');
-
-    return res.redirect(
-      `${process.env.NC_DASHBOARD_URL}?${urlParams.toString()}`,
-    );
+    return res.redirect('/error/404');
   }
 
   @Post(['/api/v2/meta/custom-url/check-path'])

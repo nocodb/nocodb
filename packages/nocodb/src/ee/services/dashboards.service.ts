@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import {
   AppEvents,
   calculateNextPosition,
@@ -12,20 +11,16 @@ import {
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { DashboardType, WidgetType } from 'nocodb-sdk';
-import type { AppConfig, NcContext, NcRequest } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { getWidgetData, getWidgetHandler } from '~/db/widgets';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
-import config from '~/app.config';
 import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
 @Injectable()
 export class DashboardsService {
-  constructor(
-    protected readonly appHooksService: AppHooksService,
-    protected readonly configService: ConfigService<AppConfig>,
-  ) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async dashboardList(context: NcContext, baseId: string) {
     return await Dashboard.list(context, baseId);
@@ -647,14 +642,11 @@ export class DashboardsService {
     let siteUrl = _siteUrl;
 
     const baseDomain = process.env.NC_BASE_HOST_NAME;
-    const dashboardPath = this.configService.get('dashboardPath', {
-      infer: true,
-    });
 
     if (baseDomain) {
-      siteUrl = `https://${dashboard['fk_workspace_id']}.${baseDomain}${dashboardPath}`;
+      siteUrl = `https://${dashboard['fk_workspace_id']}.${baseDomain}`;
     }
 
-    return `${siteUrl}${config.dashboardPath}#/dashboard/${dashboard.uuid}`;
+    return `${siteUrl}/dashboard/${dashboard.uuid}`;
   }
 }

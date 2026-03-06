@@ -9,7 +9,7 @@ export default defineNuxtRouteMiddleware(() => {
   const pricing = params.get('pricing')
 
   if (upgrade) {
-    const url = `/#/upgrade?${params.toString()}`
+    const url = `/upgrade?${params.toString()}`
 
     window.location.href = url
 
@@ -22,7 +22,7 @@ export default defineNuxtRouteMiddleware(() => {
     const searchParams = new URLSearchParams(params.toString())
     searchParams.delete('workspaceId')
 
-    const url = `/#/${workspaceId}/pricing${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
+    const url = `/${workspaceId}/pricing${searchParams.toString() ? `?${searchParams.toString()}` : ''}`
 
     window.location.href = url
 
@@ -33,16 +33,23 @@ export default defineNuxtRouteMiddleware(() => {
     const workspaceId = params.get('workspaceId')
     const returnToPage = params.get('returnToPage')
 
-    let url = ''
+    // If no workspaceId in query, we're already on the correct page
+    // (e.g. updateSubscription navigates directly with workspace in path)
+    if (!workspaceId) return
+
+    let targetPath = ''
 
     if (returnToPage === 'org') {
-      url = `/#/admin/${workspaceId}/billing?${params.toString()}`
+      targetPath = `/admin/${workspaceId}/billing`
     } else if (returnToPage === 'account') {
-      url = `/#/account/workspace/${workspaceId}/settings?${params.toString()}`
+      targetPath = `/account/workspace/${workspaceId}/settings`
     } else {
-      url = `/#/${workspaceId}/settings/ws-billing?${params.toString()}`
+      targetPath = `/${workspaceId}/settings/ws-billing`
     }
 
-    window.location.href = url
+    // Only redirect if we're not already on the target path (prevents loop)
+    if (window.location.pathname === targetPath) return
+
+    window.location.href = `${targetPath}?${params.toString()}`
   }
 })

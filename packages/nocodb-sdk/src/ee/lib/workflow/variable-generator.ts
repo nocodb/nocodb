@@ -338,6 +338,25 @@ async function resolveLookupType(
 }
 
 /**
+ * Escape a property name for use inside single-quoted bracket notation (['...'])
+ * Escapes backslashes and single quotes so the key round-trips safely.
+ */
+export function escapeVariableKey(name: string): string {
+  return name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
+/**
+ * Unescape a property name extracted from single-quoted bracket notation.
+ * Reverses escapeVariableKey.
+ */
+export function unescapeVariableKey(escaped: string): string {
+  return escaped.replace(/\\'/g, "'").replace(/\\\\/g, '\\');
+}
+
+/** Regex that matches a single-quoted bracket segment at the end of a key, handling escaped chars */
+export const BRACKET_KEY_RE = /\['((?:[^'\\]|\\.)*)'\]$/;
+
+/**
  * Helper to safely build a property accessor (dot notation or bracket notation)
  * Uses bracket notation if the property name contains spaces or special characters
  */
@@ -348,7 +367,7 @@ function buildPropertyKey(prefix: string, propertyName: string): string {
     /[^a-zA-Z0-9_$]/.test(propertyName) || /^\d/.test(propertyName);
 
   if (needsBrackets) {
-    return `${prefix}['${propertyName}']`;
+    return `${prefix}['${escapeVariableKey(propertyName)}']`;
   } else {
     return `${prefix}.${propertyName}`;
   }

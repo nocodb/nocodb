@@ -1,4 +1,5 @@
 import {
+  BRACKET_KEY_RE,
   UITypes,
   type VariableDefinition,
   VariableType,
@@ -6,6 +7,7 @@ import {
   extractDataTypeFromWorkflowNodeExpression,
   findVariableForExpression,
   isVirtualCol,
+  unescapeVariableKey,
 } from 'nocodb-sdk'
 
 export class TypeGenerator {
@@ -5467,16 +5469,21 @@ declare interface ConfigItem {
     }
   }
 
+  private escapeForTsPropertyName(name: string): string {
+    if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(name)) return name
+    return `"${name.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+  }
+
   private generateObjectTypeFromSchema(schema: VariableDefinition[], inline = false): string {
     if (!schema || schema.length === 0) return 'any'
 
     const properties: string[] = []
 
     for (const field of schema) {
-      const bracketMatch = field.key.match(/\['([^']+)'\]$/)
-      const fieldName = bracketMatch ? bracketMatch[1] : field.key.split('.').pop() || 'unknown'
+      const bracketMatch = field.key.match(BRACKET_KEY_RE)
+      const fieldName = bracketMatch ? unescapeVariableKey(bracketMatch[1]) : field.key.split('.').pop() || 'unknown'
       // Sanitize field name for TypeScript (handle special characters)
-      const safeName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(fieldName) ? fieldName : `"${fieldName}"`
+      const safeName = this.escapeForTsPropertyName(fieldName)
       const fieldType = this.generateTypeFromVariableDefinition(field, true)
 
       if (field.extra?.description) {
@@ -6581,7 +6588,7 @@ declare interface ConfigItem {
         }
 
         this.formatJSDoc([`Variable: ${variableName}`])
-        const safeName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(variableName) ? variableName : `"${variableName}"`
+        const safeName = this.escapeForTsPropertyName(variableName)
         this.write(`${safeName}: ${tsType};`)
       })
 

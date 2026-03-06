@@ -102,7 +102,7 @@ export class GuiMiddleware implements NestMiddleware {
 
         const router = express.Router();
         router.use(
-          '/',
+          this.dashboardPath,
           express.static(distPath, {
             // Don't serve index.html for directory requests — the SPA
             // fallback in GlobalExceptionFilter handles that with the

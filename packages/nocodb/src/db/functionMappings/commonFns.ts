@@ -114,7 +114,13 @@ export default {
       }
     }
 
-    // helper: wrap an argument with STRING() cast
+    // helper: wrap a builder with CAST(? AS TEXT) for type-mismatch resolution.
+    // Uses direct SQL CAST instead of the STRING() function to avoid side effects
+    // from synthetic AST node processing (fnName mutation, etc.)
+    const castBuilderToText = (builder: any) =>
+      args.knex.raw(`CAST(? AS TEXT)`, [builder]);
+
+    // helper: wrap an argument with STRING() cast (for return value casting)
     const castToString = async (arg: any) =>
       (
         await args.fn({
@@ -124,9 +130,10 @@ export default {
         } as any)
       ).builder;
 
+    const switchValRaw = (await args.fn(args.pt.arguments[0])).builder;
     const switchVal = hasCompareTypeMismatch
-      ? await castToString(args.pt.arguments[0])
-      : (await args.fn(args.pt.arguments[0])).builder;
+      ? castBuilderToText(switchValRaw)
+      : switchValRaw;
 
     // used it for null value check
     const elseValPrefixes: Knex.Raw[] = [];
@@ -144,17 +151,16 @@ export default {
         args.pt.arguments[i * 2 + 1].type === 'CallExpression' &&
         args.pt.arguments[i * 2 + 1].callee?.name === 'BLANK'
       ) {
+        // Use positional bindings to avoid knex named-binding conflicts
+        // with PG cast syntax (e.g. ::text contains ':text')
+        const isStringType =
+          args.pt.arguments[i * 2 + 1].dataType === FormulaDataTypes.STRING;
         elseValPrefixes.push(
           args.knex.raw(
-            `\n\tWHEN :switchVal IS NULL ${
-              args.pt.arguments[i * 2 + 1].dataType === FormulaDataTypes.STRING
-                ? `OR :switchVal = ''`
-                : ''
-            } THEN :val`,
-            {
-              switchVal,
-              val,
-            },
+            `\n\tWHEN ? IS NULL ${isStringType ? `OR ? = ''` : ''} THEN ?`,
+            isStringType
+              ? [switchVal, switchVal, val]
+              : [switchVal, val],
           ),
         );
       } else if (
@@ -164,52 +170,68 @@ export default {
           args.knex.raw(`\n\tWHEN ? IS NULL THEN ?`, [switchVal, val]),
         );
       } else {
-        // cast WHEN comparison values to string if types differ
+        // cast WHEN comparison values to text if types differ
+        const whenValRaw = (await args.fn(args.pt.arguments[i * 2 + 1]))
+          .builder;
         const whenVal = hasCompareTypeMismatch
-          ? await castToString(args.pt.arguments[i * 2 + 1])
-          : (await args.fn(args.pt.arguments[i * 2 + 1])).builder;
+          ? castBuilderToText(whenValRaw)
+          : whenValRaw;
         query.push(
           args.knex.raw(`\n\tWHEN ? THEN ?`, [whenVal, val]),
         );
       }
     }
+    const hasRegularWhens = query.length > 0;
+
     if (args.pt.arguments.length % 2 === 0) {
       let val;
       // cast to string if the return value types are different
       if (returnArgsType.size > 1) {
-        val = (
-          await args.fn({
-            type: 'CallExpression',
-            arguments: [args.pt.arguments[args.pt.arguments.length - 1]],
-            callee: {
-              type: 'Identifier',
-              name: 'STRING',
-            },
-          } as any)
-        ).builder;
+        val = await castToString(
+          args.pt.arguments[args.pt.arguments.length - 1],
+        );
       } else {
         val = (await args.fn(args.pt.arguments[args.pt.arguments.length - 1]))
           .builder;
       }
       if (elseValPrefixes.length > 0) {
-        const elseValPrefix = concatKnexRaw(args.knex, elseValPrefixes);
-        query.push(
-          args.knex.raw(`\n\tELSE (CASE ? ELSE ? END)`, [elseValPrefix, val]),
-        );
+        if (hasRegularWhens) {
+          const elseValPrefix = concatKnexRaw(args.knex, elseValPrefixes);
+          query.push(
+            args.knex.raw(`\n\tELSE (CASE ? ELSE ? END)`, [
+              elseValPrefix,
+              val,
+            ]),
+          );
+        } else {
+          // All WHEN values were BLANK/NULL — use searched CASE form directly
+          query.push(...elseValPrefixes);
+          query.push(args.knex.raw(`\n\tELSE ?`, [val]));
+        }
       } else {
         query.push(args.knex.raw(`\n\tELSE ?`, [val]));
       }
     } else if (elseValPrefixes.length > 0) {
-      const elseValPrefix = concatKnexRaw(args.knex, elseValPrefixes);
-      query.push(args.knex.raw(`\n\tELSE (CASE ? END)`, [elseValPrefix]));
+      if (hasRegularWhens) {
+        const elseValPrefix = concatKnexRaw(args.knex, elseValPrefixes);
+        query.push(args.knex.raw(`\n\tELSE (CASE ? END)`, [elseValPrefix]));
+      } else {
+        // All WHEN values were BLANK/NULL — use searched CASE form directly
+        query.push(...elseValPrefixes);
+      }
     }
     const queryRaw = concatKnexRaw(args.knex, query);
-    return {
-      builder: args.knex.raw(`CASE :switchVal :queryRaw\n END`, {
-        switchVal,
-        queryRaw,
-      }),
-    };
+    if (hasRegularWhens) {
+      // Simple CASE form: CASE switchVal WHEN ... END
+      return {
+        builder: args.knex.raw(`CASE ? ?\n END`, [switchVal, queryRaw]),
+      };
+    } else {
+      // Searched CASE form (all WHENs were BLANK/NULL): CASE WHEN ... END
+      return {
+        builder: args.knex.raw(`CASE ?\n END`, [queryRaw]),
+      };
+    }
   },
   IF: async (args: MapFnArgs) => {
     const cond = (await treatArgAsConditionalExp(args)).builder;

@@ -123,6 +123,7 @@ const {
   checkLinkMark,
   onLinkEditChange,
   deleteLinkEdit,
+  dismissLinkEdit,
   openLinkExternal,
   showRichTextMenu,
   onSelectionUpdate,
@@ -165,6 +166,15 @@ const pendingAnchorId = ref<string | null>(null)
 
 const onEditorClick = (e: MouseEvent) => {
   const target = e.target as HTMLElement
+
+  // Click on a link — open in new tab (Notion-style)
+  const linkEl = target.closest('a[href]') as HTMLAnchorElement | null
+  if (linkEl?.href) {
+    e.preventDefault()
+    window.open(linkEl.href, '_blank', 'noopener,noreferrer')
+    return
+  }
+
   const commentEl = target.closest('[data-comment-id]') as HTMLElement | null
   if (!commentEl) return
 
@@ -1365,7 +1375,7 @@ onBeforeUnmount(() => {
                       ;($event.target as HTMLInputElement)?.blur()
                       editor?.commands.focus()
                     "
-                    @keydown.escape.prevent="editor?.commands.focus()"
+                    @keydown.escape.prevent="dismissLinkEdit(); editor?.commands.focus()"
                   />
                   <NcTooltip placement="top">
                     <template #title>{{ $t('general.open') }}</template>
@@ -2207,10 +2217,13 @@ onBeforeUnmount(() => {
     }
   }
 
-  // Links
+  // Links — neutral color with subtle underline (Notion-style)
   a {
-    color: var(--nc-content-brand);
+    color: inherit;
     text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-decoration-color: var(--nc-border-gray-medium);
+    text-underline-offset: 3px;
   }
 
   // Strikethrough — grey text and line (like Outline)

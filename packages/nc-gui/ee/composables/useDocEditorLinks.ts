@@ -123,6 +123,14 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
   const linkEditMark = ref<any>(null)
   const isLinkEditVisible = ref(false)
   const linkEditInputRef = ref<HTMLInputElement>()
+  // When user dismisses the link edit bubble via Escape, suppress re-showing
+  // until the cursor moves away from the link mark
+  const isLinkEditDismissed = ref(false)
+
+  const dismissLinkEdit = () => {
+    isLinkEditDismissed.value = true
+    isLinkEditVisible.value = false
+  }
 
   const checkLinkMark = ({ editor: e }: { editor: any }) => {
     if (!e.view.editable) return false
@@ -141,12 +149,28 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     const linkMark = activeNode?.marks?.find((m: any) => m.type.name === 'link')
     if (!linkMark) {
       isLinkEditVisible.value = false
+      // Cursor moved off a link — clear the dismiss flag so it can re-open next time
+      isLinkEditDismissed.value = false
+      return false
+    }
+
+    // User explicitly dismissed this bubble — stay hidden until cursor leaves the link
+    if (isLinkEditDismissed.value) {
+      isLinkEditVisible.value = false
       return false
     }
 
     linkEditMark.value = linkMark
     linkEditUrl.value = linkMark.attrs?.href || ''
+    const wasVisible = isLinkEditVisible.value
     isLinkEditVisible.value = true
+    // Auto-select URL text only on initial open, not on every shouldShow poll
+    if (!wasVisible) {
+      nextTick(() => {
+        linkEditInputRef.value?.focus()
+        linkEditInputRef.value?.select()
+      })
+    }
     return true
   }
 
@@ -237,6 +261,7 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     checkLinkMark,
     onLinkEditChange,
     deleteLinkEdit,
+    dismissLinkEdit,
     openLinkExternal,
 
     // Bubble menu visibility

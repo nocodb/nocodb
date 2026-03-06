@@ -114,26 +114,22 @@ export default {
       }
     }
 
-    // helper: wrap a builder with CAST(? AS TEXT) for type-mismatch resolution.
-    // Uses direct SQL CAST instead of the STRING() function to avoid side effects
-    // from synthetic AST node processing (fnName mutation, etc.)
-    const castBuilderToText = (builder: any) =>
-      args.knex.raw(`CAST(? AS TEXT)`, [builder]);
-
-    // helper: wrap an argument with STRING() cast (for return value casting)
+    // helper: wrap an AST argument with STRING() cast via the function
+    // mapping system (DB-agnostic: PG uses ::text, MySQL uses CAST AS CHAR,
+    // SQLite passes through).  Clones the arg to avoid fnName mutation on the
+    // original AST node.
     const castToString = async (arg: any) =>
       (
         await args.fn({
           type: 'CallExpression',
-          arguments: [arg],
+          arguments: [{ ...arg }],
           callee: { type: 'Identifier', name: 'STRING' },
         } as any)
       ).builder;
 
-    const switchValRaw = (await args.fn(args.pt.arguments[0])).builder;
     const switchVal = hasCompareTypeMismatch
-      ? castBuilderToText(switchValRaw)
-      : switchValRaw;
+      ? await castToString(args.pt.arguments[0])
+      : (await args.fn(args.pt.arguments[0])).builder;
 
     // used it for null value check
     const elseValPrefixes: Knex.Raw[] = [];
@@ -170,12 +166,10 @@ export default {
           args.knex.raw(`\n\tWHEN ? IS NULL THEN ?`, [switchVal, val]),
         );
       } else {
-        // cast WHEN comparison values to text if types differ
-        const whenValRaw = (await args.fn(args.pt.arguments[i * 2 + 1]))
-          .builder;
+        // cast WHEN comparison values to string if types differ
         const whenVal = hasCompareTypeMismatch
-          ? castBuilderToText(whenValRaw)
-          : whenValRaw;
+          ? await castToString(args.pt.arguments[i * 2 + 1])
+          : (await args.fn(args.pt.arguments[i * 2 + 1])).builder;
         query.push(
           args.knex.raw(`\n\tWHEN ? THEN ?`, [whenVal, val]),
         );

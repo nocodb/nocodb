@@ -70,23 +70,6 @@ const getArraySource = async (argument: any, args: MapFnArgs) => {
 
 const pg = {
   ...commonFns,
-  SWITCH: async (args: MapFnArgs) => {
-    const firstArg = args.pt.arguments[0];
-    if (firstArg?.isDataArray || firstArg?.inArrayFormat) {
-      // Multi-value field (Lookup/Links): 'SWITCH' as fnName falls through to
-      // STRING_AGG in getAggregateFn, which concatenates all values into text.
-      // Override to MIN so the aggregate returns a single scalar of the original type.
-      const origFn = args.fn;
-      const wrappedFn: typeof origFn = async (pt, ...rest) => {
-        if (pt === firstArg) {
-          return origFn({ ...pt, fnName: 'MIN' }, ...rest);
-        }
-        return origFn(pt, ...rest);
-      };
-      return commonFns.SWITCH({ ...args, fn: wrappedFn });
-    }
-    return commonFns.SWITCH(args);
-  },
   LEN: 'length',
   MIN: 'least',
   MAX: 'greatest',

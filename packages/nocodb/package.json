@@ -150,6 +150,7 @@
     "googleapis": "^169.0.0",
     "handlebars": "^4.7.8",
     "handlebars-helpers-v2": "^2.2.0",
+    "html-entities": "^2.6.0",
     "html-to-json-parser": "^2.0.1",
     "i": "^0.3.7",
     "iconv-lite": "^0.6.3",

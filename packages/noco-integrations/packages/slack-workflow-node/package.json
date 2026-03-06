@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "@noco-integrations/slack-auth": "workspace:*"
+    "@noco-integrations/slack-auth": "workspace:*",
+    "html-entities": "^2.6.0"
   },
   "devDependencies": {
     "rimraf": "^5.0.10",

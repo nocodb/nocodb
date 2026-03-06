@@ -8,6 +8,7 @@ import {
   FormBuilderValidatorType,
   type FormDefinition,
 } from '@noco-integrations/core';
+import { decode } from 'html-entities';
 import type { SlackAuthIntegration } from '@noco-integrations/slack-auth';
 import type {
   WorkflowNodeConfig,
@@ -301,10 +302,12 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         ts: Date.now(),
       });
 
+      const decodedMessage = decode(message);
+
       const result = await auth.use(async (client) => {
         const postMessageArgs: any = {
           channel: target,
-          text: message,
+          text: decodedMessage,
           link_names: true,
           unfurl_links: unfurlLinks,
         };

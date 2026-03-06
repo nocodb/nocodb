@@ -1,5 +1,5 @@
 import type { Editor } from '@tiptap/vue-3'
-import DOMPurify from 'dompurify'
+import DOMPurify from 'isomorphic-dompurify'
 
 /**
  * Download helpers for exporting document content as Markdown, HTML, or PDF.

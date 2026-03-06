@@ -53,10 +53,10 @@ const showNodeTooltip = ref(true)
 const { meta: metaKey, control } = useMagicKeys()
 const isMacOs = isMac()
 
-const MAX_INDENT_DEPTH = 4
+const MAX_INDENT_DEPTH = 8
 
 const indentStyle = computed(() => ({
-  paddingLeft: `${8 + Math.min(props.depth, MAX_INDENT_DEPTH) * 24}px`,
+  paddingLeft: `${8 + Math.min(props.depth, MAX_INDENT_DEPTH) * 8}px`,
 }))
 
 // Show chevron if either the tree node has loaded children OR the API says children exist

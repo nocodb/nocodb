@@ -1,3 +1,7 @@
+import { message as antMessage } from 'ant-design-vue/es'
+import { NcAlert, NcButton, GeneralIcon } from '#components'
+import { getI18n } from '~/plugins/a.i18n'
+
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 export const useUpdateChecker = createSharedComposable(() => {
@@ -9,11 +13,54 @@ export const useUpdateChecker = createSharedComposable(() => {
   let intervalId: null | NodeJS.Timeout = null
   let disabled = false
 
+  const { t } = getI18n().global
+
   const { $api } = useNuxtApp()
 
   const { appInfo } = useGlobal()
 
   const baseURL = $api.instance.defaults.baseURL
+
+  let updateMessageKey: string | null = null
+
+  const showUpdateNotification = () => {
+    if (updateMessageKey) return
+
+    updateMessageKey = `nc-update-${Date.now()}`
+
+    antMessage.open({
+      key: updateMessageKey,
+      content: () =>
+        h(
+          NcAlert,
+          {
+            message: t('general.newUpdateAvailable'),
+            type: 'info',
+            isNotification: true,
+            showIcon: true,
+            closable: false,
+            showDuration: false,
+          },
+          {
+            action: () =>
+              h(
+                NcButton,
+                {
+                  onClick: () => {
+                    location.reload()
+                  },
+                  size: 'small',
+                  type: 'primary',
+                },
+                () => t('general.reload'),
+              ),
+            icon: () => h(GeneralIcon, { icon: 'ncInfo', class: 'h-5 w-5' }),
+          },
+        ),
+      duration: 0,
+      class: 'nc-update-notification-center',
+    })
+  }
 
   const parseResponse = (text: string) => {
     if (!text) return null
@@ -55,6 +102,9 @@ export const useUpdateChecker = createSharedComposable(() => {
 
         if (consecutiveNewCommitCount.value >= CONFIRMATION_THRESHOLD) {
           isUpdateAvailable.value = true
+
+          showUpdateNotification()
+
           currentCommit.value = newCommit
         }
       } else if (newerCommitDetected.value !== null) {

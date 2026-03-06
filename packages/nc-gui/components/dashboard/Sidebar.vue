@@ -43,8 +43,6 @@ onUnmounted(() => {
     <DashboardTreeViewProjectList>
       <template #footer>
         <div v-if="!isSharedBase" class="nc-sidebar-bottom-section">
-          <DashboardSidebarUpdateBanner v-if="isEeUI" />
-
           <PaymentUpgradeSidebarBanner v-if="isEeUI" />
 
           <LazyGeneralMaintenanceAlert />

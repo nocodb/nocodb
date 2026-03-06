@@ -98,6 +98,120 @@ export default function () {
       await featureMock?.restore?.();
     });
 
+    describe('view list', () => {
+      it(`will list views for a table`, async () => {
+        // Create multiple views
+        await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({ title: 'View_A', type: 'grid' })
+          .expect(200);
+
+        await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({ title: 'View_B', type: 'grid' })
+          .expect(200);
+
+        const response = await request(context.app)
+          .get(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .expect(200);
+
+        const views = response.body.list;
+        expect(views).to.be.an('array');
+        // default view + 2 created views
+        expect(views.length).to.be.greaterThanOrEqual(3);
+
+        for (const view of views) {
+          expect(view).to.have.property('id');
+          expect(view).to.have.property('title');
+          expect(view).to.have.property('type');
+        }
+
+        const titles = views.map((v) => v.title);
+        expect(titles).to.include.members(['View_A', 'View_B']);
+      });
+
+      it(`will return default view for table with no custom views`, async () => {
+        const response = await request(context.app)
+          .get(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .expect(200);
+
+        const views = response.body.list;
+        expect(views).to.be.an('array');
+        // every table has at least one default view
+        expect(views.length).to.be.greaterThanOrEqual(1);
+      });
+    });
+
+    describe('view get', () => {
+      it(`will get a view by id`, async () => {
+        const createResponse = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'GetTestView',
+            type: 'grid',
+            sorts: [
+              {
+                field_id: (
+                  await table.getColumns(ctx)
+                ).find((col) => col.title === 'Title').id,
+              },
+            ],
+          })
+          .expect(200);
+
+        const viewId = createResponse.body.id;
+
+        const getResponse = await request(context.app)
+          .get(`${API_PREFIX}/views/${viewId}`)
+          .set('xc-token', context.xc_token)
+          .expect(200);
+
+        const view = getResponse.body;
+        expect(view).to.have.property('id', viewId);
+        expect(view).to.have.property('title', 'GetTestView');
+        expect(view).to.have.property('type', 'grid');
+        expect(view).to.have.property('fields');
+        expect(view.fields).to.be.an('array').that.is.not.empty;
+        expect(view).to.have.property('sorts');
+        expect(view.sorts).to.be.an('array').that.is.not.empty;
+      });
+
+      it(`will get a kanban view with options`, async () => {
+        const singleSelectColumn = (await table.getColumns(ctx)).find(
+          (col) => col.title === 'SingleSelect',
+        );
+        const createResponse = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'GetKanbanView',
+            type: 'kanban',
+            options: {
+              stack_by: {
+                field_id: singleSelectColumn.id,
+              },
+            },
+          })
+          .expect(200);
+
+        const getResponse = await request(context.app)
+          .get(`${API_PREFIX}/views/${createResponse.body.id}`)
+          .set('xc-token', context.xc_token)
+          .expect(200);
+
+        const view = getResponse.body;
+        expect(view).to.have.property('id', createResponse.body.id);
+        expect(view).to.have.property('type', 'kanban');
+        expect(view).to.have.property('options');
+        expect(view.options).to.have.property('stack_by');
+      });
+    });
+
     describe('view create + update', () => {
       it(`will create + update grid view`, async () => {
         const response = await request(context.app)

@@ -372,7 +372,8 @@ const matchCodeSandbox = (url: string) => {
 urlMatchers.push(['CodeSandbox', matchCodeSandbox])
 
 // NocoDB shared views — already iframeable, pass the URL through as-is
-const NOCODB_SHARED_RE = /^https?:\/\/[^\/]+\/#\/nc\/(view|form|gallery|kanban|map|calendar|dashboard)\/([a-zA-Z0-9_-]+)/
+// Supports both hash-based (/#/nc/view/...) and non-hash (/nc/view/...) URL formats
+const NOCODB_SHARED_RE = /^https?:\/\/[^\/]+\/(?:#\/)?nc\/(view|form|gallery|kanban|map|calendar|dashboard)\/([a-zA-Z0-9_-]+)/
 const matchNocoDB = (url: string) => {
   try {
     const match = url.match(NOCODB_SHARED_RE)

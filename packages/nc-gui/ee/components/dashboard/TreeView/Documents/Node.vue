@@ -53,8 +53,10 @@ const showNodeTooltip = ref(true)
 const { meta: metaKey, control } = useMagicKeys()
 const isMacOs = isMac()
 
+const MAX_INDENT_DEPTH = 4
+
 const indentStyle = computed(() => ({
-  paddingLeft: `${8 + props.depth * 24}px`,
+  paddingLeft: `${8 + Math.min(props.depth, MAX_INDENT_DEPTH) * 24}px`,
 }))
 
 // Show chevron if either the tree node has loaded children OR the API says children exist
@@ -304,7 +306,7 @@ function onStopEdit() {
           icon="chevronRight"
           class="transform transition-transform duration-200"
           :class="[
-            showChevron ? 'text-nc-content-gray-subtle2' : 'text-nc-content-gray-muted/30',
+            showChevron ? 'text-nc-content-gray-subtle2' : 'text-nc-content-gray-muted cursor-not-allowed',
             { '!rotate-90': !collapsed && showChevron },
           ]"
         />
@@ -328,8 +330,9 @@ function onStopEdit() {
           :class="
             showChevron
               ? 'text-nc-content-gray-subtle2 hover:text-nc-content-gray cursor-pointer'
-              : 'text-nc-content-gray-muted/50 !cursor-not-allowed pointer-events-none'
+              : '!text-nc-content-gray-muted '
           "
+          :disabled="!showChevron"
           @click.stop="showChevron && onToggleCollapse()"
           @dblclick.stop
         >
@@ -337,8 +340,10 @@ function onStopEdit() {
           <GeneralIcon
             v-else
             icon="chevronRight"
-            class="transform transition-transform duration-200 !text-current text-[16px]"
-            :class="{ '!rotate-90': !collapsed && showChevron }"
+            class="transform transition-transform duration-200 text-current"
+            :class="{
+              '!rotate-90': !collapsed && showChevron,
+            }"
           />
         </NcButton>
 

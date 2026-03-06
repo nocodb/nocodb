@@ -142,6 +142,24 @@ const formattedArgs = computed(() => {
   }
 })
 
+// Detect if output contains records (v3 format from query_records, get_record, etc.)
+const hasRecordOutput = computed(() => {
+  let data = block.value.output
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data)
+    } catch {
+      return false
+    }
+  }
+  return data?.records && Array.isArray(data.records) && data.records.length > 0
+})
+
+const recordTableName = computed(() => {
+  const input = effectiveInput.value as Record<string, unknown> | undefined
+  return (input?.table_name as string) ?? undefined
+})
+
 const formattedOutput = computed(() => {
   if (block.value.output === undefined || block.value.output === null) return ''
   try {
@@ -151,6 +169,16 @@ const formattedOutput = computed(() => {
     return String(block.value.output)
   }
 })
+
+// Auto-expand when record output arrives
+watch(
+  () => block.value.output,
+  () => {
+    if (hasRecordOutput.value && !isExpanded.value) {
+      isExpanded.value = true
+    }
+  },
+)
 
 // Truncate long results
 const MAX_RESULT_LINES = 8
@@ -226,12 +254,17 @@ const visibleOutput = computed(() => {
           >
         </div>
 
-        <!-- Result -->
+        <!-- Result: record table or raw output -->
         <div v-if="block.output !== undefined" class="space-y-1">
           <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">
             {{ isError ? t('msg.chat.toolError') : t('msg.chat.toolOutput') }}
           </div>
-          <div class="relative">
+
+          <!-- Record table for query results -->
+          <ChatRecordTable v-if="hasRecordOutput && !isError" :output="block.output" :table-name="recordTableName" />
+
+          <!-- Raw output fallback -->
+          <div v-else class="relative">
             <pre
               class="text-[11px] leading-relaxed rounded-md p-2 overflow-x-auto nc-scrollbar-thin"
               :class="isError ? 'bg-nc-bg-red-light text-nc-content-red' : 'bg-nc-bg-default text-nc-content-gray-emphasis'"

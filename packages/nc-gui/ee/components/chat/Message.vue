@@ -370,23 +370,29 @@ const renderedContent = computed(() => {
   }
 
   :deep(table) {
-    @apply w-full my-3 border-collapse text-[13px];
+    @apply w-full my-3 text-[13px] border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
+    border-collapse: separate;
+    border-spacing: 0;
   }
 
   :deep(th) {
     @apply text-left font-semibold text-nc-content-gray-subtle bg-nc-bg-gray-light px-2.5 py-1.5 border-b-1 border-nc-border-gray-medium;
   }
 
+  :deep(th:not(:last-child)) {
+    @apply border-r-1 border-nc-border-gray-light;
+  }
+
   :deep(td) {
     @apply text-left text-nc-content-gray px-2.5 py-1.5 border-b-1 border-nc-border-gray-light;
   }
 
-  :deep(tr:last-child td) {
-    @apply border-b-0;
+  :deep(td:not(:last-child)) {
+    @apply border-r-1 border-nc-border-gray-light;
   }
 
-  :deep(table) {
-    @apply overflow-x-auto block;
+  :deep(tr:last-child td) {
+    @apply border-b-0;
   }
 }
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ProjectRoles } from 'nocodb-sdk';
+import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { ChatToolDefinition } from './chat-tool-registry';
 
 export const baseProxyTool: ChatToolDefinition = {
@@ -32,7 +32,7 @@ export const baseProxyTool: ChatToolDefinition = {
       ),
   },
   scope: 'workspace',
-  requiredRole: ProjectRoles.VIEWER,
+  requiredRole: WorkspaceUserRoles.VIEWER,
   isDangerous: false,
   readonly: true,
   async execute() {

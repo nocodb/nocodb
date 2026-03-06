@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { ProjectRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from './chat-tool-registry';
@@ -29,8 +28,8 @@ export const askUserTool: ChatToolDefinition = {
           'Use multiple questions to gather several decisions at once.',
       ),
   },
-  scope: 'workspace',
-  requiredRole: ProjectRoles.VIEWER,
+  scope: 'common',
+  requiredRole: null,
   isDangerous: false,
   readonly: true,
   async execute(

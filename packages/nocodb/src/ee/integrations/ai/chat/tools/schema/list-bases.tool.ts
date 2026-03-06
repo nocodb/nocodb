@@ -1,4 +1,4 @@
-import { ProjectRoles } from 'nocodb-sdk';
+import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
@@ -13,7 +13,8 @@ export const listBasesTool: ChatToolDefinition = {
     'For write operations on another base, ask the user to navigate to it first.',
   parameters: {},
   scope: 'workspace',
-  requiredRole: ProjectRoles.VIEWER,
+  requiredRole: WorkspaceUserRoles.VIEWER,
+  permission: 'workspaceBaseList',
   isDangerous: false,
   readonly: true,
   async execute(context: NcContext, _args: any, req: NcRequest) {

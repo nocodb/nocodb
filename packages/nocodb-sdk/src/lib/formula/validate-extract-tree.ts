@@ -37,15 +37,11 @@ async function extractColumnIdentifierType({
   columns,
   getMeta,
   clientOrSqlUi,
-  _revalidating,
 }: {
   col: UnifiedMetaType.IColumn;
   columns: UnifiedMetaType.IColumn[];
   getMeta: UnifiedMetaType.IGetModel;
   clientOrSqlUi: ClientTypeOrSqlUI;
-  // Tracks formula column IDs currently being re-validated in this call
-  // chain to prevent infinite recursion (A → B → A where both lack dataType).
-  _revalidating?: Set<string>;
 }) {
   const res: Omit<BaseFormulaNode, 'type'> & {
     [p: string]: any;
@@ -156,7 +152,6 @@ async function extractColumnIdentifierType({
               columns: refTableColumns,
               getMeta,
               clientOrSqlUi,
-              _revalidating,
             })
           );
         }
@@ -227,7 +222,6 @@ async function extractColumnIdentifierType({
           { model: lookupInfo.relatedTable }
         ),
         getMeta,
-        _revalidating,
       });
       res.dataType = lookupColumnIdentifierType.dataType;
       res.isDataArray = lookupColumnIdentifierType.isDataArray;
@@ -290,7 +284,6 @@ async function extractColumnIdentifierType({
         clientOrSqlUi,
         columns: relatedTableColumns,
         getMeta,
-        _revalidating,
       });
       res.dataType = relatedColumnIdentifierType.dataType;
       const colWithOptions = { ...col, colOptions };
@@ -323,34 +316,6 @@ async function extractColumnIdentifierType({
         unifiedMeta.getContextFromObject(col),
         { colOptions, getMeta }
       );
-
-      // Re-validate if stored parsed_tree lacks dataType (legacy data).
-      // The _revalidating set (scoped per top-level call chain) prevents
-      // infinite recursion when formulas reference each other and both
-      // lack dataType.
-      const revalidating = _revalidating ?? new Set<string>();
-      if (
-        (!parsedTree || !parsedTree.dataType) &&
-        colOptions?.formula &&
-        !revalidating.has(col.id)
-      ) {
-        revalidating.add(col.id);
-        try {
-          parsedTree = await validateFormulaAndExtractTreeWithType({
-            // formula may include double curly brackets in previous version
-            // convert to single curly bracket here for compatibility
-            formula: colOptions.formula
-              .replaceAll('{{', '{')
-              .replaceAll('}}', '}'),
-            columns,
-            clientOrSqlUi,
-            getMeta,
-            _revalidating: revalidating,
-          });
-        } finally {
-          revalidating.delete(col.id);
-        }
-      }
 
       if (parsedTree) {
         res.dataType = parsedTree.dataType || FormulaDataTypes.UNKNOWN;
@@ -765,7 +730,6 @@ export async function validateFormulaAndExtractTreeWithType({
   clientOrSqlUi,
   getMeta,
   trackPosition,
-  _revalidating,
 }: {
   formula: string;
   columns: UnifiedMetaType.IColumn[];
@@ -773,7 +737,6 @@ export async function validateFormulaAndExtractTreeWithType({
   column?: UnifiedMetaType.IColumn;
   getMeta: UnifiedMetaType.IGetModel;
   trackPosition?: boolean;
-  _revalidating?: Set<string>;
 }): Promise<ParsedFormulaNode> {
   // extract column list from meta since columns array might not have all columns(system columns)
   const meta = await getMeta(
@@ -1082,7 +1045,6 @@ export async function validateFormulaAndExtractTreeWithType({
               columns,
               clientOrSqlUi,
               getMeta,
-              _revalidating,
             }
           ));
 
@@ -1112,7 +1074,6 @@ export async function validateFormulaAndExtractTreeWithType({
           columns,
           getMeta,
           clientOrSqlUi,
-          _revalidating,
         })
       );
     } else if (parsedTree.type === JSEPNode.LITERAL) {

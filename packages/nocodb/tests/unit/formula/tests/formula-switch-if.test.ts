@@ -1,14 +1,9 @@
 import 'mocha';
 import { UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
-import { initInitialModel, ITestContext } from '../initModel';
-import {
-  createColumn,
-  createRollupColumn,
-  customColumns,
-} from '../../factory/column';
-import { createBulkRows, listRow } from '../../factory/row';
-import { createTable } from '../../factory/table';
+import { initInitialModel } from '../initModel';
+import { createColumn, createRollupColumn } from '../../factory/column';
+import { listRow } from '../../factory/row';
 import { isEE } from '../../utils/helpers';
 import { Model } from '../../../../src/models';
 
@@ -54,7 +49,6 @@ import { Model } from '../../../../src/models';
  */
 
 function formulaSwitchIfTests() {
-  let _setup: ITestContext;
   let _context;
   let _ctx: { workspace_id: string; base_id: string };
   let _base;
@@ -62,7 +56,6 @@ function formulaSwitchIfTests() {
 
   beforeEach(async function () {
     const setup = await initInitialModel();
-    _setup = setup;
     _context = setup.context;
     _ctx = setup.ctx;
     _base = setup.base;

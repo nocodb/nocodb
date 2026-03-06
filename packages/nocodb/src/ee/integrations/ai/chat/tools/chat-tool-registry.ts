@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { z } from 'zod';
 import { tool } from 'ai';
-import { extractRolesObj, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  extractRolesObj,
+  OrderedProjectRoles,
+  OrderedWorkspaceRoles,
+} from 'nocodb-sdk';
 import {
   ERROR_HINT_MAX_LENGTH,
   TRUNCATE_RESULT_MAX_LENGTH,
@@ -56,6 +60,7 @@ import { listSortsTool } from './view/list-sorts.tool';
 import { removeSortTool } from './view/remove-sort.tool';
 import { setGroupByTool } from './view/set-group-by.tool';
 import { clearGroupByTool } from './view/clear-group-by.tool';
+import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { NcContext } from '~/interface/config';
 import type { ToolSet } from 'ai';
@@ -88,23 +93,20 @@ export interface ChatToolDefinition {
   execute(context: NcContext, args: any, req: NcRequest): Promise<any>;
 }
 
-const BASE_ROLE_HIERARCHY: Record<string, number> = {
-  [ProjectRoles.OWNER]: 5,
-  [ProjectRoles.CREATOR]: 4,
-  [ProjectRoles.EDITOR]: 3,
-  [ProjectRoles.COMMENTER]: 2,
-  [ProjectRoles.VIEWER]: 1,
-  [ProjectRoles.NO_ACCESS]: 0,
-};
+// Derive role-hierarchy maps from the SDK ordered arrays so they stay in sync
+// automatically. OrderedProjectRoles / OrderedWorkspaceRoles are sorted from
+// most-powerful (index 0) to least-powerful — we invert the index so higher
+// numbers mean more power, matching the comparison in meetsRequiredRole.
+function buildHierarchy(ordered: readonly string[]): Record<string, number> {
+  const hierarchy: Record<string, number> = {};
+  for (let i = 0; i < ordered.length; i++) {
+    hierarchy[ordered[i]] = ordered.length - 1 - i;
+  }
+  return hierarchy;
+}
 
-const WS_ROLE_HIERARCHY: Record<string, number> = {
-  [WorkspaceUserRoles.OWNER]: 5,
-  [WorkspaceUserRoles.CREATOR]: 4,
-  [WorkspaceUserRoles.EDITOR]: 3,
-  [WorkspaceUserRoles.COMMENTER]: 2,
-  [WorkspaceUserRoles.VIEWER]: 1,
-  [WorkspaceUserRoles.NO_ACCESS]: 0,
-};
+const BASE_ROLE_HIERARCHY = buildHierarchy(OrderedProjectRoles);
+const WS_ROLE_HIERARCHY = buildHierarchy(OrderedWorkspaceRoles);
 
 @Injectable()
 export class ChatToolRegistry {

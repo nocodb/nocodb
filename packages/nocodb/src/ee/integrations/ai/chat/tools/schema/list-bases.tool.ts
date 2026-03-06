@@ -1,4 +1,3 @@
-import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
@@ -13,13 +12,13 @@ export const listBasesTool: ChatToolDefinition = {
     'For write operations on another base, ask the user to navigate to it first.',
   parameters: {},
   scope: 'workspace',
-  requiredRole: WorkspaceUserRoles.VIEWER,
+  // listByWorkspaceAndUser already filters to accessible bases only.
+  requiredRole: null,
   permission: 'workspaceBaseList',
   isDangerous: false,
   readonly: true,
   async execute(context: NcContext, _args: any, req: NcRequest) {
-    // Use listByWorkspaceAndUser to respect private base access rules —
-    // Base.list() returns ALL bases including ones the user cannot access.
+    // Use listByWorkspaceAndUser to respect private base access rules
     const bases = await Base.listByWorkspaceAndUser(
       context.workspace_id,
       req.user.id,

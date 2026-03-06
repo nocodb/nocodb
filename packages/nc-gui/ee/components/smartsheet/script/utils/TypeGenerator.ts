@@ -10,6 +10,33 @@ import {
 
 export class TypeGenerator {
   public tables = []
+
+  private readOnlyFieldTypes = new Set([
+    UITypes.ID,
+    UITypes.UUID,
+    UITypes.CreatedBy,
+    UITypes.LastModifiedBy,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
+    UITypes.Formula,
+    UITypes.Rollup,
+    UITypes.Lookup,
+    UITypes.Button,
+    UITypes.QrCode,
+    UITypes.Barcode,
+    UITypes.AutoNumber,
+    UITypes.Order,
+  ])
+
+  private sortFieldsReadonlyLast<T extends { type: string; system?: boolean }>(fields: T[]): T[] {
+    return [...fields].sort((a, b) => {
+      const aReadonly = a.system || this.readOnlyFieldTypes.has(a.type as UITypes)
+      const bReadonly = b.system || this.readOnlyFieldTypes.has(b.type as UITypes)
+      if (aReadonly === bReadonly) return 0
+      return aReadonly ? 1 : -1
+    })
+  }
+
   private initialCodeForScripts = `
 declare let console: {
   log(...args: Array<unknown>): void
@@ -980,6 +1007,9 @@ enum UITypes {
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
+  UUID = 'UUID',
+  Colour = 'Colour',
+  AutoNumber = 'AutoNumber',
 }
 
 /**
@@ -2420,6 +2450,30 @@ declare interface OrderField extends BaseField {
   updateOptionsAsync(options: never): Promise<void>
 }
 
+declare interface UUIDField extends BaseField {
+  readonly type: UITypes.UUID
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface ColourField extends BaseField {
+  readonly type: UITypes.Colour
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface AutoNumberField extends BaseField {
+  readonly type: UITypes.AutoNumber
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
 declare interface ButtonField extends BaseField {
   readonly type: UITypes.Button
 
@@ -2596,6 +2650,9 @@ declare type Field =
   | GeometryField
   | JsonField
   | OrderField
+  | UUIDField
+  | ColourField
+  | AutoNumberField
   | LinkToAnotherRecordField
   | ButtonField
   | ForeignKeyField
@@ -3037,7 +3094,10 @@ declare const viewActions: {
 };
 
 
-declare interface ConfigItem {}
+declare interface ConfigItem {
+  readonly type: 'table' | 'field' | 'view' | 'text' | 'number' | 'select'
+  readonly key: string
+}
 
 `
   private initalCodeForWorkflow = `
@@ -3397,6 +3457,9 @@ enum UITypes {
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
+  UUID = 'UUID',
+  Colour = 'Colour',
+  AutoNumber = 'AutoNumber',
 }
 
 /**
@@ -4837,6 +4900,30 @@ declare interface OrderField extends BaseField {
   updateOptionsAsync(options: never): Promise<void>
 }
 
+declare interface UUIDField extends BaseField {
+  readonly type: UITypes.UUID
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface ColourField extends BaseField {
+  readonly type: UITypes.Colour
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface AutoNumberField extends BaseField {
+  readonly type: UITypes.AutoNumber
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
 declare interface ButtonField extends BaseField {
   readonly type: UITypes.Button
 
@@ -5013,6 +5100,9 @@ declare type Field =
   | GeometryField
   | JsonField
   | OrderField
+  | UUIDField
+  | ColourField
+  | AutoNumberField
   | LinkToAnotherRecordField
   | ButtonField
   | ForeignKeyField
@@ -5268,7 +5358,10 @@ declare interface Table {
    */
   deleteRecordAsync(recordIdOrRecord: string | NocoDBRecord): Promise<void>;
 }
-declare interface ConfigItem {}
+declare interface ConfigItem {
+  readonly type: 'table' | 'field' | 'view' | 'text' | 'number' | 'select'
+  readonly key: string
+}
 
 `
   private output: string[] = []
@@ -5487,6 +5580,9 @@ declare interface ConfigItem {}
       CreatedBy: 'CreatedByField',
       LastModifiedBy: 'LastModifiedByField',
       Order: 'OrderField',
+      UUID: 'UUIDField',
+      Colour: 'ColourField',
+      AutoNumber: 'AutoNumberField',
     }
     return typeMap[type] || `Field`
   }
@@ -5506,16 +5602,25 @@ declare interface ConfigItem {}
       case UITypes.ID:
         return 'number'
 
+      case UITypes.UUID:
+        return 'string'
+
+      case UITypes.AutoNumber:
+        return 'number'
+
       case UITypes.LinkToAnotherRecord: {
         if (insertOrUpdate) {
+          if (['oo', 'bt'].includes(field.options.relation_type)) {
+            return `{id: string} | null`
+          }
           return `Array<{id: string}>`
         }
         const targetTable = this.tables.find((t: any) => t.id === field.options.related_table_id)
         if (!targetTable) {
-          return 'NocoDBRecord | RecordQueryResult'
+          return 'NocoDBRecord | RecordQueryResult | null'
         }
-        if (['oo', 'bt'].includes(field.options.type)) {
-          return `${this.pascalCase((targetTable as any).name, 'table')}Table_Record`
+        if (['oo', 'bt'].includes(field.options.relation_type)) {
+          return `${this.pascalCase((targetTable as any).name, 'table')}Table_Record | null`
         } else {
           return `${this.pascalCase((targetTable as any).name, 'table')}Table_RecordQueryResult`
         }
@@ -5537,7 +5642,6 @@ declare interface ConfigItem {}
       case UITypes.URL:
       case UITypes.GeoData:
       case UITypes.Geometry:
-      case UITypes.JSON:
       case UITypes.SpecificDBType:
       case UITypes.Barcode:
       case UITypes.QrCode:
@@ -5546,7 +5650,11 @@ declare interface ConfigItem {}
       case UITypes.DateTime:
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
+      case UITypes.Colour:
         return 'string'
+
+      case UITypes.JSON:
+        return 'any'
 
       case UITypes.Year:
       case UITypes.Number:
@@ -5555,8 +5663,13 @@ declare interface ConfigItem {}
       case UITypes.Percent:
       case UITypes.Duration:
       case UITypes.Rating:
+        return 'number'
+
       case UITypes.Links:
         if (insertOrUpdate) {
+          if (['oo', 'bt'].includes(field.options?.relation_type)) {
+            return `{id: string} | null`
+          }
           return `Array<{id: string}>`
         }
         return 'number'
@@ -5603,10 +5716,13 @@ declare interface ConfigItem {}
       }>`
 
       case UITypes.Formula:
-        return 'string | number | boolean'
+        return 'string | number | boolean | null'
 
-      case UITypes.Rollup:
-        return 'number'
+      case UITypes.Rollup: {
+        const rollupChildType = this.getRollupValueType(field)
+        if (rollupChildType) return rollupChildType
+        return 'string | number'
+      }
 
       case UITypes.Button:
         return `{
@@ -5628,15 +5744,68 @@ declare interface ConfigItem {}
       )`
 
       case UITypes.User:
-        return field.options?.allow_multiple_users ? 'Collaborator[]' : 'Collaborator'
+        return field.options?.allow_multiple_users ? 'Collaborator[]' : 'Collaborator | null'
 
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy:
-        return 'Collaborator'
+        return 'Collaborator | null'
 
       default:
         return 'unknown'
     }
+  }
+
+  // Rollup functions that always produce a numeric result regardless of child column type
+  private static NUMERIC_ROLLUP_FUNCTIONS = new Set(['count', 'countDistinct', 'sum', 'avg', 'sumDistinct', 'avgDistinct'])
+
+  // Child column types where min/max returns a non-numeric value (e.g. date string)
+  private static NON_NUMERIC_MIN_MAX_TYPES = new Set([
+    UITypes.Date,
+    UITypes.Time,
+    UITypes.DateTime,
+    UITypes.CreatedTime,
+    UITypes.LastModifiedTime,
+    UITypes.Year,
+    UITypes.Currency,
+    UITypes.Duration,
+  ])
+
+  private getRollupValueType(field: { type: string; options: any }): string | null {
+    const rollupFn = field.options?.rollup_function
+    const relationFieldId = field.options?.related_field_id
+    const rollupFieldId = field.options?.related_table_rollup_field_id
+
+    if (!rollupFn || !relationFieldId || !rollupFieldId) return null
+
+    // count/countDistinct/sum/avg always return number
+    if (TypeGenerator.NUMERIC_ROLLUP_FUNCTIONS.has(rollupFn)) {
+      return 'number'
+    }
+
+    // For min/max — find the child column to determine the return type
+    // 1. Find the relation field across all tables
+    let relationField: any = null
+    for (const table of this.tables) {
+      relationField = table.fields?.find((f: any) => f.id === relationFieldId)
+      if (relationField) break
+    }
+    if (!relationField) return null
+
+    // 2. Find the related table
+    const relatedTable = this.tables.find((t: any) => t.id === relationField.options?.related_table_id)
+    if (!relatedTable) return null
+
+    // 3. Find the child column being rolled up
+    const childField = relatedTable.fields?.find((f: any) => f.id === rollupFieldId)
+    if (!childField) return null
+
+    // 4. For date/time types, min/max returns the child column type (string)
+    if (this.NON_NUMERIC_MIN_MAX_TYPES.has(childField.type)) {
+      return this.getFieldValueType(childField)
+    }
+
+    // For numeric child columns, min/max returns number
+    return 'number'
   }
 
   private generateFieldOptions(field: { type: keyof typeof UITypes; options: any }): string {
@@ -5649,6 +5818,9 @@ declare interface ConfigItem {}
       case UITypes.Geometry:
       case UITypes.JSON:
       case UITypes.Order:
+      case UITypes.UUID:
+      case UITypes.Colour:
+      case UITypes.AutoNumber:
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy:
       case UITypes.ForeignKey:
@@ -5952,7 +6124,7 @@ declare interface ConfigItem {}
     this.write(`declare interface ${interfaceName} extends NocoDBRecord {`)
     this.indent_in()
 
-    for (const field of fields) {
+    for (const field of this.sortFieldsReadonlyLast(fields)) {
       const fieldType = this.getFieldValueType(field)
       const fieldInterfaceName = `${this.pascalCase(tableName, 'table')}Table_${this.pascalCase(field.name, 'field')}Field`
 
@@ -6040,7 +6212,7 @@ declare interface ConfigItem {}
     this.write(`readonly description: ${view.description ? `'${view.description}'` : 'null'}`)
 
     this.formatJSDoc(['The type of the view, such as Grid, Calendar, or Kanban.'])
-    this.write(`readonly type: 'grid' | 'form' | 'calendar' | 'gallery' | 'kanban'`)
+    this.write(`readonly type: 'grid' | 'form' | 'calendar' | 'gallery' | 'kanban' | 'map' | 'timeline' | 'list'`)
 
     // selectRecordsAsync
     this.formatJSDoc([
@@ -6123,7 +6295,9 @@ declare interface ConfigItem {}
       'specific view.',
     ])
     this.write(
-      `readonly fields: [${table.fields.map((f) => `${tableName}Table_${this.pascalCase(f.name, 'field')}Field`).join(', ')}]`,
+      `readonly fields: [${this.sortFieldsReadonlyLast(table.fields)
+        .map((f) => `${tableName}Table_${this.pascalCase(f.name, 'field')}Field`)
+        .join(', ')}]`,
     )
 
     this.formatJSDoc([
@@ -6173,8 +6347,8 @@ declare interface ConfigItem {}
   ): Promise<${this.pascalCase(tableName, 'table')}Table_Record | null>`)
 
     const generateFieldKeysType = (fields: any[], insertOrUpdate?: boolean) => {
-      const fieldKeys = fields
-        .filter((f) => !f.system)
+      const fieldKeys = this.sortFieldsReadonlyLast(fields)
+        .filter((f) => !f.system && !(insertOrUpdate && this.readOnlyFieldTypes.has(f.type)))
         .map(
           (field) =>
             `['${field.name}']?: ${this.getFieldValueType(field, insertOrUpdate)}
@@ -6288,7 +6462,7 @@ declare interface ConfigItem {}
     this.write(`/**
    * Get a field in the table according to its id or name.
    */`)
-    table.fields.forEach((field) => {
+    this.sortFieldsReadonlyLast(table.fields).forEach((field) => {
       this.write(
         `getField(name: '${field.name}'): ${this.pascalCase(tableName, 'table')}Table_${this.pascalCase(
           field.name,
@@ -6445,7 +6619,7 @@ declare interface ConfigItem {}
     this.write(`description?: string;`)
     this.write(`items?: Array<ConfigItem>;`)
     this.indent_out()
-    this.write(`}): any;`)
+    this.write(`}): Record<string, Table | View | Field | string | number>;`)
 
     // input.config.table
     this.formatJSDoc([
@@ -6853,7 +7027,7 @@ declare interface ConfigItem {}
     this.tables = schema.tables
     for (const table of schema.tables) {
       this.write(`// Field interfaces for table: ${table.name}`)
-      for (const field of table.fields) {
+      for (const field of this.sortFieldsReadonlyLast(table.fields)) {
         this.generateFieldInterface(table.name, field)
       }
 

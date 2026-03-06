@@ -481,6 +481,9 @@ export function generateBaseModels() {
   CreatedBy: 'CreatedBy',
   LastModifiedBy: 'LastModifiedBy',
   Order: 'Order',
+  UUID: 'UUID',
+  Colour: 'Colour',
+  AutoNumber: 'AutoNumber',
 };
 
 // To make it immutable (optional)
@@ -809,18 +812,19 @@ Object.freeze(UITypes);
             } else return (data?.map(d => new Collaborator({ id: d.id, email: d.email, name: d.display_name ?? '' })) ?? []);
           }
           case 'Links': {
+            const relatedTableLinks = base.getTable(field?.options?.related_table_id)
+            if (!relatedTableLinks) return data;
             if (['hm', 'mm', 'om'].includes(field?.options?.relation_type)) {
-              const relatedTable = base.getTable(field?.options?.related_table_id)
-              return new LazyRecordQueryResult(data || [], relatedTable, this.#table, field, this.id)
+              return new LazyRecordQueryResult(data || [], relatedTableLinks, this.#table, field, this.id)
             }
             if (['bt', 'oo', 'mo'].includes(field?.options?.relation_type)) {
               if(!data) return null;
-              const relatedTable = base.getTable(field?.options?.related_table_id)
-              return( new NocoDBRecord(data, relatedTable))
+              return( new NocoDBRecord(data, relatedTableLinks))
             }
           }
           case 'LinkToAnotherRecord': {
             const relatedTable = base.getTable(field?.options?.related_table_id)
+            if (!relatedTable) return data;
 
             if (['hm', 'mm', 'om'].includes(field?.options?.relation_type)) {
               return new LazyRecordQueryResult(data || [], relatedTable, this.#table, field, this.id)
@@ -858,11 +862,11 @@ Object.freeze(UITypes);
           if (!field.options?.allow_multiple_users) {
             return value?.name || value?.email;
           } else {
-            return value.map(v => v.name || v.email).join(', ');
+            return value?.map(v => v.name || v.email).join(', ');
           }
         }
-        case 'Attachment': 
-          return value.map(a => a.title).join(', ');
+        case 'Attachment':
+          return value?.map(a => a.title).join(', ');
         case 'Checkbox': 
           return value ? 'Checked' : 'Unchecked';
         case 'MultiSelect': 
@@ -952,13 +956,13 @@ Object.freeze(UITypes);
           
           let date = parseDate(value, dateTimeFormat) || parseDate(value)
           
-          if (!isValidDate(date)) {
+          if (!date) return "";
+          if (isValidDate(date)) {
             const utcDate = new Date(
               date.getTime() + date.getTimezoneOffset() * 60000
             );
             return formatDate(utcDate, dateTimeFormat);
           }
-          if (!date) return "";
           return formatDate(date, dateTimeFormat);
         }
         case 'Formula': {
@@ -978,12 +982,18 @@ Object.freeze(UITypes);
           }
           return value
         }
-        default: 
-          return value.toString();
+        case 'SingleSelect':
+        case 'UUID':
+        case 'Colour':
+          return String(value);
+        case 'AutoNumber':
+          return Number(value).toString();
+        default:
+          return value?.toString?.() ?? '';
       }
     }
   }
-  
+
   class Field {
     #table;
     #primary_key;
@@ -995,7 +1005,7 @@ Object.freeze(UITypes);
       this.type = data.type;
       this.description = data.description;
       this.options = Object.keys(data.options ?? {}).length ? data.options : null;
-      this.isComputed = ['LinkToAnotherRecord', 'Formula', 'QrCode', 'Barcode', 'Rollup', 'Links', 'CreatedTime', 'LastModifiedTime', 'CreatedBy', 'LastModifiedBy', 'Button'].includes(data.type);
+      this.isComputed = ['LinkToAnotherRecord', 'Formula', 'QrCode', 'Barcode', 'Rollup', 'Lookup', 'Links', 'CreatedTime', 'LastModifiedTime', 'CreatedBy', 'LastModifiedBy', 'Button', 'AutoNumber', 'UUID'].includes(data.type);
       
       this.#primary_key = data.primary_key
       this.#is_system_field = data.is_system_field
@@ -1140,6 +1150,11 @@ Object.freeze(UITypes);
     }
   }
 
+  const READONLY_FIELD_TYPES = new Set([
+    'ID', 'UUID', 'Formula', 'Rollup', 'Lookup', 'Button', 'QrCode', 'Barcode',
+    'AutoNumber', 'CreatedTime', 'LastModifiedTime', 'CreatedBy', 'LastModifiedBy', 'Order',
+  ]);
+
   class Table {
     #base;
     #all_fields
@@ -1273,13 +1288,14 @@ Object.freeze(UITypes);
     async createRecordAsync(data) {
       const recordData = {};
       for (const field of this.fields) {
+        if (READONLY_FIELD_TYPES.has(field.type)) continue;
         if (data[field.name]) {
           recordData[field.name] = data[field.name];
         } else if (data[field.id]) {
           recordData[field.name] = data[field.id];
         }
       }
-      
+
       try {
         const data = await api.dbDataTableRowCreate(this.base.id, this.id, { fields: recordData }, { query: { linksAsLtar: 'true' } });
         return new NocoDBRecord(data?.records?.[0], this).id;
@@ -1287,25 +1303,26 @@ Object.freeze(UITypes);
         throw new Error(\`Failed to create record in table \${this.name}\`)
       }
     }
-    
+
     async createRecordsAsync(data) {
       const insertObjs = []
-      
+
       if (!Array.isArray(data)) {
         throw new Error('Data must be an array');
       }
-      
+
       if (data.length === 0) {
         throw new Error('Data must not be empty');
       }
-      
+
       if (data.length > 10) {
         throw new Error('Data must not be greater than 10');
       }
-      
+
       for(const record of data) {
         const recordData = {};
         for (const field of this.fields) {
+          if (READONLY_FIELD_TYPES.has(field.type)) continue;
           if (record[field.name]) {
             recordData[field.name] = record[field.name];
           } else if (record[field.id]) {
@@ -1314,7 +1331,7 @@ Object.freeze(UITypes);
         }
         insertObjs.push({ fields: recordData });
       }
-      
+
       try {
         const response = await api.dbDataTableRowCreate(this.base.id, this.id, insertObjs, { query: { linksAsLtar: 'true' } });
         return (response.records || []).map(r => new NocoDBRecord(r, this).id);
@@ -1322,11 +1339,12 @@ Object.freeze(UITypes);
         throw new Error(\`Failed to create records in table \${this.name}\`)
       }
     }
-    
-    async updateRecordAsync(recordId, data) { 
+
+    async updateRecordAsync(recordId, data) {
       const recordID = (recordId instanceof NocoDBRecord) ? recordId.id: recordId
       const recordData = {};
       for (const field of this.fields) {
+        if (READONLY_FIELD_TYPES.has(field.type)) continue;
         if (data[field.name]) {
           recordData[field.name] = data[field.name];
         } else if (data[field.id]) {
@@ -1339,27 +1357,28 @@ Object.freeze(UITypes);
         throw new Error(\`Failed to update record \${recordId} in table \${this.name}\`)
       }
     }
-    
+
     async updateRecordsAsync(records) {
       const updateObjs = []
-      
+
       if (!Array.isArray(records)) {
         throw new Error('Data must be an array');
       }
-      
+
       if (records.length === 0) {
         throw new Error('Data must not be empty');
       }
-      
+
       if (records.length > 10) {
         throw new Error('Data must not be greater than 10');
       }
-      
+
       for (const record of records) {
         const recordID = (record.id instanceof NocoDBRecord) ? record.id.id : record.id;
         const recordData = {};
-        
+
         for (const field of this.fields) {
+          if (READONLY_FIELD_TYPES.has(field.type)) continue;
           const fieldData = record.fields;
           if (fieldData[field.name]) {
             recordData[field.name] = fieldData[field.name];

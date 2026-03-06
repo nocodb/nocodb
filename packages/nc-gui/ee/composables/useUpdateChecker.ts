@@ -1,5 +1,3 @@
-import { NcButton } from '#components'
-
 const isDevelopment = process.env.NODE_ENV === 'development'
 
 export const useUpdateChecker = createSharedComposable(() => {
@@ -57,22 +55,6 @@ export const useUpdateChecker = createSharedComposable(() => {
 
         if (consecutiveNewCommitCount.value >= CONFIRMATION_THRESHOLD) {
           isUpdateAvailable.value = true
-
-          message.info({
-            title: 'New update available!',
-            action: h(
-              NcButton,
-              {
-                onClick: () => {
-                  location.reload()
-                },
-                size: 'small',
-                type: 'primary',
-              },
-              () => 'Reload',
-            ),
-          })
-
           currentCommit.value = newCommit
         }
       } else if (newerCommitDetected.value !== null) {

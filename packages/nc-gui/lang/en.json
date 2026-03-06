@@ -355,6 +355,7 @@
     "renameEntity": "Rename {entity}",
     "untitledEntity": "Untitled {entity}",
     "reload": "Reload",
+    "newUpdateAvailable": "New update available!",
     "refresh": "Refresh",
     "reset": "Reset",
     "install": "Install",

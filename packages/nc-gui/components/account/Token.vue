@@ -96,7 +96,7 @@ const updateAllTokens = (type: 'delete' | 'add', token: IApiTokenInfo) => {
       break
     }
     case 'delete': {
-      allTokens.value = [...allTokens.value.filter((t) => t.token !== token.token)]
+      allTokens.value = [...allTokens.value.filter((t) => t.id !== token.id)]
       break
     }
   }
@@ -141,21 +141,19 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value, 
 
 loadTokens()
 
-const deleteToken = async (token: string): Promise<void> => {
+const deleteToken = async (): Promise<void> => {
   try {
-    const id = allTokens.value.find((t) => t.token === token)?.id
-    await api.orgTokens.delete(id)
+    await api.orgTokens.delete(tokenToCopy.value)
     // message.success(t('msg.success.tokenDeleted'))
-    await loadTokens()
-
     updateAllTokens('delete', {
-      token,
+      id: tokenToCopy.value,
     } as IApiTokenInfo)
 
-    if (!tokens.value.length && currentPage.value !== 1) {
-      currentPage.value--
-      loadTokens(currentPage.value)
-    }
+    const totalAfterDelete = Math.max(pagination.total - 1, 0)
+    const maxPageAfterDelete = Math.max(Math.ceil(totalAfterDelete / currentLimit.value), 1)
+    const nextPage = Math.min(currentPage.value, maxPageAfterDelete)
+
+    await loadTokens(nextPage)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -204,8 +202,8 @@ const copyToken = async (token: string | undefined) => {
   }
 }
 
-const triggerDeleteModal = (tokenToDelete: string, tokenDescription: string) => {
-  tokenToCopy.value = tokenToDelete
+const triggerDeleteModal = (tokenId: string, tokenDescription: string) => {
+  tokenToCopy.value = tokenId
   tokenDesc.value = tokenDescription
   isModalOpen.value = true
 }
@@ -381,7 +379,7 @@ const handleCancel = () => {
                       :is="iconMap.delete"
                       data-testid="nc-token-row-action-icon"
                       class="nc-delete-icon hover::cursor-pointer w-4 h-4"
-                      @click="triggerDeleteModal(el.token as string, el.description as string)"
+                      @click="triggerDeleteModal(el.id as string, el.description as string)"
                     />
                   </NcTooltip>
                 </div>
@@ -427,7 +425,7 @@ const handleCancel = () => {
       <GeneralDeleteModal
         v-model:visible="isModalOpen"
         :entity-name="$t('labels.token')"
-        :on-delete="() => deleteToken(tokenToCopy)"
+        :on-delete="deleteToken"
       >
         <template #entity-preview>
           <span>

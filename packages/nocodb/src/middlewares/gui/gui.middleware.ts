@@ -108,6 +108,26 @@ export class GuiMiddleware implements NestMiddleware {
           );
         }
 
+        // When NC_DASHBOARD_URL adds a subpath (e.g. /abc), the <base> tag
+        // is /testpath/abc/ but the API lives at /testpath/ (no /abc).
+        // Set ncBackendUrl so useApi() uses the correct API base path
+        // instead of falling back to the <base> tag.
+        if (this.dashboardPath !== '/') {
+          let apiBase = '/';
+          if (publicUrl) {
+            try {
+              const pp = new URL(publicUrl).pathname.replace(/\/+$/, '');
+              if (pp && pp !== '/') apiBase = `${pp}/`;
+            } catch {
+              // ignore
+            }
+          }
+          rawHtml = rawHtml.replace(
+            /ncBackendUrl:""/g,
+            `ncBackendUrl:"${apiBase}"`,
+          );
+        }
+
         // Pre-compute Buffer and ETag once — avoids per-request overhead
         this.indexHtmlBuffer = Buffer.from(rawHtml, 'utf-8');
         this.indexHtmlEtag = `"${crypto.createHash('md5').update(this.indexHtmlBuffer).digest('hex')}"`;

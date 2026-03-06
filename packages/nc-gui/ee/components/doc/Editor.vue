@@ -1074,7 +1074,7 @@ watch(
       ([entry]) => {
         isTitleVisible.value = entry.isIntersecting
       },
-      { root: scrollEl, threshold: 0 },
+      { root: scrollEl, rootMargin: '-48px 0px 0px 0px', threshold: 1 },
     )
     titleObserver.observe(titleEl)
   },
@@ -1105,14 +1105,17 @@ onBeforeUnmount(() => {
   <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden">
     <!-- Editor area — relative wrapper for floating menu + scroll content -->
     <div class="relative flex-1 min-w-0 h-full overflow-hidden">
-      <!-- Sticky title bar — appears when document title scrolls out of view -->
+      <!-- Sticky header background — slides in when title scrolls out of view -->
       <Transition name="nc-doc-sticky-slide">
-        <div v-if="!isTitleVisible && isLoaded" class="nc-doc-sticky-header">
-          <span class="nc-doc-sticky-title truncate">{{ title || $t('general.untitled') }}</span>
-        </div>
+        <div v-if="!isTitleVisible && isLoaded" class="nc-doc-sticky-header" />
       </Transition>
 
-      <!-- Page actions — floats at top-right, outside scroll flow -->
+      <!-- Breadcrumb — always visible, same pattern as page menu -->
+      <div class="nc-doc-page-menu-left">
+        <DocBreadcrumb v-if="isLoaded" :doc-id="docId" :current-title="title" />
+      </div>
+
+      <!-- Page actions — always visible at top-right -->
       <div class="nc-doc-page-menu">
         <DocPresence />
         <NcTooltip :title="$t('general.comments')" placement="bottom">
@@ -1214,10 +1217,14 @@ onBeforeUnmount(() => {
       />
 
       <!-- Scroll area for editor content -->
-      <div ref="scrollContainerRef" class="flex flex-col h-full overflow-y-auto" :class="`nc-doc-font-${activeFont}`">
+      <div
+        ref="scrollContainerRef"
+        class="flex flex-col h-full overflow-y-auto nc-scrollbar-thin"
+        :class="`nc-doc-font-${activeFont}`"
+      >
         <div
           v-if="isStale"
-          class="nc-doc-stale-banner w-full mx-auto px-6 sm:px-10 lg:px-16 pt-4"
+          class="nc-doc-stale-banner w-full mx-auto px-6 sm:px-10 lg:px-16 pt-[var(--topbar-height)]"
           :class="{ 'max-w-[900px]': !isFullWidth }"
         >
           <NcAlert type="info" :closable="false" align="center" class="!bg-nc-bg-brand">
@@ -1754,35 +1761,23 @@ onBeforeUnmount(() => {
 
 // Page 3-dot context menu — floats at top-right of editor area, outside scroll flow
 .nc-doc-page-menu {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  position: absolute;
-  top: 8px;
-  right: 12px;
-  z-index: 20;
+  @apply h-[var(--topbar-height)] flex items-center gap-1 absolute top-0 right-3 z-20;
 }
 
-// Sticky title header — slides in when document title scrolls out of viewport
+.nc-doc-page-menu-left {
+  @apply h-[var(--topbar-height)] flex items-center gap-1 absolute top-0 left-3 z-20 truncate;
+
+  right: 120px;
+  overflow: hidden;
+}
+// Sticky header backdrop — slides in on scroll, sits behind breadcrumb + actions
 .nc-doc-sticky-header {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 19;
-  display: flex;
-  align-items: center;
-  padding: 12px 80px 12px 24px;
+  @apply absolute top-0 left-0 right-0  h-[var(--topbar-height)];
+
+  z-index: 18;
   background: color-mix(in srgb, var(--nc-bg-default) 85%, transparent);
   backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--nc-border-gray-medium);
-}
-
-.nc-doc-sticky-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--nc-content-gray);
-  max-width: 100%;
 }
 
 .nc-doc-sticky-slide-enter-active,
@@ -2868,7 +2863,7 @@ onBeforeUnmount(() => {
   min-height: 240px;
   flex-shrink: 0;
   overflow: hidden;
-  margin-top: 44px;
+  margin-top: var(--topbar-height);
 }
 
 .nc-doc-cover-image {

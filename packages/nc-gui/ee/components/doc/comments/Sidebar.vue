@@ -404,7 +404,9 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
     data-testid="nc-doc-comments-sidebar"
   >
     <!-- Header -->
-    <div class="flex items-center justify-between px-3 py-2.5 border-b-1 border-nc-border-gray-medium flex-none">
+    <div
+      class="flex items-center justify-between h-[var(--topbar-height)] px-3 py-2.5 border-b-1 border-nc-border-gray-medium flex-none"
+    >
       <div class="flex items-center gap-2">
         <span class="font-semibold text-sm text-nc-content-gray">{{ $t('general.comments') }}</span>
         <!-- NOTE: counts all comments including replies. Consider showing only top-level thread count. -->

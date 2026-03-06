@@ -182,6 +182,18 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
         docId,
       })) as DocumentType
 
+      // Add a lite version (without content) to the store so activeDocument
+      // resolves and sidebar auto-expand works on page reload.
+      if (doc?.id) {
+        const baseId = activeProjectId.value
+        const baseDocs = documents.value.get(baseId) || []
+        if (!baseDocs.find((d) => d.id === doc.id)) {
+          const { content: _content, ...liteDoc } = doc
+          baseDocs.push(liteDoc as DocumentType)
+          documents.value.set(baseId, [...baseDocs])
+        }
+      }
+
       return doc
     } catch (e) {
       ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
@@ -446,40 +458,77 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     }
   }
 
-  // Auto-expand: when navigating to a doc, expand it (if it has children) and all its ancestors
-  watch(activeDocumentId, async (newId) => {
-    if (!newId || !activeProjectId.value) return
+  // Auto-expand: when a doc is active, expand it and all its ancestors in sidebar
+  const expandToDocument = async (doc: DocumentType) => {
+    if (!activeProjectId.value || !doc.id) return
 
     const baseId = activeProjectId.value
-    const baseDocs = documents.value.get(baseId) || []
+
+    // Ensure root docs are loaded first (handles page reload)
+    await loadDocuments({ baseId })
+
+    const getBaseDocs = () => documents.value.get(baseId) || []
+
     let changed = false
 
     // Expand the active doc if it has children
-    const doc = baseDocs.find((d) => d.id === newId)
-    if (doc?.has_children && !expandedDocIds.value.has(newId)) {
-      await loadChildren(baseId, newId)
-      expandedDocIds.value.add(newId)
+    if (doc.has_children && !expandedDocIds.value.has(doc.id)) {
+      await loadChildren(baseId, doc.id)
+      expandedDocIds.value.add(doc.id)
       changed = true
     }
 
-    // Expand all ancestors so the active doc is visible in the sidebar
-    let parentId: string | null | undefined = doc?.parent_id
+    // Build the full ancestor chain bottom-up, fetching missing parents as needed.
+    // Each missing parent is fetched individually (documentGet) and added to the
+    // store (without content) so the sidebar tree can render it.
+    let parentId: string | null | undefined = doc.parent_id
     while (parentId) {
+      let parent = getBaseDocs().find((d) => d.id === parentId)
+
+      // Parent not in store — fetch it and add lite version
+      if (!parent) {
+        try {
+          const fetched = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+            operation: 'documentGet',
+            docId: parentId,
+          })) as DocumentType
+
+          if (fetched?.id) {
+            const { content: _content, ...liteDoc } = fetched
+            const baseDocs = getBaseDocs()
+            baseDocs.push(liteDoc as DocumentType)
+            documents.value.set(baseId, [...baseDocs])
+            parent = liteDoc as DocumentType
+          }
+        } catch {
+          break
+        }
+      }
+
       if (!expandedDocIds.value.has(parentId)) {
         expandedDocIds.value.add(parentId)
         changed = true
       }
-      // Ensure parent's children are loaded
+
+      // Ensure parent's children are loaded (lightweight — no content)
       if (!loadedParentIds.value.has(parentId)) {
         await loadChildren(baseId, parentId)
       }
-      const parent = baseDocs.find((d) => d.id === parentId)
+
       parentId = parent?.parent_id
     }
 
     if (changed) {
       expandedDocIds.value = new Set(expandedDocIds.value)
     }
+  }
+
+  // Watch activeDocument (not activeDocumentId) — this fires after the Editor
+  // loads the doc, so we always have the parent_id chain available without
+  // needing to fetch the full doc separately.
+  watch(activeDocument, (doc) => {
+    if (!doc) return
+    expandToDocument(doc)
   })
 
   // --- URL slug sync (mirrors Script store pattern) ---
@@ -529,6 +578,28 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     },
   )
 
+  /**
+   * Returns the ancestor chain for a document (from root to immediate parent).
+   * Useful for breadcrumb rendering.
+   */
+  const getDocumentAncestors = (docId: string): DocumentType[] => {
+    if (!activeProjectId.value) return []
+    const baseDocs = documents.value.get(activeProjectId.value) || []
+    const ancestors: DocumentType[] = []
+
+    let current = baseDocs.find((d) => d.id === docId)
+    let parentId = current?.parent_id
+
+    while (parentId) {
+      const parent = baseDocs.find((d) => d.id === parentId)
+      if (!parent) break
+      ancestors.unshift(parent)
+      parentId = parent.parent_id
+    }
+
+    return ancestors
+  }
+
   return {
     documents,
     activeDocumentId,
@@ -552,6 +623,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     deleteDocument,
     reorderDocument,
     moveDocument,
+    getDocumentAncestors,
   }
 })
 

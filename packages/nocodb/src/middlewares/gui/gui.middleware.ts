@@ -20,6 +20,7 @@ const _require =
 export class GuiMiddleware implements NestMiddleware {
   private staticRouter: express.Router | null = null;
   private indexHtml: string | null = null;
+  private dashboardPath: string = '/';
 
   constructor() {
     // In split-frontend mode (NC_DASHBOARD_URL is a full URL pointing to
@@ -27,6 +28,8 @@ export class GuiMiddleware implements NestMiddleware {
     // should not serve frontend files at all.
     const dashboardUrl = process.env.NC_DASHBOARD_URL || '/';
     if (dashboardUrl.startsWith('http')) return;
+
+    this.dashboardPath = dashboardUrl.replace(/\/+$/, '') || '/';
 
     // Collect candidate paths for the frontend dist directory
     const candidates: string[] = [];
@@ -53,10 +56,24 @@ export class GuiMiddleware implements NestMiddleware {
       try {
         if (!fs.existsSync(path.join(distPath, 'index.html'))) continue;
 
-        this.indexHtml = fs.readFileSync(
+        let rawHtml = fs.readFileSync(
           path.join(distPath, 'index.html'),
           'utf-8',
         );
+
+        // Inject <base> tag so the frontend knows its runtime base path.
+        // The frontend's app/router.options.ts reads this to set the
+        // Vue Router base for history-mode routing.
+        const baseHref =
+          this.dashboardPath === '/'
+            ? '/'
+            : `${this.dashboardPath}/`;
+        rawHtml = rawHtml.replace(
+          '<head>',
+          `<head><base href="${baseHref}">`,
+        );
+
+        this.indexHtml = rawHtml;
 
         const router = express.Router();
         router.use('/', express.static(distPath));
@@ -71,28 +88,27 @@ export class GuiMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: () => void) {
     if (!this.staticRouter) return next();
 
-    // Try serving a static asset (JS, CSS, images, fonts)
+    // Try serving a static asset (JS, CSS, images, fonts).
+    // If no file matches, fall through to NestJS controllers.
+    // SPA fallback (index.html for unmatched routes) is handled by
+    // GlobalExceptionFilter so that backend routes are tried first.
     this.staticRouter(req, res, () => {
-      // No static file matched. For browser navigation requests
-      // (non-file GET that accept text/html), serve index.html as
-      // SPA fallback for history-mode routing.
-      if (
-        this.indexHtml &&
-        !path.extname(req.path) &&
-        req.headers.accept?.includes('text/html')
-      ) {
-        res.setHeader('Content-Type', 'text/html');
-        return res.send(this.indexHtml);
-      }
       next();
     });
   }
 
   /**
-   * Returns the index.html content for SPA fallback,
-   * or null if nc-lib-gui is not available.
+   * Returns the index.html content (with <base> tag injected) for SPA
+   * fallback, or null if nc-lib-gui is not available.
    */
   getIndexHtml(): string | null {
     return this.indexHtml;
+  }
+
+  /**
+   * Returns the normalized dashboard path (e.g. '/dashboard' or '/').
+   */
+  getDashboardPath(): string {
+    return this.dashboardPath;
   }
 }

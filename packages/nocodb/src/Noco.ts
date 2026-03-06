@@ -210,7 +210,7 @@ export default class Noco {
         res.sendStatus(200);
       });
     } else if (dashboardPath !== '/' && dashboardPath !== '') {
-      // Non-root dashboard path: redirect old path to root
+      // Subpath deployment: redirect root to the dashboard subpath
       const normalizedPath = dashboardPath.replace(/\/+$/, '');
       server.get(`${normalizedPath}*`, (req, res) => {
         const remaining = req.path.slice(normalizedPath.length) || '/';

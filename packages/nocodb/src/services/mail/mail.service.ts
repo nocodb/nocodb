@@ -57,7 +57,7 @@ export class MailService {
     } = {},
   ) {
     if (params.token && !config.auth.disableEmailAuth) {
-      return `${req.ncSiteUrl}/signup/${params.token}`;
+      return `${req.dashboardUrl}/signup/${params.token}`;
     }
 
     let url = req?.ncSiteUrl || process.env.NC_PUBLIC_URL;

@@ -1,4 +1,5 @@
-import { Catch, Logger, NotFoundException } from '@nestjs/common';
+import path from 'path';
+import { Catch, Logger, NotFoundException, Optional } from '@nestjs/common';
 import * as Sentry from '@sentry/nestjs';
 
 import { ThrottlerException } from '@nestjs/throttler';
@@ -31,10 +32,13 @@ import {
   UniqueConstraintViolationError,
   UnprocessableEntity,
 } from '~/helpers/catchError';
+import { GuiMiddleware } from '~/middlewares/gui/gui.middleware';
 
 @Catch()
 export class GlobalExceptionFilter implements ExceptionFilter {
-  constructor() {}
+  constructor(
+    @Optional() protected readonly guiMiddleware?: GuiMiddleware,
+  ) {}
 
   protected logger = new Logger(GlobalExceptionFilter.name);
 
@@ -169,8 +173,27 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       return response.redirect(redirectUrl);
     }
 
-    // API not found
+    // Route not found
     if (exception instanceof NotFoundException) {
+      // SPA fallback: for browser navigation requests that don't match any
+      // backend controller, serve index.html so the frontend router handles it.
+      // This runs AFTER controllers, so backend routes like /mcp are tried first.
+      // When a subpath is configured (e.g. /dashboard), only serve the SPA for
+      // routes under that subpath.
+      const indexHtml = this.guiMiddleware?.getIndexHtml();
+      const basePath = this.guiMiddleware?.getDashboardPath() ?? '/';
+      if (
+        indexHtml &&
+        request.method === 'GET' &&
+        (basePath === '/' || request.path.startsWith(basePath)) &&
+        !request.path.startsWith('/api/') &&
+        !path.extname(request.path) &&
+        request.headers.accept?.includes('text/html')
+      ) {
+        response.setHeader('Content-Type', 'text/html');
+        return response.send(indexHtml);
+      }
+
       this.logger.debug(exception.message, exception.stack);
 
       return response.status(404).json({ msg: exception.message });

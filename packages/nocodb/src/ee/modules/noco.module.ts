@@ -97,6 +97,9 @@ import { DashboardsService } from '~/services/dashboards.service';
 import { RecordTemplatesController } from '~/controllers/record-templates.controller';
 import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
 
+/* Attachment Proxy */
+import { AttachmentProxyController } from '~/controllers/attachment-proxy.controller';
+
 /* List View */
 import { ListsService } from '~/ee/services/lists.service';
 import { ListDatasService } from '~/ee/services/list-datas.service';
@@ -282,6 +285,9 @@ export const nocoModuleEeMetadata = {
 
     /* Record Templates */
     RecordTemplatesController,
+
+    /* Attachment Proxy */
+    AttachmentProxyController,
 
     // Workspace/Base team assignment controllers — enabled only in test mode
     ...(process.env.NODE_ENV === 'test'

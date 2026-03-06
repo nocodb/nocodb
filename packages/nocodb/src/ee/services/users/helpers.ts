@@ -54,3 +54,28 @@ export function setTokenCookie(res: Response, token): void {
   };
   res.cookie('refresh_token', token, cookieOptions);
 }
+
+export function setAuthCookie(res: Response, token: string): void {
+  res.cookie('nc_token', token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: !!process.env.NC_PUBLIC_URL?.startsWith('https'),
+    path: '/api',
+    maxAge: 10 * 60 * 60 * 1000, // 10 hours — match JWT expiry
+    domain: process.env.NC_BASE_HOST_NAME
+      ? `.${process.env.NC_BASE_HOST_NAME}`
+      : undefined,
+  });
+}
+
+export function clearAuthCookie(res: Response): void {
+  res.clearCookie('nc_token', {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: !!process.env.NC_PUBLIC_URL?.startsWith('https'),
+    path: '/api',
+    domain: process.env.NC_BASE_HOST_NAME
+      ? `.${process.env.NC_BASE_HOST_NAME}`
+      : undefined,
+  });
+}

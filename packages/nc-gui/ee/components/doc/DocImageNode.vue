@@ -18,27 +18,23 @@ const props = defineProps<{
   editor: any
 }>()
 
-const { resolveImageSrc } = useDocumentImageUpload()
+const { buildProxyUrl } = useDocumentImageUpload()
 
 // --- Resolved image source ---
-const resolvedSrc = ref('')
-const isLoading = ref(true)
-
-const resolveSrc = () => {
+// With cookie auth, images with a `path` use the proxy URL directly as <img src>.
+// The browser sends the nc_token cookie automatically — no fetch+blob needed.
+const resolvedSrc = computed(() => {
   const { path, src } = props.node.attrs
-  if (path) {
-    resolvedSrc.value = resolveImageSrc(path)
-  } else if (src) {
-    // Blob preview during upload or external URL
-    resolvedSrc.value = src
-  }
-  isLoading.value = false
-}
+  if (path) return buildProxyUrl(path)
+  if (src) return src // blob preview during upload or external URL
+  return ''
+})
 
-// Resolve on mount and when attrs change
-onMounted(resolveSrc)
-
-watch(() => [props.node.attrs.path, props.node.attrs.src], resolveSrc)
+const isLoading = computed(() => {
+  // Only show loading during upload (blob src, no permanent path yet)
+  const { path, src } = props.node.attrs
+  return !path && !src
+})
 
 // --- Alignment ---
 const alignClass = computed(() => {
@@ -137,9 +133,14 @@ watch(
 
 // --- Download ---
 const downloadImage = async () => {
-  if (!resolvedSrc.value) return
+  const { path } = props.node.attrs
+  if (!path && !resolvedSrc.value) return
+
   try {
-    const response = await fetch(resolvedSrc.value)
+    // Fetch via proxy URL with credentials (cookie) — needed for download
+    // because <a download> doesn't work cross-origin
+    const url = path ? buildProxyUrl(path) : resolvedSrc.value
+    const response = await fetch(url, { credentials: 'include' })
     const blob = await response.blob()
     const blobUrl = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -150,7 +151,7 @@ const downloadImage = async () => {
     document.body.removeChild(link)
     URL.revokeObjectURL(blobUrl)
   } catch {
-    // Fallback: open in new tab if fetch fails (e.g. CORS)
+    // Fallback: open in new tab
     window.open(resolvedSrc.value, '_blank')
   }
 }

@@ -10,7 +10,11 @@
 import type { Editor } from '@tiptap/core'
 
 export function useDocumentImageUpload() {
-  const { batchUploadFiles, getPossibleAttachmentSrc } = useAttachment()
+  const { batchUploadFiles } = useAttachment()
+  const { appInfo, token } = useGlobal()
+
+  const base = inject(ProjectInj, ref())
+  const docId = inject<Ref<string>>('DocIdInj', ref(''))
 
   const isUploading = ref(false)
 
@@ -36,10 +40,33 @@ export function useDocumentImageUpload() {
     })
   }
 
-  /** Resolve a stored attachment path to a displayable URL. */
-  function resolveImageSrc(path: string): string {
-    const sources = getPossibleAttachmentSrc({ path })
-    return sources[0] || path
+  /** Build the proxy URL for a doc attachment. Used as <img src> — auth via cookie. */
+  function buildProxyUrl(urlOrPath: string): string {
+    const baseId = base?.value?.id
+    const docIdVal = docId?.value
+    if (!baseId || !docIdVal || !urlOrPath) return ''
+    return `${appInfo.value.ncSiteUrl}/api/v2/meta/bases/${baseId}/docs/${docIdVal}/attachment?urlOrPath=${encodeURIComponent(
+      urlOrPath,
+    )}`
+  }
+
+  /**
+   * Fetch a doc attachment via the auth-protected proxy and return a blob URL.
+   * The auth token is sent in the request header — never exposed in the URL.
+   */
+  async function fetchDocAttachment(urlOrPath: string): Promise<string> {
+    const url = buildProxyUrl(urlOrPath)
+    if (!url) return ''
+    try {
+      const response = await fetch(url, {
+        headers: { 'xc-auth': token.value || '' },
+      })
+      if (!response.ok) return ''
+      const blob = await response.blob()
+      return URL.createObjectURL(blob)
+    } catch {
+      return ''
+    }
   }
 
   /**
@@ -50,7 +77,8 @@ export function useDocumentImageUpload() {
    * 2. Insert image node with blob src (path = null)
    * 3. Upload file to storage API
    * 4. On success: walk the doc to find the node with matching blob src,
-   *    update its attrs to { path, src: '' }
+   *    update its attrs with permanent path (src cleared — DocImageNode
+   *    will fetch through the proxy on next resolveSrc)
    * 5. On failure: remove the placeholder node
    */
   async function uploadAndInsert(editor: Editor, file: File) {
@@ -65,12 +93,15 @@ export function useDocumentImageUpload() {
     try {
       const uploaded = await batchUploadFiles([file], 'noco/docs')
 
-      if (uploaded.length && uploaded[0].path) {
-        const path = uploaded[0].path
-        // Find the image node with the blob URL and update its attrs
-        updateImageNode(editor, blobUrl, { path, src: resolveImageSrc(path) })
+      if (uploaded.length) {
+        const att = uploaded[0]
+        const storedRef = att.path || att.url
+        if (storedRef) {
+          updateImageNode(editor, blobUrl, { path: storedRef, src: '' })
+        } else {
+          removeImageNode(editor, blobUrl)
+        }
       } else {
-        // Upload failed — remove the placeholder
         removeImageNode(editor, blobUrl)
       }
     } catch {
@@ -108,8 +139,8 @@ export function useDocumentImageUpload() {
   return {
     openFilePicker,
     uploadAndInsert,
-    resolveImageSrc,
-    getPossibleAttachmentSrc,
+    fetchDocAttachment,
+    buildProxyUrl,
     isUploading,
   }
 }

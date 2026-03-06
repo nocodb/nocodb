@@ -19,7 +19,7 @@ const props = defineProps<{
   editor: any
 }>()
 
-const { getPossibleAttachmentSrc } = useAttachment()
+const { buildProxyUrl, fetchDocAttachment } = useDocumentImageUpload()
 
 /** Extract short file extension label from MIME type or file name. */
 const fileExtLabel = computed(() => {
@@ -97,26 +97,43 @@ const isUploading = computed(() => {
 })
 
 /** Download the file when clicked (only if upload is complete). */
-const onDownload = () => {
-  const { path, src, fileName } = props.node.attrs
-  if (isUploading.value) return
+const isDownloading = ref(false)
 
-  let url = ''
+const onDownload = async () => {
+  const { path, src, fileName } = props.node.attrs
+  if (isUploading.value || isDownloading.value) return
+
+  let blobUrl = ''
   if (path) {
-    const sources = getPossibleAttachmentSrc({ path })
-    url = sources[0] || ''
+    isDownloading.value = true
+    try {
+      // Fetch via proxy URL with cookie credentials for download
+      const url = buildProxyUrl(path)
+      const response = await fetch(url, { credentials: 'include' })
+      if (response.ok) {
+        const blob = await response.blob()
+        blobUrl = URL.createObjectURL(blob)
+      }
+    } catch {
+      // Fallback to header-based auth
+      blobUrl = await fetchDocAttachment(path)
+    }
+    isDownloading.value = false
   } else if (src) {
-    url = src
+    blobUrl = src
   }
 
-  if (!url) return
+  if (!blobUrl) return
 
   const a = document.createElement('a')
-  a.href = url
+  a.href = blobUrl
   a.download = fileName || 'download'
-  a.target = '_blank'
-  a.rel = 'noopener noreferrer'
   a.click()
+
+  // Revoke the temporary blob (skip if it's the upload blob)
+  if (path && blobUrl.startsWith('blob:')) {
+    URL.revokeObjectURL(blobUrl)
+  }
 }
 </script>
 

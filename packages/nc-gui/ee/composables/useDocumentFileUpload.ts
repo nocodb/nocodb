@@ -63,10 +63,15 @@ export function useDocumentFileUpload() {
     try {
       const uploaded = await batchUploadFiles([file], 'noco/docs')
 
-      if (uploaded.length && uploaded[0].path) {
-        const path = uploaded[0].path
-        // Find the node with matching blob URL and update its attrs
-        updateFileNode(editor, blobUrl, { path, src: '' })
+      if (uploaded.length) {
+        const att = uploaded[0]
+        const storedRef = att.path || att.url
+        if (storedRef) {
+          // Find the node with matching blob URL and update its attrs
+          updateFileNode(editor, blobUrl, { path: storedRef, src: '' })
+        } else {
+          removeFileNode(editor, blobUrl)
+        }
       } else {
         removeFileNode(editor, blobUrl)
       }

@@ -18,7 +18,7 @@ import { DocCodeBlockExtension } from './DocCodeBlockExtension'
 import { DocTable, DocTableCell, DocTableHeader } from './DocTableExtensions'
 import { SlashCommandExtension, embedPlatformIcons } from './SlashCommand'
 import { CalloutExtension } from './CalloutExtension'
-import { DocColumnsExtension, DocColumnExtension } from './DocColumnsExtension'
+import { DocColumnExtension, DocColumnsExtension } from './DocColumnsExtension'
 import { DocColumnsToolbarExtension } from './DocColumnsToolbarPlugin'
 import { DocMathExtension } from './DocMathExtension'
 import { DocActiveBlockExtension } from './DocActiveBlockPlugin'
@@ -37,6 +37,8 @@ const props = defineProps<{
 
 const docId = toRef(props, 'docId')
 
+provide('DocIdInj', docId)
+
 const basesStore = useBases()
 const { activeProjectId, basesUser } = storeToRefs(basesStore)
 
@@ -47,7 +49,7 @@ const { $e } = useNuxtApp()
 const { user } = useGlobal()
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
-const { openFilePicker, uploadAndInsert, resolveImageSrc } = useDocumentImageUpload()
+const { openFilePicker, uploadAndInsert, buildProxyUrl } = useDocumentImageUpload()
 const { batchUploadFiles } = useAttachment()
 const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
 
@@ -825,7 +827,7 @@ const updateDocumentIcon = async (icon: string) => {
 const coverImageSrc = computed(() => {
   const coverPath = parseProp(doc.value?.meta).cover_image
   if (!coverPath) return ''
-  return resolveImageSrc(coverPath)
+  return buildProxyUrl(coverPath)
 })
 
 const onAddOrChangeCover = async () => {
@@ -836,11 +838,14 @@ const onAddOrChangeCover = async () => {
 
   try {
     const uploaded = await batchUploadFiles([file], 'noco/docs')
-    if (!uploaded.length || !uploaded[0].path) return
+    if (!uploaded.length) return
+
+    const storedRef = uploaded[0].path || uploaded[0].url
+    if (!storedRef) return
 
     doc.value.meta = {
       ...parseProp(doc.value.meta),
-      cover_image: uploaded[0].path,
+      cover_image: storedRef,
     }
 
     const updated = await updateDocument(base.value.id, doc.value.id, {

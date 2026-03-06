@@ -43,6 +43,9 @@ import { askUserTool } from './ask-user.tool';
 // Cross-base proxy
 import { baseProxyTool } from './base-proxy.tool';
 
+// Dynamic tool loading
+import { loadToolsTool } from './load-tools.tool';
+
 // UI tools
 import { navigateBaseTool } from './ui/navigate-base.tool';
 import { openTableTool } from './ui/open-table.tool';
@@ -104,6 +107,9 @@ export interface ChatToolDefinition {
   uiOnly?: boolean;
   /** Tool category for the frontend tool picker: 'schema' | 'data' | 'view' | 'ui' | 'interaction' */
   category?: string;
+  /** Whether this tool is included in the default tool set. Defaults to true.
+   *  Tools with loadByDefault=false must be loaded via load_tools first. */
+  loadByDefault?: boolean;
   /** Resolve `{{KEY}}` placeholders in the description at startup.
    *  Receives the full tool list, returns key-value pairs to replace. */
   descriptionVars?: (tools: ChatToolDefinition[]) => Record<string, string>;
@@ -178,7 +184,7 @@ export class ChatToolRegistry {
       removeSortTool,
       setGroupByTool,
       clearGroupByTool,
-    ].map((t) => ({ ...t, category: 'view' }));
+    ].map((t) => ({ ...t, category: 'view', loadByDefault: false }));
 
     // UI tools — browser-only, auto-injected for internal sessions
     const uiTools: ChatToolDefinition[] = [
@@ -204,7 +210,7 @@ export class ChatToolRegistry {
       addWidgetFilterTool,
       listWidgetFiltersTool,
       removeWidgetFilterTool,
-    ].map((t) => ({ ...t, category: 'dashboard' }));
+    ].map((t) => ({ ...t, category: 'dashboard', loadByDefault: false }));
 
     // Interaction tool — browser-only
     const interactionTools: ChatToolDefinition[] = [
@@ -216,6 +222,11 @@ export class ChatToolRegistry {
       { ...baseProxyTool, category: 'schema' },
     ];
 
+    // Dynamic tool loading — always available
+    const metaTools: ChatToolDefinition[] = [
+      { ...loadToolsTool, category: 'meta' },
+    ];
+
     this.tools = [
       ...schemaTools,
       ...dataTools,
@@ -224,6 +235,7 @@ export class ChatToolRegistry {
       ...dashboardTools,
       ...interactionTools,
       ...proxyTools,
+      ...metaTools,
     ];
 
     // Hydrate {{placeholders}} in tool descriptions with computed values.
@@ -312,8 +324,30 @@ export class ChatToolRegistry {
     return false;
   }
 
-  getAvailableTools(req: NcRequest): ChatToolDefinition[] {
+  /**
+   * Get tools available to the current user, filtered by role/ACL
+   * and optionally by loaded categories.
+   *
+   * When `loadedCategories` is provided, tools with `loadByDefault: false`
+   * are excluded unless their category is in the set. The `load_tools`
+   * meta-tool is always included so the AI can load more categories.
+   */
+  getAvailableTools(
+    req: NcRequest,
+    loadedCategories?: Set<string>,
+  ): ChatToolDefinition[] {
     return this.tools.filter((t) => {
+      // ── Category gate (when loadedCategories is provided) ──
+      if (loadedCategories) {
+        if (
+          t.loadByDefault === false &&
+          !(t.category && loadedCategories.has(t.category))
+        ) {
+          return false;
+        }
+      }
+
+      // ── Role / ACL gate ──
       // Common tools are available to any authenticated user —
       // controller-level ACL already verified workspace membership.
       if (t.scope === 'common') return true;

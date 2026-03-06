@@ -5,6 +5,7 @@ import ChatMessage from '~/models/ChatMessage';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -25,6 +26,7 @@ export default class ChatSession
   total_input_tokens?: number;
   total_output_tokens?: number;
   message_count?: number;
+  meta?: Record<string, any> | string;
   created_at?: string;
   updated_at?: string;
 
@@ -69,7 +71,7 @@ export default class ChatSession
       }
     }
 
-    return session && new ChatSession(session);
+    return session && new ChatSession(prepareForResponse(session));
   }
 
   public static async list(
@@ -110,10 +112,10 @@ export default class ChatSession
         rows,
       );
 
-      return rows.map((s) => new ChatSession(s));
+      return rows.map((s) => new ChatSession(prepareForResponse(s)));
     }
 
-    return sessionsList.map((s) => new ChatSession(s));
+    return sessionsList.map((s) => new ChatSession(prepareForResponse(s)));
   }
 
   static async insert(
@@ -160,13 +162,14 @@ export default class ChatSession
       'total_input_tokens',
       'total_output_tokens',
       'message_count',
+      'meta',
     ]);
 
     await ncMeta.metaUpdate(
       context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_SESSIONS,
-      updateObj,
+      prepareForDb(updateObj),
       {
         id: sessionId,
       },

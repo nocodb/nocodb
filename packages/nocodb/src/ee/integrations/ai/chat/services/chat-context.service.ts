@@ -3,6 +3,7 @@ import { ChatMessageRole } from 'nocodb-sdk';
 import {
   buildDynamicSystemPromptText,
   buildStaticSystemPromptText,
+  getCategoryPrompt,
 } from '../prompts';
 import type { ChatMessageType } from 'nocodb-sdk';
 import type { ModelMessage, SystemModelMessage } from 'ai';
@@ -32,6 +33,7 @@ export class ChatContextService {
       viewId?: string;
       userRoles: { workspaceRole: string; baseRole: string | null };
       summary?: string;
+      loadedCategories?: Set<string>;
       req: any;
     },
   ): Promise<SystemModelMessage[]> {
@@ -103,6 +105,17 @@ export class ChatContextService {
         }),
       },
     ];
+
+    // Inject reference prompts for any previously loaded tool categories
+    // so the LLM has full context on resumed conversations.
+    if (params.loadedCategories?.size) {
+      for (const cat of params.loadedCategories) {
+        const prompt = getCategoryPrompt(cat);
+        if (prompt) {
+          blocks.push({ role: 'system', content: prompt });
+        }
+      }
+    }
 
     // Inject compaction summary as a dedicated system block so it's always
     // visible to the LLM as first-class context — not a user message that

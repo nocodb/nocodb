@@ -1,6 +1,7 @@
 import type { VariableDefinition } from '~/lib/workflow/interface';
 import { workflowJsep } from '~/lib/formula/jsepInstances';
 import { WorkflowNodeFilterDataType } from '~/ee/lib/workflow/node/ifTypes';
+import { escapeVariableKey, unescapeVariableKey } from '~/ee/lib/workflow/variable-generator';
 
 /**
  * Maps VariableType to WorkflowNodeFilterDataType
@@ -271,7 +272,7 @@ function parseWorkflowVariable(
       fullPath = `$('${nodeName}')`;
       pathSegments.forEach((seg) => {
         if (seg.useBracket) {
-          fullPath += `['${seg.value}']`;
+          fullPath += `['${escapeVariableKey(seg.value)}']`;
         } else {
           fullPath += `.${seg.value}`;
         }
@@ -280,7 +281,7 @@ function parseWorkflowVariable(
       fullPath = pathSegments
         .map((seg, i) => {
           if (seg.useBracket) {
-            return i === 0 ? `['${seg.value}']` : `['${seg.value}']`;
+            return `['${escapeVariableKey(seg.value)}']`;
           } else {
             return i === 0 ? seg.value : `.${seg.value}`;
           }
@@ -643,10 +644,11 @@ export function parseWorkflowVariableExpression(
       continue;
     }
 
-    // Match bracket notation: ['propertyName'] or ["propertyName"]
-    const bracketMatch = remainder.substring(currentPos).match(/^\[['"]([^'"]+)['"]\]/);
+    // Match bracket notation: ['propertyName'] or ["propertyName"] (with escaped quotes)
+    const bracketMatch = remainder.substring(currentPos).match(/^\['((?:[^'\\]|\\.)*)'\]/) ||
+      remainder.substring(currentPos).match(/^\["((?:[^"\\]|\\.)*)"\]/);
     if (bracketMatch) {
-      pathParts.push(bracketMatch[1]);
+      pathParts.push(unescapeVariableKey(bracketMatch[1]));
       currentPos += bracketMatch[0].length;
       continue;
     }

@@ -5808,7 +5808,7 @@ declare interface ConfigItem {
     if (!childField) return null
 
     // 4. For date/time types, min/max returns the child column type (string)
-    if (this.NON_NUMERIC_MIN_MAX_TYPES.has(childField.type)) {
+    if (TypeGenerator.NON_NUMERIC_MIN_MAX_TYPES.has(childField.type)) {
       return this.getFieldValueType(childField)
     }
 

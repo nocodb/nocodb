@@ -8,7 +8,18 @@ export function createApiInstance<SecurityDataType = any>({
   baseURL: _baseUrl = BASE_FALLBACK_URL,
 }: CreateApiOptions = {}): Api<SecurityDataType> {
   const config = useRuntimeConfig()
-  const baseURL = config.public.ncBackendUrl || _baseUrl
+  let baseURL = config.public.ncBackendUrl || _baseUrl
+
+  // In production, when using root-relative baseURL ('/'), respect the
+  // <base> tag for subpath deployments so API calls include the subpath
+  // (e.g. /testpath/api/v1/... instead of /api/v1/...).
+  if (baseURL === '/' && typeof document !== 'undefined') {
+    const baseTag = document.querySelector('base')
+    if (baseTag?.href) {
+      baseURL = new URL(baseTag.href).pathname
+    }
+  }
+
   return addAxiosInterceptors(
     new Api<SecurityDataType>({
       baseURL,

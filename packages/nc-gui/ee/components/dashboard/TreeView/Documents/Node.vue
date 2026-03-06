@@ -36,6 +36,8 @@ const base = inject(ProjectInj, ref())
 
 const input = ref<HTMLInputElement>()
 
+const emojiPickerRef = ref<HTMLElement>()
+
 const isEditing = ref(false)
 const isDropdownOpen = ref(false)
 const _title = ref('')
@@ -254,6 +256,13 @@ const onRenameMenuClick = () => {
   }
 }
 
+const onChangeIcon = () => {
+  isDropdownOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
+}
+
 /** Cancel renaming document */
 function onCancel() {
   if (!isEditing.value) return
@@ -281,52 +290,83 @@ function onStopEdit() {
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
-    <div v-e="['a:document:open']" class="flex items-center w-full gap-0.5" data-testid="doc-item">
-      <!-- Chevron — always visible; muted when no children -->
+    <div v-e="['a:document:open']" class="flex items-center w-full gap-1" data-testid="doc-item">
+      <!-- Mobile: plain chevron before icon (visible only on xs) -->
       <div
-        class="nc-doc-chevron flex-none flex items-center justify-center w-5 h-5 rounded-md"
-        :class="showChevron ? 'cursor-pointer hover:bg-nc-bg-gray-medium' : 'cursor-default'"
+        class="hidden !xs:(flex items-center justify-center) w-5 h-5 flex-none"
+        :class="showChevron ? 'cursor-pointer' : 'cursor-default'"
         @click.stop="showChevron && onToggleCollapse()"
         @dblclick.stop
       >
-        <GeneralLoader v-if="loadingChildren" size="auto" class="!w-3.5 !h-3.5" />
+        <GeneralLoader v-if="loadingChildren" class="!w-3.5 !h-3.5" />
         <GeneralIcon
           v-else
           icon="chevronRight"
-          class="nc-doc-chevron-icon !text-[14px] transform transition-transform duration-150"
+          class="transform transition-transform duration-200"
           :class="[
-            showChevron ? 'text-nc-content-gray-muted' : 'text-nc-content-gray-muted/50',
+            showChevron ? 'text-nc-content-gray-subtle2' : 'text-nc-content-gray-muted/30',
             { '!rotate-90': !collapsed && showChevron },
           ]"
         />
       </div>
 
-      <!-- Document icon / emoji -->
+      <!-- Icon wrapper with desktop chevron overlay -->
       <div
-        v-e="['c:document:emoji-picker']"
-        class="flex-none flex items-center"
+        class="flex items-center nc-doc-icon-wrapper min-w-6 h-6 relative"
         @mouseenter="showNodeTooltip = false"
         @mouseleave="showNodeTooltip = true"
         @click.stop
         @dblclick.stop
       >
-        <LazyGeneralEmojiPicker
-          :key="doc?.meta?.icon"
-          :clearable="true"
-          :emoji="doc?.meta?.icon"
-          :readonly="isMobileMode || !isUIAllowed('documentUpdate')"
-          class="nc-document-icon"
-          size="small"
-          @emoji-selected="updateDocumentIcon($event)"
+        <!-- Desktop: chevron overlay — always swaps with icon on hover.
+             When no children: muted, not-allowed cursor, non-interactive. -->
+        <NcButton
+          v-e="['c:document:toggle-expand']"
+          type="text"
+          size="xxsmall"
+          class="nc-doc-chevron-btn !absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 !rounded-md !xs:hidden"
+          :class="
+            showChevron
+              ? 'text-nc-content-gray-subtle2 hover:text-nc-content-gray cursor-pointer'
+              : 'text-nc-content-gray-muted/50 !cursor-not-allowed pointer-events-none'
+          "
+          @click.stop="showChevron && onToggleCollapse()"
+          @dblclick.stop
         >
-          <template #default>
-            <GeneralIcon
-              :class="activeDocumentId === doc.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
-              class="nc-document-icon w-4 text-nc-content-gray-subtle !text-[16px]"
-              icon="ncFileText"
-            />
-          </template>
-        </LazyGeneralEmojiPicker>
+          <GeneralLoader v-if="loadingChildren" class="!w-3.5 !h-3.5" />
+          <GeneralIcon
+            v-else
+            icon="chevronRight"
+            class="transform transition-transform duration-200 !text-current text-[16px]"
+            :class="{ '!rotate-90': !collapsed && showChevron }"
+          />
+        </NcButton>
+
+        <!-- Document icon/emoji — always hidden on hover (chevron replaces it).
+             pointer-events-none: icon changes go via "Change Icon" context menu. -->
+        <div
+          ref="emojiPickerRef"
+          v-e="['c:document:emoji-picker']"
+          class="flex items-center group-hover:opacity-0 xs:group-hover:opacity-100 transition-opacity duration-150 pointer-events-none"
+        >
+          <LazyGeneralEmojiPicker
+            :key="doc?.meta?.icon"
+            :clearable="true"
+            :emoji="doc?.meta?.icon"
+            :readonly="isMobileMode || !isUIAllowed('documentUpdate')"
+            class="nc-document-icon"
+            size="small"
+            @emoji-selected="updateDocumentIcon($event)"
+          >
+            <template #default>
+              <GeneralIcon
+                :class="activeDocumentId === doc.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+                class="nc-document-icon w-4 text-nc-content-gray-subtle !text-[16px]"
+                icon="ncFileText"
+              />
+            </template>
+          </LazyGeneralEmojiPicker>
+        </div>
       </div>
 
       <a-input
@@ -401,6 +441,13 @@ function onStopEdit() {
                   <GeneralIcon class="text-nc-content-gray-subtle" icon="rename" />
                   {{ $t('labels.renameDocument') }}
                 </NcMenuItem>
+
+                <NcMenuItemChangeIcon
+                  v-e="['c:document:change-icon']"
+                  :disabled="!!isMobileMode"
+                  :data-testid="`sidebar-doc-change-icon-${doc.title}`"
+                  @change-icon="onChangeIcon"
+                />
               </template>
               <NcMenuItem
                 v-if="isUIAllowed('documentCreate')"

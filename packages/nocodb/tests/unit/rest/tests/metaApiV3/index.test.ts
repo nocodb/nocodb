@@ -35,11 +35,11 @@ export default runOnSet(2, function () {
     }
   }
   errorHandlingMetaTestsV3();
-  workspaceUsersTest();
   scriptsTestV3();
   tableVisibilityPermissionsTestV3();
   timelineTestV3();
   if (isEE()) {
+    workspaceUsersTest();
     try {
       require('./filters.test').default();
       require('./sorts.test').default();

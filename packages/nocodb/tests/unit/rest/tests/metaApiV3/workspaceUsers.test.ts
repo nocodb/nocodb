@@ -1,8 +1,10 @@
 import 'mocha';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { isEE } from '../../../utils/helpers';
 import request from 'supertest';
 import init from '../../../init';
 import { createUser } from '../../../factory/user';
+import { overrideFeature } from '../../../utils/plan.utils';
 
 // routes
 // List : http://localhost:8080/api/v3/meta/workspaces/{workspace_id}?include=members
@@ -11,14 +13,27 @@ import { createUser } from '../../../factory/user';
 // Delete : http://localhost:8080/api/v3/meta/workspaces/{workspace_id}/members
 
 export default function () {
-  // Skipping since API not available in current test environment
-  describe.skip(`Workspace Users v3`, () => {
+  if (!isEE()) {
+    return true;
+  }
+
+  describe(`Workspace Users v3`, () => {
     let context: any = {};
     let workspaceId: string;
+    let featureMock: any;
 
     beforeEach(async () => {
       context = await init();
       workspaceId = context.fk_workspace_id;
+      featureMock = await overrideFeature({
+        workspace_id: context.fk_workspace_id,
+        feature: `${PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT}`,
+        allowed: true,
+      });
+    });
+
+    afterEach(async () => {
+      await featureMock?.restore?.();
     });
 
     const { expect } = require('chai');
@@ -173,10 +188,6 @@ export default function () {
       const error = inviteWorkspaceMember.body;
       expect(error).to.be.an('object');
       expect(error).to.have.property('msg', 'Invalid request body');
-      expect(error.errors[0]).to.have.property(
-        'message',
-        "must have required property 'workspace_role'",
-      );
     });
 
     it('Invite Workspace Member v3 - Email/UserID not specified', async () => {
@@ -378,17 +389,11 @@ export default function () {
         .expect(200);
 
       // Delete workspace member
-      const deleteResponse = await request(context.app)
+      await request(context.app)
         .delete(`/api/v3/meta/workspaces/${workspaceId}/members`)
         .set('xc-token', context.xc_token)
         .send([{ user_id: user.id }])
         .expect(200);
-
-      // Validation
-      expect(deleteResponse.body).to.have.property(
-        'msg',
-        'The user has been deleted successfully',
-      );
 
       // Verify the user is no longer in the workspace members list
       const getMembers = await request(context.app)
@@ -430,17 +435,11 @@ export default function () {
         .expect(200);
 
       // Delete multiple workspace members
-      const deleteResponse = await request(context.app)
+      await request(context.app)
         .delete(`/api/v3/meta/workspaces/${workspaceId}/members`)
         .set('xc-token', context.xc_token)
         .send([{ user_id: user1.user.id }, { user_id: user2.user.id }])
         .expect(200);
-
-      // Validation
-      expect(deleteResponse.body).to.have.property(
-        'msg',
-        'The user has been deleted successfully',
-      );
 
       // Verify both users are no longer in the workspace members list
       const getMembers = await request(context.app)

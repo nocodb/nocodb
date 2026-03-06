@@ -219,7 +219,11 @@ export default class ChatSession
     }
 
     // Invalidate cache so next get() fetches fresh data
-    await NocoCache.del(context, `${CacheScope.CHAT_SESSION}:${sessionId}`);
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.CHAT_SESSION}:${sessionId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
   }
 
   static async delete(

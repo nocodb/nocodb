@@ -254,7 +254,7 @@ const renderedContent = computed(() => {
 
           <!-- Pre-first-event spinner (standalone loading message) -->
           <template v-if="isStreaming && !hasParts">
-            <div v-if="!messageContent" class="flex items-center gap-1 py-0.5">
+            <div v-if="!messageContent" class="flex items-center gap-1 h-6">
               <span class="nc-chat-dot" />
               <span class="nc-chat-dot" style="animation-delay: 160ms" />
               <span class="nc-chat-dot" style="animation-delay: 320ms" />

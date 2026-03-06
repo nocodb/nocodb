@@ -62,19 +62,27 @@ watch(disabled, (newVal, oldVal) => {
 </script>
 
 <template>
-  <div class="nc-chat-input bg-nc-bg-default px-4 py-3">
+  <div class="nc-chat-input px-4 py-3">
     <div
       class="nc-chat-input-box relative border-1 rounded-lg overflow-hidden transition-colors"
-      :class="disabled ? 'border-nc-border-gray-medium opacity-50' : 'border-nc-border-gray-medium focus-within:border-nc-fill-primary'"
+      :class="
+        disabled ? 'border-nc-border-gray-medium opacity-50' : 'border-nc-border-gray-medium focus-within:border-nc-fill-primary'
+      "
     >
       <textarea
         ref="textareaRef"
         v-model="inputValue"
         :placeholder="t('placeholder.askAnything')"
         :disabled="disabled"
-        class="w-full resize-none rounded-lg px-3 pt-2.5 pb-10 text-sm bg-transparent text-nc-content-gray-emphasis placeholder:text-nc-content-gray-subtle nc-scrollbar-thin"
+        class="w-full resize-none rounded-lg px-3 pt-2.5 pb-10 text-sm bg-nc-bg-default text-nc-content-gray-emphasis placeholder:text-nc-content-gray-subtle nc-scrollbar-thin"
         rows="2"
-        style="outline: none !important; box-shadow: none !important; border: none !important; min-height: 52px; max-height: 160px"
+        style="
+          outline: none !important;
+          box-shadow: none !important;
+          border: none !important;
+          min-height: 52px;
+          max-height: 160px;
+        "
         @keydown.stop="handleKeyDown"
       />
 

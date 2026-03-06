@@ -16,9 +16,11 @@ const props = defineProps<{
   deleteNode: () => void
   selected: boolean
   editor: any
+  getPos: () => number
 }>()
 
 const { buildProxyUrl } = useDocumentImageUpload()
+const { t } = useI18n()
 
 // --- Resolved image source ---
 // With cookie auth, images with a `path` use the proxy URL directly as <img src>.
@@ -95,6 +97,33 @@ const onResizeStart = (e: MouseEvent) => {
   document.addEventListener('mouseup', onResizeEnd)
 }
 
+/** SW (bottom-left) resize — inverted delta direction. */
+const onResizeStartSW = (e: MouseEvent) => {
+  e.preventDefault()
+  e.stopPropagation()
+
+  isResizing.value = true
+  resizeStartX.value = e.clientX
+  resizeStartWidth.value = imageRef.value?.getBoundingClientRect().width || 0
+
+  const onMove = (ev: MouseEvent) => {
+    const delta = resizeStartX.value - ev.clientX
+    const newWidth = Math.max(MIN_WIDTH, Math.round(resizeStartWidth.value + delta))
+    const editorBody = props.editor.view.dom.closest('.nc-doc-editor-body')
+    const maxWidth = editorBody ? editorBody.clientWidth : 800
+    props.updateAttributes({ width: Math.min(newWidth, maxWidth) })
+  }
+
+  const onUp = () => {
+    isResizing.value = false
+    document.removeEventListener('mousemove', onMove)
+    document.removeEventListener('mouseup', onUp)
+  }
+
+  document.addEventListener('mousemove', onMove)
+  document.addEventListener('mouseup', onUp)
+}
+
 // Clean up on unmount
 onBeforeUnmount(() => {
   document.removeEventListener('mousemove', onResizeMove)
@@ -104,23 +133,47 @@ onBeforeUnmount(() => {
 // --- Caption ---
 const captionText = ref(props.node.attrs.caption || '')
 const captionInputRef = ref<HTMLInputElement | null>(null)
+// Flag to suppress blur handler when Enter already handled save + focus
+const captionSavedByKeydown = ref(false)
 
 const hasCaption = computed(() => !!props.node.attrs.caption)
 
-const onCaptionBlur = () => {
+/** Save caption and move editor cursor after this image node. */
+const saveCaptionAndDeselect = (focus: boolean) => {
   const trimmed = captionText.value.trim()
   props.updateAttributes({ caption: trimmed || null })
+  try {
+    const pos = props.getPos() + props.node.nodeSize
+    if (focus) {
+      props.editor.chain().focus(pos).run()
+    } else {
+      props.editor.commands.setTextSelection(pos)
+    }
+  } catch {
+    // getPos() may throw if the node was deleted (e.g. toolbar delete while caption focused)
+  }
+}
+
+const onCaptionBlur = () => {
+  // Skip if Enter keydown already saved + moved cursor
+  if (captionSavedByKeydown.value) {
+    captionSavedByKeydown.value = false
+    return
+  }
+  saveCaptionAndDeselect(false)
 }
 
 const onCaptionKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
     e.preventDefault()
-    captionInputRef.value?.blur()
+    captionSavedByKeydown.value = true
+    saveCaptionAndDeselect(true)
   }
   if (e.key === 'Escape') {
     e.preventDefault()
     captionText.value = props.node.attrs.caption || ''
-    captionInputRef.value?.blur()
+    captionSavedByKeydown.value = true
+    saveCaptionAndDeselect(false)
   }
 }
 
@@ -156,18 +209,27 @@ const downloadImage = async () => {
   }
 }
 
+// --- Deselect when clicking empty space in the wrapper (outside image/caption/toolbar) ---
+const onWrapperClick = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+  if (target.closest('.nc-doc-image-container') || target.closest('.nc-doc-image-toolbar')) return
+  // Click landed on empty wrapper space — deselect
+  const pos = props.getPos() + props.node.nodeSize
+  props.editor.commands.setTextSelection(pos)
+}
+
 // --- Toolbar visibility ---
 const showToolbar = computed(() => props.selected && !isResizing.value)
 </script>
 
 <template>
-  <NodeViewWrapper class="nc-doc-image-wrapper" :class="[alignClass, { 'is-selected': selected }]" as="div">
+  <NodeViewWrapper class="nc-doc-image-wrapper" :class="[alignClass, { 'is-selected': selected }]" as="div" @click="onWrapperClick">
     <!-- Floating toolbar -->
     <div v-if="showToolbar" class="nc-doc-image-toolbar" contenteditable="false">
       <button
         class="nc-doc-image-toolbar-btn"
         :class="{ active: node.attrs.align === 'left' }"
-        title="Align left"
+        :title="t('labels.alignLeft')"
         @click="setAlign('left')"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -180,7 +242,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
       <button
         class="nc-doc-image-toolbar-btn"
         :class="{ active: node.attrs.align === 'center' || !node.attrs.align }"
-        title="Align center"
+        :title="t('labels.alignCenter')"
         @click="setAlign('center')"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -193,7 +255,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
       <button
         class="nc-doc-image-toolbar-btn"
         :class="{ active: node.attrs.align === 'right' }"
-        title="Align right"
+        :title="t('labels.alignRight')"
         @click="setAlign('right')"
       >
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -204,7 +266,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
         </svg>
       </button>
       <div class="nc-doc-image-toolbar-divider" />
-      <button class="nc-doc-image-toolbar-btn" title="Download image" @click="downloadImage">
+      <button class="nc-doc-image-toolbar-btn" :title="t('labels.downloadImage')" @click="downloadImage">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
           <polyline points="7 10 12 15 17 10" />
@@ -212,7 +274,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
         </svg>
       </button>
       <div class="nc-doc-image-toolbar-divider" />
-      <button class="nc-doc-image-toolbar-btn nc-doc-image-toolbar-delete" title="Delete image" @click="deleteNode">
+      <button class="nc-doc-image-toolbar-btn nc-doc-image-toolbar-delete" :title="t('labels.deleteImage')" @click="deleteNode">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="3 6 5 6 21 6" />
           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
@@ -240,31 +302,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
       <!-- Resize handles (visible when selected) -->
       <template v-if="selected && resolvedSrc">
         <div class="nc-doc-image-resize-handle nc-resize-se" @mousedown="onResizeStart" />
-        <div
-          class="nc-doc-image-resize-handle nc-resize-sw"
-          @mousedown="(e: MouseEvent) => {
-            resizeStartX = e.clientX
-            resizeStartWidth = imageRef?.getBoundingClientRect().width || 0
-            // Invert delta for SW handle
-            isResizing = true
-            const onMove = (ev: MouseEvent) => {
-              const delta = resizeStartX - ev.clientX
-              const newW = Math.max(MIN_WIDTH, Math.round(resizeStartWidth + delta))
-              const editorBody = editor.view.dom.closest('.nc-doc-editor-body')
-              const maxW = editorBody ? editorBody.clientWidth : 800
-              updateAttributes({ width: Math.min(newW, maxW) })
-            }
-            const onUp = () => {
-              isResizing = false
-              document.removeEventListener('mousemove', onMove)
-              document.removeEventListener('mouseup', onUp)
-            }
-            document.addEventListener('mousemove', onMove)
-            document.addEventListener('mouseup', onUp)
-            e.preventDefault()
-            e.stopPropagation()
-          }"
-        />
+        <div class="nc-doc-image-resize-handle nc-resize-sw" @mousedown="onResizeStartSW" />
       </template>
 
       <!-- Caption -->
@@ -274,7 +312,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
         v-model="captionText"
         class="nc-doc-image-caption nc-doc-image-caption-input"
         data-testid="nc-doc-image-caption"
-        placeholder="Write a caption"
+        :placeholder="t('placeholder.writeCaption')"
         contenteditable="false"
         @blur="onCaptionBlur"
         @keydown="onCaptionKeydown"
@@ -304,7 +342,7 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
   }
 
   &.is-selected .nc-doc-image-container {
-    outline: 2px solid var(--nc-fill-primary);
+    outline: 1px solid var(--nc-fill-primary);
     outline-offset: 2px;
     border-radius: 4px;
   }
@@ -344,11 +382,11 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
 // --- Resize handles ---
 .nc-doc-image-resize-handle {
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   background: var(--nc-bg-default);
-  border: 2px solid var(--nc-fill-primary);
-  border-radius: 2px;
+  border: 1px solid var(--nc-fill-primary);
+  border-radius: 1px;
   z-index: 5;
 
   &.nc-resize-se {

@@ -19,22 +19,22 @@ export function useDocumentImageUpload() {
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)
 
-  /** Open native file picker restricted to images. Returns single File or null (unlike file picker which supports multiple). */
-  function openFilePicker(): Promise<File | null> {
+  /** Open native file picker restricted to images. Supports multiple selection. */
+  function openFilePicker(options?: { multiple?: boolean }): Promise<File[]> {
     return new Promise((resolve) => {
       const input = document.createElement('input')
       input.type = 'file'
       input.accept = 'image/*'
+      if (options?.multiple) input.multiple = true
       input.style.display = 'none'
       input.addEventListener('change', () => {
-        const file = input.files?.[0] || null
+        const files = Array.from(input.files || [])
         input.remove()
-        resolve(file)
+        resolve(files)
       })
-      // User cancelled — resolve null on focus return
       input.addEventListener('cancel', () => {
         input.remove()
-        resolve(null)
+        resolve([])
       })
       document.body.appendChild(input)
       input.click()

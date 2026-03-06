@@ -681,8 +681,25 @@ function countTasks() {
 watch(editor, (ed) => {
   if (ed?.storage?.image) {
     ed.storage.image.openUpload = async () => {
-      const file = await openFilePicker()
-      if (file) uploadAndInsert(ed, file)
+      const files = await openFilePicker({ multiple: true })
+      if (!files.length) return
+
+      // Insert all placeholder nodes in one transaction, then upload in parallel
+      const blobEntries = files.map((file) => ({
+        file,
+        blobUrl: URL.createObjectURL(file),
+      }))
+
+      const nodes = blobEntries.map(({ file, blobUrl }) => ({
+        type: 'image' as const,
+        attrs: { src: blobUrl, alt: file.name },
+      }))
+
+      ed.chain().focus().insertContent(nodes).run()
+
+      for (const { file, blobUrl } of blobEntries) {
+        uploadAndInsert(ed, file, blobUrl)
+      }
     }
   }
   if (ed?.storage?.fileAttachment) {
@@ -916,7 +933,8 @@ const coverImageSrc = computed(() => {
 const onAddOrChangeCover = async () => {
   if (!doc.value?.id || !base.value?.id) return
 
-  const file = await openFilePicker()
+  const files = await openFilePicker()
+  const file = files[0]
   if (!file) return
 
   try {

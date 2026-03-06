@@ -121,6 +121,82 @@ Read-only (auto-created, never pass to create_table/add_field): \`ID\`, \`Formul
 \`Lookup\`, \`Rollup\`, \`CreatedTime\`, \`LastModifiedTime\`, \`CreatedBy\`, \
 \`LastModifiedBy\`, \`AutoNumber\``);
 
+  // ─── Reference: Dashboards & Widgets ──────────────────────────────────────
+  parts.push(`
+## Dashboards & Widgets
+
+Dashboards are visual canvases inside a base. Each dashboard holds **widgets** — \
+configurable data visualizations arranged on a 4-column grid.
+
+**Available widget types:**
+| Type | Purpose | Data source required? |
+|------|---------|----------------------|
+| \`chart\` | Bar, line, pie, or donut chart | Yes (\`fk_model_id\`) |
+| \`metric\` | Single KPI number (count or aggregation) | Yes (\`fk_model_id\`) |
+| \`text\` | Markdown or plain text block | No |
+| \`iframe\` | Embed an external URL | No |
+
+**Chart sub-types** (set via \`config.chartType\`):
+- \`bar\` / \`line\` — X axis column + Y axis fields with aggregation
+- \`pie\` / \`donut\` — Category column + value (count or summary)
+
+### Unsupported Column Types
+
+Not all columns can be used in widgets. **Never reference these types:**
+
+| Widget context | Unsupported column types |
+|---------------|-------------------------|
+| **Chart X axis** (bar/line) | System columns, Attachment, QrCode, Barcode, Button, JSON, Links/LTAR |
+| **Chart Y axis** (bar/line) | System columns, Attachment, QrCode, Barcode, Button, JSON, Links/LTAR, Lookup |
+| **Pie/Donut category** | System columns, Attachment, QrCode, Barcode, Button, JSON |
+| **Metric / Pie value** | System columns, Attachment, QrCode, Barcode, Button, Lookup |
+
+Use \`describe_table\` to check column types before building widget configs — only \
+use columns that are supported for the widget context.
+
+### Widget Size Constraints
+
+The dashboard uses a **4-column grid** (80px row height). Each widget type has \
+strict min/max size limits — positions outside these bounds will be rejected.
+
+| Type | minW | minH | maxW | maxH | Default (w×h) |
+|------|------|------|------|------|---------------|
+| \`metric\` | 1 | 2 | 4 | 2 | 1×2 |
+| \`chart\` | 2 | 5 | 2 | 6 | 2×5 |
+| \`text\` | 2 | 1 | 4 | ∞ | 2×1 |
+| \`iframe\` | 2 | 5 | 4 | 12 | 2×4 |
+
+**Always provide position** when creating widgets. Use the size constraints above \
+to set valid w and h values. Check existing widget positions to avoid overlaps.
+
+### Widget Data Source
+
+Chart and metric widgets support three data source modes via \`config.dataSource\`:
+
+| Mode | Description | Required params |
+|------|-------------|----------------|
+| \`"model"\` (default) | All records from the table | \`fk_model_id\` on the widget |
+| \`"view"\` | Records from a specific view | \`fk_model_id\` + \`fk_view_id\` on the widget |
+| \`"filter"\` | Records matching filter conditions | \`fk_model_id\` + filter conditions via \`add_widget_filter\` |
+
+**To filter widget data:** (1) create/update the widget with \`config.dataSource: "filter"\` → \
+(2) use \`add_widget_filter\` to add conditions (same operators as view filters). \
+Use \`list_widget_filters\` to see existing conditions and \`remove_widget_filter\` to remove them.
+
+### Workflow
+
+(1) \`list_dashboards\` to see existing → (2) \`create_dashboard\` if needed → \
+(3) \`list_tables\` + \`describe_table\` to pick supported columns → (4) \`create_widget\` with config → \
+(5) optionally \`add_widget_filter\` if \`config.dataSource\` is \`"filter"\`.
+
+**Config is type-specific.** Each widget type has a strict schema — see \
+the \`create_widget\` tool description for the full reference per type. \
+Always set \`config.chartType\` for chart widgets. For metric widgets, set \
+\`config.metric.type\` ("count" or "summary") and \`config.metric.aggregation\`.
+
+**Dashboard info is NOT in your schema context.** Always call \`list_dashboards\` \
+first when the user asks about dashboards — never assume what exists.`);
+
   // ─── Reference: Relationships ────────────────────────────────────────────
   parts.push(`
 ## Relationships (LinkToAnotherRecord)

@@ -1,34 +1,34 @@
 import { z } from 'zod';
 import { ProjectRoles } from 'nocodb-sdk';
-import {
-  resolveColumnByName,
-  resolveTableByName,
-  resolveViewByName,
-} from '../helpers';
+import { resolveDashboardByName, resolveWidgetByName } from '../helpers';
 import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { NcRequest } from '~/interface/config';
 import type { ChatToolDefinition } from '../chat-tool-registry';
 import { FiltersService } from '~/services/filters.service';
 import Noco from '~/Noco';
+import Model from '~/models/Model';
 
-export const addFilterTool: ChatToolDefinition = {
-  name: 'add_filter',
+export const addWidgetFilterTool: ChatToolDefinition = {
+  name: 'add_widget_filter',
   description:
-    'Add a filter condition to a view. Filters limit which records are shown in the view without deleting data. ' +
+    'Add a filter condition to a widget to scope the data it displays. ' +
+    'Only applies when the widget\'s config.dataSource is "filter". ' +
+    'Set config.dataSource to "filter" first (via create_widget or update_widget), ' +
+    'then use this tool to add filter conditions. ' +
     'Multiple filters are combined using logical_op (and/or). ' +
-    'Returns the filter_id which you can use later with remove_filter.',
+    'The widget must have a data source table (fk_model_id). ' +
+    'Use describe_table to find field names, then use the field name to filter.',
   parameters: {
-    table_name: z
+    dashboard_name: z
       .string()
       .describe(
-        'The title of the table containing the view (case-insensitive).',
+        'The title of the dashboard containing the widget (case-insensitive).',
       ),
-    view_name: z
+    widget_name: z
       .string()
-      .optional()
       .describe(
-        'The title of the view to add the filter to. If omitted, uses the first (default) view.',
+        'The title of the widget to add the filter to (case-insensitive).',
       ),
     field_name: z
       .string()
@@ -70,19 +70,19 @@ export const addFilterTool: ChatToolDefinition = {
       .enum(['and', 'or'])
       .optional()
       .describe(
-        'How this filter combines with existing filters on the view. ' +
+        'How this filter combines with existing filters on the widget. ' +
           '"and" means all filters must match; "or" means any filter can match. Default: "and".',
       ),
   },
-  permission: 'filterCreate',
+  permission: 'widgetFilterCreate',
   scope: 'base',
-  requiredRole: ProjectRoles.EDITOR,
+  requiredRole: ProjectRoles.CREATOR,
   isDangerous: false,
   async execute(
     context: NcContext,
     args: {
-      table_name: string;
-      view_name?: string;
+      dashboard_name: string;
+      widget_name: string;
       field_name: string;
       operator: string;
       value?: string;
@@ -92,9 +92,32 @@ export const addFilterTool: ChatToolDefinition = {
     req: NcRequest,
   ) {
     const filtersService: FiltersService = Noco.nestApp.get(FiltersService);
-    const model = await resolveTableByName(context, args.table_name);
-    const view = await resolveViewByName(context, model, args.view_name);
-    const column = await resolveColumnByName(context, model, args.field_name);
+    const dashboard = await resolveDashboardByName(
+      context,
+      args.dashboard_name,
+    );
+    const widget = await resolveWidgetByName(
+      context,
+      dashboard.id,
+      args.widget_name,
+    );
+
+    if (!widget.fk_model_id) {
+      throw new Error(
+        'Widget has no data source table. Set fk_model_id first.',
+      );
+    }
+
+    const model = await Model.get(context, widget.fk_model_id);
+    const columns = await model.getColumns(context);
+
+    const lowerName = args.field_name.toLowerCase();
+    const column = columns.find((c) => c.title?.toLowerCase() === lowerName);
+    if (!column) {
+      throw new Error(
+        `Field "${args.field_name}" not found in the widget's data source table.`,
+      );
+    }
 
     // Normalize empty strings to null — LLMs often pass "" for optional fields,
     // but the swagger schema only accepts valid enum values or null.
@@ -102,8 +125,8 @@ export const addFilterTool: ChatToolDefinition = {
     const subOp = args.sub_operator || null;
     const logicalOp = args.logical_op || null;
 
-    const filter = await filtersService.filterCreate(context, {
-      viewId: view.id,
+    const filter = await filtersService.widgetFilterCreate(context, {
+      widgetId: widget.id,
       filter: {
         fk_column_id: column.id,
         comparison_op: args.operator as FilterType['comparison_op'],
@@ -116,9 +139,9 @@ export const addFilterTool: ChatToolDefinition = {
     });
 
     return {
-      message: `Filter added: "${args.field_name}" ${args.operator} ${
-        args.value ?? ''
-      }`.trim(),
+      message: `Filter added to widget "${widget.title}": "${
+        args.field_name
+      }" ${args.operator} ${args.value ?? ''}`.trim(),
       filter_id: filter.id,
     };
   },

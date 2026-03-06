@@ -60,6 +60,23 @@ import { listSortsTool } from './view/list-sorts.tool';
 import { removeSortTool } from './view/remove-sort.tool';
 import { setGroupByTool } from './view/set-group-by.tool';
 import { clearGroupByTool } from './view/clear-group-by.tool';
+
+// Dashboard & Widget tools
+import { listDashboardsTool } from './dashboard/list-dashboards.tool';
+import { getDashboardTool } from './dashboard/get-dashboard.tool';
+import { createDashboardTool } from './dashboard/create-dashboard.tool';
+import { updateDashboardTool } from './dashboard/update-dashboard.tool';
+import { deleteDashboardTool } from './dashboard/delete-dashboard.tool';
+import { listWidgetsTool } from './dashboard/list-widgets.tool';
+import { getWidgetTool } from './dashboard/get-widget.tool';
+import { createWidgetTool } from './dashboard/create-widget.tool';
+import { updateWidgetTool } from './dashboard/update-widget.tool';
+import { deleteWidgetTool } from './dashboard/delete-widget.tool';
+import { duplicateWidgetTool } from './dashboard/duplicate-widget.tool';
+import { getWidgetDataTool } from './dashboard/get-widget-data.tool';
+import { addWidgetFilterTool } from './dashboard/add-widget-filter.tool';
+import { listWidgetFiltersTool } from './dashboard/list-widget-filters.tool';
+import { removeWidgetFilterTool } from './dashboard/remove-widget-filter.tool';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { NcContext } from '~/interface/config';
@@ -170,6 +187,25 @@ export class ChatToolRegistry {
       openViewTool,
     ].map((t) => ({ ...t, category: 'ui', uiOnly: true }));
 
+    // Dashboard & Widget tools
+    const dashboardTools: ChatToolDefinition[] = [
+      listDashboardsTool,
+      getDashboardTool,
+      createDashboardTool,
+      updateDashboardTool,
+      deleteDashboardTool,
+      listWidgetsTool,
+      getWidgetTool,
+      createWidgetTool,
+      updateWidgetTool,
+      deleteWidgetTool,
+      duplicateWidgetTool,
+      getWidgetDataTool,
+      addWidgetFilterTool,
+      listWidgetFiltersTool,
+      removeWidgetFilterTool,
+    ].map((t) => ({ ...t, category: 'dashboard' }));
+
     // Interaction tool — browser-only
     const interactionTools: ChatToolDefinition[] = [
       { ...askUserTool, category: 'interaction', uiOnly: true },
@@ -185,6 +221,7 @@ export class ChatToolRegistry {
       ...dataTools,
       ...viewTools,
       ...uiTools,
+      ...dashboardTools,
       ...interactionTools,
       ...proxyTools,
     ];

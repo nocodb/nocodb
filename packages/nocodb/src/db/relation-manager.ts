@@ -352,9 +352,7 @@ export class RelationManager {
       const parentDisplayValue = dvMap.get(
         `${parentTable.id}:${pair.parentFk}`,
       );
-      const childDisplayValue = dvMap.get(
-        `${childTable.id}:${pair.childFk}`,
-      );
+      const childDisplayValue = dvMap.get(`${childTable.id}:${pair.childFk}`);
 
       this.auditUpdateObj.push({
         rowId: pair.parentFk,

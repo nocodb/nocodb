@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { stepCountIs, streamText } from 'ai';
 import {
   AppEvents,
@@ -14,6 +14,7 @@ import { ChatToolRegistry } from '../tools/chat-tool-registry';
 import { MAX_STEPS, MESSAGE_MAX_LENGTH } from '../constants';
 import { ChatContextService } from './chat-context.service';
 import { ChatCompactionService } from './chat-compaction.service';
+import type { OnModuleInit } from '@nestjs/common';
 import type {
   ChatContentBlock,
   ChatEventPayload,

@@ -177,7 +177,8 @@ export function useGlobalActions(state: State, _getters: Getters): Actions {
     }
 
     if (newTab) {
-      window.open(`${window.location.origin}#${path}`, '_blank')
+      const router = useRouter()
+      window.open(`${window.location.origin}${router.resolve(path).href}`, '_blank')
     } else {
       return navigateTo({
         path,

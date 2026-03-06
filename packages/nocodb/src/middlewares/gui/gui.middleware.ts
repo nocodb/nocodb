@@ -96,6 +96,18 @@ export class GuiMiddleware implements NestMiddleware {
           `<head><base href="${baseHref}">`,
         );
 
+        // Patch Nuxt's runtime config baseURL to match the actual base path.
+        // The frontend is built with baseURL:"/", but when deployed at a
+        // subpath the router history base differs.  Without this patch,
+        // Vue Router's to.fullPath includes the base (e.g. /sub/signup
+        // instead of /signup), causing double-prefix redirects.
+        if (baseHref !== '/') {
+          rawHtml = rawHtml.replace(
+            /baseURL:"\/"/g,
+            `baseURL:"${baseHref}"`,
+          );
+        }
+
         // Pre-compute Buffer and ETag once — avoids per-request overhead
         this.indexHtmlBuffer = Buffer.from(rawHtml, 'utf-8');
         this.indexHtmlEtag = `"${crypto.createHash('md5').update(this.indexHtmlBuffer).digest('hex')}"`;

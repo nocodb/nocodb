@@ -262,7 +262,7 @@ export default function () {
     describe('table delete', () => {
       it(`will handle table not found`, async () => {
         const result = await request(context.app)
-          .get(`${API_PREFIX}/tables/NOT_FOUND`)
+          .delete(`${API_PREFIX}/tables/NOT_FOUND`)
           .set('xc-token', context.xc_token)
           .expect(422);
         expect(result.body.error).to.eq('ERR_TABLE_NOT_FOUND');

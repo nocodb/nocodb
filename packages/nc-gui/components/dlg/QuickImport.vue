@@ -1131,6 +1131,10 @@ watch(
   border: none;
   padding: 0 !important;
 }
+.nc-modal-quick-import .ant-modal-content {
+  @apply xs:!p-4;
+}
+
 .nc-modal-quick-import .ant-collapse-content-box {
   @apply !pb-0;
   padding-top: 0 !important;

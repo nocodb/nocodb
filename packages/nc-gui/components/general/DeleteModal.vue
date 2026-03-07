@@ -61,7 +61,7 @@ watch(visible, (value) => {
 
 <template>
   <GeneralModal v-model:visible="visible" size="small" centered>
-    <div ref="modalRef" class="flex flex-col p-6">
+    <div ref="modalRef" class="flex flex-col p-4 md:p-6">
       <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-nc-content-gray">{{ deleteLabel }} {{ props.entityName }}</div>
 
       <div v-if="showDefaultDeleteMsg" class="mb-3 text-nc-content-gray">

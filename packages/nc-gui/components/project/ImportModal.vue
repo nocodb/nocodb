@@ -115,8 +115,8 @@ const onClick = (type: 'airtable' | 'csv' | 'excel' | 'json' | 'nocodb') => {
 
 <template>
   <GeneralModal v-model:visible="visible" width="448px" class="!top-[25vh]">
-    <div class="flex flex-col px-6 pt-6 pb-9">
-      <div class="flex items-center gap-3 mb-6">
+    <div class="flex flex-col p-4 md:(px-6 pt-6 pb-9)">
+      <div class="flex items-center gap-3 mb-4 md:mb-6">
         <div class="text-base font-weight-700">{{ $t('labels.importDataFrom') }}</div>
       </div>
       <NcMenu class="border-1 divide-y-1 nc-import-items-menu overflow-clip">

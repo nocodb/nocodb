@@ -11,6 +11,7 @@ const props = withDefaults(
     maskStyle?: CSSProperties
     closable?: boolean
     keyboard?: boolean
+    wrapClassName?: string
   }>(),
   {
     size: 'medium',
@@ -23,7 +24,7 @@ const props = withDefaults(
 
 const emits = defineEmits(['update:visible'])
 
-const { width: propWidth } = props
+const { width: propWidth, wrapClassName: _wrapClassName } = props
 const { maskClosable, closable, keyboard, destroyOnClose } = toRefs(props)
 
 const width = computed(() => {
@@ -70,6 +71,17 @@ const height = computed(() => {
 })
 
 const visible = useVModel(props, 'visible', emits)
+
+const newWrapClassName = computed(() => {
+  let className = 'nc-modal-wrapper'
+ 
+  // For backward compatibility, we are not combining nc-modal-wrapper
+  if (_wrapClassName) {
+    className = `nc-has-modal-wrapper-class ${_wrapClassName}`
+  }
+
+  return className
+})
 </script>
 
 <template>
@@ -79,7 +91,7 @@ const visible = useVModel(props, 'visible', emits)
     :width="width"
     :closable="closable"
     :keyboard="keyboard"
-    wrap-class-name="nc-modal-wrapper"
+    :wrap-class-name="newWrapClassName"
     :mask-style="maskStyle"
     :footer="null"
     :destroy-on-close="destroyOnClose"
@@ -93,6 +105,12 @@ const visible = useVModel(props, 'visible', emits)
 </template>
 
 <style lang="scss">
+.nc-has-modal-wrapper-class {
+  .ant-modal-content {
+    @apply xs:!p-4;
+  }
+}
+
 .nc-modal-wrapper {
   .ant-modal-content {
     @apply !p-0;

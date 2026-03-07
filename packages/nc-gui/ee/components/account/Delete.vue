@@ -166,7 +166,7 @@ const onDeleteConfirm = async () => {
       </div>
 
       <GeneralModal v-model:visible="isDeleteModalVisible" class="nc-user-delete-modal" size="small" centered>
-        <div class="flex flex-col gap-2 justify-center h-full !p-6">
+        <div class="flex flex-col gap-2 justify-center h-full p-4 md:!p-6">
           <div class="text-lg font-semibold self-start mb-3 sticky top-0 bg-nc-bg-default">
             {{ $t('general.deleteEntity', { entity: $t('labels.account') }) }}
           </div>

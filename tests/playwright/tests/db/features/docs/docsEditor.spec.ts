@@ -205,12 +205,14 @@ test.describe('Docs — Editor Content', () => {
   test('Text formatting — bold, italic, strikethrough via keyboard shortcuts', async ({ page }) => {
     const tiptap = dashboard.docs.openedPage.tiptap;
 
+    const paragraph = tiptap.get().locator('p').first();
+
     // Click the first paragraph to focus the editor (avoid clicking empty min-height area)
-    await tiptap.get().locator('p').first().click();
+    await paragraph.click();
     await page.keyboard.type('bold text');
 
-    // Select all text
-    await page.keyboard.press('ControlOrMeta+A');
+    // Triple-click to select the paragraph text (stays within ProseMirror focus)
+    await paragraph.click({ clickCount: 3 });
 
     // Apply bold
     await page.keyboard.press('ControlOrMeta+B');
@@ -219,10 +221,10 @@ test.describe('Docs — Editor Content', () => {
     await expect(tiptap.get().locator('strong')).toContainText('bold text');
 
     // Clear and type italic text
-    await page.keyboard.press('ControlOrMeta+A');
+    await paragraph.click({ clickCount: 3 });
     await page.keyboard.press('Backspace');
     await page.keyboard.type('italic text');
-    await page.keyboard.press('ControlOrMeta+A');
+    await paragraph.click({ clickCount: 3 });
     await page.keyboard.press('ControlOrMeta+I');
 
     // Verify italic

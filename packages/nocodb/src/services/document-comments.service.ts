@@ -55,7 +55,6 @@ export class DocumentCommentsService {
           payload: res,
           id: param.body.fk_doc_id,
         },
-        scopes: [param.body.fk_doc_id],
       },
       context.socket_id,
     );
@@ -114,7 +113,6 @@ export class DocumentCommentsService {
           payload: res,
           id: comment.fk_doc_id,
         },
-        scopes: [comment.fk_doc_id],
       },
       context.socket_id,
     );
@@ -159,7 +157,6 @@ export class DocumentCommentsService {
           payload: comment,
           id: comment.fk_doc_id,
         },
-        scopes: [comment.fk_doc_id],
       },
       context.socket_id,
     );

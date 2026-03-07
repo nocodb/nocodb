@@ -521,6 +521,7 @@ export class WorkspacesService implements OnApplicationBootstrap {
       roles?: string;
     };
     workspaceId: string;
+    req: NcRequest;
   }) {
     const workspace = await Workspace.get(param.workspaceId);
 

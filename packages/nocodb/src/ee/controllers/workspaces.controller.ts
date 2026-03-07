@@ -63,6 +63,7 @@ export class WorkspacesController {
     } = await this.workspacesService.get({
       workspaceId,
       user: req.user,
+      req,
     });
 
     const [workspaceUserCount, workspaceOwnerCount] = await Promise.all([

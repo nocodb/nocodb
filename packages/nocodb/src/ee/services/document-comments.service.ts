@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents, EventType, REACTION_EMOJIS } from 'nocodb-sdk';
+import { DocumentCommentsService as DocumentCommentsServiceCE } from 'src/services/document-comments.service';
 import type {
   DocumentCommentReqType,
   DocumentCommentUpdateReqType,
@@ -7,15 +8,12 @@ import type {
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import Comment from '~/models/Comment';
 import CommentReaction from '~/models/CommentReaction';
 import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
-export class DocumentCommentsService {
-  constructor(protected readonly appHooksService: AppHooksService) {}
-
+export class DocumentCommentsService extends DocumentCommentsServiceCE {
   async commentCreate(
     context: NcContext,
     param: {

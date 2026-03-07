@@ -33,7 +33,7 @@ import * as nc_202602260000_unify_ce_roles from './v0/nc_202602260000_unify_ce_r
 import * as nc_202603020000_hook_error_notifications from './v0/nc_202603020000_hook_error_notifications';
 import * as nc_202603020001_teams_hierarchy from './v0/nc_202603020001_teams_hierarchy';
 import * as nc_202603020002_chat from './v0/nc_202603020002_chat';
-import * as nc_202602260000_docs from './v0/nc_202602260000_docs';
+import * as nc_202602260001_docs from './v0/nc_202602260001_docs';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -78,7 +78,7 @@ export default class XcMigrationSourcev0 {
       'nc_202603020000_hook_error_notifications',
       'nc_202603020001_teams_hierarchy',
       'nc_202603020002_chat',
-      'nc_202602260000_docs',
+      'nc_202602260001_docs',
     ]);
   }
 
@@ -158,8 +158,8 @@ export default class XcMigrationSourcev0 {
         return nc_202603020001_teams_hierarchy;
       case 'nc_202603020002_chat':
         return nc_202603020002_chat;
-      case 'nc_202602260000_docs':
-        return nc_202602260000_docs;
+      case 'nc_202602260001_docs':
+        return nc_202602260001_docs;
     }
   }
 }

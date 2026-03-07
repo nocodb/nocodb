@@ -226,11 +226,8 @@ END)`,
     const needle = (await fn(pt.arguments[1])).builder;
     return {
       builder: knex.raw(
-        `CASE WHEN JSON_VALID(:source) = 1 THEN JSON_EXTRACT(:source, CONCAT('$', :needle)) ELSE NULL END`,
-        {
-          source,
-          needle,
-        },
+        `CASE WHEN JSON_VALID(?) = 1 THEN JSON_EXTRACT(?, CONCAT('$', ?)) ELSE NULL END`,
+        [source, source, needle],
       ),
     };
   },

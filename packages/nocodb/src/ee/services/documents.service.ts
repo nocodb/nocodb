@@ -186,6 +186,7 @@ export class DocumentsService extends DocumentsServiceCE {
           docId,
           payload.content,
           req,
+          existing.meta?.cover_image_file_ref_id,
         );
       } catch (e) {
         this.logger.error(e.message, e.stack);
@@ -456,6 +457,7 @@ export class DocumentsService extends DocumentsServiceCE {
     docId: string,
     content: Record<string, any>,
     req: NcRequest,
+    coverFileRefId?: string,
   ) {
     // 1. Walk content and collect all file nodes
     const fileNodes: {
@@ -499,10 +501,13 @@ export class DocumentsService extends DocumentsServiceCE {
     }
 
     // 3. Diff: soft-delete FileReferences no longer in content
+    // Preserve the cover image FileReference — it lives in meta, not content.
     const newIds = new Set(fileNodes.map((n) => n.id).filter(Boolean));
     const existingIds = await FileReference.listIdsForDoc(context, docId);
 
-    const removedIds = existingIds.filter((id) => !newIds.has(id));
+    const removedIds = existingIds.filter(
+      (id) => !newIds.has(id) && id !== coverFileRefId,
+    );
     if (removedIds.length) {
       await FileReference.delete(context, removedIds);
     }

@@ -130,12 +130,12 @@ export default class Noco extends NocoCE {
   }
 
   private static async migrateDocsContentFromMeta() {
-    // Only migrate if nc_docs_v2 has a content column (pre-split schema)
-    const hasContentCol = await this.ncMeta.knexConnection.schema.hasColumn(
-      MetaTable.DOCS,
-      'content',
+    // Content lives in nc_doc_content_v2 in the meta DB (split schema from
+    // day one). Copy rows from meta → satellite.
+    const hasContentTable = await this.ncMeta.knexConnection.schema.hasTable(
+      MetaTable.DOC_CONTENT,
     );
-    if (!hasContentCol) return;
+    if (!hasContentTable) return;
 
     const batchSize = 500;
     let offset = 0;
@@ -144,10 +144,9 @@ export default class Noco extends NocoCE {
 
     while (hasMoreRecords) {
       const batch = await this.ncMeta
-        .knexConnection(MetaTable.DOCS)
-        .select('id', 'base_id', 'fk_workspace_id', 'content')
-        .whereNotNull('content')
-        .orderBy('id', 'asc')
+        .knexConnection(MetaTable.DOC_CONTENT)
+        .select('*')
+        .orderBy('fk_doc_id', 'asc')
         .limit(batchSize)
         .offset(offset);
 
@@ -156,18 +155,9 @@ export default class Noco extends NocoCE {
         break;
       }
 
-      const contentRows = batch.map((row) => ({
-        fk_doc_id: row.id,
-        base_id: row.base_id,
-        fk_workspace_id: row.fk_workspace_id,
-        content: row.content,
-      }));
-
-      if (contentRows.length > 0) {
-        await this.ncDocsContent
-          .knexConnection(MetaTable.DOC_CONTENT)
-          .insert(contentRows);
-      }
+      await this.ncDocsContent
+        .knexConnection(MetaTable.DOC_CONTENT)
+        .insert(batch);
 
       processedCount += batch.length;
       offset += batchSize;

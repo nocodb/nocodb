@@ -172,7 +172,8 @@ const toggleEnabled = async (token: IApiTokenInfo) => {
 }
 
 const onWizardCreated = () => {
-  showWizard.value = false
+  // Don't close modal — let user see the token in the result step.
+  // Modal closes when user clicks "Done" (which emits 'cancel').
   loadTokens()
   loadAllTokens(pagination.total + 1)
 }
@@ -418,6 +419,7 @@ const isFineGrained = (token: IApiTokenInfo) => {
         :closable="false"
         width="640px"
         :mask-closable="false"
+        :destroy-on-close="true"
       >
         <AccountTokenCreateWizard @created="onWizardCreated" @cancel="showWizard = false" />
       </a-modal>

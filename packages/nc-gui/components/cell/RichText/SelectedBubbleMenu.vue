@@ -520,7 +520,7 @@ const closeTextArea = () => {
     />
 
     <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.table)" :placement="tooltipPlacement">
-      <template #title> {{ $t('objects.table') }} </template>
+      <template #title> Table </template>
       <NcButton
         size="small"
         type="text"

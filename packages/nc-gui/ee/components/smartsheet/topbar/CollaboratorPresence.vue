@@ -10,6 +10,7 @@ const { viewsByTable } = storeToRefs(useViewsStore())
 const { dashboards } = storeToRefs(useDashboardStore())
 const { activeBaseWorkflows } = storeToRefs(useWorkflowStore())
 const { activeBaseScripts } = storeToRefs(useScriptStore())
+const { documents } = storeToRefs(useDocumentsStore())
 const { baseId } = storeToRefs(useBase())
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 const { ncNavigateTo } = useGlobal()
@@ -51,6 +52,11 @@ const getLocationLabel = (collab: (typeof activeCollaborators.value)[number]) =>
     const name = activeBaseScripts.value.find((s) => s.id === collab.resourceId)?.title
     return name ? `Script: ${name}` : 'A script'
   }
+  if (collab.pageType === PresencePageType.DOCUMENT) {
+    const allDocs = documents.value.get(baseId.value!) || []
+    const doc = allDocs.find((d) => d.id === collab.resourceId)
+    return doc?.title ? `Doc: ${doc.title}` : 'A document'
+  }
   const tableName = tableNameMap.value.get(collab.resourceId || '') || ''
   if (!tableName) return ''
   const views = viewsByTable.value.get(`${baseId.value}:${collab.resourceId}`) || []
@@ -90,6 +96,12 @@ const navigateToCollaborator = (collab: (typeof activeCollaborators.value)[numbe
     return
   }
 
+  if (collab.pageType === PresencePageType.DOCUMENT) {
+    if (!collab.resourceId) return
+    ncNavigateTo({ workspaceId: activeWorkspaceId.value, baseId: baseId.value, docId: collab.resourceId })
+    return
+  }
+
   if (!collab.resourceId) return
   const tables = baseTables.value.get(baseId.value!) || []
   if (!tables.find((t) => t.id === collab.resourceId)) {
@@ -109,6 +121,9 @@ const hasAccess = (collab: (typeof activeCollaborators.value)[number]) => {
   }
   if (collab.pageType === PresencePageType.SCRIPT) {
     return !!activeBaseScripts.value.find((s) => s.id === collab.resourceId)
+  }
+  if (collab.pageType === PresencePageType.DOCUMENT) {
+    return !!(documents.value.get(baseId.value!) || []).find((d) => d.id === collab.resourceId)
   }
   return !!(baseTables.value.get(baseId.value!) || []).find((t) => t.id === collab.resourceId)
 }

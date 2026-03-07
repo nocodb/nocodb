@@ -6,6 +6,7 @@ import type {
 import type {
   BaseType,
   DashboardType,
+  DocumentType,
   IntegrationType,
   PlanFeatureTypes,
   PlanLimitTypes,
@@ -398,6 +399,45 @@ export interface ChatSessionCreateEvent extends NcBaseEvent {
 
 export interface ChatSessionDeleteEvent extends NcBaseEvent {
   sessionId: string;
+}
+
+export interface DocumentCreateEvent extends NcBaseEvent {
+  doc: DocumentType;
+  user: UserType;
+}
+
+export interface DocumentUpdateEvent extends NcBaseEvent {
+  doc: DocumentType;
+  user: UserType;
+}
+
+export interface DocumentDeleteEvent extends NcBaseEvent {
+  doc: DocumentType;
+  user: UserType;
+}
+
+export interface DocumentUserMentionEvent extends NcBaseEvent {
+  doc: DocumentType;
+  user: UserType;
+  mentions: string[];
+}
+
+export interface DocumentCommentCreateEvent extends NcBaseEvent {
+  comment: Record<string, any>;
+  user: UserType;
+  docId: string;
+}
+
+export interface DocumentCommentUpdateEvent extends NcBaseEvent {
+  comment: Record<string, any>;
+  user: UserType;
+  docId: string;
+}
+
+export interface DocumentCommentDeleteEvent extends NcBaseEvent {
+  comment: Record<string, any>;
+  user: UserType;
+  docId: string;
 }
 
 export * from 'src/services/app-hooks/interfaces';

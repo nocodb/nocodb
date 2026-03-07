@@ -9,6 +9,7 @@ import type { JobTypes } from 'src/interface/Jobs';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type {
   Column,
+  Document,
   Filter,
   Hook,
   HookLog,
@@ -47,6 +48,8 @@ import type {
 export type InternalGETResponseType = Promise<
   | void
   | DataReflection
+  | Document
+  | Document[]
   | MCPToken
   | MCPToken[]
   | Script
@@ -107,6 +110,7 @@ export type InternalGETResponseType = Promise<
 export type InternalPOSTResponseType = Promise<
   | void
   | boolean
+  | Document
   | DataReflection
   | MCPToken
   | Script
@@ -174,6 +178,7 @@ export type InternalPOSTResponseType = Promise<
     }
   | { success: boolean }
   | (RlsPolicy & { filters: Filter[] })
+  | { added: boolean; reaction: any }
 >;
 
 export interface InternalApiModule<

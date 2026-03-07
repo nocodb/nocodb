@@ -7,6 +7,13 @@ import type {
   ChatSessionCreateEvent,
   ChatSessionDeleteEvent,
   ColumnEvent,
+  DocumentCommentCreateEvent,
+  DocumentCommentDeleteEvent,
+  DocumentCommentUpdateEvent,
+  DocumentCreateEvent,
+  DocumentDeleteEvent,
+  DocumentUpdateEvent,
+  DocumentUserMentionEvent,
   FilterEvent,
   ProjectCreateEvent,
   ProjectDeleteEvent,
@@ -469,6 +476,38 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: ChatSessionDeleteEvent) => void,
   ): () => void;
 
+  // Document Events
+  on(
+    event: AppEvents.DOCUMENT_CREATE,
+    listener: (data: DocumentCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_UPDATE,
+    listener: (data: DocumentUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_DELETE,
+    listener: (data: DocumentDeleteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_USER_MENTION,
+    listener: (data: DocumentUserMentionEvent) => void,
+  ): () => void;
+
+  // Document Comment Events
+  on(
+    event: AppEvents.DOCUMENT_COMMENT_CREATE,
+    listener: (data: DocumentCommentCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_COMMENT_UPDATE,
+    listener: (data: DocumentCommentUpdateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.DOCUMENT_COMMENT_DELETE,
+    listener: (data: DocumentCommentDeleteEvent) => void,
+  ): () => void;
+
   on(event, listener): () => void {
     return super.on(event, listener);
   }
@@ -790,6 +829,27 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.RLS_POLICY_CREATE, data: RlsPolicyCreateEvent): void;
   emit(event: AppEvents.RLS_POLICY_UPDATE, data: RlsPolicyUpdateEvent): void;
   emit(event: AppEvents.RLS_POLICY_DELETE, data: RlsPolicyDeleteEvent): void;
+
+  emit(event: AppEvents.DOCUMENT_CREATE, data: DocumentCreateEvent): void;
+  emit(event: AppEvents.DOCUMENT_UPDATE, data: DocumentUpdateEvent): void;
+  emit(event: AppEvents.DOCUMENT_DELETE, data: DocumentDeleteEvent): void;
+  emit(
+    event: AppEvents.DOCUMENT_USER_MENTION,
+    data: DocumentUserMentionEvent,
+  ): void;
+
+  emit(
+    event: AppEvents.DOCUMENT_COMMENT_CREATE,
+    data: DocumentCommentCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.DOCUMENT_COMMENT_UPDATE,
+    data: DocumentCommentUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.DOCUMENT_COMMENT_DELETE,
+    data: DocumentCommentDeleteEvent,
+  ): void;
 
   emit(
     event: AppEvents.RECORD_TEMPLATE_CREATE,

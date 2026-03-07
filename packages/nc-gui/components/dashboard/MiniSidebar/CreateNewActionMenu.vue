@@ -19,6 +19,8 @@ const { openNewWorkflowModal } = useWorkflowStore()
 
 const { openNewDashboardModal } = useDashboardStore()
 
+const { createDocument } = useDocumentsStore()
+
 const viewsStore = useViewsStore()
 const { loadViews, onOpenViewCreateModal } = viewsStore
 const { activeView, isListViewEnabled } = storeToRefs(viewsStore)
@@ -34,6 +36,8 @@ const { activeSidebarTab } = storeToRefs(useSidebarStore())
 const isDataTab = computed(() => activeSidebarTab.value === 'data')
 
 const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
+
+const isDocsTab = computed(() => activeSidebarTab.value === 'docs')
 
 const isVisibleCreateNew = ref(false)
 
@@ -150,6 +154,12 @@ const hasDashboardCreateAccess = computed(() => {
 
   return isUIAllowed('dashboardCreate')
 })
+
+const hasDocumentCreateAccess = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return true
+
+  return isUIAllowed('documentCreate')
+})
 </script>
 
 <template>
@@ -223,6 +233,30 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="ncScript" />
                 {{ $t('general.script') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+              </NcMenuItem>
+            </NcTooltip>
+            <NcDivider />
+            <NcTooltip
+              :title="
+                !isDocsTab
+                  ? $t('tooltip.switchToDocsTab', { type: $t('objects.document').toLowerCase() })
+                  : !isBaseHomePage
+                  ? $t('tooltip.navigateToBaseToCreateDocument')
+                  : !hasDocumentCreateAccess
+                  ? $t('tooltip.youDontHaveAccessToCreateNewDocument')
+                  : ''
+              "
+              :disabled="isDocsTab && isBaseHomePage && hasDocumentCreateAccess"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--document-create"
+                :disabled="!isDocsTab || !isBaseHomePage || !hasDocumentCreateAccess"
+                @click="createDocument(openedProject?.id)"
+              >
+                <GeneralIcon icon="ncFileText" />
+                {{ $t('objects.document') }}
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>

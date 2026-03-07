@@ -173,6 +173,34 @@ Register in `XcMigrationSourcev0.ts`: add import, add to `getMigrations()`, add 
 
 Do NOT add idempotency guards (`hasTable`/`hasColumn`) — Knex tracks migration state, so they are unnecessary.
 
+### Satellite Database Migrations
+
+Tables whose size is driven by user input (unbounded growth + large payloads) are **satellite candidates** — they can be offloaded to a separate DB via env var (`NC_AUDIT_DB`, `NC_DOCS_DB`). Current satellites: `nc_audit`, `nc_doc_content`. Normal meta tables (columns, views, filters) are bounded and do NOT qualify.
+
+Rules:
+- **No `NocoCache`** — satellite data is too large/volatile to cache. Read/write directly via Knex.
+- **Single source of truth** — schema lives in `migrations/{feature}/nc_001_init.ts`. Both the v0 migration and the satellite migration source import from it.
+
+Reference implementation — docs content:
+
+```
+migrations/docs-content/nc_001_init.ts    ← canonical schema (up/down)
+migrations/XcMigrationSourceDocsContent.ts ← references docs-content/, used by EE service
+migrations/v0/nc_*_docs.ts                ← imports up/down from docs-content/
+ee/meta/docs-content.service.ts           ← runs satellite source against NC_DOCS_DB
+```
+
+```typescript
+// v0 migration — import, don't duplicate
+import { up as createDocContent, down as dropDocContent } from '~/meta/migrations/docs-content/nc_001_init';
+
+const up = async (knex: Knex) => {
+  await createDocContent(knex);
+};
+```
+
+Same pattern for audit (`audit/nc_001_init.ts`, `NC_AUDIT_DB`).
+
 ## AppEvents / AppHooks
 
 Services emit typed events via `AppHooksService` for audit logging and side effects. When adding a new feature, you must wire up events across three files:

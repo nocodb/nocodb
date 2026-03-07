@@ -25,7 +25,7 @@ import { v4 as uuidv4 } from 'uuid';
 import isEmail from 'validator/lib/isEmail';
 import bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
-import { setTokenCookie } from './helpers';
+import { clearAuthCookie, setTokenCookie } from './helpers';
 import type { BaseType, MetaType, SignUpReqType, UserType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
 import type { Source } from '~/models';
@@ -1103,5 +1103,6 @@ export class UsersService extends UsersServiceCE {
       httpOnly: true,
       domain: process.env.NC_BASE_HOST_NAME || undefined,
     });
+    clearAuthCookie(param.res);
   }
 }

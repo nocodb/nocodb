@@ -172,7 +172,11 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToAddMoreAttachmentsInCell = (..._args: any[]) => {}
 
+  const blockAddNewDocumentPage = computed(() => true)
+
   const showDashboardPlanLimitExceededModal = (..._args: any[]) => {}
+
+  const showDocumentPagePlanLimitExceededModal = (..._args: any[]) => {}
 
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
@@ -280,7 +284,9 @@ export const useEeConfig = createSharedComposable(() => {
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
+    blockAddNewDocumentPage,
     showDashboardPlanLimitExceededModal,
+    showDocumentPagePlanLimitExceededModal,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,

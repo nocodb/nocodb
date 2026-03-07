@@ -2,6 +2,7 @@
 /dist
 /node_modules
 nc
+tsconfig.tsbuildinfo
 
 # Logs
 logs

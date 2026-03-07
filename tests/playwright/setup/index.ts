@@ -491,7 +491,7 @@ const setup = async ({
 
     switch (baseType) {
       case ProjectTypes.DOCUMENTATION:
-        baseUrl = url ? url : `/${base.fk_workspace_id}/${base.id}/doc`;
+        baseUrl = url ? url : `/${base.fk_workspace_id}/${base.id}/docs`;
         break;
       case ProjectTypes.DATABASE:
         baseUrl = url ? url : `/${base.fk_workspace_id}/${base.id}`;

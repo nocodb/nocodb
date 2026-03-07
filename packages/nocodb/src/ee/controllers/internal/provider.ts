@@ -16,6 +16,10 @@ import { ViewSectionGetOperations } from '~/controllers/internal/modules/ViewSec
 import { ViewSectionPostOperations } from '~/controllers/internal/modules/ViewSectionPost.operations';
 import { HookPostOperations } from '~/controllers/internal/modules/HookPost.operations';
 import { HookGetOperations } from '~/controllers/internal/modules/HookGet.operations';
+import { DocumentsGetOperations } from '~/controllers/internal/modules/DocumentsGet.operations';
+import { DocumentsPostOperations } from '~/controllers/internal/modules/DocumentsPost.operations';
+import { DocumentCommentsGetOperations } from '~/controllers/internal/modules/DocumentCommentsGet.operations';
+import { DocumentCommentsPostOperations } from '~/controllers/internal/modules/DocumentCommentsPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -36,6 +40,10 @@ export const InternalApiModules = [
   RlsPostOperations,
   ViewSectionGetOperations,
   ViewSectionPostOperations,
+  DocumentsGetOperations,
+  DocumentsPostOperations,
+  DocumentCommentsGetOperations,
+  DocumentCommentsPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

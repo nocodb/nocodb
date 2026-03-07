@@ -60,6 +60,7 @@ export { default as CustomUrl } from './CustomUrl';
 export { default as Script } from './Script';
 export { default as DataReflection } from './DataReflection';
 export { default as MCPToken } from './MCPToken';
+export { default as Document } from './Document';
 export { default as Dashboard } from './Dashboard';
 export { default as Permission } from './Permission';
 export { default as OAuthClient } from './OAuthClient';

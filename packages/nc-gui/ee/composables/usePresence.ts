@@ -67,6 +67,7 @@ export const usePresence = createSharedComposable(() => {
   const { activeDashboardId } = storeToRefs(useDashboardStore())
   const { activeWorkflowId } = storeToRefs(useWorkflowStore())
   const { activeScriptId } = storeToRefs(useScriptStore())
+  const { activeDocumentId } = storeToRefs(useDocumentsStore())
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
   const { baseId: activeBaseId } = storeToRefs(useBase())
 
@@ -79,6 +80,9 @@ export const usePresence = createSharedComposable(() => {
     }
     if (activeScriptId.value) {
       return { pageType: PresencePageType.SCRIPT, resourceId: activeScriptId.value, viewId: undefined }
+    }
+    if (activeDocumentId.value) {
+      return { pageType: PresencePageType.DOCUMENT, resourceId: activeDocumentId.value, viewId: undefined }
     }
     return { pageType: PresencePageType.TABLE, resourceId: activeTableId.value, viewId: activeView.value?.id }
   })

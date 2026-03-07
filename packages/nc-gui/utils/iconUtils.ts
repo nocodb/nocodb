@@ -373,6 +373,7 @@ import NcFileIcon from '~icons/nc-icons-v2/file.svg'
 import NcMessageCircleIcon from '~icons/nc-icons-v2/message-circle.svg'
 import NcTerminalIcon from '~icons/nc-icons-v2/terminal.svg'
 import NcMoveIcon from '~icons/nc-icons-v2/move.svg'
+import NcMoveHorizontalIcon from '~icons/nc-icons-v2/move-horizontal.svg'
 import NcMaximizeIcon from '~icons/nc-icons-v2/maximize.svg'
 import NcChevronUpIcon from '~icons/nc-icons-v2/chevron-up.svg'
 import NcArrowDownLeftIcon from '~icons/nc-icons-v2/arrow-down-left.svg'
@@ -568,6 +569,14 @@ import NcMoonIcon from '~icons/nc-icons-v2/moon.svg'
 import NcShieldOffIcon from '~icons/nc-icons-v2/shield-off.svg'
 import NcMousePointerIcon from '~icons/nc-icons-v2/mouse-pointer.svg'
 import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
+import NcInsertColumnLeftIcon from '~icons/nc-icons-v2/insert-column-left.svg'
+import NcInsertColumnRightIcon from '~icons/nc-icons-v2/insert-column-right.svg'
+import NcInsertRowAboveIcon from '~icons/nc-icons-v2/insert-row-above.svg'
+import NcInsertRowBelowIcon from '~icons/nc-icons-v2/insert-row-below.svg'
+import NcMoveRowUpIcon from '~icons/nc-icons-v2/move-row-up.svg'
+import NcMoveRowDownIcon from '~icons/nc-icons-v2/move-row-down.svg'
+import NcMoveColumnLeftIcon from '~icons/nc-icons-v2/move-column-left.svg'
+import NcMoveColumnRightIcon from '~icons/nc-icons-v2/move-column-right.svg'
 import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
 import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
 import NcYoutube2Icon from '~icons/nc-icons/youtube2.svg'
@@ -1440,6 +1449,7 @@ export const iconMap = {
   'ncMessageCircle': NcMessageCircleIcon,
   'ncTerminal': NcTerminalIcon,
   'ncMove': NcMoveIcon,
+  'ncMoveHorizontal': NcMoveHorizontalIcon,
   'ncMaximize': NcMaximizeIcon,
   'ncChevronUp': NcChevronUpIcon,
   'ncArrowDownLeft': NcArrowDownLeftIcon,
@@ -1636,6 +1646,14 @@ export const iconMap = {
   'ncShieldOff': NcShieldOffIcon,
   'ncMousePointer': NcMousePointerIcon,
   'ncAlignLeft': NcAlignLeftIcon,
+  'ncInsertColumnLeft': NcInsertColumnLeftIcon,
+  'ncInsertColumnRight': NcInsertColumnRightIcon,
+  'ncInsertRowAbove': NcInsertRowAboveIcon,
+  'ncInsertRowBelow': NcInsertRowBelowIcon,
+  'ncMoveRowUp': NcMoveRowUpIcon,
+  'ncMoveRowDown': NcMoveRowDownIcon,
+  'ncMoveColumnLeft': NcMoveColumnLeftIcon,
+  'ncMoveColumnRight': NcMoveColumnRightIcon,
   'ncVerticalAlignTop': NcVerticalAlignTop,
   'ncVerticalAlignCenter': NcVerticalAlignCenter,
   'ncVerticalAlignBottom': NcVerticalAlignBottom,

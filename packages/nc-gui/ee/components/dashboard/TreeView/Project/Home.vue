@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import Automation from '../Automation/index.vue'
 import Data from '../Data/index.vue'
+import Documents from '../Documents/index.vue'
 
 const sidebarStore = useSidebarStore()
 
@@ -13,6 +14,7 @@ const workflowStore = useWorkflowStore()
 const { openNewWorkflowModal } = workflowStore
 const { openNewScriptModal } = useScriptStore()
 const { openNewDashboardModal } = useDashboardStore()
+const { createDocument } = useDocumentsStore()
 
 const base = inject(ProjectInj)!
 
@@ -70,7 +72,25 @@ const hasTableCreatePermission = computed(() => {
 
       <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section !pt-1 !pb-0.5 flex flex-col">
         <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
-          <NcDropdown v-model:visible="isVisibleCreateNew">
+          <!-- Docs tab: direct create (no dropdown — only one option) -->
+          <NcButton
+            v-if="activeSidebarTab === 'docs'"
+            v-e="['c:document:create:sidebar']"
+            type="text"
+            size="small"
+            full-width
+            class="nc-home-create-new-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
+            data-testid="nc-home-create-new-btn"
+            @click="createDocument(base.id!)"
+          >
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="ncPlusCircle" class="!text-nc-content-brand" />
+              <div>{{ $t('labels.createNew') }}</div>
+            </div>
+          </NcButton>
+
+          <!-- Other tabs: dropdown with multiple options -->
+          <NcDropdown v-else v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"
               size="small"
@@ -93,6 +113,7 @@ const hasTableCreatePermission = computed(() => {
                 @empty-script="openNewScriptModal({ baseId: base.id })"
                 @empty-workflow="openNewWorkflowModal({ baseId: base.id })"
                 @empty-dashboard="openNewDashboardModal({ baseId: base.id })"
+                @empty-page="createDocument(base.id!)"
               />
             </template>
           </NcDropdown>
@@ -103,6 +124,11 @@ const hasTableCreatePermission = computed(() => {
       <!-- Data tab -->
       <template v-if="activeSidebarTab === 'data'">
         <Data :base-id="base.id" hide-header />
+      </template>
+
+      <!-- Documents tab -->
+      <template v-else-if="activeSidebarTab === 'docs'">
+        <Documents v-if="!isSharedBase && !isMobileMode" :base-id="base.id" hide-header />
       </template>
 
       <!-- Automation/Workflows tab -->

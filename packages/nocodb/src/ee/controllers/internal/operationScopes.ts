@@ -123,6 +123,24 @@ export const OPERATION_SCOPES = {
   rlsPolicyFilterList: 'base',
   rlsPolicyFilterCreate: 'base',
 
+  // Documents (EE-only)
+  documentList: 'base',
+  documentGet: 'base',
+  documentCreate: 'base',
+  documentUpdate: 'base',
+  documentDelete: 'base',
+  documentReorder: 'base',
+
+  // Document Comments (EE-only)
+  documentCommentList: 'base',
+  documentCommentCount: 'base',
+  documentCommentCreate: 'base',
+  documentCommentUpdate: 'base',
+  documentCommentDelete: 'base',
+  documentCommentResolve: 'base',
+  documentCommentReactionToggle: 'base',
+  documentCommentReactionList: 'base',
+
   // View Sections operations
   viewSectionList: 'base',
   viewSectionCreate: 'base',

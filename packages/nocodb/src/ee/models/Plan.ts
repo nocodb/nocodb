@@ -229,6 +229,7 @@ export const CommonLimits = {
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
   [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 500,
   [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
+  [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE]: 3,
 } as const;
 
 export const CommonPaidLimits = {
@@ -240,6 +241,37 @@ export const GraceLimits = {
   [PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE]: 10000,
   [PlanLimitTypes.LIMIT_API_CALL]: 100000,
   [PlanLimitTypes.LIMIT_AUTOMATION_RUN]: 10000,
+};
+
+const legacyLimitAndFeatures = {
+  ...Plan.limitPairs(-1),
+  ...Plan.featurePairs(true),
+  [PlanLimitTypes.LIMIT_EDITOR]: 50,
+  [PlanLimitTypes.LIMIT_COMMENTER]: 50,
+  [PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE]: 600000,
+  [PlanLimitTypes.LIMIT_API_PER_SECOND]: 10,
+  [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: false,
+  [PlanFeatureTypes.FEATURE_SSO]: false,
+  [PlanFeatureTypes.FEATURE_SCIM]: false,
+  [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: false,
+  [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: false,
+  [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]: false,
+  [PlanFeatureTypes.FEATURE_COLOUR_FIELD]: false,
+  [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]: false,
+  [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: false,
+  [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 0,
+  [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]: false,
+  [PlanFeatureTypes.FEATURE_SYNC]: false,
+  [PlanFeatureTypes.FEATURE_UNIQUE]: false,
+  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]: false,
+  [PlanFeatureTypes.FEATURE_CELL_COLOUR]: false,
+  [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: false,
+  [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 1,
+  [PlanFeatureTypes.FEATURE_RLS]: true,
+  [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]: 5,
+  [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: true,
+  [PlanFeatureTypes.FEATURE_MAP_VIEW]: false,
+  [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: false,
 };
 
 export const FreePlan = Plan.prepare({

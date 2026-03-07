@@ -16,6 +16,7 @@ import { AuthController as AuthControllerCE } from 'src/modules/auth/auth.contro
 import { AppEvents, CloudOrgUserRoles } from 'nocodb-sdk';
 import type { UserType } from 'nocodb-sdk';
 import type { AppConfig } from '~/interface/config';
+import { clearAuthCookie, setAuthCookie } from '~/services/users/helpers';
 import NocoCache from '~/cache/NocoCache';
 import { CacheGetType, MetaTable } from '~/utils/globals';
 import { NcError } from '~/helpers/catchError';
@@ -114,14 +115,16 @@ export class AuthController extends AuthControllerCE {
     @Res() res: Response,
   ) {
     await this.setRefreshToken({ req, res });
+    const result = await this.usersService.login(
+      {
+        ...req.user,
+        provider: 'openid',
+      },
+      req,
+    );
+    setAuthCookie(res, result.token);
     res.json({
-      ...(await this.usersService.login(
-        {
-          ...req.user,
-          provider: 'openid',
-        },
-        req,
-      )),
+      ...result,
       extra: { ...req.extra },
     });
   }
@@ -144,7 +147,9 @@ export class AuthController extends AuthControllerCE {
     res.redirect(
       `https://${state.host}/?code=${req.query.code}&state=${req.query.state}${
         state.continueAfterSignIn
-          ? `&continueAfterSignIn=${encodeURIComponent(state.continueAfterSignIn)}`
+          ? `&continueAfterSignIn=${encodeURIComponent(
+              state.continueAfterSignIn,
+            )}`
           : ''
       }`,
     );
@@ -166,6 +171,7 @@ export class AuthController extends AuthControllerCE {
   @Post(['/api/v1/auth/user/signout', '/api/v2/auth/user/signout'])
   @HttpCode(200)
   async signOut(@Req() req: NcRequest, @Res() res: Response): Promise<any> {
+    clearAuthCookie(res);
     const result: Record<string, string> = await this.usersService.signOut({
       req,
       res,
@@ -217,14 +223,16 @@ export class AuthController extends AuthControllerCE {
     @Res() res: Response,
   ) {
     await this.setRefreshToken({ req, res });
+    const result = await this.usersService.login(
+      {
+        ...req.user,
+        provider: 'cognito',
+      },
+      req,
+    );
+    setAuthCookie(res, result.token);
     res.json({
-      ...(await this.usersService.login(
-        {
-          ...req.user,
-          provider: 'cognito',
-        },
-        req,
-      )),
+      ...result,
       extra: { ...req.extra },
     });
   }
@@ -263,13 +271,15 @@ export class AuthController extends AuthControllerCE {
     @Res() res: Response,
   ) {
     await this.setRefreshToken({ req, res });
+    const loginResult = await this.usersService.login(
+      {
+        ...req.user,
+      },
+      req,
+    );
+    setAuthCookie(res, loginResult.token);
     const result = {
-      ...(await this.usersService.login(
-        {
-          ...req.user,
-        },
-        req,
-      )),
+      ...loginResult,
       extra: { ...req.extra },
     };
 

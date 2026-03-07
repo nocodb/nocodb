@@ -115,8 +115,8 @@ export class ShareProjectButtonPage extends BasePage {
   async toggleSharePage() {
     await this.waitForResponse({
       uiAction: () => this.rootPage.getByTestId('docs-share-page-toggle').click(),
-      httpMethodsToMatch: ['PUT'],
-      requestUrlPathToMatch: `api/v1/docs/page`,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `operation=documentUpdate`,
     });
   }
 

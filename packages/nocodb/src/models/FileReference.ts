@@ -19,6 +19,7 @@ export default class FileReference {
   source_id: string;
   fk_model_id: string;
   fk_column_id: string;
+  fk_doc_id: string;
   is_external: boolean;
   deleted: boolean;
   created_at: Date;
@@ -42,6 +43,7 @@ export default class FileReference {
       'source_id',
       'fk_model_id',
       'fk_column_id',
+      'fk_doc_id',
       'is_external',
       'deleted',
     ]);
@@ -75,6 +77,7 @@ export default class FileReference {
       'source_id',
       'fk_model_id',
       'fk_column_id',
+      'fk_doc_id',
       'is_external',
       'deleted',
     ]);
@@ -160,6 +163,7 @@ export default class FileReference {
       base_id?: string;
       fk_model_id?: string;
       fk_column_id?: string;
+      fk_doc_id?: string;
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -221,6 +225,62 @@ export default class FileReference {
         );
       }
     }
+  }
+
+  /**
+   * Return all active FileReference IDs for a doc.
+   * Uses nc_fr_doc_idx (base_id, fk_doc_id).
+   */
+  public static async listIdsForDoc(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string[]> {
+    const rows = await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({
+        base_id: context.base_id,
+        fk_doc_id: docId,
+        deleted: false,
+      })
+      .select('id');
+
+    return rows.map((r: any) => r.id);
+  }
+
+  /**
+   * Bulk soft-delete FileReferences for multiple docs in a single query.
+   * Uses nc_fr_doc_idx (base_id, fk_doc_id) with WHERE IN for doc tree cascade.
+   */
+  public static async bulkDeleteForDocs(
+    context: NcContext,
+    docIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!docIds.length) return;
+
+    let totalSize = 0;
+    try {
+      const sizeResult = await ncMeta
+        .knexConnection(MetaTable.FILE_REFERENCES)
+        .where({ base_id: context.base_id, deleted: false })
+        .whereIn('fk_doc_id', docIds)
+        .sum('file_size as totalSize')
+        .first();
+      totalSize = sizeResult?.totalSize ? +sizeResult.totalSize : 0;
+    } catch (error) {
+      totalSize = -1;
+      logger.error('Error while summing file reference size');
+      logger.error(error);
+    }
+
+    await ncMeta
+      .knexConnection(MetaTable.FILE_REFERENCES)
+      .where({ base_id: context.base_id, deleted: false })
+      .whereIn('fk_doc_id', docIds)
+      .update({ deleted: true });
+
+    await this.updateWorkspaceCache(context, totalSize, true);
   }
 
   public static async sumSize(

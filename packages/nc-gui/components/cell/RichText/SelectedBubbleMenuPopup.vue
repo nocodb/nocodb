@@ -1,14 +1,20 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
+import type { RichTextBubbleMenuOptions } from '#imports'
 
 interface Props {
   editor: Editor
   hideMention?: boolean
   hideOnSelectAllSortcut?: boolean
+  isFormField?: boolean
+  hiddenOptions?: RichTextBubbleMenuOptions[]
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  isFormField: false,
+  hiddenOptions: () => [],
+})
 
 const editor = computed(() => props.editor)
 
@@ -86,6 +92,12 @@ onUnmounted(() => {
 
 <template>
   <BubbleMenu :editor="editor" :update-delay="300" :tippy-options="{ duration: 100, maxWidth: 600 }">
-    <CellRichTextSelectedBubbleMenu v-if="showMenuDebounced" :editor="editor" :hide-mention="hideMention" />
+    <CellRichTextSelectedBubbleMenu
+      v-if="showMenuDebounced"
+      :editor="editor"
+      :hide-mention="hideMention"
+      :is-form-field="isFormField"
+      :hidden-options="hiddenOptions"
+    />
   </BubbleMenu>
 </template>

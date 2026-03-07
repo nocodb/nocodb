@@ -33,6 +33,12 @@ import type {
   DashboardDuplicatePayload,
   DashboardUpdatePayload,
   DataExportPayload,
+  DocumentCommentCreatePayload,
+  DocumentCommentDeletePayload,
+  DocumentCommentUpdatePayload,
+  DocumentCreatePayload,
+  DocumentDeletePayload,
+  DocumentUpdatePayload,
   DataImportPayload,
   FilterCreatePayload,
   FilterDeletePayload,
@@ -139,6 +145,12 @@ import type {
   DashboardDuplicateEvent,
   DashboardUpdateEvent,
   DataExportEvent,
+  DocumentCommentCreateEvent,
+  DocumentCommentDeleteEvent,
+  DocumentCommentUpdateEvent,
+  DocumentCreateEvent,
+  DocumentDeleteEvent,
+  DocumentUpdateEvent,
   DataImportEvent,
   FilterEvent,
   FilterUpdateEvent,
@@ -4379,6 +4391,113 @@ export class AppHooksListenerService
         );
         break;
       }
+      // Document Events
+      case AppEvents.DOCUMENT_CREATE: {
+        const param = data as DocumentCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentCreatePayload>(
+            AuditV1OperationTypes.DOCUMENT_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_title: param.doc.title ?? 'Untitled',
+                document_id: param.doc.id!,
+                parent_id: param.doc.parent_id,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DOCUMENT_UPDATE: {
+        const param = data as DocumentUpdateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentUpdatePayload>(
+            AuditV1OperationTypes.DOCUMENT_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_title: param.doc.title ?? 'Untitled',
+                document_id: param.doc.id!,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DOCUMENT_DELETE: {
+        const param = data as DocumentDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentDeletePayload>(
+            AuditV1OperationTypes.DOCUMENT_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_title: param.doc.title ?? 'Untitled',
+                document_id: param.doc.id!,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
+      // Document Comment Events
+      case AppEvents.DOCUMENT_COMMENT_CREATE: {
+        const param = data as DocumentCommentCreateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentCommentCreatePayload>(
+            AuditV1OperationTypes.DOCUMENT_COMMENT_CREATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_id: param.docId,
+                comment_id: param.comment.id,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DOCUMENT_COMMENT_UPDATE: {
+        const param = data as DocumentCommentUpdateEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentCommentUpdatePayload>(
+            AuditV1OperationTypes.DOCUMENT_COMMENT_UPDATE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_id: param.docId,
+                comment_id: param.comment.id,
+              },
+            },
+          ),
+        );
+        break;
+      }
+      case AppEvents.DOCUMENT_COMMENT_DELETE: {
+        const param = data as DocumentCommentDeleteEvent;
+        await this.auditInsert(
+          await generateAuditV1Payload<DocumentCommentDeletePayload>(
+            AuditV1OperationTypes.DOCUMENT_COMMENT_DELETE,
+            {
+              req: param.req,
+              context: param.context,
+              details: {
+                document_id: param.docId,
+                comment_id: param.comment.id,
+              },
+            },
+          ),
+        );
+        break;
+      }
+
       default:
         {
           // if not handled, pass to parent

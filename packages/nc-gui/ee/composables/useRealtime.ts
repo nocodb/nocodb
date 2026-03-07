@@ -1,5 +1,13 @@
 import { EventType, PlanLimitTypes, ViewTypes, getFirstNonPersonalView, isVirtualCol } from 'nocodb-sdk'
-import type { DashboardPayload, MetaPayload, ScriptPayload, WidgetPayload, WorkflowPayload } from 'nocodb-sdk'
+import type {
+  DashboardPayload,
+  DocumentCommentPayload,
+  DocumentPayload,
+  MetaPayload,
+  ScriptPayload,
+  WidgetPayload,
+  WorkflowPayload,
+} from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 export const useRealtime = createSharedComposable(() => {
@@ -43,6 +51,9 @@ export const useRealtime = createSharedComposable(() => {
   const workflowStore = useWorkflowStore()
   const { workflows, activeWorkflowId } = storeToRefs(workflowStore)
 
+  const documentStore = useDocumentsStore()
+  const { documents, activeDocumentId, loadedParentIds, expandedDocIds } = storeToRefs(documentStore)
+
   const { baseExtensions, Extension } = useExtensions()
 
   const notificationStore = useNotification()
@@ -54,6 +65,8 @@ export const useRealtime = createSharedComposable(() => {
   const activeDashboardListener = ref<string | null>(null)
   const activeWidgetListener = ref<string | null>(null)
   const activeTeamListener = ref<string | null>(null)
+  const activeDocumentListener = ref<string | null>(null)
+  const activeDocCommentListener = ref<string | null>(null)
 
   const handleBaseMetaEvent = (event: MetaPayload) => {
     if (event.action === 'source_create') {
@@ -547,6 +560,142 @@ export const useRealtime = createSharedComposable(() => {
     }
   }
 
+  const handleDocumentEvent = (payload: DocumentPayload, baseId: string) => {
+    const { id, action, payload: doc } = payload
+    const baseDocs = documents.value.get(baseId) || []
+
+    switch (action) {
+      case 'create': {
+        // Guard: skip if already present (duplicate event)
+        if (baseDocs.some((d) => d.id === id)) break
+
+        // Only insert if parent's children have been loaded (lazy loading)
+        const parentKey = doc.parent_id ? doc.parent_id : `root:${baseId}`
+        if (!loadedParentIds.value.has(parentKey)) break
+
+        baseDocs.push(doc)
+        documents.value.set(baseId, baseDocs)
+
+        // Update parent's has_children
+        if (doc.parent_id) {
+          const parent = baseDocs.find((d) => d.id === doc.parent_id)
+          if (parent) parent.has_children = true
+        }
+
+        refreshCommandPalette()
+        break
+      }
+      case 'update': {
+        const existing = baseDocs.find((d) => d.id === id)
+        if (existing) {
+          // Patch sidebar-visible fields in place
+          if (doc.title !== undefined) existing.title = doc.title
+          if (doc.meta !== undefined) existing.meta = doc.meta
+          if (doc.order !== undefined) existing.order = doc.order
+          if (doc.version !== undefined) existing.version = doc.version
+          if (doc.updated_at !== undefined) existing.updated_at = doc.updated_at
+          if (doc.updated_by !== undefined) existing.updated_by = doc.updated_by
+
+          // Re-sort only when order changed — avoids triggering full reactivity
+          // on every autosave which causes subtitle (comment count etc.) to flicker
+          if (doc.order !== undefined) {
+            baseDocs.sort((a, b) => (a.order || 0) - (b.order || 0))
+            documents.value.set(baseId, baseDocs)
+          }
+        }
+        break
+      }
+      case 'delete': {
+        const deletedDoc = baseDocs.find((d) => d.id === id)
+        if (!deletedDoc) break
+
+        // Collect all loaded descendants for removal (backend cascades)
+        const idsToRemove = new Set<string>([id])
+        const collectDescendants = (parentId: string) => {
+          for (const d of baseDocs) {
+            if (d.parent_id === parentId && d.id && !idsToRemove.has(d.id)) {
+              idsToRemove.add(d.id)
+              collectDescendants(d.id)
+            }
+          }
+        }
+        collectDescendants(id)
+
+        // Update parent's has_children before removing
+        if (deletedDoc.parent_id) {
+          const parent = baseDocs.find((d) => d.id === deletedDoc.parent_id)
+          if (parent) {
+            const remainingSiblings = baseDocs.some((d) => d.parent_id === deletedDoc.parent_id && !idsToRemove.has(d.id!))
+            parent.has_children = remainingSiblings
+          }
+        }
+
+        const filtered = baseDocs.filter((d) => !idsToRemove.has(d.id!))
+        documents.value.set(baseId, filtered)
+
+        // Clean up loaded parent tracking
+        for (const removedId of idsToRemove) {
+          loadedParentIds.value.delete(removedId)
+        }
+
+        refreshCommandPalette()
+
+        // Navigate away if the active doc was deleted
+        if (activeDocumentId.value && idsToRemove.has(activeDocumentId.value)) {
+          const nextDoc = filtered[0]
+          if (nextDoc?.id) {
+            ncNavigateTo({
+              workspaceId: activeWorkspaceId.value,
+              baseId,
+              docId: nextDoc.id,
+              docTitle: nextDoc.title,
+            })
+          } else {
+            ncNavigateTo({
+              workspaceId: activeWorkspaceId.value,
+              baseId,
+            })
+          }
+          showInfoModal({
+            title: `Document no longer available`,
+            content: `${deletedDoc.title || 'The document'} may have been deleted or your access removed.`,
+          })
+        }
+        break
+      }
+      case 'move': {
+        const existing = baseDocs.find((d) => d.id === id)
+        if (!existing) break
+
+        const oldParentId = payload.oldParentId ?? null
+
+        // Update parent_id and order
+        existing.parent_id = doc.parent_id
+        existing.order = doc.order
+
+        // Update new parent's has_children
+        if (doc.parent_id) {
+          const newParent = baseDocs.find((d) => d.id === doc.parent_id)
+          if (newParent) newParent.has_children = true
+        }
+
+        // Update old parent's has_children
+        if (oldParentId) {
+          const oldParent = baseDocs.find((d) => d.id === oldParentId)
+          if (oldParent) {
+            const remainingChildren = baseDocs.some((d) => d.parent_id === oldParentId && d.id !== id)
+            oldParent.has_children = remainingChildren
+          }
+        }
+
+        // Re-sort by order
+        baseDocs.sort((a, b) => (a.order || 0) - (b.order || 0))
+        documents.value.set(baseId, baseDocs)
+        break
+      }
+    }
+  }
+
   const handleUserEvent = async (event: any) => {
     // Handle notification events
     if (event.event === EventType.NOTIFICATION_EVENT && event.action === 'create' && event.payload) {
@@ -891,6 +1040,33 @@ export const useRealtime = createSharedComposable(() => {
             handleRealtimeWidgetEvent(payload)
           },
         )
+
+        // Handle document events
+        if (activeDocumentListener.value) {
+          $ncSocket.offMessage(activeDocumentListener.value)
+        }
+
+        activeDocumentListener.value = $ncSocket.onMessage(
+          `${EventType.DOCUMENT_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+          (payload: DocumentPayload) => {
+            handleDocumentEvent(payload, activeBaseId.value)
+          },
+        )
+
+        // Handle document comment events — reload comments for active document
+        if (activeDocCommentListener.value) {
+          $ncSocket.offMessage(activeDocCommentListener.value)
+        }
+
+        activeDocCommentListener.value = $ncSocket.onMessage(
+          `${EventType.DOCUMENT_COMMENT_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
+          (_payload: DocumentCommentPayload) => {
+            const { activeDocId, applyRealtimeEvent } = useDocumentComments()
+            if (activeDocId.value && _payload.id === activeDocId.value) {
+              applyRealtimeEvent(_payload.action, _payload.payload)
+            }
+          },
+        )
       }
     },
     { immediate: true },
@@ -904,6 +1080,8 @@ export const useRealtime = createSharedComposable(() => {
       activeDashboardListener.value,
       activeWidgetListener.value,
       activeTeamListener.value,
+      activeDocumentListener.value,
+      activeDocCommentListener.value,
     ]
       .filter(Boolean)
       .forEach((channel) => {

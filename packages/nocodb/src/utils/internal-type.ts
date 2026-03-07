@@ -5,6 +5,7 @@ import type { Dashboard, Workflow } from '~/models';
 import type {
   Column,
   DataReflection,
+  Document,
   Extension,
   Filter,
   Hook,
@@ -20,6 +21,8 @@ import type {
 export type InternalGETResponseType = Promise<
   | void
   | DataReflection
+  | Document
+  | Document[]
   | MCPToken
   | MCPToken[]
   | Script
@@ -50,6 +53,7 @@ export type InternalGETResponseType = Promise<
 export type InternalPOSTResponseType = Promise<
   | void
   | boolean
+  | Document
   | MCPToken
   | OAuthClient
   | OAuthClient[]
@@ -73,6 +77,7 @@ export type InternalPOSTResponseType = Promise<
   | Sort
   | Hook
   | Extension
+  | { added: boolean; reaction: any }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

@@ -124,10 +124,12 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.SANDBOXES]: 'sb',
       [MetaTable.SCIM_CONFIG]: 'scfg',
       [MetaTable.RECORD_TEMPLATES]: 'rt',
+      [MetaTable.AUTOMATION_SUBSCRIBERS]: 'as',
       [MetaTable.RLS_POLICIES]: 'rlp',
       [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
       [MetaTable.CHAT_SESSIONS]: 'cs',
       [MetaTable.CHAT_MESSAGES]: 'cm',
+      [MetaTable.DOCS]: 'doc',
     };
 
     const prefix = prefixMap[target] || 'nc';

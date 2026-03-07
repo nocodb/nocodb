@@ -7,7 +7,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['update:visible', 'newTable', 'emptyScript', 'emptyWorkflow', 'emptyDashboard'])
+const emits = defineEmits(['update:visible', 'newTable', 'emptyScript', 'emptyWorkflow', 'emptyDashboard', 'emptyPage'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
@@ -28,6 +28,8 @@ const { isEEFeatureBlocked, showUpgradeToUseScripts, showUpgradeToUseSync } = us
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
 const isWorkflowsTab = computed(() => activeSidebarTab.value === 'workflows')
+
+const isDocsTab = computed(() => activeSidebarTab.value === 'docs')
 
 const showBaseOption = (source: SourceType) => {
   return (
@@ -55,7 +57,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
 <template>
   <NcMenu variant="large" data-testid="nc-home-create-new-menu" @click="vVisible = false">
     <!-- Data tab items: table, dashboard, sync -->
-    <template v-if="!isWorkflowsTab">
+    <template v-if="!isWorkflowsTab && !isDocsTab">
       <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-table" @click="emits('newTable')">
         <div class="w-full flex items-center">
           <div class="flex-1 flex items-center gap-2 cursor-pointer">
@@ -127,6 +129,15 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
           </NcMenuItem>
         </template>
       </ProjectSyncCreateProvider>
+    </template>
+
+    <!-- Docs tab items: document -->
+    <template v-if="isDocsTab">
+      <NcMenuItem inner-class="w-full" data-testid="create-new-document" @click="emits('emptyPage')">
+        <GeneralIcon icon="ncFileText" />
+        {{ $t('objects.document') }}
+        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
+      </NcMenuItem>
     </template>
 
     <!-- Automations tab items: workflow, script -->

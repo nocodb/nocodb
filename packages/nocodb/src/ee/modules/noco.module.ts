@@ -86,12 +86,19 @@ import { WorkflowSubscribersService } from '~/services/workflow-subscribers.serv
 import { HookSubscribersService } from '~/services/hook-subscribers.service';
 import { WorkflowWebhookController } from '~/controllers/workflow-webhook.controller';
 
+/* Documents */
+import { DocumentsService } from '~/services/documents.service';
+import { DocumentCommentsService } from '~/services/document-comments.service';
+
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
 
 /* Record Templates */
 import { RecordTemplatesController } from '~/controllers/record-templates.controller';
 import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
+
+/* Attachment Proxy */
+import { AttachmentProxyController } from '~/controllers/attachment-proxy.controller';
 
 /* List View */
 import { ListsService } from '~/ee/services/lists.service';
@@ -194,6 +201,10 @@ export const nocoModuleEeMetadata = {
       useClass: WorkflowExecutionService,
     },
 
+    /* Documents */
+    DocumentsService,
+    DocumentCommentsService,
+
     /* Dashboards */
     DashboardsService,
 
@@ -274,6 +285,9 @@ export const nocoModuleEeMetadata = {
 
     /* Record Templates */
     RecordTemplatesController,
+
+    /* Attachment Proxy */
+    AttachmentProxyController,
 
     // Workspace/Base team assignment controllers — enabled only in test mode
     ...(process.env.NODE_ENV === 'test'

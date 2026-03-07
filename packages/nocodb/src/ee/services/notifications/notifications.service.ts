@@ -4,17 +4,17 @@ import { NotificationsService as NotificationsServiceCE } from 'src/services/not
 import { TeamUserRoles } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
 import type {
+  BaseTeamInviteEvent,
+  DocumentCommentCreateEvent,
+  DocumentUserMentionEvent,
   ProjectInviteEvent,
   RowCommentEvent,
   RowMentionEvent,
   TeamMemberAddEvent,
   WelcomeEvent,
   WorkspaceRequestUpgradeEvent,
-  WorkspaceUserInviteEvent,
-} from '~/services/app-hooks/interfaces';
-import type {
-  BaseTeamInviteEvent,
   WorkspaceTeamInviteEvent,
+  WorkspaceUserInviteEvent,
 } from '~/services/app-hooks/interfaces';
 import type { NcRequest } from '~/interface/config';
 import { EEOnly } from '~/decorators/ee-only.decorator';
@@ -25,6 +25,7 @@ import {
   Base,
   BaseUser,
   Column,
+  Document,
   Notification,
   PrincipalAssignment,
   User,
@@ -60,6 +61,15 @@ export class NotificationsService extends NotificationsServiceCE {
     );
     this.appHooks.on(AppEvents.COMMENT_UPDATE, (data) =>
       this.hookHandler({ event: AppEvents.COMMENT_UPDATE, data }),
+    );
+    this.appHooks.on(AppEvents.DOCUMENT_COMMENT_CREATE, (data) =>
+      this.hookHandler({ event: AppEvents.DOCUMENT_COMMENT_CREATE, data }),
+    );
+    this.appHooks.on(AppEvents.DOCUMENT_COMMENT_UPDATE, (data) =>
+      this.hookHandler({ event: AppEvents.DOCUMENT_COMMENT_UPDATE, data }),
+    );
+    this.appHooks.on(AppEvents.DOCUMENT_USER_MENTION, (data) =>
+      this.hookHandler({ event: AppEvents.DOCUMENT_USER_MENTION, data }),
     );
 
     this.appHooks.on(AppEvents.ROW_USER_MENTION, (data) => {
@@ -287,6 +297,120 @@ export class NotificationsService extends NotificationsServiceCE {
             details: 'Error while sending notifications',
             comment: comment.id,
           });
+        }
+
+        break;
+      }
+      case AppEvents.DOCUMENT_COMMENT_UPDATE:
+      case AppEvents.DOCUMENT_COMMENT_CREATE: {
+        const { comment, user, docId, req } =
+          data as DocumentCommentCreateEvent;
+        const mentions = extractMentions(comment.comment);
+
+        if (!mentions || !mentions.length) break;
+
+        try {
+          const doc = await Document.get(req.context, docId);
+          if (!doc) break;
+
+          const base = (await Base.get(req.context, doc.base_id)) as BaseType;
+
+          const baseUsers = await BaseUser.getUsersList(req.context, {
+            base_id: base.id,
+          });
+
+          const ws = await Workspace.get(base.fk_workspace_id);
+
+          for (const mention of mentions) {
+            const mentionedUser = baseUsers.find((b) => b.id === mention);
+            if (!mentionedUser) continue;
+
+            await this.insertNotification(
+              {
+                fk_user_id: mentionedUser.id,
+                type: 'doc_mention' as any,
+                body: {
+                  workspace: {
+                    id: ws.id,
+                    title: ws.title,
+                  },
+                  base: {
+                    id: base.id,
+                    title: base.title,
+                    type: base.type,
+                  },
+                  doc: {
+                    id: doc.id,
+                    title: doc.title,
+                  },
+                  comment: {
+                    id: comment.id,
+                    comment: comment.comment,
+                  },
+                  user: {
+                    id: user.id,
+                    email: user.email,
+                    display_name: user.display_name,
+                    meta: user.meta,
+                  },
+                },
+              },
+              req,
+            );
+          }
+        } catch (e) {
+          this.logger.error(e.message, e.stack);
+        }
+
+        break;
+      }
+      case AppEvents.DOCUMENT_USER_MENTION: {
+        const { doc, user, mentions, req } = data as DocumentUserMentionEvent;
+
+        try {
+          const base = (await Base.get(req.context, doc.base_id)) as BaseType;
+
+          const baseUsers = await BaseUser.getUsersList(req.context, {
+            base_id: base.id,
+          });
+
+          const ws = await Workspace.get(base.fk_workspace_id);
+
+          for (const mention of mentions) {
+            const mentionedUser = baseUsers.find((u) => u.id === mention);
+            if (!mentionedUser) continue;
+
+            await this.insertNotification(
+              {
+                fk_user_id: mentionedUser.id,
+                type: 'doc_mention' as any,
+                body: {
+                  workspace: {
+                    id: ws.id,
+                    title: ws.title,
+                  },
+                  base: {
+                    id: base.id,
+                    title: base.title,
+                    type: base.type,
+                  },
+                  doc: {
+                    id: doc.id,
+                    title: doc.title,
+                  },
+                  user: {
+                    id: user.id,
+                    email: user.email,
+                    display_name: user.display_name,
+                    meta: user.meta,
+                  },
+                },
+              },
+              req,
+            );
+          }
+        } catch (e) {
+          this.logger.error(e.message, e.stack);
         }
 
         break;

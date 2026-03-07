@@ -369,6 +369,24 @@ const permissionScopes = {
     'mcpUpdate',
     'mcpDelete',
 
+    // Documents
+    'documentList',
+    'documentGet',
+    'documentCreate',
+    'documentUpdate',
+    'documentDelete',
+    'documentReorder',
+
+    // Document Comments
+    'documentCommentList',
+    'documentCommentCount',
+    'documentCommentCreate',
+    'documentCommentUpdate',
+    'documentCommentDelete',
+    'documentCommentResolve',
+    'documentCommentReactionToggle',
+    'documentCommentReactionList',
+
     'viewRowColorInfo',
     'viewRowColorConditionAdd',
     'viewRowColorConditionUpdate',
@@ -699,6 +717,15 @@ const rolePermissions:
       mcpUpdate: true,
       mcpDelete: true,
 
+      // Documents — read-only for viewers
+      documentList: true,
+      documentGet: true,
+
+      // Document Comments — read-only for viewers
+      documentCommentList: true,
+      documentCommentCount: true,
+      documentCommentReactionList: true,
+
       viewRowColorInfo: true,
 
       // Dashboard
@@ -726,6 +753,13 @@ const rolePermissions:
       commentUpdate: true,
       commentResolve: true,
       commentDelete: true,
+
+      // Document Comments — commenters can create/update/delete/resolve + reactions
+      documentCommentCreate: true,
+      documentCommentUpdate: true,
+      documentCommentDelete: true,
+      documentCommentResolve: true,
+      documentCommentReactionToggle: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -771,6 +805,12 @@ const rolePermissions:
 
       // Sync
       triggerSync: true,
+
+      // Documents — editors can modify existing documents but NOT create/delete.
+      // documentCreate and documentDelete are restricted to CREATOR+ (via exclude pattern)
+      // so that document lifecycle is controlled by project admins.
+      documentUpdate: true,
+      documentReorder: true,
 
       // Extensions
       extensionUpdate: true,
@@ -1263,6 +1303,22 @@ const permissionDescriptions: Record<string, string> = {
   mcpCreate: 'create a new MCP token',
   mcpUpdate: 'update an MCP token',
   mcpDelete: 'delete an MCP token',
+
+  documentList: 'view list of documents',
+  documentGet: 'view document details',
+  documentCreate: 'create a new document',
+  documentUpdate: 'update a document',
+  documentDelete: 'delete a document',
+  documentReorder: 'reorder documents',
+
+  documentCommentList: 'view document comments',
+  documentCommentCount: 'view document comment count',
+  documentCommentCreate: 'comment on a document',
+  documentCommentUpdate: 'update document comments',
+  documentCommentDelete: 'delete document comments',
+  documentCommentResolve: 'resolve document comments',
+  documentCommentReactionToggle: 'react to document comments',
+  documentCommentReactionList: 'view document comment reactions',
 
   dashboardList: 'view list of dashboards',
   dashboardGet: 'view dashboard details',

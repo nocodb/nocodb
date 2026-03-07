@@ -35,6 +35,7 @@ export { default as DbServer } from './DbServer';
 export { default as Permission } from './Permission';
 export { default as RlsPolicy } from './RlsPolicy';
 export { default as Dashboard } from './Dashboard';
+export { default as Document } from './Document';
 export { default as ViewSection } from './ViewSection';
 export { default as ApiToken } from './ApiToken';
 export { default as Widget } from './Widget';

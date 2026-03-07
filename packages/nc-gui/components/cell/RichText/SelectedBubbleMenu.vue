@@ -139,6 +139,8 @@ const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
 
   if (hiddenOptions.value.includes(option)) return false
 
+  if (isFormField.value) return !hiddenOptions.value.includes(option)
+
   return true
 }
 

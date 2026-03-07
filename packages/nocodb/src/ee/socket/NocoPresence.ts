@@ -24,18 +24,22 @@ const PRESENCE_ROOM_TTL_SECS = 180;
 const PRESENCE_TIMEOUT_MS = 90_000;
 
 export default class NocoPresence {
-  private static readonly logger = new Logger(NocoPresence.name);
+  protected static readonly logger = new Logger(NocoPresence.name);
 
-  private static readonly _fallback = new Map<
+  protected static async isPresenceDisabled(_user: User): Promise<boolean> {
+    return false;
+  }
+
+  protected static readonly _fallback = new Map<
     string,
     Map<string, PresenceEntry>
   >();
 
-  private static get useFallback(): boolean {
+  protected static get useFallback(): boolean {
     return (process.env.NC_DISABLE_CACHE || 'false') === 'true';
   }
 
-  private static presenceContext(roomKey: string): {
+  protected static presenceContext(roomKey: string): {
     workspace_id: string;
     base_id: string;
   } {
@@ -43,7 +47,7 @@ export default class NocoPresence {
     return { workspace_id: parts[1], base_id: parts[2] };
   }
 
-  private static async upsertEntry(
+  protected static async upsertEntry(
     roomKey: string,
     entry: PresenceEntry,
   ): Promise<void> {
@@ -68,7 +72,7 @@ export default class NocoPresence {
     );
   }
 
-  private static async removeEntry(
+  protected static async removeEntry(
     roomKey: string,
     userId: string,
   ): Promise<void> {
@@ -83,7 +87,7 @@ export default class NocoPresence {
     await NocoCache.delHashField(ctx, CacheScope.PRESENCE, userId);
   }
 
-  private static async getEntry(
+  protected static async getEntry(
     roomKey: string,
     userId: string,
   ): Promise<PresenceEntry | null> {
@@ -100,7 +104,7 @@ export default class NocoPresence {
     }
   }
 
-  private static async getActiveEntries(
+  protected static async getActiveEntries(
     roomKey: string,
   ): Promise<PresenceEntry[]> {
     const now = Date.now();
@@ -133,6 +137,7 @@ export default class NocoPresence {
   public static setupHandlers(socket: NcSocket): void {
     socket.on('presence:update', async (payload: any) => {
       if (!socket.user?.id) return;
+      if (await this.isPresenceDisabled(socket.user)) return;
 
       const trustedUserId = socket.user.id;
       const { action } = payload || {};

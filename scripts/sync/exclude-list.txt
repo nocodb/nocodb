@@ -82,3 +82,4 @@ flake.nix
 nix
 lerna.json
 packages/nc-mail-template/emails/*-ee.tsx
+packages/nc-gui/tele

@@ -60,7 +60,9 @@ const isFieldsMenuReadOnly = computed(() => {
   return isLocked.value || !isViewOperationsAllowed.value || (isLocalMode.value && hasViewFieldDataEditPermission.value)
 })
 
-const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+const isAddingColumnAllowed = computed(
+  () => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value && !isMobileMode.value,
+)
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -642,7 +644,6 @@ const onAddColumnDropdownVisibilityChange = () => {
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    class="!xs:hidden"
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown overflow-hidden"
     :auto-close="openSubmenusCount === 0"
     @visible-change="onFieldsMenuDropdownVisibilityChange"
@@ -896,6 +897,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
               :disabled="isFieldsMenuReadOnly"
+              :filter="isTouchEvent"
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"

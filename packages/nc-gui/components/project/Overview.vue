@@ -78,7 +78,7 @@ const onCreateBaseClick = () => {
 </script>
 
 <template>
-  <div class="nc-all-tables-view p-6 nc-scrollbar-thin h-full overflow-y-auto">
+  <div class="nc-all-tables-view py-4 px-6 nc-scrollbar-thin h-full overflow-y-auto">
     <div class="text-subHeading2 text-nc-content-gray mb-5">{{ tabActionLabel }} {{ $t('labels.actions') }}</div>
 
     <div

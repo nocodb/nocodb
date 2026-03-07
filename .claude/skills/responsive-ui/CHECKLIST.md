@@ -68,7 +68,7 @@ Test each item on: **Mobile (xs)**, **Tablet (sm/md)**, **Desktop (lg+)**
 
 ### 1. GRID VIEW (High Priority)
 
-- [ ] **Grid canvas** — horizontal scroll, frozen first column, cell sizing
+- [x] **Grid canvas** — horizontal scroll, frozen first column, cell sizing
 - [ ] **Column headers** — text truncation, resize handles, menu positioning
 - [ ] **Row height** — touch-friendly row heights on mobile
 - [ ] **Cell editing** — inline editors fit within cell bounds

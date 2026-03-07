@@ -9,7 +9,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class DocumentCommentsService {
-  protected constructor(protected readonly appHooksService: AppHooksService) {}
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async commentCreate(
     _context: NcContext,

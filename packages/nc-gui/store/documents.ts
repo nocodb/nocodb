@@ -1,4 +1,4 @@
-export const useDocumentsStore = defineStore('documentsStore', () => {
+export const useDocumentsStore = defineStore('documents', () => {
   const documents = ref(new Map())
 
   const activeDocumentId = ref<string | null>(null)
@@ -43,8 +43,6 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
 
   const moveDocument = async (..._params: any) => null
 
-  const getDocumentAncestors = (..._params: any) => []
-
   return {
     documents,
     activeDocumentId,
@@ -68,7 +66,6 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     deleteDocument,
     reorderDocument,
     moveDocument,
-    getDocumentAncestors,
   }
 })
 

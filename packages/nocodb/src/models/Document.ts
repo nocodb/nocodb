@@ -81,15 +81,58 @@ export default class Document implements DocumentType {
   }
 
   /**
+   * Full list — includes content fetched from the separate content table.
+   * Used for tests and bulk export. For sidebar use `listLite()` instead.
+   *
+   * @param parentId — `null` (default) for root documents, doc ID for children.
+   */
+  public static async list(
+    context: NcContext,
+    baseId: string,
+    parentId: string | null = null,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const docList = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        condition: {
+          base_id: baseId,
+          deleted: false,
+          parent_id: parentId,
+        },
+        orderBy: {
+          order: 'asc',
+        },
+      },
+    );
+
+    // Fetch content for each document from the content table
+    for (const doc of docList) {
+      const contentRow = await Noco.ncDocsContent.metaGet2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.DOC_CONTENT,
+        { fk_doc_id: doc.id },
+        ['content'],
+      );
+      doc.content = contentRow?.content;
+    }
+
+    return docList.map((doc) => new Document(this.parseDocument(doc)));
+  }
+
+  /**
    * Lightweight list for sidebar — excludes `content` to avoid
    * transferring large ProseMirror JSON payloads.
    *
-   * @param parentId — `null` for root documents, doc ID for children of that doc.
+   * @param parentId — `null` (default) for root documents, doc ID for children.
    */
   public static async listLite(
     context: NcContext,
     baseId: string,
-    parentId: string | null,
+    parentId: string | null = null,
     ncMeta = Noco.ncMeta,
   ) {
     const liteFields = [

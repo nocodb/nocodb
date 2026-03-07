@@ -45,9 +45,13 @@ export default class Doc implements DocType {
       );
 
       if (doc) {
-        doc = this.parseDoc(doc);
         await NocoCache.set(context, key, doc);
       }
+    }
+
+    // Always parse — cache may contain stringified content from update()
+    if (doc) {
+      doc = this.parseDoc(doc);
     }
 
     return doc && new Doc(doc);
@@ -89,7 +93,8 @@ export default class Doc implements DocType {
       );
     }
 
-    return docList.map((doc) => new Doc(doc));
+    // Always parse — cache may contain stringified content
+    return docList.map((doc) => new Doc(this.parseDoc(doc)));
   }
 
   public static async insert(

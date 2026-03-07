@@ -5,11 +5,15 @@ import {
   Get,
   HttpCode,
   Param,
+  Patch,
   Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTokensV3CreateRequest } from '~/services/v3/api-tokens-v3.type';
+import type {
+  ApiTokensV3CreateRequest,
+  ApiTokensV3UpdateRequest,
+} from '~/services/v3/api-tokens-v3.type';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -33,7 +37,7 @@ export class ApiTokensV3Controller {
   }
 
   @Post('/api/v3/meta/tokens')
-  @HttpCode(200)
+  @HttpCode(201)
   @Acl('apiTokenCreate', {
     scope: 'org',
     blockOAuthTokenAccess: true,
@@ -43,6 +47,22 @@ export class ApiTokensV3Controller {
     @Body() body: ApiTokensV3CreateRequest,
   ) {
     return await this.apiTokensV3Service.create({ body, cookie: req });
+  }
+
+  @Patch('/api/v3/meta/tokens/:tokenId')
+  @Acl('apiTokenCreate', {
+    scope: 'org',
+  })
+  async apiTokenUpdate(
+    @Req() req: NcRequest,
+    @Param('tokenId') tokenId: string,
+    @Body() body: ApiTokensV3UpdateRequest,
+  ) {
+    return await this.apiTokensV3Service.update({
+      id: tokenId,
+      body,
+      cookie: req,
+    });
   }
 
   @Delete('/api/v3/meta/tokens/:tokenId')

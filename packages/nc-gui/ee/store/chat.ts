@@ -329,6 +329,16 @@ export const useChatStore = defineStore('chatStore', () => {
           break
         }
 
+        case 'session-update': {
+          if (payload.session?.id) {
+            const existing = sessions.value.get(payload.session.id)
+            if (existing) {
+              Object.assign(existing, payload.session)
+            }
+          }
+          break
+        }
+
         case 'session-delete': {
           sessions.value.delete(sessionId)
           messages.value.delete(sessionId)
@@ -439,6 +449,19 @@ export const useChatStore = defineStore('chatStore', () => {
       if (activeSessionId.value === sessionId) {
         const remaining = sessionList.value
         activeSessionId.value = remaining.length > 0 ? remaining[0].id || null : null
+      }
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+
+  const renameSession = async (wsId: string, sessionId: string, title: string) => {
+    try {
+      await $api.instance.patch(`/api/v2/internal/${wsId}/chat/sessions/${sessionId}`, { title })
+
+      const session = sessions.value.get(sessionId)
+      if (session) {
+        session.title = title
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -612,6 +635,7 @@ export const useChatStore = defineStore('chatStore', () => {
     loadSessions,
     createSession,
     deleteSession,
+    renameSession,
     loadMessages,
     sendMessage,
     approveToolCalls,

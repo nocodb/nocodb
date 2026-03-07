@@ -247,6 +247,7 @@
     }
   },
   "general": {
+    "scrollToBottom": "Scroll to bottom",
     "none": "None",
     "done": "Done",
     "properties": "Properties",

@@ -136,15 +136,16 @@ watch(
     <div class="border-t-1 border-nc-border-gray-light" />
 
     <!-- Custom input -->
-    <div class="flex items-center gap-2 px-3 py-2">
+    <div class="flex items-center gap-2 px-3 py-2.5">
       <GeneralIcon icon="ncEdit" class="flex-none w-4 h-4 text-nc-content-gray-muted" />
       <input
         v-model="customInput"
         class="flex-1 text-sm text-nc-content-gray-emphasis bg-transparent outline-none placeholder:text-nc-content-gray-muted min-w-0"
         :placeholder="t('placeholder.somethingElse')"
+        @keydown.stop
         @keydown.enter.prevent="handleCustomSubmit"
       />
-      <NcButton v-if="customInput.trim()" size="xxsmall" type="primary" @click="handleCustomSubmit">
+      <NcButton v-if="customInput.trim()" size="xxsmall" type="primary" class="!px-3" @click="handleCustomSubmit">
         {{ isSingleQuestion ? t('general.send') : t('general.select') }}
       </NcButton>
       <NcButton

@@ -142,6 +142,24 @@ const formattedArgs = computed(() => {
   }
 })
 
+// Detect if output contains records (v3 format from query_records, get_record, etc.)
+const hasRecordOutput = computed(() => {
+  let data = block.value.output
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data)
+    } catch {
+      return false
+    }
+  }
+  return data?.records && Array.isArray(data.records) && data.records.length > 0
+})
+
+const recordTableName = computed(() => {
+  const input = effectiveInput.value as Record<string, unknown> | undefined
+  return (input?.table_name as string) ?? undefined
+})
+
 const formattedOutput = computed(() => {
   if (block.value.output === undefined || block.value.output === null) return ''
   try {
@@ -151,6 +169,16 @@ const formattedOutput = computed(() => {
     return String(block.value.output)
   }
 })
+
+// Auto-expand when record output arrives
+watch(
+  () => block.value.output,
+  () => {
+    if (hasRecordOutput.value && !isExpanded.value) {
+      isExpanded.value = true
+    }
+  },
+)
 
 // Truncate long results
 const MAX_RESULT_LINES = 8
@@ -165,7 +193,7 @@ const visibleOutput = computed(() => {
 
 <template>
   <div
-    class="nc-chat-tool-call w-full rounded-lg overflow-hidden transition-all duration-150"
+    class="nc-chat-tool-call rounded-lg overflow-hidden transition-all duration-150"
     :class="{
       'border-1 border-nc-border-red-medium bg-nc-bg-red-light': isError,
       'border-1 border-nc-border-yellow bg-nc-bg-yellow-light': isAwaitingApproval,
@@ -176,18 +204,11 @@ const visibleOutput = computed(() => {
     :style="{ '--i': index }"
   >
     <!-- Compact header row -->
-    <div class="flex items-center gap-1.5 px-2.5 py-1.5 select-none cursor-pointer" @click="toggleExpanded">
-      <!-- Status indicator -->
-      <div class="flex-none w-3.5 h-3.5 flex items-center justify-center">
-        <GeneralLoader v-if="isRunning || isPending" :size="12" />
-        <GeneralIcon v-else-if="isAwaitingApproval" icon="ncAlertCircle" class="w-3.5 h-3.5 text-nc-content-yellow-dark" />
-        <span v-else-if="isError" class="w-2 h-2 rounded-full bg-nc-fill-red" />
-        <span v-else-if="isDenied" class="w-2 h-2 rounded-full bg-nc-bg-gray-medium" />
-        <span v-else class="w-2 h-2 rounded-full bg-nc-fill-green" />
-      </div>
-
-      <!-- Category icon -->
-      <GeneralIcon :icon="categoryIcon" class="flex-none w-3.5 h-3.5" :class="categoryTextColor" />
+    <div class="flex items-center gap-1.5 px-2 py-1.5 select-none cursor-pointer" @click="toggleExpanded">
+      <!-- Status / Category icon -->
+      <GeneralLoader v-if="isRunning || isPending" :size="14" class="flex-none" />
+      <GeneralIcon v-else-if="isAwaitingApproval" icon="ncAlertCircle" class="flex-none w-3.5 h-3.5 text-nc-content-yellow-dark" />
+      <GeneralIcon v-else :icon="categoryIcon" class="flex-none w-3.5 h-3.5" :class="categoryTextColor" />
 
       <!-- Tool name -->
       <span class="text-[12px] font-medium leading-none capitalize truncate" :class="categoryTextColor">
@@ -221,7 +242,7 @@ const visibleOutput = computed(() => {
 
     <!-- Expanded content -->
     <Transition name="nc-tool-expand">
-      <div v-if="isExpanded" class="border-t-1 border-nc-border-gray-light px-2.5 py-2 space-y-2">
+      <div v-if="isExpanded" class="border-t-1 border-nc-border-gray-light px-2 py-2 space-y-2">
         <!-- Arguments -->
         <div v-if="formattedArgs" class="space-y-1">
           <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">
@@ -233,12 +254,17 @@ const visibleOutput = computed(() => {
           >
         </div>
 
-        <!-- Result -->
+        <!-- Result: record table or raw output -->
         <div v-if="block.output !== undefined" class="space-y-1">
           <div class="text-[10px] uppercase tracking-wide font-semibold text-nc-content-gray-muted">
             {{ isError ? t('msg.chat.toolError') : t('msg.chat.toolOutput') }}
           </div>
-          <div class="relative">
+
+          <!-- Record table for query results -->
+          <ChatRecordTable v-if="hasRecordOutput && !isError" :output="block.output" :table-name="recordTableName" />
+
+          <!-- Raw output fallback -->
+          <div v-else class="relative">
             <pre
               class="text-[11px] leading-relaxed rounded-md p-2 overflow-x-auto nc-scrollbar-thin"
               :class="isError ? 'bg-nc-bg-red-light text-nc-content-red' : 'bg-nc-bg-default text-nc-content-gray-emphasis'"

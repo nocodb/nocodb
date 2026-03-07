@@ -179,6 +179,45 @@ export class ChatService implements OnModuleInit {
     return session;
   }
 
+  async sessionUpdate(
+    context: NcContext,
+    params: {
+      sessionId: string;
+      title: string;
+      req: NcRequest;
+    },
+  ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_AI_CHAT);
+
+    const title = params.title?.trim();
+    if (!title) {
+      NcError.get(context).badRequest('Title cannot be empty');
+    }
+    if (title.length > 255) {
+      NcError.get(context).badRequest('Title too long (max 255 characters)');
+    }
+
+    await this.sessionGet(context, params);
+
+    await ChatSession.update(context, params.sessionId, { title });
+
+    const updated = await ChatSession.get(context, params.sessionId);
+
+    this.appHooksService.emit(AppEvents.CHAT_SESSION_UPDATE, {
+      context,
+      req: params.req,
+      sessionId: params.sessionId,
+    });
+
+    this.broadcastToUser(
+      params.req.user?.id,
+      { action: 'session-update', sessionId: params.sessionId, session: updated },
+      params.req.ncSocketId,
+    );
+
+    return updated;
+  }
+
   async sessionDelete(
     context: NcContext,
     params: {

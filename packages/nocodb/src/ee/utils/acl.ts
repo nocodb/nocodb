@@ -211,6 +211,7 @@ const permissionScopes = {
     'chatSessionList',
     'chatSessionGet',
     'chatSessionDelete',
+    'chatSessionUpdate',
     'chatMessageList',
     'chatMessageSend',
   ],
@@ -612,6 +613,7 @@ const rolePermissions:
       chatSessionList: true,
       chatSessionGet: true,
       chatSessionDelete: true,
+      chatSessionUpdate: true,
       chatMessageList: true,
       chatMessageSend: true,
     },
@@ -1384,6 +1386,7 @@ const permissionDescriptions: Record<string, string> = {
   chatSessionList: 'list chat sessions',
   chatSessionGet: 'view a chat session',
   chatSessionDelete: 'delete a chat session',
+  chatSessionUpdate: 'update a chat session',
   chatMessageList: 'list chat messages',
   chatMessageSend: 'send a chat message',
 };

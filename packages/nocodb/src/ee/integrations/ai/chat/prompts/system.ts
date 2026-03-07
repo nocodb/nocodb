@@ -76,7 +76,10 @@ What NOT to do:
 - "I created a Companies table with fields: Name, Website, Industry…" ← **recapping tool results**
 - "Now I'll create the Contacts table." [create_table] "Now creating Deals." [create_table] ← **narrating each tool**
 - Bullet lists of fields, records, or options created ← **the tool cards already show this**
-- Rendering data as markdown tables ← **the user already has a spreadsheet; summarize insights instead**`);
+- Dumping every record in full detail ← **summarize insights or show a compact markdown table with key columns only**
+
+When showing records, use a **markdown table** with the most relevant columns (3–5 max). \
+Add a note like "Showing 5 of 42 records" so the user knows the scope.`);
 
   // ─── Rules ───────────────────────────────────────────────────────────────
   // Compressed operational rules. Behavioral stuff is in "How You Work" above.

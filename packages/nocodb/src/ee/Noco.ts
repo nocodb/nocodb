@@ -1,6 +1,6 @@
 import NocoCE from 'src/Noco';
-import type { INestApplication } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import { NcLogger } from '~/utils/logger/NcLogger';
 import { AuditService } from '~/meta/audit.service';
@@ -31,13 +31,13 @@ export default class Noco extends NocoCE {
           metaUrl: process.env.NC_AUDIT_DB,
         },
       });
-      Noco._ncAudit = new AuditService(auditConfig);
+      this._ncAudit = new AuditService(auditConfig);
 
-      const migrateAudit = !(await Noco.ncAudit.knexConnection.schema.hasTable(
+      const migrateAudit = !(await this.ncAudit.knexConnection.schema.hasTable(
         MetaTable.AUDIT,
       ));
 
-      await Noco.ncAudit.init();
+      await this.ncAudit.init();
 
       if (migrateAudit) {
         await this.migrateAuditFromMeta();
@@ -53,14 +53,14 @@ export default class Noco extends NocoCE {
         },
       });
 
-      Noco._ncChatMessages = new ChatMessagesService(chatConfig);
+      this._ncChatMessages = new ChatMessagesService(chatConfig);
 
       const migrateChatMessages =
-        !(await Noco.ncChatMessages.knexConnection.schema.hasTable(
+        !(await this.ncChatMessages.knexConnection.schema.hasTable(
           MetaTable.CHAT_MESSAGES,
         ));
 
-      await Noco.ncChatMessages.init();
+      await this.ncChatMessages.init();
 
       if (migrateChatMessages) {
         await this.migrateChatMessagesFromMeta();
@@ -75,14 +75,14 @@ export default class Noco extends NocoCE {
           metaUrl: process.env.NC_DOCS_DB,
         },
       });
-      Noco._ncDocsContent = new DocsContentService(docsContentConfig);
+      this._ncDocsContent = new DocsContentService(docsContentConfig);
 
       const migrateContent =
-        !(await Noco.ncDocsContent.knexConnection.schema.hasTable(
+        !(await this.ncDocsContent.knexConnection.schema.hasTable(
           MetaTable.DOC_CONTENT,
         ));
 
-      await Noco.ncDocsContent.init();
+      await this.ncDocsContent.init();
 
       if (migrateContent) {
         await this.migrateDocsContentFromMeta();
@@ -97,7 +97,7 @@ export default class Noco extends NocoCE {
     let hasMoreRecords = true;
 
     while (hasMoreRecords) {
-      const batch = await Noco.ncMeta
+      const batch = await this.ncMeta
         .knexConnection(MetaTable.CHAT_MESSAGES)
         .select('*')
         .orderBy('id', 'asc')
@@ -109,14 +109,21 @@ export default class Noco extends NocoCE {
         break;
       }
 
-      await Noco.ncChatMessages
+      await this.ncChatMessages
         .knexConnection(MetaTable.CHAT_MESSAGES)
         .insert(batch);
 
       processedCount += batch.length;
       offset += batchSize;
 
+      if (processedCount % 10000 === 0) {
+        logger.log(`Migrated ${processedCount} chat message records...`);
+      }
+
       if (batch.length < batchSize) {
+        logger.log(
+          `Migration of chat messages completed. Migrated ${processedCount} records.`,
+        );
         hasMoreRecords = false;
       }
     }
@@ -124,7 +131,7 @@ export default class Noco extends NocoCE {
 
   private static async migrateDocsContentFromMeta() {
     // Only migrate if nc_docs_v2 has a content column (pre-split schema)
-    const hasContentCol = await Noco.ncMeta.knexConnection.schema.hasColumn(
+    const hasContentCol = await this.ncMeta.knexConnection.schema.hasColumn(
       MetaTable.DOCS,
       'content',
     );
@@ -136,7 +143,7 @@ export default class Noco extends NocoCE {
     let hasMoreRecords = true;
 
     while (hasMoreRecords) {
-      const batch = await Noco.ncMeta
+      const batch = await this.ncMeta
         .knexConnection(MetaTable.DOCS)
         .select('id', 'base_id', 'fk_workspace_id', 'content')
         .whereNotNull('content')
@@ -157,7 +164,7 @@ export default class Noco extends NocoCE {
       }));
 
       if (contentRows.length > 0) {
-        await Noco.ncDocsContent
+        await this.ncDocsContent
           .knexConnection(MetaTable.DOC_CONTENT)
           .insert(contentRows);
       }
@@ -182,7 +189,7 @@ export default class Noco extends NocoCE {
     await this.migrateAuditTable(MetaTable.AUDIT);
 
     // This is commented out for safety - uncomment to clean up the source
-    // await Noco.ncMeta.knexConnection(MetaTable.AUDIT).del();
+    // await this.ncMeta.knexConnection(MetaTable.AUDIT).del();
     // console.log('Cleared audit records from ncMeta after successful migration.');
   }
 
@@ -196,7 +203,7 @@ export default class Noco extends NocoCE {
 
     while (hasMoreRecords) {
       // Fetch records in small batches with offset
-      const batch = await Noco.ncMeta
+      const batch = await this.ncMeta
         .knexConnection(table)
         .select('*')
         .orderBy('id', 'asc')
@@ -213,7 +220,7 @@ export default class Noco extends NocoCE {
       auditRecords.push(...batch);
 
       if (auditRecords.length > 0) {
-        await Noco.ncAudit.knexConnection(table).insert(auditRecords);
+        await this.ncAudit.knexConnection(table).insert(auditRecords);
       }
 
       processedCount += batch.length;

@@ -269,7 +269,7 @@ const closeTextArea = () => {
     </NcTooltip>
     <!-- Highlight colour picker — doc editor (embedMode) only -->
     <NcTooltip v-if="embedMode && !isEditColumn" :disabled="editor.isActive('codeBlock') || showHighlightPicker">
-      <template #title> {{ $t('general.highlight') }} </template>
+      <template #title> Highlight </template>
       <NcButton
         size="small"
         type="text"
@@ -278,24 +278,18 @@ const closeTextArea = () => {
         :disabled="editor.isActive('codeBlock')"
         @click="showHighlightPicker = !showHighlightPicker"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="m9 11-6 6v3h9l3-3" />
           <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
         </svg>
       </NcButton>
     </NcTooltip>
     <!-- Colour swatch dropdown — anchored to bubble-menu via position:absolute -->
-    <div v-if="embedMode && showHighlightPicker" class="nc-highlight-dropdown" @mousedown.prevent>
+    <div
+      v-if="embedMode && showHighlightPicker"
+      class="nc-highlight-dropdown"
+      @mousedown.prevent
+    >
       <div class="nc-highlight-grid">
         <button
           v-for="h in highlightColors"
@@ -308,8 +302,12 @@ const closeTextArea = () => {
         />
       </div>
       <!-- "Clear" only shown when a highlight is active on the selection -->
-      <button v-if="activeHighlightColor" class="nc-highlight-clear" @click="applyHighlight(activeHighlightColor)">
-        {{ $t('general.clear') }}
+      <button
+        v-if="activeHighlightColor"
+        class="nc-highlight-clear"
+        @click="applyHighlight(activeHighlightColor)"
+      >
+        Clear
       </button>
     </div>
 
@@ -623,8 +621,8 @@ const closeTextArea = () => {
   position: absolute;
   bottom: 0;
   transform: translateY(calc(100% + 4px)); // 4px gap below bubble-menu
-  background: var(--nc-bg-default);
-  border: 1px solid var(--nc-border-gray-medium);
+  background: white;
+  border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
@@ -649,7 +647,7 @@ const closeTextArea = () => {
     transform: scale(1.15);
   }
   &.is-active {
-    border-color: var(--nc-content-brand);
+    border-color: #3366ff;
   }
 }
 
@@ -658,15 +656,15 @@ const closeTextArea = () => {
   margin-top: 6px;
   padding: 3px 0;
   font-size: 11px;
-  color: var(--nc-content-gray-subtle);
+  color: #6b7280;
   background: none;
   border: none;
   cursor: pointer;
   text-align: center;
 
   &:hover {
-    color: var(--nc-content-gray);
-    background: var(--nc-bg-gray-light);
+    color: #1f2937;
+    background: #f3f4f6;
     border-radius: 4px;
   }
 }

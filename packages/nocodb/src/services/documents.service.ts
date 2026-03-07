@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType } from 'nocodb-sdk';
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Document } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 /**
@@ -84,6 +85,18 @@ export class DocumentsService {
       user: req.user,
     });
 
+    // Strip content to keep broadcast payload small (sidebar only needs title/meta/order)
+    const { content: _content, ...liteDoc } = doc;
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.DOCUMENT_EVENT,
+        payload: { id: doc.id, action: 'create', payload: liteDoc },
+      },
+      context.socket_id,
+    );
+
     return doc;
   }
 
@@ -143,6 +156,17 @@ export class DocumentsService {
       user: req.user,
     });
 
+    const { content: _content, ...liteDoc } = doc;
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.DOCUMENT_EVENT,
+        payload: { id: doc.id, action: 'update', payload: liteDoc },
+      },
+      context.socket_id,
+    );
+
     return doc;
   }
 
@@ -161,6 +185,15 @@ export class DocumentsService {
       doc,
       user: req.user,
     });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.DOCUMENT_EVENT,
+        payload: { id: doc.id, action: 'delete', payload: doc },
+      },
+      context.socket_id,
+    );
 
     return true;
   }
@@ -238,6 +271,34 @@ export class DocumentsService {
       doc: updated,
       user: req.user,
     });
+
+    const { content: _content, ...liteUpdated } = updated;
+
+    if ('parent_id' in payload) {
+      // Move — include old parent ID so frontend can update both parents' has_children
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.DOCUMENT_EVENT,
+          payload: {
+            id: updated.id,
+            action: 'move',
+            payload: liteUpdated,
+            oldParentId: doc.parent_id,
+          },
+        },
+        context.socket_id,
+      );
+    } else {
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.DOCUMENT_EVENT,
+          payload: { id: updated.id, action: 'update', payload: liteUpdated },
+        },
+        context.socket_id,
+      );
+    }
 
     return updated;
   }

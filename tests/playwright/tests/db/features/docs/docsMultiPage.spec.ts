@@ -19,7 +19,7 @@ async function createDocumentViaApi({
   title: string;
 }) {
   const response = await axios.post(
-    `http://localhost:8080/api/v1/internal/${workspaceId}/${baseId}`,
+    `http://localhost:8080/api/v2/internal/${workspaceId}/${baseId}`,
     {
       operation: 'documentCreate',
       title,

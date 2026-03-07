@@ -210,20 +210,20 @@ test.describe('Docs — Editor Content', () => {
     await page.keyboard.type('bold text');
 
     // Select all text
-    await page.keyboard.press('Meta+A');
+    await page.keyboard.press('ControlOrMeta+A');
 
     // Apply bold
-    await page.keyboard.press('Meta+B');
+    await page.keyboard.press('ControlOrMeta+B');
 
     // Verify bold
     await expect(tiptap.get().locator('strong')).toContainText('bold text');
 
     // Clear and type italic text
-    await page.keyboard.press('Meta+A');
+    await page.keyboard.press('ControlOrMeta+A');
     await page.keyboard.press('Backspace');
     await page.keyboard.type('italic text');
-    await page.keyboard.press('Meta+A');
-    await page.keyboard.press('Meta+I');
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('ControlOrMeta+I');
 
     // Verify italic
     await expect(tiptap.get().locator('em')).toContainText('italic text');

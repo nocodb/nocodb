@@ -23,12 +23,8 @@ export class DocsOpenedPagePage extends BasePage {
   async waitForRender() {
     await this.get().waitFor({ state: 'visible' });
     await this.get().getByTestId('docs-page-title').waitFor({ state: 'visible' });
-    // Wait for ProseMirror to mount AND become editable (Tiptap fully initialized)
-    await this.get()
-      .getByTestId('docs-page-content')
-      .locator('.ProseMirror[contenteditable="true"]')
-      .first()
-      .waitFor({ state: 'visible' });
+    // Also wait for the ProseMirror editor to mount
+    await this.get().getByTestId('docs-page-content').locator('.ProseMirror').waitFor({ state: 'visible' });
     await this.get()
       .getByTestId('docs-page-title')
       .elementHandle()
@@ -72,8 +68,7 @@ export class DocsOpenedPagePage extends BasePage {
     await this.rootPage.waitForTimeout(500);
 
     await this.waitForResponse({
-      uiAction: () =>
-        this.rootPage.getByTestId('nc-emoji-container').last().locator(`.nc-emoji-item >> svg`).first().click(),
+      uiAction: () => this.rootPage.locator('.emoji-mart-category .emoji-mart-emoji').first().click(),
       httpMethodsToMatch: ['POST'],
       requestUrlPathToMatch: `operation=documentUpdate`,
     });

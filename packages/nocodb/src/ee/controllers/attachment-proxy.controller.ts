@@ -16,6 +16,20 @@ import { isPreviewAllowed, localFileExists } from '~/helpers/attachmentHelpers';
 export class AttachmentProxyController {
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
+  /**
+   * Reject paths that escape the expected base directory via traversal segments.
+   * path.join normalises ".." but does NOT prevent escaping — we must verify the
+   * resolved path still starts with the expected prefix.
+   */
+  private sanitizeStoragePath(joined: string): string {
+    const resolved = path.resolve(joined);
+    const base = path.resolve('nc', 'uploads');
+    if (!resolved.startsWith(base + path.sep) && resolved !== base) {
+      throw new Error('Invalid attachment path');
+    }
+    return joined;
+  }
+
   @Get('/api/v2/data/bases/:baseId/docs/:docId/attachment/:fileId')
   @Acl('documentGet')
   async serveDocAttachment(
@@ -45,7 +59,9 @@ export class AttachmentProxyController {
       if (!isUrl) {
         // Convert local-style path (e.g. "download/noco/docs/file.png") to storage key
         const stripped = fileUrl.replace(/^download\//, '');
-        pathOrUrl = path.join('nc', 'uploads', stripped);
+        pathOrUrl = this.sanitizeStoragePath(
+          path.join('nc', 'uploads', stripped),
+        );
       }
 
       const signedUrl = await PresignedUrl.getSignedUrl({
@@ -62,7 +78,7 @@ export class AttachmentProxyController {
 
     try {
       const file = await this.attachmentsService.getFile({
-        path: path.join('nc', 'uploads', stripped),
+        path: this.sanitizeStoragePath(path.join('nc', 'uploads', stripped)),
       });
 
       if (!(await localFileExists(file.path))) {

@@ -37,7 +37,7 @@ const props = defineProps<{
 
 const docId = toRef(props, 'docId')
 
-provide('DocIdInj', docId)
+provide(DocIdInj, docId)
 
 const basesStore = useBases()
 const { activeProjectId, basesUser } = storeToRefs(basesStore)

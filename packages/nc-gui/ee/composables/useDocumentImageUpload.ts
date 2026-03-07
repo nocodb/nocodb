@@ -14,7 +14,7 @@ export function useDocumentImageUpload() {
   const { appInfo, token } = useGlobal()
 
   const base = inject(ProjectInj, ref())
-  const docId = inject<Ref<string>>('DocIdInj', ref(''))
+  const docId = inject(DocIdInj, ref(''))
 
   const uploadCount = ref(0)
   const isUploading = computed(() => uploadCount.value > 0)

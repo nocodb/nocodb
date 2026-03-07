@@ -511,7 +511,7 @@ export class ChatService implements OnModuleInit {
 
     // Restore loaded tool categories from session meta
     const loadedCategories = new Set<string>(
-      session.meta?.loadedCategories || [],
+      (session.meta as any)?.loadedCategories || [],
     );
 
     // Build tools — only default + previously loaded categories.

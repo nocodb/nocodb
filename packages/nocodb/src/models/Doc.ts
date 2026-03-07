@@ -122,23 +122,16 @@ export default class Doc implements DocType {
       'updated_by',
     ]);
 
-    // Stringify JSON fields for storage
-    if (insertObj.content && typeof insertObj.content === 'object') {
-      insertObj.content = JSON.stringify(insertObj.content);
-    }
-    if (insertObj.meta && typeof insertObj.meta === 'object') {
-      insertObj.meta = JSON.stringify(insertObj.meta);
-    }
-
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.DOCS, {
       base_id: context.base_id,
     });
 
+    // Stringify JSON fields (content + meta) for DB storage
     const insertResult = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
       MetaTable.DOCS,
-      insertObj,
+      prepareForDb(insertObj, ['meta', 'content']),
     );
 
     const id = insertResult?.id;
@@ -178,19 +171,12 @@ export default class Doc implements DocType {
       'updated_by',
     ]);
 
-    // Stringify JSON fields for storage
-    if (updateObj.content && typeof updateObj.content === 'object') {
-      updateObj.content = JSON.stringify(updateObj.content);
-    }
-    if (updateObj.meta && typeof updateObj.meta === 'object') {
-      updateObj.meta = JSON.stringify(updateObj.meta);
-    }
-
+    // Stringify JSON fields (content + meta) for DB storage
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.DOCS,
-      prepareForDb(updateObj),
+      prepareForDb(updateObj, ['meta', 'content']),
       docId,
     );
 
@@ -227,21 +213,12 @@ export default class Doc implements DocType {
   }
 
   /**
-   * Parse stringified JSON fields (content, meta) from DB row
+   * Parse stringified JSON fields (content, meta) from a DB row.
+   * Uses `prepareForResponse` for both fields — it's idempotent on
+   * already-parsed objects.
    */
   private static parseDoc(doc: any): any {
     if (!doc) return doc;
-
-    if (doc.content && typeof doc.content === 'string') {
-      try {
-        doc.content = JSON.parse(doc.content);
-      } catch {
-        doc.content = null;
-      }
-    }
-
-    prepareForResponse(doc);
-
-    return doc;
+    return prepareForResponse(doc, ['meta', 'content']);
   }
 }

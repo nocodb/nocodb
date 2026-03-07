@@ -471,7 +471,9 @@ const rolePermissions:
       aiUtils: true,
       aiData: true,
 
-      // Docs (Pages) — editors can modify existing pages
+      // Docs (Pages) — editors can modify existing pages but NOT create/delete.
+      // docCreate and docDelete are restricted to CREATOR+ (via exclude pattern)
+      // so that page lifecycle is controlled by project admins.
       docUpdate: true,
       docReorder: true,
 

@@ -1,6 +1,6 @@
 /**
  * Internal API GET operations for Documents.
- * Handles documentList (all documents in a base) and documentGet (single document by ID).
+ * Handles documentList and documentGet.
  */
 import { Injectable } from '@nestjs/common';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -34,8 +34,19 @@ export class DocumentsGetOperations
     },
   ): InternalGETResponseType {
     switch (operation) {
-      case 'documentList':
-        return await this.documentsService.list(context, context.base_id);
+      case 'documentList': {
+        // parent_id is required: 'null' = root docs, string = children of that doc
+        const rawParentId = req.query.parent_id as string | undefined;
+        if (rawParentId === undefined) {
+          NcError.badRequest('Missing required parameter: parent_id');
+        }
+        const parentId = rawParentId === 'null' ? null : rawParentId;
+        return await this.documentsService.list(
+          context,
+          context.base_id,
+          parentId,
+        );
+      }
       case 'documentGet': {
         const docId = req.query.docId as string;
         if (!docId) {

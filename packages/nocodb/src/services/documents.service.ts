@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import type { DocumentType } from 'nocodb-sdk';
 import { AppEvents } from 'nocodb-sdk';
+import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Document } from '~/models';
@@ -22,11 +22,12 @@ export class DocumentsService {
   constructor(protected readonly appHooksService: AppHooksService) {}
 
   /**
-   * List all documents in a base (lightweight — excludes content).
-   * Use `get()` to fetch full content for a single document.
+   * List documents in a base (lightweight — excludes content).
+   *
+   * @param parentId — `null` for root documents, doc ID for children of that doc.
    */
-  async list(context: NcContext, baseId: string) {
-    return await Document.listLite(context, baseId);
+  async list(context: NcContext, baseId: string, parentId: string | null) {
+    return await Document.listLite(context, baseId, parentId);
   }
 
   /** Fetch a single document with full content (ProseMirror JSON). */
@@ -53,10 +54,15 @@ export class DocumentsService {
 
     // Guard against oversized documents
     if (payload.content) {
-      const contentSize = Buffer.byteLength(JSON.stringify(payload.content), 'utf8');
+      const contentSize = Buffer.byteLength(
+        JSON.stringify(payload.content),
+        'utf8',
+      );
       if (contentSize > MAX_DOC_CONTENT_SIZE) {
         NcError.badRequest(
-          `Document content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,
+          `Document content exceeds maximum size (${Math.round(
+            MAX_DOC_CONTENT_SIZE / 1024 / 1024,
+          )}MB)`,
         );
       }
     }
@@ -108,10 +114,15 @@ export class DocumentsService {
 
     // Guard against oversized documents
     if (payload.content) {
-      const contentSize = Buffer.byteLength(JSON.stringify(payload.content), 'utf8');
+      const contentSize = Buffer.byteLength(
+        JSON.stringify(payload.content),
+        'utf8',
+      );
       if (contentSize > MAX_DOC_CONTENT_SIZE) {
         NcError.badRequest(
-          `Document content exceeds maximum size (${Math.round(MAX_DOC_CONTENT_SIZE / 1024 / 1024)}MB)`,
+          `Document content exceeds maximum size (${Math.round(
+            MAX_DOC_CONTENT_SIZE / 1024 / 1024,
+          )}MB)`,
         );
       }
     }
@@ -135,14 +146,14 @@ export class DocumentsService {
     return doc;
   }
 
-  /** Permanently delete a document and remove it from cache. */
+  /** Soft-delete a document (and cascade to descendants). */
   async delete(context: NcContext, docId: string, req: NcRequest) {
     const doc = await Document.get(context, docId);
     if (!doc) {
       NcError.get(context).genericNotFound('Document', docId);
     }
 
-    await Document.delete(context, docId);
+    await Document.softDelete(context, docId);
 
     this.appHooksService.emit(AppEvents.DOCUMENT_DELETE, {
       context,
@@ -155,19 +166,23 @@ export class DocumentsService {
   }
 
   /**
-   * Update document sort order.
+   * Update document sort order and optionally move to a different parent.
    *
    * Intentionally does NOT bump `version` — reorder is a metadata-only
    * change that shouldn't conflict with concurrent content edits. The
    * client's cached version remains valid for subsequent content saves.
    *
+   * When `parent_id` is provided (even `null` for root), the document
+   * is re-parented — with circular-reference validation.
+   *
    * @param order - Absolute sort-order value (float). The frontend
    *   computes a midpoint between neighbours for fractional ordering.
+   * @param parent_id - Optional new parent document ID (null = root).
    */
   async reorder(
     context: NcContext,
     docId: string,
-    payload: { order: number },
+    payload: { order: number; parent_id?: string | null },
     req: NcRequest,
   ) {
     const doc = await Document.get(context, docId);
@@ -175,7 +190,47 @@ export class DocumentsService {
       NcError.get(context).genericNotFound('Document', docId);
     }
 
-    const updated = await Document.update(context, docId, { order: payload.order });
+    const updateFields: Partial<DocumentType> = { order: payload.order };
+
+    // If parent_id is explicitly provided (even null = move to root), validate and apply
+    if ('parent_id' in payload) {
+      const targetParentId = payload.parent_id ?? null;
+
+      if (targetParentId) {
+        const parent = await Document.get(context, targetParentId);
+        if (!parent) {
+          NcError.badRequest('Target parent document not found');
+        }
+        if (parent.base_id !== doc.base_id) {
+          NcError.badRequest('Cannot move document to a different base');
+        }
+        if (targetParentId === docId) {
+          NcError.badRequest('Cannot move document under itself');
+        }
+        const descendantIds = await Document.getDescendantIds(context, docId);
+        if (descendantIds.includes(targetParentId)) {
+          NcError.badRequest('Cannot move document under its own descendant');
+        }
+      }
+
+      updateFields.parent_id = targetParentId;
+    }
+
+    let updated: DocumentType;
+
+    // Use Document.move() when parent changes (maintains has_children),
+    // Document.update() for order-only changes.
+    if ('parent_id' in payload) {
+      updated = await Document.move(
+        context,
+        docId,
+        updateFields.parent_id ?? null,
+        updateFields.order,
+        req.user.id,
+      );
+    } else {
+      updated = await Document.update(context, docId, updateFields);
+    }
 
     this.appHooksService.emit(AppEvents.DOCUMENT_UPDATE, {
       context,

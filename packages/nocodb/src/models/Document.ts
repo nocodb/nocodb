@@ -28,6 +28,8 @@ export default class Document implements DocumentType {
   meta: Record<string, any>;
   order: number;
   parent_id: string | null;
+  has_children: boolean;
+  deleted: boolean;
   version: number;
   created_by: string;
   updated_by: string;
@@ -51,7 +53,7 @@ export default class Document implements DocumentType {
         context.workspace_id,
         context.base_id,
         MetaTable.DOCS,
-        docId,
+        { id: docId, deleted: false },
       );
 
       if (doc) {
@@ -67,59 +69,16 @@ export default class Document implements DocumentType {
     return doc && new Document(doc);
   }
 
-  public static async list(
-    context: NcContext,
-    baseId: string,
-    ncMeta = Noco.ncMeta,
-  ) {
-    const cachedList = await NocoCache.getList(context, CacheScope.DOCUMENT, [
-      baseId,
-    ]);
-    let { list: docList } = cachedList;
-
-    if (!cachedList.isNoneList && !docList.length) {
-      docList = await ncMeta.metaList2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.DOCS,
-        {
-          condition: {
-            base_id: baseId,
-          },
-          orderBy: {
-            order: 'asc',
-          },
-        },
-      );
-
-      await NocoCache.setList(
-        context,
-        CacheScope.DOCUMENT,
-        [baseId],
-        docList,
-        ['id'],
-      );
-    }
-
-    // Parse stringified JSON fields — DB rows and cache entries may
-    // contain content/meta as strings. parseDocument is idempotent on
-    // already-parsed objects.
-    return docList.map((doc) => new Document(this.parseDocument(doc)));
-  }
-
   /**
-   * Lightweight list for sidebar/list views — excludes `content` to
-   * avoid transferring large ProseMirror JSON payloads for every document.
-   * Full content is fetched separately via `get()` when opening the editor.
+   * Lightweight list for sidebar — excludes `content` to avoid
+   * transferring large ProseMirror JSON payloads.
    *
-   * Unlike `list()`, this queries DB directly with a fields list to
-   * avoid fetching potentially large ProseMirror JSON content columns.
-   * It intentionally bypasses the list cache (which stores full docs)
-   * to keep memory usage low for sidebar use.
+   * @param parentId — `null` for root documents, doc ID for children of that doc.
    */
   public static async listLite(
     context: NcContext,
     baseId: string,
+    parentId: string | null,
     ncMeta = Noco.ncMeta,
   ) {
     const liteFields = [
@@ -130,6 +89,7 @@ export default class Document implements DocumentType {
       'meta',
       'order',
       'parent_id',
+      'has_children',
       'version',
       'created_by',
       'updated_by',
@@ -144,6 +104,8 @@ export default class Document implements DocumentType {
       {
         condition: {
           base_id: baseId,
+          deleted: false,
+          parent_id: parentId,
         },
         orderBy: {
           order: 'asc',
@@ -173,6 +135,7 @@ export default class Document implements DocumentType {
 
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.DOCS, {
       base_id: context.base_id,
+      parent_id: insertObj.parent_id ?? null,
     });
 
     // Stringify JSON fields (content + meta) for DB storage
@@ -187,6 +150,11 @@ export default class Document implements DocumentType {
 
     if (!id) {
       NcError.badRequest('Failed to create document');
+    }
+
+    // Mark parent as having children
+    if (insertObj.parent_id) {
+      await this.setHasChildren(context, insertObj.parent_id, true, ncMeta);
     }
 
     const res = await this.get(context, id, ncMeta);
@@ -252,13 +220,178 @@ export default class Document implements DocumentType {
 
     // Remove from both individual cache and parent list
     const key = `${CacheScope.DOCUMENT}:${docId}`;
-    await NocoCache.deepDel(
-      context,
-      key,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
+    await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
 
     return true;
+  }
+
+  public static async softDelete(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // Read parent_id before deleting
+    const doc = await this.get(context, docId, ncMeta);
+    const parentId = doc?.parent_id;
+
+    // Cascade: soft-delete all descendants first
+    await this.cascadeSoftDelete(context, docId, ncMeta);
+
+    // Soft-delete the document itself
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      { deleted: true },
+      docId,
+    );
+
+    const key = `${CacheScope.DOCUMENT}:${docId}`;
+    await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
+
+    // Update parent's has_children if it no longer has active children
+    if (parentId) {
+      await this.refreshHasChildren(context, parentId, ncMeta);
+    }
+  }
+
+  private static async cascadeSoftDelete(
+    context: NcContext,
+    parentId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const children = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        condition: { parent_id: parentId, deleted: false },
+        fields: ['id'],
+      },
+    );
+
+    for (const child of children) {
+      await this.cascadeSoftDelete(context, child.id, ncMeta);
+
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.DOCS,
+        { deleted: true },
+        child.id,
+      );
+
+      const key = `${CacheScope.DOCUMENT}:${child.id}`;
+      await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
+    }
+  }
+
+  public static async getDescendantIds(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<string[]> {
+    const result: string[] = [];
+
+    const collect = async (parentId: string) => {
+      const children = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.DOCS,
+        {
+          condition: { parent_id: parentId, deleted: false },
+          fields: ['id'],
+        },
+      );
+
+      for (const child of children) {
+        result.push(child.id);
+        await collect(child.id);
+      }
+    };
+
+    await collect(docId);
+    return result;
+  }
+
+  public static async move(
+    context: NcContext,
+    docId: string,
+    targetParentId: string | null,
+    order: number,
+    userId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    // Read old parent before moving
+    const doc = await this.get(context, docId, ncMeta);
+    const oldParentId = doc?.parent_id;
+
+    const updateObj = {
+      parent_id: targetParentId,
+      order,
+      updated_by: userId,
+    };
+
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      updateObj,
+      docId,
+    );
+
+    const key = `${CacheScope.DOCUMENT}:${docId}`;
+    await NocoCache.del(context, key);
+
+    // Update has_children on new parent
+    if (targetParentId) {
+      await this.setHasChildren(context, targetParentId, true, ncMeta);
+    }
+
+    // Update has_children on old parent (may no longer have children)
+    if (oldParentId && oldParentId !== targetParentId) {
+      await this.refreshHasChildren(context, oldParentId, ncMeta);
+    }
+
+    return await this.get(context, docId, ncMeta);
+  }
+
+  /** Set has_children on a document (unconditional). */
+  private static async setHasChildren(
+    context: NcContext,
+    docId: string,
+    value: boolean,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      { has_children: value },
+      docId,
+    );
+
+    const key = `${CacheScope.DOCUMENT}:${docId}`;
+    await NocoCache.del(context, key);
+  }
+
+  /** Recompute has_children for a document by checking if it has active children. */
+  private static async refreshHasChildren(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const children = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        condition: { parent_id: docId, deleted: false },
+        fields: ['id'],
+      },
+    );
+
+    await this.setHasChildren(context, docId, children.length > 0, ncMeta);
   }
 
   /**

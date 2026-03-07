@@ -6,7 +6,9 @@ export interface DocumentType {
   content?: Record<string, any>; // ProseMirror JSON document
   meta?: Record<string, any>; // icon, cover, lock, settings
   order?: number;
-  parent_id?: string | null; // Future nesting support
+  parent_id?: string | null;
+  deleted?: boolean;
+  has_children?: boolean;
   version?: number;
   created_by?: string;
   updated_by?: string;

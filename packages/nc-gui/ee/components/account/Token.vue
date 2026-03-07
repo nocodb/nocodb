@@ -34,6 +34,8 @@ const allTokens = ref<IApiTokenInfo[]>([])
 const currentPage = ref(1)
 const currentLimit = ref(10)
 const showWizard = ref(false)
+const showEditModal = ref(false)
+const editingToken = ref<IApiTokenInfo | null>(null)
 const isLoadingAllTokens = ref(true)
 const isModalOpen = ref(false)
 const tokenToDeleteId = ref('')
@@ -52,7 +54,6 @@ const loadV3Tokens = async (): Promise<IApiTokenInfo[]> => {
     })
     return (response?.list || []) as IApiTokenInfo[]
   } catch {
-    // V3 not available — fall back to V1
     return []
   }
 }
@@ -77,10 +78,8 @@ const loadAllTokens = async (limit = pagination.total) => {
 const loadTokens = async (page = currentPage.value, limit = currentLimit.value) => {
   currentPage.value = page
   try {
-    // Use V3 API to get fine-grained metadata (scopes, permissions, token_prefix)
     const v3List = await loadV3Tokens()
     if (v3List.length || page === 1) {
-      // V3 returns all tokens (no pagination yet) — apply client-side pagination
       const allItems = v3List
       pagination.total = allItems.length
       const start = (page - 1) * limit
@@ -92,7 +91,6 @@ const loadTokens = async (page = currentPage.value, limit = currentLimit.value) 
       return
     }
 
-    // Fallback to V1
     const response: any = await api.orgTokens.list({
       query: {
         limit,
@@ -121,7 +119,6 @@ loadTokens()
 
 const deleteToken = async () => {
   try {
-    // Use V3 API for deletion (handles scope cleanup)
     await api.request({
       path: `/api/v3/meta/tokens/${tokenToDeleteId.value}`,
       method: 'DELETE',
@@ -172,91 +169,108 @@ const toggleEnabled = async (token: IApiTokenInfo) => {
 }
 
 const onWizardCreated = () => {
-  // Don't close modal — let user see the token in the result step.
-  // Modal closes when user clicks "Done" (which emits 'cancel').
   loadTokens()
   loadAllTokens(pagination.total + 1)
 }
 
+const openEditModal = (token: IApiTokenInfo) => {
+  editingToken.value = token
+  showEditModal.value = true
+}
+
+const onEditSaved = () => {
+  showEditModal.value = false
+  editingToken.value = null
+  loadTokens()
+}
+
+const onEditCancel = () => {
+  showEditModal.value = false
+  editingToken.value = null
+}
+
 const getScopeSummary = (token: IApiTokenInfo) => {
-  if (!token.scopes?.length) return 'Org'
+  if (!token.scopes?.length) return 'Org-wide'
   const count = token.scopes.length
   const types = [...new Set(token.scopes.map((s) => s.resource_type))]
   if (types.length === 1 && types[0] === 'base') {
     return count === 1 ? '1 base' : `${count} bases`
   }
-  return `${count} resources`
-}
-
-const getScopeBadgeColor = (token: IApiTokenInfo) => {
-  if (!token.scopes?.length) return 'default'
-  const types = [...new Set(token.scopes.map((s) => s.resource_type))]
-  if (types.includes('workspace')) return 'purple'
-  return 'blue'
+  return count === 1 ? '1 resource' : `${count} resources`
 }
 
 const getPermissionsSummary = (token: IApiTokenInfo) => {
-  // Check permissions from first scope
   const perms = token.scopes?.[0]?.permissions
   if (!perms) return 'Full access'
 
-  const parts: string[] = []
-  for (const [key, value] of Object.entries(perms)) {
-    if (value === 'none') continue
-    const label = key.charAt(0).toUpperCase() + key.slice(1)
-    const level = value === 'write' ? 'RW' : 'R'
-    parts.push(`${label}: ${level}`)
-  }
+  const writeCount = Object.values(perms).filter((v) => v === 'write').length
+  const readCount = Object.values(perms).filter((v) => v === 'read').length
+  const total = Object.keys(perms).length
 
-  if (!parts.length) return 'No permissions'
-  if (parts.length <= 2) return parts.join(', ')
-  return `${parts.slice(0, 2).join(', ')}, +${parts.length - 2} more`
+  if (writeCount === total) return 'Full access'
+  if (writeCount === 0 && readCount === 0) return 'No access'
+  if (writeCount === 0) return 'Read-only'
+  return 'Custom'
 }
 
 const getExpiryDisplay = (token: IApiTokenInfo) => {
-  if (!token.expiry) return '-'
+  if (!token.expiry) return 'No expiry'
   const date = new Date(token.expiry)
   const now = new Date()
   const diff = date.getTime() - now.getTime()
   const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
 
   if (days < 0) return 'Expired'
-  if (days === 0) return 'Today'
-  if (days === 1) return 'Tomorrow'
-  return `${days}d`
+  if (days === 0) return 'Expires today'
+  if (days === 1) return 'Expires tomorrow'
+  if (days <= 30) return `Expires in ${days}d`
+  if (days < 365) return `Expires in ${Math.floor(days / 30)}mo`
+  return `Expires in ${Math.floor(days / 365)}y`
 }
 
-const getExpiryColor = (token: IApiTokenInfo) => {
-  if (!token.expiry) return ''
-  const date = new Date(token.expiry)
-  const now = new Date()
-  const diff = date.getTime() - now.getTime()
-  const days = Math.ceil(diff / (1000 * 60 * 60 * 24))
-
-  if (days < 0) return 'text-red-600'
-  if (days < 7) return 'text-red-500'
-  if (days < 30) return 'text-yellow-600'
-  return 'text-nc-content-gray-muted'
+const isExpired = (token: IApiTokenInfo) => {
+  if (!token.expiry) return false
+  return new Date(token.expiry) < new Date()
 }
 
-const getRelativeTime = (dateStr: string | undefined) => {
-  if (!dateStr) return 'Never'
-  const date = new Date(dateStr)
-  const now = new Date()
-  const diff = now.getTime() - date.getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return 'Just now'
-  if (mins < 60) return `${mins}m ago`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  if (days < 30) return `${days}d ago`
-  return date.toLocaleDateString()
+const isExpiringSoon = (token: IApiTokenInfo) => {
+  if (!token.expiry) return false
+  const days = Math.ceil((new Date(token.expiry).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  return days >= 0 && days < 7
 }
 
 const isFineGrained = (token: IApiTokenInfo) => {
   return !!(token.scopes?.length) || !!token.expiry || !!token.token_prefix
 }
+
+const getRelativeTime = (dateStr: string) => {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (days === 0) return 'today'
+  if (days === 1) return 'yesterday'
+  if (days < 30) return `${days}d ago`
+  if (days < 365) return `${Math.floor(days / 30)}mo ago`
+  return `${Math.floor(days / 365)}y ago`
+}
+
+const columns = computed<NcTableColumnProps[]>(() => [
+  {
+    key: 'token',
+    title: t('title.tokenName'),
+    minWidth: 220,
+    dataIndex: 'title',
+  },
+  {
+    key: 'action',
+    title: t('labels.actions'),
+    width: 130,
+    minWidth: 130,
+    justify: 'justify-end',
+  },
+])
 </script>
 
 <template>
@@ -271,145 +285,150 @@ const isFineGrained = (token: IApiTokenInfo) => {
     </NcPageHeader>
 
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
-      <div class="max-w-250 mx-auto h-full w-full" data-testid="nc-token-list">
-        <div class="flex gap-4 items-baseline justify-between">
-          <h6 class="text-xl text-left font-bold my-0 text-nc-content-gray" data-rec="true">{{ $t('title.apiTokens') }}</h6>
+      <div class="max-w-195 mx-auto h-full w-full" data-testid="nc-token-list">
+        <div class="flex gap-4 items-center justify-between">
+          <h6 class="text-xl font-bold my-0 text-nc-content-gray" data-rec="true">{{ $t('title.apiTokens') }}</h6>
           <NcButton
-            class="!rounded-md"
             data-testid="nc-token-create"
-            size="middle"
+            size="small"
             type="primary"
             @click="showWizard = true"
           >
-            <span data-rec="true">{{ $t('title.addNewToken') }}</span>
+            <div class="flex items-center gap-1" data-rec="true">
+              <component :is="iconMap.plus" />
+              {{ $t('title.addNewToken') }}
+            </div>
           </NcButton>
         </div>
-        <span data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
 
-        <!-- Token List -->
-        <div v-if="!isLoadingAllTokens && tokens.length" class="mt-6">
-          <div class="rounded-md border overflow-hidden">
-            <!-- Header -->
-            <div class="flex w-full bg-nc-bg-gray-extralight border-b px-4">
-              <span class="py-3 text-nc-content-gray-muted font-medium text-xs w-[18%]">Name</span>
-              <span class="py-3 text-nc-content-gray-muted font-medium text-xs w-[10%]">Scope</span>
-              <span class="py-3 text-nc-content-gray-muted font-medium text-xs w-[22%]">Permissions</span>
-              <span class="py-3 text-nc-content-gray-muted font-medium text-xs w-[10%]">Expires</span>
-              <span class="py-3 text-nc-content-gray-muted font-medium text-xs w-[12%]">Last Used</span>
-              <span class="py-3 text-nc-content-gray-muted font-medium text-xs w-[13%]">Token</span>
-              <span class="py-3 text-nc-content-gray-muted font-medium text-xs w-[15%] text-right">Actions</span>
-            </div>
+        <span class="text-sm text-nc-content-gray-muted" data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
 
-            <!-- Rows -->
-            <div
-              v-for="el in tokens"
-              :key="el.id"
-              class="flex items-center w-full px-4 py-2.5 border-b last:border-b-0 hover:bg-nc-bg-gray-extralight/30"
-              data-testid="nc-token-row"
-            >
-              <!-- Name -->
-              <div class="w-[18%] flex items-center gap-2">
-                <span class="text-sm font-medium text-nc-content-gray-extreme truncate">{{ el.title || el.description }}</span>
-                <NcTooltip v-if="el.fk_sso_client_id" placement="top">
-                  <template #title>SSO-generated token</template>
-                  <NcBadge color="orange" class="!text-[10px] !py-0 !px-1">SSO</NcBadge>
-                </NcTooltip>
-              </div>
-
-              <!-- Scope -->
-              <div class="w-[10%]" data-testid="nc-token-scope">
-                <NcBadge :color="getScopeBadgeColor(el)" class="!text-[10px]">
-                  {{ getScopeSummary(el) }}
-                </NcBadge>
-              </div>
-
-              <!-- Permissions -->
-              <div class="w-[22%]" data-testid="nc-token-permissions">
-                <span class="text-xs text-nc-content-gray-muted truncate">
-                  {{ getPermissionsSummary(el) }}
-                </span>
-              </div>
-
-              <!-- Expires -->
-              <div class="w-[10%]" data-testid="nc-token-expiry">
-                <span class="text-xs" :class="getExpiryColor(el)">
-                  {{ getExpiryDisplay(el) }}
-                </span>
-              </div>
-
-              <!-- Last Used -->
-              <div class="w-[12%]">
-                <span class="text-xs text-nc-content-gray-muted">
-                  {{ getRelativeTime(el.last_used_at) }}
-                </span>
-              </div>
-
-              <!-- Token prefix -->
-              <div class="w-[13%]">
-                <span v-if="el.token_prefix" class="text-xs text-nc-content-gray-muted font-mono">
-                  {{ el.token_prefix }}...
-                </span>
-                <span v-else-if="el.token" class="text-xs text-nc-content-gray-muted font-mono">
-                  {{ el.token?.substring(0, 12) }}...
-                </span>
-                <span v-else class="text-xs text-nc-content-gray-muted">-</span>
-              </div>
-
-              <!-- Actions -->
-              <div class="w-[15%] flex items-center justify-end gap-2">
-                <NcTooltip v-if="isFineGrained(el)" placement="top">
-                  <template #title>{{ el.enabled === false ? 'Enable' : 'Disable' }}</template>
-                  <a-switch
-                    :checked="el.enabled !== false"
-                    size="small"
-                    data-testid="nc-token-toggle-enabled"
-                    @change="toggleEnabled(el)"
-                  />
-                </NcTooltip>
-                <NcTooltip v-if="el.token" placement="top">
-                  <template #title>Copy token</template>
-                  <component
-                    :is="iconMap.copy"
-                    class="cursor-pointer w-4 h-4 text-nc-content-gray-subtle2 hover:text-nc-content-gray"
-                    @click="copyToken(el.token)"
-                  />
-                </NcTooltip>
-                <NcTooltip placement="top">
-                  <template #title>Delete</template>
-                  <component
-                    :is="iconMap.delete"
-                    class="cursor-pointer w-4 h-4 text-nc-content-gray-subtle2 hover:text-red-500"
-                    data-testid="nc-token-row-action-icon"
-                    @click="triggerDeleteModal(el)"
-                  />
-                </NcTooltip>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Empty state -->
-        <div
-          v-else-if="!isLoadingAllTokens && !tokens.length"
-          class="max-w-[40rem] border px-3 py-6 flex flex-col items-center justify-center gap-6 text-center mt-6"
+        <NcTable
+          :columns="columns"
+          :data="tokens"
+          :is-data-loading="isLoadingAllTokens"
+          body-row-class-name="group"
+          class="h-[calc(100%-58px)] mt-6"
         >
-          <img src="~assets/img/placeholder/api-tokens.png" class="!w-[22rem] flex-none" />
-          <div class="text-2xl text-nc-content-gray font-bold">{{ $t('placeholder.noTokenCreated') }}</div>
-          <div class="text-sm text-nc-content-gray-subtle">{{ $t('placeholder.noTokenCreatedLabel') }}</div>
-          <NcButton class="!rounded-lg !py-3 !h-10" type="primary" @click="showWizard = true">
-            {{ $t('title.createNewToken') }}
-          </NcButton>
-        </div>
+          <template #bodyCell="{ column, record: el }">
+            <!-- Token name + details -->
+            <div v-if="column.key === 'token'" class="w-full flex gap-3 items-center" data-testid="nc-token-row">
+              <div
+                class="w-2 h-2 rounded-full flex-none"
+                :class="el.enabled === false ? 'bg-gray-300' : 'bg-green-500'"
+              />
+              <div class="flex flex-col flex-1 min-w-0">
+                <div class="flex items-center gap-1.5">
+                  <NcTooltip class="text-sm !leading-5 text-nc-content-gray font-semibold truncate" show-on-truncate-only>
+                    <template #title>{{ el.title || el.description }}</template>
+                    {{ el.title || el.description }}
+                  </NcTooltip>
+                  <NcBadge
+                    v-if="el.fk_sso_client_id"
+                    :border="false"
+                    color="orange"
+                    class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  >
+                    SSO
+                  </NcBadge>
+                  <NcBadge
+                    v-if="el.enabled === false"
+                    :border="false"
+                    color="gray"
+                    class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  >
+                    Disabled
+                  </NcBadge>
+                </div>
+                <div class="text-xs !leading-4 text-nc-content-gray-subtle2 truncate" data-testid="nc-token-scope">
+                  <span v-if="el.token_prefix" class="font-mono">{{ el.token_prefix }}…</span>
+                  <span v-if="el.token_prefix" class="mx-1">·</span>
+                  <span data-testid="nc-token-permissions">{{ getPermissionsSummary(el) }}</span>
+                  <span class="mx-1">·</span>
+                  <span>{{ getScopeSummary(el) }}</span>
+                  <span class="mx-1">·</span>
+                  <span
+                    data-testid="nc-token-expiry"
+                    :class="{
+                      'text-nc-content-red-medium': isExpired(el),
+                      'text-nc-content-orange-medium': isExpiringSoon(el) && !isExpired(el),
+                    }"
+                  >{{ getExpiryDisplay(el) }}</span>
+                  <template v-if="el.created_at">
+                    <span class="mx-1">·</span>
+                    <span>Created {{ getRelativeTime(el.created_at) }}</span>
+                  </template>
+                </div>
+              </div>
+            </div>
 
-        <!-- Pagination -->
-        <div v-if="pagination.total > 10" class="flex items-center justify-center mt-5">
-          <a-pagination
-            v-model:current="currentPage"
-            :total="pagination.total"
-            show-less-items
-            @change="loadTokens(currentPage, currentLimit)"
-          />
-        </div>
+            <!-- Actions -->
+            <div v-if="column.key === 'action'" class="flex items-center gap-2">
+              <NcTooltip v-if="isFineGrained(el)" placement="top">
+                <template #title>{{ el.enabled === false ? 'Enable' : 'Disable' }}</template>
+                <a-switch
+                  :checked="el.enabled !== false"
+                  size="small"
+                  data-testid="nc-token-toggle-enabled"
+                  @change="toggleEnabled(el)"
+                />
+              </NcTooltip>
+
+              <NcDropdown :trigger="['click']" placement="bottomRight">
+                <NcButton size="xsmall" type="ghost" data-testid="nc-token-row-action-icon">
+                  <component
+                    :is="iconMap.threeDotVertical"
+                    class="text-nc-content-gray-subtle2 h-5.5 w-5.5 rounded outline-0 p-0.5 transform transition-transform !text-gray-400 cursor-pointer hover:(!text-nc-content-inverted-secondary-disabled bg-nc-bg-gray-light)"
+                  />
+                </NcButton>
+
+                <template #overlay>
+                  <NcMenu variant="small">
+                    <NcMenuItem
+                      v-if="isFineGrained(el)"
+                      data-testid="nc-token-row-edit-icon"
+                      @click="openEditModal(el)"
+                    >
+                      <component :is="iconMap.edit" class="flex text-nc-content-gray-subtle2" />
+                      <div>Edit</div>
+                    </NcMenuItem>
+                    <NcMenuItem v-if="el.token" @click="copyToken(el.token)">
+                      <component :is="iconMap.copy" class="flex text-nc-content-gray-subtle2" />
+                      <div data-rec="true">{{ $t('general.copy') }} token</div>
+                    </NcMenuItem>
+                    <NcDivider />
+                    <NcMenuItem danger @click="triggerDeleteModal(el)">
+                      <MaterialSymbolsDeleteOutlineRounded />
+                      {{ $t('general.delete') }}
+                    </NcMenuItem>
+                  </NcMenu>
+                </template>
+              </NcDropdown>
+            </div>
+          </template>
+
+          <template #extraRow>
+            <div
+              v-if="!isLoadingAllTokens && !tokens.length"
+              class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center"
+            >
+              <div class="text-2xl text-nc-content-gray font-bold">{{ $t('placeholder.noTokenCreated') }}</div>
+              <div class="text-sm text-nc-content-gray-subtle">{{ $t('placeholder.noTokenCreatedLabel') }}</div>
+              <img src="~assets/img/placeholder/api-tokens.png" class="!w-[22rem] flex-none" />
+            </div>
+          </template>
+
+          <template #tableFooter>
+            <div v-if="pagination.total > 10" class="px-4 py-2 flex items-center justify-center">
+              <a-pagination
+                v-model:current="currentPage"
+                :total="pagination.total"
+                show-less-items
+                @change="loadTokens(currentPage, currentLimit)"
+              />
+            </div>
+          </template>
+        </NcTable>
       </div>
 
       <!-- Create Wizard Modal -->
@@ -424,6 +443,23 @@ const isFineGrained = (token: IApiTokenInfo) => {
         <AccountTokenCreateWizard @created="onWizardCreated" @cancel="showWizard = false" />
       </a-modal>
 
+      <!-- Edit Modal -->
+      <a-modal
+        v-model:visible="showEditModal"
+        :footer="null"
+        :closable="false"
+        width="640px"
+        :mask-closable="false"
+        :destroy-on-close="true"
+      >
+        <AccountTokenEditModal
+          v-if="editingToken"
+          :token="editingToken"
+          @saved="onEditSaved"
+          @cancel="onEditCancel"
+        />
+      </a-modal>
+
       <!-- Delete Confirmation -->
       <GeneralDeleteModal
         v-model:visible="isModalOpen"
@@ -434,7 +470,10 @@ const isFineGrained = (token: IApiTokenInfo) => {
           <span>
             <div class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4">
               <GeneralIcon icon="key" class="nc-view-icon" />
-              <div class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75" style="word-break: keep-all; white-space: nowrap; display: inline">
+              <div
+                class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
+                :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
+              >
                 {{ tokenToDeleteDesc }}
               </div>
             </div>

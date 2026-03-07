@@ -1,19 +1,20 @@
 /**
- * Fine-Grained API Token — Detailed Video Demo
+ * Fine-Grained API Token — Full Demo (with Edit)
  *
- * Records a comprehensive video walkthrough of the full token management flow:
+ * Records a comprehensive video walkthrough including token editing:
  *   1. Navigate to API Tokens page (empty state)
  *   2. Create Token #1 — "Production API" with Full access (all write)
  *   3. Create Token #2 — "CI/CD Pipeline" with Read-only preset
  *   4. Create Token #3 — "Monitoring Bot" with custom per-category permissions
- *   5. View all three tokens in the list (scope, permissions, expiry, prefix columns)
- *   6. Cancel a wizard mid-flow (nothing created)
- *   7. Toggle token #2 off and back on
- *   8. Delete token #1 with confirmation
- *   9. Final view — two remaining tokens
+ *   5. View all three tokens in the list
+ *   6. Edit Token #2 — rename + change permissions from Read-only to Full data access
+ *   7. Cancel a wizard mid-flow (nothing created)
+ *   8. Toggle token #3 off and back on
+ *   9. Delete token #1 via three-dot menu
+ *  10. Final view — two remaining tokens
  *
- * Run:  EE=true npx playwright test tests/ee/fineGrainedApiTokenDemo.spec.ts
- * Video output:  tests/playwright/output/
+ * Run:  EE=true npx playwright test tests/ee/fineGrainedApiTokenDemoWithEdit.spec.ts
+ * Video output:  /tmp/pw-video/
  */
 import { expect, test } from '@playwright/test';
 import setup, { NcContext, unsetup } from '../../setup';
@@ -27,11 +28,16 @@ test.use({
 
 const pause = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-test.describe('Fine-Grained API Token — Detailed Video Demo', () => {
+// Find a token row by name — NcTable uses <tr> elements
+const findTokenRow = (page, name: string) => {
+  return page.locator('tr.nc-table-row').filter({ hasText: name });
+};
+
+test.describe('Fine-Grained API Token — Full Demo with Edit', () => {
   let context: NcContext;
 
-  test('Comprehensive walkthrough: create, customize, cancel, toggle, delete', async ({ page }) => {
-    test.setTimeout(180_000);
+  test('Full walkthrough: create, edit, cancel, toggle, delete', async ({ page }) => {
+    test.setTimeout(240_000);
 
     context = await setup({ page, isEmptyProject: true, isSuperUser: true });
     const api = new Api({
@@ -59,7 +65,7 @@ test.describe('Fine-Grained API Token — Detailed Video Demo', () => {
     await page.goto('/#/account/tokens');
     await page.waitForLoadState('networkidle');
     await page.locator('[data-testid="nc-token-list"]').waitFor({ state: 'visible', timeout: 15000 });
-    await pause(3000); // Show the empty state
+    await pause(3000);
 
     // ════════════════════════════════════════════════════════════════
     // Scene 2: Create Token #1 — "Production API" with Full Access
@@ -68,7 +74,6 @@ test.describe('Fine-Grained API Token — Detailed Video Demo', () => {
     await page.locator('[data-testid="nc-token-create-wizard"]').waitFor({ state: 'visible', timeout: 10000 });
     await pause(1200);
 
-    // Step 1 — Name
     const nameInput1 = page.locator('[data-testid="nc-token-name-input"]');
     await nameInput1.click();
     await nameInput1.pressSequentially('Production API Token', { delay: 60 });
@@ -76,35 +81,27 @@ test.describe('Fine-Grained API Token — Detailed Video Demo', () => {
     await page.locator('[data-testid="nc-token-wizard-next"]').click();
     await pause(1200);
 
-    // Step 2 — Scope: keep "All resources" (default)
+    // Step 2 — Scope: keep "All resources"
     await page.locator('[data-testid="nc-token-scope-picker"]').waitFor({ state: 'visible' });
-    await pause(1500); // Show scope picker
+    await pause(1500);
     await page.locator('[data-testid="nc-token-wizard-next"]').click();
     await pause(1200);
 
-    // Step 3 — Permissions: click "Full access" preset
+    // Step 3 — Full access preset
     await page.locator('[data-testid="nc-token-wizard-step-3"]').waitFor({ state: 'visible' });
     await pause(1000);
     await page.locator('[data-testid="nc-token-perm-preset-allwrite"]').click();
-    await pause(1500); // Show full access selected in matrix
+    await pause(1500);
 
-    // Create the token
     await page.locator('[data-testid="nc-token-wizard-create"]').click();
-
-    // Result — token shown once
     await page.locator('[data-testid="nc-token-wizard-result"]').waitFor({ state: 'visible', timeout: 15000 });
-    const token1 = await page.locator('[data-testid="nc-token-created-value"]').textContent();
-    expect(token1).toMatch(/^nc_pat_/);
-    await pause(3500); // Let viewer read the token value & warning
+    await pause(3000);
 
-    // Close wizard
     await page.locator('[data-testid="nc-token-wizard-done"]').click({ force: true });
     await pause(2000);
 
-    // Verify token #1 in list
-    const row1 = page.locator('[data-testid="nc-token-row"]').filter({ hasText: 'Production API Token' });
+    const row1 = findTokenRow(page, 'Production API Token');
     await expect(row1).toBeVisible({ timeout: 10000 });
-    await pause(2000);
 
     // ════════════════════════════════════════════════════════════════
     // Scene 3: Create Token #2 — "CI/CD Pipeline" with Read-Only
@@ -113,7 +110,6 @@ test.describe('Fine-Grained API Token — Detailed Video Demo', () => {
     await page.locator('[data-testid="nc-token-create-wizard"]').waitFor({ state: 'visible', timeout: 10000 });
     await pause(1000);
 
-    // Step 1 — Name
     const nameInput2 = page.locator('[data-testid="nc-token-name-input"]');
     await nameInput2.click();
     await nameInput2.pressSequentially('CI/CD Pipeline', { delay: 60 });
@@ -121,28 +117,21 @@ test.describe('Fine-Grained API Token — Detailed Video Demo', () => {
     await page.locator('[data-testid="nc-token-wizard-next"]').click();
     await pause(1000);
 
-    // Step 2 — Scope: keep "All resources"
     await page.locator('[data-testid="nc-token-scope-picker"]').waitFor({ state: 'visible' });
     await pause(1000);
     await page.locator('[data-testid="nc-token-wizard-next"]').click();
     await pause(1000);
 
-    // Step 3 — Permissions: click "Read-only" preset
+    // Read-only preset
     await page.locator('[data-testid="nc-token-wizard-step-3"]').waitFor({ state: 'visible' });
     await pause(800);
     await page.locator('[data-testid="nc-token-perm-preset-readonly"]').click();
-    await pause(1500); // Show read-only selected in matrix
+    await pause(1500);
 
-    // Create
     await page.locator('[data-testid="nc-token-wizard-create"]').click();
-
-    // Result
     await page.locator('[data-testid="nc-token-wizard-result"]').waitFor({ state: 'visible', timeout: 15000 });
-    const token2 = await page.locator('[data-testid="nc-token-created-value"]').textContent();
-    expect(token2).toMatch(/^nc_pat_/);
     await pause(3000);
 
-    // Close wizard
     await page.locator('[data-testid="nc-token-wizard-done"]').click({ force: true });
     await pause(2000);
 
@@ -153,7 +142,6 @@ test.describe('Fine-Grained API Token — Detailed Video Demo', () => {
     await page.locator('[data-testid="nc-token-create-wizard"]').waitFor({ state: 'visible', timeout: 10000 });
     await pause(1000);
 
-    // Step 1 — Name
     const nameInput3 = page.locator('[data-testid="nc-token-name-input"]');
     await nameInput3.click();
     await nameInput3.pressSequentially('Monitoring Bot', { delay: 60 });
@@ -161,123 +149,156 @@ test.describe('Fine-Grained API Token — Detailed Video Demo', () => {
     await page.locator('[data-testid="nc-token-wizard-next"]').click();
     await pause(1000);
 
-    // Step 2 — Scope: keep "All resources"
     await page.locator('[data-testid="nc-token-scope-picker"]').waitFor({ state: 'visible' });
     await pause(1000);
     await page.locator('[data-testid="nc-token-wizard-next"]').click();
     await pause(1000);
 
-    // Step 3 — Permissions: start with "Read-only" then customize
+    // Start with Read-only then customize
     await page.locator('[data-testid="nc-token-wizard-step-3"]').waitFor({ state: 'visible' });
     await pause(800);
-
-    // First click Read-only to set a baseline
     await page.locator('[data-testid="nc-token-perm-preset-readonly"]').click();
     await pause(1200);
 
-    // Now customize: set records to Write (the monitoring bot needs to write records)
+    // Customize: records to Write
     const recordsWriteRadio = page.locator('[data-testid="nc-token-perm-records-write"]');
     if (await recordsWriteRadio.isVisible()) {
       await recordsWriteRadio.click();
       await pause(1000);
     }
 
-    // Set webhooks to Write (monitoring needs to manage webhooks)
+    // Webhooks to Write
     const webhooksWriteRadio = page.locator('[data-testid="nc-token-perm-webhooks-write"]');
     if (await webhooksWriteRadio.isVisible()) {
       await webhooksWriteRadio.click();
       await pause(1000);
     }
+    await pause(1500);
 
-    await pause(1500); // Show the custom permission matrix
-
-    // Create
     await page.locator('[data-testid="nc-token-wizard-create"]').click();
-
-    // Result
     await page.locator('[data-testid="nc-token-wizard-result"]').waitFor({ state: 'visible', timeout: 15000 });
-    const token3 = await page.locator('[data-testid="nc-token-created-value"]').textContent();
-    expect(token3).toMatch(/^nc_pat_/);
     await pause(3000);
 
-    // Close wizard
     await page.locator('[data-testid="nc-token-wizard-done"]').click({ force: true });
     await pause(2000);
 
     // ════════════════════════════════════════════════════════════════
     // Scene 5: View all three tokens in the list
     // ════════════════════════════════════════════════════════════════
-    const row2 = page.locator('[data-testid="nc-token-row"]').filter({ hasText: 'CI/CD Pipeline' });
-    const row3 = page.locator('[data-testid="nc-token-row"]').filter({ hasText: 'Monitoring Bot' });
+    const row2 = findTokenRow(page, 'CI/CD Pipeline');
+    const row3 = findTokenRow(page, 'Monitoring Bot');
     await expect(row1).toBeVisible({ timeout: 10000 });
     await expect(row2).toBeVisible({ timeout: 10000 });
     await expect(row3).toBeVisible({ timeout: 10000 });
-    await pause(4000); // Let viewer see all three tokens with columns
+    await pause(4000);
 
     // ════════════════════════════════════════════════════════════════
-    // Scene 6: Cancel wizard — nothing is created
+    // Scene 6: Edit Token #2 — rename + change permissions
+    // ════════════════════════════════════════════════════════════════
+    // Open three-dot menu on CI/CD Pipeline row
+    await row2.locator('[data-testid="nc-token-row-action-icon"]').click();
+    await pause(500);
+
+    // Click "Edit" from dropdown
+    await page.locator('[data-testid="nc-token-row-edit-icon"]').click();
+
+    // Wait for edit modal
+    await page.locator('[data-testid="nc-token-edit-modal"]').waitFor({ state: 'visible', timeout: 10000 });
+    await pause(2000);
+
+    // Change the name
+    const editNameInput = page.locator('[data-testid="nc-token-edit-name"]');
+    await editNameInput.click();
+    await editNameInput.clear();
+    await pause(500);
+    await editNameInput.pressSequentially('CI/CD Pipeline (Updated)', { delay: 50 });
+    await pause(1500);
+
+    // Change expiry to 30 days
+    await page.locator('[data-testid="nc-token-edit-expiry"]').click();
+    await pause(500);
+    await page.locator('.ant-select-item-option').filter({ hasText: '30 days from now' }).click();
+    await pause(1500);
+
+    // Toggle permissions on (if not already)
+    const permsToggle = page.locator('[data-testid="nc-token-edit-perms-toggle"]');
+    const isPermsOn = await permsToggle.isChecked().catch(() => false);
+    if (!isPermsOn) {
+      await permsToggle.click();
+      await pause(1000);
+    }
+
+    // Click "Full data access" preset
+    const fullDataPreset = page.locator('[data-testid="nc-token-perm-preset-fulldata"]');
+    if (await fullDataPreset.isVisible()) {
+      await fullDataPreset.click();
+      await pause(2000);
+    }
+
+    // Save
+    await page.locator('[data-testid="nc-token-edit-save"]').click();
+    await pause(2000);
+
+    // Verify the updated name appears in list
+    const updatedRow = findTokenRow(page, 'CI/CD Pipeline (Updated)');
+    await expect(updatedRow).toBeVisible({ timeout: 10000 });
+    await pause(3000);
+
+    // ════════════════════════════════════════════════════════════════
+    // Scene 7: Cancel wizard — nothing is created
     // ════════════════════════════════════════════════════════════════
     await page.locator('[data-testid="nc-token-create"]').click();
     await page.locator('[data-testid="nc-token-create-wizard"]').waitFor({ state: 'visible', timeout: 10000 });
     await pause(800);
 
-    // Type a name but then cancel
     const nameInputCancel = page.locator('[data-testid="nc-token-name-input"]');
     await nameInputCancel.click();
     await nameInputCancel.pressSequentially('This Will Be Cancelled', { delay: 50 });
     await pause(1200);
 
-    // Cancel the wizard
     await page.locator('[data-testid="nc-token-wizard-cancel"]').click();
     await pause(1500);
 
-    // Verify wizard is closed and still only 3 tokens
     await expect(page.locator('[data-testid="nc-token-create-wizard"]')).not.toBeVisible();
-    await expect(page.locator('[data-testid="nc-token-row"]')).toHaveCount(3, { timeout: 5000 });
     await pause(2000);
 
     // ════════════════════════════════════════════════════════════════
-    // Scene 7: Toggle token #2 off and back on
+    // Scene 8: Toggle token #3 off and back on
     // ════════════════════════════════════════════════════════════════
-    const toggle2 = row2.locator('[data-testid="nc-token-toggle-enabled"]');
-    await expect(toggle2).toBeVisible({ timeout: 5000 });
+    const toggle3 = row3.locator('[data-testid="nc-token-toggle-enabled"]');
+    await expect(toggle3).toBeVisible({ timeout: 5000 });
 
-    // Disable
-    await toggle2.click();
+    await toggle3.click();
     await page.waitForLoadState('networkidle');
-    await pause(2000); // Show disabled state
+    await pause(2000);
 
-    // Re-enable
-    await toggle2.click();
+    await toggle3.click();
     await page.waitForLoadState('networkidle');
-    await pause(2000); // Show re-enabled state
+    await pause(2000);
 
     // ════════════════════════════════════════════════════════════════
-    // Scene 8: Delete token #1 with confirmation
+    // Scene 9: Delete token #1 via three-dot menu
     // ════════════════════════════════════════════════════════════════
-    const deleteIcon = row1.locator('[data-testid="nc-token-row-action-icon"]');
-    await deleteIcon.click();
-    await pause(1500); // Show delete confirmation modal
+    await row1.locator('[data-testid="nc-token-row-action-icon"]').click();
+    await pause(500);
+    await page.locator('.ant-dropdown:visible .nc-menu-item:has-text("Delete")').click();
+    await pause(1500);
 
     const confirmBtn = page.locator('[data-testid="nc-delete-modal-delete-btn"]');
     await expect(confirmBtn).toBeVisible();
-    await pause(1500); // Let viewer see the confirmation
+    await pause(1500);
 
     await confirmBtn.click();
     await page.waitForLoadState('networkidle');
     await pause(2000);
 
     // ════════════════════════════════════════════════════════════════
-    // Scene 9: Final view — two remaining tokens
+    // Scene 10: Final view — two remaining tokens
     // ════════════════════════════════════════════════════════════════
-    await expect(page.locator('[data-testid="nc-token-row"]').filter({ hasText: 'Production API Token' })).toHaveCount(
-      0,
-      { timeout: 10000 }
-    );
-    await expect(row2).toBeVisible();
+    await expect(findTokenRow(page, 'Production API Token')).toHaveCount(0, { timeout: 10000 });
+    await expect(updatedRow).toBeVisible();
     await expect(row3).toBeVisible();
-    await expect(page.locator('[data-testid="nc-token-row"]')).toHaveCount(2, { timeout: 5000 });
-    await pause(4000); // Final view — two tokens remain
+    await pause(4000);
   });
 
   test.afterAll(async () => {

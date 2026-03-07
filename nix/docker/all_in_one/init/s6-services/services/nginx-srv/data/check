@@ -1,3 +1,0 @@
-#!/bin/execlineb -P
-
-test -f /run/nginx/nginx.pid

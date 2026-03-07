@@ -166,6 +166,43 @@ export class DocsSidebarPage extends BasePage {
     return await activeNode.getByTestId('sidebar-doc-title').textContent();
   }
 
+  async createSubDocument({ baseTitle, parentTitle }: { baseTitle: string; parentTitle: string }) {
+    await this.ensureDocsTab();
+
+    const node = this.documentNodeLocator({ baseTitle, title: parentTitle });
+
+    await node.hover();
+    await node.getByTestId('docs-sidebar-page-options').click();
+
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.getByTestId(`sidebar-doc-create-sub-${parentTitle}`).click(),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `operation=documentCreate`,
+    });
+
+    // Wait for navigation to the newly created sub-document
+    await this.sidebar.dashboard.docs.openedPage.waitForRender();
+    // Extra wait for editor to settle after navigation
+    await this.rootPage.waitForTimeout(500);
+  }
+
+  async duplicateDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
+    await this.ensureDocsTab();
+
+    const node = this.documentNodeLocator({ baseTitle, title });
+
+    await node.hover();
+    await node.getByTestId('docs-sidebar-page-options').click();
+
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.getByTestId(`sidebar-doc-duplicate-${title}`).click(),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `operation=documentCreate`,
+    });
+
+    await this.rootPage.waitForTimeout(500);
+  }
+
   async verifyCreateDocumentButtonVisibility({ baseTitle, isVisible }: { baseTitle: string; isVisible: boolean }) {
     await this.ensureDocsTab();
     if (isVisible) {

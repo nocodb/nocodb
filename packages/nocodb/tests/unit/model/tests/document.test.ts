@@ -71,6 +71,38 @@ function documentTests() {
       expect(doc1.order).to.be.lessThan(doc2.order);
       expect(doc2.order).to.be.lessThan(doc3.order);
     });
+
+    it('should insert a sub-document with parent_id', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+      const child = await createDocument(ctx, { title: 'Child', parent_id: parent.id });
+
+      expect(child.parent_id).to.equal(parent.id);
+      expect(child.base_id).to.equal(parent.base_id);
+    });
+
+    it('should set has_children on parent when inserting a child', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+
+      // Before adding children, parent should not have has_children
+      const parentBefore = await Document.get(ctx, parent.id);
+      expect(parentBefore.has_children).to.not.be.ok;
+
+      await createDocument(ctx, { title: 'Child', parent_id: parent.id });
+
+      const parentAfter = await Document.get(ctx, parent.id);
+      expect(parentAfter.has_children).to.be.ok;
+    });
+
+    it('should auto-increment order independently per parent', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+
+      const rootDoc = await createDocument(ctx, { title: 'Root Doc' });
+      const child1 = await createDocument(ctx, { title: 'Child 1', parent_id: parent.id });
+      const child2 = await createDocument(ctx, { title: 'Child 2', parent_id: parent.id });
+
+      // Children should be ordered independently of root docs
+      expect(child1.order).to.be.lessThan(child2.order);
+    });
   });
 
   // ── Document.get ─────────────────────────────────────────────────
@@ -102,6 +134,14 @@ function documentTests() {
 
     it('should return undefined for non-existent ID', async () => {
       const fetched = await Document.get(ctx, 'nonexistent_id_12345');
+      expect(fetched).to.be.undefined;
+    });
+
+    it('should not return soft-deleted documents', async () => {
+      const doc = await createDocument(ctx, { title: 'To Soft Delete' });
+      await Document.softDelete(ctx, doc.id);
+
+      const fetched = await Document.get(ctx, doc.id);
       expect(fetched).to.be.undefined;
     });
   });
@@ -145,6 +185,36 @@ function documentTests() {
 
       expect(list[0].content).to.be.an('object');
       expect(list[0].content.type).to.equal('doc');
+    });
+
+    it('should filter by parentId — root only when null', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+      await createDocument(ctx, { title: 'Child', parent_id: parent.id });
+
+      const rootDocs = await Document.list(ctx, base.id, null);
+      expect(rootDocs).to.have.lengthOf(1);
+      expect(rootDocs[0].title).to.equal('Parent');
+    });
+
+    it('should filter by parentId — children only', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+      await createDocument(ctx, { title: 'Child A', parent_id: parent.id });
+      await createDocument(ctx, { title: 'Child B', parent_id: parent.id });
+
+      const children = await Document.list(ctx, base.id, parent.id);
+      expect(children).to.have.lengthOf(2);
+      expect(children.map((d) => d.title).sort()).to.deep.equal(['Child A', 'Child B']);
+    });
+
+    it('should not include soft-deleted documents', async () => {
+      const doc1 = await createDocument(ctx, { title: 'Alive' });
+      const doc2 = await createDocument(ctx, { title: 'Deleted' });
+
+      await Document.softDelete(ctx, doc2.id);
+
+      const list = await Document.list(ctx, base.id);
+      expect(list).to.have.lengthOf(1);
+      expect(list[0].title).to.equal('Alive');
     });
   });
 
@@ -190,6 +260,26 @@ function documentTests() {
       const liteList = await Document.listLite(ctx, base.id);
 
       expect(liteList).to.have.lengthOf(fullList.length);
+    });
+
+    it('should filter by parentId', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+      await createDocument(ctx, { title: 'Child 1', parent_id: parent.id });
+      await createDocument(ctx, { title: 'Child 2', parent_id: parent.id });
+
+      const rootList = await Document.listLite(ctx, base.id, null);
+      expect(rootList).to.have.lengthOf(1);
+
+      const childList = await Document.listLite(ctx, base.id, parent.id);
+      expect(childList).to.have.lengthOf(2);
+    });
+
+    it('should include has_children field', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+      await createDocument(ctx, { title: 'Child', parent_id: parent.id });
+
+      const list = await Document.listLite(ctx, base.id, null);
+      expect(list[0].has_children).to.be.ok;
     });
   });
 
@@ -282,6 +372,145 @@ function documentTests() {
       const list = await Document.list(ctx, base.id);
       expect(list).to.have.lengthOf(1);
       expect(list[0].id).to.equal(doc1.id);
+    });
+  });
+
+  // ── Document.softDelete ─────────────────────────────────────────
+
+  describe('Document.softDelete', () => {
+    it('should soft-delete a document (not visible in list)', async () => {
+      const doc = await createDocument(ctx, { title: 'Soft Delete Me' });
+
+      await Document.softDelete(ctx, doc.id);
+
+      const list = await Document.list(ctx, base.id);
+      expect(list).to.have.lengthOf(0);
+    });
+
+    it('should cascade soft-delete to all descendants', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const child = await createDocument(ctx, { title: 'Child', parent_id: root.id });
+      const grandchild = await createDocument(ctx, { title: 'Grandchild', parent_id: child.id });
+
+      await Document.softDelete(ctx, root.id);
+
+      // All three should be gone
+      expect(await Document.get(ctx, root.id)).to.be.undefined;
+      expect(await Document.get(ctx, child.id)).to.be.undefined;
+      expect(await Document.get(ctx, grandchild.id)).to.be.undefined;
+    });
+
+    it('should update parent has_children after soft-deleting only child', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+      const child = await createDocument(ctx, { title: 'Only Child', parent_id: parent.id });
+
+      // Parent should have has_children before delete
+      let parentDoc = await Document.get(ctx, parent.id);
+      expect(parentDoc.has_children).to.be.ok;
+
+      await Document.softDelete(ctx, child.id);
+
+      // Parent should no longer have has_children
+      parentDoc = await Document.get(ctx, parent.id);
+      expect(parentDoc.has_children).to.not.be.ok;
+    });
+
+    it('should keep parent has_children if siblings remain', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+      const child1 = await createDocument(ctx, { title: 'Child 1', parent_id: parent.id });
+      const child2 = await createDocument(ctx, { title: 'Child 2', parent_id: parent.id });
+
+      await Document.softDelete(ctx, child1.id);
+
+      const parentDoc = await Document.get(ctx, parent.id);
+      expect(parentDoc.has_children).to.be.ok;
+    });
+  });
+
+  // ── Document.getDescendantIds ───────────────────────────────────
+
+  describe('Document.getDescendantIds', () => {
+    it('should return empty array for leaf document', async () => {
+      const leaf = await createDocument(ctx, { title: 'Leaf' });
+
+      const ids = await Document.getDescendantIds(ctx, leaf.id);
+      expect(ids).to.be.an('array').with.lengthOf(0);
+    });
+
+    it('should return direct children IDs', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+      const child1 = await createDocument(ctx, { title: 'Child 1', parent_id: parent.id });
+      const child2 = await createDocument(ctx, { title: 'Child 2', parent_id: parent.id });
+
+      const ids = await Document.getDescendantIds(ctx, parent.id);
+      expect(ids).to.have.lengthOf(2);
+      expect(ids).to.include(child1.id);
+      expect(ids).to.include(child2.id);
+    });
+
+    it('should return deep descendants recursively', async () => {
+      const root = await createDocument(ctx, { title: 'Root' });
+      const child = await createDocument(ctx, { title: 'Child', parent_id: root.id });
+      const grandchild = await createDocument(ctx, { title: 'Grandchild', parent_id: child.id });
+      const greatGrandchild = await createDocument(ctx, { title: 'Great-Grandchild', parent_id: grandchild.id });
+
+      const ids = await Document.getDescendantIds(ctx, root.id);
+      expect(ids).to.have.lengthOf(3);
+      expect(ids).to.include(child.id);
+      expect(ids).to.include(grandchild.id);
+      expect(ids).to.include(greatGrandchild.id);
+    });
+  });
+
+  // ── Document.move ───────────────────────────────────────────────
+
+  describe('Document.move', () => {
+    it('should move a root document under a parent', async () => {
+      const doc = await createDocument(ctx, { title: 'Mover' });
+      const target = await createDocument(ctx, { title: 'Target Parent' });
+
+      const moved = await Document.move(ctx, doc.id, target.id, 1, 'test-user');
+
+      expect(moved.parent_id).to.equal(target.id);
+
+      const targetDoc = await Document.get(ctx, target.id);
+      expect(targetDoc.has_children).to.be.ok;
+    });
+
+    it('should move a child document to root', async () => {
+      const parent = await createDocument(ctx, { title: 'Parent' });
+      const child = await createDocument(ctx, { title: 'Child', parent_id: parent.id });
+
+      const moved = await Document.move(ctx, child.id, null, 99, 'test-user');
+
+      expect(moved.parent_id).to.be.null;
+
+      // Old parent should no longer have children
+      const parentDoc = await Document.get(ctx, parent.id);
+      expect(parentDoc.has_children).to.not.be.ok;
+    });
+
+    it('should update order on move', async () => {
+      const doc = await createDocument(ctx, { title: 'Doc' });
+      const target = await createDocument(ctx, { title: 'Target' });
+
+      const moved = await Document.move(ctx, doc.id, target.id, 42.5, 'test-user');
+
+      expect(moved.order).to.equal(42.5);
+    });
+
+    it('should move between parents and update both has_children', async () => {
+      const parentA = await createDocument(ctx, { title: 'Parent A' });
+      const parentB = await createDocument(ctx, { title: 'Parent B' });
+      const child = await createDocument(ctx, { title: 'Child', parent_id: parentA.id });
+
+      await Document.move(ctx, child.id, parentB.id, 1, 'test-user');
+
+      const parentADoc = await Document.get(ctx, parentA.id);
+      const parentBDoc = await Document.get(ctx, parentB.id);
+
+      expect(parentADoc.has_children).to.not.be.ok;
+      expect(parentBDoc.has_children).to.be.ok;
     });
   });
 }

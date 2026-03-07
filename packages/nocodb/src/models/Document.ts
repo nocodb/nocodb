@@ -38,6 +38,7 @@ export default class Document implements DocumentType {
   updated_by: string;
   created_at: string;
   updated_at: string;
+  comment_count?: number;
 
   constructor(doc: Document | DocumentType) {
     Object.assign(this, doc);

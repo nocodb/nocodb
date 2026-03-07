@@ -14,6 +14,7 @@ export interface DocumentType {
   updated_by?: string;
   created_at?: string;
   updated_at?: string;
+  comment_count?: number;
 }
 
 /** @deprecated Use DocumentType instead */

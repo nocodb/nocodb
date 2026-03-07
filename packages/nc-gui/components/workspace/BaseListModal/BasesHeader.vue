@@ -89,7 +89,13 @@ const clearFilter = () => {
       </div>
 
       <div class="flex items-center flex-row-reverse md:flex-row gap-2">
-        <WorkspaceCreateProjectBtn :workspace-id="selectedWorkspaceId ?? undefined" type="primary" placement="bottomRight">
+        <WorkspaceCreateProjectBtn
+          :workspace-id="selectedWorkspaceId ?? undefined"
+          type="primary"
+          placement="bottomRight"
+          centered
+          inner-class="children:justify-center"
+        >
           <div class="flex items-center gap-1.5">
             <GeneralIcon icon="plus" />
             <span class="hidden sm:inline">{{ $t('title.newProj') }}</span>

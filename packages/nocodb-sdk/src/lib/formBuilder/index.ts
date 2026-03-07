@@ -225,6 +225,23 @@ export interface FormBuilderOAuthMeta {
 }
 
 /**
+ * Responsive span as an array of up to 3 values: [sm, md, lg].
+ *
+ * - Index 0 → sm (mobile)
+ * - Index 1 → md (tablet)  — falls back to sm if omitted
+ * - Index 2 → lg (desktop) — falls back to md, then sm if omitted
+ *
+ * Use `0` to hide the field at a specific breakpoint.
+ *
+ * Examples:
+ * - [24]         → full width on all screens
+ * - [24, 12]     → full on mobile, half on tablet+
+ * - [24, 12, 8]  → full on mobile, half on tablet, third on desktop
+ * - [0, 12]      → hidden on mobile, half width on tablet+
+ */
+export type FormBuilderResponsiveSpan = [number, number?, number?];
+
+/**
  * Base interface for all form builder elements
  */
 interface FormBuilderElementBase {
@@ -240,16 +257,33 @@ interface FormBuilderElementBase {
    * Number of grid columns this field should span.
    *
    * Uses a 24-column layout system:
-   * - span: 24 → full width
-   * - span: 12 → half width
-   * - span: 8  → one-third width
-   * - span: 6  → one-quarter width
+   * - 24 → full width
+   * - 12 → half width
+   * - 8  → one-third width
+   * - 6  → one-quarter width
    *
+   * Accepts a single number (applied to all screens) or a responsive
+   * array of up to 3 values: `[sm, md?, lg?]`.
+   *
+   * @example
+   * // Fixed span — half width on all screens
+   * span: 12
+   *
+   * // Responsive — full on mobile, half on tablet, third on desktop
+   * span: [24, 12, 8]
+   *
+   * // Responsive — full on mobile, half on tablet+ (lg inherits md)
+   * span: [24, 12]
+   *
+   * // Hidden on mobile, 12-col spacer on tablet+
+   * span: [0, 12]
+   *
+   * Breakpoints: sm (mobile <640px), md (tablet 640–1024px), lg (desktop >1024px).
+   * Use `0` to hide the field at a specific breakpoint.
+   * Omitted breakpoints inherit from the next smaller one, falling back to 24.
    * If not specified, defaults to full width (24).
-   *
-   * This allows consistent responsive layout instead of relying on `width` percentages.
    */
-  span?: number;
+  span?: number | FormBuilderResponsiveSpan;
   // description for the element
   description?: string;
   /** Category for grouping elements - same category elements are grouped together */

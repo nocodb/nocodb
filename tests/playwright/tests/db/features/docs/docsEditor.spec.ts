@@ -218,7 +218,7 @@ test.describe('Docs — Editor Content', () => {
     await page.keyboard.press('ControlOrMeta+B');
 
     // Verify bold
-    await expect(tiptap.get().locator('strong')).toContainText('bold text');
+    await tiptap.verifyTextFormatting({ index: 0, text: 'bold text', formatType: 'bold' });
 
     // Clear and type italic text
     await paragraph.click({ clickCount: 3 });
@@ -228,6 +228,15 @@ test.describe('Docs — Editor Content', () => {
     await page.keyboard.press('ControlOrMeta+I');
 
     // Verify italic
-    await expect(tiptap.get().locator('em')).toContainText('italic text');
+    await tiptap.verifyTextFormatting({ index: 0, text: 'italic text', formatType: 'italic' });
+
+    // Clear and type strikethrough text
+    await tiptap.clearContent();
+    await page.keyboard.type('strikethrough text');
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('ControlOrMeta+Shift+S');
+
+    // Verify strikethrough
+    await tiptap.verifyTextFormatting({ index: 0, text: 'strikethrough text', formatType: 'strike' });
   });
 });

@@ -30,7 +30,7 @@ on:
 
 jobs:
   cloud-docker-build:
-    runs-on: ubicloud-standard-2
+    runs-on: ubicloud-standard-16
     env:
       working-directory: ./packages/nocodb
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}

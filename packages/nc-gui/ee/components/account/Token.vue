@@ -44,8 +44,26 @@ const pagination = reactive({
   pageSize: 10,
 })
 
+const loadV3Tokens = async (): Promise<IApiTokenInfo[]> => {
+  try {
+    const response: any = await api.request({
+      path: '/api/v3/meta/tokens',
+      method: 'GET',
+    })
+    return (response?.list || []) as IApiTokenInfo[]
+  } catch {
+    // V3 not available — fall back to V1
+    return []
+  }
+}
+
 const loadAllTokens = async (limit = pagination.total) => {
   try {
+    const v3List = await loadV3Tokens()
+    if (v3List.length) {
+      allTokens.value = v3List
+      return
+    }
     const response: any = await api.orgTokens.list({
       query: { limit },
     } as RequestParams)
@@ -59,6 +77,22 @@ const loadAllTokens = async (limit = pagination.total) => {
 const loadTokens = async (page = currentPage.value, limit = currentLimit.value) => {
   currentPage.value = page
   try {
+    // Use V3 API to get fine-grained metadata (scopes, permissions, token_prefix)
+    const v3List = await loadV3Tokens()
+    if (v3List.length || page === 1) {
+      // V3 returns all tokens (no pagination yet) — apply client-side pagination
+      const allItems = v3List
+      pagination.total = allItems.length
+      const start = (page - 1) * limit
+      tokens.value = allItems.slice(start, start + limit)
+
+      if (!allTokens.value.length) {
+        allTokens.value = allItems
+      }
+      return
+    }
+
+    // Fallback to V1
     const response: any = await api.orgTokens.list({
       query: {
         limit,
@@ -241,7 +275,7 @@ const isFineGrained = (token: IApiTokenInfo) => {
           <h6 class="text-xl text-left font-bold my-0 text-nc-content-gray" data-rec="true">{{ $t('title.apiTokens') }}</h6>
           <NcButton
             class="!rounded-md"
-            data-testid="nc-token-create-top"
+            data-testid="nc-token-create"
             size="middle"
             type="primary"
             @click="showWizard = true"
@@ -270,10 +304,11 @@ const isFineGrained = (token: IApiTokenInfo) => {
               v-for="el in tokens"
               :key="el.id"
               class="flex items-center w-full px-4 py-2.5 border-b last:border-b-0 hover:bg-nc-bg-gray-extralight/30"
+              data-testid="nc-token-row"
             >
               <!-- Name -->
               <div class="w-[18%] flex items-center gap-2">
-                <span class="text-sm font-medium text-nc-content-gray-extreme truncate">{{ el.description || el.title }}</span>
+                <span class="text-sm font-medium text-nc-content-gray-extreme truncate">{{ el.title || el.description }}</span>
                 <NcTooltip v-if="el.fk_sso_client_id" placement="top">
                   <template #title>SSO-generated token</template>
                   <NcBadge color="orange" class="!text-[10px] !py-0 !px-1">SSO</NcBadge>
@@ -281,21 +316,21 @@ const isFineGrained = (token: IApiTokenInfo) => {
               </div>
 
               <!-- Scope -->
-              <div class="w-[10%]">
+              <div class="w-[10%]" data-testid="nc-token-scope">
                 <NcBadge :color="getScopeBadgeColor(el)" class="!text-[10px]">
                   {{ getScopeSummary(el) }}
                 </NcBadge>
               </div>
 
               <!-- Permissions -->
-              <div class="w-[22%]">
+              <div class="w-[22%]" data-testid="nc-token-permissions">
                 <span class="text-xs text-nc-content-gray-muted truncate">
                   {{ getPermissionsSummary(el) }}
                 </span>
               </div>
 
               <!-- Expires -->
-              <div class="w-[10%]">
+              <div class="w-[10%]" data-testid="nc-token-expiry">
                 <span class="text-xs" :class="getExpiryColor(el)">
                   {{ getExpiryDisplay(el) }}
                 </span>
@@ -326,6 +361,7 @@ const isFineGrained = (token: IApiTokenInfo) => {
                   <a-switch
                     :checked="el.enabled !== false"
                     size="small"
+                    data-testid="nc-token-toggle-enabled"
                     @change="toggleEnabled(el)"
                   />
                 </NcTooltip>
@@ -342,6 +378,7 @@ const isFineGrained = (token: IApiTokenInfo) => {
                   <component
                     :is="iconMap.delete"
                     class="cursor-pointer w-4 h-4 text-nc-content-gray-subtle2 hover:text-red-500"
+                    data-testid="nc-token-row-action-icon"
                     @click="triggerDeleteModal(el)"
                   />
                 </NcTooltip>
@@ -376,7 +413,7 @@ const isFineGrained = (token: IApiTokenInfo) => {
 
       <!-- Create Wizard Modal -->
       <a-modal
-        v-model:open="showWizard"
+        v-model:visible="showWizard"
         :footer="null"
         :closable="false"
         width="640px"

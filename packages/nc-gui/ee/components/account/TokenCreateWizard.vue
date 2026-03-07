@@ -142,7 +142,7 @@ const close = () => {
 </script>
 
 <template>
-  <div class="nc-token-create-wizard">
+  <div class="nc-token-create-wizard" data-testid="nc-token-create-wizard">
     <!-- Steps indicator -->
     <div v-if="currentStep < 4" class="flex items-center gap-2 mb-6">
       <template v-for="step in 3" :key="step">
@@ -176,12 +176,13 @@ const close = () => {
           placeholder="e.g., CI/CD Pipeline"
           class="!rounded-lg"
           :maxlength="255"
+          data-testid="nc-token-name-input"
         />
       </div>
 
       <div class="flex flex-col gap-1.5">
         <label class="text-sm font-medium text-nc-content-gray-subtle">Expiration</label>
-        <a-select v-model:value="expiryOption" class="w-full max-w-60">
+        <a-select v-model:value="expiryOption" class="w-full max-w-60" data-testid="nc-token-expiry-select">
           <a-select-option v-for="opt in expiryOptions" :key="opt.value" :value="opt.value">
             {{ opt.label }}
           </a-select-option>
@@ -195,26 +196,26 @@ const close = () => {
       </div>
 
       <div class="flex justify-end gap-2 mt-4">
-        <NcButton type="secondary" @click="close"> Cancel </NcButton>
-        <NcButton type="primary" :disabled="!isStep1Valid" @click="nextStep"> Next </NcButton>
+        <NcButton type="secondary" data-testid="nc-token-wizard-cancel" @click="close"> Cancel </NcButton>
+        <NcButton type="primary" :disabled="!isStep1Valid" data-testid="nc-token-wizard-next" @click="nextStep"> Next </NcButton>
       </div>
     </div>
 
     <!-- Step 2: Scope -->
-    <div v-if="currentStep === 2" class="flex flex-col gap-5">
+    <div v-if="currentStep === 2" class="flex flex-col gap-5" data-testid="nc-token-wizard-step-2">
       <div class="text-lg font-semibold text-nc-content-gray-extreme">Scope</div>
       <p class="text-sm text-nc-content-gray-muted">Choose which resources this token can access.</p>
 
       <AccountTokenScopePicker v-model:scopes="scopes" />
 
       <div class="flex justify-end gap-2 mt-4">
-        <NcButton type="secondary" @click="prevStep"> Back </NcButton>
-        <NcButton type="primary" :disabled="!isStep2Valid" @click="nextStep"> Next </NcButton>
+        <NcButton type="secondary" data-testid="nc-token-wizard-back" @click="prevStep"> Back </NcButton>
+        <NcButton type="primary" :disabled="!isStep2Valid" data-testid="nc-token-wizard-next" @click="nextStep"> Next </NcButton>
       </div>
     </div>
 
     <!-- Step 3: Permissions -->
-    <div v-if="currentStep === 3" class="flex flex-col gap-5">
+    <div v-if="currentStep === 3" class="flex flex-col gap-5" data-testid="nc-token-wizard-step-3">
       <div class="text-lg font-semibold text-nc-content-gray-extreme">Permissions</div>
       <p class="text-sm text-nc-content-gray-muted">
         Select what this token can do. The token will only have access to the intersection of your role permissions and the
@@ -224,13 +225,13 @@ const close = () => {
       <AccountTokenPermissionMatrix v-model="permissions" />
 
       <div class="flex justify-end gap-2 mt-4">
-        <NcButton type="secondary" @click="prevStep"> Back </NcButton>
-        <NcButton type="primary" :loading="isCreating" @click="createToken"> Create Token </NcButton>
+        <NcButton type="secondary" data-testid="nc-token-wizard-back" @click="prevStep"> Back </NcButton>
+        <NcButton type="primary" :loading="isCreating" data-testid="nc-token-wizard-create" @click="createToken"> Create Token </NcButton>
       </div>
     </div>
 
     <!-- Step 4: Result -->
-    <div v-if="currentStep === 4" class="flex flex-col gap-5 items-center text-center">
+    <div v-if="currentStep === 4" class="flex flex-col gap-5 items-center text-center" data-testid="nc-token-wizard-result">
       <div class="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center">
         <GeneralIcon icon="check" class="w-8 h-8 text-green-600" />
       </div>
@@ -241,14 +242,14 @@ const close = () => {
       </p>
 
       <div class="w-full max-w-lg bg-nc-bg-gray-extralight rounded-lg p-4 flex items-center gap-2">
-        <code class="flex-1 text-xs break-all text-nc-content-gray-extreme select-all">{{ createdToken }}</code>
-        <NcButton size="xs" :type="tokenCopied ? 'secondary' : 'primary'" @click="copyToken">
+        <code class="flex-1 text-xs break-all text-nc-content-gray-extreme select-all" data-testid="nc-token-created-value">{{ createdToken }}</code>
+        <NcButton size="xs" :type="tokenCopied ? 'secondary' : 'primary'" data-testid="nc-token-copy-btn" @click="copyToken">
           {{ tokenCopied ? 'Copied!' : 'Copy' }}
         </NcButton>
       </div>
 
       <div class="flex justify-center mt-4">
-        <NcButton type="primary" @click="close"> Done </NcButton>
+        <NcButton type="primary" data-testid="nc-token-wizard-done" @click="close"> Done </NcButton>
       </div>
     </div>
   </div>

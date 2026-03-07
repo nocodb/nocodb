@@ -73,9 +73,9 @@ const applyPreset = (preset: 'readOnly' | 'fullData' | 'allWrite') => {
 <template>
   <div class="nc-token-permission-matrix">
     <div class="flex gap-2 mb-4">
-      <NcButton size="xs" type="secondary" @click="applyPreset('readOnly')"> Read-only data </NcButton>
-      <NcButton size="xs" type="secondary" @click="applyPreset('fullData')"> Full data access </NcButton>
-      <NcButton size="xs" type="secondary" @click="applyPreset('allWrite')"> Full access </NcButton>
+      <NcButton size="xs" type="secondary" data-testid="nc-token-perm-preset-readonly" @click="applyPreset('readOnly')"> Read-only data </NcButton>
+      <NcButton size="xs" type="secondary" data-testid="nc-token-perm-preset-fulldata" @click="applyPreset('fullData')"> Full data access </NcButton>
+      <NcButton size="xs" type="secondary" data-testid="nc-token-perm-preset-allwrite" @click="applyPreset('allWrite')"> Full access </NcButton>
     </div>
 
     <div class="border rounded-lg overflow-hidden">

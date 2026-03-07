@@ -60,15 +60,15 @@ watch(selectedBaseIds, () => {
 </script>
 
 <template>
-  <div class="nc-token-scope-picker flex flex-col gap-4">
+  <div class="nc-token-scope-picker flex flex-col gap-4" data-testid="nc-token-scope-picker">
     <a-radio-group v-model:value="scopeMode" class="flex flex-col gap-3">
-      <a-radio value="org" class="!items-start">
+      <a-radio value="org" class="!items-start" data-testid="nc-token-scope-org">
         <div>
           <div class="font-medium text-sm text-nc-content-gray-extreme">All resources</div>
           <div class="text-xs text-nc-content-gray-muted">Access all bases and workspaces you have access to</div>
         </div>
       </a-radio>
-      <a-radio value="base" class="!items-start">
+      <a-radio value="base" class="!items-start" data-testid="nc-token-scope-base">
         <div>
           <div class="font-medium text-sm text-nc-content-gray-extreme">Specific bases</div>
           <div class="text-xs text-nc-content-gray-muted">Restrict token to selected bases</div>

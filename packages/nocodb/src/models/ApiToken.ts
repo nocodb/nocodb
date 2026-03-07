@@ -188,6 +188,11 @@ export default class ApiToken implements ApiTokenType {
         `${MetaTable.API_TOKENS}.base_id`,
         `${MetaTable.API_TOKENS}.created_at`,
         `${MetaTable.API_TOKENS}.updated_at`,
+        `${MetaTable.API_TOKENS}.token_prefix`,
+        `${MetaTable.API_TOKENS}.token_hash`,
+        `${MetaTable.API_TOKENS}.expiry`,
+        `${MetaTable.API_TOKENS}.enabled`,
+        `${MetaTable.API_TOKENS}.last_used_at`,
       )
       .select(
         ncMeta

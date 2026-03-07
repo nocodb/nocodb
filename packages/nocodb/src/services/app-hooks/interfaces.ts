@@ -337,8 +337,8 @@ export interface ApiTokenCreateEvent extends Optional<NcBaseEvent, 'context'> {
 
 export interface ApiTokenUpdateEvent extends Optional<NcBaseEvent, 'context'> {
   userId: string;
+  tokenId: string;
   tokenTitle: string;
-  oldTokenTitle: string;
 }
 
 export interface ApiTokenDeleteEvent extends Optional<NcBaseEvent, 'context'> {

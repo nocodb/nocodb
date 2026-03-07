@@ -58,7 +58,7 @@ export class OrgTokensController {
   }
 
   @Patch('/api/v1/tokens/:tokenId')
-  @Acl('apiTokenCreate', {
+  @Acl('apiTokenUpdate', {
     scope: 'org',
     blockApiTokenAccess: true,
   })

@@ -107,13 +107,11 @@ const createToken = async () => {
     }
 
     // Use V3 API for fine-grained token creation
-    const response = await api.request({
-      url: '/api/v3/meta/tokens',
+    const result = await api.request({
+      path: '/api/v3/meta/tokens',
       method: 'POST',
-      data: payload,
+      body: payload,
     })
-
-    const result = response.data || response
     createdToken.value = result.token
     currentStep.value = 4 // Result step
     emit('created', result)

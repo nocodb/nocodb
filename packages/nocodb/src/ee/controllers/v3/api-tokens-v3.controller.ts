@@ -50,7 +50,7 @@ export class ApiTokensV3Controller {
   }
 
   @Patch('/api/v3/meta/tokens/:tokenId')
-  @Acl('apiTokenCreate', {
+  @Acl('apiTokenUpdate', {
     scope: 'org',
   })
   async apiTokenUpdate(

@@ -73,6 +73,7 @@ const permissionScopes = {
     // API Tokens
     'apiTokenList',
     'apiTokenCreate',
+    'apiTokenUpdate',
     'apiTokenDelete',
 
     // User
@@ -535,6 +536,7 @@ const rolePermissions:
     include: {
       apiTokenList: true,
       apiTokenCreate: true,
+      apiTokenUpdate: true,
       apiTokenDelete: true,
       passwordChange: true,
 
@@ -1163,6 +1165,7 @@ const permissionDescriptions: Record<string, string> = {
 
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',
+  apiTokenUpdate: 'update an API token',
   apiTokenDelete: 'delete an API token',
 
   userList: 'view list of users',

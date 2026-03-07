@@ -89,7 +89,7 @@ const deleteToken = async () => {
   try {
     // Use V3 API for deletion (handles scope cleanup)
     await api.request({
-      url: `/api/v3/meta/tokens/${tokenToDeleteId.value}`,
+      path: `/api/v3/meta/tokens/${tokenToDeleteId.value}`,
       method: 'DELETE',
     })
     await loadTokens()
@@ -127,9 +127,9 @@ const copyToken = async (token: string | undefined) => {
 const toggleEnabled = async (token: IApiTokenInfo) => {
   try {
     await api.request({
-      url: `/api/v3/meta/tokens/${token.id}`,
+      path: `/api/v3/meta/tokens/${token.id}`,
       method: 'PATCH',
-      data: { enabled: !token.enabled },
+      body: { enabled: !token.enabled },
     })
     await loadTokens()
   } catch (e: any) {

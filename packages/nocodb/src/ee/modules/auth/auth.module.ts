@@ -4,6 +4,8 @@ import type { MiddlewareConsumer } from '@nestjs/common';
 
 /* Auth */
 import { AuthController } from '~/modules/auth/auth.controller';
+import { AuthTokenStrategy as AuthTokenStrategyCE } from 'src/strategies/authtoken.strategy/authtoken.strategy';
+import { AuthTokenStrategy } from '~/strategies/authtoken.strategy/authtoken.strategy';
 import { OpenidStrategyProvider } from '~/strategies/openid.strategy/openid.strategy';
 import { CognitoStrategyProvider } from '~/strategies/cognito.strategy/cognito.strategy';
 import { SamlStrategyProvider } from '~/strategies/saml.strategy/saml.strategy';
@@ -19,7 +21,9 @@ export const authModuleEeMetadata = {
       : []),
   ],
   providers: [
-    ...authModuleMetadata.providers,
+    // Replace CE AuthTokenStrategy with EE version that handles fine-grained tokens
+    ...authModuleMetadata.providers.filter((p) => p !== AuthTokenStrategyCE),
+    AuthTokenStrategy,
     OpenidStrategyProvider,
     CognitoStrategyProvider,
     SamlStrategyProvider,

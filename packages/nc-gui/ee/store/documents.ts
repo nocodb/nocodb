@@ -350,13 +350,27 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
         loadedParentIds.value.delete(id)
       }
 
-      // If the deleted document (or any descendant) was active, navigate away
+      // If the deleted document (or any descendant) was active, navigate to a
+      // sibling/neighbor doc so the user stays in docs — not the data section.
       if (activeDocumentId.value && idsToRemove.has(activeDocumentId.value)) {
         setActiveDocumentId(undefined)
-        ncNavigateTo({
-          workspaceId: activeWorkspaceId.value,
-          baseId,
-        })
+
+        // Pick a remaining sibling (same parent), or fall back to any remaining doc
+        const deletedParentId = deletedDoc?.parent_id ?? null
+        const sibling = filtered.find((d) => (d.parent_id ?? null) === deletedParentId)
+        const nextDoc = sibling || filtered[0]
+
+        if (nextDoc?.id) {
+          ncNavigateTo({
+            workspaceId: activeWorkspaceId.value,
+            baseId,
+            docId: nextDoc.id,
+            docTitle: nextDoc.title,
+          })
+        } else {
+          // No documents left — navigate to docs landing page
+          router.push(`/${activeWorkspaceId.value}/${baseId}/docs`)
+        }
       }
 
       await refreshCommandPalette()

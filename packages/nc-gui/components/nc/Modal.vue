@@ -148,7 +148,7 @@ if (stopEventPropogation.value) {
   >
     <div
       ref="ncModalRef"
-      class="flex flex-col nc-modal p-6 h-full"
+      class="flex flex-col nc-modal p-4 md:p-6 h-full"
       :class="[`nc-modal-size-${size} ${ncModalClassName}`]"
       :style="{
         maxHeight: height,
@@ -160,7 +160,7 @@ if (stopEventPropogation.value) {
         :class="{
           'border-b-1 border-nc-border-gray-medium': showSeparator,
         }"
-        class="flex pb-2 mb-2 nc-modal-header text-lg font-medium"
+        class="flex pb-2 mb-2 nc-modal-header text-base md:text-lg font-medium"
       >
         <slot name="header" />
       </div>

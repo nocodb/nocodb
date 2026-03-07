@@ -24,7 +24,6 @@ import {
   themeV4Colors,
   themeVariables,
 } from './utils/colorsUtils'
-import { NC_SCREEN_BREAKPOINTS } from './lib/constants'
 
 const isEE = process.env.EE
 
@@ -107,7 +106,15 @@ export default defineConfig({
       default: ['Inter', 'Manrope', 'sans-serif'],
     },
     extend: {
-      screens: NC_SCREEN_BREAKPOINTS,
+      screens: {
+        'xs': { max: '480px' },
+        'sm': { min: '480px' },
+        'md': { min: '820px' },
+        '2xl': { min: '1780px' },
+        '3xl': { min: '1920px' },
+        '4xl': { min: '2560px' },
+        '5xl': { min: '3200px' },
+      },
       fontSize: {
         tiny: ['11px', '14px'],
         small: ['13px', '16px'],

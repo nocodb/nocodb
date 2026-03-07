@@ -22,7 +22,7 @@ const { workspaceBasesMap, basesList, isProjectsLoading } = storeToRefs(basesSto
 const { loadProjects } = basesStore
 
 const { navigateToTable } = useTablesStore()
-const { isMobileMode, appInfo } = useGlobal()
+const { activeBreakpoint, appInfo } = useGlobal()
 const { $api, $e } = useNuxtApp()
 const { isEEFeatureBlocked, showUpgradeToCreateWorkspace } = useEeConfig()
 
@@ -89,9 +89,8 @@ const { dialogState, switchWorkspace } = useProvideWsBaseListActions(closeModal)
 
 const searchInputRef = ref<HTMLInputElement>()
 
-// Responsive state
-const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
-const isCompactView = computed(() => isMobileMode.value || windowWidth.value < 1024)
+// Compact view for mobile (xs) and tablet (sm)
+const isCompactView = computed(() => activeBreakpoint.value === 'xs' || activeBreakpoint.value === 'sm')
 
 // Modal state - consolidated
 const modalState = reactive({
@@ -100,18 +99,12 @@ const modalState = reactive({
   activeFilter: 'all' as 'all' | 'starred' | 'private' | 'owned' | 'managed',
 })
 
-// Event handlers
-const onResize = () => {
-  windowWidth.value = window.innerWidth
-}
-
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     visible.value = false
   }
 }
 
-useEventListener(window, 'resize', onResize)
 useEventListener(window, 'keydown', handleKeydown)
 
 // Reset state when modal opens and load baseListAll index upfront
@@ -477,12 +470,12 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
             @update:active-filter="modalState.activeFilter = $event"
           >
             <template #baseListHeader>
-              <span class="text-nc-content-gray-muted">
+              <span class="text-nc-content-gray-muted whitespace-nowrap">
                 {{ $t('activity.basesIn') }}
               </span>
               <span
                 v-if="selectedWorkspace"
-                class="text-nc-content-gray-muted capitalize"
+                class="text-nc-content-gray-muted capitalize min-w-0 truncate text-ellipsis"
                 :class="{
                   'text-nc-content-brand': activeWorkspaceId === selectedWorkspace?.id,
                   'underline cursor-pointer hover:text-nc-content-brand': activeWorkspaceId !== selectedWorkspace?.id,

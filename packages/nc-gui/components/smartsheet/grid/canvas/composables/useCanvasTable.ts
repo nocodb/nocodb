@@ -458,14 +458,13 @@ export function useCanvasTable({
           title: f.title,
           uidt: f.uidt,
           width: gridViewCol.width,
-          fixed:
-            isMobileMode.value && !isGroupBy.value
-              ? false
-              : isGroupBy.value
-              ? !!f.pv
-              : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
-              ? false
-              : !!f.pv,
+          fixed: isMobileMode.value
+            ? false
+            : isGroupBy.value
+            ? !!f.pv
+            : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
+            ? false
+            : !!f.pv,
           readonly:
             f.readonly ||
             isDataReadOnly.value ||

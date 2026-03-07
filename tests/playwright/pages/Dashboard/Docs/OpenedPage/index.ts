@@ -27,6 +27,7 @@ export class DocsOpenedPagePage extends BasePage {
     await this.get()
       .getByTestId('docs-page-content')
       .locator('.ProseMirror[contenteditable="true"]')
+      .first()
       .waitFor({ state: 'visible' });
     await this.get()
       .getByTestId('docs-page-title')

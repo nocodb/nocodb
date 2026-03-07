@@ -29,8 +29,8 @@ on:
 
 
 jobs:
-  cloud-docker-build:
-    runs-on: ubicloud-standard-16
+  build-and-push:
+    runs-on: ubicloud-standard-8
     env:
       working-directory: ./packages/nocodb
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -175,16 +175,9 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: nocohub
-          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
         run: |
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
 
-      - name: Publish main to staging
-        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' )) }}
-        env:
-          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
-        run: |
-          ./scripts/release/staging.sh
       ### mux build and deploy starts here ###
       - name: Build, tag, and push mux service image (nc-sql-executor) to Amazon ECR
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all') }}
@@ -211,6 +204,34 @@ jobs:
           ECR_REPOSITORY: nc-sql-executor
         run: |
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:ws-pre-release
+
+  deploy-staging:
+    needs: build-and-push
+    if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' ) }}
+    runs-on: ubicloud-standard-2
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-2
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Publish main to staging
+        if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && (github.event.inputs.services_to_deploy == 'main_only' || github.event.inputs.services_to_deploy == 'all' )) }}
+        env:
+          API_CREDENTIALS: ${{ secrets.STAGING_ADMIN }}
+        run: |
+          ./scripts/release/staging.sh
 
       - name: Publish to staging
         if: ${{ ( github.event_name == 'schedule' ) || ( github.event.inputs.staging == 'true' && ( github.event.inputs.services_to_deploy == 'mux_service_only' || github.event.inputs.services_to_deploy == 'all')) }}

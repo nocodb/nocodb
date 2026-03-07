@@ -75,6 +75,7 @@ const hasTableCreatePermission = computed(() => {
           <!-- Docs tab: direct create (no dropdown — only one option) -->
           <NcButton
             v-if="activeSidebarTab === 'docs'"
+            v-e="['c:document:create:sidebar']"
             type="text"
             size="small"
             full-width

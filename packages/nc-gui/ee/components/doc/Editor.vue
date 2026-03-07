@@ -506,6 +506,7 @@ const _tiptapEditor = useEditor({
         for (const { file, blobUrl } of imgEntries) {
           uploadAndInsert(ed, file, blobUrl)
         }
+        $e('a:doc:image:upload', { source: 'drop', count: images.length })
       }
 
       // Batch-insert file attachment placeholder nodes in a single transaction
@@ -522,6 +523,7 @@ const _tiptapEditor = useEditor({
         for (const { file, blobUrl } of fileEntries) {
           uploadAndInsertFile(ed, file, blobUrl)
         }
+        $e('a:doc:file:upload', { source: 'drop', count: nonImages.length })
       }
 
       return true
@@ -551,6 +553,7 @@ const _tiptapEditor = useEditor({
           for (const { file, blobUrl } of imgEntries) {
             uploadAndInsert(ed, file, blobUrl)
           }
+          $e('a:doc:image:upload', { source: 'paste', count: images.length })
         }
 
         if (nonImages.length) {
@@ -566,6 +569,7 @@ const _tiptapEditor = useEditor({
           for (const { file, blobUrl } of fileEntries) {
             uploadAndInsertFile(ed, file, blobUrl)
           }
+          $e('a:doc:file:upload', { source: 'paste', count: nonImages.length })
         }
 
         return true
@@ -721,6 +725,7 @@ watch(editor, (ed) => {
       for (const { file, blobUrl } of blobEntries) {
         uploadAndInsert(ed, file, blobUrl)
       }
+      $e('a:doc:image:upload', { source: 'slash-command', count: files.length })
     }
   }
   if (ed?.storage?.fileAttachment) {
@@ -745,6 +750,7 @@ watch(editor, (ed) => {
       for (const { file, blobUrl } of blobEntries) {
         uploadAndInsertFile(ed, file, blobUrl)
       }
+      $e('a:doc:file:upload', { source: 'slash-command', count: files.length })
     }
   }
   if (ed?.storage?.embed) {

@@ -191,6 +191,14 @@ enum AuditV1OperationTypes {
   RLS_POLICY_CREATE = 'RLS_POLICY_CREATE',
   RLS_POLICY_UPDATE = 'RLS_POLICY_UPDATE',
   RLS_POLICY_DELETE = 'RLS_POLICY_DELETE',
+
+  DOCUMENT_CREATE = 'DOCUMENT_CREATE',
+  DOCUMENT_UPDATE = 'DOCUMENT_UPDATE',
+  DOCUMENT_DELETE = 'DOCUMENT_DELETE',
+
+  DOCUMENT_COMMENT_CREATE = 'DOCUMENT_COMMENT_CREATE',
+  DOCUMENT_COMMENT_UPDATE = 'DOCUMENT_COMMENT_UPDATE',
+  DOCUMENT_COMMENT_DELETE = 'DOCUMENT_COMMENT_DELETE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -345,6 +353,13 @@ export const auditV1OperationsCategory: Record<
     value: 'WORKFLOW',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
       key.startsWith('WORKFLOW_')
+    ),
+  },
+  DOCUMENT: {
+    label: 'objects.document',
+    value: 'DOCUMENT',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('DOCUMENT_')
     ),
   },
 };
@@ -1204,6 +1219,37 @@ export interface RlsPolicyDeletePayload {
   table_id: string;
 }
 
+export interface DocumentCreatePayload {
+  document_title: string;
+  document_id: string;
+  parent_id?: string | null;
+}
+
+export interface DocumentUpdatePayload extends UpdatePayload {
+  document_title: string;
+  document_id: string;
+}
+
+export interface DocumentDeletePayload {
+  document_title: string;
+  document_id: string;
+}
+
+export interface DocumentCommentCreatePayload {
+  document_id: string;
+  comment_id: string;
+}
+
+export interface DocumentCommentUpdatePayload {
+  document_id: string;
+  comment_id: string;
+}
+
+export interface DocumentCommentDeletePayload {
+  document_id: string;
+  comment_id: string;
+}
+
 export interface TeamCreatePayload {
   team_id: string;
   team_title: string;
@@ -1582,6 +1628,24 @@ const descriptionTemplates = {
     `User '${audit.user}' exported ${audit.details.export_type} from table '${audit.details.table_title}'`,
   [AuditV1OperationTypes.DATA_IMPORT]: (audit: AuditV1<DataImportPayload>) =>
     `User '${audit.user}' imported ${audit.details.import_type} into table '${audit.details.table_title}'`,
+  [AuditV1OperationTypes.DOCUMENT_CREATE]: (
+    audit: AuditV1<DocumentCreatePayload>
+  ) => `Document '${audit.details.document_title}' has been created`,
+  [AuditV1OperationTypes.DOCUMENT_UPDATE]: (
+    audit: AuditV1<DocumentUpdatePayload>
+  ) => `Document '${audit.details.document_title}' has been updated`,
+  [AuditV1OperationTypes.DOCUMENT_DELETE]: (
+    audit: AuditV1<DocumentDeletePayload>
+  ) => `Document '${audit.details.document_title}' has been deleted`,
+  [AuditV1OperationTypes.DOCUMENT_COMMENT_CREATE]: (
+    audit: AuditV1<DocumentCommentCreatePayload>
+  ) => `Comment added to document '${audit.details.document_id}'`,
+  [AuditV1OperationTypes.DOCUMENT_COMMENT_UPDATE]: (
+    audit: AuditV1<DocumentCommentUpdatePayload>
+  ) => `Comment updated on document '${audit.details.document_id}'`,
+  [AuditV1OperationTypes.DOCUMENT_COMMENT_DELETE]: (
+    audit: AuditV1<DocumentCommentDeletePayload>
+  ) => `Comment deleted from document '${audit.details.document_id}'`,
 };
 
 function auditDescription(audit: AuditV1) {

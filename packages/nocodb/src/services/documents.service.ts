@@ -7,6 +7,7 @@ import { Document } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { extractMentionsFromProseMirror } from '~/utils/richTextHelper';
 
 /**
  * Service layer for Documents.
@@ -175,6 +176,26 @@ export class DocumentsService {
       doc,
       user: req.user,
     });
+
+    // Detect net-new @mentions in the updated content and emit a mention event.
+    // Only fires when content actually changed (payload.content is present).
+    if (payload.content) {
+      const oldMentions = new Set(
+        extractMentionsFromProseMirror(existing.content),
+      );
+      const newMentions = extractMentionsFromProseMirror(payload.content).filter(
+        (id) => !oldMentions.has(id),
+      );
+      if (newMentions.length) {
+        this.appHooksService.emit(AppEvents.DOCUMENT_USER_MENTION, {
+          context,
+          req,
+          doc,
+          user: req.user,
+          mentions: newMentions,
+        });
+      }
+    }
 
     const { content: _content, ...liteDoc } = doc;
 

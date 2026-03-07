@@ -94,16 +94,26 @@ export default class Document extends DocumentCE implements DocumentType {
       },
     );
 
-    // Fetch content for each document from the content table
-    for (const doc of docList) {
-      const contentRow = await Noco.ncDocsContent.metaGet2(
+    // Batch-fetch content for all documents in a single query
+    const docIds = docList.map((d) => d.id).filter(Boolean);
+    if (docIds.length) {
+      const contentRows = await Noco.ncDocsContent.metaList2(
         context.workspace_id,
         context.base_id,
         MetaTable.DOC_CONTENT,
-        { fk_doc_id: doc.id },
-        ['content'],
+        {
+          xcCondition: {
+            fk_doc_id: { in: docIds },
+          },
+          fields: ['fk_doc_id', 'content'],
+        },
       );
-      doc.content = contentRow?.content;
+      const contentMap = new Map(
+        contentRows.map((r) => [r.fk_doc_id, r.content]),
+      );
+      for (const doc of docList) {
+        doc.content = contentMap.get(doc.id);
+      }
     }
 
     return docList.map((doc) => new Document(this.parseDocument(doc)));

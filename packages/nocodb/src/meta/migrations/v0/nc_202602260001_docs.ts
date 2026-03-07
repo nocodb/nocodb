@@ -1,5 +1,9 @@
 import type { Knex } from 'knex';
 import { MetaTable } from '~/utils/globals';
+import {
+  up as createDocContent,
+  down as dropDocContent,
+} from '~/meta/migrations/docs-content/nc_001_init';
 
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.DOCS, (table) => {
@@ -22,33 +26,13 @@ const up = async (knex: Knex) => {
     table.index(['base_id', 'parent_id', 'order'], 'nc_docs_v2_tree_idx');
   });
 
-  await knex.schema.createTable(MetaTable.DOC_CONTENT, (table) => {
-    table.string('fk_doc_id', 20).notNullable();
-    table.string('base_id', 20).notNullable();
-    table.string('fk_workspace_id', 20);
-    table.text('content'); // ProseMirror JSON (stringified); altered to JSONB on PG below
-    table.timestamps(true, true);
-
-    table.primary(['base_id', 'fk_doc_id']);
-    table.index(['base_id', 'fk_workspace_id'], 'nc_doc_content_v2_tenant_idx');
-  });
-
-  // On PostgreSQL, use native JSONB for the content column for better
-  // query performance and storage efficiency. TEXT is kept on other DBs.
-  const isPg =
-    knex.client.config.client === 'pg' ||
-    knex.client.config.client === 'postgresql';
-
-  if (isPg) {
-    await knex.raw(
-      `ALTER TABLE ?? ALTER COLUMN content TYPE jsonb USING content::jsonb`,
-      [MetaTable.DOC_CONTENT],
-    );
-  }
+  // DOC_CONTENT table — reuse the docs-content migration (single source
+  // of truth so the same schema runs against NC_DOCS_DB when configured).
+  await createDocContent(knex);
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTableIfExists(MetaTable.DOC_CONTENT);
+  await dropDocContent(knex);
   await knex.schema.dropTableIfExists(MetaTable.DOCS);
 };
 

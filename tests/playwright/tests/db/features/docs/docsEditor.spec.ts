@@ -254,7 +254,7 @@ test.describe('Docs — Editor Content', () => {
     await expect(tiptap.get().locator('.nc-callout')).toContainText('Warning message');
   });
 
-  test('Text formatting — bold, italic, strikethrough via keyboard shortcuts', async ({ page }) => {
+  test('Text formatting — bold, italic, underline via keyboard shortcuts', async ({ page }) => {
     const tiptap = dashboard.docs.openedPage.tiptap;
 
     const paragraph = tiptap.get().locator('p').first();
@@ -282,13 +282,13 @@ test.describe('Docs — Editor Content', () => {
     // Verify italic
     await tiptap.verifyTextFormatting({ index: 0, text: 'italic text', formatType: 'italic' });
 
-    // Clear and type strikethrough text
+    // Clear and type underline text (Ctrl+U — no browser conflict unlike Ctrl+Shift+S for strikethrough)
     await tiptap.clearContent();
-    await page.keyboard.type('strikethrough text');
-    await page.keyboard.press('ControlOrMeta+A');
-    await page.keyboard.press('ControlOrMeta+Shift+S');
+    await page.keyboard.type('underline text');
+    await paragraph.click({ clickCount: 3 });
+    await page.keyboard.press('ControlOrMeta+U');
 
-    // Verify strikethrough
-    await tiptap.verifyTextFormatting({ index: 0, text: 'strikethrough text', formatType: 'strike' });
+    // Verify underline
+    await tiptap.verifyTextFormatting({ index: 0, text: 'underline text', formatType: 'underline' });
   });
 });

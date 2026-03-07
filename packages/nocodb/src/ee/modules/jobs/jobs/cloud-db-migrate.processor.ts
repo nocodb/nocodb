@@ -71,7 +71,7 @@ export class CloudDbMigrateProcessor {
 
       if (
         (workspaceOrOrg.fk_db_instance_id && !oldDbServerId) ||
-        (oldDbServerId && workspaceOrOrg.fk_db_instance_id === oldDbServerId)
+        (oldDbServerId && workspaceOrOrg.fk_db_instance_id !== oldDbServerId)
       ) {
         logBasic(
           'Workspace or Org already has a DbServer assigned, skipping migration',
@@ -91,11 +91,15 @@ export class CloudDbMigrateProcessor {
       const useDbServers: DbServer[] = [];
 
       if (targetOrg) {
+        if (!targetOrg.fk_db_instance_id) {
+          logBasic('Target Org has no db server assigned');
+          return;
+        }
         const dbServer = await DbServer.get(targetOrg.fk_db_instance_id);
         if (dbServer) {
           useDbServers.push(dbServer);
         } else {
-          logBasic('Target Org has no db server');
+          logBasic('Target Org db server not found');
           return;
         }
       } else {
@@ -166,11 +170,6 @@ export class CloudDbMigrateProcessor {
           oldDbServerConfig = (await DbServer.getWithConfig(oldDbServerId))
             ?.config as DbConfig;
         }
-      }
-
-      if (!dbServer) {
-        logBasic('DbServer not found');
-        return;
       }
 
       if (workspaceOrOrg.fk_db_instance_id === dbServer.id) {
@@ -253,6 +252,10 @@ export class CloudDbMigrateProcessor {
           if (status === 'completed') {
             await DbServer.incrementTenantCount(dbServer.id);
 
+            if (oldDbServerId && oldDbServerId !== 'nc') {
+              await DbServer.decrementTenantCount(oldDbServerId);
+            }
+
             if (workspaceOrOrg.entity === 'org') {
               await Org.update(workspaceOrOrgId, {
                 fk_db_instance_id: dbServer.id,
@@ -316,7 +319,7 @@ export class CloudDbMigrateProcessor {
           // Send upgrade_failed notification for status check errors
           await this.telemetryService.sendSystemEvent({
             event_type: 'payment_alert',
-            payment_type: 'migration_n_failed',
+            payment_type: 'migration_failed',
             message: `Database migration status check failed for workspace ${workspaceOrOrg.title}: ${statusError.message}`,
             workspace: { id: workspaceOrOrg.id, title: workspaceOrOrg.title },
             extra: {

@@ -868,6 +868,7 @@ const visibleMoreOptions = computed(() => {
       sendRecord: false,
       duplicateRecord: false,
       deleteRecord: false,
+      showDeleteDivider: false,
       showMoreOptionsMenu: false,
       allHiddenExceptCopyRecordUrl: true,
     }
@@ -877,12 +878,14 @@ const visibleMoreOptions = computed(() => {
     copyRecordUrl: !isNew.value && !!rowId.value,
     sendRecord: isEeUI && !isNew.value && !!rowId.value && !isPublic.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
-    deleteRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
+    deleteRecord: !isNew.value && isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }
+  const hasItemsAboveDelete = Object.entries(result).some(([key, value]) => key !== 'deleteRecord' && value)
+
   return {
     ...result,
-    showMoreOptionsMenu:
-      result.reloadRecord || result.copyRecordUrl || result.sendRecord || result.duplicateRecord || result.deleteRecord,
+    showDeleteDivider: result.deleteRecord && hasItemsAboveDelete,
+    showMoreOptionsMenu: hasItemsAboveDelete || result.deleteRecord,
     allHiddenExceptCopyRecordUrl: !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.deleteRecord,
   }
 })
@@ -1160,8 +1163,8 @@ export default {
                     </NcMenuItem>
                   </template>
                 </PermissionsTooltip>
-                <NcDivider v-if="visibleMoreOptions.deleteRecord" />
-                <NcTooltip v-if="meta?.synced" placement="left">
+                <NcDivider v-if="visibleMoreOptions.showDeleteDivider" />
+                <NcTooltip v-if="visibleMoreOptions.deleteRecord && meta?.synced" placement="left">
                   <template #title>
                     {{ $t('msg.info.deleteNotAvailableForSyncedTable') }}
                   </template>

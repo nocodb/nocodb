@@ -38,7 +38,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Auth type',
-    span: 12,
+    span: [24, 12],
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',

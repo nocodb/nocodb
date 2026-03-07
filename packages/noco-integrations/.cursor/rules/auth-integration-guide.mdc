@@ -187,7 +187,7 @@ packages/provider-auth/
      {
        type: FormBuilderInputType.Select,
        label: 'Auth Type',
-       span: 12,
+       span: [24, 12],
        model: 'config.type',
        category: 'Authentication',
        placeholder: 'Select auth type',

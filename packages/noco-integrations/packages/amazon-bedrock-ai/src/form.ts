@@ -22,7 +22,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'AWS access key ID',
-    span: 12,
+    span: [24, 12],
     model: 'config.accessKeyId',
     placeholder: 'Access key ID',
     category: 'Credentials',
@@ -36,7 +36,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'AWS secret access key',
-    span: 12,
+    span: [24, 12],
     model: 'config.secretAccessKey',
     placeholder: 'Secret access key',
     category: 'Credentials',

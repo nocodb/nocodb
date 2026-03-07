@@ -40,20 +40,20 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Inbox ID (optional)',
-    span: 12,
+    span: [24, 12],
     model: 'config.inboxId',
     placeholder: 'e.g., 123',
     category: 'Options',
   },
   {
     type: FormBuilderInputType.Space,
-    span: 12,
+    span: [0, 12],
     category: 'Options',
   },
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include resolved conversations',
-    span: 12,
+    span: [24, 12],
     description:
       'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     model: 'config.includeResolved',

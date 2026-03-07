@@ -23,7 +23,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     {
       type: FormBuilderInputType.Input,
       label: 'Input To Nested Path',
-      span: 12,
+      span: [24, 12], // for mobile we wanted to keep this input full input
       model: 'config.sample',
       placeholder: 'This is added to config.sample',
       category: 'Sample Category',
@@ -38,7 +38,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     {
       type: FormBuilderInputType.Input,
       label: 'Multiple Elements in Category',
-      span: 12,
+      span: [24, 12],
       model: 'config.sample2',
       placeholder: 'This is added to config.sample2',
       category: 'Sample Category',

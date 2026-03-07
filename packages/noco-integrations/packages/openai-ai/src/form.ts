@@ -22,7 +22,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'API key',
-    span: 12,
+    span: [24, 12],
     model: 'config.apiKey',
     placeholder: 'API key',
     category: 'Credentials',
@@ -36,7 +36,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Organization ID (Optional)',
-    span: 12,
+    span: [24, 12],
     model: 'config.organizationId',
     placeholder: 'Organization ID',
     category: 'Credentials',

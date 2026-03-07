@@ -1225,7 +1225,7 @@ export interface DocumentCreatePayload {
   parent_id?: string | null;
 }
 
-export interface DocumentUpdatePayload extends UpdatePayload {
+export interface DocumentUpdatePayload {
   document_title: string;
   document_id: string;
 }

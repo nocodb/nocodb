@@ -136,6 +136,16 @@ const onCreateBaseClick = () => {
               <template #icon>
                 <GeneralIcon icon="server1" class="!h-7 !w-7 !text-nc-content-green-dark" />
               </template>
+              <template #label>
+                <NcTooltip
+                  :title="$t('labels.connectDataSource')"
+                  :disabled="isDataSourceLimitReached"
+                  show-on-truncate-only
+                  class="min-w-0 truncate"
+                >
+                  {{ $t('labels.connectDataSource') }}
+                </NcTooltip>
+              </template>
             </ProjectActionItem>
           </NcTooltip>
         </template>

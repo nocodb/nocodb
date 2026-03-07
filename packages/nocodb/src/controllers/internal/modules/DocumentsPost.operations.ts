@@ -1,7 +1,7 @@
 /**
- * Internal API POST operations for Pages (Docs).
- * Handles docCreate, docUpdate, docDelete, and docReorder.
- * All mutating operations expect `payload.docId` for targeting a specific page.
+ * Internal API POST operations for Documents.
+ * Handles documentCreate, documentUpdate, documentDelete, and documentReorder.
+ * All mutating operations expect `payload.docId` for targeting a specific document.
  */
 import { Injectable } from '@nestjs/common';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -11,18 +11,18 @@ import type {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import { NcError } from '~/helpers/catchError';
-import { DocsService } from '~/services/docs.service';
+import { DocumentsService } from '~/services/documents.service';
 
 @Injectable()
-export class DocsPostOperations
+export class DocumentsPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
 {
-  constructor(protected readonly docsService: DocsService) {}
+  constructor(protected readonly documentsService: DocumentsService) {}
   operations = [
-    'docCreate' as const,
-    'docUpdate' as const,
-    'docDelete' as const,
-    'docReorder' as const,
+    'documentCreate' as const,
+    'documentUpdate' as const,
+    'documentDelete' as const,
+    'documentReorder' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -41,30 +41,30 @@ export class DocsPostOperations
     },
   ): InternalPOSTResponseType {
     switch (operation) {
-      case 'docCreate':
-        return await this.docsService.create(context, payload, req);
-      case 'docUpdate': {
+      case 'documentCreate':
+        return await this.documentsService.create(context, payload, req);
+      case 'documentUpdate': {
         if (!payload?.docId) {
           NcError.badRequest('Missing required parameter: docId');
         }
-        return await this.docsService.update(
+        return await this.documentsService.update(
           context,
           payload.docId,
           payload,
           req,
         );
       }
-      case 'docDelete': {
+      case 'documentDelete': {
         if (!payload?.docId) {
           NcError.badRequest('Missing required parameter: docId');
         }
-        return await this.docsService.delete(context, payload.docId, req);
+        return await this.documentsService.delete(context, payload.docId, req);
       }
-      case 'docReorder': {
+      case 'documentReorder': {
         if (!payload?.docId) {
           NcError.badRequest('Missing required parameter: docId');
         }
-        return await this.docsService.reorder(context, payload.docId, payload);
+        return await this.documentsService.reorder(context, payload.docId, payload);
       }
     }
   }

@@ -131,7 +131,7 @@ export class TiptapPage extends BasePage {
 
     const waitNetwork = waitForNetwork
       ? this.rootPage.waitForResponse(async response => {
-          return response.url().includes('operation=docUpdate') && response.request().method() === 'POST';
+          return response.url().includes('operation=documentUpdate') && response.request().method() === 'POST';
         })
       : Promise.resolve();
 

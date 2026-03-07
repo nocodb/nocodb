@@ -20,80 +20,80 @@ test.describe('Docs — Basic CRUD', () => {
     await unsetup(context);
   });
 
-  test('Create a page from the sidebar', async ({ page }) => {
-    // A new docs base should show an empty page list with an "Add page" button
-    await dashboard.sidebar.docsSidebar.verifyCreatePageButtonVisibility({
+  test('Create a document from the sidebar', async ({ page }) => {
+    // A new docs base should show an empty document list with an "Add document" button
+    await dashboard.sidebar.docsSidebar.verifyCreateDocumentButtonVisibility({
       baseTitle: context.base.title,
       isVisible: true,
     });
 
-    // Create a page via the sidebar button
-    await dashboard.sidebar.docsSidebar.createPage({
+    // Create a document via the sidebar button
+    await dashboard.sidebar.docsSidebar.createDocument({
       baseTitle: context.base.title,
-      title: 'My First Page',
+      title: 'My First Document',
     });
 
-    // Verify page appears in sidebar
-    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
+    // Verify document appears in sidebar
+    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({
       baseTitle: context.base.title,
-      title: 'My First Page',
+      title: 'My First Document',
     });
 
     // Verify the editor opened and shows the correct title
-    await dashboard.docs.openedPage.verifyTitle({ title: 'My First Page' });
+    await dashboard.docs.openedPage.verifyTitle({ title: 'My First Document' });
   });
 
-  test('Rename a page via the title input', async ({ page }) => {
-    // Create a page first
-    await dashboard.sidebar.docsSidebar.createPage({
+  test('Rename a document via the title input', async ({ page }) => {
+    // Create a document first
+    await dashboard.sidebar.docsSidebar.createDocument({
       baseTitle: context.base.title,
       title: 'Original Title',
     });
 
     // Rename by editing the title input in the editor
-    await dashboard.docs.openedPage.fillTitle({ title: 'Renamed Page' });
+    await dashboard.docs.openedPage.fillTitle({ title: 'Renamed Document' });
 
     // Wait for debounced sync to sidebar
     await page.waitForTimeout(1500);
 
     // Verify the sidebar updates with the new title
-    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
+    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({
       baseTitle: context.base.title,
-      title: 'Renamed Page',
+      title: 'Renamed Document',
     });
   });
 
-  test('Delete a page via the context menu', async ({ page }) => {
-    // Create a page
-    await dashboard.sidebar.docsSidebar.createPage({
+  test('Delete a document via the context menu', async ({ page }) => {
+    // Create a document
+    await dashboard.sidebar.docsSidebar.createDocument({
       baseTitle: context.base.title,
-      title: 'Page To Delete',
+      title: 'Document To Delete',
     });
 
     // Verify it exists
-    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({
+    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({
       baseTitle: context.base.title,
-      title: 'Page To Delete',
+      title: 'Document To Delete',
     });
 
-    // Delete the page
-    await dashboard.sidebar.docsSidebar.deletePage({
+    // Delete the document
+    await dashboard.sidebar.docsSidebar.deleteDocument({
       baseTitle: context.base.title,
-      title: 'Page To Delete',
+      title: 'Document To Delete',
     });
 
     // Verify it's removed from sidebar
-    await dashboard.sidebar.docsSidebar.verifyPageIsNotInSidebar({
+    await dashboard.sidebar.docsSidebar.verifyDocumentIsNotInSidebar({
       baseTitle: context.base.title,
-      title: 'Page To Delete',
+      title: 'Document To Delete',
     });
   });
 
-  test('Set a page icon via the editor icon picker', async ({ page }) => {
-    // Create a page
-    await dashboard.sidebar.docsSidebar.createPage({
+  test('Set a document icon via the editor icon picker', async ({ page }) => {
+    // Create a document
+    await dashboard.sidebar.docsSidebar.createDocument({
       baseTitle: context.base.title,
-      title: 'Icon Test Page',
+      title: 'Icon Test Document',
     });
 
     // Select an emoji via the editor's icon picker

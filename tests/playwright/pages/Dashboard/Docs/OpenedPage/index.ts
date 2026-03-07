@@ -48,7 +48,7 @@ export class DocsOpenedPagePage extends BasePage {
     await this.waitForResponse({
       uiAction: () => this.get().getByTestId('docs-page-title').type(title, { delay: 0 }),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `operation=docUpdate`,
+      requestUrlPathToMatch: `operation=documentUpdate`,
     });
   }
 
@@ -75,7 +75,7 @@ export class DocsOpenedPagePage extends BasePage {
       uiAction: () =>
         this.rootPage.getByTestId('nc-emoji-container').last().locator(`.nc-emoji-item >> svg`).first().click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `operation=docUpdate`,
+      requestUrlPathToMatch: `operation=documentUpdate`,
     });
   }
 

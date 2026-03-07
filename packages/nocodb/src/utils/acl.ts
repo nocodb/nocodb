@@ -244,13 +244,13 @@ const permissionScopes = {
     'mcpUpdate',
     'mcpDelete',
 
-    // Docs (Pages)
-    'docList',
-    'docGet',
-    'docCreate',
-    'docUpdate',
-    'docDelete',
-    'docReorder',
+    // Documents
+    'documentList',
+    'documentGet',
+    'documentCreate',
+    'documentUpdate',
+    'documentDelete',
+    'documentReorder',
 
     // etc
     'fetchViaUrl',
@@ -426,9 +426,9 @@ const rolePermissions:
       mcpUpdate: true,
       mcpDelete: true,
 
-      // Docs (Pages) — read-only for viewers
-      docList: true,
-      docGet: true,
+      // Documents — read-only for viewers
+      documentList: true,
+      documentGet: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -471,11 +471,11 @@ const rolePermissions:
       aiUtils: true,
       aiData: true,
 
-      // Docs (Pages) — editors can modify existing pages but NOT create/delete.
-      // docCreate and docDelete are restricted to CREATOR+ (via exclude pattern)
-      // so that page lifecycle is controlled by project admins.
-      docUpdate: true,
-      docReorder: true,
+      // Documents — editors can modify existing documents but NOT create/delete.
+      // documentCreate and documentDelete are restricted to CREATOR+ (via exclude pattern)
+      // so that document lifecycle is controlled by project admins.
+      documentUpdate: true,
+      documentReorder: true,
 
       // Extensions
       extensionUpdate: true,
@@ -878,12 +878,12 @@ const permissionDescriptions: Record<string, string> = {
   chatMessageList: 'list chat messages',
   chatMessageSend: 'send a chat message',
 
-  docList: 'view list of pages',
-  docGet: 'view page details',
-  docCreate: 'create a new page',
-  docUpdate: 'update a page',
-  docDelete: 'delete a page',
-  docReorder: 'reorder pages',
+  documentList: 'view list of documents',
+  documentGet: 'view document details',
+  documentCreate: 'create a new document',
+  documentUpdate: 'update a document',
+  documentDelete: 'delete a document',
+  documentReorder: 'reorder documents',
 };
 
 // Human-readable descriptions for roles

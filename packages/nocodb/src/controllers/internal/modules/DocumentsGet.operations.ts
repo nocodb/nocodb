@@ -1,6 +1,6 @@
 /**
- * Internal API GET operations for Pages (Docs).
- * Handles docList (all pages in a base) and docGet (single page by ID).
+ * Internal API GET operations for Documents.
+ * Handles documentList (all documents in a base) and documentGet (single document by ID).
  */
 import { Injectable } from '@nestjs/common';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -10,14 +10,14 @@ import type {
   InternalGETResponseType,
 } from '~/utils/internal-type';
 import { NcError } from '~/helpers/catchError';
-import { DocsService } from '~/services/docs.service';
+import { DocumentsService } from '~/services/documents.service';
 
 @Injectable()
-export class DocsGetOperations
+export class DocumentsGetOperations
   implements InternalApiModule<InternalGETResponseType>
 {
-  constructor(protected readonly docsService: DocsService) {}
-  operations = ['docList' as const, 'docGet' as const];
+  constructor(protected readonly documentsService: DocumentsService) {}
+  operations = ['documentList' as const, 'documentGet' as const];
   httpMethod = 'GET' as const;
 
   async handle(
@@ -34,14 +34,14 @@ export class DocsGetOperations
     },
   ): InternalGETResponseType {
     switch (operation) {
-      case 'docList':
-        return await this.docsService.list(context, context.base_id);
-      case 'docGet': {
+      case 'documentList':
+        return await this.documentsService.list(context, context.base_id);
+      case 'documentGet': {
         const docId = req.query.docId as string;
         if (!docId) {
           NcError.badRequest('Missing required parameter: docId');
         }
-        return await this.docsService.get(context, docId);
+        return await this.documentsService.get(context, docId);
       }
     }
   }

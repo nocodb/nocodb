@@ -1,15 +1,15 @@
 import 'mocha';
 import { runOnSet } from '../utils/runOnSet';
 import baseModelSqlTest from './tests/baseModelSql.test';
-import docTest from './tests/doc.test';
-import docsServiceTest from './tests/docsService.test';
+import documentTest from './tests/document.test';
+import documentsServiceTest from './tests/documentsService.test';
 import { tableHelpersTest } from './tableHelpers/tableHelpers.test';
 import { isEE } from '../utils/helpers';
 
 function modelTests() {
   baseModelSqlTest();
-  docTest();
-  docsServiceTest();
+  documentTest();
+  documentsServiceTest();
 }
 
 export default runOnSet(1, function () {

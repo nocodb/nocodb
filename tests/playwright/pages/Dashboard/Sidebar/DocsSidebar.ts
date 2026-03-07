@@ -57,20 +57,13 @@ export class DocsSidebarPage extends BasePage {
   async createDocument({ baseTitle, title, content }: { baseTitle: string; title?: string; content?: string }) {
     await this.ensureDocsTab();
 
-    const addDocBtn = this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page');
+    const createNewBtn = this.rootPage.getByTestId('nc-home-create-new-btn');
 
-    // If no documents exist yet, the button is visible directly.
-    // If documents exist, they are created via the API or the sidebar "+" button.
-    // For now, try clicking the add button if it's visible.
-    const isAddBtnVisible = await addDocBtn.isVisible().catch(() => false);
-
-    if (isAddBtnVisible) {
-      await this.waitForResponse({
-        uiAction: () => addDocBtn.click(),
-        httpMethodsToMatch: ['POST'],
-        requestUrlPathToMatch: `operation=documentCreate`,
-      });
-    }
+    await this.waitForResponse({
+      uiAction: () => createNewBtn.click(),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `operation=documentCreate`,
+    });
 
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
 
@@ -206,9 +199,9 @@ export class DocsSidebarPage extends BasePage {
   async verifyCreateDocumentButtonVisibility({ baseTitle, isVisible }: { baseTitle: string; isVisible: boolean }) {
     await this.ensureDocsTab();
     if (isVisible) {
-      await expect(this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeVisible();
+      await expect(this.rootPage.getByTestId('nc-home-create-new-btn')).toBeVisible();
     } else {
-      await expect(this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeHidden();
+      await expect(this.rootPage.getByTestId('nc-home-create-new-btn')).toBeHidden();
     }
   }
 }

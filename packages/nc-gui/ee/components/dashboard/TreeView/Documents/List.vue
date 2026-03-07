@@ -12,17 +12,9 @@ const { baseId } = toRefs(props)
 
 const { isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
-const { isUIAllowed } = useRoles()
 const documentsStore = useDocumentsStore()
-const { createDocument, moveDocument } = documentsStore
+const { moveDocument } = documentsStore
 const { activeDocumentId, documents: allDocuments, documentTree, expandedDocIds } = storeToRefs(documentsStore)
-
-const canCreate = computed(() => isUIAllowed('documentCreate'))
-
-const onAddPage = async () => {
-  await createDocument(baseId.value)
-  $e('c:document:create:sidebar')
-}
 
 const baseDocuments = computed(() => allDocuments.value.get(baseId.value) ?? [])
 
@@ -295,25 +287,9 @@ onBeforeUnmount(() => {
 
 <template>
   <div data-testid="nc-docs-sidebar-pages-list">
-    <!-- Add page button -->
-    <NcButton
-      v-if="canCreate"
-      v-e="['c:document:create:sidebar']"
-      data-testid="nc-docs-sidebar-add-page"
-      type="text"
-      size="xxsmall"
-      class="!text-nc-content-gray-subtle2 !hover:text-nc-content-gray-subtle !w-full !justify-start !px-2 !my-0.5"
-      @click="onAddPage"
-    >
-      <div class="flex items-center gap-1">
-        <GeneralIcon icon="plus" class="text-inherit" />
-        <span class="text-inherit text-bodySm">{{ $t('labels.addNewPage') }}</span>
-      </div>
-    </NcButton>
-
     <!-- Empty state: no documents yet -->
     <div
-      v-if="!baseDocuments.length && !canCreate"
+      v-if="!baseDocuments.length"
       class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
     >
       {{ $t('labels.noDocuments') }}

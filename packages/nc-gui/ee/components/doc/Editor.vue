@@ -803,10 +803,14 @@ watch(
 
 // Sync external title changes (e.g. sidebar rename) into the editor's local title ref.
 // Skip when the editor itself initiated the change (isSaving) or when loading a new doc.
+// Guard: only sync when activeDocument still matches the editor's local doc — during
+// navigation activeDocument switches to the new page before loadAndSetDoc flushes
+// the pending save, which would corrupt title.value with the wrong page's title.
 watch(
   () => activeDocument.value?.title,
   (storeTitle) => {
     if (!storeTitle || isSaving.value || !isLoaded.value) return
+    if (!doc.value || activeDocument.value?.id !== doc.value.id) return
 
     // Map the server default "Untitled" to empty (editor convention)
     const normalized = storeTitle === 'Untitled' ? '' : storeTitle
@@ -814,9 +818,7 @@ watch(
     if (normalized !== title.value) {
       title.value = normalized
       // Also sync the local doc ref so version/title stay consistent
-      if (doc.value) {
-        doc.value.title = storeTitle
-      }
+      doc.value.title = storeTitle
     }
   },
 )

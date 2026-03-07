@@ -10,6 +10,7 @@ import type {
   InternalApiModule,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
+import { NcError } from '~/helpers/catchError';
 import { DocsService } from '~/services/docs.service';
 
 @Injectable()
@@ -42,17 +43,29 @@ export class DocsPostOperations
     switch (operation) {
       case 'docCreate':
         return await this.docsService.create(context, payload, req);
-      case 'docUpdate':
+      case 'docUpdate': {
+        if (!payload?.docId) {
+          NcError.badRequest('Missing required parameter: docId');
+        }
         return await this.docsService.update(
           context,
           payload.docId,
           payload,
           req,
         );
-      case 'docDelete':
+      }
+      case 'docDelete': {
+        if (!payload?.docId) {
+          NcError.badRequest('Missing required parameter: docId');
+        }
         return await this.docsService.delete(context, payload.docId);
-      case 'docReorder':
+      }
+      case 'docReorder': {
+        if (!payload?.docId) {
+          NcError.badRequest('Missing required parameter: docId');
+        }
         return await this.docsService.reorder(context, payload.docId, payload);
+      }
     }
   }
 }

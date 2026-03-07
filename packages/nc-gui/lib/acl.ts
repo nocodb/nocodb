@@ -198,6 +198,11 @@ const rolePermissions = {
       // Documents — read-only for viewers
       documentList: true,
       documentGet: true,
+
+      // Document Comments — read-only for viewers
+      documentCommentList: true,
+      documentCommentCount: true,
+      documentCommentReactionList: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

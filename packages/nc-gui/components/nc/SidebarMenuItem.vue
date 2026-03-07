@@ -55,10 +55,10 @@ const handleClick = (event: MouseEvent) => {
 
 <style lang="scss" scoped>
 .nc-sidebar-menu-item {
-  @apply flex items-center gap-2 h-7 pl-3 pr-1 my-[2px] rounded-md cursor-pointer select-none text-nc-content-gray-subtle text-bodyDefaultSm font-medium transition-all duration-200;
+  @apply flex items-center gap-2 h-7 xs:(h-10 text-base) pl-3 pr-1 my-[2px] rounded-md cursor-pointer select-none text-nc-content-gray-subtle text-bodyDefaultSm font-medium transition-all duration-200;
 
   :deep(svg) {
-    @apply w-4 h-4;
+    @apply w-4 h-4 xs:(w-5 h-5);
   }
 
   &:hover:not(.disabled) {

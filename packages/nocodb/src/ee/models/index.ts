@@ -38,6 +38,7 @@ export { default as Dashboard } from './Dashboard';
 export { default as Document } from './Document';
 export { default as ViewSection } from './ViewSection';
 export { default as ApiToken } from './ApiToken';
+export { default as ApiTokenScope } from './ApiTokenScope';
 export { default as Widget } from './Widget';
 export { default as ListView } from './ListView';
 export { default as ListViewColumn } from './ListViewColumn';

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, EventType, PlanLimitTypes } from 'nocodb-sdk';
+import { DocumentsService as DocumentsServiceCE } from 'src/services/documents.service';
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -7,7 +8,6 @@ import { checkLimit } from '~/helpers/paymentHelpers';
 import { Document, FileReference } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { extractMentionsFromProseMirror } from '~/utils/richTextHelper';
 
@@ -23,10 +23,8 @@ import { extractMentionsFromProseMirror } from '~/utils/richTextHelper';
 const MAX_DOC_CONTENT_SIZE = 5 * 1024 * 1024;
 
 @Injectable()
-export class DocumentsService {
+export class DocumentsService extends DocumentsServiceCE {
   protected logger = new Logger(DocumentsService.name);
-
-  constructor(protected readonly appHooksService: AppHooksService) {}
 
   /**
    * List documents in a base (lightweight — excludes content).

@@ -244,6 +244,14 @@ const permissionScopes = {
     'mcpUpdate',
     'mcpDelete',
 
+    // Docs (Pages)
+    'docList',
+    'docGet',
+    'docCreate',
+    'docUpdate',
+    'docDelete',
+    'docReorder',
+
     // etc
     'fetchViaUrl',
   ],
@@ -417,6 +425,14 @@ const rolePermissions:
       mcpCreate: true,
       mcpUpdate: true,
       mcpDelete: true,
+
+      // Docs (Pages)
+      docList: true,
+      docGet: true,
+      docCreate: true,
+      docUpdate: true,
+      docDelete: true,
+      docReorder: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -859,6 +875,13 @@ const permissionDescriptions: Record<string, string> = {
   chatSessionDelete: 'delete a chat session',
   chatMessageList: 'list chat messages',
   chatMessageSend: 'send a chat message',
+
+  docList: 'view list of pages',
+  docGet: 'view page details',
+  docCreate: 'create a new page',
+  docUpdate: 'update a page',
+  docDelete: 'delete a page',
+  docReorder: 'reorder pages',
 };
 
 // Human-readable descriptions for roles

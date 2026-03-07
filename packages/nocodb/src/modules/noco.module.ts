@@ -110,6 +110,7 @@ import { UtilsService } from '~/services/utils.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import { McpTokenService } from '~/services/mcp.service';
+import { DocsService } from '~/services/docs.service';
 import { McpService } from '~/mcp/mcp.service';
 import { McpController } from '~/mcp/mcp.controller';
 import { InternalController } from '~/controllers/internal.controller';
@@ -329,6 +330,7 @@ export const nocoModuleMetadata = {
     NocoJobsService,
     McpTokenService,
     McpService,
+    DocsService,
     ViewRowColorService,
     ViewRowColorV3Service,
     ViewsV3Service,

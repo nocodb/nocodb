@@ -22,7 +22,12 @@ const props = defineProps<{
   editor: any
 }>()
 
-const embedSrc = computed(() => props.node.attrs.src || '')
+const embedSrc = computed(() => {
+  const src = props.node.attrs.src || ''
+  // Only allow http(s) URLs — block javascript:, data:, etc.
+  if (src && !/^https?:\/\//i.test(src)) return ''
+  return src
+})
 
 const customHeight = computed(() => props.node.attrs.height as number | null)
 
@@ -166,6 +171,7 @@ const isFixedHeight = computed(() => !!(liveHeight.value || customHeight.value))
           class="nc-embed-iframe"
           :class="{ 'nc-embed-iframe-fixed': isFixedHeight }"
           frameborder="0"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowfullscreen
         />

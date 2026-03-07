@@ -78,32 +78,34 @@ export function useDocumentFileUpload() {
     } catch {
       removeFileNode(editor, blobUrl)
     } finally {
+      URL.revokeObjectURL(blobUrl)
       uploadCount.value--
     }
   }
 
   /** Walk the doc tree to find a fileAttachment node by src and update its attributes. */
   function updateFileNode(editor: Editor, matchSrc: string, newAttrs: Record<string, any>) {
-    const { doc, tr } = editor.state
+    // Read fresh state to avoid stale positions from concurrent uploads
+    const { doc, tr } = editor.view.state
     doc.descendants((node, pos) => {
       if (node.type.name === 'fileAttachment' && node.attrs.src === matchSrc) {
         tr.setNodeMarkup(pos, undefined, { ...node.attrs, ...newAttrs })
         return false
       }
     })
-    editor.view.dispatch(tr)
+    if (tr.docChanged) editor.view.dispatch(tr)
   }
 
   /** Walk the doc tree to find and delete a fileAttachment node by src. */
   function removeFileNode(editor: Editor, matchSrc: string) {
-    const { doc, tr } = editor.state
+    const { doc, tr } = editor.view.state
     doc.descendants((node, pos) => {
       if (node.type.name === 'fileAttachment' && node.attrs.src === matchSrc) {
         tr.delete(pos, pos + node.nodeSize)
         return false
       }
     })
-    editor.view.dispatch(tr)
+    if (tr.docChanged) editor.view.dispatch(tr)
   }
 
   return {

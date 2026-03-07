@@ -483,16 +483,61 @@ const _tiptapEditor = useEditor({
       const images = files.filter((f) => f.type.startsWith('image/'))
       const nonImages = files.filter((f) => !f.type.startsWith('image/'))
 
-      if (!images.length && !nonImages.length) return false
+      const ed = editor.value
+      if (!ed) return false
 
       event.preventDefault()
-      const ed = editor.value
-      if (ed) {
-        // Position cursor at drop point
-        const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })
-        if (pos) ed.commands.setTextSelection(pos.pos)
 
-        // Batch-insert image placeholder nodes in a single transaction
+      // Position cursor at drop point
+      const pos = view.posAtCoords({ left: event.clientX, top: event.clientY })
+      if (pos) ed.commands.setTextSelection(pos.pos)
+
+      // Batch-insert image placeholder nodes in a single transaction
+      if (images.length) {
+        const imgEntries = images.map((img) => ({
+          file: img,
+          blobUrl: URL.createObjectURL(img),
+        }))
+        const imgNodes = imgEntries.map(({ file, blobUrl }) => ({
+          type: 'image' as const,
+          attrs: { src: blobUrl, alt: file.name },
+        }))
+        ed.chain().focus().insertContent(imgNodes).run()
+        for (const { file, blobUrl } of imgEntries) {
+          uploadAndInsert(ed, file, blobUrl)
+        }
+      }
+
+      // Batch-insert file attachment placeholder nodes in a single transaction
+      if (nonImages.length) {
+        const fileEntries = nonImages.map((file) => ({
+          file,
+          blobUrl: URL.createObjectURL(file),
+        }))
+        const fileNodes = fileEntries.map(({ file, blobUrl }) => ({
+          type: 'fileAttachment' as const,
+          attrs: { src: blobUrl, fileName: file.name, fileSize: file.size, fileType: file.type },
+        }))
+        ed.chain().focus().insertContent(fileNodes).run()
+        for (const { file, blobUrl } of fileEntries) {
+          uploadAndInsertFile(ed, file, blobUrl)
+        }
+      }
+
+      return true
+    },
+    handlePaste(_view, event) {
+      // Check for pasted files (images + non-images)
+      const files = Array.from(event.clipboardData?.files || [])
+      if (files.length) {
+        const ed = editor.value
+        if (!ed) return false
+
+        const images = files.filter((f) => f.type.startsWith('image/'))
+        const nonImages = files.filter((f) => !f.type.startsWith('image/'))
+
+        event.preventDefault()
+
         if (images.length) {
           const imgEntries = images.map((img) => ({
             file: img,
@@ -508,7 +553,6 @@ const _tiptapEditor = useEditor({
           }
         }
 
-        // Batch-insert file attachment placeholder nodes in a single transaction
         if (nonImages.length) {
           const fileEntries = nonImages.map((file) => ({
             file,
@@ -523,30 +567,7 @@ const _tiptapEditor = useEditor({
             uploadAndInsertFile(ed, file, blobUrl)
           }
         }
-      }
-      return true
-    },
-    handlePaste(_view, event) {
-      // Check for pasted image files (e.g. screenshot from clipboard)
-      const files = Array.from(event.clipboardData?.files || [])
-      const images = files.filter((f) => f.type.startsWith('image/'))
-      if (images.length) {
-        event.preventDefault()
-        const ed = editor.value
-        if (ed) {
-          const imgEntries = images.map((img) => ({
-            file: img,
-            blobUrl: URL.createObjectURL(img),
-          }))
-          const imgNodes = imgEntries.map(({ file, blobUrl }) => ({
-            type: 'image' as const,
-            attrs: { src: blobUrl, alt: file.name },
-          }))
-          ed.chain().focus().insertContent(imgNodes).run()
-          for (const { file, blobUrl } of imgEntries) {
-            uploadAndInsert(ed, file, blobUrl)
-          }
-        }
+
         return true
       }
 

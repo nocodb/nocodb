@@ -117,9 +117,14 @@ const onDownload = async () => {
       }
     } catch {
       // Fallback to header-based auth
-      blobUrl = await fetchDocAttachment(id)
+      try {
+        blobUrl = await fetchDocAttachment(id)
+      } catch {
+        // Both methods failed — blobUrl stays empty
+      }
+    } finally {
+      isDownloading.value = false
     }
-    isDownloading.value = false
   } else if (src) {
     blobUrl = src
   }

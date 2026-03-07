@@ -75,7 +75,11 @@ export function useDocumentImageUpload() {
    * and only perform the upload + attr swap.
    */
   async function uploadAndInsert(editor: Editor, file: File, existingBlobUrl?: string) {
-    if (!file.type.startsWith('image/')) return
+    if (!file.type.startsWith('image/')) {
+      // Clean up orphaned placeholder if already batch-inserted
+      if (existingBlobUrl) removeImageNode(editor, existingBlobUrl)
+      return
+    }
 
     const blobUrl = existingBlobUrl || URL.createObjectURL(file)
 
@@ -105,32 +109,34 @@ export function useDocumentImageUpload() {
     } catch {
       removeImageNode(editor, blobUrl)
     } finally {
+      URL.revokeObjectURL(blobUrl)
       uploadCount.value--
     }
   }
 
   /** Walk the doc tree to find an image node by src and update its attributes. */
   function updateImageNode(editor: Editor, matchSrc: string, newAttrs: Record<string, any>) {
-    const { doc, tr } = editor.state
+    // Read fresh state to avoid stale positions from concurrent uploads
+    const { doc, tr } = editor.view.state
     doc.descendants((node, pos) => {
       if (node.type.name === 'image' && node.attrs.src === matchSrc) {
         tr.setNodeMarkup(pos, undefined, { ...node.attrs, ...newAttrs })
-        return false // stop traversal
+        return false
       }
     })
-    editor.view.dispatch(tr)
+    if (tr.docChanged) editor.view.dispatch(tr)
   }
 
   /** Walk the doc tree to find and delete an image node by src. */
   function removeImageNode(editor: Editor, matchSrc: string) {
-    const { doc, tr } = editor.state
+    const { doc, tr } = editor.view.state
     doc.descendants((node, pos) => {
       if (node.type.name === 'image' && node.attrs.src === matchSrc) {
         tr.delete(pos, pos + node.nodeSize)
         return false
       }
     })
-    editor.view.dispatch(tr)
+    if (tr.docChanged) editor.view.dispatch(tr)
   }
 
   return {

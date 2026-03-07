@@ -36,6 +36,12 @@ export function useDocumentAutoSave({
   // Used to allow saving empty documents when the user intentionally clears content.
   const hasUserEdited = ref(false)
 
+  // Monotonically increasing ID to discard stale loadAndSetDoc results
+  let loadSequence = 0
+
+  // Flag to re-queue save when a save is already in-flight
+  let pendingSaveAfterCurrent = false
+
   const { user } = useGlobal()
 
   // When the store version advances due to current user's action (e.g. sidebar rename),
@@ -93,6 +99,12 @@ export function useDocumentAutoSave({
     if (!isEditable.value) return
     if (!doc.value || !activeProjectId.value || !editor.value) return
 
+    // Prevent concurrent saves — re-queue if one is already in-flight
+    if (isSaving.value) {
+      pendingSaveAfterCurrent = true
+      return
+    }
+
     isSaving.value = true
     try {
       const content = editor.value.getJSON()
@@ -129,6 +141,11 @@ export function useDocumentAutoSave({
       // Error already surfaced by store's updateDocument via message.error
     } finally {
       isSaving.value = false
+      // If another save was requested while we were saving, run it now
+      if (pendingSaveAfterCurrent) {
+        pendingSaveAfterCurrent = false
+        save()
+      }
     }
   }
 
@@ -197,9 +214,14 @@ export function useDocumentAutoSave({
       await save()
     }
 
+    const thisLoad = ++loadSequence
+
     isLoaded.value = false
     hasUserEdited.value = false
     const loaded = await loadDocument(id)
+
+    // Discard stale result — user navigated away before load completed
+    if (thisLoad !== loadSequence) return
 
     if (loaded) {
       doc.value = loaded
@@ -211,6 +233,9 @@ export function useDocumentAutoSave({
       if (parsed) {
         // useEditor creates the instance in onMounted — wait for it on first load
         await waitForEditor()
+
+        // Discard if navigated away during editor wait
+        if (thisLoad !== loadSequence) return
 
         // Suppress onUpdate → debouncedSave while loading content programmatically
         isSettingContent.value = true
@@ -233,7 +258,8 @@ export function useDocumentAutoSave({
   const flushOnUnmount = () => {
     if (saveTimeout.value) {
       clearTimeout(saveTimeout.value)
-      if (isEditable.value && doc.value && activeProjectId.value && editor.value) {
+      // Skip if a save is already in-flight — it will persist the current content
+      if (!isSaving.value && isEditable.value && doc.value && activeProjectId.value && editor.value) {
         const content = editor.value.getJSON()
         const docId = doc.value.id!
         const version = doc.value.version

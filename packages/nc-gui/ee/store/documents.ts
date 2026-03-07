@@ -100,6 +100,13 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       })) as DocumentType[]
 
       if (ncIsArray(response)) {
+        // When force-reloading, clear child-loading markers so they re-fetch on expand
+        if (force) {
+          const oldDocs = documents.value.get(baseId) || []
+          for (const d of oldDocs) {
+            if (d.id) loadedParentIds.value.delete(d.id)
+          }
+        }
         documents.value.set(baseId, response)
         loadedParentIds.value.add(rootKey)
         return response
@@ -413,16 +420,19 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     // Save old values for rollback
     const oldParentId = existing.parent_id
     const oldOrder = existing.order
+    const oldParent = oldParentId ? baseDocuments.find((d) => d.id === oldParentId) : null
+    const oldParentHadChildren = oldParent?.has_children
+    const newParent = parentId ? baseDocuments.find((d) => d.id === parentId) : null
+    const newParentHadChildren = newParent?.has_children
 
     // Optimistic local update — Vue re-renders immediately from new state,
     // preventing duplicates that occur when SortableJS DOM and Vue VDOM disagree.
     existing.parent_id = parentId
     existing.order = order
 
-    if (parentId) {
-      const newParent = baseDocuments.find((d) => d.id === parentId)
-      if (newParent) newParent.has_children = true
+    if (newParent) newParent.has_children = true
 
+    if (parentId) {
       // Auto-expand the target parent so the nested child is visible (Notion pattern)
       if (!expandedDocIds.value.has(parentId)) {
         expandedDocIds.value.add(parentId)
@@ -431,12 +441,9 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     }
 
     // Update old parent's has_children (may no longer have children)
-    if (oldParentId && oldParentId !== parentId) {
-      const oldParent = baseDocuments.find((d) => d.id === oldParentId)
-      if (oldParent) {
-        const remainingChildren = baseDocuments.some((d) => d.parent_id === oldParentId && d.id !== docId)
-        oldParent.has_children = remainingChildren
-      }
+    if (oldParent && oldParentId !== parentId) {
+      const remainingChildren = baseDocuments.some((d) => d.parent_id === oldParentId && d.id !== docId)
+      oldParent.has_children = remainingChildren
     }
 
     try {
@@ -450,9 +457,11 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       $e('a:document:move')
       return updated
     } catch (e) {
-      // Rollback on failure
+      // Rollback on failure — restore all optimistic changes
       existing.parent_id = oldParentId
       existing.order = oldOrder
+      if (oldParent) oldParent.has_children = oldParentHadChildren
+      if (newParent) newParent.has_children = newParentHadChildren
       ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     }

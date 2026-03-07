@@ -99,6 +99,10 @@ const onResizeStart = (e: MouseEvent) => {
 }
 
 /** SW (bottom-left) resize — inverted delta direction. */
+// Track SW closures for cleanup
+let swMoveHandler: ((ev: MouseEvent) => void) | null = null
+let swUpHandler: (() => void) | null = null
+
 const onResizeStartSW = (e: MouseEvent) => {
   e.preventDefault()
   e.stopPropagation()
@@ -107,7 +111,7 @@ const onResizeStartSW = (e: MouseEvent) => {
   resizeStartX.value = e.clientX
   resizeStartWidth.value = imageRef.value?.getBoundingClientRect().width || 0
 
-  const onMove = (ev: MouseEvent) => {
+  swMoveHandler = (ev: MouseEvent) => {
     const delta = resizeStartX.value - ev.clientX
     const newWidth = Math.max(MIN_WIDTH, Math.round(resizeStartWidth.value + delta))
     const editorBody = props.editor.view.dom.closest('.nc-doc-editor-body')
@@ -115,20 +119,24 @@ const onResizeStartSW = (e: MouseEvent) => {
     props.updateAttributes({ width: Math.min(newWidth, maxWidth) })
   }
 
-  const onUp = () => {
+  swUpHandler = () => {
     isResizing.value = false
-    document.removeEventListener('mousemove', onMove)
-    document.removeEventListener('mouseup', onUp)
+    if (swMoveHandler) document.removeEventListener('mousemove', swMoveHandler)
+    if (swUpHandler) document.removeEventListener('mouseup', swUpHandler)
+    swMoveHandler = null
+    swUpHandler = null
   }
 
-  document.addEventListener('mousemove', onMove)
-  document.addEventListener('mouseup', onUp)
+  document.addEventListener('mousemove', swMoveHandler)
+  document.addEventListener('mouseup', swUpHandler)
 }
 
 // Clean up on unmount
 onBeforeUnmount(() => {
   document.removeEventListener('mousemove', onResizeMove)
   document.removeEventListener('mouseup', onResizeEnd)
+  if (swMoveHandler) document.removeEventListener('mousemove', swMoveHandler)
+  if (swUpHandler) document.removeEventListener('mouseup', swUpHandler)
 })
 
 // --- Caption ---
@@ -220,7 +228,8 @@ const onWrapperClick = (e: MouseEvent) => {
 }
 
 // --- Toolbar visibility ---
-const showToolbar = computed(() => props.selected && !isResizing.value)
+const isEditable = computed(() => props.editor?.isEditable)
+const showToolbar = computed(() => props.selected && !isResizing.value && isEditable.value)
 </script>
 
 <template>
@@ -305,15 +314,15 @@ const showToolbar = computed(() => props.selected && !isResizing.value)
         draggable="false"
       />
 
-      <!-- Resize handles (visible when selected) -->
-      <template v-if="selected && resolvedSrc">
+      <!-- Resize handles (visible when selected + editable) -->
+      <template v-if="selected && resolvedSrc && isEditable">
         <div class="nc-doc-image-resize-handle nc-resize-se" @mousedown="onResizeStart" />
         <div class="nc-doc-image-resize-handle nc-resize-sw" @mousedown="onResizeStartSW" />
       </template>
 
       <!-- Caption -->
       <input
-        v-if="selected && resolvedSrc"
+        v-if="selected && resolvedSrc && isEditable"
         ref="captionInputRef"
         v-model="captionText"
         class="nc-doc-image-caption nc-doc-image-caption-input"

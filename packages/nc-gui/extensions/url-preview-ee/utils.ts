@@ -1,13 +1,18 @@
 const urlMatchers: [string, (u: string) => string | null][] = []
 
-const YOUTUBE_RE = /^https?:\/\/(www\.|)youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(.*)?$/
 const YOUTUBE_SHORTEN_RE = /^https?:\/\/(www\.|)youtu\.be\/([a-zA-Z0-9_-]{11})(.*)?$/
 const matchYoutube = (url: string) => {
   try {
-    const match = url.match(YOUTUBE_RE) || url.match(YOUTUBE_SHORTEN_RE)
-    if (!match) {
+    // Use URL parser for youtube.com/watch to handle v= in any query position
+    if (/^https?:\/\/(www\.)?youtube\.com\/watch/i.test(url)) {
+      const v = new URL(url).searchParams.get('v')
+      if (v && /^[a-zA-Z0-9_-]{11}$/.test(v)) {
+        return `https://www.youtube.com/embed/${v}`
+      }
       return null
     }
+    const match = url.match(YOUTUBE_SHORTEN_RE)
+    if (!match) return null
     return `https://www.youtube.com/embed/${match[2]}`
   } catch {
     return null
@@ -74,8 +79,6 @@ const GOOGLE_MAPS_PLACE_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/place\/
 const GOOGLE_MAPS_AT_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/@(-?\d+\.?\d*),(-?\d+\.?\d*),(\d+)z/
 const GOOGLE_MAPS_SEARCH_PATH_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps\/search\/([^\/\?]+)/
 const GOOGLE_MAPS_QUERY_RE = /^https?:\/\/(www\.)?google\.[a-z.]+\/maps.*[\?&]q=([^&]+)/
-const GOOGLE_MAPS_SHORT_RE = /^https?:\/\/(goo\.gl\/maps\/|maps\.app\.goo\.gl\/)/
-
 const matchGoogleMaps = (url: string) => {
   try {
     // Place URL with lat/lng/zoom
@@ -110,10 +113,8 @@ const matchGoogleMaps = (url: string) => {
       return `https://maps.google.com/maps?q=${searchMatch[2]}&output=embed`
     }
 
-    // Short links — pass through as-is (Google redirects work in iframes)
-    if (GOOGLE_MAPS_SHORT_RE.test(url)) {
-      return url
-    }
+    // Short links (goo.gl/maps, maps.app.goo.gl) — not embeddable due to
+    // cross-origin redirect restrictions in iframes. Skip them.
 
     return null
   } catch {
@@ -141,38 +142,19 @@ const matchFigma = (url: string) => {
     }
 
     const [, , type, fileId, nodeId] = match
-    let embedUrl = null
-    switch (type) {
-      case 'file':
-        embedUrl = `https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/file/${fileId}`
-        if (nodeId) {
-          embedUrl += `/?node-id=${nodeId}`
-        }
-        break
-      case 'proto':
-        embedUrl = `https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/proto/${fileId}`
-        break
-      case 'design':
-        embedUrl = `https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/design/${fileId}`
-        if (nodeId) {
-          embedUrl += `/?node-id=${nodeId}`
-        }
-        break
-      case 'board':
-        embedUrl = `https://www.figma.com/embed?embed_host=share&url=https://www.figma.com/board/${fileId}`
-        if (nodeId) {
-          embedUrl += `/?node-id=${nodeId}`
-        }
-        break
+    // Build the inner Figma URL, then encode it as a query param for the embed endpoint
+    let innerUrl = `https://www.figma.com/${type}/${fileId}`
+    if (nodeId && type !== 'proto') {
+      innerUrl += `?node-id=${nodeId}`
     }
-    return embedUrl
+    return `https://www.figma.com/embed?embed_host=share&url=${encodeURIComponent(innerUrl)}`
   } catch {
     return null
   }
 }
 urlMatchers.push(['Figma', matchFigma])
 
-const VIMEO_RE = /^https?:\/\/(www\.|)vimeo\.com\/(\d+)(?:\?.*)?$/
+const VIMEO_RE = /^https?:\/\/(www\.|)vimeo\.com\/(\d+)(?:\/([a-zA-Z0-9]+))?(?:\?.*)?$/
 const matchVimeo = (url: string) => {
   try {
     const match = url.match(VIMEO_RE)
@@ -180,8 +162,10 @@ const matchVimeo = (url: string) => {
       return null
     }
     const videoId = match[2]
-    // Build embed URL with parameters
-    return `https://player.vimeo.com/video/${videoId}`
+    const hash = match[3] // unlisted video privacy hash
+    return hash
+      ? `https://player.vimeo.com/video/${videoId}?h=${hash}`
+      : `https://player.vimeo.com/video/${videoId}`
   } catch {
     return null
   }
@@ -228,7 +212,7 @@ const matchSoundCloud = (url: string) => {
     if (!match) {
       return null
     }
-    return `https://w.soundcloud.com/player/?url=${url}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`
+    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`
   } catch {
     return null
   }
@@ -333,14 +317,14 @@ const matchTed = (url: string) => {
 }
 urlMatchers.push(['TED', matchTed])
 
-const JSFIDDLE_RE = /^https?:\/\/jsfiddle\.net\/([a-zA-Z0-9]+)(?:\/(\d+))?\/?$/
+// JSFiddle — supports /user/fiddleId/version/ and /fiddleId/version/
+const JSFIDDLE_RE = /^https?:\/\/jsfiddle\.net\/[a-zA-Z0-9\/_-]+\/?$/
 const matchJSFiddle = (url: string) => {
   try {
-    const match = url.match(JSFIDDLE_RE)
-    if (!match) return null
-    const user = match[1]
-    const version = match[2] || '1' // default to version 1 if not present
-    return `https://jsfiddle.net/${user}/${version}/embedded/`
+    if (!JSFIDDLE_RE.test(url)) return null
+    // Normalize: strip trailing slash, append /embedded/
+    const base = url.replace(/\/+$/, '')
+    return `${base}/embedded/`
   } catch {
     return null
   }
@@ -372,8 +356,8 @@ const matchCodeSandbox = (url: string) => {
 urlMatchers.push(['CodeSandbox', matchCodeSandbox])
 
 // NocoDB shared views — already iframeable, pass the URL through as-is
-// Supports both hash-based (/#/nc/view/...) and non-hash (/nc/view/...) URL formats
-const NOCODB_SHARED_RE = /^https?:\/\/[^\/]+\/(?:#\/)?nc\/(view|form|gallery|kanban|map|calendar|dashboard)\/([a-zA-Z0-9_-]+)/
+// Supports: /nc/view/..., /#/nc/view/..., /dashboard/#/nc/view/..., /nc/base/..., /nc/p/...
+const NOCODB_SHARED_RE = /^https?:\/\/[^\/]+\/(?:dashboard\/)?(?:#\/)?nc\/(view|form|gallery|kanban|map|calendar|dashboard|base|p)\/([a-zA-Z0-9_-]+)/
 const matchNocoDB = (url: string) => {
   try {
     const match = url.match(NOCODB_SHARED_RE)

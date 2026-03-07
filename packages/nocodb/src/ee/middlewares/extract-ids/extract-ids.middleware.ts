@@ -1543,6 +1543,22 @@ export class AclMiddleware implements NestInterceptor {
       // );
     }
 
+    // Fine-grained API token permission check (intersection model)
+    // After role-based ACL passes, further restrict based on token permissions
+    if (req?.user?.is_api_token && req.user?.api_token_meta?.permissions) {
+      const { checkTokenPermission } = await import(
+        '~/utils/apiTokenPermissionMap'
+      );
+      const tokenCategories =
+        req.user.api_token_meta.permissions.categories;
+
+      if (!checkTokenPermission(tokenCategories, permissionName)) {
+        NcError.forbidden(
+          `API token does not have permission to ${permissionName}. Required permission not granted.`,
+        );
+      }
+    }
+
     // Check table visibility permission after default ACL check
     // This ensures table visibility is enforced for all table-related operations
     if (

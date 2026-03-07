@@ -2,6 +2,7 @@ import type { DocType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {
+  CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
@@ -9,6 +10,14 @@ import {
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
+/**
+ * Data model for Pages (table: nc_docs_v2).
+ *
+ * Pages store rich-text content as ProseMirror JSON in the `content` column.
+ * JSON fields (content, meta) are stringified for DB storage and parsed on read
+ * via `parseDoc()`. Cache invalidation uses `del` on update (not `update`) to
+ * avoid storing stringified JSON in the cache layer.
+ */
 export default class Doc implements DocType {
   id: string;
   base_id: string;
@@ -82,8 +91,6 @@ export default class Doc implements DocType {
         },
       );
 
-      docList = docList.map((doc) => this.parseDoc(doc));
-
       await NocoCache.setList(
         context,
         CacheScope.DOC,
@@ -93,7 +100,9 @@ export default class Doc implements DocType {
       );
     }
 
-    // Always parse — cache may contain stringified content
+    // Parse stringified JSON fields — DB rows and cache entries may
+    // contain content/meta as strings. parseDoc is idempotent on
+    // already-parsed objects.
     return docList.map((doc) => new Doc(this.parseDoc(doc)));
   }
 
@@ -185,8 +194,11 @@ export default class Doc implements DocType {
       docId,
     );
 
+    // Invalidate cache — updateObj contains stringified JSON fields
+    // that would corrupt the cache if written directly.
+    // The subsequent get() will re-fetch from DB and cache the parsed result.
     const key = `${CacheScope.DOC}:${docId}`;
-    await NocoCache.update(context, key, updateObj);
+    await NocoCache.del(context, key);
 
     return await this.get(context, docId, ncMeta);
   }
@@ -196,9 +208,6 @@ export default class Doc implements DocType {
     docId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const doc = await this.get(context, docId, ncMeta);
-    if (!doc) return false;
-
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
@@ -206,8 +215,13 @@ export default class Doc implements DocType {
       docId,
     );
 
+    // Remove from both individual cache and parent list
     const key = `${CacheScope.DOC}:${docId}`;
-    await NocoCache.del(context, key);
+    await NocoCache.deepDel(
+      context,
+      key,
+      CacheDelDirection.CHILD_TO_PARENT,
+    );
 
     return true;
   }

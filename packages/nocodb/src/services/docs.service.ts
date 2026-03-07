@@ -4,6 +4,13 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Doc } from '~/models';
 
+/**
+ * Service layer for Pages (internally "Docs").
+ *
+ * Pages are base-scoped rich-text documents stored as ProseMirror JSON.
+ * Each page belongs to exactly one base and uses optimistic concurrency
+ * via a `version` counter to prevent lost writes.
+ */
 @Injectable()
 export class DocsService {
   protected logger = new Logger(DocsService.name);
@@ -54,7 +61,7 @@ export class DocsService {
       NcError.notFound('Page not found');
     }
 
-    // Optimistic concurrency: reject if version doesn't match
+    // Optimistic concurrency: reject stale writes
     if (
       payload.version !== undefined &&
       payload.version !== existing.version
@@ -80,12 +87,7 @@ export class DocsService {
       NcError.notFound('Page not found');
     }
 
-    const success = await Doc.delete(context, docId);
-    if (!success) {
-      NcError.internalServerError('Failed to delete page');
-    }
-
-    return true;
+    return await Doc.delete(context, docId);
   }
 
   async reorder(

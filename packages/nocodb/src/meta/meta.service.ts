@@ -149,6 +149,7 @@ export class MetaService {
       [MetaTable.AUTOMATION_SUBSCRIBERS]: 'as',
       [MetaTable.DOCS]: 'doc',
       [MetaTable.DATE_DEPENDENCY]: 'dd',
+      [MetaTable.API_TOKEN_SCOPES]: 'ats',
     };
 
     const prefix = prefixMap[target] || 'nc';

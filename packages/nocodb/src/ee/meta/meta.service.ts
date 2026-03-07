@@ -131,6 +131,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.CHAT_MESSAGES]: 'cm',
       [MetaTable.DOCS]: 'doc',
       [MetaTable.DATE_DEPENDENCY]: 'dd',
+      [MetaTable.API_TOKEN_SCOPES]: 'ats',
     };
 
     const prefix = prefixMap[target] || 'nc';

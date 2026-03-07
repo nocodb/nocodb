@@ -108,6 +108,44 @@ export class DocumentsService extends DocumentsServiceCE {
 
     const doc = await Document.insert(context, payload);
 
+    // When content contains existing FileReference IDs (e.g. duplication),
+    // create new FileReferences for the new doc so the attachment proxy
+    // can validate ownership (fk_doc_id must match the new doc ID).
+    if (payload.content) {
+      try {
+        const contentUpdated = await this.cloneFileReferences(
+          context,
+          doc.id!,
+          doc.content,
+          req,
+        );
+
+        // Also handle cover image FileReference
+        let metaUpdated = false;
+        if (payload.meta?.cover_image_file_ref_id) {
+          metaUpdated = await this.cloneCoverImageFileReference(
+            context,
+            doc.id!,
+            doc.meta,
+            req,
+          );
+        }
+
+        if (contentUpdated || metaUpdated) {
+          await Document.update(context, doc.id!, {
+            ...(contentUpdated ? { content: doc.content } : {}),
+            ...(metaUpdated ? { meta: doc.meta } : {}),
+            version: doc.version,
+          });
+        }
+      } catch (e) {
+        this.logger.error(
+          `Failed to clone file references for duplicated doc ${doc.id}: ${e.message}`,
+          e.stack,
+        );
+      }
+    }
+
     this.appHooksService.emit(AppEvents.DOCUMENT_CREATE, {
       context,
       req,
@@ -511,5 +549,89 @@ export class DocumentsService extends DocumentsServiceCE {
     if (removedIds.length) {
       await FileReference.delete(context, removedIds);
     }
+  }
+
+  /**
+   * Clone FileReferences from duplicated content into a new document.
+   *
+   * Walks ProseMirror JSON, finds image/fileAttachment nodes that already
+   * have an `attrs.id` (copied from the source document). For each, looks
+   * up the original FileReference, creates a new one with `fk_doc_id` set
+   * to the new document, and replaces `attrs.id` in-place.
+   *
+   * Returns `true` if any IDs were replaced (caller must persist content).
+   */
+  protected async cloneFileReferences(
+    context: NcContext,
+    newDocId: string,
+    content: Record<string, any>,
+    req: NcRequest,
+  ): Promise<boolean> {
+    const nodesToClone: { node: Record<string, any>; oldId: string }[] = [];
+
+    const walk = (node: Record<string, any>) => {
+      if (
+        (node.type === 'image' || node.type === 'fileAttachment') &&
+        node.attrs?.id
+      ) {
+        nodesToClone.push({ node, oldId: node.attrs.id });
+      }
+      if (Array.isArray(node.content)) {
+        for (const child of node.content) walk(child);
+      }
+    };
+    walk(content);
+
+    if (!nodesToClone.length) return false;
+
+    for (const { node, oldId } of nodesToClone) {
+      const original = await FileReference.get(context, oldId);
+      if (!original || original.deleted) continue;
+
+      const newId = await FileReference.insert(context, {
+        storage: original.storage,
+        file_url: original.file_url,
+        file_size: original.file_size,
+        fk_user_id: req.user?.id ?? 'anonymous',
+        fk_doc_id: newDocId,
+        is_external: original.is_external,
+      });
+      node.attrs.id = newId;
+    }
+
+    return true;
+  }
+
+  /**
+   * Clone the cover image FileReference for a duplicated document.
+   *
+   * Looks up the original FileReference from `meta.cover_image_file_ref_id`,
+   * creates a new one for the new doc, and updates meta in-place.
+   *
+   * Returns `true` if the cover ref was cloned (caller must persist meta).
+   */
+  protected async cloneCoverImageFileReference(
+    context: NcContext,
+    newDocId: string,
+    meta: Record<string, any>,
+    req: NcRequest,
+  ): Promise<boolean> {
+    const oldRefId = meta.cover_image_file_ref_id;
+    if (!oldRefId) return false;
+
+    const original = await FileReference.get(context, oldRefId);
+    if (!original || original.deleted) return false;
+
+    const newId = await FileReference.insert(context, {
+      storage: original.storage,
+      file_url: original.file_url,
+      file_size: original.file_size,
+      fk_user_id: req.user?.id ?? 'anonymous',
+      fk_doc_id: newDocId,
+      is_external: original.is_external,
+    });
+    meta.cover_image_file_ref_id = newId;
+
+    return true;
   }
 }

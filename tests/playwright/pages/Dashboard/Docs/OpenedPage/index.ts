@@ -27,6 +27,7 @@ export class DocsOpenedPagePage extends BasePage {
     await this.get()
       .getByTestId('docs-page-content')
       .locator('.ProseMirror[contenteditable="true"]')
+      .first()
       .waitFor({ state: 'visible' });
     await this.get()
       .getByTestId('docs-page-title')
@@ -84,7 +85,7 @@ export class DocsOpenedPagePage extends BasePage {
   }
 
   async verifyContentIsReadOnly({ editable }: { editable: boolean }) {
-    await expect(this.get().getByTestId('docs-page-content').locator('.ProseMirror')).toHaveAttribute(
+    await expect(this.get().getByTestId('docs-page-content').locator('.ProseMirror').first()).toHaveAttribute(
       'contenteditable',
       editable ? 'true' : 'false'
     );

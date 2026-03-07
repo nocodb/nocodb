@@ -1211,6 +1211,7 @@
     "changeCover": "Change",
     "removeCover": "Remove",
     "noDocuments": "No documents",
+    "addNewPage": "Add page",
     "newDocument": "New document",
     "newSubDocument": "New sub-document",
     "moveToRoot": "Move to root",

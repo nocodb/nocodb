@@ -35,7 +35,10 @@ const up = async (knex: Knex) => {
     table.specificType('version', 'smallint').defaultTo(0);
 
     table.timestamps(true, true);
+  });
 
+  // separate constraints bc of a bug in sqlite
+  await knex.schema.alterTable(MetaTable.AUDIT, (table) => {
     table.primary(['id'], { constraintName: 'nc_audit_v2_pkx' });
     table.index(['fk_workspace_id'], 'nc_audit_v2_fk_workspace_idx');
     table.index(['base_id', 'fk_workspace_id'], 'nc_audit_v2_tenant_idx');

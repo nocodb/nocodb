@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../../pages/Dashboard';
 import setup, { unsetup } from '../../../../setup';
+import { isEE } from '../../../../setup/db';
 import axios from 'axios';
 
 /**
@@ -29,6 +30,7 @@ async function createDocumentViaApi({
 }
 
 test.describe('Docs — Multi-document', () => {
+  if (!isEE()) test.skip();
   let dashboard: DashboardPage;
   let context: any;
 

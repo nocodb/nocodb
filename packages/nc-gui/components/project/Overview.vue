@@ -162,7 +162,7 @@ const onCreateBaseClick = () => {
 
         <!-- Docs tab actions -->
         <template v-if="activeSidebarTab === 'docs' && !isMobileMode">
-          <ProjectActionCreateNewDocument :base-id="base?.id" />
+          <ProjectActionCreateNewPage :base-id="base?.id" />
         </template>
 
         <!-- Automation actions (shown on Automation tab) -->

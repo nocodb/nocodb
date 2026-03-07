@@ -17,14 +17,26 @@ export const modalSizes = {
   md: {
     width: 'min(80vw, 900px)',
     height: 'min(90vh, 540px)',
+    mobile: {
+      width: 'min(calc(100vw - 32px), 900px)',
+      height: 'min(90vh, 540px)',
+    },
   },
   lg: {
     width: 'min(80vw, 1280px)',
     height: 'min(90vh, 864px)',
+    mobile: {
+      width: 'min(calc(100vw - 32px), 1280px)',
+      height: 'min(90vh, 864px)',
+    },
   },
   xl: {
     width: 'min(90vw, 1280px)',
     height: 'min(90vh, 864px)',
+    mobile: {
+      width: 'min(calc(100vw - 32px), 1280px)',
+      height: 'min(90vh, 864px)',
+    },
   },
   fullscreen: {
     width: '100vw',

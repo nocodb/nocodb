@@ -3,12 +3,25 @@ const route = useRoute()
 
 const router = useRouter()
 
+const isAllowedUrl = (url: string) => {
+  if (!url) return false
+  const trimmed = url.trim()
+  // If URL has a scheme, only allow http(s)
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+    return /^https?:\/\//i.test(trimmed)
+  }
+  // No scheme (bare domain) — safe, will get https:// prepended
+  return true
+}
+
 const redirectUrl = computed(() => {
-  return (route.query.ncRedirectUrl as string) ?? ''
+  const url = (route.query.ncRedirectUrl as string) ?? ''
+  return isAllowedUrl(url) ? url : ''
 })
 
 const backUrl = computed(() => {
-  return (route.query.ncBackUrl as string) ?? ''
+  const url = (route.query.ncBackUrl as string) ?? ''
+  return isAllowedUrl(url) ? url : ''
 })
 
 if (!redirectUrl.value || !backUrl.value) {

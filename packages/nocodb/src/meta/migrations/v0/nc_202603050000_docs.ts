@@ -36,9 +36,19 @@ const up = async (knex: Knex) => {
     table.string('anchor_id', 20).nullable();
     table.index(['fk_doc_id'], 'nc_comments_doc_idx');
   });
+
+  // Add fk_doc_id to FILE_REFERENCES for tracking doc image/file attachments.
+  await knex.schema.alterTable(MetaTable.FILE_REFERENCES, (table) => {
+    table.string('fk_doc_id', 20).nullable();
+    table.index(['base_id', 'fk_doc_id'], 'nc_fr_doc_idx');
+  });
 };
 
 const down = async (knex: Knex) => {
+  await knex.schema.alterTable(MetaTable.FILE_REFERENCES, (table) => {
+    table.dropIndex(['base_id', 'fk_doc_id'], 'nc_fr_doc_idx');
+    table.dropColumn('fk_doc_id');
+  });
   await knex.schema.alterTable(MetaTable.COMMENTS, (table) => {
     table.dropIndex(['fk_doc_id'], 'nc_comments_doc_idx');
     table.dropColumn('fk_doc_id');

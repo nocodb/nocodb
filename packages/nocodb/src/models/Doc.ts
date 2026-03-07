@@ -7,6 +7,7 @@ import {
   CacheScope,
   MetaTable,
 } from '~/utils/globals';
+import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
@@ -156,7 +157,7 @@ export default class Doc implements DocType {
     const id = insertResult?.id;
 
     if (!id) {
-      throw new Error('Failed to insert doc: no id returned');
+      NcError.badRequest('Failed to create page');
     }
 
     const res = await this.get(context, id, ncMeta);

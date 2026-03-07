@@ -301,7 +301,6 @@ export const orderedMetaTables = [
   MetaTable.CUSTOM_URLS,
   MetaTable.MCP_TOKENS,
   MetaTable.DOCS,
-  MetaTable.DOC_CONTENT,
   MetaTable.MODELS,
 
   // Dashboard / Widget

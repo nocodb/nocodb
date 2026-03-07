@@ -2,8 +2,10 @@ import { expect, test } from '@playwright/test';
 import { ProjectTypes } from 'nocodb-sdk';
 import { DashboardPage } from '../../../../pages/Dashboard';
 import setup, { unsetup } from '../../../../setup';
+import { isEE } from '../../../../setup/db';
 
 test.describe('Docs — Basic CRUD', () => {
+  if (!isEE()) test.skip();
   let dashboard: DashboardPage;
   let context: any;
 

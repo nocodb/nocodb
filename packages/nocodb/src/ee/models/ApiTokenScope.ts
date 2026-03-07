@@ -50,7 +50,6 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       RootScopes.ROOT,
       MetaTable.API_TOKEN_SCOPES,
       insertData,
-      true,
     );
 
     return this.get(result.id, ncMeta);

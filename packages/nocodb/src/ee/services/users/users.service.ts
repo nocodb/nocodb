@@ -578,7 +578,7 @@ export class UsersService extends UsersServiceCE {
     const apiTokens = await ApiToken.list(user.id, ncMeta);
 
     for (const apiToken of apiTokens) {
-      toBeDeleted.apiTokens.push(apiToken);
+      toBeDeleted.apiTokens.push(apiToken as ApiToken);
     }
 
     await NocoCache.setExpiring(

@@ -31,13 +31,16 @@ export class ApiTokensV3Service {
   ) {}
 
   async validateRequestor(param: { cookie: NcRequest }) {
-    const result = await this.workspaceService.list({
-      user: param.cookie.user,
-    });
-    if (!result.list.some((ws: any) => !!ws.fk_org_id)) {
-      NcError.get({ api_version: NcApiVersion.V3 }).forbidden(
-        `Accessing api token api require enterprise plan`,
-      );
+    // On cloud, require enterprise plan (workspace must belong to an org)
+    if (process.env.NC_CLOUD === 'true') {
+      const result = await this.workspaceService.list({
+        user: param.cookie.user,
+      });
+      if (!result.list.some((ws: any) => !!ws.fk_org_id)) {
+        NcError.get({ api_version: NcApiVersion.V3 }).forbidden(
+          `Accessing api token api require enterprise plan`,
+        );
+      }
     }
   }
 
@@ -159,8 +162,9 @@ export class ApiTokensV3Service {
       description: param.body.title,
       fk_user_id: param.cookie['user'].id,
       fk_sso_client_id: ssoClientId || null,
-      scopes: param.body.scopes,
+      scopes: param.body.scopes as any,
       expiry: param.body.expiry || null,
+      fineGrained: true,
     });
 
     this.appHooksService.emit(AppEvents.ORG_API_TOKEN_CREATE, {

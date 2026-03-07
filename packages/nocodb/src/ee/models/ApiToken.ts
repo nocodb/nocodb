@@ -47,11 +47,17 @@ export default class ApiToken extends ApiTokenCE {
    * Plaintext is never persisted — returned only in the insert response.
    */
   public static async insert(
-    apiToken: Partial<ApiToken> & { scopes?: ApiTokenScopeEntry[] },
+    apiToken: Partial<ApiToken> & {
+      scopes?: ApiTokenScopeEntry[];
+      fineGrained?: boolean;
+    },
     ncMeta = Noco.ncMeta,
-  ) {
+  ): Promise<ApiToken> {
     const isFineGrained =
-      apiToken.scopes?.length || apiToken.permissions || apiToken.expiry;
+      apiToken.fineGrained ||
+      apiToken.scopes?.length ||
+      apiToken.permissions ||
+      apiToken.expiry;
 
     if (isFineGrained) {
       const plainToken = API_TOKEN_PREFIX + nanoid(40);
@@ -100,14 +106,13 @@ export default class ApiToken extends ApiTokenCE {
       }
 
       // Return the token with plaintext (shown only once)
-      return {
-        ...created,
-        token: plainToken,
-      };
+      const result = this.castType(created);
+      result.token = plainToken;
+      return result;
     }
 
     // Legacy token — delegate to CE insert
-    return super.insert(apiToken, ncMeta);
+    return super.insert(apiToken, ncMeta) as Promise<ApiToken>;
   }
 
   /**

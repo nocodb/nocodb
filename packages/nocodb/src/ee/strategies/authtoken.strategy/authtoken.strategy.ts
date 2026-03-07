@@ -18,7 +18,7 @@ export class AuthTokenStrategy extends PassportStrategy(Strategy, 'authtoken') {
 
       if (token) {
         // getByToken handles both nc_pat_ (hash-based) and legacy (plaintext) lookup
-        const apiToken = await ApiToken.getByToken(token);
+        const apiToken = await ApiToken.getByToken(token) as ApiToken;
         if (!apiToken) {
           return callback({ msg: 'Invalid token' });
         }

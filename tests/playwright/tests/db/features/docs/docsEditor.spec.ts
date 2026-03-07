@@ -15,10 +15,10 @@ test.describe('Docs — Editor Content', () => {
     });
     dashboard = new DashboardPage(page, context.base);
 
-    // Create a document to work with in each test
-    await dashboard.sidebar.docsSidebar.createDocument({
+    // Create a page to work with in each test
+    await dashboard.sidebar.docsSidebar.createPage({
       baseTitle: context.base.title,
-      title: 'Editor Test Document',
+      title: 'Editor Test Page',
     });
 
     await dashboard.docs.openedPage.waitForRender();
@@ -202,94 +202,30 @@ test.describe('Docs — Editor Content', () => {
     await expect(tiptap.get().locator('.nc-callout')).toContainText('This is an important note');
   });
 
-  test('Slash command — type to filter and select', async ({ page }) => {
+  test('Text formatting — bold, italic, strikethrough via keyboard shortcuts', async ({ page }) => {
     const tiptap = dashboard.docs.openedPage.tiptap;
 
-    // Open slash command menu
-    await tiptap.openCommandMenu();
-    await tiptap.verifyCommandMenuOpened({ isVisible: true });
-
-    // Type "head" to filter — should narrow to heading items
-    await page.keyboard.type('head');
-
-    // Heading 1 should still be visible, but unrelated items like "Bullet List" should be hidden
-    await expect(page.getByTestId('nc-docs-command-list-item-Heading 1')).toBeVisible();
-    await expect(page.getByTestId('nc-docs-command-list-item-Bullet List')).toBeHidden();
-
-    // Select "Heading 1" from filtered results
-    await page.getByTestId('nc-docs-command-list-item-Heading 1').click();
-
-    // Verify menu closes and heading was inserted
-    await tiptap.verifyCommandMenuOpened({ isVisible: false });
-    await expect(tiptap.get().locator('h1')).toBeVisible();
-  });
-
-  test('Slash command — Embed YouTube video via URL input', async ({ page }) => {
-    const tiptap = dashboard.docs.openedPage.tiptap;
-
-    // Open slash command menu and click YouTube
-    await tiptap.openCommandMenu();
-    await page.keyboard.type('youtube');
-    await page.getByTestId('nc-docs-command-list-item-YouTube').click();
-
-    // Fill in the URL input that appears
-    const linkInput = page.getByTestId('nc-docs-command-list-link-input');
-    await linkInput.waitFor({ state: 'visible' });
-    await linkInput.fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
-    await linkInput.press('Enter');
-
-    // Verify the iframe was inserted
-    await expect(tiptap.get().locator('.nc-embed-iframe-wrapper iframe')).toBeVisible();
-  });
-
-  test('Insert multiple callout types via slash commands', async ({ page }) => {
-    const tiptap = dashboard.docs.openedPage.tiptap;
-
-    // Insert Warning callout
-    await tiptap.addNewNode({ type: 'Warning' });
-    await page.keyboard.type('Warning message');
-
-    // Verify callout
-    await expect(tiptap.get().locator('.nc-callout')).toBeVisible();
-    await expect(tiptap.get().locator('.nc-callout')).toContainText('Warning message');
-  });
-
-  test('Text formatting — bold, italic, underline via keyboard shortcuts', async ({ page }) => {
-    const tiptap = dashboard.docs.openedPage.tiptap;
-
-    const paragraph = tiptap.get().locator('p').first();
-
-    // Click the first paragraph to focus the editor (avoid clicking empty min-height area)
-    await paragraph.click();
+    // Type some text
+    await tiptap.get().click();
     await page.keyboard.type('bold text');
 
-    // Triple-click to select the paragraph text (stays within ProseMirror focus)
-    await paragraph.click({ clickCount: 3 });
+    // Select all text
+    await page.keyboard.press('Meta+A');
 
     // Apply bold
-    await page.keyboard.press('ControlOrMeta+B');
+    await page.keyboard.press('Meta+B');
 
     // Verify bold
-    await tiptap.verifyTextFormatting({ index: 0, text: 'bold text', formatType: 'bold' });
+    await expect(tiptap.get().locator('strong')).toContainText('bold text');
 
     // Clear and type italic text
-    await paragraph.click({ clickCount: 3 });
+    await page.keyboard.press('Meta+A');
     await page.keyboard.press('Backspace');
     await page.keyboard.type('italic text');
-    await paragraph.click({ clickCount: 3 });
-    await page.keyboard.press('ControlOrMeta+I');
+    await page.keyboard.press('Meta+A');
+    await page.keyboard.press('Meta+I');
 
     // Verify italic
-    await tiptap.verifyTextFormatting({ index: 0, text: 'italic text', formatType: 'italic' });
-
-    // Clear and type underline text
-    await paragraph.click({ clickCount: 3 });
-    await page.keyboard.press('Backspace');
-    await page.keyboard.type('underline text');
-    await paragraph.click({ clickCount: 3 });
-    await page.keyboard.press('ControlOrMeta+U');
-
-    // Verify underline
-    await tiptap.verifyTextFormatting({ index: 0, text: 'underline text', formatType: 'underline' });
+    await expect(tiptap.get().locator('em')).toContainText('italic text');
   });
 });

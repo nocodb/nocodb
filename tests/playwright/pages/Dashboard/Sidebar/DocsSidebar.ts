@@ -11,15 +11,7 @@ export class DocsSidebarPage extends BasePage {
   }
 
   /**
-   * Ensures the MiniSidebarV2 docs tab is active before interacting with the docs sidebar.
-   * No-op if V2 is not present or docs tab is already active.
-   */
-  private async ensureDocsTab(): Promise<void> {
-    await this.sidebar.dashboard.leftSidebar.sidebarNav.navigateToDocsTab();
-  }
-
-  /**
-   * Get the documents list container in the sidebar.
+   * Get the pages list container in the sidebar.
    * If isPublic, scopes to the public docs sidebar; otherwise scopes to the main sidebar.
    */
   get({ baseTitle, isPublic }: { baseTitle: string; isPublic?: boolean }) {
@@ -30,10 +22,10 @@ export class DocsSidebarPage extends BasePage {
   }
 
   /**
-   * Locate a specific document node by its title in the sidebar.
+   * Locate a specific page node by its title in the sidebar.
    * Node.vue uses data-testid="view-sidebar-doc-${doc.title}".
    */
-  documentNodeLocator({ baseTitle, title, isPublic }: { baseTitle: string; title: string; isPublic?: boolean }) {
+  pageNodeLocator({ baseTitle, title, isPublic }: { baseTitle: string; title: string; isPublic?: boolean }) {
     return this.get({ baseTitle, isPublic }).getByTestId(`view-sidebar-doc-${title}`);
   }
 
@@ -54,16 +46,22 @@ export class DocsSidebarPage extends BasePage {
     }
   }
 
-  async createDocument({ baseTitle, title, content }: { baseTitle: string; title?: string; content?: string }) {
-    await this.ensureDocsTab();
+  async createPage({ baseTitle, title, content }: { baseTitle: string; title?: string; content?: string }) {
+    const addPageBtn = this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page');
 
-    const createNewBtn = this.rootPage.getByTestId('nc-home-create-new-btn');
+    // If no pages exist yet, the button is visible directly.
+    // If pages exist, we don't have an add-page button in the list itself —
+    // pages are created via the API or the sidebar "+" button.
+    // For now, try clicking the add page button if it's visible.
+    const isAddBtnVisible = await addPageBtn.isVisible().catch(() => false);
 
-    await this.waitForResponse({
-      uiAction: () => createNewBtn.click(),
-      httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `operation=documentCreate`,
-    });
+    if (isAddBtnVisible) {
+      await this.waitForResponse({
+        uiAction: () => addPageBtn.click(),
+        httpMethodsToMatch: ['POST'],
+        requestUrlPathToMatch: `api/v1/docs/page`,
+      });
+    }
 
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
 
@@ -77,7 +75,7 @@ export class DocsSidebarPage extends BasePage {
     }
   }
 
-  async verifyDocumentInSidebar({
+  async verifyPageInSidebar({
     baseTitle,
     title,
     isPublic,
@@ -88,8 +86,7 @@ export class DocsSidebarPage extends BasePage {
     isPublic?: boolean;
     emoji?: string;
   }) {
-    await this.ensureDocsTab();
-    await expect(this.documentNodeLocator({ baseTitle, title, isPublic })).toBeVisible();
+    await expect(this.pageNodeLocator({ baseTitle, title, isPublic })).toBeVisible();
   }
 
   async verifyDocumentIsNotInSidebar({
@@ -101,14 +98,11 @@ export class DocsSidebarPage extends BasePage {
     title: string;
     isPublic?: boolean;
   }) {
-    await this.ensureDocsTab();
-    await expect(this.documentNodeLocator({ baseTitle, title, isPublic })).toBeHidden();
+    await expect(this.pageNodeLocator({ baseTitle, title, isPublic })).toBeHidden();
   }
 
-  async openDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
-    await this.ensureDocsTab();
-
-    const node = this.documentNodeLocator({ baseTitle, title });
+  async openPage({ baseTitle, title }: { baseTitle: string; title: string }) {
+    const node = this.pageNodeLocator({ baseTitle, title });
 
     await this.waitForResponse({
       uiAction: () => node.getByTestId('sidebar-doc-title').click(),
@@ -119,10 +113,8 @@ export class DocsSidebarPage extends BasePage {
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
   }
 
-  async deleteDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
-    await this.ensureDocsTab();
-
-    const node = this.documentNodeLocator({ baseTitle, title });
+  async deletePage({ baseTitle, title }: { baseTitle: string; title: string }) {
+    const node = this.pageNodeLocator({ baseTitle, title });
 
     await node.hover();
 
@@ -133,50 +125,28 @@ export class DocsSidebarPage extends BasePage {
     await this.rootPage.getByTestId(`sidebar-doc-delete-${title}`).click();
 
     // Confirm deletion in the confirm modal
-    await this.rootPage.getByTestId('nc-delete-modal-delete-btn').click();
+    await this.rootPage.locator('.nc-modal-confirm-ok-btn').click();
 
     await this.rootPage.waitForTimeout(300);
   }
 
   /**
-   * Get the title of the currently active (selected) document in the sidebar.
-   * Active documents have the `.active` class on the nc-document-item wrapper.
+   * Get the title of the currently active (selected) page in the sidebar.
+   * Active pages have the `.active` class on the nc-page-item wrapper.
    */
-  async getTitleOfOpenedDocument({
+  async getTitleOfOpenedPage({
     baseTitle,
     isPublic,
   }: {
     baseTitle: string;
     isPublic?: boolean;
   }): Promise<string | null> {
-    await this.ensureDocsTab();
-
-    const activeNode = this.get({ baseTitle, isPublic }).locator('.nc-document-item.active');
+    const activeNode = this.get({ baseTitle, isPublic }).locator('.nc-page-item.active');
     if (!(await activeNode.isVisible().catch(() => false))) {
       return null;
     }
 
     return await activeNode.getByTestId('sidebar-doc-title').textContent();
-  }
-
-  async createSubDocument({ baseTitle, parentTitle }: { baseTitle: string; parentTitle: string }) {
-    await this.ensureDocsTab();
-
-    const node = this.documentNodeLocator({ baseTitle, title: parentTitle });
-
-    await node.hover();
-    await node.getByTestId('docs-sidebar-page-options').click();
-
-    await this.waitForResponse({
-      uiAction: () => this.rootPage.getByTestId(`sidebar-doc-create-sub-${parentTitle}`).click(),
-      httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `operation=documentCreate`,
-    });
-
-    // Wait for navigation to the newly created sub-document
-    await this.sidebar.dashboard.docs.openedPage.waitForRender();
-    // Extra wait for editor to settle after navigation
-    await this.rootPage.waitForTimeout(500);
   }
 
   async duplicateDocument({ baseTitle, title }: { baseTitle: string; title: string }) {

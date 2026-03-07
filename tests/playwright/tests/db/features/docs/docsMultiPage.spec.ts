@@ -5,9 +5,9 @@ import setup, { unsetup } from '../../../../setup';
 import axios from 'axios';
 
 /**
- * Create a document via the internal API (same endpoint the UI uses).
+ * Create a page via the internal API (same endpoint the UI uses).
  */
-async function createDocumentViaApi({
+async function createPageViaApi({
   token,
   workspaceId,
   baseId,
@@ -19,8 +19,11 @@ async function createDocumentViaApi({
   title: string;
 }) {
   const response = await axios.post(
-    `http://localhost:8080/api/v2/internal/${workspaceId}/${baseId}?operation=documentCreate`,
-    { title },
+    `http://localhost:8080/api/v1/internal/${workspaceId}/${baseId}`,
+    {
+      operation: 'docCreate',
+      title,
+    },
     {
       headers: { 'xc-auth': token },
     }
@@ -28,7 +31,7 @@ async function createDocumentViaApi({
   return response.data;
 }
 
-test.describe('Docs — Multi-document', () => {
+test.describe('Docs — Multi-page', () => {
   let dashboard: DashboardPage;
   let context: any;
 
@@ -45,106 +48,106 @@ test.describe('Docs — Multi-document', () => {
     await unsetup(context);
   });
 
-  test('Create multiple documents and verify all appear in sidebar', async ({ page }) => {
+  test('Create multiple pages and verify all appear in sidebar', async ({ page }) => {
     const baseTitle = context.base.title;
 
-    // Create first document via UI
-    await dashboard.sidebar.docsSidebar.createDocument({
+    // Create first page via UI
+    await dashboard.sidebar.docsSidebar.createPage({
       baseTitle,
-      title: 'Document Alpha',
+      title: 'Page Alpha',
     });
-    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({ baseTitle, title: 'Document Alpha' });
+    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({ baseTitle, title: 'Page Alpha' });
 
-    // Create additional documents via API
-    await createDocumentViaApi({
+    // Create additional pages via API
+    await createPageViaApi({
       token: context.token,
       workspaceId: context.workspace.id,
       baseId: context.base.id,
-      title: 'Document Beta',
+      title: 'Page Beta',
     });
 
-    await createDocumentViaApi({
+    await createPageViaApi({
       token: context.token,
       workspaceId: context.workspace.id,
       baseId: context.base.id,
-      title: 'Document Gamma',
+      title: 'Page Gamma',
     });
 
-    // Reload to pick up API-created documents
+    // Reload to pick up API-created pages
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
 
-    // Verify all three documents appear in the sidebar
-    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({ baseTitle, title: 'Document Alpha' });
-    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({ baseTitle, title: 'Document Beta' });
-    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({ baseTitle, title: 'Document Gamma' });
+    // Verify all three pages appear in the sidebar
+    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({ baseTitle, title: 'Page Alpha' });
+    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({ baseTitle, title: 'Page Beta' });
+    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({ baseTitle, title: 'Page Gamma' });
   });
 
-  test('Switch between documents and verify editor content changes', async ({ page }) => {
+  test('Switch between pages and verify editor content changes', async ({ page }) => {
     const baseTitle = context.base.title;
 
-    // Create first document with content via UI
-    await dashboard.sidebar.docsSidebar.createDocument({
+    // Create first page with content via UI
+    await dashboard.sidebar.docsSidebar.createPage({
       baseTitle,
-      title: 'Document One',
+      title: 'Page One',
     });
-    await dashboard.docs.openedPage.tiptap.fillContent({ content: 'Content for document one' });
+    await dashboard.docs.openedPage.tiptap.fillContent({ content: 'Content for page one' });
     await page.waitForTimeout(500);
 
-    // Create second document via API
-    await createDocumentViaApi({
+    // Create second page via API
+    await createPageViaApi({
       token: context.token,
       workspaceId: context.workspace.id,
       baseId: context.base.id,
-      title: 'Document Two',
+      title: 'Page Two',
     });
 
-    // Reload to pick up API-created document
+    // Reload to pick up API-created page
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
 
-    // Open second document
-    await dashboard.sidebar.docsSidebar.openDocument({ baseTitle, title: 'Document Two' });
-    await dashboard.docs.openedPage.verifyTitle({ title: 'Document Two' });
+    // Open second page
+    await dashboard.sidebar.docsSidebar.openPage({ baseTitle, title: 'Page Two' });
+    await dashboard.docs.openedPage.verifyTitle({ title: 'Page Two' });
 
-    // Switch back to first document
-    await dashboard.sidebar.docsSidebar.openDocument({ baseTitle, title: 'Document One' });
-    await dashboard.docs.openedPage.verifyTitle({ title: 'Document One' });
+    // Switch back to first page
+    await dashboard.sidebar.docsSidebar.openPage({ baseTitle, title: 'Page One' });
+    await dashboard.docs.openedPage.verifyTitle({ title: 'Page One' });
 
     // Verify content persisted
-    await dashboard.docs.openedPage.tiptap.verifyContent({ content: 'Content for document one' });
+    await dashboard.docs.openedPage.tiptap.verifyContent({ content: 'Content for page one' });
   });
 
-  test('Delete one document from multiple and verify others remain', async ({ page }) => {
+  test('Delete one page from multiple and verify others remain', async ({ page }) => {
     const baseTitle = context.base.title;
 
-    // Create first document via UI
-    await dashboard.sidebar.docsSidebar.createDocument({
+    // Create first page via UI
+    await dashboard.sidebar.docsSidebar.createPage({
       baseTitle,
-      title: 'Keep This Document',
+      title: 'Keep This Page',
     });
 
-    // Create second document via API
-    await createDocumentViaApi({
+    // Create second page via API
+    await createPageViaApi({
       token: context.token,
       workspaceId: context.workspace.id,
       baseId: context.base.id,
-      title: 'Delete This Document',
+      title: 'Delete This Page',
     });
 
-    // Reload to pick up API-created document
+    // Reload to pick up API-created page
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForTimeout(1000);
 
     // Verify both exist
-    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({ baseTitle, title: 'Keep This Document' });
-    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({ baseTitle, title: 'Delete This Document' });
+    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({ baseTitle, title: 'Keep This Page' });
+    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({ baseTitle, title: 'Delete This Page' });
 
-    // Delete second document
-    await dashboard.sidebar.docsSidebar.deleteDocument({ baseTitle, title: 'Delete This Document' });
+    // Delete second page
+    await dashboard.sidebar.docsSidebar.deletePage({ baseTitle, title: 'Delete This Page' });
 
-    // Verify first document still exists, second is gone
-    await dashboard.sidebar.docsSidebar.verifyDocumentInSidebar({ baseTitle, title: 'Keep This Document' });
-    await dashboard.sidebar.docsSidebar.verifyDocumentIsNotInSidebar({ baseTitle, title: 'Delete This Document' });
+    // Verify first page still exists, second is gone
+    await dashboard.sidebar.docsSidebar.verifyPageInSidebar({ baseTitle, title: 'Keep This Page' });
+    await dashboard.sidebar.docsSidebar.verifyPageIsNotInSidebar({ baseTitle, title: 'Delete This Page' });
   });
 });

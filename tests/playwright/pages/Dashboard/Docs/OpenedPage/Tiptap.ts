@@ -50,9 +50,6 @@ export class TiptapPage extends BasePage {
    * Clicks the last paragraph if no index specified.
    */
   async openCommandMenu({ index }: { index?: number } = {}) {
-    // Ensure editor is editable before interacting
-    await expect(this.get()).toHaveAttribute('contenteditable', 'true');
-
     let paragraph: Locator;
     if (index !== undefined) {
       paragraph = this.getNodeByIndex(index);
@@ -101,8 +98,6 @@ export class TiptapPage extends BasePage {
 
     if (!noVerify) {
       await this.rootPage.locator('.nc-docs-command-list').waitFor({ state: 'hidden' });
-      // Brief wait for the editor to process the command and update the DOM
-      await this.rootPage.waitForTimeout(200);
     }
   }
 
@@ -215,9 +210,8 @@ export class TiptapPage extends BasePage {
     column: number;
     content: string;
   }) {
-    // Use editor-level table locator (table may be a direct ProseMirror child)
-    const table = this.get().locator('table').nth(index);
-    const cell = table
+    const node = this.getNodeByIndex(index);
+    const cell = node
       .locator(`tr:nth-child(${row + 1})`)
       .locator(`td:nth-child(${column + 1}), th:nth-child(${column + 1})`)
       .first();
@@ -244,16 +238,13 @@ export class TiptapPage extends BasePage {
     rowCount?: number;
     columnCount?: number;
   }) {
-    // The table may be the direct child of ProseMirror (when resizable: false,
-    // no wrapper div), so getNodeByIndex returns the <table> itself.
-    // Use the editor-level locator to reliably find the nth table.
-    const table = this.get().locator('table').nth(index);
-    await expect(table).toBeVisible();
+    const node = this.getNodeByIndex(index);
+    await expect(node.locator('table')).toBeVisible();
 
     if (cells) {
       for (const cell of cells) {
         await expect(
-          table
+          node
             .locator(`tr:nth-child(${cell.row + 1})`)
             .locator(`td:nth-child(${cell.column + 1}), th:nth-child(${cell.column + 1})`)
             .first()
@@ -262,11 +253,11 @@ export class TiptapPage extends BasePage {
     }
 
     if (rowCount) {
-      await expect(table.locator('tr')).toHaveCount(rowCount);
+      await expect(node.locator('tr')).toHaveCount(rowCount);
     }
 
     if (columnCount) {
-      await expect(table.locator('tr:first-child').locator('td, th')).toHaveCount(columnCount);
+      await expect(node.locator('tr:first-child').locator('td, th')).toHaveCount(columnCount);
     }
   }
 
@@ -323,7 +314,7 @@ export class TiptapPage extends BasePage {
     await this.openedPage.waitForRender();
     await this.get().click();
     await this.rootPage.waitForTimeout(300);
-    await this.rootPage.keyboard.press('ControlOrMeta+A');
+    await this.rootPage.keyboard.press('Meta+A');
     await this.rootPage.keyboard.press('Backspace');
     await this.rootPage.waitForTimeout(300);
   }

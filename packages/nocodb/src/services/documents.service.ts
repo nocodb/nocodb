@@ -33,7 +33,7 @@ export class DocumentsService {
   async get(context: NcContext, docId: string) {
     const doc = await Document.get(context, docId);
     if (!doc) {
-      NcError.notFound('Document not found');
+      NcError.get(context).genericNotFound('Document', docId);
     }
     return doc;
   }
@@ -90,7 +90,7 @@ export class DocumentsService {
   ) {
     const existing = await Document.get(context, docId);
     if (!existing) {
-      NcError.notFound('Document not found');
+      NcError.get(context).genericNotFound('Document', docId);
     }
 
     // Optimistic concurrency: reject stale writes.
@@ -139,7 +139,7 @@ export class DocumentsService {
   async delete(context: NcContext, docId: string, req: NcRequest) {
     const doc = await Document.get(context, docId);
     if (!doc) {
-      NcError.notFound('Document not found');
+      NcError.get(context).genericNotFound('Document', docId);
     }
 
     await Document.delete(context, docId);
@@ -168,12 +168,22 @@ export class DocumentsService {
     context: NcContext,
     docId: string,
     payload: { order: number },
+    req: NcRequest,
   ) {
     const doc = await Document.get(context, docId);
     if (!doc) {
-      NcError.notFound('Document not found');
+      NcError.get(context).genericNotFound('Document', docId);
     }
 
-    return await Document.update(context, docId, { order: payload.order });
+    const updated = await Document.update(context, docId, { order: payload.order });
+
+    this.appHooksService.emit(AppEvents.DOCUMENT_UPDATE, {
+      context,
+      req,
+      doc: updated,
+      user: req.user,
+    });
+
+    return updated;
   }
 }

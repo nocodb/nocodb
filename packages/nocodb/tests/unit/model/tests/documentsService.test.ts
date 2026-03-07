@@ -25,7 +25,6 @@ function documentsServiceTests() {
     }) as any;
 
   beforeEach(async function () {
-    console.time('#### documentsServiceTests');
     context = await init();
     base = await createProject(context);
     nestApp = context.nestApp;
@@ -35,7 +34,6 @@ function documentsServiceTests() {
       workspace_id: base.fk_workspace_id,
       base_id: base.id,
     };
-    console.timeEnd('#### documentsServiceTests');
   });
 
   // ── DocumentsService.list ────────────────────────────────────────
@@ -255,7 +253,7 @@ function documentsServiceTests() {
     it('should update order without bumping version', async () => {
       const doc = await createDocument(ctx);
 
-      await documentsService.reorder(ctx, doc.id, { order: 50.5 });
+      await documentsService.reorder(ctx, doc.id, { order: 50.5 }, mockReq(context.user));
 
       const fetched = await Document.get(ctx, doc.id);
       expect(fetched.order).to.equal(50.5);
@@ -265,7 +263,7 @@ function documentsServiceTests() {
 
     it('should throw for non-existent document', async () => {
       try {
-        await documentsService.reorder(ctx, 'nonexistent_id', { order: 1 });
+        await documentsService.reorder(ctx, 'nonexistent_id', { order: 1 }, mockReq(context.user));
         expect.fail('should have thrown');
       } catch (e) {
         expect(e.message).to.include('not found');

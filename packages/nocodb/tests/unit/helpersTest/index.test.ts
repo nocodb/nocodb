@@ -4,6 +4,7 @@ import { publicDatasSanitizeTest } from './publicDatasSanitize.test';
 import { stringHelperTest } from './stringHelpers.test';
 import { planResolutionTests } from './planResolution.test';
 import { attachmentHelpersTest } from './attachmentHelpers.test';
+import { apiTokenPermissionTest } from './apiTokenPermission.test';
 
 let dashboardV3ConfigTransformTest = () => {};
 let dateDependencyHelperTests = () => {};
@@ -22,6 +23,7 @@ function _helperTests() {
   dateDependencyHelperTests();
   planResolutionTests();
   describe('PublicDatasService - shared view column sanitization', publicDatasSanitizeTest);
+  apiTokenPermissionTest();
 }
 export const helperTests = runOnSet(1, function () {
   describe('helpersTest', _helperTests);

@@ -1,5 +1,3 @@
-export const REACTION_EMOJIS = ['👍', '👎', '😄', '😢', '🎉', '🚀'] as const;
-
 export interface DocumentCommentReqType {
   fk_doc_id: string;
   comment: string;

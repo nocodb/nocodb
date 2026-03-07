@@ -20,6 +20,7 @@ export enum EventType {
   PRESENCE_EVENT = 'event-presence',
   CHAT_EVENT = 'event-chat',
   DOCUMENT_EVENT = 'event-document',
+  DOCUMENT_COMMENT_EVENT = 'event-document-comment',
 }
 
 export interface BaseSocketPayload {

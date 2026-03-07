@@ -64,6 +64,8 @@ import {
   remapWithAlias,
 } from '~/utils';
 import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
+import DateDependency from '~/models/DateDependency';
+import { applyDateDependencyFieldSync } from '~/helpers/dateDependencyHelper';
 import {
   getSingleQueryReadFn,
   singleQueryGroupedList,
@@ -1208,6 +1210,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         });
       }
     }
+
+    // Date dependency field sync
+    await this.applyDateDependencySync(data, oldData);
+  }
+
+  protected async applyDateDependencySync(
+    data: Record<string, any>,
+    oldData: Record<string, any> | null,
+  ): Promise<void> {
+    const rule = await DateDependency.getByModelId(this.context, this.model.id);
+    if (!rule?.is_active) return;
+
+    applyDateDependencyFieldSync(data, oldData, rule, this.model.columns);
   }
 
   public async beforeInsert(

@@ -1701,7 +1701,11 @@ export function useInfiniteData(args: {
         })
       }
 
-      // Update specific columns based on their types
+      // Update specific columns based on their types.
+      // Only sync back types that can be changed server-side as a side effect
+      // (computed fields, date dependency, triggers, on-update defaults).
+      // Free-text input types are excluded to avoid overwriting local state
+      // while the user may still be typing in another cell.
       const columnsToUpdate = new Set([
         UITypes.Formula,
         UITypes.QrCode,
@@ -1716,6 +1720,11 @@ export function useInfiniteData(args: {
         UITypes.Attachment,
         UITypes.DateTime,
         UITypes.Date,
+        UITypes.Duration,
+        UITypes.Number,
+        UITypes.Percent,
+        UITypes.Rating,
+        UITypes.Time,
       ])
 
       Object.assign(

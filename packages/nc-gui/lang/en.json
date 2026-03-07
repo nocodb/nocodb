@@ -245,6 +245,8 @@
     "upgradeToUseListViewSubtitle": "Upgrade to the {plan} plan to display hierarchical data with parent-child grouping.",
     "upgradeToUseMapView": "Upgrade to use Map View",
     "upgradeToUseMapViewSubtitle": "Upgrade to the {plan} plan to visualize your geo data on an interactive map.",
+    "upgradeToUseDateDependency": "Upgrade to use Date Dependencies",
+    "upgradeToUseDateDependencySubtitle": "Upgrade to use date dependencies to automatically sync date fields and propagate schedule changes across linked rows.",
     "enterpriseFeatureTitle": "Enterprise Feature",
     "enterpriseFeatureSubtitle": "{feature} is available with an Enterprise license. Enter your license key to unlock this feature.",
     "enterLicense": "Enter License",
@@ -264,6 +266,7 @@
   },
   "general": {
     "scrollToBottom": "Scroll to bottom",
+    "optional": "Optional",
     "none": "None",
     "done": "Done",
     "properties": "Properties",
@@ -1309,6 +1312,36 @@
     "deleteRow": "Delete row",
     "plainText": "Plain text",
     "copyCode": "Copy code",
+    "dateDependency": {
+      "title": "Date Dependencies",
+      "description": "Specify which rows depend on others. When a row is rescheduled, its dependent rows are automatically adjusted.",
+      "durationFieldHint": "Use a Duration or Number field to store the number of days.",
+      "startDateField": "Start Date",
+      "endDateField": "End Date",
+      "durationField": "Duration",
+      "linkRowField": "Predecessor Link",
+      "linkRowFieldHint": "Use a Link to table field to connect predecessor rows.",
+      "connectionType": "Connection Type",
+      "bufferType": "Buffer",
+      "bufferDays": "Buffer Days",
+      "includeWeekends": "Include Weekends",
+      "isActive": "Enable Date Dependencies",
+      "fieldMapping": "Field Mapping",
+      "propagationSection": "Row Propagation",
+      "save": "Save",
+      "deleteConfirm": "Delete date dependency configuration?",
+      "connectionTypes": {
+        "end-to-start": "End → Start (default)",
+        "end-to-end": "End → End",
+        "start-to-end": "Start → End",
+        "start-to-start": "Start → Start"
+      },
+      "bufferTypes": {
+        "none": "None",
+        "flexible": "Flexible (minimum gap)",
+        "fixed": "Fixed"
+      }
+    },
     "pinToToolbar": "Pin to toolbar",
     "unpinFromToolbar": "Unpin from toolbar",
     "maxPinnedFilters": "Max {count} filters can be pinned",

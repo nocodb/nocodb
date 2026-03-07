@@ -22,6 +22,7 @@ import { CommentsService } from '~/services/comments.service';
 import { ListDatasService } from '~/ee/services/list-datas.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { DateDependencyService } from '~/services/date-dependency.service';
 
 @Injectable()
 export class UiGetOperations
@@ -44,6 +45,7 @@ export class UiGetOperations
     protected commentsService: CommentsService,
     protected syncService: SyncService,
     protected extensionsService: ExtensionsService,
+    protected dateDependencyService: DateDependencyService,
   ) {
     super(
       dataTableService,
@@ -111,6 +113,10 @@ export class UiGetOperations
             buttonColId: req.query.buttonColId as string,
           }),
         );
+      case 'getDateDependency':
+        return this.dateDependencyService.get(context, {
+          modelId: (req.query.fk_model_id || req.query.modelId) as string,
+        });
     }
     return super.handle(context, {
       workspaceId,

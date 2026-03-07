@@ -32,6 +32,7 @@ import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { ExtensionsService } from '~/services/extensions.service';
+import { DateDependencyService } from '~/services/date-dependency.service';
 
 @Injectable()
 export class UiPostOperations
@@ -65,6 +66,7 @@ export class UiPostOperations
     protected syncService: SyncService,
     protected nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
+    protected dateDependencyService: DateDependencyService,
   ) {
     super(
       dataTableService,
@@ -178,6 +180,15 @@ export class UiPostOperations
           timelineViewId: req.query.viewId,
           timeline: payload,
           req,
+        });
+      case 'updateDateDependency':
+        return this.dateDependencyService.update(context, {
+          modelId: (req.query.fk_model_id || req.query.modelId) as string,
+          body: payload,
+        });
+      case 'deleteTableDateDependency':
+        return this.dateDependencyService.delete(context, {
+          modelId: (req.query.fk_model_id || req.query.modelId) as string,
         });
     }
 

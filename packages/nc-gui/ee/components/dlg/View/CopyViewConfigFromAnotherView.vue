@@ -22,6 +22,8 @@ const dialogShow = useVModel(props, 'modelValue', emits, { defaultValue: false }
 
 const { destView } = toRefs(props)
 
+const { isMobileMode } = useGlobal()
+
 const viewsStore = useViewsStore()
 
 const isLoading = ref(false)
@@ -145,7 +147,7 @@ watch(
           }"
           :title="$t('objects.copyViewConfig.notSupportedByViewType', { view: viewTypeAlias[selectViewRef?.selectedView?.type as ViewTypes] ?$t(`objects.viewType.${viewTypeAlias[selectViewRef?.selectedView?.type as ViewTypes]}`) : $t('general.selected') })"
           placement="left"
-          :disabled="!option.disabled || !selectViewRef?.selectedView?.type"
+          :disabled="!option.disabled || !selectViewRef?.selectedView?.type || isMobileMode"
           @click.stop="toggleCopyViewConfigType(option)"
         >
           <div
@@ -164,7 +166,7 @@ watch(
               <template #title>
                 {{ $t(option.i18nLabel) }}
               </template>
-              <template #default>{{ $t(option.i18nLabel) }}</template>
+              {{ $t(option.i18nLabel) }}
             </NcTooltip>
           </div>
         </NcTooltip>

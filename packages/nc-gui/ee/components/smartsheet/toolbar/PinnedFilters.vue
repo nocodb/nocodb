@@ -542,7 +542,10 @@ const unpinFilter = async (filter: FilterType) => {
 
           <!-- ====== DROPDOWN PANEL ====== -->
           <template #overlay>
-            <div class="nc-pinned-filter-panel bg-nc-bg-default rounded-lg w-72 overflow-hidden" @click.stop>
+            <div
+              class="nc-pinned-filter-panel bg-nc-bg-default rounded-lg w-72 overflow-hidden border-1 border-nc-border-gray-medium"
+              @click.stop
+            >
               <!-- Header: field name · operator | enable/disable | unpin -->
               <div class="flex items-center gap-1.5 px-3 py-2 border-b border-nc-border-gray-medium min-w-0">
                 <!-- Field name with tooltip for truncated text -->
@@ -595,12 +598,12 @@ const unpinFilter = async (filter: FilterType) => {
               </div>
 
               <!-- Search input for filtering options -->
-              <div class="px-3 py-2">
+              <div class="px-2 py-2">
                 <a-input
                   v-model:value="searchQuery"
                   :placeholder="`${t('general.search')} ${getColumn(filter)?.title?.toLowerCase()}...`"
                   size="small"
-                  class="!rounded-lg"
+                  class="!rounded-lg !h-8"
                   allow-clear
                   @click.stop
                 >
@@ -615,7 +618,7 @@ const unpinFilter = async (filter: FilterType) => {
                 <div
                   v-for="option in getFilteredSelectOptions(filter)"
                   :key="option.id || option.title"
-                  class="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
+                  class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                   :class="{ 'bg-nc-bg-gray-light': isSelectOptionSelected(filter, option) }"
                   @click.stop="selectOption(filter, option)"
                 >
@@ -654,7 +657,7 @@ const unpinFilter = async (filter: FilterType) => {
                 -->
                 <div
                   v-if="showMeOption"
-                  class="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
+                  class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                   :class="{ 'bg-nc-bg-gray-light': isMeSelected(filter) }"
                   @click.stop="selectMe(filter)"
                 >
@@ -677,7 +680,7 @@ const unpinFilter = async (filter: FilterType) => {
                 <div
                   v-for="user in filteredUserOptions"
                   :key="user.id"
-                  class="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
+                  class="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                   :class="{ 'bg-nc-bg-gray-light': isUserOptionSelected(filter, user) }"
                   @click.stop="selectUser(filter, user)"
                 >
@@ -706,7 +709,10 @@ const unpinFilter = async (filter: FilterType) => {
               </div>
 
               <!-- Footer: disabled status indicator + Select all · Clear all / Clear value -->
-              <div class="flex items-center justify-between px-3 py-2 border-t border-nc-border-gray-medium">
+              <div
+                v-if="!isEffectivelyEnabled(filter) || isMultiValueOp(filter) || filter.value"
+                class="flex items-center justify-between px-3 py-2 border-t border-nc-border-gray-medium"
+              >
                 <span v-if="!isEffectivelyEnabled(filter)" class="text-xs text-nc-content-gray-muted flex items-center gap-1">
                   <span class="w-1.5 h-1.5 rounded-full bg-nc-content-gray-muted" />
                   {{ isParentGroupDisabled(filter) ? 'Group disabled' : 'Disabled' }}

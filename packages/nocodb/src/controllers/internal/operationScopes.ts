@@ -3,12 +3,6 @@ export const OPERATION_SCOPES = {
   mcpCreate: 'base',
   mcpUpdate: 'base',
   mcpDelete: 'base',
-  documentList: 'base',
-  documentGet: 'base',
-  documentCreate: 'base',
-  documentUpdate: 'base',
-  documentDelete: 'base',
-  documentReorder: 'base',
   mcpGet: 'base',
   mcpRootList: 'org',
   baseListAll: 'org',
@@ -159,15 +153,6 @@ export const OPERATION_SCOPES = {
   managedAppDeployments: 'base',
   managedAppVersionDeployments: 'base',
   managedAppDeploymentLogs: 'base',
-
-  // Document Comments
-  documentCommentList: 'base',
-  documentCommentCount: 'base',
-  documentCommentCreate: 'base',
-  documentCommentUpdate: 'base',
-  documentCommentDelete: 'base',
-  documentCommentReactionToggle: 'base',
-  documentCommentReactionList: 'base',
 
   // List View
   listViewDataList: 'base',

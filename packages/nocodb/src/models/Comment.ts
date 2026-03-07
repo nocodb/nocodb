@@ -244,6 +244,7 @@ export default class Comment implements CommentType {
       .knex(MetaTable.COMMENTS)
       .select(`${MetaTable.COMMENTS}.*`)
       .where('fk_doc_id', fk_doc_id)
+      .where('base_id', context.base_id)
       .where(function () {
         this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
       })
@@ -296,18 +297,24 @@ export default class Comment implements CommentType {
     return ncMeta
       .knex(MetaTable.COMMENTS)
       .where('fk_doc_id', fk_doc_id)
+      .where('base_id', context.base_id)
       .update({ is_deleted: true });
   }
 
   /**
    * Count comments per document (for sidebar badge).
    */
-  public static async docCommentsCount(context: NcContext, docIds: string[]) {
-    const results = await Noco.ncMeta
+  public static async docCommentsCount(
+    context: NcContext,
+    docIds: string[],
+    ncMeta = Noco.ncMeta,
+  ) {
+    const results = await ncMeta
       .knex(MetaTable.COMMENTS)
       .count('id', { as: 'count' })
       .select('fk_doc_id')
       .whereIn('fk_doc_id', docIds)
+      .where('base_id', context.base_id)
       .where(function () {
         this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
       })

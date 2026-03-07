@@ -282,8 +282,9 @@ test.describe('Docs — Editor Content', () => {
     // Verify italic
     await tiptap.verifyTextFormatting({ index: 0, text: 'italic text', formatType: 'italic' });
 
-    // Clear and type underline text (Ctrl+U — no browser conflict unlike Ctrl+Shift+S for strikethrough)
-    await tiptap.clearContent();
+    // Clear and type underline text
+    await paragraph.click({ clickCount: 3 });
+    await page.keyboard.press('Backspace');
     await page.keyboard.type('underline text');
     await paragraph.click({ clickCount: 3 });
     await page.keyboard.press('ControlOrMeta+U');

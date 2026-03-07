@@ -11,6 +11,14 @@ export class DocsSidebarPage extends BasePage {
   }
 
   /**
+   * Ensures the MiniSidebarV2 docs tab is active before interacting with the docs sidebar.
+   * No-op if V2 is not present or docs tab is already active.
+   */
+  private async ensureDocsTab(): Promise<void> {
+    await this.sidebar.dashboard.leftSidebar.sidebarNav.navigateToDocsTab();
+  }
+
+  /**
    * Get the documents list container in the sidebar.
    * If isPublic, scopes to the public docs sidebar; otherwise scopes to the main sidebar.
    */
@@ -47,6 +55,8 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async createDocument({ baseTitle, title, content }: { baseTitle: string; title?: string; content?: string }) {
+    await this.ensureDocsTab();
+
     const addDocBtn = this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page');
 
     // If no documents exist yet, the button is visible directly.
@@ -85,6 +95,7 @@ export class DocsSidebarPage extends BasePage {
     isPublic?: boolean;
     emoji?: string;
   }) {
+    await this.ensureDocsTab();
     await expect(this.documentNodeLocator({ baseTitle, title, isPublic })).toBeVisible();
   }
 
@@ -97,10 +108,13 @@ export class DocsSidebarPage extends BasePage {
     title: string;
     isPublic?: boolean;
   }) {
+    await this.ensureDocsTab();
     await expect(this.documentNodeLocator({ baseTitle, title, isPublic })).toBeHidden();
   }
 
   async openDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
+    await this.ensureDocsTab();
+
     const node = this.documentNodeLocator({ baseTitle, title });
 
     await this.waitForResponse({
@@ -113,6 +127,8 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async deleteDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
+    await this.ensureDocsTab();
+
     const node = this.documentNodeLocator({ baseTitle, title });
 
     await node.hover();
@@ -140,6 +156,8 @@ export class DocsSidebarPage extends BasePage {
     baseTitle: string;
     isPublic?: boolean;
   }): Promise<string | null> {
+    await this.ensureDocsTab();
+
     const activeNode = this.get({ baseTitle, isPublic }).locator('.nc-document-item.active');
     if (!(await activeNode.isVisible().catch(() => false))) {
       return null;
@@ -149,6 +167,7 @@ export class DocsSidebarPage extends BasePage {
   }
 
   async verifyCreateDocumentButtonVisibility({ baseTitle, isVisible }: { baseTitle: string; isVisible: boolean }) {
+    await this.ensureDocsTab();
     if (isVisible) {
       await expect(this.rootPage.getByTestId('nc-home-create-new-btn')).toBeVisible();
     } else {

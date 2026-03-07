@@ -138,24 +138,24 @@ const _ = (window as any).ResizeObserver
         <!-- Page Loading Indicator -->
         <NcNuxtLoadingIndicator />
 
-        <!-- Command Menu -->
-        <CmdK
-          ref="commandPalette"
-          v-model:open="cmdK"
-          :scope="activeScope.scope"
-          :data="cmdData"
-          :placeholder="cmdPlaceholder"
-          :load-temporary-scope="loadTemporaryScope"
-          :set-active-cmd-view="setActiveCmdView"
-          @scope="onScope"
-        />
-        <!-- Recent Views. Cycles through recently visited Views -->
-        <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
-        <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
-        <CmdJ v-model:open="cmdJ" :set-active-cmd-view="setActiveCmdView" />
-        <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
-      </div>
-    </ErrorBoundary>
+      <!-- Command Menu -->
+      <CmdK
+        ref="commandPalette"
+        v-model:open="cmdK"
+        :scope="activeScope.scope"
+        :data="cmdData"
+        :placeholder="cmdPlaceholder"
+        :load-temporary-scope="loadTemporaryScope"
+        :set-active-cmd-view="setActiveCmdView"
+        @scope="onScope"
+      />
+      <!-- Recent Views. Cycles through recently visited Views -->
+      <CmdL v-model:open="cmdL" :set-active-cmd-view="setActiveCmdView" />
+      <!-- Documentation. Integrated NocoDB Docs directly inside the Product -->
+      <CmdJ v-model:open="cmdJ" :set-active-cmd-view="setActiveCmdView" />
+      <DashboardFeatureExperimentation v-model:value="isExperimentalFeatureModalOpen" />
+    </div>
+  </ErrorBoundary>
 
   <LazyChatPanel />
 </template>

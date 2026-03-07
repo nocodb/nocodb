@@ -303,11 +303,8 @@ const sqlite3 = {
     const needle = (await args.fn(args.pt.arguments[1])).builder;
     return {
       builder: args.knex.raw(
-        `CASE WHEN json_valid(:source) = 1 THEN json_extract(:source, CONCAT('$', :needle)) ELSE NULL END`,
-        {
-          source,
-          needle,
-        },
+        `CASE WHEN json_valid(?) = 1 AND ('$' || ?) NOT LIKE '%[-%' THEN json_extract(?, '$' || ?) ELSE NULL END`,
+        [source, needle, source, needle],
       ),
     };
   },

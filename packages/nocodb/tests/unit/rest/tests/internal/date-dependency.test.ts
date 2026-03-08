@@ -1,0 +1,698 @@
+import 'mocha';
+import { expect } from 'chai';
+import request from 'supertest';
+import { UITypes } from 'nocodb-sdk';
+import init from '../../../../init';
+import { isEE } from '../../../../utils/helpers';
+import { Base, Model } from '~/models';
+import { RootScopes } from '~/utils/globals';
+
+// ─── context helpers ──────────────────────────────────────────────────────────
+
+type Context = Awaited<ReturnType<typeof init>>;
+
+function api(ctx: Context) {
+  return {
+    /** xc-auth for data-plane endpoints */
+    get:  (url: string) => request(ctx.app).get(url).set('xc-auth', ctx.token),
+    post: (url: string, body?: any) => request(ctx.app).post(url).set('xc-auth', ctx.token).send(body ?? {}),
+    patch:(url: string, body?: any) => request(ctx.app).patch(url).set('xc-auth', ctx.token).send(body ?? {}),
+    /** xc-token for meta / internal endpoints */
+    metaPost:(url: string, query: Record<string, any>, body?: any) =>
+      request(ctx.app).post(url).set('xc-token', ctx.xc_token).query(query).send(body ?? {}),
+    metaGet:(url: string, query?: Record<string, any>) =>
+      request(ctx.app).get(url).set('xc-token', ctx.xc_token).query(query ?? {}),
+  };
+}
+
+// ─── main suite ───────────────────────────────────────────────────────────────
+
+export const dateDependencyTests = function () {
+  if (!isEE()) {
+    return true;
+  }
+
+  describe('Date Dependency', () => {
+    let context: Context;
+    let workspaceId: string;
+    let baseId: string;
+    let tableId: string;
+    let startColId: string;
+    let endColId: string;
+    let durColId: string;
+    let linkColId: string;  // HM self-referencing "Successors" column
+    let INTERNAL_BASE: string;
+    let DATA_BASE: string;
+
+    // ── shared setup ──────────────────────────────────────────────────────────
+
+    beforeEach(async () => {
+      context = await init();
+      workspaceId = context.fk_workspace_id!;
+      const { metaPost } = api(context);
+
+      const baseRes = await metaPost(`/api/v3/meta/workspaces/${workspaceId}/bases`, {}, { title: 'DateDepTestBase' }).expect(200);
+      baseId = baseRes.body.id;
+      INTERNAL_BASE = `/api/v2/internal/${workspaceId}/${baseId}`;
+
+      const tableRes = await metaPost(`/api/v3/meta/bases/${baseId}/tables`, {}, {
+        title: 'Tasks',
+        fields: [
+          { title: 'Title',      type: 'SingleLineText' },
+          { title: 'Start Date', type: 'Date' },
+          { title: 'End Date',   type: 'Date' },
+          { title: 'Duration',   type: 'Number' },
+        ],
+      }).expect(200);
+      tableId = tableRes.body.id;
+      DATA_BASE = `/api/v3/data/${baseId}/${tableId}`;
+
+      // Self-referencing HM link (predecessor → successors)
+      await request(context.app)
+        .post(`/api/v1/db/meta/tables/${tableId}/columns`)
+        .set('xc-auth', context.token)
+        .send({
+          title:       'Successors',
+          column_name: 'successors',
+          uidt:        UITypes.LinkToAnotherRecord,
+          parentId:    tableId,
+          childId:     tableId,
+          type:        'hm',
+          version:     1,
+        })
+        .expect(200);
+
+      // Resolve column IDs via model layer
+      const base   = await Base.getByTitleOrId(
+        { workspace_id: RootScopes.BASE, base_id: RootScopes.BASE } as any,
+        baseId,
+      );
+      const source = (await base.getSources())[0];
+      const ctx    = { base_id: baseId, workspace_id: workspaceId };
+      const table  = await Model.getByAliasOrId(ctx, {
+        source_id:  source.id,
+        aliasOrId:  tableId,
+        base_id:    baseId,
+      });
+      const cols = await table.getColumns(ctx);
+
+      const findId = (title: string) => cols.find((c: any) => c.title === title)?.id as string;
+      startColId = findId('Start Date');
+      endColId   = findId('End Date');
+      durColId   = findId('Duration');
+      linkColId  = findId('Successors');
+
+      expect(startColId, 'startColId').to.be.a('string');
+      expect(endColId,   'endColId').to.be.a('string');
+      expect(durColId,   'durColId').to.be.a('string');
+      expect(linkColId,  'linkColId').to.be.a('string');
+    });
+
+    // ── CRUD helpers ──────────────────────────────────────────────────────────
+
+    async function configureRule(overrides: Record<string, any> = {}) {
+      const { metaPost } = api(context);
+      return metaPost(INTERNAL_BASE, { operation: 'updateDateDependency', modelId: tableId }, {
+        is_active:              true,
+        fk_start_date_field_id: startColId,
+        fk_end_date_field_id:   endColId,
+        fk_duration_field_id:   durColId,
+        include_weekends:       true,
+        ...overrides,
+      }).expect(200);
+    }
+
+    async function insertRow(fields: Record<string, any>): Promise<{ id: number; fields: Record<string, any> }> {
+      const { post, get } = api(context);
+      const res = await post(`${DATA_BASE}/records`, { fields }).expect(200);
+      const id  = res.body.records[0].id;
+      const row = await get(`${DATA_BASE}/records/${id}`).expect(200);
+      return row.body;
+    }
+
+    async function updateRow(id: number, fields: Record<string, any>) {
+      const { patch } = api(context);
+      await patch(`${DATA_BASE}/records`, [{ id, fields }]).expect(200);
+    }
+
+    async function getRow(id: number): Promise<{ id: number; fields: Record<string, any> }> {
+      const { get } = api(context);
+      const res = await get(`${DATA_BASE}/records/${id}`).expect(200);
+      return res.body;
+    }
+
+    /** Link parentId → childId via the HM "Successors" column */
+    async function linkSuccessor(parentId: number, childId: number) {
+      const { post } = api(context);
+      await post(`${DATA_BASE}/links/${linkColId}/${parentId}`, [{ id: childId }]).expect(200);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SECTION 1 — Within-record sync (runs on every database)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    describe('within-record sync (all databases)', () => {
+
+      describe('include_weekends: true — calendar day arithmetic', () => {
+        beforeEach(() => configureRule({ include_weekends: true }));
+
+        it('start + end  → duration (10 calendar days inclusive)', async () => {
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          expect(row.fields['Duration']).to.equal(10);
+        });
+
+        it('start + duration  → end date (5 days from Jan 1 = Jan 5)', async () => {
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'Duration': 5 });
+          expect(row.fields['End Date']).to.equal('2025-01-05');
+        });
+
+        it('duration = 1 → end = start (same-day task)', async () => {
+          const row = await insertRow({ 'Start Date': '2025-03-15', 'Duration': 1 });
+          expect(row.fields['End Date']).to.equal('2025-03-15');
+        });
+
+        it('end + duration → start date (10-day task ending Jan 10 → starts Jan 1)', async () => {
+          const row = await insertRow({ 'End Date': '2025-01-10', 'Duration': 10 });
+          expect(row.fields['Start Date']).to.equal('2025-01-01');
+        });
+
+        it('update end → recomputes duration', async () => {
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-05' });
+          await updateRow(row.id, { 'End Date': '2025-01-15' });
+          const after = await getRow(row.id);
+          expect(after.fields['Duration']).to.equal(15);
+        });
+
+        it('update duration → recomputes end date', async () => {
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          await updateRow(row.id, { 'Duration': 7 });
+          const after = await getRow(row.id);
+          expect(after.fields['End Date']).to.equal('2025-01-07');
+        });
+
+        it('all three present → recalculates duration from start+end', async () => {
+          // When all three are supplied, start+end wins and duration is recalculated
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10', 'Duration': 999 });
+          expect(row.fields['Duration']).to.equal(10);
+        });
+      });
+
+      describe('include_weekends: false — business day arithmetic', () => {
+        beforeEach(() => configureRule({ include_weekends: false }));
+
+        it('Mon–Fri span (no weekends) → 5 business days', async () => {
+          // Jan 6 (Mon) → Jan 10 (Fri) = 5 business days inclusive
+          const row = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          expect(row.fields['Duration']).to.equal(5);
+        });
+
+        it('Mon–Mon span across a weekend → 6 business days', async () => {
+          // Jan 6 (Mon) → Jan 13 (Mon): Mon Tue Wed Thu Fri Mon = 6 business days
+          const row = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-13' });
+          expect(row.fields['Duration']).to.equal(6);
+        });
+
+        it('start + 5 business days → end on Friday (skips weekend)', async () => {
+          // Jan 6 (Mon) + 5 days = Jan 10 (Fri)
+          const row = await insertRow({ 'Start Date': '2025-01-06', 'Duration': 5 });
+          expect(row.fields['End Date']).to.equal('2025-01-10');
+        });
+
+        it('start + 6 business days → end on Monday after weekend', async () => {
+          // Jan 6 (Mon) + 6 business days = Jan 13 (Mon, skipping Sat+Sun)
+          const row = await insertRow({ 'Start Date': '2025-01-06', 'Duration': 6 });
+          expect(row.fields['End Date']).to.equal('2025-01-13');
+        });
+
+        it('end + 5 business days backward → start on Monday', async () => {
+          // Jan 10 (Fri) − 4 business days back = Jan 6 (Mon)
+          const row = await insertRow({ 'End Date': '2025-01-10', 'Duration': 5 });
+          expect(row.fields['Start Date']).to.equal('2025-01-06');
+        });
+
+        it('calendar vs business day: same span counts differently', async () => {
+          // Jan 10 (Fri) → Jan 13 (Mon) = 4 calendar days but only 2 business days (Fri, Mon)
+          const row = await insertRow({ 'Start Date': '2025-01-10', 'End Date': '2025-01-13' });
+          expect(row.fields['Duration']).to.equal(2);
+        });
+      });
+    });
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // SECTION 2 — Cascade propagation (internal PostgreSQL only)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    describe('cascade propagation (internal PostgreSQL only)', () => {
+      let isPg = false;
+
+      beforeEach(async function () {
+        const TestDbMngr = (await import('../../../../TestDbMngr')).default;
+        isPg = TestDbMngr.connection.client === 'pg';
+        if (!isPg) return this.skip();
+      });
+
+      // ── helpers to set up a linked chain ────────────────────────────────────
+
+      /**
+       * Insert rows A (Jan 1-10), B (Jan 11-20), C (Jan 21-30) and link A→B→C.
+       * Returns the three row objects.
+       */
+      async function insertChain() {
+        const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+        const rowB = await insertRow({ 'Start Date': '2025-01-11', 'End Date': '2025-01-20' });
+        const rowC = await insertRow({ 'Start Date': '2025-01-21', 'End Date': '2025-01-30' });
+        await linkSuccessor(rowA.id, rowB.id);
+        await linkSuccessor(rowB.id, rowC.id);
+        return { rowA, rowB, rowC };
+      }
+
+      // ── 2.1  buffer_type: none → cascade disabled ─────────────────────────
+
+      describe('buffer_type: none → cascade never fires', () => {
+        it('linked successor stays unchanged after predecessor update', async () => {
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'none',
+            dependency_buffer_days:        0,
+          });
+
+          const { rowA, rowB } = await insertChain();
+          await updateRow(rowA.id, { 'End Date': '2025-01-20' });
+
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start unchanged').to.equal('2025-01-11');
+          expect(afterB.fields['End Date'],   'B end unchanged').to.equal('2025-01-20');
+        });
+      });
+
+      // ── 2.2  connection: end-to-start ──────────────────────────────────────
+      //
+      // succ.start = pred.end + bufferDays + 1 day
+      // succ.end   = new_start + (old_end - old_start)
+      // Duration stored in DB is NOT changed by cascade.
+
+      describe('connection: end-to-start', () => {
+
+        it('[fixed, buffer=0] 2-level cascade shifts B and C', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 11-20, C: Jan 21-30 (all dur=10)
+          const { rowA, rowB, rowC } = await insertChain();
+
+          // Extend A's end to Jan 20 → A becomes Jan 1-20 (dur=20)
+          await updateRow(rowA.id, { 'End Date': '2025-01-20' });
+
+          // B: new_start = Jan 20 + 0 + 1 = Jan 21
+          //    new_end   = Jan 21 + (Jan 20 - Jan 11) = Jan 21 + 9 = Jan 30
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-21');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-30');
+          expect(afterB.fields['Duration'],   'B dur preserved').to.equal(10);
+
+          // C: new_start = Jan 30 + 0 + 1 = Jan 31
+          //    new_end   = Jan 31 + 9 = Feb 9
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['Start Date'], 'C start').to.equal('2025-01-31');
+          expect(afterC.fields['End Date'],   'C end').to.equal('2025-02-09');
+          expect(afterC.fields['Duration'],   'C dur preserved').to.equal(10);
+        });
+
+        it('[fixed, buffer=2] inserts a 2-day gap between tasks', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        2,
+          });
+
+          const { rowA, rowB, rowC } = await insertChain();
+          await updateRow(rowA.id, { 'End Date': '2025-01-20' });
+
+          // B: new_start = Jan 20 + 2 + 1 = Jan 23; new_end = Jan 23 + 9 = Feb 1
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-23');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-02-01');
+
+          // C: new_start = Feb 1 + 2 + 1 = Feb 4; new_end = Feb 4 + 9 = Feb 13
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['Start Date'], 'C start').to.equal('2025-02-04');
+          expect(afterC.fields['End Date'],   'C end').to.equal('2025-02-13');
+        });
+
+        it('[flexible, buffer=0] overlap detected → shifts successor', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 8-17 (overlaps A), C: Jan 18-27 — all dur=10
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-08', 'End Date': '2025-01-17' });
+          const rowC = await insertRow({ 'Start Date': '2025-01-18', 'End Date': '2025-01-27' });
+          await linkSuccessor(rowA.id, rowB.id);
+          await linkSuccessor(rowB.id, rowC.id);
+
+          // Extend A to Jan 15; B.start=Jan 8 ≤ Jan 15 → shift
+          await updateRow(rowA.id, { 'End Date': '2025-01-15' });
+
+          // B: new_start = Jan 16; new_end = Jan 16 + (Jan 17 - Jan 8) = Jan 16 + 9 = Jan 25
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-16');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-25');
+
+          // C: C.start=Jan 18 ≤ B.new_end=Jan 25 → shift
+          //    new_start = Jan 26; new_end = Jan 26 + 9 = Feb 4
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['Start Date'], 'C start').to.equal('2025-01-26');
+          expect(afterC.fields['End Date'],   'C end').to.equal('2025-02-04');
+        });
+
+        it('[flexible, buffer=0] no overlap → successor stays put', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 15-24 — plenty of gap
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-15', 'End Date': '2025-01-24' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // A's end extends to Jan 12 — still before B.start=Jan 15 → no shift
+          await updateRow(rowA.id, { 'End Date': '2025-01-12' });
+
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start unchanged').to.equal('2025-01-15');
+          expect(afterB.fields['End Date'],   'B end unchanged').to.equal('2025-01-24');
+        });
+
+        it('[flexible, buffer=1] no shift when gap already ≥ buffer', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        1,
+          });
+
+          // A: Jan 1-10, B: Jan 15-24 (gap = 4 days > buffer 1 day)
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-15', 'End Date': '2025-01-24' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Extend A slightly — B.start=Jan 15 > A.end=Jan 12 + buffer=1 → no shift
+          await updateRow(rowA.id, { 'End Date': '2025-01-12' });
+
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start unchanged').to.equal('2025-01-15');
+          expect(afterB.fields['End Date'],   'B end unchanged').to.equal('2025-01-24');
+        });
+      });
+
+      // ── 2.3  connection: end-to-end ────────────────────────────────────────
+      //
+      // succ.end   = pred.end + bufferDays
+      // succ.start = new_end − (old_end − old_start)
+
+      describe('connection: end-to-end', () => {
+
+        it('[fixed, buffer=0] successor end aligns with predecessor end', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          const { rowA, rowB, rowC } = await insertChain();
+          // Extend A's end to Jan 25
+          await updateRow(rowA.id, { 'End Date': '2025-01-25' });
+
+          // B: new_end = Jan 25 + 0 = Jan 25; dur_diff = Jan 20 − Jan 11 = 9; new_start = Jan 25 − 9 = Jan 16
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-16');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-25');
+
+          // C: new_end = B.new_end + 0 = Jan 25; dur_diff = 9; new_start = Jan 25 − 9 = Jan 16
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['Start Date'], 'C start').to.equal('2025-01-16');
+          expect(afterC.fields['End Date'],   'C end').to.equal('2025-01-25');
+        });
+
+        it('[fixed, buffer=1] each successor ends 1 day after its predecessor', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        1,
+          });
+
+          const { rowA, rowB, rowC } = await insertChain();
+          await updateRow(rowA.id, { 'End Date': '2025-01-25' });
+
+          // B: new_end = Jan 25 + 1 = Jan 26; new_start = Jan 26 − 9 = Jan 17
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-17');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-26');
+
+          // C: new_end = Jan 26 + 1 = Jan 27; new_start = Jan 27 − 9 = Jan 18
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['Start Date'], 'C start').to.equal('2025-01-18');
+          expect(afterC.fields['End Date'],   'C end').to.equal('2025-01-27');
+        });
+
+        it('[flexible] successor end already later → no shift', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-end',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // B ends Jan 24 — well after A's end of Jan 10
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-15', 'End Date': '2025-01-24' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Extend A to Jan 20 — B.end=Jan 24 > Jan 20 → no shift
+          await updateRow(rowA.id, { 'End Date': '2025-01-20' });
+
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end unchanged').to.equal('2025-01-24');
+          expect(afterB.fields['Start Date'], 'B start unchanged').to.equal('2025-01-15');
+        });
+
+        it('[flexible] successor end earlier than pred end → shift', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-end',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // B ends Jan 17 — before A's extended end of Jan 20
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-08', 'End Date': '2025-01-17' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Extend A to Jan 20: B.end=Jan 17 < Jan 20 → SHIFT
+          await updateRow(rowA.id, { 'End Date': '2025-01-20' });
+
+          // B: new_end = Jan 20; dur_diff = Jan 17 − Jan 8 = 9; new_start = Jan 20 − 9 = Jan 11
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-20');
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-11');
+        });
+      });
+
+      // ── 2.4  connection: start-to-start ───────────────────────────────────
+      //
+      // succ.start = pred.start + bufferDays
+      // succ.end   = new_start + (old_end − old_start)
+
+      describe('connection: start-to-start', () => {
+
+        it('[fixed, buffer=0] all successors start on the same day as predecessor', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          // A, B, C all start Jan 1 initially
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowC = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+          await linkSuccessor(rowB.id, rowC.id);
+
+          // Move A forward: start=Jan 6, end=Jan 15 (dur=10 preserved)
+          await updateRow(rowA.id, { 'Start Date': '2025-01-06', 'End Date': '2025-01-15' });
+
+          // B: new_start = Jan 6 + 0 = Jan 6; dur_diff = 9; new_end = Jan 6 + 9 = Jan 15
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-06');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-15');
+
+          // C: new_start = Jan 6 + 0 = Jan 6; new_end = Jan 15
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['Start Date'], 'C start').to.equal('2025-01-06');
+          expect(afterC.fields['End Date'],   'C end').to.equal('2025-01-15');
+        });
+
+        it('[fixed, buffer=1] each successor starts 1 day later than predecessor', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        1,
+          });
+
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowC = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+          await linkSuccessor(rowB.id, rowC.id);
+
+          // Move A: start=Jan 6, end=Jan 15
+          await updateRow(rowA.id, { 'Start Date': '2025-01-06', 'End Date': '2025-01-15' });
+
+          // B: new_start = Jan 6 + 1 = Jan 7; new_end = Jan 7 + 9 = Jan 16
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-07');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-16');
+
+          // C: new_start = Jan 7 + 1 = Jan 8; new_end = Jan 8 + 9 = Jan 17
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['Start Date'], 'C start').to.equal('2025-01-08');
+          expect(afterC.fields['End Date'],   'C end').to.equal('2025-01-17');
+        });
+
+        it('[flexible] successor already starts after predecessor → no shift', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 15-24 (B starts well after A)
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-15', 'End Date': '2025-01-24' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move A forward: start=Jan 5 — still before B.start=Jan 15 → no shift
+          await updateRow(rowA.id, { 'Start Date': '2025-01-05', 'End Date': '2025-01-14' });
+
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start unchanged').to.equal('2025-01-15');
+          expect(afterB.fields['End Date'],   'B end unchanged').to.equal('2025-01-24');
+        });
+
+        it('[flexible] successor starts before predecessor → shift to align', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 10-19, B: Jan 5-14 (B starts before A)
+          const rowA = await insertRow({ 'Start Date': '2025-01-10', 'End Date': '2025-01-19' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-05', 'End Date': '2025-01-14' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move A later: start=Jan 12, end=Jan 21; B.start=Jan 5 < Jan 12 → SHIFT
+          await updateRow(rowA.id, { 'Start Date': '2025-01-12', 'End Date': '2025-01-21' });
+
+          // B: new_start = Jan 12; dur_diff = Jan 14 − Jan 5 = 9; new_end = Jan 12 + 9 = Jan 21
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-12');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-21');
+        });
+      });
+
+      // ── 2.5  is_active: false → cascade completely disabled ───────────────
+
+      describe('is_active: false → no cascade', () => {
+        it('linked successor stays unchanged when rule is inactive', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            is_active:                      false,
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-11', 'End Date': '2025-01-20' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          await updateRow(rowA.id, { 'End Date': '2025-01-20' });
+
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B unchanged (inactive)').to.equal('2025-01-11');
+          expect(afterB.fields['End Date'],   'B unchanged (inactive)').to.equal('2025-01-20');
+        });
+      });
+
+      // ── 2.6  no predecessor link → no cascade ─────────────────────────────
+
+      describe('no predecessor link field configured', () => {
+        it('update fires within-record sync only, cascade does not run', async function () {
+          this.timeout(30_000);
+          // Rule without a predecessor link field — only within-record sync
+          await configureRule();   // no fk_dependency_linkrow_field_id
+
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-11', 'End Date': '2025-01-20' });
+          // Even if rows exist, no cascade without the link column in the rule
+          await updateRow(rowA.id, { 'End Date': '2025-01-20' });
+
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start unchanged').to.equal('2025-01-11');
+          expect(afterB.fields['End Date'],   'B end unchanged').to.equal('2025-01-20');
+        });
+      });
+    });
+  });
+};

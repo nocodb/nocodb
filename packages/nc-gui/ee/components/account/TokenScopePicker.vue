@@ -8,10 +8,9 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:scopes'])
 
-const { api } = useApi()
+const basesStore = useBases()
 
-const bases = ref<any[]>([])
-const loadingBases = ref(false)
+const { basesList } = storeToRefs(basesStore)
 
 // Mode: 'org' (no scopes), 'base' (select bases)
 const scopeMode = ref<'org' | 'base'>(props.scopes.length ? 'base' : 'org')
@@ -20,19 +19,6 @@ const selectedBaseIds = ref<string[]>(
     .filter((s) => s.resource_type === ApiTokenScopeResourceType.BASE)
     .map((s) => s.resource_id),
 )
-
-const loadBases = async () => {
-  if (bases.value.length) return
-  loadingBases.value = true
-  try {
-    const response = await api.base.list()
-    bases.value = response?.list || []
-  } catch {
-    // ignore
-  } finally {
-    loadingBases.value = false
-  }
-}
 
 const emitScopes = () => {
   if (scopeMode.value === 'org') {
@@ -47,10 +33,7 @@ const emitScopes = () => {
   emit('update:scopes', newScopes)
 }
 
-watch(scopeMode, (val) => {
-  if (val === 'base') {
-    loadBases()
-  }
+watch(scopeMode, () => {
   emitScopes()
 })
 
@@ -104,12 +87,11 @@ watch(selectedBaseIds, () => {
         mode="multiple"
         placeholder="Search and select bases..."
         show-search
-        :loading="loadingBases"
         option-filter-prop="label"
         class="w-full"
         size="large"
       >
-        <a-select-option v-for="base in bases" :key="base.id" :value="base.id" :label="base.title">
+        <a-select-option v-for="base in basesList" :key="base.id" :value="base.id" :label="base.title">
           <div class="flex items-center gap-2">
             <GeneralIcon icon="ncDatabase" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
             {{ base.title }}
@@ -123,19 +105,19 @@ watch(selectedBaseIds, () => {
 <style lang="scss" scoped>
 .nc-scope-card {
   @apply flex items-start gap-3 px-4 py-3.5 rounded-lg border-1
-    bg-white cursor-pointer transition-all text-left w-full;
+    border-nc-border-gray-medium bg-nc-bg-default cursor-pointer transition-all text-left w-full;
 
   &:hover {
-    @apply bg-nc-bg-gray-extralight/50;
+    @apply bg-nc-bg-gray-light;
   }
 
   &.nc-scope-card-active {
-    @apply border-brand-500 bg-brand-50/30;
+    @apply border-brand-500 bg-nc-bg-brand;
   }
 }
 
 .nc-scope-card-radio {
-  @apply w-4.5 h-4.5 mt-0.5 rounded-full border-2 border-gray-300
+  @apply w-4.5 h-4.5 mt-0.5 rounded-full border-2 border-nc-border-gray-medium
     flex items-center justify-center flex-none transition-all;
 
   .nc-scope-card-active & {

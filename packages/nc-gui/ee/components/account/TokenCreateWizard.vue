@@ -155,7 +155,7 @@ const close = () => {
                 ? 'bg-brand-500 text-white'
                 : currentStep > step
                   ? 'bg-green-500 text-white'
-                  : 'bg-gray-100 text-gray-400'
+                  : 'bg-nc-bg-gray-medium text-nc-content-gray-muted'
             "
           >
             <GeneralIcon v-if="currentStep > step" icon="check" class="w-4 h-4" />
@@ -163,12 +163,12 @@ const close = () => {
           </div>
           <span
             class="text-xs font-medium whitespace-nowrap"
-            :class="currentStep >= step ? 'text-nc-content-gray' : 'text-gray-400'"
+            :class="currentStep >= step ? 'text-nc-content-gray' : 'text-nc-content-gray-muted'"
           >
             {{ stepLabels[step - 1] }}
           </span>
         </div>
-        <div v-if="step < 3" class="flex-1 h-0.5 bg-gray-100 mx-3 mb-5 rounded-full overflow-hidden">
+        <div v-if="step < 3" class="flex-1 h-0.5 bg-nc-bg-gray-medium mx-3 mb-5 rounded-full overflow-hidden">
           <div
             class="h-full rounded-full transition-all duration-300"
             :class="currentStep > step ? 'bg-green-500 w-full' : 'w-0'"

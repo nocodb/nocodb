@@ -5,6 +5,7 @@ import type {
   ApiTokenScopeResourceType,
 } from 'nocodb-sdk';
 import Noco from '~/Noco';
+import Base from '~/models/Base';
 import NocoCache from '~/cache/NocoCache';
 import {
   CacheDelDirection,
@@ -131,7 +132,8 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
 
   /**
    * Find a matching scope for a given resource.
-   * First checks for an exact base match, then falls back to workspace match.
+   * First checks for an exact base match, then workspace match,
+   * then checks if any base-scoped entries belong to the requested workspace.
    */
   public static async findMatchingScope(
     tokenId: string,
@@ -151,12 +153,27 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       if (baseScope) return baseScope;
     }
 
-    // 2. Try workspace match
+    // 2. Try exact workspace match
     if (workspaceId) {
       const wsScope = scopes.find(
         (s) => s.resource_type === 'workspace' && s.resource_id === workspaceId,
       );
       if (wsScope) return wsScope;
+    }
+
+    // 3. If workspace request with base-scoped tokens, check if any base
+    //    belongs to the requested workspace (allows workspace-level reads
+    //    like base list for tokens scoped to bases within that workspace)
+    if (workspaceId && !baseId) {
+      const baseScopes = scopes.filter((s) => s.resource_type === 'base');
+      if (baseScopes.length) {
+        for (const bs of baseScopes) {
+          const base = await Base.get({ workspace_id: workspaceId }, bs.resource_id, ncMeta);
+          if (base && base.fk_workspace_id === workspaceId) {
+            return bs;
+          }
+        }
+      }
     }
 
     return null;

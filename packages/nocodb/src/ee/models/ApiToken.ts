@@ -8,6 +8,7 @@ import SSOClient from '~/models/SSOClient';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {
+  CacheDelDirection,
   CacheGetType,
   CacheScope,
   MetaTable,
@@ -277,6 +278,44 @@ export default class ApiToken extends ApiTokenCE {
     }
 
     return this.get(tokenId, ncMeta);
+  }
+
+  /**
+   * Override CE delete to properly invalidate hash-based cache
+   * and clean up associated scopes.
+   */
+  static async delete(tokenId: string, ncMeta = Noco.ncMeta) {
+    const tokenData = await this.get(tokenId, ncMeta);
+
+    if (tokenData) {
+      // Invalidate hash-based cache (fine-grained tokens)
+      if (tokenData.token_hash) {
+        await NocoCache.deepDel(
+          'root',
+          `${CacheScope.API_TOKEN}:${tokenData.token_hash}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+
+      // Invalidate plaintext-based cache (legacy tokens)
+      if (tokenData.token) {
+        await NocoCache.deepDel(
+          'root',
+          `${CacheScope.API_TOKEN}:${tokenData.token}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+
+      // Clean up scopes
+      await ApiTokenScope.deleteByTokenId(tokenId, ncMeta);
+    }
+
+    return await ncMeta.metaDelete(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.API_TOKENS,
+      tokenId,
+    );
   }
 
   public static castType(apiToken: ApiToken): ApiToken {

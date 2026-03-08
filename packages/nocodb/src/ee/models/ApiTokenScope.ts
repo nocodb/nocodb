@@ -53,7 +53,17 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       insertData,
     );
 
-    return this.get(result.id, ncMeta);
+    return this.get(result.id, ncMeta).then(async (res) => {
+      if (res) {
+        await NocoCache.appendToList(
+          'root',
+          CacheScope.API_TOKEN_SCOPE,
+          [scope.fk_api_token_id],
+          `${CacheScope.API_TOKEN_SCOPE}:${res.id}`,
+        );
+      }
+      return res;
+    });
   }
 
   public static async bulkInsert(
@@ -74,13 +84,6 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       );
       if (inserted) results.push(inserted);
     }
-
-    // Invalidate list cache for this token
-    await NocoCache.deepDel(
-      'root',
-      `${CacheScope.API_TOKEN_SCOPE}:${tokenId}:list`,
-      CacheDelDirection.CHILD_TO_PARENT,
-    );
 
     return results;
   }
@@ -118,16 +121,33 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
     tokenId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<ApiTokenScope[]> {
-    const list = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.API_TOKEN_SCOPES,
-      {
-        condition: { fk_api_token_id: tokenId },
-      },
+    const cachedList = await NocoCache.getList(
+      'root',
+      CacheScope.API_TOKEN_SCOPE,
+      [tokenId],
     );
 
-    return (list || []).map((s) => new ApiTokenScope(s));
+    let { list: scopeList } = cachedList;
+    const { isNoneList } = cachedList;
+
+    if (!isNoneList && !scopeList.length) {
+      scopeList = await ncMeta.metaList2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.API_TOKEN_SCOPES,
+        {
+          condition: { fk_api_token_id: tokenId },
+        },
+      );
+      await NocoCache.setList(
+        'root',
+        CacheScope.API_TOKEN_SCOPE,
+        [tokenId],
+        scopeList,
+      );
+    }
+
+    return (scopeList || []).map((s) => new ApiTokenScope(s));
   }
 
   /**
@@ -192,10 +212,11 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       scopeId,
     );
 
-    // Invalidate cache
-    await NocoCache.del(
+    // Invalidate individual + list cache
+    await NocoCache.deepDel(
       'root',
       `${CacheScope.API_TOKEN_SCOPE}:${scopeId}`,
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     return this.get(scopeId, ncMeta);
@@ -238,6 +259,13 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       .knex(MetaTable.API_TOKEN_SCOPES)
       .where('fk_api_token_id', tokenId)
       .delete();
+
+    // Clean up list cache key and any remaining children
+    await NocoCache.deepDel(
+      'root',
+      `${CacheScope.API_TOKEN_SCOPE}:${tokenId}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
+    );
   }
 
   parsePermissions(): ApiTokenPermissionsJson | null {

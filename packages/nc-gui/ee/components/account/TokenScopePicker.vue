@@ -1,6 +1,17 @@
 <script lang="ts" setup>
-import { ApiTokenScopeResourceType } from 'nocodb-sdk'
+import { ApiTokenScopeResourceType, NO_SCOPE } from 'nocodb-sdk'
 import type { ApiTokenScopeEntry } from 'nocodb-sdk'
+
+interface BaseListAllData {
+  workspaces: {
+    id: string
+    title: string
+    bases: {
+      id: string
+      title: string
+    }[]
+  }[]
+}
 
 const props = defineProps<{
   scopes: ApiTokenScopeEntry[]
@@ -8,9 +19,10 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:scopes'])
 
-const basesStore = useBases()
+const { $api } = useNuxtApp()
 
-const { basesList } = storeToRefs(basesStore)
+const allData = ref<BaseListAllData | null>(null)
+const isLoading = ref(false)
 
 // Mode: 'org' (no scopes), 'base' (select bases)
 const scopeMode = ref<'org' | 'base'>(props.scopes.length ? 'base' : 'org')
@@ -19,6 +31,20 @@ const selectedBaseIds = ref<string[]>(
     .filter((s) => s.resource_type === ApiTokenScopeResourceType.BASE)
     .map((s) => s.resource_id),
 )
+
+const loadAll = async () => {
+  if (allData.value) return
+  isLoading.value = true
+  try {
+    allData.value = (await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
+      operation: 'baseListAll',
+    })) as BaseListAllData
+  } catch {
+    // ignore
+  } finally {
+    isLoading.value = false
+  }
+}
 
 const emitScopes = () => {
   if (scopeMode.value === 'org') {
@@ -39,6 +65,10 @@ watch(scopeMode, () => {
 
 watch(selectedBaseIds, () => {
   emitScopes()
+})
+
+onMounted(() => {
+  loadAll()
 })
 </script>
 
@@ -87,16 +117,19 @@ watch(selectedBaseIds, () => {
         mode="multiple"
         placeholder="Search and select bases..."
         show-search
+        :loading="isLoading"
         option-filter-prop="label"
         class="w-full"
         size="large"
       >
-        <a-select-option v-for="base in basesList" :key="base.id" :value="base.id" :label="base.title">
-          <div class="flex items-center gap-2">
-            <GeneralIcon icon="ncDatabase" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
-            {{ base.title }}
-          </div>
-        </a-select-option>
+        <a-select-opt-group v-for="ws in allData?.workspaces" :key="ws.id" :label="ws.title">
+          <a-select-option v-for="base in ws.bases" :key="base.id" :value="base.id" :label="`${ws.title} / ${base.title}`">
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="ncDatabase" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
+              {{ base.title }}
+            </div>
+          </a-select-option>
+        </a-select-opt-group>
       </a-select>
     </div>
   </div>

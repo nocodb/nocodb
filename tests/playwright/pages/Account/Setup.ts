@@ -17,7 +17,7 @@ export class AccountSetupPage extends BasePage {
   }
 
   async goto() {
-    await this.rootPage.goto('/#/account/setup');
+    await this.rootPage.goto('/account/setup');
     await this.rootPage.locator(`[data-test-id="nc-setup"]`).isVisible();
   }
 

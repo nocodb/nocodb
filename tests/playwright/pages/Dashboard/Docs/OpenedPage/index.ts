@@ -23,6 +23,12 @@ export class DocsOpenedPagePage extends BasePage {
   async waitForRender() {
     await this.get().waitFor({ state: 'visible' });
     await this.get().getByTestId('docs-page-title').waitFor({ state: 'visible' });
+    // Wait for ProseMirror to mount AND become editable (Tiptap fully initialized)
+    await this.get()
+      .getByTestId('docs-page-content')
+      .locator('.ProseMirror[contenteditable="true"]')
+      .first()
+      .waitFor({ state: 'visible' });
     await this.get()
       .getByTestId('docs-page-title')
       .elementHandle()
@@ -36,30 +42,18 @@ export class DocsOpenedPagePage extends BasePage {
 
     await this.get().getByTestId('docs-page-title').click();
 
-    await this.get().getByTestId('docs-page-title').press('Meta+A');
+    await this.get().getByTestId('docs-page-title').press('ControlOrMeta+A');
     await this.get().getByTestId('docs-page-title').press('Backspace');
 
     await this.waitForResponse({
       uiAction: () => this.get().getByTestId('docs-page-title').type(title, { delay: 0 }),
-      httpMethodsToMatch: ['PUT'],
-      requestUrlPathToMatch: `api/v1/docs/page`,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `operation=documentUpdate`,
     });
   }
 
   async verifyTitle({ title }: { title: string }) {
     await expect.poll(() => this.get().getByTestId('docs-page-title').inputValue()).toBe(title);
-  }
-
-  async verifyPageOutlineOpened({ isOpened }: { isOpened: boolean }) {
-    if (isOpened) {
-      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toBeVisible();
-      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toHaveAttribute('aria-expanded', 'true');
-      await expect(this.rootPage.getByTestId('docs-page-outline-content')).toBeVisible();
-    } else {
-      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toBeVisible();
-      await expect(this.rootPage.getByTestId('docs-page-outline-toggle')).toHaveAttribute('aria-expanded', 'false');
-      await expect(this.rootPage.getByTestId('docs-page-outline-content')).not.toBeVisible();
-    }
   }
 
   async verifyOpenedPageVisible() {
@@ -70,37 +64,18 @@ export class DocsOpenedPagePage extends BasePage {
     await this.get().getByTestId('nc-doc-opened-page-icon-picker').hover();
     await this.get().getByTestId('nc-doc-opened-page-icon-picker').click();
 
-    await this.rootPage.getByTestId('nc-emoji-filter').last().type(emoji);
+    // emoji-mart-vue-fast renders its own search input
+    const emojiSearch = this.rootPage.locator('.emoji-mart-search input').last();
+    await emojiSearch.waitFor({ state: 'visible' });
+    await emojiSearch.fill(emoji);
 
     await this.rootPage.waitForTimeout(500);
 
     await this.waitForResponse({
-      uiAction: () =>
-        this.rootPage.getByTestId('nc-emoji-container').last().locator(`.nc-emoji-item >> svg`).first().click(),
-      httpMethodsToMatch: ['PUT'],
-      requestUrlPathToMatch: `api/v1/docs/page`,
+      uiAction: () => this.rootPage.locator('.emoji-mart-category .emoji-mart-emoji').first().click(),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `operation=documentUpdate`,
     });
-  }
-
-  async verifyTitleEmoji({ emoji }: { emoji: string }) {
-    await expect(
-      this.get().getByTestId('docs-page-title-wrapper').getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
-    ).toBeVisible();
-  }
-
-  async verifyChildPage({ title }: { title: string }) {
-    await this.get()
-      .locator('.docs-page-child-pages')
-      .locator(`.docs-page-child-page >> text=${title}`)
-      .scrollIntoViewIfNeeded();
-
-    await expect(
-      this.get().locator('.docs-page-child-pages').locator(`.docs-page-child-page >> text=${title}`)
-    ).toBeVisible();
-  }
-
-  async verifyChildPagesNotVisible() {
-    await expect(this.get().locator('.docs-page-child-pages')).not.toBeVisible();
   }
 
   async verifyTitleIsReadOnly({ editable }: { editable: boolean }) {
@@ -110,47 +85,9 @@ export class DocsOpenedPagePage extends BasePage {
   }
 
   async verifyContentIsReadOnly({ editable }: { editable: boolean }) {
-    await expect(this.get().getByTestId('docs-page-content').locator('.ProseMirror')).toHaveAttribute(
+    await expect(this.get().getByTestId('docs-page-content').locator('.ProseMirror').first()).toHaveAttribute(
       'contenteditable',
       editable ? 'true' : 'false'
     );
-  }
-
-  async togglePageOutline() {
-    await this.rootPage.getByTestId('docs-page-outline-toggle').click();
-  }
-
-  async verifyPageOutline({ pages }: { pages: { title: string; active?: boolean; level?: number }[] }) {
-    for (let index = 0; index < pages.length; index++) {
-      const { title, active, level } = pages[index];
-      await expect(this.rootPage.getByTestId(`docs-page-outline-subheading-${index}`)).toHaveText(title);
-
-      if (active) {
-        await expect(this.rootPage.getByTestId(`docs-page-outline-subheading-${index}`)).toHaveAttribute(
-          'aria-current',
-          'page'
-        );
-      }
-
-      if (level) {
-        await expect(this.rootPage.getByTestId(`docs-page-outline-subheading-${index}`)).toHaveAttribute(
-          'aria-level',
-          level.toString()
-        );
-      }
-    }
-  }
-
-  async verifyBreadcrumb({ pages }: { pages: { title: string; emoji?: string }[] }) {
-    for (let index = 0; index < pages.length; index++) {
-      const { title, emoji } = pages[index];
-      await expect(this.get().getByTestId(`nc-doc-page-breadcrumb-${index}`)).toHaveText(title);
-
-      if (emoji) {
-        await expect(
-          this.get().getByTestId(`nc-doc-page-breadcrumb-${index}`).getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
-        ).toBeVisible();
-      }
-    }
   }
 }

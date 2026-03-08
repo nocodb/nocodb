@@ -8,7 +8,7 @@ export const EMPTY_TITLE_PLACEHOLDER_DOCS = 'Untitled'
 
 export const MAX_WIDTH_FOR_MOBILE_MODE = 480
 
-export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '..' : 'http://localhost:8080'
+export const BASE_FALLBACK_URL = process.env.NODE_ENV === 'production' ? '/' : 'http://localhost:8080'
 
 export const GROUP_BY_VARS = {
   NULL: '__nc_null__',
@@ -32,6 +32,8 @@ export const EXTERNAL_SOURCE_TOTAL_ROWS = 200
 export const EXTERNAL_SOURCE_VISIBLE_ROWS = 100
 
 export const MINI_SIDEBAR_WIDTH = 48
+
+export const NEW_MINI_SIDEBAR_WIDTH = 64
 
 export const clientMousePositionDefaultValue = { clientX: 0, clientY: 0 }
 

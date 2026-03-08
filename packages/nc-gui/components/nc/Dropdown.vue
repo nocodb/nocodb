@@ -9,6 +9,7 @@ const props = withDefaults(
     overlayStyle?: Record<string, any>
     disabled?: boolean
     placement?: NcDropdownPlacement
+    align?: { points?: [string, string]; offset?: [number, number]; targetOffset?: [number, number]; overflow?: { adjustX?: boolean; adjustY?: boolean } }
     autoClose?: boolean
     // if true, the dropdown will not have the nc-dropdown class (used for blocking keyboard events)
     nonNcDropdown?: boolean
@@ -107,6 +108,7 @@ watch(
     :trigger="trigger"
     :overlay-class-name="overlayClassNameComputed"
     :overlay-style="overlayStyle"
+    :align="align"
     @update:visible="onVisibleUpdate"
     @visible-change="onVisibilityChange"
   >

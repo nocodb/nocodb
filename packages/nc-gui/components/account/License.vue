@@ -62,19 +62,15 @@ loadLicense()
           licenseStatus === 'active'
             ? 'bg-green-50 border border-green-200'
             : licenseStatus === 'expired'
-              ? 'bg-orange-50 border border-orange-200'
-              : 'bg-gray-50 border border-gray-200'
+            ? 'bg-orange-50 border border-orange-200'
+            : 'bg-gray-50 border border-gray-200'
         "
       >
         <GeneralIcon
           :icon="licenseStatus === 'active' ? 'ncCheck' : licenseStatus === 'expired' ? 'ncAlertCircle' : 'ncInfo'"
           class="h-5 w-5"
           :class="
-            licenseStatus === 'active'
-              ? 'text-green-600'
-              : licenseStatus === 'expired'
-                ? 'text-orange-600'
-                : 'text-gray-500'
+            licenseStatus === 'active' ? 'text-green-600' : licenseStatus === 'expired' ? 'text-orange-600' : 'text-gray-500'
           "
         />
         <div class="flex flex-col">
@@ -83,8 +79,8 @@ loadLicense()
               licenseStatus === 'active'
                 ? $t('title.licenseActive')
                 : licenseStatus === 'expired'
-                  ? $t('title.licenseInvalid')
-                  : $t('title.licenseNone')
+                ? $t('title.licenseInvalid')
+                : $t('title.licenseNone')
             }}
           </span>
         </div>
@@ -102,22 +98,10 @@ loadLicense()
       </div>
 
       <div class="flex gap-3">
-        <NcButton
-          type="primary"
-          size="small"
-          :loading="isLoading"
-          data-testid="nc-license-save-btn"
-          @click="setLicense"
-        >
+        <NcButton type="primary" size="small" :loading="isLoading" data-testid="nc-license-save-btn" @click="setLicense">
           {{ $t('general.save') }}
         </NcButton>
-        <NcButton
-          v-if="key"
-          type="secondary"
-          size="small"
-          data-testid="nc-license-remove-btn"
-          @click="removeLicense"
-        >
+        <NcButton v-if="key" type="secondary" size="small" data-testid="nc-license-remove-btn" @click="removeLicense">
           {{ $t('general.remove') }}
         </NcButton>
       </div>

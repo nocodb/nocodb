@@ -13,7 +13,7 @@ export class AccountAuthenticationPage extends BasePage {
 
   async goto() {
     await this.waitForResponse({
-      uiAction: () => this.rootPage.goto('/#/account/authentication', { waitUntil: 'networkidle' }),
+      uiAction: () => this.rootPage.goto('/account/authentication', { waitUntil: 'networkidle' }),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: /\/sso-client/,
     });

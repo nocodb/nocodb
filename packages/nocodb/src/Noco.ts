@@ -17,6 +17,8 @@ import type http from 'http';
 import type Sharp from 'sharp';
 import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import type { AuditService } from '~/meta/audit.service';
+import type { ChatMessagesService } from '~/meta/chat-messages.service';
+import type { DocsContentService } from '~/meta/docs-content.service';
 import type { AppSettings } from '~/interface/AppSettings';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
@@ -52,6 +54,8 @@ export default class Noco {
   public readonly baseRouter: express.Router;
   public static _ncMeta: any;
   public static _ncAudit: any;
+  public static _ncChatMessages: any;
+  public static _ncDocsContent: any;
   public static appHooksService: AppHooksService;
   public readonly metaMgr: any;
   public readonly metaMgrv2: any;
@@ -110,12 +114,24 @@ export default class Noco {
     return this._ncAudit ?? this._ncMeta;
   }
 
+  public static get ncChatMessages(): ChatMessagesService {
+    return this._ncChatMessages ?? this._ncMeta;
+  }
+
+  public static get ncDocsContent(): DocsContentService {
+    return this._ncDocsContent ?? this._ncMeta;
+  }
+
   public get ncMeta(): any {
     return Noco._ncMeta;
   }
 
   public get ncAudit(): AuditService {
     return Noco._ncAudit;
+  }
+
+  public get ncChatMessages(): ChatMessagesService {
+    return Noco._ncChatMessages;
   }
 
   public static getConfig(): any {
@@ -197,11 +213,34 @@ export default class Noco {
     await nestApp.enableShutdownHooks();
     NcDebug.log('Shutdown hooks enabled');
 
-    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/dashboard';
+    const dashboardPath = process.env.NC_DASHBOARD_URL ?? '/';
     server.use(express.static(path.join(__dirname, 'public')));
 
-    if (dashboardPath !== '/' && dashboardPath !== '') {
-      server.get('/', (_req, res) => res.redirect(dashboardPath));
+    if (dashboardPath.startsWith('http')) {
+      // Test/split mode: frontend runs separately, redirect browser to it.
+      // Non-browser requests (health checks, curl) get 200 instead of redirect.
+      server.get('/', (req, res) => {
+        if (req.headers.accept?.includes('text/html')) {
+          return res.redirect(dashboardPath);
+        }
+        res.sendStatus(200);
+      });
+    } else if (dashboardPath !== '/' && dashboardPath !== '') {
+      // Non-root dashboard path: redirect old path to root
+      const normalizedPath = dashboardPath.replace(/\/+$/, '');
+      server.get(`${normalizedPath}*`, (req, res) => {
+        const remaining = req.path.slice(normalizedPath.length) || '/';
+        res.redirect(remaining);
+      });
+    } else {
+      // Default root deployment: respond 200 for health checks (HEAD/non-browser GET).
+      // Browser requests pass through to GuiMiddleware for SPA fallback.
+      server.get('/', (req, res, next) => {
+        if (req.headers.accept?.includes('text/html')) {
+          return next();
+        }
+        res.sendStatus(200);
+      });
     }
 
     await Integration.init();
@@ -286,6 +325,10 @@ export default class Noco {
   }
 
   public static async prepareAuditService() {}
+
+  public static async prepareChatMessagesService() {}
+
+  public static async prepareDocsContentService() {}
 
   public static async getAppSettings(refresh = false): Promise<AppSettings> {
     // Force refresh or first load

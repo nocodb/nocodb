@@ -3,8 +3,6 @@ import { useTitle } from '@vueuse/core'
 
 const { isUIAllowed } = useRoles()
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
-
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()
@@ -36,8 +34,6 @@ watch(
 )
 
 onMounted(() => {
-  hideSidebar.value = true
-
   isFromIntegrationPage.value = true
 
   until(() => currentWorkspace.value?.id)
@@ -49,8 +45,6 @@ onMounted(() => {
 
 onBeforeMount(() => {
   isFromIntegrationPage.value = false
-
-  hideSidebar.value = false
 })
 </script>
 
@@ -129,7 +123,7 @@ onBeforeMount(() => {
   @apply !pl-0;
 }
 :deep(.ant-tabs-tab) {
-  @apply pt-2 pb-3;
+  @apply pt-1.5 pb-2;
 }
 
 .ant-tabs-content-top {

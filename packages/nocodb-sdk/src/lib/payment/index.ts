@@ -30,6 +30,7 @@ export enum PlanLimitTypes {
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
   LIMIT_SANDBOX_PER_BASE = 'limit_sandbox',
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
+  LIMIT_DOCUMENT_PAGE_PER_WORKSPACE = 'limit_document_page',
 }
 
 export enum PlanFeatureTypes {
@@ -86,6 +87,7 @@ export enum PlanFeatureTypes {
   FEATURE_VIEW_SECTIONS = 'feature_view_sections',
   FEATURE_MAP_VIEW = 'feature_map_view',
   FEATURE_TIMELINE_VIEW = 'feature_timeline_view',
+  FEATURE_AI_CHAT = 'feature_ai_chat',
 }
 
 export enum PlanTitles {
@@ -247,6 +249,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
   [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
+  [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE]:
+    'to add more document pages in a workspace.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -323,6 +327,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into sections.',
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: 'to use timeline view.',
+  [PlanFeatureTypes.FEATURE_AI_CHAT]: 'to use AI chat.',
 };
 
 export const getUpgradeMessage = (

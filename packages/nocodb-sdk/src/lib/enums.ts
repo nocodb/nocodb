@@ -70,6 +70,7 @@ export enum AppEvents {
 
   USER_SIGNUP = 'user.signup',
   USER_SIGNIN = 'user.signin',
+  USER_SIGNIN_FAILED = 'user.signin.failed',
   USER_INVITE = 'user.invite',
   USER_UPDATE = 'user.update',
   USER_PASSWORD_RESET = 'user.password.reset',
@@ -289,6 +290,21 @@ export enum AppEvents {
   VIEW_SECTION_CREATE = 'viewSection.create',
   VIEW_SECTION_UPDATE = 'viewSection.update',
   VIEW_SECTION_DELETE = 'viewSection.delete',
+
+  CHAT_SESSION_CREATE = 'chat.session.create',
+  CHAT_SESSION_UPDATE = 'chat.session.update',
+  CHAT_SESSION_DELETE = 'chat.session.delete',
+  CHAT_MESSAGE_CREATE = 'chat.message.create',
+  CHAT_TOOL_EXECUTE = 'chat.tool.execute',
+
+  DOCUMENT_CREATE = 'document.create',
+  DOCUMENT_UPDATE = 'document.update',
+  DOCUMENT_DELETE = 'document.delete',
+  DOCUMENT_USER_MENTION = 'document.user.mention',
+
+  DOCUMENT_COMMENT_CREATE = 'document.comment.create',
+  DOCUMENT_COMMENT_UPDATE = 'document.comment.update',
+  DOCUMENT_COMMENT_DELETE = 'document.comment.delete',
 }
 
 export enum ClickhouseTables {

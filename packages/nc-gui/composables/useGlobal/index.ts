@@ -61,6 +61,23 @@ export const useGlobal = createGlobalState((): UseGlobalReturn => {
     { immediate: true },
   )
 
+  // Sync auth cookie with token for browser-initiated requests (<img src>, open-in-new-tab).
+  // The cookie enables native <img src> loading without fetch+blob.
+  // In production (same-origin), the backend also sets an HttpOnly version via Set-Cookie
+  // on auth endpoints — the server CAN overwrite a JS-set cookie with HttpOnly (RFC 6265),
+  // upgrading security automatically on next signin/refresh.
+  watch(
+    state.token,
+    (newToken) => {
+      if (newToken) {
+        document.cookie = `nc_token=${newToken}; path=/api; max-age=${10 * 60 * 60}; samesite=lax`
+      } else {
+        document.cookie = 'nc_token=; path=/api; max-age=0; samesite=lax'
+      }
+    },
+    { immediate: true },
+  )
+
   const globalState = { ...state, ...getters, ...actions } as UseGlobalReturn
 
   /** provide a fresh state instance into nuxt app */

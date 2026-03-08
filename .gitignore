@@ -43,6 +43,10 @@ _site/
 *.swp
 build/
 
+*.tsbuildinfo
+uploads/
+
+
 # Visual Studio Code
 # ==================
 .vscode/

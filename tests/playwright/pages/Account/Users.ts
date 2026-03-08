@@ -20,13 +20,13 @@ export class AccountUsersPage extends BasePage {
   async goto({ waitForResponse = true }: { waitForResponse?: boolean }) {
     if (waitForResponse) {
       return this.waitForResponse({
-        uiAction: async () => await this.rootPage.goto('/#/account/users'),
+        uiAction: async () => await this.rootPage.goto('/account/users'),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: `api/v1/users`,
       });
     } else {
       await this.rootPage.waitForTimeout(1000);
-      return this.rootPage.goto('/#/account/users');
+      return this.rootPage.goto('/account/users');
     }
   }
 
@@ -114,8 +114,13 @@ export class AccountUsersPage extends BasePage {
   async deleteUser({ email }: { email: string }) {
     await this.openRowActionMenu({ email });
     await this.rootPage.locator('.nc-menu-item:visible:has-text("Remove user")').click();
-    await this.rootPage.locator('.ant-modal.active button:has-text("Delete User")').click();
+
+    await this.waitForResponse({
+      uiAction: async () => await this.rootPage.locator('.ant-modal.active button:has-text("Delete User")').click(),
+      httpMethodsToMatch: ['DELETE'],
+      requestUrlPathToMatch: `api/v1/users`,
+    });
+
     await this.verifyToast({ message: 'User deleted successfully' });
-    await this.get().locator(`.nc-table-row:has-text("${email}")`).first().waitFor({ state: 'hidden' });
   }
 }

@@ -346,6 +346,11 @@ import NcPhoneMissedIcon from '~icons/nc-icons-v2/phone-missed.svg'
 import NcEdit2Icon from '~icons/nc-icons-v2/edit-2.svg'
 import NcCornerLeftUpIcon from '~icons/nc-icons-v2/corner-left-up.svg'
 import NcHomeIcon from '~icons/nc-icons-v2/home.svg'
+import NcHomeFilledIcon from '~icons/nc-icons-v2/home-filled.svg'
+import NcTableOutlineIcon from '~icons/nc-icons-v2/table-outline.svg'
+import NcTableFilledIcon from '~icons/nc-icons-v2/table-filled.svg'
+import NcTableIcon from '~icons/nc-icons-v2/nc-table.svg'
+import NcAutomationsFilledIcon from '~icons/nc-icons-v2/automations-filled.svg'
 import NcGitlabIcon from '~icons/nc-icons-v2/gitlab.svg'
 import NcSmartphoneIcon from '~icons/nc-icons-v2/smartphone.svg'
 import NcMoreHorizontalIcon from '~icons/nc-icons-v2/more-horizontal.svg'
@@ -368,6 +373,7 @@ import NcFileIcon from '~icons/nc-icons-v2/file.svg'
 import NcMessageCircleIcon from '~icons/nc-icons-v2/message-circle.svg'
 import NcTerminalIcon from '~icons/nc-icons-v2/terminal.svg'
 import NcMoveIcon from '~icons/nc-icons-v2/move.svg'
+import NcMoveHorizontalIcon from '~icons/nc-icons-v2/move-horizontal.svg'
 import NcMaximizeIcon from '~icons/nc-icons-v2/maximize.svg'
 import NcChevronUpIcon from '~icons/nc-icons-v2/chevron-up.svg'
 import NcArrowDownLeftIcon from '~icons/nc-icons-v2/arrow-down-left.svg'
@@ -510,6 +516,7 @@ import NcEyeIcon from '~icons/nc-icons-v2/eye.svg'
 import NcPhoneOffIcon from '~icons/nc-icons-v2/phone-off.svg'
 import NcExternalLinkIcon from '~icons/nc-icons-v2/external-link.svg'
 import NcZapIcon from '~icons/nc-icons-v2/zap.svg'
+import NcAgentIcon from '~icons/nc-icons-v2/agent.svg'
 import NcMoreVerticalIcon from '~icons/nc-icons-v2/more-vertical.svg'
 import NcMicOffIcon from '~icons/nc-icons-v2/mic-off.svg'
 import NcShareIcon from '~icons/nc-icons-v2/share.svg'
@@ -562,6 +569,14 @@ import NcMoonIcon from '~icons/nc-icons-v2/moon.svg'
 import NcShieldOffIcon from '~icons/nc-icons-v2/shield-off.svg'
 import NcMousePointerIcon from '~icons/nc-icons-v2/mouse-pointer.svg'
 import NcAlignLeftIcon from '~icons/nc-icons-v2/align-left.svg'
+import NcInsertColumnLeftIcon from '~icons/nc-icons-v2/insert-column-left.svg'
+import NcInsertColumnRightIcon from '~icons/nc-icons-v2/insert-column-right.svg'
+import NcInsertRowAboveIcon from '~icons/nc-icons-v2/insert-row-above.svg'
+import NcInsertRowBelowIcon from '~icons/nc-icons-v2/insert-row-below.svg'
+import NcMoveRowUpIcon from '~icons/nc-icons-v2/move-row-up.svg'
+import NcMoveRowDownIcon from '~icons/nc-icons-v2/move-row-down.svg'
+import NcMoveColumnLeftIcon from '~icons/nc-icons-v2/move-column-left.svg'
+import NcMoveColumnRightIcon from '~icons/nc-icons-v2/move-column-right.svg'
 import NcHeartIcon from '~icons/nc-icons-v2/heart.svg'
 import NcTrendingUpIcon from '~icons/nc-icons-v2/trending-up.svg'
 import NcYoutube2Icon from '~icons/nc-icons/youtube2.svg'
@@ -782,6 +797,7 @@ import NcLogoPowerLogoColored from '~icons/nc-icons-v2/power-logo-colored.svg'
 import NcLogoClickupColored from '~icons/nc-icons-v2/clickup-colored.svg'
 
 import NcSendAlt from '~icons/nc-icons-v2/send-alt.svg'
+import NcSendHorizontal from '~icons/nc-icons-v2/send-horizontal.svg'
 import NcBaseOutline from '~icons/nc-icons-v2/base-outline.svg'
 import NcBasePrivate from '~icons/nc-icons-v2/base-private.svg'
 import NcBaseOutlineDuo from '~icons/nc-icons-v2/base-outline-duo.svg'
@@ -1408,6 +1424,10 @@ export const iconMap = {
   'ncEdit2': NcEdit2Icon,
   'ncCornerLeftUp': NcCornerLeftUpIcon,
   'ncHome': NcHomeIcon,
+  'ncHomeFilled': h(NcHomeFilledIcon, { stroke: 'transparent' }),
+  'ncTableOutline': NcTableOutlineIcon,
+  'ncTableFilled': h(NcTableFilledIcon, { stroke: 'transparent' }),
+  'ncAutomationsFilled': h(NcAutomationsFilledIcon, { stroke: 'transparent' }),
   'ncGitlab': NcGitlabIcon,
   'ncSmartphone': NcSmartphoneIcon,
   'ncMoreHorizontal': NcMoreHorizontalIcon,
@@ -1430,6 +1450,7 @@ export const iconMap = {
   'ncMessageCircle': NcMessageCircleIcon,
   'ncTerminal': NcTerminalIcon,
   'ncMove': NcMoveIcon,
+  'ncMoveHorizontal': NcMoveHorizontalIcon,
   'ncMaximize': NcMaximizeIcon,
   'ncChevronUp': NcChevronUpIcon,
   'ncArrowDownLeft': NcArrowDownLeftIcon,
@@ -1572,6 +1593,8 @@ export const iconMap = {
   'ncPhoneOff': NcPhoneOffIcon,
   'ncExternalLink': NcExternalLinkIcon,
   'ncZap': NcZapIcon,
+  'ncAgent': h(NcAgentIcon, { stroke: 'transparent' }),
+  'ncTable': h(NcTableIcon, { stroke: 'transparent' }),
   'ncMoreVertical': NcMoreVerticalIcon,
   'ncMicOff': NcMicOffIcon,
   'ncShare': NcShareIcon,
@@ -1624,6 +1647,14 @@ export const iconMap = {
   'ncShieldOff': NcShieldOffIcon,
   'ncMousePointer': NcMousePointerIcon,
   'ncAlignLeft': NcAlignLeftIcon,
+  'ncInsertColumnLeft': NcInsertColumnLeftIcon,
+  'ncInsertColumnRight': NcInsertColumnRightIcon,
+  'ncInsertRowAbove': NcInsertRowAboveIcon,
+  'ncInsertRowBelow': NcInsertRowBelowIcon,
+  'ncMoveRowUp': NcMoveRowUpIcon,
+  'ncMoveRowDown': NcMoveRowDownIcon,
+  'ncMoveColumnLeft': NcMoveColumnLeftIcon,
+  'ncMoveColumnRight': NcMoveColumnRightIcon,
   'ncVerticalAlignTop': NcVerticalAlignTop,
   'ncVerticalAlignCenter': NcVerticalAlignCenter,
   'ncVerticalAlignBottom': NcVerticalAlignBottom,
@@ -1804,6 +1835,7 @@ export const iconMap = {
   'ncLogoClickupColored': h(NcLogoClickupColored, { stroke: 'transparent' }),
 
   'ncSendAlt': h(NcSendAlt, { stroke: 'transparent' }),
+  'ncSendHorizontal': NcSendHorizontal,
   'ncStopCircle': h(NcStopCircle, { stroke: 'transparent' }),
   'ncAiPlay': AiPlayIcon,
   'ncPaintRoller': NcPaintRoller,
@@ -4022,6 +4054,14 @@ export const searchableMap = {
   ncZap: {
     icon: NcZapIcon,
     keywords: ['Lightning', 'Electricity', 'Energy', 'Shock', 'Bolt'],
+  },
+  ncAgent: {
+    icon: h(NcAgentIcon, { stroke: 'transparent' }),
+    keywords: ['Robot', 'Agent', 'AI', 'Bot', 'Automation'],
+  },
+  ncTable: {
+    icon: h(NcTableIcon, { stroke: 'transparent' }),
+    keywords: ['Table', 'Grid', 'Data', 'Spreadsheet', 'Database'],
   },
   ncMoreVertical: {
     icon: NcMoreVerticalIcon,

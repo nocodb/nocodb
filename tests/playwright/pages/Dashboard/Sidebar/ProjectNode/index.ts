@@ -148,7 +148,12 @@ export class SidebarProjectNodeObject extends BasePage {
     baseId?: string;
     open?: boolean;
   }) {
-    if (!(await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible())) return true;
+    // In shared-base/shared-view scenarios there is no mini sidebar at all — skip navigation checks.
+    // Must check both V1 (nc-mini-sidebar) and V2 (nc-mini-sidebar-v2) since V2 is now the default.
+    const hasMiniSidebar =
+      (await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible()) ||
+      (await this.sidebar.dashboard.leftSidebar.isMiniSidebarV2Visible());
+    if (!hasMiniSidebar) return true;
 
     const ncProjectHeader = this.sidebar.get().locator('.nc-project-header');
 
@@ -161,6 +166,8 @@ export class SidebarProjectNodeObject extends BasePage {
 
       if (isActiveProject) {
         await ncProjectHeader.hover({ force: true, position: { x: 2, y: 2 } });
+
+        await this.sidebar.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
 
         return true;
       }
@@ -177,6 +184,8 @@ export class SidebarProjectNodeObject extends BasePage {
     await this.sidebar.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
 
     await this.sidebar.dashboard.leftSidebar.active_base.hover({ force: true, position: { x: 2, y: 2 } });
+
+    await this.sidebar.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
 
     return true;
   }

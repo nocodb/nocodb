@@ -294,6 +294,8 @@ type ProjectPageType =
   | 'permissions'
   | 'audits'
   | 'workflows'
+  | 'mcp'
+  | 'snapshots'
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
 

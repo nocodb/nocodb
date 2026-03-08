@@ -2,6 +2,7 @@ import TestDbMngr from '../TestDbMngr';
 import { Base, Model } from '~/models';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NocoCache from '~/cache/NocoCache';
+import { QueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { MetaTable, orderedMetaTables, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 
@@ -75,8 +76,17 @@ export default async function () {
   try {
     await NcConnectionMgrv2.destroyAll();
 
+    // Reset fallback job queue to prevent memory accumulation from delayed jobs
+    QueueService.reset();
+
     await dropTablesAllNonExternalProjects();
     await cleanupMetaTables();
+
+    // Force garbage collection between test suites to prevent OOM
+    // on CI runners with limited memory (8GB)
+    if (global.gc) {
+      global.gc();
+    }
   } catch (e) {
     console.error('cleanupMeta', e);
   }

@@ -10,7 +10,7 @@ export class AccountSetupListPage extends BasePage {
   }
 
   async goto(category: 'email' | 'storage') {
-    await this.rootPage.goto(`/#/account/setup/${category}`);
+    await this.rootPage.goto(`/account/setup/${category}`);
   }
 
   get() {

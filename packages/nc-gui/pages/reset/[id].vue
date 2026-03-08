@@ -37,7 +37,7 @@ async function resetPassword() {
     await api.auth.passwordReset(route.params.id as string, {
       password: form.password,
     })
-    navigator.push(`/#/sigin`)
+    navigateTo('/signin')
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }

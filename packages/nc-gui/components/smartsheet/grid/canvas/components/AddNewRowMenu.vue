@@ -98,50 +98,7 @@ const templatesList = computed(() => {
 
 <template>
   <div>
-    <NcList
-      :value="!selectedTemplate ? `${!!isAddNewRecordGridMode}` : ''"
-      :list="defaultOptions"
-      variant="small"
-      class="!h-auto !pt-1"
-      :item-height="30"
-      reset-hover-effect-on-mouse-leave
-      @change="
-        (option) => {
-          option.click()
-        }
-      "
-    >
-      <template #listItemExtraLeft="{ option }">
-        <component :is="option.icon" class="nc-view-icon text-inherit" />
-      </template>
-    </NcList>
-
-    <template v-if="!blockRecordTemplates && templates.length">
-      <NcDivider class="!my-0" />
-      <NcList
-        :value="selectedTemplate?.id ?? ''"
-        :list="templatesList"
-        variant="small"
-        class="!pt-1"
-        :item-height="30"
-        :search-input-placeholder="$t('placeholder.searchRecordTemplates')"
-        reset-hover-effect-on-mouse-leave
-        @change="
-        (option) => {
-          setSelectedTemplate(option.value as string)
-          handleUseTemplate(option.template)
-        }
-      "
-      >
-        <template #listItemExtraLeft>
-          <GeneralIcon icon="ncClipboardType" class="h-4 w-4 flex-none" />
-        </template>
-      </NcList>
-    </template>
-
     <!-- Manage Templates -->
-    <NcDivider class="!my-0" />
-
     <NcList
       value=""
       :list="[
@@ -176,6 +133,49 @@ const templatesList = computed(() => {
           remove-click
           class="-my-1"
         />
+      </template>
+    </NcList>
+
+    <template v-if="!blockRecordTemplates && templates.length">
+      <NcDivider class="!my-0" />
+      <NcList
+        :value="selectedTemplate?.id ?? ''"
+        :list="templatesList"
+        variant="small"
+        class="!pt-1"
+        :item-height="30"
+        :search-input-placeholder="$t('placeholder.searchRecordTemplates')"
+        reset-hover-effect-on-mouse-leave
+        @change="
+        (option) => {
+          setSelectedTemplate(option.value as string)
+          handleUseTemplate(option.template)
+        }
+      "
+      >
+        <template #listItemExtraLeft>
+          <GeneralIcon icon="ncClipboardType" class="h-4 w-4 flex-none" />
+        </template>
+      </NcList>
+    </template>
+
+    <NcDivider class="!my-0" />
+
+    <NcList
+      :value="!selectedTemplate ? `${!!isAddNewRecordGridMode}` : ''"
+      :list="defaultOptions"
+      variant="small"
+      class="!h-auto !pt-1"
+      :item-height="30"
+      reset-hover-effect-on-mouse-leave
+      @change="
+        (option) => {
+          option.click()
+        }
+      "
+    >
+      <template #listItemExtraLeft="{ option }">
+        <component :is="option.icon" class="nc-view-icon text-inherit" />
       </template>
     </NcList>
   </div>

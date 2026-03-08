@@ -7,8 +7,7 @@ export const defaultLimitConfig = {
     1,
   ),
   limitMin: Math.max(
-    +(process.env.NC_DB_QUERY_LIMIT_MIN || process.env.DB_QUERY_LIMIT_MIN) ||
-      1,
+    +(process.env.NC_DB_QUERY_LIMIT_MIN || process.env.DB_QUERY_LIMIT_MIN) || 1,
     1,
   ),
   limitMax: Math.max(

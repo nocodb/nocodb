@@ -144,6 +144,11 @@ export class MetaService {
       [MetaTable.SCIM_CONFIG]: 'scfg',
       [MetaTable.RLS_POLICIES]: 'rlp',
       [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
+      [MetaTable.CHAT_SESSIONS]: 'cs',
+      [MetaTable.CHAT_MESSAGES]: 'cm',
+      [MetaTable.RECORD_TEMPLATES]: 'rt',
+      [MetaTable.AUTOMATION_SUBSCRIBERS]: 'as',
+      [MetaTable.DOCS]: 'doc',
     };
 
     const prefix = prefixMap[target] || 'nc';

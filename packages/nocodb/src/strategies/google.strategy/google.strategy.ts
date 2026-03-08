@@ -3,6 +3,7 @@ import { Injectable, Optional } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-google-oauth20';
 import bcrypt from 'bcryptjs';
+import { AppEvents } from 'nocodb-sdk';
 import type { Request } from 'express';
 import type { VerifyCallback } from 'passport-google-oauth20';
 import type { FactoryProvider } from '@nestjs/common/interfaces/modules/provider.interface';
@@ -11,12 +12,14 @@ import Noco from '~/Noco';
 import { UsersService } from '~/services/users/users.service';
 import { BaseUser, Plugin, User } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor(
     @Optional() clientConfig: any,
     private usersService: UsersService,
+    private appHooksService: AppHooksService,
   ) {
     super(clientConfig);
   }
@@ -60,6 +63,12 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         return done(null, sanitiseUserObj(user));
       }
     } catch (err) {
+      this.appHooksService.emit(AppEvents.USER_SIGNIN_FAILED, {
+        email,
+        provider: 'google',
+        reason: err?.message || 'Authentication failed',
+        req,
+      });
       return done(err);
     }
   }
@@ -106,8 +115,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 
 export const GoogleStrategyProvider: FactoryProvider = {
   provide: GoogleStrategy,
-  inject: [UsersService],
-  useFactory: async (usersService: UsersService) => {
+  inject: [UsersService, AppHooksService],
+  useFactory: async (
+    usersService: UsersService,
+    appHooksService: AppHooksService,
+  ) => {
     // read client id and secret from env variables
     // if not found provide dummy values to avoid error
     // it will be handled in authenticate method ( reading from plugin )
@@ -120,6 +132,6 @@ export const GoogleStrategyProvider: FactoryProvider = {
       scope: ['profile', 'email'],
     };
 
-    return new GoogleStrategy(clientConfig, usersService);
+    return new GoogleStrategy(clientConfig, usersService, appHooksService);
   },
 };

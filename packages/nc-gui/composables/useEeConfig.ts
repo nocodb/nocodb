@@ -86,6 +86,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAiButtonField = computed(() => true)
 
+  const blockAiChat = computed(() => true)
+
   const blockButtonVisibility = computed(() => true)
 
   const blockColourField = computed(() => true)
@@ -170,7 +172,11 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToAddMoreAttachmentsInCell = (..._args: any[]) => {}
 
+  const blockAddNewDocumentPage = computed(() => true)
+
   const showDashboardPlanLimitExceededModal = (..._args: any[]) => {}
+
+  const showDocumentPagePlanLimitExceededModal = (..._args: any[]) => {}
 
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
@@ -181,6 +187,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseAiPromptField = (..._args: any[]) => {}
 
   const showUpgradeToUseAiButtonField = (..._args: any[]) => {}
+
+  const showUpgradeToUseAiChat = (..._args: any[]) => {}
 
   const showUpgradeToUseButtonVisibility = (..._args: any[]) => {}
 
@@ -276,7 +284,9 @@ export const useEeConfig = createSharedComposable(() => {
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
+    blockAddNewDocumentPage,
     showDashboardPlanLimitExceededModal,
+    showDocumentPagePlanLimitExceededModal,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,
@@ -289,6 +299,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiPromptField,
     blockAiButtonField,
     showUpgradeToUseAiButtonField,
+    blockAiChat,
+    showUpgradeToUseAiChat,
     blockButtonVisibility,
     showUpgradeToUseButtonVisibility,
     blockColourField,

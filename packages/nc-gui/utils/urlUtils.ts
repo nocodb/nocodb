@@ -229,8 +229,9 @@ export const confirmPageLeavingRedirect = (url: string, target?: '_blank', allow
   if (isSameOriginUrl(url) || !ncIsSharedViewOrBase()) {
     window.open(url, target, target === '_blank' ? 'noopener,noreferrer' : undefined)
   } else {
-    const leavingUrl = new URL(`${window.location.origin}/#/leaving`)
-    leavingUrl.hash = `#/leaving?ncRedirectUrl=${encodeURIComponent(url)}&ncBackUrl=${encodeURIComponent(window.location.href)}`
+    const leavingUrl = new URL(`${window.location.origin}/leaving`)
+    leavingUrl.searchParams.set('ncRedirectUrl', url)
+    leavingUrl.searchParams.set('ncBackUrl', window.location.href)
 
     navigateTo(leavingUrl.toString(), {
       open: {

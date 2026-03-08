@@ -64,8 +64,10 @@ let rentalCalendarView: View;
 let rentalCalendarView2: View;
 
 function viewRowLocalStaticTests() {
-  beforeEach(async function () {
-    console.time('#### viewRowLocalTests');
+  // These tests are all read-only — share setup across all tests
+  before(async function () {
+    this.timeout(120000);
+    console.time('#### viewRowLocalStaticTests setup');
     context = await init();
     base = await createProject(context);
     ctx = {
@@ -122,7 +124,7 @@ function viewRowLocalStaticTests() {
 
     await linkInitTables(context, base);
 
-    console.timeEnd('#### viewRowLocalTests');
+    console.timeEnd('#### viewRowLocalStaticTests setup');
   });
 
   //#region Get view row

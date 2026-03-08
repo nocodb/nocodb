@@ -67,62 +67,65 @@ const clearFilter = () => {
 <template>
   <div class="nc-bases-header flex items-center gap-2 px-4 py-2 border-b border-nc-border-gray-medium">
     <!-- Desktop: Show "Bases in {workspace}" -->
-    <template v-if="!isCompactView">
-      <div class="flex-1 flex items-center gap-2 text-xs font-medium tracking-wide">
+    <div v-if="!isCompactView" class="flex-1 flex items-center gap-2 flex-row-reverse">
+      <div class="flex-1 justify-end flex items-center gap-2 text-xs font-medium tracking-wide">
         <slot name="baseListHeader"> </slot>
         <span class="font-normal text-nc-content-gray-muted">({{ baseCount }})</span>
       </div>
 
-      <!-- Active filter pill -->
-      <div v-if="isFilterActive" class="nc-filter-pill" @click.stop>
-        <GeneralIcon :icon="activeFilterIcon" class="w-3.5 h-3.5" />
-        <span class="text-bodyDefaultSm font-medium">{{ selectedFilter?.label }}</span>
-        <GeneralIcon icon="close" class="nc-filter-pill-close w-3.5 h-3.5 cursor-pointer" @click="clearFilter" />
-      </div>
-
-      <!-- Filter Dropdown - Desktop -->
-      <NcListDropdown
-        v-if="!isFilterActive"
-        v-model:is-open="isFilterDropdownOpen"
-        :default-slot-wrapper="false"
-        placement="bottomRight"
-      >
-        <NcButton size="small" type="secondary">
-          <div class="flex items-center gap-1">
-            <GeneralIcon icon="ncList" class="w-4 h-4" />
-            <span class="text-bodyDefaultSm">{{ $t('activity.allBases') }}</span>
-            <GeneralIcon
-              icon="chevronDown"
-              class="w-4 h-4 transition-transform"
-              :class="{ 'transform rotate-180': isFilterDropdownOpen }"
-            />
+      <div class="flex items-center gap-2">
+        <WorkspaceCreateProjectBtn :workspace-id="selectedWorkspaceId ?? undefined" type="primary" placement="bottomRight">
+          <div class="flex items-center gap-1.5">
+            <GeneralIcon icon="plus" />
+            {{ $t('title.newProj') }}
           </div>
-        </NcButton>
-        <template #overlay="{ onEsc }">
-          <NcList
-            v-model:open="isFilterDropdownOpen"
-            :value="activeFilter"
-            :list="filterOptions"
-            variant="medium"
-            class="!w-auto min-w-[190px]"
-            wrapper-class-name="!h-auto"
-            :min-items-for-search="10"
-            @update:value="onFilterChange"
-            @escape="onEsc"
-          >
-            <template #listItemExtraLeft="{ option }">
-              <GeneralIcon :icon="option.icon" class="w-4 h-4 text-nc-content-gray-muted" />
-            </template>
-          </NcList>
-        </template>
-      </NcListDropdown>
-      <WorkspaceCreateProjectBtn :workspace-id="selectedWorkspaceId ?? undefined" type="primary" placement="bottomRight">
-        <div class="flex items-center gap-1.5">
-          <GeneralIcon icon="plus" />
-          {{ $t('title.newProj') }}
+        </WorkspaceCreateProjectBtn>
+
+        <!-- Active filter pill -->
+        <div v-if="isFilterActive" class="nc-filter-pill" @click.stop>
+          <GeneralIcon :icon="activeFilterIcon" class="w-3.5 h-3.5" />
+          <span class="text-bodyDefaultSm font-medium">{{ selectedFilter?.label }}</span>
+          <GeneralIcon icon="close" class="nc-filter-pill-close w-3.5 h-3.5 cursor-pointer" @click="clearFilter" />
         </div>
-      </WorkspaceCreateProjectBtn>
-    </template>
+
+        <!-- Filter Dropdown - Desktop -->
+        <NcListDropdown
+          v-if="!isFilterActive"
+          v-model:is-open="isFilterDropdownOpen"
+          :default-slot-wrapper="false"
+          placement="bottomRight"
+        >
+          <NcButton size="small" type="secondary">
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="ncList" class="w-4 h-4" />
+              <span class="text-bodyDefaultSm">{{ $t('activity.allBases') }}</span>
+              <GeneralIcon
+                icon="chevronDown"
+                class="w-4 h-4 transition-transform"
+                :class="{ 'transform rotate-180': isFilterDropdownOpen }"
+              />
+            </div>
+          </NcButton>
+          <template #overlay="{ onEsc }">
+            <NcList
+              v-model:open="isFilterDropdownOpen"
+              :value="activeFilter"
+              :list="filterOptions"
+              variant="medium"
+              class="!w-auto min-w-[190px]"
+              wrapper-class-name="!h-auto"
+              :min-items-for-search="10"
+              @update:value="onFilterChange"
+              @escape="onEsc"
+            >
+              <template #listItemExtraLeft="{ option }">
+                <GeneralIcon :icon="option.icon" class="w-4 h-4 text-nc-content-gray-muted" />
+              </template>
+            </NcList>
+          </template>
+        </NcListDropdown>
+      </div>
+    </div>
 
     <!-- Compact: Search + Filter -->
     <template v-else>

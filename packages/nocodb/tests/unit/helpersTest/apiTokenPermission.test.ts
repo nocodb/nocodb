@@ -6,7 +6,6 @@ import {
   ApiTokenPermissionCategory,
   ApiTokenPermissionLevel,
   BASE_SCOPED_PERMISSION_CATEGORIES,
-  WORKSPACE_SCOPED_PERMISSION_CATEGORIES,
 } from 'nocodb-sdk';
 import {
   API_TOKEN_PERMISSION_MAP,
@@ -51,32 +50,43 @@ function apiTokenPermissionTests() {
   describe('getTokenPermissionForOperation', () => {
     it('returns mapping for a known read operation', () => {
       const result = getTokenPermissionForOperation('dataList');
-      expect(result).to.deep.equal({ category: 'records', level: 'read' });
+      expect(result).to.deep.equal({ category: 'data', level: 'read' });
     });
 
     it('returns mapping for a known write operation', () => {
       const result = getTokenPermissionForOperation('dataInsert');
-      expect(result).to.deep.equal({ category: 'records', level: 'write' });
+      expect(result).to.deep.equal({ category: 'data', level: 'write' });
     });
 
-    it('returns mapping for table operations', () => {
+    it('returns mapping for table operations (under data category)', () => {
       expect(getTokenPermissionForOperation('tableList')).to.deep.equal({
-        category: 'tables',
+        category: 'data',
         level: 'read',
       });
       expect(getTokenPermissionForOperation('tableCreate')).to.deep.equal({
-        category: 'tables',
+        category: 'data',
         level: 'write',
       });
     });
 
-    it('returns mapping for view operations', () => {
+    it('returns mapping for view operations (under data category)', () => {
       expect(getTokenPermissionForOperation('viewList')).to.deep.equal({
-        category: 'views',
+        category: 'data',
         level: 'read',
       });
       expect(getTokenPermissionForOperation('filterCreate')).to.deep.equal({
-        category: 'views',
+        category: 'data',
+        level: 'write',
+      });
+    });
+
+    it('returns mapping for comment operations', () => {
+      expect(getTokenPermissionForOperation('commentList')).to.deep.equal({
+        category: 'comments',
+        level: 'read',
+      });
+      expect(getTokenPermissionForOperation('commentRow')).to.deep.equal({
+        category: 'comments',
         level: 'write',
       });
     });
@@ -92,19 +102,21 @@ function apiTokenPermissionTests() {
       });
     });
 
-    it('returns mapping for workspace operations', () => {
+    it('returns mapping for user operations', () => {
+      expect(getTokenPermissionForOperation('baseUserList')).to.deep.equal({
+        category: 'users',
+        level: 'read',
+      });
       expect(getTokenPermissionForOperation('workspaceUserList')).to.deep.equal(
         {
           category: 'users',
           level: 'read',
         },
       );
-      expect(getTokenPermissionForOperation('integrationCreate')).to.deep.equal(
-        {
-          category: 'integrations',
-          level: 'write',
-        },
-      );
+      expect(getTokenPermissionForOperation('userInvite')).to.deep.equal({
+        category: 'users',
+        level: 'write',
+      });
     });
 
     it('returns undefined for unmapped operations', () => {
@@ -130,66 +142,84 @@ function apiTokenPermissionTests() {
     });
 
     it('allows unmapped operations regardless of permissions', () => {
-      const perms = { records: ApiTokenPermissionLevel.NONE };
+      const perms = { data: ApiTokenPermissionLevel.NONE };
       expect(checkTokenPermission(perms, 'someUnknownOp')).to.be.true;
     });
 
     it('allows read when token has read permission', () => {
-      const perms = { records: ApiTokenPermissionLevel.READ };
+      const perms = { data: ApiTokenPermissionLevel.READ };
       expect(checkTokenPermission(perms, 'dataList')).to.be.true;
       expect(checkTokenPermission(perms, 'dataRead')).to.be.true;
       expect(checkTokenPermission(perms, 'dataExport')).to.be.true;
     });
 
     it('denies write when token only has read permission', () => {
-      const perms = { records: ApiTokenPermissionLevel.READ };
+      const perms = { data: ApiTokenPermissionLevel.READ };
       expect(checkTokenPermission(perms, 'dataInsert')).to.be.false;
       expect(checkTokenPermission(perms, 'dataUpdate')).to.be.false;
       expect(checkTokenPermission(perms, 'dataDelete')).to.be.false;
     });
 
     it('allows both read and write when token has write permission', () => {
-      const perms = { records: ApiTokenPermissionLevel.WRITE };
+      const perms = { data: ApiTokenPermissionLevel.WRITE };
       expect(checkTokenPermission(perms, 'dataList')).to.be.true;
       expect(checkTokenPermission(perms, 'dataInsert')).to.be.true;
       expect(checkTokenPermission(perms, 'dataUpdate')).to.be.true;
     });
 
     it('denies all when token has none permission', () => {
-      const perms = { records: ApiTokenPermissionLevel.NONE };
+      const perms = { data: ApiTokenPermissionLevel.NONE };
       expect(checkTokenPermission(perms, 'dataList')).to.be.false;
       expect(checkTokenPermission(perms, 'dataInsert')).to.be.false;
     });
 
     it('defaults missing category to none', () => {
-      // permissions object exists but has no 'records' key
-      const perms = { tables: ApiTokenPermissionLevel.WRITE };
+      // permissions object exists but has no 'data' key
+      const perms = { webhooks: ApiTokenPermissionLevel.WRITE };
       expect(checkTokenPermission(perms, 'dataList')).to.be.false;
       expect(checkTokenPermission(perms, 'dataInsert')).to.be.false;
-      // But tables should work
-      expect(checkTokenPermission(perms, 'tableList')).to.be.true;
-      expect(checkTokenPermission(perms, 'tableCreate')).to.be.true;
+      // But webhooks should work
+      expect(checkTokenPermission(perms, 'hookList')).to.be.true;
+      expect(checkTokenPermission(perms, 'hookCreate')).to.be.true;
     });
 
     it('handles cross-category permissions correctly', () => {
       const perms = {
-        records: ApiTokenPermissionLevel.WRITE,
-        tables: ApiTokenPermissionLevel.READ,
-        views: ApiTokenPermissionLevel.NONE,
+        data: ApiTokenPermissionLevel.WRITE,
+        comments: ApiTokenPermissionLevel.READ,
         webhooks: ApiTokenPermissionLevel.READ,
+        users: ApiTokenPermissionLevel.NONE,
       };
-      // records: write → read and write allowed
+      // data: write → read and write allowed
       expect(checkTokenPermission(perms, 'dataList')).to.be.true;
       expect(checkTokenPermission(perms, 'dataInsert')).to.be.true;
-      // tables: read → read allowed, write denied
       expect(checkTokenPermission(perms, 'tableList')).to.be.true;
-      expect(checkTokenPermission(perms, 'tableCreate')).to.be.false;
-      // views: none → both denied
-      expect(checkTokenPermission(perms, 'viewList')).to.be.false;
-      expect(checkTokenPermission(perms, 'viewCreate')).to.be.false;
+      expect(checkTokenPermission(perms, 'tableCreate')).to.be.true;
+      // comments: read → read allowed, write denied
+      expect(checkTokenPermission(perms, 'commentList')).to.be.true;
+      expect(checkTokenPermission(perms, 'commentRow')).to.be.false;
       // webhooks: read → read allowed, write denied
       expect(checkTokenPermission(perms, 'hookList')).to.be.true;
       expect(checkTokenPermission(perms, 'hookCreate')).to.be.false;
+      // users: none → both denied
+      expect(checkTokenPermission(perms, 'baseUserList')).to.be.false;
+      expect(checkTokenPermission(perms, 'userInvite')).to.be.false;
+    });
+
+    it('data category covers records, tables, fields, views, extensions, and base', () => {
+      const perms = { data: ApiTokenPermissionLevel.READ };
+      // All these operations fall under 'data' category
+      expect(checkTokenPermission(perms, 'dataList')).to.be.true;
+      expect(checkTokenPermission(perms, 'tableList')).to.be.true;
+      expect(checkTokenPermission(perms, 'columnList')).to.be.true;
+      expect(checkTokenPermission(perms, 'viewList')).to.be.true;
+      expect(checkTokenPermission(perms, 'extensionList')).to.be.true;
+      expect(checkTokenPermission(perms, 'baseGet')).to.be.true;
+      // Write operations should be denied with read-only
+      expect(checkTokenPermission(perms, 'dataInsert')).to.be.false;
+      expect(checkTokenPermission(perms, 'tableCreate')).to.be.false;
+      expect(checkTokenPermission(perms, 'columnAdd')).to.be.false;
+      expect(checkTokenPermission(perms, 'viewCreate')).to.be.false;
     });
   });
 
@@ -198,10 +228,7 @@ function apiTokenPermissionTests() {
   // ─────────────────────────────────────────────
   describe('Permission map coverage', () => {
     it('all mapped operations have valid categories', () => {
-      const allCategories = new Set([
-        ...BASE_SCOPED_PERMISSION_CATEGORIES,
-        ...WORKSPACE_SCOPED_PERMISSION_CATEGORIES,
-      ]);
+      const allCategories = new Set(BASE_SCOPED_PERMISSION_CATEGORIES);
 
       for (const [opName, mapping] of Object.entries(
         API_TOKEN_PERMISSION_MAP,
@@ -264,6 +291,10 @@ function apiTokenPermissionTests() {
         'hookCreate',
         'baseGet',
         'baseDelete',
+        'commentList',
+        'commentRow',
+        'baseUserList',
+        'userInvite',
       ];
       for (const op of criticalOps) {
         expect(
@@ -273,9 +304,20 @@ function apiTokenPermissionTests() {
       }
     });
 
-    it('has a reasonable number of mapped operations (100+)', () => {
+    it('has a reasonable number of mapped operations (80+)', () => {
       const count = Object.keys(API_TOKEN_PERMISSION_MAP).length;
-      expect(count).to.be.greaterThan(100);
+      expect(count).to.be.greaterThan(80);
+    });
+
+    it('only 4 categories exist: data, comments, webhooks, users', () => {
+      const categories = new Set(
+        Object.values(API_TOKEN_PERMISSION_MAP).map((m) => m.category),
+      );
+      expect(categories.size).to.equal(4);
+      expect(categories.has('data')).to.be.true;
+      expect(categories.has('comments')).to.be.true;
+      expect(categories.has('webhooks')).to.be.true;
+      expect(categories.has('users')).to.be.true;
     });
   });
 
@@ -334,20 +376,20 @@ function apiTokenPermissionTests() {
       const json: string = JSON.stringify({
         version: 1,
         categories: {
-          records: 'write',
-          tables: 'read',
+          data: 'write',
+          comments: 'read',
         },
       });
       const parsed = JSON.parse(json);
       expect(parsed.version).to.equal(1);
-      expect(parsed.categories.records).to.equal('write');
-      expect(parsed.categories.tables).to.equal('read');
+      expect(parsed.categories.data).to.equal('write');
+      expect(parsed.categories.comments).to.equal('read');
     });
 
     it('rejects invalid version', () => {
       const json: string = JSON.stringify({
         version: 2,
-        categories: { records: 'write' },
+        categories: { data: 'write' },
       });
       const parsed = JSON.parse(json);
       // Model's parsePermissions would return null for version !== 1

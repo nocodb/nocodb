@@ -11,73 +11,30 @@ export enum ApiTokenPermissionLevel {
   WRITE = 'write',
 }
 
-// Flat permission category keys
+// Permission category keys — kept simple (like Airtable)
 export enum ApiTokenPermissionCategory {
-  // Data
-  RECORDS = 'records',
+  DATA = 'data',
   COMMENTS = 'comments',
-
-  // Schema
-  TABLES = 'tables',
-  FIELDS = 'fields',
-  VIEWS = 'views',
-
-  // Tools
   WEBHOOKS = 'webhooks',
-  EXTENSIONS = 'extensions',
-
-  // Admin
-  BASE = 'base',
-
-  // Workspace-scoped (EE)
-  BASES = 'bases',
-  INTEGRATIONS = 'integrations',
   USERS = 'users',
 }
 
 // Base-scoped permission categories
 export const BASE_SCOPED_PERMISSION_CATEGORIES = [
-  ApiTokenPermissionCategory.RECORDS,
+  ApiTokenPermissionCategory.DATA,
   ApiTokenPermissionCategory.COMMENTS,
-  ApiTokenPermissionCategory.TABLES,
-  ApiTokenPermissionCategory.FIELDS,
-  ApiTokenPermissionCategory.VIEWS,
   ApiTokenPermissionCategory.WEBHOOKS,
-  ApiTokenPermissionCategory.EXTENSIONS,
-  ApiTokenPermissionCategory.BASE,
-] as const;
-
-// Workspace-scoped permission categories
-export const WORKSPACE_SCOPED_PERMISSION_CATEGORIES = [
-  ApiTokenPermissionCategory.BASES,
-  ApiTokenPermissionCategory.INTEGRATIONS,
   ApiTokenPermissionCategory.USERS,
 ] as const;
 
-// Permission categories grouped for UI display
+// Permission categories grouped for UI display (flat — no groups needed with 4 items)
 export const API_TOKEN_PERMISSION_GROUPS = {
-  Data: [
-    ApiTokenPermissionCategory.RECORDS,
+  Permissions: [
+    ApiTokenPermissionCategory.DATA,
     ApiTokenPermissionCategory.COMMENTS,
-  ],
-  Schema: [
-    ApiTokenPermissionCategory.TABLES,
-    ApiTokenPermissionCategory.FIELDS,
-    ApiTokenPermissionCategory.VIEWS,
-  ],
-  Tools: [
     ApiTokenPermissionCategory.WEBHOOKS,
-    ApiTokenPermissionCategory.EXTENSIONS,
+    ApiTokenPermissionCategory.USERS,
   ],
-  Admin: [ApiTokenPermissionCategory.BASE],
-} as const;
-
-export const API_TOKEN_WORKSPACE_PERMISSION_GROUPS = {
-  Resources: [
-    ApiTokenPermissionCategory.BASES,
-    ApiTokenPermissionCategory.INTEGRATIONS,
-  ],
-  Members: [ApiTokenPermissionCategory.USERS],
 } as const;
 
 export type ApiTokenPermissions = Partial<
@@ -102,23 +59,15 @@ export const API_TOKEN_PREFIX = 'nc_pat_';
 // Preset permission configurations for UI
 export const API_TOKEN_PERMISSION_PRESETS = {
   readOnlyData: {
-    records: ApiTokenPermissionLevel.READ,
+    data: ApiTokenPermissionLevel.READ,
     comments: ApiTokenPermissionLevel.READ,
-    tables: ApiTokenPermissionLevel.READ,
-    fields: ApiTokenPermissionLevel.READ,
-    views: ApiTokenPermissionLevel.READ,
     webhooks: ApiTokenPermissionLevel.NONE,
-    extensions: ApiTokenPermissionLevel.NONE,
-    base: ApiTokenPermissionLevel.NONE,
+    users: ApiTokenPermissionLevel.NONE,
   } as ApiTokenPermissions,
   fullDataAccess: {
-    records: ApiTokenPermissionLevel.WRITE,
+    data: ApiTokenPermissionLevel.WRITE,
     comments: ApiTokenPermissionLevel.WRITE,
-    tables: ApiTokenPermissionLevel.READ,
-    fields: ApiTokenPermissionLevel.READ,
-    views: ApiTokenPermissionLevel.READ,
     webhooks: ApiTokenPermissionLevel.NONE,
-    extensions: ApiTokenPermissionLevel.NONE,
-    base: ApiTokenPermissionLevel.NONE,
+    users: ApiTokenPermissionLevel.NONE,
   } as ApiTokenPermissions,
 } as const;

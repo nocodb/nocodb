@@ -18,7 +18,9 @@ const { t } = useI18n()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-const { activeProjectId } = storeToRefs(useBases())
+const basesStore = useBases()
+
+const { activeProjectId, openedProject } = storeToRefs(basesStore)
 
 const tablesStore = useTablesStore()
 
@@ -76,9 +78,27 @@ const durationOptions = computed(() =>
     .map((c: any) => ({ value: c.id, label: c.title, col: c })),
 )
 
+// Only show self-referencing HM (has-many) link columns — BT/OO/MM cannot be used as predecessor links
 const linkOptions = computed(() =>
-  tableColumns.value.filter((c: any) => isLinksOrLTAR(c)).map((c: any) => ({ value: c.id, label: c.title, col: c })),
+  tableColumns.value
+    .filter((c: any) => {
+      if (!isLinksOrLTAR(c)) return false
+      const opts = c.colOptions ?? {}
+      return opts.type === 'hm' && opts.fk_related_model_id === props.tableId
+    })
+    .map((c: any) => ({ value: c.id, label: c.title, col: c })),
 )
+
+// Cascade propagation is PostgreSQL-only and not available for external data sources
+const tableSource = computed(() =>
+  openedProject.value?.sources?.find((s: any) => s.id === (tableMeta.value as any)?.source_id),
+)
+
+const cascadeAvailable = computed(() => {
+  const s = tableSource.value
+  const isExternal = s && !s.is_meta && !s.is_local
+  return s?.type === 'pg' && !isExternal
+})
 
 const connectionTypeOptions = computed(() => [
   { value: 'end-to-start', label: t('labels.dateDependency.connectionTypes.end-to-start') },
@@ -334,41 +354,43 @@ watch(visible, async (val) => {
               {{ $t('labels.dateDependency.propagationSection') }}
             </div>
 
-            <div class="grid grid-cols-2 gap-x-6 gap-y-3">
-              <div>
-                <div class="text-captionSm text-nc-content-gray-subtle mb-1">
-                  {{ $t('labels.dateDependency.connectionType') }}
+            <NcTooltip :disabled="cascadeAvailable" :title="$t('labels.dateDependency.cascadeNotSupported')">
+              <div class="grid grid-cols-2 gap-x-6 gap-y-3" :class="{ 'opacity-50 pointer-events-none': !cascadeAvailable }">
+                <div>
+                  <div class="text-captionSm text-nc-content-gray-subtle mb-1">
+                    {{ $t('labels.dateDependency.connectionType') }}
+                  </div>
+                  <NcSelect v-model:value="form.dependency_connection_type" class="w-full" :disabled="!cascadeAvailable">
+                    <a-select-option v-for="opt in connectionTypeOptions" :key="opt.value" :value="opt.value" :label="opt.label">
+                      {{ opt.label }}
+                    </a-select-option>
+                  </NcSelect>
                 </div>
-                <NcSelect v-model:value="form.dependency_connection_type" class="w-full">
-                  <a-select-option v-for="opt in connectionTypeOptions" :key="opt.value" :value="opt.value" :label="opt.label">
-                    {{ opt.label }}
-                  </a-select-option>
-                </NcSelect>
-              </div>
 
-              <div>
-                <div class="text-captionSm text-nc-content-gray-subtle mb-1">
-                  {{ $t('labels.dateDependency.bufferType') }}
+                <div>
+                  <div class="text-captionSm text-nc-content-gray-subtle mb-1">
+                    {{ $t('labels.dateDependency.bufferType') }}
+                  </div>
+                  <NcSelect v-model:value="form.dependency_buffer_type" class="w-full" :disabled="!cascadeAvailable">
+                    <a-select-option v-for="opt in bufferTypeOptions" :key="opt.value" :value="opt.value" :label="opt.label">
+                      {{ opt.label }}
+                    </a-select-option>
+                  </NcSelect>
                 </div>
-                <NcSelect v-model:value="form.dependency_buffer_type" class="w-full">
-                  <a-select-option v-for="opt in bufferTypeOptions" :key="opt.value" :value="opt.value" :label="opt.label">
-                    {{ opt.label }}
-                  </a-select-option>
-                </NcSelect>
-              </div>
 
-              <div v-if="form.dependency_buffer_type !== 'none'">
-                <div class="text-captionSm text-nc-content-gray-subtle mb-1">
-                  {{ $t('labels.dateDependency.bufferDays') }}
+                <div v-if="form.dependency_buffer_type !== 'none'">
+                  <div class="text-captionSm text-nc-content-gray-subtle mb-1">
+                    {{ $t('labels.dateDependency.bufferDays') }}
+                  </div>
+                  <a-input-number v-model:value="form.dependency_buffer_days" :min="0" class="w-full" :disabled="!cascadeAvailable" />
                 </div>
-                <a-input-number v-model:value="form.dependency_buffer_days" :min="0" class="w-full" />
-              </div>
 
-              <div class="flex items-center gap-2 pt-5">
-                <NcSwitch v-model:checked="form.include_weekends" size="small" />
-                <span class="text-body text-nc-content-gray">{{ $t('labels.dateDependency.includeWeekends') }}</span>
+                <div class="flex items-center gap-2 pt-5">
+                  <NcSwitch v-model:checked="form.include_weekends" size="small" :disabled="!cascadeAvailable" />
+                  <span class="text-body text-nc-content-gray">{{ $t('labels.dateDependency.includeWeekends') }}</span>
+                </div>
               </div>
-            </div>
+            </NcTooltip>
           </template>
         </template>
       </div>

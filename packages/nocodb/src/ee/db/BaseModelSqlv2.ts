@@ -65,7 +65,10 @@ import {
 } from '~/utils';
 import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
 import DateDependency from '~/models/DateDependency';
-import { applyDateDependencyFieldSync } from '~/helpers/dateDependencyHelper';
+import {
+  applyDateDependencyFieldSync,
+  buildDateDependencyPropagationSQL,
+} from '~/helpers/dateDependencyHelper';
 import {
   getSingleQueryReadFn,
   singleQueryGroupedList,
@@ -1225,6 +1228,187 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     applyDateDependencyFieldSync(data, oldData, rule, this.model.columns);
   }
 
+  /**
+   * Propagates date changes to successor rows using a single recursive
+   * PostgreSQL CTE.  The CTE computes new dates at every level in SQL and
+   * issues one UPDATE … RETURNING so no rows are loaded into memory.
+   * The RETURNING result is used for audit entries and socket broadcasts.
+   */
+  protected async propagateDateDependency(
+    changedRowIds: string[],
+    req: NcRequest,
+  ): Promise<void> {
+    if (!changedRowIds?.length) return;
+
+    // PostgreSQL-only: recursive CTE with ARRAY path tracking + RETURNING
+    const clientType = (this.dbDriver as any)?.client?.config?.client ?? '';
+    if (!clientType.includes('pg')) return;
+
+    const rule = await DateDependency.getByModelId(this.context, this.model.id);
+    if (
+      !rule?.is_active ||
+      !rule.fk_dependency_linkrow_field_id ||
+      rule.dependency_buffer_type === 'none'
+    )
+      return;
+
+    if (!this.model.columns?.length) {
+      await this.model.getColumns(this.context);
+    }
+
+    const startCol = this.model.columns.find(
+      (c) => c.id === rule.fk_start_date_field_id,
+    );
+    const endCol = this.model.columns.find(
+      (c) => c.id === rule.fk_end_date_field_id,
+    );
+    if (!startCol || !endCol) return;
+
+    const linkCol = this.model.columns.find(
+      (c) => c.id === rule.fk_dependency_linkrow_field_id,
+    );
+    if (!linkCol) return;
+
+    const colOptions = await linkCol.getColOptions<LinkToAnotherRecordColumn>(
+      this.context,
+    );
+    if (!colOptions || colOptions.type !== 'hm') return;
+
+    const childCol = await colOptions.getChildColumn(this.context);
+    const parentCol = await colOptions.getParentColumn(this.context);
+    if (!childCol || !parentCol) return;
+
+    const { sql, bindings } = buildDateDependencyPropagationSQL({
+      tn: this.getTnPath(this.model),
+      pkColName: parentCol.column_name,
+      fkColName: childCol.column_name,
+      startColName: startCol.column_name,
+      endColName: endCol.column_name,
+      connectionType:
+        (rule.dependency_connection_type as any) ?? 'end-to-start',
+      bufferType:
+        (rule.dependency_buffer_type as 'flexible' | 'fixed') ?? 'flexible',
+      bufferDays: rule.dependency_buffer_days ?? 0,
+      seedIds: changedRowIds,
+    });
+
+    let updatedRows: Array<{
+      id: string;
+      old_start: string | null;
+      old_end: string | null;
+      new_start: string | null;
+      new_end: string | null;
+    }> = [];
+
+    try {
+      const result = await this.dbDriver.raw(sql, bindings);
+      updatedRows = result.rows ?? [];
+    } catch (err: any) {
+      new Logger('BaseModelSqlv2').error(
+        'Date dependency propagation failed',
+        err.stack,
+      );
+      return;
+    }
+
+    if (!updatedRows.length) return;
+
+    // Fire webhooks / automations for cascaded rows (same as a bulk update)
+    await this.handleHooks(
+      'after.bulkUpdate',
+      updatedRows.map((row) => ({
+        [startCol.title]: row.old_start,
+        [endCol.title]: row.old_end,
+      })),
+      updatedRows.map((row) => ({
+        [startCol.title]: row.new_start,
+        [endCol.title]: row.new_end,
+      })),
+      req,
+    );
+
+    // Broadcast socket events for each propagated row
+    for (const row of updatedRows) {
+      const { __nc_rls_hidden: _, ...broadcastPayload } = {
+        [startCol.title]: row.new_start,
+        [endCol.title]: row.new_end,
+      };
+      NocoSocket.broadcastDataEvent(this.context, {
+        payload: {
+          id: row.id,
+          action: 'update',
+          payload: broadcastPayload,
+        },
+        tableId: this.model.id,
+      });
+    }
+
+    // Audit entries for propagated rows
+    if (await this.isDataAuditEnabled()) {
+      const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
+
+      await Audit.insert(
+        await generateAuditV1Payload<DataBulkUpdatePayload>(
+          AuditV1OperationTypes.DATA_BULK_UPDATE,
+          {
+            details: {},
+            context: {
+              ...this.context,
+              source_id: this.model.source_id,
+              fk_model_id: this.model.id,
+            },
+            req,
+            id: parentAuditId,
+          },
+        ),
+      );
+
+      req.ncParentAuditId = parentAuditId;
+
+      await Audit.insert(
+        (
+          await Promise.all(
+            updatedRows.map((row) =>
+              generateAuditV1Payload<DataUpdatePayload>(
+                AuditV1OperationTypes.DATA_UPDATE,
+                {
+                  context: {
+                    ...this.context,
+                    source_id: this.model.source_id,
+                    fk_model_id: this.model.id,
+                    row_id: row.id,
+                  },
+                  details: {
+                    old_data: {
+                      [startCol.title]: row.old_start,
+                      [endCol.title]: row.old_end,
+                    },
+                    data: {
+                      [startCol.title]: row.new_start,
+                      [endCol.title]: row.new_end,
+                    },
+                    column_meta: extractColsMetaForAudit(
+                      [startCol, endCol],
+                      {
+                        [startCol.title]: row.new_start,
+                        [endCol.title]: row.new_end,
+                      },
+                      {
+                        [startCol.title]: row.old_start,
+                        [endCol.title]: row.old_end,
+                      },
+                    ),
+                  },
+                  req,
+                },
+              ),
+            ),
+          )
+        ).flat(),
+      );
+    }
+  }
+
   public async beforeInsert(
     data: any,
     _trx: any,
@@ -1399,6 +1583,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       );
 
     await this.handleRichTextMentions(null, data, req);
+
+    const insertedId = String(this.extractPksValues(data));
+    await this.propagateDateDependency([insertedId], req);
   }
 
   public async afterBulkInsert(data: any[], _trx: any, req): Promise<void> {
@@ -1489,6 +1676,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     await this.handleRichTextMentions(null, data, req);
+
+    // Propagate date changes to successors
+    const insertedIds = data.map((d) => String(this.extractPksValues(d)));
+    await this.propagateDateDependency(insertedIds, req);
   }
 
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
@@ -3518,6 +3709,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await this.handleHooks('after.update', prevData, newData, req);
     }
     await this.handleRichTextMentions(prevData, newData, req);
+
+    // Propagate date changes to successors
+    await this.propagateDateDependency(
+      [String(this.extractPksValues(newData))],
+      req,
+    );
   }
 
   public async afterBulkUpdate(
@@ -3627,6 +3824,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     await this.handleRichTextMentions(prevData, newData, req);
+
+    // Propagate date changes to successors (skip bulk-all — no row data available)
+    if (!isBulkAllOperation && newData?.length) {
+      const rowIds = newData.map((d: any) => String(this.extractPksValues(d)));
+      await this.propagateDateDependency(rowIds, req);
+    }
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {

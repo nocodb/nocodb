@@ -1,6 +1,189 @@
 import { UITypes } from 'nocodb-sdk';
+import type { DateDependencyType } from 'nocodb-sdk';
 import type { Column } from '~/models';
-import type DateDependency from '~/models/DateDependency';
+
+// ─── Cross-record propagation SQL ──────────────────────────────────────────
+
+export interface DateDependencyPropagationParams {
+  tn: string;
+  pkColName: string;
+  fkColName: string;
+  startColName: string;
+  endColName: string;
+  connectionType:
+    | 'end-to-start'
+    | 'end-to-end'
+    | 'start-to-start'
+    | 'start-to-finish';
+  bufferType: 'flexible' | 'fixed';
+  bufferDays: number;
+  seedIds: string[];
+}
+
+/**
+ * Builds a single PostgreSQL CTE that:
+ *  1. Recursively traverses successor rows (cycle-safe via path array)
+ *  2. Computes new start/end dates at each level from the predecessor's
+ *     already-computed dates — no application-level loops needed
+ *  3. Issues one UPDATE and returns { id, old_start, old_end, new_start,
+ *     new_end } for every row actually changed — used for audit + sockets
+ *
+ * PostgreSQL-only (ARRAY path tracking + RETURNING).
+ */
+export function buildDateDependencyPropagationSQL(
+  params: DateDependencyPropagationParams,
+): { sql: string; bindings: any[] } {
+  const {
+    tn,
+    pkColName,
+    fkColName,
+    startColName,
+    endColName,
+    connectionType,
+    bufferType,
+    bufferDays,
+    seedIds,
+  } = params;
+
+  // Quote table name — handle optional schema prefix (schema.table)
+  const quotedTn = tn
+    .split('.')
+    .map((p) => `"${p.replace(/"/g, '""')}"`)
+    .join('.');
+
+  // Quote individual column names
+  const q = (col: string) => `"${col.replace(/"/g, '""')}"`;
+  const pk = q(pkColName);
+  const fk = q(fkColName);
+  const sc = q(startColName);
+  const ec = q(endColName);
+
+  // Seed placeholders for knex positional bindings
+  const idPlaceholders = seedIds.map(() => '?').join(', ');
+
+  // Buffer interval expression (bufferDays is an integer from the config)
+  const buf = `(${bufferDays} * INTERVAL '1 day')`;
+
+  // Build date computation expressions.
+  // p.start_date / p.end_date = predecessor's computed dates from the CTE.
+  // t.sc / t.ec = successor's CURRENT values from the DB (pre-update).
+  // Duration is always preserved: new_end = new_start + (old_end - old_start).
+  //
+  // NocoDB Date columns may be stored as PostgreSQL `date` type, in which case
+  // `date - date` returns an integer (days), not an interval.  Adding an integer
+  // to a timestamp fails, so we always convert the duration to an interval:
+  //   (t.ec::date - t.sc::date) * INTERVAL '1 day'
+  // This is safe for both `date` and `timestamp` column storage.
+  const dur = `(t.${ec}::date - t.${sc}::date) * INTERVAL '1 day'`;
+
+  let newStartExpr: string;
+  let newEndExpr: string;
+
+  switch (connectionType) {
+    case 'end-to-start': {
+      // FS: pred.end drives succ.start
+      const required = `p.end_date + ${buf} + INTERVAL '1 day'`;
+      newStartExpr =
+        bufferType === 'fixed'
+          ? required
+          : `CASE WHEN t.${sc} <= p.end_date + ${buf} THEN ${required} ELSE t.${sc} END`;
+      newEndExpr = `(${newStartExpr}) + ${dur}`;
+      break;
+    }
+    case 'end-to-end': {
+      // FF: pred.end drives succ.end
+      const required = `p.end_date + ${buf}`;
+      newEndExpr =
+        bufferType === 'fixed'
+          ? required
+          : `CASE WHEN t.${ec} < p.end_date + ${buf} THEN ${required} ELSE t.${ec} END`;
+      newStartExpr = `(${newEndExpr}) - ${dur}`;
+      break;
+    }
+    case 'start-to-start': {
+      // SS: pred.start drives succ.start
+      const required = `p.start_date + ${buf}`;
+      newStartExpr =
+        bufferType === 'fixed'
+          ? required
+          : `CASE WHEN t.${sc} < p.start_date + ${buf} THEN ${required} ELSE t.${sc} END`;
+      newEndExpr = `(${newStartExpr}) + ${dur}`;
+      break;
+    }
+    case 'start-to-finish': {
+      // SF: pred.start drives succ.end
+      const required = `p.start_date + ${buf}`;
+      newEndExpr =
+        bufferType === 'fixed'
+          ? required
+          : `CASE WHEN t.${ec} < p.start_date + ${buf} THEN ${required} ELSE t.${ec} END`;
+      newStartExpr = `(${newEndExpr}) - ${dur}`;
+      break;
+    }
+  }
+
+  const sql = `
+WITH RECURSIVE propagated(pk, start_date, end_date, level, path) AS (
+  -- Anchor: seed rows carry their current dates as the starting point
+  SELECT
+    t.${pk}::text,
+    t.${sc},
+    t.${ec},
+    0,
+    ARRAY[t.${pk}::text]
+  FROM ${quotedTn} t
+  WHERE t.${pk}::text IN (${idPlaceholders})
+
+  UNION ALL
+
+  -- Recursive: compute successor dates from predecessor's computed dates
+  SELECT
+    t.${pk}::text,
+    (${newStartExpr})::date,
+    (${newEndExpr})::date,
+    p.level + 1,
+    p.path || t.${pk}::text
+  FROM ${quotedTn} t
+  JOIN propagated p ON t.${fk}::text = p.pk
+  WHERE NOT (t.${pk}::text = ANY(p.path))   -- cycle prevention
+    AND t.${sc} IS NOT NULL
+    AND t.${ec} IS NOT NULL
+    AND p.start_date IS NOT NULL
+    AND p.end_date IS NOT NULL
+),
+deduped AS (
+  -- Per row: pick shortest path (most direct predecessor wins)
+  -- Also capture old values here — before the UPDATE runs
+  SELECT DISTINCT ON (p.pk)
+    p.pk         AS id,
+    p.start_date AS new_start,
+    p.end_date   AS new_end,
+    t.${sc}      AS old_start,
+    t.${ec}      AS old_end
+  FROM propagated p
+  JOIN ${quotedTn} t ON t.${pk}::text = p.pk
+  WHERE p.level > 0
+  ORDER BY p.pk, p.level ASC
+)
+UPDATE ${quotedTn} t
+SET
+  ${sc} = d.new_start,
+  ${ec} = d.new_end
+FROM deduped d
+WHERE t.${pk}::text = d.id
+  AND (
+    t.${sc} IS DISTINCT FROM d.new_start
+    OR t.${ec} IS DISTINCT FROM d.new_end
+  )
+RETURNING
+  t.${pk}   AS id,
+  d.old_start,
+  d.old_end,
+  d.new_start,
+  d.new_end`.trim();
+
+  return { sql, bindings: [...seedIds] };
+}
 
 function daysBetween(start: Date, end: Date, includeWeekends = true): number {
   if (includeWeekends) {
@@ -63,7 +246,7 @@ function subtractDays(date: Date, days: number, includeWeekends = true): Date {
 export function applyDateDependencyFieldSync(
   data: Record<string, any>,
   oldData: Record<string, any> | null,
-  rule: DateDependency,
+  rule: DateDependencyType,
   columns: Column[],
 ): void {
   if (!rule.is_active) return;

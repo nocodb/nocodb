@@ -175,6 +175,18 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  const blockDocsInlineComments = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS)
+  })
+
+  const blockDocsResolveComments = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_COMMENT_RESOLVE)
+  })
+
+  const blockDocsExportPdf = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF)
+  })
+
   const blockAddNewScript = computed(() => {
     return (
       isPaymentEnabled.value &&
@@ -979,6 +991,24 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseDocsInlineComments = () => {
+    handleUpgradePlan({
+      limitOrFeature: PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS,
+    })
+  }
+
+  const showUpgradeToUseDocsResolveComments = () => {
+    handleUpgradePlan({
+      limitOrFeature: PlanFeatureTypes.FEATURE_COMMENT_RESOLVE,
+    })
+  }
+
+  const showUpgradeToUseDocsExportPdf = () => {
+    handleUpgradePlan({
+      limitOrFeature: PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF,
+    })
+  }
+
   const showScriptPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewScript.value) return
 
@@ -1754,8 +1784,14 @@ export const useEeConfig = createSharedComposable(() => {
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
     blockAddNewDocumentPage,
+    blockDocsInlineComments,
+    blockDocsResolveComments,
+    blockDocsExportPdf,
     showDashboardPlanLimitExceededModal,
     showDocumentPagePlanLimitExceededModal,
+    showUpgradeToUseDocsInlineComments,
+    showUpgradeToUseDocsResolveComments,
+    showUpgradeToUseDocsExportPdf,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,

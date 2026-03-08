@@ -31,6 +31,7 @@ export enum PlanLimitTypes {
   LIMIT_SANDBOX_PER_BASE = 'limit_sandbox',
   LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
   LIMIT_DOCUMENT_PAGE_PER_WORKSPACE = 'limit_document_page',
+  LIMIT_DOCS_PAGE_SIZE_KB = 'limit_docs_page_size_kb',
 }
 
 export enum PlanFeatureTypes {
@@ -89,6 +90,8 @@ export enum PlanFeatureTypes {
   FEATURE_MAP_VIEW = 'feature_map_view',
   FEATURE_TIMELINE_VIEW = 'feature_timeline_view',
   FEATURE_AI_CHAT = 'feature_ai_chat',
+  FEATURE_DOCS_INLINE_COMMENTS = 'feature_docs_inline_comments',
+  FEATURE_DOCS_EXPORT_PDF = 'feature_docs_export_pdf',
 }
 
 export enum PlanTitles {
@@ -252,6 +255,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 'to add more sandboxes.',
   [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE]:
     'to add more document pages in a workspace.',
+  [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]:
+    'to increase the document page size limit.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -330,6 +335,10 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: 'to use timeline view.',
   [PlanFeatureTypes.FEATURE_AI_CHAT]: 'to use AI chat.',
+  [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]:
+    'to use inline comments in documents.',
+  [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]:
+    'to export documents as PDF.',
 };
 
 export const getUpgradeMessage = (

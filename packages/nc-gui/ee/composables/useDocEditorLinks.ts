@@ -396,12 +396,13 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     if (!isEditable.value) return false
     const { selection } = e.state
     if (selection instanceof CellSelection) return false
-    // Hide for image / file attachment selections — they have their own UI
+    // Hide for image / file attachment / math selections — they have their own UI
     if (
       selection.node?.type.name === 'image' ||
       selection.node?.type.name === 'fileAttachment' ||
       selection.node?.type.name === 'embed' ||
-      selection.node?.type.name === 'horizontalRule'
+      selection.node?.type.name === 'horizontalRule' ||
+      selection.node?.type.name === 'inlineMath'
     )
       return false
     // Hide inside code blocks — formatting doesn't apply to code

@@ -1239,7 +1239,7 @@ onBeforeUnmount(() => {
       <!-- Page actions — always visible at top-right -->
       <div class="nc-doc-page-menu">
         <DocPresence />
-        <NcTooltip :title="$t('general.comments')" placement="bottom">
+        <NcTooltip :title="$t('general.comments')" placement="bottom" class="flex">
           <NcButton
             size="small"
             type="text"
@@ -1249,8 +1249,8 @@ onBeforeUnmount(() => {
             <GeneralIcon icon="ncMessageCircle" :class="isCommentsPanelOpen ? 'text-nc-content-brand' : ''" />
           </NcButton>
         </NcTooltip>
-        <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
-          <NcButton size="small" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
+        <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight" class="flex">
+          <NcButton size="small" type="secondary" @click.stop="isPageMenuOpen = !isPageMenuOpen">
             <GeneralIcon icon="threeDotHorizontal" />
           </NcButton>
           <template #overlay>
@@ -1893,9 +1893,9 @@ onBeforeUnmount(() => {
   }
 }
 
-// Page 3-dot context menu — floats at top-right of editor area, outside scroll flow
+// Page actions — floats at top-right of editor area, outside scroll flow
 .nc-doc-page-menu {
-  @apply h-[var(--topbar-height)] flex items-center gap-1 absolute top-0 right-3 z-20;
+  @apply h-[var(--topbar-height)] flex items-center gap-2 absolute top-0 right-3 z-20;
 }
 
 .nc-doc-page-menu-left {

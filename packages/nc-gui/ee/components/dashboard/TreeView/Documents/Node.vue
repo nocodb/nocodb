@@ -491,6 +491,22 @@ function onStopEdit() {
             </NcMenu>
           </template>
         </NcDropdown>
+        <NcTooltip v-if="isUIAllowed('documentCreate')" placement="top">
+          <template #title>{{ $t('labels.newSubDocument') }}</template>
+          <NcButton
+            v-e="['c:document:create-sub:sidebar']"
+            class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100)"
+            data-testid="docs-sidebar-add-sub-page"
+            size="xxsmall"
+            type="text"
+            @mouseenter="showNodeTooltip = false"
+            @mouseleave="showNodeTooltip = true"
+            @click.stop="onCreateSubDocument"
+            @dblclick.stop
+          >
+            <GeneralIcon icon="plus" />
+          </NcButton>
+        </NcTooltip>
       </template>
     </div>
 

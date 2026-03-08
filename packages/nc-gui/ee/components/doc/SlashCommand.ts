@@ -468,7 +468,10 @@ export const SlashCommandExtension = Extension.create({
         allowSpaces: false,
         startOfLine: false,
         items: ({ query }: { query: string }) => {
-          return slashCommandItems.filter((item) => item.title.toLowerCase().includes(query.toLowerCase()))
+          const q = query.toLowerCase()
+          return slashCommandItems.filter(
+            (item) => item.title.toLowerCase().includes(q) || item.group.toLowerCase().includes(q),
+          )
         },
         render: () => {
           let popup: TippyInstance | undefined

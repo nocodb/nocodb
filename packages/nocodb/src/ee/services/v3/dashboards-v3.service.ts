@@ -172,9 +172,7 @@ export class DashboardsV3Service {
     );
 
     return {
-      list: dashboardListItemBuilder().build(
-        dashboards,
-      ) as DashboardV3ListItemType[],
+      list: dashboardListItemBuilder().build(dashboards) as unknown as DashboardV3ListItemType[],
     };
   }
 
@@ -193,9 +191,7 @@ export class DashboardsV3Service {
     const result = dashboardBuilder().build(dashboard);
 
     if (includeWidgets && dashboard.widgets) {
-      result.widgets = widgetBuilder().build(
-        dashboard.widgets,
-      ) as WidgetV3Type[];
+      result.widgets = widgetBuilder().build(dashboard.widgets) as unknown as WidgetV3Type[];
     }
 
     return result;
@@ -243,7 +239,7 @@ export class DashboardsV3Service {
     );
 
     return {
-      list: widgetBuilder().build(widgets) as WidgetV3Type[],
+      list: widgetBuilder().build(widgets) as unknown as WidgetV3Type[],
     };
   }
 

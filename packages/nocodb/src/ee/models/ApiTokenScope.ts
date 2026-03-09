@@ -188,7 +188,7 @@ export default class ApiTokenScope implements ApiTokenScopeEntry {
       const baseScopes = scopes.filter((s) => s.resource_type === 'base');
       if (baseScopes.length) {
         for (const bs of baseScopes) {
-          const base = await Base.get({ workspace_id: workspaceId }, bs.resource_id, ncMeta);
+          const base = await Base.get({ workspace_id: RootScopes.ROOT, base_id: RootScopes.ROOT }, bs.resource_id, ncMeta);
           if (base && base.fk_workspace_id === workspaceId) {
             return bs;
           }

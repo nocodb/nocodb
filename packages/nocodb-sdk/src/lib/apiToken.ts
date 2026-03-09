@@ -11,9 +11,13 @@ export enum ApiTokenPermissionLevel {
   WRITE = 'write',
 }
 
-// Permission category keys — kept simple (like Airtable)
+// Permission category keys — granular per resource type
 export enum ApiTokenPermissionCategory {
-  DATA = 'data',
+  RECORDS = 'records',
+  TABLES = 'tables',
+  FIELDS = 'fields',
+  VIEWS = 'views',
+  BASE = 'base',
   COMMENTS = 'comments',
   WEBHOOKS = 'webhooks',
   USERS = 'users',
@@ -21,18 +25,32 @@ export enum ApiTokenPermissionCategory {
 
 // Base-scoped permission categories
 export const BASE_SCOPED_PERMISSION_CATEGORIES = [
-  ApiTokenPermissionCategory.DATA,
+  ApiTokenPermissionCategory.RECORDS,
+  ApiTokenPermissionCategory.TABLES,
+  ApiTokenPermissionCategory.FIELDS,
+  ApiTokenPermissionCategory.VIEWS,
+  ApiTokenPermissionCategory.BASE,
   ApiTokenPermissionCategory.COMMENTS,
   ApiTokenPermissionCategory.WEBHOOKS,
   ApiTokenPermissionCategory.USERS,
 ] as const;
 
-// Permission categories grouped for UI display (flat — no groups needed with 4 items)
+// Permission categories grouped for UI display
 export const API_TOKEN_PERMISSION_GROUPS = {
-  Permissions: [
-    ApiTokenPermissionCategory.DATA,
+  Data: [
+    ApiTokenPermissionCategory.RECORDS,
     ApiTokenPermissionCategory.COMMENTS,
+  ],
+  Schema: [
+    ApiTokenPermissionCategory.TABLES,
+    ApiTokenPermissionCategory.FIELDS,
+    ApiTokenPermissionCategory.VIEWS,
+  ],
+  Tools: [
     ApiTokenPermissionCategory.WEBHOOKS,
+  ],
+  Admin: [
+    ApiTokenPermissionCategory.BASE,
     ApiTokenPermissionCategory.USERS,
   ],
 } as const;
@@ -58,14 +76,22 @@ export const API_TOKEN_PREFIX = 'nc_pat_';
 
 // Preset permission configurations for UI
 export const API_TOKEN_PERMISSION_PRESETS = {
-  readOnlyData: {
-    data: ApiTokenPermissionLevel.READ,
+  readOnly: {
+    records: ApiTokenPermissionLevel.READ,
+    tables: ApiTokenPermissionLevel.READ,
+    fields: ApiTokenPermissionLevel.READ,
+    views: ApiTokenPermissionLevel.READ,
+    base: ApiTokenPermissionLevel.READ,
     comments: ApiTokenPermissionLevel.READ,
     webhooks: ApiTokenPermissionLevel.NONE,
     users: ApiTokenPermissionLevel.NONE,
   } as ApiTokenPermissions,
   fullDataAccess: {
-    data: ApiTokenPermissionLevel.WRITE,
+    records: ApiTokenPermissionLevel.WRITE,
+    tables: ApiTokenPermissionLevel.NONE,
+    fields: ApiTokenPermissionLevel.NONE,
+    views: ApiTokenPermissionLevel.NONE,
+    base: ApiTokenPermissionLevel.NONE,
     comments: ApiTokenPermissionLevel.WRITE,
     webhooks: ApiTokenPermissionLevel.NONE,
     users: ApiTokenPermissionLevel.NONE,

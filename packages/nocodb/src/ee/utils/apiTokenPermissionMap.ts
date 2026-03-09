@@ -8,8 +8,12 @@ interface TokenPermissionMapping {
 /**
  * Maps ACL operation names to their required token permission category and level.
  *
- * Simplified Airtable-style categories:
- *   data     — records, tables, fields, views, extensions, base settings
+ * Categories:
+ *   records  — record CRUD, data export, aggregation
+ *   tables   — table list/create/update/delete
+ *   fields   — column/field CRUD, relations, indices
+ *   views    — view CRUD, sorts, filters, view columns, share
+ *   base     — base settings, sources, extensions, swagger, audit, jobs
  *   comments — row comments
  *   webhooks — webhook management
  *   users    — user/collaborator management
@@ -20,129 +24,133 @@ interface TokenPermissionMapping {
  */
 export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = {
   // ──────────────────────────────────
-  // Data — Records (read)
+  // Records (read)
   // ──────────────────────────────────
-  dataList: { category: 'data', level: 'read' },
-  dataRead: { category: 'data', level: 'read' },
-  dataExist: { category: 'data', level: 'read' },
-  dataFindOne: { category: 'data', level: 'read' },
-  dataGroupBy: { category: 'data', level: 'read' },
-  dataCount: { category: 'data', level: 'read' },
-  dataAggregate: { category: 'data', level: 'read' },
-  bulkAggregate: { category: 'data', level: 'read' },
-  bulkDataList: { category: 'data', level: 'read' },
-  linkDataList: { category: 'data', level: 'read' },
-  groupedDataList: { category: 'data', level: 'read' },
-  mmList: { category: 'data', level: 'read' },
-  hmList: { category: 'data', level: 'read' },
-  nestedDataList: { category: 'data', level: 'read' },
-  mmExcludedList: { category: 'data', level: 'read' },
-  hmExcludedList: { category: 'data', level: 'read' },
-  btExcludedList: { category: 'data', level: 'read' },
-  ooExcludedList: { category: 'data', level: 'read' },
-  dataExport: { category: 'data', level: 'read' },
-  exportCsv: { category: 'data', level: 'read' },
-  exportExcel: { category: 'data', level: 'read' },
+  dataList: { category: 'records', level: 'read' },
+  dataRead: { category: 'records', level: 'read' },
+  dataExist: { category: 'records', level: 'read' },
+  dataFindOne: { category: 'records', level: 'read' },
+  dataGroupBy: { category: 'records', level: 'read' },
+  dataCount: { category: 'records', level: 'read' },
+  dataAggregate: { category: 'records', level: 'read' },
+  bulkAggregate: { category: 'records', level: 'read' },
+  bulkDataList: { category: 'records', level: 'read' },
+  linkDataList: { category: 'records', level: 'read' },
+  groupedDataList: { category: 'records', level: 'read' },
+  mmList: { category: 'records', level: 'read' },
+  hmList: { category: 'records', level: 'read' },
+  nestedDataList: { category: 'records', level: 'read' },
+  mmExcludedList: { category: 'records', level: 'read' },
+  hmExcludedList: { category: 'records', level: 'read' },
+  btExcludedList: { category: 'records', level: 'read' },
+  ooExcludedList: { category: 'records', level: 'read' },
+  dataExport: { category: 'records', level: 'read' },
+  exportCsv: { category: 'records', level: 'read' },
+  exportExcel: { category: 'records', level: 'read' },
 
-  // Data — Records (write)
-  dataInsert: { category: 'data', level: 'write' },
-  dataUpdate: { category: 'data', level: 'write' },
-  dataDelete: { category: 'data', level: 'write' },
-  bulkDataInsert: { category: 'data', level: 'write' },
-  bulkDataUpdate: { category: 'data', level: 'write' },
-  bulkDataUpdateAll: { category: 'data', level: 'write' },
-  bulkDataDelete: { category: 'data', level: 'write' },
-  bulkDataDeleteAll: { category: 'data', level: 'write' },
-  bulkDataUpsert: { category: 'data', level: 'write' },
-  relationDataAdd: { category: 'data', level: 'write' },
-  relationDataRemove: { category: 'data', level: 'write' },
-  nestedDataLink: { category: 'data', level: 'write' },
-  nestedDataUnlink: { category: 'data', level: 'write' },
-  nestedDataListCopyPasteOrDeleteAll: { category: 'data', level: 'write' },
+  // Records (write)
+  dataInsert: { category: 'records', level: 'write' },
+  dataUpdate: { category: 'records', level: 'write' },
+  dataDelete: { category: 'records', level: 'write' },
+  bulkDataInsert: { category: 'records', level: 'write' },
+  bulkDataUpdate: { category: 'records', level: 'write' },
+  bulkDataUpdateAll: { category: 'records', level: 'write' },
+  bulkDataDelete: { category: 'records', level: 'write' },
+  bulkDataDeleteAll: { category: 'records', level: 'write' },
+  bulkDataUpsert: { category: 'records', level: 'write' },
+  relationDataAdd: { category: 'records', level: 'write' },
+  relationDataRemove: { category: 'records', level: 'write' },
+  nestedDataLink: { category: 'records', level: 'write' },
+  nestedDataUnlink: { category: 'records', level: 'write' },
+  nestedDataListCopyPasteOrDeleteAll: { category: 'records', level: 'write' },
 
-  // Data — Tables (read)
-  tableList: { category: 'data', level: 'read' },
-  tableGet: { category: 'data', level: 'read' },
+  // ──────────────────────────────────
+  // Tables (read)
+  // ──────────────────────────────────
+  tableList: { category: 'tables', level: 'read' },
+  tableGet: { category: 'tables', level: 'read' },
 
-  // Data — Tables (write)
-  tableCreate: { category: 'data', level: 'write' },
-  tableUpdate: { category: 'data', level: 'write' },
-  tableDelete: { category: 'data', level: 'write' },
+  // Tables (write)
+  tableCreate: { category: 'tables', level: 'write' },
+  tableUpdate: { category: 'tables', level: 'write' },
+  tableDelete: { category: 'tables', level: 'write' },
 
-  // Data — Fields (read)
-  columnList: { category: 'data', level: 'read' },
-  relationList: { category: 'data', level: 'read' },
-  relationListAll: { category: 'data', level: 'read' },
-  indexList: { category: 'data', level: 'read' },
+  // ──────────────────────────────────
+  // Fields / Columns (read)
+  // ──────────────────────────────────
+  columnList: { category: 'fields', level: 'read' },
+  relationList: { category: 'fields', level: 'read' },
+  relationListAll: { category: 'fields', level: 'read' },
+  indexList: { category: 'fields', level: 'read' },
 
-  // Data — Fields (write)
-  columnAdd: { category: 'data', level: 'write' },
-  columnUpdate: { category: 'data', level: 'write' },
-  columnDelete: { category: 'data', level: 'write' },
-  duplicateColumn: { category: 'data', level: 'write' },
+  // Fields / Columns (write)
+  columnAdd: { category: 'fields', level: 'write' },
+  columnUpdate: { category: 'fields', level: 'write' },
+  columnDelete: { category: 'fields', level: 'write' },
+  duplicateColumn: { category: 'fields', level: 'write' },
 
-  // Data — Views (read)
-  viewList: { category: 'data', level: 'read' },
-  viewColumnList: { category: 'data', level: 'read' },
-  formViewGet: { category: 'data', level: 'read' },
-  galleryViewGet: { category: 'data', level: 'read' },
-  kanbanViewGet: { category: 'data', level: 'read' },
-  calendarViewGet: { category: 'data', level: 'read' },
-  sortList: { category: 'data', level: 'read' },
-  filterList: { category: 'data', level: 'read' },
-  filterGet: { category: 'data', level: 'read' },
-  filterChildrenList: { category: 'data', level: 'read' },
+  // ──────────────────────────────────
+  // Views (read) — includes sorts, filters, view columns
+  // ──────────────────────────────────
+  viewList: { category: 'views', level: 'read' },
+  viewColumnList: { category: 'views', level: 'read' },
+  formViewGet: { category: 'views', level: 'read' },
+  galleryViewGet: { category: 'views', level: 'read' },
+  kanbanViewGet: { category: 'views', level: 'read' },
+  calendarViewGet: { category: 'views', level: 'read' },
+  sortList: { category: 'views', level: 'read' },
+  filterList: { category: 'views', level: 'read' },
+  filterGet: { category: 'views', level: 'read' },
+  filterChildrenList: { category: 'views', level: 'read' },
 
-  // Data — Views (write)
-  viewCreate: { category: 'data', level: 'write' },
-  viewUpdate: { category: 'data', level: 'write' },
-  viewDelete: { category: 'data', level: 'write' },
-  gridViewCreate: { category: 'data', level: 'write' },
-  formViewCreate: { category: 'data', level: 'write' },
-  galleryViewCreate: { category: 'data', level: 'write' },
-  kanbanViewCreate: { category: 'data', level: 'write' },
-  mapViewCreate: { category: 'data', level: 'write' },
-  calendarViewCreate: { category: 'data', level: 'write' },
-  gridViewUpdate: { category: 'data', level: 'write' },
-  formViewUpdate: { category: 'data', level: 'write' },
-  formColumnUpdate: { category: 'data', level: 'write' },
-  galleryViewUpdate: { category: 'data', level: 'write' },
-  kanbanViewUpdate: { category: 'data', level: 'write' },
-  mapViewUpdate: { category: 'data', level: 'write' },
-  calendarViewUpdate: { category: 'data', level: 'write' },
-  viewColumnUpdate: { category: 'data', level: 'write' },
-  gridColumnUpdate: { category: 'data', level: 'write' },
-  sortCreate: { category: 'data', level: 'write' },
-  sortUpdate: { category: 'data', level: 'write' },
-  sortDelete: { category: 'data', level: 'write' },
-  filterCreate: { category: 'data', level: 'write' },
-  filterUpdate: { category: 'data', level: 'write' },
-  filterDelete: { category: 'data', level: 'write' },
-  hideAllColumns: { category: 'data', level: 'write' },
-  showAllColumns: { category: 'data', level: 'write' },
-  shareView: { category: 'data', level: 'write' },
-  shareViewUpdate: { category: 'data', level: 'write' },
+  // Views (write) — includes sorts, filters, share, view columns
+  viewCreate: { category: 'views', level: 'write' },
+  viewUpdate: { category: 'views', level: 'write' },
+  viewDelete: { category: 'views', level: 'write' },
+  gridViewCreate: { category: 'views', level: 'write' },
+  formViewCreate: { category: 'views', level: 'write' },
+  galleryViewCreate: { category: 'views', level: 'write' },
+  kanbanViewCreate: { category: 'views', level: 'write' },
+  mapViewCreate: { category: 'views', level: 'write' },
+  calendarViewCreate: { category: 'views', level: 'write' },
+  gridViewUpdate: { category: 'views', level: 'write' },
+  formViewUpdate: { category: 'views', level: 'write' },
+  formColumnUpdate: { category: 'views', level: 'write' },
+  galleryViewUpdate: { category: 'views', level: 'write' },
+  kanbanViewUpdate: { category: 'views', level: 'write' },
+  mapViewUpdate: { category: 'views', level: 'write' },
+  calendarViewUpdate: { category: 'views', level: 'write' },
+  viewColumnUpdate: { category: 'views', level: 'write' },
+  gridColumnUpdate: { category: 'views', level: 'write' },
+  sortCreate: { category: 'views', level: 'write' },
+  sortUpdate: { category: 'views', level: 'write' },
+  sortDelete: { category: 'views', level: 'write' },
+  filterCreate: { category: 'views', level: 'write' },
+  filterUpdate: { category: 'views', level: 'write' },
+  filterDelete: { category: 'views', level: 'write' },
+  hideAllColumns: { category: 'views', level: 'write' },
+  showAllColumns: { category: 'views', level: 'write' },
+  shareView: { category: 'views', level: 'write' },
+  shareViewUpdate: { category: 'views', level: 'write' },
 
-  // Data — Extensions (read)
-  extensionList: { category: 'data', level: 'read' },
-  extensionRead: { category: 'data', level: 'read' },
+  // ──────────────────────────────────
+  // Base — settings, sources, extensions, audit, jobs
+  // ──────────────────────────────────
+  baseGet: { category: 'base', level: 'read' },
+  baseInfoGet: { category: 'base', level: 'read' },
+  baseCost: { category: 'base', level: 'read' },
+  swaggerJson: { category: 'base', level: 'read' },
+  recordAuditList: { category: 'base', level: 'read' },
+  jobList: { category: 'base', level: 'read' },
+  extensionList: { category: 'base', level: 'read' },
+  extensionRead: { category: 'base', level: 'read' },
 
-  // Data — Extensions (write)
-  extensionCreate: { category: 'data', level: 'write' },
-  extensionUpdate: { category: 'data', level: 'write' },
-  extensionDelete: { category: 'data', level: 'write' },
-
-  // Data — Base settings (read)
-  baseGet: { category: 'data', level: 'read' },
-  baseInfoGet: { category: 'data', level: 'read' },
-  baseCost: { category: 'data', level: 'read' },
-  swaggerJson: { category: 'data', level: 'read' },
-  recordAuditList: { category: 'data', level: 'read' },
-  jobList: { category: 'data', level: 'read' },
-
-  // Data — Base settings (write)
-  sourceCreate: { category: 'data', level: 'write' },
-  baseDelete: { category: 'data', level: 'write' },
+  // Base (write)
+  sourceCreate: { category: 'base', level: 'write' },
+  baseDelete: { category: 'base', level: 'write' },
+  extensionCreate: { category: 'base', level: 'write' },
+  extensionUpdate: { category: 'base', level: 'write' },
+  extensionDelete: { category: 'base', level: 'write' },
 
   // ──────────────────────────────────
   // Comments (read)

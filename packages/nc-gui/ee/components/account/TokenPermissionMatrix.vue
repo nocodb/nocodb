@@ -3,6 +3,7 @@ import {
   ApiTokenPermissionCategory,
   ApiTokenPermissionLevel,
   API_TOKEN_PERMISSION_GROUPS,
+  API_TOKEN_PERMISSION_PRESETS,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -27,9 +28,13 @@ const levels = [
 ]
 
 const categoryLabels: Record<string, { label: string; desc: string }> = {
-  [ApiTokenPermissionCategory.DATA]: { label: 'Data', desc: 'Records, tables, fields, views, and base settings' },
+  [ApiTokenPermissionCategory.RECORDS]: { label: 'Records', desc: 'List, read, create, update, and delete records' },
   [ApiTokenPermissionCategory.COMMENTS]: { label: 'Comments', desc: 'View and post comments on records' },
+  [ApiTokenPermissionCategory.TABLES]: { label: 'Tables', desc: 'List, create, update, and delete tables' },
+  [ApiTokenPermissionCategory.FIELDS]: { label: 'Fields', desc: 'List, create, update, and delete columns' },
+  [ApiTokenPermissionCategory.VIEWS]: { label: 'Views', desc: 'Manage views, sorts, filters, and sharing' },
   [ApiTokenPermissionCategory.WEBHOOKS]: { label: 'Webhooks', desc: 'Manage webhook triggers and logs' },
+  [ApiTokenPermissionCategory.BASE]: { label: 'Base', desc: 'Base settings, sources, extensions, and audit' },
   [ApiTokenPermissionCategory.USERS]: { label: 'Users', desc: 'View and manage collaborators' },
 }
 
@@ -40,44 +45,39 @@ const setLevel = (category: string, level: string) => {
   }
 }
 
+const matchesPreset = (p: Record<string, string>, preset: Record<string, string>) => {
+  return Object.values(ApiTokenPermissionCategory).every(
+    (c) => (p[c] || ApiTokenPermissionLevel.NONE) === (preset[c] || ApiTokenPermissionLevel.NONE),
+  )
+}
+
 const activePreset = computed(() => {
   const p = permissions.value
   const cats = Object.values(ApiTokenPermissionCategory)
+
   const allWrite = cats.every((c) => p[c] === ApiTokenPermissionLevel.WRITE)
   if (allWrite) return 'allWrite'
 
-  const isReadOnly = cats.every((c) =>
-    ['data', 'comments'].includes(c) ? p[c] === ApiTokenPermissionLevel.READ : p[c] === ApiTokenPermissionLevel.NONE,
-  )
-  if (isReadOnly) return 'readOnly'
-
-  const isFullData = cats.every((c) =>
-    ['data', 'comments'].includes(c) ? p[c] === ApiTokenPermissionLevel.WRITE : p[c] === ApiTokenPermissionLevel.NONE,
-  )
-  if (isFullData) return 'fullData'
+  if (matchesPreset(p, API_TOKEN_PERMISSION_PRESETS.readOnly as Record<string, string>)) return 'readOnly'
+  if (matchesPreset(p, API_TOKEN_PERMISSION_PRESETS.fullDataAccess as Record<string, string>)) return 'fullData'
 
   return null
 })
 
 const applyPreset = (preset: 'readOnly' | 'fullData' | 'allWrite') => {
-  const newPerms = { ...permissions.value }
   const categories = Object.values(ApiTokenPermissionCategory)
 
-  for (const cat of categories) {
-    if (preset === 'readOnly') {
-      newPerms[cat] = ['data', 'comments'].includes(cat)
-        ? ApiTokenPermissionLevel.READ
-        : ApiTokenPermissionLevel.NONE
-    } else if (preset === 'fullData') {
-      newPerms[cat] = ['data', 'comments'].includes(cat)
-        ? ApiTokenPermissionLevel.WRITE
-        : ApiTokenPermissionLevel.NONE
-    } else if (preset === 'allWrite') {
+  if (preset === 'readOnly') {
+    permissions.value = { ...API_TOKEN_PERMISSION_PRESETS.readOnly } as Record<string, string>
+  } else if (preset === 'fullData') {
+    permissions.value = { ...API_TOKEN_PERMISSION_PRESETS.fullDataAccess } as Record<string, string>
+  } else if (preset === 'allWrite') {
+    const newPerms: Record<string, string> = {}
+    for (const cat of categories) {
       newPerms[cat] = ApiTokenPermissionLevel.WRITE
     }
+    permissions.value = newPerms
   }
-
-  permissions.value = newPerms
 }
 </script>
 

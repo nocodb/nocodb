@@ -89,13 +89,11 @@ const linkOptions = computed(() =>
     .map((c) => ({ value: c.id, label: c.title, col: c })),
 )
 
-// Cascade propagation is PostgreSQL-only and not available for external data sources
 const tableSource = computed(() => openedProject.value?.sources?.find((s) => s.id === tableMeta.value?.source_id))
 
 const cascadeAvailable = computed(() => {
   const s = tableSource.value
-  const isExternal = s && !s.is_meta && !s.is_local
-  return s?.type === 'pg' && !isExternal
+  return s?.type === 'pg' || s?.type === 'mysql2'
 })
 
 const connectionTypeOptions = computed(() => [

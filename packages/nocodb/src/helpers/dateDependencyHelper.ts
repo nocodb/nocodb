@@ -7,6 +7,8 @@ import type { Column } from '~/models';
 export interface DateDependencyPropagationParams {
   tn: string;
   pkColName: string;
+  /** Additional PK column names for composite PKs (carried through for output) */
+  extraPkColNames?: string[];
   fkColName: string;
   startColName: string;
   endColName: string;
@@ -18,17 +20,17 @@ export interface DateDependencyPropagationParams {
   bufferType: 'flexible' | 'fixed';
   bufferDays: number;
   seedIds: string[];
+  dialect: 'pg' | 'mysql';
 }
 
 /**
- * Builds a single PostgreSQL CTE that:
- *  1. Recursively traverses successor rows (cycle-safe via path array)
+ * Builds a recursive CTE (SELECT only) that:
+ *  1. Recursively traverses successor rows (cycle-safe)
  *  2. Computes new start/end dates at each level from the predecessor's
  *     already-computed dates — no application-level loops needed
- *  3. Issues one UPDATE and returns { id, old_start, old_end, new_start,
- *     new_end } for every row actually changed — used for audit + sockets
+ *  3. Returns { id, new_start, new_end } for every row that actually changed
  *
- * PostgreSQL-only (ARRAY path tracking + RETURNING).
+ * Supports PostgreSQL (ARRAY path) and MySQL 8+ (string path with FIND_IN_SET).
  */
 export function buildDateDependencyPropagationSQL(
   params: DateDependencyPropagationParams,
@@ -36,6 +38,7 @@ export function buildDateDependencyPropagationSQL(
   const {
     tn,
     pkColName,
+    extraPkColNames = [],
     fkColName,
     startColName,
     endColName,
@@ -43,144 +46,204 @@ export function buildDateDependencyPropagationSQL(
     bufferType,
     bufferDays,
     seedIds,
+    dialect,
   } = params;
 
-  // Quote table name — handle optional schema prefix (schema.table)
+  const isPg = dialect === 'pg';
+
+  // Quote table/column names per dialect
+  const qChar = isPg ? '"' : '`';
+  const esc = (s: string) =>
+    `${qChar}${s.replace(new RegExp(qChar, 'g'), qChar + qChar)}${qChar}`;
   const quotedTn = tn
     .split('.')
-    .map((p) => `"${p.replace(/"/g, '""')}"`)
+    .map((p) => esc(p))
     .join('.');
 
-  // Quote individual column names
-  const q = (col: string) => `"${col.replace(/"/g, '""')}"`;
-  const pk = q(pkColName);
-  const fk = q(fkColName);
-  const sc = q(startColName);
-  const ec = q(endColName);
+  const pk = esc(pkColName);
+  const fk = esc(fkColName);
+  const sc = esc(startColName);
+  const ec = esc(endColName);
 
   // Seed placeholders for knex positional bindings
   const idPlaceholders = seedIds.map(() => '?').join(', ');
 
-  // Buffer interval expression (bufferDays is an integer from the config)
-  const buf = `(${bufferDays} * INTERVAL '1 day')`;
+  // Dialect-specific helpers
+  const castText = (expr: string) =>
+    isPg ? `${expr}::text` : `CAST(${expr} AS CHAR)`;
+  const castDate = (expr: string) =>
+    isPg ? `(${expr})::date` : `CAST(${expr} AS DATE)`;
+  const intervalDays = (n: number | string) =>
+    isPg ? `(${n} * INTERVAL '1 day')` : `INTERVAL ${n} DAY`;
 
-  // Build date computation expressions.
-  // p.start_date / p.end_date = predecessor's computed dates from the CTE.
-  // t.sc / t.ec = successor's CURRENT values from the DB (pre-update).
-  // Duration is always preserved: new_end = new_start + (old_end - old_start).
-  //
-  // NocoDB Date columns may be stored as PostgreSQL `date` type, in which case
-  // `date - date` returns an integer (days), not an interval.  Adding an integer
-  // to a timestamp fails, so we always convert the duration to an interval:
-  //   (t.ec::date - t.sc::date) * INTERVAL '1 day'
-  // This is safe for both `date` and `timestamp` column storage.
-  const dur = `(t.${ec}::date - t.${sc}::date) * INTERVAL '1 day'`;
+  const buf = intervalDays(bufferDays);
+  const oneDay = isPg ? `INTERVAL '1 day'` : `INTERVAL 1 DAY`;
 
+  // Duration expression: old_end - old_start as an interval
+  // PG: (date - date) returns int → multiply by interval
+  // MySQL: DATEDIFF returns int → use DATE_ADD later
+  const dur = isPg
+    ? `(t.${ec}::date - t.${sc}::date) * INTERVAL '1 day'`
+    : `DATEDIFF(t.${ec}, t.${sc})`;
+
+  // Date arithmetic helpers
+  const dateAdd = (base: string, interval: string) =>
+    isPg
+      ? `${base} + ${interval}`
+      : `DATE_ADD(${base}, INTERVAL ${interval} DAY)`;
+  const dateSub = (base: string, interval: string) =>
+    isPg
+      ? `${base} - ${interval}`
+      : `DATE_SUB(${base}, INTERVAL ${interval} DAY)`;
+
+  // Build date computation expressions
   let newStartExpr: string;
   let newEndExpr: string;
 
   switch (connectionType) {
     case 'end-to-start': {
-      // FS: pred.end drives succ.start
-      const required = `p.end_date + ${buf} + INTERVAL '1 day'`;
+      const required = dateAdd(
+        `p.end_date`,
+        isPg ? `${buf} + ${oneDay}` : `${bufferDays} + 1`,
+      );
       newStartExpr =
         bufferType === 'fixed'
           ? required
-          : `CASE WHEN t.${sc} <= p.end_date + ${buf} THEN ${required} ELSE t.${sc} END`;
-      newEndExpr = `(${newStartExpr}) + ${dur}`;
+          : `CASE WHEN t.${sc} <= ${dateAdd(
+              'p.end_date',
+              isPg ? buf : String(bufferDays),
+            )} THEN ${required} ELSE t.${sc} END`;
+      newEndExpr = dateAdd(`(${newStartExpr})`, isPg ? dur : dur);
       break;
     }
     case 'end-to-end': {
-      // FF: pred.end drives succ.end
-      const required = `p.end_date + ${buf}`;
+      const required = dateAdd(`p.end_date`, isPg ? buf : String(bufferDays));
       newEndExpr =
         bufferType === 'fixed'
           ? required
-          : `CASE WHEN t.${ec} < p.end_date + ${buf} THEN ${required} ELSE t.${ec} END`;
-      newStartExpr = `(${newEndExpr}) - ${dur}`;
+          : `CASE WHEN t.${ec} < ${dateAdd(
+              'p.end_date',
+              isPg ? buf : String(bufferDays),
+            )} THEN ${required} ELSE t.${ec} END`;
+      newStartExpr = dateSub(`(${newEndExpr})`, isPg ? dur : dur);
       break;
     }
     case 'start-to-start': {
-      // SS: pred.start drives succ.start
-      const required = `p.start_date + ${buf}`;
+      const required = dateAdd(`p.start_date`, isPg ? buf : String(bufferDays));
       newStartExpr =
         bufferType === 'fixed'
           ? required
-          : `CASE WHEN t.${sc} < p.start_date + ${buf} THEN ${required} ELSE t.${sc} END`;
-      newEndExpr = `(${newStartExpr}) + ${dur}`;
+          : `CASE WHEN t.${sc} < ${dateAdd(
+              'p.start_date',
+              isPg ? buf : String(bufferDays),
+            )} THEN ${required} ELSE t.${sc} END`;
+      newEndExpr = dateAdd(`(${newStartExpr})`, isPg ? dur : dur);
       break;
     }
     case 'start-to-end': {
-      // SF: pred.start drives succ.end
-      const required = `p.start_date + ${buf}`;
+      const required = dateAdd(`p.start_date`, isPg ? buf : String(bufferDays));
       newEndExpr =
         bufferType === 'fixed'
           ? required
-          : `CASE WHEN t.${ec} < p.start_date + ${buf} THEN ${required} ELSE t.${ec} END`;
-      newStartExpr = `(${newEndExpr}) - ${dur}`;
+          : `CASE WHEN t.${ec} < ${dateAdd(
+              'p.start_date',
+              isPg ? buf : String(bufferDays),
+            )} THEN ${required} ELSE t.${ec} END`;
+      newStartExpr = dateSub(`(${newEndExpr})`, isPg ? dur : dur);
       break;
     }
   }
 
+  // Cycle detection and path tracking differ by dialect
+  // PG:    ARRAY[pk] / path || pk / NOT (pk = ANY(path))
+  // MySQL: CAST(pk AS CHAR) / CONCAT(path, ',', pk) / NOT FIND_IN_SET(pk, path)
+  const anchorPath = isPg
+    ? `ARRAY[${castText(`t.${pk}`)}]`
+    : castText(`t.${pk}`);
+  const recursivePath = isPg
+    ? `p.path || ${castText(`t.${pk}`)}`
+    : `CONCAT(p.path, ',', ${castText(`t.${pk}`)})`;
+  const cycleCheck = isPg
+    ? `NOT (${castText(`t.${pk}`)} = ANY(p.path))`
+    : `NOT FIND_IN_SET(${castText(`t.${pk}`)}, p.path)`;
+
+  // Extra PK columns for composite PKs — selected from the joined table `t`
+  const extraPkSelect = extraPkColNames
+    .map((col, i) => `t.${esc(col)} AS id_${i + 1}`)
+    .join(', ');
+  const extraPkSelectPrefix = extraPkSelect ? `,\n    ${extraPkSelect}` : '';
+  const extraPkOuterCols = extraPkColNames
+    .map((_, i) => `id_${i + 1}`)
+    .join(', ');
+  const extraPkOuterPrefix = extraPkOuterCols ? `, ${extraPkOuterCols}` : '';
+
+  // Deduplication: pick shortest path per row
+  // PG:    DISTINCT ON (pk) ... ORDER BY pk, level
+  // MySQL: ROW_NUMBER() window function
+  const dedupQuery = isPg
+    ? `SELECT DISTINCT ON (p.pk)
+    p.pk         AS id${extraPkSelectPrefix},
+    p.start_date AS new_start,
+    p.end_date   AS new_end,
+    t.${sc}      AS old_start,
+    t.${ec}      AS old_end
+  FROM propagated p
+  JOIN ${quotedTn} t ON ${castText(`t.${pk}`)} = p.pk
+  WHERE p.level > 0
+  ORDER BY p.pk, p.level ASC`
+    : `SELECT id${extraPkOuterPrefix}, new_start, new_end, old_start, old_end FROM (
+    SELECT
+      p.pk         AS id${extraPkSelectPrefix},
+      p.start_date AS new_start,
+      p.end_date   AS new_end,
+      t.${sc}      AS old_start,
+      t.${ec}      AS old_end,
+      ROW_NUMBER() OVER (PARTITION BY p.pk ORDER BY p.level ASC) AS rn
+    FROM propagated p
+    JOIN ${quotedTn} t ON ${castText(`t.${pk}`)} = p.pk
+    WHERE p.level > 0
+  ) ranked WHERE rn = 1`;
+
+  // Changed-row filter
+  // PG:    IS DISTINCT FROM (null-safe inequality)
+  // MySQL: NOT <=> (null-safe equality operator, negated)
+  const changedFilter = isPg
+    ? `old_start IS DISTINCT FROM new_start OR old_end IS DISTINCT FROM new_end`
+    : `NOT (old_start <=> new_start) OR NOT (old_end <=> new_end)`;
+
   const sql = `
 WITH RECURSIVE propagated(pk, start_date, end_date, level, path) AS (
-  -- Anchor: seed rows carry their current dates as the starting point
   SELECT
-    t.${pk}::text,
+    ${castText(`t.${pk}`)},
     t.${sc},
     t.${ec},
     0,
-    ARRAY[t.${pk}::text]
+    ${anchorPath}
   FROM ${quotedTn} t
-  WHERE t.${pk}::text IN (${idPlaceholders})
+  WHERE ${castText(`t.${pk}`)} IN (${idPlaceholders})
 
   UNION ALL
 
-  -- Recursive: compute successor dates from predecessor's computed dates
   SELECT
-    t.${pk}::text,
-    (${newStartExpr})::date,
-    (${newEndExpr})::date,
+    ${castText(`t.${pk}`)},
+    ${castDate(newStartExpr)},
+    ${castDate(newEndExpr)},
     p.level + 1,
-    p.path || t.${pk}::text
+    ${recursivePath}
   FROM ${quotedTn} t
-  JOIN propagated p ON t.${fk}::text = p.pk
-  WHERE NOT (t.${pk}::text = ANY(p.path))   -- cycle prevention
+  JOIN propagated p ON ${castText(`t.${fk}`)} = p.pk
+  WHERE ${cycleCheck}
     AND t.${sc} IS NOT NULL
     AND t.${ec} IS NOT NULL
     AND p.start_date IS NOT NULL
     AND p.end_date IS NOT NULL
 ),
 deduped AS (
-  -- Per row: pick shortest path (most direct predecessor wins)
-  -- Also capture old values here — before the UPDATE runs
-  SELECT DISTINCT ON (p.pk)
-    p.pk         AS id,
-    p.start_date AS new_start,
-    p.end_date   AS new_end,
-    t.${sc}      AS old_start,
-    t.${ec}      AS old_end
-  FROM propagated p
-  JOIN ${quotedTn} t ON t.${pk}::text = p.pk
-  WHERE p.level > 0
-  ORDER BY p.pk, p.level ASC
+  ${dedupQuery}
 )
-UPDATE ${quotedTn} t
-SET
-  ${sc} = d.new_start,
-  ${ec} = d.new_end
-FROM deduped d
-WHERE t.${pk}::text = d.id
-  AND (
-    t.${sc} IS DISTINCT FROM d.new_start
-    OR t.${ec} IS DISTINCT FROM d.new_end
-  )
-RETURNING
-  t.${pk}   AS id,
-  d.old_start,
-  d.old_end,
-  d.new_start,
-  d.new_end`.trim();
+SELECT id${extraPkOuterPrefix}, new_start, new_end
+FROM deduped
+WHERE ${changedFilter}`.trim();
 
   return { sql, bindings: [...seedIds] };
 }

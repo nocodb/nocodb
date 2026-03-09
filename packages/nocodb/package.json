@@ -202,6 +202,7 @@
     "pdf-parse": "^1.1.1",
     "pg": "^8.13.1",
     "pg-protocol": "^1.11.0",
+    "pg-query-stream": "^4.14.0",
     "pino-http": "^8.6.1",
     "posthog-node": "^3.6.3",
     "react": "^19.0.0",

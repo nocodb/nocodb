@@ -1356,6 +1356,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const columnName = childTable.displayValue.column_name
     const qb = this.dbDriver()
+    const childTn = this.getTnPath(childTable);
 
     const childModel = await Model.getBaseModelSQL(this.context, {
       dbDriver: this.dbDriver,
@@ -1385,8 +1386,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         `${vtn}.${vrcn}`,
         `${vtn}.${vcn} as ${this.GROUP_COL}`
       )
-      .from(mmTable.table_name)
-      .join(childTable.table_name, `${childTable.table_name}.${cn}`, `${vtn}.${vrcn}`)
+      .from(vtn)
+      .join(childTn, `${childTn}.${cn}`, `${vtn}.${vrcn}`)
       .whereIn(`${vtn}.${vcn}`, parentIds);
 
     // Phase 2B: Optimize DISTINCT ON for Postgres
@@ -1395,13 +1396,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // Add ORDER BY before DISTINCT ON to ensure consistent results and enable index usage
       finalQb.orderBy([
         { column: `${vtn}.${vcn}`, order: 'asc' },
-        { column: `${childTable.table_name}.${columnName}`, order: 'asc' }
+        { column: `${childTn}.${columnName}`, order: 'asc' }
       ]);
-      finalQb.distinctOn(`${vtn}.${vcn}`, `${childTable.table_name}.${columnName}`);
+      finalQb.distinctOn(`${vtn}.${vcn}`, `${childTn}.${columnName}`);
     } else if (columnName) {
       // For non-Postgres databases, use GROUP BY approach
       // This is less efficient but more portable
-      finalQb.groupBy(`${vtn}.${vcn}`, `${vtn}.${vrcn}`, `${childTable.table_name}.${columnName}`);
+      finalQb.groupBy(`${vtn}.${vcn}`, `${vtn}.${vrcn}`, `${childTn}.${columnName}`);
     }
 
     // Apply sort and filter to the final query after DISTINCT ON / GROUP BY logic

@@ -6,7 +6,7 @@ import NocoCache from '~/cache/NocoCache';
 import { Model, Source } from '~/models';
 
 export default class ModelStat {
-  // primary: [fk_workspace_id, fk_model_id]
+  // primary: [fk_workspace_id, base_id, fk_model_id]
   // indexes: [fk_workspace_id, fk_model_id], [fk_workspace_id]
   fk_workspace_id?: string;
   fk_model_id?: string;
@@ -77,12 +77,13 @@ export default class ModelStat {
       .insert({
         fk_workspace_id: workspaceId,
         fk_model_id: modelId,
+        base_id: model.base_id,
         is_external,
         ...insertObject,
         created_at: now,
         updated_at: now,
       })
-      .onConflict(['fk_workspace_id', 'fk_model_id'])
+      .onConflict(['fk_workspace_id', 'base_id', 'fk_model_id'])
       .merge({
         ...insertObject,
         updated_at: now,

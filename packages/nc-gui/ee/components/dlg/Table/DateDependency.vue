@@ -380,10 +380,9 @@ watch(visible, async (val) => {
                   <div class="text-captionSm text-nc-content-gray-subtle mb-1">
                     {{ $t('labels.dateDependency.bufferDays') }}
                   </div>
-                  <a-input-number
-                    v-model:value="form.dependency_buffer_days"
+                  <NcNonNullableNumberInput
+                    v-model="form.dependency_buffer_days"
                     :min="0"
-                    class="w-full"
                     :disabled="!cascadeAvailable"
                   />
                 </div>

@@ -312,14 +312,17 @@ async function extractColumnIdentifierType({
             column: col,
           }
         );
-      const parsedTree = await unifiedMeta.getParsedTree(
+      let parsedTree = await unifiedMeta.getParsedTree(
         unifiedMeta.getContextFromObject(col),
         { colOptions, getMeta }
       );
-      // parsedTree may not exists when formula column create / update
+
       if (parsedTree) {
+        res.dataType = parsedTree.dataType || FormulaDataTypes.UNKNOWN;
         res.isDataArray = parsedTree.isDataArray;
         res.referencedColumn = parsedTree.referencedColumn;
+      } else {
+        res.dataType = FormulaDataTypes.UNKNOWN;
       }
       break;
     }

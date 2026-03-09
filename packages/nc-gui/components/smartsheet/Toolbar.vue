@@ -90,7 +90,6 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
     </template>
     <template v-else>
       <div
-        v-if="!isMobileMode || isGrid"
         :class="{
           'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
           'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
@@ -106,11 +105,11 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
         </template>
 
         <template v-if="isViewOperationsAllowed">
-          <SmartsheetToolbarMappedBy v-if="isMap && !isMobileMode" />
+          <SmartsheetToolbarMappedBy v-if="isMap" />
 
-          <SmartsheetToolbarStackedBy v-if="isKanban && !isMobileMode" />
+          <SmartsheetToolbarStackedBy v-if="isKanban" />
 
-          <SmartsheetToolbarListSetLevels v-if="isList && !isMobileMode" />
+          <SmartsheetToolbarListSetLevels v-if="isList" />
 
           <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap || isList" :show-system-fields="false" />
 
@@ -149,7 +148,7 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
       <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed && !isMobileMode" />
 
       <template v-if="!isCalendar">
-        <SmartsheetToolbarExport v-if="!isViewOperationsAllowed && !isMobileMode" is-in-toolbar />
+        <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
         <SmartsheetToolbarOpenedViewAction v-if="!isMobileSearchActive" :show-only-copy-id="!isViewOperationsAllowed" />
       </template>
 

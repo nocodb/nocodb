@@ -125,7 +125,6 @@ const handleChange = () => {
     v-model:visible="open"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-kanban-stacked-by-menu overflow-hidden"
-    class="!xs:hidden"
   >
     <NcTooltip :disabled="!isToolbarIconMode" class="nc-kanban-btn">
       <template #title>
@@ -177,7 +176,7 @@ const handleChange = () => {
               >
                 <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
                 <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
-                  <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                  <div class="w-full h-full flex gap-2 items-center justify-between" :title="option.label">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
                       <SmartsheetHeaderIcon
                         v-if="option.value && metaColumnById[option.value]"

@@ -715,7 +715,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               <template #suffixIcon><GeneralIcon class="text-nc-content-gray-subtle" icon="arrowDown" /></template>
 
               <a-select-option v-for="option of coverOptions" :key="option.value" :value="option.value">
-                <div class="w-full flex gap-2 items-center justify-between max-w-[400px]">
+                <div class="w-full h-full flex gap-2 items-center justify-between max-w-[400px]">
                   <div
                     class="flex-1 flex items-center gap-1"
                     :class="{

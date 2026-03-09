@@ -36,6 +36,7 @@ export function useCanvasListView({
 }) {
   const { getColor } = useTheme()
   const { $api } = useNuxtApp()
+  const { isMobileMode } = useGlobal()
 
   const { levels, displayLevels, isCollapsed, toggleCollapse, depthToLevelId, collapsedParents, isConfigured, selectedLevelId } =
     useListViewStoreOrThrow()
@@ -707,6 +708,12 @@ export function useCanvasListView({
         const cols = getColumnsForDepth(cellEl.depth)
         const col = cols.find((c) => c.id === cellEl.columnId)
         if (col) {
+          // In mobile mode, open expanded form instead of inline editing
+          if (isMobileMode.value) {
+            expandRowHook.trigger({ row, depth: cellEl.depth })
+            return
+          }
+
           const rowObj: Row = { row: { ...row }, oldRow: { ...row }, rowMeta: { rowIndex: cellEl.rowIndex } }
           const cellPosition = { x: cellEl.x, y: cellEl.y, width: cellEl.width, height: cellEl.height }
           const handled = await handleCellClick({

@@ -17,13 +17,10 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
-  PrincipalType,
-  ResourceType,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/ncError';
-import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import { isUserInTeamOrDescendants } from '~/ee/utils/team-subject-matcher';
 
 export default class Permission {

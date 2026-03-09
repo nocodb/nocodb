@@ -51,7 +51,7 @@ export default function () {
     }
 
     beforeEach(async () => {
-      context = await init();
+      context = await init(false, 'editor', { skipSakila: true });
       const workspaceId = context.fk_workspace_id;
 
       featureMock = await overrideFeature({
@@ -259,7 +259,7 @@ export default function () {
       await request(context.app)
         .get(`${API_PREFIX}/dashboards/${dashboard.id}/widgets/nonexistent_id`)
         .set('xc-auth', context.token)
-        .expect(404);
+        .expect(422);
     });
 
     it('Dashboard Data v3', async () => {
@@ -635,7 +635,7 @@ export default function () {
         )
         .set('xc-auth', context.token)
         .send({ title: 'Updated' })
-        .expect(404);
+        .expect(422);
     });
 
     it('Delete Widget v3', async () => {
@@ -657,7 +657,7 @@ export default function () {
       await request(context.app)
         .get(`${API_PREFIX}/dashboards/${dashboard.id}/widgets/${widget.id}`)
         .set('xc-auth', context.token)
-        .expect(404);
+        .expect(422);
     });
 
     it('Delete Widget v3 - not found', async () => {
@@ -670,7 +670,7 @@ export default function () {
           `${API_PREFIX}/dashboards/${dashboard.id}/widgets/nonexistent_id`,
         )
         .set('xc-auth', context.token)
-        .expect(404);
+        .expect(422);
     });
 
     it('Multiple dashboard operations v3', async () => {

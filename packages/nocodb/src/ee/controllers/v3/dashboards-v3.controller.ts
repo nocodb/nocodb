@@ -13,14 +13,16 @@ import {
 } from '@nestjs/common';
 import { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
-  DashboardV3CreateRequestType,
   DashboardV3DataResponseType,
   DashboardV3GetResponseType,
   DashboardV3ListResponseType,
-  DashboardV3UpdateRequestType,
-  WidgetV3CreateRequestType,
   WidgetV3ListResponseType,
   WidgetV3Type,
+} from '~/services/v3/dashboards-v3.types';
+import {
+  DashboardV3CreateRequestType,
+  DashboardV3UpdateRequestType,
+  WidgetV3CreateRequestType,
   WidgetV3UpdateRequestType,
 } from '~/services/v3/dashboards-v3.types';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -92,13 +94,15 @@ export class DashboardsV3Controller {
     return await this.dashboardsV3Service.widgetGet(context, widgetId);
   }
 
-  @Get(`${PREFIX_APIV3_METABASE}/dashboards/:dashboardId/widgets/:widgetId/data`)
+  @Get(
+    `${PREFIX_APIV3_METABASE}/dashboards/:dashboardId/widgets/:widgetId/data`,
+  )
   @Acl('widgetDataGet', { scope: 'base' })
   async widgetData(
     @TenantContext() context: NcContext,
     @Param('widgetId') widgetId: string,
     @Request() req: NcRequest,
-  ): Promise<any> {
+  ): Promise<unknown> {
     return await this.dashboardsV3Service.widgetData(context, widgetId, req);
   }
 
@@ -191,10 +195,6 @@ export class DashboardsV3Controller {
     @Param('widgetId') widgetId: string,
     @Request() req: NcRequest,
   ): Promise<boolean> {
-    return await this.dashboardsV3Service.widgetDelete(
-      context,
-      widgetId,
-      req,
-    );
+    return await this.dashboardsV3Service.widgetDelete(context, widgetId, req);
   }
 }

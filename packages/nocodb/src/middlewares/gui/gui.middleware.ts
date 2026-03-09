@@ -9,7 +9,7 @@ import type { Request, Response } from 'express';
 // Use the real Node.js require, not rspack's transformed version.
 // rspack replaces require.resolve() with a module ID string at compile
 // time, which breaks path resolution for nc-lib-gui.
-// eslint-disable-next-line no-restricted-globals
+
 declare const __non_webpack_require__: typeof require;
 const _require =
   typeof __non_webpack_require__ !== 'undefined'

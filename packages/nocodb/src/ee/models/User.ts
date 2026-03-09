@@ -1,7 +1,6 @@
 import UserCE from 'src/models/User';
 import {
   extractRolesObj,
-  OrderedWorkspaceRoles,
   OrgUserRoles,
   ProjectRoles,
   type UserType,

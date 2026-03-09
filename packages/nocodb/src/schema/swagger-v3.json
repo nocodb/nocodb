@@ -11956,7 +11956,7 @@
                 "description": "X-axis (category) configuration.",
                 "properties": {
                   "field_id": { "type": "string", "description": "X-axis grouping field." },
-                  "sort_by": { "type": "string", "enum": ["xAxis", "yAxis"], "description": "Sort by x-axis labels or y-axis values." },
+                  "sort_by": { "type": "string", "enum": ["x_axis", "y_axis"], "description": "Sort by x-axis labels or y-axis values." },
                   "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
                   "include_empty_records": { "type": "boolean" },
                   "include_others": { "type": "boolean" },
@@ -12012,7 +12012,7 @@
                 "type": "object",
                 "properties": {
                   "field_id": { "type": "string" },
-                  "sort_by": { "type": "string", "enum": ["xAxis", "yAxis"] },
+                  "sort_by": { "type": "string", "enum": ["x_axis", "y_axis"] },
                   "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
                   "include_empty_records": { "type": "boolean" },
                   "include_others": { "type": "boolean" },

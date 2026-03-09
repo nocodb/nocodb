@@ -4,7 +4,6 @@ export type DashboardV3ListItemType = {
   description: string | null;
   base_id: string;
   workspace_id: string;
-  order: number | null;
   created_at: string;
   updated_at: string;
   created_by: string;
@@ -52,7 +51,6 @@ export type DashboardV3CreateRequestType = {
 export type DashboardV3UpdateRequestType = {
   title?: string;
   description?: string | null;
-  order?: number;
 };
 
 // --- Widget request types ---

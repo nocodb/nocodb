@@ -43,10 +43,14 @@ import { askUserTool } from './ask-user.tool';
 // Cross-base proxy
 import { baseProxyTool } from './base-proxy.tool';
 
+// Dynamic tool loading
+import { loadToolsTool } from './load-tools.tool';
+
 // UI tools
 import { navigateBaseTool } from './ui/navigate-base.tool';
 import { openTableTool } from './ui/open-table.tool';
 import { openViewTool } from './ui/open-view.tool';
+import { openDashboardTool } from './ui/open-dashboard.tool';
 
 // View tools
 import { listViewFieldsTool } from './view/list-view-fields.tool';
@@ -60,6 +64,23 @@ import { listSortsTool } from './view/list-sorts.tool';
 import { removeSortTool } from './view/remove-sort.tool';
 import { setGroupByTool } from './view/set-group-by.tool';
 import { clearGroupByTool } from './view/clear-group-by.tool';
+
+// Dashboard & Widget tools
+import { listDashboardsTool } from './dashboard/list-dashboards.tool';
+import { getDashboardTool } from './dashboard/get-dashboard.tool';
+import { createDashboardTool } from './dashboard/create-dashboard.tool';
+import { updateDashboardTool } from './dashboard/update-dashboard.tool';
+import { deleteDashboardTool } from './dashboard/delete-dashboard.tool';
+import { listWidgetsTool } from './dashboard/list-widgets.tool';
+import { getWidgetTool } from './dashboard/get-widget.tool';
+import { createWidgetTool } from './dashboard/create-widget.tool';
+import { updateWidgetTool } from './dashboard/update-widget.tool';
+import { deleteWidgetTool } from './dashboard/delete-widget.tool';
+import { duplicateWidgetTool } from './dashboard/duplicate-widget.tool';
+import { getWidgetDataTool } from './dashboard/get-widget-data.tool';
+import { addWidgetFilterTool } from './dashboard/add-widget-filter.tool';
+import { listWidgetFiltersTool } from './dashboard/list-widget-filters.tool';
+import { removeWidgetFilterTool } from './dashboard/remove-widget-filter.tool';
 import type { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import type { NcContext } from '~/interface/config';
@@ -87,6 +108,9 @@ export interface ChatToolDefinition {
   uiOnly?: boolean;
   /** Tool category for the frontend tool picker: 'schema' | 'data' | 'view' | 'ui' | 'interaction' */
   category?: string;
+  /** Whether this tool is included in the default tool set. Defaults to true.
+   *  Tools with loadByDefault=false must be loaded via load_tools first. */
+  loadByDefault?: boolean;
   /** Resolve `{{KEY}}` placeholders in the description at startup.
    *  Receives the full tool list, returns key-value pairs to replace. */
   descriptionVars?: (tools: ChatToolDefinition[]) => Record<string, string>;
@@ -161,14 +185,34 @@ export class ChatToolRegistry {
       removeSortTool,
       setGroupByTool,
       clearGroupByTool,
-    ].map((t) => ({ ...t, category: 'view' }));
+    ].map((t) => ({ ...t, category: 'view', loadByDefault: false }));
 
     // UI tools — browser-only, auto-injected for internal sessions
     const uiTools: ChatToolDefinition[] = [
       navigateBaseTool,
       openTableTool,
       openViewTool,
+      openDashboardTool,
     ].map((t) => ({ ...t, category: 'ui', uiOnly: true }));
+
+    // Dashboard & Widget tools
+    const dashboardTools: ChatToolDefinition[] = [
+      listDashboardsTool,
+      getDashboardTool,
+      createDashboardTool,
+      updateDashboardTool,
+      deleteDashboardTool,
+      listWidgetsTool,
+      getWidgetTool,
+      createWidgetTool,
+      updateWidgetTool,
+      deleteWidgetTool,
+      duplicateWidgetTool,
+      getWidgetDataTool,
+      addWidgetFilterTool,
+      listWidgetFiltersTool,
+      removeWidgetFilterTool,
+    ].map((t) => ({ ...t, category: 'dashboard', loadByDefault: false }));
 
     // Interaction tool — browser-only
     const interactionTools: ChatToolDefinition[] = [
@@ -180,13 +224,20 @@ export class ChatToolRegistry {
       { ...baseProxyTool, category: 'schema' },
     ];
 
+    // Dynamic tool loading — always available
+    const metaTools: ChatToolDefinition[] = [
+      { ...loadToolsTool, category: 'meta' },
+    ];
+
     this.tools = [
       ...schemaTools,
       ...dataTools,
       ...viewTools,
       ...uiTools,
+      ...dashboardTools,
       ...interactionTools,
       ...proxyTools,
+      ...metaTools,
     ];
 
     // Hydrate {{placeholders}} in tool descriptions with computed values.
@@ -275,8 +326,30 @@ export class ChatToolRegistry {
     return false;
   }
 
-  getAvailableTools(req: NcRequest): ChatToolDefinition[] {
+  /**
+   * Get tools available to the current user, filtered by role/ACL
+   * and optionally by loaded categories.
+   *
+   * When `loadedCategories` is provided, tools with `loadByDefault: false`
+   * are excluded unless their category is in the set. The `load_tools`
+   * meta-tool is always included so the AI can load more categories.
+   */
+  getAvailableTools(
+    req: NcRequest,
+    loadedCategories?: Set<string>,
+  ): ChatToolDefinition[] {
     return this.tools.filter((t) => {
+      // ── Category gate (when loadedCategories is provided) ──
+      if (loadedCategories) {
+        if (
+          t.loadByDefault === false &&
+          !(t.category && loadedCategories.has(t.category))
+        ) {
+          return false;
+        }
+      }
+
+      // ── Role / ACL gate ──
       // Common tools are available to any authenticated user —
       // controller-level ACL already verified workspace membership.
       if (t.scope === 'common') return true;

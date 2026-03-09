@@ -1,10 +1,11 @@
 import ChatSessionCE from 'src/models/ChatSession';
-import type { ChatSessionType } from 'nocodb-sdk';
+import type { ChatSessionMetaType, ChatSessionType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import ChatMessage from '~/models/ChatMessage';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
+import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -25,6 +26,7 @@ export default class ChatSession
   total_input_tokens?: number;
   total_output_tokens?: number;
   message_count?: number;
+  meta?: ChatSessionMetaType;
   created_at?: string;
   updated_at?: string;
 
@@ -69,7 +71,7 @@ export default class ChatSession
       }
     }
 
-    return session && new ChatSession(session);
+    return session && new ChatSession(prepareForResponse(session));
   }
 
   public static async list(
@@ -110,10 +112,10 @@ export default class ChatSession
         rows,
       );
 
-      return rows.map((s) => new ChatSession(s));
+      return rows.map((s) => new ChatSession(prepareForResponse(s)));
     }
 
-    return sessionsList.map((s) => new ChatSession(s));
+    return sessionsList.map((s) => new ChatSession(prepareForResponse(s)));
   }
 
   static async insert(
@@ -121,12 +123,19 @@ export default class ChatSession
     session: Partial<ChatSession>,
     ncMeta = Noco.ncMeta,
   ) {
-    const insertObj = extractProps(session, [
+    let insertObj = extractProps(session, [
       'id',
       'title',
       'fk_workspace_id',
       'fk_user_id',
+      'meta',
     ]);
+
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
+
+    insertObj = prepareForDb(insertObj);
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -160,13 +169,14 @@ export default class ChatSession
       'total_input_tokens',
       'total_output_tokens',
       'message_count',
+      'meta',
     ]);
 
     await ncMeta.metaUpdate(
       context.workspace_id,
       RootScopes.WORKSPACE,
       MetaTable.CHAT_SESSIONS,
-      updateObj,
+      prepareForDb(updateObj),
       {
         id: sessionId,
       },

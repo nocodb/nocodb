@@ -327,7 +327,7 @@ export default class Dashboard extends DashboardCE implements DashboardType {
         uuid,
       },
     );
-    return dashboard && new Dashboard(dashboard);
+    return dashboard && new Dashboard(prepareForResponse(dashboard, ['meta']));
   }
 
   static async deleteByBaseId(

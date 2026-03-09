@@ -8,17 +8,19 @@ const emit = defineEmits<{
 
 const { selectedWidget: textWidget } = storeToRefs(useWidgetStore())
 
-const horizontalAlign = ref(textWidget.value?.config?.formatting.horizontalAlign || 'flex-start')
+const formatting = textWidget.value?.config?.formatting
 
-const verticalAlign = ref(textWidget.value?.config?.formatting.verticalAlign || 'flex-start')
+const horizontalAlign = ref(formatting?.horizontalAlign || 'flex-start')
 
-const bold = ref(textWidget.value?.config?.formatting.bold ?? false)
+const verticalAlign = ref(formatting?.verticalAlign || 'flex-start')
 
-const italic = ref(textWidget.value?.config?.formatting.italic ?? false)
+const bold = ref(formatting?.bold ?? false)
 
-const underline = ref(textWidget.value?.config?.formatting.underline ?? false)
+const italic = ref(formatting?.italic ?? false)
 
-const strikeThrough = ref(textWidget.value?.config?.formatting.strikethrough ?? false)
+const underline = ref(formatting?.underline ?? false)
+
+const strikeThrough = ref(formatting?.strikethrough ?? false)
 
 const updateFormatting = () => {
   emit('update:formatting', {

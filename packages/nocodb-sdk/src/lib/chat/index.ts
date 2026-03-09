@@ -24,6 +24,11 @@ export enum ChatStreamEventType {
   ERROR = 'error',
 }
 
+export interface ChatSessionMetaType {
+  /** Tool categories loaded via load_tools during this session */
+  loadedCategories?: string[];
+}
+
 export interface ChatSessionType {
   id?: string;
   title?: string;
@@ -33,6 +38,7 @@ export interface ChatSessionType {
   total_input_tokens?: number;
   total_output_tokens?: number;
   message_count?: number;
+  meta?: ChatSessionMetaType;
   created_at?: string;
   updated_at?: string;
 }

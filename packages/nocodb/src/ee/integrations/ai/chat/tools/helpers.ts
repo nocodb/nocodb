@@ -3,6 +3,7 @@ import type { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Model from '~/models/Model';
 import View from '~/models/View';
+import { Dashboard, Widget } from '~/models';
 import Noco from '~/Noco';
 
 /**
@@ -107,4 +108,45 @@ export async function getPrimaryKeyTitle(
   const columns = await model.getColumns(context);
   const pkCol = columns.find((c) => c.pk);
   return pkCol?.title;
+}
+
+/**
+ * Resolve a dashboard by its title (case-insensitive) within the current base.
+ */
+export async function resolveDashboardByName(
+  context: NcContext,
+  dashboardName: string,
+): Promise<Dashboard> {
+  const dashboards = await Dashboard.list(context, context.base_id);
+
+  const lowerName = dashboardName.toLowerCase();
+  const dashboard = dashboards.find(
+    (d) => d.title?.toLowerCase() === lowerName,
+  );
+
+  if (!dashboard) {
+    NcError.get(context).genericNotFound('Dashboard', dashboardName);
+  }
+
+  return dashboard;
+}
+
+/**
+ * Resolve a widget by its title (case-insensitive) within a dashboard.
+ */
+export async function resolveWidgetByName(
+  context: NcContext,
+  dashboardId: string,
+  widgetName: string,
+): Promise<Widget> {
+  const widgets = await Widget.list(context, dashboardId);
+
+  const lowerName = widgetName.toLowerCase();
+  const widget = widgets.find((w) => w.title?.toLowerCase() === lowerName);
+
+  if (!widget) {
+    NcError.get(context).genericNotFound('Widget', widgetName);
+  }
+
+  return widget;
 }

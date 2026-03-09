@@ -51,6 +51,8 @@ const handleCustomSubmit = () => {
   }
   answers.value = { ...answers.value, [currentStep.value]: trimmed }
   customInput.value = ''
+  // Auto-advance after custom input (same as clicking Next)
+  nextTick(() => goNext())
 }
 
 const goNext = () => {

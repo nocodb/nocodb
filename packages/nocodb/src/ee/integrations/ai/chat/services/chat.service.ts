@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { stepCountIs, streamText } from 'ai';
 import {
   AppEvents,
@@ -11,13 +11,16 @@ import {
   ProjectRoles,
 } from 'nocodb-sdk';
 import { ChatToolRegistry } from '../tools/chat-tool-registry';
+import { getCategoryPrompt } from '../prompts';
 import { MAX_STEPS, MESSAGE_MAX_LENGTH } from '../constants';
 import { ChatContextService } from './chat-context.service';
 import { ChatCompactionService } from './chat-compaction.service';
+import type { OnModuleInit } from '@nestjs/common';
 import type {
   ChatContentBlock,
   ChatEventPayload,
   ChatSendMessageType,
+  ChatSessionMetaType,
 } from 'nocodb-sdk';
 import type { ChatApprovalJobData, ChatMessageJobData } from '~/interface/Jobs';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -507,14 +510,33 @@ export class ChatService implements OnModuleInit {
     // Build a sub-context with base_id so tools and system prompt get schema context
     const toolContext = await this.buildToolContext(context, baseId, req);
 
-    // Build tools
-    const availableTools = this.toolRegistry.getAvailableTools(req);
+    // Restore loaded tool categories from session meta
+    const sessionMeta =
+      typeof session.meta === 'object' ? session.meta : undefined;
+    const loadedCategories = new Set<string>(
+      sessionMeta?.loadedCategories || [],
+    );
+
+    // Build tools — only default + previously loaded categories.
+    // The vercelTools object is mutable: the AI SDK re-reads it on each step,
+    // so we can add new tools mid-stream when load_tools is called.
+    const availableTools = this.toolRegistry.getAvailableTools(
+      req,
+      loadedCategories,
+    );
     const vercelTools = this.toolRegistry.toVercelTools(
       availableTools,
       toolContext,
       req,
       approvals,
     );
+
+    // Track whether tools were refreshed mid-stream (for prepareStep notification)
+    let pendingRefreshMessage: string | null = null;
+
+    // Track which category prompts have already been injected (via buildSystemPrompt
+    // or prepareStep) to avoid duplicating them in the context window.
+    const injectedCategoryPrompts = new Set<string>(loadedCategories);
 
     // Build messages (with compaction)
     const existingMessages = await ChatMessage.list(context, { sessionId });
@@ -539,6 +561,7 @@ export class ChatService implements OnModuleInit {
         baseId,
         userRoles,
         summary,
+        loadedCategories,
         req,
       },
     );
@@ -567,6 +590,22 @@ export class ChatService implements OnModuleInit {
       tools: vercelTools,
       abortSignal: abortController.signal,
       stopWhen: stepCountIs(MAX_STEPS),
+      // Inject a system notification after tool refresh so the LLM knows
+      // new tools are available in its next step.
+      prepareStep: ({ messages: stepMessages }) => {
+        if (!pendingRefreshMessage) return undefined;
+        const notification = pendingRefreshMessage;
+        pendingRefreshMessage = null;
+        return {
+          messages: [
+            ...stepMessages,
+            {
+              role: 'system' as const,
+              content: notification,
+            },
+          ],
+        };
+      },
       onChunk: ({ chunk }) => {
         if (abortController.signal.aborted) return;
 
@@ -627,6 +666,63 @@ export class ChatService implements OnModuleInit {
             toolName: tr.toolName,
             result: tr.output,
           });
+        }
+
+        // Detect load_tools calls and mutate vercelTools in-place
+        for (const tr of toolResults || []) {
+          if (tr.toolName !== 'load_tools') continue;
+
+          // tr.output is JSON-stringified by toVercelTools — parse it
+          const out =
+            typeof tr.output === 'string'
+              ? (() => {
+                  try {
+                    return JSON.parse(tr.output);
+                  } catch {
+                    return null;
+                  }
+                })()
+              : tr.output;
+          const category = out?.__load_category;
+          if (!category) continue;
+          loadedCategories.add(category);
+
+          // Persist to session meta so future requests don't need to scan messages
+          const updatedMeta: ChatSessionMetaType = {
+            loadedCategories: [...loadedCategories],
+          };
+          ChatSession.update(context, sessionId, { meta: updatedMeta }).catch(
+            (e) =>
+              this.logger.error('Failed to persist loaded categories', e.stack),
+          );
+
+          // Get the new category's tools and add them to vercelTools
+          const categoryTools = this.toolRegistry
+            .getAvailableTools(req)
+            .filter((t) => t.category === category);
+          const newVercelTools = this.toolRegistry.toVercelTools(
+            categoryTools,
+            toolContext,
+            req,
+            approvals,
+          );
+          Object.assign(vercelTools, newVercelTools);
+
+          const toolNames = categoryTools.map((t) => t.name);
+
+          // Set notification for prepareStep — include category reference docs
+          // only if this category's prompt hasn't been injected yet (either via
+          // buildSystemPrompt on session resume, or a prior load_tools call).
+          const categoryPrompt = !injectedCategoryPrompts.has(category)
+            ? getCategoryPrompt(category)
+            : null;
+          injectedCategoryPrompts.add(category);
+
+          pendingRefreshMessage =
+            `Category "${category}" loaded. ${
+              toolNames.length
+            } new tools are now available: ${toolNames.join(', ')}` +
+            (categoryPrompt ? `\n\n${categoryPrompt}` : '');
         }
       },
       onFinish: async ({ usage, steps }) => {

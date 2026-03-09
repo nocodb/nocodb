@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
 
+const isSearchExpanded = defineModel<boolean>('searchExpanded', { default: false })
+
 const reloadData = inject(ReloadViewDataHookInj)!
 
 const reloadAggregate = inject(ReloadAggregateHookInj)
@@ -206,6 +208,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 watch(
   isSearchButtonVisible,
   (newVal) => {
+    isSearchExpanded.value = !newVal
+
     if (newVal) return
 
     isDropdownOpen.value = false

@@ -70,6 +70,10 @@ const isToolbarIconMode = computed(() => {
 })
 
 provide(IsToolbarIconMode, isToolbarIconMode)
+
+const isSearchExpanded = ref(false)
+
+const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpanded.value)
 </script>
 
 <template>
@@ -110,11 +114,11 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
           <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap || isList" :show-system-fields="false" />
 
-          <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isList" />
+          <SmartsheetToolbarColumnFilterMenu v-if="!isMobileSearchActive && (isGrid || isGallery || isKanban || isMap || isList)" />
 
-          <SmartsheetToolbarGroupByMenu v-if="isGrid" />
+          <SmartsheetToolbarGroupByMenu v-if="!isMobileSearchActive && isGrid" />
 
-          <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isList" />
+          <SmartsheetToolbarSortListMenu v-if="!isMobileSearchActive && (isGrid || isGallery || isKanban || isList)" />
 
           <SmartsheetToolbarRowColorFilterDropdown
             v-if="!isMobileMode && !isPublic && !isSharedBase && (isGrid || isGallery || isKanban || isList)"
@@ -153,11 +157,15 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         />
       </template>
 
-      <div class="flex-1" />
+      <div v-if="!isMobileSearchActive" class="flex-1" />
 
       <SmartsheetToolbarCalendarActiveView v-if="isCalendar" />
 
-      <SmartsheetToolbarSearchData v-if="isGrid || isGallery || isKanban || isList" class="shrink" />
+      <SmartsheetToolbarSearchData
+        v-if="isGrid || isGallery || isKanban || isList"
+        v-model:search-expanded="isSearchExpanded"
+        :class="isMobileSearchActive ? 'flex-1 min-w-0' : 'shrink'"
+      />
 
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
 

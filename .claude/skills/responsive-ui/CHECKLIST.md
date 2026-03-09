@@ -88,7 +88,7 @@ Test each item on: **Mobile (xs)**, **Tablet (sm/md)**, **Desktop (lg+)**
 - [ ] **Group by menu** — group config panel
 - [ ] **Search bar** — search input width and expand/collapse
 - [ ] **Export dropdown** — menu positioning
-- [ ] **Row height selector** — dropdown positioning
+- [x] **Row height selector** — dropdown positioning
 - [ ] **View action menu** — lock, duplicate, delete actions
 - [ ] **Calendar toolbar** — mode selector, date navigation, today button
 - [ ] **Pinned filters** — filter pills wrapping

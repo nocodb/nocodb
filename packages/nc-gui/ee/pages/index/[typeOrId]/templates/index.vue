@@ -4,8 +4,6 @@ const { hideSidebar } = storeToRefs(useSidebarStore())
 const router = useRouter()
 const route = router.currentRoute
 
-const { shouldShow: btbShouldShow } = useBackToBase()
-
 const { sharedBaseId, options, isUseThisTemplate, isDuplicateDlgOpen, selectedWorkspace, templateName } = useCopySharedBase()
 
 const { appInfo } = useGlobal()
@@ -108,22 +106,17 @@ watch(isDark, (newVal) => {
   <div>
     <NuxtLayout name="empty">
       <div class="overflow-hidden">
-        <!-- Back-to-base full-width bar -->
-        <DashboardBackToBaseBreadcrumbVariant />
-
-        <!-- iframe fills remaining height after the bar -->
-        <div class="overflow-hidden relative" :style="{ height: btbShouldShow ? 'calc(100dvh - 36px)' : '100dvh' }">
-          <div v-if="!frameLoaded" class="w-full h-full p-[20%] flex items-center justify-center">
-            <a-spin size="large" />
-          </div>
-          <iframe
-            v-show="frameLoaded"
-            :src="embedPage"
-            width="100%"
-            style="border: none; height: 100%"
-            @load="frameLoaded = true"
-          ></iframe>
+        <div v-if="!frameLoaded" class="w-full nc-h-screen p-[20%] flex items-center justify-center">
+          <a-spin size="large" />
         </div>
+        <iframe
+          v-show="frameLoaded"
+          :src="embedPage"
+          width="100%"
+          style="border: none; height: 100dvh"
+          class="nc-h-screen"
+          @load="frameLoaded = true"
+        ></iframe>
       </div>
     </NuxtLayout>
   </div>

@@ -1,5 +1,5 @@
 import type { ColumnType, FilterType, SourceType, TableType, ViewType } from 'nocodb-sdk'
-import type { ComputedRef, Reactive, Ref } from 'vue'
+import type { ComputedRef, Reactive, Ref, VNode } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { PageSidebarNode } from '#imports'
 
@@ -168,5 +168,12 @@ export const WorkflowVariableInj: InjectionKey<{
 export const IsWsBaseListModalInj: InjectionKey<Ref<boolean>> = Symbol('is-ws-base-list-modal-injection')
 
 export const IsSettingsSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-settings-sidebar-injection')
+
+export interface DrawerNav {
+  pushPanel: (panel: { titleRender: () => VNode | VNode[]; contentRender: () => VNode | VNode[] }) => void
+  popPanel: () => void
+}
+
+export const DrawerNavInj: InjectionKey<DrawerNav> = Symbol('drawer-nav-injection')
 
 export const DocIdInj: InjectionKey<Ref<string>> = Symbol('doc-id-injection')

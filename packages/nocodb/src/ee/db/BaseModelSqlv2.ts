@@ -74,6 +74,7 @@ import {
   UPDATE_WORKSPACE_COUNTER,
   UPDATE_WORKSPACE_STAT,
 } from '~/services/update-stats.service';
+import { isCloud } from '~/utils';
 import Noco from '~/Noco';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import { sanitize } from '~/helpers/sqlSanitize';
@@ -1217,30 +1218,32 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ): Promise<void> {
     const { allowSystemColumn = false } = params || {};
 
-    const workspaceStats = await ModelStat.getWorkspaceSum(
-      this.model.fk_workspace_id,
-    );
+    if (isCloud) {
+      const workspaceStats = await ModelStat.getWorkspaceSum(
+        this.model.fk_workspace_id,
+      );
 
-    let workspaceRowCount = workspaceStats ? workspaceStats.row_count : null;
+      let workspaceRowCount = workspaceStats ? workspaceStats.row_count : null;
 
-    // initial case
-    if (workspaceRowCount === null) {
-      Noco.eventEmitter.emit(UPDATE_WORKSPACE_STAT, {
-        context: this.context,
-        fk_workspace_id: this.model.fk_workspace_id,
-        force: true,
+      // initial case
+      if (workspaceRowCount === null) {
+        Noco.eventEmitter.emit(UPDATE_WORKSPACE_STAT, {
+          context: this.context,
+          fk_workspace_id: this.model.fk_workspace_id,
+          force: true,
+        });
+
+        workspaceRowCount = 0;
+      }
+
+      await checkLimit({
+        workspaceId: this.model.fk_workspace_id,
+        type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+        count: workspaceRowCount,
+        message: ({ limit }) =>
+          `Only ${limit} records are allowed in your workspace, for more please upgrade your plan`,
       });
-
-      workspaceRowCount = 0;
     }
-
-    await checkLimit({
-      workspaceId: this.model.fk_workspace_id,
-      type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      count: workspaceRowCount,
-      message: ({ limit }) =>
-        `Only ${limit} records are allowed in your workspace, for more please upgrade your plan`,
-    });
 
     if (!allowSystemColumn && this.model.synced) {
       NcError.get(this.context).prohibitedSyncTableOperation({
@@ -1270,30 +1273,32 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ): Promise<void> {
     const { allowSystemColumn = false } = params || {};
 
-    const workspaceStats = await ModelStat.getWorkspaceSum(
-      this.model.fk_workspace_id,
-    );
+    if (isCloud) {
+      const workspaceStats = await ModelStat.getWorkspaceSum(
+        this.model.fk_workspace_id,
+      );
 
-    let workspaceRowCount = workspaceStats ? workspaceStats.row_count : null;
+      let workspaceRowCount = workspaceStats ? workspaceStats.row_count : null;
 
-    // initial case
-    if (workspaceRowCount === null) {
-      Noco.eventEmitter.emit(UPDATE_WORKSPACE_STAT, {
-        context: this.context,
-        fk_workspace_id: this.model.fk_workspace_id,
-        force: true,
+      // initial case
+      if (workspaceRowCount === null) {
+        Noco.eventEmitter.emit(UPDATE_WORKSPACE_STAT, {
+          context: this.context,
+          fk_workspace_id: this.model.fk_workspace_id,
+          force: true,
+        });
+
+        workspaceRowCount = 0;
+      }
+
+      await checkLimit({
+        workspaceId: this.model.fk_workspace_id,
+        type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
+        count: workspaceRowCount,
+        message: ({ limit }) =>
+          `Only ${limit} records are allowed in your workspace, for more please upgrade your plan`,
       });
-
-      workspaceRowCount = 0;
     }
-
-    await checkLimit({
-      workspaceId: this.model.fk_workspace_id,
-      type: PlanLimitTypes.LIMIT_RECORD_PER_WORKSPACE,
-      count: workspaceRowCount,
-      message: ({ limit }) =>
-        `Only ${limit} records are allowed in your workspace, for more please upgrade your plan`,
-    });
 
     if (!allowSystemColumn && this.model.synced) {
       NcError.get(this.context).prohibitedSyncTableOperation({
@@ -3767,7 +3772,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   }
 
   async statsUpdate(args: { count: number }) {
-    const count = Math.abs(args.count || 1);
+    if (!isCloud) return;
+
+    const count = args.count || 1;
 
     const workspaceStats = await ModelStat.getWorkspaceSum(
       this.model.fk_workspace_id,

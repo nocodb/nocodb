@@ -98,10 +98,6 @@ export class JobsMap extends JobsMapCE {
         this: this.updateStatsProcessor,
         fn: 'updateWorkspaceStat',
       },
-      [JobTypes.UpdateSrcStat]: {
-        this: this.updateStatsProcessor,
-        fn: 'updateSourceStat',
-      },
       [JobTypes.CleanUp]: {
         this: this.cleanUpProcessor,
       },

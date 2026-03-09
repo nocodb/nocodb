@@ -1,5 +1,5 @@
 import ChatSessionCE from 'src/models/ChatSession';
-import type { ChatSessionType } from 'nocodb-sdk';
+import type { ChatSessionMetaType, ChatSessionType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import ChatMessage from '~/models/ChatMessage';
 import Noco from '~/Noco';
@@ -26,7 +26,7 @@ export default class ChatSession
   total_input_tokens?: number;
   total_output_tokens?: number;
   message_count?: number;
-  meta?: Record<string, any> | string;
+  meta?: ChatSessionMetaType | string;
   created_at?: string;
   updated_at?: string;
 

@@ -283,7 +283,7 @@ Chart and metric widgets support three data source modes via \`config.dataSource
 (2) use \`add_widget_filter\` to add conditions (same operators as view filters). \
 Use \`list_widget_filters\` to see existing conditions and \`remove_widget_filter\` to remove them.
 
-### Workflow
+### How to Build a Dashboard
 
 (1) \`list_dashboards\` to see existing → (2) \`create_dashboard\` if needed → \
 (3) \`list_tables\` + \`describe_table\` to pick supported columns → (4) \`create_widget\` with config → \

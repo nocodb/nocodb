@@ -20,6 +20,7 @@ import type {
   ChatContentBlock,
   ChatEventPayload,
   ChatSendMessageType,
+  ChatSessionMetaType,
 } from 'nocodb-sdk';
 import type { ChatApprovalJobData, ChatMessageJobData } from '~/interface/Jobs';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -510,8 +511,10 @@ export class ChatService implements OnModuleInit {
     const toolContext = await this.buildToolContext(context, baseId, req);
 
     // Restore loaded tool categories from session meta
+    const sessionMeta =
+      typeof session.meta === 'object' ? session.meta : undefined;
     const loadedCategories = new Set<string>(
-      (session.meta as any)?.loadedCategories || [],
+      sessionMeta?.loadedCategories || [],
     );
 
     // Build tools — only default + previously loaded categories.
@@ -530,6 +533,10 @@ export class ChatService implements OnModuleInit {
 
     // Track whether tools were refreshed mid-stream (for prepareStep notification)
     let pendingRefreshMessage: string | null = null;
+
+    // Track which category prompts have already been injected (via buildSystemPrompt
+    // or prepareStep) to avoid duplicating them in the context window.
+    const injectedCategoryPrompts = new Set<string>(loadedCategories);
 
     // Build messages (with compaction)
     const existingMessages = await ChatMessage.list(context, { sessionId });
@@ -681,7 +688,7 @@ export class ChatService implements OnModuleInit {
           loadedCategories.add(category);
 
           // Persist to session meta so future requests don't need to scan messages
-          const updatedMeta = {
+          const updatedMeta: ChatSessionMetaType = {
             loadedCategories: [...loadedCategories],
           };
           ChatSession.update(context, sessionId, { meta: updatedMeta }).catch(
@@ -703,8 +710,14 @@ export class ChatService implements OnModuleInit {
 
           const toolNames = categoryTools.map((t) => t.name);
 
-          // Set notification for prepareStep — include category reference docs if available
-          const categoryPrompt = getCategoryPrompt(category);
+          // Set notification for prepareStep — include category reference docs
+          // only if this category's prompt hasn't been injected yet (either via
+          // buildSystemPrompt on session resume, or a prior load_tools call).
+          const categoryPrompt = !injectedCategoryPrompts.has(category)
+            ? getCategoryPrompt(category)
+            : null;
+          injectedCategoryPrompts.add(category);
+
           pendingRefreshMessage =
             `Category "${category}" loaded. ${
               toolNames.length

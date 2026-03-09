@@ -34,8 +34,8 @@ const categoryLabels: Record<string, { label: string; desc: string }> = {
   [ApiTokenPermissionCategory.FIELDS]: { label: 'Fields', desc: 'List, create, update, and delete columns' },
   [ApiTokenPermissionCategory.VIEWS]: { label: 'Views', desc: 'Manage views, sorts, filters, and sharing' },
   [ApiTokenPermissionCategory.WEBHOOKS]: { label: 'Webhooks', desc: 'Manage webhook triggers and logs' },
-  [ApiTokenPermissionCategory.BASE]: { label: 'Base', desc: 'Base settings, sources, extensions, and audit' },
-  [ApiTokenPermissionCategory.USERS]: { label: 'Users', desc: 'View and manage collaborators' },
+  [ApiTokenPermissionCategory.BASE]: { label: 'Base', desc: 'Base settings, sources, and jobs' },
+  [ApiTokenPermissionCategory.USERS]: { label: 'Users', desc: 'Base members, workspace members, and invitations' },
 }
 
 const setLevel = (category: string, level: string) => {

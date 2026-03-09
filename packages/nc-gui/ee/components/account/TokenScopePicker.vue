@@ -145,7 +145,7 @@ onMounted(() => {
   }
 
   &.nc-scope-card-active {
-    @apply border-brand-500 bg-nc-bg-brand;
+    @apply border-brand-500 bg-nc-bg-default;
   }
 }
 

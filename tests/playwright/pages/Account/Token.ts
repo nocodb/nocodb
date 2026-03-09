@@ -24,13 +24,13 @@ export class AccountTokenPage extends BasePage {
     return this.accountPage.get().locator(`[data-testid="nc-token-list"]`);
   }
 
-  private async isEeWizard(): Promise<boolean> {
-    // In EE mode, clicking create opens a wizard modal
-    // In CE mode, it shows an inline input row
+  private async isEeDropdown(): Promise<boolean> {
+    // In EE mode, clicking create shows a dropdown with "Fine-grained" and "Legacy" options
+    // In CE mode, it shows an inline input row directly
     await this.createBtn.click();
-    const wizard = this.rootPage.locator('[data-testid="nc-token-create-wizard"]');
+    const fineGrainedItem = this.rootPage.locator('[data-testid="nc-token-create-fine-grained"]');
     try {
-      await wizard.waitFor({ state: 'visible', timeout: 3000 });
+      await fineGrainedItem.waitFor({ state: 'visible', timeout: 3000 });
       return true;
     } catch {
       return false;
@@ -38,10 +38,14 @@ export class AccountTokenPage extends BasePage {
   }
 
   async createToken({ description }: { description: string }) {
-    const isEe = await this.isEeWizard();
+    const isEe = await this.isEeDropdown();
 
     if (isEe) {
-      // EE: 3-step wizard — fill name, skip scope, skip permissions, create
+      // EE: dropdown → Fine-grained → 3-step wizard
+      await this.rootPage.locator('[data-testid="nc-token-create-fine-grained"]').click();
+      await this.rootPage
+        .locator('[data-testid="nc-token-create-wizard"]')
+        .waitFor({ state: 'visible', timeout: 10000 });
       await this.rootPage.locator('[data-testid="nc-token-name-input"]').fill(description);
       await this.rootPage.locator('[data-testid="nc-token-wizard-next"]').click();
       // Step 2 — Scope: keep default

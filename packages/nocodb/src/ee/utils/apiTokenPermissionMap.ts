@@ -13,10 +13,10 @@ interface TokenPermissionMapping {
  *   tables   — table list/create/update/delete
  *   fields   — column/field CRUD, relations, indices
  *   views    — view CRUD, sorts, filters, view columns, share
- *   base     — base settings, sources, extensions, swagger, audit, jobs
+ *   base     — base settings, sources, swagger, jobs
  *   comments — row comments
  *   webhooks — webhook management
- *   users    — user/collaborator management
+ *   users    — base members, workspace members, invitations
  *
  * Operations NOT in this map are unrestricted — if the user's role allows it,
  * the token allows it. This ensures backward compatibility and avoids blocking
@@ -134,23 +134,17 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = 
   shareViewUpdate: { category: 'views', level: 'write' },
 
   // ──────────────────────────────────
-  // Base — settings, sources, extensions, audit, jobs
+  // Base — settings, sources, jobs
   // ──────────────────────────────────
   baseGet: { category: 'base', level: 'read' },
   baseInfoGet: { category: 'base', level: 'read' },
   baseCost: { category: 'base', level: 'read' },
   swaggerJson: { category: 'base', level: 'read' },
-  recordAuditList: { category: 'base', level: 'read' },
   jobList: { category: 'base', level: 'read' },
-  extensionList: { category: 'base', level: 'read' },
-  extensionRead: { category: 'base', level: 'read' },
 
   // Base (write)
   sourceCreate: { category: 'base', level: 'write' },
   baseDelete: { category: 'base', level: 'write' },
-  extensionCreate: { category: 'base', level: 'write' },
-  extensionUpdate: { category: 'base', level: 'write' },
-  extensionDelete: { category: 'base', level: 'write' },
 
   // ──────────────────────────────────
   // Comments (read)
@@ -181,9 +175,11 @@ export const API_TOKEN_PERMISSION_MAP: Record<string, TokenPermissionMapping> = 
   // ──────────────────────────────────
   baseUserList: { category: 'users', level: 'read' },
   workspaceUserList: { category: 'users', level: 'read' },
+  workspaceUserGet: { category: 'users', level: 'read' },
 
   // Users (write)
   userInvite: { category: 'users', level: 'write' },
+  userInviteResend: { category: 'users', level: 'write' },
   baseUserMetaUpdate: { category: 'users', level: 'write' },
   workspaceInvite: { category: 'users', level: 'write' },
   workspaceUserUpdate: { category: 'users', level: 'write' },

@@ -28,9 +28,13 @@ const navigateToTokens = async page => {
 };
 
 const openWizard = async page => {
+  // Click the create button to open dropdown, then select "Fine-grained token"
   const createBtn = page.locator('[data-testid="nc-token-create"]');
   await createBtn.waitFor({ state: 'visible' });
   await createBtn.click();
+  const fineGrainedItem = page.locator('[data-testid="nc-token-create-fine-grained"]');
+  await fineGrainedItem.waitFor({ state: 'visible', timeout: 5000 });
+  await fineGrainedItem.click();
   await page.locator('[data-testid="nc-token-create-wizard"]').waitFor({ state: 'visible', timeout: 10000 });
 };
 

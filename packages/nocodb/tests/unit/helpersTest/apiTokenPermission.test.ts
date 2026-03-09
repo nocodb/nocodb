@@ -124,18 +124,43 @@ function apiTokenPermissionTests() {
       });
     });
 
-    it('returns mapping for user operations', () => {
+    it('returns mapping for user operations — base members', () => {
       expect(getTokenPermissionForOperation('baseUserList')).to.deep.equal({
         category: 'users',
         level: 'read',
       });
-      expect(getTokenPermissionForOperation('workspaceUserList')).to.deep.equal(
-        {
-          category: 'users',
-          level: 'read',
-        },
-      );
       expect(getTokenPermissionForOperation('userInvite')).to.deep.equal({
+        category: 'users',
+        level: 'write',
+      });
+      expect(getTokenPermissionForOperation('userInviteResend')).to.deep.equal({
+        category: 'users',
+        level: 'write',
+      });
+      expect(getTokenPermissionForOperation('baseUserMetaUpdate')).to.deep.equal({
+        category: 'users',
+        level: 'write',
+      });
+    });
+
+    it('returns mapping for user operations — workspace members', () => {
+      expect(getTokenPermissionForOperation('workspaceUserList')).to.deep.equal({
+        category: 'users',
+        level: 'read',
+      });
+      expect(getTokenPermissionForOperation('workspaceUserGet')).to.deep.equal({
+        category: 'users',
+        level: 'read',
+      });
+      expect(getTokenPermissionForOperation('workspaceInvite')).to.deep.equal({
+        category: 'users',
+        level: 'write',
+      });
+      expect(getTokenPermissionForOperation('workspaceUserUpdate')).to.deep.equal({
+        category: 'users',
+        level: 'write',
+      });
+      expect(getTokenPermissionForOperation('workspaceUserDelete')).to.deep.equal({
         category: 'users',
         level: 'write',
       });
@@ -242,6 +267,34 @@ function apiTokenPermissionTests() {
       expect(checkTokenPermission(perms, 'userInvite')).to.be.false;
     });
 
+    it('users category covers base and workspace members', () => {
+      const readPerms = { users: ApiTokenPermissionLevel.READ };
+      // Read — base members
+      expect(checkTokenPermission(readPerms, 'baseUserList')).to.be.true;
+      // Read — workspace members
+      expect(checkTokenPermission(readPerms, 'workspaceUserList')).to.be.true;
+      expect(checkTokenPermission(readPerms, 'workspaceUserGet')).to.be.true;
+      // Write denied with read-only
+      expect(checkTokenPermission(readPerms, 'userInvite')).to.be.false;
+      expect(checkTokenPermission(readPerms, 'userInviteResend')).to.be.false;
+      expect(checkTokenPermission(readPerms, 'baseUserMetaUpdate')).to.be.false;
+      expect(checkTokenPermission(readPerms, 'workspaceInvite')).to.be.false;
+      expect(checkTokenPermission(readPerms, 'workspaceUserUpdate')).to.be.false;
+      expect(checkTokenPermission(readPerms, 'workspaceUserDelete')).to.be.false;
+
+      const writePerms = { users: ApiTokenPermissionLevel.WRITE };
+      // Write — all allowed
+      expect(checkTokenPermission(writePerms, 'baseUserList')).to.be.true;
+      expect(checkTokenPermission(writePerms, 'userInvite')).to.be.true;
+      expect(checkTokenPermission(writePerms, 'userInviteResend')).to.be.true;
+      expect(checkTokenPermission(writePerms, 'baseUserMetaUpdate')).to.be.true;
+      expect(checkTokenPermission(writePerms, 'workspaceUserList')).to.be.true;
+      expect(checkTokenPermission(writePerms, 'workspaceUserGet')).to.be.true;
+      expect(checkTokenPermission(writePerms, 'workspaceInvite')).to.be.true;
+      expect(checkTokenPermission(writePerms, 'workspaceUserUpdate')).to.be.true;
+      expect(checkTokenPermission(writePerms, 'workspaceUserDelete')).to.be.true;
+    });
+
     it('each category is independent', () => {
       // records: read, tables: write, everything else: none
       const perms = {
@@ -331,6 +384,13 @@ function apiTokenPermissionTests() {
         'commentRow',
         'baseUserList',
         'userInvite',
+        'userInviteResend',
+        'baseUserMetaUpdate',
+        'workspaceUserList',
+        'workspaceUserGet',
+        'workspaceInvite',
+        'workspaceUserUpdate',
+        'workspaceUserDelete',
       ];
       for (const op of criticalOps) {
         expect(

@@ -4,6 +4,7 @@ import {
   VariableDefinition,
   VariableGroupKey,
   VariableType,
+  VariableGeneratorContext,
 } from '~/lib/workflow/interface';
 import { RelationTypes } from '~/lib/globals';
 import { ColumnType } from '~/lib';
@@ -11,29 +12,6 @@ import { LinkToAnotherRecordType, LookupType } from '~/lib/Api';
 import { FormulaDataTypes } from '~/lib/formula/enums';
 import { prefixVariableKeys } from '~/ee/lib'
 
-/**
- * Context interface for async operations
- */
-export interface VariableGeneratorContext {
-  getColumn?: (columnId: string) => Promise<ColumnType> | ColumnType;
-  getTableColumns?: (tableId: string) => Promise<ColumnType[]> | ColumnType[];
-  port?: string; // Current port for multi-port nodes (e.g., 'body', 'output' for iterate node)
-
-  /**
-   * Infer schema from a workflow expression by analyzing referenced nodes
-   * Extracts itemSchema from array variables in previous nodes
-   *
-   * @param expression - Template expression like "{{ $('NodeName').fieldPath }}"
-   * @returns Promise resolving to inferred schema, or undefined if not found
-   *
-   * @example
-   * const schema = await context.inferSchemaFromExpression?.("{{ $('Get Records').records }}");
-   * // Returns the itemSchema of the 'records' variable from 'Get Records' node
-   */
-  inferSchemaFromExpression?: (
-    expression: string,
-  ) => Promise<VariableDefinition[] | undefined>;
-}
 
 /**
  * Map UIType to icon name (matching NocoDB's iconMap)

@@ -11,6 +11,7 @@ const props = defineProps<{
   permission?: PermissionKey
   entityTitle?: string
   hint?: string
+  minimumRoleOverride?: string
 }>()
 
 const emits = defineEmits(['update:visible', 'save'])
@@ -170,6 +171,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
         list-class-name="!w-auto"
         show-search-always
         :disabled-users="selectedBelowMinimumRoleUsers"
+        :minimum-role-override="minimumRoleOverride"
       >
       </PermissionsUserSelectorList>
       <div v-if="hint" class="my-2 mx-1 text-xs text-nc-content-gray-disabled">

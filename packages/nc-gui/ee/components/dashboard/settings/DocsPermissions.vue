@@ -37,42 +37,64 @@ const isCreatorOrAbove = computed(() => {
 const searchQuery = ref('')
 
 /**
- * Resolve the effective permission for a document by walking up the parent chain.
- * Returns the PermissionOptionValue string if inherited from an ancestor, or undefined
- * if the doc has an explicit permission or no ancestor overrides the default.
+ * Resolve the effective permission for a document by checking its own explicit
+ * permission first, then walking up the parent chain.
+ * Returns the PermissionOptionValue string, or undefined if no explicit permission
+ * exists anywhere in the chain (i.e. the default applies).
+ */
+const resolveDocPermission = (docId: string, permissionKey: PermissionKey): string | undefined => {
+  const permissions = base.value?.permissions
+  if (!permissions) return undefined
+
+  const docsById = new Map(activeDocuments.value.map((d) => [d.id, d]))
+  let currentDoc = docsById.get(docId)
+
+  // Check explicit permission on this doc, then walk up ancestors
+  while (currentDoc) {
+    const perm = permissions.find(
+      (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === currentDoc!.id && p.permission === permissionKey,
+    )
+
+    if (perm) {
+      return getPermissionOptionValue(
+        perm.granted_type as PermissionGrantedType,
+        perm.granted_role as PermissionRole,
+      )
+    }
+
+    currentDoc = currentDoc.parent_id ? docsById.get(currentDoc.parent_id) : undefined
+  }
+
+  return undefined
+}
+
+/**
+ * Get the inherited effective value for a doc (for the "Inherited" badge).
+ * Returns undefined if the doc has its own explicit permission.
  */
 const getEffectiveValue = (docId: string, permissionKey: PermissionKey): string | undefined => {
   const permissions = base.value?.permissions
   if (!permissions) return undefined
 
-  // Check if this doc has an explicit permission — if so, not inherited
   const hasExplicit = permissions.some(
     (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === docId && p.permission === permissionKey,
   )
   if (hasExplicit) return undefined
 
-  // Walk up parent chain looking for an ancestor with an explicit permission
+  return resolveDocPermission(docId, permissionKey)
+}
+
+/**
+ * Get the parent document's effective permission (for constraining child options).
+ * Returns undefined for root-level docs (no parent constraint).
+ */
+const getParentEffectiveValue = (docId: string, permissionKey: PermissionKey): string | undefined => {
   const docsById = new Map(activeDocuments.value.map((d) => [d.id, d]))
-  let currentDoc = docsById.get(docId)
+  const doc = docsById.get(docId)
 
-  while (currentDoc?.parent_id) {
-    const parentId = currentDoc.parent_id
-    const parentPermission = permissions.find(
-      (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === parentId && p.permission === permissionKey,
-    )
+  if (!doc?.parent_id) return undefined
 
-    if (parentPermission) {
-      return getPermissionOptionValue(
-        parentPermission.granted_type as PermissionGrantedType,
-        parentPermission.granted_role as PermissionRole,
-      )
-    }
-
-    currentDoc = docsById.get(parentId)
-  }
-
-  // No ancestor has an explicit permission — use default (not inherited)
-  return undefined
+  return resolveDocPermission(doc.parent_id, permissionKey)
 }
 
 // Build a flat list with depth info for indentation
@@ -239,10 +261,12 @@ onMounted(loadAllDocs)
             :config="{
               entity: PermissionEntity.DOCUMENT,
               entityId: record.doc.id,
+              entityTitle: record.doc.title,
               permission: PermissionKey.DOCUMENT_VISIBILITY,
               disabled: !isCreatorOrAbove,
               tooltip: !isCreatorOrAbove ? $t('msg.info.onlyCreatorsCanConfigureDocPermissions') : undefined,
               effectiveValue: getEffectiveValue(record.doc.id, PermissionKey.DOCUMENT_VISIBILITY),
+              parentEffectiveValue: getParentEffectiveValue(record.doc.id, PermissionKey.DOCUMENT_VISIBILITY),
             }"
             mode="inline"
             :readonly="!isCreatorOrAbove"
@@ -258,10 +282,12 @@ onMounted(loadAllDocs)
             :config="{
               entity: PermissionEntity.DOCUMENT,
               entityId: record.doc.id,
+              entityTitle: record.doc.title,
               permission: PermissionKey.DOCUMENT_EDIT,
               disabled: !isCreatorOrAbove,
               tooltip: !isCreatorOrAbove ? $t('msg.info.onlyCreatorsCanConfigureDocPermissions') : undefined,
               effectiveValue: getEffectiveValue(record.doc.id, PermissionKey.DOCUMENT_EDIT),
+              parentEffectiveValue: getParentEffectiveValue(record.doc.id, PermissionKey.DOCUMENT_EDIT),
             }"
             mode="inline"
             :readonly="!isCreatorOrAbove"

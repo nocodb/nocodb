@@ -39,18 +39,35 @@ const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
   permission: props.config.permission,
   label: permissionLabel.value,
   description: permissionDescription.value,
+  effectiveValue: props.config.effectiveValue,
 }))
 
 // Create a dummy currentValue ref since Selector doesn't use display values
 const currentValue = ref('')
 
 const isTableVisibility = computed(() => props.config?.permission === PermissionKey.TABLE_VISIBILITY)
+const isDocVisibility = computed(() => props.config?.permission === PermissionKey.DOCUMENT_VISIBILITY)
+
+// Determine if an option is the default for the current permission context
+const isDefaultOption = (option: { value: string; isDefault?: boolean }) => {
+  // Doc visibility: default is Viewers & up
+  if (isDocVisibility.value) {
+    return option.value === PermissionOptionValue.VIEWERS_AND_UP
+  }
+  // Table visibility: default is Everyone
+  if (isTableVisibility.value) {
+    return option.value === PermissionOptionValue.EVERYONE
+  }
+  // All others: use the SDK's isDefault flag
+  return option.isDefault && option.value === PermissionOptionValue.EDITORS_AND_UP
+}
 
 // Use the permission selector composable
 const {
   currentOption,
   permissionOptions: allPermissionOptions,
   isLoading,
+  isInherited,
   userSelectorSelectedUsers,
   selectedUsers: _selectedUsers,
   onPermissionChange: handlePermissionChange,
@@ -219,12 +236,19 @@ const handleClickDropdown = (e: MouseEvent) => {
               class="flex-1 flex items-center gap-1.5"
               :class="{
                 [getPermissionTextColor(currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)]:
-                  !config.disabled || readonly,
+                  !isInherited && (!config.disabled || readonly),
+                'text-nc-content-gray-muted': isInherited && !config.disabled,
                 'text-nc-content-gray-disabled': config.disabled,
               }"
             >
               <GeneralIcon :icon="(currentOption?.icon || 'role_editor') as any" class="flex-none h-4 w-4" />
               <span class="font-medium flex-1 whitespace-nowrap">{{ currentOption?.label || 'Editors & up' }}</span>
+              <span
+                v-if="isInherited"
+                class="text-[11px] text-nc-content-gray-muted font-normal whitespace-nowrap"
+              >
+                {{ $t('general.inherited') }}
+              </span>
               <GeneralIcon
                 v-if="!readonly"
                 icon="chevronDown"
@@ -262,14 +286,7 @@ const handleClickDropdown = (e: MouseEvent) => {
                         option.label
                       }}</span>
                       <span
-                        v-if="
-                          option.isDefault &&
-                          !(
-                            config.permission === PermissionKey.TABLE_VISIBILITY &&
-                            (option.value === PermissionOptionValue.EDITORS_AND_UP ||
-                              option.value === PermissionOptionValue.COMMENTERS_AND_UP)
-                          )
-                        "
+                        v-if="isDefaultOption(option)"
                         class="text-captionXsBold text-nc-content-gray-muted"
                       >
                         (DEFAULT)

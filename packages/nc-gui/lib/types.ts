@@ -736,6 +736,8 @@ interface PermissionConfig {
   permission: PermissionKey
   disabled?: boolean
   tooltip?: string
+  /** Pre-resolved effective value for inherited permissions (e.g. from parent doc). */
+  effectiveValue?: string
 }
 
 interface PermissionSelectorUser {

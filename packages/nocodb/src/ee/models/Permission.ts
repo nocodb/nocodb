@@ -1,12 +1,16 @@
 import {
+  DOCUMENT_PERMISSION_KEYS,
+  isMoreRestrictive,
   parseProp,
   PermissionGrantedType,
-  type PermissionKey,
+  PermissionKey,
   type PermissionRole,
   PermissionRoleMap,
   PermissionRolePower,
   type ProjectRoles,
   type WorkspaceUserRoles,
+  getPermissionOptionValue,
+  PermissionOptionValue,
 } from 'nocodb-sdk';
 import type { PermissionEntity } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
@@ -627,6 +631,146 @@ export default class Permission {
       `${CacheScope.PERMISSION}:${context.base_id}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
+  }
+
+  /**
+   * Resolve the effective permission for a document by walking up the parent chain.
+   * If the document has an explicit permission, return it.
+   * Otherwise, inherit from the nearest ancestor that has one.
+   * If no ancestor has a permission, return the default.
+   */
+  static async getEffectiveDocPermission(
+    context: NcContext,
+    docId: string,
+    permissionKey: PermissionKey,
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ permission: Permission | null; inherited: boolean }> {
+    // Check if this document has an explicit permission
+    const explicit = await this.getByEntity(
+      context,
+      'document' as PermissionEntity,
+      docId,
+      permissionKey,
+      ncMeta,
+    );
+
+    if (explicit) {
+      return { permission: explicit, inherited: false };
+    }
+
+    // Walk up parent chain
+    const Document = (await import('~/ee/models/Document')).default;
+    const doc = await Document.get(context, docId, ncMeta);
+
+    if (doc?.parent_id) {
+      return this.getEffectiveDocPermission(
+        context,
+        doc.parent_id,
+        permissionKey,
+        ncMeta,
+      );
+    }
+
+    // Root document with no explicit permission → default
+    return { permission: null, inherited: true };
+  }
+
+  /**
+   * Validate that a new document permission is not more permissive than
+   * the parent's effective permission (restrict-only inheritance).
+   *
+   * Throws NcError if the child would be more permissive than the parent.
+   */
+  static async validateDocPermissionRestriction(
+    context: NcContext,
+    docId: string,
+    permissionKey: PermissionKey,
+    newOptionValue: PermissionOptionValue,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const Document = (await import('~/ee/models/Document')).default;
+    const doc = await Document.get(context, docId, ncMeta);
+
+    if (!doc?.parent_id) {
+      // Root document — no parent to restrict against
+      return;
+    }
+
+    // Get parent's effective permission
+    const { permission: parentPerm } = await this.getEffectiveDocPermission(
+      context,
+      doc.parent_id,
+      permissionKey,
+      ncMeta,
+    );
+
+    if (!parentPerm) {
+      // Parent has default (VIEWERS_AND_UP for visibility, EDITORS_AND_UP for edit)
+      // Any value is at least as restrictive as the default, so always valid
+      return;
+    }
+
+    const parentOptionValue = getPermissionOptionValue(
+      parentPerm.granted_type,
+      parentPerm.granted_role,
+    );
+
+    if (!isMoreRestrictive(newOptionValue, parentOptionValue)) {
+      NcError.forbidden(
+        `Cannot set permission more permissive than parent page. Parent is "${parentOptionValue}", attempted "${newOptionValue}".`,
+      );
+    }
+  }
+
+  /**
+   * When a parent document's permission is tightened, cascade to children
+   * that have explicit permissions which are now more permissive than the parent.
+   * Auto-tighten them by removing their explicit permission (reverting to inherited).
+   */
+  static async cascadeTightenDocPermissions(
+    context: NcContext,
+    docId: string,
+    permissionKey: PermissionKey,
+    newParentOptionValue: PermissionOptionValue,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const Document = (await import('~/ee/models/Document')).default;
+
+    // Get direct children
+    const children = await Document.listLite(context, context.base_id, docId, ncMeta);
+
+    for (const child of children) {
+      const childExplicit = await this.getByEntity(
+        context,
+        'document' as PermissionEntity,
+        child.id!,
+        permissionKey,
+        ncMeta,
+      );
+
+      if (childExplicit) {
+        const childOptionValue = getPermissionOptionValue(
+          childExplicit.granted_type,
+          childExplicit.granted_role,
+        );
+
+        // If child is now more permissive than parent, remove the explicit permission
+        if (!isMoreRestrictive(childOptionValue, newParentOptionValue)) {
+          await this.delete(context, childExplicit.id, ncMeta);
+        }
+      }
+
+      // Recurse into children (they may have explicit permissions too)
+      if (child.has_children) {
+        await this.cascadeTightenDocPermissions(
+          context,
+          child.id!,
+          permissionKey,
+          newParentOptionValue,
+          ncMeta,
+        );
+      }
+    }
   }
 
   static async isAllowed(

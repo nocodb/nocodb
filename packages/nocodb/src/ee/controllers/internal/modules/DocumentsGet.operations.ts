@@ -45,6 +45,7 @@ export class DocumentsGetOperations
           context,
           context.base_id,
           parentId,
+          req,
         );
       }
       case 'documentGet': {
@@ -52,7 +53,7 @@ export class DocumentsGetOperations
         if (!docId) {
           NcError.badRequest('Missing required parameter: docId');
         }
-        return await this.documentsService.get(context, docId);
+        return await this.documentsService.get(context, docId, req);
       }
     }
   }

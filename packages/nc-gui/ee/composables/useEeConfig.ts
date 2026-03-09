@@ -240,6 +240,12 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
+  const blockDocumentPermissions = computed(() => {
+    return (
+      isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS))
+    )
+  })
+
   const blockPrivateBases = computed(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_PRIVATE_BASES)
   })
@@ -1278,6 +1284,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseDocumentPermissions = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockDocumentPermissions.value) return
+
+    if (isEEFeatureBlocked.value) {
+      handleOnPremUpgrade({
+        title: t('upgrade.enterpriseFeatureTitle'),
+        content: t('upgrade.upgradeToUseDocumentPermissionsSubtitle', { plan: PlanTitles.ENTERPRISE }),
+      })
+    } else {
+      handleUpgradePlan({
+        title: t('upgrade.upgradeToUseDocumentPermissions'),
+        content: t('upgrade.upgradeToUseDocumentPermissionsSubtitle', {
+          plan: PlanTitles.BUSINESS,
+        }),
+        newPlanTitle: PlanTitles.BUSINESS,
+        callback,
+        limitOrFeature: PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS,
+      })
+    }
+
+    return true
+  }
+
   const showUpgradeToDuplicateTableToOtherWs = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToDuplicateTableToOtherWs'),
@@ -1798,6 +1827,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCellColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
+    blockDocumentPermissions,
+    showUpgradeToUseDocumentPermissions,
     isUnderLoyaltyCutoffDate,
     blockPrivateBases,
     showUpgradeToUsePrivateBases,

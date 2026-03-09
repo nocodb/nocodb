@@ -203,12 +203,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       }
 
       return doc
-    } catch (e) {
-      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        baseId: activeProjectId.value,
-      })
+    } catch (_e) {
       return null
     } finally {
       if (showLoader) {

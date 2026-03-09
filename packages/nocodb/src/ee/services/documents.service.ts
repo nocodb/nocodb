@@ -1,11 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents, EventType, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  getProjectRole,
+  PermissionKey,
+  PlanLimitTypes,
+  ProjectRoles,
+} from 'nocodb-sdk';
 import { DocumentsService as DocumentsServiceCE } from 'src/services/documents.service';
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { checkLimit, getLimit } from '~/helpers/paymentHelpers';
-import { Document, FileReference } from '~/models';
+import { Document, FileReference, Permission } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
@@ -36,33 +43,106 @@ export class DocumentsService extends DocumentsServiceCE {
   }
 
   /**
+   * Check if a user is allowed to perform an action on a document
+   * based on document-level permissions (visibility or edit).
+   * Base owners always bypass document permissions.
+   */
+  protected async checkDocPermission(
+    context: NcContext,
+    docId: string,
+    permissionKey: PermissionKey,
+    user: any,
+  ): Promise<boolean> {
+    // Resolve the user's most powerful base role
+    const role = getProjectRole(user);
+
+    // Base owners always bypass document permissions
+    if (role === ProjectRoles.OWNER) {
+      return true;
+    }
+
+    const { permission } = await Permission.getEffectiveDocPermission(
+      context,
+      docId,
+      permissionKey,
+    );
+
+    if (!permission) {
+      // No permission set — use defaults (allow all for visibility, editors+ for edit)
+      return true;
+    }
+
+    return Permission.isAllowed(context, permission, {
+      id: user.id,
+      role,
+    });
+  }
+
+  /**
    * List documents in a base (lightweight — excludes content).
+   * Filters out documents the user cannot see based on visibility permissions.
    *
    * @param parentId — `null` for root documents, doc ID for children of that doc.
    */
-  async list(context: NcContext, baseId: string, parentId: string | null) {
+  async list(
+    context: NcContext,
+    baseId: string,
+    parentId: string | null,
+    req?: NcRequest,
+  ) {
     const docs = await Document.listLite(context, baseId, parentId);
 
+    // Filter by visibility permissions if user info is available
+    let visibleDocs = docs;
+    if (req?.user) {
+      const filtered: typeof docs = [];
+      for (const doc of docs) {
+        const allowed = await this.checkDocPermission(
+          context,
+          doc.id!,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          req.user,
+        );
+        if (allowed) {
+          filtered.push(doc);
+        }
+      }
+      visibleDocs = filtered;
+    }
+
     // Enrich with comment counts
-    if (docs.length) {
-      const docIds = docs.map((d) => d.id).filter(Boolean) as string[];
+    if (visibleDocs.length) {
+      const docIds = visibleDocs.map((d) => d.id).filter(Boolean) as string[];
       const counts = await Comment.docCommentsCount(context, docIds);
       const countMap = new Map<string, number>(
         counts.map((c: any) => [c.fk_doc_id, +(c.count || 0)]),
       );
-      for (const doc of docs) {
+      for (const doc of visibleDocs) {
         doc.comment_count = countMap.get(doc.id!) || 0;
       }
     }
 
-    return docs;
+    return visibleDocs;
   }
 
   /** Fetch a single document with full content (ProseMirror JSON). */
-  async get(context: NcContext, docId: string) {
+  async get(context: NcContext, docId: string, req?: NcRequest) {
     const doc = await Document.get(context, docId);
     if (!doc) {
       NcError.get(context).genericNotFound('Document', docId);
+    }
+
+    // Check visibility permission
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_VISIBILITY,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).genericNotFound('Document', docId);
+      }
     }
 
     // Enrich with comment count
@@ -195,6 +275,19 @@ export class DocumentsService extends DocumentsServiceCE {
       NcError.get(context).genericNotFound('Document', docId);
     }
 
+    // Check edit permission
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.forbidden('You do not have permission to edit this document');
+      }
+    }
+
     // Optimistic concurrency: reject stale writes.
     // Version is mandatory to prevent silent overwrites by API consumers
     // that omit it.
@@ -314,6 +407,21 @@ export class DocumentsService extends DocumentsServiceCE {
       NcError.get(context).genericNotFound('Document', docId);
     }
 
+    // Check edit permission (delete requires edit access)
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.forbidden(
+          'You do not have permission to delete this document',
+        );
+      }
+    }
+
     await Document.softDelete(context, docId);
 
     // Cascade: soft-delete all file references for this document and its descendants
@@ -365,6 +473,21 @@ export class DocumentsService extends DocumentsServiceCE {
     const doc = await Document.get(context, docId);
     if (!doc) {
       NcError.get(context).genericNotFound('Document', docId);
+    }
+
+    // Check edit permission (reorder requires edit access)
+    if (req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        docId,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.forbidden(
+          'You do not have permission to reorder this document',
+        );
+      }
     }
 
     const updateFields: Partial<DocumentType> = { order: payload.order };

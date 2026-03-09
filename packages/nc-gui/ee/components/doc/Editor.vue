@@ -969,6 +969,14 @@ const onDeletePage = () => {
   isDeleteModalOpen.value = true
 }
 
+const onPagePermissions = () => {
+  isPageMenuOpen.value = false
+  if (!base.value?.id) return
+
+  const wsId = route.params.typeOrId
+  navigateTo(`/${wsId}/${base.value.id}/settings/docs-permissions`)
+}
+
 const confirmDeletePage = async () => {
   if (!base.value?.id || !doc.value?.id) return
   await deleteDocument(base.value.id, doc.value.id)
@@ -1265,6 +1273,20 @@ onBeforeUnmount(() => {
   <!-- Show skeleton only on initial load (no doc fetched yet) -->
   <DocEditorSkeleton v-if="!isLoaded && !doc" />
 
+  <!-- Document not found or not accessible -->
+  <div v-else-if="isLoaded && !doc" class="flex flex-col items-center justify-center h-full gap-4 text-nc-content-gray-subtle">
+    <GeneralIcon icon="ncFileText" class="w-16 h-16 text-nc-content-gray-muted" />
+    <div class="text-lg font-semibold text-nc-content-gray-emphasis">
+      {{ $t('msg.info.pageNotFound') }}
+    </div>
+    <div class="text-sm">
+      {{ $t('msg.info.pageNotFoundDescription') }}
+    </div>
+    <div class="text-sm text-nc-content-gray-muted">
+      {{ $t('msg.info.pageNotFoundHint') }}
+    </div>
+  </div>
+
   <!--
     Keep the editor mounted across page switches to avoid detaching
     ProseMirror's view from the DOM. Content is swapped via setContent.
@@ -1340,6 +1362,15 @@ onBeforeUnmount(() => {
               <NcMenuItem v-e="['c:doc:full-width:toggle']" @click="toggleFullWidth">
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="ncMoveHorizontal" />
                 {{ isFullWidth ? $t('labels.exitFullWidth') : $t('labels.fullWidth') }}
+              </NcMenuItem>
+              <NcMenuItem
+                v-if="isUIAllowed('documentUpdate')"
+                v-e="['c:doc:permissions']"
+                data-testid="nc-doc-page-permissions"
+                @click="onPagePermissions"
+              >
+                <GeneralIcon class="text-nc-content-gray-subtle" icon="ncLock" />
+                {{ $t('title.pagePermissions') }}
               </NcMenuItem>
               <NcDivider />
               <NcSubMenu key="download" variant="small">

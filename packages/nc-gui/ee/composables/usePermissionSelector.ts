@@ -17,6 +17,8 @@ export interface PermissionSelectorConfig {
   label: string
   description: string
   minimumRole?: 'viewer' | 'editor' | 'creator'
+  /** Pre-resolved effective value for inherited permissions (e.g. from parent doc). */
+  effectiveValue?: string
 }
 
 export const usePermissionSelector = (
@@ -44,14 +46,14 @@ export const usePermissionSelector = (
     const roleHierarchy = ['viewer', 'editor', 'creator', 'owner']
     const minRoleIndex = roleHierarchy.indexOf(minimumRole)
 
-    // Check if this is table visibility permission
-    // PermissionKey.TABLE_VISIBILITY enum value is 'TABLE_VISIBILITY'
+    // Check if this is a visibility permission (table or document)
     const isTableVisibility = config.value.permission === PermissionKey.TABLE_VISIBILITY
+    const isDocVisibility = config.value.permission === PermissionKey.DOCUMENT_VISIBILITY
+    const isVisibilityPermission = isTableVisibility || isDocVisibility
 
     return allPermissionOptions.filter((option) => {
-      // For record permissions (create/delete), exclude Viewers & up, Commenters & up, and Everyone
-      // This must be checked FIRST before any other logic
-      if (!isTableVisibility) {
+      // For record/edit permissions, exclude Viewers & up, Commenters & up, and Everyone
+      if (!isVisibilityPermission) {
         if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
           return false
         }
@@ -63,26 +65,21 @@ export const usePermissionSelector = (
         }
       }
 
-      // For table visibility, always allow Everyone, Editors & up, and Creators & up
+      // Document visibility: Viewers & up (default), Editors & up, Creators & up, Specific users, Nobody
+      // No "Everyone" (redundant — Viewers is the lowest doc role) or "Commenters & up"
+      if (isDocVisibility) {
+        if (option.value === PermissionOptionValue.EVERYONE) return false
+        if (option.value === PermissionOptionValue.COMMENTERS_AND_UP) return false
+        return true
+      }
+
+      // Table visibility: Everyone (default), Editors & up, Creators & up, Specific users
       if (isTableVisibility) {
-        if (option.value === PermissionOptionValue.EVERYONE) {
-          return true
-        }
-        if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
-          return false
-        }
-        if (option.value === PermissionOptionValue.COMMENTERS_AND_UP) {
-          return false
-        }
-        if (option.value === PermissionOptionValue.EDITORS_AND_UP) {
-          return true
-        }
-        if (option.value === PermissionOptionValue.CREATORS_AND_UP) {
-          return true
-        }
-        if (option.value === PermissionOptionValue.NOBODY) {
-          return false
-        }
+        if (option.value === PermissionOptionValue.EVERYONE) return true
+        if (option.value === PermissionOptionValue.EDITORS_AND_UP) return true
+        if (option.value === PermissionOptionValue.CREATORS_AND_UP) return true
+        if (option.value === PermissionOptionValue.SPECIFIC_USERS) return true
+        return false
       }
 
       // Always allow these options for all permission types
@@ -90,20 +87,17 @@ export const usePermissionSelector = (
         return true
       }
 
-      // Additional role-based filtering (only applies if not already handled above)
-      // Skip this for table visibility since we already explicitly allowed all options above
-      if (!isTableVisibility) {
-        if (option.value === PermissionOptionValue.VIEWERS_AND_UP && minRoleIndex > 0) {
-          return false // Don't show viewers if minimum is editor or higher
-        }
+      // Additional role-based filtering
+      if (option.value === PermissionOptionValue.VIEWERS_AND_UP && minRoleIndex > 0) {
+        return false
+      }
 
-        if (option.value === PermissionOptionValue.COMMENTERS_AND_UP && minRoleIndex > 1) {
-          return false // Don't show commenters if minimum is creator or higher
-        }
+      if (option.value === PermissionOptionValue.COMMENTERS_AND_UP && minRoleIndex > 1) {
+        return false
+      }
 
-        if (option.value === PermissionOptionValue.EDITORS_AND_UP && minRoleIndex > 1) {
-          return false // Don't show editors if minimum is creator or higher
-        }
+      if (option.value === PermissionOptionValue.EDITORS_AND_UP && minRoleIndex > 1) {
+        return false
       }
 
       return true
@@ -111,6 +105,7 @@ export const usePermissionSelector = (
   })
 
   const currentPermission = ref(PermissionOptionValue.EDITORS_AND_UP)
+  const isInherited = ref(false)
   const selectedUsers = ref<PermissionSelectorUser[]>([])
   const isLoading = ref(false)
 
@@ -184,14 +179,17 @@ export const usePermissionSelector = (
         granted_role = PermissionRole.EDITOR
       }
 
-      // For table visibility, only drop if EVERYONE is selected (default)
-      // For other permissions, drop if EDITORS_AND_UP or EVERYONE
+      // Drop permission row when user selects the default value (reverts to inherited/default behavior)
+      // Table visibility default: EVERYONE
+      // Doc visibility default: VIEWERS_AND_UP
+      // Doc edit / other defaults: EDITORS_AND_UP
+      const isTableVisibilityPerm = config.value.permission === PermissionKey.TABLE_VISIBILITY
+      const isDocVisibilityPerm = config.value.permission === PermissionKey.DOCUMENT_VISIBILITY
+
       const shouldDrop =
-        currentPermission.value === PermissionOptionValue.EVERYONE ||
-        (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP &&
-          config.value.permission !== PermissionKey.TABLE_VISIBILITY) ||
-        (currentPermission.value === PermissionOptionValue.COMMENTERS_AND_UP &&
-          config.value.permission !== PermissionKey.TABLE_VISIBILITY)
+        (currentPermission.value === PermissionOptionValue.EVERYONE && isTableVisibilityPerm) ||
+        (currentPermission.value === PermissionOptionValue.VIEWERS_AND_UP && isDocVisibilityPerm) ||
+        (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP && !isTableVisibilityPerm && !isDocVisibilityPerm)
 
       if (shouldDrop) {
         // If permission entity is not found, do nothing
@@ -229,7 +227,12 @@ export const usePermissionSelector = (
         )
       }
 
-      const eventType = config.value.entity === PermissionEntity.TABLE ? 'a:permissions:save' : 'a:field:permissions'
+      const eventTypeMap: Record<string, string> = {
+        [PermissionEntity.TABLE]: 'a:permissions:save',
+        [PermissionEntity.FIELD]: 'a:field:permissions',
+        [PermissionEntity.DOCUMENT]: 'a:doc:permissions',
+      }
+      const eventType = eventTypeMap[config.value.entity] || 'a:permissions:save'
       $e(eventType)
     } catch (e: any) {
       message.error(`Failed to save ${config.value.entity.toLowerCase()} permissions`)
@@ -270,6 +273,7 @@ export const usePermissionSelector = (
     )
 
     if (permission) {
+      isInherited.value = false
       currentPermission.value = getPermissionOptionValue(
         permission.granted_type as PermissionGrantedType,
         permission.granted_role as PermissionRole,
@@ -308,10 +312,22 @@ export const usePermissionSelector = (
         userSelectorSelectedUsers.value = new Set(permission.subjects?.map((subject) => subject.id) || [])
       }
     } else {
-      // For table visibility, default to EVERYONE if no permission exists
-      if (config.value.permission === PermissionKey.TABLE_VISIBILITY) {
+      // No explicit permission — use effective value if provided (inherited from parent),
+      // otherwise fall back to the default for this permission type.
+      if (config.value.effectiveValue) {
+        isInherited.value = true
+        currentPermission.value = config.value.effectiveValue as PermissionOptionValue
+      } else if (config.value.permission === PermissionKey.TABLE_VISIBILITY) {
+        isInherited.value = false
         currentPermission.value = PermissionOptionValue.EVERYONE
+      } else if (config.value.permission === PermissionKey.DOCUMENT_VISIBILITY) {
+        isInherited.value = false
+        currentPermission.value = PermissionOptionValue.VIEWERS_AND_UP
+      } else if (config.value.permission === PermissionKey.DOCUMENT_EDIT) {
+        isInherited.value = false
+        currentPermission.value = PermissionOptionValue.EDITORS_AND_UP
       } else {
+        isInherited.value = false
         currentPermission.value = getInternalValue(currentValue.value)
       }
     }
@@ -329,6 +345,7 @@ export const usePermissionSelector = (
   return {
     // State
     currentPermission: readonly(currentPermission),
+    isInherited: readonly(isInherited),
     selectedUsers: readonly(selectedUsers),
     isLoading: readonly(isLoading),
     showUserSelector,

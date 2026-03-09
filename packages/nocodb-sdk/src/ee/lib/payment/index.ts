@@ -64,6 +64,7 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_MAP_VIEW]: PlanTitles.BUSINESS,
   [PlanFeatureTypes.FEATURE_TIMELINE_VIEW]: PlanTitles.BUSINESS,
+  [PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS]: PlanTitles.BUSINESS,
 
   // Enterprise features
   [PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE]: PlanTitles.ENTERPRISE,

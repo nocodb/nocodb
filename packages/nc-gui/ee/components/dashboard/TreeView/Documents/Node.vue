@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 import type { DocumentType } from 'nocodb-sdk'
 
 interface Props {
@@ -183,6 +184,12 @@ const onRename = async () => {
 }
 
 const isDeleteModalVisible = ref(false)
+const isPermissionsDialogVisible = ref(false)
+
+const onPermissions = () => {
+  isDropdownOpen.value = false
+  isPermissionsDialogVisible.value = true
+}
 
 const onDelete = () => {
   isDropdownOpen.value = false
@@ -489,6 +496,40 @@ function onStopEdit() {
                 <GeneralIcon class="text-nc-content-gray-subtle" icon="arrowUp" />
                 {{ $t('labels.moveToRoot') }}
               </NcMenuItem>
+              <template v-if="isEeUI && isUIAllowed('documentUpdate')">
+                <NcDivider />
+                <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS">
+                  <template #default="{ click }">
+                    <NcMenuItem
+                      v-e="['c:document:permissions']"
+                      :data-testid="`sidebar-doc-permissions-${doc.title}`"
+                      class="nc-document-permissions"
+                      @click="
+                        click(PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS, () => {
+                          onPermissions()
+                        })
+                      "
+                    >
+                      <div class="flex gap-2 items-center w-full">
+                        <GeneralIcon icon="ncLock" class="opacity-80" />
+                        <div class="flex-1">
+                          {{ $t('title.pagePermissions') }}
+                        </div>
+
+                        <LazyPaymentUpgradeBadge
+                          :feature="PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS"
+                          :title="$t('upgrade.upgradeToUseDocumentPermissions')"
+                          :content="
+                            $t('upgrade.upgradeToUseDocumentPermissionsSubtitle', {
+                              plan: PlanTitles.BUSINESS,
+                            })
+                          "
+                        />
+                      </div>
+                    </NcMenuItem>
+                  </template>
+                </PaymentUpgradeBadgeProvider>
+              </template>
               <template v-if="isUIAllowed('documentDelete')">
                 <NcDivider />
                 <NcMenuItem v-e="['c:document:delete']" :data-testid="`sidebar-doc-delete-${doc.title}`" danger @click="onDelete">
@@ -531,5 +572,13 @@ function onStopEdit() {
         </div>
       </template>
     </GeneralDeleteModal>
+
+    <DlgDocPermissions
+      v-if="doc.id && isEeUI"
+      v-model:visible="isPermissionsDialogVisible"
+      :doc-id="doc.id"
+      :title="doc.title"
+      :parent-id="doc.parent_id"
+    />
   </div>
 </template>

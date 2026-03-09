@@ -31,7 +31,7 @@ permissions:
 
 jobs:
   buildx:
-    runs-on: ubicloud-standard-4
+    runs-on: ubicloud-standard-8
     env:
       working-directory: ./packages/nocodb
     steps:

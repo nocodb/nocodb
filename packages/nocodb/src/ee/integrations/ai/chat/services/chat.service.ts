@@ -593,8 +593,8 @@ export class ChatService implements OnModuleInit {
           messages: [
             ...stepMessages,
             {
-              role: 'user' as const,
-              content: `[system: ${notification}]`,
+              role: 'system' as const,
+              content: notification,
             },
           ],
         };

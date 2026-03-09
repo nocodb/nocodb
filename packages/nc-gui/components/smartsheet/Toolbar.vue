@@ -90,6 +90,7 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
     </template>
     <template v-else>
       <div
+        v-if="!isMobileSearchActive"
         :class="{
           'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
           'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
@@ -113,13 +114,11 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
 
           <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap || isList" :show-system-fields="false" />
 
-          <SmartsheetToolbarColumnFilterMenu
-            v-if="!isMobileSearchActive && (isGrid || isGallery || isKanban || isMap || isList)"
-          />
+          <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap || isList" />
 
-          <SmartsheetToolbarGroupByMenu v-if="!isMobileSearchActive && isGrid" />
+          <SmartsheetToolbarGroupByMenu v-if="isGrid" />
 
-          <SmartsheetToolbarSortListMenu v-if="!isMobileSearchActive && (isGrid || isGallery || isKanban || isList)" />
+          <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isList" />
 
           <SmartsheetToolbarRowColorFilterDropdown
             v-if="!isMobileMode && !isPublic && !isSharedBase && (isGrid || isGallery || isKanban || isList)"

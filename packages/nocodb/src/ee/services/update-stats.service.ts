@@ -34,6 +34,8 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
       },
       {
         jobId: `update-ws-stat:${fk_workspace_id}`,
+        removeOnComplete: true,
+        removeOnFail: true,
       },
     );
   }
@@ -75,6 +77,8 @@ export class UpdateStatsService implements OnModuleInit, OnModuleDestroy {
         },
         {
           jobId: `update-ws-stat:${fk_workspace_id}`,
+          removeOnComplete: true,
+          removeOnFail: true,
         },
       );
     }

@@ -114,7 +114,9 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
 
           <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery || isKanban || isMap || isList" :show-system-fields="false" />
 
-          <SmartsheetToolbarColumnFilterMenu v-if="!isMobileSearchActive && (isGrid || isGallery || isKanban || isMap || isList)" />
+          <SmartsheetToolbarColumnFilterMenu
+            v-if="!isMobileSearchActive && (isGrid || isGallery || isKanban || isMap || isList)"
+          />
 
           <SmartsheetToolbarGroupByMenu v-if="!isMobileSearchActive && isGrid" />
 
@@ -144,18 +146,23 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
 
       <SmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
 
-      <template v-if="!isMobileMode">
-        <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed" />
+      <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed && !isMobileMode" />
 
-        <template v-if="!isCalendar">
-          <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
-          <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
-        </template>
-
-        <SmartsheetToolbarPinnedFilters
-          v-if="isEeUI && !blockPinnedFilter && !isLocked && canSyncFilter && (isGrid || isGallery || isKanban || isMap)"
-        />
+      <template v-if="!isCalendar">
+        <SmartsheetToolbarExport v-if="!isViewOperationsAllowed && !isMobileMode" is-in-toolbar />
+        <SmartsheetToolbarOpenedViewAction v-if="!isMobileSearchActive" :show-only-copy-id="!isViewOperationsAllowed" />
       </template>
+
+      <SmartsheetToolbarPinnedFilters
+        v-if="
+          isEeUI &&
+          !blockPinnedFilter &&
+          !isMobileMode &&
+          !isLocked &&
+          canSyncFilter &&
+          (isGrid || isGallery || isKanban || isMap)
+        "
+      />
 
       <div v-if="!isMobileSearchActive" class="flex-1" />
 

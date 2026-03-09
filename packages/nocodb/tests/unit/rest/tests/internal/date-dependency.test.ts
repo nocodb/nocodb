@@ -649,7 +649,115 @@ export const dateDependencyTests = function () {
         });
       });
 
-      // ── 2.5  is_active: false → cascade completely disabled ───────────────
+      // ── 2.5  connection: start-to-end ────────────────────────────────────
+      //
+      // succ.end   = pred.start + bufferDays
+      // succ.start = new_end − (old_end − old_start)
+
+      describe('connection: start-to-end', () => {
+
+        it('[fixed, buffer=0] successor end aligns with predecessor start', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowC = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+          await linkSuccessor(rowB.id, rowC.id);
+
+          // Move A forward: start=Jan 6, end=Jan 15
+          await updateRow(rowA.id, { 'Start Date': '2025-01-06', 'End Date': '2025-01-15' });
+
+          // B: new_end = A.start + 0 = Jan 6; dur_diff = Jan 10 − Jan 1 = 9; new_start = Jan 6 − 9 = Dec 28
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-06');
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2024-12-28');
+
+          // C: new_end = B.new_start + 0 = Dec 28; new_start = Dec 28 − 9 = Dec 19
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['End Date'],   'C end').to.equal('2024-12-28');
+          expect(afterC.fields['Start Date'], 'C start').to.equal('2024-12-19');
+        });
+
+        it('[fixed, buffer=2] successor end = predecessor start + 2 days', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        2,
+          });
+
+          const rowA = await insertRow({ 'Start Date': '2025-01-10', 'End Date': '2025-01-19' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move A: start=Jan 15, end=Jan 24
+          await updateRow(rowA.id, { 'Start Date': '2025-01-15', 'End Date': '2025-01-24' });
+
+          // B: new_end = Jan 15 + 2 = Jan 17; dur_diff = Jan 10 − Jan 1 = 9; new_start = Jan 17 − 9 = Jan 8
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-17');
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-08');
+        });
+
+        it('[flexible] successor end already after predecessor start → no shift', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-end',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 15-24 (B.end=Jan 24 > A.start=Jan 1)
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-15', 'End Date': '2025-01-24' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move A: start=Jan 5, end=Jan 14 — B.end=Jan 24 > Jan 5 → no shift
+          await updateRow(rowA.id, { 'Start Date': '2025-01-05', 'End Date': '2025-01-14' });
+
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end unchanged').to.equal('2025-01-24');
+          expect(afterB.fields['Start Date'], 'B start unchanged').to.equal('2025-01-15');
+        });
+
+        it('[flexible] successor end before predecessor start → shift to align', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-end',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 10-19, B: Jan 1-5 (B.end=Jan 5 < A.start=Jan 10)
+          const rowA = await insertRow({ 'Start Date': '2025-01-10', 'End Date': '2025-01-19' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-05' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move A later: start=Jan 15, end=Jan 24; B.end=Jan 5 < Jan 15 → SHIFT
+          await updateRow(rowA.id, { 'Start Date': '2025-01-15', 'End Date': '2025-01-24' });
+
+          // B: new_end = Jan 15; dur_diff = Jan 5 − Jan 1 = 4; new_start = Jan 15 − 4 = Jan 11
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-15');
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-11');
+        });
+      });
+
+      // ── 2.7  is_active: false → cascade completely disabled ───────────────
 
       describe('is_active: false → no cascade', () => {
         it('linked successor stays unchanged when rule is inactive', async function () {
@@ -675,7 +783,7 @@ export const dateDependencyTests = function () {
         });
       });
 
-      // ── 2.6  no predecessor link → no cascade ─────────────────────────────
+      // ── 2.8  no predecessor link → no cascade ─────────────────────────────
 
       describe('no predecessor link field configured', () => {
         it('update fires within-record sync only, cascade does not run', async function () {

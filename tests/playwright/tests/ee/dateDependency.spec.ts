@@ -485,79 +485,179 @@ test.describe('Date Dependency — Propagation', () => {
     await unsetup(context);
   });
 
-  // Connection type matrix: each type shifts the successor differently.
+  // ── Connection type matrix (fixed, buffer=0) ──────────────────────────
   //
-  // Setup: Row A (predecessor) → Row B (successor) via self-referencing link.
-  //   A: start=Jan 1, end=Jan 10
-  //   B: start=Jan 5, end=Jan 8  (initially overlapping — should be pushed)
-  //
-  // After moving A's end to Jan 15:
-  //   end-to-start:   B.start = A.end + buffer + 1 = Jan 16 (+buffer), B.end preserves duration
-  //   end-to-end:     B.end   = A.end + buffer, B.start preserves duration
-  //   start-to-start: B.start = A.start + buffer, B.end preserves duration
-  //   start-to-end:   B.end   = A.start + buffer, B.start preserves duration
+  // Uses fixed + buffer=0 so every connection type ALWAYS shifts B.
+  // Each test sets up overlapping dates so the shift actually happens.
 
-  for (const connectionType of ['end-to-start', 'end-to-end', 'start-to-start', 'start-to-end'] as const) {
-    test(`propagation: ${connectionType} (flexible, 0 buffer)`, async () => {
-      const linkColId = await createSelfLinkAndGetId();
+  test('propagation: end-to-start (fixed, 0 buffer)', async () => {
+    const linkColId = await createSelfLinkAndGetId();
 
-      // Insert rows
-      await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
-        { Name: 'A', StartDate: '2025-01-01', EndDate: '2025-01-10', Duration: 10 },
-        { Name: 'B', StartDate: '2025-01-05', EndDate: '2025-01-08', Duration: 4 },
-      ]);
+    // A: Jan 1-10 (dur=10), B: Jan 5-8 (dur=4, overlaps A)
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Name: 'A', StartDate: '2025-01-01', EndDate: '2025-01-10', Duration: 10 },
+      { Name: 'B', StartDate: '2025-01-05', EndDate: '2025-01-08', Duration: 4 },
+    ]);
+    await api.dbTableRow.nestedAdd('noco', context.base.id, tableId, 1, 'hm', 'Predecessor', '2');
 
-      // Link B's predecessor to A (B.fk = A.id)
-      // In HM: A is parent, B is child. Link A → B.
-      await api.dbTableRow.nestedAdd('noco', context.base.id, tableId, 1, 'hm', 'Predecessor', '2');
-
-      // Configure date dependency with propagation
-      await configureDateDependency(api, context, tableId, cols, {
-        fk_dependency_linkrow_field_id: linkColId,
-        dependency_connection_type: connectionType,
-        dependency_buffer_type: 'flexible',
-        dependency_buffer_days: 0,
-        include_weekends: true,
-      });
-
-      // Move A's dates to trigger propagation
-      await updateRow(api, context, tableId, 1, {
-        StartDate: '2025-01-01',
-        EndDate: '2025-01-15',
-      });
-
-      // Allow propagation to complete
-      await dashboard.rootPage.waitForTimeout(2000);
-
-      const rowB = await readRow(api, context, tableId, 2);
-
-      // Verify B was pushed based on connection type
-      // B's original duration was 4 days (Jan 5 – Jan 8)
-      switch (connectionType) {
-        case 'end-to-start':
-          // B.start must be > A.end (Jan 15) → Jan 16, B.end = Jan 16 + 3 = Jan 19
-          expect(rowB['StartDate']).toBe('2025-01-16');
-          expect(rowB['EndDate']).toBe('2025-01-19');
-          break;
-        case 'end-to-end':
-          // B.end must be >= A.end (Jan 15) → Jan 15, B.start = Jan 15 - 3 = Jan 12
-          expect(rowB['EndDate']).toBe('2025-01-15');
-          expect(rowB['StartDate']).toBe('2025-01-12');
-          break;
-        case 'start-to-start':
-          // B.start must be >= A.start (Jan 1) → Jan 5 is already ok (flexible, no shift)
-          // B wasn't pushed because B.start (Jan 5) > A.start (Jan 1) + 0 buffer
-          expect(rowB['StartDate']).toBe('2025-01-05');
-          expect(rowB['EndDate']).toBe('2025-01-08');
-          break;
-        case 'start-to-end':
-          // B.end must be >= A.start (Jan 1) → Jan 8 is already ok (flexible, no shift)
-          expect(rowB['EndDate']).toBe('2025-01-08');
-          expect(rowB['StartDate']).toBe('2025-01-05');
-          break;
-      }
+    await configureDateDependency(api, context, tableId, cols, {
+      fk_dependency_linkrow_field_id: linkColId,
+      dependency_connection_type: 'end-to-start',
+      dependency_buffer_type: 'fixed',
+      dependency_buffer_days: 0,
+      include_weekends: true,
     });
-  }
+
+    // Move A's end to Jan 15
+    await updateRow(api, context, tableId, 1, { StartDate: '2025-01-01', EndDate: '2025-01-15' });
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    const rowB = await readRow(api, context, tableId, 2);
+    // B.start = A.end + 0 + 1 = Jan 16; B.end = Jan 16 + (Jan 8 − Jan 5) = Jan 19
+    expect(rowB['StartDate']).toBe('2025-01-16');
+    expect(rowB['EndDate']).toBe('2025-01-19');
+  });
+
+  test('propagation: end-to-end (fixed, 0 buffer)', async () => {
+    const linkColId = await createSelfLinkAndGetId();
+
+    // A: Jan 1-10, B: Jan 5-8 (B.end=8 < A.end=10)
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Name: 'A', StartDate: '2025-01-01', EndDate: '2025-01-10', Duration: 10 },
+      { Name: 'B', StartDate: '2025-01-05', EndDate: '2025-01-08', Duration: 4 },
+    ]);
+    await api.dbTableRow.nestedAdd('noco', context.base.id, tableId, 1, 'hm', 'Predecessor', '2');
+
+    await configureDateDependency(api, context, tableId, cols, {
+      fk_dependency_linkrow_field_id: linkColId,
+      dependency_connection_type: 'end-to-end',
+      dependency_buffer_type: 'fixed',
+      dependency_buffer_days: 0,
+      include_weekends: true,
+    });
+
+    // Move A's end to Jan 15
+    await updateRow(api, context, tableId, 1, { StartDate: '2025-01-01', EndDate: '2025-01-15' });
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    const rowB = await readRow(api, context, tableId, 2);
+    // B.end = A.end + 0 = Jan 15; dur_diff = Jan 8 − Jan 5 = 3; B.start = Jan 15 − 3 = Jan 12
+    expect(rowB['EndDate']).toBe('2025-01-15');
+    expect(rowB['StartDate']).toBe('2025-01-12');
+  });
+
+  test('propagation: start-to-start (fixed, 0 buffer)', async () => {
+    const linkColId = await createSelfLinkAndGetId();
+
+    // A: Jan 1-10, B: Jan 1-4 (same start — fixed will re-set)
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Name: 'A', StartDate: '2025-01-01', EndDate: '2025-01-10', Duration: 10 },
+      { Name: 'B', StartDate: '2025-01-01', EndDate: '2025-01-04', Duration: 4 },
+    ]);
+    await api.dbTableRow.nestedAdd('noco', context.base.id, tableId, 1, 'hm', 'Predecessor', '2');
+
+    await configureDateDependency(api, context, tableId, cols, {
+      fk_dependency_linkrow_field_id: linkColId,
+      dependency_connection_type: 'start-to-start',
+      dependency_buffer_type: 'fixed',
+      dependency_buffer_days: 0,
+      include_weekends: true,
+    });
+
+    // Move A's start to Jan 6
+    await updateRow(api, context, tableId, 1, { StartDate: '2025-01-06', EndDate: '2025-01-15' });
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    const rowB = await readRow(api, context, tableId, 2);
+    // B.start = A.start + 0 = Jan 6; dur_diff = Jan 4 − Jan 1 = 3; B.end = Jan 6 + 3 = Jan 9
+    expect(rowB['StartDate']).toBe('2025-01-06');
+    expect(rowB['EndDate']).toBe('2025-01-09');
+  });
+
+  test('propagation: start-to-end (fixed, 0 buffer)', async () => {
+    const linkColId = await createSelfLinkAndGetId();
+
+    // A: Jan 10-19, B: Jan 1-5 (B.end < A.start — will get aligned)
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Name: 'A', StartDate: '2025-01-10', EndDate: '2025-01-19', Duration: 10 },
+      { Name: 'B', StartDate: '2025-01-01', EndDate: '2025-01-05', Duration: 5 },
+    ]);
+    await api.dbTableRow.nestedAdd('noco', context.base.id, tableId, 1, 'hm', 'Predecessor', '2');
+
+    await configureDateDependency(api, context, tableId, cols, {
+      fk_dependency_linkrow_field_id: linkColId,
+      dependency_connection_type: 'start-to-end',
+      dependency_buffer_type: 'fixed',
+      dependency_buffer_days: 0,
+      include_weekends: true,
+    });
+
+    // Move A's start to Jan 15
+    await updateRow(api, context, tableId, 1, { StartDate: '2025-01-15', EndDate: '2025-01-24' });
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    const rowB = await readRow(api, context, tableId, 2);
+    // B.end = A.start + 0 = Jan 15; dur_diff = Jan 5 − Jan 1 = 4; B.start = Jan 15 − 4 = Jan 11
+    expect(rowB['EndDate']).toBe('2025-01-15');
+    expect(rowB['StartDate']).toBe('2025-01-11');
+  });
+
+  // ── Flexible mode tests — verify shift vs no-shift ───────────────────
+
+  test('propagation: flexible no-shift when gap exists', async () => {
+    const linkColId = await createSelfLinkAndGetId();
+
+    // A: Jan 1-10, B: Jan 20-25 (plenty of gap)
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Name: 'A', StartDate: '2025-01-01', EndDate: '2025-01-10', Duration: 10 },
+      { Name: 'B', StartDate: '2025-01-20', EndDate: '2025-01-25', Duration: 6 },
+    ]);
+    await api.dbTableRow.nestedAdd('noco', context.base.id, tableId, 1, 'hm', 'Predecessor', '2');
+
+    await configureDateDependency(api, context, tableId, cols, {
+      fk_dependency_linkrow_field_id: linkColId,
+      dependency_connection_type: 'end-to-start',
+      dependency_buffer_type: 'flexible',
+      dependency_buffer_days: 0,
+      include_weekends: true,
+    });
+
+    // Move A's end to Jan 15 — B.start=Jan 20 > Jan 15 → no shift
+    await updateRow(api, context, tableId, 1, { StartDate: '2025-01-01', EndDate: '2025-01-15' });
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    const rowB = await readRow(api, context, tableId, 2);
+    expect(rowB['StartDate']).toBe('2025-01-20');
+    expect(rowB['EndDate']).toBe('2025-01-25');
+  });
+
+  test('propagation: flexible shift when overlap exists', async () => {
+    const linkColId = await createSelfLinkAndGetId();
+
+    // A: Jan 1-10, B: Jan 8-12 (overlaps A.end)
+    await api.dbTableRow.bulkCreate('noco', context.base.id, tableId, [
+      { Name: 'A', StartDate: '2025-01-01', EndDate: '2025-01-10', Duration: 10 },
+      { Name: 'B', StartDate: '2025-01-08', EndDate: '2025-01-12', Duration: 5 },
+    ]);
+    await api.dbTableRow.nestedAdd('noco', context.base.id, tableId, 1, 'hm', 'Predecessor', '2');
+
+    await configureDateDependency(api, context, tableId, cols, {
+      fk_dependency_linkrow_field_id: linkColId,
+      dependency_connection_type: 'end-to-start',
+      dependency_buffer_type: 'flexible',
+      dependency_buffer_days: 0,
+      include_weekends: true,
+    });
+
+    // Extend A's end to Jan 15 — B.start=Jan 8 ≤ Jan 15 → shift
+    await updateRow(api, context, tableId, 1, { StartDate: '2025-01-01', EndDate: '2025-01-15' });
+    await dashboard.rootPage.waitForTimeout(2000);
+
+    const rowB = await readRow(api, context, tableId, 2);
+    // B.start = Jan 16; dur_diff = Jan 12 − Jan 8 = 4; B.end = Jan 16 + 4 = Jan 20
+    expect(rowB['StartDate']).toBe('2025-01-16');
+    expect(rowB['EndDate']).toBe('2025-01-20');
+  });
 
   // Buffer type tests
   for (const bufferType of ['flexible', 'fixed'] as const) {

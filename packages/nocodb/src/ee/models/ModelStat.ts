@@ -63,42 +63,30 @@ export default class ModelStat {
     stat: Partial<ModelStat>,
     ncMeta = Noco.ncMeta,
   ) {
-    // extract props which is allowed to be inserted
     const insertObject = extractProps(stat, ['row_count']);
 
-    const statData = await this.get(context, workspaceId, modelId, ncMeta);
+    const model = await Model.get(context, modelId, ncMeta);
+    const source = await Source.get(context, model.source_id, false, ncMeta);
+    const is_external = !source.isMeta();
 
-    if (statData) {
-      await ncMeta.metaUpdate(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.MODEL_STAT,
-        insertObject,
-        {
-          fk_workspace_id: workspaceId,
-          fk_model_id: modelId,
-        },
-      );
-    } else {
-      const model = await Model.get(context, modelId, ncMeta);
+    const now = ncMeta.now();
 
-      const source = await Source.get(context, model.source_id, false, ncMeta);
-
-      const is_external = !source.isMeta();
-
-      await ncMeta.metaInsert2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.MODEL_STAT,
-        {
-          fk_workspace_id: workspaceId,
-          fk_model_id: modelId,
-          is_external,
-          ...insertObject,
-        },
-        true,
-      );
-    }
+    // Atomic upsert — avoids race condition from GET-then-INSERT/UPDATE
+    await ncMeta
+      .knexConnection(MetaTable.MODEL_STAT)
+      .insert({
+        fk_workspace_id: workspaceId,
+        fk_model_id: modelId,
+        is_external,
+        ...insertObject,
+        created_at: now,
+        updated_at: now,
+      })
+      .onConflict(['fk_workspace_id', 'fk_model_id'])
+      .merge({
+        ...insertObject,
+        updated_at: now,
+      });
 
     await NocoCache.del(
       { workspace_id: workspaceId, base_id: null },

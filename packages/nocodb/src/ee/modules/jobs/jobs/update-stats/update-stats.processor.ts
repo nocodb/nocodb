@@ -157,13 +157,13 @@ export class UpdateStatsProcessor {
           },
         );
 
-        try {
-          for (const model of models) {
-            const modelContext = {
-              workspace_id: model.fk_workspace_id,
-              base_id: model.base_id,
-            };
+        for (const model of models) {
+          const modelContext = {
+            workspace_id: model.fk_workspace_id,
+            base_id: model.base_id,
+          };
 
+          try {
             await this.updateModelStat({
               data: {
                 context: modelContext,
@@ -172,9 +172,11 @@ export class UpdateStatsProcessor {
                 updated_at: new Date().toISOString(),
               },
             } as any);
+          } catch (e) {
+            this.debugLog(
+              `Failed to update stats for model ${model.id} in base ${base.id}`,
+            );
           }
-        } catch (e) {
-          this.debugLog(`Failed to update stats for base ${base.id}`);
         }
       }
     }
@@ -188,66 +190,5 @@ export class UpdateStatsProcessor {
     this.debugLog(`Finished updating stats for workspace ${fk_workspace_id}`);
 
     return true;
-  }
-
-  async UpdateSrcStat(_job: Job) {
-    /* TODO - fix for context
-    this.debugLog(`Start fetching stats for external sources`);
-
-    const lastFetch = await NocoCache.get(
-      'lastFetchExternalSourceStats',
-      CacheGetType.TYPE_STRING,
-    );
-
-    if (lastFetch) {
-      const diff = new Date().getTime() - new Date(lastFetch).getTime();
-      const diffInHours = diff / 1000 / 60 / 60;
-      // if last fetch was less than 4 hours ago, skip
-      if (diffInHours < 4) {
-        this.debugLog(
-          `Skipping external source stats update as it was updated ${diffInHours} hours ago`,
-        );
-        return true;
-      }
-    }
-
-    await NocoCache.set(
-      'lastFetchExternalSourceStats',
-      new Date().toISOString(),
-    );
-
-    const sources = await Source.list(context, {
-      baseId: null,
-    });
-
-    for (const source of sources) {
-      if (source.isMeta()) continue;
-
-      const models = await Model.list(context, {
-        base_id: source.base_id,
-        source_id: source.id,
-      });
-
-      try {
-        for (const model of models) {
-          // TODO - remove this on next release
-          await ModelStat.delete(context, model.fk_workspace_id, model.id);
-
-          await this.updateModelStat({
-            data: {
-              fk_workspace_id: model.fk_workspace_id,
-              fk_model_id: model.id,
-            },
-          } as any);
-        }
-      } catch (e) {
-        this.debugLog(`Failed to update stats for source ${source.id}`);
-      }
-    }
-
-    this.debugLog(`Finished updating stats for external sources`);
-
-    return true;
-    */
   }
 }

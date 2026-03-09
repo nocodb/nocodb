@@ -235,6 +235,7 @@ export const CommonLimits = {
 
 export const CommonPaidLimits = {
   [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
+  [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
 } as const;
 
 export const GraceLimits = {

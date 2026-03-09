@@ -31,6 +31,7 @@ export const FreePlan = Plan.prepare({
     [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 1000,
     [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 15,
     [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 0,
+    [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 256,
     [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]: false,
     ...(process.env.NODE_ENV === 'test'
       ? {

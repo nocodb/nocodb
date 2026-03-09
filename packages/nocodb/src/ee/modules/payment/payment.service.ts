@@ -2022,6 +2022,11 @@ export class PaymentService {
       if (!workspaceOrOrg)
         NcError.genericNotFound('Workspace or Org', workspaceOrOrgId);
 
+      // Already on a dedicated db server — skip (prevents re-migration on recurring payments)
+      if (workspaceOrOrg.fk_db_instance_id) {
+        return;
+      }
+
       const subRec = await Subscription.getByWorkspaceOrOrg(
         workspaceOrOrgId,
         ncMeta,

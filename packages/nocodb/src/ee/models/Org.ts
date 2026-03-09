@@ -15,8 +15,9 @@ import {
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { deserializeJSON, serializeJSON } from '~/utils/serialize';
-import { BaseUser, PresignedUrl } from '~/models';
+import { BaseUser, PresignedUrl, Workspace } from '~/models';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
+import { resetWorkspaceDbServer } from '~/utils/cloudDb';
 
 type OrganizationType = Omit<OrgType, 'image'> & {
   image?: AttachmentResType | string;
@@ -197,6 +198,14 @@ export default class Org implements OrganizationType {
 
     if (updateObj?.image) {
       updateObj.image = this.serializeAttachmentJSON(updateObj.image);
+    }
+
+    // if fk_db_instance_id is changing, reset db server cache for all org workspaces
+    if (updateObj.fk_db_instance_id) {
+      const workspaces = await Workspace.listByOrgId({ orgId }, ncMeta);
+      for (const ws of workspaces) {
+        await resetWorkspaceDbServer(ws.id);
+      }
     }
 
     const res = await ncMeta.metaUpdate(

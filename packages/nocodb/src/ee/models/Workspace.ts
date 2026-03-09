@@ -290,8 +290,11 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
       updateObject.created_at = ncMeta.now();
     }
 
-    // if updated workspace has db instance id, reset db server cache
-    if (workspace.fk_db_instance_id) {
+    // reset db server cache only if the instance id prop is being changed
+    if (
+      'fk_db_instance_id' in updateObject &&
+      updateObject.fk_db_instance_id !== workspace.fk_db_instance_id
+    ) {
       await resetWorkspaceDbServer(workspace.id);
     }
 

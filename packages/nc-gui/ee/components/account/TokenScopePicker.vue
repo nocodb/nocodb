@@ -202,8 +202,8 @@ onMounted(() => {
     @apply !ms-0;
   }
 
-  :deep(.ant-select-selection-overflow) {
-    @apply !gap-0;
+  :deep(.ant-select-selection-overflow-item:not(.ant-select-selection-overflow-item-suffix)) {
+    @apply !hidden;
   }
 
   :deep(.ant-select-selection-placeholder) {

@@ -287,18 +287,30 @@ export class PermissionsService {
       NcError.get(context).internalServerError('Failed to set permission');
     }
 
-    // Cascade tighten children when a document permission is set
+    // Cascade tighten children when a document permission is set.
+    // This runs outside the main transaction — if it fails mid-way,
+    // some children may retain stale explicit permissions. We catch and
+    // log rather than reverting the parent change, because the parent
+    // permission itself is already committed and correct.
     if (entity === PermissionEntity.DOCUMENT) {
       const newOptionValue = getPermissionOptionValue(
         granted_type,
         granted_role,
       );
-      await Permission.cascadeTightenDocPermissions(
-        context,
-        entity_id,
-        permission_key,
-        newOptionValue,
-      );
+
+      try {
+        await Permission.cascadeTightenDocPermissions(
+          context,
+          entity_id,
+          permission_key,
+          newOptionValue,
+        );
+      } catch (cascadeError) {
+        this.logger.error(
+          'Failed to cascade-tighten child document permissions',
+          (cascadeError as Error)?.stack,
+        );
+      }
 
       // Clear base permission list cache — cascade may have deleted child permissions
       await Permission.clearBaseCache(context);

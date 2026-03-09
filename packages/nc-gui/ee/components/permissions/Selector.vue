@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { PermissionKey, PermissionMeta, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
+import { PermissionKey, PermissionMeta, PermissionOptionRestrictiveness, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
 import PermissionsInlineUserSelector from './InlineUserSelector.vue'
 import type { NcDropdownPlacement } from '#imports'
 
@@ -69,7 +69,7 @@ const {
   isLoading,
   isInherited,
   userSelectorSelectedUsers,
-  selectedUsers: _selectedUsers,
+  selectedUsers,
   onPermissionChange: handlePermissionChange,
   handleUserSelectorSave: handleUserSave,
   showUserSelector,
@@ -78,7 +78,7 @@ const {
 // Build hierarchy scope map for team subjects
 const teamHierarchyScopes = computed(() => {
   const scopes: Record<string, 'self_only' | 'self_and_descendants'> = {}
-  for (const user of _selectedUsers.value) {
+  for (const user of selectedUsers.value) {
     if (user.type === 'team' && user.hierarchy_scope) {
       scopes[user.id] = user.hierarchy_scope
     }
@@ -158,25 +158,15 @@ const permissionOptions = computed(() => {
   })
 })
 
-// Restrictiveness ranking: higher = more restrictive (fewer people have access)
-const optionRestrictiveness: Record<string, number> = {
-  [PermissionOptionValue.EVERYONE]: 0,
-  [PermissionOptionValue.VIEWERS_AND_UP]: 1,
-  [PermissionOptionValue.COMMENTERS_AND_UP]: 2,
-  [PermissionOptionValue.EDITORS_AND_UP]: 3,
-  [PermissionOptionValue.CREATORS_AND_UP]: 4,
-  [PermissionOptionValue.NOBODY]: 5,
-}
-
 // Determine which options are disabled because they are more permissive than the parent's effective permission
 const isOptionDisabledByParent = (optionValue: string): boolean => {
   const parentValue = props.config.parentEffectiveValue
   if (!parentValue) return false
 
-  const parentLevel = optionRestrictiveness[parentValue]
-  const optionLevel = optionRestrictiveness[optionValue]
+  const parentLevel = PermissionOptionRestrictiveness[parentValue]
+  const optionLevel = PermissionOptionRestrictiveness[optionValue]
 
-  // If we can't determine levels (e.g. specific_users), don't disable
+  // If we can't determine levels (e.g. unknown values), don't disable
   if (parentLevel === undefined || optionLevel === undefined) return false
 
   // Disable if option is less restrictive than parent
@@ -332,7 +322,7 @@ const handleClickDropdown = (e: MouseEvent) => {
                           v-if="isDefaultOption(option)"
                           class="text-captionXsBold text-nc-content-gray-muted"
                         >
-                          (DEFAULT)
+                          ({{ $t('general.default').toUpperCase() }})
                         </span>
                       </div>
                       <GeneralLoader

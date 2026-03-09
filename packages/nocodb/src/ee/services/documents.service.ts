@@ -4,6 +4,9 @@ import {
   EventType,
   getProjectRole,
   PermissionKey,
+  PermissionRole,
+  PermissionRoleMap,
+  PermissionRolePower,
   PlanLimitTypes,
   ProjectRoles,
 } from 'nocodb-sdk';
@@ -68,7 +71,19 @@ export class DocumentsService extends DocumentsServiceCE {
     );
 
     if (!permission) {
-      // No permission set — use defaults (allow all for visibility, editors+ for edit)
+      // No explicit permission set — apply sensible defaults:
+      // - Visibility: allow all roles (the base ACL already gates base-level access)
+      // - Edit: require editor+ (viewers/commenters cannot edit by default)
+      if (permissionKey === PermissionKey.DOCUMENT_EDIT) {
+        const rolePower =
+          PermissionRolePower[
+            PermissionRoleMap[
+              role as keyof typeof PermissionRoleMap
+            ] as keyof typeof PermissionRolePower
+          ];
+        const editorPower = PermissionRolePower[PermissionRole.EDITOR];
+        return rolePower !== undefined && rolePower >= editorPower;
+      }
       return true;
     }
 
@@ -81,6 +96,9 @@ export class DocumentsService extends DocumentsServiceCE {
   /**
    * List documents in a base (lightweight — excludes content).
    * Filters out documents the user cannot see based on visibility permissions.
+   *
+   * SECURITY: `req` must be passed by all EE controller call-sites to enforce
+   * document-level permissions. It is optional only for CE backward compatibility.
    *
    * @param parentId — `null` for root documents, doc ID for children of that doc.
    */
@@ -125,7 +143,12 @@ export class DocumentsService extends DocumentsServiceCE {
     return visibleDocs;
   }
 
-  /** Fetch a single document with full content (ProseMirror JSON). */
+  /**
+   * Fetch a single document with full content (ProseMirror JSON).
+   *
+   * SECURITY: `req` must be passed by all EE controller call-sites to enforce
+   * document-level permissions. It is optional only for CE backward compatibility.
+   */
   async get(context: NcContext, docId: string, req?: NcRequest) {
     const doc = await Document.get(context, docId);
     if (!doc) {

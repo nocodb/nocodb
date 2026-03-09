@@ -158,7 +158,11 @@ export const PermissionMeta = {
   },
 };
 
-// Restrictiveness order for document permission inheritance (lower = more permissive)
+// Restrictiveness order for document permission inheritance (lower = more permissive).
+// SPECIFIC_USERS is ranked high (5) by convention: it is treated as more restrictive
+// than role-based options because access is explicitly gated to a named set of users.
+// Note: the actual restrictiveness of SPECIFIC_USERS depends on which users are
+// selected, but for inheritance validation we use this fixed ranking.
 export const PermissionOptionRestrictiveness: Record<string, number> = {
   [PermissionOptionValue.EVERYONE]: 0,
   [PermissionOptionValue.VIEWERS_AND_UP]: 1,

@@ -36,6 +36,9 @@ const isCreatorOrAbove = computed(() => {
 
 const searchQuery = ref('')
 
+// Cached map of doc ID → doc for efficient lookups (avoids rebuilding per-cell)
+const docsById = computed(() => new Map(activeDocuments.value.map((d) => [d.id, d])))
+
 /**
  * Resolve the effective permission for a document by checking its own explicit
  * permission first, then walking up the parent chain.
@@ -46,8 +49,7 @@ const resolveDocPermission = (docId: string, permissionKey: PermissionKey): stri
   const permissions = base.value?.permissions
   if (!permissions) return undefined
 
-  const docsById = new Map(activeDocuments.value.map((d) => [d.id, d]))
-  let currentDoc = docsById.get(docId)
+  let currentDoc = docsById.value.get(docId)
 
   // Check explicit permission on this doc, then walk up ancestors
   while (currentDoc) {
@@ -62,7 +64,7 @@ const resolveDocPermission = (docId: string, permissionKey: PermissionKey): stri
       )
     }
 
-    currentDoc = currentDoc.parent_id ? docsById.get(currentDoc.parent_id) : undefined
+    currentDoc = currentDoc.parent_id ? docsById.value.get(currentDoc.parent_id) : undefined
   }
 
   return undefined
@@ -89,8 +91,7 @@ const getEffectiveValue = (docId: string, permissionKey: PermissionKey): string 
  * Returns undefined for root-level docs (no parent constraint).
  */
 const getParentEffectiveValue = (docId: string, permissionKey: PermissionKey): string | undefined => {
-  const docsById = new Map(activeDocuments.value.map((d) => [d.id, d]))
-  const doc = docsById.get(docId)
+  const doc = docsById.value.get(docId)
 
   if (!doc?.parent_id) return undefined
 

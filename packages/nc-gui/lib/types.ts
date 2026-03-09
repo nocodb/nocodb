@@ -104,6 +104,8 @@ interface RowMetaRowColorInfo {
   rowHoverColor?: string | null
   rowBorderColor?: string | null
   is_set_as_background?: boolean
+  /** Pre-computed MD5 hash of row data for row coloring cache lookups */
+  rowColorHash?: string | null
 }
 
 interface Row {

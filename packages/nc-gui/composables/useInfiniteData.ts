@@ -2128,29 +2128,31 @@ export function useInfiniteData(args: {
   }
 
   /**
-   * This is used to update the rowMeta color info when the row colour info is updated
+   * This is used to update the rowMeta color info when the row colour info is updated.
+   * Computes row hash once per row and stores it in rowMeta.rowColorHash for reuse
+   * during per-cell color lookups in the canvas render loop.
    */
   const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
     if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
       return
     }
 
+    const updateRowColorInfo = (row: Row) => {
+      // Compute hash once per row — previously this was recomputed per cell during render
+      const hash = getRowHash(row.row)
+      Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row, hash))
+      row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
+    }
+
     // If it is group by, we need to update the rowMeta color info for each row in the group
     if (isGroupBy.value) {
       groupDataCache.value.forEach((group) => {
-        group.cachedRows.value.forEach((row) => {
-          Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-          row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
-        })
+        group.cachedRows.value.forEach(updateRowColorInfo)
       })
     } else {
       // If it is not group by, we need to update the rowMeta color info for each row in cachedRows
       const { cachedRows } = getDataCache()
-
-      cachedRows.value.forEach((row) => {
-        Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-        row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
-      })
+      cachedRows.value.forEach(updateRowColorInfo)
     }
   }
 

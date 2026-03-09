@@ -231,7 +231,10 @@ export function useGridCellHandler(params: {
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
         // First check for cell-specific coloring
-        const cellColorInfo = isCellColouringEnabled.value ? getEvaluatedCellColorInfo(row, column.id) : null
+        // Use pre-computed hash from rowMeta to avoid MD5(JSON.stringify(row)) per cell
+        const cellColorInfo = isCellColouringEnabled.value
+          ? getEvaluatedCellColorInfo(row, column.id, rowMeta?.rowColorHash)
+          : null
 
         let backgroundColorToRender: string | null = null
         let hoverColorToRender: string | null = null

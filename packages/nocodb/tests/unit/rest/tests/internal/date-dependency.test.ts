@@ -236,6 +236,75 @@ export const dateDependencyTests = function () {
           expect(row.fields['Duration']).to.equal(2);
         });
       });
+
+      // ── 1.3  is_active: false disables within-record sync ─────────────────
+
+      describe('is_active: false → no field sync', () => {
+        it('start + end supplied but duration NOT auto-computed', async () => {
+          await configureRule({ is_active: false, include_weekends: true });
+
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          // Duration should remain null/0 — not auto-filled
+          expect(row.fields['Duration'], 'duration not computed').to.satisfy(
+            (v: any) => v === null || v === undefined || v === 0,
+          );
+        });
+
+        it('start + duration supplied but end NOT auto-computed', async () => {
+          await configureRule({ is_active: false, include_weekends: true });
+
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'Duration': 5 });
+          expect(row.fields['End Date'], 'end date not computed').to.satisfy(
+            (v: any) => v === null || v === undefined,
+          );
+        });
+      });
+
+      // ── 1.4  update with all three fields in payload ──────────────────────
+
+      describe('update with all three fields in payload', () => {
+        beforeEach(() => configureRule({ include_weekends: true }));
+
+        it('update start+end together → recalculates duration', async () => {
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          expect(row.fields['Duration']).to.equal(10);
+
+          // Update both start and end — duration should recalculate
+          await updateRow(row.id, { 'Start Date': '2025-02-01', 'End Date': '2025-02-20' });
+          const after = await getRow(row.id);
+          expect(after.fields['Duration'], 'dur recalculated from new start+end').to.equal(20);
+        });
+
+        it('update start+duration together → recalculates end', async () => {
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+
+          // Update start and duration — end should recalculate
+          await updateRow(row.id, { 'Start Date': '2025-03-01', 'Duration': 3 });
+          const after = await getRow(row.id);
+          expect(after.fields['End Date'], 'end recalculated').to.equal('2025-03-03');
+        });
+      });
+
+      // ── 1.5  edge case: duration = 0 and negative duration ────────────────
+
+      describe('duration edge cases', () => {
+        beforeEach(() => configureRule({ include_weekends: true }));
+
+        it('duration = 0 → end date NOT computed (no-op)', async () => {
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'Duration': 0 });
+          // Implementation guards with days >= 1, so duration=0 should not compute end
+          expect(row.fields['End Date'], 'end not computed for dur=0').to.satisfy(
+            (v: any) => v === null || v === undefined,
+          );
+        });
+
+        it('negative duration → end date NOT computed (no-op)', async () => {
+          const row = await insertRow({ 'Start Date': '2025-01-01', 'Duration': -5 });
+          expect(row.fields['End Date'], 'end not computed for negative dur').to.satisfy(
+            (v: any) => v === null || v === undefined,
+          );
+        });
+      });
     });
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -799,6 +868,377 @@ export const dateDependencyTests = function () {
           const afterB = await getRow(rowB.id);
           expect(afterB.fields['Start Date'], 'B start unchanged').to.equal('2025-01-11');
           expect(afterB.fields['End Date'],   'B end unchanged').to.equal('2025-01-20');
+        });
+      });
+
+      // ── 2.6  cycle detection ─────────────────────────────────────────────
+
+      describe('cycle detection (A→B→A)', () => {
+        it('circular link does not cause infinite recursion', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 11-20, create a cycle: A→B and B→A
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-11', 'End Date': '2025-01-20' });
+          await linkSuccessor(rowA.id, rowB.id);
+          await linkSuccessor(rowB.id, rowA.id);
+
+          // Update A — should propagate to B but NOT loop back to A infinitely
+          // The CTE's path-based cycle detection should stop the recursion
+          await updateRow(rowA.id, { 'End Date': '2025-01-15' });
+
+          // B should be shifted: new_start = Jan 15 + 1 = Jan 16; dur = 9; new_end = Jan 25
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start shifted').to.equal('2025-01-16');
+          expect(afterB.fields['End Date'],   'B end shifted').to.equal('2025-01-25');
+
+          // A should NOT have been re-shifted by the cycle — it keeps the values we set
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['Start Date'], 'A start unchanged').to.equal('2025-01-01');
+          expect(afterA.fields['End Date'],   'A end = what we set').to.equal('2025-01-15');
+        });
+
+        it('3-node cycle (A→B→C→A) terminates safely', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-11', 'End Date': '2025-01-20' });
+          const rowC = await insertRow({ 'Start Date': '2025-01-21', 'End Date': '2025-01-30' });
+          await linkSuccessor(rowA.id, rowB.id);
+          await linkSuccessor(rowB.id, rowC.id);
+          await linkSuccessor(rowC.id, rowA.id); // close the cycle
+
+          // Should not hang or error — the request completes within timeout
+          await updateRow(rowA.id, { 'End Date': '2025-01-15' });
+
+          // B and C propagate forward; A is NOT re-touched
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B shifted').to.equal('2025-01-16');
+
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['Start Date'], 'C shifted').to.equal('2025-01-26');
+
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['End Date'], 'A end unchanged').to.equal('2025-01-15');
+        });
+      });
+
+      // ── 2.9  include_weekends: false → business-day propagation ───────────
+
+      describe('include_weekends: false — business-day cascade', () => {
+
+        it('[end-to-start, fixed, buffer=0] shifts successor to next business day', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Fri Jan 10 (5 biz days), B: Mon Jan 13 – Fri Jan 17 (5 biz days)
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-13', 'End Date': '2025-01-17' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Extend A's end to Fri Jan 17 → B must shift past the weekend
+          await updateRow(rowA.id, { 'End Date': '2025-01-17' });
+
+          // B: new_start = addBizDays(Jan 17, 1) = Mon Jan 20
+          //    biz_dur of B = bizDaysBetween(Jan 13, Jan 17) = 4
+          //    new_end   = addBizDays(Jan 20, 4) = Fri Jan 24
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-20');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-24');
+        });
+
+        it('[end-to-start, fixed, buffer=1] adds 1 business-day gap', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        1,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Fri Jan 10, B: Mon Jan 13 – Fri Jan 17
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-13', 'End Date': '2025-01-17' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Extend A to Fri Jan 17
+          await updateRow(rowA.id, { 'End Date': '2025-01-17' });
+
+          // B: new_start = addBizDays(Jan 17, 1+1=2) = Tue Jan 21
+          //    biz_dur = 4; new_end = addBizDays(Jan 21, 4) = Mon Jan 27
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-21');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-27');
+        });
+
+        it('[end-to-start, flexible, buffer=0] overlap across weekend shifts successor', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Thu Jan 9, B: Wed Jan 8 – Mon Jan 13
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-09' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-08', 'End Date': '2025-01-13' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Extend A to Fri Jan 10; B.start=Jan 8 ≤ addBizDays(Jan 10, 0) = Jan 10 → shift
+          await updateRow(rowA.id, { 'End Date': '2025-01-10' });
+
+          // B: new_start = addBizDays(Jan 10, 1) = Mon Jan 13
+          //    biz_dur = bizDaysBetween(Jan 8, Jan 13) = 3; new_end = addBizDays(Jan 13, 3) = Thu Jan 16
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-13');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-16');
+        });
+
+        it('[end-to-start, flexible, buffer=0] no overlap → no shift', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Fri Jan 10, B: Mon Jan 20 – Fri Jan 24 (big gap)
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-20', 'End Date': '2025-01-24' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Extend A to Jan 15 — B.start=Jan 20 > addBizDays(Jan 15, 0) = Jan 15 → no shift
+          await updateRow(rowA.id, { 'End Date': '2025-01-15' });
+
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B unchanged').to.equal('2025-01-20');
+          expect(afterB.fields['End Date'],   'B unchanged').to.equal('2025-01-24');
+        });
+
+        it('[end-to-start, fixed, buffer=0] 2-level chain skips weekends at each level', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Fri Jan 10, B: Mon Jan 13 – Fri Jan 17, C: Mon Jan 20 – Fri Jan 24
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-13', 'End Date': '2025-01-17' });
+          const rowC = await insertRow({ 'Start Date': '2025-01-20', 'End Date': '2025-01-24' });
+          await linkSuccessor(rowA.id, rowB.id);
+          await linkSuccessor(rowB.id, rowC.id);
+
+          // Extend A to Fri Jan 17
+          await updateRow(rowA.id, { 'End Date': '2025-01-17' });
+
+          // B: start = Mon Jan 20, end = Fri Jan 24 (4 biz dur preserved)
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-20');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-24');
+
+          // C: start = Mon Jan 27, end = Fri Jan 31
+          const afterC = await getRow(rowC.id);
+          expect(afterC.fields['Start Date'], 'C start').to.equal('2025-01-27');
+          expect(afterC.fields['End Date'],   'C end').to.equal('2025-01-31');
+        });
+
+        // ── end-to-end with business days ─────────────────────────────────
+
+        it('[end-to-end, fixed, buffer=0] successor end aligns, skipping weekends', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Fri Jan 10, B: Mon Jan 13 – Fri Jan 17
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-13', 'End Date': '2025-01-17' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Extend A's end to Thu Jan 23
+          await updateRow(rowA.id, { 'End Date': '2025-01-23' });
+
+          // B: new_end = addBizDays(Jan 23, 0) = Jan 23 (Thu)
+          //    biz_dur = bizDaysBetween(Jan 13, Jan 17) = 4
+          //    new_start = subBizDays(Jan 23, 4) = Thu Jan 23 - 4 biz = Fri Jan 17
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-23');
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-17');
+        });
+
+        it('[end-to-end, fixed, buffer=1] adds 1 biz day gap to end alignment', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        1,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Fri Jan 10, B: Mon Jan 13 – Fri Jan 17
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-13', 'End Date': '2025-01-17' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Extend A to Fri Jan 17
+          await updateRow(rowA.id, { 'End Date': '2025-01-17' });
+
+          // B: new_end = addBizDays(Jan 17(Fri), 1) = Mon Jan 20
+          //    biz_dur = 4; new_start = subBizDays(Jan 20(Mon), 4) = Tue Jan 14
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-20');
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-14');
+        });
+
+        // ── start-to-start with business days ─────────────────────────────
+
+        it('[start-to-start, fixed, buffer=0] successor starts on same biz day', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Fri Jan 10, B: Mon Jan 6 – Fri Jan 10
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move A to start Mon Jan 20
+          await updateRow(rowA.id, { 'Start Date': '2025-01-20', 'End Date': '2025-01-24' });
+
+          // B: new_start = addBizDays(Jan 20(Mon), 0) = Mon Jan 20
+          //    biz_dur = bizDaysBetween(Jan 6, Jan 10) = 4
+          //    new_end = addBizDays(Jan 20, 4) = Fri Jan 24
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-20');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-24');
+        });
+
+        it('[start-to-start, fixed, buffer=1] successor starts 1 biz day later', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        1,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Fri Jan 10, B: Mon Jan 6 – Fri Jan 10
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move A to start Fri Jan 17
+          await updateRow(rowA.id, { 'Start Date': '2025-01-17', 'End Date': '2025-01-24' });
+
+          // B: new_start = addBizDays(Jan 17(Fri), 1) = Mon Jan 20
+          //    biz_dur = 4; new_end = addBizDays(Jan 20(Mon), 4) = Fri Jan 24
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-20');
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-24');
+        });
+
+        // ── start-to-end with business days ───────────────────────────────
+
+        it('[start-to-end, fixed, buffer=0] successor end aligns with pred start, biz days', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 13 – Fri Jan 17, B: Mon Jan 6 – Fri Jan 10
+          const rowA = await insertRow({ 'Start Date': '2025-01-13', 'End Date': '2025-01-17' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move A: start=Mon Jan 20
+          await updateRow(rowA.id, { 'Start Date': '2025-01-20', 'End Date': '2025-01-24' });
+
+          // B: new_end = addBizDays(Jan 20(Mon), 0) = Mon Jan 20
+          //    biz_dur = bizDaysBetween(Jan 6, Jan 10) = 4
+          //    new_start = subBizDays(Jan 20(Mon), 4) = Tue Jan 14
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-20');
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-14');
+        });
+
+        it('[start-to-end, fixed, buffer=1] successor end = pred start + 1 biz day', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        1,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 13 – Fri Jan 17, B: Mon Jan 6 – Fri Jan 10
+          const rowA = await insertRow({ 'Start Date': '2025-01-13', 'End Date': '2025-01-17' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move A: start=Fri Jan 17
+          await updateRow(rowA.id, { 'Start Date': '2025-01-17', 'End Date': '2025-01-24' });
+
+          // B: new_end = addBizDays(Jan 17(Fri), 1) = Mon Jan 20
+          //    biz_dur = 4; new_start = subBizDays(Jan 20(Mon), 4) = Tue Jan 14
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-20');
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-14');
         });
       });
     });

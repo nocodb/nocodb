@@ -21,11 +21,101 @@ export interface DateDependencyPropagationParams {
   bufferDays: number;
   seedIds: string[];
   dialect: 'pg' | 'mysql';
+  /** When false, all date arithmetic skips weekends (Sat/Sun). Default true. */
+  includeWeekends?: boolean;
+}
+
+// ─── Business-day SQL helpers ─────────────────────────────────────────────
+//
+// Pure-formula approach (no generate_series / subqueries) so they work inside
+// the recursive member of a CTE on both PostgreSQL and MySQL 8+.
+//
+// PG uses ISODOW (1=Mon … 7=Sun).
+// MySQL uses WEEKDAY (0=Mon … 6=Sun).
+
+/**
+ * Add `n` business days (Mon–Fri) to a date expression.
+ *
+ * Truth-table validated for all 25 (dow, n%5) weekday combinations:
+ *   remainder r = n%5 (0–4), weekday dow (1–5 for PG ISODOW, 0–4 for MySQL WEEKDAY).
+ *   When dow+r crosses the weekend boundary (>5 in PG, >4 in MySQL), we add 2
+ *   calendar days to skip both Sat and Sun. This is correct for both one-weekend-day
+ *   crossing (dow+r=6 → lands on Sat → +2 = Mon) and two-day crossing
+ *   (dow+r=7 → lands on Sun → +2 = Tue, which is correct because r already accounts
+ *   for the business days before the weekend).
+ */
+function addBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
+  if (isPg) {
+    // ISODOW: 1=Mon..5=Fri, 6=Sat, 7=Sun
+    // Explicit ::int casts ensure integer division even if nExpr resolves to numeric
+    const dw = `EXTRACT(ISODOW FROM (${dateExpr})::date)::int`;
+    const n = `(${nExpr})::int`;
+    return `(CASE WHEN ${dw} >= 6 THEN
+      (${dateExpr})::date + (8 - ${dw}) + (${n} / 5) * 7 + (${n} % 5)
+    ELSE
+      (${dateExpr})::date + (${n} / 5) * 7 + (${n} % 5)
+      + CASE WHEN ${dw} + (${n} % 5) > 5 THEN 2 ELSE 0 END
+    END)::date`;
+  }
+  // MySQL WEEKDAY: 0=Mon..4=Fri, 5=Sat, 6=Sun
+  // MySQL DIV/MOD are always integer operations — no cast needed
+  const dw = `WEEKDAY(${dateExpr})`;
+  return `CAST(CASE WHEN ${dw} >= 5 THEN
+    DATE_ADD(DATE_ADD(${dateExpr}, INTERVAL (7 - ${dw}) DAY),
+             INTERVAL ((${nExpr}) DIV 5) * 7 + ((${nExpr}) MOD 5) DAY)
+  ELSE
+    DATE_ADD(${dateExpr}, INTERVAL ((${nExpr}) DIV 5) * 7 + ((${nExpr}) MOD 5)
+      + CASE WHEN ${dw} + ((${nExpr}) MOD 5) > 4 THEN 2 ELSE 0 END DAY)
+  END AS DATE)`;
+}
+
+/** Subtract `n` business days from a date expression. */
+function subBizDaysSql(dateExpr: string, nExpr: string, isPg: boolean): string {
+  if (isPg) {
+    const dw = `EXTRACT(ISODOW FROM (${dateExpr})::date)::int`;
+    const n = `(${nExpr})::int`;
+    return `(CASE WHEN ${dw} >= 6 THEN
+      (${dateExpr})::date - (${dw} - 5) - (${n} / 5) * 7 - (${n} % 5)
+    ELSE
+      (${dateExpr})::date - (${n} / 5) * 7 - (${n} % 5)
+      - CASE WHEN ${dw} - (${n} % 5) < 1 THEN 2 ELSE 0 END
+    END)::date`;
+  }
+  const dw = `WEEKDAY(${dateExpr})`;
+  return `CAST(CASE WHEN ${dw} >= 5 THEN
+    DATE_SUB(DATE_SUB(${dateExpr}, INTERVAL (${dw} - 4) DAY),
+             INTERVAL ((${nExpr}) DIV 5) * 7 + ((${nExpr}) MOD 5) DAY)
+  ELSE
+    DATE_SUB(${dateExpr}, INTERVAL ((${nExpr}) DIV 5) * 7 + ((${nExpr}) MOD 5)
+      + CASE WHEN ${dw} - ((${nExpr}) MOD 5) < 0 THEN 2 ELSE 0 END DAY)
+  END AS DATE)`;
+}
+
+/**
+ * Count the business-day "distance" from d1 to d2 such that
+ * `addBizDays(d1, result) == d2`.  Assumes d2 >= d1 and both are weekdays.
+ *
+ * Uses the double-floor subtraction method which counts Saturdays and Sundays
+ * in the span and subtracts them from the calendar diff. This is mathematically
+ * equivalent to the modular-offset approach in addBizDaysSql — both have been
+ * truth-table validated to be exact inverses for all weekday (dow, diff)
+ * combinations. The ::int cast on the PG result ensures addBizDaysSql receives
+ * an integer operand for its / and % operators.
+ */
+function bizDaysBetweenSql(d1: string, d2: string, isPg: boolean): string {
+  if (isPg) {
+    const diff = `((${d2})::date - (${d1})::date)`;
+    const dw = `EXTRACT(ISODOW FROM (${d1})::date)::int`;
+    return `(${diff} - FLOOR((${diff} + ${dw} - 1)::numeric / 7) - FLOOR((${diff} + ${dw})::numeric / 7))::int`;
+  }
+  const diff = `DATEDIFF(${d2}, ${d1})`;
+  const dw = `WEEKDAY(${d1})`;
+  return `CAST(${diff} - FLOOR((${diff} + ${dw}) / 7) - FLOOR((${diff} + ${dw} + 1) / 7) AS SIGNED)`;
 }
 
 /**
  * Builds a recursive CTE (SELECT only) that:
- *  1. Recursively traverses successor rows (cycle-safe)
+ *  1. Recursively traverses successor rows (cycle-safe, depth-limited)
  *  2. Computes new start/end dates at each level from the predecessor's
  *     already-computed dates — no application-level loops needed
  *  3. Returns { id, new_start, new_end } for every row that actually changed
@@ -47,9 +137,16 @@ export function buildDateDependencyPropagationSQL(
     bufferDays,
     seedIds,
     dialect,
+    includeWeekends = true,
   } = params;
 
+  // Guard: empty seedIds would produce `WHERE ... IN ()` — a syntax error
+  if (!seedIds.length) {
+    return { sql: 'SELECT NULL AS id WHERE 1 = 0', bindings: [] };
+  }
+
   const isPg = dialect === 'pg';
+  const skipWeekends = !includeWeekends;
 
   // Quote table/column names per dialect
   const qChar = isPg ? '"' : '`';
@@ -73,28 +170,43 @@ export function buildDateDependencyPropagationSQL(
     isPg ? `${expr}::text` : `CAST(${expr} AS CHAR)`;
   const castDate = (expr: string) =>
     isPg ? `(${expr})::date` : `CAST(${expr} AS DATE)`;
-  const intervalDays = (n: number | string) =>
-    isPg ? `(${n} * INTERVAL '1 day')` : `INTERVAL ${n} DAY`;
 
-  const buf = intervalDays(bufferDays);
-  const oneDay = isPg ? `INTERVAL '1 day'` : `INTERVAL 1 DAY`;
+  // ── Unified integer-based date arithmetic ───────────────────────────────
+  //
+  // When includeWeekends is true:  calendar-day arithmetic (date ± int).
+  // When includeWeekends is false: business-day arithmetic via formula helpers.
 
-  // Duration expression: old_end - old_start as an interval
-  // PG: (date - date) returns int → multiply by interval
-  // MySQL: DATEDIFF returns int → use DATE_ADD later
-  const dur = isPg
-    ? `(t.${ec}::date - t.${sc}::date) * INTERVAL '1 day'`
+  // Duration: integer count of days (calendar or business) between the row's
+  // EXISTING start and end dates (t.start_col, t.end_col — the old values).
+  // This is intentional: we preserve the task's original duration and shift the
+  // window, keeping the length constant. For flexible bufferType, when the CASE
+  // falls through to the original t.start_col, newEnd = old_start + old_dur =
+  // old_end, which correctly means "no change" for rows that don't need shifting.
+  const dur = skipWeekends
+    ? bizDaysBetweenSql(`t.${sc}`, `t.${ec}`, isPg)
+    : isPg
+    ? `(t.${ec}::date - t.${sc}::date)`
     : `DATEDIFF(t.${ec}, t.${sc})`;
 
-  // Date arithmetic helpers
-  const dateAdd = (base: string, interval: string) =>
-    isPg
-      ? `${base} + ${interval}`
-      : `DATE_ADD(${base}, INTERVAL ${interval} DAY)`;
-  const dateSub = (base: string, interval: string) =>
-    isPg
-      ? `${base} - ${interval}`
-      : `DATE_SUB(${base}, INTERVAL ${interval} DAY)`;
+  // Add N days (calendar or business) to a date → date
+  const addN = (base: string, n: string): string =>
+    skipWeekends
+      ? addBizDaysSql(base, n, isPg)
+      : castDate(
+          isPg
+            ? `(${base})::date + (${n})`
+            : `DATE_ADD(${base}, INTERVAL (${n}) DAY)`,
+        );
+
+  // Subtract N days (calendar or business) from a date → date
+  const subN = (base: string, n: string): string =>
+    skipWeekends
+      ? subBizDaysSql(base, n, isPg)
+      : castDate(
+          isPg
+            ? `(${base})::date - (${n})`
+            : `DATE_SUB(${base}, INTERVAL (${n}) DAY)`,
+        );
 
   // Build date computation expressions
   let newStartExpr: string;
@@ -102,54 +214,51 @@ export function buildDateDependencyPropagationSQL(
 
   switch (connectionType) {
     case 'end-to-start': {
-      const required = dateAdd(
-        `p.end_date`,
-        isPg ? `${buf} + ${oneDay}` : `${bufferDays} + 1`,
-      );
+      const required = addN('p.end_date', String(bufferDays + 1));
       newStartExpr =
         bufferType === 'fixed'
           ? required
-          : `CASE WHEN t.${sc} <= ${dateAdd(
+          : `CASE WHEN t.${sc} <= ${addN(
               'p.end_date',
-              isPg ? buf : String(bufferDays),
+              String(bufferDays),
             )} THEN ${required} ELSE t.${sc} END`;
-      newEndExpr = dateAdd(`(${newStartExpr})`, isPg ? dur : dur);
+      newEndExpr = addN(`(${newStartExpr})`, dur);
       break;
     }
     case 'end-to-end': {
-      const required = dateAdd(`p.end_date`, isPg ? buf : String(bufferDays));
+      const required = addN('p.end_date', String(bufferDays));
       newEndExpr =
         bufferType === 'fixed'
           ? required
-          : `CASE WHEN t.${ec} < ${dateAdd(
+          : `CASE WHEN t.${ec} < ${addN(
               'p.end_date',
-              isPg ? buf : String(bufferDays),
+              String(bufferDays),
             )} THEN ${required} ELSE t.${ec} END`;
-      newStartExpr = dateSub(`(${newEndExpr})`, isPg ? dur : dur);
+      newStartExpr = subN(`(${newEndExpr})`, dur);
       break;
     }
     case 'start-to-start': {
-      const required = dateAdd(`p.start_date`, isPg ? buf : String(bufferDays));
+      const required = addN('p.start_date', String(bufferDays));
       newStartExpr =
         bufferType === 'fixed'
           ? required
-          : `CASE WHEN t.${sc} < ${dateAdd(
+          : `CASE WHEN t.${sc} < ${addN(
               'p.start_date',
-              isPg ? buf : String(bufferDays),
+              String(bufferDays),
             )} THEN ${required} ELSE t.${sc} END`;
-      newEndExpr = dateAdd(`(${newStartExpr})`, isPg ? dur : dur);
+      newEndExpr = addN(`(${newStartExpr})`, dur);
       break;
     }
     case 'start-to-end': {
-      const required = dateAdd(`p.start_date`, isPg ? buf : String(bufferDays));
+      const required = addN('p.start_date', String(bufferDays));
       newEndExpr =
         bufferType === 'fixed'
           ? required
-          : `CASE WHEN t.${ec} < ${dateAdd(
+          : `CASE WHEN t.${ec} < ${addN(
               'p.start_date',
-              isPg ? buf : String(bufferDays),
+              String(bufferDays),
             )} THEN ${required} ELSE t.${ec} END`;
-      newStartExpr = dateSub(`(${newEndExpr})`, isPg ? dur : dur);
+      newStartExpr = subN(`(${newEndExpr})`, dur);
       break;
     }
   }
@@ -248,50 +357,58 @@ WHERE ${changedFilter}`.trim();
   return { sql, bindings: [...seedIds] };
 }
 
+/** Normalize a Date to UTC midnight to avoid DST-induced day shifts. */
+function toUTCMidnight(d: Date): Date {
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+
 function daysBetween(start: Date, end: Date, includeWeekends = true): number {
+  const s = toUTCMidnight(start);
+  const e = toUTCMidnight(end);
+
   if (includeWeekends) {
-    return Math.round((end.getTime() - start.getTime()) / 86400_000);
+    return Math.round((e.getTime() - s.getTime()) / 86400_000);
   }
 
   let count = 0;
-  const cur = new Date(start);
-  while (cur < end) {
-    const day = cur.getDay();
+  const cur = new Date(s);
+  while (cur < e) {
+    const day = cur.getUTCDay();
     if (day !== 0 && day !== 6) count++;
-    cur.setDate(cur.getDate() + 1);
+    cur.setUTCDate(cur.getUTCDate() + 1);
   }
   return count;
 }
 
 function addDays(date: Date, days: number, includeWeekends = true): Date {
+  const result = toUTCMidnight(date);
+
   if (includeWeekends) {
-    const result = new Date(date);
-    result.setDate(result.getDate() + days);
+    result.setUTCDate(result.getUTCDate() + days);
     return result;
   }
 
-  const result = new Date(date);
   let added = 0;
   while (added < days) {
-    result.setDate(result.getDate() + 1);
-    const day = result.getDay();
+    result.setUTCDate(result.getUTCDate() + 1);
+    const day = result.getUTCDay();
     if (day !== 0 && day !== 6) added++;
   }
   return result;
 }
 
 function subtractDays(date: Date, days: number, includeWeekends = true): Date {
+  const result = toUTCMidnight(date);
+
   if (includeWeekends) {
-    const result = new Date(date);
-    result.setDate(result.getDate() - days);
+    result.setUTCDate(result.getUTCDate() - days);
     return result;
   }
 
-  const result = new Date(date);
   let subtracted = 0;
   while (subtracted < days) {
-    result.setDate(result.getDate() - 1);
-    const day = result.getDay();
+    result.setUTCDate(result.getUTCDate() - 1);
+    const day = result.getUTCDay();
     if (day !== 0 && day !== 6) subtracted++;
   }
   return result;
@@ -320,10 +437,16 @@ export function applyDateDependencyFieldSync(
 
   if (!startCol || !endCol || !durCol) return;
 
-  // data uses column_name keys; oldData uses title keys (prepareNocoData contract)
+  // data uses column_name keys; oldData uses title keys (prepareNocoData contract).
+  // Defensive: try both column_name and title on both sources, since title ≠ column_name
+  // is common with user-renamed columns and the key convention may not always hold.
   const resolve = (col: Column): any => {
     if (col.column_name in data) return data[col.column_name];
-    if (oldData && col.title in oldData) return oldData[col.title];
+    if (col.title in data) return data[col.title];
+    if (oldData) {
+      if (col.title in oldData) return oldData[col.title];
+      if (col.column_name in oldData) return oldData[col.column_name];
+    }
     return undefined;
   };
 

@@ -1325,6 +1325,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       bufferDays: rule.dependency_buffer_days ?? 0,
       seedIds,
       dialect: this.isPg ? 'pg' : 'mysql',
+      includeWeekends: rule.include_weekends ?? true,
     });
 
     const BATCH_SIZE = 500;

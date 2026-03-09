@@ -370,8 +370,9 @@ export class PermissionsService {
       permission_key,
     );
 
+    // No explicit permission row exists — already at default; nothing to drop
     if (!permission) {
-      NcError.genericNotFound('Permission', permission_key);
+      return;
     }
 
     const ncMeta = await Noco.ncMeta.startTransaction();

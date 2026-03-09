@@ -238,17 +238,22 @@ const mainItems = computed<NavItem[]>(() => [
       </template>
     </DashboardMiniSidebarV2RailItem>
 
+    <!-- Settings -->
+    <DashboardMiniSidebarV2RailItem
+      icon="ncSettings"
+      label="Settings"
+      panel-key="settings"
+      :active="activeSidebarTab === 'settings'"
+      :disable-tooltip="true"
+      @click="onTabClick('settings')"
+    />
+
     <!-- Bottom group -->
     <div class="nc-rail-bottom-group">
-      <!-- Settings -->
-      <DashboardMiniSidebarV2RailItem
-        icon="ncSettings"
-        label="Settings"
-        panel-key="settings"
-        :active="activeSidebarTab === 'settings'"
-        :disable-tooltip="true"
-        @click="onTabClick('settings')"
-      />
+      <!-- Help -->
+      <DashboardMiniSidebarHelp>
+        <DashboardMiniSidebarV2RailItem icon="ncHelp" label="Help" panel-key="help" is-dropdown />
+      </DashboardMiniSidebarHelp>
     </div>
 
     <NcDivider class="!w-8 !min-w-8 !max-w-8 pt-1.5 pb-1 !border-nc-border-gray-medium" />

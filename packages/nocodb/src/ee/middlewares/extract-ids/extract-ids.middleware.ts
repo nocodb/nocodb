@@ -428,7 +428,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         const widget = await Widget.get(context, widgetId);
 
         if (!widget) {
-          NcError.genericNotFound('Widget', widgetId);
+          NcError.get(context).widgetNotFound(widgetId);
         }
       } else if (sectionId) {
         const section = await ViewSection.get(context, sectionId);

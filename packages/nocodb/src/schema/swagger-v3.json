@@ -19,7 +19,8 @@
         "Fields",
         "View Filters",
         "View Sorts",
-        "Scripts"
+        "Scripts",
+        "Dashboards"
       ]
     },
     {
@@ -3734,6 +3735,499 @@
           "200": {
             "description": "Script deleted."
           }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards": {
+      "get": {
+        "summary": "List Dashboards",
+        "description": "Retrieve a list of dashboards in the specified base.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboards-list",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of dashboards retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardList"
+                }
+              }
+            }
+          },
+          "404": { "description": "Base not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "post": {
+        "summary": "Create Dashboard",
+        "description": "Create a new dashboard within the specified base.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-create",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardCreateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dashboard created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardGetResponse"
+                }
+              }
+            }
+          },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}": {
+      "get": {
+        "summary": "Get Dashboard",
+        "description": "Retrieve details of a specific dashboard. Optionally include widgets by setting the `includeWidgets` query parameter to `true`.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-read",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Include additional data. Use 'widgets' to include widget information.",
+            "example": "widgets"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard details retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardGetResponse"
+                }
+              }
+            }
+          },
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "patch": {
+        "summary": "Update Dashboard",
+        "description": "Update the specified dashboard.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-update",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DashboardUpdateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Dashboard updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardGetResponse"
+                }
+              }
+            }
+          },
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "delete": {
+        "summary": "Delete Dashboard",
+        "description": "Delete the specified dashboard.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-delete",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard deleted."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/data": {
+      "get": {
+        "summary": "Get Dashboard Data",
+        "description": "Retrieve data for all widgets in the specified dashboard. Returns a map of widget IDs to their data.\n\n**Note**: Dashboard APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "dashboard-data-read",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard data retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardDataResponse"
+                }
+              }
+            }
+          },
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets": {
+      "get": {
+        "summary": "List Widgets",
+        "description": "Retrieve a list of widgets in the specified dashboard.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widgets-list",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of widgets retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetList"
+                }
+              }
+            }
+          },
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "post": {
+        "summary": "Create Widget",
+        "description": "Create a new widget within the specified dashboard.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-create",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WidgetCreateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Widget created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetRead"
+                }
+              }
+            }
+          },
+          "422": { "description": "Dashboard not found." },
+          "500": { "description": "Server error." }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets/{widget_id}": {
+      "get": {
+        "summary": "Get Widget",
+        "description": "Retrieve details of a specific widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-read",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "widget_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the widget."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget details retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetRead"
+                }
+              }
+            }
+          },
+          "422": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "patch": {
+        "summary": "Update Widget",
+        "description": "Update the specified widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-update",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "widget_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the widget."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WidgetUpdateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Widget updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WidgetRead"
+                }
+              }
+            }
+          },
+          "422": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
+        }
+      },
+      "delete": {
+        "summary": "Delete Widget",
+        "description": "Delete the specified widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-delete",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "widget_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the widget."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget deleted."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/dashboards/{dashboard_id}/widgets/{widget_id}/data": {
+      "get": {
+        "summary": "Get Widget Data",
+        "description": "Retrieve data for a specific widget.\n\n**Note**: Widget APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "widget-data-read",
+        "tags": ["Dashboards"],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "dashboard_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the dashboard."
+          },
+          {
+            "name": "widget_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Unique identifier for the widget."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Widget data retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Widget data. Structure varies by widget type."
+                }
+              }
+            }
+          },
+          "422": { "description": "Widget not found." },
+          "500": { "description": "Server error." }
         }
       }
     },
@@ -11229,6 +11723,595 @@
           "created_at",
           "updated_at"
         ]
+      },
+      "DashboardListItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the dashboard."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the dashboard."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the dashboard."
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Unique identifier for the base."
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the dashboard was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the dashboard was last updated."
+          },
+          "created_by": {
+            "type": "string",
+            "description": "User ID of the dashboard creator."
+          }
+        },
+        "required": ["id", "title", "base_id", "workspace_id", "created_at", "updated_at"]
+      },
+      "DashboardList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DashboardListItem"
+            }
+          }
+        },
+        "required": ["list"]
+      },
+      "DashboardGetResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/DashboardListItem"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "widgets": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/WidgetRead"
+                },
+                "description": "List of widgets. Only included when `includeWidgets=true`."
+              }
+            }
+          }
+        ]
+      },
+      "DashboardDataResponse": {
+        "type": "object",
+        "properties": {
+          "widgets": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Map of widget IDs to their data."
+          }
+        },
+        "required": ["widgets"]
+      },
+      "WidgetOptionsMetric": {
+        "type": "object",
+        "description": "Options for a metric widget (type=metric).",
+        "properties": {
+          "data_source": {
+            "type": "string",
+            "enum": ["table", "view", "filter"],
+            "description": "Data source type."
+          },
+          "metric": {
+            "type": "object",
+            "description": "Metric aggregation configuration.",
+            "properties": {
+              "type": { "type": "string", "enum": ["count", "summary"], "description": "'count' counts all rows, 'summary' aggregates a column." },
+              "field_id": { "type": "string", "description": "Column to aggregate. Required when type is 'summary'." },
+              "aggregation": { "type": "string", "enum": ["sum", "avg", "count", "min", "max"], "description": "Aggregation function." }
+            },
+            "required": ["type", "aggregation"]
+          },
+          "appearance": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string", "enum": ["default", "filled", "coloured"], "description": "Visual style variant." },
+              "theme": { "type": "string", "enum": ["gray", "red", "green", "yellow", "pink", "blue", "orange", "maroon", "purple"], "description": "Color theme." }
+            }
+          }
+        }
+      },
+      "WidgetOptionsPieChart": {
+        "type": "object",
+        "description": "Options for a pie chart widget (type=chart, chart_type=pie).",
+        "properties": {
+          "chart_type": { "type": "string", "enum": ["pie"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
+          "data": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "object",
+                "properties": {
+                  "field_id": { "type": "string", "description": "Column to group by." },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "category_limit": { "type": "number", "description": "Max categories (10-50)." },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean", "description": "Aggregate remaining into 'Others'." }
+                },
+                "required": ["field_id"]
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "enum": ["count", "summary"] },
+                  "field_id": { "type": "string", "description": "Column to aggregate. Required when type is 'summary'." },
+                  "aggregation": { "type": "string", "description": "Aggregation function. Required when type is 'summary'." }
+                },
+                "required": ["type"]
+              }
+            }
+          },
+          "appearance": {
+            "type": "object",
+            "properties": {
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_percentage_on_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "custom"] },
+              "custom_color_schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "color": { "type": "string" },
+                    "label": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": ["chart_type"]
+      },
+      "WidgetOptionsDonutChart": {
+        "type": "object",
+        "description": "Options for a donut chart widget (type=chart, chart_type=donut). Same structure as pie chart.",
+        "properties": {
+          "chart_type": { "type": "string", "enum": ["donut"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
+          "data": {
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "object",
+                "properties": {
+                  "field_id": { "type": "string" },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "category_limit": { "type": "number" },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean" }
+                },
+                "required": ["field_id"]
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "type": { "type": "string", "enum": ["count", "summary"] },
+                  "field_id": { "type": "string" },
+                  "aggregation": { "type": "string" }
+                },
+                "required": ["type"]
+              }
+            }
+          },
+          "appearance": {
+            "type": "object",
+            "properties": {
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_percentage_on_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "custom"] },
+              "custom_color_schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "color": { "type": "string" },
+                    "label": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": ["chart_type"]
+      },
+      "WidgetOptionsBarChart": {
+        "type": "object",
+        "description": "Options for a bar chart widget (type=chart, chart_type=bar).",
+        "properties": {
+          "chart_type": { "type": "string", "enum": ["bar"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
+          "data": {
+            "type": "object",
+            "properties": {
+              "x_axis": {
+                "type": "object",
+                "description": "X-axis (category) configuration.",
+                "properties": {
+                  "field_id": { "type": "string", "description": "X-axis grouping field." },
+                  "sort_by": { "type": "string", "enum": ["x_axis", "y_axis"], "description": "Sort by x-axis labels or y-axis values." },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean" },
+                  "category_limit": { "type": "number", "description": "Max categories (10-50)." }
+                },
+                "required": ["field_id"]
+              },
+              "y_axis": {
+                "type": "object",
+                "description": "Y-axis (value) configuration.",
+                "properties": {
+                  "start_at_zero": { "type": "boolean" },
+                  "fields": {
+                    "type": "array",
+                    "description": "Fields to aggregate on the y-axis.",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field_id": { "type": "string" },
+                        "aggregation": { "type": "string" }
+                      },
+                      "required": ["field_id", "aggregation"]
+                    }
+                  },
+                  "group_by": { "type": ["string", "null"], "description": "Optional secondary grouping field ID." }
+                }
+              }
+            }
+          },
+          "appearance": {
+            "type": "object",
+            "properties": {
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_value_in_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "custom"] }
+            }
+          }
+        },
+        "required": ["chart_type"]
+      },
+      "WidgetOptionsLineChart": {
+        "type": "object",
+        "description": "Options for a line chart widget (type=chart, chart_type=line). Same data structure as bar chart with additional line-specific appearance options.",
+        "properties": {
+          "chart_type": { "type": "string", "enum": ["line"] },
+          "data_source": { "type": "string", "enum": ["table", "view", "filter"] },
+          "data": {
+            "type": "object",
+            "properties": {
+              "x_axis": {
+                "type": "object",
+                "properties": {
+                  "field_id": { "type": "string" },
+                  "sort_by": { "type": "string", "enum": ["x_axis", "y_axis"] },
+                  "order_by": { "type": "string", "enum": ["default", "asc", "desc"] },
+                  "include_empty_records": { "type": "boolean" },
+                  "include_others": { "type": "boolean" },
+                  "category_limit": { "type": "number" }
+                },
+                "required": ["field_id"]
+              },
+              "y_axis": {
+                "type": "object",
+                "properties": {
+                  "start_at_zero": { "type": "boolean" },
+                  "fields": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "field_id": { "type": "string" },
+                        "aggregation": { "type": "string" }
+                      },
+                      "required": ["field_id", "aggregation"]
+                    }
+                  },
+                  "group_by": { "type": ["string", "null"] }
+                }
+              }
+            }
+          },
+          "appearance": {
+            "type": "object",
+            "properties": {
+              "size": { "type": "string", "enum": ["small", "medium", "large"] },
+              "smooth_lines": { "type": "boolean", "description": "Smooth curve vs straight line segments." },
+              "plot_data_points": { "type": "boolean", "description": "Show dots at data points." },
+              "show_count_in_legend": { "type": "boolean" },
+              "show_value_in_chart": { "type": "boolean" },
+              "legend_position": { "type": "string", "enum": ["top", "right", "bottom", "left", "none"] },
+              "color_schema": { "type": "string", "enum": ["default", "custom"] }
+            }
+          }
+        },
+        "required": ["chart_type"]
+      },
+      "WidgetOptionsText": {
+        "type": "object",
+        "description": "Options for a text widget (type=text). Formatting is nested inside appearance.",
+        "properties": {
+          "content": { "type": "string", "description": "Text content (plain text or markdown)." },
+          "type": { "type": "string", "enum": ["markdown", "text"], "description": "Text rendering mode." },
+          "appearance": {
+            "type": "object",
+            "properties": {
+              "formatting": {
+                "type": "object",
+                "description": "Text formatting options.",
+                "properties": {
+                  "horizontal_align": { "type": "string", "enum": ["flex-start", "center", "flex-end"] },
+                  "vertical_align": { "type": "string", "enum": ["flex-start", "center", "flex-end"] },
+                  "bold": { "type": "boolean" },
+                  "italic": { "type": "boolean" },
+                  "underline": { "type": "boolean" },
+                  "strikethrough": { "type": "boolean" }
+                }
+              },
+              "font": {
+                "type": "object",
+                "description": "Font settings (only for type=text).",
+                "properties": {
+                  "family": { "type": "string" },
+                  "weight": { "type": "number", "enum": [100, 200, 300, 400, 500, 600, 700, 800, 900] },
+                  "size": { "type": "number", "description": "Font size in pixels." },
+                  "line_height": { "type": "number", "description": "Line height multiplier." }
+                }
+              },
+              "color": { "type": "string", "description": "Hex color (only for type=text)." }
+            }
+          }
+        }
+      },
+      "WidgetOptionsIframe": {
+        "type": "object",
+        "description": "Options for an iframe widget (type=iframe).",
+        "properties": {
+          "url": { "type": "string", "description": "URL to embed." },
+          "allow_fullscreen": { "type": "boolean", "description": "Whether to allow fullscreen." }
+        }
+      },
+      "WidgetRead": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the widget."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "dashboard_id": {
+            "type": "string",
+            "description": "Unique identifier for the parent dashboard."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["chart", "metric", "text", "iframe"],
+            "description": "Type of the widget."
+          },
+          "options": {
+            "description": "Widget configuration. Structure depends on widget type. See WidgetOptions* schemas.",
+            "oneOf": [
+              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
+              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsText" },
+              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
+            ]
+          },
+          "order": {
+            "type": ["number", "null"],
+            "description": "Display order of the widget."
+          },
+          "position": {
+            "type": ["object", "null"],
+            "properties": {
+              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
+              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
+              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
+              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
+            },
+            "description": "Position and size of the widget on the dashboard grid."
+          },
+          "table_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          },
+          "error": {
+            "type": "boolean",
+            "description": "Whether the widget has a configuration error."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the widget was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the widget was last updated."
+          }
+        },
+        "required": ["id", "title", "dashboard_id", "type", "created_at", "updated_at"]
+      },
+      "WidgetList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WidgetRead"
+            }
+          }
+        },
+        "required": ["list"]
+      },
+      "DashboardCreateReq": {
+        "description": "Dashboard create request body",
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the dashboard."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the dashboard."
+          }
+        }
+      },
+      "DashboardUpdateReq": {
+        "description": "Dashboard update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the dashboard."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the dashboard."
+          }
+        }
+      },
+      "WidgetCreateReq": {
+        "description": "Widget create request body",
+        "type": "object",
+        "required": ["title", "type"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "type": {
+            "type": "string",
+            "enum": ["chart", "metric", "text", "iframe"],
+            "description": "Type of the widget."
+          },
+          "options": {
+            "description": "Widget configuration. Structure depends on widget type.",
+            "oneOf": [
+              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
+              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsText" },
+              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
+            ]
+          },
+          "position": {
+            "type": "object",
+            "description": "Position and size of the widget on the dashboard grid.",
+            "properties": {
+              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
+              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
+              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
+              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
+            }
+          },
+          "table_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          }
+        }
+      },
+      "WidgetUpdateReq": {
+        "description": "Widget update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the widget."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the widget."
+          },
+          "options": {
+            "description": "Widget configuration. Structure depends on widget type.",
+            "oneOf": [
+              { "$ref": "#/components/schemas/WidgetOptionsMetric" },
+              { "$ref": "#/components/schemas/WidgetOptionsPieChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsDonutChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsBarChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsLineChart" },
+              { "$ref": "#/components/schemas/WidgetOptionsText" },
+              { "$ref": "#/components/schemas/WidgetOptionsIframe" }
+            ]
+          },
+          "order": {
+            "type": "number",
+            "description": "Display order of the widget."
+          },
+          "position": {
+            "type": "object",
+            "description": "Position and size of the widget on the dashboard grid.",
+            "properties": {
+              "x": { "type": "number", "description": "Column position of the widget on the dashboard grid (0-indexed, left to right). e.g. 0 means the first column, 6 means starting at the 7th column." },
+              "y": { "type": "number", "description": "Row position of the widget on the dashboard grid (0-indexed, top to bottom). e.g. 0 means the first row, 4 means starting at the 5th row." },
+              "w": { "type": "number", "description": "Width of the widget in grid columns. e.g. 6 means the widget spans 6 columns (half of a 12-column grid)." },
+              "h": { "type": "number", "description": "Height of the widget in grid rows. e.g. 4 means the widget spans 4 rows tall." }
+            }
+          },
+          "table_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated table."
+          },
+          "view_id": {
+            "type": ["string", "null"],
+            "description": "Unique identifier for the associated view."
+          }
+        }
       },
       "ApiTokenV3": {
         "type": "object",

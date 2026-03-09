@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { DateDependencyReqType, DateDependencyType } from 'nocodb-sdk'
+import type { ColumnType, DateDependencyReqType, DateDependencyType } from 'nocodb-sdk'
 import { PlanFeatureTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -56,43 +56,41 @@ const tableMeta = computed(() => {
   return (baseTables.value.get(activeProjectId.value) ?? []).find((t) => t.id === props.tableId)
 })
 
-const rule = computed<DateDependencyType | null>(() => (tableMeta.value as any)?.date_dependency ?? null)
+const rule = computed<DateDependencyType | null>(() => tableMeta.value?.date_dependency ?? null)
 
-const tableColumns = computed(() => (tableMeta.value as any)?.columns ?? [])
+const tableColumns = computed<ColumnType[]>(() => tableMeta.value?.columns ?? [])
 
 const startDateOptions = computed(() =>
   tableColumns.value
-    .filter((c: any) => c.uidt === UITypes.Date && c.id !== form.fk_end_date_field_id)
-    .map((c: any) => ({ value: c.id, label: c.title, col: c })),
+    .filter((c) => c.uidt === UITypes.Date && c.id !== form.fk_end_date_field_id)
+    .map((c) => ({ value: c.id, label: c.title, col: c })),
 )
 
 const endDateOptions = computed(() =>
   tableColumns.value
-    .filter((c: any) => c.uidt === UITypes.Date && c.id !== form.fk_start_date_field_id)
-    .map((c: any) => ({ value: c.id, label: c.title, col: c })),
+    .filter((c) => c.uidt === UITypes.Date && c.id !== form.fk_start_date_field_id)
+    .map((c) => ({ value: c.id, label: c.title, col: c })),
 )
 
 const durationOptions = computed(() =>
   tableColumns.value
-    .filter((c: any) => [UITypes.Duration, UITypes.Number].includes(c.uidt))
-    .map((c: any) => ({ value: c.id, label: c.title, col: c })),
+    .filter((c) => [UITypes.Duration, UITypes.Number].includes(c.uidt as UITypes))
+    .map((c) => ({ value: c.id, label: c.title, col: c })),
 )
 
 // Only show self-referencing HM (has-many) link columns — BT/OO/MM cannot be used as predecessor links
 const linkOptions = computed(() =>
   tableColumns.value
-    .filter((c: any) => {
+    .filter((c) => {
       if (!isLinksOrLTAR(c)) return false
-      const opts = c.colOptions ?? {}
+      const opts = (c as any).colOptions ?? {}
       return opts.type === 'hm' && opts.fk_related_model_id === props.tableId
     })
-    .map((c: any) => ({ value: c.id, label: c.title, col: c })),
+    .map((c) => ({ value: c.id, label: c.title, col: c })),
 )
 
 // Cascade propagation is PostgreSQL-only and not available for external data sources
-const tableSource = computed(() =>
-  openedProject.value?.sources?.find((s: any) => s.id === (tableMeta.value as any)?.source_id),
-)
+const tableSource = computed(() => openedProject.value?.sources?.find((s) => s.id === tableMeta.value?.source_id))
 
 const cascadeAvailable = computed(() => {
   const s = tableSource.value
@@ -137,7 +135,7 @@ async function save() {
       form,
     )
     if (tableMeta.value) {
-      ;(tableMeta.value as any).date_dependency = { ...rule.value, ...form, ...result }
+      tableMeta.value.date_dependency = { ...rule.value, ...form, ...result }
     }
     savedForm.value = { ...form }
   } catch (e: any) {
@@ -158,7 +156,7 @@ async function deleteRule() {
       {},
     )
     if (tableMeta.value) {
-      ;(tableMeta.value as any).date_dependency = null
+      tableMeta.value.date_dependency = null
     }
     Object.assign(form, { ...defaultForm })
     savedForm.value = { ...defaultForm }
@@ -382,7 +380,12 @@ watch(visible, async (val) => {
                   <div class="text-captionSm text-nc-content-gray-subtle mb-1">
                     {{ $t('labels.dateDependency.bufferDays') }}
                   </div>
-                  <a-input-number v-model:value="form.dependency_buffer_days" :min="0" class="w-full" :disabled="!cascadeAvailable" />
+                  <a-input-number
+                    v-model:value="form.dependency_buffer_days"
+                    :min="0"
+                    class="w-full"
+                    :disabled="!cascadeAvailable"
+                  />
                 </div>
 
                 <div class="flex items-center gap-2 pt-5">

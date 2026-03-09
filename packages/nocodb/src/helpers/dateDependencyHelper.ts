@@ -14,7 +14,7 @@ export interface DateDependencyPropagationParams {
     | 'end-to-start'
     | 'end-to-end'
     | 'start-to-start'
-    | 'start-to-finish';
+    | 'start-to-end';
   bufferType: 'flexible' | 'fixed';
   bufferDays: number;
   seedIds: string[];
@@ -32,7 +32,7 @@ export interface DateDependencyPropagationParams {
  */
 export function buildDateDependencyPropagationSQL(
   params: DateDependencyPropagationParams,
-): { sql: string; bindings: any[] } {
+): { sql: string; bindings: string[] } {
   const {
     tn,
     pkColName,
@@ -110,7 +110,7 @@ export function buildDateDependencyPropagationSQL(
       newEndExpr = `(${newStartExpr}) + ${dur}`;
       break;
     }
-    case 'start-to-finish': {
+    case 'start-to-end': {
       // SF: pred.start drives succ.end
       const required = `p.start_date + ${buf}`;
       newEndExpr =

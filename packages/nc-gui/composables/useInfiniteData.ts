@@ -1703,7 +1703,7 @@ export function useInfiniteData(args: {
 
       // Update specific columns based on their types.
       // Only sync back types that can be changed server-side as a side effect
-      // (computed fields, date dependency, triggers, on-update defaults).
+      // (computed fields, triggers, on-update defaults).
       // Free-text input types are excluded to avoid overwriting local state
       // while the user may still be typing in another cell.
       const columnsToUpdate = new Set([
@@ -1718,14 +1718,16 @@ export function useInfiniteData(args: {
         UITypes.Lookup,
         UITypes.Button,
         UITypes.Attachment,
-        UITypes.DateTime,
-        UITypes.Date,
-        UITypes.Duration,
-        UITypes.Number,
-        UITypes.Percent,
-        UITypes.Rating,
-        UITypes.Time,
       ])
+
+      // When date dependency is configured, the server may recompute date/duration/number
+      // fields as a side effect — sync those back too.
+      if (metaValue?.date_dependency?.is_active) {
+        columnsToUpdate.add(UITypes.DateTime)
+        columnsToUpdate.add(UITypes.Date)
+        columnsToUpdate.add(UITypes.Duration)
+        columnsToUpdate.add(UITypes.Number)
+      }
 
       Object.assign(
         toUpdate.row,

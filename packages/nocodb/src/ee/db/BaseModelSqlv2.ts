@@ -1284,8 +1284,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       fkColName: childCol.column_name,
       startColName: startCol.column_name,
       endColName: endCol.column_name,
-      connectionType:
-        (rule.dependency_connection_type as any) ?? 'end-to-start',
+      connectionType: rule.dependency_connection_type ?? 'end-to-start',
       bufferType:
         (rule.dependency_buffer_type as 'flexible' | 'fixed') ?? 'flexible',
       bufferDays: rule.dependency_buffer_days ?? 0,
@@ -1304,7 +1303,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const result = await this.dbDriver.raw(sql, bindings);
       updatedRows = result.rows ?? [];
     } catch (err: any) {
-      new Logger('BaseModelSqlv2').error(
+      this.logger.error(
         'Date dependency propagation failed',
         err.stack,
       );
@@ -1329,15 +1328,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     // Broadcast socket events for each propagated row
     for (const row of updatedRows) {
-      const { __nc_rls_hidden: _, ...broadcastPayload } = {
-        [startCol.title]: row.new_start,
-        [endCol.title]: row.new_end,
-      };
       NocoSocket.broadcastDataEvent(this.context, {
         payload: {
           id: row.id,
           action: 'update',
-          payload: broadcastPayload,
+          payload: {
+            [startCol.title]: row.new_start,
+            [endCol.title]: row.new_end,
+          },
         },
         tableId: this.model.id,
       });

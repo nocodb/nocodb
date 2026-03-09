@@ -201,6 +201,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public context: NcContext;
   public schema?: string;
   public formulaDryRunFailed?: boolean;
+  protected logger = new Logger('BaseModelSqlv2');
 
   public static config: any = defaultLimitConfig;
 

@@ -35,6 +35,9 @@ const currentPage = ref(1)
 const currentLimit = ref(10)
 const showWizard = ref(false)
 const showEditModal = ref(false)
+const showLegacyCreate = ref(false)
+const legacyTokenName = ref('')
+const isCreatingLegacy = ref(false)
 const editingToken = ref<IApiTokenInfo | null>(null)
 const isLoadingAllTokens = ref(true)
 const isModalOpen = ref(false)
@@ -189,6 +192,34 @@ const onEditCancel = () => {
   editingToken.value = null
 }
 
+const openLegacyCreate = () => {
+  legacyTokenName.value = 'Token'
+  showLegacyCreate.value = true
+}
+
+const createLegacyToken = async () => {
+  if (!legacyTokenName.value.trim() || legacyTokenName.value.length > 255) return
+
+  isCreatingLegacy.value = true
+  try {
+    await api.orgTokens.create({ description: legacyTokenName.value })
+    await loadTokens()
+    await loadAllTokens(pagination.total + 1)
+    showLegacyCreate.value = false
+    legacyTokenName.value = ''
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isCreatingLegacy.value = false
+    $e('a:api-token:generate:legacy')
+  }
+}
+
+const cancelLegacyCreate = () => {
+  showLegacyCreate.value = false
+  legacyTokenName.value = ''
+}
+
 const getScopeSummary = (token: IApiTokenInfo) => {
   if (!token.scopes?.length) return 'Org-wide'
   const count = token.scopes.length
@@ -288,17 +319,46 @@ const columns = computed<NcTableColumnProps[]>(() => [
       <div class="max-w-195 mx-auto h-full w-full" data-testid="nc-token-list">
         <div class="flex gap-4 items-center justify-between">
           <h6 class="text-xl font-bold my-0 text-nc-content-gray" data-rec="true">{{ $t('title.apiTokens') }}</h6>
-          <NcButton
-            data-testid="nc-token-create"
-            size="small"
-            type="primary"
-            @click="showWizard = true"
-          >
-            <div class="flex items-center gap-1" data-rec="true">
-              <component :is="iconMap.plus" />
-              {{ $t('title.addNewToken') }}
-            </div>
-          </NcButton>
+          <NcDropdown :trigger="['click']" placement="bottomRight">
+            <NcButton
+              data-testid="nc-token-create"
+              size="small"
+              type="primary"
+            >
+              <div class="flex items-center gap-1" data-rec="true">
+                <component :is="iconMap.plus" />
+                {{ $t('title.addNewToken') }}
+                <component :is="iconMap.arrowDown" class="h-4 w-4" />
+              </div>
+            </NcButton>
+
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem data-testid="nc-token-create-fine-grained" @click="showWizard = true">
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-1.5">
+                      <component :is="iconMap.ncKey2" class="h-4 w-4 text-nc-content-brand" />
+                      <span class="font-semibold text-sm">Fine-grained token</span>
+                    </div>
+                    <span class="text-xs text-nc-content-gray-subtle ml-5.5">Scoped permissions, expiry, and base-level access</span>
+                  </div>
+                </NcMenuItem>
+                <NcDivider />
+                <NcMenuItem data-testid="nc-token-create-legacy" @click="openLegacyCreate">
+                  <div class="flex flex-col">
+                    <div class="flex items-center gap-1.5">
+                      <component :is="iconMap.key" class="h-4 w-4 text-nc-content-gray-subtle2" />
+                      <span class="font-semibold text-sm text-nc-content-gray-subtle">Legacy token</span>
+                      <NcBadge :border="false" color="yellow" class="text-[10px] leading-[14px] !h-[18px] font-semibold">
+                        Deprecated
+                      </NcBadge>
+                    </div>
+                    <span class="text-xs text-nc-content-gray-subtle ml-5.5">Org-wide access with full permissions</span>
+                  </div>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </div>
 
         <span class="text-sm text-nc-content-gray-muted" data-rec="true">{{ $t('msg.apiTokenCreate') }}</span>
@@ -338,6 +398,14 @@ const columns = computed<NcTableColumnProps[]>(() => [
                     class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
                   >
                     Disabled
+                  </NcBadge>
+                  <NcBadge
+                    v-if="!isFineGrained(el) && !el.fk_sso_client_id"
+                    :border="false"
+                    color="yellow"
+                    class="text-[10px] leading-[14px] !h-[18px] font-semibold flex-none"
+                  >
+                    Legacy
                   </NcBadge>
                 </div>
                 <div class="text-xs !leading-4 text-nc-content-gray-subtle2 truncate" data-testid="nc-token-scope">
@@ -480,6 +548,67 @@ const columns = computed<NcTableColumnProps[]>(() => [
           </span>
         </template>
       </GeneralDeleteModal>
+
+      <!-- Legacy Token Create Modal -->
+      <a-modal
+        v-model:visible="showLegacyCreate"
+        :footer="null"
+        :closable="false"
+        width="480px"
+        :mask-closable="false"
+        :destroy-on-close="true"
+      >
+        <div class="flex flex-col gap-5 p-1" data-testid="nc-token-legacy-create">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span class="text-base font-semibold text-nc-content-gray-extreme">Create legacy token</span>
+              <NcBadge :border="false" color="yellow" class="text-[10px] leading-[14px] !h-[18px] font-semibold">
+                Deprecated
+              </NcBadge>
+            </div>
+            <span class="text-sm text-nc-content-gray-muted">
+              Legacy tokens have full org-wide access. We recommend using fine-grained tokens instead for better security.
+            </span>
+          </div>
+
+          <NcAlert type="warning" class="!rounded-lg">
+            <template #message>
+              <span class="text-xs">
+                Legacy tokens are deprecated and will be removed in a future release. Use fine-grained tokens for scoped permissions, expiry, and base-level access control.
+              </span>
+            </template>
+          </NcAlert>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="text-sm font-medium text-nc-content-gray">Token name</label>
+            <a-input
+              v-model:value="legacyTokenName"
+              data-testid="nc-token-legacy-name-input"
+              placeholder="e.g., My Legacy Token"
+              size="large"
+              class="!rounded-lg"
+              :maxlength="255"
+              @press-enter="createLegacyToken"
+            />
+          </div>
+
+          <div class="flex justify-end gap-2">
+            <NcButton type="secondary" size="small" data-testid="nc-token-legacy-cancel" @click="cancelLegacyCreate">
+              {{ $t('general.cancel') }}
+            </NcButton>
+            <NcButton
+              type="primary"
+              size="small"
+              data-testid="nc-token-legacy-save"
+              :loading="isCreatingLegacy"
+              :disabled="!legacyTokenName.trim() || legacyTokenName.length > 255"
+              @click="createLegacyToken"
+            >
+              {{ $t('general.save') }}
+            </NcButton>
+          </div>
+        </div>
+      </a-modal>
     </div>
   </div>
 </template>

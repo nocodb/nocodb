@@ -217,7 +217,13 @@ export function comparePath(pathA?: Array<number | string> | null, pathB?: Array
     return false
   }
 
-  return (ncIsArray(pathA) ? pathA : []).join() === (ncIsArray(pathB) ? pathB : []).join()
+  if (pathA.length !== pathB.length) return false
+
+  for (let i = 0; i < pathA.length; i++) {
+    if (pathA[i] !== pathB[i]) return false
+  }
+
+  return true
 }
 
 export function calculateGroupRowTop(

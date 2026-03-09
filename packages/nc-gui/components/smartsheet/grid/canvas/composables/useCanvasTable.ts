@@ -1423,8 +1423,18 @@ export function useCanvasTable({
     return !!row.rowMeta.selected
   }
 
+  let _renderRafId: number | null = null
+
   function triggerRefreshCanvas() {
-    renderCanvas()
+    // Coalesce multiple render requests into a single frame.
+    // Many code paths call triggerRefreshCanvas multiple times per frame
+    // (scroll handler, updateVisibleRows, data fetch completion, etc.).
+    // Without batching, each call synchronously re-renders the entire canvas.
+    if (_renderRafId) return
+    _renderRafId = requestAnimationFrame(() => {
+      _renderRafId = null
+      renderCanvas()
+    })
   }
 
   watch(rowHeight, () => {

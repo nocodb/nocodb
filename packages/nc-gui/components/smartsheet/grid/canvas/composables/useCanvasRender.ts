@@ -199,9 +199,31 @@ export function useCanvasRender({
 
   const { isRowColouringEnabled } = useViewRowColorRender()
 
+  // Pre-compute PK columns to avoid filtering all columns on every row render
+  const pkColumns = computed(() => (meta.value?.columns ?? []).filter((c: ColumnType) => c.pk))
+
+  function extractPkFast(row: Record<string, any>) {
+    if (!row || !pkColumns.value.length) return null
+    const pks = pkColumns.value
+    if (pks.length > 1) {
+      return pks.map((c) => row?.[c.title!]?.toString?.().replaceAll('_', '\\_') ?? null).join('___')
+    }
+    const id = row?.[pks[0].title!] ?? null
+    return id === null ? null : `${id}`
+  }
+
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
+
+  // Pre-compute column id → index map to avoid O(n) findIndex per cell in fixed cols rendering
+  const columnIdToIndex = computed(() => {
+    const map = new Map<string, number>()
+    columns.value.forEach((col, idx) => {
+      if (col.id) map.set(col.id, idx)
+    })
+    return map
+  })
 
   const isSelectedAllRecords = computed(() => vSelectedAllRecords.value && ncIsEmptyObject(vSelectedAllRecordsSkipPks.value))
 
@@ -1353,7 +1375,7 @@ export function useCanvasRender({
       : null
 
     if (row) {
-      const pk = extractPkFromRow(row.row, meta.value?.columns ?? [])
+      const pk = extractPkFast(row.row)
       let xOffset = initialXOffset
       if (isGroupBy.value) {
         for (let i = 0; i < startColIndex; i++) {
@@ -1479,7 +1501,7 @@ export function useCanvasRender({
         fixedCols.value.forEach((column, idx) => {
           let width = parseCellWidth(column.width)
 
-          const colIdx = columns.value.findIndex((col) => col.id === column.id)
+          const colIdx = columnIdToIndex.value.get(column.id!) ?? -1
 
           const isCellEditEnabled =
             editEnabled.value &&
@@ -1587,7 +1609,7 @@ export function useCanvasRender({
           ctx.stroke()
         }
 
-        if (!visibleCols.filter((f) => !f.fixed).length) {
+        if (!visibleCols.some((f) => !f.fixed)) {
           ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
           ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
@@ -1668,7 +1690,7 @@ export function useCanvasRender({
         fixedCols.value.forEach((column) => {
           let width = parseCellWidth(column.width)
 
-          const colIdx = columns.value.findIndex((col) => col.id === column.id)
+          const colIdx = columnIdToIndex.value.get(column.id!) ?? -1
           if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
             ctx.fillStyle = getColor(themeV4Colors.brand['50'])
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -1746,7 +1768,7 @@ export function useCanvasRender({
       initialXOffset += parseCellWidth(columns.value[i]?.width)
     }
 
-    let renderRedBorders: {
+    const renderRedBorders: {
       rowIndex: number
       column: CanvasGridColumn
     }[] = []
@@ -1755,6 +1777,13 @@ export function useCanvasRender({
       fixedColsWidth.value,
       totalWidth.value - scrollLeft.value - 256 < width.value ? totalWidth.value - scrollLeft.value - 256 : width.value,
     )
+
+    // Pre-compute colors used in every row iteration to avoid repeated getColor calls
+    const colorGray50 = getColor(themeV4Colors.gray['50'])
+    const colorWhite = getColor(themeV4Colors.base.white)
+    const colorGray200 = getColor(themeV4Colors.gray['200'])
+    const colorGray300 = getColor(themeV4Colors.gray['300'])
+    const colorGray100 = getColor(themeV4Colors.gray['100'])
 
     let warningRow: { row: Row; yOffset: number } | null = null
     const dataCache = getDataCache()
@@ -1782,8 +1811,7 @@ export function useCanvasRender({
           activeCell.value.row === rowIdx + 1 && comparePath(activeCell.value.path, row?.rowMeta?.path)
         const isNextRowSelected = nextRow && nextRow.rowMeta.selected
 
-        ctx.fillStyle =
-          isRowHovered || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
+        ctx.fillStyle = isRowHovered || isRowCellSelected ? colorGray50 : colorWhite
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         const renderedProp = renderRow(ctx, {
           row,
@@ -1801,7 +1829,9 @@ export function useCanvasRender({
           type: ElementTypes.ROW,
         })
         activeState = renderedProp.activeState ?? activeState
-        renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
+        if (renderedProp.renderRedBorders.length) {
+          renderRedBorders.push(...renderedProp.renderRedBorders)
+        }
 
         if (rowIdx === draggedRowIndex.value) {
           ctx.globalAlpha = 1
@@ -1816,8 +1846,8 @@ export function useCanvasRender({
           isNextRowCellSelected ||
           isNextRowSelected ||
           rowColor
-            ? getColor(themeV4Colors.gray['300'])
-            : getColor(themeV4Colors.gray['200'])
+            ? colorGray300
+            : colorGray200
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(0, yOffset + rowHeight.value)
@@ -1938,7 +1968,7 @@ export function useCanvasRender({
     for (const { rowIndex, column } of renderRedBorders) {
       if (editEnabled.value?.column?.id === column.id && editEnabled.value?.rowIndex === rowIndex) continue
       const yOffset = -partialRowHeight.value + 33 + (rowIndex - rowSlice.value.start) * rowHeight.value
-      const xOffset = calculateXPosition(columns.value.findIndex((c) => c.id === column.id))
+      const xOffset = calculateXPosition((columnIdToIndex.value.get(column.id!) ?? -1))
       const width = parseCellWidth(column.width)
 
       const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
@@ -2523,7 +2553,7 @@ export function useCanvasRender({
             relatedTableMeta: column.relatedTableMeta,
             disabled: column?.isInvalidColumn,
             mousePosition: { x: -1, y: -1 },
-            pk: extractPkFromRow(row.row, meta.value?.columns ?? []),
+            pk: extractPkFast(row.row),
           })
           ctx.restore()
         }
@@ -2786,7 +2816,7 @@ export function useCanvasRender({
           continue
         }
         const yOffset = initYOffset + rowIndex * rowHeight.value
-        const xOffset = calculateXPosition(columns.value.findIndex((c) => c.id === column.id))
+        const xOffset = calculateXPosition((columnIdToIndex.value.get(column.id!) ?? -1))
         const width = parseCellWidth(column.width)
 
         const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
@@ -3492,6 +3522,9 @@ export function useCanvasRender({
     }
   }
 
+  // Track DPR to detect display changes (e.g. dragging window between monitors)
+  let lastDpr = 0
+
   function renderCanvas() {
     const canvas = canvasRef.value
     if (!canvas) return
@@ -3500,16 +3533,26 @@ export function useCanvasRender({
     if (!ctx) return
 
     const dpr = window.devicePixelRatio || 1
+    const targetWidth = width.value * dpr
+    const targetHeight = height.value * dpr
 
-    canvas.width = width.value * dpr
-    canvas.height = height.value * dpr
+    // Only resize canvas when dimensions actually change — resizing forces
+    // GPU buffer reallocation which is extremely expensive (causes 100ms+ frames)
+    if (canvas.width !== targetWidth || canvas.height !== targetHeight || dpr !== lastDpr) {
+      canvas.width = targetWidth
+      canvas.height = targetHeight
+      canvas.style.width = `${width.value}px`
+      lastDpr = dpr
+      ctx.scale(dpr, dpr)
+    }
 
-    canvas.style.width = `${width.value}px`
-    ctx.scale(dpr, dpr)
+    // Save state at frame start to isolate clip regions and transforms.
+    // Previously, resizing the canvas every frame implicitly reset all state.
+    ctx.save()
 
-    ctx.clearRect(0, 0, width.value, canvas.height)
+    ctx.clearRect(0, 0, width.value, height.value)
     ctx.fillStyle = getColor(themeV4Colors.gray['50'])
-    ctx.fillRect(0, 0, width.value, canvas.height)
+    ctx.fillRect(0, 0, width.value, height.value)
 
     let activeState
 

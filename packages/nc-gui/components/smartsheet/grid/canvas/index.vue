@@ -2216,13 +2216,12 @@ const reloadViewDataHookHandler = withLoading(async (params) => {
 })
 
 let rafId: number | null = null
-let scrollTimeout: number | null = null
 
 const handleScroll = (e: { left: number; top: number }) => {
   if (rafId) cancelAnimationFrame(rafId)
-  if (scrollTimeout) clearTimeout(scrollTimeout)
 
   rafId = requestAnimationFrame(() => {
+    rafId = null
     scrollTop.value = Math.max(0, e.top)
     if (totalWidth.value < width.value) {
       scrollLeft.value = 0
@@ -2232,15 +2231,6 @@ const handleScroll = (e: { left: number; top: number }) => {
     calculateSlices()
     triggerRefreshCanvas()
   })
-
-  scrollTimeout = window.setTimeout(() => {
-    const rect = canvasRef.value?.getBoundingClientRect()
-    if (!rect) return
-
-    // TODO: @DarkPhoenix2704
-    // hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - headerRowHeight.value) / rowHeight.value)
-    requestAnimationFrame(triggerRefreshCanvas)
-  }, 150)
 }
 
 const triggerReload = () => {

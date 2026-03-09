@@ -123,12 +123,19 @@ export default class ChatSession
     session: Partial<ChatSession>,
     ncMeta = Noco.ncMeta,
   ) {
-    const insertObj = extractProps(session, [
+    let insertObj = extractProps(session, [
       'id',
       'title',
       'fk_workspace_id',
       'fk_user_id',
+      'meta',
     ]);
+
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
+
+    insertObj = prepareForDb(insertObj);
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,

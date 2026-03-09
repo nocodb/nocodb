@@ -303,6 +303,19 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       @click="item.onClick?.()"
     />
 
+    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
+
+    <!-- Settings -->
+    <DashboardMiniSidebarV2DockItem
+      :ref="(el: any) => setItemRef('settings', el)"
+      icon="ncSettings"
+      label="Settings"
+      panel-key="settings"
+      :active="activeSidebarTab === 'settings'"
+      :scale="getScale('settings')"
+      @click="onTabClick('settings')"
+    />
+
     <!-- AI Chat -->
     <DashboardMiniSidebarV2DockItem
       v-if="isEeUI && !blockAiChat && hasChatWorkspaceContext && !isMobileMode"
@@ -321,16 +334,12 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 
     <!-- Bottom group -->
     <div class="nc-dock-bottom-group" :class="{ 'is-hovering': isHovering }">
-      <!-- Settings -->
-      <DashboardMiniSidebarV2DockItem
-        :ref="(el: any) => setItemRef('settings', el)"
-        icon="ncSettings"
-        label="Settings"
-        panel-key="settings"
-        :active="activeSidebarTab === 'settings'"
-        :scale="getScale('settings')"
-        @click="onTabClick('settings')"
-      />
+      <!-- Help -->
+      <div :ref="(el: any) => setItemRef('help', el)" class="nc-dock-magnify-wrapper" :style="getMagnifyStyle('help')">
+        <DashboardMiniSidebarHelp>
+          <DashboardMiniSidebarV2DockItem icon="ncHelp" label="Help" panel-key="help" :scale="1" />
+        </DashboardMiniSidebarHelp>
+      </div>
     </div>
 
     <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />

@@ -45,10 +45,6 @@ const copyBtnRef = ref()
 
 const { isMobileMode } = useGlobal()
 
-const { isChatWootEnabled } = useProvideChatwoot()
-
-const { isModalVisible: isChatVisible } = useChatWoot()
-
 const { $e } = useNuxtApp()
 
 const logout = async () => {
@@ -93,20 +89,7 @@ const openExperimentationMenu = () => {
 
 const accountUrl = computed(() => '/account/profile')
 
-const toggleChatSupport = () => {
-  if (!isChatVisible.value && !ncIsFunction(window.$chatwoot?.toggle)) {
-    return
-  }
-  const toggleText = (isChatVisible.value ? 'hide' : 'show') as any
-  window.$chatwoot.toggle(toggleText)
-  isMenuOpen.value = false
-}
 
-const supportCopyBtnRef = ref()
-
-const copySupportEmail = () => {
-  supportCopyBtnRef.value?.copyContent?.('support@nocodb.com')
-}
 
 const copyEmail = () => {
   if (!user?.value?.email) return
@@ -213,122 +196,6 @@ const openKeyboardShortcutDialog = () => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
-              <NcSubMenu class="py-0" variant="medium">
-                <template #title>
-                  <GeneralIcon icon="ncHelp" class="menu-icon mt-0.5" />
-                  <span class="menu-btn">{{ $t('general.help') }}</span>
-                </template>
-
-                <!-- Resources -->
-                <div class="px-3 pt-2 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-                  Resources
-                </div>
-                <a
-                  v-e="['c:nocodb:docs-open']"
-                  href="https://nocodb.com/docs/product-docs"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="file" class="h-4 w-4" />
-                    <span class="menu-btn">Documentation</span>
-                  </NcMenuItem>
-                </a>
-                <a
-                  v-e="['c:nocodb:api-docs-open']"
-                  href="https://data-apis-v2.nocodb.com"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="ncCode" class="h-4 w-4" />
-                    <span class="menu-btn">APIs</span>
-                  </NcMenuItem>
-                </a>
-
-                <NcDivider />
-
-                <!-- Community -->
-                <div class="px-3 pt-2 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-                  Community
-                </div>
-                <a
-                  v-e="['c:nocodb:forum-open']"
-                  href="https://community.nocodb.com"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="ncDiscordForum" class="h-4 w-4" />
-                    <span class="menu-btn">Forum</span>
-                  </NcMenuItem>
-                </a>
-                <a
-                  v-e="['c:nocodb:youtube-open']"
-                  href="https://www.youtube.com/@NocoDB"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="ncYoutube" class="h-4 w-4" />
-                    <span class="menu-btn">Youtube</span>
-                  </NcMenuItem>
-                </a>
-                <a
-                  v-e="['c:nocodb:twitter-open']"
-                  href="https://twitter.com/nocodb"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="ncTwitter" class="h-4 w-4" />
-                    <span class="menu-btn">X</span>
-                  </NcMenuItem>
-                </a>
-
-                <NcDivider />
-
-                <!-- Contact Support -->
-                <div class="px-3 pt-2 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-                  Contact Support
-                </div>
-                <NcMenuItem v-if="isChatWootEnabled" @click="toggleChatSupport">
-                  <GeneralIcon icon="ncSupportAgent" class="h-4 w-4" />
-                  <span class="menu-btn">{{ $t('labels.chatWithNocoDBSupport') }}</span>
-                </NcMenuItem>
-                <NcMenuItem v-if="isEeUI" v-e="['c:nocodb:contact-us-mail-copy']" @click="copySupportEmail">
-                  <GeneralIcon icon="ncMail" class="h-4 w-4" />
-                  <span class="menu-btn">support@nocodb.com</span>
-                  <GeneralCopyButton ref="supportCopyBtnRef" type="secondary" content="support@nocodb.com" :show-toast="false" />
-                </NcMenuItem>
-
-                <NcDivider />
-
-                <!-- What's New -->
-                <div class="px-3 pt-2 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
-                  What's New
-                </div>
-                <a
-                  v-e="['c:nocodb:changelog-open']"
-                  href="https://nocodb.com/changelog"
-                  target="_blank"
-                  class="!underline-transparent"
-                  rel="noopener"
-                >
-                  <NcMenuItem>
-                    <GeneralIcon icon="ncList" class="h-4 w-4" />
-                    <span class="menu-btn">Changelog</span>
-                  </NcMenuItem>
-                </a>
-              </NcSubMenu>
-
-              <NcDivider />
-
               <!-- Power user tools -->
               <NcMenuItem
                 v-e="['c:user:keyboard-shortcuts']"

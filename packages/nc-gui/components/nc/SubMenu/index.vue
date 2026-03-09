@@ -11,8 +11,6 @@ const props = withDefaults(
   },
 )
 
-const slots = useSlots()
-
 const { isMobileMode } = useGlobal()
 
 const responsiveVariant = computed(() => {
@@ -22,51 +20,10 @@ const responsiveVariant = computed(() => {
 
   return props.variant
 })
-
-// ─── Drawer-aware mode ───────────────────────────────────────────────
-// When inside a drawer (injected by NcDrawer), render as a clickable
-// item that pushes a slide-in panel instead of opening a popup submenu.
-const drawerNav = inject(DrawerNavInj, null)
-
-// Resolve NcMenu at setup time for use in render functions
-const NcMenuComp = drawerNav ? resolveComponent('NcMenu') : null
-
-const onPushPanel = () => {
-  if (!drawerNav || !NcMenuComp) return
-
-  drawerNav.pushPanel({
-    // Render the title slot content in the panel header (next to back arrow)
-    titleRender: () => (slots.title?.() ?? []) as VNode[],
-    // Wrap submenu items in NcMenu so they get proper menu context + styling
-    contentRender: () =>
-      h(NcMenuComp as any, null, {
-        default: () => [h('div', { class: 'py-1.5' }, slots.default?.())],
-      }),
-  })
-}
 </script>
 
 <template>
-  <!--
-    Drawer mode: render as a clickable menu item with chevron.
-    Clicking pushes the submenu content as a slide-in panel.
-  -->
-  <div v-if="drawerNav" class="w-full">
-    <a-menu-item class="nc-menu-item" @click.stop="onPushPanel">
-      <div class="nc-menu-item-inner !justify-between w-full">
-        <div class="flex flex-row items-center gap-x-2">
-          <slot name="title" />
-        </div>
-
-        <slot v-if="$slots.expandIcon" name="expandIcon" />
-        <GeneralIcon v-else icon="ncChevronRight" class="nc-submenu-arrow !opacity-60" />
-      </div>
-    </a-menu-item>
-  </div>
-
-  <!-- Desktop mode: standard a-sub-menu with popup -->
   <a-sub-menu
-    v-else
     :popup-offset="props.popupOffset"
     class="nc-sub-menu"
     :class="`nc-variant-${responsiveVariant}`"

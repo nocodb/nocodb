@@ -8,6 +8,7 @@ import type { ChatToolDefinition } from '../chat-tool-registry';
 import { FiltersService } from '~/services/filters.service';
 import Noco from '~/Noco';
 import Model from '~/models/Model';
+import { NcError } from '~/helpers/ncError';
 
 export const addWidgetFilterTool: ChatToolDefinition = {
   name: 'add_widget_filter',
@@ -102,8 +103,10 @@ export const addWidgetFilterTool: ChatToolDefinition = {
       args.widget_name,
     );
 
+    const ncError = NcError.get(context);
+
     if (!widget.fk_model_id) {
-      throw new Error(
+      ncError.badRequest(
         'Widget has no data source table. Set fk_model_id first.',
       );
     }
@@ -114,9 +117,7 @@ export const addWidgetFilterTool: ChatToolDefinition = {
     const lowerName = args.field_name.toLowerCase();
     const column = columns.find((c) => c.title?.toLowerCase() === lowerName);
     if (!column) {
-      throw new Error(
-        `Field "${args.field_name}" not found in the widget's data source table.`,
-      );
+      ncError.fieldNotFound(args.field_name);
     }
 
     // Normalize empty strings to null — LLMs often pass "" for optional fields,

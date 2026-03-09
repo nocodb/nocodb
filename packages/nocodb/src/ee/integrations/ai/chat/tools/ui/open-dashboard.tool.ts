@@ -20,8 +20,6 @@ export const openDashboardTool: ChatToolDefinition = {
   isDangerous: false,
   readonly: true,
   uiOnly: true,
-  category: 'dashboard',
-  loadByDefault: false,
   async execute(
     context: NcContext,
     args: { dashboard_name: string },

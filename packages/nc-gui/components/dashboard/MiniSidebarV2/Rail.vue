@@ -238,8 +238,6 @@ const mainItems = computed<NavItem[]>(() => [
       </template>
     </DashboardMiniSidebarV2RailItem>
 
-    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
-
     <!-- Settings -->
     <DashboardMiniSidebarV2RailItem
       icon="ncSettings"

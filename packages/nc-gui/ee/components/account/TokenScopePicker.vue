@@ -32,6 +32,21 @@ const selectedBaseIds = ref<string[]>(
     .map((s) => s.resource_id),
 )
 
+// Build a lookup map: baseId → base title
+const baseNameMap = computed(() => {
+  const map: Record<string, string> = {}
+  for (const ws of allData.value?.workspaces || []) {
+    for (const base of ws.bases) {
+      map[base.id] = base.title
+    }
+  }
+  return map
+})
+
+const removeBase = (id: string) => {
+  selectedBaseIds.value = selectedBaseIds.value.filter((v) => v !== id)
+}
+
 const loadAll = async () => {
   if (allData.value) return
   isLoading.value = true
@@ -111,7 +126,7 @@ onMounted(() => {
     </button>
 
     <!-- Base selector (shown when specific bases selected) -->
-    <div v-if="scopeMode === 'base'" class="ml-8 mt-1">
+    <div v-if="scopeMode === 'base'" class="ml-8 mt-1 flex flex-col gap-2">
       <a-select
         v-model:value="selectedBaseIds"
         mode="multiple"
@@ -119,18 +134,34 @@ onMounted(() => {
         show-search
         :loading="isLoading"
         option-filter-prop="label"
-        class="w-full"
-        size="large"
+        class="nc-scope-base-select w-full"
+        :max-tag-count="0"
+        :max-tag-placeholder="() => ''"
       >
         <a-select-opt-group v-for="ws in allData?.workspaces" :key="ws.id" :label="ws.title">
           <a-select-option v-for="base in ws.bases" :key="base.id" :value="base.id" :label="`${ws.title} / ${base.title}`">
             <div class="flex items-center gap-2">
-              <GeneralIcon icon="ncDatabase" class="w-3.5 h-3.5 text-nc-content-gray-muted" />
-              {{ base.title }}
+              <GeneralIcon icon="ncDatabase" class="w-3.5 h-3.5 text-nc-content-gray-muted flex-none" />
+              <span class="truncate">{{ base.title }}</span>
             </div>
           </a-select-option>
         </a-select-opt-group>
       </a-select>
+
+      <!-- Selected bases as chips below the selector -->
+      <div v-if="selectedBaseIds.length" class="flex flex-wrap gap-1.5">
+        <div
+          v-for="id in selectedBaseIds"
+          :key="id"
+          class="nc-scope-tag"
+        >
+          <GeneralIcon icon="ncDatabase" class="w-3.5 h-3.5 text-nc-content-gray-muted flex-none" />
+          <span class="truncate">{{ baseNameMap[id] || id }}</span>
+          <NcButton type="text" size="xxsmall" class="!p-0 !h-4 !w-4 !min-w-0 flex-none" @click="removeBase(id)">
+            <GeneralIcon icon="close" class="w-3 h-3 text-nc-content-gray-muted" />
+          </NcButton>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -160,5 +191,29 @@ onMounted(() => {
 
 .nc-scope-card-radio-dot {
   @apply w-2.5 h-2.5 rounded-full bg-brand-500;
+}
+
+.nc-scope-base-select {
+  :deep(.ant-select-selector) {
+    @apply !min-h-8 !rounded-lg !border-nc-border-gray-medium !bg-nc-bg-default;
+  }
+
+  :deep(.ant-select-selection-search) {
+    @apply !ms-0;
+  }
+
+  :deep(.ant-select-selection-overflow) {
+    @apply !gap-0;
+  }
+
+  :deep(.ant-select-selection-placeholder) {
+    @apply !start-3 text-nc-content-gray-muted;
+  }
+}
+
+.nc-scope-tag {
+  @apply flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-md
+    border-1 border-nc-border-gray-medium bg-nc-bg-gray-light
+    text-xs text-nc-content-gray-extreme max-w-48;
 }
 </style>

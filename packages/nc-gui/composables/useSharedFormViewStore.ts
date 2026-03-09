@@ -22,6 +22,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const progress = ref(false)
   const notFound = ref(false)
   const submitted = ref(false)
+  const isFormExpired = ref(false)
+  const isFormNotStarted = ref(false)
+  const formStartsAt = ref<string | null>(null)
   const passwordDlg = ref(false)
   const password = ref<string | null>(null)
   const passwordError = ref<string | null>(null)
@@ -184,6 +187,11 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       sharedView.value = viewMeta
       sharedFormView.value = viewMeta.view
       meta.value = viewMeta.model
+
+      // Check if form is expired or not started
+      isFormExpired.value = !!(viewMeta as any).is_form_expired
+      isFormNotStarted.value = !!(viewMeta as any).is_form_not_started
+      formStartsAt.value = (viewMeta as any).form_starts_at || null
 
       loadAllviewFilters(Array.isArray(viewMeta?.filter?.children) ? viewMeta?.filter?.children : [])
 
@@ -914,6 +922,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     loadAllviewFilters,
     checkFieldVisibility,
     isAddingEmptyRowPermitted,
+    isFormExpired,
+    isFormNotStarted,
+    formStartsAt,
     backgroundAndTextColor,
   }
 }, 'shared-form-view-store')

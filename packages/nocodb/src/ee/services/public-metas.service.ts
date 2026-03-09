@@ -251,7 +251,36 @@ export class PublicMetasService extends PublicMetasServiceCE {
       workspace,
     );
 
+    const isFormSchedulingEnabled =
+      isOnPrem ||
+      (await getFeature(PlanFeatureTypes.FEATURE_FORM_SCHEDULING, workspace));
+
     const formView = view.view as FormView;
+
+    // Check if form hasn't started yet
+    if (isFormSchedulingEnabled && formView.starts_at) {
+      const startsAt = new Date(formView.starts_at);
+      if (startsAt.getTime() > Date.now()) {
+        Object.assign(view, {
+          ...view,
+          is_form_not_started: true,
+          form_starts_at: formView.starts_at,
+        });
+        return view;
+      }
+    }
+
+    // Check if form has expired
+    if (isFormSchedulingEnabled && formView.expires_at) {
+      const expiresAt = new Date(formView.expires_at);
+      if (expiresAt.getTime() < Date.now()) {
+        Object.assign(view, {
+          ...view,
+          is_form_expired: true,
+        });
+        return view;
+      }
+    }
 
     const formColumns = isFieldValidationEnabled
       ? view.columns
@@ -325,6 +354,8 @@ export class PublicMetasService extends PublicMetasServiceCE {
           : null,
         logo_url: isFormCustomLogEnabled ? formView.logo_url : null,
         redirect_url: isUrlRedirectionEnabled ? formView.redirect_url : null,
+        starts_at: isFormSchedulingEnabled ? formView.starts_at : null,
+        expires_at: isFormSchedulingEnabled ? formView.expires_at : null,
         meta: {
           ...parseProp(formView.meta),
           hide_banner: isHideBrandingEnabled

@@ -5,7 +5,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { DependantFields } from '~/helpers/getAst';
 import { nocoExecute } from '~/utils';
-import { Base, Column, Model, Source, View } from '~/models';
+import { Base, Column, FormView, Model, Source, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -520,6 +520,25 @@ export class PublicDatasService {
 
     if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
+    }
+
+    // Check if form has started / expired
+    const formView = await FormView.get(context, view.id);
+    if (formView?.starts_at) {
+      const startsAt = new Date(formView.starts_at);
+      if (startsAt.getTime() > Date.now()) {
+        NcError.get(context).badRequest(
+          'This form is not yet accepting responses',
+        );
+      }
+    }
+    if (formView?.expires_at) {
+      const expiresAt = new Date(formView.expires_at);
+      if (expiresAt.getTime() < Date.now()) {
+        NcError.get(context).badRequest(
+          'This form is no longer accepting responses',
+        );
+      }
     }
 
     const model = await Model.getByIdOrName(context, {

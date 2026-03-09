@@ -34,6 +34,8 @@ export default class FormView implements FormViewType {
   logo_url?: AttachmentResType | string;
   submit_another_form?: BoolType;
   show_blank_form?: BoolType;
+  starts_at?: string;
+  expires_at?: string;
 
   fk_view_id: string;
   columns?: FormViewColumn[];
@@ -109,6 +111,8 @@ export default class FormView implements FormViewType {
       'logo_url',
       'submit_another_form',
       'show_blank_form',
+      'starts_at',
+      'expires_at',
       'meta',
     ]);
     if (insertObj.meta) {
@@ -158,6 +162,8 @@ export default class FormView implements FormViewType {
       'logo_url',
       'submit_another_form',
       'show_blank_form',
+      'starts_at',
+      'expires_at',
       'meta',
     ]);
 

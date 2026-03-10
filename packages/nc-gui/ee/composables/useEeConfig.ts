@@ -168,13 +168,6 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
-  const blockAddNewDocumentPage = computed(() => {
-    return (
-      isPaymentEnabled.value &&
-      getStatLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE)
-    )
-  })
-
   const blockDocsInlineComments = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS)
   })
@@ -975,17 +968,15 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const showDocumentPagePlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockAddNewDocumentPage.value) return
-
     handleUpgradePlan({
       title: t('upgrade.upgradeToAddMoreDocumentPages'),
       content: t('upgrade.upgradeToAddMoreDocumentPagesSubtitle', {
         activePlan: activePlanTitle.value,
-        limit: getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE),
+        limit: getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE),
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
-      limitOrFeature: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE,
+      limitOrFeature: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE,
     })
 
     return true
@@ -1783,7 +1774,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
-    blockAddNewDocumentPage,
     blockDocsInlineComments,
     blockDocsResolveComments,
     blockDocsExportPdf,

@@ -172,8 +172,6 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToAddMoreAttachmentsInCell = (..._args: any[]) => {}
 
-  const blockAddNewDocumentPage = computed(() => true)
-
   const blockDocsInlineComments = computed(() => true)
 
   const blockDocsResolveComments = computed(() => true)
@@ -296,7 +294,6 @@ export const useEeConfig = createSharedComposable(() => {
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
-    blockAddNewDocumentPage,
     blockDocsInlineComments,
     blockDocsResolveComments,
     blockDocsExportPdf,

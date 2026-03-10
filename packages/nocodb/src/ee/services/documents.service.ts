@@ -78,11 +78,15 @@ export class DocumentsService extends DocumentsServiceCE {
     payload: Partial<DocumentType>,
     req: NcRequest,
   ) {
+
+    const docCount = await Document.countForBase(context, context.base_id);
+
     await checkLimit({
       workspaceId: context.workspace_id,
-      type: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE,
+      type: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE,
+      count: docCount,
       message: ({ limit }) =>
-        `You have reached the limit of ${limit} document pages for your plan.`,
+        `You have reached the limit of ${limit} document pages per base for your plan.`,
     });
 
     payload.fk_workspace_id = context.workspace_id;

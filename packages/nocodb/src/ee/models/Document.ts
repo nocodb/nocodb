@@ -482,6 +482,22 @@ export default class Document extends DocumentCE implements DocumentType {
     await this.setHasChildren(context, docId, children.length > 0, ncMeta);
   }
 
+  /** Count non-deleted documents in a base. */
+  public static async countForBase(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<number> {
+    const result = await ncMeta.knexConnection(MetaTable.DOCS)
+      .where('base_id', baseId)
+      .where('fk_workspace_id', context.workspace_id)
+      .where('deleted', false)
+      .count('id as count')
+      .first();
+
+    return +(result?.count || 0);
+  }
+
   /**
    * Parse stringified JSON fields (content, meta) from a DB row.
    *

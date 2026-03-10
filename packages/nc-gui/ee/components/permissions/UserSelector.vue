@@ -89,7 +89,7 @@ const userSelectorListRef = ref()
 const description = computed(() => {
   return PermissionMeta[props.permission as PermissionKey].userSelectorDescription?.replace(
     '{{field}}',
-    `<b class="text-nc-content-gray-emphasis">${props.entityTitle ?? 'this'}</b>`,
+    `<b class="text-nc-content-gray-emphasis">${getHTMLEncodedText(props.entityTitle ?? 'this')}</b>`,
   )
 })
 

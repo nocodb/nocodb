@@ -4,7 +4,7 @@ import { Plugin, TextSelection } from '@tiptap/pm/state'
 import type { AddMarkStep, Step } from '@tiptap/pm/transform'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
 
-const DANGEROUS_URL_RE = /^\s*(javascript|vbscript):/i
+const DANGEROUS_URL_RE = /^\s*(javascript|vbscript|data):/i
 
 export const Link = TiptapLink.extend<LinkOptions>({
   addOptions() {

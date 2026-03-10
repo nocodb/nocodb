@@ -246,8 +246,11 @@ watchEffect(() => {
 
 <template>
   <div>
+    <!-- Loading skeleton for initial load -->
+    <DashboardTreeViewProjectListSkeletonEntity v-if="!allEntities.length && !baseTables.get(baseId)" class="!px-2.5 mt-2" />
+
     <div
-      v-if="!allEntities.length && !hasTableCreatePermission"
+      v-else-if="!allEntities.length && !hasTableCreatePermission"
       class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
     >
       {{ $t('placeholder.noTables') }}

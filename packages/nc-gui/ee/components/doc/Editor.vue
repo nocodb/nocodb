@@ -1279,7 +1279,7 @@ onBeforeUnmount(() => {
         </NcTooltip>
         <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight" class="flex">
           <NcButton size="small" type="secondary" @click.stop="isPageMenuOpen = !isPageMenuOpen">
-            <GeneralIcon icon="threeDotHorizontal" />
+            <GeneralIcon icon="threeDotVertical" />
           </NcButton>
           <template #overlay>
             <NcMenu variant="small" class="!min-w-52">

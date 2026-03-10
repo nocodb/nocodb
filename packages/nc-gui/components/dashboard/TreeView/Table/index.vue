@@ -19,7 +19,7 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { refreshViewTabTitle } = useViewsStore()
 
-const { activeTable } = storeToRefs(useTablesStore())
+const { activeTable, baseTables } = storeToRefs(useTablesStore())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -236,7 +236,10 @@ onKeyStroke('Escape', () => {
       />
     </div>
     <div key="g1" class="overflow-x-hidden transition-max-height" :class="{ 'max-h-0': !isExpanded }">
-      <template v-if="base && base?.sources">
+      <!-- Loading skeleton for initial load -->
+      <DashboardTreeViewProjectListSkeletonEntity v-if="!baseTables.get(base?.id!)" class="!px-2.5 mt-2" />
+
+      <template v-else-if="base && base?.sources">
         <div class="flex-1 overflow-y-auto overflow-x-hidden flex flex-col" :class="{ 'mb-[20px]': isSharedBase }">
           <div v-if="base?.sources?.[0]?.enabled" class="flex-1">
             <div class="transition-height duration-200">

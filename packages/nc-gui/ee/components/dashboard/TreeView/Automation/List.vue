@@ -35,9 +35,9 @@ const { updateScript, openNewScriptModal } = scriptStore
 
 const { updateWorkflow, openNewWorkflowModal } = workflowStore
 
-const { activeScriptId, scripts: allScripts, activeBaseScripts } = storeToRefs(scriptStore)
+const { activeScriptId, scripts: allScripts, activeBaseScripts, isLoadingScript } = storeToRefs(scriptStore)
 
-const { activeWorkflowId, workflows: allWorkflows, activeBaseWorkflows } = storeToRefs(workflowStore)
+const { activeWorkflowId, workflows: allWorkflows, activeBaseWorkflows, isLoadingWorkflow } = storeToRefs(workflowStore)
 
 const scripts = computed(() => allScripts.value.get(baseId.value) ?? [])
 
@@ -195,7 +195,13 @@ watchEffect(() => {
 
 <template>
   <div>
-    <template v-if="!allEntities.length && !props.hideCreateButton && isUIAllowed('workflowCreateOrEdit')">
+    <!-- Loading skeleton for initial load -->
+    <DashboardTreeViewProjectListSkeletonEntity
+      v-if="!allEntities.length && (isLoadingScript || isLoadingWorkflow)"
+      class="!px-2.5 mt-2"
+    />
+
+    <template v-else-if="!allEntities.length && !props.hideCreateButton && isUIAllowed('workflowCreateOrEdit')">
       <NcDropdown
         v-if="isWorkflowsCreateOrEditAllowed || isScriptsCreateOrEditAllowed"
         overlay-class-name="nc-automation-create-dropdown"

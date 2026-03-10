@@ -508,7 +508,7 @@ watch(inviteDlg, (newVal) => {
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncBuilding" />
-                {{ $t('labels.addTeams') }}
+                <span class="hidden sm:inline">{{ $t('labels.addTeams') }}</span>
               </div>
             </NcButton>
 
@@ -521,7 +521,7 @@ watch(inviteDlg, (newVal) => {
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                {{ $t('activity.addMembers') }}
+                <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
                 <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !blockWorkspaceMembers" remove-click />
               </div>
             </NcButton>

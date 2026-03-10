@@ -38,30 +38,65 @@ const VALID_DURATION_FORMATS = new Set([
 ]);
 
 /**
- * Validate constrained format values. Returns an error string if invalid, null if OK.
+ * Validate constrained format values, scoped by field type.
+ * Only checks parameters that are relevant to the given uidt — irrelevant
+ * parameters (e.g. max_value on a Date field) are silently ignored.
+ * For format fields with a fixed set of valid options, the error instructs
+ * the LLM to call ask_user so the user can pick from clickable buttons.
  */
-function validateFormats(args: Record<string, unknown>): string | null {
-  if (isProvided(args.date_format) && !VALID_DATE_FORMATS.has(args.date_format as string)) {
-    return `Invalid date_format "${args.date_format}". Valid options: ${[...VALID_DATE_FORMATS].join(', ')}`;
+function validateFormats(
+  uidt: UITypes,
+  args: Record<string, unknown>,
+): string | null {
+  // Date / DateTime / CreatedTime / LastModifiedTime
+  const dateTypes = [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime];
+  if (dateTypes.includes(uidt) && isProvided(args.date_format) && !VALID_DATE_FORMATS.has(args.date_format as string)) {
+    const options = [...VALID_DATE_FORMATS].join(', ');
+    return (
+      `Invalid date_format "${args.date_format}". ` +
+      `Call ask_user with the question "Which date format would you like?" ` +
+      `and these options: ${options}`
+    );
   }
-  if (isProvided(args.time_format) && !VALID_TIME_FORMATS.has(args.time_format as string)) {
-    return `Invalid time_format "${args.time_format}". Valid options: ${[...VALID_TIME_FORMATS].join(', ')}`;
+
+  // DateTime / CreatedTime / LastModifiedTime
+  const timeTypes = [UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime];
+  if (timeTypes.includes(uidt) && isProvided(args.time_format) && !VALID_TIME_FORMATS.has(args.time_format as string)) {
+    const options = [...VALID_TIME_FORMATS].join(', ');
+    return (
+      `Invalid time_format "${args.time_format}". ` +
+      `Call ask_user with the question "Which time format would you like?" ` +
+      `and these options: ${options}`
+    );
   }
-  if (isProvided(args.duration_format) && !VALID_DURATION_FORMATS.has(args.duration_format as string)) {
-    return `Invalid duration_format "${args.duration_format}". Valid options: ${[...VALID_DURATION_FORMATS].join(', ')}`;
+
+  // Duration
+  if (uidt === UITypes.Duration && isProvided(args.duration_format) && !VALID_DURATION_FORMATS.has(args.duration_format as string)) {
+    const options = [...VALID_DURATION_FORMATS].join(', ');
+    return (
+      `Invalid duration_format "${args.duration_format}". ` +
+      `Call ask_user with the question "Which duration format would you like?" ` +
+      `and these options: ${options}`
+    );
   }
-  if (isProvided(args.precision)) {
+
+  // Precision: Decimal, Currency, Percent, Rollup
+  const precisionTypes = [UITypes.Decimal, UITypes.Currency, UITypes.Percent, UITypes.Rollup];
+  if (precisionTypes.includes(uidt) && isProvided(args.precision)) {
     const p = args.precision as number;
     if (!Number.isInteger(p) || p < 0 || p > 8) {
       return `Invalid precision "${p}". Must be an integer between 0 and 8.`;
     }
   }
-  if (isProvided(args.max_value)) {
+
+  // Max value: Rating only
+  if (uidt === UITypes.Rating && isProvided(args.max_value)) {
     const m = args.max_value as number;
     if (!Number.isInteger(m) || m < 1 || m > 10) {
       return `Invalid max_value "${m}". Must be an integer between 1 and 10.`;
     }
   }
+
   return null;
 }
 
@@ -368,7 +403,7 @@ export const updateFieldDisplayTool: ChatToolDefinition = {
 
       await columnsV3Service.columnUpdate(context, {
         columnId: column.id,
-        column: { choices },
+        column: { choices } as any,
         req,
         user: req.user,
       });
@@ -379,7 +414,7 @@ export const updateFieldDisplayTool: ChatToolDefinition = {
     }
 
     // --- Validate constrained format values before applying ---
-    const validationError = validateFormats(args);
+    const validationError = validateFormats(uidt, args);
     if (validationError) {
       return { error: validationError };
     }

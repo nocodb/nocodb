@@ -1241,6 +1241,278 @@ export const dateDependencyTests = function () {
           expect(afterB.fields['Start Date'], 'B start').to.equal('2025-01-14');
         });
       });
+
+      // ── backward propagation ─────────────────────────────────────────────
+      //
+      // When a successor (child) is moved backward so its dates collide with
+      // its predecessor (parent), the predecessor should be pushed earlier.
+
+      describe('backward propagation', () => {
+
+        it('[end-to-start, fixed, buffer=0] child moved backward pushes parent earlier', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 11-20 (B is successor of A)
+          const { rowA, rowB } = await insertChain();
+
+          // Move B backward to Jan 5-14 → overlaps with A (A ends Jan 10)
+          await updateRow(rowB.id, { 'Start Date': '2025-01-05', 'End Date': '2025-01-14' });
+
+          // A should be pushed backward: A.end = B.start - 1 = Jan 4
+          // A.start = A.end - duration = Jan 4 - 9 = Dec 26
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['End Date'],   'A end').to.equal('2025-01-04');
+          expect(afterA.fields['Start Date'], 'A start').to.equal('2024-12-26');
+        });
+
+        it('[end-to-start, fixed, buffer=2] child moved backward pushes parent with gap', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        2,
+          });
+
+          // A: Jan 1-10, B: Jan 14-23 (3-day gap between A and B)
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-14', 'End Date': '2025-01-23' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move B backward to Jan 8-17 → overlaps with A+buffer
+          await updateRow(rowB.id, { 'Start Date': '2025-01-08', 'End Date': '2025-01-17' });
+
+          // A.end = B.start - buffer - 1 = Jan 8 - 3 = Jan 5
+          // duration = 9 days → A.start = Jan 5 - 9 = Dec 27
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['End Date'],   'A end').to.equal('2025-01-05');
+          expect(afterA.fields['Start Date'], 'A start').to.equal('2024-12-27');
+        });
+
+        it('[end-to-start, flexible, buffer=0] no overlap → parent stays put', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 15-24 (4-day gap)
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-15', 'End Date': '2025-01-24' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move B backward to Jan 12-21 → still after A.end (Jan 10), no overlap
+          await updateRow(rowB.id, { 'Start Date': '2025-01-12', 'End Date': '2025-01-21' });
+
+          // A should NOT be moved
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['End Date'],   'A end unchanged').to.equal('2025-01-10');
+          expect(afterA.fields['Start Date'], 'A start unchanged').to.equal('2025-01-01');
+        });
+
+        it('[end-to-start, flexible, buffer=0] overlap → parent pushed backward', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          const { rowA, rowB } = await insertChain();
+
+          // Move B backward to Jan 8-17 → overlaps with A (A ends Jan 10)
+          await updateRow(rowB.id, { 'Start Date': '2025-01-08', 'End Date': '2025-01-17' });
+
+          // A.end = B.start - 1 = Jan 7, A.start = Jan 7 - 9 = Dec 29
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['End Date'],   'A end').to.equal('2025-01-07');
+          expect(afterA.fields['Start Date'], 'A start').to.equal('2024-12-29');
+        });
+
+        it('[end-to-start, fixed, buffer=0] 2-level backward cascade (C→B→A)', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 11-20, C: Jan 21-30
+          const { rowA, rowB, rowC } = await insertChain();
+
+          // Move C backward to Jan 5-14 → overlaps with B
+          await updateRow(rowC.id, { 'Start Date': '2025-01-05', 'End Date': '2025-01-14' });
+
+          // B.end = C.start - 1 = Jan 4, B.start = Jan 4 - 9 = Dec 26
+          // A.end = B.start - 1 = Dec 25, A.start = Dec 25 - 9 = Dec 16
+          const afterB = await getRow(rowB.id);
+          expect(afterB.fields['End Date'],   'B end').to.equal('2025-01-04');
+          expect(afterB.fields['Start Date'], 'B start').to.equal('2024-12-26');
+
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['End Date'],   'A end').to.equal('2024-12-25');
+          expect(afterA.fields['Start Date'], 'A start').to.equal('2024-12-16');
+        });
+
+        it('[end-to-end, fixed, buffer=0] child moved backward pushes parent end earlier', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 5-10 (both end Jan 10)
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-05', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move B backward so it ends Jan 5 → A.end must also move to Jan 5
+          await updateRow(rowB.id, { 'Start Date': '2025-01-01', 'End Date': '2025-01-05' });
+
+          // A.end = B.end - buffer = Jan 5, dur = 9 → A.start = Jan 5 - 9 = Dec 27
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['End Date'],   'A end').to.equal('2025-01-05');
+          expect(afterA.fields['Start Date'], 'A start').to.equal('2024-12-27');
+        });
+
+        it('[end-to-end, flexible, buffer=0] no overlap → parent stays put', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-end',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 1-10, B: Jan 5-15 (B ends after A → no overlap)
+          const rowA = await insertRow({ 'Start Date': '2025-01-01', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-05', 'End Date': '2025-01-15' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move B so it ends Jan 12 → still after A.end (Jan 10), A.end <= B.end, no violation
+          await updateRow(rowB.id, { 'Start Date': '2025-01-02', 'End Date': '2025-01-12' });
+
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['End Date'],   'A end unchanged').to.equal('2025-01-10');
+          expect(afterA.fields['Start Date'], 'A start unchanged').to.equal('2025-01-01');
+        });
+
+        it('[start-to-start, fixed, buffer=0] child moved backward pushes parent start earlier', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 10-20, B: Jan 10-15 (both start Jan 10)
+          const rowA = await insertRow({ 'Start Date': '2025-01-10', 'End Date': '2025-01-20' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-10', 'End Date': '2025-01-15' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move B backward to start Jan 5 → A.start must also move to Jan 5
+          await updateRow(rowB.id, { 'Start Date': '2025-01-05', 'End Date': '2025-01-10' });
+
+          // A.start = B.start - buffer = Jan 5, dur = 10 → A.end = Jan 5 + 10 = Jan 15
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['Start Date'], 'A start').to.equal('2025-01-05');
+          expect(afterA.fields['End Date'],   'A end').to.equal('2025-01-15');
+        });
+
+        it('[start-to-start, flexible, buffer=0] no overlap → parent stays put', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-start',
+            dependency_buffer_type:        'flexible',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 5-15, B: Jan 10-20 (B starts after A)
+          const rowA = await insertRow({ 'Start Date': '2025-01-05', 'End Date': '2025-01-15' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-10', 'End Date': '2025-01-20' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move B backward to Jan 7 → still after A.start (Jan 5), no violation
+          await updateRow(rowB.id, { 'Start Date': '2025-01-07', 'End Date': '2025-01-17' });
+
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['Start Date'], 'A start unchanged').to.equal('2025-01-05');
+          expect(afterA.fields['End Date'],   'A end unchanged').to.equal('2025-01-15');
+        });
+
+        it('[start-to-end, fixed, buffer=0] child moved backward pushes parent start earlier', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'start-to-end',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+          });
+
+          // A: Jan 10-20, B: Jan 5-10 (B.end = A.start)
+          const rowA = await insertRow({ 'Start Date': '2025-01-10', 'End Date': '2025-01-20' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-05', 'End Date': '2025-01-10' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move B backward so B.end = Jan 5 → A.start must move to Jan 5
+          await updateRow(rowB.id, { 'Start Date': '2025-01-01', 'End Date': '2025-01-05' });
+
+          // A.start = B.end - buffer = Jan 5, dur = 10 → A.end = Jan 5 + 10 = Jan 15
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['Start Date'], 'A start').to.equal('2025-01-05');
+          expect(afterA.fields['End Date'],   'A end').to.equal('2025-01-15');
+        });
+
+        it('[end-to-start, fixed, buffer=0, weekends=false] backward skips weekends', async function () {
+          this.timeout(30_000);
+          await configureRule({
+            fk_dependency_linkrow_field_id: linkColId,
+            dependency_linkrow_role:       'successors',
+            dependency_connection_type:    'end-to-start',
+            dependency_buffer_type:        'fixed',
+            dependency_buffer_days:        0,
+            include_weekends:              false,
+          });
+
+          // A: Mon Jan 6 – Fri Jan 10 (5 biz days), B: Mon Jan 13 – Fri Jan 17
+          const rowA = await insertRow({ 'Start Date': '2025-01-06', 'End Date': '2025-01-10' });
+          const rowB = await insertRow({ 'Start Date': '2025-01-13', 'End Date': '2025-01-17' });
+          await linkSuccessor(rowA.id, rowB.id);
+
+          // Move B backward to Wed Jan 8 – Tue Jan 14 → overlaps with A (A ends Fri Jan 10)
+          await updateRow(rowB.id, { 'Start Date': '2025-01-08', 'End Date': '2025-01-14' });
+
+          // A.end = subBizDays(B.start=Jan 8(Wed), 1) = Tue Jan 7
+          // biz_dur = 4; A.start = subBizDays(Jan 7(Tue), 4) = Wed Jan 1
+          const afterA = await getRow(rowA.id);
+          expect(afterA.fields['End Date'],   'A end').to.equal('2025-01-07');
+          expect(afterA.fields['Start Date'], 'A start').to.equal('2025-01-01');
+        });
+      });
     });
   });
 };

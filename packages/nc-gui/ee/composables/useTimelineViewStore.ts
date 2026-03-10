@@ -340,6 +340,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
                 const row = findRowInState(toUpdate.row)
                 if (row) {
                   Object.assign(row.row, updatedRow)
+                  Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
                 }
                 Object.assign(row?.oldRow, updatedRow)
               },
@@ -355,6 +356,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
                 const row = findRowInState(toUpdate.row)
                 if (row) {
                   Object.assign(row.row, updatedData)
+                  Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
                 }
                 Object.assign(row!.oldRow, updatedData)
               },
@@ -364,6 +366,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           })
           Object.assign(toUpdate.row, updatedRowData)
           Object.assign(toUpdate.oldRow, updatedRowData)
+          Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
         }
 
         return updatedRowData

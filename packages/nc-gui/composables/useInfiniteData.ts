@@ -2128,9 +2128,7 @@ export function useInfiniteData(args: {
   }
 
   /**
-   * This is used to update the rowMeta color info when the row colour info is updated.
-   * Computes row hash once per row and stores it in rowMeta.rowColorHash for reuse
-   * during per-cell color lookups in the canvas render loop.
+   * This is used to update the rowMeta color info when the row colour info is updated
    */
   const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
     if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
@@ -2138,9 +2136,7 @@ export function useInfiniteData(args: {
     }
 
     const updateRowColorInfo = (row: Row) => {
-      // Compute hash once per row — previously this was recomputed per cell during render
-      const hash = getRowHash(row.row)
-      Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row, hash))
+      Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
       row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
     }
 
@@ -2209,7 +2205,7 @@ export function useInfiniteData(args: {
                 dataCache.cachedRows.value.set(newRowIndex, {
                   row: payload,
                   oldRow: {},
-                  rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+                  rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
                 })
 
                 dataCache.totalRows.value++
@@ -2228,7 +2224,7 @@ export function useInfiniteData(args: {
           dataCache.cachedRows.value.set(newRowIndex, {
             row: payload,
             oldRow: {},
-            rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+            rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
           })
           dataCache.totalRows.value++
           dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
@@ -2264,6 +2260,7 @@ export function useInfiniteData(args: {
 
             cachedRow.rowMeta.isValidationFailed = isValidationFailed
             cachedRow.rowMeta.changed = false
+            Object.assign(cachedRow.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
             updated = true
             break
           }
@@ -2462,6 +2459,7 @@ export function useInfiniteData(args: {
         if (payload && typeof payload === 'object') {
           Object.assign(rowToMove.row, payload)
           Object.assign(rowToMove.oldRow, payload)
+          Object.assign(rowToMove.rowMeta, getEvaluatedRowMetaRowColorInfo(rowToMove.row))
         }
         rowToMove.rowMeta.changed = false
 

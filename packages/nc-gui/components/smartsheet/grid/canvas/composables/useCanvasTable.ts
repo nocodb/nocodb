@@ -17,7 +17,7 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
-import { clearRowColouringCache, clearTextCache } from '../utils/canvas'
+import { clearTextCache } from '../utils/canvas'
 import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
@@ -1459,7 +1459,6 @@ export function useCanvasTable({
   const smartsheetEventHandler = (event) => {
     if ([SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
       forcedNextTick(() => {
-        clearRowColouringCache()
         triggerRefreshCanvas()
       })
     }

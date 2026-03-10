@@ -104,8 +104,7 @@ interface RowMetaRowColorInfo {
   rowHoverColor?: string | null
   rowBorderColor?: string | null
   is_set_as_background?: boolean
-  /** Pre-computed MD5 hash of row data for row coloring cache lookups */
-  rowColorHash?: string | null
+  cellColors?: Record<string, any>
 }
 
 interface Row {
@@ -725,14 +724,6 @@ interface CloudFeaturesType {
 
 type CanvasScrollToCellFn = (row?: number, column?: number, path?: Array<number>, horizontalScroll?: boolean) => void
 
-interface RowColouringEvaluatedResultType {
-  is_set_as_background: boolean
-  color: string
-  hoverColor: string | null
-  rawColor: string | undefined
-  borderColor: string | null
-}
-
 interface PermissionConfig {
   entity: PermissionEntity
   entityId: string
@@ -1130,7 +1121,6 @@ export type {
   CanvasGroup,
   CloudFeaturesType,
   CanvasScrollToCellFn,
-  RowColouringEvaluatedResultType,
   PermissionConfig,
   PermissionSelectorUser,
   NcListProps,

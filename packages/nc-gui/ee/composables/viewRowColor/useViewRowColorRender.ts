@@ -1,5 +1,4 @@
 import { type ColumnType, ROW_COLORING_MODE } from 'nocodb-sdk'
-import { rowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 
 export function useViewRowColorRender() {
   const { isDark } = useTheme()
@@ -137,40 +136,19 @@ export function useViewRowColorRender() {
     return null
   }
 
-  const getCachedEvaluatedResult = (rowHash: string, row: any, columnId?: string) => {
-    const cacheKey = columnId ? `${rowHash}:${columnId}` : rowHash
-    const cachedEvaluatedResult = rowColouringCache.get(cacheKey)
-
-    if (!cachedEvaluatedResult) {
-      const evaluatedResult = evaluateRowColor(row, columnId)
-      if (evaluatedResult) {
-        rowColouringCache.set(cacheKey, evaluatedResult)
-      }
-
-      return evaluatedResult
-    }
-
-    return cachedEvaluatedResult
-  }
-
-  const getEvaluatedRowMetaRowColorInfo = (row: any, precomputedHash?: string) => {
+  const getEvaluatedRowMetaRowColorInfo = (row: any) => {
     const result = {
       is_set_as_background: false,
       rowBgColor: null,
       rowLeftBorderColor: null,
       rowHoverColor: null,
       rowBorderColor: null,
-      rowColorHash: null as string | null,
-      cellColors: {},
+      cellColors: {} as Record<string, any>,
     }
 
     if (!row || !isRowColouringEnabled.value) return result
 
-    // Use pre-computed hash if available, otherwise compute and include in result
-    // so callers can store it in rowMeta for future reuse
-    const rowHash = precomputedHash || getRowHash(row)
-
-    const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
+    const rowColorResult = evaluateRowColor(row)
 
     // Pre-compute cell colors for all columns
     const cellColors: Record<string, any> = {}
@@ -189,8 +167,7 @@ export function useViewRowColorRender() {
         // Skip if we already have a color for this column (precedence: first match wins)
         if (cellColors[columnId]) continue
 
-        // Evaluate the condition
-        const cellColorResult = getCachedEvaluatedResult(rowHash, row, columnId)
+        const cellColorResult = evaluateRowColor(row, columnId)
 
         if (cellColorResult && cellColorResult.type === 'cell') {
           cellColors[columnId] = {
@@ -205,17 +182,16 @@ export function useViewRowColorRender() {
     }
 
     return {
-      is_set_as_background: cachedEvaluatedResult?.is_set_as_background ?? false,
-      rowBgColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.color ?? null : null,
-      rowLeftBorderColor: cachedEvaluatedResult?.rawColor ?? null,
-      rowHoverColor: cachedEvaluatedResult?.hoverColor ?? null,
-      rowBorderColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.borderColor ?? null : null,
-      rowColorHash: rowHash,
+      is_set_as_background: rowColorResult?.is_set_as_background ?? false,
+      rowBgColor: rowColorResult?.is_set_as_background ? rowColorResult?.color ?? null : null,
+      rowLeftBorderColor: rowColorResult?.rawColor ?? null,
+      rowHoverColor: rowColorResult?.hoverColor ?? null,
+      rowBorderColor: rowColorResult?.is_set_as_background ? rowColorResult?.borderColor ?? null : null,
       cellColors,
     }
   }
 
-  const getEvaluatedCellColorInfo = (row: any, columnId: string, precomputedHash?: string) => {
+  const getEvaluatedCellColorInfo = (row: any, columnId: string) => {
     const result = {
       is_set_as_background: false,
       cellBgColor: null as string | null,
@@ -226,9 +202,7 @@ export function useViewRowColorRender() {
 
     if (!row || !isRowColouringEnabled.value || !columnId) return result
 
-    // Use pre-computed hash to avoid expensive MD5(JSON.stringify(row)) per cell
-    const rowHash = precomputedHash || getRowHash(row)
-    const cellColorResult = getCachedEvaluatedResult(rowHash, row, columnId)
+    const cellColorResult = evaluateRowColor(row, columnId)
 
     if (!cellColorResult || cellColorResult.type !== 'cell') return result
 

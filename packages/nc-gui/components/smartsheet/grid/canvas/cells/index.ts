@@ -83,7 +83,7 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-  const { isRowColouringEnabled, isCellColouringEnabled, getEvaluatedCellColorInfo } = useViewRowColorRender()
+  const { isRowColouringEnabled, isCellColouringEnabled } = useViewRowColorRender()
 
   const { getColor, isDark } = useTheme()
 
@@ -230,11 +230,8 @@ export function useGridCellHandler(params: {
           },
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
-        // First check for cell-specific coloring
-        // Use pre-computed hash from rowMeta to avoid MD5(JSON.stringify(row)) per cell
-        const cellColorInfo = isCellColouringEnabled.value
-          ? getEvaluatedCellColorInfo(row, column.id, rowMeta?.rowColorHash)
-          : null
+        // Read pre-computed cell colors from rowMeta (populated by getEvaluatedRowMetaRowColorInfo on data load/change)
+        const cellColorInfo = isCellColouringEnabled.value ? rowMeta?.cellColors?.[column.id] : null
 
         let backgroundColorToRender: string | null = null
         let hoverColorToRender: string | null = null

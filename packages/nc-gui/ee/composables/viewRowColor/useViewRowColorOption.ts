@@ -8,7 +8,6 @@ import {
   type ViewType,
   isSystemColumn,
 } from 'nocodb-sdk'
-import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 import type { FilterRowChangeEvent } from '#imports'
 
 export function useViewRowColorOption(params: {
@@ -403,8 +402,6 @@ export function useViewRowColorOption(params: {
 
     reloadViewDataIfNeeded(evalColumn?.id)
 
-    // Clear cache before re-rendering so color evaluation uses fresh data
-    clearRowColouringCache()
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
 
     isLoadingFilter.value = false
@@ -451,8 +448,6 @@ export function useViewRowColorOption(params: {
       )
       filter.id = result.id
     })
-    // Clear cache before re-rendering so color evaluation uses fresh data
-    clearRowColouringCache()
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
 
     isLoadingFilter.value = false
@@ -510,8 +505,6 @@ export function useViewRowColorOption(params: {
         updateObj,
       )
     }
-    // Clear cache before re-rendering so color evaluation uses fresh data
-    clearRowColouringCache()
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
 
@@ -544,8 +537,6 @@ export function useViewRowColorOption(params: {
       if (!conditionToDelete.conditions.length && !conditionToDelete.nestedConditions.length) {
         onRowColorConditionDelete(colorIndex)
       } else {
-        // Clear cache before re-rendering so color evaluation uses fresh data
-        clearRowColouringCache()
         eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
       }
     } catch (err: any) {

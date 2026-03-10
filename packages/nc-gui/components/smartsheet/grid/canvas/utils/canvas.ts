@@ -31,12 +31,6 @@ export const formulaTextSegmentsCache: LRUCache<string, Array<{ text: string; ur
   max: 1000,
 })
 
-// Sized for 2K+ rows × multiple columns — smaller max causes constant eviction and
-// re-evaluation of validateRowFilters during scroll, leading to 40ms+ frame spikes
-export const rowColouringCache: LRUCache<string, RowColouringEvaluatedResultType> = new LRUCache({
-  max: 10000,
-})
-
 export const aggregationCache: LRUCache<string, any> = new LRUCache({
   max: 1000,
 })
@@ -60,12 +54,7 @@ export const clearTextCache = () => {
   barcodeCache.clear()
   replaceUrlsWithLinkCache.clear()
   formulaTextSegmentsCache.clear()
-  rowColouringCache.clear()
   aggregationCache.clear()
-}
-
-export const clearRowColouringCache = () => {
-  rowColouringCache.clear()
 }
 
 interface TruncateTextWithInfoType {

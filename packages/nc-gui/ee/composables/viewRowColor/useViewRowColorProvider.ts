@@ -1,5 +1,4 @@
 import { ROW_COLORING_MODE, type RowColoringInfo, type RowColoringInfoFilter, type ViewType, arrayToNested } from 'nocodb-sdk'
-import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
 import { SmartsheetStoreEvents } from '#imports'
 
 export function useViewRowColorProvider(params: { shared?: boolean }) {
@@ -30,8 +29,6 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
    * @returns void
    */
   const reloadRowColorInfo = async (isViewChange: boolean = false, customPayload = null) => {
-    clearRowColouringCache()
-
     if (!viewId.value) return
 
     const rowColorInfoResponse = !params.shared
@@ -141,7 +138,6 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
   )
 
   watch(isDark, () => {
-    clearRowColouringCache()
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   })
 

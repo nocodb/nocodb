@@ -13,18 +13,18 @@ export function useViewRowColorRender() {
     return null
   }
 
-  const getEvaluatedRowMetaRowColorInfo = (_row: any, _precomputedHash?: string) => {
+  const getEvaluatedRowMetaRowColorInfo = (_row: any) => {
     return {
       is_set_as_background: false,
       rowBgColor: null,
       rowLeftBorderColor: null,
       rowHoverColor: null,
       rowBorderColor: null,
-      rowColorHash: null as string | null,
+      cellColors: {} as Record<string, any>,
     }
   }
 
-  const getEvaluatedCellColorInfo = (_row: any, _columnId: string, _precomputedHash?: string) => {
+  const getEvaluatedCellColorInfo = (_row: any, _columnId: string) => {
     return {
       is_set_as_background: false,
       cellBgColor: null as string | null,

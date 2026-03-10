@@ -850,7 +850,7 @@ export function useCanvasTable({
     }
   }
 
-  const { handleCellClick, renderCell, handleCellHover, handleCellKeyDown } = useGridCellHandler({
+  const { handleCellClick, renderCell, updateFrameTimestamp, handleCellHover, handleCellKeyDown } = useGridCellHandler({
     getCellPosition,
     actionManager,
     markdownLoader,
@@ -900,6 +900,7 @@ export function useCanvasTable({
     targetRowIndex,
     actionManager,
     renderCell,
+    updateFrameTimestamp,
     meta,
     editEnabled,
     totalWidth,

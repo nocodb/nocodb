@@ -76,6 +76,7 @@ export function useCanvasRender({
   targetRowIndex,
   mousePosition,
   renderCell,
+  updateFrameTimestamp,
   meta,
   editEnabled,
   totalWidth,
@@ -144,6 +145,7 @@ export function useCanvasRender({
   targetRowIndex: Ref<number | null>
   mousePosition: { x: number; y: number }
   renderCell: (ctx: CanvasRenderingContext2D, column: ColumnType, options: any) => void
+  updateFrameTimestamp: () => void
   meta: ComputedRef<TableType>
   editEnabled: Ref<CanvasEditEnabledType>
   totalRows: Ref<number>
@@ -1329,7 +1331,7 @@ export function useCanvasRender({
     }
   }
 
-  // Pre-computed colors for renderRow — resolved once per theme change, not per frame
+  // Pre-computed colors for renderRow — resolved once per frame, not per cell
   let _rowColors = {
     selectionBg: '',
     gray200: '',
@@ -1360,6 +1362,7 @@ export function useCanvasRender({
       rowIdx,
       yOffset,
       group,
+      rowBgAlreadyApplied = false,
     }: {
       row: Row
       initialXOffset: number
@@ -1368,6 +1371,7 @@ export function useCanvasRender({
       yOffset: number
       rowIdx: number
       group?: CanvasGroup
+      rowBgAlreadyApplied?: boolean
     },
   ) {
     let activeState: {
@@ -1445,10 +1449,7 @@ export function useCanvasRender({
 
         const absoluteColIdx = startColIndex + colIdx
 
-        const isCellEditEnabled =
-          editEnabled.value &&
-          isActiveRow &&
-          activeCellCol === absoluteColIdx
+        const isCellEditEnabled = editEnabled.value && isActiveRow && activeCellCol === absoluteColIdx
 
         const isCellInRange = hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })
 
@@ -1460,8 +1461,7 @@ export function useCanvasRender({
         }
 
         const isColumnInSelection =
-          (isCellInRange ||
-            (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx - 1 })))
+          isCellInRange || (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx - 1 }))
 
         // Collect vertical border coordinates for batched stroke
         const borderX = xOffset - _scrollLeft
@@ -1522,6 +1522,7 @@ export function useCanvasRender({
           isRowCellSelected,
           isCellInSelectionRange: isCellInRange,
           isRootCell: true,
+          rowBgAlreadyApplied,
         })
         xOffset += width
       })
@@ -1554,15 +1555,21 @@ export function useCanvasRender({
 
           const colIdx = columnIdToIndex.value.get(column.id!) ?? -1
 
-          const isCellEditEnabled =
-            editEnabled.value &&
-            isActiveRow &&
-            activeCellCol === colIdx
+          const isCellEditEnabled = editEnabled.value && isActiveRow && activeCellCol === colIdx
 
           const isCellInRange = hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: colIdx })
 
           if (recordSelected || isCellInRange) {
             ctx.fillStyle = rowColor ? '#3366ff0d' : _rowColors.selectionBg
+            ctx.fillRect(xOffset, yOffset, width, _rowH)
+          } else if (rowBgAlreadyApplied) {
+            // Row-level fill already painted the correct row color; fixed columns need to
+            // repaint since they overlay scrollable content, but use the row color.
+            const effectiveColor =
+              isHovered || isRowCellSelected
+                ? row.rowMeta.rowHoverColor || rowColor
+                : rowColor
+            ctx.fillStyle = effectiveColor
             ctx.fillRect(xOffset, yOffset, width, _rowH)
           } else {
             ctx.fillStyle = isHovered || isRowCellSelected ? _rowColors.gray50 : _rowColors.white
@@ -1624,17 +1631,15 @@ export function useCanvasRender({
               isRowCellSelected,
               isCellInSelectionRange: isCellInRange,
               isRootCell: true,
+              rowBgAlreadyApplied,
             })
           }
 
           const isColumnInSelection =
-            (isCellInRange ||
-              (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: colIdx - 1 })))
+            isCellInRange || (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: colIdx - 1 }))
 
           ctx.strokeStyle =
-            idx !== 0 && (needsHighlightedBorders || isColumnInSelection || rowColor)
-              ? _rowColors.gray200
-              : _rowColors.gray100
+            idx !== 0 && (needsHighlightedBorders || isColumnInSelection || rowColor) ? _rowColors.gray200 : _rowColors.gray100
           ctx.lineWidth = 1
 
           ctx.beginPath()
@@ -1835,31 +1840,45 @@ export function useCanvasRender({
     let warningRow: { row: Row; yOffset: number } | null = null
     const dataCache = getDataCache()
 
+    // Pre-cache reactive refs accessed per-row to avoid repeated .value proxy reads in the loop
+    const _rowH = rowHeight.value
+    const _height = height.value
+    const _removeInlineAddRecord = removeInlineAddRecord.value
+    const _hoverRowIndex = hoverRow.value?.rowIndex ?? -1
+    const _hoverRowPath = hoverRow.value?.path
+    const _activeCellRow = activeCell.value.row
+    const _activeCellPath = activeCell.value.path
+    const _draggedRowIndex = draggedRowIndex.value
+    const _cachedRows = dataCache.cachedRows.value
+
     for (let rowIdx = startRowIndex; rowIdx < endRowIndex; rowIdx++) {
-      if (
-        yOffset + rowHeight.value > 0 &&
-        yOffset < height.value &&
-        (!removeInlineAddRecord.value || rowIdx <= EXTERNAL_SOURCE_TOTAL_ROWS)
-      ) {
-        const row = dataCache.cachedRows.value.get(rowIdx)
+      if (yOffset + _rowH > 0 && yOffset < _height && (!_removeInlineAddRecord || rowIdx <= EXTERNAL_SOURCE_TOTAL_ROWS)) {
+        const row = _cachedRows.get(rowIdx)
 
-        const nextRow = rowIdx + 1 < endRowIndex ? dataCache.cachedRows.value.get(rowIdx + 1) : null
+        const nextRow = rowIdx + 1 < endRowIndex ? _cachedRows.get(rowIdx + 1) : null
 
-        if (rowIdx === draggedRowIndex.value) {
+        if (rowIdx === _draggedRowIndex) {
           ctx.globalAlpha = 0.5
         }
 
-        const isRowHovered = hoverRow.value?.rowIndex === rowIdx && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
-        const isRowCellSelected = activeCell.value.row === rowIdx && comparePath(activeCell.value.path, row?.rowMeta?.path)
+        const isRowHovered = _hoverRowIndex === rowIdx && comparePath(_hoverRowPath, row?.rowMeta?.path)
+        const isRowCellSelected = _activeCellRow === rowIdx && comparePath(_activeCellPath, row?.rowMeta?.path)
         const rowColor = row?.row ? row.rowMeta.rowBgColor : null
 
-        const isNextRowHovered = hoverRow.value?.rowIndex === rowIdx + 1 && comparePath(hoverRow.value?.path, row?.rowMeta?.path)
-        const isNextRowCellSelected =
-          activeCell.value.row === rowIdx + 1 && comparePath(activeCell.value.path, row?.rowMeta?.path)
+        const isNextRowHovered = _hoverRowIndex === rowIdx + 1 && comparePath(_hoverRowPath, row?.rowMeta?.path)
+        const isNextRowCellSelected = _activeCellRow === rowIdx + 1 && comparePath(_activeCellPath, row?.rowMeta?.path)
         const isNextRowSelected = nextRow && nextRow.rowMeta.selected
 
-        ctx.fillStyle = isRowHovered || isRowCellSelected ? colorGray50 : colorWhite
-        ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
+        // Apply row coloring at row level to avoid redundant per-cell background fills.
+        // When a row has a bg color, drawing it here once saves ~15 fillRect calls per row.
+        const rowBgApplied = rowColor && row?.rowMeta?.is_set_as_background
+        if (rowBgApplied) {
+          const effectiveRowColor = isRowHovered || isRowCellSelected ? row.rowMeta.rowHoverColor || rowColor : rowColor
+          ctx.fillStyle = effectiveRowColor
+        } else {
+          ctx.fillStyle = isRowHovered || isRowCellSelected ? colorGray50 : colorWhite
+        }
+        ctx.fillRect(0, yOffset, adjustedWidth, _rowH)
         const renderedProp = renderRow(ctx, {
           row,
           initialXOffset,
@@ -1867,11 +1886,12 @@ export function useCanvasRender({
           rowIdx,
           startColIndex,
           yOffset,
+          rowBgAlreadyApplied: !!rowBgApplied,
         })
         elementMap.addElement({
           y: yOffset,
           x: 0,
-          height: rowHeight.value,
+          height: _rowH,
           row,
           type: ElementTypes.ROW,
         })
@@ -1880,7 +1900,7 @@ export function useCanvasRender({
           renderRedBorders.push(...renderedProp.renderRedBorders)
         }
 
-        if (rowIdx === draggedRowIndex.value) {
+        if (rowIdx === _draggedRowIndex) {
           ctx.globalAlpha = 1
         }
 
@@ -1897,14 +1917,14 @@ export function useCanvasRender({
             : colorGray200
         ctx.lineWidth = 1
         ctx.beginPath()
-        ctx.moveTo(0, yOffset + rowHeight.value)
-        ctx.lineTo(adjustedWidth, yOffset + rowHeight.value)
+        ctx.moveTo(0, yOffset + _rowH)
+        ctx.lineTo(adjustedWidth, yOffset + _rowH)
         ctx.stroke()
 
         // Since blur is not working we can use just fill rect
-        if (removeInlineAddRecord.value && rowIdx >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
+        if (_removeInlineAddRecord && rowIdx >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
           ctx.fillStyle = getColor('#e7e7e9', '#171717', 0.8)
-          ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
+          ctx.fillRect(0, yOffset, adjustedWidth, _rowH)
 
           ctx.fill()
         }
@@ -1913,12 +1933,12 @@ export function useCanvasRender({
           warningRow = { row, yOffset }
         }
 
-        yOffset += rowHeight.value
+        yOffset += _rowH
       }
     }
 
     // Add New Row
-    if (isAddingEmptyRowAllowed.value && !isMobileMode.value && !removeInlineAddRecord.value) {
+    if (isAddingEmptyRowAllowed.value && !isMobileMode.value && !_removeInlineAddRecord) {
       const isNewRowHovered = isBoxHovered(
         {
           x: 0,
@@ -2015,7 +2035,7 @@ export function useCanvasRender({
     for (const { rowIndex, column } of renderRedBorders) {
       if (editEnabled.value?.column?.id === column.id && editEnabled.value?.rowIndex === rowIndex) continue
       const yOffset = -partialRowHeight.value + 33 + (rowIndex - rowSlice.value.start) * rowHeight.value
-      const xOffset = calculateXPosition((columnIdToIndex.value.get(column.id!) ?? -1))
+      const xOffset = calculateXPosition(columnIdToIndex.value.get(column.id!) ?? -1)
       const width = parseCellWidth(column.width)
 
       const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
@@ -2863,7 +2883,7 @@ export function useCanvasRender({
           continue
         }
         const yOffset = initYOffset + rowIndex * rowHeight.value
-        const xOffset = calculateXPosition((columnIdToIndex.value.get(column.id!) ?? -1))
+        const xOffset = calculateXPosition(columnIdToIndex.value.get(column.id!) ?? -1)
         const width = parseCellWidth(column.width)
 
         const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 1)
@@ -3573,6 +3593,8 @@ export function useCanvasRender({
   let lastDpr = 0
 
   function renderCanvas() {
+    // Update shared frame timestamp (avoids per-cell Date.now() calls in getCellRenderStore)
+    updateFrameTimestamp()
 
     // Resolve theme colors once per frame (cached internally, but avoids per-cell Map lookups)
     _updateRowColors()

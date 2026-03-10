@@ -39,6 +39,10 @@ export function useViewRowColorRender() {
     return Object.values(meta.value?.columnsById ?? {})
   })
 
+  // Cache timezone string — Intl.DateTimeFormat() construction is expensive (~50µs each).
+  // Resolved once and reused across all validateRowFilters calls.
+  const _cachedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
   const evaluateRowColor = (row: any, columnId?: string) => {
     if (!isRowColouringEnabled.value) return null
 
@@ -99,7 +103,7 @@ export function useViewRowColorRender() {
           meta.value?.base_id,
           {
             currentUser: user.value ?? undefined,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timezone: _cachedTimezone,
           },
         )
 

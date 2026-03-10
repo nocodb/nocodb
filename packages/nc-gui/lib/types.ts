@@ -508,6 +508,11 @@ interface CellRendererOptions {
    * This is used in row colouring
    */
   isRootCell?: boolean
+  /**
+   * When true, the row-level background fill (in renderRows) already painted the row color,
+   * so renderCell can skip the redundant per-cell background fill and only draw borders.
+   */
+  rowBgAlreadyApplied?: boolean
 }
 
 interface CellRenderStore {

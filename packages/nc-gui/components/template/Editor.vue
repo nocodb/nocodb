@@ -12,6 +12,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   parseStringDate,
+  validateDateWithUnknownFormat,
 } from 'nocodb-sdk'
 import type { CheckboxChangeEvent } from 'ant-design-vue/es/checkbox/interface'
 import { srcDestMappingColumns, tableColumns } from './utils'
@@ -606,7 +607,24 @@ async function importTemplate() {
                       }
                     } else if (v.uidt === UITypes.Date) {
                       if (input) {
-                        input = parseStringDate(input, v.meta.date_format)
+                        const originalInput = String(input)
+
+                        if (validateDateWithUnknownFormat(originalInput)) {
+                          // Known format matched with strict parsing — parse it
+                          input = parseStringDate(originalInput, v.meta.date_format)
+                          if (input === 'Invalid Date') {
+                            const detectedFormat = getDateFormat(originalInput)
+                            input = dayjs(originalInput, detectedFormat, true).format('YYYY-MM-DD')
+                          }
+                        } else if (/\d/.test(originalInput) && dayjs(originalInput).isValid()) {
+                          // Fallback: contains digits and dayjs native parsing accepts it
+                          // Handles formats like 2024-01-15T10:30:00, 15-Jan-24, etc.
+                          input = dayjs(originalInput).format('YYYY-MM-DD')
+                        } else {
+                          throw new Error(
+                            `Invalid date value "${originalInput}" provided for field "${col.destCn}" in row ${data.indexOf(row) + 1}`,
+                          )
+                        }
                       }
                     }
                     res[col.destCn] = input

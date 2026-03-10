@@ -494,9 +494,7 @@ export function useInfiniteData(args: {
         }
       }
 
-      // Fire comment count fetch without awaiting — it's cosmetic and shouldn't
-      // block the second loop that re-triggers reactivity for row rendering.
-      loadBulkAggCommentsCount(allFormattedRows).catch(() => {})
+      await loadBulkAggCommentsCount(allFormattedRows)
 
       for (const { request, rows, dataCache } of processedChunks) {
         try {

@@ -244,6 +244,8 @@ export const useDocumentComments = createSharedComposable(() => {
   }
 
   const resolveComment = async (commentId: string) => {
+    const { showUpgradeToUseDocsResolveComments } = useEeConfig()
+    if (showUpgradeToUseDocsResolveComments()) return
     if (!isUIAllowed('documentCommentResolve')) return
 
     const original = comments.value.find((c) => c.id === commentId)

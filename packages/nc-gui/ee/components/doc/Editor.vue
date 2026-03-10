@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PlanFeatureTypes } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -171,7 +172,18 @@ const toggleCommentsPanel = () => {
   isCommentsPanelOpen.value = !isCommentsPanelOpen.value
 }
 
+const { showUpgradeToUseDocsInlineComments, showUpgradeToUseDocsExportPdf } = useEeConfig()
+
 const onAddInlineComment = () => {
+  if (showUpgradeToUseDocsInlineComments()) {
+    // Collapse selection to dismiss the BubbleMenu behind the upgrade modal
+    if (editor.value) {
+      const { to } = editor.value.state.selection
+      editor.value.commands.setTextSelection(to)
+    }
+    return
+  }
+
   if (!editor.value) return
   const { from, to } = editor.value.state.selection
   if (from === to) return // no selection
@@ -1091,6 +1103,11 @@ const onDownloadHTML = () => {
 
 const onDownloadPDF = () => {
   isPageMenuOpen.value = false
+
+  if (showUpgradeToUseDocsExportPdf()) {
+    return
+  }
+
   downloadPDF()
 }
 
@@ -1318,9 +1335,12 @@ onBeforeUnmount(() => {
                   <GeneralIcon icon="code" />
                   {{ $t('general.html') }}
                 </NcMenuItem>
-                <NcMenuItem @click="onDownloadPDF">
+                <NcMenuItem inner-class="w-full" @click="onDownloadPDF">
                   <GeneralIcon icon="pdfFile" />
-                  {{ $t('general.pdf') }}
+                  <span class="flex-1">
+                    {{ $t('general.pdf') }}
+                  </span>
+                  <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF" class="-mr-1" remove-click />
                 </NcMenuItem>
               </NcSubMenu>
               <NcDivider />
@@ -1481,6 +1501,7 @@ onBeforeUnmount(() => {
                       RichTextBubbleMenuOptions.image,
                       RichTextBubbleMenuOptions.table,
                     ]"
+                    class="!px-0"
                   />
                   <NcTooltip placement="top">
                     <template #title>{{ $t('general.link') }}</template>
@@ -1579,7 +1600,11 @@ onBeforeUnmount(() => {
                           <span v-if="parseProp(page.meta)?.icon" class="nc-link-page-suggestion-icon">{{
                             parseProp(page.meta).icon
                           }}</span>
-                          <GeneralIcon v-else icon="ncFileText" class="nc-link-page-suggestion-icon text-nc-content-gray-subtle" />
+                          <GeneralIcon
+                            v-else
+                            icon="ncFileText"
+                            class="nc-link-page-suggestion-icon text-nc-content-gray-subtle"
+                          />
                           <span class="nc-link-page-suggestion-title truncate">{{ page.title || $t('general.untitled') }}</span>
                           <GeneralLoader
                             v-if="isLoadingPageHeadings && expandedPageId === page.id"

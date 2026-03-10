@@ -982,22 +982,49 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showUpgradeToUseDocsInlineComments = () => {
+  const showUpgradeToUseDocsInlineComments = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockDocsInlineComments.value) return
+
     handleUpgradePlan({
+      title: t('upgrade.upgradeToUseDocsInlineComments'),
+      content: t('upgrade.upgradeToUseDocsInlineCommentsSubtitle', {
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS,
     })
+
+    return true
   }
 
-  const showUpgradeToUseDocsResolveComments = () => {
+  const showUpgradeToUseDocsResolveComments = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockDocsResolveComments.value) return
+
     handleUpgradePlan({
+      title: t('upgrade.upgradeToUseDocsResolveComments'),
+      content: t('upgrade.upgradeToUseDocsResolveCommentsSubtitle', {
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_COMMENT_RESOLVE,
     })
+
+    return true
   }
 
-  const showUpgradeToUseDocsExportPdf = () => {
+  const showUpgradeToUseDocsExportPdf = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockDocsExportPdf.value) return
+
     handleUpgradePlan({
+      title: t('upgrade.upgradeToUseDocsExportPdf'),
+      content: t('upgrade.upgradeToUseDocsExportPdfSubtitle', {
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF,
     })
+
+    return true
   }
 
   const showScriptPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {

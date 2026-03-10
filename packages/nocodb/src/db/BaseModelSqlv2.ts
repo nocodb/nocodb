@@ -3236,6 +3236,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       allowSystemColumn: boolean;
       undo: boolean;
       typecast: boolean;
+      rowIndex?: number;
     } = {
       allowSystemColumn: false,
       undo: false,
@@ -3314,8 +3315,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (col.uidt === UITypes.Attachment && typeof val !== 'string') {
             val = JSON.stringify(val);
           }
+          if (
+            (col.uidt === UITypes.DateTime || col.uidt === UITypes.Date) &&
+            val === ''
+          ) {
+            val = null;
+          }
           if (col.uidt === UITypes.DateTime && dayjs(val).isValid()) {
             val = this.formatDate(val);
+          }
+          if (col.uidt === UITypes.Date && dayjs(val).isValid()) {
+            val = dayjs(val).format('YYYY-MM-DD');
+          }
+          if (
+            (col.uidt === UITypes.DateTime || col.uidt === UITypes.Date) &&
+            val !== null &&
+            val !== '' &&
+            !dayjs(val).isValid()
+          ) {
+            const rowLabel =
+              params.rowIndex !== undefined
+                ? ` in row ${params.rowIndex + 1}`
+                : '';
+            NcError.get(this.context).badRequest(
+              `Invalid ${col.uidt === UITypes.Date ? 'date' : 'date/time'} value "${val}" provided for field "${col.title}"${rowLabel}`,
+            );
           }
           if (col.uidt === UITypes.Duration) {
             if (col.meta?.duration !== undefined) {

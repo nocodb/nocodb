@@ -1024,11 +1024,7 @@ watch(
         description-class="!text-small !leading-[18px]"
         :copy-text="importError"
         :message="$t('msg.error.importError')"
-        :description="
-          $t('msg.error.anErrorOccuredWhileImporting', {
-            type: getBtnText(true),
-          })
-        "
+        :description="importError"
         @close="handleResetImportError"
       />
 

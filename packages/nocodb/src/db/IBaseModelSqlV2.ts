@@ -284,6 +284,7 @@ export interface IBaseModelSqlV2 {
       allowSystemColumn: boolean;
       undo: boolean;
       typecast: boolean;
+      rowIndex?: number;
     },
   ): Promise<any>;
 

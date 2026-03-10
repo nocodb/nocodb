@@ -1917,6 +1917,37 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                 }
                 if (
                   this.context.api_version !== NcApiVersion.V3 &&
+                  (col.uidt === UITypes.DateTime ||
+                    col.uidt === UITypes.Date) &&
+                  val === ''
+                ) {
+                  val = null;
+                }
+                if (
+                  this.context.api_version !== NcApiVersion.V3 &&
+                  col.uidt === UITypes.Date &&
+                  dayjs(val).isValid()
+                ) {
+                  val = dayjs(val).format('YYYY-MM-DD');
+                }
+                if (
+                  this.context.api_version !== NcApiVersion.V3 &&
+                  (col.uidt === UITypes.DateTime ||
+                    col.uidt === UITypes.Date) &&
+                  val !== null &&
+                  val !== '' &&
+                  !dayjs(val).isValid()
+                ) {
+                  const rowLabel =
+                    index !== undefined
+                      ? ` in row ${index + 1}`
+                      : '';
+                  NcError.get(this.context).badRequest(
+                    `Invalid ${col.uidt === UITypes.Date ? 'date' : 'date/time'} value "${val}" provided for field "${col.title}"${rowLabel}`,
+                  );
+                }
+                if (
+                  this.context.api_version !== NcApiVersion.V3 &&
                   this.isPg &&
                   col.uidt === UITypes.Checkbox
                 ) {

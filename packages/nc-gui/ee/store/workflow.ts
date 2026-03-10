@@ -27,7 +27,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { activeProjectId, bases, basesUser } = storeToRefs(baseStore)
 
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  const { activeWorkspaceId, isSharedBase } = storeToRefs(useWorkspace())
 
   const isAdvancedNodesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.ADVANCED_NODES))
 
@@ -89,7 +89,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   // Actions
   const loadWorkflows = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (!activeWorkspaceId.value) return []
+    if (!activeWorkspaceId.value || isSharedBase.value) return []
 
     const existingWorkflows = workflows.value.get(baseId)
     if (existingWorkflows && !force) {
@@ -390,7 +390,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const { blockWorkflows } = useEeConfig()
 
   const loadWorkflowNodes = async () => {
-    if (!activeWorkspaceId.value || !activeProjectId.value) return
+    if (!activeWorkspaceId.value || !activeProjectId.value || isSharedBase.value) return
     if (blockWorkflows.value) return
 
     try {

@@ -20,7 +20,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { activeProjectId, bases } = storeToRefs(baseStore)
 
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  const { activeWorkspaceId, isSharedBase } = storeToRefs(useWorkspace())
 
   // State
   const dashboards = ref<Map<string, DashboardType[]>>(new Map())
@@ -57,7 +57,8 @@ export const useDashboardStore = defineStore('dashboard', () => {
   })
 
   const loadDashboards = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (!activeWorkspaceId.value) return []
+    // In shared base we are not showing dashboards, so better to avoid api call
+    if (!activeWorkspaceId.value || isSharedBase.value) return []
 
     const existingDashboards = dashboards.value.get(baseId)
     if (existingDashboards && !force) {

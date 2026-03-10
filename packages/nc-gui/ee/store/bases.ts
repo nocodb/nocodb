@@ -598,7 +598,8 @@ export const useBases = defineStore('basesStore', () => {
       !workspaceStore.isTeamsEnabled ||
       !workspaceStore.activeWorkspaceId ||
       !baseId ||
-      blockTeamsManagement.value
+      blockTeamsManagement.value ||
+      workspaceStore.isSharedBase
     ) {
       isLoadingBaseTeams.value = false
       return

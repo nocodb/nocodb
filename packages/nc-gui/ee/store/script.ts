@@ -10,7 +10,7 @@ export const useScriptStore = defineStore('script', () => {
   const bases = useBases()
   const { activeProjectId } = storeToRefs(bases)
   const workspaceStore = useWorkspace()
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  const { activeWorkspaceId, isSharedBase } = storeToRefs(useWorkspace())
 
   const { showScriptPlanLimitExceededModal, showUpgradeToUseScripts, updateStatLimit } = useEeConfig()
 
@@ -48,7 +48,7 @@ export const useScriptStore = defineStore('script', () => {
   const activeBaseSchema = ref(null)
   // Actions
   const loadScripts = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (!activeWorkspaceId.value) return []
+    if (!activeWorkspaceId.value || isSharedBase.value) return []
 
     const existingScripts = scripts.value.get(baseId)
     if (existingScripts && !force) {
@@ -326,7 +326,7 @@ export const useScriptStore = defineStore('script', () => {
   }
 
   const updateBaseSchema = async () => {
-    if (!activeWorkspaceId.value || !activeProjectId.value) return
+    if (!activeWorkspaceId.value || !activeProjectId.value || isSharedBase.value) return
 
     try {
       activeBaseSchema.value = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {

@@ -246,6 +246,29 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     return `${baseName} ${counter}`
   }
 
+  /**
+   * High-level action: create a new section for a table and auto-expand it.
+   * Computes the next order from existing sections + provided view orders.
+   * Used by CreateViewBtn/SectionMenu and Views/index.vue.
+   */
+  const createSectionForTable = async (baseId: string, tableId: string, viewOrders: number[] = []) => {
+    if (!baseId || !tableId) return null
+
+    const sections = getSections(baseId, tableId)
+    const lastOrder = Math.max(...sections.map((s) => s.order || 0), ...viewOrders, 0)
+
+    const section = await createSection(baseId, tableId, {
+      title: getNextSectionTitle(baseId, tableId),
+      order: lastOrder + 1,
+    })
+
+    if (section?.id) {
+      requestSectionExpand(section.id)
+    }
+
+    return section
+  }
+
   return {
     DEFAULT_SECTION_ID,
 
@@ -259,6 +282,7 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     // Actions
     loadSections,
     createSection,
+    createSectionForTable,
     updateSection,
     deleteSection,
     reorderSection,

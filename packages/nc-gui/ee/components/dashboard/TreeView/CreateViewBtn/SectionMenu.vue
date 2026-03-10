@@ -2,11 +2,32 @@
 import { PlanFeatureTypes, PlanTitles } from 'nocodb-sdk'
 
 const emits = defineEmits<{
-  (event: 'createSection'): void
   (event: 'close'): void
 }>()
 
 const { getPlanTitle, blockViewSections } = useEeConfig()
+
+const { $e } = useNuxtApp()
+
+const table = inject(SidebarTableInj)!
+
+const viewSectionsStore = useViewSectionsStore()
+
+const viewsStore = useViewsStore()
+
+const { views } = storeToRefs(viewsStore)
+
+async function onCreateSection() {
+  if (!table.value.id || !table.value.base_id) return
+
+  const topLevelViewOrders = views.value.filter((v) => !v.fk_view_section_id).map((v) => v.order || 0)
+
+  const section = await viewSectionsStore.createSectionForTable(table.value.base_id, table.value.id, topLevelViewOrders)
+
+  if (section) {
+    $e('a:view-section:create')
+  }
+}
 </script>
 
 <template>
@@ -19,7 +40,7 @@ const { getPlanTitle, blockViewSections } = useEeConfig()
           @click="
             () => {
               emits('close')
-              click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => emits('createSection'))
+              click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onCreateSection())
             }
           "
         >

@@ -382,6 +382,8 @@ export function useInfiniteData(args: {
           row.rowMeta.commentCount = +commentData.count || 0
         }
       })
+
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
     } catch (e) {
       console.error('Failed to load bulk aggregate comment count:', e)
     }
@@ -494,7 +496,9 @@ export function useInfiniteData(args: {
         }
       }
 
-      await loadBulkAggCommentsCount(allFormattedRows)
+      // Fire-and-forget — comment counts are cosmetic and shouldn't block row rendering.
+      // loadBulkAggCommentsCount mutates through the reactive cache and emits TRIGGER_RE_RENDER.
+      loadBulkAggCommentsCount(allFormattedRows).catch(() => {})
 
       for (const { request, rows, dataCache } of processedChunks) {
         try {

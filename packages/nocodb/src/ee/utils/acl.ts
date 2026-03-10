@@ -397,6 +397,12 @@ const permissionScopes = {
     'rowColorConditionsFilterCreate',
     'viewSettingOverride',
 
+    // View Sections
+    'viewSectionList',
+    'viewSectionCreate',
+    'viewSectionUpdate',
+    'viewSectionDelete',
+
     // Dashboard
     'dashboardList',
     'dashboardGet',
@@ -687,6 +693,7 @@ const rolePermissions:
 
       tableList: true,
       viewList: true,
+      viewSectionList: true,
       functionList: true,
       sequenceList: true,
       procedureList: true,
@@ -1235,6 +1242,10 @@ const permissionDescriptions: Record<string, string> = {
   baseCost: 'view base cost',
   tableList: 'view list of tables',
   viewList: 'view list of views',
+  viewSectionList: 'view list of view sections',
+  viewSectionCreate: 'create a view section',
+  viewSectionUpdate: 'update a view section',
+  viewSectionDelete: 'delete a view section',
   functionList: 'view list of functions',
   sequenceList: 'view list of sequences',
   procedureList: 'view list of procedures',

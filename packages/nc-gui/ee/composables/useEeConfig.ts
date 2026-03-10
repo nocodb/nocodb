@@ -168,11 +168,16 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
-  const blockAddNewDocumentPage = computed(() => {
-    return (
-      isPaymentEnabled.value &&
-      getStatLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE)
-    )
+  const blockDocsInlineComments = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS)
+  })
+
+  const blockDocsResolveComments = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_COMMENT_RESOLVE)
+  })
+
+  const blockDocsExportPdf = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF)
   })
 
   const blockAddNewScript = computed(() => {
@@ -963,17 +968,60 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const showDocumentPagePlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockAddNewDocumentPage.value) return
-
     handleUpgradePlan({
       title: t('upgrade.upgradeToAddMoreDocumentPages'),
       content: t('upgrade.upgradeToAddMoreDocumentPagesSubtitle', {
         activePlan: activePlanTitle.value,
-        limit: getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE),
+        limit: getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE),
         plan: HigherPlan[activePlanTitle.value],
       }),
       callback,
-      limitOrFeature: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE,
+      limitOrFeature: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseDocsInlineComments = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockDocsInlineComments.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseDocsInlineComments'),
+      content: t('upgrade.upgradeToUseDocsInlineCommentsSubtitle', {
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseDocsResolveComments = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockDocsResolveComments.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseDocsResolveComments'),
+      content: t('upgrade.upgradeToUseDocsResolveCommentsSubtitle', {
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_COMMENT_RESOLVE,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseDocsExportPdf = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockDocsExportPdf.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseDocsExportPdf'),
+      content: t('upgrade.upgradeToUseDocsExportPdfSubtitle', {
+        plan: HigherPlan[activePlanTitle.value],
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF,
     })
 
     return true
@@ -1753,9 +1801,14 @@ export const useEeConfig = createSharedComposable(() => {
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
-    blockAddNewDocumentPage,
+    blockDocsInlineComments,
+    blockDocsResolveComments,
+    blockDocsExportPdf,
     showDashboardPlanLimitExceededModal,
     showDocumentPagePlanLimitExceededModal,
+    showUpgradeToUseDocsInlineComments,
+    showUpgradeToUseDocsResolveComments,
+    showUpgradeToUseDocsExportPdf,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,

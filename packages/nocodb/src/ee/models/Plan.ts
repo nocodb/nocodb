@@ -229,11 +229,13 @@ export const CommonLimits = {
   [PlanLimitTypes.LIMIT_SORT_PER_VIEW]: 10,
   [PlanLimitTypes.LIMIT_BASE_PER_WORKSPACE]: 500,
   [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
-  [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE]: 3,
+  [PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE]: 3,
+  [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 256,
 } as const;
 
 export const CommonPaidLimits = {
   [PlanLimitTypes.LIMIT_TABLE_PER_BASE]: 500,
+  [PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB]: 5120,
 } as const;
 
 export const GraceLimits = {

@@ -55,20 +55,13 @@ async function onMoveToNewSection() {
   if (!view.value?.id || !table.value?.id || !table.value?.base_id) return
 
   try {
-    const allSections = sections.value || []
-    const lastOrder = Math.max(...allSections.map((s) => s.order || 0), view.value.order || 0, 0)
-
-    const section = await viewSectionsStore.createSection(table.value.base_id, table.value.id, {
-      title: viewSectionsStore.getNextSectionTitle(table.value.base_id, table.value.id),
-      order: lastOrder + 1,
-    })
+    const section = await viewSectionsStore.createSectionForTable(table.value.base_id, table.value.id, [view.value.order || 0])
 
     if (section?.id) {
       await updateView(view.value.id, {
         fk_view_section_id: section.id,
       } as Partial<ViewType>)
 
-      viewSectionsStore.requestSectionExpand(section.id)
       $e('a:view:move-to-new-section')
     }
   } catch (e: any) {

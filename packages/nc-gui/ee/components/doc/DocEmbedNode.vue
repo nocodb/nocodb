@@ -55,29 +55,6 @@ const unlockCursor = () => {
   document.body.style.userSelect = ''
 }
 
-const onResizeHeightStart = (e: MouseEvent) => {
-  e.preventDefault()
-  isResizing.value = true
-  resizeAxis.value = 'height'
-  resizeStartPos.value = e.clientY
-  resizeStartSize.value = wrapperRef.value?.getBoundingClientRect().height || 0
-  lockCursor('row-resize')
-  document.addEventListener('mousemove', onResizeMove)
-  document.addEventListener('mouseup', onResizeEnd)
-}
-
-const onResizeWidthStart = (e: MouseEvent, side: 'left' | 'right') => {
-  e.preventDefault()
-  isResizing.value = true
-  resizeAxis.value = 'width'
-  resizeSide.value = side
-  resizeStartPos.value = e.clientX
-  resizeStartSize.value = cardRef.value?.getBoundingClientRect().width || 0
-  lockCursor('col-resize')
-  document.addEventListener('mousemove', onResizeMove)
-  document.addEventListener('mouseup', onResizeEnd)
-}
-
 const onResizeMove = (e: MouseEvent) => {
   if (!isResizing.value) return
 
@@ -119,6 +96,29 @@ const onResizeEnd = () => {
   unlockCursor()
   document.removeEventListener('mousemove', onResizeMove)
   document.removeEventListener('mouseup', onResizeEnd)
+}
+
+const onResizeHeightStart = (e: MouseEvent) => {
+  e.preventDefault()
+  isResizing.value = true
+  resizeAxis.value = 'height'
+  resizeStartPos.value = e.clientY
+  resizeStartSize.value = wrapperRef.value?.getBoundingClientRect().height || 0
+  lockCursor('row-resize')
+  document.addEventListener('mousemove', onResizeMove)
+  document.addEventListener('mouseup', onResizeEnd)
+}
+
+const onResizeWidthStart = (e: MouseEvent, side: 'left' | 'right') => {
+  e.preventDefault()
+  isResizing.value = true
+  resizeAxis.value = 'width'
+  resizeSide.value = side
+  resizeStartPos.value = e.clientX
+  resizeStartSize.value = cardRef.value?.getBoundingClientRect().width || 0
+  lockCursor('col-resize')
+  document.addEventListener('mousemove', onResizeMove)
+  document.addEventListener('mouseup', onResizeEnd)
 }
 
 onBeforeUnmount(() => {

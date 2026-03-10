@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { PlanFeatureTypes } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -117,10 +118,18 @@ const {
   openLinkInput,
   pageSuggestions,
   pageSuggestionIndex,
-  hasNoPageSuggestions,
+  hasNoSuggestions,
   selectPageSuggestion,
   onLinkEditUrlKeyDown,
   resolvePageFromUrl,
+  headingSuggestions,
+  headingSuggestionIndex,
+  selectHeadingSuggestion,
+  expandedPageId,
+  expandedPageHeadings,
+  isLoadingPageHeadings,
+  togglePageSections,
+  selectPageHeadingSuggestion,
   linkHoverUrl,
   linkHoverEl,
   isLinkHoverVisible,
@@ -144,7 +153,7 @@ const {
 
 const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
 
-useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
+const { scrollToHeading } = useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
 
 const { copy } = useCopy()
 
@@ -164,7 +173,18 @@ const toggleCommentsPanel = () => {
   isCommentsPanelOpen.value = !isCommentsPanelOpen.value
 }
 
+const { showUpgradeToUseDocsInlineComments, showUpgradeToUseDocsExportPdf } = useEeConfig()
+
 const onAddInlineComment = () => {
+  if (showUpgradeToUseDocsInlineComments()) {
+    // Collapse selection to dismiss the BubbleMenu behind the upgrade modal
+    if (editor.value) {
+      const { to } = editor.value.state.selection
+      editor.value.commands.setTextSelection(to)
+    }
+    return
+  }
+
   if (!editor.value) return
   const { from, to } = editor.value.state.selection
   if (from === to) return // no selection
@@ -185,8 +205,11 @@ const onEditorClick = (e: MouseEvent) => {
   if (linkEl?.href) {
     e.preventDefault()
     const href = linkEl.getAttribute('href') || ''
-    // Internal page link — resolves to a known document
-    if (resolvePageFromUrl(href)) {
+    // Hash-only link — scroll to heading within the same document
+    if (href.startsWith('#') && href.length > 1) {
+      scrollToHeading(href.slice(1))
+    } else if (resolvePageFromUrl(href)) {
+      // Internal page link — resolves to a known document
       navigateTo(href)
     } else {
       window.open(linkEl.href, '_blank', 'noopener,noreferrer')
@@ -662,7 +685,7 @@ watch(
 
 // --- Derived state ---
 
-const createdByLabel = computed(() => resolveUserLabel(doc.value?.created_by))
+const _createdByLabel = computed(() => resolveUserLabel(doc.value?.created_by))
 
 const updatedByLabel = computed(() => resolveUserLabel(doc.value?.updated_by))
 
@@ -774,6 +797,8 @@ watch(isEditable, (val) => {
     editor.value.setEditable(val)
   }
 })
+
+const activeFont = ref<'default' | 'serif' | 'mono'>('default')
 
 // Re-load doc when navigating between pages.
 // Watch both docId AND activeProjectId — on a full page reload, activeProjectId
@@ -1030,8 +1055,6 @@ const onRemoveCover = async () => {
 
 const isFullWidth = computed(() => docMeta.value.full_width === true)
 
-const activeFont = ref<'default' | 'serif' | 'mono'>('default')
-
 const setDocFont = async (font: 'default' | 'serif' | 'mono') => {
   if (!doc.value?.id || !base.value?.id || font === activeFont.value) return
   activeFont.value = font
@@ -1081,6 +1104,11 @@ const onDownloadHTML = () => {
 
 const onDownloadPDF = () => {
   isPageMenuOpen.value = false
+
+  if (showUpgradeToUseDocsExportPdf()) {
+    return
+  }
+
   downloadPDF()
 }
 
@@ -1215,10 +1243,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- Show loader only on initial load (no doc fetched yet) -->
-  <div v-if="!isLoaded && !doc" class="flex items-center justify-center h-full">
-    <GeneralLoader />
-  </div>
+  <!-- Show skeleton only on initial load (no doc fetched yet) -->
+  <DocEditorSkeleton v-if="!isLoaded && !doc" />
 
   <!--
     Keep the editor mounted across page switches to avoid detaching
@@ -1240,7 +1266,7 @@ onBeforeUnmount(() => {
       <!-- Page actions — always visible at top-right -->
       <div class="nc-doc-page-menu">
         <DocPresence />
-        <NcTooltip :title="$t('general.comments')" placement="bottom">
+        <NcTooltip :title="$t('general.comments')" placement="bottom" class="flex">
           <NcButton
             size="small"
             type="text"
@@ -1250,9 +1276,9 @@ onBeforeUnmount(() => {
             <GeneralIcon icon="ncMessageCircle" :class="isCommentsPanelOpen ? 'text-nc-content-brand' : ''" />
           </NcButton>
         </NcTooltip>
-        <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight">
-          <NcButton size="small" type="text" @click.stop="isPageMenuOpen = !isPageMenuOpen">
-            <GeneralIcon icon="threeDotHorizontal" />
+        <NcDropdown v-model:visible="isPageMenuOpen" placement="bottomRight" class="flex">
+          <NcButton size="small" type="secondary" @click.stop="isPageMenuOpen = !isPageMenuOpen">
+            <GeneralIcon icon="threeDotVertical" />
           </NcButton>
           <template #overlay>
             <NcMenu variant="small" class="!min-w-52">
@@ -1308,9 +1334,12 @@ onBeforeUnmount(() => {
                   <GeneralIcon icon="code" />
                   {{ $t('general.html') }}
                 </NcMenuItem>
-                <NcMenuItem @click="onDownloadPDF">
+                <NcMenuItem inner-class="w-full" @click="onDownloadPDF">
                   <GeneralIcon icon="pdfFile" />
-                  {{ $t('general.pdf') }}
+                  <span class="flex-1">
+                    {{ $t('general.pdf') }}
+                  </span>
+                  <PaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF" class="-mr-1" remove-click />
                 </NcMenuItem>
               </NcSubMenu>
               <NcDivider />
@@ -1471,6 +1500,7 @@ onBeforeUnmount(() => {
                       RichTextBubbleMenuOptions.image,
                       RichTextBubbleMenuOptions.table,
                     ]"
+                    class="!px-0"
                   />
                   <NcTooltip placement="top">
                     <template #title>{{ $t('general.link') }}</template>
@@ -1543,26 +1573,77 @@ onBeforeUnmount(() => {
                       :placeholder="$t('placeholder.enterALink')"
                       @keydown="onLinkEditUrlKeyDown"
                     />
-                    <!-- Page suggestion dropdown -->
-                    <div v-if="pageSuggestions.length" class="nc-link-page-suggestions">
+                    <!-- Heading (section) suggestion dropdown -->
+                    <div v-if="headingSuggestions.length" class="nc-link-page-suggestions">
                       <div
-                        v-for="(page, idx) in pageSuggestions"
-                        :key="page.id"
+                        v-for="(heading, idx) in headingSuggestions"
+                        :key="heading.slug"
                         class="nc-link-page-suggestion-item"
-                        :class="{ 'is-selected': idx === pageSuggestionIndex }"
-                        @click="selectPageSuggestion(page)"
-                        @mouseenter="pageSuggestionIndex = idx"
+                        :class="{ 'is-selected': idx === headingSuggestionIndex }"
+                        @click="selectHeadingSuggestion(heading)"
+                        @mouseenter="headingSuggestionIndex = idx"
                       >
-                        <span v-if="parseProp(page.meta)?.icon" class="nc-link-page-suggestion-icon">{{
-                          parseProp(page.meta).icon
-                        }}</span>
-                        <GeneralIcon v-else icon="ncFileText" class="nc-link-page-suggestion-icon text-nc-content-gray-subtle" />
-                        <span class="nc-link-page-suggestion-title truncate">{{ page.title || $t('general.untitled') }}</span>
+                        <span class="nc-link-heading-level text-nc-content-gray-subtle">H{{ heading.level }}</span>
+                        <span class="nc-link-page-suggestion-title truncate">{{ heading.title }}</span>
                       </div>
                     </div>
-                    <!-- No matching pages — hint to use as URL -->
-                    <div v-else-if="hasNoPageSuggestions" class="nc-link-page-no-results">
-                      {{ $t('msg.noResults') }}
+                    <!-- Page suggestion dropdown -->
+                    <div v-else-if="pageSuggestions.length" class="nc-link-page-suggestions">
+                      <template v-for="(page, idx) in pageSuggestions" :key="page.id">
+                        <div
+                          class="nc-link-page-suggestion-item"
+                          :class="{ 'is-selected': idx === pageSuggestionIndex }"
+                          @click="selectPageSuggestion(page)"
+                          @mouseenter="pageSuggestionIndex = idx"
+                        >
+                          <span v-if="parseProp(page.meta)?.icon" class="nc-link-page-suggestion-icon">{{
+                            parseProp(page.meta).icon
+                          }}</span>
+                          <GeneralIcon
+                            v-else
+                            icon="ncFileText"
+                            class="nc-link-page-suggestion-icon text-nc-content-gray-subtle"
+                          />
+                          <span class="nc-link-page-suggestion-title truncate">{{ page.title || $t('general.untitled') }}</span>
+                          <GeneralLoader
+                            v-if="isLoadingPageHeadings && expandedPageId === page.id"
+                            size="small"
+                            class="nc-link-page-section-chevron"
+                          />
+                          <GeneralIcon
+                            v-else
+                            :icon="expandedPageId === page.id ? 'chevronDown' : 'chevronRight'"
+                            class="nc-link-page-section-chevron text-nc-content-gray-subtle"
+                            @click.stop="togglePageSections(page)"
+                          />
+                        </div>
+                        <!-- Expanded sections for this page -->
+                        <template v-if="expandedPageId === page.id">
+                          <div
+                            v-for="heading in expandedPageHeadings"
+                            :key="heading.slug"
+                            class="nc-link-page-suggestion-item nc-link-page-section-item"
+                            @click="selectPageHeadingSuggestion(page, heading)"
+                          >
+                            <span class="nc-link-heading-level text-nc-content-gray-subtle">H{{ heading.level }}</span>
+                            <span class="nc-link-page-suggestion-title truncate">{{ heading.title }}</span>
+                          </div>
+                          <div
+                            v-if="!isLoadingPageHeadings && expandedPageHeadings.length === 0"
+                            class="nc-link-page-section-item nc-link-edit-hint text-nc-content-gray-subtle"
+                          >
+                            {{ $t('labels.noResults') }}
+                          </div>
+                        </template>
+                      </template>
+                    </div>
+                    <!-- No matching results for page or heading search -->
+                    <div v-else-if="hasNoSuggestions" class="nc-link-edit-hint text-nc-content-gray-subtle">
+                      {{ $t('labels.noResults') }}
+                    </div>
+                    <!-- Hint for anchor link shortcut (only when not searching) -->
+                    <div v-else class="nc-link-edit-hint text-nc-content-gray-subtle">
+                      {{ $t('tooltip.typeHashToLinkSection') }}
                     </div>
                   </div>
                   <div class="nc-link-edit-field">
@@ -1867,11 +1948,35 @@ onBeforeUnmount(() => {
   line-height: 1.3;
 }
 
-.nc-link-page-no-results {
+.nc-link-page-section-chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.nc-link-page-section-item {
+  padding-left: 28px;
+}
+
+.nc-link-heading-level {
+  flex-shrink: 0;
+  width: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.nc-link-edit-hint {
   margin-top: 4px;
-  padding: 6px 10px;
-  font-size: 12px;
-  color: var(--nc-content-gray-muted);
+  font-size: 11px;
+  line-height: 1.3;
+  padding: 0 2px;
 }
 
 .nc-link-edit-divider {
@@ -1894,9 +1999,9 @@ onBeforeUnmount(() => {
   }
 }
 
-// Page 3-dot context menu — floats at top-right of editor area, outside scroll flow
+// Page actions — floats at top-right of editor area, outside scroll flow
 .nc-doc-page-menu {
-  @apply h-[var(--topbar-height)] flex items-center gap-1 absolute top-0 right-3 z-20;
+  @apply h-[var(--topbar-height)] flex items-center gap-2 absolute top-0 right-3 z-20;
 }
 
 .nc-doc-page-menu-left {

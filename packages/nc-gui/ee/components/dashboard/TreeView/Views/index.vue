@@ -267,25 +267,6 @@ async function onDeleteSection() {
   sectionToDelete.value = null
 }
 
-/** Create a new section */
-async function onCreateSection() {
-  if (!table.value.id || !table.value.base_id) return
-  try {
-    const lastOrder = Math.max(...sections.value.map((s) => s.order || 0), ...getTopLevelViews().map((v) => v.order || 0), 0)
-    const section = await viewSectionsStore.createSection(table.value.base_id, table.value.id, {
-      title: viewSectionsStore.getNextSectionTitle(table.value.base_id, table.value.id),
-      order: lastOrder + 1,
-    })
-    if (section?.id) {
-      expandedSections.value[section.id] = true
-      saveExpandedSections()
-    }
-    $e('a:view-section:create')
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
 /** Auto-expand section when a view is moved into it */
 watch(pendingExpandSectionId, (sectionId) => {
   if (sectionId) {

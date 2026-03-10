@@ -19,11 +19,17 @@ export function useDocHeadingAnchors(
   const route = useRoute()
   const { t } = useI18n()
 
-  /** Measure the sticky header height so the scroll offset stays accurate. */
+  /** Measure the sticky header area height so the scroll offset stays accurate. */
   function getStickyOffset(): number {
-    const header = scrollContainerRef.value
-      ?.closest('.nc-doc-editor')
-      ?.querySelector(`.${STICKY_HEADER_CLASS}`) as HTMLElement | null
+    const editorWrapper = scrollContainerRef.value?.closest('.nc-doc-editor')
+
+    // The breadcrumb + page-actions bar is always visible at the top (absolute, z-20),
+    // even when the sticky header background is not rendered. Use it as the primary
+    // measurement so headings never scroll behind the topbar overlay.
+    const topbar = editorWrapper?.querySelector('.nc-doc-page-menu-left') as HTMLElement | null
+    if (topbar) return topbar.offsetHeight + 8
+
+    const header = editorWrapper?.querySelector(`.${STICKY_HEADER_CLASS}`) as HTMLElement | null
     if (!header) return 16 // small padding when header is not visible
     return header.offsetHeight + 8
   }

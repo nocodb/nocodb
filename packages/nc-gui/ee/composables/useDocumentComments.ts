@@ -41,7 +41,6 @@ export const useDocumentComments = createSharedComposable(() => {
   const { basesUser } = storeToRefs(basesStore)
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const documentsStore = useDocumentsStore()
   const { activeProjectId } = storeToRefs(useBases())
 
   const comments = ref<DocCommentExtended[]>([])
@@ -125,6 +124,31 @@ export const useDocumentComments = createSharedComposable(() => {
       resolved_display_name_short: resolver?.display_name ?? extractNameFromEmail(resolver?.email),
       created_by_meta: creator?.meta,
       resolved_by_meta: resolver?.meta,
+    }
+  }
+
+  // --- Reactions ---
+
+  const reactions = ref<Record<string, CommentReactionsType[]>>({})
+
+  const loadReactions = async (commentIds: string[]) => {
+    if (!commentIds.length) return
+    if (!activeWorkspaceId.value || !activeProjectId.value) return
+
+    try {
+      const res = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+        operation: 'documentCommentReactionList',
+        commentIds: commentIds.join(','),
+      })
+
+      // Merge into existing reactions (replace entries for loaded comment IDs)
+      const updated = { ...reactions.value }
+      for (const id of commentIds) {
+        updated[id] = res?.[id] || []
+      }
+      reactions.value = updated
+    } catch (_e: any) {
+      // Silently fail — reactions are non-critical
     }
   }
 
@@ -244,6 +268,8 @@ export const useDocumentComments = createSharedComposable(() => {
   }
 
   const resolveComment = async (commentId: string) => {
+    const { showUpgradeToUseDocsResolveComments } = useEeConfig()
+    if (showUpgradeToUseDocsResolveComments()) return
     if (!isUIAllowed('documentCommentResolve')) return
 
     const original = comments.value.find((c) => c.id === commentId)
@@ -301,31 +327,6 @@ export const useDocumentComments = createSharedComposable(() => {
     } else if (action === 'resolve') {
       if (!commentData.id) return
       comments.value = comments.value.map((c) => (c.id === commentData.id ? enrichComment(commentData) : c))
-    }
-  }
-
-  // --- Reactions ---
-
-  const reactions = ref<Record<string, CommentReactionsType[]>>({})
-
-  const loadReactions = async (commentIds: string[]) => {
-    if (!commentIds.length) return
-    if (!activeWorkspaceId.value || !activeProjectId.value) return
-
-    try {
-      const res = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
-        operation: 'documentCommentReactionList',
-        commentIds: commentIds.join(','),
-      })
-
-      // Merge into existing reactions (replace entries for loaded comment IDs)
-      const updated = { ...reactions.value }
-      for (const id of commentIds) {
-        updated[id] = res?.[id] || []
-      }
-      reactions.value = updated
-    } catch (_e: any) {
-      // Silently fail — reactions are non-critical
     }
   }
 

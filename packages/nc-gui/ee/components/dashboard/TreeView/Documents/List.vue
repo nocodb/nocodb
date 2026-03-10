@@ -14,7 +14,13 @@ const { isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
 const documentsStore = useDocumentsStore()
 const { moveDocument } = documentsStore
-const { activeDocumentId, documents: allDocuments, documentTree, expandedDocIds } = storeToRefs(documentsStore)
+const {
+  activeDocumentId,
+  documents: allDocuments,
+  documentTree,
+  expandedDocIds,
+  isLoadingDocuments,
+} = storeToRefs(documentsStore)
 
 const baseDocuments = computed(() => allDocuments.value.get(baseId.value) ?? [])
 
@@ -287,8 +293,11 @@ onBeforeUnmount(() => {
 
 <template>
   <div data-testid="nc-docs-sidebar-pages-list">
+    <!-- Loading skeleton for initial docs load -->
+    <DashboardTreeViewProjectListSkeletonEntity v-if="!baseDocuments.length && isLoadingDocuments" class="!px-2.5 mt-2" />
+
     <!-- Empty state: no documents yet -->
-    <div v-if="!baseDocuments.length" class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal">
+    <div v-else-if="!baseDocuments.length" class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal">
       {{ $t('labels.noDocuments') }}
     </div>
 

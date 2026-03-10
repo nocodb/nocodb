@@ -62,11 +62,6 @@ const collapsedDocsMap = computed(() => {
   return map
 })
 
-const handleDropdownSelect = (option: NcListItemType) => {
-  const doc = collapsedDocsMap.value.get(option.value as string)
-  if (doc) navigateToDoc(doc)
-}
-
 const navigateToDoc = (doc: DocumentType) => {
   if (!doc.id || !activeProjectId.value) return
   isEllipsisOpen.value = false
@@ -78,8 +73,9 @@ const navigateToDoc = (doc: DocumentType) => {
   })
 }
 
-const getDocIcon = (doc: DocumentType) => {
-  return doc.meta?.icon
+const handleDropdownSelect = (option: NcListItemType) => {
+  const doc = collapsedDocsMap.value.get(option.value as string)
+  if (doc) navigateToDoc(doc)
 }
 
 const displayTitle = computed(() => props.currentTitle || activeDocument.value?.title || t('general.untitled'))
@@ -123,7 +119,7 @@ const displayTitle = computed(() => props.currentTitle || activeDocument.value?.
             @change="handleDropdownSelect"
           >
             <template #listItem="{ option }">
-              <div class="flex items-center gap-2 truncate"">
+              <div class="flex items-center gap-2 truncate">
                 <GeneralIcon
                   v-if="option.ncDepth > 0"
                   icon="ncCornerDownRight"

@@ -45,6 +45,8 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_AUTONUMBER_FIELD]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_CUSTOM_URL]: PlanTitles.PLUS,
+  [PlanFeatureTypes.FEATURE_DOCS_INLINE_COMMENTS]: PlanTitles.PLUS,
+  [PlanFeatureTypes.FEATURE_DOCS_EXPORT_PDF]: PlanTitles.PLUS,
 
   // Business features
   [PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY]: PlanTitles.BUSINESS,

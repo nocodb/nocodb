@@ -9,10 +9,6 @@ const props = defineProps<{
   placement?: NcDropdownPlacement
 }>()
 
-const emits = defineEmits<{
-  (event: 'createSection'): void
-}>()
-
 const { $e } = useNuxtApp()
 
 const alignLeftLevel = toRef(props, 'alignLeftLevel')
@@ -114,11 +110,6 @@ async function onOpenModal({
     tableId: table.value.id!,
     sourceId: table.value?.source_id,
   })
-}
-
-function onCreateSection() {
-  isOpen.value = false
-  emits('createSection')
 }
 </script>
 
@@ -285,7 +276,7 @@ function onCreateSection() {
           <!-- Section -->
           <NcDivider />
 
-          <DashboardTreeViewCreateViewBtnSectionMenu @create-section="onCreateSection" @close="isOpen = false" />
+          <DashboardTreeViewCreateViewBtnSectionMenu @close="isOpen = false" />
         </template>
 
         <template v-if="isAiFeaturesEnabled">

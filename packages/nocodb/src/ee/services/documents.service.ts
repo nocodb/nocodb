@@ -4,7 +4,7 @@ import { DocumentsService as DocumentsServiceCE } from 'src/services/documents.s
 import type { DocumentType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { checkLimit } from '~/helpers/paymentHelpers';
+import { checkLimit, getLimit } from '~/helpers/paymentHelpers';
 import { Document, FileReference } from '~/models';
 import Comment from '~/models/Comment';
 import NocoSocket from '~/socket/NocoSocket';
@@ -18,13 +18,22 @@ import { extractMentionsFromProseMirror } from '~/utils/richTextHelper';
  * Each document belongs to exactly one base and uses optimistic concurrency
  * via a `version` counter to prevent lost writes.
  */
-// 5 MB — generous limit for ProseMirror JSON content.
-// Prevents unbounded growth from extremely large documents.
-const MAX_DOC_CONTENT_SIZE = 5 * 1024 * 1024;
+// Fallback when no plan-specific limit is set (5 MB)
+const DEFAULT_MAX_DOC_CONTENT_SIZE = 5 * 1024 * 1024;
 
 @Injectable()
 export class DocumentsService extends DocumentsServiceCE {
   protected logger = new Logger(DocumentsService.name);
+
+  /** Resolve the max page content size (in bytes) for the workspace's plan. */
+  protected async getMaxContentSize(workspaceId: string): Promise<number> {
+    const { limit } = await getLimit(
+      PlanLimitTypes.LIMIT_DOCS_PAGE_SIZE_KB,
+      workspaceId,
+    );
+    if (!isFinite(limit) || limit <= 0) return DEFAULT_MAX_DOC_CONTENT_SIZE;
+    return limit * 1024;
+  }
 
   /**
    * List documents in a base (lightweight — excludes content).
@@ -69,11 +78,15 @@ export class DocumentsService extends DocumentsServiceCE {
     payload: Partial<DocumentType>,
     req: NcRequest,
   ) {
+
+    const docCount = await Document.countForBase(context, context.base_id);
+
     await checkLimit({
       workspaceId: context.workspace_id,
-      type: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE,
+      type: PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_BASE,
+      count: docCount,
       message: ({ limit }) =>
-        `You have reached the limit of ${limit} document pages for your plan.`,
+        `You have reached the limit of ${limit} document pages per base for your plan.`,
     });
 
     payload.fk_workspace_id = context.workspace_id;
@@ -83,17 +96,16 @@ export class DocumentsService extends DocumentsServiceCE {
 
     payload.title = payload.title?.trim() || 'Untitled';
 
-    // Guard against oversized documents
+    // Guard against oversized documents (plan-aware)
     if (payload.content) {
+      const maxSize = await this.getMaxContentSize(context.workspace_id);
       const contentSize = Buffer.byteLength(
         JSON.stringify(payload.content),
         'utf8',
       );
-      if (contentSize > MAX_DOC_CONTENT_SIZE) {
+      if (contentSize > maxSize) {
         NcError.unprocessableEntity(
-          `Document content exceeds maximum size (${Math.round(
-            MAX_DOC_CONTENT_SIZE / 1024 / 1024,
-          )}MB)`,
+          `Document content exceeds maximum size (${maxSize >= 1024 * 1024 ? Math.round(maxSize / 1024 / 1024) + 'MB' : Math.round(maxSize / 1024) + 'KB'})`,
         );
       }
     }
@@ -193,17 +205,16 @@ export class DocumentsService extends DocumentsServiceCE {
       );
     }
 
-    // Guard against oversized documents
+    // Guard against oversized documents (plan-aware)
     if (payload.content) {
+      const maxSize = await this.getMaxContentSize(context.workspace_id);
       const contentSize = Buffer.byteLength(
         JSON.stringify(payload.content),
         'utf8',
       );
-      if (contentSize > MAX_DOC_CONTENT_SIZE) {
+      if (contentSize > maxSize) {
         NcError.unprocessableEntity(
-          `Document content exceeds maximum size (${Math.round(
-            MAX_DOC_CONTENT_SIZE / 1024 / 1024,
-          )}MB)`,
+          `Document content exceeds maximum size (${maxSize >= 1024 * 1024 ? Math.round(maxSize / 1024 / 1024) + 'MB' : Math.round(maxSize / 1024) + 'KB'})`,
         );
       }
     }

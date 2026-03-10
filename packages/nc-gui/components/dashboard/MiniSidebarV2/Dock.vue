@@ -15,7 +15,7 @@ const route = router.currentRoute
 
 const { navigateToProject, isMobileMode } = useGlobal()
 
-const { $e } = useNuxtApp()
+const { $e: _$e } = useNuxtApp()
 
 const workspaceStore = useWorkspace()
 

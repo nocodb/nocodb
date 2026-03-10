@@ -1,4 +1,5 @@
 import type { DocumentType } from 'nocodb-sdk'
+import { NcErrorType } from 'nocodb-sdk'
 
 export interface DocTreeNode {
   doc: DocumentType
@@ -260,8 +261,17 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
       $e('a:document:create')
 
       return created
-    } catch (e) {
-      ncMessage.error(await extractSdkResponseErrorMsgv2(e as any))
+    } catch (e: any) {
+      const errorInfo = await extractSdkResponseErrorMsgv2(e)
+
+      const { isPaymentEnabled, showDocumentPagePlanLimitExceededModal } = useEeConfig()
+
+      if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
+        showDocumentPagePlanLimitExceededModal()
+      } else {
+        ncMessage.error(errorInfo.message)
+      }
+
       return null
     }
   }

@@ -405,20 +405,29 @@ function createDragHandlePlugin(): Plugin<DragHandleState> {
 
       // --- Manual drag handlers ---
 
-      const onHandleMouseDown = (e: MouseEvent) => {
-        if (e.button !== 0) return // Only left click
-        if (currentActivePos < 0) return
-
-        e.preventDefault()
-        e.stopPropagation()
-
-        dragMouseDownPos = { x: e.clientX, y: e.clientY }
+      const finishDrag = () => {
+        isDragging = false
+        currentActivePos = -1
+        dragMouseDownPos = null
         dragStarted = false
-        dragSourceBlockPos = currentActivePos
+        dragSourceBlockPos = -1
 
-        // Attach global listeners for tracking drag movement
-        document.addEventListener('mousemove', onDragMouseMove)
-        document.addEventListener('mouseup', onDragMouseUp)
+        const tr = editorView.state.tr.setMeta(dragHandlePluginKey, {
+          type: 'dragEnd',
+        } as DragHandleMeta)
+        editorView.dispatch(tr)
+      }
+
+      /** Try to set a NodeSelection on the block at `pos`, silently no-op on failure. */
+      const setSelectionSafe = (tr: ReturnType<(typeof editorView.state.tr)['delete']>, pos: number) => {
+        try {
+          const $pos = tr.doc.resolve(pos)
+          if ($pos.nodeAfter && NodeSelection.isSelectable($pos.nodeAfter)) {
+            tr.setSelection(NodeSelection.create(tr.doc, pos))
+          }
+        } catch (_) {
+          // Selection setting is best-effort — don't break the move
+        }
       }
 
       const onDragMouseMove = (e: MouseEvent) => {
@@ -511,29 +520,20 @@ function createDragHandlePlugin(): Plugin<DragHandleState> {
         currentActivePos = -1
       }
 
-      const finishDrag = () => {
-        isDragging = false
-        currentActivePos = -1
-        dragMouseDownPos = null
+      const onHandleMouseDown = (e: MouseEvent) => {
+        if (e.button !== 0) return // Only left click
+        if (currentActivePos < 0) return
+
+        e.preventDefault()
+        e.stopPropagation()
+
+        dragMouseDownPos = { x: e.clientX, y: e.clientY }
         dragStarted = false
-        dragSourceBlockPos = -1
+        dragSourceBlockPos = currentActivePos
 
-        const tr = editorView.state.tr.setMeta(dragHandlePluginKey, {
-          type: 'dragEnd',
-        } as DragHandleMeta)
-        editorView.dispatch(tr)
-      }
-
-      /** Try to set a NodeSelection on the block at `pos`, silently no-op on failure. */
-      const setSelectionSafe = (tr: ReturnType<(typeof editorView.state.tr)['delete']>, pos: number) => {
-        try {
-          const $pos = tr.doc.resolve(pos)
-          if ($pos.nodeAfter && NodeSelection.isSelectable($pos.nodeAfter)) {
-            tr.setSelection(NodeSelection.create(tr.doc, pos))
-          }
-        } catch (_) {
-          // Selection setting is best-effort — don't break the move
-        }
+        // Attach global listeners for tracking drag movement
+        document.addEventListener('mousemove', onDragMouseMove)
+        document.addEventListener('mouseup', onDragMouseUp)
       }
 
       handleEl.addEventListener('mousedown', onHandleMouseDown)

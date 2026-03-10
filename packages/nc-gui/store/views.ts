@@ -1302,14 +1302,14 @@ export const useViewsStore = defineStore('viewsStore', () => {
   watch(
     [() => tablesStore.activeTableId, () => activeProjectId.value],
     async ([newId, newProjectId], [oldId, oldProjectId]) => {
-      if (!newId || !newProjectId) return
-
-      if (newId === oldId && newProjectId === oldProjectId) return
-
       if (isPublic.value) {
         isViewsLoading.value = false
         return
       }
+
+      if (!newId || !newProjectId) return
+
+      if (newId === oldId && newProjectId === oldProjectId) return
 
       isViewDataLoading.value = true
 

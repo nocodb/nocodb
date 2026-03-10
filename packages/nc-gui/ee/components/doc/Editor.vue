@@ -116,10 +116,18 @@ const {
   openLinkInput,
   pageSuggestions,
   pageSuggestionIndex,
-  hasNoPageSuggestions,
+  hasNoSuggestions,
   selectPageSuggestion,
   onLinkEditUrlKeyDown,
   resolvePageFromUrl,
+  headingSuggestions,
+  headingSuggestionIndex,
+  selectHeadingSuggestion,
+  expandedPageId,
+  expandedPageHeadings,
+  isLoadingPageHeadings,
+  togglePageSections,
+  selectPageHeadingSuggestion,
   linkHoverUrl,
   linkHoverEl,
   isLinkHoverVisible,
@@ -143,7 +151,7 @@ const {
 
 const { downloadMarkdown, downloadHTML, downloadPDF } = useDocumentExport({ editor, title })
 
-useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
+const { scrollToHeading } = useDocHeadingAnchors(editor, scrollContainerRef, isLoaded)
 
 const { copy } = useCopy()
 
@@ -184,8 +192,11 @@ const onEditorClick = (e: MouseEvent) => {
   if (linkEl?.href) {
     e.preventDefault()
     const href = linkEl.getAttribute('href') || ''
-    // Internal page link — resolves to a known document
-    if (resolvePageFromUrl(href)) {
+    // Hash-only link — scroll to heading within the same document
+    if (href.startsWith('#') && href.length > 1) {
+      scrollToHeading(href.slice(1))
+    } else if (resolvePageFromUrl(href)) {
+      // Internal page link — resolves to a known document
       navigateTo(href)
     } else {
       window.open(linkEl.href, '_blank', 'noopener,noreferrer')
@@ -1542,26 +1553,73 @@ onBeforeUnmount(() => {
                       :placeholder="$t('placeholder.enterALink')"
                       @keydown="onLinkEditUrlKeyDown"
                     />
-                    <!-- Page suggestion dropdown -->
-                    <div v-if="pageSuggestions.length" class="nc-link-page-suggestions">
+                    <!-- Heading (section) suggestion dropdown -->
+                    <div v-if="headingSuggestions.length" class="nc-link-page-suggestions">
                       <div
-                        v-for="(page, idx) in pageSuggestions"
-                        :key="page.id"
+                        v-for="(heading, idx) in headingSuggestions"
+                        :key="heading.slug"
                         class="nc-link-page-suggestion-item"
-                        :class="{ 'is-selected': idx === pageSuggestionIndex }"
-                        @click="selectPageSuggestion(page)"
-                        @mouseenter="pageSuggestionIndex = idx"
+                        :class="{ 'is-selected': idx === headingSuggestionIndex }"
+                        @click="selectHeadingSuggestion(heading)"
+                        @mouseenter="headingSuggestionIndex = idx"
                       >
-                        <span v-if="parseProp(page.meta)?.icon" class="nc-link-page-suggestion-icon">{{
-                          parseProp(page.meta).icon
-                        }}</span>
-                        <GeneralIcon v-else icon="ncFileText" class="nc-link-page-suggestion-icon text-nc-content-gray-subtle" />
-                        <span class="nc-link-page-suggestion-title truncate">{{ page.title || $t('general.untitled') }}</span>
+                        <span class="nc-link-heading-level text-nc-content-gray-subtle">H{{ heading.level }}</span>
+                        <span class="nc-link-page-suggestion-title truncate">{{ heading.title }}</span>
                       </div>
                     </div>
-                    <!-- No matching pages — hint to use as URL -->
-                    <div v-else-if="hasNoPageSuggestions" class="nc-link-page-no-results">
-                      {{ $t('msg.noResults') }}
+                    <!-- Page suggestion dropdown -->
+                    <div v-else-if="pageSuggestions.length" class="nc-link-page-suggestions">
+                      <template v-for="(page, idx) in pageSuggestions" :key="page.id">
+                        <div
+                          class="nc-link-page-suggestion-item"
+                          :class="{ 'is-selected': idx === pageSuggestionIndex }"
+                          @click="selectPageSuggestion(page)"
+                          @mouseenter="pageSuggestionIndex = idx"
+                        >
+                          <span v-if="parseProp(page.meta)?.icon" class="nc-link-page-suggestion-icon">{{
+                            parseProp(page.meta).icon
+                          }}</span>
+                          <GeneralIcon v-else icon="ncFileText" class="nc-link-page-suggestion-icon text-nc-content-gray-subtle" />
+                          <span class="nc-link-page-suggestion-title truncate">{{ page.title || $t('general.untitled') }}</span>
+                          <GeneralLoader
+                            v-if="isLoadingPageHeadings && expandedPageId === page.id"
+                            size="small"
+                            class="nc-link-page-section-chevron"
+                          />
+                          <GeneralIcon
+                            v-else
+                            :icon="expandedPageId === page.id ? 'chevronDown' : 'chevronRight'"
+                            class="nc-link-page-section-chevron text-nc-content-gray-subtle"
+                            @click.stop="togglePageSections(page)"
+                          />
+                        </div>
+                        <!-- Expanded sections for this page -->
+                        <template v-if="expandedPageId === page.id">
+                          <div
+                            v-for="heading in expandedPageHeadings"
+                            :key="heading.slug"
+                            class="nc-link-page-suggestion-item nc-link-page-section-item"
+                            @click="selectPageHeadingSuggestion(page, heading)"
+                          >
+                            <span class="nc-link-heading-level text-nc-content-gray-subtle">H{{ heading.level }}</span>
+                            <span class="nc-link-page-suggestion-title truncate">{{ heading.title }}</span>
+                          </div>
+                          <div
+                            v-if="!isLoadingPageHeadings && expandedPageHeadings.length === 0"
+                            class="nc-link-page-section-item nc-link-edit-hint text-nc-content-gray-subtle"
+                          >
+                            {{ $t('labels.noResults') }}
+                          </div>
+                        </template>
+                      </template>
+                    </div>
+                    <!-- No matching results for page or heading search -->
+                    <div v-else-if="hasNoSuggestions" class="nc-link-edit-hint text-nc-content-gray-subtle">
+                      {{ $t('labels.noResults') }}
+                    </div>
+                    <!-- Hint for anchor link shortcut (only when not searching) -->
+                    <div v-else class="nc-link-edit-hint text-nc-content-gray-subtle">
+                      {{ $t('tooltip.typeHashToLinkSection') }}
                     </div>
                   </div>
                   <div class="nc-link-edit-field">
@@ -1866,11 +1924,35 @@ onBeforeUnmount(() => {
   line-height: 1.3;
 }
 
-.nc-link-page-no-results {
+.nc-link-page-section-chevron {
+  flex-shrink: 0;
+  margin-left: auto;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.nc-link-page-section-item {
+  padding-left: 28px;
+}
+
+.nc-link-heading-level {
+  flex-shrink: 0;
+  width: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.nc-link-edit-hint {
   margin-top: 4px;
-  padding: 6px 10px;
-  font-size: 12px;
-  color: var(--nc-content-gray-muted);
+  font-size: 11px;
+  line-height: 1.3;
+  padding: 0 2px;
 }
 
 .nc-link-edit-divider {

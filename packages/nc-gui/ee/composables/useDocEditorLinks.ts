@@ -1,6 +1,13 @@
 import type { Editor } from '@tiptap/vue-3'
 import { CellSelection } from '@tiptap/pm/tables'
 import type { DocumentType } from 'nocodb-sdk'
+import { slugifyHeading } from '../components/doc/DocHeadingAnchorExtension'
+
+export interface HeadingSuggestion {
+  level: number
+  title: string
+  slug: string
+}
 
 /**
  * Encapsulates all link-related state and logic for the document editor:
@@ -180,9 +187,10 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     })
   }
 
-  /** Handle all keyboard events in the URL input — page suggestions + save/cancel */
+  /** Handle all keyboard events in the URL input — page/heading suggestions + save/cancel */
   const onLinkEditUrlKeyDown = (e: KeyboardEvent) => {
-    const suggestions = pageSuggestions.value
+    const pages = pageSuggestions.value
+    const headings = headingSuggestions.value
 
     if (e.key === 'Escape') {
       e.preventDefault()
@@ -190,22 +198,41 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
       return
     }
 
-    if (suggestions.length) {
+    if (headings.length) {
       if (e.key === 'ArrowDown') {
         e.preventDefault()
-        pageSuggestionIndex.value = (pageSuggestionIndex.value + 1) % suggestions.length
+        headingSuggestionIndex.value = (headingSuggestionIndex.value + 1) % headings.length
         scrollSuggestionIntoView()
         return
       }
       if (e.key === 'ArrowUp') {
         e.preventDefault()
-        pageSuggestionIndex.value = (pageSuggestionIndex.value + suggestions.length - 1) % suggestions.length
+        headingSuggestionIndex.value = (headingSuggestionIndex.value + headings.length - 1) % headings.length
         scrollSuggestionIntoView()
         return
       }
       if (e.key === 'Enter') {
         e.preventDefault()
-        selectPageSuggestion(suggestions[pageSuggestionIndex.value])
+        selectHeadingSuggestion(headings[headingSuggestionIndex.value])
+        return
+      }
+    } else if (pages.length) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        pageSuggestionIndex.value = (pageSuggestionIndex.value + 1) % pages.length
+        scrollSuggestionIntoView()
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        pageSuggestionIndex.value = (pageSuggestionIndex.value + pages.length - 1) % pages.length
+        scrollSuggestionIntoView()
+        return
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        selectPageSuggestion(pages[pageSuggestionIndex.value])
+        return
       }
     } else if (e.key === 'Enter') {
       e.preventDefault()
@@ -218,7 +245,7 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     if (!ed || !linkEditRange.value) return
 
     let href = linkEditUrl.value.trim()
-    if (href && !/^[a-zA-Z]+:\/\//.test(href) && !href.startsWith('/')) {
+    if (href && !/^[a-zA-Z]+:\/\//.test(href) && !href.startsWith('/') && !href.startsWith('#')) {
       // If text matches a page title, link to that page instead of treating as URL
       const matchingPage = activeDocuments.value.find(
         (doc) => doc.id !== currentDocId.value && doc.title?.toLowerCase() === href.toLowerCase(),
@@ -257,11 +284,18 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     closeLinkEdit()
   }
 
+  // Declared early — used by closeLinkEdit, pageSuggestions watcher, and toggle logic below
+  const expandedPageId = ref<string | null>(null)
+  const expandedPageHeadings = ref<HeadingSuggestion[]>([])
+  const isLoadingPageHeadings = ref(false)
+
   const closeLinkEdit = () => {
     isLinkEditOpen.value = false
     isLinkHoverVisible.value = false
     linkHoverEl.value = null
     linkEditRange.value = null
+    expandedPageId.value = null
+    expandedPageHeadings.value = []
     // Clean up synthetic anchor from toolbar-initiated edit
     if (syntheticAnchor) {
       syntheticAnchor.remove()
@@ -299,6 +333,7 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
   }
 
   // --- Page suggestion autocomplete ---
+  const { $api } = useNuxtApp()
   const documentsStore = useDocumentsStore()
   const { activeDocuments, activeDocumentId: currentDocId } = storeToRefs(documentsStore)
 
@@ -318,19 +353,30 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
   const pageSuggestions = computed<DocumentType[]>(() => {
     const query = linkEditUrl.value.trim().toLowerCase()
     if (!query || !isLinkEditOpen.value) return []
-    if (looksLikeUrl(query)) return []
+    if (looksLikeUrl(query) || query.startsWith('#')) return []
 
     return activeDocuments.value
       .filter((doc) => doc.id !== currentDocId.value && doc.title?.toLowerCase().includes(query))
       .slice(0, 6)
   })
 
-  /** Returns true if query has no matches but doesn't look like a URL (for empty-state hint) */
-  const hasNoPageSuggestions = computed(() => {
+  /** Returns true if user is actively searching (page or heading) but nothing matches */
+  const hasNoSuggestions = computed(() => {
     const query = linkEditUrl.value.trim().toLowerCase()
     if (!query || !isLinkEditOpen.value) return false
-    if (looksLikeUrl(query)) return false
-    return pageSuggestions.value.length === 0
+    if (looksLikeUrl(query) || query.startsWith('/')) return false
+
+    // Heading search: # followed by at least one filter character with no matches
+    if (query.startsWith('#') && query.length > 1) {
+      return headingSuggestions.value.length === 0
+    }
+
+    // Page search: non-URL text with no matches
+    if (!query.startsWith('#')) {
+      return pageSuggestions.value.length === 0
+    }
+
+    return false
   })
 
   /** Extract doc ID from an internal page link URL.
@@ -367,6 +413,122 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
 
   watch(pageSuggestions, () => {
     pageSuggestionIndex.value = 0
+    // Collapse expanded page sections when suggestions change
+    expandedPageId.value = null
+    expandedPageHeadings.value = []
+  })
+
+  // --- Page section (heading) expansion ---
+
+  /** Extract headings from ProseMirror JSON content (no live editor needed) */
+  function extractHeadingsFromJson(content: Record<string, any>): HeadingSuggestion[] {
+    const headings: HeadingSuggestion[] = []
+    const slugCounts = new Map<string, number>()
+
+    function walk(node: any) {
+      if (node.type === 'heading' && node.content) {
+        const text = node.content
+          .filter((c: any) => c.type === 'text')
+          .map((c: any) => c.text || '')
+          .join('')
+          .trim()
+        if (text) {
+          const baseSlug = slugifyHeading(text)
+          const count = slugCounts.get(baseSlug) || 0
+          slugCounts.set(baseSlug, count + 1)
+          const slug = count === 0 ? baseSlug : `${baseSlug}-${count}`
+          headings.push({ level: node.attrs?.level || 1, title: text, slug })
+        }
+      }
+      if (node.content && Array.isArray(node.content)) {
+        node.content.forEach(walk)
+      }
+    }
+
+    walk(content)
+    return headings
+  }
+
+  /** Toggle section expansion for a page suggestion */
+  const togglePageSections = async (doc: DocumentType) => {
+    if (expandedPageId.value === doc.id) {
+      expandedPageId.value = null
+      expandedPageHeadings.value = []
+      return
+    }
+
+    expandedPageId.value = doc.id!
+    expandedPageHeadings.value = []
+    isLoadingPageHeadings.value = true
+
+    try {
+      const fullDoc = (await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
+        operation: 'documentGet',
+        docId: doc.id!,
+      })) as DocumentType
+
+      if (fullDoc?.content) {
+        expandedPageHeadings.value = extractHeadingsFromJson(fullDoc.content)
+      }
+    } catch {
+      // silently fail — just show no sections
+    } finally {
+      isLoadingPageHeadings.value = false
+    }
+  }
+
+  /** Select a heading from an expanded page's section list */
+  const selectPageHeadingSuggestion = (doc: DocumentType, heading: HeadingSuggestion) => {
+    const pageUrl = buildPageUrl(doc)
+    linkEditUrl.value = `${pageUrl}#${heading.slug}`
+    linkEditTitle.value = heading.title
+    pageSuggestionIndex.value = 0
+    expandedPageId.value = null
+    expandedPageHeadings.value = []
+    saveLinkEdit()
+  }
+
+  // --- Heading (section) suggestion autocomplete ---
+  const headingSuggestionIndex = ref(0)
+
+  /** Extract all headings from the current editor document */
+  const headingSuggestions = computed<HeadingSuggestion[]>(() => {
+    const query = linkEditUrl.value.trim().toLowerCase()
+    if (!query.startsWith('#') || !isLinkEditOpen.value) return []
+
+    const ed = editor.value
+    if (!ed) return []
+
+    const filter = query.slice(1) // strip leading '#'
+    const headings: HeadingSuggestion[] = []
+    const slugCounts = new Map<string, number>()
+
+    ed.state.doc.descendants((node) => {
+      if (node.type.name !== 'heading') return
+      const text = node.textContent.trim()
+      if (!text) return
+
+      const baseSlug = slugifyHeading(text)
+      const count = slugCounts.get(baseSlug) || 0
+      slugCounts.set(baseSlug, count + 1)
+      const slug = count === 0 ? baseSlug : `${baseSlug}-${count}`
+
+      headings.push({ level: node.attrs.level, title: text, slug })
+    })
+
+    if (!filter) return headings.slice(0, 8)
+
+    return headings.filter((h) => h.title.toLowerCase().includes(filter) || h.slug.includes(filter)).slice(0, 8)
+  })
+
+  const selectHeadingSuggestion = (heading: HeadingSuggestion) => {
+    linkEditUrl.value = `#${heading.slug}`
+    headingSuggestionIndex.value = 0
+    saveLinkEdit()
+  }
+
+  watch(headingSuggestions, () => {
+    headingSuggestionIndex.value = 0
   })
 
   /** Scroll the selected suggestion item into view */
@@ -431,10 +593,22 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     // Page suggestion autocomplete
     pageSuggestions,
     pageSuggestionIndex,
-    hasNoPageSuggestions,
+    hasNoSuggestions,
     selectPageSuggestion,
     onLinkEditUrlKeyDown,
     resolvePageFromUrl,
+
+    // Heading (section) suggestion autocomplete
+    headingSuggestions,
+    headingSuggestionIndex,
+    selectHeadingSuggestion,
+
+    // Page section expansion
+    expandedPageId,
+    expandedPageHeadings,
+    isLoadingPageHeadings,
+    togglePageSections,
+    selectPageHeadingSuggestion,
 
     // Link hover preview + edit popover
     linkHoverUrl,

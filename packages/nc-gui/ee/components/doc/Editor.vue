@@ -1242,10 +1242,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- Show loader only on initial load (no doc fetched yet) -->
-  <div v-if="!isLoaded && !doc" class="flex items-center justify-center h-full">
-    <GeneralLoader />
-  </div>
+  <!-- Show skeleton only on initial load (no doc fetched yet) -->
+  <DocEditorSkeleton v-if="!isLoaded && !doc" />
 
   <!--
     Keep the editor mounted across page switches to avoid detaching

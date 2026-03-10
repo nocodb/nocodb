@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { marked } from 'marked'
+import DOMPurify from 'isomorphic-dompurify'
 
 interface Prop {
   modelValue: boolean
@@ -90,9 +91,9 @@ const getModifiedContent = (content = '') => {
 
 const detailsBody = computed(() => {
   if (descriptionContent.value[props.scriptId]) {
-    return marked.parse(getModifiedContent(descriptionContent.value[props.scriptId]))
+    return DOMPurify.sanitize(marked.parse(getModifiedContent(descriptionContent.value[props.scriptId])) as string)
   } else if (activeScript.value?.description) {
-    return marked.parse(getModifiedContent(activeScript.value.description))
+    return DOMPurify.sanitize(marked.parse(getModifiedContent(activeScript.value.description)) as string)
   }
 
   return '<p></p>'

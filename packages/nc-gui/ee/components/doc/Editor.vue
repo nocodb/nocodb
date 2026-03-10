@@ -9,6 +9,7 @@ import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
 import { TextSelection } from '@tiptap/pm/state'
 import { marked } from 'marked'
+import DOMPurify from 'isomorphic-dompurify'
 import { DocHighlightExtension } from './DocHighlightExtension'
 import { DocCommentMarkExtension } from './DocCommentMarkExtension'
 import { DocImageExtension } from './DocImageExtension'
@@ -632,7 +633,7 @@ const _tiptapEditor = useEditor({
 
       // Convert markdown → HTML, then insert via Tiptap's insertContent
       // (avoids raw ProseMirror replaceSelection which can corrupt state with open slices)
-      const converted = marked.parse(text, { async: false }) as string
+      const converted = DOMPurify.sanitize(marked.parse(text, { async: false }) as string)
       event.preventDefault()
       editor.value?.chain().focus().insertContent(converted).run()
       return true

@@ -17,7 +17,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
         rel: 'noopener noreferrer nofollow',
         class: null,
       },
-      validate: (_url) => true,
+      validate: (url: string) => !/^\s*(javascript|vbscript):/i.test(url),
       internal: false,
     }
   },
@@ -38,13 +38,18 @@ export const Link = TiptapLink.extend<LinkOptions>({
   renderHTML({ HTMLAttributes }) {
     const attr = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)
 
+    // Block dangerous URL protocols
+    if (attr.href && /^\s*(javascript|vbscript):/i.test(attr.href)) {
+      return ['span', {}, 0]
+    }
+
     if (isValidURL(attr.href)) {
       return ['a', attr, 0]
     }
 
     // We use this as a workaround to show a tooltip on the content
     // We use the href to store the tooltip content
-    if (!attr.href.includes('~~~###~~~')) {
+    if (!attr.href?.includes('~~~###~~~')) {
       return ['a', attr, 0]
     }
 

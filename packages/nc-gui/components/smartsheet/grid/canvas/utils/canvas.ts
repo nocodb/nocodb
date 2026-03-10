@@ -32,7 +32,7 @@ export const formulaTextSegmentsCache: LRUCache<string, Array<{ text: string; ur
 })
 
 export const rowColouringCache: LRUCache<string, RowColouringEvaluatedResultType> = new LRUCache({
-  max: 1000,
+  max: 10000,
 })
 
 export const aggregationCache: LRUCache<string, any> = new LRUCache({

@@ -21,7 +21,16 @@ export function useViewRowColorRender() {
   })
 
   const isCellColouringEnabled = computed(() => {
-    return !blockCellColoring.value && isRowColouringEnabled.value
+    if (blockCellColoring.value || !isRowColouringEnabled.value) return false
+
+    // Only enable per-cell evaluation when cell-type conditions actually exist.
+    // Without this check, every cell calls getEvaluatedCellColorInfo even when
+    // there are only row-type conditions, wasting ~240 validateRowFilters calls per frame.
+    if (activeViewRowColorInfo.value?.mode === ROW_COLORING_MODE.FILTER) {
+      return activeViewRowColorInfo.value.conditions?.some((c) => c.type === 'cell') ?? false
+    }
+
+    return false
   })
 
   /**

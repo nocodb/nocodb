@@ -3626,6 +3626,8 @@ export function useCanvasRender({
 
     elementMap.clear()
     let postRenderCbk
+
+    const _tRows = performance.now()
     if (!groupByColumns.value?.length) {
       activeState = renderRows(ctx)
     } else {
@@ -3660,11 +3662,18 @@ export function useCanvasRender({
         fetchMissingGroupChunks(minIndex, maxIndex)
       }
     }
+    const _tRowsEnd = performance.now()
 
+    const _tHeader = performance.now()
     renderHeader(ctx, activeState)
+    const _tHeaderEnd = performance.now()
+
     renderColumnDragIndicator(ctx)
     renderRowDragPreview(ctx, draggedRowGroupPath.value)
+
+    const _tAgg = performance.now()
     renderAggregations(ctx)
+    const _tAggEnd = performance.now()
 
     // render the active cell state and clip the header and aggregation footer areas
     ctx.beginPath()
@@ -3673,7 +3682,7 @@ export function useCanvasRender({
     postRenderCbk?.()
     ctx.restore()
 
-    // --- Perf log: average render time every 60 frames ---
+    // --- Perf log: breakdown per section every 2 seconds ---
     const _elapsed = performance.now() - _t0
     _perfFrameCount++
     _perfTotalMs += _elapsed
@@ -3682,6 +3691,9 @@ export function useCanvasRender({
       const avg = _perfTotalMs / _perfFrameCount
       console.log(
         `[canvas-perf] ${_perfFrameCount} frames in ${(now - _perfLastLog).toFixed(0)}ms | avg=${avg.toFixed(2)}ms/frame | rows=${rowSlice.value.end - rowSlice.value.start} cols=${colSlice.value.end - colSlice.value.start}`,
+      )
+      console.log(
+        `  ↳ breakdown: setup=${(_tRows - _t0).toFixed(2)}ms rows=${(_tRowsEnd - _tRows).toFixed(2)}ms header=${(_tHeaderEnd - _tHeader).toFixed(2)}ms agg=${(_tAggEnd - _tAgg).toFixed(2)}ms post=${(_elapsed - (_tAggEnd - _t0)).toFixed(2)}ms`,
       )
       _perfFrameCount = 0
       _perfTotalMs = 0

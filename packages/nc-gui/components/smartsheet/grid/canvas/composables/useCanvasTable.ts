@@ -490,6 +490,16 @@ export function useCanvasTable({
             ...isInvalid,
             tooltip: isInvalid.ignoreTooltip ? null : isInvalid.tooltip && t(isInvalid.tooltip),
           },
+          isDateDependencyField: (() => {
+            const rule = (meta.value as any)?.date_dependency
+            if (!rule?.is_active || !f.id) return false
+            return [
+              rule.fk_start_date_field_id,
+              rule.fk_end_date_field_id,
+              rule.fk_duration_field_id,
+              rule.fk_dependency_linkrow_field_id,
+            ].includes(f.id)
+          })(),
           abstractType: sqlUi?.getAbstractType(f),
         }
       })

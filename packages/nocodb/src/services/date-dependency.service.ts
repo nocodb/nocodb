@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DependencyTableType, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
+import { DependencyTableType, EventType, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import type { DateDependencyReqType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers/apiHelpers';
 import { Column, DateDependency, DependencyTracker, Model } from '~/models';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class DateDependencyService {
@@ -49,10 +50,28 @@ export class DateDependencyService {
 
     await this.syncDependencyTracker(context, result);
 
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'date_dependency_update',
+          payload: {
+            tableId: param.modelId,
+            base_id: model.base_id,
+            date_dependency: result,
+          },
+        },
+      },
+      context.socket_id,
+    );
+
     return result;
   }
 
   async delete(context: NcContext, param: { modelId: string }): Promise<void> {
+    const model = param.modelId && (await Model.get(context, param.modelId));
+
     const existing = await DateDependency.getByModelId(context, param.modelId);
     if (existing?.id) {
       await DependencyTracker.clearDependencies(
@@ -62,6 +81,23 @@ export class DateDependencyService {
       );
     }
     await DateDependency.deleteByModelId(context, param.modelId);
+
+    if (model) {
+      NocoSocket.broadcastEvent(
+        context,
+        {
+          event: EventType.META_EVENT,
+          payload: {
+            action: 'date_dependency_delete',
+            payload: {
+              tableId: param.modelId,
+              base_id: model.base_id,
+            },
+          },
+        },
+        context.socket_id,
+      );
+    }
   }
 
   /**

@@ -338,6 +338,29 @@ export const useRealtime = createSharedComposable(() => {
       if (tableId === activeTableId.value) {
         $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
       }
+    } else if (event.action === 'date_dependency_update' || event.action === 'date_dependency_delete') {
+      const { tableId, base_id: eventBaseId } = event.payload
+      if (!eventBaseId || eventBaseId !== activeBaseId.value || !tableId) return
+
+      // Refresh table meta to pick up updated date_dependency
+      getMeta(eventBaseId, tableId, true).then((updatedMeta) => {
+        if (!updatedMeta) return
+
+        // Update sidebar table entry
+        const tables = baseTables.value.get(eventBaseId)
+        if (tables) {
+          const index = tables.findIndex((t) => t.id === tableId)
+          if (index !== -1) {
+            tables[index] = { ...tables[index], date_dependency: (updatedMeta as any).date_dependency ?? null }
+            baseTables.value.set(eventBaseId, tables)
+          }
+        }
+      })
+
+      // If the affected table is currently open, reload field headers (gantt icons may change)
+      if (tableId === activeTableId.value) {
+        $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+      }
     } else if (event.action === 'extension_create') {
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
       const { payload } = event

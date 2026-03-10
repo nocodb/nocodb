@@ -495,6 +495,21 @@ export function useInfiniteData(args: {
       }
 
       await loadBulkAggCommentsCount(allFormattedRows)
+
+      for (const { request, rows, dataCache } of processedChunks) {
+        try {
+          rows.forEach((item: any) => {
+            dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
+          })
+
+          dataCache.chunkStates.value[request.chunkId] = 'loaded'
+          request.resolve(undefined)
+        } catch (error) {
+          console.error(`Error caching chunk ${request.chunkId}:`, error)
+          dataCache.chunkStates.value[request.chunkId] = undefined
+          request.reject(error)
+        }
+      }
     } catch (error) {
       console.error('Bulk chunk request failed, falling back to individual requests:', error)
 

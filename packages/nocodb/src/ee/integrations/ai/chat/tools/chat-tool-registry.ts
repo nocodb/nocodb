@@ -24,6 +24,7 @@ import { createViewTool } from '~/integrations/ai/chat/tools/schema/create-view.
 import { deleteViewTool } from '~/integrations/ai/chat/tools/schema/delete-view.tool';
 import { renameViewTool } from '~/integrations/ai/chat/tools/schema/rename-view.tool';
 import { listViewsTool } from '~/integrations/ai/chat/tools/schema/list-views.tool';
+import { updateFieldDisplayTool } from '~/integrations/ai/chat/tools/schema/update-field-display.tool';
 import { queryRecordsTool } from '~/integrations/ai/chat/tools/data/query-records.tool';
 import { createRecordsTool } from '~/integrations/ai/chat/tools/data/create-records.tool';
 import { updateRecordsTool } from '~/integrations/ai/chat/tools/data/update-records.tool';
@@ -87,6 +88,7 @@ const ALL_TOOLS: ChatToolDefinition[] = [
   renameTableTool,
   addFieldTool,
   modifyFieldTool,
+  updateFieldDisplayTool,
   deleteFieldTool,
   createViewTool,
   deleteViewTool,

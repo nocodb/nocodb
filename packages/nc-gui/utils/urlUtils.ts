@@ -1,6 +1,7 @@
 import isURL from 'validator/lib/isURL'
 import { decode } from 'html-entities'
 import { isValidURL } from 'nocodb-sdk'
+import DOMPurify from 'isomorphic-dompurify'
 import { formulaTextSegmentsCache, replaceUrlsWithLinkCache } from '../components/smartsheet/grid/canvas/utils/canvas'
 import { getI18n } from '../plugins/a.i18n'
 export { isValidURL }
@@ -56,9 +57,19 @@ const _replaceUrlsWithLink = (text: string, plainCellValue = false): boolean | s
 
       if (!isUrl || plainCellValue) return anchorLabel
 
+      // Sanitize label and URL to prevent XSS attacks
+      const sanitizedLabel = DOMPurify.sanitize(anchorLabel, {
+        ALLOWED_TAGS: [],
+        ALLOWED_ATTR: [],
+      })
+      const sanitizedUrl = DOMPurify.sanitize(decode(fullUrl), {
+        ALLOWED_TAGS: [],
+        ALLOWED_ATTR: [],
+      })
+
       const a = document.createElement('a')
-      a.textContent = anchorLabel
-      a.setAttribute('href', decode(fullUrl))
+      a.textContent = sanitizedLabel
+      a.setAttribute('href', sanitizedUrl)
       a.setAttribute('class', 'nc-cell-field-link')
       a.setAttribute('target', '_blank')
       a.setAttribute('rel', 'noopener noreferrer')

@@ -42,7 +42,9 @@ const svg = (d: string, vb = '0 0 16 16') =>
 
 const icons = {
   h1: svg('<path d="M2.67 8h5.33"/><path d="M2.67 12V4"/><path d="M8 12V4"/><path d="M11.33 8l2-1.33v5.33"/>'),
-  h2: svg('<path d="M2.67 8h5.33"/><path d="M2.67 12V4"/><path d="M8 12V4"/><path d="M14 12h-2.67c0-2.67 2.67-2 2.67-4 0-1-1.33-1.67-2.67-.67"/>'),
+  h2: svg(
+    '<path d="M2.67 8h5.33"/><path d="M2.67 12V4"/><path d="M8 12V4"/><path d="M14 12h-2.67c0-2.67 2.67-2 2.67-4 0-1-1.33-1.67-2.67-.67"/>',
+  ),
   h3: svg(
     '<path d="M2.67 8h5.33"/><path d="M2.67 12V4"/><path d="M8 12V4"/><path d="M11.67 7c1.13-.67 2.33 0 2.33 1a1.33 1.33 0 0 1-1.33 1.33"/><path d="M11.33 11.67c1.33 1 2.67.2 2.67-1a1.33 1.33 0 0 0-1.33-1.33"/>',
   ),
@@ -71,7 +73,9 @@ const icons = {
     '<path d="M9.33 1.33H4a1.33 1.33 0 0 0-1.33 1.33v10.67A1.33 1.33 0 0 0 4 14.67h8A1.33 1.33 0 0 0 13.33 13.33V5.33z"/><polyline points="9.33 1.33 9.33 5.33 13.33 5.33"/><line x1="8" y1="12" x2="8" y2="8"/><line x1="6" y1="10" x2="10" y2="10"/>',
   ),
   // Callout icons — black versions for slash menu (colored versions live in CalloutExtension)
-  note: svg('<circle cx="8" cy="8" r="6.67"/><line x1="8" y1="10.67" x2="8" y2="8"/><line x1="8" y1="5.33" x2="8.01" y2="5.33"/>'),
+  note: svg(
+    '<circle cx="8" cy="8" r="6.67"/><line x1="8" y1="10.67" x2="8" y2="8"/><line x1="8" y1="5.33" x2="8.01" y2="5.33"/>',
+  ),
   warning: svg(
     '<path d="M6.86 2.57L1.21 12a1.33 1.33 0 0 0 1.14 2h11.3a1.33 1.33 0 0 0 1.14-2L9.14 2.57a1.33 1.33 0 0 0-2.28 0z"/><line x1="8" y1="6" x2="8" y2="8.67"/><line x1="8" y1="11.33" x2="8.01" y2="11.33"/>',
   ),
@@ -82,7 +86,9 @@ const icons = {
     '<circle cx="8" cy="8" r="6.67"/><line x1="8" y1="5.33" x2="8" y2="8"/><line x1="8" y1="10.67" x2="8.01" y2="10.67"/>',
   ),
   // Math icon
-  equation: svg('<rect width="12" height="12" x="2" y="2" rx="1.33"/><path d="M10.67 5.93V4.67H5.33l2.67 3.33-2.67 3.33h5.34v-1.26"/>'),
+  equation: svg(
+    '<rect width="12" height="12" x="2" y="2" rx="1.33"/><path d="M10.67 5.93V4.67H5.33l2.67 3.33-2.67 3.33h5.34v-1.26"/>',
+  ),
   // Date/time icons
   calendar: svg(
     '<rect x="2" y="2.67" width="12" height="12" rx="1.33" ry="1.33"/><line x1="10.67" y1="1.33" x2="10.67" y2="4"/><line x1="5.33" y1="1.33" x2="5.33" y2="4"/><line x1="2" y1="6.67" x2="14" y2="6.67"/>',
@@ -475,9 +481,7 @@ export const SlashCommandExtension = Extension.create({
 
           // Helper to update the placeholder decoration state
           const setPlaceholder = (editor: Editor, active: boolean, pos = 0) => {
-            editor.view.dispatch(
-              editor.view.state.tr.setMeta(slashPlaceholderKey, { active, pos }),
-            )
+            editor.view.dispatch(editor.view.state.tr.setMeta(slashPlaceholderKey, { active, pos }))
           }
 
           return {
@@ -585,12 +589,16 @@ export const SlashCommandExtension = Extension.create({
           decorations(state) {
             const { active, pos } = slashPlaceholderKey.getState(state) || { active: false, pos: 0 }
             if (!active) return DecorationSet.empty
-            const widget = Decoration.widget(pos, () => {
-              const span = document.createElement('span')
-              span.className = 'nc-slash-placeholder'
-              span.textContent = 'Type to search'
-              return span
-            }, { side: 1 })
+            const widget = Decoration.widget(
+              pos,
+              () => {
+                const span = document.createElement('span')
+                span.className = 'nc-slash-placeholder'
+                span.textContent = 'Type to search'
+                return span
+              },
+              { side: 1 },
+            )
             return DecorationSet.create(state.doc, [widget])
           },
         },

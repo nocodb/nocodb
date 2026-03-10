@@ -74,7 +74,9 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
       if (container) {
         const containerRect = container.getBoundingClientRect()
         syntheticAnchor = document.createElement('span')
-        syntheticAnchor.style.cssText = `position:absolute;top:${coords.top - containerRect.top}px;left:${coords.left - containerRect.left}px;height:${coords.bottom - coords.top}px;width:0;pointer-events:none;`
+        syntheticAnchor.style.cssText = `position:absolute;top:${coords.top - containerRect.top}px;left:${
+          coords.left - containerRect.left
+        }px;height:${coords.bottom - coords.top}px;width:0;pointer-events:none;`
         container.appendChild(syntheticAnchor)
         linkHoverEl.value = syntheticAnchor as any
       }
@@ -147,9 +149,7 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
   const copyLinkUrl = async () => {
     if (!linkHoverUrl.value) return
     // Internal page links are stored as route paths — resolve to full URL for clipboard
-    const url = extractDocIdFromUrl(linkHoverUrl.value)
-      ? `${window.location.origin}#${linkHoverUrl.value}`
-      : linkHoverUrl.value
+    const url = extractDocIdFromUrl(linkHoverUrl.value) ? `${window.location.origin}#${linkHoverUrl.value}` : linkHoverUrl.value
     await navigator.clipboard.writeText(url)
   }
 
@@ -206,12 +206,10 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
       if (e.key === 'Enter') {
         e.preventDefault()
         selectPageSuggestion(suggestions[pageSuggestionIndex.value])
-        return
       }
     } else if (e.key === 'Enter') {
       e.preventDefault()
       saveLinkEdit()
-      return
     }
   }
 

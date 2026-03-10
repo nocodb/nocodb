@@ -41,7 +41,8 @@ const parsed = computed(() => {
 
 const formatCell = (value: any): string => {
   if (value === null || value === undefined) return ''
-  if (Array.isArray(value)) return value.map((v) => (typeof v === 'object' ? v.title || v.value || JSON.stringify(v) : v)).join(', ')
+  if (Array.isArray(value))
+    return value.map((v) => (typeof v === 'object' ? v.title || v.value || JSON.stringify(v) : v)).join(', ')
   if (typeof value === 'object') return value.title || value.value || JSON.stringify(value)
   return String(value)
 }
@@ -85,9 +86,7 @@ const formatCell = (value: any): string => {
     </div>
 
     <!-- Footer hint -->
-    <div v-if="parsed.hasMore" class="px-2.5 py-1 text-[10px] text-nc-content-gray-muted">
-      + more columns
-    </div>
+    <div v-if="parsed.hasMore" class="px-2.5 py-1 text-[10px] text-nc-content-gray-muted">+ more columns</div>
   </div>
 </template>
 

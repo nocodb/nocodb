@@ -556,7 +556,7 @@
     "keepAsLink": "Keep as link",
     "embed": "Embed",
     "downloadAs": "Download as",
-    "createdBy":"Created by",
+    "createdBy": "Created by",
     "updatedBy": "Updated by"
   },
   "objects": {
@@ -2023,6 +2023,8 @@
     "invoiceTotal": "Invoice Total",
     "pastInvoices": "Past Invoices",
     "createNew": "Create New",
+    "dataApiV3": "Data APIs V3",
+    "metaApiV3": "Meta APIs V3",
     "dataApiV2": "Data APIs V2",
     "metaApiV2": "Meta APIs V2",
     "showExtraFields": "Show extra fields",

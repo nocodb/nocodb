@@ -684,7 +684,12 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   async function loadTeams({ workspaceId }: { workspaceId: string }) {
     const { blockTeamsManagement } = useEeConfig()
 
-    if (!activeWorkspace.value?.payment?.plan?.meta || !isTeamsEnabled.value || blockTeamsManagement.value) {
+    if (
+      !activeWorkspace.value?.payment?.plan?.meta ||
+      !isTeamsEnabled.value ||
+      blockTeamsManagement.value ||
+      isSharedBaseOrErdOrViewRoute(route.value)
+    ) {
       teams.value = []
       isTeamsLoading.value = false
       return
@@ -1146,7 +1151,13 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   async function workspaceTeamList(workspaceId: string = activeWorkspaceId.value!, showLoading = true) {
     const { blockTeamsManagement } = useEeConfig()
 
-    if (!activeWorkspace.value?.payment?.plan?.meta || !isTeamsEnabled.value || blockTeamsManagement.value || !workspaceId) {
+    if (
+      !activeWorkspace.value?.payment?.plan?.meta ||
+      !isTeamsEnabled.value ||
+      blockTeamsManagement.value ||
+      !workspaceId ||
+      isSharedBaseOrErdOrViewRoute(route.value)
+    ) {
       workspaceTeams.value = []
       isLoadingWorkspaceTeams.value = false
       return
@@ -1303,15 +1314,15 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   watch(
     () => activeWorkspace.value?.payment?.plan?.meta,
     (planMeta) => {
-      if (!planMeta || !activeWorkspaceId.value) return
+      if (!planMeta || !activeWorkspace.value?.id) return
 
       const { blockTeamsManagement } = useEeConfig()
       if (blockTeamsManagement.value) return
 
-      loadTeams({ workspaceId: activeWorkspaceId.value! }).catch(() => {
+      loadTeams({ workspaceId: activeWorkspace.value?.id! }).catch(() => {
         // ignore
       })
-      workspaceTeamList(activeWorkspaceId.value!).catch(() => {
+      workspaceTeamList(activeWorkspace.value?.id!).catch(() => {
         // ignore
       })
     },

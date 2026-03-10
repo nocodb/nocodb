@@ -30,7 +30,7 @@ export function slugifyHeading(text: string): string {
     text
       .toLowerCase()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // strip diacritics
+      .replace(/[\u0300-\u036F]/g, '') // strip diacritics
       .replace(/[^\w\s-]/g, '') // remove non-word chars
       .replace(/\s+/g, '-') // spaces → hyphens
       .replace(/-+/g, '-') // collapse consecutive hyphens
@@ -56,7 +56,7 @@ function buildDecorations(doc: PmNode): DecorationSet {
     // Node decoration: adds id + data attribute to the heading DOM element
     decorations.push(
       Decoration.node(pos, pos + node.nodeSize, {
-        id: slug,
+        'id': slug,
         'data-heading-anchor': slug,
       }),
     )

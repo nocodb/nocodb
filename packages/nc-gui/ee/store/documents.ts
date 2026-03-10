@@ -610,7 +610,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     const baseDocs = documents.value.get(activeProjectId.value) || []
     const ancestors: DocumentType[] = []
 
-    let current = baseDocs.find((d) => d.id === docId)
+    const current = baseDocs.find((d) => d.id === docId)
     let parentId = current?.parent_id
 
     while (parentId) {

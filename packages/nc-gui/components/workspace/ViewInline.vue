@@ -181,8 +181,6 @@ watch(
   },
 )
 
-const { shouldShow: btbShouldShow } = useBackToBase()
-
 // When in settings sidebar mode, load data for specific tabs on navigation
 watch(
   () => props.tab,
@@ -297,9 +295,6 @@ onBeforeUnmount(() => {
       </NcPageHeader>
     </template>
 
-    <!-- Back-to-base full-width bar: shown between breadcrumb and tabs (breadcrumb variant only) -->
-    <DashboardBackToBaseBreadcrumbVariant v-if="!isSettingsSidebar" />
-
     <NcTabs v-model:active-key="tab" class="flex-1 min-h-0" :tab-bar-style="isSettingsSidebar ? { display: 'none' } : undefined">
       <template #leftExtra>
         <div class="w-3"></div>
@@ -369,15 +364,7 @@ onBeforeUnmount(() => {
               </div>
             </template>
 
-            <WorkspaceSso
-              :class="
-                isSettingsSidebar
-                  ? '!h-[calc(100vh-var(--topbar-height))]'
-                  : btbShouldShow
-                  ? '!h-[calc(100vh-128px)]'
-                  : '!h-[calc(100vh-92px)]'
-              "
-            />
+            <WorkspaceSso :class="isSettingsSidebar ? '!h-[calc(100vh-var(--topbar-height))]' : '!h-[calc(100vh-92px)]'" />
           </a-tab-pane>
         </template>
       </template>

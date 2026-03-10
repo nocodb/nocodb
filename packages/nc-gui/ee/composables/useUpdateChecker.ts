@@ -1,5 +1,5 @@
 import { message as antMessage } from 'ant-design-vue/es'
-import { NcAlert, NcButton, GeneralIcon } from '#components'
+import { GeneralIcon, NcAlert, NcButton } from '#components'
 import { getI18n } from '~/plugins/a.i18n'
 
 const isDevelopment = process.env.NODE_ENV === 'development'

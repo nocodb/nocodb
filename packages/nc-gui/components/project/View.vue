@@ -320,7 +320,6 @@ watch(
           </h1>
         </div>
       </div>
-      <DashboardBackToBaseBreadcrumbVariant />
     </template>
 
     <!-- Normal topbar -->

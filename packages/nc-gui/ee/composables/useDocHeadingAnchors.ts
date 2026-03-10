@@ -21,9 +21,9 @@ export function useDocHeadingAnchors(
 
   /** Measure the sticky header height so the scroll offset stays accurate. */
   function getStickyOffset(): number {
-    const header = scrollContainerRef.value?.closest('.nc-doc-editor')?.querySelector(`.${STICKY_HEADER_CLASS}`) as
-      | HTMLElement
-      | null
+    const header = scrollContainerRef.value
+      ?.closest('.nc-doc-editor')
+      ?.querySelector(`.${STICKY_HEADER_CLASS}`) as HTMLElement | null
     if (!header) return 16 // small padding when header is not visible
     return header.offsetHeight + 8
   }

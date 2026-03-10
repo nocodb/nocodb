@@ -163,9 +163,7 @@ const matchVimeo = (url: string) => {
     }
     const videoId = match[2]
     const hash = match[3] // unlisted video privacy hash
-    return hash
-      ? `https://player.vimeo.com/video/${videoId}?h=${hash}`
-      : `https://player.vimeo.com/video/${videoId}`
+    return hash ? `https://player.vimeo.com/video/${videoId}?h=${hash}` : `https://player.vimeo.com/video/${videoId}`
   } catch {
     return null
   }
@@ -212,7 +210,9 @@ const matchSoundCloud = (url: string) => {
     if (!match) {
       return null
     }
-    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`
+    return `https://w.soundcloud.com/player/?url=${encodeURIComponent(
+      url,
+    )}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true`
   } catch {
     return null
   }
@@ -357,7 +357,8 @@ urlMatchers.push(['CodeSandbox', matchCodeSandbox])
 
 // NocoDB shared views — already iframeable, pass the URL through as-is
 // Supports: /nc/view/..., /#/nc/view/..., /dashboard/#/nc/view/..., /nc/base/..., /nc/p/...
-const NOCODB_SHARED_RE = /^https?:\/\/[^\/]+\/(?:dashboard\/)?(?:#\/)?nc\/(view|form|gallery|kanban|map|calendar|dashboard|base|p)\/([a-zA-Z0-9_-]+)/
+const NOCODB_SHARED_RE =
+  /^https?:\/\/[^\/]+\/(?:dashboard\/)?(?:#\/)?nc\/(view|form|gallery|kanban|map|calendar|dashboard|base|p)\/([a-zA-Z0-9_-]+)/
 const matchNocoDB = (url: string) => {
   try {
     const match = url.match(NOCODB_SHARED_RE)

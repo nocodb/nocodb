@@ -130,8 +130,6 @@ watch(
   },
 )
 
-const { shouldShow: btbShouldShow } = useBackToBase()
-
 onMounted(() => {
   hideSidebar.value = true
 })
@@ -200,9 +198,6 @@ onBeforeUnmount(() => {
         </template>
       </NcPageHeader>
     </template>
-
-    <!-- Back-to-base full-width bar: shown between breadcrumb and tabs (breadcrumb variant only) -->
-    <DashboardBackToBaseBreadcrumbVariant v-if="!props.workspaceId" />
 
     <NcTabs v-model:active-key="tab" class="flex-1 min-h-0">
       <template #leftExtra>
@@ -281,7 +276,7 @@ onBeforeUnmount(() => {
               </div>
             </template>
 
-            <WorkspaceSso :class="btbShouldShow ? '!h-[calc(100vh-128px)]' : '!h-[calc(100vh-92px)]'" />
+            <WorkspaceSso class="!h-[calc(100vh-92px)]" />
           </a-tab-pane>
         </template>
       </template>

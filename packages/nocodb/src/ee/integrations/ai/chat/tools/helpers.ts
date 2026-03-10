@@ -19,12 +19,22 @@ export async function resolveTableByName(
   tableName: string,
   _ncMeta = Noco.ncMeta,
 ): Promise<Model> {
+  if (!tableName) {
+    NcError.get(context).badRequest(
+      'table_name is required. Use list_tables to get valid table names.',
+    );
+  }
+
   const models = await Model.list(context, {
     base_id: context.base_id,
   });
 
   const lowerName = tableName.toLowerCase();
-  const model = models.find((m) => m.title?.toLowerCase() === lowerName);
+
+  // Also try matching by ID in case the LLM passed a table_id instead of title
+  const model =
+    models.find((m) => m.title?.toLowerCase() === lowerName) ||
+    models.find((m) => m.id === tableName);
 
   if (!model) {
     NcError.get(context).genericNotFound('Table', tableName);
@@ -170,7 +180,9 @@ export async function resolveViewByName(
   }
 
   const lowerName = viewName.toLowerCase();
-  const view = views.find((v) => v.title?.toLowerCase() === lowerName);
+  const view =
+    views.find((v) => v.title?.toLowerCase() === lowerName) ||
+    views.find((v) => v.id === viewName);
 
   if (!view) {
     NcError.get(context).genericNotFound('View', viewName);
@@ -187,10 +199,18 @@ export async function resolveColumnByName(
   model: Model,
   fieldName: string,
 ): Promise<Column> {
+  if (!fieldName) {
+    NcError.get(context).badRequest(
+      'field_name is required. Use describe_table to get valid field names.',
+    );
+  }
+
   const columns = await model.getColumns(context);
 
   const lowerName = fieldName.toLowerCase();
-  const column = columns.find((c) => c.title?.toLowerCase() === lowerName);
+  const column =
+    columns.find((c) => c.title?.toLowerCase() === lowerName) ||
+    columns.find((c) => c.id === fieldName);
 
   if (!column) {
     NcError.get(context).fieldNotFound(fieldName);
@@ -243,12 +263,18 @@ export async function resolveDashboardByName(
   context: NcContext,
   dashboardName: string,
 ): Promise<Dashboard> {
+  if (!dashboardName) {
+    NcError.get(context).badRequest(
+      'dashboard_name is required. Use list_dashboards to get valid dashboard names.',
+    );
+  }
+
   const dashboards = await Dashboard.list(context, context.base_id);
 
   const lowerName = dashboardName.toLowerCase();
-  const dashboard = dashboards.find(
-    (d) => d.title?.toLowerCase() === lowerName,
-  );
+  const dashboard =
+    dashboards.find((d) => d.title?.toLowerCase() === lowerName) ||
+    dashboards.find((d) => d.id === dashboardName);
 
   if (!dashboard) {
     NcError.get(context).genericNotFound('Dashboard', dashboardName);
@@ -265,10 +291,18 @@ export async function resolveWidgetByName(
   dashboardId: string,
   widgetName: string,
 ): Promise<Widget> {
+  if (!widgetName) {
+    NcError.get(context).badRequest(
+      'widget_name is required. Use list_widgets to get valid widget names.',
+    );
+  }
+
   const widgets = await Widget.list(context, dashboardId);
 
   const lowerName = widgetName.toLowerCase();
-  const widget = widgets.find((w) => w.title?.toLowerCase() === lowerName);
+  const widget =
+    widgets.find((w) => w.title?.toLowerCase() === lowerName) ||
+    widgets.find((w) => w.id === widgetName);
 
   if (!widget) {
     NcError.get(context).genericNotFound('Widget', widgetName);

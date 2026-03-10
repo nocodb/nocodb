@@ -71,16 +71,15 @@ export class GuiMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: () => void) {
     if (!this.staticRouter) return next();
 
-    // Try serving a static asset (JS, CSS, images, fonts)
+    // Try serving a static asset (JS, CSS, images, fonts).
+    // express.static handles real files; if nothing matched, the
+    // callback below runs as the SPA fallback.
     this.staticRouter(req, res, () => {
-      // No static file matched. For browser navigation requests
-      // (non-file GET that accept text/html), serve index.html as
-      // SPA fallback for history-mode routing.
-      if (
-        this.indexHtml &&
-        !path.extname(req.path) &&
-        req.headers.accept?.includes('text/html')
-      ) {
+      // No static file found. For browser navigation requests
+      // (Accept: text/html), serve index.html so the frontend
+      // router handles the path. No extension check needed —
+      // express.static already proved this isn't a real file.
+      if (this.indexHtml && req.headers.accept?.includes('text/html')) {
         res.setHeader('Content-Type', 'text/html');
         return res.send(this.indexHtml);
       }

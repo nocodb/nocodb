@@ -5,7 +5,7 @@ defineProps<{
   baseId: string
 }>()
 
-const emits = defineEmits(['createTable'])
+defineEmits(['createTable'])
 
 const { $e } = useNuxtApp()
 
@@ -52,10 +52,6 @@ const [searchActive] = useToggle()
 const base = inject(ProjectInj)!
 
 const baseRole = computed(() => base.value.project_role || base.value.workspace_role)
-
-const hasTableCreatePermission = computed(() => {
-  return isUIAllowed('tableCreate', { roles: base.value.project_role, source: base.value?.sources?.[0] })
-})
 
 const enableEditModeForSource = (sourceId: string) => {
   if (!isUIAllowed('baseRename')) return

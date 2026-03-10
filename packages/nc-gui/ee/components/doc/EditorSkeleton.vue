@@ -1,6 +1,3 @@
-<script setup lang="ts">
-</script>
-
 <template>
   <div class="nc-doc-editor-skeleton flex flex-row h-full w-full overflow-hidden">
     <div class="relative flex-1 min-w-0 h-full overflow-hidden">

@@ -1319,10 +1319,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
       const { blockTeamsManagement } = useEeConfig()
       if (blockTeamsManagement.value) return
 
-      loadTeams({ workspaceId: activeWorkspace.value?.id! }).catch(() => {
+      loadTeams({ workspaceId: activeWorkspace.value?.id as string }).catch(() => {
         // ignore
       })
-      workspaceTeamList(activeWorkspace.value?.id!).catch(() => {
+      workspaceTeamList(activeWorkspace.value?.id as string).catch(() => {
         // ignore
       })
     },

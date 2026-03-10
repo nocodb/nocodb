@@ -201,42 +201,6 @@ const initSortable = (el: Element) => {
   })
 }
 
-/**
- * Opens a dialog to create a new table.
- *
- * @returns {void}
- *
- * @remarks
- * This function is triggered when the user initiates the table creation process.
- * It opens a dialog for table creation, handles the dialog closure,
- * and potentially scrolls to the newly created table.
- *
- * @see {@link packages/nc-gui/components/smartsheet/topbar/TableListDropdown.vue} for a similar implementation
- * of table creation dialog. If this function is updated, consider updating the other implementation as well.
- */
-function openTableCreateDialog() {
-  const isOpen = ref(true)
-  const sourceId = base.value!.sources?.[0].id
-
-  if (!sourceId || !base.value?.id) return
-
-  const { close } = useDialog(resolveComponent('DlgTableCreate'), {
-    'modelValue': isOpen,
-    sourceId,
-    'baseId': base.value!.id,
-    'onCreate': closeDialog,
-    'showSourceSelector': false,
-    'onUpdate:modelValue': () => closeDialog(),
-  })
-
-  function closeDialog(table?: TableType) {
-    isOpen.value = false
-
-    if (!table) return
-
-    close(1000)
-  }
-}
 watchEffect(() => {
   if (menuRef.value && isUIAllowed('viewCreateOrEdit')) {
     initSortable(menuRef.value)

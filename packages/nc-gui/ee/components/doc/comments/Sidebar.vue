@@ -364,7 +364,7 @@ function scrollEditorToAnchor(anchorId: string) {
 
   // Flash-highlight to draw attention
   markEl.classList.remove('nc-doc-comment-mark-flash')
-  void markEl.offsetWidth // force reflow to restart animation if already present
+  void markEl.offsetWidth // eslint-disable-line no-void -- force reflow to restart animation if already present
   markEl.classList.add('nc-doc-comment-mark-flash')
 }
 

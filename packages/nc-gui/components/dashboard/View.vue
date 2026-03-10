@@ -137,6 +137,8 @@ function handleMouseMove(e: MouseEvent) {
   }
 }
 
+const isChatToggling = ref(false)
+
 function onWindowResize(e?: any): void {
   // During chat toggle the watcher handles viewportWidth & percentage directly — skip here
   if (isChatToggling.value) return
@@ -226,8 +228,6 @@ const isMiniSidebarVisible = computed(() => {
     !isFullScreen.value
   )
 })
-
-const isChatToggling = ref(false)
 
 const contentWidthStyle = computed(() => {
   const chatPart = chatOffset.value ? ` - ${chatOffset.value}px` : ''

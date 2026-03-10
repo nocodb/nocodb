@@ -27,8 +27,6 @@ const { isChatWootEnabled } = useProvideChatwoot()
 
 const { isModalVisible: isChatVisible } = useChatWoot()
 
-const { navigateToFeed } = useWorkspace()
-
 const visible = ref(false)
 
 const copyBtnRef = ref()

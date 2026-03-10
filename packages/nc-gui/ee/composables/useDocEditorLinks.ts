@@ -51,54 +51,6 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     dismissPasteLinkMenu()
   }
 
-  // --- Link input from bubble menu toolbar ---
-  // Reuses the edit popover (linkEditUrl/linkEditTitle/linkEditRange/isLinkEditOpen).
-  // A synthetic anchor element is used for positioning when opened from the toolbar
-  // (since there's no real <a> element to anchor to).
-  let syntheticAnchor: HTMLElement | null = null
-
-  /** Opens the link edit popover from the bubble menu toolbar link button. */
-  const openLinkInput = () => {
-    const ed = editor.value
-    if (!ed) return
-
-    const { from, to } = ed.state.selection
-
-    // Get existing link URL if the selection is already linked
-    const linkMark = ed.state.doc
-      .resolve(from)
-      .marks()
-      .find((m: any) => m.type.name === 'link')
-
-    linkEditUrl.value = linkMark?.attrs?.href || ''
-    linkEditTitle.value = ed.state.doc.textBetween(from, to, '') || ''
-    linkEditRange.value = { from, to }
-
-    // Create a synthetic anchor for positioning below the selection
-    try {
-      const coords = ed.view.coordsAtPos(from)
-      const container = ed.view.dom.closest('.relative') as HTMLElement | null
-      if (container) {
-        const containerRect = container.getBoundingClientRect()
-        syntheticAnchor = document.createElement('span')
-        syntheticAnchor.style.cssText = `position:absolute;top:${coords.top - containerRect.top}px;left:${
-          coords.left - containerRect.left
-        }px;height:${coords.bottom - coords.top}px;width:0;pointer-events:none;`
-        container.appendChild(syntheticAnchor)
-        linkHoverEl.value = syntheticAnchor as any
-      }
-    } catch {
-      // Fallback — popover may not position correctly
-    }
-
-    isLinkEditOpen.value = true
-    isLinkHoverVisible.value = false
-    nextTick(() => {
-      linkEditInputRef.value?.focus()
-      linkEditInputRef.value?.select()
-    })
-  }
-
   // --- Link hover preview + edit popover (Notion-style) ---
   const linkHoverUrl = ref('')
   const linkHoverTitle = ref('')
@@ -111,8 +63,33 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
   // Store the link element's ProseMirror position range for applying edits
   const linkEditRange = ref<{ from: number; to: number } | null>(null)
 
+  // Declared early — used by closeLinkEdit, pageSuggestions watcher, and toggle logic below
+  const expandedPageId = ref<string | null>(null)
+  const expandedPageHeadings = ref<HeadingSuggestion[]>([])
+  const isLoadingPageHeadings = ref(false)
+
+  // --- Page suggestion autocomplete ---
+  const { $api } = useNuxtApp()
+  const documentsStore = useDocumentsStore()
+  const { activeDocuments, activeDocumentId: currentDocId } = storeToRefs(documentsStore)
+
+  const basesStore = useBases()
+  const { activeProjectId } = storeToRefs(basesStore)
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+  const pageSuggestionIndex = ref(0)
+  const headingSuggestionIndex = ref(0)
+
+  // --- Link input from bubble menu toolbar ---
+  // Reuses the edit popover (linkEditUrl/linkEditTitle/linkEditRange/isLinkEditOpen).
+  // A synthetic anchor element is used for positioning when opened from the toolbar
+  // (since there's no real <a> element to anchor to).
+  let syntheticAnchor: HTMLElement | null = null
+
   let hoverTimeout: ReturnType<typeof setTimeout> | undefined
   let leaveTimeout: ReturnType<typeof setTimeout> | undefined
+
+  // ── Helper functions (no forward references) ──
 
   const showLinkHover = (el: HTMLAnchorElement) => {
     if (leaveTimeout) {
@@ -153,6 +130,13 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     }
   }
 
+  /** Extract doc ID from an internal page link URL.
+   *  Matches routes like /{wsId}/{baseId}/docs/{docId} or /{wsId}/{baseId}/docs/{docId}/{slug} */
+  const extractDocIdFromUrl = (url: string): string | null => {
+    const match = url.match(/^\/[^/]+\/[^/]+\/docs\/([^/]+)/)
+    return match ? match[1] : null
+  }
+
   const copyLinkUrl = async () => {
     if (!linkHoverUrl.value) return
     // Internal page links are stored as route paths — resolve to full URL for clipboard
@@ -174,70 +158,143 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     return { from, to }
   }
 
-  const openLinkEdit = () => {
-    if (!linkHoverEl.value) return
-    linkEditUrl.value = linkHoverUrl.value
-    linkEditTitle.value = linkHoverTitle.value
-    linkEditRange.value = findLinkRange(linkHoverEl.value)
-    isLinkEditOpen.value = true
-    isLinkHoverVisible.value = false
+  /** Returns true if input looks like a URL rather than a page title search */
+  const looksLikeUrl = (text: string): boolean => {
+    return /^https?:\/\//.test(text) || /^www\./.test(text)
+  }
+
+  /** Build internal page URL for a document — mirrors ncNavigateTo route format */
+  const buildPageUrl = (doc: DocumentType): string => {
+    const slug = toReadableUrlSlug([doc.title])
+    const docPath = `/docs/${doc.id}${slug ? `/${slug}` : ''}`
+    const wsId = activeWorkspaceId.value || 'app'
+    const baseId = activeProjectId.value || doc.base_id
+    return `/${wsId}/${baseId}${docPath}`
+  }
+
+  /** Resolve a URL to its DocumentType if it's an internal page link */
+  const resolvePageFromUrl = (url: string): DocumentType | null => {
+    const docId = extractDocIdFromUrl(url)
+    if (!docId) return null
+    return activeDocuments.value.find((d) => d.id === docId) || null
+  }
+
+  /** Scroll the selected suggestion item into view */
+  const scrollSuggestionIntoView = () => {
     nextTick(() => {
-      linkEditInputRef.value?.focus()
-      linkEditInputRef.value?.select()
+      const container = document.querySelector('.nc-link-page-suggestions')
+      const selected = container?.querySelector('.is-selected') as HTMLElement | null
+      selected?.scrollIntoView({ block: 'nearest' })
     })
   }
 
-  /** Handle all keyboard events in the URL input — page/heading suggestions + save/cancel */
-  const onLinkEditUrlKeyDown = (e: KeyboardEvent) => {
-    const pages = pageSuggestions.value
-    const headings = headingSuggestions.value
+  /** Extract headings from ProseMirror JSON content (no live editor needed) */
+  function extractHeadingsFromJson(content: Record<string, any>): HeadingSuggestion[] {
+    const headings: HeadingSuggestion[] = []
+    const slugCounts = new Map<string, number>()
 
-    if (e.key === 'Escape') {
-      e.preventDefault()
-      closeLinkEdit()
-      return
+    function walk(node: any) {
+      if (node.type === 'heading' && node.content) {
+        const text = node.content
+          .filter((c: any) => c.type === 'text')
+          .map((c: any) => c.text || '')
+          .join('')
+          .trim()
+        if (text) {
+          const baseSlug = slugifyHeading(text)
+          const count = slugCounts.get(baseSlug) || 0
+          slugCounts.set(baseSlug, count + 1)
+          const slug = count === 0 ? baseSlug : `${baseSlug}-${count}`
+          headings.push({ level: node.attrs?.level || 1, title: text, slug })
+        }
+      }
+      if (node.content && Array.isArray(node.content)) {
+        node.content.forEach(walk)
+      }
     }
 
-    if (headings.length) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        headingSuggestionIndex.value = (headingSuggestionIndex.value + 1) % headings.length
-        scrollSuggestionIntoView()
-        return
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        headingSuggestionIndex.value = (headingSuggestionIndex.value + headings.length - 1) % headings.length
-        scrollSuggestionIntoView()
-        return
-      }
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        selectHeadingSuggestion(headings[headingSuggestionIndex.value])
-        return
-      }
-    } else if (pages.length) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault()
-        pageSuggestionIndex.value = (pageSuggestionIndex.value + 1) % pages.length
-        scrollSuggestionIntoView()
-        return
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault()
-        pageSuggestionIndex.value = (pageSuggestionIndex.value + pages.length - 1) % pages.length
-        scrollSuggestionIntoView()
-        return
-      }
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        selectPageSuggestion(pages[pageSuggestionIndex.value])
-        return
-      }
-    } else if (e.key === 'Enter') {
-      e.preventDefault()
-      saveLinkEdit()
+    walk(content)
+    return headings
+  }
+
+  // ── Computed ──
+
+  /** Filtered page suggestions based on linkEditUrl text.
+   *  Only shows when text looks like a search (not a URL). */
+  const pageSuggestions = computed<DocumentType[]>(() => {
+    const query = linkEditUrl.value.trim().toLowerCase()
+    if (!query || !isLinkEditOpen.value) return []
+    if (looksLikeUrl(query) || query.startsWith('#')) return []
+
+    return activeDocuments.value
+      .filter((doc) => doc.id !== currentDocId.value && doc.title?.toLowerCase().includes(query))
+      .slice(0, 6)
+  })
+
+  /** Extract all headings from the current editor document */
+  const headingSuggestions = computed<HeadingSuggestion[]>(() => {
+    const query = linkEditUrl.value.trim().toLowerCase()
+    if (!query.startsWith('#') || !isLinkEditOpen.value) return []
+
+    const ed = editor.value
+    if (!ed) return []
+
+    const filter = query.slice(1) // strip leading '#'
+    const headings: HeadingSuggestion[] = []
+    const slugCounts = new Map<string, number>()
+
+    ed.state.doc.descendants((node) => {
+      if (node.type.name !== 'heading') return
+      const text = node.textContent.trim()
+      if (!text) return
+
+      const baseSlug = slugifyHeading(text)
+      const count = slugCounts.get(baseSlug) || 0
+      slugCounts.set(baseSlug, count + 1)
+      const slug = count === 0 ? baseSlug : `${baseSlug}-${count}`
+
+      headings.push({ level: node.attrs.level, title: text, slug })
+    })
+
+    if (!filter) return headings.slice(0, 8)
+
+    return headings.filter((h) => h.title.toLowerCase().includes(filter) || h.slug.includes(filter)).slice(0, 8)
+  })
+
+  /** Returns true if user is actively searching (page or heading) but nothing matches */
+  const hasNoSuggestions = computed(() => {
+    const query = linkEditUrl.value.trim().toLowerCase()
+    if (!query || !isLinkEditOpen.value) return false
+    if (looksLikeUrl(query) || query.startsWith('/')) return false
+
+    // Heading search: # followed by at least one filter character with no matches
+    if (query.startsWith('#') && query.length > 1) {
+      return headingSuggestions.value.length === 0
     }
+
+    // Page search: non-URL text with no matches
+    if (!query.startsWith('#')) {
+      return pageSuggestions.value.length === 0
+    }
+
+    return false
+  })
+
+  // ── Functions that reference other functions (order matters) ──
+
+  const closeLinkEdit = () => {
+    isLinkEditOpen.value = false
+    isLinkHoverVisible.value = false
+    linkHoverEl.value = null
+    linkEditRange.value = null
+    expandedPageId.value = null
+    expandedPageHeadings.value = []
+    // Clean up synthetic anchor from toolbar-initiated edit
+    if (syntheticAnchor) {
+      syntheticAnchor.remove()
+      syntheticAnchor = null
+    }
+    editor.value?.commands.focus()
   }
 
   const saveLinkEdit = () => {
@@ -284,125 +341,6 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     closeLinkEdit()
   }
 
-  // Declared early — used by closeLinkEdit, pageSuggestions watcher, and toggle logic below
-  const expandedPageId = ref<string | null>(null)
-  const expandedPageHeadings = ref<HeadingSuggestion[]>([])
-  const isLoadingPageHeadings = ref(false)
-
-  const closeLinkEdit = () => {
-    isLinkEditOpen.value = false
-    isLinkHoverVisible.value = false
-    linkHoverEl.value = null
-    linkEditRange.value = null
-    expandedPageId.value = null
-    expandedPageHeadings.value = []
-    // Clean up synthetic anchor from toolbar-initiated edit
-    if (syntheticAnchor) {
-      syntheticAnchor.remove()
-      syntheticAnchor = null
-    }
-    editor.value?.commands.focus()
-  }
-
-  /** Setup hover listeners on the editor container (event delegation).
-   *  Returns a cleanup function that removes the listeners. */
-  const setupLinkHover = (container: HTMLElement): (() => void) => {
-    const onMouseOver = (e: MouseEvent) => {
-      const linkEl = (e.target as HTMLElement).closest?.('a[href]') as HTMLAnchorElement | null
-      if (linkEl) {
-        if (hoverTimeout) clearTimeout(hoverTimeout)
-        hoverTimeout = setTimeout(() => showLinkHover(linkEl), 200)
-      }
-    }
-    const onMouseOut = (e: MouseEvent) => {
-      const linkEl = (e.target as HTMLElement).closest?.('a[href]') as HTMLAnchorElement | null
-      if (linkEl) {
-        if (hoverTimeout) {
-          clearTimeout(hoverTimeout)
-          hoverTimeout = undefined
-        }
-        hideLinkHover()
-      }
-    }
-    container.addEventListener('mouseover', onMouseOver)
-    container.addEventListener('mouseout', onMouseOut)
-    return () => {
-      container.removeEventListener('mouseover', onMouseOver)
-      container.removeEventListener('mouseout', onMouseOut)
-    }
-  }
-
-  // --- Page suggestion autocomplete ---
-  const { $api } = useNuxtApp()
-  const documentsStore = useDocumentsStore()
-  const { activeDocuments, activeDocumentId: currentDocId } = storeToRefs(documentsStore)
-
-  const basesStore = useBases()
-  const { activeProjectId } = storeToRefs(basesStore)
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
-  const pageSuggestionIndex = ref(0)
-
-  /** Returns true if input looks like a URL rather than a page title search */
-  const looksLikeUrl = (text: string): boolean => {
-    return /^https?:\/\//.test(text) || /^www\./.test(text)
-  }
-
-  /** Filtered page suggestions based on linkEditUrl text.
-   *  Only shows when text looks like a search (not a URL). */
-  const pageSuggestions = computed<DocumentType[]>(() => {
-    const query = linkEditUrl.value.trim().toLowerCase()
-    if (!query || !isLinkEditOpen.value) return []
-    if (looksLikeUrl(query) || query.startsWith('#')) return []
-
-    return activeDocuments.value
-      .filter((doc) => doc.id !== currentDocId.value && doc.title?.toLowerCase().includes(query))
-      .slice(0, 6)
-  })
-
-  /** Returns true if user is actively searching (page or heading) but nothing matches */
-  const hasNoSuggestions = computed(() => {
-    const query = linkEditUrl.value.trim().toLowerCase()
-    if (!query || !isLinkEditOpen.value) return false
-    if (looksLikeUrl(query) || query.startsWith('/')) return false
-
-    // Heading search: # followed by at least one filter character with no matches
-    if (query.startsWith('#') && query.length > 1) {
-      return headingSuggestions.value.length === 0
-    }
-
-    // Page search: non-URL text with no matches
-    if (!query.startsWith('#')) {
-      return pageSuggestions.value.length === 0
-    }
-
-    return false
-  })
-
-  /** Extract doc ID from an internal page link URL.
-   *  Matches routes like /{wsId}/{baseId}/docs/{docId} or /{wsId}/{baseId}/docs/{docId}/{slug} */
-  const extractDocIdFromUrl = (url: string): string | null => {
-    const match = url.match(/^\/[^/]+\/[^/]+\/docs\/([^/]+)/)
-    return match ? match[1] : null
-  }
-
-  /** Build internal page URL for a document — mirrors ncNavigateTo route format */
-  const buildPageUrl = (doc: DocumentType): string => {
-    const slug = toReadableUrlSlug([doc.title])
-    const docPath = `/docs/${doc.id}${slug ? `/${slug}` : ''}`
-    const wsId = activeWorkspaceId.value || 'app'
-    const baseId = activeProjectId.value || doc.base_id
-    return `/${wsId}/${baseId}${docPath}`
-  }
-
-  /** Resolve a URL to its DocumentType if it's an internal page link */
-  const resolvePageFromUrl = (url: string): DocumentType | null => {
-    const docId = extractDocIdFromUrl(url)
-    if (!docId) return null
-    return activeDocuments.value.find((d) => d.id === docId) || null
-  }
-
-  /** Select a page from the suggestion list */
   const selectPageSuggestion = (doc: DocumentType) => {
     linkEditUrl.value = buildPageUrl(doc)
     linkEditTitle.value = doc.title || ''
@@ -411,42 +349,116 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     saveLinkEdit()
   }
 
-  watch(pageSuggestions, () => {
-    pageSuggestionIndex.value = 0
-    // Collapse expanded page sections when suggestions change
-    expandedPageId.value = null
-    expandedPageHeadings.value = []
-  })
+  const selectHeadingSuggestion = (heading: HeadingSuggestion) => {
+    linkEditUrl.value = `#${heading.slug}`
+    headingSuggestionIndex.value = 0
+    saveLinkEdit()
+  }
 
-  // --- Page section (heading) expansion ---
+  /** Opens the link edit popover from the bubble menu toolbar link button. */
+  const openLinkInput = () => {
+    const ed = editor.value
+    if (!ed) return
 
-  /** Extract headings from ProseMirror JSON content (no live editor needed) */
-  function extractHeadingsFromJson(content: Record<string, any>): HeadingSuggestion[] {
-    const headings: HeadingSuggestion[] = []
-    const slugCounts = new Map<string, number>()
+    const { from, to } = ed.state.selection
 
-    function walk(node: any) {
-      if (node.type === 'heading' && node.content) {
-        const text = node.content
-          .filter((c: any) => c.type === 'text')
-          .map((c: any) => c.text || '')
-          .join('')
-          .trim()
-        if (text) {
-          const baseSlug = slugifyHeading(text)
-          const count = slugCounts.get(baseSlug) || 0
-          slugCounts.set(baseSlug, count + 1)
-          const slug = count === 0 ? baseSlug : `${baseSlug}-${count}`
-          headings.push({ level: node.attrs?.level || 1, title: text, slug })
-        }
+    // Get existing link URL if the selection is already linked
+    const linkMark = ed.state.doc
+      .resolve(from)
+      .marks()
+      .find((m: any) => m.type.name === 'link')
+
+    linkEditUrl.value = linkMark?.attrs?.href || ''
+    linkEditTitle.value = ed.state.doc.textBetween(from, to, '') || ''
+    linkEditRange.value = { from, to }
+
+    // Create a synthetic anchor for positioning below the selection
+    try {
+      const coords = ed.view.coordsAtPos(from)
+      const container = ed.view.dom.closest('.relative') as HTMLElement | null
+      if (container) {
+        const containerRect = container.getBoundingClientRect()
+        syntheticAnchor = document.createElement('span')
+        syntheticAnchor.style.cssText = `position:absolute;top:${coords.top - containerRect.top}px;left:${
+          coords.left - containerRect.left
+        }px;height:${coords.bottom - coords.top}px;width:0;pointer-events:none;`
+        container.appendChild(syntheticAnchor)
+        linkHoverEl.value = syntheticAnchor as any
       }
-      if (node.content && Array.isArray(node.content)) {
-        node.content.forEach(walk)
-      }
+    } catch {
+      // Fallback — popover may not position correctly
     }
 
-    walk(content)
-    return headings
+    isLinkEditOpen.value = true
+    isLinkHoverVisible.value = false
+    nextTick(() => {
+      linkEditInputRef.value?.focus()
+      linkEditInputRef.value?.select()
+    })
+  }
+
+  const openLinkEdit = () => {
+    if (!linkHoverEl.value) return
+    linkEditUrl.value = linkHoverUrl.value
+    linkEditTitle.value = linkHoverTitle.value
+    linkEditRange.value = findLinkRange(linkHoverEl.value)
+    isLinkEditOpen.value = true
+    isLinkHoverVisible.value = false
+    nextTick(() => {
+      linkEditInputRef.value?.focus()
+      linkEditInputRef.value?.select()
+    })
+  }
+
+  /** Handle all keyboard events in the URL input — page/heading suggestions + save/cancel */
+  const onLinkEditUrlKeyDown = (e: KeyboardEvent) => {
+    const pages = pageSuggestions.value
+    const headings = headingSuggestions.value
+
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      closeLinkEdit()
+      return
+    }
+
+    if (headings.length) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        headingSuggestionIndex.value = (headingSuggestionIndex.value + 1) % headings.length
+        scrollSuggestionIntoView()
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        headingSuggestionIndex.value = (headingSuggestionIndex.value + headings.length - 1) % headings.length
+        scrollSuggestionIntoView()
+        return
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        selectHeadingSuggestion(headings[headingSuggestionIndex.value])
+      }
+    } else if (pages.length) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        pageSuggestionIndex.value = (pageSuggestionIndex.value + 1) % pages.length
+        scrollSuggestionIntoView()
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        pageSuggestionIndex.value = (pageSuggestionIndex.value + pages.length - 1) % pages.length
+        scrollSuggestionIntoView()
+        return
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        selectPageSuggestion(pages[pageSuggestionIndex.value])
+      }
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      saveLinkEdit()
+    }
   }
 
   /** Toggle section expansion for a page suggestion */
@@ -488,56 +500,32 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
     saveLinkEdit()
   }
 
-  // --- Heading (section) suggestion autocomplete ---
-  const headingSuggestionIndex = ref(0)
-
-  /** Extract all headings from the current editor document */
-  const headingSuggestions = computed<HeadingSuggestion[]>(() => {
-    const query = linkEditUrl.value.trim().toLowerCase()
-    if (!query.startsWith('#') || !isLinkEditOpen.value) return []
-
-    const ed = editor.value
-    if (!ed) return []
-
-    const filter = query.slice(1) // strip leading '#'
-    const headings: HeadingSuggestion[] = []
-    const slugCounts = new Map<string, number>()
-
-    ed.state.doc.descendants((node) => {
-      if (node.type.name !== 'heading') return
-      const text = node.textContent.trim()
-      if (!text) return
-
-      const baseSlug = slugifyHeading(text)
-      const count = slugCounts.get(baseSlug) || 0
-      slugCounts.set(baseSlug, count + 1)
-      const slug = count === 0 ? baseSlug : `${baseSlug}-${count}`
-
-      headings.push({ level: node.attrs.level, title: text, slug })
-    })
-
-    if (!filter) return headings.slice(0, 8)
-
-    return headings.filter((h) => h.title.toLowerCase().includes(filter) || h.slug.includes(filter)).slice(0, 8)
-  })
-
-  const selectHeadingSuggestion = (heading: HeadingSuggestion) => {
-    linkEditUrl.value = `#${heading.slug}`
-    headingSuggestionIndex.value = 0
-    saveLinkEdit()
-  }
-
-  watch(headingSuggestions, () => {
-    headingSuggestionIndex.value = 0
-  })
-
-  /** Scroll the selected suggestion item into view */
-  const scrollSuggestionIntoView = () => {
-    nextTick(() => {
-      const container = document.querySelector('.nc-link-page-suggestions')
-      const selected = container?.querySelector('.is-selected') as HTMLElement | null
-      selected?.scrollIntoView({ block: 'nearest' })
-    })
+  /** Setup hover listeners on the editor container (event delegation).
+   *  Returns a cleanup function that removes the listeners. */
+  const setupLinkHover = (container: HTMLElement): (() => void) => {
+    const onMouseOver = (e: MouseEvent) => {
+      const linkEl = (e.target as HTMLElement).closest?.('a[href]') as HTMLAnchorElement | null
+      if (linkEl) {
+        if (hoverTimeout) clearTimeout(hoverTimeout)
+        hoverTimeout = setTimeout(() => showLinkHover(linkEl), 200)
+      }
+    }
+    const onMouseOut = (e: MouseEvent) => {
+      const linkEl = (e.target as HTMLElement).closest?.('a[href]') as HTMLAnchorElement | null
+      if (linkEl) {
+        if (hoverTimeout) {
+          clearTimeout(hoverTimeout)
+          hoverTimeout = undefined
+        }
+        hideLinkHover()
+      }
+    }
+    container.addEventListener('mouseover', onMouseOver)
+    container.addEventListener('mouseout', onMouseOut)
+    return () => {
+      container.removeEventListener('mouseover', onMouseOver)
+      container.removeEventListener('mouseout', onMouseOut)
+    }
   }
 
   /** Clear pending timeouts — call from onBeforeUnmount */
@@ -578,6 +566,19 @@ export function useDocEditorLinks({ editor, isEditable }: { editor: Ref<Editor |
       closeLinkEdit()
     }
   }
+
+  // ── Watchers ──
+
+  watch(pageSuggestions, () => {
+    pageSuggestionIndex.value = 0
+    // Collapse expanded page sections when suggestions change
+    expandedPageId.value = null
+    expandedPageHeadings.value = []
+  })
+
+  watch(headingSuggestions, () => {
+    headingSuggestionIndex.value = 0
+  })
 
   return {
     // Paste link embed

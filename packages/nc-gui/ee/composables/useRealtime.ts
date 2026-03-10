@@ -52,7 +52,7 @@ export const useRealtime = createSharedComposable(() => {
   const { workflows, activeWorkflowId } = storeToRefs(workflowStore)
 
   const documentStore = useDocumentsStore()
-  const { documents, activeDocumentId, loadedParentIds, expandedDocIds } = storeToRefs(documentStore)
+  const { documents, activeDocumentId, loadedParentIds } = storeToRefs(documentStore)
 
   const { baseExtensions, Extension } = useExtensions()
 

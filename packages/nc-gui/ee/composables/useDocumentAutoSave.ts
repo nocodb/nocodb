@@ -84,15 +84,6 @@ export function useDocumentAutoSave({
     return activeDocument.value?.updated_by
   })
 
-  /** Reload the document from the server, clearing stale state. */
-  const reloadDocument = async () => {
-    if (!doc.value?.id) return
-    // Cancel any pending save — stale content shouldn't overwrite newer version
-    if (saveTimeout.value) clearTimeout(saveTimeout.value)
-    hasUserEdited.value = false
-    await loadAndSetDoc(doc.value.id)
-  }
-
   /** Persist current editor state + title to the backend. */
   const save = async () => {
     if (isStale.value) return
@@ -248,6 +239,15 @@ export function useDocumentAutoSave({
       }
     }
     isLoaded.value = true
+  }
+
+  /** Reload the document from the server, clearing stale state. */
+  const reloadDocument = async () => {
+    if (!doc.value?.id) return
+    // Cancel any pending save — stale content shouldn't overwrite newer version
+    if (saveTimeout.value) clearTimeout(saveTimeout.value)
+    hasUserEdited.value = false
+    await loadAndSetDoc(doc.value.id)
   }
 
   /**

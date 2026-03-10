@@ -6,7 +6,7 @@ defineProps<{
   hideHeader?: boolean
 }>()
 
-const emits = defineEmits(['createTable'])
+defineEmits(['createTable'])
 
 const { $e } = useNuxtApp()
 
@@ -55,13 +55,6 @@ const [searchActive] = useToggle()
 const base = inject(ProjectInj)!
 
 const baseRole = inject(ProjectRoleInj)!
-
-const hasTableCreatePermission = computed(() => {
-  return isUIAllowed('tableCreate', {
-    roles: baseRole.value,
-    source: base.value?.sources?.[0],
-  })
-})
 
 const enableEditModeForSource = (sourceId: string) => {
   if (!isUIAllowed('baseRename')) return

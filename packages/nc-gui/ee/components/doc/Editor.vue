@@ -684,7 +684,7 @@ watch(
 
 // --- Derived state ---
 
-const createdByLabel = computed(() => resolveUserLabel(doc.value?.created_by))
+const _createdByLabel = computed(() => resolveUserLabel(doc.value?.created_by))
 
 const updatedByLabel = computed(() => resolveUserLabel(doc.value?.updated_by))
 
@@ -796,6 +796,8 @@ watch(isEditable, (val) => {
     editor.value.setEditable(val)
   }
 })
+
+const activeFont = ref<'default' | 'serif' | 'mono'>('default')
 
 // Re-load doc when navigating between pages.
 // Watch both docId AND activeProjectId — on a full page reload, activeProjectId
@@ -1051,8 +1053,6 @@ const onRemoveCover = async () => {
 }
 
 const isFullWidth = computed(() => docMeta.value.full_width === true)
-
-const activeFont = ref<'default' | 'serif' | 'mono'>('default')
 
 const setDocFont = async (font: 'default' | 'serif' | 'mono') => {
   if (!doc.value?.id || !base.value?.id || font === activeFont.value) return

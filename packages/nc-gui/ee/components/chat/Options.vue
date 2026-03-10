@@ -41,18 +41,9 @@ const selectOption = (option: string) => {
   }
   answers.value = { ...answers.value, [currentStep.value]: option }
 }
-
-const handleCustomSubmit = () => {
-  const trimmed = customInput.value.trim()
-  if (!trimmed) return
-  if (isSingleQuestion.value) {
-    emits('select', trimmed)
-    return
-  }
-  answers.value = { ...answers.value, [currentStep.value]: trimmed }
-  customInput.value = ''
-  // Auto-advance after custom input (same as clicking Next)
-  nextTick(() => goNext())
+const submitAll = () => {
+  const combined = props.questions.map((q, i) => `${q.question} ${answers.value[i]}`).join('\n')
+  emits('select', combined)
 }
 
 const goNext = () => {
@@ -72,9 +63,17 @@ const goBack = () => {
   }
 }
 
-const submitAll = () => {
-  const combined = props.questions.map((q, i) => `${q.question} ${answers.value[i]}`).join('\n')
-  emits('select', combined)
+const handleCustomSubmit = () => {
+  const trimmed = customInput.value.trim()
+  if (!trimmed) return
+  if (isSingleQuestion.value) {
+    emits('select', trimmed)
+    return
+  }
+  answers.value = { ...answers.value, [currentStep.value]: trimmed }
+  customInput.value = ''
+  // Auto-advance after custom input (same as clicking Next)
+  nextTick(() => goNext())
 }
 
 // Reset step when questions change

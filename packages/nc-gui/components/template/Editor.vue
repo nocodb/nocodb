@@ -622,7 +622,9 @@ async function importTemplate() {
                           input = dayjs(originalInput).format('YYYY-MM-DD')
                         } else {
                           throw new Error(
-                            `Invalid date value "${originalInput}" provided for field "${col.destCn}" in row ${data.indexOf(row) + 1}`,
+                            `Invalid date value "${originalInput}" provided for field "${col.destCn}" in row ${
+                              data.indexOf(row) + 1
+                            }`,
                           )
                         }
                       }

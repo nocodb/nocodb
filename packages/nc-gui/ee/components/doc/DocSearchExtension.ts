@@ -117,6 +117,7 @@ function findMatches(doc: ProseMirrorNode, query: string, caseSensitive: boolean
     // Run the regex over the concatenated block text
     let m: RegExpExecArray | null
     pattern.lastIndex = 0
+    // eslint-disable-next-line no-cond-assign
     while ((m = pattern.exec(blockText)) !== null) {
       if (m[0].length === 0) {
         // Prevent infinite loop on zero-length matches (e.g. `.*`)

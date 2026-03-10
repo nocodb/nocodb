@@ -52,6 +52,8 @@ enum AuditV1OperationTypes {
   DATA_BULK_ALL_DELETE = 'DATA_BULK_ALL_DELETE',
   DATA_BULK_ALL_UPDATE = 'DATA_BULK_ALL_UPDATE',
 
+  DATA_CASCADE_UPDATE = 'DATA_CASCADE_UPDATE',
+
   DATA_LINK = 'DATA_LINK',
   DATA_UNLINK = 'DATA_UNLINK',
 
@@ -551,6 +553,10 @@ export interface DataBulkDeletePayload {}
 export interface DataBulkDeletePayloadRecord {
   data: Record<string, unknown>;
   column_meta: Record<string, ColumnMeta>;
+}
+
+export interface DataCascadeUpdatePayload {
+  source?: 'date_dependency';
 }
 
 /*
@@ -1442,6 +1448,9 @@ const descriptionTemplates = {
     `Record with ID [${audit.row_id}] has been updated`,
   [AuditV1OperationTypes.DATA_DELETE]: (audit: AuditV1<DataDeletePayload>) =>
     `Record with ID [${audit.row_id}] has been deleted`,
+  [AuditV1OperationTypes.DATA_CASCADE_UPDATE]: (
+    _audit: AuditV1<DataCascadeUpdatePayload>
+  ) => `Record was rescheduled to avoid overlap with a conflicting record`,
 
   /*  [AuditV1OperationTypes.DATA_BULK_INSERT]: (
     audit: AuditV1<DataBulkInsertPayload>

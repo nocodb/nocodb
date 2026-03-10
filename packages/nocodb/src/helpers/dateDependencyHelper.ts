@@ -23,6 +23,12 @@ export interface DateDependencyPropagationParams {
   dialect: 'pg' | 'mysql';
   /** When false, all date arithmetic skips weekends (Sat/Sun). Default true. */
   includeWeekends?: boolean;
+  /**
+   * Propagation direction.
+   * - `forward` (default): walk successors (children) and push their dates forward
+   * - `backward`: walk predecessors (parents) and push their dates backward
+   */
+  direction?: 'forward' | 'backward';
 }
 
 // ─── Business-day SQL helpers ─────────────────────────────────────────────
@@ -138,6 +144,7 @@ export function buildDateDependencyPropagationSQL(
     seedIds,
     dialect,
     includeWeekends = true,
+    direction = 'forward',
   } = params;
 
   // Guard: empty seedIds would produce `WHERE ... IN ()` — a syntax error
@@ -147,6 +154,7 @@ export function buildDateDependencyPropagationSQL(
 
   const isPg = dialect === 'pg';
   const skipWeekends = !includeWeekends;
+  const isBackward = direction === 'backward';
 
   // Quote table/column names per dialect
   const qChar = isPg ? '"' : '`';
@@ -209,57 +217,132 @@ export function buildDateDependencyPropagationSQL(
         );
 
   // Build date computation expressions
+  //
+  // Forward: p = predecessor (CTE row), t = successor (table row being adjusted)
+  //   → push t's dates forward when they overlap with p
+  //
+  // Backward: p = successor (CTE row), t = predecessor (table row being adjusted)
+  //   → push t's dates backward when they overlap with p
   let newStartExpr: string;
   let newEndExpr: string;
 
-  switch (connectionType) {
-    case 'end-to-start': {
-      const required = addN('p.end_date', String(bufferDays + 1));
-      newStartExpr =
-        bufferType === 'fixed'
-          ? required
-          : `CASE WHEN t.${sc} <= ${addN(
-              'p.end_date',
-              String(bufferDays),
-            )} THEN ${required} ELSE t.${sc} END`;
-      newEndExpr = addN(`(${newStartExpr})`, dur);
-      break;
+  if (isBackward) {
+    // ── Backward: push predecessor (t) dates earlier ──────────────────────
+    // p = the successor/child (CTE row with already-computed dates)
+    // t = the predecessor/parent (table row being adjusted)
+    switch (connectionType) {
+      case 'end-to-start': {
+        // Constraint: predecessor.end + buffer + 1 <= successor.start
+        // Violation: t.end >= p.start_date - buffer
+        // Fix: t.end = p.start_date - buffer - 1
+        const required = subN('p.start_date', String(bufferDays + 1));
+        newEndExpr =
+          bufferType === 'fixed'
+            ? required
+            : `CASE WHEN t.${ec} >= ${subN(
+                'p.start_date',
+                String(bufferDays),
+              )} THEN ${required} ELSE t.${ec} END`;
+        newStartExpr = subN(`(${newEndExpr})`, dur);
+        break;
+      }
+      case 'end-to-end': {
+        // Constraint: predecessor.end + buffer <= successor.end
+        // Violation: t.end > p.end_date - buffer
+        // Fix: t.end = p.end_date - buffer
+        const required = subN('p.end_date', String(bufferDays));
+        newEndExpr =
+          bufferType === 'fixed'
+            ? required
+            : `CASE WHEN t.${ec} > ${subN(
+                'p.end_date',
+                String(bufferDays),
+              )} THEN ${required} ELSE t.${ec} END`;
+        newStartExpr = subN(`(${newEndExpr})`, dur);
+        break;
+      }
+      case 'start-to-start': {
+        // Constraint: predecessor.start + buffer <= successor.start
+        // Violation: t.start > p.start_date - buffer
+        // Fix: t.start = p.start_date - buffer
+        const required = subN('p.start_date', String(bufferDays));
+        newStartExpr =
+          bufferType === 'fixed'
+            ? required
+            : `CASE WHEN t.${sc} > ${subN(
+                'p.start_date',
+                String(bufferDays),
+              )} THEN ${required} ELSE t.${sc} END`;
+        newEndExpr = addN(`(${newStartExpr})`, dur);
+        break;
+      }
+      case 'start-to-end': {
+        // Constraint: predecessor.start + buffer <= successor.end
+        // Violation: t.start > p.end_date - buffer
+        // Fix: t.start = p.end_date - buffer
+        const required = subN('p.end_date', String(bufferDays));
+        newStartExpr =
+          bufferType === 'fixed'
+            ? required
+            : `CASE WHEN t.${sc} > ${subN(
+                'p.end_date',
+                String(bufferDays),
+              )} THEN ${required} ELSE t.${sc} END`;
+        newEndExpr = addN(`(${newStartExpr})`, dur);
+        break;
+      }
     }
-    case 'end-to-end': {
-      const required = addN('p.end_date', String(bufferDays));
-      newEndExpr =
-        bufferType === 'fixed'
-          ? required
-          : `CASE WHEN t.${ec} < ${addN(
-              'p.end_date',
-              String(bufferDays),
-            )} THEN ${required} ELSE t.${ec} END`;
-      newStartExpr = subN(`(${newEndExpr})`, dur);
-      break;
-    }
-    case 'start-to-start': {
-      const required = addN('p.start_date', String(bufferDays));
-      newStartExpr =
-        bufferType === 'fixed'
-          ? required
-          : `CASE WHEN t.${sc} < ${addN(
-              'p.start_date',
-              String(bufferDays),
-            )} THEN ${required} ELSE t.${sc} END`;
-      newEndExpr = addN(`(${newStartExpr})`, dur);
-      break;
-    }
-    case 'start-to-end': {
-      const required = addN('p.start_date', String(bufferDays));
-      newEndExpr =
-        bufferType === 'fixed'
-          ? required
-          : `CASE WHEN t.${ec} < ${addN(
-              'p.start_date',
-              String(bufferDays),
-            )} THEN ${required} ELSE t.${ec} END`;
-      newStartExpr = subN(`(${newEndExpr})`, dur);
-      break;
+  } else {
+    // ── Forward: push successor (t) dates later ───────────────────────────
+    switch (connectionType) {
+      case 'end-to-start': {
+        const required = addN('p.end_date', String(bufferDays + 1));
+        newStartExpr =
+          bufferType === 'fixed'
+            ? required
+            : `CASE WHEN t.${sc} <= ${addN(
+                'p.end_date',
+                String(bufferDays),
+              )} THEN ${required} ELSE t.${sc} END`;
+        newEndExpr = addN(`(${newStartExpr})`, dur);
+        break;
+      }
+      case 'end-to-end': {
+        const required = addN('p.end_date', String(bufferDays));
+        newEndExpr =
+          bufferType === 'fixed'
+            ? required
+            : `CASE WHEN t.${ec} < ${addN(
+                'p.end_date',
+                String(bufferDays),
+              )} THEN ${required} ELSE t.${ec} END`;
+        newStartExpr = subN(`(${newEndExpr})`, dur);
+        break;
+      }
+      case 'start-to-start': {
+        const required = addN('p.start_date', String(bufferDays));
+        newStartExpr =
+          bufferType === 'fixed'
+            ? required
+            : `CASE WHEN t.${sc} < ${addN(
+                'p.start_date',
+                String(bufferDays),
+              )} THEN ${required} ELSE t.${sc} END`;
+        newEndExpr = addN(`(${newStartExpr})`, dur);
+        break;
+      }
+      case 'start-to-end': {
+        const required = addN('p.start_date', String(bufferDays));
+        newEndExpr =
+          bufferType === 'fixed'
+            ? required
+            : `CASE WHEN t.${ec} < ${addN(
+                'p.start_date',
+                String(bufferDays),
+              )} THEN ${required} ELSE t.${ec} END`;
+        newStartExpr = subN(`(${newEndExpr})`, dur);
+        break;
+      }
     }
   }
 
@@ -275,6 +358,22 @@ export function buildDateDependencyPropagationSQL(
   const cycleCheck = isPg
     ? `NOT (${castText(`t.${pk}`)} = ANY(p.path))`
     : `NOT FIND_IN_SET(${castText(`t.${pk}`)}, p.path)`;
+
+  // Backward propagation needs FK value in CTE to walk up the parent chain
+  const anchorFkVal = isBackward ? `,\n    ${castText(`t.${fk}`)}` : '';
+  const recursiveFkVal = isBackward ? `,\n    ${castText(`t.${fk}`)}` : '';
+
+  // Join direction:
+  //   Forward:  t.fk = p.pk   (find children of CTE row)
+  //   Backward: t.pk = p.fk_val (find parent of CTE row)
+  const recursiveJoin = isBackward
+    ? `${castText(`t.${pk}`)} = p.fk_val`
+    : `${castText(`t.${fk}`)} = p.pk`;
+
+  // CTE column list
+  const cteColumns = isBackward
+    ? 'pk, fk_val, start_date, end_date, level, path'
+    : 'pk, start_date, end_date, level, path';
 
   // Extra PK columns for composite PKs — selected from the joined table `t`
   const extraPkSelect = extraPkColNames
@@ -321,9 +420,9 @@ export function buildDateDependencyPropagationSQL(
     : `NOT (old_start <=> new_start) OR NOT (old_end <=> new_end)`;
 
   const sql = `
-WITH RECURSIVE propagated(pk, start_date, end_date, level, path) AS (
+WITH RECURSIVE propagated(${cteColumns}) AS (
   SELECT
-    ${castText(`t.${pk}`)},
+    ${castText(`t.${pk}`)}${anchorFkVal},
     t.${sc},
     t.${ec},
     0,
@@ -334,13 +433,13 @@ WITH RECURSIVE propagated(pk, start_date, end_date, level, path) AS (
   UNION ALL
 
   SELECT
-    ${castText(`t.${pk}`)},
+    ${castText(`t.${pk}`)}${recursiveFkVal},
     ${castDate(newStartExpr)},
     ${castDate(newEndExpr)},
     p.level + 1,
     ${recursivePath}
   FROM ${quotedTn} t
-  JOIN propagated p ON ${castText(`t.${fk}`)} = p.pk
+  JOIN propagated p ON ${recursiveJoin}
   WHERE ${cycleCheck}
     AND t.${sc} IS NOT NULL
     AND t.${ec} IS NOT NULL

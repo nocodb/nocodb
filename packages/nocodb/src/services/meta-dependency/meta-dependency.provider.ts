@@ -3,8 +3,14 @@ import {
   type MetaEventHandler,
 } from './types';
 import { ColumnTimezoneUpdateDependencyHandler } from '~/services/meta-dependency/handler/column/column-timezone-update.handler';
+import { ColumnDeleteDateDependencyHandler } from '~/services/meta-dependency/handler/column/column-delete-date-dependency.handler';
+import { ColumnUpdateDateDependencyHandler } from '~/services/meta-dependency/handler/column/column-update-date-dependency.handler';
 
-export const MetaDependencyServices = [ColumnTimezoneUpdateDependencyHandler];
+export const MetaDependencyServices = [
+  ColumnTimezoneUpdateDependencyHandler,
+  ColumnDeleteDateDependencyHandler,
+  ColumnUpdateDateDependencyHandler,
+];
 
 export const MetaDependencyModuleProvider = {
   provide: META_DEPENDENCY_MODULE_PROVIDER_KEY,

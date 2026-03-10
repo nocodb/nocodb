@@ -1234,8 +1234,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
    * Results are streamed in batches of 500 and bulk-updated so that updated_at,
    * updated_by, hooks, broadcasts, and audit all go through the standard path.
    */
-  private _isDatePropagating = false;
-
   protected async propagateDateDependency(
     changedRowIds: string[],
     req: NcRequest,
@@ -1243,8 +1241,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     if (!changedRowIds?.length) return;
 
     // Guard against infinite recursion — bulkUpdate triggers afterBulkUpdate
-    // which calls propagateDateDependency again
-    if (this._isDatePropagating) return;
+    // which calls propagateDateDependency again. Uses context.additionalContext
+    // instead of an instance property so the flag survives across BaseModelSqlv2
+    // instances (bulkUpdate creates a new instance internally).
+    if (this.context.additionalContext?.isDatePropagating) return;
 
     // Recursive CTE: PostgreSQL and MySQL 8+ only
     if (!this.isPg && !this.isMySQL) return;
@@ -1312,20 +1312,35 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
     }
 
-    const { sql, bindings } = buildDateDependencyPropagationSQL({
+    const commonParams = {
       tn: this.getTnPath(this.model),
       pkColName: parentCol.column_name,
       extraPkColNames: extraPkCols.map((c) => c.column_name),
       fkColName: childCol.column_name,
       startColName: startCol.column_name,
       endColName: endCol.column_name,
-      connectionType: rule.dependency_connection_type ?? 'end-to-start',
+      connectionType:
+        (rule.dependency_connection_type as
+          | 'end-to-start'
+          | 'end-to-end'
+          | 'start-to-start'
+          | 'start-to-end') ?? 'end-to-start',
       bufferType:
         (rule.dependency_buffer_type as 'flexible' | 'fixed') ?? 'flexible',
       bufferDays: rule.dependency_buffer_days ?? 0,
       seedIds,
-      dialect: this.isPg ? 'pg' : 'mysql',
+      dialect: (this.isPg ? 'pg' : 'mysql') as 'pg' | 'mysql',
       includeWeekends: rule.include_weekends ?? true,
+    };
+
+    // Build both backward (push predecessors earlier) and forward (push successors later) CTEs
+    const backwardResult = buildDateDependencyPropagationSQL({
+      ...commonParams,
+      direction: 'backward',
+    });
+    const forwardResult = buildDateDependencyPropagationSQL({
+      ...commonParams,
+      direction: 'forward',
     });
 
     const BATCH_SIZE = 500;
@@ -1348,53 +1363,63 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     const savedSocketId = this.context.socket_id;
     this.context.socket_id = undefined;
 
-    this._isDatePropagating = true;
+    this.context.additionalContext = {
+      ...this.context.additionalContext,
+      isDatePropagating: true,
+    };
     try {
       const isExternal = (this.dbDriver as any).isExternal;
 
-      if (isExternal) {
-        // External sources: stream rows via NDJSON endpoint, batch updates
-        const rawSql = this.dbDriver.raw(sql, bindings).toQuery();
-        const rowStream = runExternalStream(
-          this.sanitizeQuery(rawSql),
-          (this.dbDriver as any).extDb,
-        );
-        let batch: Record<string, any>[] = [];
+      // Run backward propagation first (push predecessors earlier),
+      // then forward propagation (push successors later)
+      for (const { sql, bindings } of [backwardResult, forwardResult]) {
+        if (isExternal) {
+          // External sources: stream rows via NDJSON endpoint, batch updates
+          const rawSql = this.dbDriver.raw(sql, bindings).toQuery();
+          const rowStream = runExternalStream(
+            this.sanitizeQuery(rawSql),
+            (this.dbDriver as any).extDb,
+          );
+          let batch: Record<string, any>[] = [];
 
-        for await (const row of rowStream) {
-          batch.push(toUpdateRow(row));
+          for await (const row of rowStream) {
+            batch.push(toUpdateRow(row));
 
-          if (batch.length >= BATCH_SIZE) {
-            await this.bulkUpdate(batch, { cookie: req });
-            batch = [];
+            if (batch.length >= BATCH_SIZE) {
+              await this.bulkUpdate(batch, { cookie: req });
+              batch = [];
+            }
           }
-        }
 
-        if (batch.length) {
-          await this.bulkUpdate(batch, { cookie: req });
-        }
-      } else {
-        // Internal sources: stream in batches to avoid loading all into memory
-        const stream = this.dbDriver.raw(sql, bindings).stream();
-        let batch: Record<string, any>[] = [];
-
-        for await (const row of stream) {
-          batch.push(toUpdateRow(row));
-
-          if (batch.length >= BATCH_SIZE) {
+          if (batch.length) {
             await this.bulkUpdate(batch, { cookie: req });
-            batch = [];
           }
-        }
+        } else {
+          // Internal sources: stream in batches to avoid loading all into memory
+          const stream = this.dbDriver.raw(sql, bindings).stream();
+          let batch: Record<string, any>[] = [];
 
-        if (batch.length) {
-          await this.bulkUpdate(batch, { cookie: req });
+          for await (const row of stream) {
+            batch.push(toUpdateRow(row));
+
+            if (batch.length >= BATCH_SIZE) {
+              await this.bulkUpdate(batch, { cookie: req });
+              batch = [];
+            }
+          }
+
+          if (batch.length) {
+            await this.bulkUpdate(batch, { cookie: req });
+          }
         }
       }
     } catch (err: any) {
       this.logger.error('Date dependency propagation failed', err.stack);
     } finally {
-      this._isDatePropagating = false;
+      this.context.additionalContext = {
+        ...this.context.additionalContext,
+        isDatePropagating: false,
+      };
       this.context.socket_id = savedSocketId;
     }
   }
@@ -3781,8 +3806,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               }) as UpdatePayload;
 
               if (updateDiff) {
+                const isCascade =
+                  this.context.additionalContext?.isDatePropagating;
+
                 return await generateAuditV1Payload<DataUpdatePayload>(
-                  AuditV1OperationTypes.DATA_UPDATE,
+                  isCascade
+                    ? AuditV1OperationTypes.DATA_CASCADE_UPDATE
+                    : AuditV1OperationTypes.DATA_UPDATE,
                   {
                     context: {
                       ...this.context,
@@ -3800,6 +3830,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
                         d,
                         prevData?.[i],
                       ),
+                      ...(isCascade
+                        ? { source: 'date_dependency' }
+                        : {}),
                     },
                     req,
                   },

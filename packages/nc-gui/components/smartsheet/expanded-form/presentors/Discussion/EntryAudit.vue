@@ -74,6 +74,12 @@ const createdBy = computed(() => {
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'" class="font-weight-500 text-nc-content-gray-subtle2">
           updated {{ fieldsChanged }} fields
         </span>
+        <span
+          v-else-if="props.auditGroup.audit?.op_type === 'DATA_CASCADE_UPDATE'"
+          class="font-weight-500 text-nc-content-gray-subtle2"
+        >
+          Record was rescheduled to avoid overlap with a conflicting record
+        </span>
         <span v-else-if="props.auditGroup.audit?.op_type === 'DATA_LINK'" class="font-weight-500 text-nc-content-gray-subtle2">
           updated 1 field
         </span>
@@ -94,7 +100,7 @@ const createdBy = computed(() => {
         <p class="text-sm font-weight-500 mb-1 ml-6.5">Record was created.</p>
       </div>
     </template>
-    <template v-else-if="props.auditGroup.audit?.op_type === 'DATA_UPDATE'">
+    <template v-else-if="['DATA_UPDATE', 'DATA_CASCADE_UPDATE'].includes(props.auditGroup.audit?.op_type)">
       <SmartsheetExpandedFormPresentorsDiscussionAuditInfoExpressive :audit="props.auditGroup.audit" />
     </template>
     <template v-else-if="['DATA_LINK', 'DATA_UNLINK'].includes(props.auditGroup.audit?.op_type)">

@@ -26,4 +26,6 @@ export default class DateDependency {
   public static async isColumnUsed(..._args: any[]): Promise<boolean> {
     return false;
   }
+
+  public static async clearColumnRef(..._args: any[]): Promise<void> {}
 }

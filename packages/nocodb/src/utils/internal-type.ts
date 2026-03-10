@@ -62,7 +62,7 @@ export type InternalPOSTResponseType = Promise<
       hasBreakingChanges: boolean;
       entities: {
         type: DependencyTableType;
-        entity: Dashboard | Workflow;
+        entity: Dashboard | Workflow | Model;
       }[];
     }
   | DataReflection

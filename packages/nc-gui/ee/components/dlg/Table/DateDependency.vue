@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, DateDependencyReqType, DateDependencyType } from 'nocodb-sdk'
+import type { ColumnType, DateDependencyReqType, DateDependencyType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { PlanFeatureTypes, UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -83,7 +83,7 @@ const linkOptions = computed(() =>
   tableColumns.value
     .filter((c) => {
       if (!isLinksOrLTAR(c)) return false
-      const opts = (c as any).colOptions ?? {}
+      const opts = (c.colOptions as LinkToAnotherRecordType) ?? {}
       return opts.type === 'hm' && opts.fk_related_model_id === props.tableId
     })
     .map((c) => ({ value: c.id, label: c.title, col: c })),
@@ -130,7 +130,7 @@ async function save() {
       activeWorkspaceId.value,
       activeProjectId.value,
       { operation: 'updateDateDependency', fk_model_id: props.tableId },
-      form,
+      { ...form, dependency_buffer_days: Number(form.dependency_buffer_days) || 0 },
     )
     if (tableMeta.value) {
       tableMeta.value.date_dependency = { ...rule.value, ...form, ...result }
@@ -158,7 +158,6 @@ async function deleteRule() {
     }
     Object.assign(form, { ...defaultForm })
     savedForm.value = { ...defaultForm }
-    message.success(t('msg.success.deleted'))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -170,6 +169,7 @@ watch(visible, async (val) => {
   if (val) {
     await loadTableMeta(props.tableId)
     const initial = rule.value ? { ...defaultForm, ...rule.value } : { ...defaultForm }
+    initial.dependency_buffer_days = Number(initial.dependency_buffer_days) || 0
     Object.assign(form, initial)
     savedForm.value = { ...initial }
     clearValidate()
@@ -378,11 +378,7 @@ watch(visible, async (val) => {
                   <div class="text-captionSm text-nc-content-gray-subtle mb-1">
                     {{ $t('labels.dateDependency.bufferDays') }}
                   </div>
-                  <NcNonNullableNumberInput
-                    v-model="form.dependency_buffer_days"
-                    :min="0"
-                    :disabled="!cascadeAvailable"
-                  />
+                  <NcNonNullableNumberInput v-model="form.dependency_buffer_days" :min="0" :disabled="!cascadeAvailable" />
                 </div>
 
                 <div class="flex items-center gap-2 pt-5">

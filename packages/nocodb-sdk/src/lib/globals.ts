@@ -393,6 +393,7 @@ export enum DependencyTableType {
   View = 'view',
   Widget = 'widget',
   Workflow = 'workflow',
+  DateDependency = 'date_dependency',
 }
 
 export enum BaseVersion {

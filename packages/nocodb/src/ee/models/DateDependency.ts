@@ -1,9 +1,11 @@
 import DateDependencyCE from 'src/models/DateDependency';
+import { DependencyTableType } from 'nocodb-sdk';
 import type { DateDependencyType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
+import DependencyTracker from '~/models/DependencyTracker';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -233,5 +235,78 @@ export default class DateDependency
       },
     );
     return rows.length > 0;
+  }
+
+  /**
+   * Nullify any date dependency field references to a deleted column.
+   * If the deleted column was a required field (start/end date), deactivate the rule.
+   */
+  public static async clearColumnRef(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    const rows = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DATE_DEPENDENCY,
+      {
+        xcCondition: {
+          _or: [
+            { fk_start_date_field_id: { eq: columnId } },
+            { fk_end_date_field_id: { eq: columnId } },
+            { fk_duration_field_id: { eq: columnId } },
+            { fk_dependency_linkrow_field_id: { eq: columnId } },
+          ],
+        },
+      },
+    );
+
+    for (const row of rows) {
+      const updateObj: Record<string, any> = {};
+
+      if (row.fk_start_date_field_id === columnId) {
+        updateObj.fk_start_date_field_id = null;
+        updateObj.is_active = false;
+      }
+      if (row.fk_end_date_field_id === columnId) {
+        updateObj.fk_end_date_field_id = null;
+        updateObj.is_active = false;
+      }
+      if (row.fk_duration_field_id === columnId) {
+        updateObj.fk_duration_field_id = null;
+      }
+      if (row.fk_dependency_linkrow_field_id === columnId) {
+        updateObj.fk_dependency_linkrow_field_id = null;
+      }
+
+      await DateDependency.update(context, row.id, updateObj, ncMeta);
+
+      // Re-sync DependencyTracker with remaining column refs
+      const updated = await DateDependency.get(context, row.id, ncMeta);
+      if (updated) {
+        const remainingCols = [
+          updated.fk_start_date_field_id,
+          updated.fk_end_date_field_id,
+          updated.fk_duration_field_id,
+          updated.fk_dependency_linkrow_field_id,
+        ].filter(Boolean);
+
+        if (remainingCols.length) {
+          await DependencyTracker.trackDependencies(
+            context,
+            DependencyTableType.DateDependency,
+            row.id,
+            { columns: remainingCols.map((id) => ({ id })) },
+          );
+        } else {
+          await DependencyTracker.clearDependencies(
+            context,
+            DependencyTableType.DateDependency,
+            row.id,
+          );
+        }
+      }
+    }
   }
 }

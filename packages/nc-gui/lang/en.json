@@ -1341,7 +1341,8 @@
         "flexible": "Flexible (minimum gap)",
         "fixed": "Fixed"
       },
-      "cascadeNotSupported": "Cascade propagation only available in NocoDB default source. External databases and MySQL are not supported."
+      "cascadeNotSupported": "Cascade propagation is only supported on PostgreSQL and MySQL sources.",
+      "enabled": "Date dependencies enabled"
     },
     "pinToToolbar": "Pin to toolbar",
     "unpinFromToolbar": "Unpin from toolbar",

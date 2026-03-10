@@ -1,9 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
+import { DependencyTableType, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import type { DateDependencyReqType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { Column, DateDependency, Model } from '~/models';
+import { validatePayload } from '~/helpers/apiHelpers';
+import { Column, DateDependency, DependencyTracker, Model } from '~/models';
 
 @Injectable()
 export class DateDependencyService {
@@ -23,6 +24,11 @@ export class DateDependencyService {
       body: DateDependencyReqType;
     },
   ): Promise<DateDependency> {
+    validatePayload(
+      'swagger.json#/components/schemas/DateDependencyReq',
+      param.body,
+    );
+
     const model = param.modelId && (await Model.get(context, param.modelId));
     if (!model) NcError.get(context).tableNotFound(param.modelId);
 
@@ -30,18 +36,57 @@ export class DateDependencyService {
 
     const existing = await DateDependency.getByModelId(context, param.modelId);
 
+    let result: DateDependency;
+
     if (existing) {
-      return DateDependency.update(context, existing.id, param.body);
+      result = await DateDependency.update(context, existing.id, param.body);
+    } else {
+      result = await DateDependency.insert(context, {
+        fk_model_id: param.modelId,
+        ...param.body,
+      });
     }
 
-    return DateDependency.insert(context, {
-      fk_model_id: param.modelId,
-      ...param.body,
-    });
+    await this.syncDependencyTracker(context, result);
+
+    return result;
   }
 
   async delete(context: NcContext, param: { modelId: string }): Promise<void> {
+    const existing = await DateDependency.getByModelId(context, param.modelId);
+    if (existing?.id) {
+      await DependencyTracker.clearDependencies(
+        context,
+        DependencyTableType.DateDependency,
+        existing.id,
+      );
+    }
     await DateDependency.deleteByModelId(context, param.modelId);
+  }
+
+  /**
+   * Syncs the DependencyTracker with the column references used by a
+   * date dependency rule so that column deletion warnings include it.
+   */
+  private async syncDependencyTracker(
+    context: NcContext,
+    rule: DateDependency,
+  ): Promise<void> {
+    if (!rule?.id) return;
+
+    const columnIds = [
+      rule.fk_start_date_field_id,
+      rule.fk_end_date_field_id,
+      rule.fk_duration_field_id,
+      rule.fk_dependency_linkrow_field_id,
+    ].filter(Boolean);
+
+    await DependencyTracker.trackDependencies(
+      context,
+      DependencyTableType.DateDependency,
+      rule.id,
+      { columns: columnIds.map((id) => ({ id })) },
+    );
   }
 
   /**
@@ -77,7 +122,10 @@ export class DateDependencyService {
 
     if (body.fk_duration_field_id) {
       const col = colById.get(body.fk_duration_field_id);
-      if (!col || ![UITypes.Duration, UITypes.Number].includes(col.uidt as UITypes)) {
+      if (
+        !col ||
+        ![UITypes.Duration, UITypes.Number].includes(col.uidt as UITypes)
+      ) {
         NcError.get(context).badRequest(
           'Duration field must be a Duration or Number type column belonging to this table',
         );

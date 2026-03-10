@@ -213,7 +213,19 @@ function isV0Audit(audit: AuditType) {
                 </div>
               </div>
             </div>
-            <template v-else-if="['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE'].includes(audit?.op_type)">
+            <template
+              v-else-if="
+                ['DATA_UPDATE', 'DATA_BULK_UPDATE', 'DATA_BULK_ALL_UPDATE', 'DATA_CASCADE_UPDATE'].includes(
+                  audit?.op_type,
+                )
+              "
+            >
+              <div
+                v-if="audit?.op_type === 'DATA_CASCADE_UPDATE'"
+                class="pl-9 text-xs text-nc-content-gray-muted mb-1"
+              >
+                Record was rescheduled to avoid overlap with a conflicting record
+              </div>
               <div class="ml-9 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight divide-y">
                 <SmartsheetExpandedFormSidebarAuditMiniItem :audit="audit" />
               </div>

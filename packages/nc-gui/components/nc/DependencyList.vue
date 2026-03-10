@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DashboardType, WorkflowType } from 'nocodb-sdk'
+import type { DashboardType, TableType, WorkflowType } from 'nocodb-sdk'
 import { DependencyTableType } from 'nocodb-sdk'
 
 interface Props {
@@ -7,7 +7,7 @@ interface Props {
   hasBreakingChanges?: boolean
   entities?: Array<{
     type: DependencyTableType
-    entity: DashboardType | WorkflowType
+    entity: DashboardType | WorkflowType | TableType
   }>
   action?: 'delete' | 'update' | 'rename' | string
   entityType?: DependencyTableType | string
@@ -31,6 +31,12 @@ const dashboards = computed(() => {
   return props.entities?.filter((e) => e.type === DependencyTableType.Widget).map((e) => e.entity as DashboardType) || []
 })
 
+const dateDependencyTables = computed(() => {
+  return (
+    props.entities?.filter((e) => e.type === DependencyTableType.DateDependency).map((e) => e.entity as TableType) || []
+  )
+})
+
 const totalCount = computed(() => {
   return props.entities?.length || 0
 })
@@ -46,7 +52,7 @@ const dependencyMessage = computed(() => {
   const actionText = t(`general.${gerundAction}`)
   const entityText = t(`objects.${props.entityType}`)
   return t('labels.changingEntityWillImpact', {
-    action: actionText.toLowerCase(),
+    action: actionText.charAt(0).toUpperCase() + actionText.slice(1).toLowerCase(),
     entity: entityText,
     count: totalCount.value,
   })
@@ -96,6 +102,22 @@ const dependencyMessage = computed(() => {
               >
                 <NcIconDashboard :dashboard="dashboard" class="w-4 h-4 flex-none" />
                 <span class="truncate">{{ dashboard.title }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="dateDependencyTables && dateDependencyTables.length > 0">
+            <div class="text-sm font-medium text-nc-content-gray-emphasis mb-2">
+              {{ $t('labels.dateDependency.title') }} ({{ dateDependencyTables.length }})
+            </div>
+            <div class="space-y-1.5">
+              <div
+                v-for="table in dateDependencyTables"
+                :key="table.id"
+                class="flex items-center gap-2 text-sm text-nc-content-gray-subtle hover:text-nc-content-gray-emphasis transition-colors"
+              >
+                <GeneralIcon icon="table" class="w-4 h-4 flex-none" />
+                <span class="truncate">{{ table.title }}</span>
               </div>
             </div>
           </div>

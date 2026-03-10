@@ -192,6 +192,7 @@ export default class Audit extends AuditCE {
       AuditV1OperationTypes.DATA_INSERT,
       AuditV1OperationTypes.DATA_DELETE,
       AuditV1OperationTypes.DATA_UPDATE,
+      AuditV1OperationTypes.DATA_CASCADE_UPDATE,
       AuditV1OperationTypes.DATA_LINK,
       AuditV1OperationTypes.DATA_UNLINK,
       AuditV1OperationTypes.DATA_BULK_ALL_UPDATE,

@@ -212,6 +212,7 @@ export function generateGroupPath(data?: CanvasGroup) {
   return path
 }
 
+// Index-based comparison instead of JSON.stringify/join — avoids string allocation per call
 export function comparePath(pathA?: Array<number | string> | null, pathB?: Array<number | string> | null) {
   if (!ncIsArray(pathA) || !ncIsArray(pathB)) {
     return false

@@ -31,6 +31,8 @@ export const formulaTextSegmentsCache: LRUCache<string, Array<{ text: string; ur
   max: 1000,
 })
 
+// Sized for 2K+ rows × multiple columns — smaller max causes constant eviction and
+// re-evaluation of validateRowFilters during scroll, leading to 40ms+ frame spikes
 export const rowColouringCache: LRUCache<string, RowColouringEvaluatedResultType> = new LRUCache({
   max: 10000,
 })

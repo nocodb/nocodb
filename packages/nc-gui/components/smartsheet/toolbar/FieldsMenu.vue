@@ -896,7 +896,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               v-model="fields"
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
-              :disabled="isFieldsMenuReadOnly"
+              :disabled="isFieldsMenuReadOnly || isMobileMode"
               :filter="isTouchEvent"
               @change="onMove($event)"
               @start="isDragging = true"

@@ -71,15 +71,16 @@ const hasTableCreatePermission = computed(() => {
       </DashboardSidebarHeaderWrapper>
 
       <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section !pt-1 !pb-0.5 flex flex-col">
-        <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
+        <div v-if="hasTableCreatePermission" class="flex items-center w-full">
           <!-- Docs tab: direct create (no dropdown — only one option) -->
           <NcButton
             v-if="activeSidebarTab === 'docs'"
             v-e="['c:document:create:sidebar']"
             type="text"
             size="small"
+            mobile-size="medium"
             full-width
-            class="nc-home-create-new-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
+            class="nc-home-create-new-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !w-full !px-3"
             data-testid="nc-home-create-new-btn"
             @click="createDocument(base.id!)"
           >
@@ -95,7 +96,7 @@ const hasTableCreatePermission = computed(() => {
               type="text"
               size="small"
               full-width
-              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
+              class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"
               data-testid="nc-home-create-new-btn"
             >

@@ -711,7 +711,7 @@ const enabledOptions = computed(() => {
               data-testid="nc-sidebar-table-create-view-btn"
               @click.stop
             >
-              <NcTooltip :title="$t('activity.createView')" hide-on-click>
+              <NcTooltip :title="$t('activity.createView')" hide-on-click :placement="isMobileMode ? 'topRight' : undefined">
                 <GeneralIcon icon="plus" class="!text-current text-[16px]" />
               </NcTooltip>
             </NcButton>

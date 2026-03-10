@@ -116,3 +116,10 @@
     background-color: #141414;
   }
 }
+
+// In small screen item height get increased which will show content top aligned, to fix this we have to keep child height full
+.ant-select-dropdown .ant-select-item-option-content {
+  > *:only-child {
+    height: 100%;
+  }
+}

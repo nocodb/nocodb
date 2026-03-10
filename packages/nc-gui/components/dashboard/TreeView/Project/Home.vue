@@ -58,11 +58,12 @@ const hasTableCreatePermission = computed(() => {
       </DashboardSidebarHeaderWrapper>
 
       <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section !pt-1 !pb-0.5 flex flex-col">
-        <div v-if="hasTableCreatePermission" class="flex items-center w-full xs:hidden">
+        <div v-if="hasTableCreatePermission" class="flex items-center w-full">
           <NcDropdown v-model:visible="isVisibleCreateNew">
             <NcButton
               type="text"
               size="small"
+              mobile-size="medium"
               full-width
               class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !xs:hidden !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"

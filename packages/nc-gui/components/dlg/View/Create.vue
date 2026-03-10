@@ -1682,8 +1682,11 @@ watch(activeBaseId, () => {
           <div class="flex !text-nc-content-gray-subtle items-center gap-2">
             <GeneralIcon icon="plus" class="h-4 w-4" />
 
-            <span class="first-letter:capitalize">
+            <span class="first-letter:capitalize hidden sm:inline">
               {{ $t('labels.addDescription') }}
+            </span>
+            <span class="first-letter:capitalize sm:hidden">
+              {{ $t('labels.description') }}
             </span>
           </div>
         </NcButton>

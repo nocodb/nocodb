@@ -341,7 +341,6 @@ watch(
           <DashboardTreeViewViewsList
             v-if="expandedSections[section.id!] || getActiveViewForSection(section.id).length"
             :section-views="expandedSections[section.id!] ? getViewsInSection(section.id) : getActiveViewForSection(section.id)"
-
             :is-in-section="true"
           />
         </div>

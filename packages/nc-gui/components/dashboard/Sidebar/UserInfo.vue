@@ -89,8 +89,6 @@ const openExperimentationMenu = () => {
 
 const accountUrl = computed(() => '/account/profile')
 
-
-
 const copyEmail = () => {
   if (!user?.value?.email) return
 
@@ -126,7 +124,7 @@ const openKeyboardShortcutDialog = () => {
       <NcDropdown
         v-model:visible="isMenuOpen"
         placement="rightBottom"
-        :overlay-class-name="`!min-w-44 md:!min-w-64 nc-user-menu-dropdown`"
+        overlay-class-name="!min-w-44 md:!min-w-64 nc-user-menu-dropdown"
         :align="{ offset: [12, 3] }"
       >
         <NcTooltip :disabled="isMobileMode" placement="right" hide-on-click :arrow="false">

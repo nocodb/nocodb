@@ -38,8 +38,7 @@ const animationDuration = 250
 
 const viewportWidth = ref(window.innerWidth)
 
-const { isPanelExpanded: isChatPanelExpanded, chatPanelWidth: chatPanelWidthPx, isResizing: isChatResizing } =
-  useChatPanel()
+const { isPanelExpanded: isChatPanelExpanded, chatPanelWidth: chatPanelWidthPx, isResizing: isChatResizing } = useChatPanel()
 
 const chatOffset = computed(() => (isChatPanelExpanded.value ? chatPanelWidthPx.value : 0))
 
@@ -250,9 +249,7 @@ watch([isChatPanelExpanded, chatPanelWidthPx], () => {
 
   // Compute percentage relative to actual Splitpanes container width (not viewportWidth)
   // to preserve sidebar pixel width exactly — container = viewportWidth - miniSidebar
-  const containerWidth = isMiniSidebarVisible.value
-    ? viewportWidth.value - miniSidebarWidth.value
-    : viewportWidth.value
+  const containerWidth = isMiniSidebarVisible.value ? viewportWidth.value - miniSidebarWidth.value : viewportWidth.value
   if (containerWidth > 0) {
     leftSidebarWidthPercent.value = (currentSidebarSize.value / containerWidth) * 100
   }

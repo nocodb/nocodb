@@ -126,17 +126,17 @@ const _ = (window as any).ResizeObserver
 
 <template>
   <a-config-provider>
-      <NuxtLayout :name="disableBaseLayout ? false : 'base'">
-        <ErrorBoundary>
-          <NuxtPage :key="key" :transition="false" />
-        </ErrorBoundary>
-      </NuxtLayout>
-    </a-config-provider>
+    <NuxtLayout :name="disableBaseLayout ? false : 'base'">
+      <ErrorBoundary>
+        <NuxtPage :key="key" :transition="false" />
+      </ErrorBoundary>
+    </NuxtLayout>
+  </a-config-provider>
 
-    <ErrorBoundary>
-      <div>
-        <!-- Page Loading Indicator -->
-        <NcNuxtLoadingIndicator />
+  <ErrorBoundary>
+    <div>
+      <!-- Page Loading Indicator -->
+      <NcNuxtLoadingIndicator />
 
       <!-- Command Menu -->
       <CmdK

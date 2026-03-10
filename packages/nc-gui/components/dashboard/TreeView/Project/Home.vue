@@ -89,7 +89,7 @@ const hasTableCreatePermission = computed(() => {
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <!-- Data tab -->
       <template v-if="activeSidebarTab === 'data'">
-        <Table :base-id="base.id" @create-table="addNewProjectChildEntity()" hide-header />
+        <Table :base-id="base.id" hide-header @create-table="addNewProjectChildEntity()" />
       </template>
 
       <!-- Settings panel -->
@@ -101,7 +101,7 @@ const hasTableCreatePermission = computed(() => {
 
       <!-- Fallback to data -->
       <template v-else>
-        <Table :base-id="base.id" @create-table="addNewProjectChildEntity()" hide-header />
+        <Table :base-id="base.id" hide-header @create-table="addNewProjectChildEntity()" />
       </template>
     </div>
 

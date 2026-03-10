@@ -20,7 +20,7 @@
  *
  * Pattern reference: DocHeadingCollapseExtension.ts, DocActiveBlockPlugin.ts
  */
-import { Plugin, PluginKey, NodeSelection } from '@tiptap/pm/state'
+import { NodeSelection, Plugin, PluginKey } from '@tiptap/pm/state'
 import type { EditorView } from '@tiptap/pm/view'
 import { Extension } from '@tiptap/core'
 import type { Node as PmNode } from '@tiptap/pm/model'
@@ -129,11 +129,7 @@ function resolveBlockAtCoords(view: EditorView, x: number, y: number): number {
  * not two per block — so it never jumps between two pixel locations
  * for the same insertion result.
  */
-function findDropTarget(
-  view: EditorView,
-  clientY: number,
-  sourcePos: number,
-): { insertPos: number } | null {
+function findDropTarget(view: EditorView, clientY: number, sourcePos: number): { insertPos: number } | null {
   const doc = view.state.doc
   const pmRect = view.dom.getBoundingClientRect()
   const probeX = pmRect.left + 4
@@ -529,7 +525,7 @@ function createDragHandlePlugin(): Plugin<DragHandleState> {
       }
 
       /** Try to set a NodeSelection on the block at `pos`, silently no-op on failure. */
-      const setSelectionSafe = (tr: ReturnType<typeof editorView.state.tr['delete']>, pos: number) => {
+      const setSelectionSafe = (tr: ReturnType<(typeof editorView.state.tr)['delete']>, pos: number) => {
         try {
           const $pos = tr.doc.resolve(pos)
           if ($pos.nodeAfter && NodeSelection.isSelectable($pos.nodeAfter)) {

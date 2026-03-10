@@ -288,10 +288,7 @@ onBeforeUnmount(() => {
 <template>
   <div data-testid="nc-docs-sidebar-pages-list">
     <!-- Empty state: no documents yet -->
-    <div
-      v-if="!baseDocuments.length"
-      class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
-    >
+    <div v-if="!baseDocuments.length" class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal">
       {{ $t('labels.noDocuments') }}
     </div>
 

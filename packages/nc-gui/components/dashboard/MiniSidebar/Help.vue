@@ -60,6 +60,16 @@ const helpItems = computed<CategoryItemType[]>(() => {
           link: '',
           subItems: [
             {
+              title: t('labels.dataApiV3'),
+              e: 'c:nocodb:data-api-v3-open',
+              link: 'https://nocodb.com/apis/v3/data',
+            },
+            {
+              title: t('labels.metaApiV3'),
+              e: 'c:nocodb:meta-api-v3-open',
+              link: 'https://nocodb.com/apis/v3/meta',
+            },
+            {
               title: t('labels.dataApiV2'),
               e: 'c:nocodb:data-api-open',
               link: 'https://nocodb.com/apis/v2/data',

@@ -91,7 +91,7 @@ export const DocColumnsExtension = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { class: 'nc-columns', 'data-columns': '' }), 0]
+    return ['div', mergeAttributes(HTMLAttributes, { 'class': 'nc-columns', 'data-columns': '' }), 0]
   },
 
   addCommands() {
@@ -202,7 +202,7 @@ export const DocColumnExtension = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes, { class: 'nc-column', 'data-column': '' }), 0]
+    return ['div', mergeAttributes(HTMLAttributes, { 'class': 'nc-column', 'data-column': '' }), 0]
   },
 
   addStorage() {

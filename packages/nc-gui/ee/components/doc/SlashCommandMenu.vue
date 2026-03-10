@@ -298,7 +298,6 @@ defineExpose({ onKeyDown })
   border-radius: 3px;
 }
 
-
 /* Input mode styles */
 .nc-slash-input-mode {
   padding: 6px 8px;

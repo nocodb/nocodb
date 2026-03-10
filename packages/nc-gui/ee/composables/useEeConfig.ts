@@ -171,8 +171,7 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAddNewDocumentPage = computed(() => {
     return (
       isPaymentEnabled.value &&
-      getStatLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE) >=
-        getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE)
+      getStatLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_DOCUMENT_PAGE_PER_WORKSPACE)
     )
   })
 

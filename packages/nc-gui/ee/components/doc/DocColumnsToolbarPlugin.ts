@@ -9,7 +9,7 @@
  * the toolbar appears above the block. Clicking a ratio button dispatches
  * `setColumnRatio` to update the columns node attribute.
  */
-import { Plugin, PluginKey, type EditorState } from '@tiptap/pm/state'
+import { type EditorState, Plugin, PluginKey } from '@tiptap/pm/state'
 import { Extension } from '@tiptap/core'
 import { COLUMN_RATIO_PRESETS, COL_RATIO_DEFAULT, type ColumnRatioPreset } from './DocColumnsExtension'
 
@@ -105,8 +105,7 @@ function createColumnsToolbarPlugin(): Plugin<ColumnsToolbarState> {
 
         const [leftW, rightW] = PRESET_BARS[preset]
         btn.innerHTML =
-          `<span class="bar" style="width:${leftW}px"></span>` +
-          `<span class="bar" style="width:${rightW}px"></span>`
+          `<span class="bar" style="width:${leftW}px"></span>` + `<span class="bar" style="width:${rightW}px"></span>`
 
         toolbarEl.appendChild(btn)
       }

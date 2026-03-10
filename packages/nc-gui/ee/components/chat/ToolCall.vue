@@ -207,7 +207,11 @@ const visibleOutput = computed(() => {
     <div class="flex items-center gap-1.5 px-2 py-1.5 select-none cursor-pointer" @click="toggleExpanded">
       <!-- Status / Category icon -->
       <GeneralLoader v-if="isRunning || isPending" :size="14" class="flex-none" />
-      <GeneralIcon v-else-if="isAwaitingApproval" icon="ncAlertCircle" class="flex-none w-3.5 h-3.5 text-nc-content-yellow-dark" />
+      <GeneralIcon
+        v-else-if="isAwaitingApproval"
+        icon="ncAlertCircle"
+        class="flex-none w-3.5 h-3.5 text-nc-content-yellow-dark"
+      />
       <GeneralIcon v-else :icon="categoryIcon" class="flex-none w-3.5 h-3.5" :class="categoryTextColor" />
 
       <!-- Tool name -->

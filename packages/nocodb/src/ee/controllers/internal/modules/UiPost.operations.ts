@@ -185,10 +185,12 @@ export class UiPostOperations
         return this.dateDependencyService.update(context, {
           modelId: (req.query.fk_model_id || req.query.modelId) as string,
           body: payload,
+          req,
         });
       case 'deleteTableDateDependency':
         return this.dateDependencyService.delete(context, {
           modelId: (req.query.fk_model_id || req.query.modelId) as string,
+          req,
         });
     }
 

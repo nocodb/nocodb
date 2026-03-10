@@ -1,15 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DependencyTableType, EventType, isLinksOrLTAR, UITypes } from 'nocodb-sdk';
-import type { DateDependencyReqType } from 'nocodb-sdk';
+import {
+  AppEvents,
+  DependencyTableType,
+  EventType,
+  isLinksOrLTAR,
+  UITypes,
+} from 'nocodb-sdk';
+import type { DateDependencyReqType, NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers/apiHelpers';
 import { Column, DateDependency, DependencyTracker, Model } from '~/models';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class DateDependencyService {
   protected logger = new Logger(DateDependencyService.name);
+
+  constructor(protected readonly appHooksService: AppHooksService) {}
 
   async get(
     context: NcContext,
@@ -23,6 +32,7 @@ export class DateDependencyService {
     param: {
       modelId: string;
       body: DateDependencyReqType;
+      req: NcRequest;
     },
   ): Promise<DateDependency> {
     validatePayload(
@@ -38,6 +48,7 @@ export class DateDependencyService {
     const existing = await DateDependency.getByModelId(context, param.modelId);
 
     let result: DateDependency;
+    const isNew = !existing;
 
     if (existing) {
       result = await DateDependency.update(context, existing.id, param.body);
@@ -66,10 +77,21 @@ export class DateDependencyService {
       context.socket_id,
     );
 
+    this.appHooksService.emit(AppEvents.DATE_DEPENDENCY_UPDATE, {
+      context,
+      req: param.req,
+      table: model,
+      dateDependency: result,
+      isNew,
+    });
+
     return result;
   }
 
-  async delete(context: NcContext, param: { modelId: string }): Promise<void> {
+  async delete(
+    context: NcContext,
+    param: { modelId: string; req: NcRequest },
+  ): Promise<void> {
     const model = param.modelId && (await Model.get(context, param.modelId));
 
     const existing = await DateDependency.getByModelId(context, param.modelId);
@@ -97,6 +119,12 @@ export class DateDependencyService {
         },
         context.socket_id,
       );
+
+      this.appHooksService.emit(AppEvents.DATE_DEPENDENCY_DELETE, {
+        context,
+        req: param.req,
+        table: model,
+      });
     }
   }
 

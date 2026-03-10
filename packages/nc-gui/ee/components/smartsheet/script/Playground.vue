@@ -102,6 +102,8 @@ const resolveExternalInput = (id: string, value: string | Record<string, any> | 
   }
 }
 
+const sanitizedMarkdown = (content: string) => DOMPurify.sanitize(marked(content) as string)
+
 const resolve = (item: ScriptPlaygroundItem, data: any) => {
   if (item.type !== 'input-request') return
   if (scriptStore) {
@@ -211,7 +213,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
                 </template>
 
                 <template v-else-if="child.type === 'markdown'">
-                  <div class="prose" v-html="DOMPurify.sanitize(marked(child.content) as string)"></div>
+                  <div class="prose" v-html="sanitizedMarkdown(child.content)"></div>
                 </template>
 
                 <template v-else-if="child.type === 'table'">
@@ -272,7 +274,7 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
           </div>
         </template>
         <template v-else-if="item.type === 'markdown'">
-          <div class="prose" data-testid="nc-playground-markdown-output" v-html="DOMPurify.sanitize(marked(item.content) as string)"></div>
+          <div class="prose" data-testid="nc-playground-markdown-output" v-html="sanitizedMarkdown(item.content)"></div>
         </template>
         <template v-else-if="item.type === 'table'">
           <table class="nc-scripts-table" data-testid="nc-playground-table-output">

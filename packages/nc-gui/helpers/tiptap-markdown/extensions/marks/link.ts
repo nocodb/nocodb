@@ -4,6 +4,8 @@ import { Plugin, TextSelection } from '@tiptap/pm/state'
 import type { AddMarkStep, Step } from '@tiptap/pm/transform'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
 
+const DANGEROUS_URL_RE = /^\s*(javascript|vbscript):/i
+
 export const Link = TiptapLink.extend<LinkOptions>({
   addOptions() {
     return {
@@ -17,7 +19,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
         rel: 'noopener noreferrer nofollow',
         class: null,
       },
-      validate: (url: string) => !/^\s*(javascript|vbscript):/i.test(url),
+      validate: (url: string) => !DANGEROUS_URL_RE.test(url),
       internal: false,
     }
   },
@@ -39,7 +41,7 @@ export const Link = TiptapLink.extend<LinkOptions>({
     const attr = mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)
 
     // Block dangerous URL protocols
-    if (attr.href && /^\s*(javascript|vbscript):/i.test(attr.href)) {
+    if (attr.href && DANGEROUS_URL_RE.test(attr.href)) {
       return ['span', {}, 0]
     }
 

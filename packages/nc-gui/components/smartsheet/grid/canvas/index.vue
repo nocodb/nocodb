@@ -287,6 +287,7 @@ const {
   findColumnIndex,
   canvasRef,
   triggerRefreshCanvas,
+  renderCanvasDirect,
   resizeableColumn,
   resizeMouseMove,
   isDragging,
@@ -2229,7 +2230,10 @@ const handleScroll = (e: { left: number; top: number }) => {
       scrollLeft.value = Math.max(0, e.left)
     }
     calculateSlices()
-    triggerRefreshCanvas()
+    // Render synchronously within this RAF callback to avoid 2-frame lag.
+    // triggerRefreshCanvas() would schedule ANOTHER RAF, deferring the paint
+    // to the next frame — causing visible frame skipping during fast scroll.
+    renderCanvasDirect()
   })
 }
 

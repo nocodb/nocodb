@@ -1437,6 +1437,16 @@ export function useCanvasTable({
     })
   }
 
+  // Wrapper that renders immediately and cancels any pending deferred render.
+  // Used by the scroll handler to avoid the 2-frame lag that triggerRefreshCanvas causes.
+  const renderCanvasDirect = () => {
+    if (_renderRafId) {
+      cancelAnimationFrame(_renderRafId)
+      _renderRafId = null
+    }
+    renderCanvas()
+  }
+
   watch(rowHeight, () => {
     clearTextCache()
     triggerRefreshCanvas()
@@ -1530,6 +1540,7 @@ export function useCanvasTable({
     updateVisibleRows,
     findColumnIndex,
     triggerRefreshCanvas,
+    renderCanvasDirect,
     startDrag,
     findColumnAtPosition,
     findClickedColumn,

@@ -222,7 +222,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               allowSystemColumn,
               undo,
               typecast,
-              rowIndex: index,
             },
           );
 

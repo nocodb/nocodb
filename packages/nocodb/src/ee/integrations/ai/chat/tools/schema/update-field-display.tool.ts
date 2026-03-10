@@ -23,6 +23,48 @@ function isProvided(value: unknown): boolean {
   return true;
 }
 
+// ── Allowed values for constrained format parameters ──
+
+const VALID_DATE_FORMATS = new Set([
+  'YYYY-MM-DD', 'YYYY/MM/DD', 'DD-MM-YYYY', 'MM-DD-YYYY',
+  'DD/MM/YYYY', 'MM/DD/YYYY', 'DD MM YYYY', 'MM DD YYYY',
+  'YYYY MM DD', 'DD MMM YYYY', 'DD MMM YY', 'DD.MM.YYYY', 'DD.MM.YY',
+]);
+
+const VALID_TIME_FORMATS = new Set(['HH:mm', 'HH:mm:ss', 'HH:mm:ss.SSS']);
+
+const VALID_DURATION_FORMATS = new Set([
+  'h:mm', 'h:mm:ss', 'h:mm:ss.s', 'h:mm:ss.ss', 'h:mm:ss.sss',
+]);
+
+/**
+ * Validate constrained format values. Returns an error string if invalid, null if OK.
+ */
+function validateFormats(args: Record<string, unknown>): string | null {
+  if (isProvided(args.date_format) && !VALID_DATE_FORMATS.has(args.date_format as string)) {
+    return `Invalid date_format "${args.date_format}". Valid options: ${[...VALID_DATE_FORMATS].join(', ')}`;
+  }
+  if (isProvided(args.time_format) && !VALID_TIME_FORMATS.has(args.time_format as string)) {
+    return `Invalid time_format "${args.time_format}". Valid options: ${[...VALID_TIME_FORMATS].join(', ')}`;
+  }
+  if (isProvided(args.duration_format) && !VALID_DURATION_FORMATS.has(args.duration_format as string)) {
+    return `Invalid duration_format "${args.duration_format}". Valid options: ${[...VALID_DURATION_FORMATS].join(', ')}`;
+  }
+  if (isProvided(args.precision)) {
+    const p = args.precision as number;
+    if (!Number.isInteger(p) || p < 0 || p > 8) {
+      return `Invalid precision "${p}". Must be an integer between 0 and 8.`;
+    }
+  }
+  if (isProvided(args.max_value)) {
+    const m = args.max_value as number;
+    if (!Number.isInteger(m) || m < 1 || m > 10) {
+      return `Invalid max_value "${m}". Must be an integer between 1 and 10.`;
+    }
+  }
+  return null;
+}
+
 /**
  * Build the actual column.meta object from the flat tool args.
  * Returns only the keys that were meaningfully provided — omitted keys
@@ -334,6 +376,12 @@ export const updateFieldDisplayTool: ChatToolDefinition = {
       return {
         message: `Updated colors for ${colorMap.size} option(s) in "${column.title}".`,
       };
+    }
+
+    // --- Validate constrained format values before applying ---
+    const validationError = validateFormats(args);
+    if (validationError) {
+      return { error: validationError };
     }
 
     // --- Handle meta updates (use CE service directly — meta is a first-class field) ---

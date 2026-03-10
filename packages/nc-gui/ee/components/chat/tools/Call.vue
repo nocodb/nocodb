@@ -83,6 +83,17 @@ const isInProgress = computed(
 const isAwaitingApproval = computed(() => block.value.status === ChatToolCallStatus.AWAITING_APPROVAL)
 const isDenied = computed(() => block.value.status === ChatToolCallStatus.DENIED)
 
+const { copy } = useCopy()
+
+async function copyText(text: string) {
+  try {
+    await copy(text)
+    message.toast(t('general.copied'))
+  } catch {
+    message.error(t('msg.error.copyToClipboardError'))
+  }
+}
+
 const displayName = computed(() => effectiveName.value.replace(/_/g, ' '))
 
 const keyArg = computed(() => extractKeyArg(effectiveInput.value as Record<string, unknown>))
@@ -189,8 +200,15 @@ const toggleExpanded = () => {
     <Transition name="nc-tool-expand">
       <div v-if="isExpanded" class="border-t-1 border-nc-border-gray-light px-2 py-2 space-y-2">
         <div v-if="formattedArgs" class="space-y-1">
-          <div class="text-captionXsBold uppercase tracking-wide text-nc-content-gray-muted">
-            {{ t('msg.chat.toolInput') }}
+          <div class="flex items-center justify-between">
+            <div class="text-captionXsBold uppercase tracking-wide text-nc-content-gray-muted">
+              {{ t('msg.chat.toolInput') }}
+            </div>
+            <NcTooltip :title="t('general.copy')" placement="top">
+              <NcButton type="text" size="xxsmall" class="!h-5 !w-5 !min-w-5" @click.stop="copyText(formattedArgs!)">
+                <GeneralIcon icon="copy" class="w-3 h-3" />
+              </NcButton>
+            </NcTooltip>
           </div>
           <pre
             class="text-captionSm leading-relaxed text-nc-content-gray-emphasis bg-nc-bg-default rounded-md p-2 overflow-x-auto nc-scrollbar-thin max-h-32"
@@ -199,8 +217,15 @@ const toggleExpanded = () => {
         </div>
 
         <div v-if="block.output !== undefined" class="space-y-1">
-          <div class="text-captionXsBold uppercase tracking-wide text-nc-content-gray-muted">
-            {{ isError ? t('msg.chat.toolError') : t('msg.chat.toolOutput') }}
+          <div class="flex items-center justify-between">
+            <div class="text-captionXsBold uppercase tracking-wide text-nc-content-gray-muted">
+              {{ isError ? t('msg.chat.toolError') : t('msg.chat.toolOutput') }}
+            </div>
+            <NcTooltip v-if="formattedOutput" :title="t('general.copy')" placement="top">
+              <NcButton type="text" size="xxsmall" class="!h-5 !w-5 !min-w-5" @click.stop="copyText(formattedOutput)">
+                <GeneralIcon icon="copy" class="w-3 h-3" />
+              </NcButton>
+            </NcTooltip>
           </div>
 
           <div class="relative">

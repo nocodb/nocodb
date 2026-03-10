@@ -161,15 +161,6 @@ const mainItems = computed<NavItem[]>(() => [
   ...(isEeUI && !isMobileMode.value
     ? [
         {
-          key: 'docs',
-          icon: 'ncFileText',
-          label: 'Docs',
-          disabled: !hasAvailableBases.value,
-          onClick: () => {
-            onTabClick('docs')
-          },
-        },
-        {
           key: 'workflows',
           icon: 'ncAutomation',
           label: 'Workflows',
@@ -180,6 +171,15 @@ const mainItems = computed<NavItem[]>(() => [
             }),
           onClick: () => {
             onTabClick('workflows')
+          },
+        },
+        {
+          key: 'docs',
+          icon: 'ncFileText',
+          label: 'Docs',
+          disabled: !hasAvailableBases.value,
+          onClick: () => {
+            onTabClick('docs')
           },
         },
       ]

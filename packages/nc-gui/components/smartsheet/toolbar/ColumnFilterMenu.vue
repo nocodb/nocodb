@@ -214,11 +214,7 @@ watch(
 </script>
 
 <template>
-  <NcDropdown
-    v-model:visible="open"
-    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden"
-    class="!xs:hidden"
-  >
+  <NcDropdown v-model:visible="open" overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden">
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
       <template #title>
         {{ $t('activity.filter') }}

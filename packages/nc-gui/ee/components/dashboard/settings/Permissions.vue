@@ -233,7 +233,7 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col h-full p-6" data-testid="nc-settings-permissions-tab">
+  <div class="flex flex-col h-full p-4 md:p-6" data-testid="nc-settings-permissions-tab">
     <div class="mb-6 flex items-center justify-between gap-3">
       <a-input
         v-model:value="searchQuery"

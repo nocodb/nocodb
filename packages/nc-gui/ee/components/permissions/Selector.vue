@@ -200,7 +200,7 @@ const handleClickDropdown = (e: MouseEvent) => {
             inlineStyle
               ? '!px-0 !py-0 !border-0 !rounded-none !h-auto !shadow-none'
               : !readonly
-              ? 'w-[165px]'
+              ? 'w-[145px] sm:w-[165px]'
               : removeReadonlyPadding
               ? '!px-0 !border-0'
               : '!border-0'

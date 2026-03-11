@@ -8,6 +8,7 @@ import {
   UITypes,
   getAvailableRollupForColumn,
   getRenderAsTextFunForUiType,
+  parseProp,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 
@@ -96,10 +97,10 @@ const columns = computed<ColumnType[]>(() => {
 
 const limitRecToCond = computed({
   get() {
-    return !!vModel.value.meta?.enableConditions
+    return !!parseProp(vModel.value.meta)?.enableConditions
   },
   set(value) {
-    vModel.value.meta = vModel.value.meta || {}
+    vModel.value.meta = parseProp(vModel.value.meta) || {}
     vModel.value.meta.enableConditions = value
     $e('c:rollup:limit-record-by-filter', { status: value })
   },
@@ -234,7 +235,7 @@ const onPrecisionChange = (value: number) => {
 // set default value
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
-  ...(vModel.value.meta || {}),
+  ...parseProp(vModel.value.meta),
 }
 
 const { isMetaReadOnly } = useRoles()

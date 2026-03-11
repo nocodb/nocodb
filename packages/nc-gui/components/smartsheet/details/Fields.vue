@@ -978,6 +978,18 @@ const saveChanges = async () => {
       },
     )
 
+    // Persist filter conditions for rollup/lookup/LTAR columns via postSaveOrUpdateCbk
+    // This must run before metaToLocal() which remounts the provider and loses the filterRef
+    if (activeField.value?.id && editOrAddProviderRef.value?.triggerPostSaveOrUpdateCbk) {
+      try {
+        await editOrAddProviderRef.value.triggerPostSaveOrUpdateCbk({
+          colId: activeField.value.id,
+        })
+      } catch {
+        // Filter save failure shouldn't block the rest of the save flow
+      }
+    }
+
     await loadViewColumns()
 
     if (res) {
@@ -1313,6 +1325,8 @@ watch(activeAiTab, (newValue) => {
 })
 
 const rightPanelRef = ref()
+
+const editOrAddProviderRef = ref()
 
 const oldRightPanelWidth = ref()
 
@@ -2215,6 +2229,7 @@ onBeforeRouteUpdate((_to, from, next) => {
             >
               <SmartsheetColumnEditOrAddProvider
                 v-if="activeField"
+                ref="editOrAddProviderRef"
                 class="p-4 w-[25rem] flex-none"
                 :column="activeField"
                 :preload="fieldState(activeField)"

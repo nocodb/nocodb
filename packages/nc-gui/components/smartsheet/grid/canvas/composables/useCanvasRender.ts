@@ -204,16 +204,6 @@ export function useCanvasRender({
   // Pre-compute PK columns to avoid filtering all columns on every row render
   const pkColumns = computed(() => (meta.value?.columns ?? []).filter((c: ColumnType) => c.pk))
 
-  function extractPkFast(row: Record<string, any>) {
-    if (!row || !pkColumns.value.length) return null
-    const pks = pkColumns.value
-    if (pks.length > 1) {
-      return pks.map((c) => row?.[c.title!]?.toString?.().replaceAll('_', '\\_') ?? null).join('___')
-    }
-    const id = row?.[pks[0].title!] ?? null
-    return id === null ? null : `${id}`
-  }
-
   const fixedCols = computed(() => columns.value.filter((c) => c.fixed))
 
   const fixedColsWidth = computed(() => fixedCols.value.reduce((sum, col) => sum + parseCellWidth(col.width), 1))
@@ -1409,7 +1399,7 @@ export function useCanvasRender({
     const needsHighlightedBorders = isHovered || recordSelected || isRowCellSelected
 
     if (row) {
-      const pk = extractPkFast(row.row)
+      const pk = extractPkFromPkColumns(row.row, pkColumns.value)
       let xOffset = initialXOffset
       if (isGroupBy.value) {
         for (let i = 0; i < startColIndex; i++) {
@@ -2615,7 +2605,7 @@ export function useCanvasRender({
             relatedTableMeta: column.relatedTableMeta,
             disabled: column?.isInvalidColumn,
             mousePosition: { x: -1, y: -1 },
-            pk: extractPkFast(row.row),
+            pk: extractPkFromPkColumns(row.row, pkColumns.value),
           })
           ctx.restore()
         }

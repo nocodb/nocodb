@@ -3,6 +3,7 @@ import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
 import type { MapProvider } from 'nocodb-sdk'
+import type { NcBreakpoint } from '~/lib/constants'
 
 export interface AppInfo {
   ncSiteUrl: string
@@ -69,6 +70,7 @@ export interface StoredState {
   latestRelease: string | null
   hiddenRelease: string | null
   isMobileMode: boolean | null
+  activeBreakpoint: NcBreakpoint | null
   lastOpenedWorkspaceId: string | null
   gridViewPageSize: number
   leftSidebarSize: {
@@ -116,6 +118,7 @@ export interface Actions {
   }) => Promise<string | null | void>
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
+  setActiveBreakpoint: (breakpoint: NcBreakpoint) => void
   navigateToProject: (params: { workspaceId?: string; baseId?: string; query?: any }) => void
   /**
    * params `tableTitle, viewTitle, scriptTitle ,dashboardTitle,workflowTitle` will be used for readable url slug

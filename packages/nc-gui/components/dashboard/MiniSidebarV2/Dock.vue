@@ -287,7 +287,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       />
     </DashboardMiniSidebarV2DockItem>
 
-    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
+    <NcDivider class="!w-8 !min-w-8 !mt-1 mb-1 !border-nc-border-gray-medium" />
 
     <!-- Main nav items -->
     <DashboardMiniSidebarV2DockItem

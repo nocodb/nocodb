@@ -167,6 +167,22 @@ body {
   }
 }
 
+// Fix: Ant Design overrides vertical form layout at max-width 575px with flex-wrap: wrap,
+// flex: 0 0 100%, and label padding — which breaks flex-direction: column.
+// Re-enforce vertical layout on small screens.
+@media (max-width: 575px) {
+  .ant-form-vertical .ant-form-item {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .ant-form-vertical.ant-form .ant-form-item .ant-form-item-label,
+  .ant-form-vertical.ant-form .ant-form-item .ant-form-item-control {
+    flex: unset;
+    max-width: unset;
+  }
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {

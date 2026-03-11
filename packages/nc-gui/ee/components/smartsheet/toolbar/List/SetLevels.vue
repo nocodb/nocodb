@@ -165,7 +165,6 @@ const isDirty = computed(() => {
     v-model:visible="open"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-list-set-levels-menu overflow-hidden"
-    class="!xs:hidden"
   >
     <NcTooltip :disabled="!isToolbarIconMode" class="nc-list-set-levels-btn">
       <template #title>
@@ -200,7 +199,11 @@ const isDirty = computed(() => {
     </NcTooltip>
 
     <template #overlay>
-      <div v-if="open" class="p-4 w-96 bg-nc-bg-default nc-table-toolbar-menu rounded-lg flex flex-col gap-4" @click.stop>
+      <div
+        v-if="open"
+        class="p-4 w-[min(98dvw,384px)] bg-nc-bg-default nc-table-toolbar-menu rounded-lg flex flex-col gap-4"
+        @click.stop
+      >
         <div class="flex items-center justify-between">
           <span class="text-sm font-semibold text-nc-content-gray">
             {{ $t('title.levels') }}

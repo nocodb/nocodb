@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
 
+const isSearchExpanded = defineModel<boolean>('searchExpanded', { default: false })
+
 const reloadData = inject(ReloadViewDataHookInj)!
 
 const reloadAggregate = inject(ReloadAggregateHookInj)
@@ -36,7 +38,7 @@ function getTableTitle(tableId?: string) {
 
 const isDropdownOpen = ref(false)
 
-const showSearchBox = ref(!!isMobileMode.value)
+const showSearchBox = ref(false)
 
 const globalSearchRef = ref<HTMLInputElement>()
 
@@ -166,9 +168,7 @@ const handleEscapeKey = () => {
   if (isDropdownOpen.value || gridEditEnabled.value) return
 
   search.value.query = ''
-  if (!isMobileMode.value) {
-    showSearchBox.value = false
-  }
+  showSearchBox.value = false
 }
 
 const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
@@ -177,15 +177,13 @@ const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
     return
   }
 
-  if (!isMobileMode.value) {
-    showSearchBox.value = false
-  }
+  showSearchBox.value = false
 }
 
 onClickOutside(globalSearchWrapperRef, handleClickOutside)
 
 onMounted(() => {
-  if ((search.value.query || isMobileMode.value) && !showSearchBox.value) {
+  if (search.value.query && !showSearchBox.value) {
     showSearchBox.value = true
   }
 })
@@ -210,6 +208,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 watch(
   isSearchButtonVisible,
   (newVal) => {
+    isSearchExpanded.value = !newVal
+
     if (newVal) return
 
     isDropdownOpen.value = false
@@ -233,13 +233,7 @@ watch(
       <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
     </NcButton>
     <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
-      <div
-        :class="{
-          'border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)':
-            isMobileMode,
-          'border-primary shadow-selected': isMobileMode && search.query.length !== 0,
-        }"
-      >
+      <div class="border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)">
         <div
           v-if="isList && listViewStore && listViewStore.levels.value.length > 1"
           class="flex items-center gap-1 px-2 py-1 border-b-1 border-nc-border-gray-medium"

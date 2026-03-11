@@ -6,6 +6,7 @@ const props = withDefaults(
     type?: string
     size?: NcButtonSize
     centered?: boolean
+    innerClass?: string
     // isOpen: boolean
   }>(),
   {
@@ -38,6 +39,7 @@ onMounted(() => {
     data-testid="nc-sidebar-create-base-btn"
     :size="size"
     :centered="centered"
+    :inner-class="innerClass"
     full-width
     @click="baseCreateDlg = true"
   >

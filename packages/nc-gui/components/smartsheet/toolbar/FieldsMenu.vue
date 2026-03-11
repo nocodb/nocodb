@@ -60,7 +60,9 @@ const isFieldsMenuReadOnly = computed(() => {
   return isLocked.value || !isViewOperationsAllowed.value || (isLocalMode.value && hasViewFieldDataEditPermission.value)
 })
 
-const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+const isAddingColumnAllowed = computed(
+  () => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value && !isMobileMode.value,
+)
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -642,7 +644,6 @@ const onAddColumnDropdownVisibilityChange = () => {
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    class="!xs:hidden"
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown overflow-hidden"
     :auto-close="openSubmenusCount === 0"
     @visible-change="onFieldsMenuDropdownVisibilityChange"
@@ -714,7 +715,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               <template #suffixIcon><GeneralIcon class="text-nc-content-gray-subtle" icon="arrowDown" /></template>
 
               <a-select-option v-for="option of coverOptions" :key="option.value" :value="option.value">
-                <div class="w-full flex gap-2 items-center justify-between max-w-[400px]">
+                <div class="w-full h-full flex gap-2 items-center justify-between max-w-[400px]">
                   <div
                     class="flex-1 flex items-center gap-1"
                     :class="{
@@ -895,7 +896,8 @@ const onAddColumnDropdownVisibilityChange = () => {
               v-model="fields"
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
-              :disabled="isFieldsMenuReadOnly"
+              :disabled="isFieldsMenuReadOnly || isMobileMode"
+              :filter="isTouchEvent"
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"

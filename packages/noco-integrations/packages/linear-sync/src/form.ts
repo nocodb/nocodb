@@ -59,7 +59,7 @@ const form: FormDefinition = [
     label: 'Include canceled issues',
     description:
       'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
-    span: 12,
+    span: [24, 12],
     model: 'config.includeCanceled',
     category: 'Options',
     defaultValue: false,
@@ -69,7 +69,7 @@ const form: FormDefinition = [
     label: 'Include completed issues',
     description:
       'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
-    span: 12,
+    span: [24, 12],
     model: 'config.includeCompleted',
     category: 'Options',
     defaultValue: true,

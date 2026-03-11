@@ -1,6 +1,7 @@
 import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
 import type { AxiosInstance } from 'axios'
+import type { NcBreakpoint } from '~/lib/constants'
 import type { Actions, AppInfo, Getters, SignOutParams, State } from '../../../composables/useGlobal/types'
 
 export interface ActionsEE {
@@ -13,6 +14,10 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
 
   const setIsMobileMode = (isMobileMode: boolean) => {
     state.isMobileMode.value = isMobileMode
+  }
+
+  const setActiveBreakpoint = (breakpoint: NcBreakpoint) => {
+    state.activeBreakpoint.value = breakpoint
   }
 
   // todo: move to pinia/global state
@@ -374,6 +379,7 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     refreshToken,
     loadAppInfo,
     setIsMobileMode,
+    setActiveBreakpoint,
     navigateToProject,
     getBaseUrl,
     ncNavigateTo,

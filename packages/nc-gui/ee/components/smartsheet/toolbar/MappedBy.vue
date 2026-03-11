@@ -13,6 +13,11 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const IsPublic = inject(IsPublicInj, ref(false))
 
+const isToolbarIconMode = inject(
+  IsToolbarIconMode,
+  computed(() => false),
+)
+
 const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow()
 
 const { loadMapData, loadMapMeta, updateMapMeta, mapMetaData, geoDataFieldColumn } = useMapViewStoreOrThrow()
@@ -66,9 +71,11 @@ const handleChange = () => {
     v-model:visible="mappedByDropdown"
     :trigger="['click']"
     overlay-class-name="nc-dropdown-mapped-by-menu overflow-hidden"
-    class="!xs:hidden"
   >
-    <div class="nc-map-btn">
+    <NcTooltip :disabled="!isToolbarIconMode" class="nc-map-btn">
+      <template #title>
+        {{ $t('activity.map.mappedBy') }}
+      </template>
       <NcButton
         v-e="['c:map:change-grouping-field']"
         class="nc-map-stacked-by-menu-btn nc-toolbar-btn !border-0 !h-7 group"
@@ -78,7 +85,7 @@ const handleChange = () => {
       >
         <div class="flex items-center gap-2">
           <GeneralIcon icon="settings" class="h-4 w-4" />
-          <div class="flex items-center gap-0.5">
+          <div v-if="!isToolbarIconMode" class="flex items-center gap-0.5">
             <span class="text-capitalize !text-[13px] font-medium flex items-center gap-1">
               {{ $t('activity.map.mappedBy') }}
             </span>
@@ -93,7 +100,7 @@ const handleChange = () => {
           </div>
         </div>
       </NcButton>
-    </div>
+    </NcTooltip>
     <template #overlay>
       <div
         v-if="mappedByDropdown"
@@ -117,7 +124,7 @@ const handleChange = () => {
               >
                 <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
                 <a-select-option v-for="option of geoDataFieldOptions" :key="option.value" :value="option.value">
-                  <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
+                  <div class="w-full h-full flex gap-2 items-center justify-between" :title="option.label">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
                       <SmartsheetHeaderIcon
                         v-if="option.value && metaColumnById[option.value]"

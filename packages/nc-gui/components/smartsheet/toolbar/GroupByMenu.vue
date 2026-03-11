@@ -270,7 +270,6 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
     v-model:visible="open"
     offset-y
     :trigger="['click']"
-    class="!xs:hidden"
     overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown overflow-hidden"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
@@ -317,7 +316,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
         <!-- Group-by list -->
         <div
           v-else-if="_groupBy.length || syncedGroupByEntries.length"
-          class="flex flex-col bg-nc-bg-default overflow-auto nc-group-by-list menu-filter-dropdown w-100 p-4"
+          class="flex flex-col bg-nc-bg-default overflow-auto nc-group-by-list menu-filter-dropdown sm:w-100 p-4"
           data-testid="nc-group-by-menu"
         >
           <div class="max-h-100" @click.stop>

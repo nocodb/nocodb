@@ -39,7 +39,7 @@ const { formState, validate, validateInfos } = useProvideFormBuilderHelper({
         model: item.key,
         required: item.required,
         helpText: item.help_text,
-        span: 12,
+        span: [24, 12],
         border: false,
         showHintAsTooltip: true,
       },

@@ -70,6 +70,10 @@ const isToolbarIconMode = computed(() => {
 })
 
 provide(IsToolbarIconMode, isToolbarIconMode)
+
+const isSearchExpanded = ref(false)
+
+const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpanded.value)
 </script>
 
 <template>
@@ -79,14 +83,14 @@ provide(IsToolbarIconMode, isToolbarIconMode)
     :class="{
       'px-4': isMobileMode,
     }"
-    class="nc-table-toolbar bg-nc-bg-default relative px-3 flex gap-2 items-center border-b border-nc-border-gray-medium overflow-hidden xs:(min-h-14) min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] z-7"
+    class="nc-table-toolbar bg-nc-bg-default relative px-3 flex gap-2 items-center border-b border-nc-border-gray-medium overflow-hidden min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)] z-7"
   >
     <template v-if="isViewsLoading">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
       <div
-        v-if="!isMobileMode"
+        v-if="!isMobileSearchActive"
         :class="{
           'min-w-34/100': !isMobileMode && isLeftSidebarOpen && isCalendar,
           'min-w-39/100': !isMobileMode && !isLeftSidebarOpen && isCalendar,
@@ -95,7 +99,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         }"
         class="flex items-center gap-3 empty:hidden"
       >
-        <template v-if="isCalendar">
+        <template v-if="isCalendar && !isMobileMode">
           <LazySmartsheetToolbarCalendarHeader />
           <LazySmartsheetToolbarCalendarToday />
           <LazySmartsheetToolbarCalendarNextPrev />
@@ -117,15 +121,22 @@ provide(IsToolbarIconMode, isToolbarIconMode)
           <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isList" />
 
           <SmartsheetToolbarRowColorFilterDropdown
-            v-if="!isPublic && !isSharedBase && (isGrid || isGallery || isKanban || isList)"
+            v-if="!isMobileMode && !isPublic && !isSharedBase && (isGrid || isGallery || isKanban || isList)"
           />
 
           <SmartsheetToolbarBulkAction
-            v-if="(isGrid || isGallery) && !isPublic && !isSharedBase && isUIAllowed('scriptExecute') && isViewActionsEnabled"
+            v-if="
+              !isMobileMode &&
+              (isGrid || isGallery) &&
+              !isPublic &&
+              !isSharedBase &&
+              isUIAllowed('scriptExecute') &&
+              isViewActionsEnabled
+            "
           />
         </template>
 
-        <template v-if="isCalendar">
+        <template v-if="isCalendar && !isMobileMode">
           <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
           <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
         </template>
@@ -133,31 +144,32 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
       <SmartsheetToolbarCalendarMode v-if="isCalendar && isTab" :tab="isTab" />
 
-      <template v-if="!isMobileMode">
-        <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed" />
+      <SmartsheetToolbarRowHeight v-if="(isGrid || isList) && isViewOperationsAllowed && !isMobileMode" />
 
-        <template v-if="!isCalendar">
-          <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
-          <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
-        </template>
-
-        <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
-
-        <SmartsheetToolbarPinnedFilters
-          v-if="isEeUI && !blockPinnedFilter && !isLocked && canSyncFilter && (isGrid || isGallery || isKanban || isMap)"
-        />
-
-        <div class="flex-1" />
+      <template v-if="!isCalendar">
+        <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
+        <SmartsheetToolbarOpenedViewAction v-if="!isMobileSearchActive" :show-only-copy-id="!isViewOperationsAllowed" />
       </template>
+
+      <SmartsheetToolbarPinnedFilters
+        v-if="
+          isEeUI &&
+          !blockPinnedFilter &&
+          !isMobileMode &&
+          !isLocked &&
+          canSyncFilter &&
+          (isGrid || isGallery || isKanban || isMap)
+        "
+      />
+
+      <div v-if="!isMobileSearchActive" class="flex-1" />
 
       <SmartsheetToolbarCalendarActiveView v-if="isCalendar" />
 
       <SmartsheetToolbarSearchData
         v-if="isGrid || isGallery || isKanban || isList"
-        :class="{
-          'shrink': !isMobileMode,
-          'w-full': isMobileMode,
-        }"
+        v-model:search-expanded="isSearchExpanded"
+        :class="isMobileSearchActive ? 'flex-1 min-w-0' : 'shrink'"
       />
 
       <div v-if="isCalendar && isMobileMode" class="flex-1 pointer-events-none" />
@@ -181,7 +193,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         v-if="isEeUI && isGrid && isUIAllowed('viewOperations') && !isPublic && !isSharedBase && !isMobileMode"
         class="hidden sr-only"
       />
-      <NcFullScreenToggleButton v-if="showFullScreenToggle" />
+      <NcFullScreenToggleButton v-if="showFullScreenToggle && !isMobileMode" />
     </template>
   </div>
 </template>

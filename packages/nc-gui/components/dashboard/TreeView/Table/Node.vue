@@ -443,7 +443,7 @@ const enabledOptions = computed(() => {
             <!-- Mobile: plain chevron before icon -->
             <div
               v-if="!table.isViewsLoading"
-              class="hidden !xs:(flex items-center justify-center) w-6 h-6 flex-none cursor-pointer"
+              class="hidden !xs:(flex items-center justify-center) -ml-1 w-6 h-6 flex-none cursor-pointer"
               @click.stop="onExpand"
             >
               <GeneralIcon
@@ -711,7 +711,7 @@ const enabledOptions = computed(() => {
               data-testid="nc-sidebar-table-create-view-btn"
               @click.stop
             >
-              <NcTooltip :title="$t('activity.createView')" hide-on-click>
+              <NcTooltip :title="$t('activity.createView')" hide-on-click :placement="isMobileMode ? 'topRight' : undefined">
                 <GeneralIcon icon="plus" class="!text-current text-[16px]" />
               </NcTooltip>
             </NcButton>

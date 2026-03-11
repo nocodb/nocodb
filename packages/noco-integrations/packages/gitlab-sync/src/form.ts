@@ -58,7 +58,7 @@ const form: FormDefinition = [
     label: 'Include closed issues',
     description:
       'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
-    span: 12,
+    span: [24, 12],
     model: 'config.includeClosed',
     category: 'Options',
     defaultValue: true,
@@ -68,7 +68,7 @@ const form: FormDefinition = [
     label: 'Include merge requests',
     description:
       'Sync merge requests along with issues to track code changes, reviews, and merges within your workspace.',
-    span: 12,
+    span: [24, 12],
     model: 'config.includeMRs',
     category: 'Options',
     defaultValue: false,

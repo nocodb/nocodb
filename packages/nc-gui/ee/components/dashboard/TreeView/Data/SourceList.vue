@@ -240,7 +240,7 @@ onMounted(() => {
                 >
                   <!-- Mobile: plain chevron -->
                   <div
-                    class="hidden !xs:(flex items-center justify-center -mr-2) w-6 h-6 flex-none cursor-pointer"
+                    class="hidden !xs:(flex items-center justify-center -mr-2) -ml-1 w-6 h-6 flex-none cursor-pointer"
                     @click.stop="toggleSourceExpand(source.id!)"
                   >
                     <GeneralIcon
@@ -276,7 +276,7 @@ onMounted(() => {
                 >
                   <!-- Mobile: plain chevron -->
                   <div
-                    class="hidden !xs:(flex items-center justify-center -mr-1) w-6 h-6 flex-none cursor-pointer"
+                    class="hidden !xs:(flex items-center justify-center -mr-1) -ml-1 w-6 h-6 flex-none cursor-pointer"
                     @click.stop="toggleSourceExpand(source.id!)"
                   >
                     <GeneralIcon

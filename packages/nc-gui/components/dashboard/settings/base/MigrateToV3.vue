@@ -110,7 +110,7 @@ const migrateToV3 = async () => {
     </div>
 
     <GeneralModal v-model:visible="isModalVisible" size="small" centered>
-      <div class="flex flex-col p-6">
+      <div class="flex flex-co p-4 md:p-6">
         <div class="flex flex-row pb-2 mb-4 font-semibold text-lg text-nc-content-gray-emphasis">Migrate to V3</div>
 
         <div class="mb-2 text-nc-content-gray-emphasis font-medium">Are you sure you want to migrate this base to v3?</div>

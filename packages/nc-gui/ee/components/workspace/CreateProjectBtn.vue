@@ -8,6 +8,7 @@ const props = withDefaults(
     type?: ButtonType
     size?: NcButtonSize
     centered?: boolean
+    innerClass?: string
     // isOpen: boolean
   }>(),
   {
@@ -48,6 +49,7 @@ const hasAccess = computed(() => {
       data-testid="nc-sidebar-create-base-btn"
       :size="size"
       :centered="centered"
+      :inner-class="innerClass"
       full-width
     >
       <slot>

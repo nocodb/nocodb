@@ -64,7 +64,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include closed issues',
-    span: 12,
+    span: [24, 12],
     model: 'config.includeClosed',
     category: 'Options',
     description:
@@ -80,7 +80,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include pull requests',
-    span: 12,
+    span: [24, 12],
     model: 'config.includePRs',
     description:
       'Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.',

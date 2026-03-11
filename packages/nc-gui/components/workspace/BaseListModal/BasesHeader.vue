@@ -66,23 +66,44 @@ const clearFilter = () => {
 
 <template>
   <div class="nc-bases-header flex items-center gap-2 px-4 py-2 border-b border-nc-border-gray-medium">
-    <!-- Desktop: Show "Bases in {workspace}" -->
-    <div v-if="!isCompactView" class="flex-1 flex items-center gap-2 flex-row-reverse">
-      <div class="flex-1 justify-end flex items-center gap-2 text-xs font-medium tracking-wide">
+    <!-- Search Input -->
+    <a-input
+      v-model:value="vSearchQuery"
+      class="nc-bases-search nc-input-sm flex-1 md:!hidden"
+      :placeholder="$t('activity.searchProject')"
+      allow-clear
+      @focus="isSearchFocused = true"
+      @blur="isSearchFocused = false"
+    >
+      <template #prefix>
+        <GeneralIcon icon="search" class="text-nc-content-gray-muted" />
+      </template>
+    </a-input>
+
+    <div class="md:flex-1 flex items-center gap-2 flex-row-reverse">
+      <div
+        class="hidden md:flex flex-1 justify-end items-center gap-2 text-xs font-medium tracking-wide min-w-0 truncate overflow-hidden"
+      >
         <slot name="baseListHeader"> </slot>
-        <span class="font-normal text-nc-content-gray-muted">({{ baseCount }})</span>
+        <span class="flex-shrink-0 font-normal text-nc-content-gray-muted">({{ baseCount }})</span>
       </div>
 
-      <div class="flex items-center gap-2">
-        <WorkspaceCreateProjectBtn :workspace-id="selectedWorkspaceId ?? undefined" type="primary" placement="bottomRight">
+      <div class="flex items-center flex-row-reverse md:flex-row gap-2">
+        <WorkspaceCreateProjectBtn
+          :workspace-id="selectedWorkspaceId ?? undefined"
+          type="primary"
+          placement="bottomRight"
+          centered
+          inner-class="children:justify-center"
+        >
           <div class="flex items-center gap-1.5">
             <GeneralIcon icon="plus" />
-            {{ $t('title.newProj') }}
+            <span class="hidden sm:inline">{{ $t('title.newProj') }}</span>
           </div>
         </WorkspaceCreateProjectBtn>
 
         <!-- Active filter pill -->
-        <div v-if="isFilterActive" class="nc-filter-pill" @click.stop>
+        <div v-if="isFilterActive && !isMobileMode" class="nc-filter-pill" @click.stop>
           <GeneralIcon :icon="activeFilterIcon" class="w-3.5 h-3.5" />
           <span class="text-bodyDefaultSm font-medium">{{ selectedFilter?.label }}</span>
           <GeneralIcon icon="close" class="nc-filter-pill-close w-3.5 h-3.5 cursor-pointer" @click="clearFilter" />
@@ -90,15 +111,21 @@ const clearFilter = () => {
 
         <!-- Filter Dropdown - Desktop -->
         <NcListDropdown
-          v-if="!isFilterActive"
+          v-if="!isFilterActive || isMobileMode"
           v-model:is-open="isFilterDropdownOpen"
           :default-slot-wrapper="false"
           placement="bottomRight"
         >
           <NcButton size="small" type="secondary">
             <div class="flex items-center gap-1">
-              <GeneralIcon icon="ncList" class="w-4 h-4" />
-              <span class="text-bodyDefaultSm">{{ $t('activity.allBases') }}</span>
+              <GeneralIcon
+                :icon="activeFilterIcon"
+                class="w-4 h-4"
+                :class="{
+                  'text-nc-content-brand': activeFilterIcon !== 'ncList',
+                }"
+              />
+              <span class="text-bodyDefaultSm hidden sm:inline">{{ $t('activity.allBases') }}</span>
               <GeneralIcon
                 icon="chevronDown"
                 class="w-4 h-4 transition-transform"
@@ -126,69 +153,6 @@ const clearFilter = () => {
         </NcListDropdown>
       </div>
     </div>
-
-    <!-- Compact: Search + Filter -->
-    <template v-else>
-      <!-- Search Input -->
-      <a-input
-        v-model:value="vSearchQuery"
-        class="nc-bases-search nc-input-sm flex-1"
-        :placeholder="$t('activity.searchProject')"
-        allow-clear
-        @focus="isSearchFocused = true"
-        @blur="isSearchFocused = false"
-      >
-        <template #prefix>
-          <GeneralIcon icon="search" class="text-nc-content-gray-muted" />
-        </template>
-      </a-input>
-
-      <!-- Active filter pill - Compact -->
-      <div v-if="isFilterActive" class="nc-filter-pill flex-none" @click.stop>
-        <GeneralIcon :icon="activeFilterIcon" class="w-3.5 h-3.5" />
-        <span class="text-bodyDefaultSm font-medium max-w-20 truncate">{{ selectedFilter?.label }}</span>
-        <GeneralIcon icon="close" class="nc-filter-pill-close w-3.5 h-3.5 cursor-pointer" @click="clearFilter" />
-      </div>
-
-      <!-- Filter Dropdown - Compact -->
-      <NcListDropdown
-        v-if="!isFilterActive"
-        v-model:is-open="isFilterDropdownOpen"
-        :default-slot-wrapper="false"
-        placement="bottomRight"
-      >
-        <NcButton size="small" type="secondary" class="flex-none">
-          <div class="flex items-center gap-1">
-            <GeneralIcon icon="ncList" class="w-4 h-4" />
-            <template v-if="(!isSearchFocused && !vSearchQuery) || !isMobileMode">
-              <span class="max-w-20 truncate">{{ $t('activity.allBases') }}</span>
-              <GeneralIcon
-                icon="chevronDown"
-                class="w-4 h-4 transition-transform"
-                :class="{ 'transform rotate-180': isFilterDropdownOpen }"
-              />
-            </template>
-          </div>
-        </NcButton>
-        <template #overlay="{ onEsc }">
-          <NcList
-            v-model:open="isFilterDropdownOpen"
-            :value="activeFilter"
-            :list="filterOptions"
-            variant="medium"
-            class="!w-auto min-w-[190px]"
-            wrapper-class-name="!h-auto"
-            :min-items-for-search="10"
-            @update:value="onFilterChange"
-            @escape="onEsc"
-          >
-            <template #listItemExtraLeft="{ option }">
-              <GeneralIcon :icon="option.icon" class="w-4 h-4 text-nc-content-gray-muted" />
-            </template>
-          </NcList>
-        </template>
-      </NcListDropdown>
-    </template>
   </div>
 </template>
 

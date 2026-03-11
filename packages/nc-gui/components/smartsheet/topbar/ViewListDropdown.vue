@@ -170,7 +170,7 @@ async function onOpenModal({
           />
         </template>
 
-        <template v-if="!isMobileMode && isUIAllowed('viewCreateOrEdit')" #listFooter>
+        <template v-if="isUIAllowed('viewCreateOrEdit')" #listFooter>
           <NcDivider class="!mt-0 !mb-2" />
           <div class="overflow-hidden mb-2">
             <a-menu class="nc-viewlist-menu">

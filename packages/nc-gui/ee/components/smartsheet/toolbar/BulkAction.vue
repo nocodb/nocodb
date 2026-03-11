@@ -297,7 +297,7 @@ const executeAction = async (
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
       <template #title>
-        {{ $t('activity.sort') }}
+        {{ $t('activity.runActions') }}
       </template>
       <NcButton
         v-e="['c:execute:action']"

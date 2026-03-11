@@ -20,8 +20,6 @@ const { t } = useI18n()
 
 const workspaceStore = useWorkspace()
 
-const { isMobileMode } = useGlobal()
-
 const isDropdownOpen = ref(false)
 
 const selectedWorkspace = computed(() => {
@@ -102,7 +100,7 @@ const onCreateWorkspace = () => {
               {{ option.ncItemExtra }}
             </span>
           </template>
-          <template v-if="canCreateWorkspace && !isMobileMode" #listFooter>
+          <template v-if="canCreateWorkspace" #listFooter>
             <NcDivider class="!my-0" />
             <div class="p-2">
               <NcButton type="text" size="small" class="w-full !justify-start" @click="onCreateWorkspace">

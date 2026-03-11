@@ -66,7 +66,7 @@ export const form: FormDefinition = [
     type: FormBuilderInputType.Select,
     label: 'Encryption',
     model: 'config.encryption',
-    span: 12,
+    span: [24, 12],
     category: 'Connection',
     defaultValue: 'tls',
     options: [
@@ -112,7 +112,7 @@ export const form: FormDefinition = [
     type: FormBuilderInputType.Input,
     label: 'Username',
     model: 'config.username',
-    span: 12,
+    span: [24, 12],
     category: 'Authentication',
     placeholder: 'apikey',
     validators: [
@@ -126,7 +126,7 @@ export const form: FormDefinition = [
     type: FormBuilderInputType.Password,
     label: 'Password / API key',
     model: 'config.password',
-    span: 12,
+    span: [24, 12],
     category: 'Authentication',
     placeholder: '••••••••',
     validators: [
@@ -142,7 +142,7 @@ export const form: FormDefinition = [
     type: FormBuilderInputType.Input,
     label: 'From email',
     model: 'config.fromEmail',
-    span: 12,
+    span: [24, 12],
     category: 'Sender',
     placeholder: 'noreply@acme.com',
     validators: [
@@ -161,7 +161,7 @@ export const form: FormDefinition = [
     type: FormBuilderInputType.Input,
     label: 'From name',
     model: 'config.fromName',
-    span: 12,
+    span: [24, 12],
     category: 'Sender',
     placeholder: 'Acme Notifications',
     helpText: 'Display name shown to recipients',

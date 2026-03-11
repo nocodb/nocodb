@@ -41,6 +41,17 @@ const { isMobileMode } = useGlobal()
 
 const ncModalRef = ref<HTMLDivElement | null>(null)
 
+const resolvedModalSize = computed(() => {
+  const size = modalSizes[props.size as keyof typeof modalSizes]
+  if (!size) return null
+
+  if (isMobileMode.value && 'mobile' in size && size.mobile) {
+    return size.mobile
+  }
+
+  return size
+})
+
 const width = computed(() => {
   if (isMobileMode.value && !modalSizes[props.size]) {
     return '95vw'
@@ -62,8 +73,8 @@ const width = computed(() => {
     return '80rem'
   }
 
-  if (modalSizes[props.size]) {
-    return modalSizes[props.size].width
+  if (resolvedModalSize.value) {
+    return resolvedModalSize.value.width
   }
 
   return 'max(30vw, 600px)'
@@ -90,8 +101,8 @@ const height = computed(() => {
     return '80vh'
   }
 
-  if (modalSizes[props.size]) {
-    return modalSizes[props.size].height
+  if (resolvedModalSize.value) {
+    return resolvedModalSize.value.height
   }
 
   return 'auto'
@@ -148,11 +159,11 @@ if (stopEventPropogation.value) {
   >
     <div
       ref="ncModalRef"
-      class="flex flex-col nc-modal p-6 h-full"
+      class="flex flex-col nc-modal p-4 md:p-6 h-full"
       :class="[`nc-modal-size-${size} ${ncModalClassName}`]"
       :style="{
         maxHeight: height,
-        ...(modalSizes[size] ? { height } : {}),
+        ...(resolvedModalSize ? { height } : {}),
       }"
     >
       <div
@@ -160,7 +171,7 @@ if (stopEventPropogation.value) {
         :class="{
           'border-b-1 border-nc-border-gray-medium': showSeparator,
         }"
-        class="flex pb-2 mb-2 nc-modal-header text-lg font-medium"
+        class="flex pb-2 mb-2 nc-modal-header text-base md:text-lg font-medium"
       >
         <slot name="header" />
       </div>

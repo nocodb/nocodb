@@ -10,7 +10,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Integration name',
-    width: 100,
+    span: 24,
     model: 'title',
     placeholder: 'Integration name',
     category: 'General',
@@ -24,7 +24,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Auth Type',
-    width: 48,
+    span: [24, 12],
     model: 'config.type',
     category: 'Authentication',
     placeholder: 'Select auth type',
@@ -53,7 +53,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Jira Cloud URL',
-    width: 100,
+    span: 24,
     model: 'config.jira_url',
     category: 'Authentication',
     placeholder: 'https://your-domain.atlassian.net',
@@ -71,7 +71,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'API Token',
-    width: 100,
+    span: 24,
     model: 'config.token',
     category: 'Authentication',
     placeholder: 'Enter your API Token',
@@ -89,7 +89,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Email Address',
-    width: 100,
+    span: 24,
     model: 'config.email',
     category: 'Authentication',
     placeholder: 'Enter your Jira email address',
@@ -107,7 +107,7 @@ export const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'Jira Company Name (domain)',
-    width: 100,
+    span: 24,
     model: 'config.jira_domain',
     category: 'Authentication',
     placeholder: 'MY_COMPANY_NAME',
@@ -128,7 +128,7 @@ export const form: FormDefinition = [
         {
           type: FormBuilderInputType.OAuth,
           label: 'OAuth Configuration',
-          width: 100,
+          span: 24,
           model: 'config.oauth',
           category: 'Authentication',
           validators: [

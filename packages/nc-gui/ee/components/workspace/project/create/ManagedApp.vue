@@ -138,7 +138,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
           {
             type: FormBuilderInputType.Select,
             label: 'Start from',
-            span: 12,
+            span: [24, 12],
             model: 'startFrom',
             category: FORM_BUILDER_NON_CATEGORIZED,
             options: [
@@ -149,7 +149,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
           },
           {
             type: FormBuilderInputType.Space,
-            span: 12,
+            span: [0, 12],
             category: FORM_BUILDER_NON_CATEGORIZED,
             condition: {
               model: 'startFrom',
@@ -159,7 +159,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
           {
             type: FormBuilderInputType.SelectBase,
             label: 'Select base',
-            span: 12,
+            span: [24, 12],
             model: 'baseId',
             category: FORM_BUILDER_NON_CATEGORIZED,
             condition: {
@@ -177,7 +177,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     {
       type: FormBuilderInputType.Input,
       label: t('labels.managedAppCategory'),
-      span: 12,
+      span: [24, 12],
       model: 'category',
       placeholder: 'e.g., CRM, HR',
       category: FORM_BUILDER_NON_CATEGORIZED,
@@ -185,7 +185,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     {
       type: FormBuilderInputType.Select,
       label: t('labels.managedAppVisibility'),
-      span: 12,
+      span: [24, 12],
       model: 'visibility',
       category: FORM_BUILDER_NON_CATEGORIZED,
       options: [
@@ -221,7 +221,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
       :sub-title="subTitle || $t('labels.publishToAppStore')"
     />
 
-    <div class="flex-1 p-6 nc-scrollbar-thin">
+    <div class="flex-1 p-4 md:p-6 nc-scrollbar-thin">
       <NcFormBuilder>
         <template #header>
           <NcAlert

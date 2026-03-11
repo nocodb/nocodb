@@ -9,7 +9,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.SelectIntegration,
     label: 'Jira Connection',
-    width: 100,
+    span: 24,
     model: 'config.authIntegrationId',
     category: 'Authentication',
     integrationFilter: {
@@ -26,7 +26,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Select,
     label: 'Project Key',
-    width: 48,
+    span: [24, 12],
     model: 'config.projects',
     placeholder: 'e.g., PROJECT',
     selectMode: 'multiple',
@@ -46,14 +46,9 @@ const form: FormDefinition = [
     ],
   },
   {
-    type: FormBuilderInputType.Space,
-    width: 4,
-    category: 'Source',
-  },
-  {
     type: FormBuilderInputType.Switch,
     label: 'Include closed issues',
-    width: 48,
+    span: [24, 12],
     model: 'config.includeClosed',
     category: 'Source',
     defaultValue: true,
@@ -61,7 +56,7 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Input,
     label: 'JQL Query',
-    width: 100,
+    span: 24,
     model: 'config.jqlQuery',
     placeholder: 'e.g., project = "PROJECT" AND type = "Bug"',
     category: 'Source',

@@ -216,9 +216,10 @@ export class UiGetOperations
         // (qs arrayLimit default) it produces a plain object instead.
         let ids = req.query.ids;
         if (!Array.isArray(ids)) {
-          ids = typeof ids === 'object' && ids !== null
-            ? Object.values(ids)
-            : [ids];
+          ids =
+            typeof ids === 'object' && ids !== null
+              ? Object.values(ids)
+              : [ids];
         }
         return await this.commentsService.commentsCount(context, {
           fk_model_id: req.query.fk_model_id as string,

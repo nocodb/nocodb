@@ -83,7 +83,6 @@ const rowColoringCount = computed(() => {
 const selectColumns = computed(() => {
   return (meta?.value?.columns || []).filter((c) => c.uidt === UITypes.SingleSelect)
 })
-
 </script>
 
 <template>

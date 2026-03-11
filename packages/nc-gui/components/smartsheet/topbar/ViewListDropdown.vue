@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
-const { isMobileMode } = useGlobal()
-
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()

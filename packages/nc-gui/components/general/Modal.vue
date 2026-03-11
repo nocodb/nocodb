@@ -74,7 +74,7 @@ const visible = useVModel(props, 'visible', emits)
 
 const newWrapClassName = computed(() => {
   let className = 'nc-modal-wrapper'
- 
+
   // For backward compatibility, we are not combining nc-modal-wrapper
   if (_wrapClassName) {
     className = `nc-has-modal-wrapper-class ${_wrapClassName}`

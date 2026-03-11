@@ -37,7 +37,7 @@ export const useConfigStore = defineStore('configStore', () => {
       document.documentElement.style.setProperty('--topbar-height', bp === 'xs' ? '3.875rem' : '3rem')
 
       // Set body class for CSS selectors
-      document.body.classList.remove('mobile', 'tablet',  'desktop')
+      document.body.classList.remove('mobile', 'tablet', 'desktop')
       if (bp === 'xs') {
         document.body.classList.add('mobile')
       } else if (bp === 'sm') {

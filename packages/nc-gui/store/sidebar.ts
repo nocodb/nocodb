@@ -1,5 +1,5 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
-import { INITIAL_LEFT_SIDEBAR_WIDTH, NC_BREAKPOINTS, MINI_SIDEBAR_WIDTH, NEW_MINI_SIDEBAR_WIDTH } from '~/lib/constants'
+import { INITIAL_LEFT_SIDEBAR_WIDTH, MINI_SIDEBAR_WIDTH, NC_BREAKPOINTS, NEW_MINI_SIDEBAR_WIDTH } from '~/lib/constants'
 
 export const useSidebarStore = defineStore('sidebarStore', () => {
   const router = useRouter()

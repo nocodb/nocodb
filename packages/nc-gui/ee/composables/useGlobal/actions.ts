@@ -1,8 +1,8 @@
 import { getActivePinia } from 'pinia'
 import { Auth } from 'aws-amplify'
 import type { AxiosInstance } from 'axios'
-import type { NcBreakpoint } from '~/lib/constants'
 import type { Actions, AppInfo, Getters, SignOutParams, State } from '../../../composables/useGlobal/types'
+import type { NcBreakpoint } from '~/lib/constants'
 
 export interface ActionsEE {
   getMainUrl: () => string | undefined

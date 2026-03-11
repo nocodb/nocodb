@@ -7716,7 +7716,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{baseId}/comment/{commentId}": {
+    "/api/v3/meta/bases/{baseId}/comments/{commentId}": {
       "patch": {
         "summary": "Update comment",
         "operationId": "comments-update",
@@ -7835,7 +7835,7 @@
         }
       }
     },
-    "/api/v3/meta/bases/{baseId}/comment/{commentId}/resolve": {
+    "/api/v3/meta/bases/{baseId}/comments/{commentId}/resolve": {
       "post": {
         "summary": "Resolve comment",
         "operationId": "comments-resolve",
@@ -15254,6 +15254,11 @@
             "description": "Row/record ID this comment belongs to.",
             "example": "1"
           },
+          "table_id": {
+            "type": "string",
+            "description": "Table ID this comment belongs to.",
+            "example": "mrc5unwjdov67vr"
+          },
           "comment": {
             "type": "string",
             "description": "Comment text (supports markdown).",
@@ -15265,12 +15270,25 @@
             "description": "User ID of the comment creator.",
             "example": "usr_abc123"
           },
+          "created_by_email": {
+            "type": "string",
+            "description": "Email of the comment creator.",
+            "example": "user@example.com"
+          },
           "resolved_by": {
             "type": [
               "string",
               "null"
             ],
             "description": "User ID who resolved this comment (null if not resolved).",
+            "example": null
+          },
+          "resolved_by_email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Email of the user who resolved this comment.",
             "example": null
           },
           "parent_comment_id": {
@@ -15310,7 +15328,10 @@
             "example": "This is a comment",
             "maxLength": 3000
           }
-        }
+        },
+        "required": [
+          "comment"
+        ]
       },
       "CommentUpdateRequest": {
         "type": "object",
@@ -15322,7 +15343,10 @@
             "example": "Updated comment",
             "maxLength": 3000
           }
-        }
+        },
+        "required": [
+          "comment"
+        ]
       },
       "CommentListResponse": {
         "type": "object",

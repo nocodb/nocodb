@@ -11,10 +11,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import {
-  checkForFeature,
-  PlanFeatureTypes,
-} from '~/ee/helpers/paymentHelpers';
+import type { CommentReqType, CommentUpdateReqType } from 'nocodb-sdk';
+import { PlanFeatureTypes } from 'nocodb-sdk';
+import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -60,7 +59,7 @@ export class CommentsV3Controller {
     @Param('rowId') rowId: string,
     @Param('tableId') tableId: string,
     @Req() req: NcRequest,
-    @Body() body: any,
+    @Body() body: CommentReqType,
   ) {
     await checkForFeature(context, PlanFeatureTypes.FEATURE_API_COMMENT_V3);
 
@@ -71,13 +70,13 @@ export class CommentsV3Controller {
     });
   }
 
-  @Patch(`${PREFIX_APIV3_METABASE}/comment/:commentId`)
+  @Patch(`${PREFIX_APIV3_METABASE}/comments/:commentId`)
   @Acl('commentUpdate')
   async commentUpdate(
     @TenantContext() context: NcContext,
     @Param('commentId') commentId: string,
     @Req() req: NcRequest,
-    @Body() body: any,
+    @Body() body: CommentUpdateReqType,
   ) {
     await checkForFeature(context, PlanFeatureTypes.FEATURE_API_COMMENT_V3);
 
@@ -89,7 +88,7 @@ export class CommentsV3Controller {
     });
   }
 
-  @Delete(`${PREFIX_APIV3_METABASE}/comment/:commentId`)
+  @Delete(`${PREFIX_APIV3_METABASE}/comments/:commentId`)
   @Acl('commentDelete')
   async commentDelete(
     @TenantContext() context: NcContext,
@@ -105,7 +104,7 @@ export class CommentsV3Controller {
     });
   }
 
-  @Post(`${PREFIX_APIV3_METABASE}/comment/:commentId/resolve`)
+  @Post(`${PREFIX_APIV3_METABASE}/comments/:commentId/resolve`)
   @HttpCode(200)
   @Acl('commentResolve')
   async commentResolve(

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { PlanFeatureTypes, PlanTitles, UITypes, parseProp } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, UITypes } from 'nocodb-sdk'
 
 const props = defineProps<{
   value: any
@@ -121,10 +121,10 @@ const columns = computed<ColumnType[]>(() => {
 
 const limitRecToCond = computed({
   get() {
-    return !!parseProp(vModel.value.meta)?.enableConditions
+    return !!vModel.value.meta?.enableConditions
   },
   set(value) {
-    vModel.value.meta = parseProp(vModel.value.meta) || {}
+    vModel.value.meta = vModel.value.meta || {}
     vModel.value.meta.enableConditions = value
 
     $e('c:lookup:limit-record-by-filter', { status: value })

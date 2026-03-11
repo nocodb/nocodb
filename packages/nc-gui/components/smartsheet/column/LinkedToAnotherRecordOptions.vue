@@ -11,7 +11,6 @@ import {
   UITypes,
   ViewTypes,
   WorkspaceUserRoles,
-  parseProp,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -278,14 +277,14 @@ watch(
   },
 )
 
-vModel.value.meta = parseProp(vModel.value.meta) || {}
+vModel.value.meta = vModel.value.meta || {}
 const limitRecToView = ref(!!vModel.value.childViewId)
 const limitRecToCond = computed({
   get() {
-    return !!parseProp(vModel.value.meta)?.enableConditions
+    return !!vModel.value.meta?.enableConditions
   },
   set(value) {
-    vModel.value.meta = parseProp(vModel.value.meta) || {}
+    vModel.value.meta = vModel.value.meta || {}
     vModel.value.meta.enableConditions = value
   },
 })

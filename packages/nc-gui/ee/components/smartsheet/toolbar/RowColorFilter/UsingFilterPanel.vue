@@ -3,7 +3,6 @@ import type { ClientType, RowColoringInfoFilter, RowColoringInfoFilterRow } from
 import { PlanFeatureTypes, PlanTitles, ViewLockType, ViewTypes } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
 import Draggable from 'vuedraggable'
-import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 
 interface Props {
   modelValue?: RowColoringInfoFilter
@@ -103,7 +102,6 @@ const removeColor = (index: number) => {
   } else {
     props.handler.conditionDelete(index)
   }
-  clearRowColouringCache()
 }
 
 const updateColorPendingPayload = ref({})
@@ -136,7 +134,6 @@ const updateColor = (index: number, field: string, value: string) => {
       [field]: value,
     } as any)
   }
-  clearRowColouringCache()
 }
 
 function onMoveCallback(event: any) {

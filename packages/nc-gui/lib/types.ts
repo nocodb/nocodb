@@ -104,6 +104,7 @@ interface RowMetaRowColorInfo {
   rowHoverColor?: string | null
   rowBorderColor?: string | null
   is_set_as_background?: boolean
+  cellColors?: Record<string, any>
 }
 
 interface Row {
@@ -507,6 +508,11 @@ interface CellRendererOptions {
    * This is used in row colouring
    */
   isRootCell?: boolean
+  /**
+   * When true, the row-level background fill (in renderRows) already painted the row color,
+   * so renderCell can skip the redundant per-cell background fill and only draw borders.
+   */
+  rowBgAlreadyApplied?: boolean
 }
 
 interface CellRenderStore {
@@ -722,14 +728,6 @@ interface CloudFeaturesType {
 }
 
 type CanvasScrollToCellFn = (row?: number, column?: number, path?: Array<number>, horizontalScroll?: boolean) => void
-
-interface RowColouringEvaluatedResultType {
-  is_set_as_background: boolean
-  color: string
-  hoverColor: string | null
-  rawColor: string | undefined
-  borderColor: string | null
-}
 
 interface PermissionConfig {
   entity: PermissionEntity
@@ -1128,7 +1126,6 @@ export type {
   CanvasGroup,
   CloudFeaturesType,
   CanvasScrollToCellFn,
-  RowColouringEvaluatedResultType,
   PermissionConfig,
   PermissionSelectorUser,
   NcListProps,

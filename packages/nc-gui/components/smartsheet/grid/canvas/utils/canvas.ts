@@ -11,7 +11,7 @@ const singleLineTextCache: LRUCache<string, { text: string; width: number; isTru
   max: 1000,
 })
 
-const multiLineTextCache: LRUCache<string, { lines: string[]; width: number }> = new LRUCache({
+const multiLineTextCache: LRUCache<string, { lines: string[]; width: number; lastLineWidth?: number }> = new LRUCache({
   max: 1000,
 })
 
@@ -28,10 +28,6 @@ export const replaceUrlsWithLinkCache: LRUCache<string, boolean | string> = new 
 })
 
 export const formulaTextSegmentsCache: LRUCache<string, Array<{ text: string; url?: string }>> = new LRUCache({
-  max: 1000,
-})
-
-export const rowColouringCache: LRUCache<string, RowColouringEvaluatedResultType> = new LRUCache({
   max: 1000,
 })
 
@@ -58,12 +54,7 @@ export const clearTextCache = () => {
   barcodeCache.clear()
   replaceUrlsWithLinkCache.clear()
   formulaTextSegmentsCache.clear()
-  rowColouringCache.clear()
   aggregationCache.clear()
-}
-
-export const clearRowColouringCache = () => {
-  rowColouringCache.clear()
 }
 
 interface TruncateTextWithInfoType {
@@ -171,6 +162,43 @@ export function roundedRect(
     borders?: { top?: boolean; right?: boolean; bottom?: boolean; left?: boolean }
   } = {},
 ): void {
+  // Fast path: radius=0 (used by all cell background renders).
+  // Avoids path construction + arcTo calls — uses fillRect + batched line strokes instead.
+  // With row coloring active this saves ~8000 canvas API calls per frame.
+  const isZeroRadius =
+    radius === 0 ||
+    (typeof radius === 'object' && !radius.topLeft && !radius.topRight && !radius.bottomLeft && !radius.bottomRight)
+  if (isZeroRadius) {
+    if (backgroundColor) {
+      ctx.fillStyle = backgroundColor
+      ctx.fillRect(x, y, width, height)
+    }
+    if (borderColor) {
+      const { top = true, right = true, bottom = true, left = true } = borders
+      ctx.strokeStyle = borderColor
+      ctx.lineWidth = borderWidth
+      ctx.beginPath()
+      if (top) {
+        ctx.moveTo(x, y)
+        ctx.lineTo(x + width, y)
+      }
+      if (right) {
+        ctx.moveTo(x + width, y)
+        ctx.lineTo(x + width, y + height)
+      }
+      if (bottom) {
+        ctx.moveTo(x + width, y + height)
+        ctx.lineTo(x, y + height)
+      }
+      if (left) {
+        ctx.moveTo(x, y + height)
+        ctx.lineTo(x, y)
+      }
+      ctx.stroke()
+    }
+    return
+  }
+
   const {
     topLeft = 0,
     topRight = 0,
@@ -915,6 +943,7 @@ export function renderMultiLineText(
 
   let lines: string[] = []
   let width = 0
+  let lastLineWidthCached = 0
   const originalFontFamily = ctx.font
 
   if (fontFamily) {
@@ -930,11 +959,13 @@ export function renderMultiLineText(
   if (cachedText) {
     lines = cachedText.lines
     width = cachedText.width
+    lastLineWidthCached = cachedText.lastLineWidth ?? 0
   } else {
     lines = wrapTextToLines(ctx, { text, maxWidth, maxLines, firstLineMaxWidth, renderAsPreTag })
     width = Math.min(Math.max(...lines.map((line) => ctx.measureText(line).width)), maxWidth)
+    lastLineWidthCached = lines.length ? Math.min(ctx.measureText(lines[lines.length - 1] ?? '').width, maxWidth) : 0
 
-    multiLineTextCache.set(cacheKey, { lines, width })
+    multiLineTextCache.set(cacheKey, { lines, width, lastLineWidth: lastLineWidthCached })
   }
 
   const yOffset =
@@ -976,7 +1007,7 @@ export function renderMultiLineText(
 
   const lastLineStartX = lines.length === 1 && !ncIsUndefined(firstLineMaxWidth) ? x + (maxWidth - firstLineMaxWidth) : x
 
-  const lastLineWidth = lines.length ? Math.min(ctx.measureText(lines[lines.length - 1] ?? '').width, maxWidth) : 0
+  const lastLineWidth = lastLineWidthCached
 
   const newY = y + yOffset + (lines.length - 1) * lineHeight
 

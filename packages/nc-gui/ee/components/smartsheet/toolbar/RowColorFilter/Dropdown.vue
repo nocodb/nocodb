@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { PlanFeatureTypes, ROW_COLORING_MODE, UITypes, ViewLockType } from 'nocodb-sdk'
-import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 import { SmartsheetToolbarRowColorFilterUsingFilterPanel } from '#components'
 
 const meta = inject(MetaInj, ref())
@@ -83,12 +82,6 @@ const rowColoringCount = computed(() => {
 
 const selectColumns = computed(() => {
   return (meta?.value?.columns || []).filter((c) => c.uidt === UITypes.SingleSelect)
-})
-
-watch(open, (value) => {
-  if (!value) {
-    clearRowColouringCache()
-  }
 })
 </script>
 

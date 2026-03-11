@@ -17,7 +17,7 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
-import { clearRowColouringCache, clearTextCache } from '../utils/canvas'
+import { clearTextCache } from '../utils/canvas'
 import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
@@ -850,7 +850,7 @@ export function useCanvasTable({
     }
   }
 
-  const { handleCellClick, renderCell, handleCellHover, handleCellKeyDown } = useGridCellHandler({
+  const { handleCellClick, renderCell, updateFrameTimestamp, handleCellHover, handleCellKeyDown } = useGridCellHandler({
     getCellPosition,
     actionManager,
     markdownLoader,
@@ -900,6 +900,7 @@ export function useCanvasTable({
     targetRowIndex,
     actionManager,
     renderCell,
+    updateFrameTimestamp,
     meta,
     editEnabled,
     totalWidth,
@@ -1423,7 +1424,27 @@ export function useCanvasTable({
     return !!row.rowMeta.selected
   }
 
+  let _renderRafId: number | null = null
+
   function triggerRefreshCanvas() {
+    // Coalesce multiple render requests into a single frame.
+    // Many code paths call triggerRefreshCanvas multiple times per frame
+    // (scroll handler, updateVisibleRows, data fetch completion, etc.).
+    // Without batching, each call synchronously re-renders the entire canvas.
+    if (_renderRafId) return
+    _renderRafId = requestAnimationFrame(() => {
+      _renderRafId = null
+      renderCanvas()
+    })
+  }
+
+  // Wrapper that renders immediately and cancels any pending deferred render.
+  // Used by the scroll handler to avoid the 2-frame lag that triggerRefreshCanvas causes.
+  const renderCanvasDirect = () => {
+    if (_renderRafId) {
+      cancelAnimationFrame(_renderRafId)
+      _renderRafId = null
+    }
     renderCanvas()
   }
 
@@ -1439,7 +1460,6 @@ export function useCanvasTable({
   const smartsheetEventHandler = (event) => {
     if ([SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
       forcedNextTick(() => {
-        clearRowColouringCache()
         triggerRefreshCanvas()
       })
     }
@@ -1520,6 +1540,7 @@ export function useCanvasTable({
     updateVisibleRows,
     findColumnIndex,
     triggerRefreshCanvas,
+    renderCanvasDirect,
     startDrag,
     findColumnAtPosition,
     findClickedColumn,

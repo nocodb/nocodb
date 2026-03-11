@@ -11,7 +11,7 @@ import Model from '~/models/Model';
 export const listWidgetFiltersTool: ChatToolDefinition = {
   name: 'list_widget_filters',
   description:
-    'List all filter conditions on a widget. Returns each filter\'s id (needed for remove_widget_filter), ' +
+    "List all filter conditions on a widget. Returns each filter's id (needed for remove_widget_filter), " +
     'field name, operator, value, and logical_op (and/or). ' +
     'Use this before remove_widget_filter to find the filter ID to remove.',
   parameters: {

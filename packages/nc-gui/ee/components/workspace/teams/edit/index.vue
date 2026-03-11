@@ -110,7 +110,7 @@ const supportedDocs: SupportedDocsType[] = [
           </template>
         </div>
 
-        <NcModalSupportedDocsSidebar>
+        <NcModalSupportedDocsSidebar class="hidden md:block">
           <NcModalSupportedDocs :docs="supportedDocs" />
         </NcModalSupportedDocsSidebar>
       </div>
@@ -130,7 +130,7 @@ const supportedDocs: SupportedDocsType[] = [
     @apply px-6 pb-6 nc-scrollbar-thin relative w-full h-full flex flex-col gap-2;
 
     .nc-modal-teams-edit-content-section {
-      @apply flex flex-col gap-4 min-w-[540px] max-w-[720px] mx-auto w-full;
+      @apply flex flex-col gap-4 w-full md:(min-w-[540px] max-w-[720px]) mx-auto w-full;
     }
   }
 }

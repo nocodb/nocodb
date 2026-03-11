@@ -22,7 +22,7 @@ const { selectedWorkspaceId } = toRefs(props)
 
 const { t } = useI18n()
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, activeBreakpoint } = useGlobal()
 
 const { orgRoles } = useRoles()
 
@@ -68,8 +68,9 @@ const clearFilter = () => {
   <div class="nc-bases-header flex items-center gap-2 px-4 py-2 border-b border-nc-border-gray-medium">
     <!-- Search Input -->
     <a-input
+      v-if="['xs', 'sm'].includes(activeBreakpoint)"
       v-model:value="vSearchQuery"
-      class="nc-bases-search nc-input-sm flex-1 md:!hidden"
+      class="nc-bases-search nc-input-sm flex-1"
       :placeholder="$t('activity.searchProject')"
       allow-clear
       @focus="isSearchFocused = true"

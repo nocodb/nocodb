@@ -99,6 +99,7 @@ export interface Getters {
   signedIn: ComputedRef<boolean>
   isSsoUser: ComputedRef<boolean>
   isLoading: WritableComputedRef<boolean>
+  getResponsiveValue: <T>(mobile: T, desktop: T) => T
 }
 
 export interface SignOutParams {

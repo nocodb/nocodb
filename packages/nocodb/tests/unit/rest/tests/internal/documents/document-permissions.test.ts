@@ -36,6 +36,11 @@ export const documentPermissionsTests = function () {
     let editorToken: string;
     let viewerToken: string;
 
+    let ownerId: string;
+    let creatorId: string;
+    let editorId: string;
+    let viewerId: string;
+
     let rootDocId: string;
     let childDocId: string;
     let grandchildDocId: string;
@@ -44,6 +49,7 @@ export const documentPermissionsTests = function () {
       context = await init();
       workspaceId = context.fk_workspace_id!;
       ownerToken = context.token;
+      ownerId = context.user.id;
 
       // Create a base
       const baseResult = await request(context.app)
@@ -69,6 +75,7 @@ export const documentPermissionsTests = function () {
         })
         .expect(200);
       creatorToken = creator.token;
+      creatorId = creator.user.id;
 
       const editor = await createUser(
         { app: context.app },
@@ -83,6 +90,7 @@ export const documentPermissionsTests = function () {
         })
         .expect(200);
       editorToken = editor.token;
+      editorId = editor.user.id;
 
       const viewer = await createUser(
         { app: context.app },
@@ -97,6 +105,7 @@ export const documentPermissionsTests = function () {
         })
         .expect(200);
       viewerToken = viewer.token;
+      viewerId = viewer.user.id;
 
       // Create document hierarchy: root -> child -> grandchild
       const rootRes = await request(context.app)
@@ -143,18 +152,23 @@ export const documentPermissionsTests = function () {
       grantedType: PermissionGrantedType,
       grantedRole?: PermissionRole,
       expectedStatus = 200,
+      subjects?: { type: 'user' | 'team'; id: string; hierarchy_scope?: string }[],
     ) => {
+      const body: Record<string, any> = {
+        entity: PermissionEntity.DOCUMENT,
+        entity_id: docId,
+        permission: permissionKey,
+        granted_type: grantedType,
+        granted_role: grantedRole,
+      };
+      if (subjects) {
+        body.subjects = subjects;
+      }
       return request(context.app)
         .post(INTERNAL_API_BASE)
         .query({ operation: 'setPermission' })
         .set('xc-auth', token)
-        .send({
-          entity: PermissionEntity.DOCUMENT,
-          entity_id: docId,
-          permission: permissionKey,
-          granted_type: grantedType,
-          granted_role: grantedRole,
-        })
+        .send(body)
         .expect(expectedStatus);
     };
 
@@ -452,6 +466,324 @@ export const documentPermissionsTests = function () {
       });
     });
 
+    // ─── Default Edit Permission ──────────────────────────────────────
+
+    describe('Default Edit Permission (Editors & up)', () => {
+      it('Editor can edit documents by default (no explicit permission set)', async () => {
+        const docRes = await getDoc(ownerToken, rootDocId);
+        const version = docRes.body.version;
+
+        const editorUpdate = await updateDoc(editorToken, rootDocId, {
+          title: 'Editor Default Edit',
+          version,
+        });
+        expect(editorUpdate.status).to.equal(200);
+      });
+
+      it('Viewer cannot edit documents by default (no explicit permission set)', async () => {
+        const docRes = await getDoc(ownerToken, rootDocId);
+        const version = docRes.body.version;
+
+        const viewerUpdate = await updateDoc(viewerToken, rootDocId, {
+          title: 'Viewer Default Edit Attempt',
+          version,
+        });
+        expect(viewerUpdate.status).to.equal(403);
+      });
+
+      it('Creator can edit documents by default', async () => {
+        const docRes = await getDoc(ownerToken, rootDocId);
+        const version = docRes.body.version;
+
+        const creatorUpdate = await updateDoc(creatorToken, rootDocId, {
+          title: 'Creator Default Edit',
+          version,
+        });
+        expect(creatorUpdate.status).to.equal(200);
+      });
+    });
+
+    // ─── Specific Users Visibility ────────────────────────────────────
+
+    describe('Specific Users Visibility', () => {
+      it('Only specified users can see the document', async () => {
+        // Set visibility to SPECIFIC_USERS, granting only editor
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.USER,
+          undefined,
+          200,
+          [{ type: 'user', id: editorId }],
+        );
+
+        // Editor should see the document
+        const editorList = await listDocs(editorToken);
+        expect(editorList.body).to.satisfy((docs: any[]) =>
+          docs.some((d) => d.id === rootDocId),
+        );
+
+        // Creator should NOT see the document (not in subjects)
+        const creatorList = await listDocs(creatorToken);
+        expect(creatorList.body).to.satisfy(
+          (docs: any[]) => !docs.some((d) => d.id === rootDocId),
+        );
+
+        // Viewer should NOT see the document
+        const viewerList = await listDocs(viewerToken);
+        expect(viewerList.body).to.satisfy(
+          (docs: any[]) => !docs.some((d) => d.id === rootDocId),
+        );
+      });
+
+      it('Multiple specific users can see the document', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.USER,
+          undefined,
+          200,
+          [
+            { type: 'user', id: editorId },
+            { type: 'user', id: viewerId },
+          ],
+        );
+
+        // Both editor and viewer should see the document
+        const editorList = await listDocs(editorToken);
+        expect(editorList.body).to.satisfy((docs: any[]) =>
+          docs.some((d) => d.id === rootDocId),
+        );
+
+        const viewerList = await listDocs(viewerToken);
+        expect(viewerList.body).to.satisfy((docs: any[]) =>
+          docs.some((d) => d.id === rootDocId),
+        );
+
+        // Creator should NOT see the document
+        const creatorList = await listDocs(creatorToken);
+        expect(creatorList.body).to.satisfy(
+          (docs: any[]) => !docs.some((d) => d.id === rootDocId),
+        );
+      });
+
+      it('SPECIFIC_USERS visibility applies to documentGet', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.USER,
+          undefined,
+          200,
+          [{ type: 'user', id: creatorId }],
+        );
+
+        // Creator can get the document
+        const creatorGet = await getDoc(creatorToken, rootDocId);
+        expect(creatorGet.status).to.equal(200);
+
+        // Editor cannot (not in subjects — returns 404 hidden)
+        const editorGet = await getDoc(editorToken, rootDocId);
+        expect(editorGet.status).to.equal(404);
+      });
+
+      it('Child inherits SPECIFIC_USERS visibility from parent', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.USER,
+          undefined,
+          200,
+          [{ type: 'user', id: editorId }],
+        );
+
+        // Editor should see child (inherits from root)
+        const editorChildren = await listDocs(editorToken, rootDocId);
+        expect(editorChildren.body).to.satisfy((docs: any[]) =>
+          docs.some((d) => d.id === childDocId),
+        );
+
+        // Creator should NOT see child
+        const creatorChildren = await listDocs(creatorToken, rootDocId);
+        expect(creatorChildren.body).to.satisfy(
+          (docs: any[]) => !docs.some((d) => d.id === childDocId),
+        );
+      });
+    });
+
+    // ─── Specific Users Edit ──────────────────────────────────────────
+
+    describe('Specific Users Edit', () => {
+      it('Only specified users can edit the document', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_EDIT,
+          PermissionGrantedType.USER,
+          undefined,
+          200,
+          [{ type: 'user', id: creatorId }],
+        );
+
+        const docRes = await getDoc(ownerToken, rootDocId);
+        const version = docRes.body.version;
+
+        // Creator (in subjects) should be able to edit
+        const creatorUpdate = await updateDoc(creatorToken, rootDocId, {
+          title: 'Creator Specific Edit',
+          version,
+        });
+        expect(creatorUpdate.status).to.equal(200);
+
+        // Re-fetch version after creator's edit
+        const docRes2 = await getDoc(ownerToken, rootDocId);
+        const version2 = docRes2.body.version;
+
+        // Editor (not in subjects) should be blocked
+        const editorUpdate = await updateDoc(editorToken, rootDocId, {
+          title: 'Editor Specific Edit Attempt',
+          version: version2,
+        });
+        expect(editorUpdate.status).to.equal(403);
+      });
+
+      it('SPECIFIC_USERS edit blocks delete for non-listed users', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_EDIT,
+          PermissionGrantedType.USER,
+          undefined,
+          200,
+          [{ type: 'user', id: creatorId }],
+        );
+
+        // Editor (not in subjects) should be blocked from deleting
+        const deleteRes = await request(context.app)
+          .post(INTERNAL_API_BASE)
+          .query({ operation: 'documentDelete' })
+          .set('xc-auth', editorToken)
+          .send({ docId: rootDocId });
+
+        expect(deleteRes.status).to.equal(403);
+      });
+    });
+
+    // ─── Team-Based Permissions ───────────────────────────────────────
+
+    describe('Team-Based Permissions', () => {
+      let teamId: string;
+
+      beforeEach(async () => {
+        // Create a team and add editor as a member
+        const teamRes = await request(context.app)
+          .post(`/api/v3/meta/workspaces/${workspaceId}/teams`)
+          .set('xc-auth', ownerToken)
+          .send({
+            title: 'Test Team',
+            members: [{ user_id: editorId, team_role: 'member' }],
+          })
+          .expect(200);
+
+        teamId = teamRes.body.id;
+      });
+
+      it('Team-based visibility grants access to team members', async () => {
+        // Set visibility to SPECIFIC_USERS with the team as subject
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.USER,
+          undefined,
+          200,
+          [{ type: 'team', id: teamId }],
+        );
+
+        // Editor (team member) should see the document
+        const editorList = await listDocs(editorToken);
+        expect(editorList.body).to.satisfy((docs: any[]) =>
+          docs.some((d) => d.id === rootDocId),
+        );
+
+        // Viewer (not in team) should NOT see the document
+        const viewerList = await listDocs(viewerToken);
+        expect(viewerList.body).to.satisfy(
+          (docs: any[]) => !docs.some((d) => d.id === rootDocId),
+        );
+      });
+
+      it('Team-based edit grants edit access to team members', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_EDIT,
+          PermissionGrantedType.USER,
+          undefined,
+          200,
+          [{ type: 'team', id: teamId }],
+        );
+
+        const docRes = await getDoc(ownerToken, rootDocId);
+        const version = docRes.body.version;
+
+        // Editor (team member) should be able to edit
+        const editorUpdate = await updateDoc(editorToken, rootDocId, {
+          title: 'Team Member Edit',
+          version,
+        });
+        expect(editorUpdate.status).to.equal(200);
+
+        // Re-fetch version
+        const docRes2 = await getDoc(ownerToken, rootDocId);
+        const version2 = docRes2.body.version;
+
+        // Viewer (not in team) should be blocked
+        const viewerUpdate = await updateDoc(viewerToken, rootDocId, {
+          title: 'Non-Team Edit Attempt',
+          version: version2,
+        });
+        expect(viewerUpdate.status).to.equal(403);
+      });
+
+      it('Mixed user and team subjects work together', async () => {
+        // Grant visibility to the team + viewer individually
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.USER,
+          undefined,
+          200,
+          [
+            { type: 'team', id: teamId },
+            { type: 'user', id: viewerId },
+          ],
+        );
+
+        // Editor (team member) should see the document
+        const editorList = await listDocs(editorToken);
+        expect(editorList.body).to.satisfy((docs: any[]) =>
+          docs.some((d) => d.id === rootDocId),
+        );
+
+        // Viewer (individual subject) should see the document
+        const viewerList = await listDocs(viewerToken);
+        expect(viewerList.body).to.satisfy((docs: any[]) =>
+          docs.some((d) => d.id === rootDocId),
+        );
+
+        // Creator (not in team or subjects) should NOT see
+        const creatorList = await listDocs(creatorToken);
+        expect(creatorList.body).to.satisfy(
+          (docs: any[]) => !docs.some((d) => d.id === rootDocId),
+        );
+      });
+    });
+
     // ─── Inheritance ──────────────────────────────────────────────────
 
     describe('Permission Inheritance', () => {
@@ -633,6 +965,171 @@ export const documentPermissionsTests = function () {
         expect(editorChildren.body).to.satisfy(
           (docs: any[]) => !docs.some((d) => d.id === childDocId),
         );
+      });
+    });
+
+    // ─── Create Under Restricted Parent ─────────────────────────────
+
+    describe('Create Under Restricted Parent', () => {
+      it('Editor cannot create child doc under CREATORS_AND_UP edit-restricted parent', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_EDIT,
+          PermissionGrantedType.ROLE,
+          PermissionRole.CREATOR,
+        );
+
+        // Editor tries to create a child doc under the restricted root
+        const createRes = await request(context.app)
+          .post(INTERNAL_API_BASE)
+          .query({ operation: 'documentCreate' })
+          .set('xc-auth', editorToken)
+          .send({
+            title: 'Editor Child Attempt',
+            parent_id: rootDocId,
+            content: { type: 'doc', content: [{ type: 'paragraph' }] },
+          });
+
+        expect(createRes.status).to.equal(403);
+      });
+
+      it('Creator can create child doc under CREATORS_AND_UP edit-restricted parent', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_EDIT,
+          PermissionGrantedType.ROLE,
+          PermissionRole.CREATOR,
+        );
+
+        const createRes = await request(context.app)
+          .post(INTERNAL_API_BASE)
+          .query({ operation: 'documentCreate' })
+          .set('xc-auth', creatorToken)
+          .send({
+            title: 'Creator Child OK',
+            parent_id: rootDocId,
+            content: { type: 'doc', content: [{ type: 'paragraph' }] },
+          });
+
+        expect(createRes.status).to.equal(200);
+      });
+
+      it('Editor can create root-level doc even when another doc is edit-restricted', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_EDIT,
+          PermissionGrantedType.ROLE,
+          PermissionRole.CREATOR,
+        );
+
+        // Creating a root doc (no parent_id) should always work for editors
+        const createRes = await request(context.app)
+          .post(INTERNAL_API_BASE)
+          .query({ operation: 'documentCreate' })
+          .set('xc-auth', editorToken)
+          .send({
+            title: 'Editor Root Doc',
+            content: { type: 'doc', content: [{ type: 'paragraph' }] },
+          });
+
+        expect(createRes.status).to.equal(200);
+      });
+    });
+
+    // ─── has_permissions flag ─────────────────────────────────────────
+
+    describe('has_permissions flag in list response', () => {
+      it('Documents without explicit permissions have has_permissions=false', async () => {
+        const res = await listDocs(ownerToken);
+        const rootDoc = res.body.find((d: any) => d.id === rootDocId);
+        expect(rootDoc.has_permissions).to.equal(false);
+      });
+
+      it('Documents with explicit permissions have has_permissions=true', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.ROLE,
+          PermissionRole.EDITOR,
+        );
+
+        const res = await listDocs(ownerToken);
+        const rootDoc = res.body.find((d: any) => d.id === rootDocId);
+        expect(rootDoc.has_permissions).to.equal(true);
+      });
+
+      it('has_permissions resets to false after dropping permission', async () => {
+        await setDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.ROLE,
+          PermissionRole.EDITOR,
+        );
+
+        await dropDocPermission(
+          ownerToken,
+          rootDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+        );
+
+        const res = await listDocs(ownerToken);
+        const rootDoc = res.body.find((d: any) => d.id === rootDocId);
+        expect(rootDoc.has_permissions).to.equal(false);
+      });
+    });
+
+    // ─── has_children visibility correction ───────────────────────────
+
+    describe('has_children visibility correction', () => {
+      it('has_children is false when all children are hidden from user', async () => {
+        // rootDoc has childDoc as a child. Hide childDoc from viewer.
+        await setDocPermission(
+          ownerToken,
+          childDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.ROLE,
+          PermissionRole.CREATOR,
+        );
+
+        // For viewer, rootDoc should show has_children=false since childDoc is hidden
+        const viewerList = await listDocs(viewerToken);
+        const rootDoc = viewerList.body.find((d: any) => d.id === rootDocId);
+        expect(rootDoc).to.exist;
+        expect(rootDoc.has_children).to.equal(false);
+      });
+
+      it('has_children is true when at least one child is visible', async () => {
+        // Create a second child under root that remains visible
+        await request(context.app)
+          .post(INTERNAL_API_BASE)
+          .query({ operation: 'documentCreate' })
+          .set('xc-auth', ownerToken)
+          .send({
+            title: 'Visible Child',
+            parent_id: rootDocId,
+            content: { type: 'doc', content: [{ type: 'paragraph' }] },
+          })
+          .expect(200);
+
+        // Hide only the first child
+        await setDocPermission(
+          ownerToken,
+          childDocId,
+          PermissionKey.DOCUMENT_VISIBILITY,
+          PermissionGrantedType.ROLE,
+          PermissionRole.CREATOR,
+        );
+
+        // For viewer, rootDoc should still show has_children=true
+        const viewerList = await listDocs(viewerToken);
+        const rootDoc = viewerList.body.find((d: any) => d.id === rootDocId);
+        expect(rootDoc).to.exist;
+        expect(rootDoc.has_children).to.equal(true);
       });
     });
 

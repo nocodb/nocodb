@@ -421,6 +421,14 @@ function onStopEdit() {
         </div>
       </NcTooltip>
 
+      <NcTooltip v-if="!isEditing && doc.has_permissions" :title="$t('title.pagePermissions')">
+        <GeneralIcon
+          icon="ncLock"
+          class="flex-none text-nc-content-gray-muted !w-3.5 !h-3.5"
+          data-testid="sidebar-doc-lock-icon"
+        />
+      </NcTooltip>
+
       <template v-if="!isEditing">
         <NcDropdown v-model:visible="isDropdownOpen" overlay-class-name="!rounded-lg">
           <NcButton

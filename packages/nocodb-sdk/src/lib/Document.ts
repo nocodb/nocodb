@@ -15,6 +15,8 @@ export interface DocumentType {
   created_at?: string;
   updated_at?: string;
   comment_count?: number;
+  /** True when the document has explicit (non-default) permissions set */
+  has_permissions?: boolean;
 }
 
 /** @deprecated Use DocumentType instead */

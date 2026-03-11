@@ -3,6 +3,7 @@ import {
   AppEvents,
   EventType,
   getProjectRole,
+  PermissionEntity,
   PermissionKey,
   PermissionRole,
   PermissionRoleMap,
@@ -48,13 +49,18 @@ export class DocumentsService extends DocumentsServiceCE {
   /**
    * Check if a user is allowed to perform an action on a document
    * based on document-level permissions (visibility or edit).
-   * Base owners always bypass document permissions.
+   *
+   * Resolution order:
+   * 1. Base owners always bypass (return true)
+   * 2. Walk up the doc tree for the nearest explicit permission
+   * 3. If none found, apply defaults: visibility=allow-all, edit=editor+
+   * 4. Otherwise delegate to Permission.isAllowed (handles role & user/team subjects)
    */
   protected async checkDocPermission(
     context: NcContext,
     docId: string,
     permissionKey: PermissionKey,
-    user: any,
+    user: { id: string; [key: string]: any },
   ): Promise<boolean> {
     // Resolve the user's most powerful base role
     const role = getProjectRole(user);
@@ -126,6 +132,32 @@ export class DocumentsService extends DocumentsServiceCE {
         }
       }
       visibleDocs = filtered;
+
+      // Correct has_children: a doc reporting has_children=true from the DB
+      // may have ALL its children hidden from this user. Exposing the flag
+      // would leak the existence of hidden child pages.
+      for (const doc of visibleDocs) {
+        if (doc.has_children) {
+          const children = await Document.listLite(context, baseId, doc.id!);
+          let anyVisible = false;
+          for (const child of children) {
+            if (
+              await this.checkDocPermission(
+                context,
+                child.id!,
+                PermissionKey.DOCUMENT_VISIBILITY,
+                req.user,
+              )
+            ) {
+              anyVisible = true;
+              break; // one visible child is enough
+            }
+          }
+          if (!anyVisible) {
+            doc.has_children = false;
+          }
+        }
+      }
     }
 
     // Enrich with comment counts
@@ -137,6 +169,19 @@ export class DocumentsService extends DocumentsServiceCE {
       );
       for (const doc of visibleDocs) {
         doc.comment_count = countMap.get(doc.id!) || 0;
+      }
+    }
+
+    // Enrich with has_permissions flag (uses cached Permission.list)
+    if (visibleDocs.length) {
+      const allPermissions = await Permission.list(context, baseId);
+      const docIdsWithPermissions = new Set(
+        allPermissions
+          .filter((p) => p.entity === PermissionEntity.DOCUMENT)
+          .map((p) => p.entity_id),
+      );
+      for (const doc of visibleDocs) {
+        (doc as DocumentType).has_permissions = docIdsWithPermissions.has(doc.id!);
       }
     }
 
@@ -190,6 +235,22 @@ export class DocumentsService extends DocumentsServiceCE {
       message: ({ limit }) =>
         `You have reached the limit of ${limit} document pages per base for your plan.`,
     });
+
+    // Check edit permission on parent document (prevents bypassing
+    // edit restrictions by creating child docs under locked pages)
+    if (payload.parent_id && req?.user) {
+      const allowed = await this.checkDocPermission(
+        context,
+        payload.parent_id,
+        PermissionKey.DOCUMENT_EDIT,
+        req.user,
+      );
+      if (!allowed) {
+        NcError.get(context).forbidden(
+          'You do not have permission to create a sub-page under this document',
+        );
+      }
+    }
 
     payload.fk_workspace_id = context.workspace_id;
     payload.base_id = context.base_id;
@@ -307,7 +368,9 @@ export class DocumentsService extends DocumentsServiceCE {
         req.user,
       );
       if (!allowed) {
-        NcError.forbidden('You do not have permission to edit this document');
+        NcError.get(context).forbidden(
+          'You do not have permission to edit this document',
+        );
       }
     }
 
@@ -439,7 +502,7 @@ export class DocumentsService extends DocumentsServiceCE {
         req.user,
       );
       if (!allowed) {
-        NcError.forbidden(
+        NcError.get(context).forbidden(
           'You do not have permission to delete this document',
         );
       }
@@ -507,7 +570,7 @@ export class DocumentsService extends DocumentsServiceCE {
         req.user,
       );
       if (!allowed) {
-        NcError.forbidden(
+        NcError.get(context).forbidden(
           'You do not have permission to reorder this document',
         );
       }

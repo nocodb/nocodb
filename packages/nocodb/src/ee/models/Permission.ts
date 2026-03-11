@@ -639,12 +639,21 @@ export default class Permission {
    * Otherwise, inherit from the nearest ancestor that has one.
    * If no ancestor has a permission, return the default.
    */
+  /** Maximum ancestor depth to walk before aborting (guards against cycles). */
+  private static MAX_DOC_DEPTH = 50;
+
   static async getEffectiveDocPermission(
     context: NcContext,
     docId: string,
     permissionKey: PermissionKey,
     ncMeta = Noco.ncMeta,
+    _depth = 0,
   ): Promise<{ permission: Permission | null; inherited: boolean }> {
+    if (_depth > this.MAX_DOC_DEPTH) {
+      // Likely a parent_id cycle — bail out with default rather than crash
+      return { permission: null, inherited: true };
+    }
+
     // Check if this document has an explicit permission
     const explicit = await this.getByEntity(
       context,
@@ -658,8 +667,8 @@ export default class Permission {
       return { permission: explicit, inherited: false };
     }
 
-    // Walk up parent chain
-    const Document = (await import('~/ee/models/Document')).default;
+    // Walk up parent chain — lazy-import Document to break circular dependency
+    const Document = await this.getDocumentModel();
     const doc = await Document.get(context, docId, ncMeta);
 
     if (doc?.parent_id) {
@@ -668,11 +677,25 @@ export default class Permission {
         doc.parent_id,
         permissionKey,
         ncMeta,
+        _depth + 1,
       );
     }
 
     // Root document with no explicit permission → default
     return { permission: null, inherited: true };
+  }
+
+  /**
+   * Lazy-load and cache the Document model to avoid re-evaluating the
+   * dynamic import on every call (circular dependency workaround).
+   */
+  private static _DocumentModel: typeof import('~/ee/models/Document').default;
+
+  private static async getDocumentModel() {
+    if (!this._DocumentModel) {
+      this._DocumentModel = (await import('~/ee/models/Document')).default;
+    }
+    return this._DocumentModel;
   }
 
   /**
@@ -688,7 +711,7 @@ export default class Permission {
     newOptionValue: PermissionOptionValue,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const Document = (await import('~/ee/models/Document')).default;
+    const Document = await this.getDocumentModel();
     const doc = await Document.get(context, docId, ncMeta);
 
     if (!doc?.parent_id) {
@@ -716,8 +739,8 @@ export default class Permission {
     );
 
     if (!isMoreRestrictive(newOptionValue, parentOptionValue)) {
-      NcError.forbidden(
-        `Cannot set permission more permissive than parent page. Parent is "${parentOptionValue}", attempted "${newOptionValue}".`,
+      NcError.get(context).forbidden(
+        'Cannot set a permission that is more permissive than the parent page',
       );
     }
   }
@@ -726,6 +749,9 @@ export default class Permission {
    * When a parent document's permission is tightened, cascade to children
    * that have explicit permissions which are now more permissive than the parent.
    * Auto-tighten them by removing their explicit permission (reverting to inherited).
+   *
+   * Collects all IDs to delete first, then batch-deletes in a single call
+   * to avoid partial-cleanup on crash.
    */
   static async cascadeTightenDocPermissions(
     context: NcContext,
@@ -734,7 +760,38 @@ export default class Permission {
     newParentOptionValue: PermissionOptionValue,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    const Document = (await import('~/ee/models/Document')).default;
+    const idsToDelete: string[] = [];
+
+    await this._collectTightenIds(
+      context,
+      docId,
+      permissionKey,
+      newParentOptionValue,
+      idsToDelete,
+      ncMeta,
+    );
+
+    if (idsToDelete.length) {
+      await this.bulkDelete(context, idsToDelete, ncMeta);
+    }
+  }
+
+  /**
+   * Recursively collect permission IDs that need to be deleted
+   * because they are more permissive than the new parent value.
+   */
+  private static async _collectTightenIds(
+    context: NcContext,
+    docId: string,
+    permissionKey: PermissionKey,
+    newParentOptionValue: PermissionOptionValue,
+    idsToDelete: string[],
+    ncMeta = Noco.ncMeta,
+    _depth = 0,
+  ): Promise<void> {
+    if (_depth > this.MAX_DOC_DEPTH) return;
+
+    const Document = await this.getDocumentModel();
 
     // Get direct children
     const children = await Document.listLite(context, context.base_id, docId, ncMeta);
@@ -754,20 +811,22 @@ export default class Permission {
           childExplicit.granted_role,
         );
 
-        // If child is now more permissive than parent, remove the explicit permission
+        // If child is now more permissive than parent, mark for deletion
         if (!isMoreRestrictive(childOptionValue, newParentOptionValue)) {
-          await this.delete(context, childExplicit.id, ncMeta);
+          idsToDelete.push(childExplicit.id);
         }
       }
 
       // Recurse into children (they may have explicit permissions too)
       if (child.has_children) {
-        await this.cascadeTightenDocPermissions(
+        await this._collectTightenIds(
           context,
           child.id!,
           permissionKey,
           newParentOptionValue,
+          idsToDelete,
           ncMeta,
+          _depth + 1,
         );
       }
     }

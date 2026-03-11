@@ -263,7 +263,6 @@ const mainItems = computed<NavItem[]>(() => [
 
     <!-- Activity / Notifications -->
     <NcDropdown
-      v-if="!isMobileMode"
       v-model:visible="isNotificationOpen"
       placement="right"
       overlay-class-name="!shadow-none"

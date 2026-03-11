@@ -19,7 +19,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showUpgradeToUseMapView } = useEeConfig()
+const { showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -264,14 +264,17 @@ async function onOpenModal({
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
-                    <PaymentUpgradeBadge
-                      v-if="blockMapView"
-                      :feature="PlanFeatureTypes.FEATURE_MAP_VIEW"
-                      :plan-title="PlanTitles.BUSINESS"
-                      remove-click
-                      show-as-lock
-                      class="ml-auto"
-                    />
+                  </div>
+                </a-menu-item>
+
+                <a-menu-item
+                  v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
+                  data-testid="topbar-view-create-timeline"
+                  @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
+                >
+                  <div class="nc-viewlist-submenu-popup-item">
+                    <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
+                    {{ $t('objects.viewType.timeline') }}
                   </div>
                 </a-menu-item>
 
@@ -320,7 +323,7 @@ async function onOpenModal({
   }
 
   .ant-menu-item {
-    @apply h-auto min-h-7 !my-0 text-sm !leading-5 py-1 px-2 hover:!bg-nc-bg-gray-light cursor-pointer rounded-md;
+    @apply h-auto min-h-8 md:min-h-7 !my-0 text-sm !leading-5 py-1 px-2 hover:!bg-nc-bg-gray-light cursor-pointer rounded-md;
 
     .ant-menu-title-content {
       @apply w-full px-0;

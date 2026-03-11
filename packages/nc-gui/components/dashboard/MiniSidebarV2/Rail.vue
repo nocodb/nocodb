@@ -189,24 +189,25 @@ const mainItems = computed<NavItem[]>(() => [
 
 <template>
   <nav class="nc-rail" data-testid="nc-mini-sidebar-v2-rail">
-    <!-- Logo -->
-    <div class="nc-rail-logo" title="Home" data-testid="nc-mini-sidebar-v2-logo" @click="isBaseListModalOpen = true">
-      <GeneralProjectIcon
-        class="!h-7 !w-7"
-        :color="parseProp(resolvedProject?.meta).iconColor"
-        :type="resolvedProject?.type"
-        :managed-app="
-          resolvedProject
-            ? {
-                managed_app_master: resolvedProject?.managed_app_master,
-                managed_app_id: resolvedProject?.managed_app_id,
-              }
-            : undefined
-        "
-      />
+    <div class="flex-none h-[var(--topbar-height)] relative flex items-center">
+      <!-- Logo -->
+      <div class="nc-rail-logo" title="Home" data-testid="nc-mini-sidebar-v2-logo" @click="isBaseListModalOpen = true">
+        <GeneralProjectIcon
+          class="!h-7 !w-7"
+          :color="parseProp(resolvedProject?.meta).iconColor"
+          :type="resolvedProject?.type"
+          :managed-app="
+            resolvedProject
+              ? {
+                  managed_app_master: resolvedProject?.managed_app_master,
+                  managed_app_id: resolvedProject?.managed_app_id,
+                }
+              : undefined
+          "
+        />
+      </div>
+      <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium absolute bottom-0" />
     </div>
-
-    <NcDivider class="!w-8 !min-w-8 !mt-1 mb-1 !border-nc-border-gray-medium" />
 
     <!-- Main nav items -->
     <DashboardMiniSidebarV2RailItem
@@ -256,7 +257,7 @@ const mainItems = computed<NavItem[]>(() => [
       </DashboardMiniSidebarHelp>
     </div>
 
-    <NcDivider class="!w-8 !min-w-8 !max-w-8 pt-1.5 pb-1 !border-nc-border-gray-medium" />
+    <NcDivider class="!w-8 !min-w-8 !max-w-8 !my-0 !border-nc-border-gray-medium" />
 
     <DashboardMiniSidebarCreateNewActionMenu v-if="!isMobileMode" />
 
@@ -303,11 +304,11 @@ const mainItems = computed<NavItem[]>(() => [
 
 <style lang="scss" scoped>
 .nc-rail {
-  @apply flex flex-col gap-1.5 items-center h-full w-full pt-1.5;
+  @apply flex flex-col gap-1.5 items-center h-full w-full;
 }
 
 .nc-rail-logo {
-  @apply flex items-center justify-center cursor-pointer pt-1 opacity-90 hover:opacity-100 transform transition-all duration-150;
+  @apply flex items-center justify-center cursor-pointer opacity-90 hover:opacity-100 transform transition-all duration-150;
 
   &:hover {
     scale: 1.1;

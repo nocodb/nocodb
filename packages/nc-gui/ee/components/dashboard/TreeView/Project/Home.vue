@@ -70,8 +70,11 @@ const hasTableCreatePermission = computed(() => {
         <DashboardTreeViewProjectNode v-else ref="projectNodeRef" is-project-header />
       </DashboardSidebarHeaderWrapper>
 
-      <div v-if="!isSharedBase && activeSidebarTab !== 'settings'" class="nc-project-home-section !pt-1 !pb-0.5 flex flex-col">
-        <div v-if="hasTableCreatePermission" class="flex items-center w-full">
+      <div
+        v-if="hasTableCreatePermission && !isSharedBase && activeSidebarTab !== 'settings'"
+        class="nc-project-home-section !py-0 flex items-center min-h-[var(--toolbar-height)]"
+      >
+        <div class="flex items-center w-full">
           <!-- Docs tab: direct create (no dropdown — only one option) -->
           <NcButton
             v-if="activeSidebarTab === 'docs'"
@@ -120,6 +123,7 @@ const hasTableCreatePermission = computed(() => {
           </NcDropdown>
         </div>
       </div>
+      <div v-else class="h-1">&nbsp;</div>
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <!-- Data tab -->

@@ -79,7 +79,7 @@ const onCreateBaseClick = () => {
 
 <template>
   <div class="nc-all-tables-view py-4 px-6 nc-scrollbar-thin h-full overflow-y-auto">
-    <div class="text-subHeading2 text-nc-content-gray mb-5">{{ tabActionLabel }} {{ $t('labels.actions') }}</div>
+    <div class="text-subHeading2 text-nc-content-gray mb-5 -mt-1.5">{{ tabActionLabel }} {{ $t('labels.actions') }}</div>
 
     <div
       class="nc-overview-actions flex flex-row gap-6 flex-wrap max-w-[1000px]"

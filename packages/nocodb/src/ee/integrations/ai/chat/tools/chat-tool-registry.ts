@@ -67,6 +67,16 @@ import { getWidgetDataTool } from '~/integrations/ai/chat/tools/dashboard/get-wi
 import { addWidgetFilterTool } from '~/integrations/ai/chat/tools/dashboard/add-widget-filter.tool';
 import { listWidgetFiltersTool } from '~/integrations/ai/chat/tools/dashboard/list-widget-filters.tool';
 import { removeWidgetFilterTool } from '~/integrations/ai/chat/tools/dashboard/remove-widget-filter.tool';
+import { listDocumentsTool } from '~/integrations/ai/chat/tools/docs/list-documents.tool';
+import { getDocumentTool } from '~/integrations/ai/chat/tools/docs/get-document.tool';
+import { createDocumentTool } from '~/integrations/ai/chat/tools/docs/create-document.tool';
+import { updateDocumentTool } from '~/integrations/ai/chat/tools/docs/update-document.tool';
+import { deleteDocumentTool } from '~/integrations/ai/chat/tools/docs/delete-document.tool';
+import { reorderDocumentTool } from '~/integrations/ai/chat/tools/docs/reorder-document.tool';
+import { listDocumentCommentsTool } from '~/integrations/ai/chat/tools/docs/list-document-comments.tool';
+import { addDocumentCommentTool } from '~/integrations/ai/chat/tools/docs/add-document-comment.tool';
+import { resolveDocumentCommentTool } from '~/integrations/ai/chat/tools/docs/resolve-document-comment.tool';
+import { patchDocumentTool } from '~/integrations/ai/chat/tools/docs/patch-document.tool';
 import { webSearchTool } from '~/integrations/ai/chat/tools/web/web-search.tool';
 import { webScrapeTool } from '~/integrations/ai/chat/tools/web/web-scrape.tool';
 import { isExaEnabled } from '~/integrations/ai/chat/tools/web/exa-client';
@@ -135,6 +145,16 @@ const ALL_TOOLS: ChatToolDefinition[] = [
   addWidgetFilterTool,
   listWidgetFiltersTool,
   removeWidgetFilterTool,
+  listDocumentsTool,
+  getDocumentTool,
+  createDocumentTool,
+  updateDocumentTool,
+  deleteDocumentTool,
+  patchDocumentTool,
+  reorderDocumentTool,
+  listDocumentCommentsTool,
+  addDocumentCommentTool,
+  resolveDocumentCommentTool,
   webSearchTool,
   webScrapeTool,
   executeCodeTool,

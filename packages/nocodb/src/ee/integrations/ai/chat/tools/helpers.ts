@@ -2,8 +2,10 @@ import { UITypes } from 'nocodb-sdk';
 import type { ModelMeta } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Column } from '~/models';
+import type { DocumentType } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { MetaTable } from '~/utils/globals';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import Model from '~/models/Model';
 import View from '~/models/View';
@@ -309,4 +311,42 @@ export async function resolveWidgetByName(
   }
 
   return widget;
+}
+
+/**
+ * Resolve a document by its title (case-insensitive) within the current base.
+ * Falls back to matching by ID if title doesn't match.
+ *
+ * Uses a single flat query against the DOCS table — no tree traversal needed
+ * since we're matching by title across all hierarchy levels.
+ */
+export async function resolveDocumentByName(
+  context: NcContext,
+  documentName: string,
+): Promise<DocumentType> {
+  if (!documentName) {
+    NcError.get(context).badRequest(
+      'document_name is required. Use list_documents to get valid document names.',
+    );
+  }
+
+  const allDocs: DocumentType[] = await Noco.ncMeta
+    .knexConnection(MetaTable.DOCS)
+    .where({
+      base_id: context.base_id,
+      fk_workspace_id: context.workspace_id,
+    })
+    .where('deleted', false)
+    .select('id', 'title', 'parent_id', 'version', 'has_children', 'order');
+
+  const lowerName = documentName.toLowerCase();
+  const doc =
+    allDocs.find((d) => d.title?.toLowerCase() === lowerName) ||
+    allDocs.find((d) => d.id === documentName);
+
+  if (!doc) {
+    NcError.get(context).genericNotFound('Document', documentName);
+  }
+
+  return doc;
 }

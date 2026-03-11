@@ -55,6 +55,18 @@ const DATA_PREFIXES = [
   'manage_comment',
 ]
 
+const DOCS_PREFIXES = [
+  'list_document',
+  'get_document',
+  'create_document',
+  'update_document',
+  'delete_document',
+  'patch_document',
+  'reorder_document',
+  'add_document',
+  'resolve_document',
+]
+
 const isProxy = computed(() => block.value.name === 'base_proxy')
 
 const proxyBaseName = computed(() => {
@@ -107,6 +119,9 @@ const category = computed(() => {
   }
   if (DATA_PREFIXES.some((p) => name.startsWith(p))) {
     return { icon: 'database', color: 'text-nc-content-green' }
+  }
+  if (DOCS_PREFIXES.some((p) => name.startsWith(p))) {
+    return { icon: 'file', color: 'text-nc-content-orange' }
   }
   return { icon: 'filter', color: 'text-nc-content-purple' }
 })

@@ -214,7 +214,11 @@ export class UiGetOperations
       case 'commentCount':
         return await this.commentsService.commentsCount(context, {
           fk_model_id: req.query.fk_model_id as string,
-          ids: Array.isArray(req.query.ids) ? req.query.ids : [req.query.ids],
+          ids: Array.isArray(req.query.ids)
+            ? req.query.ids
+            : typeof req.query.ids === 'object' && req.query.ids !== null
+              ? Object.values(req.query.ids)
+              : [req.query.ids],
         });
       case 'dataList':
         context.cache = true;

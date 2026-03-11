@@ -87,7 +87,7 @@ export const PermissionOptions: PermissionOption[] = [
   {
     value: PermissionOptionValue.NOBODY,
     label: 'Nobody',
-    description: 'No one can add records',
+    description: 'No access for anyone',
     icon: 'role_no_access',
   },
 ];

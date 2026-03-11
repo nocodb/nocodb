@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { getPermissionOptionValue, PermissionEntity, PermissionGrantedType, PermissionKey, type PermissionRole, ProjectRoles } from 'nocodb-sdk'
+import { extractBaseRoleFromWorkspaceRole, getPermissionOptionValue, PermissionEntity, PermissionGrantedType, PermissionKey, type PermissionRole, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -70,9 +70,8 @@ const getParentEffectiveValue = (docId: string, permissionKey: PermissionKey): s
 }
 
 const isCreatorOrAbove = computed(() => {
-  return (
-    base.value?.project_role === ProjectRoles.OWNER || base.value?.project_role === ProjectRoles.CREATOR
-  )
+  const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)
+  return role === ProjectRoles.OWNER || role === ProjectRoles.CREATOR
 })
 
 const visibilityConfig = computed<PermissionConfig>(() => ({

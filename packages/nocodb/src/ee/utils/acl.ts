@@ -386,6 +386,11 @@ const permissionScopes = {
     'documentDelete',
     'documentReorder',
 
+    // Permissions (table/field/document permissions)
+    'setPermission',
+    'dropPermission',
+    'bulkDropPermissions',
+
     // Document Comments
     'documentCommentList',
     'documentCommentCount',
@@ -1365,6 +1370,11 @@ const permissionDescriptions: Record<string, string> = {
   documentCommentResolve: 'resolve document comments',
   documentCommentReactionToggle: 'react to document comments',
   documentCommentReactionList: 'view document comment reactions',
+
+  // Permissions
+  setPermission: 'set a permission on a table, field, or document',
+  dropPermission: 'remove a permission from a table, field, or document',
+  bulkDropPermissions: 'remove multiple permissions at once',
 
   dashboardList: 'view list of dashboards',
   dashboardGet: 'view dashboard details',

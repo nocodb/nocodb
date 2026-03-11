@@ -149,7 +149,6 @@ import { BasesV3Service } from '~/services/v3/bases-v3.service';
 import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { FiltersV3Service } from '~/services/v3/filters-v3.service';
-import { HooksV3Service } from '~/services/v3/hooks-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewRowColorController } from '~/controllers/view-row-color.controller';
@@ -326,7 +325,6 @@ export const nocoModuleMetadata = {
     ColumnsV3Service,
     SortsV3Service,
     FiltersV3Service,
-    HooksV3Service,
     NocoJobsService,
     McpTokenService,
     McpService,

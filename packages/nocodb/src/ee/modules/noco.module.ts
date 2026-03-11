@@ -43,6 +43,7 @@ import { ViewsV3Controller } from '~/ee/controllers/v3/views-v3.controller';
 
 /* Hooks V3 */
 import { HooksV3Controller } from '~/ee/controllers/v3/hooks-v3.controller';
+import { HooksV3Service } from '~/services/v3/hooks-v3.service';
 
 /* Workspace V3 */
 import { WorkspaceV3Service } from '~/services/v3/workspace-v3.service';
@@ -197,6 +198,9 @@ export const nocoModuleEeMetadata = {
 
     /* Sandbox */
     SandboxesService,
+
+    /* Hooks V3 */
+    HooksV3Service,
 
     /* Scripts */
     ScriptsService,

@@ -1565,10 +1565,7 @@ export function useCanvasRender({
           } else if (rowBgAlreadyApplied) {
             // Row-level fill already painted the correct row color; fixed columns need to
             // repaint since they overlay scrollable content, but use the row color.
-            const effectiveColor =
-              isHovered || isRowCellSelected
-                ? row.rowMeta.rowHoverColor || rowColor
-                : rowColor
+            const effectiveColor = isHovered || isRowCellSelected ? row.rowMeta.rowHoverColor || rowColor : rowColor
             ctx.fillStyle = effectiveColor
             ctx.fillRect(xOffset, yOffset, width, _rowH)
           } else {
@@ -1835,8 +1832,6 @@ export function useCanvasRender({
     const colorWhite = _rowColors.white
     const colorGray200 = _rowColors.gray200
     const colorGray300 = _rowColors.gray300
-    const colorGray100 = _rowColors.gray100
-
     let warningRow: { row: Row; yOffset: number } | null = null
     const dataCache = getDataCache()
 

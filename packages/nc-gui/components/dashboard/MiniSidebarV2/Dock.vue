@@ -287,7 +287,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       />
     </DashboardMiniSidebarV2DockItem>
 
-    <NcDivider class="!w-8 !min-w-8 !mt-1 mb-1 !border-nc-border-gray-medium" />
+    <NcDivider class="!w-8 !min-w-8 !mb-0 !border-nc-border-gray-medium !-mt-1.5" />
 
     <!-- Main nav items -->
     <DashboardMiniSidebarV2DockItem
@@ -340,7 +340,7 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
       </div>
     </div>
 
-    <NcDivider class="!w-8 !min-w-8 mt-1.5 mb-1 !border-nc-border-gray-medium" />
+    <NcDivider class="!w-8 !min-w-8 !my-0 !border-nc-border-gray-medium" />
 
     <div
       v-if="!isMobileMode"
@@ -399,13 +399,14 @@ useEventListener(document, 'keydown', (e: KeyboardEvent) => {
 <style lang="scss" scoped>
 .nc-dock {
   @apply flex flex-col items-center h-full w-full overflow-visible;
-  padding: 14px 0;
   gap: 6px;
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
 }
 
 .nc-dock-logo {
+  @apply h-[var(--topbar-height)];
+
   opacity: 0.7;
   transform-origin: center center;
   color: #555;

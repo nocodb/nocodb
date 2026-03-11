@@ -8,7 +8,6 @@ interface Props {
   allowClear?: boolean
   type?: 'date' | 'datetime'
   is12hrFormat?: boolean
-  showSeconds?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,7 +17,6 @@ const props = withDefaults(defineProps<Props>(), {
   allowClear: true,
   type: 'datetime',
   is12hrFormat: false,
-  showSeconds: false,
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -27,38 +25,20 @@ const isDateOnly = computed(() => props.type === 'date')
 
 const isOpen = ref(false)
 
-const dateInputRef = ref<HTMLInputElement>()
-const timeInputRef = ref<HTMLInputElement>()
-const datePanelRef = ref<HTMLDivElement>()
 const hourColRef = ref<HTMLDivElement>()
 const minColRef = ref<HTMLDivElement>()
-const secColRef = ref<HTMLDivElement>()
 const ampmColRef = ref<HTMLDivElement>()
-
-const { height: datePanelHeight } = useElementBounding(datePanelRef)
 
 const selectedDate = computed(() => {
   if (!props.modelValue) return null
-  return dayjs(props.modelValue)
+  const d = dayjs(props.modelValue)
+  return d.isValid() ? d : null
 })
 
 const dateFormat = 'YYYY-MM-DD'
 
 const timeFormat = computed(() => {
-  let fmt = props.is12hrFormat ? 'hh:mm' : 'HH:mm'
-  if (props.showSeconds) fmt += ':ss'
-  if (props.is12hrFormat) fmt += ' A'
-  return fmt
-})
-
-const displayFormat = computed(() => {
-  if (isDateOnly.value) return dateFormat
-  return `${dateFormat} ${timeFormat.value}`
-})
-
-const displayValue = computed(() => {
-  if (!selectedDate.value) return ''
-  return selectedDate.value.format(displayFormat.value)
+  return props.is12hrFormat ? 'hh:mm A' : 'HH:mm'
 })
 
 // Time column data
@@ -68,10 +48,6 @@ const hours = computed(() => {
 })
 
 const minutes = computed(() => Array.from({ length: 60 }, (_, i) => i))
-
-const seconds = computed(() => Array.from({ length: 60 }, (_, i) => i))
-
-const ampmOptions = ['AM', 'PM']
 
 const selectedHour = computed(() => {
   if (!selectedDate.value) return null
@@ -84,8 +60,6 @@ const selectedHour = computed(() => {
 
 const selectedMinute = computed(() => selectedDate.value?.minute() ?? null)
 
-const selectedSecond = computed(() => selectedDate.value?.second() ?? null)
-
 const selectedAmPm = computed(() => {
   if (!selectedDate.value) return null
   return selectedDate.value.hour() >= 12 ? 'PM' : 'AM'
@@ -96,6 +70,8 @@ function pad(n: number): string {
 }
 
 function emitValue(date: dayjs.Dayjs) {
+  if (!date || !date.isValid()) return
+
   if (isDateOnly.value) {
     emit('update:modelValue', date.format('YYYY-MM-DD'))
   } else {
@@ -141,7 +117,7 @@ function handleTimeInputBlur(e: Event) {
 
 // --- Picker handlers ---
 function handleSelectDate(value?: dayjs.Dayjs) {
-  if (!value) {
+  if (!value || !value.isValid()) {
     emit('update:modelValue', null)
     if (isDateOnly.value) isOpen.value = false
     return
@@ -176,10 +152,6 @@ function handleSelectMinute(m: number) {
   emitValue(getBaseDateTime().minute(m))
 }
 
-function handleSelectSecond(s: number) {
-  emitValue(getBaseDateTime().second(s))
-}
-
 function handleSelectAmPm(period: string) {
   const base = getBaseDateTime()
   let h = base.hour()
@@ -208,7 +180,6 @@ function scrollAllToSelected() {
 
   scrollToSelected(hourColRef.value)
   scrollToSelected(minColRef.value)
-  if (props.showSeconds) scrollToSelected(secColRef.value)
   if (props.is12hrFormat) scrollToSelected(ampmColRef.value)
 }
 
@@ -240,9 +211,8 @@ watch(isOpen, (next) => {
 
       <!-- Date input -->
       <input
-        ref="dateInputRef"
         :value="selectedDate?.format(dateFormat) ?? ''"
-        :placeholder="isDateOnly ? placeholder : dateFormat"
+        :placeholder="isDateOnly ? placeholder || dateFormat : dateFormat"
         :readonly="disabled"
         class="nc-dtp-date-input flex-1 min-w-0 text-sm bg-transparent border-none outline-none text-nc-content-gray placeholder:text-nc-content-gray-subtle2"
         @focus="isOpen = true"
@@ -252,12 +222,16 @@ watch(isOpen, (next) => {
 
       <!-- Time input -->
       <template v-if="!isDateOnly">
+        <div class="w-px h-4 bg-nc-border-gray-medium flex-none" />
+
+        <GeneralIcon icon="clock" class="w-3.5 h-3.5 text-nc-content-gray-subtle2 flex-none" />
+
         <input
-          ref="timeInputRef"
           :value="selectedDate?.format(timeFormat) ?? ''"
           :placeholder="timeFormat"
           :readonly="disabled"
-          class="nc-dtp-time-input w-[60px] flex-none text-sm bg-transparent border-none outline-none text-nc-content-gray placeholder:text-nc-content-gray-subtle2"
+          class="nc-dtp-time-input flex-none text-sm bg-transparent border-none outline-none text-nc-content-gray placeholder:text-nc-content-gray-subtle2"
+          :class="is12hrFormat ? 'w-[72px]' : 'w-[48px]'"
           @focus="isOpen = true"
           @blur="handleTimeInputBlur"
           @keydown.enter="handleTimeInputBlur($event); isOpen = false"
@@ -274,9 +248,9 @@ watch(isOpen, (next) => {
 
     <!-- Dropdown overlay -->
     <template #overlay>
-      <div class="flex">
+      <div class="nc-dtp-dropdown-content flex">
         <!-- Date calendar -->
-        <div ref="datePanelRef" class="w-[256px] flex-none">
+        <div class="nc-dtp-date-panel w-[256px] flex-none">
           <NcDatePicker
             :selected-date="selectedDate"
             :is-open="isOpen"
@@ -287,29 +261,19 @@ watch(isOpen, (next) => {
         </div>
 
         <!-- Time columns -->
-        <div
-          v-if="!isDateOnly && datePanelHeight"
-          class="flex flex-col border-l-1 border-nc-border-gray-medium"
-          :style="{ height: `${datePanelHeight}px`, overflow: 'hidden' }"
-        >
+        <div v-if="!isDateOnly" class="nc-dtp-time-panel flex flex-col border-l-1 border-nc-border-gray-medium">
           <!-- Column headers -->
-          <div class="flex flex-none border-b-1 border-nc-border-gray-light">
-            <div class="w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2 py-1">
-              Hr
+          <div class="flex flex-none border-b-1 border-nc-border-gray-medium h-10 items-center">
+            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2">
+              HH
             </div>
-            <div class="w-px bg-nc-border-gray-light" />
-            <div class="w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2 py-1">
-              Min
+            <div class="w-px h-full bg-nc-border-gray-light" />
+            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2">
+              MM
             </div>
-            <template v-if="showSeconds">
-              <div class="w-px bg-nc-border-gray-light" />
-              <div class="w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2 py-1">
-                Sec
-              </div>
-            </template>
             <template v-if="is12hrFormat">
-              <div class="w-px bg-nc-border-gray-light" />
-              <div class="w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2 py-1" />
+              <div class="w-px h-full bg-nc-border-gray-light" />
+              <div class="nc-dtp-col-header w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2" />
             </template>
           </div>
 
@@ -320,9 +284,9 @@ watch(isOpen, (next) => {
               <div
                 v-for="h of hours"
                 :key="h"
-                class="py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light"
+                class="nc-dtp-item py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                 :class="{
-                  'nc-dtp-selected nc-selected bg-nc-bg-brand text-nc-content-brand font-semibold': selectedHour === h,
+                  'nc-dtp-selected bg-nc-bg-brand text-nc-content-brand !font-semibold': selectedHour === h,
                 }"
                 @click="handleSelectHour(h)"
               >
@@ -337,9 +301,9 @@ watch(isOpen, (next) => {
               <div
                 v-for="m of minutes"
                 :key="m"
-                class="py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light"
+                class="nc-dtp-item py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                 :class="{
-                  'nc-dtp-selected nc-selected bg-nc-bg-brand text-nc-content-brand font-semibold': selectedMinute === m,
+                  'nc-dtp-selected bg-nc-bg-brand text-nc-content-brand !font-semibold': selectedMinute === m,
                 }"
                 @click="handleSelectMinute(m)"
               >
@@ -347,34 +311,16 @@ watch(isOpen, (next) => {
               </div>
             </div>
 
-            <!-- Seconds -->
-            <template v-if="showSeconds">
-              <div class="w-px bg-nc-border-gray-light" />
-              <div ref="secColRef" class="w-[46px] overflow-y-auto nc-scrollbar-thin">
-                <div
-                  v-for="s of seconds"
-                  :key="s"
-                  class="py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light"
-                  :class="{
-                    'nc-dtp-selected nc-selected bg-nc-bg-brand text-nc-content-brand font-semibold': selectedSecond === s,
-                  }"
-                  @click="handleSelectSecond(s)"
-                >
-                  {{ pad(s) }}
-                </div>
-              </div>
-            </template>
-
             <!-- AM/PM -->
             <template v-if="is12hrFormat">
               <div class="w-px bg-nc-border-gray-light" />
               <div ref="ampmColRef" class="w-[46px] overflow-y-auto nc-scrollbar-thin">
                 <div
-                  v-for="period of ampmOptions"
+                  v-for="period of ['AM', 'PM']"
                   :key="period"
-                  class="py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light"
+                  class="nc-dtp-item py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                   :class="{
-                    'nc-dtp-selected nc-selected bg-nc-bg-brand text-nc-content-brand font-semibold': selectedAmPm === period,
+                    'nc-dtp-selected bg-nc-bg-brand text-nc-content-brand !font-semibold': selectedAmPm === period,
                   }"
                   @click="handleSelectAmPm(period)"
                 >
@@ -388,3 +334,22 @@ watch(isOpen, (next) => {
     </template>
   </NcDropdown>
 </template>
+
+<style lang="scss" scoped>
+.nc-dtp-dropdown-content {
+  .nc-dtp-date-panel {
+    // Fixed min-height so month/year picker views don't shrink the panel
+    min-height: 320px;
+
+    :deep(.nc-date-week-header),
+    :deep(.nc-month-picker-pagination) {
+      border-color: var(--nc-border-gray-medium);
+    }
+  }
+
+  .nc-dtp-time-panel {
+    // Match height of date panel
+    min-height: 320px;
+  }
+}
+</style>

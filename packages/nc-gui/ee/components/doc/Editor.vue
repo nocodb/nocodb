@@ -242,15 +242,17 @@ const onEditorClick = (e: MouseEvent) => {
 // Resolve pending anchor once comments are loaded
 const {
   comments: docComments,
+  activeDocId: commentsDocId,
   scrollToComment: scrollToDocComment,
   isCommentsLoading: isDocCommentsLoading,
 } = useDocumentComments()
 
 // Comment count: prefer live list length once comments have been loaded (panel opened),
-// otherwise fall back to the count from the local doc ref (not the store's activeDocument,
-// which re-evaluates on every autosave field patch and causes subtitle flicker).
+// but only when the comments belong to the current doc. The comments composable is a
+// singleton — after navigating away with the panel closed, it still holds the old doc's
+// comments, which would show a stale count.
 const commentCount = computed(() => {
-  if (docComments.value.length) return docComments.value.length
+  if (commentsDocId.value === docId.value && docComments.value.length) return docComments.value.length
   return doc.value?.comment_count ?? 0
 })
 

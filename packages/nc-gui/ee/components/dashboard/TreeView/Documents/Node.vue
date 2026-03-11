@@ -411,22 +411,25 @@ function onStopEdit() {
       >
         <template #title> {{ doc.title || $t('general.untitled') }}</template>
         <div
+          class="flex items-center gap-1"
           :class="{
             'font-medium text-nc-content-brand-disabled': activeDocumentId === doc.id,
           }"
-          :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
-          data-testid="sidebar-doc-title"
         >
-          {{ doc.title || $t('general.untitled') }}
+          <span
+            :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap' }"
+            data-testid="sidebar-doc-title"
+            class="truncate"
+          >
+            {{ doc.title || $t('general.untitled') }}
+          </span>
+          <GeneralIcon
+            v-if="doc.has_permissions"
+            icon="ncLock"
+            class="flex-none text-nc-content-gray-muted !w-3 !h-3"
+            data-testid="sidebar-doc-lock-icon"
+          />
         </div>
-      </NcTooltip>
-
-      <NcTooltip v-if="!isEditing && doc.has_permissions" :title="$t('title.pagePermissions')">
-        <GeneralIcon
-          icon="ncLock"
-          class="flex-none text-nc-content-gray-muted !w-3.5 !h-3.5"
-          data-testid="sidebar-doc-lock-icon"
-        />
       </NcTooltip>
 
       <template v-if="!isEditing">

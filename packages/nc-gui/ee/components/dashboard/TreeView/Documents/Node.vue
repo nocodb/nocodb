@@ -423,12 +423,14 @@ function onStopEdit() {
           >
             {{ doc.title || $t('general.untitled') }}
           </span>
-          <GeneralIcon
-            v-if="doc.has_permissions"
-            icon="ncLock"
-            class="flex-none text-nc-content-gray-muted !w-3 !h-3"
-            data-testid="sidebar-doc-lock-icon"
-          />
+          <NcTooltip v-if="doc.has_permissions">
+            <template #title>{{ $t('tooltip.restrictedPermissions') }}</template>
+            <GeneralIcon
+              icon="ncLock"
+              class="flex-none text-nc-content-gray-muted !w-3 !h-3"
+              data-testid="sidebar-doc-lock-icon"
+            />
+          </NcTooltip>
         </div>
       </NcTooltip>
 

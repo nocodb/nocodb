@@ -8,22 +8,32 @@ import Comment from '~/models/Comment';
 import User from '~/models/User';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { CommentsService } from '~/services/comments.service';
 
 /**
  * Convert @email patterns in plain text to the NocoDB mention format:
  *   @(userId|email|displayName)
  *
  * Looks up each email via User.getByEmail. Unresolved emails are left as-is.
+ *
+ * #3 — Uses negative lookbehind to skip @email that appears inside
+ * an existing @(...) mention (i.e. preceded by `|`).
  */
 async function resolveMentions(text: string): Promise<string> {
-  // Match @email patterns — email must not be inside an existing @(...) mention
-  const emailRegex = /@([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
+  // Match @email patterns, but NOT if preceded by | (inside a mention group)
+  const emailRegex =
+    /(?<!\|)@([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/g;
   const matches = [...text.matchAll(emailRegex)];
   if (matches.length === 0) return text;
 
   // Deduplicate emails and resolve users
-  const uniqueEmails = [...new Set(matches.map((m) => m[1].toLowerCase()))];
-  const userMap = new Map<string, { id: string; email: string; display_name?: string }>();
+  const uniqueEmails = [
+    ...new Set(matches.map((m) => m[1].toLowerCase())),
+  ];
+  const userMap = new Map<
+    string,
+    { id: string; email: string; display_name?: string }
+  >();
 
   for (const email of uniqueEmails) {
     const user = await User.getByEmail(email);
@@ -90,9 +100,11 @@ export const manageCommentsTool: ChatToolDefinition = {
           'it will be automatically resolved to a proper mention.',
       ),
   },
-  permission: 'commentRow',
+  // #5 — Use commentList (viewer-level) as base permission;
+  // write actions check commentRow permission internally.
+  permission: 'commentList',
   scope: 'base',
-  requiredRole: ProjectRoles.COMMENTER,
+  requiredRole: ProjectRoles.VIEWER,
   isDangerous: false,
   readonly: false,
   async execute(
@@ -110,26 +122,34 @@ export const manageCommentsTool: ChatToolDefinition = {
     const userId = req.user?.id;
     const userEmail = req.user?.email;
 
+    // #4 — Delegate mutations to CommentsService for proper
+    // AppEvents, mail notifications, and socket broadcasts.
+    const commentsService: CommentsService =
+      Noco.nestApp.get(CommentsService);
+
     switch (args.action) {
       case 'add_comment': {
         if (!args.row_id) {
-          return { error: 'row_id is required for add_comment. Use query_records or query_records_by_comments to find the record ID first.' };
+          return {
+            error:
+              'row_id is required for add_comment. Use query_records or query_records_by_comments to find the record ID first.',
+          };
         }
         if (!args.comment_text) {
           return { error: 'comment_text is required for add_comment.' };
         }
 
-        // Comments are stored as plain markdown with mentions as @(id|email|name).
-        // Convert any @email patterns to the proper mention format.
+        // Resolve @email → @(id|email|name) mention format
         const commentBody = await resolveMentions(args.comment_text);
 
-        const inserted = await Comment.insert(context, {
-          fk_model_id: model.id,
-          row_id: args.row_id,
-          comment: commentBody,
-          base_id: context.base_id,
-          created_by: userId,
-          created_by_email: userEmail,
+        const inserted = await commentsService.commentRow(context, {
+          body: {
+            fk_model_id: model.id,
+            row_id: args.row_id,
+            comment: commentBody,
+          },
+          user: req.user,
+          req,
         });
 
         return {
@@ -140,7 +160,10 @@ export const manageCommentsTool: ChatToolDefinition = {
 
       case 'resolve_comment': {
         if (!args.comment_id) {
-          return { error: 'comment_id is required for resolve_comment. Use list_comments to find the comment ID.' };
+          return {
+            error:
+              'comment_id is required for resolve_comment. Use list_comments to find the comment ID.',
+          };
         }
 
         const comment = await Comment.get(context, args.comment_id);
@@ -148,15 +171,19 @@ export const manageCommentsTool: ChatToolDefinition = {
           return { error: `Comment "${args.comment_id}" not found.` };
         }
         if (comment.fk_model_id !== model.id) {
-          return { error: 'Comment does not belong to the specified table.' };
+          return {
+            error: 'Comment does not belong to the specified table.',
+          };
         }
         if (comment.resolved_by) {
           return { message: 'Comment is already resolved.' };
         }
 
-        await Comment.resolve(context, args.comment_id, {
-          resolved_by: userId,
-          resolved_by_email: userEmail,
+        // Delegate to CommentsService for socket broadcast
+        await commentsService.commentResolve(context, {
+          commentId: args.comment_id,
+          user: req.user,
+          req,
         });
 
         return {
@@ -166,7 +193,10 @@ export const manageCommentsTool: ChatToolDefinition = {
 
       case 'reply': {
         if (!args.comment_id) {
-          return { error: 'comment_id is required for reply. Use list_comments to find the comment ID.' };
+          return {
+            error:
+              'comment_id is required for reply. Use list_comments to find the comment ID.',
+          };
         }
         if (!args.comment_text) {
           return { error: 'comment_text is required for reply.' };
@@ -178,19 +208,24 @@ export const manageCommentsTool: ChatToolDefinition = {
           return { error: `Comment "${args.comment_id}" not found.` };
         }
         if (parentComment.fk_model_id !== model.id) {
-          return { error: 'Comment does not belong to the specified table.' };
+          return {
+            error: 'Comment does not belong to the specified table.',
+          };
         }
 
         const replyBody = await resolveMentions(args.comment_text);
 
-        const inserted = await Comment.insert(context, {
-          fk_model_id: model.id,
-          row_id: parentComment.row_id,
-          comment: replyBody,
-          parent_comment_id: args.comment_id,
-          base_id: context.base_id,
-          created_by: userId,
-          created_by_email: userEmail,
+        const inserted = await commentsService.commentRow(context, {
+          body: {
+            fk_model_id: model.id,
+            row_id: parentComment.row_id,
+            comment: replyBody,
+            // parent_comment_id is accepted by Comment.insert() but not in
+            // the swagger-generated CommentReqType — cast to pass it through.
+            parent_comment_id: args.comment_id,
+          } as any,
+          user: req.user,
+          req,
         });
 
         return {
@@ -210,6 +245,7 @@ export const manageCommentsTool: ChatToolDefinition = {
           .select('id')
           .where('fk_model_id', model.id)
           .where('row_id', args.row_id)
+          .where('base_id', context.base_id)
           .whereNull('resolved_by')
           .where(function () {
             this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
@@ -221,13 +257,16 @@ export const manageCommentsTool: ChatToolDefinition = {
           };
         }
 
-        // Resolve each comment
-        for (const c of unresolvedComments) {
-          await Comment.resolve(context, c.id, {
-            resolved_by: userId,
-            resolved_by_email: userEmail,
-          });
-        }
+        // #9 — Resolve comments concurrently via CommentsService
+        await Promise.all(
+          unresolvedComments.map((c: any) =>
+            commentsService.commentResolve(context, {
+              commentId: c.id,
+              user: req.user,
+              req,
+            }),
+          ),
+        );
 
         return {
           message: `Resolved ${unresolvedComments.length} comment(s) on record ${args.row_id} in "${model.title}".`,
@@ -239,9 +278,11 @@ export const manageCommentsTool: ChatToolDefinition = {
           return { error: 'row_id is required for list_comments.' };
         }
 
-        const comments = await Comment.list(context, {
-          row_id: args.row_id,
-          fk_model_id: model.id,
+        const comments = await commentsService.commentList(context, {
+          query: {
+            row_id: args.row_id,
+            fk_model_id: model.id,
+          },
         });
 
         if (comments.length === 0) {
@@ -251,7 +292,8 @@ export const manageCommentsTool: ChatToolDefinition = {
           };
         }
 
-        // Format comments for LLM readability
+        // #7 — Comments are stored as plain markdown with @(id|email|name) mentions.
+        // Extract readable text; fall back to raw string if parsing fails.
         const formatted = comments.map((c: any) => ({
           id: c.id,
           created_by: c.created_by_email || c.created_by,
@@ -275,37 +317,16 @@ export const manageCommentsTool: ChatToolDefinition = {
 };
 
 /**
- * Extract plain text from a comment body (ProseMirror JSON or plain string).
+ * Extract plain text from a comment body.
+ * Comments are stored as plain markdown strings with mentions as @(id|email|name).
+ * Convert mentions to @name for readability.
  */
 function extractCommentText(comment: string | undefined | null): string {
   if (!comment) return '';
-  try {
-    const doc = JSON.parse(comment);
-    return extractPlainTextFromDoc(doc);
-  } catch {
-    return comment;
-  }
-}
-
-function extractPlainTextFromDoc(doc: Record<string, any>): string {
-  const parts: string[] = [];
-  const walk = (node: Record<string, any>) => {
-    if (node.type === 'text' && node.text) parts.push(node.text);
-    if (node.type === 'mention' && node.attrs?.id) {
-      try {
-        const parsed =
-          typeof node.attrs.id === 'string'
-            ? JSON.parse(node.attrs.id)
-            : node.attrs.id;
-        parts.push(`@${parsed.name || parsed.email || 'user'}`);
-      } catch {
-        parts.push('@user');
-      }
-    }
-    if (Array.isArray(node.content)) {
-      for (const child of node.content) walk(child);
-    }
-  };
-  walk(doc);
-  return parts.join('');
+  // Replace @(id|email|name) mention syntax with @name
+  return comment.replace(/@\(([^)]+)\)/g, (_match, inner: string) => {
+    const parts = inner.split('|');
+    const name = parts[2] || parts[1] || 'user';
+    return `@${name}`;
+  });
 }

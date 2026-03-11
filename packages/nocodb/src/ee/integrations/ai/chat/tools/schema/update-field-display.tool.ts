@@ -389,8 +389,9 @@ export const updateFieldDisplayTool: ChatToolDefinition = {
       const columnsV3Service: ColumnsV3Service =
         Noco.nestApp.get(ColumnsV3Service);
 
-      // Merge: load existing options, apply color overrides
-      const existingOptions = column.colOptions?.options ?? [];
+      // #12 — Eager-load colOptions; resolveColumnByName may not populate them.
+      const colOptions = await column.getColOptions(context);
+      const existingOptions = colOptions?.options ?? [];
       const colorMap = new Map<string, string>(
         args.option_colors.map((o: any) => [o.title, o.color]),
       );

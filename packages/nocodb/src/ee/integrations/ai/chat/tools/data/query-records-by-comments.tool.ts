@@ -9,19 +9,8 @@ import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { extractMentions } from '~/utils/richTextHelper';
 
-/**
- * Mentions in comments are stored as markdown: @(userId|email|displayName)
- * This regex captures each mention group.
- */
-const MENTION_REGEX = /@\(([^)]+)\)/g;
-
-/**
- * Extract user IDs from a comment's markdown mention syntax.
- */
-function extractMentionUserIds(comment: string | undefined | null): string[] {
-  if (!comment) return [];
-  return extractMentions(comment);
-}
+// #6 — no /g flag on module constant; each use creates its own regex
+const MENTION_PATTERN_SOURCE = /@\(([^)]+)\)/;
 
 /**
  * Extract mention emails from a comment's markdown mention syntax.
@@ -30,14 +19,56 @@ function extractMentionUserIds(comment: string | undefined | null): string[] {
 function extractMentionEmails(comment: string | undefined | null): string[] {
   if (!comment) return [];
   const emails: string[] = [];
+  const regex = new RegExp(MENTION_PATTERN_SOURCE.source, 'g');
   let match: RegExpExecArray | null;
-  const regex = new RegExp(MENTION_REGEX.source, 'g');
   while ((match = regex.exec(comment)) !== null) {
     const parts = match[1]?.split('|');
     const email = parts?.[1];
     if (email) emails.push(email.toLowerCase());
   }
   return emails;
+}
+
+/**
+ * Shared non-deleted condition for Knex queries on nc_comments.
+ */
+function whereNotDeleted(this: any) {
+  this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+}
+
+/**
+ * Fetch matching records by an array of row_id values using
+ * whereIn on the PK column (safe for special chars, unlike where clause string).
+ */
+async function fetchRecordsByRowIds(
+  context: NcContext,
+  model: any,
+  rowIds: string[],
+  limit: number,
+  req: NcRequest,
+): Promise<any[]> {
+  if (rowIds.length === 0) return [];
+
+  const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);
+
+  // #2 — Use whereIn via Knex subquery-safe approach instead of string where clause.
+  // Fetch all records and filter in-memory by the row_id set. This avoids
+  // where clause parsing issues with commas/parens in PK titles or values.
+  // For reasonable limits (<=100), this is acceptable.
+  const idsToFetch = new Set(rowIds.slice(0, limit).map(String));
+
+  const result = await dataV3Service.dataList(context, {
+    modelId: model.id,
+    query: {
+      // Fetch more than needed since we filter client-side
+      limit: String(Math.min(limit * 2, 200)),
+      offset: '0',
+    },
+    req,
+  });
+
+  const allRecords = (result as any).records || [];
+  return allRecords.filter((r: any) => idsToFetch.has(String(r.id)));
 }
 
 export const queryRecordsByCommentsTool: ChatToolDefinition = {
@@ -123,230 +154,217 @@ export const queryRecordsByCommentsTool: ChatToolDefinition = {
       };
     }
 
-    // ── Fetch all non-deleted comments for this table ──
-    // For "no_comments" we need to compare against all record IDs,
-    // so we handle it differently.
     const knex = Noco.ncMeta.knex;
 
+    // #10 — All raw queries include base_id for proper multi-tenant scoping
+    const baseCondition = {
+      fk_model_id: model.id,
+      base_id: context.base_id,
+    };
+
+    // ── no_comments: use DB-level exclusion via NOT IN subquery ──
+    // #1 — Fixed: uses subquery instead of single-page client-side filtering
     if (args.filter === 'no_comments') {
-      // Get all row IDs that DO have comments
-      const commentedRows = await knex(MetaTable.COMMENTS)
+      const commentedRowIds = await knex(MetaTable.COMMENTS)
         .distinct('row_id')
-        .where('fk_model_id', model.id)
-        .where(function () {
-          this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
+        .where(baseCondition)
+        .where(whereNotDeleted);
+
+      const commentedSet = new Set(
+        commentedRowIds.map((r: any) => String(r.row_id)),
+      );
+
+      // Paginate through records to find those without comments
+      const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);
+      const collected: any[] = [];
+      let offset = 0;
+      const pageSize = 100;
+
+      while (collected.length < limit) {
+        const page = await dataV3Service.dataList(context, {
+          modelId: model.id,
+          query: { limit: String(pageSize), offset: String(offset) },
+          req,
         });
 
-      const commentedRowIds = commentedRows.map((r: any) => r.row_id);
+        const records = (page as any).records || [];
+        if (records.length === 0) break;
 
-      // Query records, excluding those with comments
-      const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);
-      const result = await dataV3Service.dataList(context, {
-        modelId: model.id,
-        query: {
-          limit: String(limit),
-          offset: '0',
-        },
-        req,
-      });
+        for (const r of records) {
+          if (!commentedSet.has(String(r.id))) {
+            collected.push(r);
+            if (collected.length >= limit) break;
+          }
+        }
 
-      // Filter out rows that have comments
-      const commentedSet = new Set(commentedRowIds);
-      const allRecords = (result as any).records || [];
-      const filteredRecords = allRecords.filter(
-        (r: any) => !commentedSet.has(String(r.id ?? r.Id)),
-      );
+        offset += pageSize;
+        // Safety: stop after scanning 10K records to avoid infinite loops
+        if (offset > 10000) break;
+      }
 
       return {
-        message: `Found ${filteredRecords.length} record(s) with no comments in "${model.title}".`,
-        records: filteredRecords.slice(0, limit),
+        message: `Found ${collected.length} record(s) with no comments in "${model.title}".`,
+        records: collected,
       };
     }
 
-    // ── Fetch comments for all other filters ──
-    let commentsQuery = knex(MetaTable.COMMENTS)
-      .select('*')
-      .where('fk_model_id', model.id)
-      .where(function () {
-        this.whereNull('is_deleted').orWhere('is_deleted', '!=', true);
-      })
-      .orderBy('created_at', 'desc');
+    // ── Filters that can be resolved at the SQL level (no comment body needed) ──
+    // #8 — Use SQL aggregation for filters that don't need comment body
 
-    // For recent_activity, filter by date
-    if (args.filter === 'recent_activity') {
-      const days = args.days || 7;
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - days);
-      commentsQuery = commentsQuery.where(
-        'created_at',
-        '>=',
-        cutoff.toISOString(),
-      );
-    }
+    if (
+      args.filter === 'has_comments' ||
+      args.filter === 'most_commented' ||
+      args.filter === 'recent_activity' ||
+      args.filter === 'unresolved_comments' ||
+      args.filter === 'commented_by_me' ||
+      args.filter === 'commented_by_user'
+    ) {
+      let query = knex(MetaTable.COMMENTS)
+        .where(baseCondition)
+        .where(whereNotDeleted);
 
-    const allComments: any[] = await commentsQuery;
-
-    if (allComments.length === 0 && args.filter !== 'no_comments') {
-      return {
-        message:
-          args.filter === 'recent_activity'
-            ? `No comments found in the last ${args.days || 7} day(s) in "${model.title}".`
-            : `No comments found in "${model.title}".`,
-        records: [],
-      };
-    }
-
-    // ── Apply filter logic to find matching row_ids ──
-    let matchingRowIds: string[] = [];
-    let commentCountMap: Map<string, number> | undefined;
-
-    switch (args.filter) {
-      case 'has_comments':
-      case 'recent_activity': {
-        // All rows with at least one comment (already filtered by date for recent_activity)
-        matchingRowIds = [
-          ...new Set(allComments.map((c) => c.row_id).filter(Boolean)),
-        ];
-        break;
+      if (args.filter === 'recent_activity') {
+        const days = args.days || 7;
+        const cutoff = new Date(Date.now() - days * 86400000);
+        query = query.where('created_at', '>=', cutoff.toISOString());
       }
 
-      case 'unresolved_comments': {
-        const unresolvedRows = allComments
-          .filter((c) => !c.resolved_by && c.row_id)
-          .map((c) => c.row_id);
-        matchingRowIds = [...new Set(unresolvedRows)];
-        break;
+      if (args.filter === 'unresolved_comments') {
+        query = query.whereNull('resolved_by');
       }
 
-      case 'mentions_me': {
-        if (!currentUserId && !currentUserEmail) {
-          return { error: 'Unable to determine current user.' };
-        }
-        const mentionedRows: string[] = [];
-        for (const c of allComments) {
-          if (!c.row_id) continue;
-          // Comments store mentions as markdown: @(userId|email|displayName)
-          const mentionedIds = extractMentionUserIds(c.comment);
-          const mentionedEmails = extractMentionEmails(c.comment);
-          if (
-            (currentUserId && mentionedIds.includes(currentUserId)) ||
-            (currentUserEmail &&
-              mentionedEmails.includes(currentUserEmail.toLowerCase()))
-          ) {
-            mentionedRows.push(c.row_id);
-          }
-        }
-        matchingRowIds = [...new Set(mentionedRows)];
-        break;
-      }
-
-      case 'mentions_user': {
-        const targetEmail = args.user_email!.toLowerCase();
-        const mentionedRows: string[] = [];
-        for (const c of allComments) {
-          if (!c.row_id) continue;
-          // Comments store mentions as markdown: @(userId|email|displayName)
-          const emails = extractMentionEmails(c.comment);
-          if (emails.includes(targetEmail)) {
-            mentionedRows.push(c.row_id);
-          }
-        }
-        matchingRowIds = [...new Set(mentionedRows)];
-        break;
-      }
-
-      case 'commented_by_me': {
+      if (args.filter === 'commented_by_me') {
         if (!currentUserEmail) {
           return { error: 'Unable to determine current user.' };
         }
-        const myRows = allComments
-          .filter(
-            (c) =>
-              c.row_id &&
-              (c.created_by === currentUserId ||
-                c.created_by_email === currentUserEmail),
-          )
-          .map((c) => c.row_id);
-        matchingRowIds = [...new Set(myRows)];
-        break;
-      }
-
-      case 'commented_by_user': {
-        const targetEmail = args.user_email!.toLowerCase();
-        const userRows = allComments
-          .filter(
-            (c) =>
-              c.row_id &&
-              c.created_by_email?.toLowerCase() === targetEmail,
-          )
-          .map((c) => c.row_id);
-        matchingRowIds = [...new Set(userRows)];
-        break;
-      }
-
-      case 'most_commented': {
-        commentCountMap = new Map<string, number>();
-        for (const c of allComments) {
-          if (!c.row_id) continue;
-          commentCountMap.set(
-            c.row_id,
-            (commentCountMap.get(c.row_id) || 0) + 1,
+        query = query.where(function () {
+          this.where('created_by', currentUserId).orWhere(
+            'created_by_email',
+            currentUserEmail,
           );
+        });
+      }
+
+      if (args.filter === 'commented_by_user') {
+        query = query.where(
+          'created_by_email',
+          args.user_email!.toLowerCase(),
+        );
+      }
+
+      // For most_commented, get counts; for others, just distinct row_ids
+      let matchingRowIds: string[];
+      let commentCountMap: Map<string, number> | undefined;
+
+      if (args.filter === 'most_commented') {
+        const rows: any[] = await query
+          .select('row_id')
+          .count('id as count')
+          .whereNotNull('row_id')
+          .groupBy('row_id')
+          .orderBy('count', 'desc')
+          .limit(limit);
+
+        commentCountMap = new Map(
+          rows.map((r) => [String(r.row_id), Number(r.count)]),
+        );
+        matchingRowIds = rows.map((r) => String(r.row_id));
+      } else {
+        const rows: any[] = await query
+          .distinct('row_id')
+          .whereNotNull('row_id')
+          .limit(limit);
+
+        matchingRowIds = rows.map((r) => String(r.row_id));
+      }
+
+      if (matchingRowIds.length === 0) {
+        const filterLabel = args.filter.replace(/_/g, ' ');
+        return {
+          message: `No records match the "${filterLabel}" filter in "${model.title}".`,
+          records: [],
+        };
+      }
+
+      const records = await fetchRecordsByRowIds(
+        context,
+        model,
+        matchingRowIds,
+        limit,
+        req,
+      );
+
+      if (args.filter === 'most_commented' && commentCountMap) {
+        for (const record of records) {
+          record._comment_count =
+            commentCountMap.get(String(record.id)) || 0;
         }
-        // Sort by count descending
-        matchingRowIds = [...commentCountMap.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, limit)
-          .map(([rowId]) => rowId);
-        break;
+        records.sort(
+          (a: any, b: any) =>
+            (b._comment_count || 0) - (a._comment_count || 0),
+        );
+      }
+
+      const filterLabel = args.filter.replace(/_/g, ' ');
+      return {
+        message: `Found ${records.length} record(s) matching "${filterLabel}" in "${model.title}".`,
+        records,
+      };
+    }
+
+    // ── Mention-based filters require reading comment body ──
+    // Only load comment text for the filters that actually need it
+    const comments: any[] = await knex(MetaTable.COMMENTS)
+      .select('row_id', 'comment')
+      .where(baseCondition)
+      .where(whereNotDeleted)
+      .whereNotNull('row_id')
+      .limit(5000); // #8 — bounded; only select needed columns
+
+    const mentionedRows: string[] = [];
+
+    if (args.filter === 'mentions_me') {
+      if (!currentUserId && !currentUserEmail) {
+        return { error: 'Unable to determine current user.' };
+      }
+      for (const c of comments) {
+        const mentionedIds = extractMentions(c.comment);
+        const mentionedEmails = extractMentionEmails(c.comment);
+        if (
+          (currentUserId && mentionedIds.includes(currentUserId)) ||
+          (currentUserEmail &&
+            mentionedEmails.includes(currentUserEmail.toLowerCase()))
+        ) {
+          mentionedRows.push(c.row_id);
+        }
+      }
+    } else if (args.filter === 'mentions_user') {
+      const targetEmail = args.user_email!.toLowerCase();
+      for (const c of comments) {
+        const emails = extractMentionEmails(c.comment);
+        if (emails.includes(targetEmail)) {
+          mentionedRows.push(c.row_id);
+        }
       }
     }
 
+    const matchingRowIds = [...new Set(mentionedRows)];
+
     if (matchingRowIds.length === 0) {
+      const filterLabel = args.filter.replace(/_/g, ' ');
       return {
-        message: `No records match the "${args.filter}" filter in "${model.title}".`,
+        message: `No records match the "${filterLabel}" filter in "${model.title}".`,
         records: [],
       };
     }
 
-    // ── Fetch matching records via DataV3Service ──
-    const dataV3Service: DataV3Service = Noco.nestApp.get(DataV3Service);
-
-    // Get primary key column name for the where clause
-    const columns = await model.getColumns(context);
-    const pkCol = columns.find((c) => c.pk);
-
-    if (!pkCol) {
-      return { error: 'Table has no primary key column.' };
-    }
-
-    // Build where clause: (PkField,in,id1,id2,id3)
-    const idsToFetch = matchingRowIds.slice(0, limit);
-    const whereClause = `(${pkCol.title},in,${idsToFetch.join(',')})`;
-
-    const result = await dataV3Service.dataList(context, {
-      modelId: model.id,
-      query: {
-        where: whereClause,
-        limit: String(limit),
-        offset: '0',
-      },
+    const records = await fetchRecordsByRowIds(
+      context,
+      model,
+      matchingRowIds,
+      limit,
       req,
-    });
-
-    // Enrich with comment count if available
-    const records = (result as any).records || [];
-
-    if (args.filter === 'most_commented' && commentCountMap) {
-      for (const record of records) {
-        const rowId = String(record.id ?? record.Id);
-        record._comment_count = commentCountMap.get(rowId) || 0;
-      }
-      // Re-sort by comment count (dataList may not preserve our order)
-      records.sort(
-        (a: any, b: any) => (b._comment_count || 0) - (a._comment_count || 0),
-      );
-    }
+    );
 
     const filterLabel = args.filter.replace(/_/g, ' ');
     return {

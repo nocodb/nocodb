@@ -369,7 +369,25 @@ const handleClickDropdown = (e: MouseEvent) => {
         />
       </template>
       <template v-else-if="base.id">
-        <!-- User Selector Modal (shared by both modes) -->
+        <!-- Clickable user summary to open the user selector modal -->
+        <div
+          v-if="currentOption?.value === PermissionOptionValue.SPECIFIC_USERS && !readonly"
+          class="flex items-center gap-1.5 cursor-pointer text-xs text-nc-content-gray-subtle2 hover:text-nc-content-brand transition-colors"
+          @click.stop="showUserSelector = true"
+        >
+          <template v-if="selectedUsers.length">
+            <GeneralIcon icon="ncUsers" class="h-3.5 w-3.5 flex-none" />
+            <span>
+              {{ selectedUsers.length }} {{ selectedUsers.length === 1 ? $t('objects.user') : $t('objects.users') }}
+            </span>
+          </template>
+          <template v-else>
+            <GeneralIcon icon="ncUsers" class="h-3.5 w-3.5 flex-none" />
+            <span>{{ $t('msg.permissions.inlineUserSelector.selectUsers') }}</span>
+          </template>
+          <GeneralIcon icon="ncEdit" class="h-3 w-3 flex-none" />
+        </div>
+        <!-- User Selector Modal -->
         <PermissionsUserSelector
           v-model:visible="showUserSelector"
           :selected-users="userSelectorSelectedUsers"

@@ -832,7 +832,8 @@
       },
       "inlineUserSelector": {
         "noUsersSelected": "Nobody {description}",
-        "moreUsers": "+ {count} more"
+        "moreUsers": "+ {count} more",
+        "selectUsers": "Select users"
       }
     },
     "deleteAllRecordDlg": {

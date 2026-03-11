@@ -48,7 +48,7 @@ const documentsStore = useDocumentsStore()
 const { createDocument, deleteDocument, loadDocument, updateDocument } = documentsStore
 
 const { $e } = useNuxtApp()
-const { user, appInfo } = useGlobal()
+const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
 const { openFilePicker, uploadAndInsert } = useDocumentImageUpload()
@@ -816,8 +816,11 @@ watch(
       nextTick(() => countTasks())
 
       // Auto-focus the title input on new (untitled) pages so the user
-      // can immediately start typing a name (only for users who can edit)
-      if (!title.value && isEditable.value) {
+      // can immediately start typing a name (only for users who can edit).
+      // On mobile, skip focus when the sidebar is open — the editor isn't visible
+      // and focusing would trigger the virtual keyboard.
+      const skipFocus = isMobileMode.value && isLeftSidebarOpen.value
+      if (!title.value && isEditable.value && !skipFocus) {
         nextTick(() => {
           ;(titleInput.value as HTMLInputElement)?.focus()
         })
@@ -1260,6 +1263,8 @@ onBeforeUnmount(() => {
 
       <!-- Breadcrumb — always visible, same pattern as page menu -->
       <div class="nc-doc-page-menu-left">
+        <GeneralOpenLeftSidebarBtn />
+
         <DocBreadcrumb v-if="isLoaded" :doc-id="docId" :current-title="title" />
       </div>
 

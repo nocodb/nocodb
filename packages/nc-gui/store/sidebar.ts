@@ -30,6 +30,8 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
       'index-typeOrId-baseId-index-index',
       'index-typeOrId-settings-page',
       'index-typeOrId-baseId-index-settings-page',
+      'index-typeOrId-baseId-index-docs',
+      'index-typeOrId-baseId-index-docs-docId-slugs',
     ].includes(route.value.name as string)
   })
 

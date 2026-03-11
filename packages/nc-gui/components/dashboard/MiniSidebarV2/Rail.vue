@@ -173,6 +173,10 @@ const mainItems = computed<NavItem[]>(() => [
             onTabClick('workflows')
           },
         },
+      ]
+    : []),
+  ...(isEeUI
+    ? [
         {
           key: 'docs',
           icon: 'ncFileText',

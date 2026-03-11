@@ -59,7 +59,7 @@ const hasTableCreatePermission = computed(() => {
 
       <div
         v-if="hasTableCreatePermission && !isSharedBase && activeSidebarTab !== 'settings'"
-        class="nc-project-home-section !py-0 flex items-center min-h-[var(--toolbar-height)]"
+        class="nc-project-home-section !py-0 xs:mt-1 flex items-center min-h-[var(--toolbar-height)]"
       >
         <div class="flex items-center w-full">
           <NcDropdown v-model:visible="isVisibleCreateNew">

@@ -72,7 +72,7 @@ const hasTableCreatePermission = computed(() => {
 
       <div
         v-if="hasTableCreatePermission && !isSharedBase && activeSidebarTab !== 'settings'"
-        class="nc-project-home-section !py-0 flex items-center min-h-[var(--toolbar-height)]"
+        class="nc-project-home-section !py-0 xs:mt-1 flex items-center min-h-[var(--toolbar-height)]"
       >
         <div class="flex items-center w-full">
           <!-- Docs tab: direct create (no dropdown — only one option) -->
@@ -98,6 +98,7 @@ const hasTableCreatePermission = computed(() => {
             <NcButton
               type="text"
               size="small"
+              mobile-size="medium"
               full-width
               class="nc-home-create-new-btn nc-home-create-new-dropdown-btn !text-nc-content-gray-subtle !hover:(text-nc-content-gray) !w-full !px-3"
               :class="isVisibleCreateNew ? 'active' : ''"

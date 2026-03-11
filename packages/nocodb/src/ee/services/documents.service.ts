@@ -78,7 +78,6 @@ export class DocumentsService extends DocumentsServiceCE {
     payload: Partial<DocumentType>,
     req: NcRequest,
   ) {
-
     const docCount = await Document.countForBase(context, context.base_id);
 
     await checkLimit({
@@ -105,7 +104,11 @@ export class DocumentsService extends DocumentsServiceCE {
       );
       if (contentSize > maxSize) {
         NcError.unprocessableEntity(
-          `Document content exceeds maximum size (${maxSize >= 1024 * 1024 ? Math.round(maxSize / 1024 / 1024) + 'MB' : Math.round(maxSize / 1024) + 'KB'})`,
+          `Document content exceeds maximum size (${
+            maxSize >= 1024 * 1024
+              ? Math.round(maxSize / 1024 / 1024) + 'MB'
+              : Math.round(maxSize / 1024) + 'KB'
+          })`,
         );
       }
     }
@@ -214,7 +217,11 @@ export class DocumentsService extends DocumentsServiceCE {
       );
       if (contentSize > maxSize) {
         NcError.unprocessableEntity(
-          `Document content exceeds maximum size (${maxSize >= 1024 * 1024 ? Math.round(maxSize / 1024 / 1024) + 'MB' : Math.round(maxSize / 1024) + 'KB'})`,
+          `Document content exceeds maximum size (${
+            maxSize >= 1024 * 1024
+              ? Math.round(maxSize / 1024 / 1024) + 'MB'
+              : Math.round(maxSize / 1024) + 'KB'
+          })`,
         );
       }
     }

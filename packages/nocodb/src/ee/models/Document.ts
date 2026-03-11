@@ -488,7 +488,8 @@ export default class Document extends DocumentCE implements DocumentType {
     baseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const result = await ncMeta.knexConnection(MetaTable.DOCS)
+    const result = await ncMeta
+      .knexConnection(MetaTable.DOCS)
       .where('base_id', baseId)
       .where('fk_workspace_id', context.workspace_id)
       .where('deleted', false)

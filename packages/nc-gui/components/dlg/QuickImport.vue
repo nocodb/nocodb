@@ -151,7 +151,7 @@ const importMeta = computed(() => {
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
-      acceptTypes: '.csv',
+      acceptTypes: '.csv, text/csv, text/comma-separated-values, application/csv',
     }
   } else if (isImportTypeJson.value) {
     return {

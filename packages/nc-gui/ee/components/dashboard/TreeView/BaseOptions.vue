@@ -35,6 +35,8 @@ const baseRole = computed(() => base.value?.project_role || extractBaseRoleFromW
 
 const { $e } = useNuxtApp()
 
+const { isMobileMode } = useGlobal()
+
 const { showRecordPlanLimitExceededModal, isEEFeatureBlocked } = useEeConfig()
 
 const TODOMagic = ref(false)
@@ -152,7 +154,8 @@ const isNocoDbImportAllowed = computed(() => {
   return (
     props.showNocoDbImport &&
     !isEEFeatureBlocked.value &&
-    isUIAllowed('nocodbImport', { roles: baseRole.value, source: source.value })
+    isUIAllowed('nocodbImport', { roles: baseRole.value, source: source.value }) &&
+    !isMobileMode.value
   )
 })
 </script>

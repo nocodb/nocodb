@@ -21,7 +21,7 @@ const { isUIAllowed } = useRoles()
 
 const { isMarketVisible } = storeToRefs(useScriptStore())
 
-const { appInfo } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const { isEEFeatureBlocked, showUpgradeToUseScripts, showUpgradeToUseSync } = useEeConfig()
 
@@ -94,13 +94,13 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
         </div>
       </NcMenuItem>
 
-      <NcMenuItem inner-class="w-full" data-testid="create-new-dashboard" @click="emits('emptyDashboard')">
+      <NcMenuItem v-if="!isMobileMode" inner-class="w-full" data-testid="create-new-dashboard" @click="emits('emptyDashboard')">
         <GeneralIcon icon="dashboards" />
         {{ $t('labels.dashboard') }}
         <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
       </NcMenuItem>
 
-      <ProjectSyncCreateProvider>
+      <ProjectSyncCreateProvider v-if="!isMobileMode">
         <template #default="{ createSyncClick }">
           <NcMenuItem
             class="nc-menu-item-integration"

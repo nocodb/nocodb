@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey, ProjectRoles } from 'nocodb-sdk'
+import { getPermissionOptionValue, PermissionEntity, PermissionGrantedType, PermissionKey, type PermissionRole, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -16,11 +16,58 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+const route = useRoute()
+
 const baseStore = useBase()
 
 const { base } = storeToRefs(baseStore)
 
-const { permissionsByEntity } = usePermissions()
+const documentsStore = useDocumentsStore()
+const { activeDocuments } = storeToRefs(documentsStore)
+
+const docsById = computed(() => new Map(activeDocuments.value.map((d) => [d.id, d])))
+
+/**
+ * Walk up the parent chain from a given doc to find the nearest explicit permission.
+ */
+const resolveDocPermission = (docId: string, permissionKey: PermissionKey): string | undefined => {
+  const permissions = base.value?.permissions
+  if (!permissions) return undefined
+
+  let currentDoc = docsById.value.get(docId)
+
+  while (currentDoc) {
+    const perm = permissions.find(
+      (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === currentDoc!.id && p.permission === permissionKey,
+    )
+    if (perm) {
+      return getPermissionOptionValue(perm.granted_type as PermissionGrantedType, perm.granted_role as PermissionRole)
+    }
+    currentDoc = currentDoc.parent_id ? docsById.value.get(currentDoc.parent_id) : undefined
+  }
+
+  return undefined
+}
+
+/** Inherited effective value — only returns a value if the doc has no explicit permission. */
+const getEffectiveValue = (docId: string, permissionKey: PermissionKey): string | undefined => {
+  const permissions = base.value?.permissions
+  if (!permissions) return undefined
+
+  const hasExplicit = permissions.some(
+    (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === docId && p.permission === permissionKey,
+  )
+  if (hasExplicit) return undefined
+
+  return resolveDocPermission(docId, permissionKey)
+}
+
+/** Parent's effective permission — for constraining child options. */
+const getParentEffectiveValue = (docId: string, permissionKey: PermissionKey): string | undefined => {
+  const doc = docsById.value.get(docId)
+  if (!doc?.parent_id) return undefined
+  return resolveDocPermission(doc.parent_id, permissionKey)
+}
 
 const isCreatorOrAbove = computed(() => {
   return (
@@ -31,31 +78,36 @@ const isCreatorOrAbove = computed(() => {
 const visibilityConfig = computed<PermissionConfig>(() => ({
   entity: PermissionEntity.DOCUMENT,
   entityId: props.docId,
+  entityTitle: props.title,
   permission: PermissionKey.DOCUMENT_VISIBILITY,
   disabled: !isCreatorOrAbove.value,
   tooltip: !isCreatorOrAbove.value ? t('msg.info.onlyCreatorsCanConfigureDocPermissions') : undefined,
+  effectiveValue: getEffectiveValue(props.docId, PermissionKey.DOCUMENT_VISIBILITY),
+  parentEffectiveValue: getParentEffectiveValue(props.docId, PermissionKey.DOCUMENT_VISIBILITY),
 }))
 
 const editConfig = computed<PermissionConfig>(() => ({
   entity: PermissionEntity.DOCUMENT,
   entityId: props.docId,
+  entityTitle: props.title,
   permission: PermissionKey.DOCUMENT_EDIT,
   disabled: !isCreatorOrAbove.value,
   tooltip: !isCreatorOrAbove.value ? t('msg.info.onlyCreatorsCanConfigureDocPermissions') : undefined,
+  effectiveValue: getEffectiveValue(props.docId, PermissionKey.DOCUMENT_EDIT),
+  parentEffectiveValue: getParentEffectiveValue(props.docId, PermissionKey.DOCUMENT_EDIT),
 }))
 
 const handlePermissionSave = () => {
   $e('a:doc:permissions')
 }
 
-const hasDocPermissions = computed(() => {
-  return (permissionsByEntity.value[`document_${props.docId}`]?.length ?? 0) > 0
-})
+const navigateToDocsPermissions = () => {
+  if (!base.value?.id) return
 
-const inheritedLabel = computed(() => {
-  if (!props.parentId) return ''
-  return t('labels.inheritedFromParent')
-})
+  const wsId = route.params.typeOrId
+  navigateTo(`/${wsId}/${base.value.id}/settings/docs-permissions`)
+  visible.value = false
+}
 </script>
 
 <template>
@@ -92,9 +144,6 @@ const inheritedLabel = computed(() => {
           horizontal
           @save="handlePermissionSave"
         />
-        <div v-if="parentId && !hasDocPermissions" class="text-xs text-nc-content-gray-subtle">
-          {{ inheritedLabel }}
-        </div>
       </div>
 
       <!-- Edit Section -->
@@ -108,6 +157,14 @@ const inheritedLabel = computed(() => {
           horizontal
           @save="handlePermissionSave"
         />
+      </div>
+
+      <!-- Manage Permissions Link -->
+      <div class="flex items-center justify-end border-t-1 border-nc-border-gray-medium pt-3 -mx-6 px-6 -mb-1">
+        <NcButton type="text" size="small" @click="navigateToDocsPermissions">
+          {{ $t('labels.managePermissions') }}
+          <GeneralIcon icon="arrowRight" class="ml-1" />
+        </NcButton>
       </div>
     </div>
   </NcModal>

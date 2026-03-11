@@ -342,6 +342,7 @@ const handleClickDropdown = (e: MouseEvent) => {
         <div
           v-if="isInherited"
           class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
+          :class="{ 'self-end': horizontal }"
         >
           <GeneralIcon icon="role_inherit" class="h-3 w-3" />
           <span>{{ $t('labels.inheritedFromParent') }}</span>

@@ -27,6 +27,7 @@ const vOpen = useVModel(props, 'open', emits)
 
 const { t } = useI18n()
 
+// Destructure known props so restProps only contains NcList pass-through props
 const {
   open: _open,
   selectedUsers: _selectedUsers,
@@ -37,6 +38,8 @@ const {
   readonly: _readonly,
   listClassName,
   showListFooter,
+  disabledUsers: _disabledUsers,
+  minimumRoleOverride: _minimumRoleOverride,
   ...restProps
 } = props
 
@@ -249,7 +252,7 @@ defineExpose({
     </template>
 
     <template #listItemContent="{ option }">
-      <NcTooltip :disabled="!parentRestrictedUserIds.includes(option.id)" placement="right">
+      <NcTooltip class="flex-1" :disabled="!parentRestrictedUserIds.includes(option.id)" placement="right">
         <template #title>
           {{ $t('msg.info.cannotBeMorePermissiveThanParent') }}
         </template>

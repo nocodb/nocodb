@@ -34,6 +34,7 @@ export class PermissionsService {
    * Document permissions require creator+; table visibility requires owner.
    */
   protected assertRoleForPermissionKey(
+    context: NcContext,
     permissionKey: PermissionKey,
     req: NcRequest,
   ) {
@@ -48,7 +49,7 @@ export class PermissionsService {
           !roles?.[ProjectRoles.OWNER] &&
           !roles?.[ProjectRoles.CREATOR]
         ) {
-          NcError.forbidden(
+          NcError.get(context).forbidden(
             'Only base owners and creators can configure document permissions',
           );
         }
@@ -62,7 +63,7 @@ export class PermissionsService {
       if (!isOwner) {
         const roles = extractRolesObj(req.user?.roles);
         if (!roles?.[ProjectRoles.OWNER]) {
-          NcError.forbidden(
+          NcError.get(context).forbidden(
             'Only base owners can configure table visibility permissions',
           );
         }
@@ -95,7 +96,7 @@ export class PermissionsService {
       enforce_for_form = true,
     } = permissionObj;
 
-    this.assertRoleForPermissionKey(permission_key, req);
+    this.assertRoleForPermissionKey(context, permission_key, req);
 
     // Enforce plan gating for document permissions
     if (DOCUMENT_PERMISSION_KEYS.includes(permission_key)) {
@@ -283,7 +284,7 @@ export class PermissionsService {
         );
       }
       if (error instanceof NcError || error instanceof NcBaseError) throw error;
-      this.logger.error('Failed to set permission', error);
+      this.logger.error((error as Error)?.message ?? 'Failed to set permission', (error as Error)?.stack);
       NcError.get(context).internalServerError('Failed to set permission');
     }
 
@@ -365,7 +366,7 @@ export class PermissionsService {
   ) {
     const { entity, entity_id, permission: permission_key } = permissionObj;
 
-    this.assertRoleForPermissionKey(permission_key, req);
+    this.assertRoleForPermissionKey(context, permission_key, req);
 
     // Enforce plan gating for document permissions
     if (DOCUMENT_PERMISSION_KEYS.includes(permission_key)) {
@@ -412,7 +413,7 @@ export class PermissionsService {
         CacheDelDirection.PARENT_TO_CHILD,
       );
       if (error instanceof NcError || error instanceof NcBaseError) throw error;
-      this.logger.error('Failed to delete permission', error);
+      this.logger.error((error as Error)?.message ?? 'Failed to delete permission', (error as Error)?.stack);
       NcError.get(context).internalServerError('Failed to delete permission');
     }
 
@@ -473,7 +474,7 @@ export class PermissionsService {
         CacheDelDirection.PARENT_TO_CHILD,
       );
       if (error instanceof NcError || error instanceof NcBaseError) throw error;
-      this.logger.error('Failed to delete permissions', error);
+      this.logger.error((error as Error)?.message ?? 'Failed to delete permissions', (error as Error)?.stack);
       NcError.get(context).internalServerError('Failed to delete permissions');
     }
 

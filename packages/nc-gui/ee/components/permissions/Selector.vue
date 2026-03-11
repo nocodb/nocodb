@@ -369,9 +369,9 @@ const handleClickDropdown = (e: MouseEvent) => {
         />
       </template>
       <template v-else-if="base.id">
-        <!-- Clickable user summary to open the user selector modal -->
+        <!-- Clickable user summary to open the user selector modal (only for explicit, non-inherited permissions) -->
         <div
-          v-if="currentOption?.value === PermissionOptionValue.SPECIFIC_USERS && !readonly"
+          v-if="currentOption?.value === PermissionOptionValue.SPECIFIC_USERS && !readonly && !isInherited"
           class="flex items-center gap-1.5 cursor-pointer text-xs text-nc-content-gray-subtle2 hover:text-nc-content-brand transition-colors"
           @click.stop="showUserSelector = true"
         >
@@ -383,7 +383,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           </template>
           <template v-else>
             <GeneralIcon icon="ncUsers" class="h-3.5 w-3.5 flex-none" />
-            <span>{{ $t('msg.permissions.inlineUserSelector.selectUsers') }}</span>
+            <span>{{ $t('objects.permissions.inlineUserSelector.selectUsers') }}</span>
           </template>
           <GeneralIcon icon="ncEdit" class="h-3 w-3 flex-none" />
         </div>

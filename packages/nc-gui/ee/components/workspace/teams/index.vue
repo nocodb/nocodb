@@ -343,12 +343,12 @@ onMounted(async () => {
             </template>
           </a-input>
 
-          <div class="flex items-center gap-0.5 border-1 border-nc-border-gray-medium rounded-lg p-0.5">
+          <div class="flex items-center gap-0.5 border-1 border-nc-border-gray-medium rounded-lg p-0.5 min-h-8">
             <NcTooltip :title="$t('labels.flatView')" class="flex">
               <NcButton
                 size="xsmall"
                 :type="viewMode === 'flat' ? 'secondary' : 'text'"
-                class="!h-6 !w-6 !min-w-6 !px-0"
+                class="!px-0"
                 data-testid="nc-teams-view-flat"
                 @click="viewMode = 'flat'"
               >
@@ -359,7 +359,7 @@ onMounted(async () => {
               <NcButton
                 size="xsmall"
                 :type="viewMode === 'tree' ? 'secondary' : 'text'"
-                class="!h-6 !w-6 !min-w-6 !px-0"
+                class="!px-0"
                 data-testid="nc-teams-view-tree"
                 @click="viewMode = 'tree'"
               >

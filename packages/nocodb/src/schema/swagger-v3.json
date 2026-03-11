@@ -9741,9 +9741,10 @@
               "gallery",
               "kanban",
               "calendar",
-              "map"
+              "map",
+              "form"
             ],
-            "description": "Type of the view. \n\nNote: Form view via API is not supported currently"
+            "description": "Type of the view."
           },
           "lock_type": {
             "type": "string",
@@ -10246,6 +10247,24 @@
                     "description": "Row colour configuration for the the view."
                   }
                 }
+              },
+              {
+                "type": "object",
+                "title": "form",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "form"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsForm"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  }
+                }
               }
             ],
             "discriminator": {
@@ -10389,6 +10408,18 @@
                   "row_coloring": {
                     "$ref": "#/components/schemas/ViewRowColour",
                     "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "form",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsForm"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
                   }
                 }
               }

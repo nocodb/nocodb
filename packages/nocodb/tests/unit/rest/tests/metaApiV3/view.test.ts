@@ -416,6 +416,109 @@ export default function () {
           updateResponse.body.options.fields_by_id[singleSelectColumn.id].alias,
         ).to.eq('select32');
       });
+
+      it(`will create form view with all options and read them back`, async () => {
+        const response = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'FormOptionsView',
+            type: 'form',
+            options: {
+              form_title: 'Contact Us',
+              form_description: 'Please fill in the form',
+              submit_button_label: 'Send Message',
+              thank_you_message: 'Thanks for reaching out!',
+              redirect_url: 'https://example.com/thank-you',
+              form_redirect_after_secs: 5,
+              send_response_email_to: 'admin@example.com',
+              show_submit_another_button: true,
+              reset_form_after_submit: true,
+            },
+          });
+
+        expect(response.body.type).to.eq('form');
+
+        // Read back via GET to verify options persisted
+        const getResponse = await request(context.app)
+          .get(`${API_PREFIX}/views/${response.body.id}`)
+          .set('xc-token', context.xc_token)
+          .expect(200);
+
+        expect(getResponse.body.options.form_title).to.eq('Contact Us');
+        expect(getResponse.body.options.form_description).to.eq(
+          'Please fill in the form',
+        );
+        expect(getResponse.body.options.submit_button_label).to.eq(
+          'Send Message',
+        );
+        expect(getResponse.body.options.thank_you_message).to.eq(
+          'Thanks for reaching out!',
+        );
+        expect(getResponse.body.options.redirect_url).to.eq(
+          'https://example.com/thank-you',
+        );
+        expect(getResponse.body.options.form_redirect_after_secs).to.eq('5');
+        expect(getResponse.body.options.send_response_email_to).to.eq(
+          'admin@example.com',
+        );
+        expect(getResponse.body.options.show_submit_another_button).to.eq(true);
+        expect(getResponse.body.options.reset_form_after_submit).to.eq(true);
+      });
+
+      it(`will update form view options`, async () => {
+        // Create a basic form view first
+        const createResponse = await request(context.app)
+          .post(`${API_PREFIX}/tables/${table.id}/views`)
+          .set('xc-token', context.xc_token)
+          .send({
+            title: 'UpdateFormView',
+            type: 'form',
+            options: {
+              form_title: 'Original Title',
+              submit_button_label: 'Submit',
+            },
+          });
+
+        expect(createResponse.body.type).to.eq('form');
+
+        // Update form options
+        await request(context.app)
+          .patch(`${API_PREFIX}/views/${createResponse.body.id}`)
+          .set('xc-token', context.xc_token)
+          .send({
+            options: {
+              form_title: 'Updated Title',
+              submit_button_label: 'Save Now',
+              send_response_email_to: 'updated@example.com',
+              form_redirect_after_secs: 10,
+              thank_you_message: 'Updated thanks!',
+              show_submit_another_button: false,
+              reset_form_after_submit: false,
+            },
+          })
+          .expect(200);
+
+        // Read back via GET to verify options persisted
+        const getResponse = await request(context.app)
+          .get(`${API_PREFIX}/views/${createResponse.body.id}`)
+          .set('xc-token', context.xc_token)
+          .expect(200);
+
+        expect(getResponse.body.options.form_title).to.eq('Updated Title');
+        expect(getResponse.body.options.submit_button_label).to.eq('Save Now');
+        expect(getResponse.body.options.send_response_email_to).to.eq(
+          'updated@example.com',
+        );
+        expect(getResponse.body.options.form_redirect_after_secs).to.eq('10');
+        expect(getResponse.body.options.thank_you_message).to.eq(
+          'Updated thanks!',
+        );
+        expect(getResponse.body.options.show_submit_another_button).to.eq(
+          false,
+        );
+        expect(getResponse.body.options.reset_form_after_submit).to.eq(false);
+      });
     });
 
     describe('view delete', () => {

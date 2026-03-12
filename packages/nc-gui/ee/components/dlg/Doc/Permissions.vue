@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { extractBaseRoleFromWorkspaceRole, getPermissionOptionValue, PermissionEntity, PermissionGrantedType, PermissionKey, type PermissionRole, ProjectRoles } from 'nocodb-sdk'
+import { type DocumentType, extractBaseRoleFromWorkspaceRole, getPermissionOptionValue, PermissionEntity, PermissionGrantedType, PermissionKey, type PermissionRole, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -12,7 +12,7 @@ const emits = defineEmits(['update:visible'])
 
 const visible = useVModel(props, 'visible', emits)
 
-const { $e } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -96,6 +96,54 @@ const editConfig = computed<PermissionConfig>(() => ({
   parentEffectiveValue: getParentEffectiveValue(props.docId, PermissionKey.DOCUMENT_EDIT),
 }))
 
+const hasExplicitPermissions = computed(() => {
+  const permissions = base.value?.permissions
+  if (!permissions) return false
+  return permissions.some(
+    (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === props.docId,
+  )
+})
+
+const isResetting = ref(false)
+
+const resetToDefault = async () => {
+  if (!base.value?.fk_workspace_id || !base.value?.id) return
+
+  const permissionIds = (base.value.permissions ?? [])
+    .filter((p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === props.docId)
+    .map((p) => p.id)
+    .filter(Boolean) as string[]
+
+  if (!permissionIds.length) return
+
+  isResetting.value = true
+  try {
+    await $api.internal.postOperation(
+      base.value.fk_workspace_id,
+      base.value.id,
+      { operation: 'bulkDropPermissions' },
+      { permissionIds },
+    )
+
+    // Refresh base permissions
+    const basesStore = useBases()
+    await basesStore.loadProject(base.value.id, true)
+
+    // Update has_permissions on the doc in sidebar store
+    const documentsStore = useDocumentsStore()
+    const doc = documentsStore.activeDocuments.find((d) => d.id === props.docId)
+    if (doc) {
+      ;(doc as DocumentType).has_permissions = false
+    }
+
+    $e('a:doc:permissions:reset')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isResetting.value = false
+  }
+}
+
 const handlePermissionSave = () => {
   $e('a:doc:permissions')
 }
@@ -158,9 +206,21 @@ const navigateToDocsPermissions = () => {
         />
       </div>
 
-      <!-- Manage Permissions Link -->
-      <div class="flex items-center justify-end border-t-1 border-nc-border-gray-medium pt-3 -mx-6 px-6 -mb-1">
-        <NcButton type="text" size="small" @click="navigateToDocsPermissions">
+      <!-- Footer -->
+      <div class="flex items-center justify-between border-t-1 border-nc-border-gray-medium pt-3 -mx-6 px-6 -mb-1">
+        <NcButton
+          v-if="hasExplicitPermissions && isCreatorOrAbove"
+          type="text"
+          size="small"
+          class="!text-nc-content-gray-muted"
+          :loading="isResetting"
+          @click="resetToDefault"
+        >
+          <GeneralIcon icon="ncRefreshCcw" class="mr-1.5 h-3.5 w-3.5" />
+          {{ $t('labels.resetToDefault') }}
+        </NcButton>
+        <div v-else />
+        <NcButton type="text" size="small" class="!text-nc-content-gray-muted" @click="navigateToDocsPermissions">
           {{ $t('labels.managePermissions') }}
           <GeneralIcon icon="arrowRight" class="ml-1" />
         </NcButton>

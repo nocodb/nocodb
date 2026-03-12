@@ -8,7 +8,7 @@ import {
   getPermissionOption,
   getPermissionOptionValue,
 } from 'nocodb-sdk'
-import type { BaseType } from 'nocodb-sdk'
+import type { BaseType, DocumentType } from 'nocodb-sdk'
 
 export interface PermissionSelectorConfig {
   entity: PermissionEntity
@@ -230,6 +230,20 @@ export const usePermissionSelector = (
       // Refresh base to pick up updated permissions
       if (base.value?.id) {
         await basesStore.loadProject(base.value.id, true)
+
+        // Update has_permissions flag on the document in the sidebar store
+        if (config.value.entity === PermissionEntity.DOCUMENT && config.value.entityId) {
+          const docId = config.value.entityId
+          const hasAnyPermission = base.value.permissions?.some(
+            (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === docId,
+          )
+          const documentsStore = useDocumentsStore()
+          const docs = documentsStore.activeDocuments
+          const doc = docs.find((d) => d.id === docId)
+          if (doc) {
+            ;(doc as DocumentType).has_permissions = !!hasAnyPermission
+          }
+        }
       }
 
       const eventTypeMap: Record<string, string> = {

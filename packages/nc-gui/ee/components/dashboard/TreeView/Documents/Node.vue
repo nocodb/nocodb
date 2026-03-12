@@ -427,7 +427,7 @@ function onStopEdit() {
             <template #title>{{ $t('tooltip.restrictedPermissions') }}</template>
             <GeneralIcon
               icon="ncLock"
-              class="flex-none text-nc-content-gray-muted !w-3 !h-3"
+              class="flex-none text-nc-content-gray-muted !w-3 !h-3 -mt-0.5"
               data-testid="sidebar-doc-lock-icon"
             />
           </NcTooltip>

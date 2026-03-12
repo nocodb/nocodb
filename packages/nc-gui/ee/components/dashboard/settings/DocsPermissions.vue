@@ -19,7 +19,11 @@ const props = defineProps<Props>()
 
 defineEmits(['update:state'])
 
+const { $api, $e } = useNuxtApp()
+
 const { t } = useI18n()
+
+const basesStore = useBases()
 
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
@@ -207,6 +211,52 @@ const loadAllDocs = async () => {
   }
 }
 
+const docPermissionIds = computed(() => {
+  return (base.value?.permissions ?? [])
+    .filter((p) => p.entity === PermissionEntity.DOCUMENT)
+    .map((p) => p.id)
+    .filter(Boolean) as string[]
+})
+
+const isResettingAll = ref(false)
+
+const { showWarningModal } = useNcConfirmModal()
+
+const resetAllDocPermissions = () => {
+  if (!docPermissionIds.value.length) return
+
+  showWarningModal({
+    title: t('title.resetAllDocPermissions'),
+    content: t('msg.info.resetAllDocPermissionsConfirm'),
+    okCallback: async () => {
+      if (!base.value?.fk_workspace_id || !base.value?.id) return
+
+      isResettingAll.value = true
+      try {
+        await $api.internal.postOperation(
+          base.value.fk_workspace_id,
+          base.value.id,
+          { operation: 'bulkDropPermissions' },
+          { permissionIds: docPermissionIds.value },
+        )
+
+        await basesStore.loadProject(base.value.id, true)
+
+        // Clear has_permissions on all docs in the store
+        for (const doc of activeDocuments.value) {
+          ;(doc as DocumentType).has_permissions = false
+        }
+
+        $e('a:doc:permissions:reset-all')
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      } finally {
+        isResettingAll.value = false
+      }
+    },
+  })
+}
+
 onMounted(loadAllDocs)
 </script>
 
@@ -224,6 +274,18 @@ onMounted(loadAllDocs)
           <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
         </template>
       </a-input>
+
+      <NcButton
+        v-if="docPermissionIds.length && isCreatorOrAbove"
+        type="text"
+        size="small"
+        class="!text-nc-content-gray-muted"
+        :loading="isResettingAll"
+        @click="resetAllDocPermissions"
+      >
+        <GeneralIcon icon="ncRefreshCcw" class="mr-1.5 h-3.5 w-3.5" />
+        {{ $t('labels.resetToDefault') }}
+      </NcButton>
     </div>
 
     <NcTable

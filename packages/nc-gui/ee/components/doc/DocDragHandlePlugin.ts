@@ -355,6 +355,9 @@ function createDragHandlePlugin(): Plugin<DragHandleState> {
       const onMouseMove = (event: MouseEvent) => {
         if (!editorView.editable) return
         if (isDragging) return
+        // Skip when a mouse button is held (e.g. text selection in progress)
+        // to avoid dispatching transactions that cause scroll jumps.
+        if (event.buttons !== 0) return
 
         const pmRect = editorView.dom.getBoundingClientRect()
 

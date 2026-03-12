@@ -38,6 +38,8 @@ export const pwaConfig: ModuleOptions = {
   workbox: {
     navigateFallback: '/',
     globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
+    // Skip large chunks (Monaco editor, XLSX, etc.) from precache — they'll be loaded on demand
+    maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
     runtimeCaching: [
       {
         urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,

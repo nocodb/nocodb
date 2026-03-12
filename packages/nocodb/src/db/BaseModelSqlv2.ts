@@ -374,6 +374,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         model,
         viewId: viewId,
         dbDriver: this.dbDriver,
+        queryQueue: this._queryQueue,
       });
 
       data = await baseModel.readByPk(...rest);
@@ -440,6 +441,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           : await Model.getBaseModelSQL(context, {
               model,
               dbDriver: this.dbDriver,
+              queryQueue: this._queryQueue,
             });
 
       const records = await baseModel.chunkList({
@@ -2299,6 +2301,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
                 model: mmTable,
                 dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
               });
 
               const mmParentColumn = await Column.get(mmContext, {
@@ -2324,6 +2327,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               const refBaseModel = await Model.getBaseModelSQL(refContext, {
                 model: relatedTable,
                 dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
               });
 
               const childColumn = await Column.get(refContext, {
@@ -4975,6 +4979,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const refBaseModel = await Model.getBaseModelSQL(refContext, {
       model: refModel,
       dbDriver: this.dbDriver,
+      queryQueue: this._queryQueue,
     });
 
     await model.getColumns(context);
@@ -6695,6 +6700,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const parentModel = await Model.getBaseModelSQL(this.context, {
         model: parentTable,
         dbDriver: this.dbDriver,
+        queryQueue: this._queryQueue,
       });
       await childTable.getColumns(this.context);
 

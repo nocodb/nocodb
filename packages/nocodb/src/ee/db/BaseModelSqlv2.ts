@@ -1635,6 +1635,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
                 model: mmTable,
                 dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
               });
 
               const mmParentColumn = await Column.get(mmContext, {
@@ -1660,6 +1661,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               const refBaseModel = await Model.getBaseModelSQL(refContext, {
                 model: relatedTable,
                 dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
               });
 
               const childColumn = await Column.get(refContext, {

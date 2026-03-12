@@ -20,7 +20,8 @@
         "View Filters",
         "View Sorts",
         "Scripts",
-        "Dashboards"
+        "Dashboards",
+        "Documents"
       ]
     },
     {
@@ -6277,6 +6278,668 @@
           }
         }
       }
+    },
+    "/api/v3/meta/bases/{baseId}/docs": {
+      "get": {
+        "summary": "List documents",
+        "operationId": "document-list",
+        "description": "Retrieve a list of documents in a base. Documents are returned without content (lightweight) for sidebar/tree rendering.\n\nUse the `parent_id` query parameter to navigate the document tree:\n- `parent_id=null` or omitted — returns root-level documents\n- `parent_id={docId}` — returns children of the specified document\n\nDocuments API is available on **all plans**, including free.",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base.",
+            "example": "p_abc123def456"
+          },
+          {
+            "name": "parent_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": "Parent document ID. Use `null` (or omit) for root-level documents, or a document ID to list its children.",
+            "example": "null"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documents retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentListResponse"
+                },
+                "examples": {
+                  "Root Documents": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "dc_r1a2b3c4d5e6f",
+                          "base_id": "p_abc123def456",
+                          "title": "Project Overview",
+                          "meta": {
+                            "icon": "📋"
+                          },
+                          "order": 1,
+                          "parent_id": null,
+                          "has_children": true,
+                          "version": 3,
+                          "comment_count": 2,
+                          "created_by": "us_abc123",
+                          "updated_by": "us_abc123",
+                          "created_at": "2026-03-01T10:00:00.000Z",
+                          "updated_at": "2026-03-08T14:30:00.000Z"
+                        },
+                        {
+                          "id": "dc_r7h8i9j0k1l2m",
+                          "base_id": "p_abc123def456",
+                          "title": "Meeting Notes",
+                          "meta": {
+                            "icon": "📝"
+                          },
+                          "order": 2,
+                          "parent_id": null,
+                          "has_children": false,
+                          "version": 1,
+                          "comment_count": 0,
+                          "created_by": "us_abc123",
+                          "updated_by": "us_abc123",
+                          "created_at": "2026-03-05T09:00:00.000Z",
+                          "updated_at": "2026-03-05T09:00:00.000Z"
+                        }
+                      ]
+                    }
+                  },
+                  "Child Documents": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "dc_c1n2o3p4q5r6s",
+                          "base_id": "p_abc123def456",
+                          "title": "Q1 Goals",
+                          "meta": {},
+                          "order": 1,
+                          "parent_id": "dc_r1a2b3c4d5e6f",
+                          "has_children": false,
+                          "version": 2,
+                          "comment_count": 0,
+                          "created_by": "us_abc123",
+                          "updated_by": "us_def456",
+                          "created_at": "2026-03-01T11:00:00.000Z",
+                          "updated_at": "2026-03-06T16:00:00.000Z"
+                        }
+                      ]
+                    }
+                  },
+                  "Empty List": {
+                    "value": {
+                      "list": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create document",
+        "operationId": "document-create",
+        "description": "Create a new document in a base. If no `title` is provided, defaults to \"Untitled\". If no `content` is provided, defaults to an empty ProseMirror document.\n\nTo create a child document, pass the `parent_id` of the parent document.\n\nDocuments API is available on **all plans**, including free.",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base.",
+            "example": "p_abc123def456"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentCreate"
+              },
+              "examples": {
+                "Minimal (empty document)": {
+                  "value": {}
+                },
+                "With Title": {
+                  "value": {
+                    "title": "Weekly Standup Notes"
+                  }
+                },
+                "With Rich Content": {
+                  "value": {
+                    "title": "Architecture Decision Record",
+                    "content": {
+                      "type": "doc",
+                      "content": [
+                        {
+                          "type": "heading",
+                          "attrs": { "level": 1 },
+                          "content": [{ "type": "text", "text": "ADR-001: Use ProseMirror for Documents" }]
+                        },
+                        {
+                          "type": "paragraph",
+                          "content": [{ "type": "text", "text": "We decided to use ProseMirror JSON as the canonical storage format for document content." }]
+                        },
+                        {
+                          "type": "heading",
+                          "attrs": { "level": 2 },
+                          "content": [{ "type": "text", "text": "Context" }]
+                        },
+                        {
+                          "type": "paragraph",
+                          "content": [{ "type": "text", "text": "The editor is built on Tiptap (ProseMirror wrapper). Storing native ProseMirror JSON avoids lossy conversions." }]
+                        }
+                      ]
+                    },
+                    "meta": {
+                      "icon": "📐"
+                    }
+                  }
+                },
+                "Child Document": {
+                  "value": {
+                    "title": "Q1 Goals",
+                    "parent_id": "dc_r1a2b3c4d5e6f"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                },
+                "examples": {
+                  "Created Document": {
+                    "value": {
+                      "id": "dc_n3w1d2o3c4u5m",
+                      "base_id": "p_abc123def456",
+                      "title": "Weekly Standup Notes",
+                      "content": {
+                        "type": "doc",
+                        "content": [{ "type": "paragraph" }]
+                      },
+                      "meta": {},
+                      "order": 3,
+                      "parent_id": null,
+                      "has_children": false,
+                      "version": 1,
+                      "comment_count": 0,
+                      "created_by": "us_abc123",
+                      "updated_by": "us_abc123",
+                      "created_at": "2026-03-09T12:00:00.000Z",
+                      "updated_at": "2026-03-09T12:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — invalid content or payload too large (max 5MB)."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/docs/{docId}": {
+      "get": {
+        "summary": "Get document",
+        "operationId": "document-read",
+        "description": "Retrieve a single document with its full content (ProseMirror JSON).\n\nDocuments API is available on **all plans**, including free.",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base.",
+            "example": "p_abc123def456"
+          },
+          {
+            "name": "docId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the document.",
+            "example": "dc_r1a2b3c4d5e6f"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                },
+                "examples": {
+                  "Document with Content": {
+                    "value": {
+                      "id": "dc_r1a2b3c4d5e6f",
+                      "base_id": "p_abc123def456",
+                      "title": "Project Overview",
+                      "content": {
+                        "type": "doc",
+                        "content": [
+                          {
+                            "type": "heading",
+                            "attrs": { "level": 1 },
+                            "content": [{ "type": "text", "text": "Project Overview" }]
+                          },
+                          {
+                            "type": "paragraph",
+                            "content": [
+                              { "type": "text", "text": "This document describes the " },
+                              { "type": "text", "marks": [{ "type": "bold" }], "text": "project goals" },
+                              { "type": "text", "text": " and timeline." }
+                            ]
+                          },
+                          {
+                            "type": "bulletList",
+                            "content": [
+                              {
+                                "type": "listItem",
+                                "content": [
+                                  {
+                                    "type": "paragraph",
+                                    "content": [{ "type": "text", "text": "Phase 1: Research" }]
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "listItem",
+                                "content": [
+                                  {
+                                    "type": "paragraph",
+                                    "content": [{ "type": "text", "text": "Phase 2: Implementation" }]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      "meta": {
+                        "icon": "📋",
+                        "cover_image": "/api/v1/attachments/cover_abc.jpg"
+                      },
+                      "order": 1,
+                      "parent_id": null,
+                      "has_children": true,
+                      "version": 3,
+                      "comment_count": 2,
+                      "created_by": "us_abc123",
+                      "updated_by": "us_abc123",
+                      "created_at": "2026-03-01T10:00:00.000Z",
+                      "updated_at": "2026-03-08T14:30:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Document not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update document",
+        "operationId": "document-update",
+        "description": "Update a document's title, content, or metadata.\n\n**Optimistic concurrency control**: You must include the current `version` of the document. If the version does not match the server's version (i.e., someone else edited it), the request will be rejected with a 422 error. This prevents silent overwrites.\n\nAfter a successful update, the returned document will have `version` incremented by 1.\n\nDocuments API is available on **all plans**, including free.",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base.",
+            "example": "p_abc123def456"
+          },
+          {
+            "name": "docId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the document.",
+            "example": "dc_r1a2b3c4d5e6f"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentUpdate"
+              },
+              "examples": {
+                "Update Title Only": {
+                  "value": {
+                    "title": "Updated Project Overview",
+                    "version": 3
+                  }
+                },
+                "Update Content": {
+                  "value": {
+                    "content": {
+                      "type": "doc",
+                      "content": [
+                        {
+                          "type": "heading",
+                          "attrs": { "level": 1 },
+                          "content": [{ "type": "text", "text": "Updated Heading" }]
+                        },
+                        {
+                          "type": "paragraph",
+                          "content": [{ "type": "text", "text": "New paragraph content added via API." }]
+                        }
+                      ]
+                    },
+                    "version": 3
+                  }
+                },
+                "Update Metadata (icon and cover)": {
+                  "value": {
+                    "meta": {
+                      "icon": "🚀",
+                      "cover_image": "/api/v1/attachments/new_cover.jpg"
+                    },
+                    "version": 3
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                },
+                "examples": {
+                  "Updated Document": {
+                    "value": {
+                      "id": "dc_r1a2b3c4d5e6f",
+                      "base_id": "p_abc123def456",
+                      "title": "Updated Project Overview",
+                      "content": {
+                        "type": "doc",
+                        "content": [{ "type": "paragraph" }]
+                      },
+                      "meta": {
+                        "icon": "📋"
+                      },
+                      "order": 1,
+                      "parent_id": null,
+                      "has_children": true,
+                      "version": 4,
+                      "comment_count": 2,
+                      "created_by": "us_abc123",
+                      "updated_by": "us_def456",
+                      "created_at": "2026-03-01T10:00:00.000Z",
+                      "updated_at": "2026-03-09T15:00:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request — invalid content or payload too large (max 5MB)."
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Document not found."
+          },
+          "422": {
+            "description": "Version conflict — the document has been modified by another user. Reload the document and retry."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete document",
+        "operationId": "document-delete",
+        "description": "Soft-delete a document. All child documents are also deleted (cascade).\n\nAttachments (images, files) referenced by the document are also cleaned up.\n\nDocuments API is available on **all plans**, including free.",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base.",
+            "example": "p_abc123def456"
+          },
+          {
+            "name": "docId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the document to delete.",
+            "example": "dc_r1a2b3c4d5e6f"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                },
+                "examples": {
+                  "Deleted": {
+                    "value": true
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Document not found."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/docs/{docId}/reorder": {
+      "patch": {
+        "summary": "Reorder or move document",
+        "operationId": "document-reorder",
+        "description": "Update a document's sort order among its siblings, and optionally move it to a different parent.\n\n**Order**: Pass a float value. To insert between two siblings with orders 2.0 and 3.0, use 2.5. The frontend typically computes the midpoint.\n\n**Move**: Include `parent_id` to re-parent the document. Pass `null` to move to root level. Circular moves (moving a document under itself or its descendants) are rejected.\n\nDocuments API is available on **all plans**, including free.",
+        "tags": [
+          "Documents"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base.",
+            "example": "p_abc123def456"
+          },
+          {
+            "name": "docId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the document to reorder.",
+            "example": "dc_r1a2b3c4d5e6f"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentReorder"
+              },
+              "examples": {
+                "Change Sort Order": {
+                  "description": "Move the document to position 2.5 (between siblings at 2.0 and 3.0).",
+                  "value": {
+                    "order": 2.5
+                  }
+                },
+                "Move to Different Parent": {
+                  "description": "Move the document under a different parent and set its order.",
+                  "value": {
+                    "order": 1,
+                    "parent_id": "dc_n3w1p2a3r4e5n"
+                  }
+                },
+                "Move to Root": {
+                  "description": "Move a child document to the root level.",
+                  "value": {
+                    "order": 4,
+                    "parent_id": null
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document reordered/moved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                },
+                "examples": {
+                  "Reordered Document": {
+                    "value": {
+                      "id": "dc_r1a2b3c4d5e6f",
+                      "base_id": "p_abc123def456",
+                      "title": "Project Overview",
+                      "content": {
+                        "type": "doc",
+                        "content": [{ "type": "paragraph" }]
+                      },
+                      "meta": {
+                        "icon": "📋"
+                      },
+                      "order": 2.5,
+                      "parent_id": null,
+                      "has_children": true,
+                      "version": 3,
+                      "comment_count": 2,
+                      "created_by": "us_abc123",
+                      "updated_by": "us_abc123",
+                      "created_at": "2026-03-01T10:00:00.000Z",
+                      "updated_at": "2026-03-09T15:30:00.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized."
+          },
+          "404": {
+            "description": "Document not found."
+          },
+          "422": {
+            "description": "Invalid move — cannot move document under itself or its own descendant."
+          },
+          "500": {
+            "description": "Internal server error."
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12365,6 +13028,194 @@
             ]
           }
         ]
+      },
+      "DocumentCreate": {
+        "type": "object",
+        "description": "Request body for creating a document.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the document. Defaults to 'Untitled' if omitted."
+          },
+          "content": {
+            "type": "object",
+            "description": "ProseMirror JSON document content."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Arbitrary metadata (icon, cover image, settings, etc.)."
+          },
+          "parent_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Parent document ID. null or omitted for root-level documents."
+          }
+        }
+      },
+      "DocumentUpdate": {
+        "type": "object",
+        "description": "Request body for updating a document.",
+        "required": ["version"],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Updated title."
+          },
+          "content": {
+            "type": "object",
+            "description": "Updated ProseMirror JSON document content."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Updated metadata."
+          },
+          "version": {
+            "type": "integer",
+            "description": "Current document version for optimistic concurrency control. Must match the server's version."
+          }
+        }
+      },
+      "DocumentReorder": {
+        "type": "object",
+        "description": "Request body for reordering or moving a document.",
+        "required": ["order"],
+        "properties": {
+          "order": {
+            "type": "number",
+            "description": "New sort order value (float). Compute midpoint between neighbors for fractional ordering."
+          },
+          "parent_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "New parent document ID. null to move to root. Omit to keep current parent."
+          }
+        }
+      },
+      "Document": {
+        "type": "object",
+        "description": "Full document response (includes content).",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique document identifier."
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Base this document belongs to."
+          },
+          "title": {
+            "type": "string",
+            "description": "Document title."
+          },
+          "content": {
+            "type": "object",
+            "description": "ProseMirror JSON document content."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Document metadata (icon, cover, lock, settings)."
+          },
+          "order": {
+            "type": "number",
+            "description": "Sort order among siblings."
+          },
+          "parent_id": {
+            "type": "string",
+            "nullable": true,
+            "description": "Parent document ID. null for root documents."
+          },
+          "has_children": {
+            "type": "boolean",
+            "description": "Whether this document has child documents."
+          },
+          "version": {
+            "type": "integer",
+            "description": "Optimistic concurrency version counter."
+          },
+          "comment_count": {
+            "type": "integer",
+            "description": "Number of comments on this document."
+          },
+          "created_by": {
+            "type": "string",
+            "description": "User ID of the document creator."
+          },
+          "updated_by": {
+            "type": "string",
+            "description": "User ID of the last editor."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp."
+          }
+        }
+      },
+      "DocumentListItem": {
+        "type": "object",
+        "description": "Lightweight document (list response — excludes content).",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "base_id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "meta": {
+            "type": "object"
+          },
+          "order": {
+            "type": "number"
+          },
+          "parent_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "has_children": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer"
+          },
+          "comment_count": {
+            "type": "integer"
+          },
+          "created_by": {
+            "type": "string"
+          },
+          "updated_by": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DocumentListResponse": {
+        "type": "object",
+        "description": "List of documents.",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DocumentListItem"
+            }
+          }
+        },
+        "required": ["list"]
       }
     },
     "responses": {

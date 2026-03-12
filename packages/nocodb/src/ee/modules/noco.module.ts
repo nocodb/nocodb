@@ -70,6 +70,10 @@ import { ScriptsV3Service } from '~/services/v3/scripts-v3.service';
 import { DashboardsV3Controller } from '~/controllers/v3/dashboards-v3.controller';
 import { DashboardsV3Service } from '~/services/v3/dashboards-v3.service';
 
+/* Documents V3 */
+import { DocumentsV3Controller } from '~/ee/controllers/v3/documents-v3.controller';
+import { DocumentsV3Service } from '~/services/v3/documents-v3.service';
+
 /* Snapshot */
 import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
@@ -211,6 +215,7 @@ export const nocoModuleEeMetadata = {
     /* Documents */
     DocumentsService,
     DocumentCommentsService,
+    DocumentsV3Service,
 
     /* Dashboards */
     DashboardsService,
@@ -278,6 +283,8 @@ export const nocoModuleEeMetadata = {
     ScriptsV3Controller,
 
     DashboardsV3Controller,
+
+    DocumentsV3Controller,
 
     Datav3Controller,
 

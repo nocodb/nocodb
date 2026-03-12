@@ -3,14 +3,17 @@ import type { ModuleOptions } from '@vite-pwa/nuxt'
 export const pwaConfig: ModuleOptions = {
   registerType: 'autoUpdate',
   manifest: {
+    id: '/',
     name: 'NocoDB',
     short_name: 'NocoDB',
     description: 'NocoDB - The Open Source Airtable Alternative',
     theme_color: '#3366FF',
     background_color: '#ffffff',
     display: 'standalone',
-    orientation: 'any',
+    scope: '/',
     start_url: '/',
+    orientation: 'any',
+    categories: ['productivity', 'utilities'],
     icons: [
       {
         src: 'pwa-64x64.png',
@@ -39,6 +42,8 @@ export const pwaConfig: ModuleOptions = {
     navigateFallback: '/',
     // Precache only small static assets — JS is handled via runtimeCaching below
     globPatterns: ['**/*.{css,html,png,svg,ico,woff2}'],
+    // Skip patterns that don't exist with ssr: false
+    globIgnores: ['**/node_modules/**/*', '**/_payload.json'],
     runtimeCaching: [
       {
         // Cache JS chunks on first use (StaleWhileRevalidate for speed + freshness)

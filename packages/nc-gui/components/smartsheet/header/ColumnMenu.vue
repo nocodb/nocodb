@@ -26,6 +26,8 @@ const virtual = toRef(props, 'virtual')
 
 const isOpen = useVModel(props, 'isOpen', emit)
 
+const { isMobileMode } = useGlobal()
+
 const column = toRef(props, 'column')
 provide(ColumnInj, column)
 
@@ -663,6 +665,7 @@ const onDeleteColumn = () => {
       </template>
 
       <NcMenuItem
+        v-if="!isMobileMode"
         :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated?.length"
         :title="linksAssociated?.length ? 'Field is associated with a link column' : undefined"
         @click="onEditPress($event, false)"
@@ -676,6 +679,7 @@ const onDeleteColumn = () => {
     </GeneralSourceRestrictionTooltip>
     <NcMenuItem
       v-if="
+        !isMobileMode &&
         isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
         isLinksOrLTAR(column) &&
         (column.colOptions?.version !== 2 || column.uidt === UITypes.Links) &&
@@ -730,13 +734,13 @@ const onDeleteColumn = () => {
       title="Select a new field as display value"
       @click="changeTitleField"
     >
-      <div class="nc-column-edit nc-header-menu-item">
+      <div class="nc-column-change-display-value-field nc-header-menu-item">
         <GeneralIcon icon="star" class="opacity-80 !w-4.25 !h-4.25" />
         {{ $t('labels.changeDisplayValueField') }}
       </div>
     </NcMenuItem>
     <NcMenuItem
-      v-if="isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      v-if="!isMobileMode && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
       title="Add field description"
       @click="onEditPress($event, true)"
     >
@@ -799,7 +803,7 @@ const onDeleteColumn = () => {
     </NcTooltip>
 
     <NcMenuItem
-      v-if="canUseForLookupLinkField(column, meta?.source_id)"
+      v-if="!isMobileMode && canUseForLookupLinkField(column, meta?.source_id)"
       :disabled="isSqlView"
       @click="openLookupOrRollupMenuDialog(UITypes.Lookup)"
     >
@@ -818,7 +822,7 @@ const onDeleteColumn = () => {
       </div>
     </NcMenuItem>
     <NcMenuItem
-      v-if="canUseForRollupLinkField(column)"
+      v-if="!isMobileMode && canUseForRollupLinkField(column)"
       :disabled="isSqlView"
       @click="openLookupOrRollupMenuDialog(UITypes.Rollup)"
     >
@@ -900,7 +904,7 @@ const onDeleteColumn = () => {
 
       <NcDivider />
 
-      <NcTooltip :disabled="isFilterSupported && !isFilterLimitExceeded">
+      <NcTooltip v-if="!isMobileMode" :disabled="isFilterSupported && !isFilterLimitExceeded">
         <template #title>
           {{
             !isFilterSupported
@@ -949,7 +953,7 @@ const onDeleteColumn = () => {
           </div>
         </NcMenuItem>
       </NcTooltip>
-      <template v-if="!isSqlView">
+      <template v-if="!isSqlView && !isMobileMode">
         <NcDivider />
         <NcMenuItem @click="onInsertAfter">
           <div v-e="['a:field:insert:after']" class="nc-column-insert-after nc-header-menu-item">

@@ -190,12 +190,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     viewId,
     schema,
     context,
+    queryQueue,
   }: {
     [key: string]: any;
     model: Model;
     schema?: string;
   }) {
-    super({ dbDriver, model, viewId });
+    super({ dbDriver, model, viewId, queryQueue });
     this.schema = schema;
     this.context = context;
   }
@@ -216,6 +217,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       viewId: this.viewId,
       context: this.context,
       schema: this.schema,
+      queryQueue: this._queryQueue,
     });
   }
 

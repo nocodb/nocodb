@@ -29,32 +29,24 @@ export type ResolverObj =
  **/
 const nocoExecute = async (
   requestObj: XcRequest,
-  resolverObj?: ResolverObj | ResolverObj[],
+  resolverObj?,
   dataTree = {},
   rootArgs = null,
 ): Promise<any> => {
-  // Handle array of resolvers by executing nocoExecute on each sequentially
+  // Handle array of resolvers by executing nocoExecute on each and returning a Promise.all
   if (Array.isArray(resolverObj)) {
-    const res = [];
-    for (let i = 0; i < resolverObj.length; i++) {
-      const resolver = resolverObj[i];
-      dataTree[i] = dataTree[i] || {};
-      res.push(
-        await nocoExecuteSingle(requestObj, resolver, dataTree[i], rootArgs),
-      );
-    }
-    return res;
-  } else {
-    return nocoExecuteSingle(requestObj, resolverObj, dataTree, rootArgs);
+    return Promise.all(
+      resolverObj.map((resolver, i) =>
+        nocoExecute(
+          requestObj,
+          resolver,
+          (dataTree[i] = dataTree[i] || {}),
+          rootArgs,
+        ),
+      ),
+    );
   }
-};
 
-const nocoExecuteSingle = async (
-  requestObj: XcRequest,
-  resolverObj?: ResolverObj,
-  dataTree = {},
-  rootArgs = null,
-): Promise<any> => {
   const res = {};
 
   /**
@@ -65,12 +57,12 @@ const nocoExecuteSingle = async (
    * @param args arguments passed to resolver functions
    * @returns Promise resolving the nested value
    */
-  const extractNested = async (
-    path: string[],
+  const extractNested = (
+    path,
     dataTreeObj: any,
-    resolver: ResolverObj = {},
+    resolver = {},
     args = {},
-  ): Promise<any> => {
+  ): any => {
     if (path.length) {
       const key = path[0];
       // If key doesn't exist in dataTree, resolve using resolver or create a placeholder
@@ -101,23 +93,23 @@ const nocoExecuteSingle = async (
       }
 
       // Recursively handle nested arrays or resolve promises
-      const res1 = await (dataTreeObj[path[0]] instanceof Promise
-        ? dataTreeObj[path[0]]
-        : Promise.resolve(dataTreeObj[path[0]]));
-
-      if (Array.isArray(res1)) {
-        const res = [];
-        for (let i = 0; i < res1.length; i++) {
-          res.push(await extractNested(path.slice(1), res1[i], {}, args));
+      return (
+        dataTreeObj[path[0]] instanceof Promise
+          ? dataTreeObj[path[0]]
+          : Promise.resolve(dataTreeObj[path[0]])
+      ).then((res1) => {
+        if (Array.isArray(res1)) {
+          return Promise.all(
+            res1.map((r) => extractNested(path.slice(1), r, {}, args)),
+          );
+        } else {
+          return res1 !== null && res1 !== undefined
+            ? extractNested(path.slice(1), res1, {}, args)
+            : Promise.resolve(null);
         }
-        return res;
-      } else {
-        return res1 !== null && res1 !== undefined
-          ? await extractNested(path.slice(1), res1, {}, args)
-          : null;
-      }
+      });
     } else {
-      return dataTreeObj; // If path is exhausted, return data tree object
+      return Promise.resolve(dataTreeObj); // If path is exhausted, return data tree object
     }
   };
 
@@ -148,16 +140,17 @@ const nocoExecuteSingle = async (
       dataTree[key] = res[key]; // Store result in dataTree
     } else {
       // If nested, extract the nested value using extractNested function
-      res[key] = (async () => {
-        const res1 = await extractNested(
-          resolverObj?.__proto__?.__columnAliases?.[key]?.path,
-          {},
-          resolverObj,
-          args?.nested?.[key],
+      res[key] = extractNested(
+        resolverObj?.__proto__?.__columnAliases?.[key]?.path,
+        dataTree,
+        resolverObj,
+        args?.nested?.[key],
+      ).then((res1) => {
+        return Promise.resolve(
+          // Flatten the array if it's nested
+          Array.isArray(res1) ? flattenArray(res1) : res1,
         );
-        // Flatten the array if it's nested
-        return Array.isArray(res1) ? flattenArray(res1) : res1;
-      })();
+      });
     }
   }
 
@@ -168,27 +161,22 @@ const nocoExecuteSingle = async (
       : Object.keys(resolverObj);
 
   const out: any = {}; // Holds the final output
+  const resolPromises = []; // Holds all the promises for asynchronous resolution
   for (const key of extractKeys) {
     // Extract the field for each key
     extractField(key, rootArgs?.nested?.[key]);
 
     // Handle nested request objects by recursively calling nocoExecute
     if (requestObj[key] && typeof requestObj[key] === 'object') {
-      if (res[key]) {
-        const res1 = await res[key];
+      res[key] = res[key].then((res1) => {
         if (Array.isArray(res1)) {
-          // Handle arrays of results by executing nocoExecute on each element sequentially
-          dataTree[key] = dataTree[key] || [];
-          res[key] = [];
-          for (let i = 0; i < res1.length; i++) {
-            const r = res1[i];
-            dataTree[key][i] = dataTree[key][i] || {};
-
-            res[key].push(
-              (dataTree[key][i] = await nocoExecute(
+          // Handle arrays of results by executing nocoExecute on each element
+          return (dataTree[key] = Promise.all(
+            res1.map((r, i) =>
+              nocoExecute(
                 requestObj[key] as XcRequest,
                 r,
-                dataTree[key][i],
+                dataTree?.[key]?.[i],
                 Object.assign(
                   {
                     nestedPage: rootArgs?.nestedPage,
@@ -196,12 +184,12 @@ const nocoExecuteSingle = async (
                   },
                   rootArgs?.nested?.[key] || {},
                 ),
-              )),
-            );
-          }
+              ),
+            ),
+          ));
         } else if (res1) {
           // Handle single objects
-          res[key] = await nocoExecute(
+          return (dataTree[key] = nocoExecute(
             requestObj[key] as XcRequest,
             res1,
             dataTree[key],
@@ -212,18 +200,23 @@ const nocoExecuteSingle = async (
               },
               rootArgs?.nested?.[key] || {},
             ),
-          );
-          dataTree[key] = res[key];
-        } else {
-          res[key] = res1;
+          ));
         }
-      }
+        return res1; // Return result if no further nesting
+      });
     }
-
-    if (Object.prototype.hasOwnProperty.call(res, key)) {
-      out[key] = await res[key];
+    // Push resolved promises to resolPromises array
+    if (res[key]) {
+      resolPromises.push(
+        (async () => {
+          out[key] = await res[key];
+        })(),
+      );
     }
   }
+
+  // Wait for all promises to resolve before returning the final output
+  await Promise.all(resolPromises);
 
   return out; // Return the final resolved output
 };

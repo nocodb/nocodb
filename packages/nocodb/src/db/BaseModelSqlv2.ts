@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import autoBind from 'auto-bind';
 import BigNumber from 'bignumber.js';
 import DataLoader from 'dataloader';
+import PQueue from 'p-queue';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
@@ -185,6 +186,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return this._viewId;
   }
   protected _proto: any;
+  protected _queryQueue: PQueue;
   protected _columns = {};
   protected source: Source;
   public model: Model;
@@ -218,6 +220,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       viewId: this.viewId,
       context: this.context,
       schema: this.schema,
+      queryQueue: this._queryQueue,
     });
   }
 
@@ -236,6 +239,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     context,
     schema,
     transaction,
+    queryQueue,
   }: {
     [key: string]: any;
     model: Model;
@@ -247,6 +251,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     this._viewId = viewId;
     this.context = context;
     this.schema = schema;
+    this._queryQueue = queryQueue ?? new PQueue({ concurrency: 1 });
     autoBind(this);
   }
 
@@ -1841,35 +1846,36 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
               if (colOptions?.type === 'hm' && !isMMLike) {
                 const listLoader = new DataLoader(
-                  async (ids: string[]) => {
-                    if (ids.length > 1) {
-                      const data = await this.multipleHmList(
-                        {
-                          colId: column.id,
-                          ids,
-                          apiVersion,
-                          linksAsLtar,
-                        },
-                        (listLoader as any).args,
-                      );
-                      return ids.map((id: string) =>
-                        data[id] ? data[id] : [],
-                      );
-                    } else {
-                      return [
-                        await this.hmList(
+                  (ids: string[]) =>
+                    this._queryQueue.add(async () => {
+                      if (ids.length > 1) {
+                        const data = await this.multipleHmList(
                           {
                             colId: column.id,
-                            id: ids[0],
+                            ids,
                             apiVersion,
-                            nested: true,
                             linksAsLtar,
                           },
                           (listLoader as any).args,
-                        ),
-                      ];
-                    }
-                  },
+                        );
+                        return ids.map((id: string) =>
+                          data[id] ? data[id] : [],
+                        );
+                      } else {
+                        return [
+                          await this.hmList(
+                            {
+                              colId: column.id,
+                              id: ids[0],
+                              apiVersion,
+                              nested: true,
+                              linksAsLtar,
+                            },
+                            (listLoader as any).args,
+                          ),
+                        ];
+                      }
+                    }),
                   {
                     cache: false,
                   },
@@ -1889,16 +1895,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               } else if (isMMLike && isBtLikeV2Junction(column)) {
                 // V2 MO/OO: single-record — return object (like BT)
                 const readLoader = new DataLoader(
-                  async (ids: string[]) => {
-                    return Promise.all(
-                      ids.map((id) =>
-                        this.mmRead(
-                          { parentId: id, colId: column.id },
-                          (readLoader as any).args,
+                  (ids: string[]) =>
+                    this._queryQueue.add(async () => {
+                      return Promise.all(
+                        ids.map((id) =>
+                          this.mmRead(
+                            { parentId: id, colId: column.id },
+                            (readLoader as any).args,
+                          ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    }),
                   {
                     cache: false,
                   },
@@ -1913,35 +1920,36 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 };
               } else if (colOptions.type === 'mm' || isMMLike) {
                 const listLoader = new DataLoader(
-                  async (ids: string[]) => {
-                    if (ids?.length > 1) {
-                      const data = await this.multipleMmList(
-                        {
-                          parentIds: ids,
-                          colId: column.id,
-                          apiVersion,
-                          nested: true,
-                          linksAsLtar,
-                        },
-                        (listLoader as any).args,
-                      );
-
-                      return data;
-                    } else {
-                      return [
-                        await this.mmList(
+                  (ids: string[]) =>
+                    this._queryQueue.add(async () => {
+                      if (ids?.length > 1) {
+                        const data = await this.multipleMmList(
                           {
-                            parentId: ids[0],
+                            parentIds: ids,
                             colId: column.id,
                             apiVersion,
                             nested: true,
                             linksAsLtar,
                           },
                           (listLoader as any).args,
-                        ),
-                      ];
-                    }
-                  },
+                        );
+
+                        return data;
+                      } else {
+                        return [
+                          await this.mmList(
+                            {
+                              parentId: ids[0],
+                              colId: column.id,
+                              apiVersion,
+                              nested: true,
+                              linksAsLtar,
+                            },
+                            (listLoader as any).args,
+                          ),
+                        ];
+                      }
+                    }),
                   {
                     cache: false,
                   },
@@ -1976,60 +1984,63 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 // result for all those together and return the value in the same order as in the array
                 // this way all parents data extracted together
                 const readLoader = new DataLoader(
-                  async (_ids: string[]) => {
-                    // handle binary(16) foreign keys
-                    const ids = _ids.map((id) => {
-                      if (pCol.ct !== 'binary(16)') return id;
+                  (_ids: string[]) =>
+                    this._queryQueue.add(async () => {
+                      // handle binary(16) foreign keys
+                      const ids = _ids.map((id) => {
+                        if (pCol.ct !== 'binary(16)') return id;
 
-                      // Cast the id to string.
-                      const idAsString = id + '';
-                      // Check if the id is a UUID and the column is binary(16)
-                      const isUUIDBinary16 =
-                        idAsString.length === 36 || idAsString.length === 32;
-                      // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                      const idAsUUID = isUUIDBinary16
-                        ? idAsString.length === 32
-                          ? idAsString.replace(
-                              /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                              '$1-$2-$3-$4-$5',
-                            )
-                          : idAsString
-                        : null;
+                        // Cast the id to string.
+                        const idAsString = id + '';
+                        // Check if the id is a UUID and the column is binary(16)
+                        const isUUIDBinary16 =
+                          idAsString.length === 36 ||
+                          idAsString.length === 32;
+                        // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                        const idAsUUID = isUUIDBinary16
+                          ? idAsString.length === 32
+                            ? idAsString.replace(
+                                /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                                '$1-$2-$3-$4-$5',
+                              )
+                            : idAsString
+                          : null;
 
-                      return idAsUUID
-                        ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                        : id;
-                    });
+                        return idAsUUID
+                          ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                          : id;
+                      });
 
-                    const data = await (
-                      await Model.getBaseModelSQL(refContext, {
-                        id: pCol.fk_model_id,
-                        dbDriver: this.dbDriver,
-                      })
-                    ).list(
-                      {
-                        fieldsSet: (readLoader as any).args?.fieldsSet,
-                        filterArr: [
-                          new Filter({
-                            id: null,
-                            fk_column_id: pCol.id,
-                            fk_model_id: pCol.fk_model_id,
-                            value: ids as any[],
-                            comparison_op: 'in',
-                          }),
-                        ],
-                      },
-                      {
-                        ignoreViewFilterAndSort: true,
-                        ignorePagination: true,
-                      },
-                    );
+                      const data = await (
+                        await Model.getBaseModelSQL(refContext, {
+                          id: pCol.fk_model_id,
+                          dbDriver: this.dbDriver,
+                          queryQueue: this._queryQueue,
+                        })
+                      ).list(
+                        {
+                          fieldsSet: (readLoader as any).args?.fieldsSet,
+                          filterArr: [
+                            new Filter({
+                              id: null,
+                              fk_column_id: pCol.id,
+                              fk_model_id: pCol.fk_model_id,
+                              value: ids as any[],
+                              comparison_op: 'in',
+                            }),
+                          ],
+                        },
+                        {
+                          ignoreViewFilterAndSort: true,
+                          ignorePagination: true,
+                        },
+                      );
 
-                    const groupedList = groupBy(data, pCol.title);
-                    return _ids.map(
-                      async (id: string) => groupedList?.[id]?.[0],
-                    );
-                  },
+                      const groupedList = groupBy(data, pCol.title);
+                      return _ids.map(
+                        async (id: string) => groupedList?.[id]?.[0],
+                      );
+                    }),
                   {
                     cache: false,
                   },
@@ -2067,60 +2078,63 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   // result for all those together and return the value in the same order as in the array
                   // this way all parents data extracted together
                   const readLoader = new DataLoader(
-                    async (_ids: string[]) => {
-                      // handle binary(16) foreign keys
-                      const ids = _ids.map((id) => {
-                        if (pCol.ct !== 'binary(16)') return id;
+                    (_ids: string[]) =>
+                      this._queryQueue.add(async () => {
+                        // handle binary(16) foreign keys
+                        const ids = _ids.map((id) => {
+                          if (pCol.ct !== 'binary(16)') return id;
 
-                        // Cast the id to string.
-                        const idAsString = id + '';
-                        // Check if the id is a UUID and the column is binary(16)
-                        const isUUIDBinary16 =
-                          idAsString.length === 36 || idAsString.length === 32;
-                        // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
-                        const idAsUUID = isUUIDBinary16
-                          ? idAsString.length === 32
-                            ? idAsString.replace(
-                                /(.{8})(.{4})(.{4})(.{4})(.{12})/,
-                                '$1-$2-$3-$4-$5',
-                              )
-                            : idAsString
-                          : null;
+                          // Cast the id to string.
+                          const idAsString = id + '';
+                          // Check if the id is a UUID and the column is binary(16)
+                          const isUUIDBinary16 =
+                            idAsString.length === 36 ||
+                            idAsString.length === 32;
+                          // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
+                          const idAsUUID = isUUIDBinary16
+                            ? idAsString.length === 32
+                              ? idAsString.replace(
+                                  /(.{8})(.{4})(.{4})(.{4})(.{12})/,
+                                  '$1-$2-$3-$4-$5',
+                                )
+                              : idAsString
+                            : null;
 
-                        return idAsUUID
-                          ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
-                          : id;
-                      });
+                          return idAsUUID
+                            ? Buffer.from(idAsUUID.replace(/-/g, ''), 'hex')
+                            : id;
+                        });
 
-                      const data = await (
-                        await Model.getBaseModelSQL(refContext, {
-                          id: pCol.fk_model_id,
-                          dbDriver: this.dbDriver,
-                        })
-                      ).list(
-                        {
-                          fieldsSet: (readLoader as any).args?.fieldsSet,
-                          filterArr: [
-                            new Filter({
-                              id: null,
-                              fk_column_id: pCol.id,
-                              fk_model_id: pCol.fk_model_id,
-                              value: ids as any[],
-                              comparison_op: 'in',
-                            }),
-                          ],
-                        },
-                        {
-                          ignoreViewFilterAndSort: true,
-                          ignorePagination: true,
-                        },
-                      );
+                        const data = await (
+                          await Model.getBaseModelSQL(refContext, {
+                            id: pCol.fk_model_id,
+                            dbDriver: this.dbDriver,
+                            queryQueue: this._queryQueue,
+                          })
+                        ).list(
+                          {
+                            fieldsSet: (readLoader as any).args?.fieldsSet,
+                            filterArr: [
+                              new Filter({
+                                id: null,
+                                fk_column_id: pCol.id,
+                                fk_model_id: pCol.fk_model_id,
+                                value: ids as any[],
+                                comparison_op: 'in',
+                              }),
+                            ],
+                          },
+                          {
+                            ignoreViewFilterAndSort: true,
+                            ignorePagination: true,
+                          },
+                        );
 
-                      const groupedList = groupBy(data, pCol.title);
-                      return _ids.map(
-                        async (id: string) => groupedList?.[id]?.[0],
-                      );
-                    },
+                        const groupedList = groupBy(data, pCol.title);
+                        return _ids.map(
+                          async (id: string) => groupedList?.[id]?.[0],
+                        );
+                      }),
                     {
                       cache: false,
                     },
@@ -2140,32 +2154,33 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   };
                 } else {
                   const listLoader = new DataLoader(
-                    async (ids: string[]) => {
-                      if (ids.length > 1) {
-                        const data = await this.multipleHmList(
-                          {
-                            colId: column.id,
-                            ids,
-                          },
-                          (listLoader as any).args,
-                        );
-                        return ids.map((id: string) =>
-                          data[id] ? data[id]?.[0] : null,
-                        );
-                      } else {
-                        return [
-                          (
-                            await this.hmList(
-                              {
-                                colId: column.id,
-                                id: ids[0],
-                              },
-                              (listLoader as any).args,
-                            )
-                          )?.[0] ?? null,
-                        ];
-                      }
-                    },
+                    (ids: string[]) =>
+                      this._queryQueue.add(async () => {
+                        if (ids.length > 1) {
+                          const data = await this.multipleHmList(
+                            {
+                              colId: column.id,
+                              ids,
+                            },
+                            (listLoader as any).args,
+                          );
+                          return ids.map((id: string) =>
+                            data[id] ? data[id]?.[0] : null,
+                          );
+                        } else {
+                          return [
+                            (
+                              await this.hmList(
+                                {
+                                  colId: column.id,
+                                  id: ids[0],
+                                },
+                                (listLoader as any).args,
+                              )
+                            )?.[0] ?? null,
+                          ];
+                        }
+                      }),
                     {
                       cache: false,
                     },

@@ -227,6 +227,11 @@ export const usePermissionSelector = (
         )
       }
 
+      // Refresh base to pick up updated permissions
+      if (base.value?.id) {
+        await basesStore.loadProject(base.value.id, true)
+      }
+
       const eventTypeMap: Record<string, string> = {
         [PermissionEntity.TABLE]: 'a:permissions:save',
         [PermissionEntity.FIELD]: 'a:field:permissions',

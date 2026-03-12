@@ -168,7 +168,7 @@ const nocoExecute = async (
 
     // Handle nested request objects by recursively calling nocoExecute
     if (requestObj[key] && typeof requestObj[key] === 'object' && res[key]) {
-      res[key] = res[key].then((res1) => {
+      res[key] = Promise.resolve(res[key]).then((res1) => {
         if (Array.isArray(res1)) {
           // Handle arrays of results by executing nocoExecute on each element
           return (dataTree[key] = Promise.all(

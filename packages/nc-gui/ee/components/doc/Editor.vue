@@ -2710,6 +2710,7 @@ onBeforeUnmount(() => {
       min-width: 1em;
       padding: 6px 8px;
       position: relative;
+      // Default vertical-align; overridden by inline style from verticalAlign attribute
       vertical-align: top;
 
       > * {

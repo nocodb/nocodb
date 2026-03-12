@@ -22,26 +22,34 @@ import TableHeader from '@tiptap/extension-table-header'
 import { TableMap, addRowAfter, addRowBefore, selectedRect } from '@tiptap/pm/tables'
 import { TextSelection, type Transaction } from '@tiptap/pm/state'
 
+interface CellAlignment {
+  textAlign: string
+  verticalAlign: string
+}
+
 /**
- * Read the textAlign of each column from a given row in the table.
+ * Read textAlign and verticalAlign of each column from a given row in the table.
  */
-function getRowAlignments(table: any, map: any, rowIndex: number): string[] {
-  const alignments: string[] = []
+function getRowAlignments(table: any, map: any, rowIndex: number): CellAlignment[] {
+  const alignments: CellAlignment[] = []
   for (let col = 0; col < map.width; col++) {
     const cellOffset = map.map[rowIndex * map.width + col]
     const node = table.nodeAt(cellOffset)
-    alignments.push(node?.attrs?.textAlign || 'left')
+    alignments.push({
+      textAlign: node?.attrs?.textAlign || 'left',
+      verticalAlign: node?.attrs?.verticalAlign || 'top',
+    })
   }
   return alignments
 }
 
 /**
- * Patch a newly inserted row's cells to inherit textAlign from the given alignments,
+ * Patch a newly inserted row's cells to inherit alignment from the given alignments,
  * then place the cursor inside the first cell of the new row.
  *
  * @param tableStart - Content start of the table (from selectedRect.tableStart)
  */
-function patchNewRow(tr: Transaction, tableStart: number, newRowIndex: number, alignments: string[]) {
+function patchNewRow(tr: Transaction, tableStart: number, newRowIndex: number, alignments: CellAlignment[]) {
   // tableStart points to content start; table node is one position before
   const table = tr.doc.nodeAt(tableStart - 1)
   if (!table) return
@@ -49,7 +57,8 @@ function patchNewRow(tr: Transaction, tableStart: number, newRowIndex: number, a
   const map = TableMap.get(table)
 
   for (let col = 0; col < map.width && col < alignments.length; col++) {
-    if (alignments[col] === 'left') continue
+    const { textAlign, verticalAlign } = alignments[col]
+    if (textAlign === 'left' && verticalAlign === 'top') continue
 
     const cellOffset = map.map[newRowIndex * map.width + col]
     const node = table.nodeAt(cellOffset)
@@ -57,7 +66,8 @@ function patchNewRow(tr: Transaction, tableStart: number, newRowIndex: number, a
 
     tr.setNodeMarkup(tableStart + cellOffset, undefined, {
       ...node.attrs,
-      textAlign: alignments[col],
+      textAlign,
+      verticalAlign,
     })
   }
 
@@ -126,12 +136,24 @@ const cellTextAlignAttr = {
   },
 }
 
+const cellVerticalAlignAttr = {
+  default: 'top',
+  parseHTML: (el: HTMLElement) => el.style.verticalAlign || el.getAttribute('data-vertical-align') || 'top',
+  renderHTML: (attrs: Record<string, any>) => {
+    const align = attrs.verticalAlign
+    if (!align || align === 'top') return {}
+    if (!/^(top|middle|bottom)$/.test(align)) return {}
+    return { style: `vertical-align: ${align}` }
+  },
+}
+
 export const DocTableCell = TableCell.extend({
   addAttributes() {
     return {
       ...TableCell.config.addAttributes?.call(this),
       colwidth: { default: null, renderHTML: () => ({}) },
       textAlign: cellTextAlignAttr,
+      verticalAlign: cellVerticalAlignAttr,
     }
   },
 })
@@ -142,6 +164,7 @@ export const DocTableHeader = TableHeader.extend({
       ...TableHeader.config.addAttributes?.call(this),
       colwidth: { default: null, renderHTML: () => ({}) },
       textAlign: cellTextAlignAttr,
+      verticalAlign: cellVerticalAlignAttr,
     }
   },
 })

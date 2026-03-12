@@ -36,6 +36,8 @@ const { role, inherit, showInherit, size, placement, description } = toRefs(prop
 
 const { t } = useI18n()
 
+const { getResponsiveValue } = useGlobal()
+
 const isDropdownOpen = ref(false)
 
 const newRole = ref<null | keyof typeof RoleLabels>(null)
@@ -99,6 +101,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
           }"
           :is-locked="!!newRole"
           variant="default"
+          :focus-search-on-open="getResponsiveValue(false, true)"
           item-class-name="nc-role-select-dropdown !px-3"
           :wrapper-class-name="`!h-auto nc-role-selector-dropdown ${!!newRole ? '!cursor-wait' : ''}`"
           @update:value="onChangeRole"

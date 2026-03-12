@@ -263,7 +263,7 @@ watch(
 
     <!-- Team hierarchy breadcrumb -->
     <div v-if="breadcrumb.length > 1 && isTeamsHierarchyEnabled" class="mt-4">
-      <div class="text-[13px] text-nc-content-gray mb-1">{{ $t('labels.teamHierarchy') }}</div>
+      <div class="text-[13px] text-nc-content-gray mb-2">{{ $t('labels.teamHierarchy') }}</div>
       <div class="flex items-center gap-1 text-sm text-nc-content-gray-subtle flex-wrap">
         <template v-for="(crumb, idx) in breadcrumb" :key="crumb.id">
           <span :class="idx === breadcrumb.length - 1 ? 'text-nc-content-gray font-medium' : ''">
@@ -276,7 +276,7 @@ watch(
 
     <!-- Move team -->
     <div v-if="!readOnly && isTeamsHierarchyEnabled" class="mt-4">
-      <div class="text-[13px] text-nc-content-gray mb-1">{{ $t('labels.parentTeam') }}</div>
+      <div class="text-bodyDefaultSm text-nc-content-gray mb-2">{{ $t('labels.parentTeam') }}</div>
       <div class="flex items-center gap-2">
         <NcSelect
           v-model:value="selectedParentId"

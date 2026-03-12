@@ -22,7 +22,7 @@ const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
 
 const { t } = useI18n()
 
-const { user } = useGlobal()
+const { user, isMobileMode } = useGlobal()
 
 const { $e } = useNuxtApp()
 
@@ -325,7 +325,7 @@ onMounted(async () => {
       'h-[calc(100vh-92px)]': !isSettingsSidebar && !isAdminPanel,
     }"
   >
-    <div class="nc-teams-wrapper h-full max-w-[1200px] mx-auto py-6 px-6 flex flex-col gap-6 sticky top-0">
+    <div class="nc-teams-wrapper h-full max-w-[1200px] mx-auto p-4 md:p-6 flex flex-col gap-6 sticky top-0">
       <div class="w-full flex items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <a-input
@@ -343,23 +343,23 @@ onMounted(async () => {
             </template>
           </a-input>
 
-          <div class="flex items-center gap-0.5 border-1 border-nc-border-gray-medium rounded-lg p-0.5">
-            <NcTooltip :title="$t('labels.flatView')">
+          <div class="flex items-center gap-0.5 border-1 border-nc-border-gray-medium rounded-lg p-0.5 min-h-8">
+            <NcTooltip :title="$t('labels.flatView')" class="flex">
               <NcButton
                 size="xsmall"
                 :type="viewMode === 'flat' ? 'secondary' : 'text'"
-                class="!h-6 !w-6 !min-w-6 !px-0"
+                class="!px-0"
                 data-testid="nc-teams-view-flat"
                 @click="viewMode = 'flat'"
               >
                 <GeneralIcon icon="ncList" class="h-4 w-4" />
               </NcButton>
             </NcTooltip>
-            <NcTooltip :title="$t('labels.treeView')">
+            <NcTooltip :title="$t('labels.treeView')" class="flex">
               <NcButton
                 size="xsmall"
                 :type="viewMode === 'tree' ? 'secondary' : 'text'"
-                class="!h-6 !w-6 !min-w-6 !px-0"
+                class="!px-0"
                 data-testid="nc-teams-view-tree"
                 @click="viewMode = 'tree'"
               >
@@ -376,12 +376,15 @@ onMounted(async () => {
           :disabled="isTeamsLoading"
           data-testid="nc-new-team-btn"
           class="capitalize"
+          :icon-only="isMobileMode"
           @click="handleCreateTeam()"
         >
           <template #icon>
             <GeneralIcon icon="plus" class="h-4 w-4" />
           </template>
-          {{ $t('labels.newTeam') }}
+          <span class="xs:hidden">
+            {{ $t('labels.newTeam') }}
+          </span>
         </NcButton>
       </div>
 
@@ -442,7 +445,11 @@ onMounted(async () => {
 
         <template #bodyCell="{ column, record }">
           <div v-if="column.key === 'teamName'" class="flex items-center gap-1">
-            <div v-if="viewMode === 'tree'" :style="{ width: `${(record._treeDepth || 0) * 24}px` }" class="flex-none" />
+            <div
+              v-if="viewMode === 'tree'"
+              :style="{ width: `${(record._treeDepth || 0) * (isMobileMode ? 16 : 24)}px` }"
+              class="flex-none"
+            />
             <button
               v-if="viewMode === 'tree' && hasChildren(record.id)"
               class="flex-none w-5 h-5 flex items-center justify-center rounded hover:bg-nc-bg-gray-light cursor-pointer"

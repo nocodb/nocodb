@@ -823,6 +823,9 @@ interface NcListItemProps {
   searchBasisInfo?: string
   /** Min-height of group header rows in pixels */
   groupHeaderHeight?: number
+
+  /** Focus search input on open */
+  focusSearchOnOpen?: boolean
 }
 
 /**

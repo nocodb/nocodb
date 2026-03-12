@@ -67,13 +67,13 @@ const supportedDocs = [
           v-if="vVisible"
           ref="contentRef"
           :table-id="tableId"
-          permissions-table-wrapper-class="max-w-[720px]"
-          permissions-field-wrapper-class="max-w-[720px]"
+          permissions-table-wrapper-class="max-w-full md:max-w-[720px]"
+          permissions-field-wrapper-class="max-w-full md:max-w-[720px]"
           permissions-table-toolbar-class-name="pt-6"
         />
         <div v-else class="flex-1">&nbsp;</div>
 
-        <NcModalSupportedDocsSidebar>
+        <NcModalSupportedDocsSidebar class="hidden md:block">
           <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
         </NcModalSupportedDocsSidebar>
       </div>

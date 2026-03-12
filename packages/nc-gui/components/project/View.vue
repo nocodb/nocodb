@@ -444,7 +444,7 @@ watch(
           </template>
           <ProjectWorkflowsList :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="permissions">
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />

@@ -83,7 +83,7 @@ onMounted(() => {
       {{ $t('labels.addUserToBase') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles }) && !isMobileMode"
+      v-if="isEeUI && isUIAllowed('sourceCreate', { roles: effectiveRoles })"
       v-e="['c:settings:base:permissions']"
       icon="ncLock"
       data-testid="base-permissions"

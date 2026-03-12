@@ -257,6 +257,14 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
         docTitle: created.title,
       })
 
+      // Scroll the newly created document into view in the sidebar
+      setTimeout(() => {
+        const newDocDom = document.querySelector(`[data-testid="nc-docs-sidebar-pages-list"] [data-id="${created.id}"]`)
+        if (newDocDom) {
+          newDocDom.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }
+      }, 1000)
+
       await refreshCommandPalette()
       $e('a:document:create')
 

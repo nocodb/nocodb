@@ -12,6 +12,8 @@ const props = defineProps<Props>()
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
+const { isMobileMode } = useGlobal()
+
 const { getPermissionSummaryLabel, permissionsByEntity } = usePermissions()
 
 // Get visible fields (exclude system fields)
@@ -28,21 +30,24 @@ const customFieldPermissionsCount = computed(() => {
 })
 
 // NcTable columns configuration
-const fieldPermissionsColumns = [
-  {
-    key: 'field_name',
-    title: 'Field Name',
-    name: 'Field Name',
-    padding: '0px 16px',
-  },
-  {
-    key: 'edit_permission',
-    title: 'Edit',
-    name: 'Edit',
-    width: 220,
-    padding: '0px 16px',
-  },
-] as NcTableColumnProps[]
+const fieldPermissionsColumns = computed(
+  () =>
+    [
+      {
+        key: 'field_name',
+        title: 'Field Name',
+        name: 'Field Name',
+        padding: '0px 16px',
+      },
+      {
+        key: 'edit_permission',
+        title: 'Edit',
+        name: 'Edit',
+        width: isMobileMode.value ? undefined : 220,
+        padding: '0px 16px',
+      },
+    ] as NcTableColumnProps[],
+)
 
 // Transform fields data for NcTable
 const fieldPermissionsData = computed(() => {
@@ -81,11 +86,16 @@ const handlePermissionSave = () => {
     header-row-height="44px"
     body-row-class-name="!cursor-default"
     :table-toolbar-class-name="tableToolbarClassName"
-    class="nc-field-permissions-table flex-1"
+    class="nc-field-permissions-table flex-1 w-full"
   >
     <template #tableToolbar>
-      <div class="flex items-center justify-between min-h-8">
-        <h3 class="text-nc-content-gray-emphasis text-bodyBold mb-0 capitalize">{{ $t('title.fieldPermissions') }}</h3>
+      <div class="flex flex-col gap-1 sm:(items-center justify-between gap-0) min-h-8">
+        <div class="flex-1 flex items-center">
+          <h3 class="text-nc-content-gray-emphasis text-bodyBold mb-0 capitalize flex-1">
+            {{ $t('title.fieldPermissions') }}
+          </h3>
+          <slot v-if="isMobileMode" name="actions" :has-permissions="customFieldPermissionsCount > 0" />
+        </div>
         <div class="flex items-center gap-2">
           <template v-if="customFieldPermissionsCount > 0">
             <div class="flex items-center justify-center">
@@ -100,7 +110,7 @@ const handlePermissionSave = () => {
               }}
             </span>
           </template>
-          <slot name="actions" :has-permissions="customFieldPermissionsCount > 0" />
+          <slot v-if="!isMobileMode" name="actions" :has-permissions="customFieldPermissionsCount > 0" />
         </div>
       </div>
     </template>
@@ -110,7 +120,7 @@ const handlePermissionSave = () => {
           <div class="h-1.5 w-1.5 rounded-full bg-primary flex-none"></div>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 w-full">
           <SmartsheetHeaderIcon :column="record.col" class="flex-none h-4 w-4 !mx-0" color="text-nc-content-gray-subtle" />
           <span class="text-captionBold text-nc-content-gray truncate">
             {{ record.field_name }}

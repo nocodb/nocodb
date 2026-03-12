@@ -69,7 +69,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="flex-1 px-6 pb-6 nc-scrollbar-thin relative w-full h-full flex flex-col gap-8">
+  <div class="flex-1 px-4 pb-4 md:(px-6 pb-6) nc-scrollbar-thin relative w-full h-full flex flex-col gap-8">
     <div v-if="isLoading" class="flex items-center justify-center py-8 mt-6">
       <GeneralLoader size="large" />
     </div>
@@ -79,12 +79,12 @@ defineExpose({
         :table-id="tableId"
         :base="base"
         :table="tableData"
-        class="!gap-4 min-w-[540px] mx-auto w-full mt-6"
+        class="!gap-4 min-w-full md:min-w-[540px] mx-auto w-full mt-6"
         :class="permissionsTableWrapperClass"
         placement="bottomLeft"
       >
         <template #actions="{ hasPermissions }">
-          <NcTooltip :title="$t('objects.permissions.resetTablePermissions')" hide-on-click>
+          <NcTooltip :title="$t('objects.permissions.resetTablePermissions')" hide-on-click disable-in-mobile>
             <NcButton
               type="secondary"
               size="small"
@@ -100,10 +100,10 @@ defineExpose({
         </template>
       </PermissionsTable>
 
-      <div class="flex min-w-[540px] mx-auto w-full" :class="permissionsFieldWrapperClass">
+      <div class="flex min-w-full md:min-w-[540px] mx-auto w-full" :class="permissionsFieldWrapperClass">
         <PermissionsField :table-data="tableData" :table-toolbar-class-name="permissionsTableToolbarClassName">
           <template #actions="{ hasPermissions }">
-            <NcTooltip :title="$t('objects.permissions.resetFieldPermissions')" hide-on-click>
+            <NcTooltip :title="$t('objects.permissions.resetFieldPermissions')" hide-on-click disable-in-mobile>
               <NcButton
                 type="secondary"
                 size="small"

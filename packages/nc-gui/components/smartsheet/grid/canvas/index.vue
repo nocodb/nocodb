@@ -1332,8 +1332,6 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       }
       triggerRefreshCanvas()
       return
-    } else if (y < headerRowHeight.value) {
-      return
     }
   }
   // Handle all Column Header Operations

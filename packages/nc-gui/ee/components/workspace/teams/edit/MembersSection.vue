@@ -25,7 +25,7 @@ const { readOnly } = toRefs(props)
 
 const { t } = useI18n()
 
-const { user } = useGlobal()
+const { user, getResponsiveValue } = useGlobal()
 
 const workspaceStore = useWorkspace()
 
@@ -72,25 +72,31 @@ const isTeamOwner = (member: TeamMember) => {
 }
 
 // NcTable columns configuration
-const membersColumns = [
-  {
-    key: 'select',
-    title: '',
-    width: 70,
-    minWidth: 70,
-  },
-  {
-    key: 'member_name',
-    title: t('objects.member'),
-  },
-  {
-    key: 'action',
-    title: t('labels.actions'),
-    width: 110,
-    minWidth: 110,
-    justify: 'justify-end',
-  },
-] as NcTableColumnProps[]
+const membersColumns = computed(
+  () =>
+    [
+      {
+        key: 'select',
+        title: '',
+        width: getResponsiveValue(50, 70),
+        minWidth: getResponsiveValue(50, 70),
+        padding: getResponsiveValue('0px 0px 0px 16px', undefined),
+      },
+      {
+        key: 'member_name',
+        title: t('objects.member'),
+        padding: getResponsiveValue('0px 16px', undefined),
+      },
+      {
+        key: 'action',
+        title: t('labels.actions'),
+        width: getResponsiveValue(80, 110),
+        minWidth: getResponsiveValue(80, 110),
+        justify: 'justify-end',
+        padding: getResponsiveValue('0px 16px 0px 0px', undefined),
+      },
+    ] as NcTableColumnProps[],
+)
 
 const selectedRows = ref<{
   [id: string]: boolean
@@ -413,7 +419,7 @@ onMounted(() => {
           <div v-if="column.key === 'action'" @click.stop>
             <NcDropdown v-model:visible="isOpenContextMenu[record.fk_user_id!]" placement="bottomRight">
               <template #default="{ visible }">
-                <NcButton size="small" type="secondary" class="invisible group-hover:visible" :class="{ '!visible': visible }">
+                <NcButton size="small" type="secondary" class="md:invisible group-hover:visible" :class="{ '!visible': visible }">
                   <component :is="iconMap.ncMoreVertical" />
                 </NcButton>
               </template>
@@ -487,7 +493,7 @@ onMounted(() => {
         <NcBadge size="xs" color="gray" :border="false" class="text-captionBold">
           {{ inheritedMembers.length }}
         </NcBadge>
-        <NcTooltip placement="right" :arrow="false">
+        <NcTooltip :placement="getResponsiveValue('top', 'right')" :arrow="false">
           <template #title>
             {{ $t('tooltip.inheritedMembersInfo') }}
           </template>

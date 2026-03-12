@@ -172,8 +172,8 @@ watch(vVisible, (newValue) => {
     :mask-closable="!creating"
     wrap-class-name="nc-modal-team-create-wrapper"
   >
-    <div class="py-5 flex flex-col gap-5">
-      <div class="px-5 flex justify-between w-full items-center">
+    <div class="py-4 md:py-5 flex flex-col gap-5">
+      <div class="px-4 md:px-5 flex justify-between w-full items-center">
         <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-nc-content-gray capitalize">
           <GeneralIcon icon="ncBuilding" class="!text-nc-content-gray-subtle2 w-5 h-5" />
           {{ $t('labels.newTeam') }}
@@ -189,7 +189,7 @@ watch(vVisible, (newValue) => {
         layout="vertical"
         :model="formState"
         name="create-new-team-form"
-        class="flex flex-col gap-5 !px-5"
+        class="flex flex-col gap-5 !px-4 md:!px-5"
         @keydown.enter="createTeam"
         @keydown.esc="vVisible = false"
       >
@@ -237,7 +237,7 @@ watch(vVisible, (newValue) => {
 
           <a-form-item v-if="isTeamsHierarchyEnabled" class="!mb-0">
             <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center">
-              <span class="text-[13px]">
+              <span class="text-bodyDefaultSm">
                 {{ $t('labels.parentTeam') }}
               </span>
             </div>

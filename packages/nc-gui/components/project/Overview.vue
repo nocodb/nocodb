@@ -106,7 +106,7 @@ const onCreateBaseClick = () => {
           </ProjectActionItem>
 
           <ProjectActionItem
-            v-if="!isMobileMode && isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+            v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
             v-e="['c:table:import']"
             data-testid="proj-view-btn__import-data"
             :label="`${$t('activity.import')} ${$t('general.data')}`"
@@ -159,7 +159,7 @@ const onCreateBaseClick = () => {
         </template>
 
         <!-- Docs tab actions -->
-        <template v-if="activeSidebarTab === 'docs' && !isMobileMode">
+        <template v-if="activeSidebarTab === 'docs'">
           <ProjectActionCreateNewDocument :base-id="base?.id" />
         </template>
 

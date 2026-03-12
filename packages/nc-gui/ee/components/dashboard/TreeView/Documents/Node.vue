@@ -16,7 +16,11 @@ const { $e } = useNuxtApp()
 const { t } = useI18n()
 
 const { isMobileMode, ncNavigateTo } = useGlobal()
+
 const { isUIAllowed } = useRoles()
+
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
 const documentsStore = useDocumentsStore()
 const {
   updateDocument,
@@ -107,6 +111,10 @@ const navigateToDocument = () => {
     docId: props.doc.id,
     docTitle: props.doc.title,
   })
+
+  if (isMobileMode.value) {
+    isLeftSidebarOpen.value = false
+  }
 }
 
 const onClick = useDebounceFn(() => {

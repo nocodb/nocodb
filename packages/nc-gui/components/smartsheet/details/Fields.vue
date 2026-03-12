@@ -968,13 +968,25 @@ const saveChanges = async () => {
       return rest
     })
 
+    // Properties managed by their own save paths (e.g. filters via applyChanges),
+    // not through the columnsBulk API — strip them before sending
+    const excludedColumnProps = ['filters']
+
+    const opsForApi = ops.value.map((op) => {
+      if (!op.column || !excludedColumnProps.some((prop) => prop in op.column)) return op
+
+      const column = { ...op.column }
+      for (const prop of excludedColumnProps) delete column[prop]
+      return { ...op, column }
+    })
+
     const res = await $api.internal.postOperation(
       meta.value!.fk_workspace_id!,
       meta.value!.base_id!,
       { operation: 'columnsBulk', tableId: meta.value?.id as string },
       {
         hash: columnsHash.value,
-        ops: ops.value,
+        ops: opsForApi,
       },
     )
 

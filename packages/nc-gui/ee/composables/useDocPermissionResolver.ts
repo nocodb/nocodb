@@ -58,7 +58,6 @@ export function useDocPermissionResolver(
   }
 
   return {
-    docsById,
     resolveDocPermission,
     getEffectiveValue,
     getParentEffectiveValue,

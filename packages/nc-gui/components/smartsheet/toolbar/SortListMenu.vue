@@ -243,7 +243,11 @@ watch(
           :is-parent-open="open"
           @created="addSort"
         />
-        <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] sm:min-w-102" data-testid="nc-sorts-menu">
+        <div
+          v-else
+          class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] xs:nc-min-w-screen-95 sm:min-w-102"
+          data-testid="nc-sorts-menu"
+        >
           <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
             <template v-if="!isRestrictedEditor">
               <div

@@ -12,6 +12,7 @@ import { Selection, TextSelection } from '@tiptap/pm/state'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import { DocHighlightExtension } from './DocHighlightExtension'
+import { DocTextColorExtension } from './DocTextColorExtension'
 import { DocCommentMarkExtension } from './DocCommentMarkExtension'
 import { DocImageExtension } from './DocImageExtension'
 import { DocFileAttachmentExtension } from './DocFileAttachmentExtension'
@@ -317,6 +318,7 @@ const _tiptapEditor = useEditor({
     DocCodeBlockExtension,
     Underline,
     DocHighlightExtension,
+    DocTextColorExtension,
     DocCommentMarkExtension,
     Link.configure({ openOnClick: false }),
     Placeholder.configure({

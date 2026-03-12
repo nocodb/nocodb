@@ -23,45 +23,98 @@ const emits = defineEmits(['close'])
 
 const { editor, embedMode, isFormField, hiddenOptions, enableCloseButton } = toRefs(props)
 
-// ── Highlight colour picker (doc editor / embedMode only) ──────────────
+// ── Color picker (text color + background color) — doc editor / embedMode only ──
 
-const showHighlightPicker = ref(false)
+const showColorPicker = ref(false)
 
-// Pastel palette — 8 standard colours, no custom picker needed
-const highlightColors = [
+const textColors = [
+  { name: 'Default', color: '#1f2937' },
+  { name: 'Gray', color: '#6b7280' },
+  { name: 'Brown', color: '#92400e' },
+  { name: 'Yellow', color: '#a16207' },
+  { name: 'Green', color: '#15803d' },
+  { name: 'Blue', color: '#1d4ed8' },
+  { name: 'Purple', color: '#7c3aed' },
+  { name: 'Pink', color: '#db2777' },
+  { name: 'Orange', color: '#ea580c' },
+  { name: 'Red', color: '#dc2626' },
+] as const
+
+const bgColors = [
+  { name: 'None', color: '' },
+  { name: 'Gray', color: '#e5e7eb' },
+  { name: 'Orange', color: '#fed7aa' },
+  { name: 'Pink', color: '#fbcfe8' },
   { name: 'Yellow', color: '#fef08a' },
   { name: 'Green', color: '#bbf7d0' },
   { name: 'Blue', color: '#bfdbfe' },
-  { name: 'Pink', color: '#fbcfe8' },
-  { name: 'Orange', color: '#fed7aa' },
-  { name: 'Red', color: '#fecaca' },
   { name: 'Purple', color: '#e9d5ff' },
-  { name: 'Gray', color: '#e5e7eb' },
+  { name: 'Rose', color: '#fecdd3' },
+  { name: 'Red', color: '#fecaca' },
 ] as const
 
-// Resolved active colour — null when no highlight on selection
+// Recently used — kept for current session
+const recentColors = ref<Array<{ type: 'text' | 'bg'; color: string }>>([])
+const MAX_RECENT = 5
+
+const addRecent = (type: 'text' | 'bg', color: string) => {
+  if (!color) return
+  const entry = { type, color }
+  recentColors.value = [entry, ...recentColors.value.filter((r) => !(r.type === type && r.color === color))].slice(
+    0,
+    MAX_RECENT,
+  )
+}
+
+// Active state
+const activeTextColor = computed(() => {
+  for (const t of textColors) {
+    if (t.color === '#1f2937') continue // skip default
+    if (editor.value?.isActive('textColor', { color: t.color })) return t.color
+  }
+  return null
+})
+
 const activeHighlightColor = computed(() => {
-  for (const h of highlightColors) {
+  for (const h of bgColors) {
+    if (!h.color) continue
     if (editor.value?.isActive('highlight', { color: h.color })) return h.color
   }
   return null
 })
 
-/** Apply or remove a highlight colour. Clicking the active colour removes it. */
-const applyHighlight = (color: string) => {
-  if (editor.value?.isActive('highlight', { color })) {
+const applyTextColor = (color: string) => {
+  if (color === '#1f2937' || !color) {
+    editor.value?.chain().focus().unsetTextColor().run()
+  } else if (editor.value?.isActive('textColor', { color })) {
+    editor.value?.chain().focus().unsetTextColor().run()
+  } else {
+    editor.value?.chain().focus().setTextColor({ color }).run()
+    addRecent('text', color)
+  }
+}
+
+const applyBgColor = (color: string) => {
+  if (!color) {
+    editor.value?.chain().focus().unsetHighlight().run()
+  } else if (editor.value?.isActive('highlight', { color })) {
     editor.value?.chain().focus().unsetHighlight().run()
   } else {
     editor.value?.chain().focus().setHighlight({ color }).run()
+    addRecent('bg', color)
   }
-  showHighlightPicker.value = false
+}
+
+const applyRecent = (entry: { type: 'text' | 'bg'; color: string }) => {
+  if (entry.type === 'text') applyTextColor(entry.color)
+  else applyBgColor(entry.color)
 }
 
 // Dismiss dropdown on any click outside the button / dropdown
 const onDocClick = (e: MouseEvent) => {
-  if (!showHighlightPicker.value) return
-  const hit = (e.target as HTMLElement)?.closest?.('.nc-highlight-dropdown, .nc-highlight-btn')
-  if (!hit) showHighlightPicker.value = false
+  if (!showColorPicker.value) return
+  const hit = (e.target as HTMLElement)?.closest?.('.nc-color-picker-dropdown, .nc-highlight-btn')
+  if (!hit) showColorPicker.value = false
 }
 onMounted(() => document.addEventListener('mousedown', onDocClick))
 onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
@@ -265,50 +318,84 @@ const closeTextArea = () => {
         <GeneralIcon icon="strike" />
       </NcButton>
     </NcTooltip>
-    <!-- Highlight colour picker — doc editor (embedMode) only -->
-    <NcTooltip v-if="embedMode && !isEditColumn" :disabled="editor.isActive('codeBlock') || showHighlightPicker">
-      <template #title> {{ $t('general.highlight') }} </template>
+    <!-- Color picker button — doc editor (embedMode) only -->
+    <NcTooltip v-if="embedMode && !isEditColumn" :disabled="editor.isActive('codeBlock') || showColorPicker">
+      <template #title> {{ $t('general.color') }} </template>
       <NcButton
         size="small"
         type="text"
         class="nc-highlight-btn"
-        :class="{ 'is-active': activeHighlightColor }"
+        :class="{ 'is-active': activeHighlightColor || activeTextColor }"
         :disabled="editor.isActive('codeBlock')"
-        @click="showHighlightPicker = !showHighlightPicker"
+        @click="showColorPicker = !showColorPicker"
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="m9 11-6 6v3h9l3-3" />
-          <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
-        </svg>
+        <span
+          class="nc-color-btn-preview"
+          :style="{
+            color: activeTextColor || 'var(--nc-content-gray)',
+            backgroundColor: activeHighlightColor || 'transparent',
+            borderColor: activeHighlightColor || 'var(--nc-border-gray-medium)',
+          }"
+        >A</span>
       </NcButton>
     </NcTooltip>
-    <!-- Colour swatch dropdown — anchored to bubble-menu via position:absolute -->
-    <div v-if="embedMode && showHighlightPicker" class="nc-highlight-dropdown" @mousedown.prevent>
-      <div class="nc-highlight-grid">
+    <!-- Color picker dropdown -->
+    <div v-if="embedMode && showColorPicker" class="nc-color-picker-dropdown" @mousedown.prevent>
+      <!-- Recently used -->
+      <template v-if="recentColors.length">
+        <div class="nc-color-picker-label">{{ $t('labels.recentlyUsed') }}</div>
+        <div class="nc-color-picker-grid">
+          <button
+            v-for="(r, idx) in recentColors"
+            :key="idx"
+            class="nc-color-swatch"
+            :class="{
+              'is-active': r.type === 'text' ? activeTextColor === r.color : activeHighlightColor === r.color,
+            }"
+            :style="r.type === 'text'
+              ? { borderColor: `color-mix(in srgb, ${r.color} 30%, transparent)` }
+              : { backgroundColor: r.color, borderColor: r.color }"
+            :title="r.type === 'text' ? $t('labels.textColor') : $t('labels.backgroundColor')"
+            @click="applyRecent(r)"
+          >
+            <span
+              v-if="r.type === 'text'"
+              class="nc-color-swatch-letter"
+              :style="{ color: r.color }"
+            >A</span>
+          </button>
+        </div>
+      </template>
+
+      <!-- Text color -->
+      <div class="nc-color-picker-label">{{ $t('labels.textColor') }}</div>
+      <div class="nc-color-picker-grid">
         <button
-          v-for="h in highlightColors"
-          :key="h.color"
-          class="nc-highlight-swatch"
-          :class="{ 'is-active': activeHighlightColor === h.color }"
-          :style="{ backgroundColor: h.color }"
-          :title="h.name"
-          @click="applyHighlight(h.color)"
+          v-for="t in textColors"
+          :key="t.color"
+          class="nc-color-swatch"
+          :class="{ 'is-active': t.color !== '#1f2937' && activeTextColor === t.color }"
+          :style="{ borderColor: `color-mix(in srgb, ${t.color} 30%, transparent)` }"
+          :title="t.name"
+          @click="applyTextColor(t.color)"
+        >
+          <span class="nc-color-swatch-letter" :style="{ color: t.color }">A</span>
+        </button>
+      </div>
+
+      <!-- Background color -->
+      <div class="nc-color-picker-label">{{ $t('labels.backgroundColor') }}</div>
+      <div class="nc-color-picker-grid">
+        <button
+          v-for="b in bgColors"
+          :key="b.color || 'none'"
+          class="nc-color-swatch"
+          :class="{ 'is-active': b.color && activeHighlightColor === b.color }"
+          :style="b.color ? { backgroundColor: b.color, borderColor: b.color } : {}"
+          :title="b.name"
+          @click="applyBgColor(b.color)"
         />
       </div>
-      <!-- "Clear" only shown when a highlight is active on the selection -->
-      <button v-if="activeHighlightColor" class="nc-highlight-clear" @click="applyHighlight(activeHighlightColor)">
-        {{ $t('general.clear') }}
-      </button>
     </div>
 
     <NcTooltip
@@ -614,58 +701,80 @@ const closeTextArea = () => {
   }
 }
 
-/* ── Highlight colour picker dropdown ─────────────────────────────── */
+.nc-color-btn-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1.5px solid;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
 
-// Anchored to .bubble-menu (position:relative) — sits below the toolbar
-.nc-highlight-dropdown {
+/* ── Color picker dropdown ─────────────────────────────── */
+
+.nc-color-picker-dropdown {
   position: absolute;
   bottom: 0;
-  transform: translateY(calc(100% + 4px)); // 4px gap below bubble-menu
+  transform: translateY(calc(100% + 4px));
   background: var(--nc-bg-default);
   border: 1px solid var(--nc-border-gray-medium);
   border-radius: 8px;
-  padding: 8px;
+  padding: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   z-index: 10;
+  width: 196px;
 }
 
-// Single row of colour swatches
-.nc-highlight-grid {
-  display: flex;
-  gap: 4px;
-}
-
-.nc-highlight-swatch {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: border-color 0.1s, transform 0.1s;
-
-  &:hover {
-    transform: scale(1.15);
-  }
-  &.is-active {
-    border-color: var(--nc-content-brand);
-  }
-}
-
-.nc-highlight-clear {
-  width: 100%;
-  margin-top: 6px;
-  padding: 3px 0;
+.nc-color-picker-label {
   font-size: 11px;
+  font-weight: 600;
   color: var(--nc-content-gray-subtle);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-align: center;
+  margin-bottom: 6px;
+  margin-top: 10px;
 
-  &:hover {
-    color: var(--nc-content-gray);
-    background: var(--nc-bg-gray-light);
-    border-radius: 4px;
+  &:first-child {
+    margin-top: 0;
   }
 }
+
+.nc-color-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.nc-color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1.5px solid var(--nc-border-gray-medium);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--nc-bg-default);
+  transition: border-color 0.1s, transform 0.1s;
+  padding: 0;
+
+  &:hover {
+    transform: scale(1.08);
+    border-color: var(--nc-content-gray-subtle);
+  }
+
+  &.is-active {
+    border-color: var(--nc-content-gray);
+    border-width: 2px;
+  }
+}
+
+.nc-color-swatch-letter {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 </style>

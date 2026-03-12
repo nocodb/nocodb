@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PlanFeatureTypes } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, PlanFeatureTypes } from 'nocodb-sdk'
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu, EditorContent, useEditor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
@@ -53,14 +53,43 @@ const { $e } = useNuxtApp()
 const { user, appInfo, isMobileMode, isLeftSidebarOpen } = useGlobal()
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
+const { isAllowed: isPermissionAllowed } = usePermissions()
 const { openFilePicker, uploadAndInsert } = useDocumentImageUpload()
 const { batchUploadFiles } = useAttachment()
 const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
 
+const { activeDocuments } = storeToRefs(documentsStore)
+
 const base = inject(ProjectInj, ref())
 
-/** Whether the current user can edit document content (Editor+ role). */
-const isEditable = computed(() => isUIAllowed('documentUpdate'))
+/**
+ * Check document-level DOCUMENT_EDIT permission by walking up the parent chain.
+ * Returns true if no doc-level restriction blocks the user, false if blocked.
+ */
+const isDocEditAllowed = computed(() => {
+  const permissions = base.value?.permissions
+  if (!permissions) return true // No permissions configured → allowed
+
+  const docsById = new Map(activeDocuments.value.map((d) => [d.id, d]))
+  let currentDoc = docsById.get(docId.value)
+
+  while (currentDoc) {
+    const hasPerm = permissions.some(
+      (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === currentDoc!.id && p.permission === PermissionKey.DOCUMENT_EDIT,
+    )
+
+    if (hasPerm) {
+      return isPermissionAllowed(PermissionEntity.DOCUMENT, currentDoc.id!, PermissionKey.DOCUMENT_EDIT)
+    }
+
+    currentDoc = currentDoc.parent_id ? docsById.get(currentDoc.parent_id) : undefined
+  }
+
+  return true // No doc-level edit restriction → default allows editors+
+})
+
+/** Whether the current user can edit document content (base role + doc-level permission). */
+const isEditable = computed(() => isUIAllowed('documentUpdate') && isDocEditAllowed.value)
 
 // Resolve created_by user ID to display name
 const idUserMap = computed<Record<string, any>>(() => {

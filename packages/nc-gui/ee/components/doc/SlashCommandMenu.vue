@@ -102,8 +102,12 @@ const submitInput = () => {
   const syntheticItem: SlashCommandItem = {
     ...original,
     command: (editor, range) => {
-      // Store URL where the original command can read it
-      if (editor.storage.embed) {
+      // Store input where the original command can read it
+      if (original.group === 'AI') {
+        if (editor.storage.docAi) {
+          editor.storage.docAi._pendingInstruction = url
+        }
+      } else if (editor.storage.embed) {
         editor.storage.embed._pendingUrl = url
       }
       original.command(editor, range)

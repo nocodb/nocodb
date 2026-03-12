@@ -35,6 +35,7 @@ export const PlanFeatureTypesToPlanTitles: Record<
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD]: PlanTitles.PLUS,
+  [PlanFeatureTypes.FEATURE_DOC_AI]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_COLOUR_FIELD]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE]: PlanTitles.PLUS,
   [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]: PlanTitles.PLUS,

@@ -30,6 +30,7 @@ import { DocHeadingCollapseExtension } from './DocHeadingCollapseExtension'
 import { DocHeadingAnchorExtension } from './DocHeadingAnchorExtension'
 import { DocDragHandleExtension } from './DocDragHandlePlugin'
 import { DocSearchExtension } from './DocSearchExtension'
+import { DocAiExtension, insertMarkdownContent } from './DocAiExtension'
 import { getEmbedURL } from '~/extensions/url-preview-ee/utils'
 import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
@@ -186,6 +187,115 @@ const { scrollToHeading } = useDocHeadingAnchors(editor, scrollContainerRef, isL
 const { copy } = useCopy()
 
 const { isCopied: isLinkCopied, performCopy: performCopyLink } = useIsCopied(2000)
+
+// --- Document AI ---
+const { aiWrite, aiContinue, aiImprove, aiSummarize, aiTranslate, docAiLoading } = useDocumentAi()
+const { isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
+const { blockDocAi, showUpgradeToUseDocAi } = useEeConfig()
+
+const isDocAiAvailable = computed(() => isAiFeaturesEnabled.value && aiIntegrationAvailable.value && !blockDocAi.value)
+
+/**
+ * Extract plain text from the current ProseMirror doc (for AI context).
+ * For "continue writing", takes from the end. For general context, takes
+ * a mix of the beginning and the end to give the AI better orientation.
+ */
+const getDocPlainText = (maxChars = 2000, fromEnd = true) => {
+  if (!editor.value) return ''
+  const text = editor.value.state.doc.textContent
+  if (text.length <= maxChars) return text
+  if (fromEnd) return text.slice(-maxChars)
+  // Mixed: first 500 chars + last (maxChars - 500) chars
+  const headLen = Math.min(500, Math.floor(maxChars / 4))
+  return `${text.slice(0, headLen)}\n...\n${text.slice(-(maxChars - headLen))}`
+}
+
+/** Extract plain text of the selected content. */
+const getSelectedText = () => {
+  if (!editor.value) return ''
+  const { from, to } = editor.value.state.selection
+  return editor.value.state.doc.textBetween(from, to, '\n')
+}
+
+/**
+ * Wire AI handlers into editor.storage.docAi so slash commands + bubble menu
+ * can invoke them without needing direct access to the composable.
+ */
+const wireDocAiStorage = () => {
+  if (!editor.value) return
+
+  editor.value.storage.docAi = {
+    write: async (instruction: string) => {
+      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      $e('a:doc:ai:write')
+      const context = getDocPlainText(2000, false)
+      const result = await aiWrite(instruction, context, title.value)
+      if (result && editor.value) {
+        insertMarkdownContent(editor.value, result)
+      }
+    },
+    continueWriting: async () => {
+      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      $e('a:doc:ai:continue')
+      const precedingContent = getDocPlainText(2000, true)
+      if (!precedingContent.trim()) return
+      const result = await aiContinue(precedingContent, title.value)
+      if (result && editor.value) {
+        insertMarkdownContent(editor.value, result)
+      }
+    },
+    summarize: async () => {
+      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      $e('a:doc:ai:summarize')
+      const text = (editor.value?.state.doc.textContent || '').slice(0, 10000)
+      if (!text.trim()) return
+      const result = await aiSummarize(text)
+      if (result && editor.value) {
+        editor.value.chain().focus().setCallout({ type: 'note' }).run()
+        insertMarkdownContent(editor.value, result)
+      }
+    },
+    improve: async (mode: string) => {
+      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      $e('a:doc:ai:improve', { mode })
+      const selected = getSelectedText()
+      if (!selected.trim()) return
+      const result = await aiImprove(selected, mode as any)
+      if (result && editor.value) {
+        editor.value.chain().focus().deleteSelection().run()
+        insertMarkdownContent(editor.value, result)
+      }
+    },
+    translate: async (targetLanguage: string) => {
+      if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+      $e('a:doc:ai:translate', { targetLanguage })
+      const selected = getSelectedText()
+      if (!selected.trim()) return
+      const result = await aiTranslate(selected, targetLanguage)
+      if (result && editor.value) {
+        editor.value.chain().focus().deleteSelection().run()
+        insertMarkdownContent(editor.value, result)
+      }
+    },
+    _pendingInstruction: null,
+    get isLoading() { return docAiLoading.value },
+  }
+}
+
+/** Summarize just the selected text (bubble menu action). */
+const onAiSummarizeSelection = async () => {
+  if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+  const selected = getSelectedText()
+  if (!selected.trim()) return
+  $e('a:doc:ai:summarize:selection')
+  const result = await aiSummarize(selected)
+  if (result && editor.value) {
+    // Move cursor to end of selection, then insert summary as a new paragraph below
+    const { to } = editor.value.state.selection
+    editor.value.chain().focus().setTextSelection(to).run()
+    insertMarkdownContent(editor.value, `\n${result}`)
+  }
+}
 
 // --- Search & Replace bar state (Cmd/Ctrl+F) ---
 // The bar is rendered inside the editor's relative wrapper and uses
@@ -395,6 +505,7 @@ const _tiptapEditor = useEditor({
     DocHeadingAnchorExtension,
     DocDragHandleExtension,
     DocSearchExtension,
+    DocAiExtension,
   ],
   editorProps: {
     attributes: {
@@ -723,6 +834,7 @@ watch(
   _tiptapEditor,
   (e) => {
     editor.value = e
+    wireDocAiStorage()
   },
   { immediate: true },
 )
@@ -1613,6 +1725,108 @@ onBeforeUnmount(() => {
                       <GeneralIcon icon="comment" />
                     </NcButton>
                   </NcTooltip>
+
+                  <!-- AI Actions -->
+                  <template v-if="isDocAiAvailable && isEditable">
+                    <div class="nc-doc-bubble-ai-divider" />
+                    <NcDropdown trigger="click" placement="bottomLeft">
+                      <NcTooltip placement="top">
+                        <template #title>AI</template>
+                        <NcButton
+                          size="small"
+                          type="text"
+                          :loading="docAiLoading"
+                          data-testid="nc-doc-ai-menu-btn"
+                          @mousedown.prevent
+                        >
+                          <GeneralIcon icon="ncAutoAwesome" />
+                        </NcButton>
+                      </NcTooltip>
+                      <template #overlay>
+                        <NcMenu data-testid="nc-doc-ai-menu">
+                          <NcMenuItem
+                            v-e="['c:doc:ai:improve:grammar']"
+                            data-testid="nc-doc-ai-improve-grammar"
+                            @click="editor?.storage.docAi?.improve?.('grammar')"
+                          >
+                            {{ $t('labels.docAiFixGrammar') }}
+                          </NcMenuItem>
+                          <NcMenuItem
+                            v-e="['c:doc:ai:improve:concise']"
+                            data-testid="nc-doc-ai-improve-concise"
+                            @click="editor?.storage.docAi?.improve?.('concise')"
+                          >
+                            {{ $t('labels.docAiMakeConcise') }}
+                          </NcMenuItem>
+                          <NcMenuItem
+                            v-e="['c:doc:ai:improve:formal']"
+                            data-testid="nc-doc-ai-improve-formal"
+                            @click="editor?.storage.docAi?.improve?.('formal')"
+                          >
+                            {{ $t('labels.docAiMakeFormal') }}
+                          </NcMenuItem>
+                          <NcMenuItem
+                            v-e="['c:doc:ai:improve:casual']"
+                            data-testid="nc-doc-ai-improve-casual"
+                            @click="editor?.storage.docAi?.improve?.('casual')"
+                          >
+                            {{ $t('labels.docAiMakeCasual') }}
+                          </NcMenuItem>
+                          <NcMenuItem
+                            v-e="['c:doc:ai:improve:clear']"
+                            data-testid="nc-doc-ai-improve-clear"
+                            @click="editor?.storage.docAi?.improve?.('clear')"
+                          >
+                            {{ $t('labels.docAiImproveClarity') }}
+                          </NcMenuItem>
+                          <a-menu-divider />
+                          <NcMenuItem
+                            v-e="['c:doc:ai:summarize:selection']"
+                            data-testid="nc-doc-ai-summarize"
+                            @click="onAiSummarizeSelection"
+                          >
+                            {{ $t('labels.docAiSummarize') }}
+                          </NcMenuItem>
+                          <a-menu-divider />
+                          <NcMenuItem
+                            v-e="['c:doc:ai:translate:spanish']"
+                            data-testid="nc-doc-ai-translate-spanish"
+                            @click="editor?.storage.docAi?.translate?.('Spanish')"
+                          >
+                            {{ $t('labels.docAiTranslateTo', { language: 'Spanish' }) }}
+                          </NcMenuItem>
+                          <NcMenuItem
+                            v-e="['c:doc:ai:translate:french']"
+                            data-testid="nc-doc-ai-translate-french"
+                            @click="editor?.storage.docAi?.translate?.('French')"
+                          >
+                            {{ $t('labels.docAiTranslateTo', { language: 'French' }) }}
+                          </NcMenuItem>
+                          <NcMenuItem
+                            v-e="['c:doc:ai:translate:german']"
+                            data-testid="nc-doc-ai-translate-german"
+                            @click="editor?.storage.docAi?.translate?.('German')"
+                          >
+                            {{ $t('labels.docAiTranslateTo', { language: 'German' }) }}
+                          </NcMenuItem>
+                          <NcMenuItem
+                            v-e="['c:doc:ai:translate:japanese']"
+                            data-testid="nc-doc-ai-translate-japanese"
+                            @click="editor?.storage.docAi?.translate?.('Japanese')"
+                          >
+                            {{ $t('labels.docAiTranslateTo', { language: 'Japanese' }) }}
+                          </NcMenuItem>
+                          <NcMenuItem
+                            v-e="['c:doc:ai:translate:chinese']"
+                            data-testid="nc-doc-ai-translate-chinese"
+                            @click="editor?.storage.docAi?.translate?.('Chinese')"
+                          >
+                            {{ $t('labels.docAiTranslateTo', { language: 'Chinese' }) }}
+                          </NcMenuItem>
+                        </NcMenu>
+                      </template>
+                    </NcDropdown>
+                  </template>
                 </div>
               </BubbleMenu>
 
@@ -1910,6 +2124,10 @@ onBeforeUnmount(() => {
     @apply !rounded-lg !rounded-r-none;
     border: none !important;
     box-shadow: none !important;
+  }
+
+  .nc-doc-bubble-ai-divider {
+    @apply w-px h-4 mx-0.5 bg-nc-border-gray-medium;
   }
 }
 

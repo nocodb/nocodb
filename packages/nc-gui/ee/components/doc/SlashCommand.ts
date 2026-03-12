@@ -77,6 +77,10 @@ const icons = {
   file: svg(
     '<path d="M9.33 1.33H4a1.33 1.33 0 0 0-1.33 1.33v10.67A1.33 1.33 0 0 0 4 14.67h8A1.33 1.33 0 0 0 13.33 13.33V5.33z"/><polyline points="9.33 1.33 9.33 5.33 13.33 5.33"/><line x1="8" y1="12" x2="8" y2="8"/><line x1="6" y1="10" x2="10" y2="10"/>',
   ),
+  // AI icons
+  sparkles: svg('<path d="M8 1l1.5 3.5L13 6l-3.5 1.5L8 11 6.5 7.5 3 6l3.5-1.5L8 1z"/><path d="M3 11l.75 1.75L5.5 13.5l-1.75.75L3 16l-.75-1.75L.5 13.5l1.75-.75L3 11z"/><path d="M12.5 10l.75 1.75 1.75.75-1.75.75-.75 1.75-.75-1.75L10 12.5l1.75-.75.75-1.75z"/>'),
+  continueWriting: svg('<path d="M3 3h10M3 6.5h10M3 10h5M10 12l2 2 4-4"/>'),
+  summarize: svg('<path d="M3 3h10M3 6h10M3 9h6M3 12h4"/><rect x="11" y="9" width="4" height="6" rx="1"/>'),
   // Callout icons — black versions for slash menu (colored versions live in CalloutExtension)
   note: svg(
     '<circle cx="8" cy="8" r="6.67"/><line x1="8" y1="10.67" x2="8" y2="8"/><line x1="8" y1="5.33" x2="8.01" y2="5.33"/>',
@@ -378,6 +382,42 @@ export const slashCommandItems: SlashCommandItem[] = [
       const date = dt.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })
       const time = dt.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
       editor.chain().focus().deleteRange(range).insertContent(`${date} ${time}`).run()
+    },
+  },
+  // — AI —
+  {
+    title: 'Ask AI',
+    description: 'Generate content with AI',
+    icon: icons.sparkles,
+    group: 'AI',
+    requiresInput: true,
+    inputPlaceholder: 'Describe what to write...',
+    command: (editor: Editor, range: Range) => {
+      editor.chain().focus().deleteRange(range).run()
+      const instruction = editor.storage.docAi?._pendingInstruction
+      if (!instruction) return
+      editor.storage.docAi._pendingInstruction = null
+      editor.storage.docAi?.write?.(instruction)
+    },
+  },
+  {
+    title: 'Continue writing',
+    description: 'AI continues from here',
+    icon: icons.continueWriting,
+    group: 'AI',
+    command: (editor: Editor, range: Range) => {
+      editor.chain().focus().deleteRange(range).run()
+      editor.storage.docAi?.continueWriting?.()
+    },
+  },
+  {
+    title: 'Summarize document',
+    description: 'AI summary of the full document',
+    icon: icons.summarize,
+    group: 'AI',
+    command: (editor: Editor, range: Range) => {
+      editor.chain().focus().deleteRange(range).run()
+      editor.storage.docAi?.summarize?.()
     },
   },
   // — Embeds —

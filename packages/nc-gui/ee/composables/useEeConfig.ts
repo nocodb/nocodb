@@ -284,6 +284,12 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_CHAT)
   })
 
+  const blockDocAi = computed(() => {
+    if (isEEFeatureBlocked.value) return true
+
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_DOC_AI)
+  })
+
   const blockButtonVisibility = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY)
   })
@@ -1459,6 +1465,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseDocAi = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockDocAi.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseDocAi'),
+      content: t('upgrade.upgradeToUseDocAiSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_DOC_AI,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseButtonVisibility = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockButtonVisibility.value) return
 
@@ -1857,6 +1878,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiButtonField,
     blockAiChat,
     showUpgradeToUseAiChat,
+    blockDocAi,
+    showUpgradeToUseDocAi,
     blockButtonVisibility,
     showUpgradeToUseButtonVisibility,
     blockColourField,

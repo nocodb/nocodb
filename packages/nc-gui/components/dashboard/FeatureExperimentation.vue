@@ -195,55 +195,52 @@ onUnmounted(() => {
         </NcTooltip>
       </div>
 
-      <div class="h-full overflow-y-auto nc-scrollbar-thin flex-grow p-4 !rounded-lg">
-        <div ref="contentRef" class="!rounded-lg">
-          <div class="sticky top-0 bg-nc-bg-default z-10 mb-2">
-            <a-input v-model:value="searchQuery" type="text" placeholder="Search features..." class="nc-input-sm nc-input-shadow">
-              <template #prefix>
-                <GeneralIcon
-                  :class="{
-                    'text-nc-content-brand': searchQuery?.length,
-                  }"
-                  icon="search"
-                  class="nc-search-icon h-3.5 w-3.5 mr-1"
-                />
-              </template>
-            </a-input>
-          </div>
-          <div
-            v-if="filteredFeatures?.length"
-            class="border-1 !border-nc-border-gray-medium !rounded-lg max-h-[calc(100vh-200px)] overflow-y-auto nc-scrollbar-thin"
-          >
-            <div class="flex flex-col">
-              <template v-for="feature in filteredFeatures" :key="feature.id">
-                <div
-                  v-if="isFeatureVisible(feature)"
-                  class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-nc-border-gray-medium last:border-b-0"
-                >
-                  <div class="flex items-center justify-between">
-                    <div class="text-sm text-nc-content-gray !font-weight-600">
-                      {{ feature.title }}
-                    </div>
-                    <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
-                  </div>
-
-                  <div class="text-nc-content-gray-muted leading-4 text-[13px] font-weight-500">
-                    {{ feature.description }}
-                  </div>
-                </div>
-              </template>
-            </div>
-          </div>
-          <div v-else class="px-2 py-6 text-center text-nc-content-gray-muted flex flex-col items-center gap-6">
-            <img
-              src="~assets/img/placeholder/no-search-result-found.png"
-              class="!w-[164px] flex-none"
-              alt="No search results found"
+      <div class="p-4">
+        <a-input v-model:value="searchQuery" type="text" placeholder="Search features..." class="nc-input-sm nc-input-shadow">
+          <template #prefix>
+            <GeneralIcon
+              :class="{
+                'text-nc-content-brand': searchQuery?.length,
+              }"
+              icon="search"
+              class="nc-search-icon h-3.5 w-3.5 mr-1"
             />
+          </template>
+        </a-input>
+      </div>
 
-            {{ features?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
-          </div>
+      <div
+        v-if="filteredFeatures?.length"
+        class="border-1 !border-nc-border-gray-medium !rounded-lg overflow-y-auto nc-scrollbar-thin flex-1 mx-4 mb-4"
+      >
+        <div class="flex flex-col">
+          <template v-for="feature in filteredFeatures" :key="feature.id">
+            <div
+              v-if="isFeatureVisible(feature)"
+              class="border-b-1 px-3 flex gap-2 flex-col py-2 !border-nc-border-gray-medium last:border-b-0"
+            >
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-nc-content-gray !font-weight-600">
+                  {{ feature.title }}
+                </div>
+                <NcSwitch v-model:checked="selectedFeatures[feature.id]" @change="saveExperimentalFeatures" />
+              </div>
+
+              <div class="text-nc-content-gray-muted leading-4 text-[13px] font-weight-500">
+                {{ feature.description }}
+              </div>
+            </div>
+          </template>
         </div>
+      </div>
+      <div v-else class="px-2 py-6 text-center text-nc-content-gray-muted flex flex-col items-center gap-6">
+        <img
+          src="~assets/img/placeholder/no-search-result-found.png"
+          class="!w-[164px] flex-none"
+          alt="No search results found"
+        />
+
+        {{ features?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
     </div>
   </a-drawer>
@@ -253,6 +250,15 @@ onUnmounted(() => {
 .nc-features-drawer {
   .ant-drawer-content-wrapper {
     @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)] border-1 border-r-0 border-nc-border-gray-medium;
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh_-_48px)];
+    }
+
+    @supports (height: 100svh) {
+      @apply h-[calc(100svh_-_48px)];
+    }
+
     .ant-drawer-body {
       @apply p-0;
     }

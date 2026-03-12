@@ -25,6 +25,27 @@ export default plugin(({ addUtilities }) => {
     addScreenUtil('min-w-screen', 'min-width', 'vw', 'dvw', 'svw', i)
   }
 
+  // Scroll fade masks — apply on scrollable containers
+  // nc-scroll-fade       → fade top & bottom
+  // nc-scroll-fade-top   → fade top only
+  // nc-scroll-fade-bottom → fade bottom only
+  const fadeSize = '34px'
+
+  utils['.nc-scroll-fade'] = {
+    'mask-image': `linear-gradient(transparent 0%, black ${fadeSize}, black calc(100% - ${fadeSize}), transparent 100%)`,
+    '-webkit-mask-image': `linear-gradient(transparent 0%, black ${fadeSize}, black calc(100% - ${fadeSize}), transparent 100%)`,
+  }
+
+  utils['.nc-scroll-fade-top'] = {
+    'mask-image': `linear-gradient(transparent 0%, black ${fadeSize}, black 100%)`,
+    '-webkit-mask-image': `linear-gradient(transparent 0%, black ${fadeSize}, black 100%)`,
+  }
+
+  utils['.nc-scroll-fade-bottom'] = {
+    'mask-image': `linear-gradient(black 0%, black calc(100% - ${fadeSize}), transparent 100%)`,
+    '-webkit-mask-image': `linear-gradient(black 0%, black calc(100% - ${fadeSize}), transparent 100%)`,
+  }
+
   addUtilities(utils, {
     layer: 'utilities',
     variants: ['responsive'],

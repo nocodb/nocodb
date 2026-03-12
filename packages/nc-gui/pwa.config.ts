@@ -31,7 +31,7 @@ export const pwaConfig: ModuleOptions = {
         type: 'image/png',
       },
       {
-        src: 'pwa-512x512-dark.png',
+        src: 'pwa-maskable-512x512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',

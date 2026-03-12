@@ -14,11 +14,13 @@ interface Props {
   showDragHandle?: boolean
   swipeToClose?: boolean
   swipeThreshold?: number
+  scrollableBody?: boolean
+  bodyClassName?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: '',
-  height: '85dvh',
+  height: 'auto',
   placement: 'bottom',
   closable: false,
   maskClosable: true,
@@ -28,6 +30,8 @@ const props = withDefaults(defineProps<Props>(), {
   showDragHandle: true,
   swipeToClose: true,
   swipeThreshold: 80,
+  scrollableBody: true,
+  bodyClassName: '',
 })
 
 const emits = defineEmits(['update:visible'])
@@ -103,6 +107,34 @@ function onTouchEnd() {
   }
 }
 
+// ── Scroll-aware fade ────────────────────────────────────────────────
+const drawerBodyRef = ref<HTMLElement | null>(null)
+const canScrollUp = ref(false)
+const canScrollDown = ref(false)
+
+const scrollFadeClass = computed(() => {
+  if (canScrollUp.value && canScrollDown.value) return 'nc-scroll-fade'
+  if (canScrollUp.value) return 'nc-scroll-fade-top'
+  if (canScrollDown.value) return 'nc-scroll-fade-bottom'
+  return ''
+})
+
+function updateScrollFade() {
+  const el = drawerBodyRef.value
+  if (!el) return
+
+  canScrollUp.value = el.scrollTop > 0
+  canScrollDown.value = el.scrollTop + el.clientHeight < el.scrollHeight - 1
+}
+
+const debouncedUpdateScrollFade = useDebounceFn(updateScrollFade, 16)
+
+watch(visible, (val) => {
+  if (val) {
+    nextTick(() => updateScrollFade())
+  }
+})
+
 const wrapClassNameComputed = computed(() => {
   let className = 'nc-drawer-wrapper'
   if (props.wrapClassName) {
@@ -112,7 +144,7 @@ const wrapClassNameComputed = computed(() => {
 })
 
 onMounted(() => {
-  console.log('on mounted', visible.value)
+  updateScrollFade()
 })
 </script>
 
@@ -150,7 +182,12 @@ onMounted(() => {
       </div>
 
       <!-- Body -->
-      <div class="nc-drawer-body flex-1 min-h-0 overflow-y-auto nc-scrollbar-thin">
+      <div
+        ref="drawerBodyRef"
+        class="nc-drawer-body flex-1 min-h-0"
+        :class="[scrollableBody ? 'overflow-y-auto nc-scrollbar-thin' : 'overflow-hidden', scrollableBody ? scrollFadeClass : '', bodyClassName]"
+        @scroll="scrollableBody ? debouncedUpdateScrollFade() : undefined"
+      >
         <slot />
       </div>
 
@@ -176,6 +213,7 @@ onMounted(() => {
     @apply !p-0;
   }
 }
+
 </style>
 
 <style lang="scss" scoped>

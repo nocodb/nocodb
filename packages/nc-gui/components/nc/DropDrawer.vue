@@ -32,6 +32,8 @@ interface Props {
   showDragHandle?: boolean
   swipeToClose?: boolean
   swipeThreshold?: number
+  scrollableBody?: boolean
+  drawerBodyClassName?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,7 +48,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   nonNcDropdown: false,
   onVisibleChange: undefined,
-  drawerHeight: '50dvh',
+  drawerHeight: '85svh',
   drawerPlacement: 'bottom',
   closable: false,
   maskClosable: true,
@@ -56,6 +58,8 @@ const props = withDefaults(defineProps<Props>(), {
   showDragHandle: true,
   swipeToClose: true,
   swipeThreshold: 80,
+  scrollableBody: true,
+  drawerBodyClassName: '',
 })
 
 const emits = defineEmits(['update:visible'])
@@ -88,6 +92,8 @@ const drawerProps = computed(() => ({
   showDragHandle: props.showDragHandle,
   swipeToClose: props.swipeToClose,
   swipeThreshold: props.swipeThreshold,
+  scrollableBody: props.scrollableBody,
+  bodyClassName: props.drawerBodyClassName,
 }))
 </script>
 

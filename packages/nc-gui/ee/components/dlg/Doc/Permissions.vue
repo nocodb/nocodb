@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type DocumentType, extractBaseRoleFromWorkspaceRole, getPermissionOptionValue, PermissionEntity, PermissionGrantedType, PermissionKey, PermissionOptionValue, type PermissionRole, ProjectRoles } from 'nocodb-sdk'
+import { type DocumentType, extractBaseRoleFromWorkspaceRole, PermissionEntity, PermissionKey, PermissionOptionValue, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -25,49 +25,12 @@ const { base } = storeToRefs(baseStore)
 const documentsStore = useDocumentsStore()
 const { activeDocuments } = storeToRefs(documentsStore)
 
-const docsById = computed(() => new Map(activeDocuments.value.map((d) => [d.id, d])))
+const basePermissions = computed(() => base.value?.permissions)
 
-/**
- * Walk up the parent chain from a given doc to find the nearest explicit permission.
- */
-const resolveDocPermission = (docId: string, permissionKey: PermissionKey): string | undefined => {
-  const permissions = base.value?.permissions
-  if (!permissions) return undefined
-
-  let currentDoc = docsById.value.get(docId)
-
-  while (currentDoc) {
-    const perm = permissions.find(
-      (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === currentDoc!.id && p.permission === permissionKey,
-    )
-    if (perm) {
-      return getPermissionOptionValue(perm.granted_type as PermissionGrantedType, perm.granted_role as PermissionRole)
-    }
-    currentDoc = currentDoc.parent_id ? docsById.value.get(currentDoc.parent_id) : undefined
-  }
-
-  return undefined
-}
-
-/** Inherited effective value — only returns a value if the doc has no explicit permission. */
-const getEffectiveValue = (docId: string, permissionKey: PermissionKey): string | undefined => {
-  const permissions = base.value?.permissions
-  if (!permissions) return undefined
-
-  const hasExplicit = permissions.some(
-    (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === docId && p.permission === permissionKey,
-  )
-  if (hasExplicit) return undefined
-
-  return resolveDocPermission(docId, permissionKey)
-}
-
-/** Parent's effective permission — for constraining child options. */
-const getParentEffectiveValue = (docId: string, permissionKey: PermissionKey): string | undefined => {
-  const doc = docsById.value.get(docId)
-  if (!doc?.parent_id) return undefined
-  return resolveDocPermission(doc.parent_id, permissionKey)
-}
+const { resolveDocPermission, getEffectiveValue, getParentEffectiveValue } = useDocPermissionResolver(
+  basePermissions,
+  activeDocuments,
+)
 
 const isCreatorOrAbove = computed(() => {
   const role = base.value?.project_role || extractBaseRoleFromWorkspaceRole(base.value?.workspace_role)

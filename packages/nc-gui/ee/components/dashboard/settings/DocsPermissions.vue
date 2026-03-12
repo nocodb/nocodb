@@ -2,12 +2,9 @@
 import type { DocumentType } from 'nocodb-sdk'
 import {
   extractBaseRoleFromWorkspaceRole,
-  getPermissionOptionValue,
   PermissionEntity,
-  PermissionGrantedType,
   PermissionKey,
   PermissionOptionValue,
-  type PermissionRole,
   ProjectRoles,
 } from 'nocodb-sdk'
 
@@ -41,67 +38,12 @@ const isCreatorOrAbove = computed(() => {
 
 const searchQuery = ref('')
 
-// Cached map of doc ID → doc for efficient lookups (avoids rebuilding per-cell)
-const docsById = computed(() => new Map(activeDocuments.value.map((d) => [d.id, d])))
+const basePermissions = computed(() => base.value?.permissions)
 
-/**
- * Resolve the effective permission for a document by checking its own explicit
- * permission first, then walking up the parent chain.
- * Returns the PermissionOptionValue string, or undefined if no explicit permission
- * exists anywhere in the chain (i.e. the default applies).
- */
-const resolveDocPermission = (docId: string, permissionKey: PermissionKey): string | undefined => {
-  const permissions = base.value?.permissions
-  if (!permissions) return undefined
-
-  let currentDoc = docsById.value.get(docId)
-
-  // Check explicit permission on this doc, then walk up ancestors
-  while (currentDoc) {
-    const perm = permissions.find(
-      (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === currentDoc!.id && p.permission === permissionKey,
-    )
-
-    if (perm) {
-      return getPermissionOptionValue(
-        perm.granted_type as PermissionGrantedType,
-        perm.granted_role as PermissionRole,
-      )
-    }
-
-    currentDoc = currentDoc.parent_id ? docsById.value.get(currentDoc.parent_id) : undefined
-  }
-
-  return undefined
-}
-
-/**
- * Get the inherited effective value for a doc (for the "Inherited" badge).
- * Returns undefined if the doc has its own explicit permission.
- */
-const getEffectiveValue = (docId: string, permissionKey: PermissionKey): string | undefined => {
-  const permissions = base.value?.permissions
-  if (!permissions) return undefined
-
-  const hasExplicit = permissions.some(
-    (p) => p.entity === PermissionEntity.DOCUMENT && p.entity_id === docId && p.permission === permissionKey,
-  )
-  if (hasExplicit) return undefined
-
-  return resolveDocPermission(docId, permissionKey)
-}
-
-/**
- * Get the parent document's effective permission (for constraining child options).
- * Returns undefined for root-level docs (no parent constraint).
- */
-const getParentEffectiveValue = (docId: string, permissionKey: PermissionKey): string | undefined => {
-  const doc = docsById.value.get(docId)
-
-  if (!doc?.parent_id) return undefined
-
-  return resolveDocPermission(doc.parent_id, permissionKey)
-}
+const { resolveDocPermission, getEffectiveValue, getParentEffectiveValue } = useDocPermissionResolver(
+  basePermissions,
+  activeDocuments,
+)
 
 /**
  * Get the resolved visibility for a doc (explicit → inherited → default).

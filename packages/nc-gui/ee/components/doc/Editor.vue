@@ -66,12 +66,13 @@ const base = inject(ProjectInj, ref())
  * Check document-level DOCUMENT_EDIT permission by walking up the parent chain.
  * Returns true if no doc-level restriction blocks the user, false if blocked.
  */
+const docsById = computed(() => new Map(activeDocuments.value.map((d) => [d.id, d])))
+
 const isDocEditAllowed = computed(() => {
   const permissions = base.value?.permissions
   if (!permissions) return true // No permissions configured → allowed
 
-  const docsById = new Map(activeDocuments.value.map((d) => [d.id, d]))
-  let currentDoc = docsById.get(docId.value)
+  let currentDoc = docsById.value.get(docId.value)
 
   while (currentDoc) {
     const hasPerm = permissions.some(
@@ -82,7 +83,7 @@ const isDocEditAllowed = computed(() => {
       return isPermissionAllowed(PermissionEntity.DOCUMENT, currentDoc.id!, PermissionKey.DOCUMENT_EDIT)
     }
 
-    currentDoc = currentDoc.parent_id ? docsById.get(currentDoc.parent_id) : undefined
+    currentDoc = currentDoc.parent_id ? docsById.value.get(currentDoc.parent_id) : undefined
   }
 
   return true // No doc-level edit restriction → default allows editors+

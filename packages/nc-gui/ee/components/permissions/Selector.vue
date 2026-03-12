@@ -311,6 +311,23 @@ const handleClickDropdown = (e: MouseEvent) => {
                 class="flex-none h-4 w-4 transition-transform"
                 :class="{ 'transform rotate-180': isOpenPermissionDropdown }"
               />
+              <NcTooltip
+                v-if="mode !== 'full' && currentOption?.value === PermissionOptionValue.SPECIFIC_USERS && !readonly && !isInherited"
+                @click.stop="showUserSelector = true"
+              >
+                <template #title>
+                  <template v-if="selectedUsers.length">
+                    {{ selectedUsers.length }} {{ selectedUsers.length === 1 ? $t('objects.member') : $t('labels.members') }}
+                  </template>
+                  <template v-else>
+                    {{ $t('objects.permissions.inlineUserSelector.selectUsersOrTeams') }}
+                  </template>
+                </template>
+                <GeneralIcon
+                  icon="ncEdit"
+                  class="h-3.5 w-3.5 flex-none cursor-pointer text-nc-content-gray-muted hover:text-nc-content-brand transition-colors ml-1"
+                />
+              </NcTooltip>
             </div>
           </NcTooltip>
 
@@ -323,7 +340,7 @@ const handleClickDropdown = (e: MouseEvent) => {
               option-value-key="value"
               :close-on-select="false"
               :item-height="48"
-              class="!w-auto"
+              class="!w-[340px] nc-permission-selector-dropdown"
               variant="medium"
               wrapper-class-name="!h-auto"
               @update:value="onPermissionChange"
@@ -403,24 +420,6 @@ const handleClickDropdown = (e: MouseEvent) => {
         />
       </template>
       <template v-else-if="base.id">
-        <!-- Clickable edit icon to open the user selector modal (only for explicit, non-inherited permissions) -->
-        <NcTooltip
-          v-if="currentOption?.value === PermissionOptionValue.SPECIFIC_USERS && !readonly && !isInherited"
-        >
-          <template #title>
-            <template v-if="selectedUsers.length">
-              {{ selectedUsers.length }} {{ selectedUsers.length === 1 ? $t('objects.member') : $t('labels.members') }}
-            </template>
-            <template v-else>
-              {{ $t('objects.permissions.inlineUserSelector.selectUsersOrTeams') }}
-            </template>
-          </template>
-          <GeneralIcon
-            icon="ncEdit"
-            class="h-3.5 w-3.5 flex-none cursor-pointer text-nc-content-gray-muted hover:text-nc-content-brand transition-colors"
-            @click.stop="showUserSelector = true"
-          />
-        </NcTooltip>
         <!-- User Selector Modal -->
         <PermissionsUserSelector
           v-model:visible="showUserSelector"

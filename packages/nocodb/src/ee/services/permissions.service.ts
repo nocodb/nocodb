@@ -457,6 +457,42 @@ export class PermissionsService {
 
     const oldPermissions = await Permission.list(context, context.base_id);
 
+    // Check role and plan gating for document permissions
+    const hasDocPermissions = oldPermissions.some(
+      (p) =>
+        p.id &&
+        permissionIds.includes(p.id) &&
+        DOCUMENT_PERMISSION_KEYS.includes(p.permission as PermissionKey),
+    );
+
+    if (hasDocPermissions) {
+      this.assertRoleForPermissionKey(
+        context,
+        PermissionKey.DOCUMENT_EDIT,
+        req,
+      );
+      await checkForFeature(
+        context,
+        PlanFeatureTypes.FEATURE_DOCUMENT_PERMISSIONS,
+      );
+    }
+
+    // Check role for table visibility permissions
+    const hasTableVisibility = oldPermissions.some(
+      (p) =>
+        p.id &&
+        permissionIds.includes(p.id) &&
+        p.permission === PermissionKey.TABLE_VISIBILITY,
+    );
+
+    if (hasTableVisibility) {
+      this.assertRoleForPermissionKey(
+        context,
+        PermissionKey.TABLE_VISIBILITY,
+        req,
+      );
+    }
+
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     try {
@@ -479,7 +515,7 @@ export class PermissionsService {
     }
 
     const deletedPermissions = oldPermissions.filter(
-      (perm) => !perm.id || !permissionIds.includes(perm.id),
+      (perm) => perm.id && permissionIds.includes(perm.id),
     );
 
     for (const permission of deletedPermissions) {
@@ -493,11 +529,21 @@ export class PermissionsService {
 
     await this.broadcastPermissionUpdate(context);
 
-    if (
-      oldPermissions.some(
-        (p) => p.permission === PermissionKey.TABLE_VISIBILITY,
-      )
-    ) {
+    if (hasDocPermissions) {
+      // Clear base permission list cache — bulk drop may have removed child permissions
+      await Permission.clearBaseCache(context);
+
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'document_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
+    }
+
+    if (hasTableVisibility) {
       NocoSocket.broadcastEvent(context, {
         event: EventType.META_EVENT,
         payload: {

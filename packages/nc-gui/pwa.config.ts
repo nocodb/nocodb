@@ -37,10 +37,21 @@ export const pwaConfig: ModuleOptions = {
   },
   workbox: {
     navigateFallback: '/',
-    globPatterns: ['**/*.{js,css,html,png,svg,ico,woff2}'],
-    // Skip large chunks (Monaco editor, XLSX, etc.) from precache — they'll be loaded on demand
-    maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+    // Precache only small static assets — JS is handled via runtimeCaching below
+    globPatterns: ['**/*.{css,html,png,svg,ico,woff2}'],
     runtimeCaching: [
+      {
+        // Cache JS chunks on first use (StaleWhileRevalidate for speed + freshness)
+        urlPattern: /\/_nuxt\/.*\.js$/,
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'js-chunks',
+          expiration: {
+            maxEntries: 150,
+            maxAgeSeconds: 60 * 60 * 24 * 30,
+          },
+        },
+      },
       {
         urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
         handler: 'CacheFirst',

@@ -1016,16 +1016,8 @@ export const documentPermissionsTests = function () {
         expect(createRes.status).to.equal(200);
       });
 
-      it('Editor can create root-level doc even when another doc is edit-restricted', async () => {
-        await setDocPermission(
-          ownerToken,
-          rootDocId,
-          PermissionKey.DOCUMENT_EDIT,
-          PermissionGrantedType.ROLE,
-          PermissionRole.CREATOR,
-        );
-
-        // Creating a root doc (no parent_id) should always work for editors
+      it('Editor cannot create docs (ACL restricts documentCreate to creator+)', async () => {
+        // Creating a root doc (no parent_id) should be blocked for editors by ACL
         const createRes = await request(context.app)
           .post(INTERNAL_API_BASE)
           .query({ operation: 'documentCreate' })
@@ -1035,7 +1027,7 @@ export const documentPermissionsTests = function () {
             content: { type: 'doc', content: [{ type: 'paragraph' }] },
           });
 
-        expect(createRes.status).to.equal(200);
+        expect(createRes.status).to.equal(403);
       });
     });
 

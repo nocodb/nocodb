@@ -636,6 +636,45 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     return ancestors
   }
 
+  /**
+   * Refresh has_permissions flags on all loaded documents without disrupting the tree.
+   * Called when a realtime document_permission_update event is received.
+   */
+  const refreshDocPermissions = async (baseId: string) => {
+    const baseDocs = documents.value.get(baseId)
+    if (!baseDocs?.length) return
+
+    // Collect all loaded parent IDs (root + expanded children)
+    const parentIds = new Set<string | null>()
+    const rootKey = `root:${baseId}`
+    if (loadedParentIds.value.has(rootKey)) parentIds.add(null)
+    for (const doc of baseDocs) {
+      if (doc.id && loadedParentIds.value.has(doc.id)) parentIds.add(doc.id)
+    }
+
+    // Re-fetch each loaded level and update has_permissions in place
+    for (const parentId of parentIds) {
+      try {
+        const freshDocs = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
+          operation: 'documentList',
+          parent_id: parentId === null ? 'null' : parentId,
+        })) as DocumentType[]
+
+        if (ncIsArray(freshDocs)) {
+          const freshById = new Map(freshDocs.map((d) => [d.id, d]))
+          for (const doc of baseDocs) {
+            const fresh = freshById.get(doc.id)
+            if (fresh) {
+              doc.has_permissions = fresh.has_permissions
+            }
+          }
+        }
+      } catch {
+        // Silently ignore — non-critical refresh
+      }
+    }
+  }
+
   return {
     documents,
     activeDocumentId,
@@ -660,6 +699,7 @@ export const useDocumentsStore = defineStore('documentsStore', () => {
     reorderDocument,
     moveDocument,
     getDocumentAncestors,
+    refreshDocPermissions,
   }
 })
 

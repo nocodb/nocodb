@@ -267,7 +267,7 @@ const handleClickDropdown = (e: MouseEvent) => {
         'flex-col': horizontal,
       }"
     >
-      <div class="flex flex-col">
+      <div class="flex flex-col" :class="{ 'w-full': !horizontal }">
         <div class="flex items-center gap-3">
           <div v-if="mode === 'full' && horizontal" class="flex-1">
             {{ permissionLabel }}
@@ -279,7 +279,7 @@ const handleClickDropdown = (e: MouseEvent) => {
               inlineStyle
                 ? '!px-0 !py-0 !border-0 !rounded-none !h-auto !shadow-none'
                 : !readonly
-                ? 'w-[145px] sm:w-[165px]'
+                ? horizontal ? 'w-[200px]' : 'min-w-[165px]'
                 : removeReadonlyPadding
                 ? '!px-0 !border-0'
                 : '!border-0'
@@ -376,7 +376,7 @@ const handleClickDropdown = (e: MouseEvent) => {
         <div
           v-if="isInherited"
           class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
-          :class="{ 'self-end': horizontal }"
+          :class="{ 'justify-end mt-1': horizontal }"
         >
           <GeneralIcon icon="role_inherit" class="h-3 w-3" />
           <span>{{ $t('labels.inheritedFromParent') }}</span>

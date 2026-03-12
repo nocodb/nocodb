@@ -40,21 +40,59 @@ const visible = useVModel(props, 'visible', emits)
 
 const slots = useSlots()
 
-// ── Swipe-to-close ──────────────────────────────────────────────────
+// ── Swipe-to-close (scroll-aware, works on entire drawer) ───────────
 const drawerContentRef = ref<HTMLElement | null>(null)
 const startY = ref(0)
 const currentTranslateY = ref(0)
 const isDragging = ref(false)
 
+// Track the scrollable element under the touch and whether dismiss mode is active.
+// `scrollTarget` is resolved once per touch; `isDismissing` locks in after the
+// first touchmove confirms a downward gesture on an element at scrollTop 0.
+let scrollTarget: HTMLElement | null = null
+let isDismissing = false
+// Track whether gesture direction has been determined to avoid re-evaluating
+let gestureResolved = false
+
 function getContentWrapper(): HTMLElement | null {
   return drawerContentRef.value?.closest('.ant-drawer-content-wrapper') as HTMLElement | null
 }
 
-function onTouchStart(e: TouchEvent) {
+/**
+ * Walk up from `el` to find the nearest vertically-scrollable ancestor
+ * that is still inside the drawer content. Returns null if none found.
+ */
+function findScrollableAncestor(el: HTMLElement | null): HTMLElement | null {
+  const boundary = drawerContentRef.value
+  let current = el
+
+  while (current && current !== boundary) {
+    // Element is scrollable if it has overflow content and CSS allows scrolling
+    if (current.scrollHeight > current.clientHeight) {
+      const style = window.getComputedStyle(current)
+      const overflowY = style.overflowY
+
+      if (overflowY === 'auto' || overflowY === 'scroll') {
+        return current
+      }
+    }
+    current = current.parentElement
+  }
+
+  return null
+}
+
+function onContentTouchStart(e: TouchEvent) {
   if (!props.swipeToClose) return
+
   startY.value = e.touches[0].clientY
   currentTranslateY.value = 0
   isDragging.value = true
+  isDismissing = false
+  gestureResolved = false
+
+  // Resolve the scrollable ancestor once per touch — avoids repeated DOM walks
+  scrollTarget = findScrollableAncestor(e.target as HTMLElement)
 
   const wrapper = getContentWrapper()
   if (wrapper) {
@@ -62,12 +100,39 @@ function onTouchStart(e: TouchEvent) {
   }
 }
 
-function onTouchMove(e: TouchEvent) {
+function onContentTouchMove(e: TouchEvent) {
   if (!isDragging.value) return
 
-  const delta = e.touches[0].clientY - startY.value
+  const currentY = e.touches[0].clientY
+  const delta = currentY - startY.value
 
-  // Only allow dragging downward
+  // First movement — decide if this is a dismiss gesture or a normal scroll
+  if (!gestureResolved) {
+    gestureResolved = true
+
+    // Swiping up → never a dismiss, let native scroll handle it
+    if (delta < 0) {
+      isDragging.value = false
+      return
+    }
+
+    // Swiping down — only dismiss if scrollable target is at the top (or there's none)
+    const isAtTop = !scrollTarget || scrollTarget.scrollTop <= 0
+    if (!isAtTop) {
+      // Still has scroll room upward — let native scroll handle it
+      isDragging.value = false
+      return
+    }
+
+    // Lock into dismiss mode
+    isDismissing = true
+  }
+
+  if (!isDismissing) return
+
+  // Prevent native scroll while we're dragging the sheet down
+  e.preventDefault()
+
   currentTranslateY.value = Math.max(0, delta)
 
   const wrapper = getContentWrapper()
@@ -76,9 +141,16 @@ function onTouchMove(e: TouchEvent) {
   }
 }
 
-function onTouchEnd() {
-  if (!isDragging.value) return
+function onContentTouchEnd() {
+  if (!isDragging.value && !isDismissing) return
+
+  const wasDismissing = isDismissing
   isDragging.value = false
+  isDismissing = false
+  gestureResolved = false
+  scrollTarget = null
+
+  if (!wasDismissing) return
 
   const wrapper = getContentWrapper()
 
@@ -162,15 +234,15 @@ onMounted(() => {
     class="nc-drawer"
     @keydown.esc="visible = false"
   >
-    <div ref="drawerContentRef" class="nc-drawer-content flex flex-col h-full">
-      <!-- Drag handle for swipe-to-close -->
-      <div
-        v-if="showDragHandle"
-        class="nc-drawer-drag-handle flex-none"
-        @touchstart="onTouchStart"
-        @touchmove="onTouchMove"
-        @touchend="onTouchEnd"
-      >
+    <div
+      ref="drawerContentRef"
+      class="nc-drawer-content flex flex-col h-full"
+      @touchstart="onContentTouchStart"
+      @touchmove="onContentTouchMove"
+      @touchend="onContentTouchEnd"
+    >
+      <!-- Drag handle -->
+      <div v-if="showDragHandle" class="nc-drawer-drag-handle flex-none">
         <div class="nc-drawer-drag-indicator" />
       </div>
 

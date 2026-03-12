@@ -2539,10 +2539,36 @@ onBeforeUnmount(() => {
         align-items: center;
 
         input[type='checkbox'] {
+          appearance: none;
+          -webkit-appearance: none;
           cursor: pointer;
           margin: 0;
           position: relative;
           top: 0.1em;
+          width: 16px;
+          height: 16px;
+          border: 2px solid var(--nc-content-gray-muted);
+          border-radius: 4px;
+          background: transparent;
+          transition: background 0.15s, border-color 0.15s;
+
+          &:checked {
+            background: var(--nc-content-brand);
+            border-color: var(--nc-content-brand);
+
+            &::after {
+              content: '';
+              position: absolute;
+              top: 1px;
+              left: 4px;
+              width: 5px;
+              height: 8px;
+              border: solid white;
+              border-width: 0 2px 2px 0;
+              border-radius: 0 0 1px 0;
+              transform: rotate(45deg);
+            }
+          }
         }
       }
 
@@ -2560,7 +2586,7 @@ onBeforeUnmount(() => {
     // Checked (completed) task items — strikethrough + muted text
     li[data-checked='true'] > div {
       text-decoration: line-through;
-      color: var(--nc-content-gray-disabled);
+      color: var(--nc-content-gray-muted);
       text-decoration-color: var(--nc-content-gray-disabled);
     }
 

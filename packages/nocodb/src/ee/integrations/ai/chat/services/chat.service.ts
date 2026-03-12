@@ -214,7 +214,11 @@ export class ChatService implements OnModuleInit {
 
     this.broadcastToUser(
       params.req.user?.id,
-      { action: 'session-update', sessionId: params.sessionId, session: updated },
+      {
+        action: 'session-update',
+        sessionId: params.sessionId,
+        session: updated,
+      },
       params.req.ncSocketId,
     );
 

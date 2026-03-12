@@ -131,7 +131,9 @@ export const addWidgetFilterTool: ChatToolDefinition = {
       filter: {
         fk_column_id: column.id,
         comparison_op: args.operator as FilterType['comparison_op'],
-        ...(subOp && { comparison_sub_op: subOp as FilterType['comparison_sub_op'] }),
+        ...(subOp && {
+          comparison_sub_op: subOp as FilterType['comparison_sub_op'],
+        }),
         value,
         ...(logicalOp && { logical_op: logicalOp as FilterType['logical_op'] }),
       },

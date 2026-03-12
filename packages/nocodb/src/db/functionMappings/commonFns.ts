@@ -123,7 +123,11 @@ export default {
       const client = args.knex.clientType();
       if (client === 'pg' || client === 'postgre') {
         return { builder: args.knex.raw(`(?)::text`, [builder]) };
-      } else if (client === 'mysql' || client === 'mysql2' || client === 'maridb') {
+      } else if (
+        client === 'mysql' ||
+        client === 'mysql2' ||
+        client === 'maridb'
+      ) {
         return { builder: args.knex.raw(`CAST(? AS CHAR)`, [builder]) };
       }
       return { builder };
@@ -156,9 +160,7 @@ export default {
         elseValPrefixes.push(
           args.knex.raw(
             `\n\tWHEN ? IS NULL ${isStringType ? `OR ? = ''` : ''} THEN ?`,
-            isStringType
-              ? [switchVal, switchVal, val]
-              : [switchVal, val],
+            isStringType ? [switchVal, switchVal, val] : [switchVal, val],
           ),
         );
       } else if (
@@ -172,9 +174,7 @@ export default {
         const whenVal = hasCompareTypeMismatch
           ? (await castToString(args.pt.arguments[i * 2 + 1])).builder
           : (await args.fn(args.pt.arguments[i * 2 + 1])).builder;
-        query.push(
-          args.knex.raw(`\n\tWHEN ? THEN ?`, [whenVal, val]),
-        );
+        query.push(args.knex.raw(`\n\tWHEN ? THEN ?`, [whenVal, val]));
       }
     }
     const hasRegularWhens = query.length > 0;
@@ -183,9 +183,9 @@ export default {
       let val;
       // cast to string if the return value types are different
       if (returnArgsType.size > 1) {
-        val = (await castToString(
-          args.pt.arguments[args.pt.arguments.length - 1],
-        )).builder;
+        val = (
+          await castToString(args.pt.arguments[args.pt.arguments.length - 1])
+        ).builder;
       } else {
         val = (await args.fn(args.pt.arguments[args.pt.arguments.length - 1]))
           .builder;
@@ -194,10 +194,7 @@ export default {
         if (hasRegularWhens) {
           const elseValPrefix = concatKnexRaw(args.knex, elseValPrefixes);
           query.push(
-            args.knex.raw(`\n\tELSE (CASE ? ELSE ? END)`, [
-              elseValPrefix,
-              val,
-            ]),
+            args.knex.raw(`\n\tELSE (CASE ? ELSE ? END)`, [elseValPrefix, val]),
           );
         } else {
           // All WHEN values were BLANK/NULL — use searched CASE form directly

@@ -186,6 +186,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     return this._viewId;
   }
   protected _proto: any;
+  /**
+   * Serial query queue shared across the entire resolution tree.
+   * All DataLoader batch callbacks are wrapped with queue.add() so that
+   * actual DB queries execute one at a time, preventing connection pool
+   * exhaustion while nocoExecute fires all .load() calls in parallel.
+   * Propagated to child BaseModel instances via Model.getBaseModelSQL({ queryQueue }).
+   */
   protected _queryQueue: PQueue;
   protected _columns = {};
   protected source: Source;
@@ -251,6 +258,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     this._viewId = viewId;
     this.context = context;
     this.schema = schema;
+    // Reuse parent's queue if provided (nested resolution), otherwise create
+    // a new one. Concurrency defaults to 1 (serial) to prevent pool exhaustion.
     this._queryQueue =
       queryQueue ??
       new PQueue({
@@ -1851,6 +1860,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               const { refContext } = colOptions.getRelContext(this.context);
 
               if (colOptions?.type === 'hm' && !isMMLike) {
+                // DataLoader collects all .load(id) calls from the same microtick
+                // into a single batch. The batch callback is wrapped in _queryQueue.add()
+                // to serialize actual DB execution across all relation types.
                 const listLoader = new DataLoader(
                   (ids: string[]) =>
                     this._queryQueue.add(async () => {

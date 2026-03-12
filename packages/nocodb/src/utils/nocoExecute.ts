@@ -20,20 +20,27 @@ export type ResolverObj =
     };
 
 /**
- * Execute the request object
- * @param requestObj request object
- * @param resolverObj resolver object which may contain resolver functions or data
- * @param dataTree data tree that holds the state of the resolved data
- * @param rootArgs root arguments passed for nested processing
- * @returns Promise<any> returns the resolved data
- **/
+ * Recursive resolver that walks a request object (requestObj) against a proto-decorated
+ * data record (resolverObj) and resolves all requested fields/relations.
+ *
+ * Key design: all field extractions fire synchronously in the same microtick
+ * before any `await`. This lets DataLoader collect every `.load()` call into a
+ * single batch per relation, reducing N×R queries to R queries.
+ * Actual DB execution is serialized via PQueue (see BaseModelSqlv2._queryQueue).
+ *
+ * @param requestObj  AST describing which fields/nested relations to resolve
+ * @param resolverObj proto-decorated data record (or array of records)
+ * @param dataTree    memoization tree — caches resolved values across lookups
+ * @param rootArgs    pagination/filter args passed down for nested resolution
+ */
 const nocoExecute = async (
   requestObj: XcRequest,
   resolverObj?: ResolverObj | ResolverObj[],
   dataTree = {},
   rootArgs = null,
 ): Promise<any> => {
-  // Handle array of resolvers by executing nocoExecute on each and returning a Promise.all
+  // Array of records: resolve all in parallel so every record's DataLoader
+  // .load() calls land in the same microtick → optimal batching
   if (Array.isArray(resolverObj)) {
     return Promise.all(
       resolverObj.map((resolver, i) =>
@@ -50,12 +57,10 @@ const nocoExecute = async (
   const res = {};
 
   /**
-   * Recursively extract nested data from the dataTree and resolve it.
-   * @param path the path of keys to traverse in the data tree
-   * @param dataTreeObj the current data tree object
-   * @param resolver the resolver object to call functions or return values
-   * @param args arguments passed to resolver functions
-   * @returns Promise resolving the nested value
+   * Walk a dotted path (e.g. ['Country', 'CountryName']) through the dataTree,
+   * resolving each segment via the resolver's proto functions or column aliases.
+   * Returns a .then() chain (not async) so the promise is created synchronously —
+   * this is critical for DataLoader batching.
    */
   const extractNested = (
     path,
@@ -114,13 +119,11 @@ const nocoExecute = async (
   };
 
   /**
-   * Extract the value for the given key from the resolver object or data tree.
-   * If the key is a function, call it with args, otherwise resolve the value.
-   * @param key the key to extract
-   * @param args the arguments for nested extractions
+   * Fire a single field's resolver (or column-alias lookup) and store the
+   * resulting promise in res[key]. Must be synchronous (no await) so that
+   * all fields' DataLoader .load() calls happen in the same microtick.
    */
   function extractField(key, args) {
-    // Check if the key is a column alias or needs to be resolved
     if (!resolverObj?.__proto__?.__columnAliases?.[key]) {
       if (resolverObj) {
         // Resolve if it's a function, object, or value
@@ -139,7 +142,8 @@ const nocoExecute = async (
 
       dataTree[key] = res[key]; // Store result in dataTree
     } else {
-      // If nested, extract the nested value using extractNested function
+      // Column alias (e.g. Lookup): walk the alias path through dataTree so
+      // previously resolved relations (e.g. BT 'Country') are reused, not re-fetched
       res[key] = extractNested(
         resolverObj?.__proto__?.__columnAliases?.[key]?.path,
         dataTree,
@@ -160,13 +164,17 @@ const nocoExecute = async (
       ? Object.keys(requestObj).filter((k) => requestObj[k])
       : Object.keys(resolverObj);
 
-  const out: any = {}; // Holds the final output
-  const resolPromises = []; // Holds all the promises for asynchronous resolution
+  const out: any = {};
+  const resolPromises = [];
+
+  // Phase 1: Fire all extractField() calls synchronously. This is where
+  // DataLoader .load() calls are enqueued — doing them all before any await
+  // ensures they land in a single batch per relation type.
   for (const key of extractKeys) {
-    // Extract the field for each key
     extractField(key, rootArgs?.nested?.[key]);
 
-    // Handle nested request objects by recursively calling nocoExecute
+    // Phase 2 (chained): For nested AST nodes, chain recursive nocoExecute
+    // onto the resolved value. Promise.resolve() safely wraps non-Promise values.
     if (requestObj[key] && typeof requestObj[key] === 'object' && res[key]) {
       res[key] = Promise.resolve(res[key]).then((res1) => {
         if (Array.isArray(res1)) {
@@ -205,7 +213,7 @@ const nocoExecute = async (
         return res1; // Return result if no further nesting
       });
     }
-    // Push resolved promises to resolPromises array
+    // Collect all promises — awaited together at the end via Promise.all
     if (res[key]) {
       resolPromises.push(
         (async () => {

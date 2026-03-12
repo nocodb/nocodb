@@ -356,6 +356,7 @@ const {
 
   // column resize related refs
   colResizeHoveredColIds,
+  isResizing,
   totalColumnsWidth,
 
   isFieldEditAllowed,
@@ -654,7 +655,11 @@ const calculateSlices = () => {
       rowSlice.value = { start: startRowIndex, end: newEndRow }
     }
 
-    updateVisibleRows()
+    // Skip row data fetching during column resize — row visibility doesn't change,
+    // and updateVisibleRows triggers heavy chunk fetching + cache operations.
+    if (!isResizing.value) {
+      updateVisibleRows()
+    }
   }
 }
 
@@ -2237,7 +2242,17 @@ const handleScroll = (e: { left: number; top: number }) => {
 
 const triggerReload = () => {
   calculateSlices()
-  updateVisibleRows()
+
+  if (isResizing.value) {
+    // During column resize, render synchronously and skip row data operations.
+    // Without this, the render goes through debouncedFetchChunks → nextTick →
+    // triggerRefreshCanvas → RAF, adding multiple frames of latency.
+    renderCanvasDirect()
+  } else if (isGroupBy.value) {
+    // calculateSlices already calls updateVisibleRows for non-group-by mode.
+    // Only call explicitly for group-by (where calculateSlices skips it).
+    updateVisibleRows()
+  }
 }
 
 async function expandRows({

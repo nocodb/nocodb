@@ -341,7 +341,11 @@ export function useCanvasTable({
   const fetchMetaIds = ref<string[][]>([])
   const isLoadingMetas = ref(false)
 
-  const columns = computed<CanvasGridColumn[]>(() => {
+  // Override applied during column resize to avoid recomputing the heavy _columnsBase.
+  // Set on each resize frame, cleared on mouseup.
+  const resizeWidthOverride = ref<{ columnId: string; width: string } | null>(null)
+
+  const _columnsBase = computed<CanvasGridColumn[]>(() => {
     // Early return if meta is not available yet
     if (!meta.value?.base_id) {
       return []
@@ -507,6 +511,16 @@ export function useCanvasTable({
       },
     })
     return cols as unknown as CanvasGridColumn[]
+  })
+
+  // Lightweight wrapper: during resize, patches only the resizing column's width
+  // without recomputing _columnsBase (which does heavy meta/aggregation/permission work).
+  const columns = computed<CanvasGridColumn[]>(() => {
+    const base = _columnsBase.value
+    const override = resizeWidthOverride.value
+    if (!override) return base
+
+    return base.map((col) => (col.id === override.columnId ? { ...col, width: override.width } : col))
   })
 
   const columnWidths = computed(() =>
@@ -1072,10 +1086,24 @@ export function useCanvasTable({
     colSlice,
     scrollLeft,
     isViewOperationsAllowed,
-    (columnId, width) =>
-      handleColumnWidth(columnId, width, (normalizedWidth) => (gridViewCols.value[columnId]!.width = normalizedWidth)),
-    (columnId, width) =>
-      handleColumnWidth(columnId, width, (normalizedWidth) => updateGridViewColumn(columnId, { width: normalizedWidth })),
+    // onResize (per-frame): set lightweight override instead of mutating gridViewCols,
+    // which would trigger the heavy _columnsBase recomputation.
+    (columnId, width) => {
+      const metaCol = metaColumnById.value[columnId]
+      if (!metaCol) return
+
+      const normalizedWidth = normalizeWidth(metaCol, width)
+      resizeWidthOverride.value = { columnId, width: `${normalizedWidth}px` }
+      reloadVisibleDataHook?.trigger()
+    },
+    // onResizeEnd (mouseup): clear override, flush final width to gridViewCols + persist.
+    (columnId, width) => {
+      resizeWidthOverride.value = null
+      handleColumnWidth(columnId, width, (normalizedWidth) => {
+        gridViewCols.value[columnId]!.width = normalizedWidth
+        updateGridViewColumn(columnId, { width: normalizedWidth })
+      })
+    },
   )
   const {
     isDragging: isColumnReordering,

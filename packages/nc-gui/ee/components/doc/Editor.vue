@@ -8,7 +8,7 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
-import { TextSelection } from '@tiptap/pm/state'
+import { Selection, TextSelection } from '@tiptap/pm/state'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import { DocHighlightExtension } from './DocHighlightExtension'
@@ -492,6 +492,17 @@ const _tiptapEditor = useEditor({
             }
             break
           }
+        }
+
+        // First empty block in document: delete it when there are siblings below.
+        // ProseMirror's default joinBackward can't remove the very first block.
+        if ($from.index(0) === 0 && $from.parent.content.size === 0 && state.doc.childCount > 1) {
+          const topPos = $from.before(1)
+          const topNode = state.doc.child(0)
+          const tr = state.tr.delete(topPos, topPos + topNode.nodeSize)
+          tr.setSelection(Selection.near(tr.doc.resolve(0), 1))
+          view.dispatch(tr)
+          return true
         }
       }
 

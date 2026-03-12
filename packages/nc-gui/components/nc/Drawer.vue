@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   bodyStyle: () => ({}),
   showDragHandle: true,
   swipeToClose: true,
-  swipeThreshold: 80,
+  swipeThreshold: 150,
   scrollableBody: true,
   bodyClassName: '',
 })

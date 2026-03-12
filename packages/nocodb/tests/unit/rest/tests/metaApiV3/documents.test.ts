@@ -157,6 +157,395 @@ export default function () {
       expect(doc.meta).to.deep.include({ icon: '📄' });
     });
 
+    // --- Block Type Round-Trips ---
+
+    it('Content round-trip: bulletList', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'bulletList',
+            content: [
+              {
+                type: 'listItem',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Item one' }],
+                  },
+                ],
+              },
+              {
+                type: 'listItem',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Item two' }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Bullet List', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: orderedList', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'orderedList',
+            content: [
+              {
+                type: 'listItem',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'First' }],
+                  },
+                ],
+              },
+              {
+                type: 'listItem',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Second' }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Ordered List', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: taskList', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'taskList',
+            content: [
+              {
+                type: 'taskItem',
+                attrs: { checked: true },
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Done task' }],
+                  },
+                ],
+              },
+              {
+                type: 'taskItem',
+                attrs: { checked: false },
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Pending task' }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Task List', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: blockquote', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'blockquote',
+            content: [
+              {
+                type: 'paragraph',
+                content: [{ type: 'text', text: 'To be or not to be.' }],
+              },
+            ],
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Blockquote', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: codeBlock', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'codeBlock',
+            attrs: { language: 'typescript' },
+            content: [
+              { type: 'text', text: 'const x = 42;' },
+            ],
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Code Block', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: image', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'image',
+            attrs: {
+              src: 'https://example.com/photo.png',
+              id: 'fr_abc123',
+            },
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Image', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: fileAttachment', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'fileAttachment',
+            attrs: { id: 'fr_file456' },
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'File Attachment', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: horizontalRule', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          { type: 'paragraph', content: [{ type: 'text', text: 'Above' }] },
+          { type: 'horizontalRule' },
+          { type: 'paragraph', content: [{ type: 'text', text: 'Below' }] },
+        ],
+      };
+      const doc = await _createDoc({ title: 'HR', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: table', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'table',
+            content: [
+              {
+                type: 'tableRow',
+                content: [
+                  {
+                    type: 'tableHeader',
+                    content: [
+                      {
+                        type: 'paragraph',
+                        content: [{ type: 'text', text: 'Name' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'tableHeader',
+                    content: [
+                      {
+                        type: 'paragraph',
+                        content: [{ type: 'text', text: 'Value' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: 'tableRow',
+                content: [
+                  {
+                    type: 'tableCell',
+                    content: [
+                      {
+                        type: 'paragraph',
+                        content: [{ type: 'text', text: 'Foo' }],
+                      },
+                    ],
+                  },
+                  {
+                    type: 'tableCell',
+                    content: [
+                      {
+                        type: 'paragraph',
+                        content: [{ type: 'text', text: '42' }],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Table', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: callout', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'callout',
+            attrs: { icon: '💡' },
+            content: [
+              {
+                type: 'paragraph',
+                content: [{ type: 'text', text: 'Tip: use callouts for emphasis.' }],
+              },
+            ],
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Callout', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: columns', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'columns',
+            content: [
+              {
+                type: 'column',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Left column' }],
+                  },
+                ],
+              },
+              {
+                type: 'column',
+                content: [
+                  {
+                    type: 'paragraph',
+                    content: [{ type: 'text', text: 'Right column' }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Columns', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: embed', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'embed',
+            attrs: { src: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Embed', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: math', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'math',
+            attrs: { expression: 'E = mc^2' },
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Math', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
+    it('Content round-trip: inline marks (bold, italic, code, link, highlight)', async () => {
+      const content = {
+        type: 'doc',
+        content: [
+          {
+            type: 'paragraph',
+            content: [
+              {
+                type: 'text',
+                marks: [{ type: 'bold' }],
+                text: 'bold',
+              },
+              {
+                type: 'text',
+                marks: [{ type: 'italic' }],
+                text: 'italic',
+              },
+              {
+                type: 'text',
+                marks: [{ type: 'underline' }],
+                text: 'underlined',
+              },
+              {
+                type: 'text',
+                marks: [{ type: 'strike' }],
+                text: 'struck',
+              },
+              {
+                type: 'text',
+                marks: [{ type: 'code' }],
+                text: 'inline code',
+              },
+              {
+                type: 'text',
+                marks: [{ type: 'link', attrs: { href: 'https://example.com' } }],
+                text: 'a link',
+              },
+              {
+                type: 'text',
+                marks: [{ type: 'highlight', attrs: { color: '#ffeb3b' } }],
+                text: 'highlighted',
+              },
+            ],
+          },
+        ],
+      };
+      const doc = await _createDoc({ title: 'Marks', content });
+      const fetched = await _getDoc(doc.id);
+      expect(fetched.content).to.deep.equal(content);
+    });
+
     // --- Read ---
 
     it('Get document by ID', async () => {

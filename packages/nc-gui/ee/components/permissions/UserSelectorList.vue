@@ -239,7 +239,7 @@ defineExpose({
     option-label-key="email"
     option-value-key="id"
     :item-height="52"
-    search-input-placeholder="Search user"
+    :search-input-placeholder="$t('placeholder.searchMember')"
     is-multi-select
     :class="listClassName"
     :filter-option="filterOption"

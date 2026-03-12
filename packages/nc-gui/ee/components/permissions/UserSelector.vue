@@ -157,7 +157,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
 
       <div class="text-body text-nc-content-gray-subtle mb-5" v-html="description"></div>
 
-      <div class="text-nc-content-gray text-caption mb-2">Select users</div>
+      <div class="text-nc-content-gray text-caption mb-2">{{ $t('objects.permissions.inlineUserSelector.selectUsersOrTeams') }}</div>
 
       <PermissionsUserSelectorList
         ref="userSelectorListRef"

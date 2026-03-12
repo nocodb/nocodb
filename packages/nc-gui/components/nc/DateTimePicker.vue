@@ -199,7 +199,7 @@ watch(isOpen, (next) => {
   >
     <!-- Input trigger -->
     <div
-      class="nc-date-time-picker-input flex items-center h-8 rounded-lg border-1 border-nc-border-gray-medium px-2 gap-1 transition-colors"
+      class="nc-date-time-picker-input flex items-center h-8 rounded-lg border-1 border-nc-border-gray-medium px-2 gap-1 transition-colors cursor-pointer"
       :class="{
         'bg-nc-bg-gray-light': disabled,
         'hover:border-nc-border-brand': !disabled,
@@ -215,7 +215,6 @@ watch(isOpen, (next) => {
         :placeholder="isDateOnly ? placeholder || dateFormat : dateFormat"
         :readonly="disabled"
         class="nc-dtp-date-input flex-1 min-w-0 text-sm bg-transparent border-none outline-none text-nc-content-gray placeholder:text-nc-content-gray-subtle2"
-        @focus="isOpen = true"
         @blur="handleDateInputBlur"
         @keydown.enter="handleDateInputBlur($event); isOpen = false"
       />
@@ -232,7 +231,6 @@ watch(isOpen, (next) => {
           :readonly="disabled"
           class="nc-dtp-time-input flex-none text-sm bg-transparent border-none outline-none text-nc-content-gray placeholder:text-nc-content-gray-subtle2"
           :class="is12hrFormat ? 'w-[72px]' : 'w-[48px]'"
-          @focus="isOpen = true"
           @blur="handleTimeInputBlur"
           @keydown.enter="handleTimeInputBlur($event); isOpen = false"
         />
@@ -253,9 +251,11 @@ watch(isOpen, (next) => {
         <div class="nc-dtp-date-panel w-[256px] flex-none">
           <NcDatePicker
             :selected-date="selectedDate"
+            :page-date="selectedDate || undefined"
             :is-open="isOpen"
             type="date"
             size="medium"
+            is-cell-input-field
             @update:selected-date="handleSelectDate"
           />
         </div>
@@ -264,12 +264,12 @@ watch(isOpen, (next) => {
         <div v-if="!isDateOnly" class="nc-dtp-time-panel flex flex-col border-l-1 border-nc-border-gray-medium">
           <!-- Column headers -->
           <div class="flex flex-none border-b-1 border-nc-border-gray-medium h-10 items-center">
-            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2">
-              HH
+            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-weight-500 text-nc-content-gray-muted">
+              Hr
             </div>
             <div class="w-px h-full bg-nc-border-gray-light" />
-            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-semibold text-nc-content-gray-subtle2">
-              MM
+            <div class="nc-dtp-col-header w-[46px] text-center text-xs font-weight-500 text-nc-content-gray-muted">
+              Min
             </div>
             <template v-if="is12hrFormat">
               <div class="w-px h-full bg-nc-border-gray-light" />
@@ -286,7 +286,7 @@ watch(isOpen, (next) => {
                 :key="h"
                 class="nc-dtp-item py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                 :class="{
-                  'nc-dtp-selected bg-nc-bg-brand text-nc-content-brand !font-semibold': selectedHour === h,
+                  'nc-dtp-selected bg-nc-bg-gray-dark !font-weight-600': selectedHour === h,
                 }"
                 @click="handleSelectHour(h)"
               >
@@ -303,7 +303,7 @@ watch(isOpen, (next) => {
                 :key="m"
                 class="nc-dtp-item py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                 :class="{
-                  'nc-dtp-selected bg-nc-bg-brand text-nc-content-brand !font-semibold': selectedMinute === m,
+                  'nc-dtp-selected bg-nc-bg-gray-dark !font-weight-600': selectedMinute === m,
                 }"
                 @click="handleSelectMinute(m)"
               >
@@ -320,7 +320,7 @@ watch(isOpen, (next) => {
                   :key="period"
                   class="nc-dtp-item py-1 text-sm text-nc-content-gray-subtle2 text-center cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
                   :class="{
-                    'nc-dtp-selected bg-nc-bg-brand text-nc-content-brand !font-semibold': selectedAmPm === period,
+                    'nc-dtp-selected bg-nc-bg-gray-dark !font-weight-600': selectedAmPm === period,
                   }"
                   @click="handleSelectAmPm(period)"
                 >
@@ -337,9 +337,11 @@ watch(isOpen, (next) => {
 
 <style lang="scss" scoped>
 .nc-dtp-dropdown-content {
+  // Fixed height so time columns don't grow unbounded
+  height: 320px;
+
   .nc-dtp-date-panel {
-    // Fixed min-height so month/year picker views don't shrink the panel
-    min-height: 320px;
+    height: 100%;
 
     :deep(.nc-date-week-header),
     :deep(.nc-month-picker-pagination) {
@@ -348,8 +350,7 @@ watch(isOpen, (next) => {
   }
 
   .nc-dtp-time-panel {
-    // Match height of date panel
-    min-height: 320px;
+    height: 100%;
   }
 }
 </style>

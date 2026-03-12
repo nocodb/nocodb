@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
 import { Pane, Splitpanes } from 'splitpanes'
@@ -294,6 +295,29 @@ const isStartDateExpired = computed(() => {
 const isFormExpiredInBuilder = computed(() => {
   if (!formViewData.value?.expires_at) return false
   return dayjs(formViewData.value.expires_at).isBefore(dayjs())
+})
+
+const startDateValidationError = computed(() => {
+  if (!formViewData.value?.starts_at) return ''
+  if (dayjs(formViewData.value.starts_at).isBefore(dayjs())) {
+    return t('labels.formStartDatePast')
+  }
+  return ''
+})
+
+const endDateValidationError = computed(() => {
+  if (!formViewData.value?.expires_at) return ''
+  const expiresAt = dayjs(formViewData.value.expires_at)
+
+  if (expiresAt.isBefore(dayjs())) {
+    return t('labels.formEndDatePast')
+  }
+
+  if (formViewData.value?.starts_at && expiresAt.isBefore(dayjs(formViewData.value.starts_at))) {
+    return t('labels.formEndDateBeforeStart')
+  }
+
+  return ''
 })
 
 const handleUpdateRedirectUrl = () => {
@@ -2195,6 +2219,12 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   }
                                 "
                               />
+                              <div
+                                v-if="startDateValidationError"
+                                class="text-nc-content-orange-dark text-small leading-[18px]"
+                              >
+                                {{ startDateValidationError }}
+                              </div>
                             </div>
 
                             <!-- Expiration date -->
@@ -2213,12 +2243,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 "
                               />
                               <div
-                                v-if="isFormExpiredInBuilder"
+                                v-if="endDateValidationError"
                                 class="text-nc-content-red-dark text-small leading-[18px]"
                               >
-                                {{ $t('labels.formExpired') }}
+                                {{ endDateValidationError }}
                               </div>
-                            </div>
                           </template>
                         </div>
                       </div>

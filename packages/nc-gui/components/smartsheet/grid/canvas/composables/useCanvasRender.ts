@@ -1453,9 +1453,11 @@ export function useCanvasRender({
         const isColumnInSelection =
           isCellInRange || (hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx - 1 }))
 
-        // Collect vertical border coordinates for batched stroke
+        // Collect vertical border coordinates for batched stroke.
+        // Use gray-200 (darker) for colored rows — gray-100 has near-zero contrast
+        // against colored backgrounds. Matches fixed columns behavior (line ~1629).
         const borderX = xOffset - _scrollLeft
-        if (needsHighlightedBorders || isColumnInSelection || columnState || prevColumnState) {
+        if (needsHighlightedBorders || isColumnInSelection || columnState || prevColumnState || rowColor) {
           bordersGray200.push(borderX)
         } else {
           bordersGray100.push(borderX)
@@ -1550,6 +1552,13 @@ export function useCanvasRender({
           const isCellInRange = hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: colIdx })
 
           if (recordSelected || isCellInRange) {
+            if (rowBgAlreadyApplied) {
+              // Paint opaque row color first so scrollable content underneath is fully covered,
+              // then overlay semi-transparent selection tint on top.
+              const effectiveColor = isHovered || isRowCellSelected ? row.rowMeta.rowHoverColor || rowColor : rowColor
+              ctx.fillStyle = effectiveColor
+              ctx.fillRect(xOffset, yOffset, width, _rowH)
+            }
             ctx.fillStyle = rowColor ? '#3366ff0d' : _rowColors.selectionBg
             ctx.fillRect(xOffset, yOffset, width, _rowH)
           } else if (rowBgAlreadyApplied) {
@@ -3160,24 +3169,25 @@ export function useCanvasRender({
 
             if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
               ctx.save()
+
+              const aggRectY = groupHeaderY + 1
+              const aggRectH = GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)
+              const isLastVisibleCol = index === visibleCols.length - 1
+              const cornerRadius = {
+                topLeft: 0,
+                bottomLeft: 0,
+                topRight: isLastVisibleCol ? 8 : 0,
+                bottomRight: isLastVisibleCol ? 8 : 0,
+              }
+
+              roundedRect(ctx, left, aggRectY, widthClamped, aggRectH, cornerRadius, {
+                backgroundColor: isHovered ? aggregationHoverBg : aggregationDefaultBg,
+              })
+
+              // Create explicit clip path — roundedRect's fast path (zero radius)
+              // uses fillRect which doesn't create a path for ctx.clip()
               ctx.beginPath()
-
-              roundedRect(
-                ctx,
-                left,
-                groupHeaderY + 1,
-                widthClamped,
-                GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
-                {
-                  topLeft: 0,
-                  bottomLeft: 0,
-                  topRight: index === visibleCols.length - 1 ? 8 : 0,
-                  bottomRight: index === visibleCols.length - 1 ? 8 : 0,
-                },
-                { backgroundColor: isHovered ? aggregationHoverBg : aggregationDefaultBg },
-              )
-
-              ctx.fill()
+              ctx.rect(left, aggRectY, widthClamped, aggRectH)
               ctx.clip()
 
               ctx.textBaseline = 'middle'
@@ -3208,14 +3218,17 @@ export function useCanvasRender({
             } else if (isHovered) {
               if (!isLocked.value) {
                 ctx.save()
-                ctx.beginPath()
+
+                const hoverRectY = groupHeaderY + 1
+                const hoverRectH =
+                  GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)
 
                 roundedRect(
                   ctx,
                   left,
-                  groupHeaderY + 1,
+                  hoverRectY,
                   widthClamped,
-                  GROUP_HEADER_HEIGHT - 2 + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0),
+                  hoverRectH,
                   {
                     topLeft: 0,
                     bottomLeft: 0,
@@ -3225,7 +3238,8 @@ export function useCanvasRender({
                   { backgroundColor: isHovered ? aggregationHoverBg : aggregationDefaultBg },
                 )
 
-                ctx.fill()
+                ctx.beginPath()
+                ctx.rect(left, hoverRectY, widthClamped, hoverRectH)
                 ctx.clip()
 
                 ctx.font = '600 10px Inter'

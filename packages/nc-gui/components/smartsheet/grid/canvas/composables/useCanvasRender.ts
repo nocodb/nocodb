@@ -1552,6 +1552,13 @@ export function useCanvasRender({
           const isCellInRange = hasActiveSelection && selection.value.isCellInRange({ row: rowIdx, col: colIdx })
 
           if (recordSelected || isCellInRange) {
+            if (rowBgAlreadyApplied) {
+              // Paint opaque row color first so scrollable content underneath is fully covered,
+              // then overlay semi-transparent selection tint on top.
+              const effectiveColor = isHovered || isRowCellSelected ? row.rowMeta.rowHoverColor || rowColor : rowColor
+              ctx.fillStyle = effectiveColor
+              ctx.fillRect(xOffset, yOffset, width, _rowH)
+            }
             ctx.fillStyle = rowColor ? '#3366ff0d' : _rowColors.selectionBg
             ctx.fillRect(xOffset, yOffset, width, _rowH)
           } else if (rowBgAlreadyApplied) {

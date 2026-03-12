@@ -29,7 +29,7 @@ export type ResolverObj =
  **/
 const nocoExecute = async (
   requestObj: XcRequest,
-  resolverObj?,
+  resolverObj?: ResolverObj | ResolverObj[],
   dataTree = {},
   rootArgs = null,
 ): Promise<any> => {
@@ -167,7 +167,7 @@ const nocoExecute = async (
     extractField(key, rootArgs?.nested?.[key]);
 
     // Handle nested request objects by recursively calling nocoExecute
-    if (requestObj[key] && typeof requestObj[key] === 'object') {
+    if (requestObj[key] && typeof requestObj[key] === 'object' && res[key]) {
       res[key] = res[key].then((res1) => {
         if (Array.isArray(res1)) {
           // Handle arrays of results by executing nocoExecute on each element

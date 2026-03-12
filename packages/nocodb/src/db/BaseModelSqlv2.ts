@@ -1900,17 +1900,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 };
               } else if (isMMLike && isBtLikeV2Junction(column)) {
                 // V2 MO/OO: single-record — return object (like BT)
+                // Use multipleMmList for batching, take first record per parent
                 const readLoader = new DataLoader(
                   (ids: string[]) =>
                     this._queryQueue.add(async () => {
-                      return Promise.all(
-                        ids.map((id) =>
-                          this.mmRead(
-                            { parentId: id, colId: column.id },
+                      if (ids?.length > 1) {
+                        const lists = await this.multipleMmList(
+                          {
+                            parentIds: ids as string[],
+                            colId: column.id,
+                          },
+                          (readLoader as any).args,
+                        );
+                        return lists.map((list) => list?.[0] ?? null);
+                      } else {
+                        return [
+                          await this.mmRead(
+                            { parentId: ids[0], colId: column.id },
                             (readLoader as any).args,
                           ),
-                        ),
-                      );
+                        ];
+                      }
                     }),
                   {
                     cache: false,
@@ -2000,8 +2010,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                         const idAsString = id + '';
                         // Check if the id is a UUID and the column is binary(16)
                         const isUUIDBinary16 =
-                          idAsString.length === 36 ||
-                          idAsString.length === 32;
+                          idAsString.length === 36 || idAsString.length === 32;
                         // If the id is a UUID and the column is binary(16), convert the id to a Buffer. Otherwise, return null to indicate that the id is not a UUID.
                         const idAsUUID = isUUIDBinary16
                           ? idAsString.length === 32

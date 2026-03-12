@@ -251,7 +251,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     this._viewId = viewId;
     this.context = context;
     this.schema = schema;
-    this._queryQueue = queryQueue ?? new PQueue({ concurrency: 1 });
+    this._queryQueue =
+      queryQueue ??
+      new PQueue({
+        concurrency: +(process.env.NC_DB_QUERY_QUEUE_CONCURRENCY || 1),
+      });
     autoBind(this);
   }
 

@@ -33,17 +33,15 @@ const nocoExecute = async (
   dataTree = {},
   rootArgs = null,
 ): Promise<any> => {
-  // Handle array of resolvers by executing nocoExecute on each sequentially
+  // Handle array of resolvers in parallel so DataLoader can batch all IDs
+  // in a single event-loop tick instead of firing one query per row
   if (Array.isArray(resolverObj)) {
-    const res = [];
-    for (let i = 0; i < resolverObj.length; i++) {
-      const resolver = resolverObj[i];
-      dataTree[i] = dataTree[i] || {};
-      res.push(
-        await nocoExecuteSingle(requestObj, resolver, dataTree[i], rootArgs),
-      );
-    }
-    return res;
+    return Promise.all(
+      resolverObj.map((resolver, i) => {
+        dataTree[i] = dataTree[i] || {};
+        return nocoExecuteSingle(requestObj, resolver, dataTree[i], rootArgs);
+      }),
+    );
   } else {
     return nocoExecuteSingle(requestObj, resolverObj, dataTree, rootArgs);
   }
@@ -106,11 +104,9 @@ const nocoExecuteSingle = async (
         : Promise.resolve(dataTreeObj[path[0]]));
 
       if (Array.isArray(res1)) {
-        const res = [];
-        for (let i = 0; i < res1.length; i++) {
-          res.push(await extractNested(path.slice(1), res1[i], {}, args));
-        }
-        return res;
+        return Promise.all(
+          res1.map((item) => extractNested(path.slice(1), item, {}, args)),
+        );
       } else {
         return res1 !== null && res1 !== undefined
           ? await extractNested(path.slice(1), res1, {}, args)
@@ -177,28 +173,25 @@ const nocoExecuteSingle = async (
       if (res[key]) {
         const res1 = await res[key];
         if (Array.isArray(res1)) {
-          // Handle arrays of results by executing nocoExecute on each element sequentially
           dataTree[key] = dataTree[key] || [];
-          res[key] = [];
-          for (let i = 0; i < res1.length; i++) {
-            const r = res1[i];
-            dataTree[key][i] = dataTree[key][i] || {};
-
-            res[key].push(
-              (dataTree[key][i] = await nocoExecute(
+          const nestedArgs = Object.assign(
+            {
+              nestedPage: rootArgs?.nestedPage,
+              limit: rootArgs?.nestedLimit,
+            },
+            rootArgs?.nested?.[key] || {},
+          );
+          res[key] = Promise.all(
+            res1.map((r, i) => {
+              dataTree[key][i] = dataTree[key][i] || {};
+              return nocoExecute(
                 requestObj[key] as XcRequest,
                 r,
                 dataTree[key][i],
-                Object.assign(
-                  {
-                    nestedPage: rootArgs?.nestedPage,
-                    limit: rootArgs?.nestedLimit,
-                  },
-                  rootArgs?.nested?.[key] || {},
-                ),
-              )),
-            );
-          }
+                nestedArgs,
+              ).then((v) => (dataTree[key][i] = v));
+            }),
+          );
         } else if (res1) {
           // Handle single objects
           res[key] = await nocoExecute(

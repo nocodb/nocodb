@@ -2695,7 +2695,7 @@ onBeforeUnmount(() => {
   table {
     border-collapse: separate;
     border-spacing: 0;
-    margin: 0;
+    margin: 20px 0 0 0;
     overflow: hidden;
     table-layout: fixed;
     width: 100%;

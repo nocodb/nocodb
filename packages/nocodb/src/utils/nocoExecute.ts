@@ -54,6 +54,9 @@ const nocoExecute = async (
     );
   }
 
+  // After the array early-return above, resolverObj is always a single ResolverObj
+  const resolver = resolverObj as ResolverObj;
+
   const res = {};
 
   /**
@@ -124,16 +127,16 @@ const nocoExecute = async (
    * all fields' DataLoader .load() calls happen in the same microtick.
    */
   function extractField(key, args) {
-    if (!resolverObj?.__proto__?.__columnAliases?.[key]) {
-      if (resolverObj) {
+    if (!resolver?.__proto__?.__columnAliases?.[key]) {
+      if (resolver) {
         // Resolve if it's a function, object, or value
-        if (typeof resolverObj[key] === 'function') {
-          res[key] = resolverObj[key](args); // Call function
-        } else if (typeof resolverObj[key] === 'object') {
-          res[key] = Promise.resolve(resolverObj[key]); // Resolve object
+        if (typeof resolver[key] === 'function') {
+          res[key] = resolver[key](args); // Call function
+        } else if (typeof resolver[key] === 'object') {
+          res[key] = Promise.resolve(resolver[key]); // Resolve object
         } else {
           try {
-            res[key] = Promise.resolve(resolverObj[key]); // Resolve value
+            res[key] = Promise.resolve(resolver[key]); // Resolve value
           } catch (e) {
             logger.error(e);
           }
@@ -145,9 +148,9 @@ const nocoExecute = async (
       // Column alias (e.g. Lookup): walk the alias path through dataTree so
       // previously resolved relations (e.g. BT 'Country') are reused, not re-fetched
       res[key] = extractNested(
-        resolverObj?.__proto__?.__columnAliases?.[key]?.path,
+        resolver?.__proto__?.__columnAliases?.[key]?.path,
         dataTree,
-        resolverObj,
+        resolver,
         args?.nested?.[key],
       ).then((res1) => {
         return Promise.resolve(
@@ -162,7 +165,7 @@ const nocoExecute = async (
   const extractKeys =
     requestObj && typeof requestObj === 'object'
       ? Object.keys(requestObj).filter((k) => requestObj[k])
-      : Object.keys(resolverObj);
+      : Object.keys(resolver);
 
   const out: any = {};
   const resolPromises = [];

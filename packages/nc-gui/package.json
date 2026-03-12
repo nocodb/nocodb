@@ -225,6 +225,7 @@
     "@types/tinycolor2": "^1.4.6",
     "@types/validator": "^13.12.2",
     "@types/vue-barcode-reader": "^0.0.3",
+    "@vite-pwa/nuxt": "^1.1.1",
     "@vitest/ui": "^3.0.7",
     "@vue/compiler-sfc": "^3.5.13",
     "@vue/test-utils": "^2.4.6",

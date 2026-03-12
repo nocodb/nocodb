@@ -8,6 +8,7 @@ import { NodeModulesPolyfillPlugin } from '@esbuild-plugins/node-modules-polyfil
 import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
+import { pwaConfig } from './pwa.config'
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -17,8 +18,10 @@ export default defineNuxtConfig({
 
   ignore: [...(process.env.NODE_ENV === 'production' ? ['pages/playground/**/*'] : [])],
 
-  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot', '@vite-pwa/nuxt'],
   ssr: false,
+
+  pwa: pwaConfig,
 
   router: {
     options: {

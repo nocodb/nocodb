@@ -9,6 +9,7 @@ import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
+import { pwaConfig } from '../pwa.config'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -20,7 +21,7 @@ export default defineNuxtConfig({
     componentIslands: false,
     inlineRouteRules: true,
   },
-  modules: ['nuxt-echarts', '@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
+  modules: ['nuxt-echarts', '@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot', '@vite-pwa/nuxt'],
   echarts: {
     renderer: ['canvas'],
     charts: ['BarChart', 'LineChart', 'PieChart'],
@@ -41,6 +42,7 @@ export default defineNuxtConfig({
     },
   },
   ssr: false,
+  pwa: pwaConfig,
   router: {
     options: {
       hashMode: false,

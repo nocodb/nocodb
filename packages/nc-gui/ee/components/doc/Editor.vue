@@ -1478,7 +1478,7 @@ onBeforeUnmount(() => {
         <!-- Cover image banner -->
         <div v-if="coverImageSrc" class="nc-doc-cover group relative w-full" data-testid="nc-doc-cover">
           <img :src="coverImageSrc" class="nc-doc-cover-image" />
-          <div v-if="isUIAllowed('documentUpdate')" class="nc-doc-cover-controls">
+          <div v-if="isEditable" class="nc-doc-cover-controls">
             <NcButton size="xsmall" type="secondary" data-testid="nc-doc-cover-change" @click="onAddOrChangeCover">
               {{ $t('labels.changeCover') }}
             </NcButton>
@@ -1491,31 +1491,37 @@ onBeforeUnmount(() => {
         <div class="nc-doc-editor-inner w-full mx-auto px-6 sm:px-10 lg:px-16" :class="{ 'max-w-[900px]': !isFullWidth }">
           <!-- Title -->
           <div class="nc-doc-editor-header pt-12 pb-4">
-            <div
-              v-if="!coverImageSrc && isUIAllowed('documentUpdate')"
-              class="nc-doc-add-cover"
-              data-testid="nc-doc-add-cover"
-              @click="onAddOrChangeCover"
-            >
-              <GeneralIcon icon="ncImage" class="!w-3.5 !h-3.5" />
-              {{ $t('labels.addCover') }}
-            </div>
-            <div class="nc-doc-title-row flex items-center">
-              <div class="nc-doc-editor-icon-wrapper flex-shrink-0" data-testid="nc-doc-opened-page-icon-picker">
-                <LazyGeneralEmojiPicker
-                  :key="docMeta?.icon"
-                  :clearable="true"
-                  :emoji="docMeta?.icon"
-                  :readonly="!isUIAllowed('documentUpdate')"
-                  class="nc-doc-editor-icon"
-                  size="large"
-                  @emoji-selected="updateDocumentIcon($event)"
-                >
-                  <template #default>
-                    <GeneralIcon class="nc-doc-editor-icon-default text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
-                  </template>
-                </LazyGeneralEmojiPicker>
+            <NcTooltip v-if="!coverImageSrc && isUIAllowed('documentUpdate')" :disabled="isEditable">
+              <template #title>{{ $t('msg.info.editingRestrictedForThisPage') }}</template>
+              <div
+                class="nc-doc-add-cover"
+                :class="{ 'opacity-40 pointer-events-none': !isEditable }"
+                data-testid="nc-doc-add-cover"
+                @click="isEditable && onAddOrChangeCover()"
+              >
+                <GeneralIcon icon="ncImage" class="!w-3.5 !h-3.5" />
+                {{ $t('labels.addCover') }}
               </div>
+            </NcTooltip>
+            <div class="nc-doc-title-row flex items-center">
+              <NcTooltip :disabled="isEditable" class="flex-shrink-0">
+                <template #title>{{ $t('msg.info.editingRestrictedForThisPage') }}</template>
+                <div class="nc-doc-editor-icon-wrapper" data-testid="nc-doc-opened-page-icon-picker">
+                  <LazyGeneralEmojiPicker
+                    :key="docMeta?.icon"
+                    :clearable="true"
+                    :emoji="docMeta?.icon"
+                    :readonly="!isEditable"
+                    class="nc-doc-editor-icon"
+                    size="large"
+                    @emoji-selected="updateDocumentIcon($event)"
+                  >
+                    <template #default>
+                      <GeneralIcon class="nc-doc-editor-icon-default text-nc-content-gray-muted !w-7 !h-7" icon="ncFileText" />
+                    </template>
+                  </LazyGeneralEmojiPicker>
+                </div>
+              </NcTooltip>
               <input
                 ref="titleInput"
                 v-model="title"

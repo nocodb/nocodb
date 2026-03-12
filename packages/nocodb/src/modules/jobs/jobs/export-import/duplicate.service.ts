@@ -96,6 +96,7 @@ export class DuplicateService {
         title: uniqueTitle,
         status: ProjectStatus.JOB,
         ...(body.base || {}),
+        fk_workspace_id: targetWorkspaceId,
       },
       user: {
         id: req.user.id,

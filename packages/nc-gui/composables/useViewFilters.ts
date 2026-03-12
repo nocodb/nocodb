@@ -39,6 +39,8 @@ export function useViewFilters(
   fieldsToFilter?: Ref<ColumnType[]>,
   parentColId?: Ref<string>,
   isTempFilters?: boolean,
+  isRlsPolicy?: boolean,
+  buttonColId?: Ref<string>,
 ) {
   const savingStatus: Record<number, boolean> = {}
 
@@ -51,7 +53,7 @@ export function useViewFilters(
   const reloadHook = inject(ReloadViewDataHookInj)
 
   const { nestedFilters, isForm, allFilters } =
-    isWidget || isWorkflow
+    isWidget || isWorkflow || isRlsPolicy
       ? {
           nestedFilters: ref([]),
           isForm: ref(false),
@@ -119,7 +121,8 @@ export function useViewFilters(
 
   const filters = computed<ColumnFilterType[]>({
     get: () => {
-      return (nestedMode.value && !isLink && !isWebhook && !isWidget && !isWorkflow) || (isForm.value && !isWebhook)
+      return (nestedMode.value && !isLink && !isWebhook && !isWidget && !isWorkflow && !isRlsPolicy && !buttonColId?.value) ||
+        (isForm.value && !isWebhook)
         ? currentFilters.value!
         : _filters.value
     },
@@ -129,7 +132,7 @@ export function useViewFilters(
         return
       } else if (nestedMode.value || isWorkflow) {
         currentFilters.value = value
-        if (!isLink && !isWebhook && !isWidget && !isWorkflow) {
+        if (!isLink && !isWebhook && !isWidget && !isWorkflow && !isRlsPolicy && !buttonColId?.value) {
           if (!isNestedRoot) {
             nestedFilters.value = value
           }
@@ -159,11 +162,23 @@ export function useViewFilters(
 
   const activeView = inject(ActiveViewInj, ref())
 
-  const { showSystemFields, fieldsMap } =
-    widgetId?.value || isWorkflow ? { showSystemFields: ref(false), fieldsMap: ref({}) } : useViewColumnsOrThrow()
+  const {
+    showSystemFields,
+    fieldsMap,
+    metaColumnById: _metaColumnById,
+  } = isWidget || isWorkflow || isRlsPolicy
+    ? { showSystemFields: ref(false), fieldsMap: ref({}), metaColumnById: computed(() => ({} as Record<string, ColumnType>)) }
+    : useViewColumnsOrThrow()
+
+  // Use metaColumnById (includes list view level table columns) with fallback to meta.columns
+  const allMetaColumns = computed(() => {
+    if (isLink) return meta.value?.columns || []
+    const byId = _metaColumnById.value
+    return Object.keys(byId).length ? Object.values(byId) : (meta.value?.columns as ColumnType[]) || []
+  })
 
   const options = computed<SelectProps['options']>(() =>
-    meta.value?.columns?.filter((c: ColumnType) => {
+    allMetaColumns.value.filter((c: ColumnType) => {
       if (isSystemColumn(c)) {
         /** hide system columns if not enabled */
         return showSystemFields.value
@@ -177,11 +192,11 @@ export function useViewFilters(
   )
 
   const types = computed(() => {
-    if (!meta.value?.columns?.length) {
+    if (!allMetaColumns.value.length) {
       return {}
     }
 
-    return meta.value?.columns?.reduce((obj: any, col: any) => {
+    return allMetaColumns.value.reduce((obj: any, col: any) => {
       if (col.uidt === UITypes.Formula) {
         const formulaUIType = getEquivalentUIType({
           formulaColumn: col,
@@ -289,6 +304,7 @@ export function useViewFilters(
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
       ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
       order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
+      enabled: true,
     }
 
     // Set timezone for DateTime columns
@@ -317,6 +333,7 @@ export function useViewFilters(
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
       ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
       order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
+      enabled: true,
     }
   }
 
@@ -364,21 +381,26 @@ export function useViewFilters(
     await Promise.all(promises)
 
     // Push all child filters into the allFilters array
-    if (!isLink && !isWebhook && !isWidget) allFilters.value.push(...(allChildFilters as FilterType[]))
+    if (!isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value)
+      allFilters.value.push(...(allChildFilters as FilterType[]))
   }
 
   const loadFilters = async ({
     hookId,
+    rlsPolicyId,
     isLink,
+    isButton,
     widgetId,
     isWebhook,
     isWidget,
     loadAllFilters,
   }: {
     hookId?: string
+    rlsPolicyId?: string
     widgetId?: string
     isWebhook?: boolean
     isWidget?: boolean
+    isButton?: boolean
     loadAllFilters?: boolean
     isLink?: boolean
   } = {}) => {
@@ -387,14 +409,33 @@ export function useViewFilters(
       await until(meta).toBeTruthy({ timeout: 5000 })
     }
 
-    if (!view.value?.id || !meta.value) return
-    if ((nestedMode.value && (isTemp.value || !canListFilterChildren.value)) || (isForm.value && !isWebhook) || isWorkflow) {
-      // ignore restoring if not root filter group
-      return
+    // RLS policy filters don't require a view
+    if (!rlsPolicyId) {
+      if (!view.value?.id || !meta.value) return
+      if ((nestedMode.value && (isTemp.value || !canListFilterChildren.value)) || (isForm.value && !isWebhook) || isWorkflow) {
+        // ignore restoring if not root filter group
+        return
+      }
     }
 
     try {
-      if (isWebhook || hookId) {
+      if (rlsPolicyId) {
+        if (parentId.value) {
+          filters.value = (
+            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              operation: 'filterChildrenList',
+              filterId: parentId.value,
+            })
+          ).list as ColumnFilterType[]
+        } else if (!isNestedRoot) {
+          filters.value = (
+            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              operation: 'rlsPolicyFilterList',
+              rlsPolicyId,
+            })
+          ).list as ColumnFilterType[]
+        }
+      } else if (isWebhook || hookId) {
         if (parentId.value) {
           filters.value = (
             await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
@@ -424,6 +465,22 @@ export function useViewFilters(
               await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'linkFilterList',
                 columnId: linkColId.value,
+              })
+            ).list as ColumnFilterType[]
+          }
+        } else if (isButton || buttonColId?.value) {
+          if (parentId.value) {
+            filters.value = (
+              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+                operation: 'filterChildrenList',
+                filterId: parentId.value,
+              })
+            ).list as ColumnFilterType[]
+          } else if (buttonColId?.value && !isNestedRoot) {
+            filters.value = (
+              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+                operation: 'buttonFilterList',
+                buttonColId: buttonColId.value,
               })
             ).list as ColumnFilterType[]
           }
@@ -478,13 +535,17 @@ export function useViewFilters(
 
   const sync = async ({
     hookId,
+    rlsPolicyId,
     linkId,
     widgetId,
+    buttonId,
   }: {
     hookId?: string
+    rlsPolicyId?: string
     nested?: boolean
     linkId?: string
     widgetId?: string
+    buttonId?: string
   }) => {
     try {
       for (const [i, filter] of Object.entries(filters.value)) {
@@ -501,7 +562,8 @@ export function useViewFilters(
           if (filter.is_group) {
             deleteFilterGroupFromAllFilters(filter)
           } else {
-            if (!isLink && !isWebhook && !isWidget) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+            if (!isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value)
+              allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
           }
         } else if (filter.status === 'update') {
           await $api.internal.postOperation(
@@ -516,6 +578,22 @@ export function useViewFilters(
               fk_parent_id: parentId.value,
             },
           )
+
+          // EE only: Sync updated filter properties to the smartsheet store's allFilters
+          // so PinnedFilters and other consumers see changes immediately
+          if (isEeUI && !isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value) {
+            const storeFilter = allFilters.value.find((f) => f.id === filter.id)
+            if (storeFilter) {
+              Object.assign(storeFilter, {
+                value: filter.value,
+                comparison_op: filter.comparison_op,
+                comparison_sub_op: filter.comparison_sub_op,
+                fk_column_id: filter.fk_column_id,
+                enabled: filter.enabled,
+                meta: filter.meta,
+              })
+            }
+          }
         } else if (filter.status === 'create') {
           // extract children value if found to restore
           const children = filters.value[+i]?.children
@@ -533,6 +611,20 @@ export function useViewFilters(
                 fk_parent_id: parentId.value,
               } as FilterType,
             )) as ColumnFilterType
+          } else if (rlsPolicyId) {
+            filters.value[+i] = (await $api.internal.postOperation(
+              apiWorkspaceId.value!,
+              apiBaseId.value!,
+              {
+                operation: 'rlsPolicyFilterCreate',
+              },
+              {
+                ...filter,
+                children: undefined,
+                fk_parent_id: parentId.value,
+                fk_rls_policy_id: rlsPolicyId,
+              } as FilterType,
+            )) as ColumnFilterType
           } else if (linkId || linkColId?.value) {
             filters.value[+i] = (await $api.internal.postOperation(
               apiWorkspaceId.value!,
@@ -540,6 +632,20 @@ export function useViewFilters(
               {
                 operation: 'linkFilterCreate',
                 columnId: linkId || linkColId!.value,
+              },
+              {
+                ...filter,
+                children: undefined,
+                fk_parent_id: parentId.value,
+              } as FilterType,
+            )) as ColumnFilterType
+          } else if (buttonId || buttonColId?.value) {
+            filters.value[+i] = (await $api.internal.postOperation(
+              apiWorkspaceId.value!,
+              apiBaseId.value!,
+              {
+                operation: 'buttonFilterCreate',
+                buttonColId: buttonId || buttonColId!.value,
               },
               {
                 ...filter,
@@ -578,11 +684,12 @@ export function useViewFilters(
 
           if (children) filters.value[+i].children = children
 
-          if (!isLink && !isWebhook && !isWidget) allFilters.value.push(filters.value[+i] as FilterType)
+          if (!isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value)
+            allFilters.value.push(filters.value[+i] as FilterType)
         }
       }
 
-      if (!isWebhook && !isLink && !isWidget) reloadData?.()
+      if (!isWebhook && !isLink && !isWidget && !isRlsPolicy && !buttonColId?.value) reloadData?.()
     } catch (e: any) {
       console.log(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -612,7 +719,7 @@ export function useViewFilters(
       lastFilterIndex = i
     }
 
-    if (!view.value && !linkColId?.value && !widgetId?.value) return
+    if (!view.value && !linkColId?.value && !widgetId?.value && !buttonColId?.value) return
 
     if (!undo && !(isForm.value && !isWebhook)) {
       const lastFilter = lastFilters.value[lastFilterIndex]
@@ -623,7 +730,7 @@ export function useViewFilters(
 
         if (keys.length > 0) {
           // Define extra keys to track
-          const extraKeys = ['value', 'order', 'logical_op']
+          const extraKeys = ['value', 'order', 'logical_op', 'enabled']
 
           // Always include the 0th key + any of the extra ones present
           const targetKeys = Array.from(
@@ -700,6 +807,22 @@ export function useViewFilters(
           workflow: !!isWorkflow,
         })
 
+        // EE only: Sync updated filter to the smartsheet store's allFilters
+        // so PinnedFilters and other consumers see changes immediately
+        if (isEeUI && !isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value) {
+          const storeFilter = allFilters.value.find((f) => f.id === filter.id)
+          if (storeFilter) {
+            Object.assign(storeFilter, {
+              value: filter.value,
+              comparison_op: filter.comparison_op,
+              comparison_sub_op: filter.comparison_sub_op,
+              fk_column_id: filter.fk_column_id,
+              enabled: filter.enabled,
+              meta: filter.meta,
+            })
+          }
+        }
+
         if (undo) {
           filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
         }
@@ -719,6 +842,25 @@ export function useViewFilters(
           )
           // extract id from saved filter and update the filter object
           // avoiding whole object update to prevent overwriting of current filter object changes
+          filters.value[i] = {
+            ...filters.value[i],
+            fk_parent_id: parentId.value,
+            id: savedFilter.id,
+            status: undefined,
+          } as ColumnFilterType
+        } else if (buttonColId?.value) {
+          const savedFilter = await $api.internal.postOperation(
+            apiWorkspaceId.value!,
+            apiBaseId.value!,
+            {
+              operation: 'buttonFilterCreate',
+              buttonColId: buttonColId.value,
+            },
+            {
+              ...filter,
+              fk_parent_id: parentId.value,
+            },
+          )
           filters.value[i] = {
             ...filters.value[i],
             fk_parent_id: parentId.value,
@@ -770,7 +912,8 @@ export function useViewFilters(
 
           filters.value = filters.value.sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
         }
-        if (!isLink && !isWebhook && !isWidget) allFilters.value.push(filters.value[+i] as FilterType)
+        if (!isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value)
+          allFilters.value.push(filters.value[+i] as FilterType)
       }
     } catch (e: any) {
       console.log(e)
@@ -781,7 +924,7 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    if (!isWebhook && !skipDataReload && !isLink && !isWidget) reloadData?.()
+    if (!isWebhook && !skipDataReload && !isLink && !isWidget && !isRlsPolicy) reloadData?.()
   }
 
   function deleteFilterGroupFromAllFilters(filter: ColumnFilterType) {
@@ -834,7 +977,7 @@ export function useViewFilters(
     if (nestedMode.value || isWorkflow) {
       filters.value.splice(i, 1)
       filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
-      if (!isWebhook && !isLink && !isWidget && !isWorkflow) reloadData?.()
+      if (!isWebhook && !isLink && !isWidget && !isWorkflow && !isRlsPolicy && !buttonColId?.value) reloadData?.()
     } else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
@@ -853,7 +996,7 @@ export function useViewFilters(
               },
               {},
             )
-            if (!isWebhook && !isLink && !isWidget) reloadData?.()
+            if (!isWebhook && !isLink && !isWidget && !isRlsPolicy && !buttonColId?.value) reloadData?.()
 
             // find item index by using id and remove it from array since item index may change
             const itemIndex = filters.value.findIndex((f) => f.id === filter.id)
@@ -879,7 +1022,8 @@ export function useViewFilters(
     if (filter.is_group) {
       deleteFilterGroupFromAllFilters(filter)
     } else {
-      if (!isLink && !isWebhook && !isWidget) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
+      if (!isLink && !isWebhook && !isWidget && !isRlsPolicy && !buttonColId?.value)
+        allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
     }
   }
 
@@ -929,11 +1073,18 @@ export function useViewFilters(
 
     filters.value.push(
       (draftFilter?.fk_column_id
-        // Strip only 'order' from the draft so it gets a fresh order from placeholderFilter.
-        // Preserve 'logical_op' from the draft when provided (e.g. AI-generated filters may use 'or'),
-        // otherwise normalizeFilterNode falls back to placeholderFilter's default.
-        ? { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order']) }
-        : placeholderFilter()) as ColumnFilterType,
+        ? // Strip only 'order' from the draft so it gets a fresh order from placeholderFilter.
+          // Preserve 'logical_op' from the draft when provided (e.g. AI-generated filters may use 'or'),
+          // otherwise normalizeFilterNode falls back to placeholderFilter's default.
+          { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order']) }
+        : {
+            ...placeholderFilter(),
+            ...(draftFilter.fk_level_id
+              ? {
+                  fk_level_id: draftFilter.fk_level_id,
+                }
+              : {}),
+          }) as ColumnFilterType,
     )
     if (!undo && !(isForm.value && !isWebhook)) {
       addUndo({
@@ -975,7 +1126,10 @@ export function useViewFilters(
   const addFilterGroup = async (draftFilter: Partial<ColumnFilterType> = {}) => {
     isFilterUpdated.value = true
 
-    const placeHolderGroupFilter: ColumnFilterType = placeholderGroupFilter()
+    const placeHolderGroupFilter: ColumnFilterType = {
+      ...placeholderGroupFilter(),
+      ...(draftFilter?.fk_level_id ? { fk_level_id: draftFilter.fk_level_id } : {}),
+    } as ColumnFilterType
 
     const draftFilterHasChildren = draftFilter && ncIsArray(draftFilter.children) && draftFilter.children.length > 0
 

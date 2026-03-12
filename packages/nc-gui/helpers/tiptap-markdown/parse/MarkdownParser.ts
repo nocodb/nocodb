@@ -1,4 +1,5 @@
 import MarkdownIt from 'markdown-it'
+import DOMPurify from 'isomorphic-dompurify'
 import type { Editor } from '@tiptap/core'
 import { elementFromString, extractElement, unwrapElement } from '../util/dom'
 import { getMarkdownSpec } from '../util/extensions'
@@ -47,7 +48,7 @@ export class MarkdownParser {
       getMarkdownSpec(extension)?.parse?.setup?.call({ editor: this.editor, options: extension.options }, this.md),
     )
 
-    const renderedHTML = this.md.render(content)
+    const renderedHTML = DOMPurify.sanitize(this.md.render(content))
     const element = elementFromString(renderedHTML)
 
     this.editor.extensionManager.extensions.forEach((extension) => {

@@ -306,6 +306,11 @@ export interface AppConfig {
       max_apis: number;
       block_duration: number;
     };
+    scim?: {
+      ttl: number;
+      max_apis: number;
+      block_duration: number;
+    };
     public?: {
       ttl: number;
       max_apis: number;

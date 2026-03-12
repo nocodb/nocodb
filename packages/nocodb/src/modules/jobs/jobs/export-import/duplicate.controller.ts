@@ -88,6 +88,7 @@ export class DuplicateController {
         title: uniqueTitle,
         status: ProjectStatus.JOB,
         ...(body.base || {}),
+        fk_workspace_id: context.workspace_id,
       },
       user: { id: req.user.id },
       req,

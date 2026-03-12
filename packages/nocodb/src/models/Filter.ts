@@ -9,6 +9,7 @@ import Model from '~/models/Model';
 import Column from '~/models/Column';
 import Hook from '~/models/Hook';
 import View from '~/models/View';
+import ListViewLevel from '~/models/ListViewLevel';
 import Noco from '~/Noco';
 import {
   CacheDelDirection,
@@ -29,12 +30,15 @@ export default class Filter implements FilterType {
   fk_model_id?: string;
   fk_view_id?: string;
   fk_hook_id?: string;
+  fk_level_id?: string;
   fk_parent_column_id?: string;
   fk_column_id?: string;
   fk_parent_id?: string;
   fk_row_color_condition_id: string;
   fk_link_col_id?: string;
   fk_value_col_id?: string;
+  fk_rls_policy_id?: string;
+  fk_button_col_id?: string;
 
   comparison_op?: (typeof COMPARISON_OPS)[number];
   comparison_sub_op?: (typeof COMPARISON_SUB_OPS)[number];
@@ -49,6 +53,7 @@ export default class Filter implements FilterType {
   column?: Column;
   order?: number;
   meta?: any;
+  enabled?: BoolType;
 
   constructor(data: Filter | FilterType) {
     Object.assign(this, data);
@@ -61,6 +66,10 @@ export default class Filter implements FilterType {
 
   public castType(filter: Filter): Filter {
     return filter && new Filter(filter);
+  }
+
+  static async supportToggle(_context: NcContext) {
+    return false;
   }
 
   public async getModel(
@@ -90,10 +99,13 @@ export default class Filter implements FilterType {
       'id',
       'fk_view_id',
       'fk_hook_id',
+      'fk_level_id',
       'fk_link_col_id',
       'fk_value_col_id',
       'fk_parent_column_id',
       'fk_row_color_condition_id',
+      'fk_rls_policy_id',
+      'fk_button_col_id',
       'fk_column_id',
       'comparison_op',
       'comparison_sub_op',
@@ -105,6 +117,7 @@ export default class Filter implements FilterType {
       'source_id',
       'order',
       'meta',
+      'enabled',
     ]);
 
     const referencedModelColName = [
@@ -113,6 +126,8 @@ export default class Filter implements FilterType {
       'fk_hook_id',
       'fk_row_color_condition_id',
       'fk_link_col_id',
+      'fk_rls_policy_id',
+      'fk_button_col_id',
     ].find((k) => filter[k]);
     insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
       [referencedModelColName]: filter[referencedModelColName],
@@ -136,12 +151,27 @@ export default class Filter implements FilterType {
           { colId: filter.fk_parent_column_id },
           ncMeta,
         );
+      } else if (filter.fk_button_col_id) {
+        model = await Column.get(
+          context,
+          { colId: filter.fk_button_col_id },
+          ncMeta,
+        );
       } else if (filter.fk_column_id) {
         model = await Column.get(
           context,
           { colId: filter.fk_column_id },
           ncMeta,
         );
+      } else if (filter.fk_level_id) {
+        const level = await ListViewLevel.get(
+          context,
+          filter.fk_level_id,
+          ncMeta,
+        );
+        if (level?.fk_model_id) {
+          model = await Model.get(context, level.fk_model_id, ncMeta);
+        }
       } else {
         NcError.invalidFilter(JSON.stringify(filter));
       }
@@ -188,11 +218,15 @@ export default class Filter implements FilterType {
     if (
       !(
         id &&
-        (filter.fk_view_id || filter.fk_hook_id || filter.fk_parent_column_id)
+        (filter.fk_view_id ||
+          filter.fk_hook_id ||
+          filter.fk_parent_column_id ||
+          filter.fk_level_id ||
+          filter.fk_button_col_id)
       )
     ) {
       NcError.get(context).badRequest(
-        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id}), fk_parent_column_id(${filter.fk_parent_column_id})`,
+        `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id}), fk_parent_column_id(${filter.fk_parent_column_id}), fk_level_id(${filter.fk_level_id}), fk_button_col_id(${filter.fk_button_col_id})`,
       );
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;
@@ -275,6 +309,20 @@ export default class Filter implements FilterType {
               ),
             );
           }
+          if (filter.fk_rls_policy_id) {
+            p.push(
+              NocoCache.appendToList(
+                context,
+                CacheScope.FILTER_EXP,
+                [
+                  FilterCacheScope.RLS_POLICY,
+                  filter.fk_rls_policy_id,
+                  filter.fk_parent_id,
+                ],
+                key,
+              ),
+            );
+          }
           p.push(
             NocoCache.appendToList(
               context,
@@ -290,6 +338,26 @@ export default class Filter implements FilterType {
               context,
               CacheScope.FILTER_EXP,
               [FilterCacheScope.COLUMN, filter.fk_column_id],
+              key,
+            ),
+          );
+        }
+        if (filter.fk_rls_policy_id) {
+          p.push(
+            NocoCache.appendToList(
+              context,
+              CacheScope.FILTER_EXP,
+              [FilterCacheScope.RLS_POLICY, filter.fk_rls_policy_id],
+              key,
+            ),
+          );
+        }
+        if (filter.fk_button_col_id) {
+          p.push(
+            NocoCache.appendToList(
+              context,
+              CacheScope.FILTER_EXP,
+              [FilterCacheScope.BUTTON_COLUMN, filter.fk_button_col_id],
               key,
             ),
           );
@@ -333,6 +401,7 @@ export default class Filter implements FilterType {
       'fk_value_col_id',
       'meta',
       'order',
+      'enabled',
     ]);
 
     if (typeof updateObj.value === 'string') {
@@ -539,19 +608,31 @@ export default class Filter implements FilterType {
       linkColId,
       parentColId,
       widgetId,
+      rlsPolicyId,
+      buttonColId,
     }: {
       viewId?: string;
       hookId?: string;
       linkColId?: string;
       parentColId?: string;
       widgetId?: string;
+      rlsPolicyId?: string;
+      buttonColId?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<FilterType> {
     const cachedList = await NocoCache.getList(
       context,
       CacheScope.FILTER_EXP,
-      [parentColId || viewId || hookId || linkColId || widgetId],
+      [
+        parentColId ||
+          viewId ||
+          hookId ||
+          linkColId ||
+          widgetId ||
+          rlsPolicyId ||
+          buttonColId,
+      ],
       {
         key: 'order',
       },
@@ -571,6 +652,10 @@ export default class Filter implements FilterType {
         condition.fk_parent_column_id = parentColId;
       } else if (widgetId) {
         condition.fk_widget_id = widgetId;
+      } else if (rlsPolicyId) {
+        condition.fk_rls_policy_id = rlsPolicyId;
+      } else if (buttonColId) {
+        condition.fk_button_col_id = buttonColId;
       }
 
       filters = await ncMeta.metaList2(
@@ -597,6 +682,10 @@ export default class Filter implements FilterType {
         filterCacheScope = FilterCacheScope.LINK_COL;
       } else if (widgetId) {
         filterCacheScope = FilterCacheScope.WIDGET;
+      } else if (rlsPolicyId) {
+        filterCacheScope = FilterCacheScope.RLS_POLICY;
+      } else if (buttonColId) {
+        filterCacheScope = FilterCacheScope.BUTTON_COLUMN;
       }
 
       await NocoCache.setList(
@@ -604,7 +693,13 @@ export default class Filter implements FilterType {
         CacheScope.FILTER_EXP,
         [
           filterCacheScope,
-          parentColId || viewId || hookId || linkColId || widgetId,
+          parentColId ||
+            viewId ||
+            hookId ||
+            linkColId ||
+            widgetId ||
+            rlsPolicyId ||
+            buttonColId,
         ],
         filters,
       );
@@ -713,6 +808,33 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ) {
     const filter = await this.getFilterObject(context, { hookId }, ncMeta);
+
+    const deleteRecursively = async (filter) => {
+      if (!filter) return;
+      for (const f of filter?.children || []) await deleteRecursively(f);
+      if (filter.id) {
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          filter.id,
+        );
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.FILTER_EXP}:${filter.id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+    };
+    await deleteRecursively(filter);
+  }
+
+  static async deleteAllByRlsPolicy(
+    context: NcContext,
+    rlsPolicyId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const filter = await this.getFilterObject(context, { rlsPolicyId }, ncMeta);
 
     const deleteRecursively = async (filter) => {
       if (!filter) return;
@@ -921,6 +1043,43 @@ export default class Filter implements FilterType {
         context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.HOOK, hookId],
+        filterObjs,
+      );
+    }
+    return filterObjs
+      ?.filter((f) => !f.fk_parent_id)
+      ?.map((f) => this.castType(f));
+  }
+
+  static async rootFilterListByRlsPolicy(
+    context: NcContext,
+    { rlsPolicyId }: { rlsPolicyId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.FILTER_EXP,
+      [FilterCacheScope.RLS_POLICY, rlsPolicyId],
+      { key: 'order' },
+    );
+    let { list: filterObjs } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !filterObjs.length) {
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_rls_policy_id: rlsPolicyId },
+          orderBy: {
+            order: 'asc',
+          },
+        },
+      );
+      await NocoCache.setList(
+        context,
+        CacheScope.FILTER_EXP,
+        [FilterCacheScope.RLS_POLICY, rlsPolicyId],
         filterObjs,
       );
     }
@@ -1242,5 +1401,72 @@ export default class Filter implements FilterType {
     _ncMeta = Noco.ncMeta,
   ) {
     return [];
+  }
+
+  static async allButtonFilterList(
+    context: NcContext,
+    { buttonColId }: { buttonColId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
+    const cachedList = await NocoCache.getList(context, CacheScope.FILTER_EXP, [
+      FilterCacheScope.BUTTON_COLUMN,
+      buttonColId,
+    ]);
+    let { list: filterObjs } = cachedList;
+    const { isNoneList } = cachedList;
+
+    if (!isNoneList && !filterObjs.length) {
+      filterObjs = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.FILTER_EXP,
+        {
+          condition: { fk_button_col_id: buttonColId },
+        },
+      );
+      await NocoCache.setList(
+        context,
+        CacheScope.FILTER_EXP,
+        [FilterCacheScope.BUTTON_COLUMN, buttonColId],
+        filterObjs,
+      );
+    }
+
+    return filterObjs?.map((f) => this.castType(f)) || [];
+  }
+
+  static async rootFilterListByButtonColumn(
+    _context: NcContext,
+    { buttonColId: _buttonColId }: { buttonColId: string },
+    _ncMeta = Noco.ncMeta,
+  ) {
+    return [];
+  }
+
+  static async deleteAllByButtonColumn(
+    context: NcContext,
+    buttonColId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const filter = await this.getFilterObject(context, { buttonColId }, ncMeta);
+
+    const deleteRecursively = async (filter) => {
+      if (!filter) return;
+      for (const f of filter?.children || []) await deleteRecursively(f);
+      if (filter.id) {
+        await ncMeta.metaDelete(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.FILTER_EXP,
+          filter.id,
+        );
+        await NocoCache.deepDel(
+          context,
+          `${CacheScope.FILTER_EXP}:${filter.id}`,
+          CacheDelDirection.CHILD_TO_PARENT,
+        );
+      }
+    };
+    await deleteRecursively(filter);
   }
 }

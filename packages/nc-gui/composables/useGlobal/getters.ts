@@ -26,5 +26,9 @@ export function useGlobalGetters(state: State): Getters {
     set: (_loading) => (loading.value = _loading),
   })
 
-  return { signedIn, isLoading, isSsoUser }
+  const getResponsiveValue = <T>(mobile: T, desktop: T): T => {
+    return state.isMobileMode.value ? mobile : desktop
+  }
+
+  return { signedIn, isLoading, isSsoUser, getResponsiveValue }
 }

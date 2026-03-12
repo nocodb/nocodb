@@ -44,6 +44,7 @@ import {
   Source,
   SyncSource,
   View,
+  ViewSection,
   Widget,
   Workspace,
 } from '~/models';
@@ -159,6 +160,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const sharedViewUuid = params.sharedViewUuid || query.sharedViewUuid;
       const sharedBaseUuid = params.sharedBaseUuid || query.sharedBaseUuid;
       const hookId = params.hookId || query.hookId;
+      const buttonColId = params.buttonColId || query.buttonColId;
       const rowColorConditionId =
         params.rowColorConditionId || query.rowColorConditionId;
       const gridViewColumnId =
@@ -171,6 +173,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const filterId = params.filterId || query.filterId;
       const filterParentId = params.filterParentId || query.filterParentId;
       const widgetId = params.widgetId || query.widgetId;
+      const sectionId = params.sectionId || query.sectionId;
       const sortId = params.sortId || query.sortId;
       const syncId = params.syncId || query.syncId;
       const extensionId = params.extensionId || query.extensionId;
@@ -272,6 +275,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = hook.source_id;
+      } else if (buttonColId) {
+        const column = await Column.get(context, { colId: buttonColId });
+
+        if (!column) {
+          NcError.get(context).fieldNotFound(buttonColId);
+        }
+
+        req.ncSourceId = column.source_id;
       } else if (rowColorConditionId) {
         const rowColorCondition = await RowColorCondition.getById(
           context,
@@ -370,6 +381,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         if (!widget) {
           NcError.genericNotFound('Widget', widgetId);
         }
+      } else if (sectionId) {
+        const section = await ViewSection.get(context, sectionId);
+
+        if (!section) {
+          NcError.viewSectionNotFound(sectionId);
+        }
+
+        req.ncSourceId = section.source_id;
       } else if (sortId) {
         const sort = await Sort.get(context, sortId);
 
@@ -725,6 +744,19 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
 
       req.ncBaseId = widget.base_id;
+    } else if (params.sectionId) {
+      const section = await ViewSection.get(context, params.sectionId);
+
+      if (!section) {
+        NcError.viewSectionNotFound(params.sectionId);
+      }
+
+      req.ncBaseId = section.base_id;
+      req.ncSourceId = section.source_id;
+
+      if (section.fk_model_id) {
+        tableIdToCheck = section.fk_model_id;
+      }
     } else if (params.sortId) {
       const sort = await Sort.get(context, params.sortId);
 
@@ -1047,22 +1079,12 @@ export class AclMiddleware implements NestInterceptor {
       NcError.forbidden('Unauthorized access');
     }
 
-    const userScopeRole =
-      req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
-        ? OrgUserRoles.SUPER_ADMIN
-        : getUserRoleForScope(req.user, scope);
+    const userScopeRole = getUserRoleForScope(req.user, scope);
     // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
     const extendedScopeRoles =
       extendedScope && getUserRoleForScope(req.user, extendedScope);
     if (!userScopeRole && !extendedScopeRoles) {
       NcError.forbidden('Unauthorized access');
-    }
-
-    // assign owner role to super admin for all bases
-    if (userScopeRole === OrgUserRoles.SUPER_ADMIN) {
-      req.user.base_roles = {
-        [ProjectRoles.OWNER]: true,
-      };
     }
 
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);

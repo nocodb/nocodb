@@ -41,9 +41,10 @@ export class McpPostOperations
           context,
           payload.tokenId,
           payload,
+          req,
         );
       case 'mcpDelete':
-        return await this.mcpService.delete(context, payload.tokenId);
+        return await this.mcpService.delete(context, payload.tokenId, req);
     }
   }
 }

@@ -529,6 +529,10 @@ export function useGridViewData(
               ...row.row,
               ...newRow,
             }
+            // Mark row as hidden if it moved out of user's RLS scope after update
+            if (newRow.__nc_rls_hidden) {
+              row.rowMeta.isRlsHidden = true
+            }
             dataCache.cachedRows.value.set(rowIndex, row)
           }
         }

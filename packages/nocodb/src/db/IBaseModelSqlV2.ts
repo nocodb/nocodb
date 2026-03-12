@@ -18,6 +18,10 @@ import type {
 import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, Filter, Model, Sort, Source, View } from '~/models';
+import type {
+  NestedLinkAuditEntry,
+  NestedLinkLastModifiedEntry,
+} from '~/db/BaseModelSqlv2/nested-link-preparator';
 
 export interface IBaseModelSqlV2 {
   context: NcContext;
@@ -92,6 +96,9 @@ export interface IBaseModelSqlV2 {
   readOnlyPrimariesByPkFromModel(
     props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
   ): Promise<any[]>;
+  fetchDisplayValueMap(
+    props: { model: Model; id: any }[],
+  ): Promise<Map<string, any>>;
   extractPksValues(data: any, asString?: boolean): any;
   readByPk(
     id?: any,
@@ -266,7 +273,8 @@ export interface IBaseModelSqlV2 {
   }): Promise<{
     postInsertOps: ((rowId: any) => Promise<string>)[];
     preInsertOps: (() => Promise<string>)[];
-    postInsertAuditOps: ((rowId: any) => Promise<void>)[];
+    postInsertAuditEntries: NestedLinkAuditEntry[];
+    postInsertLastModifiedEntries: NestedLinkLastModifiedEntry[];
   }>;
 
   handleValidateBulkInsert(
@@ -326,6 +334,7 @@ export interface IBaseModelSqlV2 {
     chunkSize?: number;
     apiVersion?: NcApiVersion;
     args?: any;
+    extractOnlyPrimaries?: boolean;
   }): Promise<any[]>;
 
   list(
@@ -361,8 +370,12 @@ export interface IBaseModelSqlV2 {
     alias?: string;
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
+    linksAsLtar?: boolean;
   }): Promise<void>;
-  getProto(param?: { apiVersion?: NcApiVersion }): Promise<
+  getProto(param?: {
+    apiVersion?: NcApiVersion;
+    linksAsLtar?: boolean;
+  }): Promise<
     {
       __proto__?: {
         __columnAliases?: {
@@ -400,4 +413,12 @@ export interface IBaseModelSqlV2 {
     isPg: boolean;
     isMySQL: boolean;
   };
+
+  /**
+   * Set to true when a formula dry-run fails during validateFormula.
+   * Subsequent dry-runs on the same instance short-circuit immediately
+   * to avoid amplifying requests to an overwhelmed external source.
+   */
+  formulaDryRunFailed?: boolean;
+  getRlsConditions(): Promise<Filter[]>;
 }

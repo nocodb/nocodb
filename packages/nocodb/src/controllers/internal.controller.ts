@@ -26,7 +26,13 @@ import {
   InternalGETResponseType,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
-import { Filter, GridViewColumn, Sort, View } from '~/models';
+import {
+  Filter,
+  GridViewColumn,
+  Sort,
+  TimelineViewColumn,
+  View,
+} from '~/models';
 import { RootScopes } from '~/utils/globals';
 
 @Controller()
@@ -81,6 +87,8 @@ export class InternalController {
       'kanbanViewUpdate',
       'mapViewUpdate',
       'calendarViewUpdate',
+      'timelineViewUpdate',
+      'timelineColumnUpdate',
       'viewRowColorConditionAdd',
       'viewRowColorConditionUpdate',
       'viewRowColorConditionDelete',
@@ -123,6 +131,14 @@ export class InternalController {
         );
         if (gridCol?.fk_view_id) {
           view = await View.get(bypassContext, gridCol.fk_view_id);
+        }
+      } else if (req.query.timelineViewColumnId) {
+        const timelineCol = await TimelineViewColumn.get(
+          bypassContext,
+          req.query.timelineViewColumnId as string,
+        );
+        if (timelineCol?.fk_view_id) {
+          view = await View.get(bypassContext, timelineCol.fk_view_id);
         }
       }
 

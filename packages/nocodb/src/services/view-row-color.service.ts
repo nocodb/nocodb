@@ -23,7 +23,9 @@ export class ViewRowColorService {
     fk_view_id?: string;
     color: string;
     is_set_as_background: boolean;
+    type?: string;
     nc_order: number;
+    fk_target_column_id?: string;
     filter: FilterType;
     ncMeta?: MetaService;
   }): Promise<{
@@ -39,7 +41,9 @@ export class ViewRowColorService {
     fk_row_coloring_conditions_id: string;
     color: string;
     is_set_as_background: boolean;
+    type?: string;
     nc_order: number;
+    fk_target_column_id?: string;
     ncMeta?: MetaService;
   }) {}
 

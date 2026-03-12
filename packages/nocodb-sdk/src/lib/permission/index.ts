@@ -1,5 +1,7 @@
 import { ProjectRoles, WorkspaceUserRoles } from '../enums';
 
+export type SubjectHierarchyScope = 'self_only' | 'self_and_descendants';
+
 export enum PermissionKey {
   TABLE_VISIBILITY = 'TABLE_VISIBILITY',
   TABLE_RECORD_ADD = 'TABLE_RECORD_ADD',

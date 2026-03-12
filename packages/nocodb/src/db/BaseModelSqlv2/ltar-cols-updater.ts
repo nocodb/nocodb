@@ -1,4 +1,4 @@
-import { isLinksOrLTAR, RelationTypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, isMMOrMMLike, RelationTypes } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -48,7 +48,7 @@ export const LTARColsUpdater = (param: {
           let existingLinks = [];
 
           profiler.log(`${col.colOptions.type} list start`);
-          if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
+          if (isMMOrMMLike(col)) {
             existingLinks = await trxBaseModel.mmList({
               colId: col.id,
               parentId: rowId,
@@ -145,18 +145,14 @@ export const LTARColsUpdater = (param: {
     trx: CustomKnex;
     cookie: any;
   }) => {
-    const promises: Promise<any>[] = [];
     for (const each of linkDataPayload.data) {
-      promises.push(
-        addOrRemoveLinks(baseModel).addLinks({
-          cookie,
-          childIds: each.links,
-          colId: col.id,
-          rowId: each.rowId,
-        }),
-      );
+      await addOrRemoveLinks(baseModel).addLinks({
+        cookie,
+        childIds: each.links,
+        colId: col.id,
+        rowId: each.rowId,
+      });
     }
-    return Promise.all(promises);
   };
   return {
     updateLTARCols: update,

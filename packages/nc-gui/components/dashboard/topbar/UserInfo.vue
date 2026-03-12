@@ -15,8 +15,6 @@ const isAuthTokenCopied = ref(false)
 
 const isLoggingOut = ref(false)
 
-const { isUIAllowed } = useRoles()
-
 const logout = async () => {
   isLoggingOut.value = true
   try {
@@ -52,9 +50,7 @@ onMounted(() => {
   isMounted.value = true
 })
 
-const accountUrl = computed(() => {
-  return isUIAllowed('superAdminSetup') && !isEeUI ? '/account/setup' : '/account/profile'
-})
+const accountUrl = computed(() => '/account/profile')
 </script>
 
 <template>

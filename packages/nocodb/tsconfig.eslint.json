@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "paths": {
+      "src/*": ["src/*"],
+      "~/*": ["src/*"],
+      "@/*": ["src/*"],
+      "@noco-local-integrations/*": ["../noco-integrations/packages/*"],
+      "@noco-local-integrations/core": ["../noco-integrations/core"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]
+}

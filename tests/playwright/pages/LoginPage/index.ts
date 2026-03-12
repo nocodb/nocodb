@@ -16,7 +16,7 @@ export class LoginPage extends BasePage {
   }
 
   async goto() {
-    return this.rootPage.goto('/#/signin');
+    return this.rootPage.goto('/signin');
   }
 
   get() {

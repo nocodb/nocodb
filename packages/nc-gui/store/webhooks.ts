@@ -212,6 +212,10 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     return hook
   }
 
+  // Used for deep-linking to a specific webhook from email notifications
+  const pendingDeepLinkHookId = ref<string | null>(null)
+  const pendingDeepLinkHookTab = ref<string | null>(null)
+
   return {
     hooks,
     loadHooksList,
@@ -220,6 +224,8 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     saveHooks,
     isHooksLoading,
     hasV2Webhooks,
+    pendingDeepLinkHookId,
+    pendingDeepLinkHookTab,
   }
 })
 

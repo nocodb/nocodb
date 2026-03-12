@@ -15,6 +15,7 @@ export const UNIQUE_CONSTRAINT_SUPPORTED_TYPES = [
   UITypes.Date,
   UITypes.DateTime,
   UITypes.Time,
+  UITypes.UUID,
 ];
 
 /**

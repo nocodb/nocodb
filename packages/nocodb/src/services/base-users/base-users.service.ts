@@ -28,6 +28,7 @@ import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
+import { ensureUserInDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
@@ -95,7 +96,8 @@ export class BaseUsersService {
     const emails = (param.baseUser.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim());
+      .map((v) => v.trim())
+      .filter(Boolean);
 
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));
@@ -122,8 +124,8 @@ export class BaseUsersService {
     }
 
     for (const email of emails) {
-      // add user to base if user already exist
-      const user = await User.getByEmail(email, ncMeta);
+      // add user to base if user already exist (canonical lookup handles alias variants)
+      const user = await User.getByCanonicalEmail(email, ncMeta);
 
       const base = await Base.get(context, param.baseId, ncMeta);
 
@@ -276,6 +278,14 @@ export class BaseUsersService {
             ncMeta,
           );
 
+          // Ensure user exists in default workspace with NO_ACCESS —
+          // role management happens at workspace or base level
+          await ensureUserInDefaultWorkspace(
+            user.id,
+            WorkspaceUserRoles.NO_ACCESS,
+            ncMeta,
+          );
+
           // add user to base
           await BaseUser.insert(
             context,
@@ -425,7 +435,6 @@ export class BaseUsersService {
       {
         user,
         baseId: param.baseId,
-        workspaceId: base.fk_workspace_id,
       },
       ncMeta,
     );
@@ -536,6 +545,12 @@ export class BaseUsersService {
    * This considers both base roles and workspace roles.
    */
   protected isOldRoleIsOwner(targetUser, base: Base) {
+    // Super admins get OWNER via override, not from an actual base role —
+    // don't treat them as a real base owner for the single-owner guard
+    if (extractRolesObj(targetUser.roles)?.[OrgUserRoles.SUPER_ADMIN]) {
+      return false;
+    }
+
     // Check if a base role is defined and if it includes the OWNER role.
     if (targetUser.base_roles) {
       const baseRole = getProjectRole(targetUser);

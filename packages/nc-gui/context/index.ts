@@ -17,11 +17,13 @@ export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Sy
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
 export const IsCalendarInj: InjectionKey<Ref<boolean>> = Symbol('is-calendar-injection')
+export const IsTimelineInj: InjectionKey<Ref<boolean>> = Symbol('is-timeline-injection')
 export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')
 export const IsGridInj: InjectionKey<Ref<boolean>> = Symbol('is-grid-injection')
 export const IsGroupByInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-injection')
 export const IsGroupByLabelInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-label-injection')
 export const IsGalleryInj: InjectionKey<Ref<boolean>> = Symbol('is-gallery-injection')
+export const IsListInj: InjectionKey<Ref<boolean>> = Symbol('is-list-injection')
 export const IsKanbanInj: InjectionKey<Ref<boolean>> = Symbol('is-kanban-injection')
 export const IsDashboardInj: InjectionKey<Ref<boolean>> = Symbol('is-dashboard-injection')
 export const IsLockedInj: InjectionKey<Ref<boolean>> = Symbol('is-locked-injection')
@@ -150,8 +152,21 @@ export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | Comp
 
 export const IsOrgBillingInj: InjectionKey<Ref<boolean>> = Symbol('is-org-billing-injection')
 
+export const IsTemplateModeInj: InjectionKey<Ref<boolean>> = Symbol('is-template-mode-injection')
+
+export const BlueprintParentTableIdInj: InjectionKey<Ref<string | undefined>> = Symbol('blueprint-parent-table-id-injection')
+
+/** Breadcrumb trail for nested sub-record forms (e.g., ['Project Template', 'Tasks']) */
+export const TemplateBreadcrumbsInj: InjectionKey<Ref<string[]>> = Symbol('template-breadcrumbs-injection')
+
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]
   getAvailableVariables: (nodeId: string) => Array<{ nodeId: string; nodeTitle: string; variables: any[] }>
 }> = Symbol('workflow-variable-injection')
+
+export const IsWsBaseListModalInj: InjectionKey<Ref<boolean>> = Symbol('is-ws-base-list-modal-injection')
+
+export const IsSettingsSidebarInj: InjectionKey<Ref<boolean>> = Symbol('is-settings-sidebar-injection')
+
+export const DocIdInj: InjectionKey<Ref<string>> = Symbol('doc-id-injection')

@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, ViewLockType, ViewSettingOverrideOptions, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import {
+  RelationTypes,
+  UITypes,
+  ViewLockType,
+  ViewSettingOverrideOptions,
+  ViewTypes,
+  isLinksOrLTAR,
+  isSystemColumn,
+} from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
@@ -162,11 +170,11 @@ const saveGroupBy = async () => {
 
     $e('a:group-by:update', { groupBy: _groupBy.value, local: true })
 
-    // When transitioning from grouped to non-grouped, wait for Vue to unmount
-    // the grouped component and mount the normal grid before emitting reload
-    if (newLocalGroupBy.length === 0) {
-      await nextTick()
-    }
+    // Wait for Vue to propagate localGroupBy changes through the component tree
+    // so that child components (e.g. CanvasTable) have updated props before the
+    // reload handler runs. Without this, the canvas handler sees stale isGroupBy
+    // state and takes the wrong (non-grouped) code path.
+    await nextTick()
 
     eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
   }
@@ -262,7 +270,6 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
     v-model:visible="open"
     offset-y
     :trigger="['click']"
-    class="!xs:hidden"
     overlay-class-name="nc-dropdown-group-by-menu nc-toolbar-dropdown overflow-hidden"
   >
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode" :class="{ 'nc-active-btn': groupedByColumnIds?.length }">
@@ -309,7 +316,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
         <!-- Group-by list -->
         <div
           v-else-if="_groupBy.length || syncedGroupByEntries.length"
-          class="flex flex-col bg-nc-bg-default overflow-auto nc-group-by-list menu-filter-dropdown w-100 p-4"
+          class="flex flex-col bg-nc-bg-default overflow-auto nc-group-by-list menu-filter-dropdown sm:w-100 p-4"
           data-testid="nc-group-by-menu"
         >
           <div class="max-h-100" @click.stop>
@@ -409,7 +416,12 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           <!-- Add Sub Group button -->
           <div v-if="!isPersonalViewNonOwner" class="flex items-center justify-between mt-2 empty:hidden">
             <NcDropdown
-              v-if="availableColumns.length && fieldsToGroupBy.length > totalGroupByCount && totalGroupByCount < groupByLimit"
+              v-if="
+                availableColumns.length &&
+                fieldsToGroupBy.length > totalGroupByCount &&
+                totalGroupByCount < groupByLimit &&
+                !(view?.type === ViewTypes.TIMELINE && totalGroupByCount >= 1)
+              "
               v-model:visible="showCreateGroupBy"
               :trigger="['click']"
               overlay-class-name="nc-toolbar-dropdown"

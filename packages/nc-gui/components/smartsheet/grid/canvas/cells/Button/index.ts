@@ -25,6 +25,7 @@ export const ButtonCellRenderer: CellRenderer = {
       allowLocalUrl,
       cellRenderStore,
       t,
+      rowMeta,
     } = props
 
     const isQueued = actionManager.isQueued(pk, column.id!)
@@ -32,20 +33,19 @@ export const ButtonCellRenderer: CellRenderer = {
     const isLoading = actionManager.isLoading(pk, column.id!)
     const afterActionStatus = actionManager.getAfterActionStatus(pk, column.id!)
 
-    if (afterActionStatus?.tooltip) {
-      Object.assign(cellRenderStore, {
-        invalidUrlTooltip: afterActionStatus.tooltip,
-      })
-    } else {
-      Object.assign(cellRenderStore, {
-        invalidUrlTooltip: '',
-      })
-    }
+    const colOptions = column.colOptions as ButtonType
+    const filterDisabled = !!rowMeta?.buttonDisabled?.[column.id!]
 
-    let disabledState = isLoading || disabled?.isInvalid || isQueued
+    cellRenderStore.filterDisabled = filterDisabled
+    cellRenderStore.invalidUrlTooltip = afterActionStatus?.tooltip
+      ? afterActionStatus.tooltip
+      : filterDisabled
+      ? t('msg.buttonConditionNotMet')
+      : ''
+
+    let disabledState = isLoading || disabled?.isInvalid || isQueued || filterDisabled
     ctx.textAlign = 'left'
 
-    const colOptions = column.colOptions as ButtonType
     if (!colOptions) return
 
     const buttonMeta = {
@@ -66,16 +66,18 @@ export const ButtonCellRenderer: CellRenderer = {
         url = encodeURI(url)
       }
 
-      disabledState = !(
+      const urlInvalid = !(
         url &&
         isValidURL(url, {
           require_tld: !allowLocalUrl,
         })
       )
 
-      Object.assign(cellRenderStore, {
-        invalidUrlTooltip: disabledState ? t('msg.error.invalidURL') : '',
-      })
+      disabledState = disabledState || urlInvalid
+
+      if (urlInvalid) {
+        cellRenderStore.invalidUrlTooltip = t('msg.error.invalidURL')
+      }
     }
 
     const hasIcon = !!buttonMeta.icon || isLoading || afterActionStatus
@@ -175,10 +177,12 @@ export const ButtonCellRenderer: CellRenderer = {
       ctx.globalAlpha = 1
     }
   },
-  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path, allowLocalUrl }) {
+  async handleClick({ mousePosition, column, row, pk, actionManager, getCellPosition, path, allowLocalUrl, cellRenderStore }) {
     const isLoading = actionManager.isLoading(pk, column.id!)
 
     if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || isLoading) return false
+
+    if (cellRenderStore?.filterDisabled) return false
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
 
@@ -244,7 +248,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const isInvalid = column?.isInvalidColumn?.isInvalid
     const ignoreTooltip = column?.isInvalidColumn?.ignoreTooltip
 
-    if (!cellRenderStore.invalidUrlTooltip && (!isInvalid || ignoreTooltip)) return
+    if (!cellRenderStore.invalidUrlTooltip && !cellRenderStore?.filterDisabled && (!isInvalid || ignoreTooltip)) return
 
     const colOptions = column.columnObj?.colOptions as ButtonType
 
@@ -260,7 +264,7 @@ export const ButtonCellRenderer: CellRenderer = {
     const hasIcon = !!buttonMeta.icon
     const hasLabel = !!buttonMeta.label
 
-    if (!hasLabel) return
+    if (!hasLabel && !cellRenderStore?.filterDisabled) return
     let contentWidth = 0
     let labelWidth = 0
     const maxButtonWidth = width - 8
@@ -294,11 +298,13 @@ export const ButtonCellRenderer: CellRenderer = {
     tryShowTooltip({ rect: box, mousePosition, text: tooltip })
   },
   async handleKeyDown(ctx) {
-    const { e, row, column, actionManager, pk, path, allowLocalUrl } = ctx
+    const { e, row, column, actionManager, pk, path, allowLocalUrl, cellRenderStore } = ctx
     if (e.key === 'Enter') {
       const isLoading = actionManager.isLoading(pk, column.id!)
 
       if (column.readonly || column.columnObj?.readonly || isLoading) return false
+
+      if (cellRenderStore?.filterDisabled) return false
 
       await actionManager.executeButtonAction([pk], column, { row: [row], path, allowLocalUrl })
       return true

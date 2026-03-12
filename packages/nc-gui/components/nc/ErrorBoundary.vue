@@ -29,8 +29,7 @@ export default {
 
     const navigateToHome = () => {
       error.value = null
-      location.hash = '/'
-      location.reload()
+      window.location.href = '/'
     }
 
     const close = () => {

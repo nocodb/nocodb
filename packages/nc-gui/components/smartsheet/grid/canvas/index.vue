@@ -250,8 +250,10 @@ const { height: windowHeight, width: windowWidth } = useWindowSize()
 const { aggregations, loadViewAggregate } = useViewAggregateOrThrow()
 const { isDataReadOnly, isUIAllowed, isMetaReadOnly } = useRoles()
 const { isMobileMode, isAddNewRecordGridMode, setAddNewRecordGridMode, appInfo } = useGlobal()
+const { selectedTemplate } = useRecordTemplate()
+const { base } = storeToRefs(useBase())
 const route = useRoute()
-const { $e } = useNuxtApp()
+const { $e, $api } = useNuxtApp()
 const { t } = useI18n()
 const tooltipStore = useTooltipStore()
 const { targetReference, placement } = storeToRefs(tooltipStore)
@@ -285,6 +287,7 @@ const {
   findColumnIndex,
   canvasRef,
   triggerRefreshCanvas,
+  renderCanvasDirect,
   resizeableColumn,
   resizeMouseMove,
   isDragging,
@@ -402,6 +405,27 @@ const {
   fetchMissingGroupChunks,
   getDataCache,
 })
+
+// File drop to create records
+const showFileDropZone = ref(false)
+const dragFileCount = ref(0)
+
+const {
+  isProcessing: isFileDropProcessing,
+  showFieldSelectDlg,
+  pendingFiles: pendingDropFiles,
+  attachmentFields,
+  handleFileDrop,
+  onFieldSelected,
+  onFieldSelectCancelled,
+} = useFileDropToCreateRecords({
+  meta,
+  callAddEmptyRow,
+  updateOrSaveRow,
+})
+
+/** Whether the table has attachment fields and data editing is allowed — gates the file drop zone */
+const canDropFilesToCreateRecords = computed(() => isDataEditAllowed.value && attachmentFields.value.length > 0)
 
 const activeCursor = ref<CursorType>('auto')
 
@@ -709,7 +733,7 @@ function onActiveCellChanged() {
     }
   }
   calculateSlices()
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 }
 
 const onNewRecordToGridClick = (path: Array<number> = []) => {
@@ -742,6 +766,36 @@ function onNewRecordToFormClick(path: Array<number> = []) {
   openNewRecordFormHook.trigger({ overwrite, path })
   openAddNewRowDropdown.value = null
   isDropdownVisible.value = false
+}
+
+function onOpenTemplateManager() {
+  openAddNewRowDropdown.value = null
+  isDropdownVisible.value = false
+  const { openManager } = useRecordTemplate()
+  openManager()
+}
+
+/** Create a record using the currently selected template (delegates to shared utility) */
+async function onSelectedTemplateClick() {
+  const tmpl = selectedTemplate.value
+  if (!tmpl || !base.value?.id || !meta.value?.id) return
+
+  try {
+    await createRecordFromTemplate({
+      tmpl,
+      api: $api,
+      baseId: base.value.id,
+      tableId: meta.value.id,
+      columns: (meta.value.columns || []) as ColumnType[],
+      getMeta,
+    })
+
+    message.toast('Record created from template')
+    reloadViewDataHook?.trigger()
+  } catch (e: any) {
+    console.error(e)
+    message.toast(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 const onVisibilityChange = (value: boolean) => {
@@ -942,7 +996,7 @@ const handleRowMetaClick = ({
       break
   }
 
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 }
 
 const handleUnlockView = () => {
@@ -1050,14 +1104,14 @@ async function handleMouseDown(e: MouseEvent) {
           // If the user is not trying to resize column, we will check if the user is trying to drag the column
           // If the user is trying to drag the column, we will set the isDragging to true
           startDrag(e.clientX - rect.left)
-          requestAnimationFrame(triggerRefreshCanvas)
+          triggerRefreshCanvas()
         }
       })
     } else {
       if (isContextMenuAllowed.value && vSelectedAllRecords.value) {
         // Set the context Menu Targer and return
         contextMenuTarget.value = { row: 0, col: -1, path: [] }
-        requestAnimationFrame(triggerRefreshCanvas)
+        triggerRefreshCanvas()
       }
       return
     }
@@ -1136,7 +1190,7 @@ async function handleMouseDown(e: MouseEvent) {
     if (isContextMenuAllowed.value) {
       // Set the context Menu Target and return
       contextMenuTarget.value = { row: rowIndex, col: columnIndex, path: groupPath }
-      requestAnimationFrame(triggerRefreshCanvas)
+      triggerRefreshCanvas()
     }
     return
   }
@@ -1147,7 +1201,7 @@ async function handleMouseDown(e: MouseEvent) {
     onMouseDownSelectionHandler(e)
   }
 
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 }
 
 const PADDING_BOTTOM = 96
@@ -1253,7 +1307,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     if (y <= headerRowHeight.value || y > height.value - 36 || x <= rowMetaColumnWidth.value) {
       // DO_NOTHING_HERE
     } else {
-      requestAnimationFrame(triggerRefreshCanvas)
+      triggerRefreshCanvas()
       return
     }
   }
@@ -1276,9 +1330,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
         expandForm(row, undefined, false, group?.path)
       }
-      requestAnimationFrame(triggerRefreshCanvas)
-      return
-    } else if (y < headerRowHeight.value) {
+      triggerRefreshCanvas()
       return
     }
   }
@@ -1297,7 +1349,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         resetActiveCell()
       }
 
-      requestAnimationFrame(triggerRefreshCanvas)
+      triggerRefreshCanvas()
       return
     } else {
       // If x more than 80px, check if the user is trying to add a new column
@@ -1321,7 +1373,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           position: 'fixed',
         }
         isDropdownVisible.value = true
-        requestAnimationFrame(triggerRefreshCanvas)
+        triggerRefreshCanvas()
         return
       }
 
@@ -1344,7 +1396,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             height: `${headerRowHeight.value}px`,
             position: 'fixed',
           }
-          requestAnimationFrame(triggerRefreshCanvas)
+          triggerRefreshCanvas()
           return
         } else {
           const rightPadding = 8
@@ -1378,7 +1430,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             openColumnDropdownField.value = clickedColumn.columnObj
             lastOpenColumnDropdownField.value = clickedColumn.columnObj
             isDropdownVisible.value = true
-            requestAnimationFrame(triggerRefreshCanvas)
+            triggerRefreshCanvas()
             return
           }
           // If the user clicked on a column, check if the user is trying to edit the column
@@ -1396,7 +1448,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
             activeCell.value = { row: -1, column: -1, path: activeCell.value?.path ?? [] }
 
-            requestAnimationFrame(triggerRefreshCanvas)
+            triggerRefreshCanvas()
             return
           } else if (!isGroupBy.value && x < xOffset + columnWidth - 20 - (clickedColumn.columnObj?.description ? 24 : 0)) {
             const colIndex = columns.value.findIndex((col) => col.id === clickedColumn.id)
@@ -1413,11 +1465,11 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
 
             activeCell.value = { row: 0, column: colIndex, path: [] }
             onActiveCellChanged()
-            requestAnimationFrame(triggerRefreshCanvas)
+            triggerRefreshCanvas()
           }
         }
       }
-      requestAnimationFrame(triggerRefreshCanvas)
+      triggerRefreshCanvas()
       return
     }
   }
@@ -1454,7 +1506,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         position: 'fixed',
       }
     }
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
     return
   }
 
@@ -1488,7 +1540,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             prevMenuState.openGroupContextMenuDropdown &&
             prevMenuState.openGroupContextMenuDropdown.path?.join(',') === group?.path?.join(',')
           ) {
-            requestAnimationFrame(triggerRefreshCanvas)
+            triggerRefreshCanvas()
 
             return
           }
@@ -1501,7 +1553,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             height: `36px`,
             position: 'fixed',
           }
-          requestAnimationFrame(triggerRefreshCanvas)
+          triggerRefreshCanvas()
           return
         }
         toggleExpand(group)
@@ -1525,7 +1577,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
         }
       }
     }
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
     return
   }
 
@@ -1553,7 +1605,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
           if (comparePath(prevMenuState.openAddNewRowDropdown, groupPath)) {
             isDropdownVisible.value = true
             openAddNewRowDropdown.value = []
-            requestAnimationFrame(triggerRefreshCanvas)
+            triggerRefreshCanvas()
             return
           }
 
@@ -1566,13 +1618,15 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
             height: `36px`,
             position: 'fixed',
           }
-          requestAnimationFrame(triggerRefreshCanvas)
+          triggerRefreshCanvas()
           return
         }
 
         const setGroup = getDefaultGroupData(group)
 
-        if (isAddNewRecordGridMode.value || !isGroupBy.value) {
+        if (selectedTemplate.value) {
+          onSelectedTemplateClick()
+        } else if (isAddNewRecordGridMode.value || !isGroupBy.value) {
           addEmptyRow(undefined, undefined, undefined, setGroup, groupPath)
         } else {
           openNewRecordHandler({ overwrite: setGroup, path: groupPath })
@@ -1580,20 +1634,24 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       } else {
         if (removeInlineAddRecord.value) return
 
-        await addEmptyRow()
+        if (selectedTemplate.value) {
+          await onSelectedTemplateClick()
+        } else {
+          await addEmptyRow()
+        }
       }
     }
     selection.value.clear()
     activeCell.value.row = rowIndex
     activeCell.value.column = 1
     activeCell.value.path = groupPath
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
     return
   } else if (rowIndex > dataCache.totalRows.value && !isGroupBy.value) {
     selection.value.clear()
     activeCell.value = { row: -1, column: -1, path: [] }
     onActiveCellChanged()
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
     return
   }
 
@@ -1608,7 +1666,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
       case MouseClickType.RIGHT_CLICK:
         if (isContextMenuAllowed.value) {
           contextMenuTarget.value = { row: rowIndex, col: -1, path: groupPath }
-          requestAnimationFrame(triggerRefreshCanvas)
+          triggerRefreshCanvas()
         }
         break
     }
@@ -1624,7 +1682,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     activeCell.value.row = -1
     activeCell.value.column = -1
     activeCell.value.path = []
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   }
 
   const { column: clickedColumn } = findClickedColumn(x, scrollLeft.value)
@@ -1636,7 +1694,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     activeCell.value.column = -1
     activeCell.value.path = []
     selection.value.clear()
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
     return
   }
   // If the user is not clicking on a row
@@ -1655,7 +1713,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     activeCell.value.row = rowIndex
     activeCell.value.column = colIndex
     activeCell.value.path = groupPath
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
     return
   }
 
@@ -1683,13 +1741,13 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     // Set the cell as selected
     selection.value.startRange({ row: rowIndex, col: colIndex })
     selection.value.endRange({ row: rowIndex, col: colIndex })
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
     return
   }
   if (!clickedColumn?.fixed) {
     scrollToCell()
   }
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
   const columnUIType = clickedColumn.columnObj.uidt as UITypes
 
   // If the cell is editable, make the cell editable
@@ -1996,7 +2054,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
       cursor = mousePosition.x < totalColumnsWidth.value - scrollLeft.value ? 'pointer' : 'auto'
       setCursor(cursor)
-      requestAnimationFrame(triggerRefreshCanvas)
+      triggerRefreshCanvas()
       return
     } else {
       const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
@@ -2017,7 +2075,7 @@ const handleMouseMove = (e: MouseEvent) => {
 
       onMouseMoveSelectionHandler(e)
     }
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   }
   if (mousePosition.y > headerRowHeight.value) {
     const element = elementMap.findElementAt(mousePosition.x, mousePosition.y, [ElementTypes.ADD_NEW_ROW, ElementTypes.ROW])
@@ -2109,7 +2167,7 @@ const handleMouseMove = (e: MouseEvent) => {
         selectedRowInfo.isSelectionStarted = true
       }
 
-      requestAnimationFrame(triggerRefreshCanvas)
+      triggerRefreshCanvas()
     }
   }
 }
@@ -2124,7 +2182,7 @@ const handleMouseLeave = () => {
     rowIndex: -2,
   }
 
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 }
 
 const reloadViewDataHookHandler = withLoading(async (params) => {
@@ -2134,7 +2192,7 @@ const reloadViewDataHookHandler = withLoading(async (params) => {
       syncCount(params?.path)
       calculateSlices()
       editEnabled.value = null
-      requestAnimationFrame(triggerRefreshCanvas)
+      triggerRefreshCanvas()
       return
     }
 
@@ -2153,17 +2211,16 @@ const reloadViewDataHookHandler = withLoading(async (params) => {
 
   calculateSlices()
 
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 })
 
 let rafId: number | null = null
-let scrollTimeout: number | null = null
 
 const handleScroll = (e: { left: number; top: number }) => {
   if (rafId) cancelAnimationFrame(rafId)
-  if (scrollTimeout) clearTimeout(scrollTimeout)
 
   rafId = requestAnimationFrame(() => {
+    rafId = null
     scrollTop.value = Math.max(0, e.top)
     if (totalWidth.value < width.value) {
       scrollLeft.value = 0
@@ -2171,17 +2228,11 @@ const handleScroll = (e: { left: number; top: number }) => {
       scrollLeft.value = Math.max(0, e.left)
     }
     calculateSlices()
-    triggerRefreshCanvas()
+    // Render synchronously within this RAF callback to avoid 2-frame lag.
+    // triggerRefreshCanvas() would schedule ANOTHER RAF, deferring the paint
+    // to the next frame — causing visible frame skipping during fast scroll.
+    renderCanvasDirect()
   })
-
-  scrollTimeout = window.setTimeout(() => {
-    const rect = canvasRef.value?.getBoundingClientRect()
-    if (!rect) return
-
-    // TODO: @DarkPhoenix2704
-    // hoverRow.value = Math.floor(scrollTop.value / rowHeight.value + (mousePosition.y - headerRowHeight.value) / rowHeight.value)
-    requestAnimationFrame(triggerRefreshCanvas)
-  }, 150)
 }
 
 const triggerReload = () => {
@@ -2247,7 +2298,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
     isDropdownVisible.value = true
     isCreateOrEditColumnDropdownOpen.value = true
 
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   } else {
     const rect = canvasRef.value?.getBoundingClientRect()
     if (!rect) return
@@ -2267,7 +2318,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
     isDropdownVisible.value = true
     isCreateOrEditColumnDropdownOpen.value = true
 
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   }
 }
 
@@ -2327,7 +2378,7 @@ function openColumnCreate(data: any) {
     preloadColumn.value = data
     isDropdownVisible.value = true
     isCreateOrEditColumnDropdownOpen.value = true
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   }, 500)
 }
 
@@ -2354,7 +2405,7 @@ async function addEmptyRow(row?: number, skipUpdate = false, before?: string, ov
   }
 
   calculateSlices()
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 
   nextTick().then(() => {
     activeCell.value = { row: row ?? dataCache.totalRows.value - 1, column: contextMenuTarget.value?.col ?? 1, path }
@@ -2425,7 +2476,7 @@ const onNavigate = async (dir: NavigateDir) => {
   selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
   selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
 
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 
   nextTick(() => {
     scrollToCell(undefined, undefined, undefined, false)
@@ -2447,7 +2498,7 @@ const handleSendRecord = (rowId: string) => {
 watch([height, width, windowWidth, windowHeight], () => {
   nextTick(() => {
     calculateSlices()
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   })
 })
 
@@ -2462,14 +2513,14 @@ watch(totalHeight, (newHeight) => {
 // Watch for Rowheight Changes
 watch(rowHeight, () => {
   calculateSlices()
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 })
 
 // watch for column hide and re-render canvas
 watch([() => columns.value?.length, () => totalRows.value], () => {
   nextTick(() => {
     calculateSlices()
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   })
 })
 
@@ -2499,7 +2550,7 @@ function selectCell() {
   editEnabled.value = null
   selection.value.startRange({ row: activeCell.value.row, col: activeCell.value.column })
   selection.value.endRange({ row: activeCell.value.row, col: activeCell.value.column })
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 }
 
 reloadViewDataHook.on(reloadViewDataHookHandler)
@@ -2544,11 +2595,11 @@ const smartsheetEvents = async (event: SmartsheetStoreEvents, payload) => {
     activeCell.value.row = -1
     activeCell.value.column = -1
     removeRowIfNew(payload)
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   } else if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
     // This event is triggered when a field is updated
     calculateSlices()
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   }
 }
 
@@ -2571,7 +2622,7 @@ function resetActiveCell(path?: Array<number>, force = false) {
     isFillHandlerActive.value = false
     selection.value.clear()
     onActiveCellChanged()
-    requestAnimationFrame(triggerRefreshCanvas)
+    triggerRefreshCanvas()
   }
 }
 
@@ -2579,14 +2630,14 @@ function toggleGroupExpand(group: CanvasGroup) {
   toggleExpand(group)
   isDropdownVisible.value = false
   openGroupContextMenuDropdown.value = null
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 }
 
 const toggleGroupExpandAll = (path: number[], isExpand?: boolean) => {
   isDropdownVisible.value = false
   openGroupContextMenuDropdown.value = null
   toggleExpandAll(path, isExpand)
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 }
 
 onClickOutside(
@@ -2598,7 +2649,7 @@ onClickOutside(
       isExpandedCellInputExist() ||
       isLinkDropdownExist() ||
       isGeneralOverlayActive() ||
-      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown']))
+      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown', 'nc-colour-picker-modal']))
     ) {
       return
     }
@@ -2666,11 +2717,30 @@ const resetAttachmentCellDropOver = () => {
 
   attachmentCellDropOver.value = null
 
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 }
 
 const onDrop = (files: File[] | null) => {
-  if (!attachmentCellDropOver.value || !files?.length || !isDataEditAllowed.value) {
+  // Capture whether the bottom drop zone was showing before clearing it
+  const wasDropZoneVisible = showFileDropZone.value
+
+  showFileDropZone.value = false
+  dragFileCount.value = 0
+
+  if (!files?.length || !isDataEditAllowed.value) {
+    return
+  }
+
+  // If the bottom drop zone was visible, always create new records
+  if (wasDropZoneVisible && canDropFilesToCreateRecords.value) {
+    resetAttachmentCellDropOver()
+    handleFileDrop(Array.from(files))
+    return
+  }
+
+  // If no specific attachment cell is targeted, trigger new record creation
+  if (!attachmentCellDropOver.value) {
+    handleFileDrop(Array.from(files))
     return
   }
 
@@ -2708,6 +2778,10 @@ const onDrop = (files: File[] | null) => {
 const onOver = (_files: File[] | null, e: DragEvent) => {
   if (!isDataEditAllowed.value) return
 
+  if (e.dataTransfer?.items) {
+    dragFileCount.value = Array.from(e.dataTransfer.items).filter((item) => item.kind === 'file').length
+  }
+
   const rect = canvasRef.value?.getBoundingClientRect()
   if (!rect) return
 
@@ -2740,10 +2814,16 @@ const onOver = (_files: File[] | null, e: DragEvent) => {
 
   const colIndex = column ? columns.value.findIndex((col) => col.id === column.id) : -1
 
-  // If hover column is not attachment or is readonly, skip
+  // If hover column is not attachment or is readonly, show bottom drop zone instead
   if (ncIsUndefined(rowIndex) || !column || colIndex === -1 || column.uidt !== UITypes.Attachment || column.readonly) {
+    if (canDropFilesToCreateRecords.value) {
+      showFileDropZone.value = true
+    }
     return resetAttachmentCellDropOver()
   }
+
+  // Over a valid attachment cell — hide bottom drop zone so cell drop takes priority
+  showFileDropZone.value = false
 
   if (
     attachmentCellDropOver.value &&
@@ -2755,17 +2835,22 @@ const onOver = (_files: File[] | null, e: DragEvent) => {
 
   attachmentCellDropOver.value = { rowIndex, colIndex, columnId: column.id, path: groupPath }
 
-  requestAnimationFrame(triggerRefreshCanvas)
+  triggerRefreshCanvas()
 }
 
 useDropZone(canvasRef, {
   onDrop,
   onEnter: () => {
     resetAttachmentCellDropOver()
+    if (canDropFilesToCreateRecords.value) {
+      showFileDropZone.value = true
+    }
   },
   onOver,
   onLeave: () => {
     resetAttachmentCellDropOver()
+    showFileDropZone.value = false
+    dragFileCount.value = 0
   },
 })
 
@@ -2806,7 +2891,7 @@ watch(
 </script>
 
 <template>
-  <div ref="wrapperRef" class="w-full h-full">
+  <div ref="wrapperRef" class="w-full h-full relative">
     <div
       v-if="isBulkOperationInProgress"
       class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-nc-bg-default/30"
@@ -3013,6 +3098,7 @@ watch(
             :path="openAddNewRowDropdown"
             :on-new-record-to-grid-click="onNewRecordToGridClick"
             :on-new-record-to-form-click="onNewRecordToFormClick"
+            :on-open-template-manager="onOpenTemplateManager"
           />
           <GroupContextMenu
             v-else-if="openGroupContextMenuDropdown"
@@ -3081,7 +3167,13 @@ watch(
               </NcButton>
               <NcButton
                 v-else
-                v-e="[isAddNewRecordGridMode && !isGroupBy ? 'c:row:add:grid' : 'c:row:add:form']"
+                v-e="[
+                  selectedTemplate
+                    ? 'c:row:add:template'
+                    : isAddNewRecordGridMode && !isGroupBy
+                    ? 'c:row:add:grid'
+                    : 'c:row:add:form',
+                ]"
                 class="nc-grid-add-new-row"
                 size="small"
                 :class="{
@@ -3089,11 +3181,20 @@ watch(
                 }"
                 type="secondary"
                 :shadow="false"
-                @click.stop="isAddNewRecordGridMode && !isGroupBy ? addEmptyRow() : onNewRecordToFormClick()"
+                @click.stop="
+                  selectedTemplate
+                    ? onSelectedTemplateClick()
+                    : isAddNewRecordGridMode && !isGroupBy
+                    ? addEmptyRow()
+                    : onNewRecordToFormClick()
+                "
               >
                 <div data-testid="nc-pagination-add-record" class="flex items-center gap-2">
                   <GeneralIcon icon="plus" />
-                  <template v-if="isAddNewRecordGridMode || isGroupBy">
+                  <template v-if="selectedTemplate">
+                    {{ selectedTemplate.title }}
+                  </template>
+                  <template v-else-if="isAddNewRecordGridMode || isGroupBy">
                     {{ $t('activity.newRecord') }}
                   </template>
                   <template v-else> {{ $t('activity.newRecord') }} - {{ $t('objects.viewType.form') }}</template>
@@ -3115,15 +3216,29 @@ watch(
                 :path="openAddNewRowDropdown"
                 :on-new-record-to-grid-click="onNewRecordToGridClick"
                 :on-new-record-to-form-click="onNewRecordToFormClick"
+                :on-open-template-manager="onOpenTemplateManager"
               />
             </template>
           </NcDropdown>
         </template>
       </PermissionsTooltip>
     </div>
+    <SmartsheetGridCanvasComponentsFileDropZone
+      v-if="isEeUI"
+      :visible="showFileDropZone && canDropFilesToCreateRecords && !isFileDropProcessing"
+      :file-count="dragFileCount"
+    />
   </div>
 
   <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
+  <DlgAttachmentFieldSelect
+    v-if="isEeUI"
+    v-model="showFieldSelectDlg"
+    :table-id="meta?.id"
+    :file-count="pendingDropFiles.length"
+    @select="onFieldSelected"
+    @cancel="onFieldSelectCancelled"
+  />
 </template>
 
 <style scoped lang="scss">

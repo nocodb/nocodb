@@ -110,7 +110,11 @@ const queryFilterOpen = ref(false)
 const viewFilterOpen = ref(true)
 
 const smartsheetEventListener = async (event: string, payload?: any) => {
-  if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
+  if (
+    (event === SmartsheetStoreEvents.FILTER_RELOAD ||
+      validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload)) &&
+    activeView?.value?.id
+  ) {
     await loadFilters({
       hookId: undefined,
       isWebhook: false,
@@ -210,11 +214,7 @@ watch(
 </script>
 
 <template>
-  <NcDropdown
-    v-model:visible="open"
-    overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden"
-    class="!xs:hidden"
-  >
+  <NcDropdown v-model:visible="open" overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden">
     <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
       <template #title>
         {{ $t('activity.filter') }}

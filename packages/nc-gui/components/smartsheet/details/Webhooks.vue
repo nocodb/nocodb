@@ -11,7 +11,7 @@ const selectedHook = ref<undefined | HookType>()
 
 const webhooksStore = useWebhooksStore()
 
-const { hooks, isHooksLoading, hasV2Webhooks } = storeToRefs(webhooksStore)
+const { hooks, isHooksLoading, hasV2Webhooks, pendingDeepLinkHookId, pendingDeepLinkHookTab } = storeToRefs(webhooksStore)
 
 const { loadHooksList, deleteHook: _deleteHook, copyHook, saveHooks } = webhooksStore
 
@@ -133,19 +133,38 @@ const createWebhook = async () => {
   isWebhookModalOpen.value = true
 }
 
-const editHook = (hook: HookType) => {
+const initialHookTab = ref<string | undefined>()
+
+const editHook = (hook: HookType, tab?: string) => {
   selectedHook.value = hook
+  initialHookTab.value = tab
   isWebhookModalOpen.value = true
 }
 
 const onModalClose = () => {
   isWebhookModalOpen.value = false
   selectedHook.value = undefined
+  initialHookTab.value = undefined
 }
 
 onMounted(async () => {
   loadSorts()
 })
+
+watch(
+  () => hooks.value,
+  (hooksList) => {
+    if (!pendingDeepLinkHookId.value || !hooksList.length) return
+
+    const hook = hooksList.find((h) => h.id === pendingDeepLinkHookId.value)
+    if (hook && !isWebhookModalOpen.value) {
+      editHook(hook, pendingDeepLinkHookTab.value || undefined)
+    }
+    pendingDeepLinkHookId.value = null
+    pendingDeepLinkHookTab.value = null
+  },
+  { immediate: true },
+)
 
 const orderBy = computed<Record<string, SordDirectionType>>({
   get: () => {
@@ -496,6 +515,7 @@ const getHookTypeText = (hook: HookType) => {
           v-model:value="isWebhookModalOpen"
           :hook="selectedHook"
           :event-list="eventList"
+          :initial-tab="initialHookTab"
           @close="onModalClose"
         />
         <WebhookV2

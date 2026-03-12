@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
+import type { ColumnType, GalleryType, KanbanType, ListType, LookupType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
@@ -50,13 +50,19 @@ const {
   isLocalMode,
 } = useViewColumnsOrThrow()
 
-const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed, isList } = useSmartsheetStoreOrThrow()
 
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const isListConfigured = computed(
+  () => (listViewStore?.isConfigured.value ?? false) && (listViewStore?.levels.value?.length ?? 0) > 1,
+)
 const isFieldsMenuReadOnly = computed(() => {
   return isLocked.value || !isViewOperationsAllowed.value || (isLocalMode.value && hasViewFieldDataEditPermission.value)
 })
 
-const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
+const isAddingColumnAllowed = computed(
+  () => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value && !isMobileMode.value,
+)
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -83,7 +89,12 @@ onBeforeUnmount(() => {
 })
 
 const gridDisplayValueField = computed(() => {
-  if (activeView.value?.type !== ViewTypes.GRID && activeView.value?.type !== ViewTypes.CALENDAR) return null
+  if (
+    activeView.value?.type !== ViewTypes.GRID &&
+    activeView.value?.type !== ViewTypes.CALENDAR &&
+    activeView.value?.type !== ViewTypes.TIMELINE
+  )
+    return null
 
   const pvCol = Object.values(metaColumnById.value)?.find((col) => col?.pv)
 
@@ -91,9 +102,19 @@ const gridDisplayValueField = computed(() => {
 })
 
 const localFilteredFieldList = computed(() => {
-  return filteredFieldList.value.filter((el) =>
-    activeView.value?.type !== ViewTypes.CALENDAR ? el !== gridDisplayValueField.value : true,
+  let list = filteredFieldList.value.filter((el) =>
+    activeView.value?.type !== ViewTypes.CALENDAR && activeView.value?.type !== ViewTypes.TIMELINE
+      ? el !== gridDisplayValueField.value
+      : true,
   )
+
+  // For list view with levels configured, filter by selected level
+  if (isList.value && isListConfigured.value && listViewStore?.selectedLevelId.value) {
+    const levelId = listViewStore.selectedLevelId.value
+    list = list.filter((field: any) => field.fk_level_id === levelId)
+  }
+
+  return list
 })
 
 const onMove = async (_event: { moved: { newIndex: number; oldIndex: number } }, undo = false) => {
@@ -284,42 +305,51 @@ const coverImageObjectFit = computed({
   },
 })
 
+const getSelectedLevelId = () => {
+  if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevelId.value) {
+    return undefined
+  }
+  return listViewStore.selectedLevelId.value
+}
+
 const onShowAll = async () => {
+  const levelId = getSelectedLevelId()
   addUndo({
     undo: {
       fn: async () => {
-        await hideAll()
+        await hideAll(undefined, levelId)
       },
       args: [],
     },
     redo: {
       fn: async () => {
-        await showAll()
+        await showAll(undefined, levelId)
       },
       args: [],
     },
     scope: defineViewScope({ view: activeView.value }),
   })
-  await showAll()
+  await showAll(undefined, levelId)
 }
 
 const onHideAll = async () => {
+  const levelId = getSelectedLevelId()
   addUndo({
     undo: {
       fn: async () => {
-        await showAll()
+        await showAll(undefined, levelId)
       },
       args: [],
     },
     redo: {
       fn: async () => {
-        await hideAll()
+        await hideAll(undefined, levelId)
       },
       args: [],
     },
     scope: defineViewScope({ view: activeView.value }),
   })
-  await hideAll()
+  await hideAll(undefined, levelId)
 }
 
 const visibleFields = computed(
@@ -336,6 +366,13 @@ const visibleFields = computed(
       // hide system columns if not enabled
       if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
         return false
+      }
+
+      // For list view with levels, only include selected level's fields
+      if (isList.value && isListConfigured.value && listViewStore?.selectedLevelId.value) {
+        if (field.fk_level_id !== listViewStore.selectedLevelId.value) {
+          return false
+        }
       }
 
       return true
@@ -476,6 +513,72 @@ watch(
   },
 )
 
+const prefixColumnOptions = ref<SelectProps['options']>([])
+
+const allowedPrefixTypes = new Set([
+  UITypes.SingleSelect,
+  UITypes.User,
+  UITypes.Checkbox,
+  UITypes.CreatedBy,
+  UITypes.LastModifiedBy,
+])
+
+const updatePrefixColumn = async (val?: string | null) => {
+  if (activeView.value?.type === ViewTypes.LIST && activeView.value?.id && activeView.value?.view) {
+    await updateViewMeta(activeView.value.id, ViewTypes.LIST, {
+      fk_prefix_column_id: val,
+    })
+  }
+}
+
+const prefixColumnId = computed({
+  get: () => {
+    if (activeView.value?.type !== ViewTypes.LIST || !activeView.value?.view) return undefined
+
+    const fk_prefix_column_id = (activeView.value.view as ListType).fk_prefix_column_id
+
+    if (prefixColumnOptions.value?.find((o) => o.value === fk_prefix_column_id)) return fk_prefix_column_id
+    return fk_prefix_column_id === null ? null : undefined
+  },
+  set: async (val) => {
+    if (val !== prefixColumnId.value) {
+      addUndo({
+        undo: {
+          fn: updatePrefixColumn,
+          args: [prefixColumnId.value],
+        },
+        redo: {
+          fn: updatePrefixColumn,
+          args: [val],
+        },
+        scope: defineViewScope({ view: activeView.value }),
+      })
+
+      await updatePrefixColumn(val)
+    }
+  },
+})
+
+watch(
+  fields,
+  (newValue) => {
+    if (!newValue || isPublic.value || activeView.value?.type !== ViewTypes.LIST) return
+
+    const filterFields =
+      newValue
+        .filter((el) => el.fk_column_id && allowedPrefixTypes.has(metaColumnById.value[el.fk_column_id]?.uidt as UITypes))
+        .map((field) => ({
+          value: field.fk_column_id,
+          label: field.title,
+        })) ?? []
+
+    prefixColumnOptions.value = [{ value: null, label: t('labels.noPrefix') }, ...filterFields]
+  },
+  {
+    immediate: true,
+  },
+)
+
 const addColumnDropdown = ref(false)
 
 const openSubmenusCount = ref(0)
@@ -541,7 +644,6 @@ const onAddColumnDropdownVisibilityChange = () => {
   <NcDropdown
     v-model:visible="open"
     :trigger="['click']"
-    class="!xs:hidden"
     overlay-class-name="nc-dropdown-fields-menu nc-toolbar-dropdown overflow-hidden"
     :auto-close="openSubmenusCount === 0"
     @visible-change="onFieldsMenuDropdownVisibilityChange"
@@ -613,7 +715,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               <template #suffixIcon><GeneralIcon class="text-nc-content-gray-subtle" icon="arrowDown" /></template>
 
               <a-select-option v-for="option of coverOptions" :key="option.value" :value="option.value">
-                <div class="w-full flex gap-2 items-center justify-between max-w-[400px]">
+                <div class="w-full h-full flex gap-2 items-center justify-between max-w-[400px]">
                   <div
                     class="flex-1 flex items-center gap-1"
                     :class="{
@@ -692,6 +794,64 @@ const onAddColumnDropdownVisibilityChange = () => {
           </div>
         </div>
 
+        <!--
+        <div v-if="!isPublic && isList" class="flex items-center gap-2 p-2 w-80 border-b-1 border-nc-border-gray-light">
+          <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.prefixField') }}</div>
+
+          <div
+            class="flex-1 nc-dropdown-prefix-column-wrapper flex items-stretch border-1 border-nc-border-gray-medium rounded-lg transition-all duration-0.3s"
+            :class="{
+              'nc-disabled': isFieldsMenuReadOnly,
+            }"
+          >
+            <a-select
+              v-model:value="prefixColumnId"
+              class="flex-1 w-full"
+              dropdown-class-name="nc-dropdown-prefix-column !rounded-lg"
+              :bordered="false"
+              :disabled="isFieldsMenuReadOnly"
+              @click.stop
+            >
+              <template #suffixIcon><GeneralIcon class="text-nc-content-gray-subtle" icon="arrowDown" /></template>
+
+              <a-select-option v-for="option of prefixColumnOptions" :key="option.value" :value="option.value">
+                <div class="w-full flex gap-2 items-center justify-between max-w-[400px]">
+                  <div
+                    class="flex-1 flex items-center gap-1"
+                    :class="{
+                      'max-w-[calc(100%_-_20px)]': prefixColumnId === option.value,
+                      'max-w-full': prefixColumnId !== option.value,
+                    }"
+                  >
+                    <SmartsheetHeaderIcon
+                      v-if="option.value && metaColumnById[option.value]"
+                      :column="metaColumnById[option.value]"
+                      class="!w-3.5 !h-3.5 !ml-0"
+                      color="text-nc-content-gray-subtle"
+                    />
+
+                    <NcTooltip class="flex-1 max-w-[calc(100%_-_20px)] truncate" show-on-truncate-only>
+                      <template #title>
+                        {{ option.label }}
+                      </template>
+                      <template #default>{{ option.label }}</template>
+                    </NcTooltip>
+                  </div>
+                  <GeneralIcon
+                    v-if="prefixColumnId === option.value"
+                    id="nc-selected-item-icon"
+                    icon="check"
+                    class="flex-none text-nc-content-brand w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </a-select>
+          </div>
+        </div>
+-->
+        <div v-if="isList && isListConfigured" class="px-2 py-2 border-b-1">
+          <SmartsheetToolbarListLevelSelector />
+        </div>
         <div class="py-2" @click.stop>
           <a-input
             ref="fieldsMenuSearchRef"
@@ -736,7 +896,8 @@ const onAddColumnDropdownVisibilityChange = () => {
               v-model="fields"
               item-key="id"
               ghost-class="nc-fields-menu-items-ghost"
-              :disabled="isFieldsMenuReadOnly"
+              :disabled="isFieldsMenuReadOnly || isMobileMode"
+              :filter="isTouchEvent"
               @change="onMove($event)"
               @start="isDragging = true"
               @end="isDragging = false"
@@ -818,7 +979,10 @@ const onAddColumnDropdownVisibilityChange = () => {
                           </NcTooltip>
                         </div>
 
-                        <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
+                        <div
+                          v-if="activeView.type === ViewTypes.CALENDAR || activeView.type === ViewTypes.TIMELINE"
+                          class="flex mr-2"
+                        >
                           <NcButton
                             :class="{
                               '!text-nc-content-brand !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200': field.bold,
@@ -985,6 +1149,16 @@ const onAddColumnDropdownVisibilityChange = () => {
     @apply shadow-selected border-nc-border-brand;
   }
 }
+.nc-dropdown-prefix-column-wrapper {
+  @apply h-8;
+
+  &:not(.nc-disabled):not(:focus-within) {
+    @apply shadow-default hover:shadow-hover;
+  }
+  &:not(.nc-disabled):focus-within {
+    @apply shadow-selected border-nc-border-brand;
+  }
+}
 
 :deep(.ant-input-affix-wrapper) {
   &:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused):not(:focus) {
@@ -993,6 +1167,15 @@ const onAddColumnDropdownVisibilityChange = () => {
   &.ant-input-affix-wrapper-focused,
   &:focus {
     @apply border-nc-border-brand shadow-selected;
+  }
+}
+
+:deep(.selector-level) {
+  &:has(.level-three) {
+    @apply max-w-24.5;
+  }
+  &:has(.level-two) {
+    @apply max-w-23;
   }
 }
 </style>

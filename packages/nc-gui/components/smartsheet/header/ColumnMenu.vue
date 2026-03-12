@@ -61,11 +61,15 @@ const { addUndo, defineModelScope, defineViewScope, clone } = useUndoRedo()
 
 const showDeleteColumnModal = ref(false)
 
+const showConvertLinkV2Modal = ref(false)
+
 const { gridViewCols, fieldsMap, hidingViewColumnsMap } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit, groupBy, localGroupBy } = useViewGroupByOrThrow()
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
@@ -171,6 +175,13 @@ const duplicateVirtualColumn = async () => {
     colOptions: undefined,
     order: undefined,
     system: false,
+    // Clear UUID-specific metadata to avoid conflicts during duplication
+    ...(column!.value.uidt === UITypes.UUID
+      ? {
+          internal_meta: undefined,
+          unique: undefined, // Let backend set this automatically for UUID
+        }
+      : {}),
   }
 
   try {
@@ -661,6 +672,27 @@ const onDeleteColumn = () => {
         </div>
       </NcMenuItem>
     </GeneralSourceRestrictionTooltip>
+    <NcMenuItem
+      v-if="
+        isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
+        isLinksOrLTAR(column) &&
+        (column.colOptions?.version !== 2 || column.uidt === UITypes.Links) &&
+        isUIAllowed('fieldAlter') &&
+        !isSqlView
+      "
+      data-testid="nc-column-convert-link-v2"
+      @click="
+        () => {
+          isOpen = false
+          showConvertLinkV2Modal = true
+        }
+      "
+    >
+      <div class="nc-column-convert-v2 nc-header-menu-item">
+        <GeneralIcon icon="ncArrowUpCircle" class="opacity-80" />
+        {{ $t('labels.convertToNewLink') }}
+      </div>
+    </NcMenuItem>
     <template v-if="!isExpandedForm">
       <GeneralSourceRestrictionTooltip
         v-if="!column?.pk"
@@ -730,7 +762,7 @@ const onDeleteColumn = () => {
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced)"
+            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced) || isUUID(column)"
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()
@@ -960,6 +992,7 @@ const onDeleteColumn = () => {
     </GeneralSourceRestrictionTooltip>
     <div class="non-menu-items">
       <SmartsheetHeaderDeleteColumnModal key="dc" v-model:visible="showDeleteColumnModal" :on-delete-column="onDeleteColumn" />
+      <LazyDlgConvertLinkV2 v-model:visible="showConvertLinkV2Modal" :column="column" />
       <DlgColumnDuplicate
         v-if="column"
         key="ddc"

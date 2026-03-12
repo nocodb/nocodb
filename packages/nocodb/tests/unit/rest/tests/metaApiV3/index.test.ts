@@ -8,10 +8,10 @@ import baseUsersTestV3 from './baseUsers.test';
 import errorHandlingMetaTestsV3 from './error-handling/index.test';
 import workspaceUsersTest from './workspaceUsers.test';
 import scriptsTestV3 from './scripts.test';
+import dashboardTestV3 from './dashboard.test';
 import tableVisibilityPermissionsTestV3 from './table-visibility-permissions.test';
+import timelineTestV3 from './timeline.test';
 import { isEE } from '../../../utils/helpers';
-// import teamPermissionsTestV3 from './team-permissions.test';
-// import teamPermissionBehaviorTestV3 from './team-permission-behavior.test';
 // import teamsTestV3 from './teams.test';
 // import workspaceTeamsV3 from './workspace-teams.test';
 // import baseTeamsV3 from './base-teams.test';
@@ -24,13 +24,29 @@ export default runOnSet(2, function () {
   columnTestV3();
   if (isEE()) {
     uniqueConstraintTestV3();
+
+    try {
+      require('../ee/team-hierarchy.test').default();
+    } catch (e) {
+      // EE test files not available in CE
+    }
   }
   errorHandlingMetaTestsV3();
   workspaceUsersTest();
   scriptsTestV3();
+  dashboardTestV3();
   tableVisibilityPermissionsTestV3();
-  // teamPermissionsTestV3();
-  // teamPermissionBehaviorTestV3();
+  timelineTestV3();
+  if (isEE()) {
+    try {
+      require('./filters.test').default();
+      require('./sorts.test').default();
+      require('./apiTokens.test').default();
+      require('./workspace.test').default();
+    } catch (e) {
+      // EE test files not available in CE
+    }
+  }
   // teamsTestV3();
   // workspaceTeamsV3();
   // baseTeamsV3();

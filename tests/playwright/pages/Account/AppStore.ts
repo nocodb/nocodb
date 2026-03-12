@@ -11,7 +11,7 @@ export class AccountAppStorePage extends BasePage {
 
   async goto() {
     await this.waitForResponse({
-      uiAction: () => this.rootPage.goto('/#/account/apps', { waitUntil: 'networkidle' }),
+      uiAction: () => this.rootPage.goto('/account/apps', { waitUntil: 'networkidle' }),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: '/api/v1/db/meta/plugins',
     });

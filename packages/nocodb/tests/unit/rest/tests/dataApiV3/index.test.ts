@@ -8,6 +8,7 @@ export const dataApiV3Test = runOnSet(2, async () => {
   await import('./patch-update.test');
   await import('./delete.test');
   await import('./list-and-crud.test');
+  await import('./links-as-ltar.test');
   await import('./attachment.test');
   await import('./audit-log.test');
   await import('./filter.test');

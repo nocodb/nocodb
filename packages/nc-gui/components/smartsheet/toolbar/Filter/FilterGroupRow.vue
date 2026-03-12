@@ -37,6 +37,7 @@ interface Props {
   handler?: GroupHandler
   isColourFilter?: boolean
   isLoadingFilter?: boolean
+  parentEnabled?: boolean
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -62,6 +63,8 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
 
+const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
+
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -75,6 +78,9 @@ const isDisabled = computed(() => {
 const isChildLogicalOpChangeAllowed = computed(() => {
   return new Set(vModel.value.children?.slice(1).map((filter) => filter.logical_op)).size > 1
 })
+
+// For now hide toggle filter enabled feature
+const isAllowFilterEnableToggle = false
 // #endregion
 
 // #region event handling
@@ -144,12 +150,51 @@ const onCopy = () => {
     index: props.index,
   })
 }
+
+const isFilterEnabled = computed(() => vModel.value.enabled !== false)
+
+const effectiveEnabled = computed(() => props.parentEnabled !== false && isFilterEnabled.value)
+
+const onEnabledChange = (val: boolean | Event) => {
+  const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
+  const prevValue = vModel.value.enabled
+  vModel.value.enabled = newValue
+
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: vModel.value,
+      type: 'enabled',
+      prevValue,
+      value: newValue,
+      index: props.index,
+    })
+  } else {
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'enabled',
+      prevValue,
+      value: newValue,
+      index: props.index,
+    })
+  }
+}
+
+const onToggleFilterChange = (val: boolean | Event) => {
+  if (blockToggleFilter.value) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(val)
+}
 // #endregion
 </script>
 
 <template>
   <div class="flex flex-col min-w-full w-min gap-y-2">
-    <div class="flex rounded-lg p-2 min-w-full w-min border-1" :class="[`nc-filter-nested-level-${nestedLevel}`]">
+    <div
+      class="flex rounded-lg p-2 min-w-full w-min border-1"
+      :class="[`nc-filter-nested-level-${nestedLevel}`, { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled }]"
+    >
       <SmartsheetToolbarFilterGroup
         v-model="vModel.children"
         :index="index"
@@ -174,10 +219,19 @@ const onCopy = () => {
         :handler="handler"
         :is-colour-filter="isColourFilter"
         :is-loading-filter="isLoadingFilter"
+        :parent-enabled="effectiveEnabled"
         @change="onFilterChange"
         @row-change="onFilterRowChange"
       >
         <template #nestedRowStart>
+          <NcCheckbox
+            v-if="isEeUI && isAllowFilterEnableToggle"
+            :checked="isFilterEnabled"
+            size="default"
+            :disabled="isDisabled || parentEnabled === false"
+            class="nc-filter-enabled-checkbox"
+            @change="onToggleFilterChange"
+          />
           <template v-if="index === 0">
             <span class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>
           </template>
@@ -396,5 +450,17 @@ const onCopy = () => {
 
 .nc-btn-focus:focus {
   @apply !text-nc-content-brand !shadow-none;
+}
+
+.nc-filter-disabled-row {
+  @apply opacity-40;
+
+  :deep(.nc-filter-enabled-checkbox) {
+    @apply opacity-100;
+  }
+}
+
+.nc-filter-enabled-checkbox {
+  @apply flex-shrink-0 flex items-center;
 }
 </style>

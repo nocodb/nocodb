@@ -18,6 +18,7 @@ export default class Sort {
 
   fk_view_id: string;
   fk_column_id?: string;
+  fk_level_id?: string;
   direction?: 'asc' | 'desc' | 'count-desc' | 'count-asc';
   fk_workspace_id?: string;
   base_id?: string;
@@ -68,6 +69,7 @@ export default class Sort {
       'id',
       'fk_view_id',
       'fk_column_id',
+      'fk_level_id',
       'direction',
       'base_id',
       'source_id',

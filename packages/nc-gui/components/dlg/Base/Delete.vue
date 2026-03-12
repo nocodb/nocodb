@@ -2,6 +2,7 @@
 const props = defineProps<{
   visible: boolean
   baseId: string
+  base?: NcProject
 }>()
 
 const emits = defineEmits(['update:visible'])
@@ -16,7 +17,8 @@ const { removeFromRecentViews } = useViewsStore()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const base = computed(() => bases.value.get(props.baseId))
+// props.base is provided when the base lives in a different workspace (not in bases.value)
+const base = computed(() => props.base ?? bases.value.get(props.baseId))
 
 const isLoading = ref(false)
 

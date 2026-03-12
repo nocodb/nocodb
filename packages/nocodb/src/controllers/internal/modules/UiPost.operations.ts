@@ -79,6 +79,7 @@ export class UiPostOperations
     'viewColumnUpdate' as const,
     'viewColumnCreate' as const,
     'gridColumnUpdate' as const,
+    'timelineColumnUpdate' as const,
     'viewRowColorConditionAdd' as const,
     'viewRowColorConditionUpdate' as const,
     'viewRowColorConditionDelete' as const,
@@ -96,12 +97,14 @@ export class UiPostOperations
     'hookTest' as const,
     'hookTrigger' as const,
     'hookFilterCreate' as const,
+    'buttonFilterCreate' as const,
     'gridViewCreate' as const,
     'formViewCreate' as const,
     'galleryViewCreate' as const,
     'kanbanViewCreate' as const,
     'mapViewCreate' as const,
     'calendarViewCreate' as const,
+    'timelineViewCreate' as const,
     'gridViewUpdate' as const,
     'formViewUpdate' as const,
     'formColumnUpdate' as const,
@@ -109,6 +112,7 @@ export class UiPostOperations
     'kanbanViewUpdate' as const,
     'mapViewUpdate' as const,
     'calendarViewUpdate' as const,
+    'timelineViewUpdate' as const,
     'nestedDataLink' as const,
     'nestedDataUnlink' as const,
     'nestedDataListCopyPasteOrDeleteAll' as const,
@@ -133,6 +137,9 @@ export class UiPostOperations
     'extensionCreate' as const,
     'extensionUpdate' as const,
     'extensionDelete' as const,
+    'listViewCreate' as const,
+    'listViewUpdate' as const,
+    'convertLinkToV2' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -203,6 +210,11 @@ export class UiPostOperations
           payload,
           req,
         );
+      case 'convertLinkToV2':
+        return await this.columnsService.convertLinkToV2(context, {
+          columnId: req.query.columnId,
+          req,
+        });
       case 'viewUpdate':
         return await this.viewsService.viewUpdate(context, {
           viewId: req.query.viewId,
@@ -239,11 +251,13 @@ export class UiPostOperations
         return await this.viewsService.showAllColumns(context, {
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
+          levelId: req.query.levelId,
         });
       case 'hideAllColumns':
         return await this.viewsService.hideAllColumns(context, {
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
+          levelId: req.query.levelId,
         });
       case 'viewColumnUpdate':
         return await this.viewColumnsService.columnUpdate(context, {
@@ -271,6 +285,8 @@ export class UiPostOperations
           color: payload.color,
           is_set_as_background: payload.is_set_as_background,
           nc_order: payload.nc_order,
+          type: payload.type,
+          fk_target_column_id: payload.fk_target_column_id,
           filter: payload.filter,
         });
       case 'viewRowColorConditionUpdate':
@@ -281,6 +297,8 @@ export class UiPostOperations
           color: payload.color,
           is_set_as_background: payload.is_set_as_background,
           nc_order: payload.nc_order,
+          type: payload.type,
+          fk_target_column_id: payload.fk_target_column_id,
         });
       case 'viewRowColorConditionDelete':
         return await this.viewRowColorService.deleteRowColoringCondition({

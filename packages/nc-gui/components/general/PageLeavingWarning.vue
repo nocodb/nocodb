@@ -3,12 +3,23 @@ const route = useRoute()
 
 const router = useRouter()
 
+const isHttpUrl = (url: string) => {
+  if (!url) return false
+  const trimmed = url.trim()
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+    return /^https?:\/\//i.test(trimmed)
+  }
+  return true
+}
+
 const redirectUrl = computed(() => {
-  return (route.query.ncRedirectUrl as string) ?? ''
+  const url = (route.query.ncRedirectUrl as string) ?? ''
+  return isHttpUrl(url) ? url : ''
 })
 
 const backUrl = computed(() => {
-  return (route.query.ncBackUrl as string) ?? ''
+  const url = (route.query.ncBackUrl as string) ?? ''
+  return isHttpUrl(url) && isSameOriginUrl(url, true) ? url : ''
 })
 
 if (!redirectUrl.value || !backUrl.value) {

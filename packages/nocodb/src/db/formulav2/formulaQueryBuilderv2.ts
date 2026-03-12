@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import {
   CircularRefContext,
   FormulaDataTypes,
+  isBtLikeV2Junction,
   JSEPNode,
   LongTextAiMetaProp,
   NcErrorType,
@@ -166,6 +167,15 @@ async function _formulaQueryBuilder(params: FormulaQueryBuilderBaseParams) {
         break;
       case UITypes.Rollup:
       case UITypes.Links:
+        if (col.uidt === UITypes.Links && isBtLikeV2Junction(col)) {
+          aliasToColumn[col.id] = lookupOrLtarBuilder({
+            ...params,
+            column: col,
+            _formulaQueryBuilder,
+            knex,
+          });
+          break;
+        }
         aliasToColumn[col.id] = async ({
           tableAlias,
           parentColumns: parentColumns,
@@ -502,7 +512,6 @@ export default async function formulaQueryBuilderv2({
       columns,
       getAliasCount,
     });
-
     let sqlLength = 0;
     try {
       sqlLength = qb?.builder?.toSQL?.().sql?.length ?? 0;
@@ -524,6 +533,15 @@ export default async function formulaQueryBuilderv2({
       );
     }
     if (!validateFormula) return qb;
+
+    // Short-circuit if a previous dry-run already failed for this base model,
+    // to avoid amplifying requests to an overwhelmed external source
+    if (baseModelSqlv2.formulaDryRunFailed) {
+      throw new Error(
+        'Skipping formula dry-run: a previous validation already failed',
+      );
+    }
+
     // dry run qb.builder to see if it will break the grid view or not
     // if so, set formula error and show empty selectQb instead
     await baseModelSqlv2.execAndParse(
@@ -600,6 +618,11 @@ export default async function formulaQueryBuilderv2({
         }
       }
     } else {
+      // Mark dry-run as failed so subsequent formula validations on the same
+      // base model short-circuit instead of hammering an unreachable source
+      if (isTransient && validateFormula) {
+        baseModelSqlv2.formulaDryRunFailed = true;
+      }
       throw e;
     }
 

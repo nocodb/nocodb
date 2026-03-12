@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, RelationTypes, isBtLikeV2Junction, isMMOrMMLike } from 'nocodb-sdk'
 import { isCreatedOrLastModifiedByCol, isCreatedOrLastModifiedTimeCol } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -45,9 +45,14 @@ function onNavigate(dir: NavigateDir, e: KeyboardEvent) {
 const isPrimaryCol = computed(() => isPrimary(column.value))
 
 const virtualCellType = computed(() => {
+  if (isBtLikeV2Junction(column.value)) {
+    const opts = column.value.colOptions as LinkToAnotherRecordType
+    if (opts?.type === RelationTypes.ONE_TO_ONE) return 'oo'
+    return 'bt'
+  }
   if (isLink(column.value)) return 'link'
   if (isHm(column.value)) return 'hm'
-  if (isMm(column.value)) return 'mm'
+  if (isMMOrMMLike(column.value)) return 'mm'
   if (isBt(column.value)) return 'bt'
   if (isOo(column.value)) return 'oo'
   if (isRollup(column.value)) return 'rollup'

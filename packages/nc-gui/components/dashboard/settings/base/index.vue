@@ -5,16 +5,16 @@ const { isUIAllowed } = useRoles()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { isEEFeatureBlocked, showUpgradeToUseSnapshots } = useEeConfig()
+
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
 const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType'))
 
-const hasPermissionForMCP = computed(() => isUIAllowed('manageMCP'))
+const hasPermissionForSnapshots = computed(() => false) // Snapshots promoted to top-level tab
 
-const hasPermissionForSnapshots = computed(() => isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot'))
-
-const hasPermissionForMigrate = computed(() => !isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
+const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 
 const hasPermissionForVisibility = computed(() => isUIAllowed('baseMiscSettings'))
 
@@ -24,7 +24,7 @@ const hasPermissionForMigrateToV3 = computed(
 
 const router = useRouter()
 
-const allTabs = ['baseType', 'snapshots', 'visibility', 'migrateToV3', 'mcp', 'migrate']
+const allTabs = ['baseType', 'snapshots', 'visibility', 'migrateToV3', 'migrate']
 
 const getDefaultTab = () => {
   if (hasPermissionForBaseAccess.value) return 'baseType'
@@ -32,7 +32,7 @@ const getDefaultTab = () => {
   if (hasPermissionForVisibility.value) return 'visibility'
   if (hasPermissionForMigrateToV3.value) return 'migrateToV3'
   if (hasPermissionForMigrate.value) return 'migrate'
-  return 'mcp'
+  return 'baseType'
 }
 
 const activeMenu = ref('')
@@ -117,13 +117,14 @@ watch(
             'active-menu': activeMenu === 'snapshots',
           }"
           class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
-          @click="selectMenu('snapshots')"
+          @click="isEEFeatureBlocked ? showUpgradeToUseSnapshots() : selectMenu('snapshots')"
         >
           <GeneralIcon icon="camera" />
 
           <span>
             {{ $t('general.snapshots') }}
           </span>
+          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" />
         </div>
 
         <div
@@ -155,21 +156,6 @@ watch(
           </span>
         </div>
         <div
-          v-if="hasPermissionForMCP"
-          :class="{
-            'active-menu': activeMenu === 'mcp',
-          }"
-          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
-          data-testid="mcp-tab"
-          @click="selectMenu('mcp')"
-        >
-          <GeneralIcon icon="mcp" />
-          <span>
-            {{ $t('title.mcpServer') }}
-          </span>
-        </div>
-
-        <div
           v-if="hasPermissionForMigrate"
           :class="{
             'active-menu': activeMenu === 'migrate',
@@ -191,7 +177,6 @@ watch(
       <DashboardSettingsBaseVisibility v-if="activeMenu === 'visibility'" />
       <DashboardSettingsBaseMigrateToV3 v-if="activeMenu === 'migrateToV3'" />
       <DashboardSettingsBaseMigrate v-if="activeMenu === 'migrate'" />
-      <DashboardSettingsBaseMCP v-if="activeMenu === 'mcp'" />
     </div>
   </div>
 </template>

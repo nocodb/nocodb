@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { marked } from 'marked'
+import DOMPurify from 'isomorphic-dompurify'
 import { PlanFeatureTypes } from 'nocodb-sdk'
 
 interface Prop {
@@ -64,9 +65,9 @@ const getModifiedContent = (content = '') => {
 
 const detailsBody = computed(() => {
   if (descriptionContent.value[props.extensionId]) {
-    return marked.parse(getModifiedContent(descriptionContent.value[props.extensionId]))
+    return DOMPurify.sanitize(marked.parse(getModifiedContent(descriptionContent.value[props.extensionId])) as string)
   } else if (activeExtension.value?.description) {
-    return marked.parse(getModifiedContent(activeExtension.value.description))
+    return DOMPurify.sanitize(marked.parse(getModifiedContent(activeExtension.value.description)) as string)
   }
 
   return '<p></p>'

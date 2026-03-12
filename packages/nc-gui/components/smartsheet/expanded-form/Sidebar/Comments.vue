@@ -114,7 +114,7 @@ const saveComment = async () => {
 const copyComment = async (comment: CommentType) => {
   await copy(
     encodeURI(
-      `${dashboardUrl?.value}#/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}?rowId=${primaryKey.value}&commentId=${comment.id}`,
+      `${dashboardUrl?.value}/${route.params.typeOrId}/${route.params.baseId}/${meta.value?.id}?rowId=${primaryKey.value}&commentId=${comment.id}`,
     ),
   )
 }
@@ -499,8 +499,9 @@ onBeforeUnmount(() => {
 
               <div v-else class="space-y-1 pl-9">
                 <div
+                  v-dompurify-html="parsedHtmlComments[commentItem.id]"
                   class="nc-rich-text-content !text-small !leading-18px !text-nc-content-gray"
-                  v-html="parsedHtmlComments[commentItem.id]"
+                  @click="handleDompurifyLinkClick"
                 ></div>
               </div>
             </div>

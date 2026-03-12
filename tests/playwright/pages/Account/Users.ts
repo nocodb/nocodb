@@ -20,13 +20,13 @@ export class AccountUsersPage extends BasePage {
   async goto({ waitForResponse = true }: { waitForResponse?: boolean }) {
     if (waitForResponse) {
       return this.waitForResponse({
-        uiAction: async () => await this.rootPage.goto('/#/account/users'),
+        uiAction: async () => await this.rootPage.goto('/account/users'),
         httpMethodsToMatch: ['GET'],
         requestUrlPathToMatch: `api/v1/users`,
       });
     } else {
       await this.rootPage.waitForTimeout(1000);
-      return this.rootPage.goto('/#/account/users');
+      return this.rootPage.goto('/account/users');
     }
   }
 
@@ -38,14 +38,11 @@ export class AccountUsersPage extends BasePage {
     return this.accountPage.get().locator(`[data-testid="nc-super-user-list"]`);
   }
 
-  async invite({ email, role }: { email: string; role: string }) {
+  async invite({ email }: { email: string }) {
     email = this.prefixEmail(email);
 
     await this.inviteUserBtn.click();
     await this.inviteUserModal.locator(`input[placeholder="E-mail"]`).fill(email);
-    await this.inviteUserModal.locator(`.nc-user-roles`).click();
-    const userRoleModal = this.rootPage.locator(`.nc-dropdown-user-role`);
-    await userRoleModal.locator(`.nc-role-option:has-text("${role}")`).click();
     const inviteAction = () => this.inviteUserModal.locator(`button:has-text("Invite")`).click();
     await this.waitForResponse({
       uiAction: inviteAction,
@@ -73,22 +70,36 @@ export class AccountUsersPage extends BasePage {
   }
 
   async getUserRow({ email }: { email: string }) {
-    // ensure page is loaded
     email = this.prefixEmail(email);
 
+    // Reset to first page before searching (only if not already active)
+    const firstPage = this.rootPage.locator('.ant-pagination-item-1:not(.ant-pagination-item-active)');
+    if (await firstPage.isVisible()) {
+      await this.waitForResponse({
+        uiAction: async () => await firstPage.click(),
+        httpMethodsToMatch: ['GET'],
+        requestUrlPathToMatch: `api/v1/users`,
+      });
+    }
+
     const userRow = this.get().locator(`.nc-table-row:has-text("${email}")`).first();
+
+    // If not on the current page, try next pages
+    if (!(await userRow.isVisible())) {
+      const nextBtn = this.rootPage.locator('.ant-pagination-next:not(.ant-pagination-disabled)');
+      while (await nextBtn.isVisible()) {
+        await this.waitForResponse({
+          uiAction: async () => await nextBtn.click(),
+          httpMethodsToMatch: ['GET'],
+          requestUrlPathToMatch: `api/v1/users`,
+        });
+        if (await userRow.isVisible()) break;
+      }
+    }
 
     await userRow.waitFor({ state: 'visible' });
 
     return userRow.first();
-  }
-
-  async updateRole({ email, role }: { email: string; role: string }) {
-    const userRow = await this.getUserRow({ email });
-    await userRow.locator('.nc-user-roles').click();
-    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).waitFor();
-    await this.rootPage.locator(`.nc-users-list-role-option:visible:has-text("${role}")`).last().click();
-    await this.rootPage.locator(`.nc-users-list-role-option`).last().waitFor({ state: 'hidden' });
   }
 
   async inviteMore() {
@@ -103,8 +114,13 @@ export class AccountUsersPage extends BasePage {
   async deleteUser({ email }: { email: string }) {
     await this.openRowActionMenu({ email });
     await this.rootPage.locator('.nc-menu-item:visible:has-text("Remove user")').click();
-    await this.rootPage.locator('.ant-modal.active button:has-text("Delete User")').click();
+
+    await this.waitForResponse({
+      uiAction: async () => await this.rootPage.locator('.ant-modal.active button:has-text("Delete User")').click(),
+      httpMethodsToMatch: ['DELETE'],
+      requestUrlPathToMatch: `api/v1/users`,
+    });
+
     await this.verifyToast({ message: 'User deleted successfully' });
-    await this.get().locator(`.nc-table-row:has-text("${email}")`).first().waitFor({ state: 'hidden' });
   }
 }

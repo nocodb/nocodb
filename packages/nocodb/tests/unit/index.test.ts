@@ -12,6 +12,7 @@ import { linksTests } from './links/index.test';
 import { crossBaseLinkTests } from './crossBaseLink/index.spec';
 import { dbQueryClientTests } from './dbQueryClient/index.test';
 import { helperTests } from './helpersTest/index.test';
+import { isEE } from './utils/helpers';
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
@@ -27,6 +28,13 @@ dotenv.config({
   await TestDbMngr.init();
 
   helperTests();
+  if (isEE()) {
+    try {
+      require('./dataReflection/index.test').dataReflectionTests();
+    } catch (e) {
+      // EE test files not available in CE
+    }
+  }
   modelTests();
   formulaTests();
   dbQueryClientTests();

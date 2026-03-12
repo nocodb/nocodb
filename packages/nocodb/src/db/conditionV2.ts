@@ -95,9 +95,15 @@ const parseConditionV2 = async (
     if (!(_filter instanceof Filter)) filter = new Filter(_filter as Filter);
     else filter = _filter;
   }
+  const supportToggle = await Filter.supportToggle(baseModelSqlv2.context);
   if (Array.isArray(_filter)) {
+    // Filter out disabled filters before processing
+    const enabledFilters = supportToggle
+      ? _filter.filter((f) => f.enabled !== false && f.enabled !== 0)
+      : _filter;
+
     const qbs = await Promise.all(
-      _filter.map((child) =>
+      enabledFilters.map((child) =>
         parseConditionV2(
           baseModelSqlv2,
           child,
@@ -118,12 +124,17 @@ const parseConditionV2 = async (
       clause: (qbP) => {
         qbP.where((qb) => {
           for (const [i, qb1] of Object.entries(qbs)) {
-            qb[getLogicalOpMethod(_filter[i])](qb1.clause);
+            qb[getLogicalOpMethod(enabledFilters[i])](qb1.clause);
           }
         });
       },
     };
   } else if (filter.is_group) {
+    // Skip disabled filter groups entirely (cascade disable)
+    if (supportToggle && (filter.enabled === false || filter.enabled === 0)) {
+      return { clause: () => {}, rootApply: () => {} };
+    }
+
     const children = await filter.getChildren(context);
 
     const qbs = await Promise.all(
@@ -157,6 +168,11 @@ const parseConditionV2 = async (
     };
   } else {
     if (!filter.fk_column_id) return;
+
+    // Skip disabled leaf filters
+    if (supportToggle && (filter.enabled === false || filter.enabled === 0)) {
+      return { clause: () => {}, rootApply: () => {} };
+    }
 
     // handle group by filter separately,
     // `gb_eq` is equivalent to `eq` but for lookup it compares on aggregated value returns in group by api
@@ -235,6 +251,7 @@ const parseConditionV2 = async (
         UITypes.Date,
         UITypes.CreatedTime,
         UITypes.LastModifiedTime,
+        UITypes.UUID,
       ].includes(column.uidt) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)

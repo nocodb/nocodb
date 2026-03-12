@@ -43,7 +43,10 @@ const createDatabaseUser = async (knex, username, password, database) => {
   CREATE USER :username: WITH PASSWORD :password;
   REVOKE ALL ON SCHEMA public FROM :username:;
   REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM :username:;
+  REVOKE TEMPORARY ON DATABASE :database: FROM :username:;
   GRANT CONNECT ON DATABASE :database: TO :username:;
+  ALTER ROLE :username: SET statement_timeout = '60s';
+  ALTER ROLE :username: SET idle_in_transaction_session_timeout = '60s';
   `;
 
   const preparedQuery = knex

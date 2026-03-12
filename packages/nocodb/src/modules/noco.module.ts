@@ -113,6 +113,7 @@ import { McpTokenService } from '~/services/mcp.service';
 import { McpService } from '~/mcp/mcp.service';
 import { McpController } from '~/mcp/mcp.controller';
 import { InternalController } from '~/controllers/internal.controller';
+import { WorkspaceUsersController } from '~/controllers/workspace-users.controller';
 import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
 import { DependencyService } from '~/services/dependency.service';
 
@@ -151,6 +152,7 @@ import { FiltersV3Service } from '~/services/v3/filters-v3.service';
 import { SortsV3Service } from '~/services/v3/sorts-v3.service';
 import { TablesV3Service } from '~/services/v3/tables-v3.service';
 import { ViewRowColorController } from '~/controllers/view-row-color.controller';
+import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-url-upload.handler';
 
 /* ACL */
@@ -232,6 +234,7 @@ export const nocoModuleMetadata = {
           JobsMetaController,
           IntegrationsController,
           InternalController,
+          WorkspaceUsersController,
 
           // MCP
           McpController,
@@ -330,6 +333,7 @@ export const nocoModuleMetadata = {
     ViewRowColorV3Service,
     ViewsV3Service,
     DependencyService,
+    WorkspaceUsersService,
 
     /* Datas */
     DataTableService,

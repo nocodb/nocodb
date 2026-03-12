@@ -34,11 +34,13 @@ const formatData = (
   },
   path: Array<number> = [],
   evaluateRowMetaRowColorInfoCallback?: (row: Record<string, any>) => RowMetaRowColorInfo,
+  evaluateButtonVisibilityCallback?: (row: Record<string, any>) => Record<string, boolean> | undefined,
 ) => {
   // If pageInfo exists, use it for calculation
   if (pageInfo?.page && pageInfo?.pageSize) {
     return list.map((row, index) => {
       const rowIndex = (pageInfo.page! - 1) * pageInfo.pageSize! + index
+      const buttonDisabled = evaluateButtonVisibilityCallback?.(row)
       return {
         row: { ...row },
         oldRow: { ...row },
@@ -47,6 +49,7 @@ const formatData = (
           isLastRow: rowIndex === pageInfo.totalRows! - 1,
           path,
           ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
+          ...(buttonDisabled ? { buttonDisabled } : {}),
         },
       }
     })
@@ -54,15 +57,19 @@ const formatData = (
 
   // If no pageInfo, fall back to params
   const offset = params?.offset ?? 0
-  return list.map((row, index) => ({
-    row: { ...row },
-    oldRow: { ...row },
-    rowMeta: {
-      rowIndex: offset + index,
-      path,
-      ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
-    },
-  }))
+  return list.map((row, index) => {
+    const buttonDisabled = evaluateButtonVisibilityCallback?.(row)
+    return {
+      row: { ...row },
+      oldRow: { ...row },
+      rowMeta: {
+        rowIndex: offset + index,
+        path,
+        ...(evaluateRowMetaRowColorInfoCallback?.(row) ?? {}),
+        ...(buttonDisabled ? { buttonDisabled } : {}),
+      },
+    }
+  })
 }
 
 export function useInfiniteData(args: {
@@ -147,6 +154,37 @@ export function useInfiniteData(args: {
         getEvaluatedRowMetaRowColorInfo: (_row: any) => ({}),
       }
     : useViewRowColorRender()
+
+  /** Identifies button columns with visibility filters and evaluates them per-row during data fetch */
+  const buttonFilterColumns = computed(() => {
+    if (!meta.value?.columns) return []
+    return meta.value.columns.filter((col) => col.uidt === UITypes.Button && (col.colOptions as any)?.filters?.length)
+  })
+
+  const evaluateButtonVisibility = (row: Record<string, any>): Record<string, boolean> | undefined => {
+    if (!buttonFilterColumns.value.length) return undefined
+
+    const columns = meta.value?.columns as ColumnType[]
+    if (!columns) return undefined
+
+    const client = getBaseType(meta.value?.source_id)
+    const result: Record<string, boolean> = {}
+
+    for (const col of buttonFilterColumns.value) {
+      const filters = (col.colOptions as any)?.filters as FilterType[]
+      if (!filters?.length) continue
+
+      const isValid = validateRowFilters(filters, row, columns, client, metas.value, meta.value?.base_id, {
+        currentUser: user.value?.id ? { id: user.value.id, email: user.value.email } : undefined,
+      })
+
+      if (!isValid) {
+        result[col.id!] = true
+      }
+    }
+
+    return Object.keys(result).length ? result : undefined
+  }
 
   const selectedAllRecords = ref(false)
 
@@ -344,6 +382,8 @@ export function useInfiniteData(args: {
           row.rowMeta.commentCount = +commentData.count || 0
         }
       })
+
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
     } catch (e) {
       console.error('Failed to load bulk aggregate comment count:', e)
     }
@@ -395,6 +435,8 @@ export function useInfiniteData(args: {
           offset: req.chunkId * CHUNK_SIZE,
           limit: CHUNK_SIZE,
           alias: `chunk_${req.chunkId}_${req.path.join('_')}`,
+          include_row_color: 'true',
+          include_button_filter_columns: 'true',
           ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
           ...(isUIAllowed('filterSync')
             ? { filterArrJson: stringifyFilterOrSortArr(filterArrJson) }
@@ -426,7 +468,14 @@ export function useInfiniteData(args: {
           const dataCache = getDataCache(request.path)
 
           if (chunkData && chunkData.list) {
-            const rows = formatData(chunkData.list, chunkData.pageInfo, undefined, request.path, getEvaluatedRowMetaRowColorInfo)
+            const rows = formatData(
+              chunkData.list,
+              chunkData.pageInfo,
+              undefined,
+              request.path,
+              getEvaluatedRowMetaRowColorInfo,
+              evaluateButtonVisibility,
+            )
             rows.forEach((item: any) => {
               dataCache.cachedRows.value.set(item.rowMeta.rowIndex!, item)
             })
@@ -447,7 +496,9 @@ export function useInfiniteData(args: {
         }
       }
 
-      await loadBulkAggCommentsCount(allFormattedRows)
+      // Fire-and-forget — comment counts are cosmetic and shouldn't block row rendering.
+      // loadBulkAggCommentsCount mutates through the reactive cache and emits TRIGGER_RE_RENDER.
+      loadBulkAggCommentsCount(allFormattedRows).catch(() => {})
 
       for (const { request, rows, dataCache } of processedChunks) {
         try {
@@ -658,6 +709,7 @@ export function useInfiniteData(args: {
             includeSortAndFilterColumns: true,
             where: whereFilter,
             include_row_color: true,
+            include_button_filter_columns: true,
           } as any)
         : await fetchSharedViewData(
             {
@@ -672,7 +724,14 @@ export function useInfiniteData(args: {
             },
           )
 
-      const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
+      const data = formatData(
+        response.list,
+        response.pageInfo,
+        params,
+        path,
+        getEvaluatedRowMetaRowColorInfo,
+        evaluateButtonVisibility,
+      )
 
       if (!disableSmartsheet) {
         loadAggCommentsCount(data, path)
@@ -880,7 +939,7 @@ export function useInfiniteData(args: {
     const sortedEntries = Array.from(dataCache.cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
 
     const invalidIndexes = sortedEntries
-      .filter(([_, row]) => row.rowMeta.isValidationFailed || row.rowMeta.isGroupChanged)
+      .filter(([_, row]) => row.rowMeta.isValidationFailed || row.rowMeta.isGroupChanged || row.rowMeta.isRlsHidden)
       .map(([index]) => index)
 
     if (invalidIndexes.length === 0) return
@@ -1535,7 +1594,9 @@ export function useInfiniteData(args: {
           rowIndex: insertIndex,
           new: false,
           saving: false,
+          isRlsHidden: !!insertedData?.__nc_rls_hidden,
           ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
+          buttonDisabled: evaluateButtonVisibility({ ...insertedData, ...currentRow.row }),
         },
       })
 
@@ -1676,6 +1737,12 @@ export function useInfiniteData(args: {
 
       Object.assign(toUpdate.oldRow, updatedRowData)
       Object.assign(toUpdate.rowMeta, getEvaluatedRowMetaRowColorInfo(toUpdate.row))
+      toUpdate.rowMeta.buttonDisabled = evaluateButtonVisibility(toUpdate.row)
+
+      // Mark row as hidden if it moved out of user's RLS scope after update
+      if (updatedRowData?.__nc_rls_hidden) {
+        toUpdate.rowMeta.isRlsHidden = true
+      }
 
       // Update the row in cachedRows
       if (toUpdate.rowMeta.rowIndex !== undefined) {
@@ -1723,6 +1790,9 @@ export function useInfiniteData(args: {
     if (!row.rowMeta) {
       throw new Error('Row metadata is missing')
     }
+
+    // Row is hidden by RLS policy — skip save to avoid repeated API calls on a row the user can no longer access
+    if (row.rowMeta.isRlsHidden) return
 
     const dataCache = getDataCache(path)
 
@@ -2069,20 +2139,20 @@ export function useInfiniteData(args: {
       return
     }
 
+    const updateRowColorInfo = (row: Row) => {
+      Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+      row.rowMeta.buttonDisabled = evaluateButtonVisibility(row.row)
+    }
+
     // If it is group by, we need to update the rowMeta color info for each row in the group
     if (isGroupBy.value) {
       groupDataCache.value.forEach((group) => {
-        group.cachedRows.value.forEach((row) => {
-          Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-        })
+        group.cachedRows.value.forEach(updateRowColorInfo)
       })
     } else {
       // If it is not group by, we need to update the rowMeta color info for each row in cachedRows
       const { cachedRows } = getDataCache()
-
-      cachedRows.value.forEach((row) => {
-        Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
-      })
+      cachedRows.value.forEach(updateRowColorInfo)
     }
   }
 
@@ -2139,7 +2209,7 @@ export function useInfiniteData(args: {
                 dataCache.cachedRows.value.set(newRowIndex, {
                   row: payload,
                   oldRow: {},
-                  rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+                  rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
                 })
 
                 dataCache.totalRows.value++
@@ -2158,7 +2228,7 @@ export function useInfiniteData(args: {
           dataCache.cachedRows.value.set(newRowIndex, {
             row: payload,
             oldRow: {},
-            rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+            rowMeta: { new: false, rowIndex: newRowIndex, path: [], ...getEvaluatedRowMetaRowColorInfo(payload) },
           })
           dataCache.totalRows.value++
           dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
@@ -2194,6 +2264,7 @@ export function useInfiniteData(args: {
 
             cachedRow.rowMeta.isValidationFailed = isValidationFailed
             cachedRow.rowMeta.changed = false
+            Object.assign(cachedRow.rowMeta, getEvaluatedRowMetaRowColorInfo(payload))
             updated = true
             break
           }
@@ -2392,6 +2463,7 @@ export function useInfiniteData(args: {
         if (payload && typeof payload === 'object') {
           Object.assign(rowToMove.row, payload)
           Object.assign(rowToMove.oldRow, payload)
+          Object.assign(rowToMove.rowMeta, getEvaluatedRowMetaRowColorInfo(rowToMove.row))
         }
         rowToMove.rowMeta.changed = false
 

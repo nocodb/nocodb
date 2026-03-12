@@ -106,7 +106,7 @@ export function useFieldQuery() {
       (col.uidt !== UITypes.Formula || getFormulaColDataType(col) !== FormulaDataTypes.NUMERIC) &&
       !isNumericCol(col) &&
       sqlUi &&
-      ['text', 'string'].includes(sqlUi.getAbstractType(col)) &&
+      ['text', 'string', 'json'].includes(sqlUi.getAbstractType(col)) &&
       col.dt !== 'bigint'
     ) {
       if (params.getWhereQueryAs === 'object') {

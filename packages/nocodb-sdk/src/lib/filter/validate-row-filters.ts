@@ -66,7 +66,10 @@ export class RowFilterValidator {
     let isValid: boolean | null = null;
     for (const filter of filters) {
       let res;
-      if (filter.is_group && filter.children?.length) {
+      // if filter is disabled, it is valid
+      if (filter.enabled === false || (filter.enabled as any) === 0) {
+        res = true;
+      } else if (filter.is_group && filter.children?.length) {
         res = validateRowFilters({
           filters: filter.children,
           data: data,
@@ -101,7 +104,9 @@ export class RowFilterValidator {
             );
           };
           const dateFormat =
-            client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';
+            client === 'mysql2'
+              ? 'YYYY-MM-DD HH:mm:ss'
+              : 'YYYY-MM-DD HH:mm:ssZ';
 
           let now = dayjs.tz(this.dateNow(), getTimezone());
           const dateFormatFromMeta = parseProp(column.meta)?.date_format;
@@ -180,46 +185,38 @@ export class RowFilterValidator {
 
           if (dataVal) {
             const getDayjsDataVal = () => {
-              if(column.uidt === UITypes.Date) {
-                return dayjs
-                  .tz(dataVal, getTimezone());
+              if (column.uidt === UITypes.Date) {
+                return dayjs.tz(dataVal, getTimezone());
               } else {
-                return dayjs
-                  .utc(dataVal)
-                  .tz(getTimezone());
+                return dayjs.utc(dataVal).tz(getTimezone());
               }
-            }
+            };
             switch (filter.comparison_op as any) {
               case 'eq':
               case 'gb_eq':
-                res = getDayjsDataVal()
-                  .isSame(filterVal, 'day');
+                res = getDayjsDataVal().isSame(filterVal, 'day');
                 break;
               case 'neq':
-                res = !getDayjsDataVal()
-                  .isSame(filterVal, 'day');
+                res = !getDayjsDataVal().isSame(filterVal, 'day');
                 break;
               case 'gt':
-                res = getDayjsDataVal()
-                  .isAfter(filterVal, 'day');
+                res = getDayjsDataVal().isAfter(filterVal, 'day');
                 break;
               case 'lt':
-                res = getDayjsDataVal()
-                  .isBefore(filterVal, 'day');
+                res = getDayjsDataVal().isBefore(filterVal, 'day');
                 break;
               case 'lte':
               case 'le':
-                res = getDayjsDataVal()
-                  .isSameOrBefore(filterVal, 'day');
+                res = getDayjsDataVal().isSameOrBefore(filterVal, 'day');
                 break;
               case 'gte':
               case 'ge':
-                res = getDayjsDataVal()
-                  .isSameOrAfter(filterVal, 'day');
+                res = getDayjsDataVal().isSameOrAfter(filterVal, 'day');
                 break;
               case 'empty':
               case 'blank':
-                res = dataVal === '' || dataVal === null || dataVal === undefined;
+                res =
+                  dataVal === '' || dataVal === null || dataVal === undefined;
                 break;
               case 'notempty':
               case 'notblank':
@@ -276,7 +273,11 @@ export class RowFilterValidator {
               column.uidt! as UITypes
             ) ||
             (column.uidt === UITypes.Lookup &&
-              [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
+              [
+                UITypes.User,
+                UITypes.CreatedBy,
+                UITypes.LastModifiedBy,
+              ].includes(
                 getLookupColumnType({
                   col: column,
                   meta: { columns, base_id: baseId },
@@ -291,15 +292,15 @@ export class RowFilterValidator {
               ? [data[field].id]
               : [];
 
-            const filterValues = (ncToString(filter.value).split(',') || []).map(
-              (v) => {
-                let result = v.trim();
-                if (result === CURRENT_USER_TOKEN) {
-                  result = params.options?.currentUser?.id ?? result;
-                }
-                return result;
+            const filterValues = (
+              ncToString(filter.value).split(',') || []
+            ).map((v) => {
+              let result = v.trim();
+              if (result === CURRENT_USER_TOKEN) {
+                result = params.options?.currentUser?.id ?? result;
               }
-            );
+              return result;
+            });
 
             switch (filter.comparison_op) {
               case 'anyof':
@@ -389,7 +390,9 @@ export class RowFilterValidator {
                       ncToString(filter.value)
                         .split(',')
                         .map((v) => v.trim()) || [];
-                    res = !childValues.some((val) => filterValues2.includes(val));
+                    res = !childValues.some((val) =>
+                      filterValues2.includes(val)
+                    );
                     break;
                   }
                   case 'allof': {

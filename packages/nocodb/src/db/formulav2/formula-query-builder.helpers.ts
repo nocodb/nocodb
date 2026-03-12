@@ -35,9 +35,13 @@ export const getAggregateFn: IGetAggregateFn = (parentFn) => {
     //       .select(
     //         knex.raw('sum(??)/(count(??)) + ?)', [cn, cn, (argsCount || 1) - 1])
     //       );
+    case 'FIRST':
+      // Return the first linked value in display order.  The subquery already
+      // has ORDER BY nc_order, so LIMIT 1 gives the first record.
+      return ({ qb, cn }) => qb.clear('select').select(cn).limit(1);
+
     case 'CONCAT':
     default:
       return ({ qb, cn }) => qb.clear('select').concat(cn);
-    // return '';
   }
 };

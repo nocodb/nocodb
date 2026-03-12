@@ -115,10 +115,11 @@ export class SidebarPage extends BasePage {
   }
 
   async createView({ title, type }: { title: string; type: ViewTypes }) {
-    const createViewButtonOfActiveProject = this.dashboard
-      .get()
-      .locator('.nc-table-node-wrapper[data-active="true"] .nc-create-view-btn');
+    const activeTableNode = this.dashboard.get().locator('.nc-table-node-wrapper[data-active="true"]');
+    const createViewButtonOfActiveProject = activeTableNode.getByTestId('nc-sidebar-table-create-view-btn');
 
+    // Hover the table node to reveal the create-view button
+    await activeTableNode.hover();
     await createViewButtonOfActiveProject.waitFor({ state: 'visible' });
     await createViewButtonOfActiveProject.scrollIntoViewIfNeeded();
     await createViewButtonOfActiveProject.click();
@@ -166,11 +167,12 @@ export class SidebarPage extends BasePage {
   }
 
   async verifyCreateViewButtonVisibility({ isVisible }: { isVisible: boolean }) {
-    const createViewButtonOfActiveProject = this.dashboard
-      .get()
-      .locator('.nc-table-node-wrapper[data-active="true"] .nc-create-view-btn');
+    const activeTableNode = this.dashboard.get().locator('.nc-table-node-wrapper[data-active="true"]');
+    const createViewButtonOfActiveProject = activeTableNode.getByTestId('nc-sidebar-table-create-view-btn');
 
     if (isVisible) {
+      // Hover to reveal the button
+      await activeTableNode.hover();
       await expect(createViewButtonOfActiveProject).toBeVisible();
     } else {
       await expect(createViewButtonOfActiveProject).toHaveCount(0);

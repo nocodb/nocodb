@@ -134,6 +134,55 @@ body {
   color: rgba(var(--rgb-base), 0.85);
 }
 
+.ant-form-item {
+  &.nc-force-layout-vertical {
+    @apply !flex-col;
+
+    & > .ant-form-item-label {
+      @apply pb-2 text-left;
+
+      &::after {
+        @apply hidden;
+      }
+
+      & > label {
+        @apply !h-auto;
+        &::after {
+          @apply !hidden;
+        }
+      }
+    }
+  }
+
+  &.nc-force-layout-horizontal {
+    @apply !flex-row !items-center;
+
+    & > .ant-form-item-label {
+      @apply pb-0 items-center;
+
+      &::after {
+        @apply content-[':'] !mr-2 !ml-0.5 relative top-[0.5px];
+      }
+    }
+  }
+}
+
+// Fix: Ant Design overrides vertical form layout at max-width 575px with flex-wrap: wrap,
+// flex: 0 0 100%, and label padding — which breaks flex-direction: column.
+// Re-enforce vertical layout on small screens.
+@media (max-width: 575px) {
+  .ant-form-vertical .ant-form-item {
+    flex-direction: column;
+    flex-wrap: nowrap;
+  }
+
+  .ant-form-vertical.ant-form .ant-form-item .ant-form-item-label,
+  .ant-form-vertical.ant-form .ant-form-item .ant-form-item-control {
+    flex: unset;
+    max-width: unset;
+  }
+}
+
 /* windicss layer base */
 @layer base {
   [theme='dark'] {

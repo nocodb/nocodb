@@ -38,4 +38,14 @@ export class OrgLcenseController {
     await this.orgLcenseService.licenseSet({ key: body.key });
     return { msg: 'The license key has been saved' };
   }
+
+  @Get('/api/v1/license/status')
+  @Acl('licenseGet', {
+    scope: 'org',
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
+    blockApiTokenAccess: true,
+  })
+  async licenseStatus() {
+    return await this.orgLcenseService.licenseStatus();
+  }
 }

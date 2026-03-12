@@ -44,8 +44,8 @@ test.describe('Erd', () => {
   };
 
   const openProjectErd = async () => {
-    await dashboard.baseView.openOverview();
-    await dashboard.baseView.tab_dataSources.click();
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('data-source');
+
     await dashboard.baseView.dataSources.openERD({ rowIndex: 0 });
 
     // await dashboard.treeView.baseSettings({ title: context.base.title });
@@ -279,6 +279,7 @@ test.describe('Erd', () => {
 
   test('Verify table operations sync with ERD', async () => {
     await openProjectErd();
+
     await dashboard.details.relations.verifyNode({
       tableName: `country`,
       columnNameShouldNotExist: 'new_test_column',
@@ -293,6 +294,7 @@ test.describe('Erd', () => {
     await dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: context.base.title, open: true });
 
     await openProjectErd();
+
     await dashboard.details.relations.verifyNode({
       tableName: `Test`,
     });

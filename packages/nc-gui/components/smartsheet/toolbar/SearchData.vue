@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { ColumnType, TableType, UITypes } from 'nocodb-sdk'
 
+const isSearchExpanded = defineModel<boolean>('searchExpanded', { default: false })
+
 const reloadData = inject(ReloadViewDataHookInj)!
 
 const reloadAggregate = inject(ReloadAggregateHookInj)
@@ -9,7 +11,7 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { $e } = useNuxtApp()
 
-const { meta, eventBus, isGrid, isGallery, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
+const { meta, eventBus, isGrid, isGallery, isList, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
   useSmartsheetStoreOrThrow()
 
 const { lastOpenedViewId } = storeToRefs(useViewsStore())
@@ -24,9 +26,19 @@ const { search, loadFieldQuery } = useFieldQuery()
 
 const { isMobileMode } = useGlobal()
 
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const { getMetaByKey } = useMetas()
+
+function getTableTitle(tableId?: string) {
+  if (!tableId) return 'Unknown'
+  const baseId = (meta.value as TableType)?.base_id
+  const tableMeta = getMetaByKey(baseId, tableId)
+  return tableMeta?.title || 'Unknown'
+}
+
 const isDropdownOpen = ref(false)
 
-const showSearchBox = ref(!!isMobileMode.value)
+const showSearchBox = ref(false)
 
 const globalSearchRef = ref<HTMLInputElement>()
 
@@ -49,7 +61,17 @@ const isSearchResultVisible = computed(() => {
   )
 })
 
-const columns = computed(() => (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? [])
+const columns = computed(() => {
+  if (isList.value && listViewStore?.selectedLevel.value?.fk_model_id) {
+    const levelTableId = listViewStore.selectedLevel.value.fk_model_id
+    const baseId = (meta.value as TableType)?.base_id
+    const levelMeta = getMetaByKey(baseId, levelTableId)
+    if (levelMeta?.columns) {
+      return (levelMeta.columns as ColumnType[]).filter((column) => isSearchableColumn(column))
+    }
+  }
+  return (meta.value as TableType)?.columns?.filter((column) => isSearchableColumn(column)) ?? []
+})
 
 watch(
   () => activeView.value?.id,
@@ -67,6 +89,16 @@ watch(
   },
   { immediate: true },
 )
+
+if (isList.value && listViewStore) {
+  watch(
+    () => listViewStore!.selectedLevelId.value,
+    () => {
+      search.value.field = ''
+      search.value.query = ''
+    },
+  )
+}
 
 function onPressEnter() {
   $e('a:view:search')
@@ -136,9 +168,7 @@ const handleEscapeKey = () => {
   if (isDropdownOpen.value || gridEditEnabled.value) return
 
   search.value.query = ''
-  if (!isMobileMode.value) {
-    showSearchBox.value = false
-  }
+  showSearchBox.value = false
 }
 
 const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
@@ -147,15 +177,13 @@ const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
     return
   }
 
-  if (!isMobileMode.value) {
-    showSearchBox.value = false
-  }
+  showSearchBox.value = false
 }
 
 onClickOutside(globalSearchWrapperRef, handleClickOutside)
 
 onMounted(() => {
-  if ((search.value.query || isMobileMode.value) && !showSearchBox.value) {
+  if (search.value.query && !showSearchBox.value) {
     showSearchBox.value = true
   }
 })
@@ -180,6 +208,8 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 watch(
   isSearchButtonVisible,
   (newVal) => {
+    isSearchExpanded.value = !newVal
+
     if (newVal) return
 
     isDropdownOpen.value = false
@@ -203,13 +233,24 @@ watch(
       <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-subtle group-hover:text-nc-content-gray-extreme" />
     </NcButton>
     <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
-      <div
-        :class="{
-          'border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)':
-            isMobileMode,
-          'border-primary shadow-selected': isMobileMode && search.query.length !== 0,
-        }"
-      >
+      <div class="border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)">
+        <div
+          v-if="isList && listViewStore && listViewStore.levels.value.length > 1"
+          class="flex items-center gap-1 px-2 py-1 border-b-1 border-nc-border-gray-medium"
+        >
+          <div
+            v-for="(level, index) in listViewStore.levels.value"
+            :key="level.id || index"
+            class="px-1.5 py-0.5 rounded text-[11px] font-medium cursor-pointer transition-colors truncate"
+            :class="{
+              'bg-nc-bg-brand text-nc-content-brand': listViewStore.selectedLevelId.value === level.id,
+              'text-nc-content-gray-muted hover:bg-nc-bg-gray-medium': listViewStore.selectedLevelId.value !== level.id,
+            }"
+            @click="listViewStore.setSelectedLevel(level.id ?? null)"
+          >
+            {{ getTableTitle(level.fk_model_id) }}
+          </div>
+        </div>
         <div class="flex flex-row h-8 relative">
           <NcDropdown
             v-model:visible="isDropdownOpen"

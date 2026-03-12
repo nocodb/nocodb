@@ -77,7 +77,7 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
       class="flex-none"
     />
     <NcTooltip
-      v-if="showInherit && isEeUI && inheritRef === role"
+      v-if="showInherit && inheritRef === role"
       class="uppercase text-[10px] leading-4 text-nc-content-gray-muted"
       placement="bottom"
     >

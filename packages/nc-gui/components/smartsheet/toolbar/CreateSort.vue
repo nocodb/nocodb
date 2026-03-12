@@ -20,11 +20,30 @@ const activeView = inject(ActiveViewInj, ref())
 
 const meta = inject(MetaInj, ref())
 
+const { isList } = useSmartsheetStoreOrThrow()
+
+const listViewStore = isList.value ? useListViewStoreOrThrow() : undefined
+const isListConfigured = computed(() => listViewStore?.isConfigured.value ?? false)
+
+const { getMetaByKey } = useMetas()
+
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
+
+const levelTableColumns = computed(() => {
+  if (!isList.value || !isListConfigured.value || !listViewStore?.selectedLevel.value) {
+    return meta.value?.columns || []
+  }
+  const level = listViewStore.selectedLevel.value
+  if (level.fk_model_id === meta.value?.id) {
+    return meta.value?.columns || []
+  }
+  const tableMeta = getMetaByKey(meta.value?.base_id, level.fk_model_id)
+  return tableMeta?.columns || []
+})
 
 const options = computed<ColumnType[]>(() =>
   (
-    clone(meta.value?.columns)
+    clone(levelTableColumns.value)
       ?.filter((c: ColumnType) => {
         if (c.uidt === UITypes.Links) {
           return true

@@ -23,6 +23,49 @@ const emits = defineEmits(['close'])
 
 const { editor, embedMode, isFormField, hiddenOptions, enableCloseButton } = toRefs(props)
 
+// ── Highlight colour picker (doc editor / embedMode only) ──────────────
+
+const showHighlightPicker = ref(false)
+
+// Pastel palette — 8 standard colours, no custom picker needed
+const highlightColors = [
+  { name: 'Yellow', color: '#fef08a' },
+  { name: 'Green', color: '#bbf7d0' },
+  { name: 'Blue', color: '#bfdbfe' },
+  { name: 'Pink', color: '#fbcfe8' },
+  { name: 'Orange', color: '#fed7aa' },
+  { name: 'Red', color: '#fecaca' },
+  { name: 'Purple', color: '#e9d5ff' },
+  { name: 'Gray', color: '#e5e7eb' },
+] as const
+
+// Resolved active colour — null when no highlight on selection
+const activeHighlightColor = computed(() => {
+  for (const h of highlightColors) {
+    if (editor.value?.isActive('highlight', { color: h.color })) return h.color
+  }
+  return null
+})
+
+/** Apply or remove a highlight colour. Clicking the active colour removes it. */
+const applyHighlight = (color: string) => {
+  if (editor.value?.isActive('highlight', { color })) {
+    editor.value?.chain().focus().unsetHighlight().run()
+  } else {
+    editor.value?.chain().focus().setHighlight({ color }).run()
+  }
+  showHighlightPicker.value = false
+}
+
+// Dismiss dropdown on any click outside the button / dropdown
+const onDocClick = (e: MouseEvent) => {
+  if (!showHighlightPicker.value) return
+  const hit = (e.target as HTMLElement)?.closest?.('.nc-highlight-dropdown, .nc-highlight-btn')
+  if (!hit) showHighlightPicker.value = false
+}
+onMounted(() => document.addEventListener('mousedown', onDocClick))
+onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
+
 const { appInfo } = useGlobal()
 
 const isEditColumn = inject(EditColumnInj, ref(false))
@@ -94,7 +137,7 @@ const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
     return false
   }
 
-  if (isFormField.value) return !hiddenOptions.value.includes(option)
+  if (hiddenOptions.value.includes(option)) return false
 
   return true
 }
@@ -222,6 +265,52 @@ const closeTextArea = () => {
         <GeneralIcon icon="strike" />
       </NcButton>
     </NcTooltip>
+    <!-- Highlight colour picker — doc editor (embedMode) only -->
+    <NcTooltip v-if="embedMode && !isEditColumn" :disabled="editor.isActive('codeBlock') || showHighlightPicker">
+      <template #title> {{ $t('general.highlight') }} </template>
+      <NcButton
+        size="small"
+        type="text"
+        class="nc-highlight-btn"
+        :class="{ 'is-active': activeHighlightColor }"
+        :disabled="editor.isActive('codeBlock')"
+        @click="showHighlightPicker = !showHighlightPicker"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="m9 11-6 6v3h9l3-3" />
+          <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4" />
+        </svg>
+      </NcButton>
+    </NcTooltip>
+    <!-- Colour swatch dropdown — anchored to bubble-menu via position:absolute -->
+    <div v-if="embedMode && showHighlightPicker" class="nc-highlight-dropdown" @mousedown.prevent>
+      <div class="nc-highlight-grid">
+        <button
+          v-for="h in highlightColors"
+          :key="h.color"
+          class="nc-highlight-swatch"
+          :class="{ 'is-active': activeHighlightColor === h.color }"
+          :style="{ backgroundColor: h.color }"
+          :title="h.name"
+          @click="applyHighlight(h.color)"
+        />
+      </div>
+      <!-- "Clear" only shown when a highlight is active on the selection -->
+      <button v-if="activeHighlightColor" class="nc-highlight-clear" @click="applyHighlight(activeHighlightColor)">
+        {{ $t('general.clear') }}
+      </button>
+    </div>
+
     <NcTooltip
       v-if="isFormField ? isOptionVisible(RichTextBubbleMenuOptions.quote) : !embedMode"
       :placement="tooltipPlacement"
@@ -428,6 +517,19 @@ const closeTextArea = () => {
       :tab-index="tabIndex"
     />
 
+    <NcTooltip v-if="isOptionVisible(RichTextBubbleMenuOptions.table)" :placement="tooltipPlacement">
+      <template #title> {{ $t('objects.table') }} </template>
+      <NcButton
+        size="small"
+        type="text"
+        :tabindex="tabIndex"
+        :class="{ 'is-active': editor.isActive('table') }"
+        @click="editor!.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()"
+      >
+        <GeneralIcon icon="table" />
+      </NcButton>
+    </NcTooltip>
+
     <div v-if="enableCloseButton" class="!sticky right-0 pr-0.5 bg-nc-bg-default">
       <NcButton type="text" size="small" @click="closeTextArea">
         <GeneralIcon icon="close" />
@@ -483,6 +585,7 @@ const closeTextArea = () => {
 .bubble-menu {
   // shadow
   @apply bg-nc-bg-default;
+  position: relative;
   border-width: 1px;
 
   &.nc-form-field-bubble-menu {
@@ -508,6 +611,61 @@ const closeTextArea = () => {
   }
   .ant-btn-loading-icon {
     @apply pb-0.5;
+  }
+}
+
+/* ── Highlight colour picker dropdown ─────────────────────────────── */
+
+// Anchored to .bubble-menu (position:relative) — sits below the toolbar
+.nc-highlight-dropdown {
+  position: absolute;
+  bottom: 0;
+  transform: translateY(calc(100% + 4px)); // 4px gap below bubble-menu
+  background: var(--nc-bg-default);
+  border: 1px solid var(--nc-border-gray-medium);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+// Single row of colour swatches
+.nc-highlight-grid {
+  display: flex;
+  gap: 4px;
+}
+
+.nc-highlight-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.1s, transform 0.1s;
+
+  &:hover {
+    transform: scale(1.15);
+  }
+  &.is-active {
+    border-color: var(--nc-content-brand);
+  }
+}
+
+.nc-highlight-clear {
+  width: 100%;
+  margin-top: 6px;
+  padding: 3px 0;
+  font-size: 11px;
+  color: var(--nc-content-gray-subtle);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+
+  &:hover {
+    color: var(--nc-content-gray);
+    background: var(--nc-bg-gray-light);
+    border-radius: 4px;
   }
 }
 </style>

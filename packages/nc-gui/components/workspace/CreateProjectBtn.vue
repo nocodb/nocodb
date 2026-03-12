@@ -1,24 +1,25 @@
 <script setup lang="ts">
-const props = defineProps<{
-  activeWorkspaceId?: string | undefined
-  modal?: boolean
-  type?: string
-  isOpen: boolean
-  size?: NcButtonSize
-  centered?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    workspaceId?: string | undefined
+    modal?: boolean
+    type?: string
+    size?: NcButtonSize
+    centered?: boolean
+    innerClass?: string
+    // isOpen: boolean
+  }>(),
+  {
+    type: 'text',
+  },
+)
 
 const { isUIAllowed } = useRoles()
-
-const { orgRoles, workspaceRoles } = useRoles()
 
 const { baseCreateMode } = storeToRefs(useBases())
 
 const baseStore = useBase()
 const { isSharedBase } = storeToRefs(baseStore)
-
-const workspaceStore = useWorkspace()
-const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const baseCreateDlg = ref(false)
 
@@ -32,11 +33,13 @@ onMounted(() => {
 
 <template>
   <NcButton
-    v-if="isUIAllowed('baseCreate', { roles: workspaceRoles ?? orgRoles }) && !isSharedBase"
+    v-if="isUIAllowed('baseCreate') && !isSharedBase"
     v-e="['c:base:create']"
-    type="text"
+    :type="type"
+    data-testid="nc-sidebar-create-base-btn"
     :size="size"
     :centered="centered"
+    :inner-class="innerClass"
     full-width
     @click="baseCreateDlg = true"
   >

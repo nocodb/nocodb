@@ -21,7 +21,7 @@ export class TablesViewPage extends BasePage {
   }
 
   async verifyAccess(role: string) {
-    await this.baseView.openOverview();
+    await this.baseView.dashboard.leftSidebar.sidebarNav.navigateToDataTab();
 
     if (role.toLowerCase() === 'creator' || role.toLowerCase() === 'owner') {
       await this.get().waitFor({ state: 'visible' });

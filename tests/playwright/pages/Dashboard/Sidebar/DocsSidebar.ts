@@ -10,15 +10,31 @@ export class DocsSidebarPage extends BasePage {
     this.sidebar = sidebar;
   }
 
+  /**
+   * Ensures the MiniSidebarV2 docs tab is active before interacting with the docs sidebar.
+   * No-op if V2 is not present or docs tab is already active.
+   */
+  private async ensureDocsTab(): Promise<void> {
+    await this.sidebar.dashboard.leftSidebar.sidebarNav.navigateToDocsTab();
+  }
+
+  /**
+   * Get the documents list container in the sidebar.
+   * If isPublic, scopes to the public docs sidebar; otherwise scopes to the main sidebar.
+   */
   get({ baseTitle, isPublic }: { baseTitle: string; isPublic?: boolean }) {
     if (isPublic) {
       return this.rootPage.getByTestId(`docs-sidebar-${baseTitle}`);
     }
-    return this.sidebar.get().getByTestId(`docs-sidebar-${baseTitle}`);
+    return this.sidebar.get().getByTestId('nc-docs-sidebar-pages-list');
   }
 
-  pageNodeLocator({ baseTitle, title, isPublic }: { baseTitle: string; title: string; isPublic?: boolean }) {
-    return this.get({ baseTitle, isPublic }).getByTestId(`docs-sidebar-page-${baseTitle}-${title}`);
+  /**
+   * Locate a specific document node by its title in the sidebar.
+   * Node.vue uses data-testid="view-sidebar-doc-${doc.title}".
+   */
+  documentNodeLocator({ baseTitle, title, isPublic }: { baseTitle: string; title: string; isPublic?: boolean }) {
+    return this.get({ baseTitle, isPublic }).getByTestId(`view-sidebar-doc-${title}`);
   }
 
   async verifyVisibility({
@@ -30,6 +46,7 @@ export class DocsSidebarPage extends BasePage {
     isVisible: boolean;
     isPublic?: boolean;
   }) {
+    await this.ensureDocsTab();
     if (isVisible) {
       await expect(this.get({ baseTitle, isPublic })).toBeVisible();
     } else {
@@ -37,13 +54,15 @@ export class DocsSidebarPage extends BasePage {
     }
   }
 
-  async createPage({ baseTitle, title, content }: { baseTitle: string; title?: string; content?: string }) {
-    await this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page').hover();
+  async createDocument({ baseTitle, title, content }: { baseTitle: string; title?: string; content?: string }) {
+    await this.ensureDocsTab();
+
+    const createNewBtn = this.rootPage.getByTestId('nc-home-create-new-btn');
 
     await this.waitForResponse({
-      uiAction: () => this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page').click(),
+      uiAction: () => createNewBtn.click(),
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `api/v1/docs/page`,
+      requestUrlPathToMatch: `operation=documentCreate`,
     });
 
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
@@ -58,56 +77,10 @@ export class DocsSidebarPage extends BasePage {
     }
   }
 
-  async createChildPage({
+  async verifyDocumentInSidebar({
     baseTitle,
     title,
-    parentTitle,
-    content,
-  }: {
-    baseTitle: string;
-    title?: string;
-    parentTitle: string;
-    content?: string;
-  }) {
-    await this.openPage({ baseTitle, title: parentTitle });
-
-    await this.get({ baseTitle })
-      .getByTestId(`docs-sidebar-page-${baseTitle}-${parentTitle}`)
-      .locator('.nc-docs-sidebar-page-title')
-      .hover();
-    const createChildPageButton = this.get({ baseTitle })
-      .getByTestId(`docs-sidebar-page-${baseTitle}-${parentTitle}`)
-      .locator('.nc-docs-add-child-page');
-    await createChildPageButton.hover();
-    await createChildPageButton.waitFor({ state: 'visible' });
-
-    await this.rootPage.waitForTimeout(1000);
-
-    await this.waitForResponse({
-      uiAction: () =>
-        createChildPageButton.click({
-          force: true,
-        }),
-      httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `api/v1/docs/page`,
-    });
-
-    await this.sidebar.dashboard.docs.openedPage.waitForRender();
-
-    if (title) {
-      await this.sidebar.dashboard.docs.openedPage.fillTitle({ title });
-    }
-    if (content) {
-      await this.sidebar.dashboard.docs.openedPage.tiptap.fillContent({ content });
-    }
-  }
-
-  async verifyPageInSidebar({
-    baseTitle,
-    title,
-    level,
     isPublic,
-    emoji,
   }: {
     baseTitle: string;
     title: string;
@@ -115,22 +88,11 @@ export class DocsSidebarPage extends BasePage {
     isPublic?: boolean;
     emoji?: string;
   }) {
-    await expect(
-      this.get({ baseTitle, isPublic }).getByTestId(`docs-sidebar-page-${baseTitle}-${title}`)
-    ).toBeVisible();
-
-    if (level) {
-      await expect(
-        this.get({ baseTitle, isPublic }).getByTestId(`docs-sidebar-page-${baseTitle}-${title}`)
-      ).toHaveAttribute('data-level', level.toString());
-    }
-
-    if (emoji) {
-      await this.verifyEmoji({ baseTitle, title, emoji, isPublic });
-    }
+    await this.ensureDocsTab();
+    await expect(this.documentNodeLocator({ baseTitle, title, isPublic })).toBeVisible();
   }
 
-  async verifyPageIsNotInSidebar({
+  async verifyDocumentIsNotInSidebar({
     baseTitle,
     title,
     isPublic,
@@ -139,188 +101,107 @@ export class DocsSidebarPage extends BasePage {
     title: string;
     isPublic?: boolean;
   }) {
-    await expect(this.get({ baseTitle, isPublic }).getByTestId(`docs-sidebar-page-${baseTitle}-${title}`)).toBeHidden();
+    await this.ensureDocsTab();
+    await expect(this.documentNodeLocator({ baseTitle, title, isPublic })).toBeHidden();
   }
 
-  async openPage({ baseTitle, title }: { baseTitle: string; title: string }) {
-    if ((await this.getTitleOfOpenedPage({ baseTitle })) === title) {
-      return;
-    }
+  async openDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
+    await this.ensureDocsTab();
+
+    const node = this.documentNodeLocator({ baseTitle, title });
 
     await this.waitForResponse({
-      uiAction: () =>
-        this.get({ baseTitle })
-          .getByTestId(`docs-sidebar-page-${baseTitle}-${title}`)
-          .locator('.nc-docs-sidebar-page-title')
-          .click(),
+      uiAction: () => node.getByTestId('sidebar-doc-title').click(),
       httpMethodsToMatch: ['GET'],
-      requestUrlPathToMatch: `api/v1/docs/page`,
+      requestUrlPathToMatch: `operation=documentGet`,
     });
 
     await this.sidebar.dashboard.docs.openedPage.waitForRender();
   }
 
-  async selectEmoji({ baseTitle, title, emoji }: { baseTitle: string; title; emoji: string }) {
-    await this.openPage({ baseTitle, title });
+  async deleteDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
+    await this.ensureDocsTab();
 
-    await this.pageNodeLocator({
-      baseTitle,
-      title,
-    })
-      .getByTestId('docs-sidebar-emoji-selector')
-      .hover();
-    await this.pageNodeLocator({
-      baseTitle,
-      title,
-    })
-      .getByTestId('docs-sidebar-emoji-selector')
-      .click();
+    const node = this.documentNodeLocator({ baseTitle, title });
 
-    await this.rootPage.getByTestId('nc-emoji-filter').last().type(emoji);
+    await node.hover();
 
-    await this.rootPage.waitForTimeout(500);
+    // Click the 3-dot context menu button
+    await node.getByTestId('docs-sidebar-page-options').click();
 
-    await this.waitForResponse({
-      uiAction: () =>
-        this.rootPage.getByTestId('nc-emoji-container').last().locator(`.nc-emoji-item >> svg`).first().click(),
-      httpMethodsToMatch: ['PUT'],
-      requestUrlPathToMatch: `api/v1/docs/page`,
-    });
+    // Click "Delete" in the context menu
+    await this.rootPage.getByTestId(`sidebar-doc-delete-${title}`).click();
+
+    // Confirm deletion in the confirm modal
+    await this.rootPage.getByTestId('nc-delete-modal-delete-btn').click();
+
+    await this.rootPage.waitForTimeout(300);
   }
 
-  async verifyEmoji({
-    baseTitle,
-    title,
-    emoji,
-    isPublic,
-  }: {
-    baseTitle: string;
-    title;
-    emoji: string;
-    isPublic?: boolean;
-  }) {
-    await expect(
-      this.pageNodeLocator({
-        baseTitle,
-        title,
-        isPublic,
-      }).getByTestId(`nc-doc-page-icon-emojione:${emoji}`)
-    ).toBeVisible();
-  }
-
-  async deletePage({ baseTitle, title }: { baseTitle: string; title: string }) {
-    await this.openPage({ baseTitle, title });
-
-    await this.pageNodeLocator({
-      baseTitle,
-      title,
-    }).hover();
-
-    await this.pageNodeLocator({
-      baseTitle,
-      title,
-    })
-      .getByTestId('docs-sidebar-page-options')
-      .hover();
-
-    await this.pageNodeLocator({
-      baseTitle,
-      title,
-    })
-      .getByTestId('docs-sidebar-page-options')
-      .click();
-
-    await this.rootPage.getByTestId('docs-sidebar-page-delete').click();
-
-    await this.waitForResponse({
-      uiAction: () => this.rootPage.getByTestId('docs-page-delete-confirmation').last().click(),
-      httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `api/v1/docs/page`,
-    });
-  }
-
-  async getTitleOfOpenedPage({
+  /**
+   * Get the title of the currently active (selected) document in the sidebar.
+   * Active documents have the `.active` class on the nc-document-item wrapper.
+   */
+  async getTitleOfOpenedDocument({
     baseTitle,
     isPublic,
   }: {
     baseTitle: string;
     isPublic?: boolean;
   }): Promise<string | null> {
-    if (!(await this.get({ baseTitle, isPublic }).locator('.ant-tree-node-selected').isVisible())) {
+    await this.ensureDocsTab();
+
+    const activeNode = this.get({ baseTitle, isPublic }).locator('.nc-document-item.active');
+    if (!(await activeNode.isVisible().catch(() => false))) {
       return null;
     }
 
-    return await this.get({ baseTitle, isPublic })
-      .locator('.ant-tree-node-selected')
-      .locator('.nc-docs-sidebar-page-title')
-      .textContent();
+    return await activeNode.getByTestId('sidebar-doc-title').textContent();
   }
 
-  async verifyParent({
-    baseTitle,
-    title,
-    parentTitle,
-    parentLevel,
-  }: {
-    baseTitle: string;
-    title: string;
-    parentTitle: string;
-    parentLevel: number;
-  }) {
-    await this.verifyPageInSidebar({
-      baseTitle,
-      title,
-      level: parentLevel + 1,
+  async createSubDocument({ baseTitle, parentTitle }: { baseTitle: string; parentTitle: string }) {
+    await this.ensureDocsTab();
+
+    const node = this.documentNodeLocator({ baseTitle, title: parentTitle });
+
+    await node.hover();
+    await node.getByTestId('docs-sidebar-page-options').click();
+
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.getByTestId(`sidebar-doc-create-sub-${parentTitle}`).click(),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `operation=documentCreate`,
     });
 
-    await this.verifyPageInSidebar({
-      baseTitle,
-      title: parentTitle,
-      level: parentLevel,
-    });
+    // Wait for navigation to the newly created sub-document
+    await this.sidebar.dashboard.docs.openedPage.waitForRender();
+    // Extra wait for editor to settle after navigation
+    await this.rootPage.waitForTimeout(500);
   }
 
-  async verifyCreatePageButtonVisibility({ baseTitle, isVisible }: { baseTitle: string; isVisible: boolean }) {
+  async duplicateDocument({ baseTitle, title }: { baseTitle: string; title: string }) {
+    await this.ensureDocsTab();
+
+    const node = this.documentNodeLocator({ baseTitle, title });
+
+    await node.hover();
+    await node.getByTestId('docs-sidebar-page-options').click();
+
+    await this.waitForResponse({
+      uiAction: () => this.rootPage.getByTestId(`sidebar-doc-duplicate-${title}`).click(),
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `operation=documentCreate`,
+    });
+
+    await this.rootPage.waitForTimeout(500);
+  }
+
+  async verifyCreateDocumentButtonVisibility({ baseTitle, isVisible }: { baseTitle: string; isVisible: boolean }) {
+    await this.ensureDocsTab();
     if (isVisible) {
-      await expect(this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeVisible();
+      await expect(this.rootPage.getByTestId('nc-home-create-new-btn')).toBeVisible();
     } else {
-      await expect(this.get({ baseTitle }).getByTestId('nc-docs-sidebar-add-page')).toBeHidden();
+      await expect(this.rootPage.getByTestId('nc-home-create-new-btn')).toBeHidden();
     }
-  }
-
-  async reorderPage({
-    baseTitle,
-    title,
-    newParentTitle,
-    dragToTop,
-  }: {
-    baseTitle: string;
-    title: string;
-    newParentTitle: string;
-    dragToTop?: boolean;
-  }) {
-    await this.openPage({ baseTitle, title });
-
-    await this.pageNodeLocator({
-      baseTitle,
-      title,
-    }).hover();
-
-    await this.pageNodeLocator({
-      baseTitle,
-      title,
-    }).dragTo(
-      this.pageNodeLocator({
-        baseTitle,
-        title: newParentTitle,
-      }),
-      {
-        targetPosition: {
-          x: 135,
-          y: dragToTop ? 0 : 20,
-        },
-        force: true,
-      }
-    );
   }
 }

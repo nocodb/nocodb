@@ -1,4 +1,4 @@
-import { ButtonActionsType, UITypes } from 'nocodb-sdk';
+import { ButtonActionsType, isBtLikeV2Junction, UITypes } from 'nocodb-sdk';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import type { ColumnType } from 'nocodb-sdk';
 import type { Knex } from 'knex';
@@ -32,6 +32,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     alias,
     validateFormula,
     pkAndPvOnly = false,
+    linksAsLtar = false,
   }: {
     fieldsSet?: Set<string>;
     qb: Knex.QueryBuilder & Knex.QueryInterface;
@@ -42,6 +43,7 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     alias?: string;
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
+    linksAsLtar?: boolean;
   }): Promise<void> => {
     // keep a common object for all columns to share across all columns
     const aliasToColumnBuilder = {};
@@ -399,6 +401,14 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
         case UITypes.Rollup:
         case UITypes.Links:
+          if (
+            column.uidt === UITypes.Links &&
+            (linksAsLtar || isBtLikeV2Junction(column))
+          ) {
+            // When linksAsLtar is enabled or V2 MO/OO (single-record) —
+            // skip the rollup count select so getProto resolves nested data under column.title
+            break;
+          }
           qb.select(
             (
               await genRollupSelectv2({

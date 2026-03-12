@@ -2,6 +2,9 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { AxiosInstance } from 'axios'
+import type { MapProvider } from 'nocodb-sdk'
+import type { NcBreakpoint } from '~/lib/constants'
+
 export interface AppInfo {
   ncSiteUrl: string
   authType: 'jwt' | 'none'
@@ -43,6 +46,7 @@ export interface AppInfo {
   feedEnabled: boolean
   sentryDSN: string
   isOnPrem: boolean
+  defaultWorkspaceId: string | null
   stripePublishableKey?: string
   marketingRootUrl?: string
   templatesRootUrl?: string
@@ -52,6 +56,7 @@ export interface AppInfo {
   iframeWhitelistDomains?: Array<string>
   disableGroupByAggregation?: boolean
   sendRecordMaxRecipients?: number
+  mapProvider?: MapProvider
 }
 
 export interface StoredState {
@@ -65,6 +70,7 @@ export interface StoredState {
   latestRelease: string | null
   hiddenRelease: string | null
   isMobileMode: boolean | null
+  activeBreakpoint: NcBreakpoint | null
   lastOpenedWorkspaceId: string | null
   gridViewPageSize: number
   leftSidebarSize: {
@@ -93,6 +99,7 @@ export interface Getters {
   signedIn: ComputedRef<boolean>
   isSsoUser: ComputedRef<boolean>
   isLoading: WritableComputedRef<boolean>
+  getResponsiveValue: <T>(mobile: T, desktop: T) => T
 }
 
 export interface SignOutParams {
@@ -112,6 +119,7 @@ export interface Actions {
   }) => Promise<string | null | void>
   loadAppInfo: () => void
   setIsMobileMode: (isMobileMode: boolean) => void
+  setActiveBreakpoint: (breakpoint: NcBreakpoint) => void
   navigateToProject: (params: { workspaceId?: string; baseId?: string; query?: any }) => void
   /**
    * params `tableTitle, viewTitle, scriptTitle ,dashboardTitle,workflowTitle` will be used for readable url slug

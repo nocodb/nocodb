@@ -30,8 +30,8 @@ test.describe('Source Restrictions', () => {
 
   test('Readonly data source', async () => {
     await dashboard.treeView.openProject({ title: context.base.title, context });
-    await dashboard.baseView.openOverview();
-    await dashboard.baseView.tab_dataSources.click();
+
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('data-source');
 
     await dashboard.rootPage.waitForTimeout(300);
 
@@ -39,7 +39,7 @@ test.describe('Source Restrictions', () => {
     await dataSourcesPage.source.updateDataReadOnly({ sourceName: 'Default', readOnly: true });
 
     // reload page to reflect source changes
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.treeView.verifyTable({ title: 'Actor', baseTitle: context.base.title });
 
@@ -57,14 +57,14 @@ test.describe('Source Restrictions', () => {
 
   test('Readonly schema source', async () => {
     await dashboard.treeView.openProject({ title: context.base.title, context });
-    await dashboard.baseView.openOverview();
-    await dashboard.baseView.tab_dataSources.click();
+
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('data-source');
 
     await dashboard.rootPage.waitForTimeout(300);
 
     await dataSourcesPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
     // reload page to reflect source changes
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.treeView.verifyTable({ title: 'Actor', baseTitle: context.base.title });
 
@@ -99,14 +99,14 @@ test.describe('Source Restrictions', () => {
     });
 
     await dashboard.treeView.openProject({ title: context.base.title, context });
-    await dashboard.baseView.openOverview();
-    await dashboard.baseView.tab_dataSources.click();
+
+    await dashboard.leftSidebar.sidebarNav.navigateToSettingsPage('data-source');
 
     await dashboard.rootPage.waitForTimeout(300);
 
     await dataSourcesPage.source.updateSchemaReadOnly({ sourceName: 'Default', readOnly: true });
     // reload page to reflect source changes
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.treeView.verifyTable({ title: 'Country', baseTitle: context.base.title });
 

@@ -15,6 +15,7 @@ import Integer from '~/components/cell/Integer/index.vue'
 import Float from '~/components/cell/Float/index.vue'
 import Text from '~/components/cell/Text/index.vue'
 import User from '~/components/cell/User/index.vue'
+import ColourFilter from '~/components/cell/Colour/FilterInput.vue'
 
 interface Props {
   // column could be possibly undefined when the filter is created
@@ -62,6 +63,7 @@ const checkTypeFunctions: Record<string, (column: ColumnType, abstractType?: str
   isLinks: (col: ColumnType) => col.uidt === UITypes.Links,
   isUser,
   isReadonlyUser,
+  isColour,
 }
 
 type FilterType = keyof typeof checkTypeFunctions
@@ -131,6 +133,7 @@ const componentMap: Partial<Record<FilterType, any>> = computed(() => {
     isLinks: Integer,
     isUser: User,
     isReadonlyUser: User,
+    isColour: ColourFilter,
   }
 })
 

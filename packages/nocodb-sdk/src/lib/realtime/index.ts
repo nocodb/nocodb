@@ -1,4 +1,5 @@
-import { UserType, NotificationType } from '~/lib/Api';
+import { NotificationType, UserType } from '~/lib/Api';
+import type { ChatContentBlock, ChatMessageType, ChatSessionType } from '~/lib/chat';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
@@ -16,16 +17,18 @@ export enum EventType {
   TEAM_EVENT = 'event-team',
   WORKFLOW_EVENT = 'event-workflow',
   WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
+  PRESENCE_EVENT = 'event-presence',
+  CHAT_EVENT = 'event-chat',
+  DOCUMENT_EVENT = 'event-document',
+  DOCUMENT_COMMENT_EVENT = 'event-document-comment',
 }
 
-// Base payload interface for all socket events
 export interface BaseSocketPayload {
   timestamp: number;
   socketId?: string;
   event?: EventType;
 }
 
-// Connection event payloads
 export interface ConnectionWelcomePayload extends BaseSocketPayload {
   message: string;
   serverInfo: {
@@ -56,13 +59,18 @@ export interface CommentPayload extends BaseSocketPayload {
   payload: Record<string, any>;
 }
 
+export interface DocumentCommentPayload extends BaseSocketPayload {
+  id: string; // docId
+  action: 'add' | 'update' | 'delete' | 'resolve';
+  payload: Record<string, any>;
+}
+
 export interface MetaPayload<T = any> extends BaseSocketPayload {
   action:
     | 'source_create'
     | 'source_update'
     | 'source_delete'
     | 'source_meta_sync'
-    | 'base_full_reload'
     | 'table_create'
     | 'table_update'
     | 'table_permission_update'
@@ -85,7 +93,8 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'row_color_update'
     | 'extension_update'
     | 'extension_create'
-    | 'extension_delete';
+    | 'extension_delete'
+    | 'rls_policy_update';
   payload: T;
   baseId?: string;
 }
@@ -99,7 +108,8 @@ export interface UserEventPayload<T = any> extends BaseSocketPayload {
     | 'workspace_update'
     | 'workspace_user_add'
     | 'workspace_user_remove'
-    | 'workspace_user_update';
+    | 'workspace_user_update'
+    | 'base_meta_reload';
   payload: T;
   baseId?: string;
   workspaceId?: string;
@@ -110,14 +120,131 @@ export interface NotificationPayload extends BaseSocketPayload {
   payload: Partial<NotificationType>;
 }
 
-// Union type for all socket event payloads
+export enum PresencePageType {
+  TABLE = 'table',
+  AUTOMATION = 'automation',
+  DASHBOARD = 'dashboard',
+  SCRIPT = 'script',
+  DOCUMENT = 'document',
+}
+
+export interface PresenceAnnouncePayload extends BaseSocketPayload {
+  action: 'announce';
+  user: {
+    id: string;
+    email: string;
+    displayName: string;
+    meta?: Record<string, any> | null;
+  };
+  resource: {
+    id: string;
+    type: PresencePageType;
+    viewId?: string;
+  };
+}
+
+export interface PresenceHeartbeatPayload extends BaseSocketPayload {
+  action: 'heartbeat';
+  user: {
+    id: string;
+  };
+  resource: {
+    id: string;
+    type: PresencePageType;
+    viewId?: string;
+  };
+}
+
+export interface PresenceLocationChangePayload extends BaseSocketPayload {
+  action: 'location-change';
+  user: {
+    id: string;
+  };
+  resource: {
+    id: string;
+    type: PresencePageType;
+    viewId?: string;
+  };
+}
+
+export interface PresenceLeavePayload extends BaseSocketPayload {
+  action: 'leave';
+  user: {
+    id: string;
+  };
+}
+
+export interface PresenceBatchPayload extends BaseSocketPayload {
+  action: 'batch';
+  users: Array<{
+    user: {
+      id: string;
+      email: string;
+      displayName: string;
+      meta?: Record<string, any> | null;
+    };
+    resource: {
+      id: string;
+      type: PresencePageType;
+      viewId?: string;
+    };
+    lastSeen: number;
+  }>;
+}
+
+export type PresencePayload =
+  | PresenceAnnouncePayload
+  | PresenceHeartbeatPayload
+  | PresenceLocationChangePayload
+  | PresenceLeavePayload
+  | PresenceBatchPayload;
+
+export interface ChatEventPayload extends BaseSocketPayload {
+  action:
+    | 'token'
+    | 'tool-start'
+    | 'tool-call'
+    | 'tool-result'
+    | 'message-done'
+    | 'message-update'
+    | 'error'
+    | 'session-create'
+    | 'session-update'
+    | 'session-delete'
+    | 'user-message';
+  sessionId: string;
+  // action: 'token'
+  content?: string;
+  // action: 'tool-start' | 'tool-call'
+  toolCallId?: string;
+  name?: string;
+  args?: any;
+  // action: 'tool-result'
+  output?: any;
+  isError?: boolean;
+  // action: 'message-done'
+  workspaceId?: string;
+  messageId?: string;
+  /** Final ordered content blocks — single source of truth for the persisted message. */
+  parts?: ChatContentBlock[];
+  // action: 'error'
+  error?: string;
+  // action: 'session-create' | 'session-update' | 'session-delete'
+  session?: ChatSessionType;
+  // action: 'user-message'
+  message?: ChatMessageType;
+}
+
 export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
   | DataPayload
   | MetaPayload
   | CommentPayload
-  | NotificationPayload;
+  | DocumentCommentPayload
+  | NotificationPayload
+  | PresencePayload
+  | ChatEventPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
@@ -128,6 +255,9 @@ export type SocketEventPayloadMap = {
   [EventType.META_EVENT]: MetaPayload;
   [EventType.USER_EVENT]: UserEventPayload;
   [EventType.COMMENT_EVENT]: CommentPayload;
+  [EventType.DOCUMENT_COMMENT_EVENT]: DocumentCommentPayload;
+  [EventType.PRESENCE_EVENT]: PresencePayload;
+  [EventType.CHAT_EVENT]: ChatEventPayload;
   [key: string]: BaseSocketPayload;
 };
 

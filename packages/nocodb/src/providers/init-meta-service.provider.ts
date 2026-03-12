@@ -110,6 +110,8 @@ export const InitMetaServiceProvider: FactoryProvider = {
     Noco.eventEmitter = eventEmitter;
 
     await Noco.prepareAuditService();
+    await Noco.prepareChatMessagesService();
+    await Noco.prepareDocsContentService();
 
     if (!instanceConfig) {
       NcDebug.log('Inserting instance config');

@@ -1,9 +1,13 @@
+// PR review fix #5: UITypes import no longer needed after removing redundant check
 import { type ColumnType } from 'nocodb-sdk'
 import type { PropType } from '@vue/runtime-core'
 
 export const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
     return iconMap.cellSystemKey
+    // PR review fix #5: isUUID() already checks column.uidt === UITypes.UUID
+  } else if (isUUID(column)) {
+    return iconMap.cellUuid
   } else if (isSpecificDBType(column)) {
     return iconMap.cellDb
   } else if (isJSON(column)) {
@@ -32,6 +36,8 @@ export const renderIcon = (column: ColumnType, abstractType: any) => {
     return iconMap.cellTime
   } else if (isRating(column)) {
     return iconMap.cellRating
+  } else if (isColour(column)) {
+    return iconMap.cellColour
   } else if (isAttachment(column)) {
     return iconMap.cellAttachment
   } else if (isDecimal(column)) {

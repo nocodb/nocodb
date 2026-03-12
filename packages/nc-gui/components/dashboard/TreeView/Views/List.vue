@@ -4,6 +4,13 @@ import { ViewTypes, getFirstNonPersonalView, viewTypeAlias } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import Sortable from 'sortablejs'
 
+interface Props {
+  /** When provided, only these views are displayed (EE per-section usage) */
+  sectionViews?: ViewType[]
+  /** When true, applies extra indentation for views nested inside a section */
+  isInSection?: boolean
+}
+
 interface Emits {
   (
     event: 'openModal',
@@ -19,6 +26,10 @@ interface Emits {
   (event: 'deleted'): void
 }
 
+const props = withDefaults(defineProps<Props>(), {
+  isInSection: false,
+})
+
 const emits = defineEmits<Emits>()
 const base = inject(ProjectInj)!
 const table = inject(SidebarTableInj)!
@@ -27,15 +38,11 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { $api } = useNuxtApp()
 
-const { activeTableId } = storeToRefs(useTablesStore())
-
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
 const { baseHomeSearchQuery } = storeToRefs(useBases())
-
-const { isSharedBase } = storeToRefs(useBase())
 
 const { $e } = useNuxtApp()
 
@@ -81,14 +88,6 @@ function markItem(id: string) {
 }
 
 const source = computed(() => base.value?.sources?.find((b) => b.id === table.value.source_id))
-
-const isDefaultSource = computed(() => {
-  if (base.value?.sources?.length === 1) return true
-
-  if (!source.value) return false
-
-  return isDefaultBase(source.value)
-})
 
 /** validate view title */
 function validate(view: ViewType) {
@@ -395,7 +394,9 @@ function onOpenModal({
 }
 
 const filteredViews = computed(() => {
-  return views.value.filter((view) => {
+  const sourceViews = props.sectionViews ?? views.value
+
+  return sourceViews.filter((view) => {
     if (isShowEveryonePersonalViewsEnabled.value) {
       return searchCompare(view.title, baseHomeSearchQuery.value)
     }
@@ -409,37 +410,6 @@ const filteredViews = computed(() => {
 
 <template>
   <div>
-    <template v-if="!isSharedBase">
-      <DashboardTreeViewCreateViewBtn
-        v-if="isUIAllowed('viewCreateOrEdit')"
-        :align-left-level="isDefaultSource ? 1 : 2"
-        :class="{
-          '!pl-7.5 !xs:(pl-7.5)': isDefaultSource,
-          '!pl-13.6 !xs:(pl-15)': !isDefaultSource,
-        }"
-        :source="source"
-      >
-        <div
-          :class="{
-            'text-nc-content-brand hover:text-nc-content-brand-disabled': activeTableId === table.id,
-            'text-nc-content-gray-muted hover:text-nc-content-brand': activeTableId !== table.id,
-          }"
-          class="nc-create-view-btn flex flex-row items-center cursor-pointer rounded-md w-full"
-          role="button"
-        >
-          <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
-            <GeneralIcon icon="plus" class="nc-create-view-btn-icon" />
-            <div class="pl-1.75">
-              {{
-                $t('general.createEntity', {
-                  entity: $t('objects.view'),
-                })
-              }}
-            </div>
-          </div>
-        </div>
-      </DashboardTreeViewCreateViewBtn>
-    </template>
     <div
       v-if="filteredViews.length"
       ref="menuRef"
@@ -451,7 +421,9 @@ const filteredViews = computed(() => {
         :key="view.id"
         :data-id="view.id"
         :data-order="view.order"
+        :is-dragging="dragging"
         :data-title="view.title"
+        :is-in-section="isInSection"
         :class="{
           'bg-nc-bg-gray-medium': isMarked === view.id,
           'active': activeView?.id === view.id,
@@ -460,7 +432,7 @@ const filteredViews = computed(() => {
         :on-validate="validate"
         :table="table"
         :view="view"
-        class="nc-view-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+        class="nc-view-item !rounded-md !pr-0.75 !py-0.5 w-full transition-all ease-in duration-100"
         @delete="openDeleteDialog"
         @rename="onRename"
         @change-view="changeView"

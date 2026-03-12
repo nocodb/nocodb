@@ -646,16 +646,19 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       case UITypes.SingleSelect:
       case UITypes.MultiSelect:
         {
-          const choices =
-            meta.choices?.map((opt) => {
-              const res: Record<string, unknown> = {
-                title: opt.title,
-                color: opt.color,
-              };
-              if (opt.id) res.id = opt.id;
-              return res;
-            }) ?? [];
-          colOptions = { options: choices };
+          // when choices not sent, do not override
+          if (meta.choices) {
+            const choices =
+              meta.choices?.map((opt) => {
+                const res: Record<string, unknown> = {
+                  title: opt.title,
+                  color: opt.color,
+                };
+                if (opt.id) res.id = opt.id;
+                return res;
+              }) ?? [];
+            colOptions = { options: choices };
+          }
         }
         break;
 

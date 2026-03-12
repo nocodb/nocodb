@@ -3,6 +3,7 @@ import type { NcContext, UnifiedMetaType } from '~/lib';
 import { getColOptions } from '~/lib/unifiedMeta/getColOptions';
 import { getColumns } from '~/lib/unifiedMeta/getColumns';
 import { getLTARRelatedTable } from './getLTARRelatedTable';
+import { isMMOrMMLike } from '~/lib/UITypes';
 
 /*
 case 1:
@@ -74,7 +75,13 @@ export const getLinkInfo = async (
       column: linkColumn,
     });
 
-  switch (relationColOptions.type) {
+  // Ensure colOptions is present for isMMOrMMLike check
+  // (getColOptions may load via method without setting it on the column)
+  const relationType = isMMOrMMLike({ ...linkColumn, colOptions: relationColOptions })
+    ? RelationTypes.MANY_TO_MANY
+    : relationColOptions.type;
+
+  switch (relationType) {
     case RelationTypes.ONE_TO_ONE:
     case RelationTypes.BELONGS_TO:
     case RelationTypes.HAS_MANY: {
@@ -117,7 +124,7 @@ export const getLinkInfo = async (
           : relationColOptions.type,
       } as UnifiedMetaType.ILinkInfo;
     }
-    case RelationTypes.MANY_TO_MANY: {
+    case RelationTypes.MANY_TO_MANY:{
       const joinIds = [
         relationColOptions.fk_child_column_id,
         relationColOptions.fk_parent_column_id,

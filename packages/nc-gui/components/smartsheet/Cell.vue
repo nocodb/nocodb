@@ -100,6 +100,8 @@ const syncValue = useDebounceFn(
   { maxWait: 2000 },
 )
 
+const isRlsEnabled = computed(() => parseProp(meta.value?.meta)?.is_rls_enabled === true)
+
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 onBeforeUnmount(() => {
@@ -107,6 +109,15 @@ onBeforeUnmount(() => {
   if (currentRow.value.oldRow?.[column.value.title] === currentRow.value.row?.[column.value.title]) return
   currentRow.value.rowMeta.changed = false
   emitSave()
+})
+
+// Non-canvas RLS: save on blur (when editEnabled goes true → false)
+watch(editEnabled, (newVal, oldVal) => {
+  if (!isRlsEnabled.value || isCanvasInjected) return
+  if (oldVal && !newVal && currentRow.value.rowMeta.changed) {
+    currentRow.value.rowMeta.changed = false
+    emitSave()
+  }
 })
 
 let saveTimer: number
@@ -138,6 +149,9 @@ const vModel = computed({
       emit('update:modelValue', val)
       if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()
+      } else if (isAutoSaved(column.value) && isRlsEnabled.value) {
+        // RLS enabled: skip debounced auto-save to prevent row disappearing mid-edit.
+        // Save will happen on blur (editEnabled watcher) or cell unmount (canvas).
       } else if (isAutoSaved(column.value)) {
         syncValue()
       } else if (!isManualSaved(column.value)) {
@@ -190,6 +204,8 @@ const cellType = computed(() => {
   if (isAI(column.value)) return 'ai'
   if (isTextArea(column.value)) return 'textarea'
   if (isGeoData(column.value)) return 'geoData'
+  if (isUUID(column.value)) return 'uuid'
+  if (isAutoNumber(column.value)) return 'integer'
   if (isBoolean(column.value, abstractType.value)) return 'checkbox'
   if (isAttachment(column.value)) return 'attachment'
   if (isSingleSelect(column.value)) return 'singleSelect'
@@ -205,6 +221,7 @@ const cellType = computed(() => {
   if (isPhoneNumber(column.value)) return 'phoneNumber'
   if (isPercent(column.value)) return 'percent'
   if (isCurrency(column.value)) return 'currency'
+  if (isColour(column.value)) return 'colour'
   if (isUser(column.value)) return 'user'
   if (isDecimal(column.value)) return 'decimal'
   if (isInt(column.value, abstractType.value)) return 'integer'
@@ -220,6 +237,9 @@ const showNullComponent = computed(() => {
 
 const showReadonlyField = computed(() => {
   if (column.value.readonly) return true
+
+  // AutoNumber values are always read-only (DB-managed sequence)
+  if (isAutoNumber(column.value)) return true
 
   switch (cellType.value) {
     case 'currency': {
@@ -238,6 +258,10 @@ const showReadonlyField = computed(() => {
     case 'checkbox':
     case 'rating': {
       return readOnly.value
+    }
+
+    case 'uuid': {
+      return true // UUID is always read-only
     }
 
     case 'singleSelect':
@@ -271,7 +295,8 @@ const showLockedOverlay = computed(() => {
     cellType.value !== 'attachment' &&
     cellType.value !== 'textarea' &&
     cellType.value !== 'ai' &&
-    cellType.value !== 'json'
+    cellType.value !== 'json' &&
+    cellType.value !== 'geoData'
   )
 })
 
@@ -342,6 +367,8 @@ const cellClassName = computed(() => {
       <CellTextArea v-else-if="cellType === 'textarea'" v-model="vModel" :virtual="props.virtual" />
 
       <CellGeoData v-else-if="cellType === 'geoData'" v-model="vModel" />
+
+      <CellUUID v-else-if="cellType === 'uuid'" v-model="vModel" />
 
       <template v-else-if="cellType === 'checkbox'">
         <CellCheckboxReadonly v-if="showReadonlyField" :model-value="vModel" />
@@ -441,6 +468,11 @@ const cellClassName = computed(() => {
       <template v-else-if="cellType === 'currency'">
         <CellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellCurrencyEditor v-else v-model="vModel" @save="emitSave" />
+      </template>
+
+      <template v-else-if="cellType === 'colour'">
+        <CellColourReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellColourEditor v-else v-model="vModel" />
       </template>
 
       <LazyCellUser

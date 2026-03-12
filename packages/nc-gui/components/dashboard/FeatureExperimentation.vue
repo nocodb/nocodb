@@ -9,7 +9,7 @@ const { toggleFeature, features, isEngineeringModeOn, isAdvancedModeOn } = useBe
 
 const value = useVModel(props, 'value')
 
-const { appInfo } = useGlobal()
+const { appInfo, isMobileMode } = useGlobal()
 
 const selectedFeatures = ref<Record<string, boolean>>({})
 
@@ -162,7 +162,7 @@ onUnmounted(() => {
     v-model:visible="value"
     class="nc-features-drawer"
     :mask-style="{ background: 'transparent' }"
-    width="min(32vw, 458px)"
+    :width="isMobileMode ? 'min(95vw, 458px)' : 'min(32vw, 458px)'"
     :closable="false"
   >
     <div class="flex flex-col h-full">

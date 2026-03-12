@@ -29,17 +29,26 @@ import { parseFlexibleDate } from '~/utils/datetimeUtils'
 
 export { isValidValue }
 
+// Core PK extraction from pre-filtered PK columns — avoids re-filtering on every call.
+export const extractPkFromPkColumns = (row: Record<string, any>, pkCols: ColumnType[]) => {
+  if (!row || !pkCols.length) return null
+
+  // if multiple pk columns, join them with ___ and escape _ in id values with \_ to avoid conflicts
+  if (pkCols.length > 1) {
+    return pkCols.map((c) => row?.[c.title!]?.toString?.().replaceAll('_', '\\_') ?? null).join('___')
+  }
+
+  const id = row?.[pkCols[0].title!] ?? null
+  return id === null ? null : `${id}`
+}
+
 export const extractPkFromRow = (row: Record<string, any>, columns: ColumnType[]) => {
   if (!row || !columns) return null
 
-  const pkCols = columns.filter((c: Required<ColumnType>) => c.pk)
-  // if multiple pk columns, join them with ___ and escape _ in id values with \_ to avoid conflicts
-  if (pkCols.length > 1) {
-    return pkCols.map((c: Required<ColumnType>) => row?.[c.title]?.toString?.().replaceAll('_', '\\_') ?? null).join('___')
-  } else if (pkCols.length) {
-    const id = row?.[pkCols[0].title] ?? null
-    return id === null ? null : `${id}`
-  }
+  return extractPkFromPkColumns(
+    row,
+    columns.filter((c: Required<ColumnType>) => c.pk),
+  )
 }
 
 export const rowPkData = (row: Record<string, any>, columns: ColumnType[]) => {
@@ -140,9 +149,15 @@ export const rowDefaultData = (columns: ColumnType[] = []) => {
     if (
       !isSystemColumn(col) &&
       !isVirtualCol(col) &&
-      ![UITypes.Attachment, UITypes.Rollup, UITypes.Lookup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode].includes(
-        col.uidt,
-      ) &&
+      ![
+        UITypes.Attachment,
+        UITypes.Rollup,
+        UITypes.Lookup,
+        UITypes.Formula,
+        UITypes.Barcode,
+        UITypes.QrCode,
+        UITypes.UUID,
+      ].includes(col.uidt) &&
       isValidValue(col?.cdf) &&
       !/^\w+\(\)|CURRENT_TIMESTAMP$/.test(col.cdf)
     ) {
@@ -447,6 +462,16 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
       })
       .join(', ')
   }
+
+  // when childColumn not found (external base or nested links, simply return the modelValue
+  if (!childColumn) {
+    if (typeof modelValue === 'string') {
+      return modelValue
+    } else {
+      return modelValue?.toString() ?? ''
+    }
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   return parsePlainCellValue(modelValue, { ...params, col: childColumn })
 }

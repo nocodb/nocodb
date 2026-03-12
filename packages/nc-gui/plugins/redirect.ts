@@ -39,14 +39,17 @@ export default defineNuxtPlugin(function (nuxtApp) {
                 return isFullUrl(continueAfterSignIn) ? '/' : continueAfterSignIn
               }
               if (route.value.query?.continueAfterSignIn) {
-                await navigateTo(getNavigateTo(route.value.query.continueAfterSignIn as string), {
+                const target = getNavigateTo(route.value.query.continueAfterSignIn as string)
+                await navigateTo(target, {
                   external: false,
+                  replace: true,
                 })
               } else {
                 const continueAfterSignIn = localStorage.getItem('continueAfterSignIn')
                 if (continueAfterSignIn) {
                   await navigateTo(getNavigateTo(continueAfterSignIn), {
                     external: false,
+                    replace: true,
                   })
                 }
               }

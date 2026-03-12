@@ -17,9 +17,11 @@ import {
   extractFilterFromXwhere,
   isAIPromptCol,
   isAttachment,
+  isBtLikeV2Junction,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isOrderCol,
   isSelfLinkCol,
   isSystemColumn,
@@ -79,7 +81,10 @@ import { selectObject } from '~/db/BaseModelSqlv2/select-object';
 import { relationDataFetcher } from '~/db/BaseModelSqlv2/relation-data-fetcher';
 import { NestedLinkPreparator } from '~/db/BaseModelSqlv2/nested-link-preparator';
 import { baseModelInsert } from '~/db/BaseModelSqlv2/insert';
-import { addOrRemoveLinks } from '~/db/BaseModelSqlv2/add-remove-links';
+import {
+  addOrRemoveLinks,
+  extractCorrespondingLinkColumn,
+} from '~/db/BaseModelSqlv2/add-remove-links';
 import applyAggregation from '~/db/aggregation';
 import { groupBy as baseModelGroupBy } from '~/db/BaseModelSqlv2/group-by';
 import conditionV2 from '~/db/conditionV2';
@@ -137,7 +142,10 @@ import {
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import {
+  QUERY_STRING_FIELD_ID_ON_RESULT,
+  QUERY_STRING_LINKS_AS_LTAR,
+} from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
 import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
@@ -182,6 +190,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public model: Model;
   public context: NcContext;
   public schema?: string;
+  public formulaDryRunFailed?: boolean;
 
   public static config: any = defaultLimitConfig;
 
@@ -252,6 +261,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOnlyPrimaries = false,
       apiVersion,
       extractOrderColumn = false,
+      ignoreRls = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -259,6 +269,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOnlyPrimaries?: boolean;
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
+      ignoreRls?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -278,13 +289,31 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
 
+    const linksAsLtar =
+      apiVersion === NcApiVersion.V3 &&
+      query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
     await this.selectObject({
       ...(dependencyFields ?? {}),
       qb,
       validateFormula,
+      linksAsLtar,
     });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
+
+    // Apply RLS conditions to readByPk
+    const rlsConditionsReadByPk = ignoreRls
+      ? []
+      : await this.getRlsConditions();
+    if (rlsConditionsReadByPk.length) {
+      await conditionV2(
+        this,
+        [new Filter({ children: rlsConditionsReadByPk, is_group: true })],
+        qb,
+      );
+    }
+
     let data;
 
     try {
@@ -296,7 +325,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       });
     } catch (e) {
+      const isTransient = isTransientError(e);
+
       if (
+        isTransient ||
         validateFormula ||
         !haveFormulaColumn(await this.model.getColumns(this.context))
       )
@@ -308,7 +340,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     if (data) {
-      const proto = await this.getProto();
+      const proto = await this.getProto({ linksAsLtar });
       data.__proto__ = proto;
     }
 
@@ -351,23 +383,91 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async readOnlyPrimariesByPkFromModel(
     props: { model: Model; id: any; extractDisplayValueData?: boolean }[],
   ): Promise<any[]> {
-    return await Promise.all(
-      props.map(({ model, id, extractDisplayValueData = true }) =>
-        this.readByPkFromModel(
-          model,
-          undefined,
-          extractDisplayValueData,
-          id,
-          false,
-          {},
-          {
-            ignoreView: true,
-            getHiddenColumn: true,
-            extractOnlyPrimaries: true,
-          },
-        ),
-      ),
-    );
+    if (!props.length) return [];
+
+    // Small inputs (1-2 items): direct readByPk is cheaper than chunkList setup
+    if (props.length <= 2) {
+      const results: any[] = [];
+      for (const { model, id, extractDisplayValueData = true } of props) {
+        results.push(
+          await this.readByPkFromModel(
+            model,
+            undefined,
+            extractDisplayValueData,
+            id,
+            false,
+            {},
+            {
+              ignoreView: true,
+              getHiddenColumn: true,
+              extractOnlyPrimaries: true,
+            },
+          ),
+        );
+      }
+      return results;
+    }
+
+    // Bulk: group by model and batch-fetch via chunkList (1 SQL query per chunk)
+    const modelGroups = new Map<string, { model: Model; pks: Set<string> }>();
+
+    for (const { model, id } of props) {
+      let group = modelGroups.get(model.id);
+      if (!group) {
+        group = { model, pks: new Set() };
+        modelGroups.set(model.id, group);
+      }
+      group.pks.add(String(id));
+    }
+
+    // Fetch all records per model using chunkList (batched SQL queries)
+    const recordsByModel = new Map<string, Map<string, any>>();
+
+    for (const [modelId, { model, pks }] of modelGroups) {
+      const context = { ...this.context, base_id: model.base_id };
+      const baseModel =
+        this.model.id === modelId
+          ? this
+          : await Model.getBaseModelSQL(context, {
+              model,
+              dbDriver: this.dbDriver,
+            });
+
+      const records = await baseModel.chunkList({
+        pks: [...pks],
+        extractOnlyPrimaries: true,
+      });
+
+      await model.getCachedColumns(context);
+
+      const pkMap = new Map<string, any>();
+      for (const record of records) {
+        const pk = baseModel.extractPksValues(record, true);
+        pkMap.set(String(pk), record);
+      }
+      recordsByModel.set(modelId, pkMap);
+    }
+
+    // Reassemble results in original order
+    return props.map(({ model, id, extractDisplayValueData = true }) => {
+      const record = recordsByModel.get(model.id)?.get(String(id));
+      if (extractDisplayValueData) {
+        return record ? record[model.displayValue.title] ?? null : '';
+      }
+      return record ?? null;
+    });
+  }
+
+  public async fetchDisplayValueMap(
+    props: { model: Model; id: any }[],
+  ): Promise<Map<string, any>> {
+    const dvMap = new Map<string, any>();
+    if (!props.length) return dvMap;
+    const values = await this.readOnlyPrimariesByPkFromModel(props);
+    for (let i = 0; i < props.length; i++) {
+      dvMap.set(`${props[i].model.id}:${props[i].id}`, values[i]);
+    }
+    return dvMap;
   }
 
   public async exist(id?: any): Promise<any> {
@@ -383,6 +483,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return false;
     }
     qb.where(_wherePk(pks, id)).first();
+
+    // Apply RLS conditions to exist check
+    const rlsConditionsExist = await this.getRlsConditions();
+    if (rlsConditionsExist.length) {
+      await conditionV2(
+        this,
+        [new Filter({ children: rlsConditionsExist, is_group: true })],
+        qb,
+      );
+    }
+
     return !!(await this.execAndParse(qb, null, { raw: true, first: true }));
   }
 
@@ -411,9 +522,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasColObjMap,
     );
 
+    // Resolve RLS conditions for findOne
+    const rlsConditionsFindOne = await this.getRlsConditions();
+    const rlsFilterGroupFindOne = rlsConditionsFindOne.length
+      ? [new Filter({ children: rlsConditionsFindOne, is_group: true })]
+      : [];
+
     await conditionV2(
       this,
       [
+        ...rlsFilterGroupFindOne,
         new Filter({
           children: args.filterArr || [],
           is_group: true,
@@ -445,7 +563,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     try {
       data = await this.execAndParse(qb, null, { first: true });
     } catch (e) {
-      if (validateFormula || !haveFormulaColumn(columns)) throw e;
+      const isTransient = isTransientError(e);
+
+      if (isTransient || validateFormula || !haveFormulaColumn(columns))
+        throw e;
       logger.log(e);
       return this.findOne(args, true);
     }
@@ -469,6 +590,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       pks?: string;
       customConditions?: Filter[];
       apiVersion?: NcApiVersion;
+      linksAsLtar?: boolean | string;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
@@ -478,6 +600,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       limitOverride?: number;
       skipSubstitutingColumnIds?: boolean;
       skipSortBasedOnOrderCol?: boolean;
+      ignoreRls?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -487,6 +610,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams = false,
       limitOverride,
       skipSortBasedOnOrderCol = false,
+      ignoreRls: ignoreRlsOpt = false,
     } = options;
 
     const columns = await this.model.getColumns(this.context);
@@ -495,12 +619,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const qb = this.dbDriver(this.tnPath);
 
+    const linksAsLtar =
+      args.linksAsLtar === true || args.linksAsLtar === 'true';
+
     await this.selectObject({
       qb,
       fieldsSet: args.fieldsSet,
       viewId: this.viewId,
       validateFormula,
       columns,
+      linksAsLtar,
     });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
@@ -523,11 +651,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasColObjMap,
       throwErrorIfInvalidParams,
     );
+    // Resolve RLS (Row-Level Security) conditions
+    const rlsConditions = ignoreRlsOpt ? [] : await this.getRlsConditions();
+    const rlsFilterGroup = rlsConditions.length
+      ? [new Filter({ children: rlsConditions, is_group: true })]
+      : [];
+
     // todo: replace with view id
     if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         this,
         [
+          // RLS filters — always first, always applied
+          ...rlsFilterGroup,
           ...(args.customConditions
             ? [
                 new Filter({
@@ -569,6 +705,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await conditionV2(
         this,
         [
+          // RLS filters — always first, always applied
+          ...rlsFilterGroup,
           ...(args.customConditions
             ? [
                 new Filter({
@@ -639,7 +777,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         applyPaginate(qb, { ...rest, limit: limitOverride });
       }
     }
-    const proto = await this.getProto();
+    const proto = await this.getProto({ linksAsLtar });
 
     let data;
     try {
@@ -694,10 +832,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams,
     );
 
+    // Resolve RLS conditions for count
+    const rlsConditionsCount = await this.getRlsConditions();
+    const rlsFilterGroupCount = rlsConditionsCount.length
+      ? [new Filter({ children: rlsConditionsCount, is_group: true })]
+      : [];
+
     if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupCount,
           ...(args.customConditions
             ? [
                 new Filter({
@@ -733,6 +878,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupCount,
           ...(args.customConditions
             ? [
                 new Filter({
@@ -810,9 +956,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       where,
       aliasColObjMap,
     );
+    // Resolve RLS conditions for groupByAndAggregate
+    const rlsConditionsGBA = await this.getRlsConditions();
+    const rlsFilterGroupGBA = rlsConditionsGBA.length
+      ? [new Filter({ children: rlsConditionsGBA, is_group: true })]
+      : [];
+
     await conditionV2(
       this,
       [
+        ...rlsFilterGroupGBA,
         new Filter({
           children: filterObj,
           is_group: true,
@@ -844,6 +997,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }[],
     _view: View,
   ) {
+    // Prepend RLS conditions to filterArr for bulkGroupByCount
+    const rlsConditionsBGBC = await this.getRlsConditions();
+    if (rlsConditionsBGBC.length) {
+      args = {
+        ...args,
+        filterArr: [
+          new Filter({ children: rlsConditionsBGBC, is_group: true }),
+          ...(args.filterArr || []),
+        ],
+      };
+    }
     return await baseModelGroupBy(this, logger).bulkCount(
       args,
       bulkFilterList,
@@ -867,6 +1031,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }[],
     _view: View,
   ) {
+    // Prepend RLS conditions to filterArr for bulkGroupBy
+    const rlsConditionsBGB = await this.getRlsConditions();
+    if (rlsConditionsBGB.length) {
+      args = {
+        ...args,
+        filterArr: [
+          new Filter({ children: rlsConditionsBGB, is_group: true }),
+          ...(args.filterArr || []),
+        ],
+      };
+    }
     return await baseModelGroupBy(this, logger).bulkList(
       args,
       bulkFilterList,
@@ -979,6 +1154,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         });
       }
 
+      // Resolve RLS conditions for bulkAggregate
+      const rlsConditionsBulkAgg = await this.getRlsConditions();
+      const rlsFilterGroupBulkAgg = rlsConditionsBulkAgg.length
+        ? [new Filter({ children: rlsConditionsBulkAgg, is_group: true })]
+        : [];
+
       const selectors = [] as Array<Knex.Raw>;
       // Generate a knex raw query for each filter in the bulkFilterList
       for (const f of bulkFilterList) {
@@ -996,6 +1177,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await conditionV2(
           this,
           [
+            ...rlsFilterGroupBulkAgg,
             ...(this.viewId
               ? [
                   new Filter({
@@ -1156,9 +1338,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         where,
         aliasColObjMap,
       );
+      // Resolve RLS conditions for aggregate
+      const rlsConditionsAgg = await this.getRlsConditions();
+      const rlsFilterGroupAgg = rlsConditionsAgg.length
+        ? [new Filter({ children: rlsConditionsAgg, is_group: true })]
+        : [];
+
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupAgg,
           ...(this.viewId
             ? [
                 new Filter({
@@ -1242,6 +1431,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     sortArr?: Sort[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
+    // Prepend RLS conditions to filterArr for groupBy
+    const rlsConditionsGB = await this.getRlsConditions();
+    if (rlsConditionsGB.length) {
+      args = {
+        ...args,
+        filterArr: [
+          new Filter({ children: rlsConditionsGB, is_group: true }),
+          ...(args.filterArr || []),
+        ],
+      };
+    }
     return await baseModelGroupBy(this, logger).list(args);
   }
 
@@ -1253,6 +1453,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     filterArr?: Filter[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
+    // Prepend RLS conditions to filterArr for groupByCount
+    const rlsConditionsGBC = await this.getRlsConditions();
+    if (rlsConditionsGBC.length) {
+      args = {
+        ...args,
+        filterArr: [
+          new Filter({ children: rlsConditionsGBC, is_group: true }),
+          ...(args.filterArr || []),
+        ],
+      };
+    }
     return await baseModelGroupBy(this, logger).count(args);
   }
 
@@ -1263,6 +1474,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ids: any[];
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
@@ -1278,6 +1490,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       parentId: any;
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
     selectAllRecords = false,
@@ -1287,6 +1500,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       args,
       selectAllRecords,
     );
+  }
+
+  public async mmRead(
+    param: {
+      colId: string;
+      parentId: any;
+    },
+    args: { fieldsSet?: Set<string> } = {},
+  ) {
+    return relationDataFetcher({ baseModel: this, logger }).mmRead(param, args);
   }
 
   async multipleHmListCount({ colId, ids }) {
@@ -1305,6 +1528,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       id: any;
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
@@ -1324,6 +1548,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       parentIds: any[];
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
@@ -1562,8 +1787,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async getProto({
     apiVersion = NcApiVersion.V2,
+    linksAsLtar = false,
   }: {
     apiVersion?: NcApiVersion;
+    linksAsLtar?: boolean;
   } = {}) {
     if (this._proto) {
       return this._proto as ResolverObj;
@@ -1586,7 +1813,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_relation_column_id,
               });
               const relColTitle =
-                relCol.uidt === UITypes.Links
+                relCol.uidt === UITypes.Links && !linksAsLtar
                   ? `_nc_lk_${relCol.title}`
                   : relCol.title;
               proto.__columnAliases[column.title] = {
@@ -1604,6 +1831,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           case UITypes.Links:
           case UITypes.LinkToAnotherRecord:
             {
+              const isMMLike = isMMOrMMLike(column);
               this._columns[column.title] = column;
               const colOptions = (await column.getColOptions(
                 this.context,
@@ -1611,7 +1839,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
               const { refContext } = colOptions.getRelContext(this.context);
 
-              if (colOptions?.type === 'hm') {
+              if (colOptions?.type === 'hm' && !isMMLike) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids.length > 1) {
@@ -1620,6 +1848,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                           colId: column.id,
                           ids,
                           apiVersion,
+                          linksAsLtar,
                         },
                         (listLoader as any).args,
                       );
@@ -1634,6 +1863,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                             id: ids[0],
                             apiVersion,
                             nested: true,
+                            linksAsLtar,
                           },
                           (listLoader as any).args,
                         ),
@@ -1647,7 +1877,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 const self: BaseModelSqlv2 = this;
 
                 proto[
-                  column.uidt === UITypes.Links
+                  column.uidt === UITypes.Links && !linksAsLtar
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args): Promise<any> {
@@ -1656,7 +1886,32 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
-              } else if (colOptions.type === 'mm') {
+              } else if (isMMLike && isBtLikeV2Junction(column)) {
+                // V2 MO/OO: single-record — return object (like BT)
+                const readLoader = new DataLoader(
+                  async (ids: string[]) => {
+                    return Promise.all(
+                      ids.map((id) =>
+                        this.mmRead(
+                          { parentId: id, colId: column.id },
+                          (readLoader as any).args,
+                        ),
+                      ),
+                    );
+                  },
+                  {
+                    cache: false,
+                  },
+                );
+
+                const self: BaseModelSqlv2 = this;
+                proto[column.title] = async function (args?: any) {
+                  (readLoader as any).args = args;
+                  return await readLoader.load(
+                    getCompositePkValue(self.model.primaryKeys, this),
+                  );
+                };
+              } else if (colOptions.type === 'mm' || isMMLike) {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids?.length > 1) {
@@ -1666,6 +1921,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                           colId: column.id,
                           apiVersion,
                           nested: true,
+                          linksAsLtar,
                         },
                         (listLoader as any).args,
                       );
@@ -1679,6 +1935,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                             colId: column.id,
                             apiVersion,
                             nested: true,
+                            linksAsLtar,
                           },
                           (listLoader as any).args,
                         ),
@@ -1692,7 +1949,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                 const self: BaseModelSqlv2 = this;
                 proto[
-                  column.uidt === UITypes.Links
+                  column.uidt === UITypes.Links && !linksAsLtar
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args): Promise<any> {
@@ -1701,7 +1958,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     getCompositePkValue(self.model.primaryKeys, this),
                   );
                 };
-              } else if (colOptions.type === 'bt') {
+              } else if (colOptions.type === 'bt' && !isMMLike) {
                 // @ts-ignore
                 const colOptions = (await column.getColOptions(
                   this.context,
@@ -1790,7 +2047,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                   return await readLoader.load(this?.[cCol?.title]);
                 };
-              } else if (colOptions.type === 'oo') {
+              } else if (colOptions.type === 'oo' && !isMMLike) {
                 const isBt = column.meta?.bt;
 
                 if (isBt) {
@@ -1916,7 +2173,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   const self: BaseModelSqlv2 = this;
 
                   proto[
-                    column.uidt === UITypes.Links
+                    column.uidt === UITypes.Links && !linksAsLtar
                       ? `_nc_lk_${column.title}`
                       : column.title
                   ] = async function (args): Promise<any> {
@@ -1971,6 +2228,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     alias?: string;
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
+    linksAsLtar?: boolean;
   }): Promise<void> {
     return await selectObject(this, logger)(params);
   }
@@ -2010,7 +2268,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           this.context,
         );
 
-        switch (colOptions.type) {
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+        switch (relationType) {
           case 'mm':
             {
               const mmTable = await Model.get(
@@ -2340,6 +2599,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     source: Source;
     disableOptimization?: boolean;
     view?: View;
+    ignoreRls?: boolean;
   }): Promise<any> {
     return this.readByPk(
       params.idOrRecord,
@@ -2348,6 +2608,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       {
         ignoreView: params.ignoreView,
         getHiddenColumn: params.getHiddenColumn,
+        ignoreRls: params.ignoreRls,
       },
     );
   }
@@ -2370,14 +2631,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       let rowId = null;
 
       const nestedCols = columns.filter((c) => isLinksOrLTAR(c));
-      // eslint-disable-next-line prefer-const
-      let { postInsertOps, preInsertOps, postInsertAuditOps } =
-        await this.prepareNestedLinkQb({
-          nestedCols,
-          data,
-          insertObj,
-          req: request,
-        });
+      let {
+        postInsertOps,
+        preInsertOps,
+        // eslint-disable-next-line prefer-const
+        postInsertAuditEntries,
+        // eslint-disable-next-line prefer-const
+        postInsertLastModifiedEntries,
+      } = await this.prepareNestedLinkQb({
+        nestedCols,
+        data,
+        insertObj,
+        req: request,
+      });
       const attachmentOperations =
         await new AttachmentUrlUploadPreparator().prepareAttachmentUrlUpload(
           this,
@@ -2433,6 +2699,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           getHiddenColumn: true,
           validateFormula: false,
           source,
+          ignoreRls: true,
         });
       } else if (
         !response ||
@@ -2507,9 +2774,107 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       await this.runOps(postInsertOps.map((f) => f(rowId)));
 
-      // run link audit operations after link insert
-      for (const f of postInsertAuditOps) {
-        await f(rowId);
+      // batch-fetch display values and write link audits
+      try {
+        if (
+          postInsertAuditEntries.length &&
+          (await this.isDataAuditEnabled())
+        ) {
+          // Resolve rowId for entries that reference the inserted row
+          const resolvedEntries = postInsertAuditEntries.map((entry) => ({
+            ...entry,
+            rowId: entry.rowIdIsInsertedRow ? rowId : entry.rowId,
+            refRowId: entry.refRowIdIsInsertedRow ? rowId : entry.refRowId,
+          }));
+
+          // Batch-fetch all display values into a KV map
+          const dvMap = await this.fetchDisplayValueMap(
+            resolvedEntries.flatMap((entry) => [
+              { model: entry.model, id: entry.rowId },
+              { model: entry.refModel, id: entry.refRowId },
+            ]),
+          );
+
+          // Write audits with per-entry isolation
+          for (const entry of resolvedEntries) {
+            const displayValue = dvMap.get(`${entry.model.id}:${entry.rowId}`);
+            const refDisplayValue = dvMap.get(
+              `${entry.refModel.id}:${entry.refRowId}`,
+            );
+
+            try {
+              await Audit.insert(
+                await generateAuditV1Payload<DataLinkPayload>(
+                  AuditV1OperationTypes.DATA_LINK,
+                  {
+                    context: {
+                      ...this.context,
+                      source_id: entry.model.source_id,
+                      fk_model_id: entry.model.id,
+                      row_id: this.extractPksValues(
+                        entry.rowId,
+                        true,
+                      ) as string,
+                    },
+                    details: {
+                      table_title: entry.model.title,
+                      ref_table_title: entry.refModel.title,
+                      link_field_title: entry.columnTitle,
+                      link_field_id: entry.columnId,
+                      row_id: entry.rowId,
+                      ref_row_id: entry.refRowId,
+                      display_value: displayValue,
+                      ref_display_value: refDisplayValue,
+                      type: entry.type,
+                    },
+                    req: entry.req,
+                  },
+                ),
+              );
+            } catch (e) {
+              logger.error(
+                `[nestedInsert] audit write failed: ${e.message}`,
+                e.stack,
+              );
+            }
+          }
+        }
+      } catch (e) {
+        logger.error(
+          `[nestedInsert] audit batch failed: ${e.message}`,
+          e.stack,
+        );
+      }
+
+      // update lastModified for linked tables (independent of audit success)
+      try {
+        for (const entry of postInsertLastModifiedEntries) {
+          await this.updateLastModified({
+            model: entry.model,
+            rowIds: [rowId],
+            cookie: entry.req,
+            updatedColIds: [entry.col.id],
+          });
+
+          const refTableLinkColumnId = (
+            await extractCorrespondingLinkColumn(this.context, {
+              ltarColumn: entry.col,
+              referencedTable: entry.refBaseModel.model,
+            })
+          )?.id;
+
+          await entry.refBaseModel.updateLastModified({
+            model: entry.refModel,
+            rowIds: entry.nestedData,
+            cookie: entry.req,
+            updatedColIds: [refTableLinkColumnId],
+          });
+        }
+      } catch (e) {
+        logger.error(
+          `[nestedInsert] lastModified failed: ${e.message}`,
+          e.stack,
+        );
       }
 
       if (this.model.primaryKey && rowId !== null && rowId !== undefined) {
@@ -2519,7 +2884,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           ignoreView: true,
           getHiddenColumn: true,
           source,
+          ignoreRls: true,
         });
+      }
+
+      // Check if the inserted row is visible under the user's RLS policy
+      const rlsConditions = await this.getRlsConditions();
+      if (rlsConditions.length && response) {
+        const isVisible = await this.exist(
+          this.extractPksValues(response, true),
+        );
+        if (!isVisible) response.__nc_rls_hidden = true;
       }
 
       await this.afterInsert({
@@ -2821,6 +3196,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     chunkSize?: number;
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
+    extractOnlyPrimaries?: boolean;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -2828,8 +3204,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const chunkedPks = chunkArray(pks, chunkSize);
 
+    const { ast } = await getAst(this.context, {
+      model: this.model,
+      query: args.args || {},
+      extractOnlyPrimaries: args.extractOnlyPrimaries,
+    });
+
     for (const chunk of chunkedPks) {
-      const chunkData = await this.list(
+      let chunkData = await this.list(
         {
           pks: chunk.join(','),
           apiVersion: args.apiVersion,
@@ -2840,7 +3222,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           ignoreViewFilterAndSort: true,
         },
       );
-
+      chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
       data.push(...chunkData);
     }
 
@@ -3322,7 +3704,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           true,
         );
 
+        // Resolve RLS conditions for bulkUpdateAll
+        const rlsConditionsBUA = await this.getRlsConditions();
+        const rlsFilterGroupBUA = rlsConditionsBUA.length
+          ? [new Filter({ children: rlsConditionsBUA, is_group: true })]
+          : [];
+
         const conditionObj = [
+          ...rlsFilterGroupBUA,
           new Filter({
             children: args.filterArr || [],
             is_group: true,
@@ -3483,7 +3872,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const { mmContext, refContext, childContext } =
           await colOptions.getParentChildContext(this.context);
 
-        switch (colOptions.type) {
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+        switch (relationType) {
           case 'mm':
             {
               const mmTable = await Model.get(
@@ -4226,6 +4616,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     data: Record<string, any>,
   ) {
     if (
+      // skip dtxp length check for date/time columns where dtxp represents precision, not max length
+      ![UITypes.Date, UITypes.DateTime, UITypes.Time].includes(column.uidt) &&
       typeof data[column.title] === 'string' &&
       typeof column.dtxp === 'number' &&
       column.dtxp < data[column.title]?.length
@@ -4371,40 +4763,77 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
-    await Promise.allSettled(
-      relationManager.getAuditUpdateObj(cookie).map((updateObj) => {
-        if (updateObj.opSubType === AuditOperationSubTypes.LINK_RECORD) {
-          this.afterAddChild({
-            columnTitle: updateObj.columnTitle,
-            columnId: updateObj.columnId,
-            refColumnTitle: updateObj.refColumnTitle,
-            rowId: updateObj.rowId,
-            refRowId: updateObj.refRowId,
-            req: updateObj.req,
-            model: updateObj.model,
-            refModel: updateObj.refModel,
-            displayValue: updateObj.displayValue,
-            refDisplayValue: updateObj.refDisplayValue,
-            type: updateObj.type,
-          });
-        }
-        if (updateObj.opSubType === AuditOperationSubTypes.UNLINK_RECORD) {
-          this.afterRemoveChild({
-            columnTitle: updateObj.columnTitle,
-            columnId: updateObj.columnId,
-            refColumnTitle: updateObj.refColumnTitle,
-            rowId: updateObj.rowId,
-            refRowId: updateObj.refRowId,
-            req: updateObj.req,
-            model: updateObj.model,
-            refModel: updateObj.refModel,
-            displayValue: updateObj.displayValue,
-            refDisplayValue: updateObj.refDisplayValue,
-            type: updateObj.type,
-          });
-        }
-      }),
+    await this.writeLinkAudits(
+      relationManager.getAuditUpdateObj(cookie),
+      'addChild',
     );
+  }
+
+  private async writeLinkAudits(
+    auditObjs: ReturnType<RelationManager['getAuditUpdateObj']>,
+    callerTag: string,
+  ) {
+    try {
+      if (!auditObjs.length || !(await this.isDataAuditEnabled())) return;
+
+      // Batch-fetch missing display values into a KV map
+      const missingDvProps: { model: Model; id: any }[] = [];
+      for (const obj of auditObjs) {
+        if (obj.displayValue === undefined)
+          missingDvProps.push({ model: obj.model, id: obj.rowId });
+        if (obj.refDisplayValue === undefined)
+          missingDvProps.push({ model: obj.refModel, id: obj.refRowId });
+      }
+      const dvMap = await this.fetchDisplayValueMap(missingDvProps);
+
+      for (const obj of auditObjs) {
+        const displayValue =
+          obj.displayValue ?? dvMap.get(`${obj.model.id}:${obj.rowId}`);
+        const refDisplayValue =
+          obj.refDisplayValue ??
+          dvMap.get(`${obj.refModel.id}:${obj.refRowId}`);
+
+        const opType =
+          obj.opSubType === AuditOperationSubTypes.LINK_RECORD
+            ? AuditV1OperationTypes.DATA_LINK
+            : AuditV1OperationTypes.DATA_UNLINK;
+
+        try {
+          await Audit.insert(
+            await generateAuditV1Payload<DataLinkPayload | DataUnlinkPayload>(
+              opType,
+              {
+                context: {
+                  ...this.context,
+                  source_id: obj.model.source_id,
+                  fk_model_id: obj.model.id,
+                  row_id: this.extractPksValues(obj.rowId, true) as string,
+                },
+                details: {
+                  table_title: obj.model.title,
+                  ref_table_title: obj.refModel.title,
+                  link_field_title: obj.columnTitle,
+                  link_field_id: obj.columnId,
+                  row_id: obj.rowId,
+                  ref_row_id: obj.refRowId,
+                  display_value: displayValue,
+                  ref_display_value: refDisplayValue,
+                  type: obj.type,
+                },
+                req: obj.req,
+              },
+            ),
+          );
+        } catch (e) {
+          logger.error(
+            `[${callerTag}] audit write failed: ${e.message}`,
+            e.stack,
+          );
+        }
+      }
+    } catch (e) {
+      logger.error(`[${callerTag}] audit batch failed: ${e.message}`, e.stack);
+    }
   }
 
   public async afterAddChild({
@@ -4548,11 +4977,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (missingDisplayValues.length > 0) {
       for (let i = 0; i < missingDisplayValues.length; i += 100) {
-        const chunk = missingDisplayValues.slice(i * 100, (i + 1) * 100);
+        const chunk = missingDisplayValues.slice(i, i + 100);
 
         const displayValues = await this.list(
           {
             pks: chunk.map((auditObj) => auditObj.rowId).join(','),
+            fieldsSet: new Set(
+              [model.primaryKey?.title, displayValueColumn?.title].filter(
+                Boolean,
+              ),
+            ),
           },
           {
             limitOverride: chunk.length,
@@ -4570,11 +5004,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (missingRefDisplayValues.length > 0) {
       for (let i = 0; i < missingRefDisplayValues.length; i += 100) {
-        const chunk = missingRefDisplayValues.slice(i * 100, (i + 1) * 100);
+        const chunk = missingRefDisplayValues.slice(i, i + 100);
 
         const refDisplayValues = await refBaseModel.list(
           {
             pks: chunk.map((auditObj) => auditObj.refRowId).join(','),
+            fieldsSet: new Set(
+              [refModel.primaryKey?.title, refDisplayValueColumn?.title].filter(
+                Boolean,
+              ),
+            ),
           },
           {
             limitOverride: chunk.length,
@@ -4666,22 +5105,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       req: cookie,
     });
 
-    await Promise.allSettled(
-      relationManager.getAuditUpdateObj(cookie).map(async (updateObj) => {
-        await this.afterRemoveChild({
-          columnTitle: updateObj.columnTitle,
-          columnId: updateObj.columnId,
-          refColumnTitle: updateObj.refColumnTitle,
-          rowId: updateObj.rowId,
-          refRowId: updateObj.refRowId,
-          req: updateObj.req,
-          model: updateObj.model,
-          refModel: updateObj.refModel,
-          displayValue: updateObj.displayValue,
-          refDisplayValue: updateObj.refDisplayValue,
-          type: updateObj.type,
-        });
-      }),
+    await this.writeLinkAudits(
+      relationManager.getAuditUpdateObj(cookie),
+      'removeChild',
     );
   }
 
@@ -4851,11 +5277,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         where,
         aliasColObjMap,
       );
+      // Resolve RLS conditions for groupedList
+      const rlsConditionsGL = await this.getRlsConditions();
+      const rlsFilterGroupGL = rlsConditionsGL.length
+        ? [new Filter({ children: rlsConditionsGL, is_group: true })]
+        : [];
+
       // todo: replace with view id
       if (!args.ignoreViewFilterAndSort && this.viewId) {
         await conditionV2(
           this,
           [
+            ...rlsFilterGroupGL,
             new Filter({
               children:
                 (await Filter.rootFilterList(this.context, {
@@ -4887,6 +5320,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await conditionV2(
           this,
           [
+            ...rlsFilterGroupGL,
             new Filter({
               children: args.filterArr || [],
               is_group: true,
@@ -5013,12 +5447,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       args.where,
       aliasColObjMap,
     );
+    // Resolve RLS conditions for groupedListCount
+    const rlsConditionsGLC = await this.getRlsConditions();
+    const rlsFilterGroupGLC = rlsConditionsGLC.length
+      ? [new Filter({ children: rlsConditionsGLC, is_group: true })]
+      : [];
+
     // todo: replace with view id
 
     if (!args.ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupGLC,
           new Filter({
             children:
               (await Filter.rootFilterList(this.context, {
@@ -5043,6 +5484,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupGLC,
           new Filter({
             children: args.filterArr || [],
             is_group: true,
@@ -5279,10 +5721,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       idToAliasMap[col.id] = col.title;
 
-      const isLtarColumn = [
-        UITypes.LinkToAnotherRecord,
-        UITypes.Lookup,
-      ].includes(col.uidt);
+      // For Links columns, only treat as LTAR when linksAsLtar produced
+      // nested object data (not a count number). Check the actual data to decide.
+      let isLinksAsLtar = false;
+      if (col.uidt === UITypes.Links) {
+        const sampleRow = data.find((d) => d[col.id] != null);
+        const sampleVal = sampleRow?.[col.id];
+        isLinksAsLtar =
+          Array.isArray(sampleVal) ||
+          (sampleVal && typeof sampleVal === 'object');
+      }
+
+      const isLtarColumn =
+        [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(col.uidt) ||
+        isLinksAsLtar;
       if (isLtarColumn) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);
@@ -5502,7 +5954,22 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         );
 
         for (const col of availableUserColumns) {
-          d[col.id] = d[col.id].split(',');
+          // Handle JSON array strings from lookup aggregation (json_agg)
+          // e.g. '["userId1", "userId2"]' from HM/MM lookup on User fields
+          let userIds: string[];
+          if (typeof d[col.id] === 'string' && d[col.id].startsWith('[')) {
+            try {
+              const parsed = JSON.parse(d[col.id]);
+              userIds = Array.isArray(parsed)
+                ? parsed.map((v) => (typeof v === 'string' ? v : String(v)))
+                : d[col.id].split(',');
+            } catch {
+              userIds = d[col.id].split(',');
+            }
+          } else {
+            userIds = d[col.id].split(',');
+          }
+          d[col.id] = userIds;
 
           d[col.id] = d[col.id].map((fid) => {
             const user = userMap.get(fid);
@@ -7245,6 +7712,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     user: any;
     req: any;
   }) {}
+
+  /**
+   * Returns RLS (Row-Level Security) filter conditions for the current user.
+   * CE version: no-op, returns empty array (no RLS).
+   * EE version: resolves applicable policies and returns filter conditions.
+   */
+  public async getRlsConditions(): Promise<Filter[]> {
+    return [];
+  }
 }
 
 export { BaseModelSqlv2 };

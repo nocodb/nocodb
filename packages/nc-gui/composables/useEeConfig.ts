@@ -57,6 +57,12 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockRowColoring = computed(() => true)
 
+  const blockToggleFilter = computed(() => true)
+
+  const blockPinnedFilter = computed(() => true)
+
+  const blockCellColoring = computed(() => true)
+
   const blockTableAndFieldPermissions = computed(() => true)
 
   const blockPrivateBases = computed(() => true)
@@ -64,6 +70,8 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAddNewDashboard = computed(() => true)
 
   const blockCalendarRange = computed(() => true)
+
+  const blockTimelineView = computed(() => true)
 
   const blockAddNewScript = computed(() => true)
 
@@ -78,15 +86,31 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockAiButtonField = computed(() => true)
 
+  const blockAiChat = computed(() => true)
+
+  const blockButtonVisibility = computed(() => true)
+
+  const blockColourField = computed(() => true)
+
   const blockTeamsManagement = computed(() => true)
 
   const blockAddNewTeamToWs = computed(() => true)
 
   const blockCardFieldHeaderVisibility = computed(() => true)
 
+  const blockAddNewSandbox = computed(() => true)
+
   const blockSync = computed(() => true)
 
   const blockUnique = computed(() => true)
+
+  // UUID field is EE-only — always blocked in CE
+  const blockUuidField = computed(() => true)
+
+  const blockMapView = computed(() => true)
+
+  // AutoNumber field is EE-only — always blocked in CE
+  const blockAutoNumberField = computed(() => true)
 
   const calculatePrice = (..._args: any[]) => {}
 
@@ -136,21 +160,49 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseRowColoring = (..._args: any[]) => {}
 
+  const showUpgradeToUseToggleFilter = (..._args: any[]) => {}
+
+  const showUpgradeToUsePinnedFilter = (..._args: any[]) => {}
+
+  const showUpgradeToUseCellColoring = (..._args: any[]) => {}
+
   const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
 
   const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
 
   const showUpgradeToAddMoreAttachmentsInCell = (..._args: any[]) => {}
 
+  const blockDocsInlineComments = computed(() => true)
+
+  const blockDocsResolveComments = computed(() => true)
+
+  const blockDocsExportPdf = computed(() => true)
+
   const showDashboardPlanLimitExceededModal = (..._args: any[]) => {}
+
+  const showDocumentPagePlanLimitExceededModal = (..._args: any[]) => {}
+
+  const showUpgradeToUseDocsInlineComments = (..._args: any[]) => {}
+
+  const showUpgradeToUseDocsResolveComments = (..._args: any[]) => {}
+
+  const showUpgradeToUseDocsExportPdf = (..._args: any[]) => {}
 
   const showScriptPlanLimitExceededModal = (..._args: any[]) => {}
 
   const showUpgradeToUseCalendarRange = (..._args: any[]) => {}
 
+  const showUpgradeToUseTimelineView = (..._args: any[]) => {}
+
   const showUpgradeToUseAiPromptField = (..._args: any[]) => {}
 
   const showUpgradeToUseAiButtonField = (..._args: any[]) => {}
+
+  const showUpgradeToUseAiChat = (..._args: any[]) => {}
+
+  const showUpgradeToUseButtonVisibility = (..._args: any[]) => {}
+
+  const showUpgradeToUseColourField = (..._args: any[]) => {}
 
   const showUpgradeToUseTeams = (..._args: any[]) => {}
 
@@ -159,6 +211,29 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseSync = (..._args: any[]) => {}
 
   const showUpgradeToUseUnique = (..._args: any[]) => {}
+
+  const showUpgradeToUseUuidField = (..._args: any[]) => {}
+
+  const showUpgradeToUseAutoNumberField = (..._args: any[]) => {}
+
+  const blockRecordTemplates = computed(() => false)
+
+  const showUpgradeToUseRecordTemplates = (..._args: any[]) => {}
+
+  const blockViewSections = computed(() => true)
+
+  const showUpgradeToUseViewSections = (..._args: any[]) => {}
+
+  const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
+  const showUpgradeToUseMapView = (..._args: any[]) => {}
+
+  const isEEFeatureBlocked = computed(() => true)
+
+  const blockWorkspaceMembers = computed(() => false)
+
+  const showUpgradeToManageWorkspaceMembers = (..._args: any[]) => {}
+
+  const showUpgradeToUseSSO = (..._args: any[]) => {}
 
   return {
     calculatePrice,
@@ -206,6 +281,12 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCurrentUserFilter,
     blockRowColoring,
     showUpgradeToUseRowColoring,
+    blockToggleFilter,
+    showUpgradeToUseToggleFilter,
+    blockPinnedFilter,
+    showUpgradeToUsePinnedFilter,
+    blockCellColoring,
+    showUpgradeToUseCellColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
     blockPrivateBases,
@@ -213,17 +294,32 @@ export const useEeConfig = createSharedComposable(() => {
     showUserMayChargeAlert,
     maxAttachmentsAllowedInCell,
     showUpgradeToAddMoreAttachmentsInCell,
+    blockDocsInlineComments,
+    blockDocsResolveComments,
+    blockDocsExportPdf,
     showDashboardPlanLimitExceededModal,
+    showDocumentPagePlanLimitExceededModal,
+    showUpgradeToUseDocsInlineComments,
+    showUpgradeToUseDocsResolveComments,
+    showUpgradeToUseDocsExportPdf,
     showScriptPlanLimitExceededModal,
     blockAddNewScript,
     blockAddNewDashboard,
     blockCalendarRange,
     showUpgradeToUseCalendarRange,
+    blockTimelineView,
+    showUpgradeToUseTimelineView,
     isOrgBilling,
     blockAiPromptField,
     showUpgradeToUseAiPromptField,
     blockAiButtonField,
     showUpgradeToUseAiButtonField,
+    blockAiChat,
+    showUpgradeToUseAiChat,
+    blockButtonVisibility,
+    showUpgradeToUseButtonVisibility,
+    blockColourField,
+    showUpgradeToUseColourField,
     blockTeamsManagement,
     showUpgradeToUseTeams,
     blockAddNewTeamToWs,
@@ -232,7 +328,23 @@ export const useEeConfig = createSharedComposable(() => {
     blockCardFieldHeaderVisibility,
     blockSync,
     blockUnique,
+    blockUuidField,
+    blockAutoNumberField,
     showUpgradeToUseSync,
     showUpgradeToUseUnique,
+    showUpgradeToUseUuidField,
+    showUpgradeToUseAutoNumberField,
+    blockAddNewSandbox,
+    showSandboxPlanLimitExceededModal,
+    blockRecordTemplates,
+    showUpgradeToUseRecordTemplates,
+    blockViewSections,
+    showUpgradeToUseViewSections,
+    blockMapView,
+    showUpgradeToUseMapView,
+    isEEFeatureBlocked,
+    blockWorkspaceMembers,
+    showUpgradeToManageWorkspaceMembers,
+    showUpgradeToUseSSO,
   }
 })

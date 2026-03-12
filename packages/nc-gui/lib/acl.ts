@@ -1,7 +1,15 @@
-import { OrgUserRoles, ProjectRoles, SourceRestriction } from 'nocodb-sdk'
+import { OrgUserRoles, ProjectRoles, SourceRestriction, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const roleScopes = {
   org: [OrgUserRoles.VIEWER, OrgUserRoles.CREATOR],
+  workspace: [
+    WorkspaceUserRoles.NO_ACCESS,
+    WorkspaceUserRoles.VIEWER,
+    WorkspaceUserRoles.COMMENTER,
+    WorkspaceUserRoles.EDITOR,
+    WorkspaceUserRoles.CREATOR,
+    WorkspaceUserRoles.OWNER,
+  ],
   base: [
     ProjectRoles.NO_ACCESS,
     ProjectRoles.VIEWER,
@@ -27,22 +35,47 @@ const rolePermissions = {
   [OrgUserRoles.SUPER_ADMIN]: '*',
   [OrgUserRoles.CREATOR]: {
     include: {
-      workspaceSettings: true,
       superAdminUserManagement: true,
-      baseCreate: true,
-      baseMove: true,
-      baseDelete: true,
-      baseDuplicate: true,
-      newUser: true,
       orgAdminPanel: true,
-      workspaceAuditList: true,
-      workspaceIntegrations: true,
     },
   },
   [OrgUserRoles.VIEWER]: {
     include: {
       importRequest: true,
     },
+  },
+
+  // Workspace role permissions
+  [WorkspaceUserRoles.OWNER]: {
+    include: {
+      workspaceSettings: true,
+      workspaceAuditList: true,
+      workspaceIntegrations: true,
+      workspaceManage: true,
+      baseDelete: true,
+    },
+  },
+  [WorkspaceUserRoles.CREATOR]: {
+    include: {
+      baseCreate: true,
+      baseMove: true,
+      baseDuplicate: true,
+      newUser: true,
+    },
+  },
+  [WorkspaceUserRoles.EDITOR]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.COMMENTER]: {
+    include: {},
+  },
+  [WorkspaceUserRoles.VIEWER]: {
+    include: {
+      workspaceCollaborators: true,
+    },
+  },
+  [WorkspaceUserRoles.NO_ACCESS]: {
+    include: {},
   },
 
   // Base role permissions
@@ -103,6 +136,10 @@ const rolePermissions = {
       filterSync: true,
       groupBySync: true,
       viewFieldEdit: true,
+
+      // Documents — creators can create and delete documents
+      documentCreate: true,
+      documentDelete: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -123,6 +160,10 @@ const rolePermissions = {
 
       // Extensions
       extensionUpdate: true,
+
+      // Documents — editors can update and reorder, but NOT create/delete
+      documentUpdate: true,
+      documentReorder: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -130,6 +171,13 @@ const rolePermissions = {
       commentDelete: true,
       commentResolve: true,
       commentEdit: true,
+
+      // Document Comments — commenters can create/update/delete/resolve + reactions
+      documentCommentCreate: true,
+      documentCommentUpdate: true,
+      documentCommentDelete: true,
+      documentCommentResolve: true,
+      documentCommentReactionToggle: true,
     },
   },
   [ProjectRoles.VIEWER]: {
@@ -146,12 +194,21 @@ const rolePermissions = {
 
       // Extensions
       extensionList: true,
+
+      // Documents — read-only for viewers
+      documentList: true,
+      documentGet: true,
+
+      // Document Comments — read-only for viewers
+      documentCommentList: true,
+      documentCommentCount: true,
+      documentCommentReactionList: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {
     include: {},
   },
-} as Record<OrgUserRoles | ProjectRoles, Perm | '*'>
+} as Record<OrgUserRoles | WorkspaceUserRoles | ProjectRoles, Perm | '*'>
 
 // excluded/restricted permissions at source level based on source restriction
 // `true` means permission is restricted and `false`/missing means permission is allowed
@@ -233,5 +290,8 @@ Object.values(roleScopes).forEach((roles) => {
     roleIndex++
   }
 })
+
+// Collapse org roles — VIEWER gets same as CREATOR (EE pattern)
+rolePermissions[OrgUserRoles.VIEWER] = rolePermissions[OrgUserRoles.CREATOR]
 
 export { rolePermissions }

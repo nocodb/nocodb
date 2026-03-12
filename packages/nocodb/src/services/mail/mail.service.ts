@@ -52,12 +52,12 @@ export class MailService {
       verificationToken?: string;
       automationId?: string;
       executionId?: string;
+      hookId?: string;
+      hookTab?: string;
     } = {},
   ) {
-    const dashboardPath = Noco.getConfig()?.dashboardPath;
-
     if (params.token && !config.auth.disableEmailAuth) {
-      return `${req.ncSiteUrl}${dashboardPath}#/signup/${params.token}`;
+      return `${req.ncSiteUrl}/signup/${params.token}`;
     }
 
     let url = req?.ncSiteUrl || process.env.NC_PUBLIC_URL;
@@ -74,13 +74,8 @@ export class MailService {
       return url;
     }
 
-    // Below links are served from the frontend. So we need to append the dashboard path
-    url += dashboardPath;
-
     if (params.workspaceId) {
-      url += `#/${params.workspaceId}`;
-    } else {
-      url += `#`;
+      url += `/${params.workspaceId}`;
     }
 
     if (params.baseId) {
@@ -89,19 +84,28 @@ export class MailService {
       if (params.tableId) {
         url += `/${params.tableId}`;
 
-        const searchParams = new URLSearchParams();
-
-        if (params.rowId) {
-          searchParams.set('rowId', params.rowId);
-        }
-        if (params.commentId) {
-          searchParams.set('commentId', params.commentId);
-        }
-        if (params.columnId) {
-          searchParams.set('columnId', params.columnId);
-        }
-        if (searchParams.toString()) {
+        if (params.hookId) {
+          const searchParams = new URLSearchParams();
+          searchParams.set('hookId', params.hookId);
+          if (params.hookTab) {
+            searchParams.set('hookTab', params.hookTab);
+          }
           url += `?${searchParams.toString()}`;
+        } else {
+          const searchParams = new URLSearchParams();
+
+          if (params.rowId) {
+            searchParams.set('rowId', params.rowId);
+          }
+          if (params.commentId) {
+            searchParams.set('commentId', params.commentId);
+          }
+          if (params.columnId) {
+            searchParams.set('columnId', params.columnId);
+          }
+          if (searchParams.toString()) {
+            url += `?${searchParams.toString()}`;
+          }
         }
       }
 

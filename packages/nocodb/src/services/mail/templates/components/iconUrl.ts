@@ -10,6 +10,8 @@ const RELATION_ICON_MAP: Record<RelationTypes, string> = {
   [RelationTypes.HAS_MANY]: 'hm-solid',
   [RelationTypes.BELONGS_TO]: 'bt-solid',
   [RelationTypes.ONE_TO_ONE]: 'oo-solid',
+  [RelationTypes.ONE_TO_MANY]: 'hm-solid',
+  [RelationTypes.MANY_TO_ONE]: 'bt-solid',
 };
 
 /**

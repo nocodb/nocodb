@@ -11,7 +11,7 @@ export class AccountLicensePage extends BasePage {
 
   async goto() {
     return this.waitForResponse({
-      uiAction: async () => await this.rootPage.goto('/#/account/license'),
+      uiAction: async () => await this.rootPage.goto('/account/license'),
       httpMethodsToMatch: ['GET'],
       requestUrlPathToMatch: `api/v1/license`,
     });

@@ -7,6 +7,8 @@ interface Props {
   view: ViewType
   table: TableType
   onValidate: (view: ViewType) => boolean | string
+  isDragging?: boolean
+  isInSection?: boolean
 }
 
 interface Emits {
@@ -70,6 +72,8 @@ const isDefaultBaseLocal = computed(() => {
 const { openViewDescriptionDialog: _openViewDescriptionDialog } = inject(TreeViewInj)!
 
 const input = ref<HTMLInputElement>()
+
+const emojiPickerRef = ref<HTMLElement>()
 
 const isDropdownOpen = ref(false)
 
@@ -183,6 +187,13 @@ const onRenameMenuClick = () => {
   }
 }
 
+const onChangeIcon = () => {
+  isDropdownOpen.value = false
+  nextTick(() => {
+    emojiPickerRef.value?.querySelector<HTMLElement>('.nc-emoji')?.click()
+  })
+}
+
 /** Rename a view */
 async function onRename() {
   isDropdownOpen.value = false
@@ -285,10 +296,12 @@ watch(isDropdownOpen, async () => {
 
 <template>
   <div
-    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
+    class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle text-bodyDefaultSm !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray) cursor-pointer"
     :class="{
-      '!pl-7.5 !xs:(pl-6.5)': isDefaultBaseLocal,
-      '!pl-14': !isDefaultBaseLocal,
+      '!pl-7.5': isDefaultBaseLocal && !isInSection,
+      '!pl-14': !isDefaultBaseLocal && !isInSection,
+      '!pl-13.5': isDefaultBaseLocal && isInSection,
+      '!pl-20.5': !isDefaultBaseLocal && isInSection,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
     @click.prevent="handleOnClick"
@@ -300,7 +313,7 @@ watch(isDropdownOpen, async () => {
       class="w-full"
       trigger="hover"
       placement="right"
-      :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip || isMobileMode"
+      :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip || isMobileMode || isDragging"
     >
       <template #title>
         <div class="flex flex-col gap-3">
@@ -334,10 +347,17 @@ watch(isDropdownOpen, async () => {
           </div>
         </div>
       </template>
-      <div v-e="['a:view:open', { view: vModel.type }]" class="text-sm flex items-center w-full gap-1" data-testid="view-item">
+      <div
+        v-e="['a:view:open', { view: vModel.type }]"
+        class="text-bodyDefaultSm font-medium flex items-center w-full gap-1"
+        data-testid="view-item"
+      >
+        <!-- pointer-events-none is intentional — icon changes are triggered via the
+             "Change Icon" context menu item which programmatically opens the picker. -->
         <div
+          ref="emojiPickerRef"
           v-e="['c:view:emoji-picker']"
-          class="flex min-w-6"
+          class="flex min-w-6 pointer-events-none"
           :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`"
           @mouseenter="showViewNodeTooltip = false"
           @mouseleave="showViewNodeTooltip = true"
@@ -347,7 +367,7 @@ watch(isDropdownOpen, async () => {
             :emoji="props.view?.meta?.icon"
             size="small"
             :clearable="true"
-            :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
+            :readonly="isLocked || isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             @emoji-selected="emits('selectIcon', $event)"
           >
             <template #default>
@@ -362,7 +382,7 @@ watch(isDropdownOpen, async () => {
           v-model:value="_title"
           class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
           :class="{
-            '!font-semibold !text-nc-content-brand-disabled': activeView?.id === vModel.id,
+            '!font-medium !text-nc-content-brand-disabled': activeView?.id === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -383,7 +403,7 @@ watch(isDropdownOpen, async () => {
           <div
             data-testid="sidebar-view-title"
             :class="{
-              'font-semibold text-nc-content-brand-disabled': activeView?.id === vModel.id,
+              'font-medium text-nc-content-brand-disabled': activeView?.id === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onDblClick"
@@ -461,6 +481,7 @@ watch(isDropdownOpen, async () => {
                 in-sidebar
                 @close-modal="isDropdownOpen = false"
                 @rename="onRenameMenuClick"
+                @change-icon="onChangeIcon"
                 @delete="onDelete"
                 @description-update="openViewDescriptionDialog(vModel)"
               />

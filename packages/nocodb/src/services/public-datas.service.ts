@@ -51,7 +51,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.get(context).notFound('Not found');
     }
@@ -60,7 +61,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== password) {
+    if (!(await View.verifyPassword(view, password))) {
       return NcError.get(context).invalidSharedViewPassword();
     }
 
@@ -131,7 +132,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.notFound('Not found');
     }
@@ -140,7 +142,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== password) {
+    if (!(await View.verifyPassword(view, password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -187,7 +189,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -243,7 +245,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -352,7 +354,7 @@ export class PublicDatasService {
       NcError.notFound('Not found');
     }
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -387,7 +389,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -504,7 +506,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -629,7 +631,7 @@ export class PublicDatasService {
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       NcError.invalidSharedViewPassword();
     }
 
@@ -671,8 +673,13 @@ export class PublicDatasService {
       param.query.fields.forEach(listArgs.fieldsSet.add, listArgs.fieldsSet);
 
       param.query.fields.forEach((f) => {
-        if (ast[f] === undefined) {
-          ast[f] = 1;
+        // fields can be column IDs or titles, but AST uses titles as keys
+        // (getAst with extractOnlyPrimaries returns early with title-keyed AST).
+        // Resolve to title so nocoExecute can match against data objects.
+        const col = model.columns.find((c) => c.id === f || c.title === f);
+        const key = col?.title ?? f;
+        if (ast[key] === undefined) {
+          ast[key] = 1;
         }
       });
     }
@@ -729,19 +736,13 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       NcError.invalidSharedViewPassword();
     }
 
@@ -812,19 +813,13 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, param.sharedViewUuid);
 
     if (!view) NcError.viewNotFound(param.sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       NcError.invalidSharedViewPassword();
     }
 
@@ -894,20 +889,13 @@ export class PublicDatasService {
     const view = await View.getByUUID(context, sharedViewUuid);
 
     if (!view) NcError.viewNotFound(sharedViewUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
-    ) {
-      NcError.notFound('Not found');
-    }
+
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== password) {
+    if (!(await View.verifyPassword(view, password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -953,7 +941,7 @@ export class PublicDatasService {
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -1016,7 +1004,7 @@ export class PublicDatasService {
     const base = await Base.get(context, view.base_id);
 
     this.publicMetasService.checkViewBaseType(view, base);
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 
@@ -1098,7 +1086,7 @@ export class PublicDatasService {
 
     this.publicMetasService.checkViewBaseType(view, base);
 
-    if (view.password && view.password !== param.password) {
+    if (!(await View.verifyPassword(view, param.password))) {
       return NcError.invalidSharedViewPassword();
     }
 

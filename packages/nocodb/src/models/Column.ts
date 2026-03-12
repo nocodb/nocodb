@@ -3,7 +3,9 @@ import {
   enumColors,
   isAIPromptCol,
   isLinksOrLTAR,
+  LinksVersion,
   LongTextAiMetaProp,
+  RelationTypes,
   SqlUiFactory,
   UITypes,
 } from 'nocodb-sdk';
@@ -341,6 +343,19 @@ export default class Column<T = any> implements ColumnType {
       }
       case UITypes.Links:
       case UITypes.LinkToAnotherRecord: {
+        // V1 heuristic: hm/bt/oo without junction table are V1
+        // V2 types (om, mo) or anything with junction table uses caller version or defaults to V2
+        const isV1Heuristic =
+          !column.fk_mm_model_id &&
+          ([RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(
+            column.type,
+          ) ||
+            column.type === RelationTypes.ONE_TO_ONE);
+
+        const version: number = isV1Heuristic
+          ? LinksVersion.V1
+          : column.version ?? LinksVersion.V2;
+
         await LinkToAnotherRecordColumn.insert(
           context,
           {
@@ -371,6 +386,7 @@ export default class Column<T = any> implements ColumnType {
             fk_related_model_id: column.fk_related_model_id,
 
             virtual: column.virtual,
+            version,
           },
           ncMeta,
         );
@@ -416,6 +432,7 @@ export default class Column<T = any> implements ColumnType {
           fk_integration_id: column.fk_integration_id,
           model: column.model,
           output_column_ids: column.output_column_ids,
+          filters: column.filters,
         });
 
         break;
@@ -1545,6 +1562,8 @@ export default class Column<T = any> implements ColumnType {
         }
 
         case UITypes.Button: {
+          await Filter.deleteAllByButtonColumn(context, colId, ncMeta);
+
           await ncMeta.metaDelete(
             context.workspace_id,
             context.base_id,

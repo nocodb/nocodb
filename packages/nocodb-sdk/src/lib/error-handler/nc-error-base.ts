@@ -98,6 +98,13 @@ export class NcErrorBase {
     });
   }
 
+  viewSectionNotFound(id: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_VIEW_SECTION_NOT_FOUND, {
+      params: id,
+      ...args,
+    });
+  }
+
   apiClientNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_API_CLIENT_NOT_FOUND, {
       params: id,
@@ -365,12 +372,29 @@ export class NcErrorBase {
     });
   }
 
+  insufficientPrivilege(message: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_INSUFFICIENT_PRIVILEGE,
+      {
+        params: message,
+        ...args,
+      }
+    );
+  }
+
   sourceDataReadOnly(name: string) {
     this.forbidden(`Source '${name}' is read-only`);
   }
 
   sourceMetaReadOnly(name: string) {
     this.forbidden(`Source '${name}' schema is read-only`);
+  }
+
+  systemFieldNonModifiable(): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_SYSTEM_FIELD_NON_MODIFIABLE,
+      {},
+    );
   }
 
   integrationNotFound(id: string, args?: NcErrorArgs): never {
@@ -933,6 +957,19 @@ export class NcErrorBase {
   methodNotAllowed(method: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.ERR_METHOD_NOT_ALLOWED, {
       params: `${method} method not allowed`,
+      ...args,
+    });
+  }
+
+  licenseRequired(feature?: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_REQUIRED, {
+      params: feature || '',
+      ...args,
+    });
+  }
+
+  licenseSuspended(args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_LICENSE_SUSPENDED, {
       ...args,
     });
   }

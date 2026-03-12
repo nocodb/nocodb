@@ -12,6 +12,8 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
 
   const { t } = useI18n()
 
+  const { appInfo } = useGlobal()
+
   const activePlugin = ref<PluginType | null>(null)
   const activePluginFormData = ref({})
   const isLoading = ref(false)
@@ -65,7 +67,7 @@ const [useProvideAccountSetupStore, useAccountSetupStore] = createInjectionState
       message.success(activePlugin.value?.formDetails.msgOnInstall || t('msg.success.pluginSettingsSaved'))
       // load all apps again to update the pending status
       await loadSetupApps()
-      navigateTo('/account/setup')
+      navigateTo(appInfo.value.isCloud ? '/account/setup' : '/admin?tab=setup')
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {

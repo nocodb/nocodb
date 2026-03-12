@@ -5,7 +5,31 @@ import {
   getRelatedLinksColumn,
 } from '~/helpers/dbHelpers';
 import { type Column, type LinkToAnotherRecordColumn, Model } from '~/models';
-import { extractCorrespondingLinkColumn } from '~/db/BaseModelSqlv2/add-remove-links';
+
+export interface NestedLinkAuditEntry {
+  columnTitle: string;
+  columnId: string;
+  refColumnTitle: string;
+  model: Model;
+  refModel: Model;
+  // rowId is null when it depends on the inserted row's PK (resolved at call site)
+  rowId: any | null;
+  refRowId: any | null;
+  // true = rowId is the inserted row's PK (resolved at call site)
+  rowIdIsInsertedRow: boolean;
+  refRowIdIsInsertedRow: boolean;
+  type: RelationTypes;
+  req: NcRequest;
+}
+
+export interface NestedLinkLastModifiedEntry {
+  model: Model;
+  refModel: Model;
+  refBaseModel: IBaseModelSqlV2;
+  col: Column;
+  nestedData: any;
+  req: NcRequest;
+}
 
 export class NestedLinkPreparator {
   async prepareNestedLinkQb(
@@ -24,7 +48,8 @@ export class NestedLinkPreparator {
   ) {
     const postInsertOps: ((rowId: any) => Promise<string>)[] = [];
     const preInsertOps: (() => Promise<string>)[] = [];
-    const postInsertAuditOps: ((rowId: any) => Promise<void>)[] = [];
+    const postInsertAuditEntries: NestedLinkAuditEntry[] = [];
+    const postInsertLastModifiedEntries: NestedLinkLastModifiedEntry[] = [];
     for (const col of nestedCols) {
       if (col.title in data) {
         const colOptions = await col.getColOptions<LinkToAnotherRecordColumn>(
@@ -78,34 +103,35 @@ export class NestedLinkPreparator {
                 parentCol.title,
               );
               const refModel = await parentCol.getModel(baseModel.context);
-              postInsertAuditOps.push(async (rowId) => {
-                await baseModel.afterAddChild({
-                  columnTitle: col.title,
-                  columnId: col.id,
-                  refColumnTitle: refChildCol.title,
-                  rowId,
-                  refRowId: nestedData?.[refModelPkCol.title],
-                  req,
-                  model: baseModel.model,
-                  refModel,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.BELONGS_TO,
-                });
 
-                await baseModel.afterAddChild({
-                  columnTitle: refChildCol.title,
-                  columnId: refChildCol.id,
-                  refColumnTitle: col.title,
-                  rowId: nestedData?.[refModelPkCol.title],
-                  refRowId: rowId,
-                  req,
-                  model: refModel,
-                  refModel: baseModel.model,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.HAS_MANY,
-                });
+              // Forward direction: inserted row → linked row
+              postInsertAuditEntries.push({
+                columnTitle: col.title,
+                columnId: col.id,
+                refColumnTitle: refChildCol.title,
+                rowId: null,
+                refRowId: nestedData?.[refModelPkCol.title],
+                rowIdIsInsertedRow: true,
+                refRowIdIsInsertedRow: false,
+                model: baseModel.model,
+                refModel,
+                type: RelationTypes.BELONGS_TO,
+                req,
+              });
+
+              // Reverse direction: linked row → inserted row
+              postInsertAuditEntries.push({
+                columnTitle: refChildCol.title,
+                columnId: refChildCol.id,
+                refColumnTitle: col.title,
+                rowId: nestedData?.[refModelPkCol.title],
+                refRowId: null,
+                rowIdIsInsertedRow: false,
+                refRowIdIsInsertedRow: true,
+                model: refModel,
+                refModel: baseModel.model,
+                type: RelationTypes.HAS_MANY,
+                req,
               });
             }
             break;
@@ -188,34 +214,32 @@ export class NestedLinkPreparator {
                 });
               }
 
-              postInsertAuditOps.push(async (rowId) => {
-                await baseModel.afterAddChild({
-                  columnTitle: col.title,
-                  columnId: col.id,
-                  refColumnTitle: refChildCol.title,
-                  rowId,
-                  refRowId: nestedData[refModelPkCol?.title],
-                  req,
-                  model: baseModel.model,
-                  refModel,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.ONE_TO_ONE,
-                });
+              postInsertAuditEntries.push({
+                columnTitle: col.title,
+                columnId: col.id,
+                refColumnTitle: refChildCol.title,
+                rowId: null,
+                refRowId: nestedData[refModelPkCol?.title],
+                rowIdIsInsertedRow: true,
+                refRowIdIsInsertedRow: false,
+                model: baseModel.model,
+                refModel,
+                type: RelationTypes.ONE_TO_ONE,
+                req,
+              });
 
-                await baseModel.afterAddChild({
-                  columnTitle: refChildCol.title,
-                  columnId: refChildCol.id,
-                  refColumnTitle: col.title,
-                  rowId: nestedData[refModelPkCol?.title],
-                  refRowId: rowId,
-                  req,
-                  model: refModel,
-                  refModel: baseModel.model,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.ONE_TO_ONE,
-                });
+              postInsertAuditEntries.push({
+                columnTitle: refChildCol.title,
+                columnId: refChildCol.id,
+                refColumnTitle: col.title,
+                rowId: nestedData[refModelPkCol?.title],
+                refRowId: null,
+                rowIdIsInsertedRow: false,
+                refRowIdIsInsertedRow: true,
+                model: refModel,
+                refModel: baseModel.model,
+                type: RelationTypes.ONE_TO_ONE,
+                req,
               });
             }
             break;
@@ -259,40 +283,37 @@ export class NestedLinkPreparator {
                   .toQuery();
               });
 
-              postInsertAuditOps.push(async (rowId) => {
-                for (const nestedDataObj of Array.isArray(nestedData)
-                  ? nestedData
-                  : [nestedData]) {
-                  if (nestedDataObj === undefined) continue;
-                  await baseModel.afterAddChild({
-                    columnTitle: col.title,
-                    columnId: col.id,
-                    refColumnTitle: refChildCol.title,
-                    rowId,
-                    refRowId: nestedDataObj[refModelPkCol?.title],
-                    req,
-                    model: baseModel.model,
-                    refModel,
-                    refDisplayValue: '',
-                    displayValue: '',
-                    type: RelationTypes.HAS_MANY,
-                  });
+              for (const nestedDataObj of nestedData) {
+                if (nestedDataObj === undefined) continue;
 
-                  await baseModel.afterAddChild({
-                    columnTitle: refChildCol.title,
-                    columnId: refChildCol.id,
-                    refColumnTitle: col.title,
-                    rowId: nestedDataObj[refModelPkCol?.title],
-                    refRowId: rowId,
-                    req,
-                    model: refModel,
-                    refModel: baseModel.model,
-                    refDisplayValue: '',
-                    displayValue: '',
-                    type: RelationTypes.BELONGS_TO,
-                  });
-                }
-              });
+                postInsertAuditEntries.push({
+                  columnTitle: col.title,
+                  columnId: col.id,
+                  refColumnTitle: refChildCol.title,
+                  rowId: null,
+                  refRowId: nestedDataObj[refModelPkCol?.title],
+                  rowIdIsInsertedRow: true,
+                  refRowIdIsInsertedRow: false,
+                  model: baseModel.model,
+                  refModel,
+                  type: RelationTypes.HAS_MANY,
+                  req,
+                });
+
+                postInsertAuditEntries.push({
+                  columnTitle: refChildCol.title,
+                  columnId: refChildCol.id,
+                  refColumnTitle: col.title,
+                  rowId: nestedDataObj[refModelPkCol?.title],
+                  refRowId: null,
+                  rowIdIsInsertedRow: false,
+                  refRowIdIsInsertedRow: true,
+                  model: refModel,
+                  refModel: baseModel.model,
+                  type: RelationTypes.BELONGS_TO,
+                  req,
+                });
+              }
             }
             break;
           case RelationTypes.MANY_TO_MANY: {
@@ -323,69 +344,56 @@ export class NestedLinkPreparator {
                 .toQuery();
             });
 
-            postInsertAuditOps.push(async (rowId) => {
-              for (const nestedDataObj of Array.isArray(nestedData)
-                ? nestedData
-                : [nestedData]) {
-                if (nestedDataObj === undefined) continue;
-                await baseModel.afterAddChild({
-                  columnTitle: col.title,
-                  columnId: col.id,
-                  refColumnTitle: refChildCol.title,
-                  rowId,
-                  refRowId: nestedDataObj[refModelPkCol?.title],
-                  req,
-                  model: baseModel.model,
-                  refModel,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.MANY_TO_MANY,
-                });
+            for (const nestedDataObj of nestedData) {
+              if (nestedDataObj === undefined) continue;
 
-                await baseModel.afterAddChild({
-                  columnTitle: refChildCol.title,
-                  columnId: refChildCol.id,
-                  refColumnTitle: col.title,
-                  rowId: nestedDataObj[refModelPkCol?.title],
-                  refRowId: rowId,
-                  req,
-                  model: refModel,
-                  refModel: baseModel.model,
-                  refDisplayValue: '',
-                  displayValue: '',
-                  type: RelationTypes.MANY_TO_MANY,
-                });
-              }
-            });
+              postInsertAuditEntries.push({
+                columnTitle: col.title,
+                columnId: col.id,
+                refColumnTitle: refChildCol.title,
+                rowId: null,
+                refRowId: nestedDataObj[refModelPkCol?.title],
+                rowIdIsInsertedRow: true,
+                refRowIdIsInsertedRow: false,
+                model: baseModel.model,
+                refModel,
+                type: RelationTypes.MANY_TO_MANY,
+                req,
+              });
+
+              postInsertAuditEntries.push({
+                columnTitle: refChildCol.title,
+                columnId: refChildCol.id,
+                refColumnTitle: col.title,
+                rowId: nestedDataObj[refModelPkCol?.title],
+                refRowId: null,
+                rowIdIsInsertedRow: false,
+                refRowIdIsInsertedRow: true,
+                model: refModel,
+                refModel: baseModel.model,
+                type: RelationTypes.MANY_TO_MANY,
+                req,
+              });
+            }
           }
         }
 
         // update lastModified details in tables
-        postInsertAuditOps.push(async (rowId) => {
-          await baseModel.updateLastModified({
-            model: baseModel.model,
-            rowIds: [rowId],
-            cookie: req,
-            updatedColIds: [col.id],
-          });
-
-          // Get the corresponding link column ID for the parent table
-          const refTableLinkColumnId = (
-            await extractCorrespondingLinkColumn(baseModel.context, {
-              ltarColumn: col,
-              referencedTable: refBaseModel.model,
-            })
-          )?.id;
-
-          await refBaseModel.updateLastModified({
-            model: refModel,
-            rowIds: nestedData,
-            cookie: req,
-            updatedColIds: [refTableLinkColumnId],
-          });
+        postInsertLastModifiedEntries.push({
+          model: baseModel.model,
+          refModel,
+          refBaseModel,
+          col,
+          nestedData,
+          req,
         });
       }
     }
-    return { postInsertOps, preInsertOps, postInsertAuditOps };
+    return {
+      postInsertOps,
+      preInsertOps,
+      postInsertAuditEntries,
+      postInsertLastModifiedEntries,
+    };
   }
 }

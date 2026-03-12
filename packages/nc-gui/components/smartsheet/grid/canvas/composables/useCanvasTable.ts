@@ -7,6 +7,7 @@ import {
   isOrderCol,
   isReadonlyVirtualColumn,
   isSystemColumn,
+  isUUID,
   isVirtualCol,
   ncHasProperties,
 } from 'nocodb-sdk'
@@ -16,7 +17,7 @@ import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
 import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
-import { clearRowColouringCache, clearTextCache } from '../utils/canvas'
+import { clearTextCache } from '../utils/canvas'
 import {
   CELL_BOTTOM_BORDER_IN_PX,
   COLUMN_HEADER_HEIGHT_IN_PX,
@@ -287,10 +288,15 @@ export function useCanvasTable({
     currentUser,
   )
 
-  // Set base information for internal API calls
-  if (baseStore.base?.id && baseStore.base?.fk_workspace_id) {
-    actionManager.setBaseInfo(baseStore.base.id, baseStore.base.fk_workspace_id)
-  }
+  watch(
+    () => [baseStore.base?.id, baseStore.base?.fk_workspace_id] as const,
+    ([baseId, workspaceId]) => {
+      if (baseId && workspaceId) {
+        actionManager.setBaseInfo(baseId, workspaceId)
+      }
+    },
+    { immediate: true },
+  )
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
@@ -452,14 +458,13 @@ export function useCanvasTable({
           title: f.title,
           uidt: f.uidt,
           width: gridViewCol.width,
-          fixed:
-            isMobileMode.value && !isGroupBy.value
-              ? false
-              : isGroupBy.value
-              ? !!f.pv
-              : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
-              ? false
-              : !!f.pv,
+          fixed: isMobileMode.value
+            ? false
+            : isGroupBy.value
+            ? !!f.pv
+            : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
+            ? false
+            : !!f.pv,
           readonly:
             f.readonly ||
             isDataReadOnly.value ||
@@ -785,11 +790,12 @@ export function useCanvasTable({
       if (removeInlineAddRecord.value && selection.value.start.row >= EXTERNAL_SOURCE_VISIBLE_ROWS) return null
 
       const selectedColumn = columns.value[selection.value.end.col]
-      // If the cell is virtual or system column, hide the fill handler
+      // If the cell is virtual, system column, AI prompt, or UUID (read-only auto-generated), hide the fill handler
       if (
         selectedColumn?.virtual ||
         isSystemColumn(selectedColumn?.columnObj) ||
-        (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj))
+        (selectedColumn?.columnObj && isAIPromptCol(selectedColumn?.columnObj)) ||
+        (selectedColumn?.columnObj && isUUID(selectedColumn?.columnObj))
       ) {
         return null
       }
@@ -844,7 +850,7 @@ export function useCanvasTable({
     }
   }
 
-  const { handleCellClick, renderCell, handleCellHover, handleCellKeyDown } = useGridCellHandler({
+  const { handleCellClick, renderCell, updateFrameTimestamp, handleCellHover, handleCellKeyDown } = useGridCellHandler({
     getCellPosition,
     actionManager,
     markdownLoader,
@@ -894,6 +900,7 @@ export function useCanvasTable({
     targetRowIndex,
     actionManager,
     renderCell,
+    updateFrameTimestamp,
     meta,
     editEnabled,
     totalWidth,
@@ -1336,6 +1343,9 @@ export function useCanvasTable({
 
     if (!row || !column) return null
 
+    // Row is hidden by RLS policy — lock it to prevent edits before it's removed from view
+    if (row.rowMeta?.isRlsHidden) return null
+
     if (removeInlineAddRecord.value && row.rowMeta.rowIndex && row.rowMeta.rowIndex >= EXTERNAL_SOURCE_VISIBLE_ROWS) return
 
     const isEditRestricted = column.id && !isAllowed(PermissionEntity.FIELD, column.id, PermissionKey.RECORD_FIELD_EDIT)
@@ -1414,7 +1424,27 @@ export function useCanvasTable({
     return !!row.rowMeta.selected
   }
 
+  let _renderRafId: number | null = null
+
   function triggerRefreshCanvas() {
+    // Coalesce multiple render requests into a single frame.
+    // Many code paths call triggerRefreshCanvas multiple times per frame
+    // (scroll handler, updateVisibleRows, data fetch completion, etc.).
+    // Without batching, each call synchronously re-renders the entire canvas.
+    if (_renderRafId) return
+    _renderRafId = requestAnimationFrame(() => {
+      _renderRafId = null
+      renderCanvas()
+    })
+  }
+
+  // Wrapper that renders immediately and cancels any pending deferred render.
+  // Used by the scroll handler to avoid the 2-frame lag that triggerRefreshCanvas causes.
+  const renderCanvasDirect = () => {
+    if (_renderRafId) {
+      cancelAnimationFrame(_renderRafId)
+      _renderRafId = null
+    }
     renderCanvas()
   }
 
@@ -1430,7 +1460,6 @@ export function useCanvasTable({
   const smartsheetEventHandler = (event) => {
     if ([SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
       forcedNextTick(() => {
-        clearRowColouringCache()
         triggerRefreshCanvas()
       })
     }
@@ -1462,6 +1491,9 @@ export function useCanvasTable({
         await Promise.all(
           metaIdsToFetch.map(async ([colId, tableId, relatedBaseId]) => {
             if (!tableId || !relatedBaseId) return
+            // Try fetching full table meta first. If it fails (e.g., user lacks permission
+            // to access the related table), fall back to partial meta which only fetches
+            // the linked column metadata needed to render the LTAR cell.
             try {
               await getMeta(relatedBaseId, tableId, false, false, true)
             } catch {}
@@ -1508,6 +1540,7 @@ export function useCanvasTable({
     updateVisibleRows,
     findColumnIndex,
     triggerRefreshCanvas,
+    renderCanvasDirect,
     startDrag,
     findColumnAtPosition,
     findClickedColumn,

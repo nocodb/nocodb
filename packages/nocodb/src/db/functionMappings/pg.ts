@@ -2,7 +2,10 @@ import dayjs from 'dayjs';
 import { customAlphabet } from 'nanoid';
 import { FormulaDataTypes, JSEPNode, UITypes } from 'nocodb-sdk';
 import { sanitize } from 'src/helpers/sqlSanitize';
-import commonFns from './commonFns';
+import commonFns, {
+  safeDateAddUnitSQL,
+  validateDateAddUnit,
+} from './commonFns';
 import type { CallExpressionNode } from 'nocodb-sdk';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
@@ -114,17 +117,33 @@ const pg = {
     const typeCast =
       pt.arguments[0].dataType !== FormulaDataTypes.DATE ? '::DATE' : '';
     const modifier = (await fn(pt.arguments[1])).builder;
-    const scale = String((await fn(pt.arguments[2])).builder).replace(
-      /["']/g,
-      '',
+
+    if (pt.arguments[2].type === 'Literal') {
+      const scale = validateDateAddUnit(
+        String((await fn(pt.arguments[2])).builder),
+      );
+      return {
+        builder: knex
+          .raw(
+            `(?)${typeCast} + (? ||
+      '?')::interval`,
+            [source, modifier, knex.raw(scale)],
+          )
+          .wrap('(', ')'),
+      };
+    }
+
+    const scaleExpr = safeDateAddUnitSQL(
+      knex,
+      (await fn(pt.arguments[2])).builder,
     );
     return {
       builder: knex
-        .raw(
-          `(?)${typeCast} + (? ||
-      '?')::interval`,
-          [source, modifier, knex.raw(scale)],
-        )
+        .raw(`(?)${typeCast} + (? || ' ' || ?)::interval`, [
+          source,
+          modifier,
+          scaleExpr,
+        ])
         .wrap('(', ')'),
     };
   },

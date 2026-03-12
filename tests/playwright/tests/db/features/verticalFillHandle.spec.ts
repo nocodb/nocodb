@@ -45,7 +45,7 @@ async function beforeEachInit({ page, tableType }: { page: any; tableType: strin
     },
   });
   const table = await createDemoTable({ context, type: tableType, recordCnt: 10 });
-  await page.reload();
+  await page.reload({ waitUntil: 'networkidle' });
 
   await dashboard.treeView.openTable({ title: tableType, baseTitle: context.base.title });
 

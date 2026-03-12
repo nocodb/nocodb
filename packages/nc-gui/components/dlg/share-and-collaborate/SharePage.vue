@@ -308,11 +308,17 @@ function sharedViewUrl(withPrefill = true) {
     case ViewTypes.CALENDAR:
       viewType = 'calendar'
       break
+    case ViewTypes.LIST:
+      viewType = 'list'
+      break
+    case ViewTypes.TIMELINE:
+      viewType = 'timeline'
+      break
     default:
       viewType = 'view'
   }
 
-  const baseUrl = `${dashboardUrl.value}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`
+  const baseUrl = `${dashboardUrl.value}/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`
   const queryParams = []
 
   // Add prefill parameters

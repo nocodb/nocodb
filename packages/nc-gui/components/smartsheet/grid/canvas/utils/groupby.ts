@@ -212,12 +212,19 @@ export function generateGroupPath(data?: CanvasGroup) {
   return path
 }
 
+// Index-based comparison instead of JSON.stringify/join — avoids string allocation per call
 export function comparePath(pathA?: Array<number | string> | null, pathB?: Array<number | string> | null) {
   if (!ncIsArray(pathA) || !ncIsArray(pathB)) {
     return false
   }
 
-  return (ncIsArray(pathA) ? pathA : []).join() === (ncIsArray(pathB) ? pathB : []).join()
+  if (pathA.length !== pathB.length) return false
+
+  for (let i = 0; i < pathA.length; i++) {
+    if (pathA[i] !== pathB[i]) return false
+  }
+
+  return true
 }
 
 export function calculateGroupRowTop(

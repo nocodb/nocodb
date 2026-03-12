@@ -34,6 +34,7 @@ export interface StatefulGroupProps {
   isColourFilter?: boolean
   readOnly?: boolean
   isLoadingFilter?: boolean
+  parentEnabled?: boolean
 }
 export interface GroupProps extends StatefulGroupProps {
   index: number

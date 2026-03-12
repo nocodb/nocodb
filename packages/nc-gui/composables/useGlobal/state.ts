@@ -1,5 +1,6 @@
 import { useStorage } from '@vueuse/core'
 import type { JwtPayload } from 'jwt-decode'
+import { MapProvider } from 'nocodb-sdk'
 import type { AppInfo, State, StoredState } from './types'
 import { INITIAL_LEFT_SIDEBAR_WIDTH } from '~/lib/constants'
 
@@ -49,7 +50,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
 
   const { width } = useWindowSize()
   const isViewPortMobile = () => {
-    return width.value < MAX_WIDTH_FOR_MOBILE_MODE
+    return width.value < NC_BREAKPOINTS.sm
   }
 
   /** State */
@@ -64,6 +65,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     latestRelease: null,
     hiddenRelease: null,
     isMobileMode: null,
+    activeBreakpoint: null,
     lastOpenedWorkspaceId: null,
     gridViewPageSize: 25,
     leftSidebarSize: {
@@ -142,11 +144,13 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     isCloud: false,
     automationLogLevel: 'OFF',
     disableEmailAuth: false,
-    dashboardPath: '/dashboard',
+    dashboardPath: '/',
     inviteOnlySignup: false,
     giftUrl: '',
     isOnPrem: false,
+    defaultWorkspaceId: null,
     disableGroupByAggregation: false,
+    mapProvider: MapProvider.OPENSTREETMAP,
   })
 
   /** reactive token payload */

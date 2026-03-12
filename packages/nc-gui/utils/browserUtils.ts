@@ -9,6 +9,7 @@ export const isDrawerOrModalExist = () => document.querySelector('.ant-modal.act
 export const isExpandedFormOpenExist = () => document.querySelector('.nc-drawer-expanded-form.active')
 export const isNestedExpandedFormOpenExist = () => document.querySelectorAll('.nc-drawer-expanded-form.active')?.length > 1
 export const isExpandedCellInputExist = () => document.querySelector('.expanded-cell-input')
+export const isNcListSearchInputActive = () => document.activeElement?.closest('.nc-list-search-input')
 export const isExtensionPaneActive = () => document.querySelector('.nc-extension-pane')
 export const isGeneralOverlayActive = () => document.querySelector('.nc-general-overlay')
 export const isSelectActive = () => {

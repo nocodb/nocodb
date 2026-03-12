@@ -39,16 +39,11 @@ export class PublicDataExportController {
     const view = await View.getByUUID(context, publicDataUuid);
 
     if (!view) NcError.viewNotFound(publicDataUuid);
-    if (
-      view.type !== ViewTypes.GRID &&
-      view.type !== ViewTypes.KANBAN &&
-      view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR &&
-      view.type !== ViewTypes.MAP
-    )
-      NcError.notFound('Not found');
+    if (view.type === ViewTypes.FORM) NcError.notFound('Not found');
 
-    if (view.password && view.password !== req.headers?.['xc-password']) {
+    if (
+      !(await View.verifyPassword(view, req.headers?.['xc-password'] as string))
+    ) {
       NcError.invalidSharedViewPassword();
     }
 

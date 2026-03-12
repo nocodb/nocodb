@@ -41,6 +41,8 @@ const { orgId, org } = storeToRefs(orgStore)
 
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 
+const isSettingsSidebar = inject(IsSettingsSidebarInj, ref(false))
+
 const { $api, $eventBus } = useNuxtApp()
 
 const { t } = useI18n()
@@ -91,19 +93,20 @@ const accessibleRoles = ref<(typeof ProjectRoles)[keyof typeof ProjectRoles][]>(
 const getTeamCompatibleAccessibleRoles = (roles: ProjectRoles[], record: any) => {
   let filteredRoles = roles
 
-  if (!record?.isTeam || !isEeUI) {
-    filteredRoles = roles.filter((r) => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
-  } else {
-    // Allow INHERIT for teams at base level, but filter out OWNER
+  if (record?.isTeam && isEeUI) {
+    // EE teams: allow INHERIT, filter out OWNER
     filteredRoles = roles.filter((r) => r !== ProjectRoles.OWNER)
-  }
+  } else if (isEeUI) {
+    // EE non-team: INHERIT only if teams enabled
+    filteredRoles = roles.filter((r) => r !== ProjectRoles.INHERIT || isTeamsEnabled.value)
 
-  // Show INHERIT only if current base-level role is not INHERIT or null/undefined
-  // base_roles is the explicit base-level role (not inherited from workspace)
-  const currentBaseRole = record?.base_roles
-  if (!currentBaseRole || currentBaseRole === ProjectRoles.INHERIT) {
-    filteredRoles = filteredRoles.filter((r) => r !== ProjectRoles.INHERIT)
+    // In EE: hide INHERIT if user is already inheriting (no explicit base role)
+    const currentBaseRole = record?.base_roles
+    if (!currentBaseRole || currentBaseRole === ProjectRoles.INHERIT) {
+      filteredRoles = filteredRoles.filter((r) => r !== ProjectRoles.INHERIT)
+    }
   }
+  // CE: always keep INHERIT visible — workspace role inheritance is supported
 
   return filteredRoles
 }
@@ -207,25 +210,28 @@ const updateCollaborator = async (collab: any, roles: ProjectRoles) => {
         })
       }
     } else {
-      // When role is INHERIT, delete the base user entry
+      // When role is INHERIT, delete the base user entry (if exists)
       if (roles === ProjectRoles.INHERIT) {
-        await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        // Only remove if user has an explicit base role to remove
+        if (currentCollaborator.base_roles) {
+          await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        }
         if (
           currentCollaborator.workspace_roles &&
-          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] &&
-          isEeUI
+          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
         ) {
           currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
         } else {
           currentCollaborator.roles = ProjectRoles.NO_ACCESS
         }
         currentCollaborator.base_roles = null
-      } else if (!roles || (roles === ProjectRoles.NO_ACCESS && !isEeUI)) {
-        await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+      } else if (!roles) {
+        if (currentCollaborator.base_roles) {
+          await removeProjectUser(currentBase.value.id!, currentCollaborator as unknown as User)
+        }
         if (
           currentCollaborator.workspace_roles &&
-          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles &&
-          isEeUI
+          WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles] === roles
         ) {
           currentCollaborator.roles = WorkspaceRolesToProjectRoles[currentCollaborator.workspace_roles as WorkspaceUserRoles]
         } else {
@@ -543,6 +549,7 @@ onBeforeUnmount(() => {
     class="nc-collaborator-table-container nc-access-settings-view flex flex-col relative"
     :class="{
       'nc-admin-panel': isAdminPanel,
+      'nc-is-settings-sidebar': isSettingsSidebar,
     }"
   >
     <ProjectPrivateOverlay v-if="showOverlay" />
@@ -629,20 +636,6 @@ onBeforeUnmount(() => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              size="small"
-              :type="isTeamsEnabled ? 'secondary' : 'primary'"
-              :disabled="isLoading"
-              data-testid="nc-add-member-btn"
-              :text-color="isTeamsEnabled ? 'primary' : undefined"
-              @click="isInviteModalVisible = true"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
-                {{ $t('activity.addMembers') }}
-              </div>
-            </NcButton>
-
-            <NcButton
               v-if="isTeamsEnabled && !isAdminPanel"
               v-e="['c:base:team-add']"
               size="small"
@@ -661,7 +654,20 @@ onBeforeUnmount(() => {
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon icon="ncBuilding" />
-                {{ $t('labels.addTeams') }}
+                <span class="hidden sm:inline">{{ $t('labels.addTeams') }}</span>
+              </div>
+            </NcButton>
+
+            <NcButton
+              size="small"
+              type="primary"
+              :disabled="isLoading"
+              data-testid="nc-add-member-btn"
+              @click="isInviteModalVisible = true"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                <span class="hidden sm:inline">{{ $t('activity.addMembers') }}</span>
               </div>
             </NcButton>
           </div>
@@ -698,7 +704,7 @@ onBeforeUnmount(() => {
             </template>
 
             <template v-if="column.key === 'email' && record.isTeam">
-              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" />
+              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" show-breadcrumb />
             </template>
 
             <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center users-email-grid">
@@ -732,7 +738,7 @@ onBeforeUnmount(() => {
                 <RolesSelectorV2
                   :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
                   :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
-                  :inherit="isEeUI && getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
+                  :inherit="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : undefined"
                   :inherit-source="getInheritanceInfo(record)?.source"
                   :effective-role="getInheritanceInfo(record)?.effectiveRole"
                   :show-inherit="!!getInheritanceInfo(record)"
@@ -745,10 +751,7 @@ onBeforeUnmount(() => {
                     :border="false"
                     :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
                   />
-                  <div
-                    v-if="isEeUI && getInheritanceInfo(record)"
-                    class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
-                  >
+                  <div v-if="getInheritanceInfo(record)" class="flex items-center gap-1 text-xs text-nc-content-gray-muted">
                     <GeneralIcon icon="role_inherit" class="h-3 w-3" />
                     <span>{{
                       getInheritanceInfo(record)?.source === 'team'
@@ -828,6 +831,15 @@ onBeforeUnmount(() => {
 
     @supports (height: 100dvh) {
       @apply h-[calc(100dvh-var(--topbar-height)-44px)];
+    }
+  }
+
+  // Admin sidebar mode: tab bar is hidden, so no 44px subtraction
+  &.nc-is-settings-sidebar {
+    @apply h-[calc(100vh-var(--topbar-height))];
+
+    @supports (height: 100dvh) {
+      @apply h-[calc(100dvh-var(--topbar-height))];
     }
   }
 }

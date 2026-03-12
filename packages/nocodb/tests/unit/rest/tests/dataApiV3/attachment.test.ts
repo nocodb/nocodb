@@ -2,6 +2,8 @@ import 'mocha';
 import nock from 'nock';
 import { expect } from 'chai';
 
+import { PlanLimitTypes } from 'nocodb-sdk';
+import { overridePlan } from '../../../utils/plan.utils';
 import {
   beforeEachAttachment,
   beforeEach as dataApiV3BeforeEach,
@@ -36,9 +38,9 @@ describe('Attachment V3', () => {
 
     nock('http://myhost.local/files')
       .get('/image')
-      // FIXME: increase if insert / update result is updated too fast
-      // delay to ensure background not clear before list
-      .delay(10)
+      // delay to ensure background download does not complete before the PATCH/POST response is read
+      // PATCH does 3 chunkList DB reads (old records + internal + external) so needs more headroom than POST
+      .delay(50)
       .reply(200, imageBuffer, {
         'Content-Type': 'image/png',
         'Content-Disposition': 'attachment; filename="test-image.png"',
@@ -71,14 +73,14 @@ describe('Attachment V3', () => {
     });
 
     expect(rsp.body.records.length).to.eq(1);
+    // background job may complete before response, so uploading count can be 0..2
     expect(
       rsp.body.records[0].fields.Attachment.filter(
         (attr) => attr.status === 'uploading',
       ).length,
-    ).to.eq(2);
+    ).to.be.lte(2);
 
-    // FIXME: if 100 ms is not enough
-    // wait 100 ms for background to kick off
+    // wait for background upload to finish
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 100));
 
     const getRsp1 = await ncAxiosGet({
@@ -110,14 +112,14 @@ describe('Attachment V3', () => {
 
     expect(patchRsp.body.records.length).to.eq(1);
     expect(patchRsp.body.records[0].fields.Attachment.length).to.eq(2);
+    // background job may complete before response, so uploading count can be 0..1
     expect(
       patchRsp.body.records[0].fields.Attachment.filter(
         (attr) => attr.status === 'uploading',
       ).length,
-    ).to.eq(1);
+    ).to.be.lte(1);
 
-    // FIXME: if 100 ms is not enough
-    // wait 100 ms for background to kick off
+    // wait for background upload to finish
     await new Promise<void>((resolve) => setTimeout(() => resolve(), 100));
 
     const getRsp2 = await ncAxiosGet({
@@ -175,21 +177,33 @@ describe('Attachment V3', () => {
     if (!isEE) {
       return true;
     }
-    const attachments = Array.from({ length: 11 }).map((v) => ({
-      url: 'http://myhost.local/files/image',
-    }));
-    const response = await ncAxiosPost({
-      url: `${urlPrefix}/${table.id}/records`,
-      body: [
-        {
-          fields: {
-            Attachment: attachments,
-          },
-        },
-      ],
-      status: 422,
+
+    const { restore } = await overridePlan({
+      workspace_id: testContext.ctx.workspace_id,
+      limits: {
+        [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
+      },
     });
-    expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
+
+    try {
+      const attachments = Array.from({ length: 11 }).map((v) => ({
+        url: 'http://myhost.local/files/image',
+      }));
+      const response = await ncAxiosPost({
+        url: `${urlPrefix}/${table.id}/records`,
+        body: [
+          {
+            fields: {
+              Attachment: attachments,
+            },
+          },
+        ],
+        status: 422,
+      });
+      expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
+    } finally {
+      await restore();
+    }
   });
   it('Upload file and update from base64 error due to cell limit', async () => {
     const isEE = !!process.env.EE;
@@ -197,49 +211,67 @@ describe('Attachment V3', () => {
       return true;
     }
 
-    const attachments = Array.from({ length: 10 }).map((v) => ({
-      url: 'http://myhost.local/files/image',
-    }));
-    const rsp = await ncAxiosPost({
-      url: `${urlPrefix}/${table.id}/records`,
-      body: [
-        {
-          fields: {
-            Attachment: attachments,
-          },
-        },
-      ],
-    });
-
-    let retry = 0;
-    let getRsp1;
-    do {
-      // wait until worker is done
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          resolve();
-        }, 200);
-      });
-
-      getRsp1 = await ncAxiosGet({
-        url: `${urlPrefix}/${table.id}/records/${rsp.body.records[0].id}`,
-      });
-      retry++;
-    } while (getRsp1.body.fields.Attachment.length === 0 && retry < 50);
-
-    const recordId = rsp.body.records[0].id;
-    const columnId = table.columns.find((col) => col.title === 'Attachment').id;
-
-    const rspPatch1 = await ncAxiosPost({
-      url: `${urlPrefix}/${table.id}/records/${recordId}/fields/${columnId}/upload`,
-      body: {
-        contentType: 'image/png',
-        file: base64Image,
-        filename: 'photo.png',
+    const { restore } = await overridePlan({
+      workspace_id: testContext.ctx.workspace_id,
+      limits: {
+        [PlanLimitTypes.LIMIT_ATTACHMENTS_IN_CELL]: 10,
       },
-      status: 422,
     });
 
-    expect(rspPatch1.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
+    try {
+      const attachments = Array.from({ length: 10 }).map((v) => ({
+        url: 'http://myhost.local/files/image',
+      }));
+      const rsp = await ncAxiosPost({
+        url: `${urlPrefix}/${table.id}/records`,
+        body: [
+          {
+            fields: {
+              Attachment: attachments,
+            },
+          },
+        ],
+      });
+
+      let retry = 0;
+      let getRsp1;
+      do {
+        // wait until worker is done
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 200);
+        });
+
+        getRsp1 = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/records/${rsp.body.records[0].id}`,
+        });
+        retry++;
+      } while (
+        getRsp1.body.fields.Attachment.some(
+          (a: any) => a.status === 'uploading',
+        ) &&
+        retry < 50
+      );
+
+      const recordId = rsp.body.records[0].id;
+      const columnId = table.columns.find(
+        (col) => col.title === 'Attachment',
+      ).id;
+
+      const rspPatch1 = await ncAxiosPost({
+        url: `${urlPrefix}/${table.id}/records/${recordId}/fields/${columnId}/upload`,
+        body: {
+          contentType: 'image/png',
+          file: base64Image,
+          filename: 'photo.png',
+        },
+        status: 422,
+      });
+
+      expect(rspPatch1.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
+    } finally {
+      await restore();
+    }
   });
 });

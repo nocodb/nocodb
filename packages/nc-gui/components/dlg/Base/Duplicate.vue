@@ -11,7 +11,9 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { navigateToProject, user } = useGlobal()
+const { navigateToProject, user, appInfo } = useGlobal()
+
+const isEeActive = computed(() => isEeUI && appInfo.value?.ee)
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -25,6 +27,8 @@ const { workspacesList, activeWorkspace } = useWorkspace()
 
 const { loadProjects, createProject: _createProject } = basesStore
 
+const wsBaseListActions = useWsBaseListActions()
+
 // Check if current user is base owner
 const isBaseOwner = computed(() => {
   return user.value?.base_roles?.[ProjectRoles.OWNER]
@@ -35,11 +39,11 @@ const options = ref({
   includeViews: true,
   includeHooks: true,
   includeComments: true,
-  includeScripts: isEeUI,
-  includeDashboards: isEeUI,
-  includeWorkflows: isEeUI,
+  includeScripts: isEeUI && !!appInfo.value?.ee,
+  includeDashboards: isEeUI && !!appInfo.value?.ee,
+  includeWorkflows: isEeUI && !!appInfo.value?.ee,
 })
-const targetWorkspace = ref(activeWorkspace)
+const targetWorkspace = ref(workspacesList.find((ws) => ws.id === props.base.fk_workspace_id) ?? activeWorkspace)
 
 const errorMessage = ref()
 
@@ -65,7 +69,7 @@ const optionsToExclude = computed(() => {
 })
 
 const workspaceOptions = computed(() => {
-  if (!isEeUI) return []
+  if (!isEeActive.value) return []
   return workspacesList.filter((ws) =>
     [WorkspaceUserRoles.CREATOR, WorkspaceUserRoles.OWNER].includes(ws.roles as WorkspaceUserRoles),
   )
@@ -87,7 +91,11 @@ const _duplicate = async () => {
     const jobData = await api.base.duplicate(props.base.id as string, {
       options: optionsToExclude.value,
       base: {
-        fk_workspace_id: isEeUI ? (targetWorkspace.value?.id ? targetWorkspace.value.id : props.base.fk_workspace_id) : null,
+        fk_workspace_id: isEeActive.value
+          ? targetWorkspace.value?.id
+            ? targetWorkspace.value.id
+            : props.base.fk_workspace_id
+          : null,
         type: props.base.type,
         color,
         meta: JSON.stringify({
@@ -128,7 +136,7 @@ const _duplicate = async () => {
             status.value = 'error'
             errorMessage.value = data?.data?.error?.message || 'Some error occurred'
             try {
-              await loadProjects('workspace')
+              await loadProjects('workspace', targetWorkspace?.value?.id ?? props.base.fk_workspace_id)
             } catch (_e: any) {
               // ignore
             }
@@ -166,9 +174,13 @@ const handleActionClick = () => {
       break
     }
     case 'success': {
+      if (wsBaseListActions) {
+        wsBaseListActions.closeModal()
+      }
+
       const base = targetBase.value
       navigateToProject({
-        workspaceId: isEeUI ? base.fk_workspace_id : undefined,
+        workspaceId: isEeActive.value ? base.fk_workspace_id : undefined,
         baseId: base.id,
         type: base.type,
       })
@@ -264,7 +276,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
-            v-if="isEeUI"
+            v-if="isEeActive"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeScripts = !options.includeScripts"
           >
@@ -273,7 +285,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
-            v-if="isEeUI"
+            v-if="isEeActive"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeDashboards = !options.includeDashboards"
           >
@@ -282,7 +294,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
-            v-if="isEeUI"
+            v-if="isEeActive"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeWorkflows = !options.includeWorkflows"
           >
@@ -293,7 +305,7 @@ onKeyStroke('Enter', () => {
 
         <div
           :class="{
-            'mb-5': !isEeUI,
+            'mb-5': !isEeActive,
           }"
           class="mt-5 text-nc-content-gray-subtle2 font-medium"
         >
@@ -301,7 +313,7 @@ onKeyStroke('Enter', () => {
           <template v-if="!isBaseOwner">{{ $t('labels.baseDuplicateMessage2') }}</template>
         </div>
 
-        <div v-if="isEeUI" class="mb-5">
+        <div v-if="isEeActive" class="mb-5">
           <NcDivider divider-class="!my-5" />
 
           <div class="text-nc-content-gray font-medium leading-5">

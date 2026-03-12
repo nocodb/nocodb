@@ -6,6 +6,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import { isEE } from '~/utils';
+import Filter from '~/models/Filter';
 
 export default class ButtonColumn {
   type: ButtonActionsType;
@@ -25,6 +26,8 @@ export default class ButtonColumn {
   fk_script_id?: string;
   model?: string;
   output_column_ids?: string;
+  filters?: any[];
+  id: string;
 
   private parsed_tree?: any;
 
@@ -117,10 +120,16 @@ export default class ButtonColumn {
       }
     }
 
+    if (column) {
+      column.filters = await Filter.allButtonFilterList(
+        context,
+        { buttonColId: columnId },
+        ncMeta,
+      );
+    }
+
     return column ? new ButtonColumn(column) : null;
   }
-
-  id: string;
 
   static async update(
     context: NcContext,
@@ -172,6 +181,7 @@ export default class ButtonColumn {
 
     if ('parsed_tree' in updateObj)
       updateObj.parsed_tree = stringifyMetaProp(updateObj, 'parsed_tree', null);
+
     // set meta
     await ncMeta.metaUpdate(
       context.workspace_id,

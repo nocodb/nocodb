@@ -377,6 +377,37 @@ export interface TeamMemberV3V3Type {
 }
 
 /**
+ * A team member inherited from an ancestor team
+ */
+export interface InheritedTeamMemberV3V3Type {
+  /**
+   * Member email address
+   * @example user@example.com
+   */
+  user_email: string;
+  /**
+   * Member user ID
+   * @example usr_xxxx
+   */
+  user_id: string;
+  /**
+   * Member role in the ancestor team
+   * @example member
+   */
+  team_role: 'owner' | 'member';
+  /**
+   * ID of the ancestor team this member is inherited from
+   * @example tm_xxxx
+   */
+  inherited_from_team_id: string;
+  /**
+   * Title of the ancestor team this member is inherited from
+   * @example Engineering
+   */
+  inherited_from_team_title: string;
+}
+
+/**
  * Detailed team information for v3 API
  */
 export interface TeamDetailV3V3Type {
@@ -402,6 +433,8 @@ export interface TeamDetailV3V3Type {
   badge_color?: string;
   /** Team members */
   members: TeamMemberV3ResponseV3Type[];
+  /** Members inherited from ancestor teams */
+  inherited_members?: InheritedTeamMemberV3V3Type[];
 }
 
 /**
@@ -458,6 +491,11 @@ export interface TeamCreateV3ReqV3Type {
   badge_color?: string;
   /** Initial team members */
   members?: TeamMemberV3V3Type[];
+  /**
+   * Parent team ID. Null or omitted = root team.
+   * @example tmd_abc123
+   */
+  parent_team_id?: string | null;
 }
 
 /**
@@ -514,6 +552,22 @@ export interface TeamV3V3Type {
    * @format date-time
    */
   updated_at?: string;
+  /** Parent team ID. Null = root team. */
+  fk_parent_team_id?: string | null;
+  /**
+   * Depth in the team tree. Root teams have depth 0.
+   * @example 1
+   */
+  depth?: number;
+  /**
+   * Materialized path for efficient ancestor/descendant queries.
+   * @example /eng/fe/web
+   */
+  path?: string;
+  /** Whether the requesting user is a member of this team. */
+  is_member?: boolean;
+  /** List of user IDs who are owners/managers of this team. */
+  managers?: string[];
 }
 
 /**
@@ -1740,6 +1794,23 @@ export type ViewV3Type = {
         /** Row colour configuration for the the view. */
         row_coloring?: ViewRowColourV3Type;
       }
+    | {
+        type?: 'map';
+        options?: ViewOptionsMapV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
   );
 
 export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
@@ -1794,6 +1865,22 @@ export type ViewUpdateV3Type = ViewBaseInUpdateV3Type &
       }
     | {
         options?: ViewOptionsCalendarV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
+    | {
+        options?: ViewOptionsMapV3Type;
         /** List of sorts to be applied to the view. */
         sorts?: SortCreateV3Type[];
         filters?: FilterCreateUpdateV3Type;
@@ -1880,6 +1967,23 @@ export type ViewCreateV3Type = ViewBaseV3Type &
         /** Row colour configuration for the the view. */
         row_coloring?: ViewRowColourV3Type;
       }
+    | {
+        type?: 'map';
+        options?: ViewOptionsMapV3Type;
+        /** List of sorts to be applied to the view. */
+        sorts?: SortCreateV3Type[];
+        filters?: FilterCreateUpdateV3Type;
+        /**
+         * List of fields to be displayed in the view.
+         *
+         * - If not specified, all fields are displayed by default.
+         * - If an empty array is provided, only the display value field will be shown.
+         * - In case of partial list, fields not included in the list will be excluded from the view.
+         */
+        fields?: ViewFieldsV3Type;
+        /** Row colour configuration for the the view. */
+        row_coloring?: ViewRowColourV3Type;
+      }
   );
 
 export interface ViewOptionsFormV3Type {
@@ -1919,6 +2023,11 @@ export interface ViewOptionsFormV3Type {
    * @format uri
    */
   redirect_url?: string;
+}
+
+export interface ViewOptionsMapV3Type {
+  /** Foreign Key to GeoData Column to be used for the map view. */
+  fk_geo_data_col_id?: string;
 }
 
 export interface ViewOptionsGalleryV3Type {
@@ -2028,7 +2137,7 @@ export interface ViewBaseV3Type {
    *
    * Note: Form view via API is not supported currently
    */
-  type: 'grid' | 'gallery' | 'kanban' | 'calendar';
+  type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'map';
   /**
    * Lock type of the view.
    *
@@ -2050,7 +2159,7 @@ export interface ViewListV3Type {
     /** Description of the view. */
     description?: string | null;
     /** Type of the view. */
-    type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
+    type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form' | 'map';
     /** View configuration edit state. */
     lock_type: 'collaborative' | 'locked' | 'personal';
     /** User ID of the creator. */
@@ -2106,7 +2215,7 @@ export interface ViewSummaryV3Type {
   /** Name of the view. */
   title?: string;
   /** Type of the view. */
-  view_type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
+  view_type?: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form' | 'map';
 }
 
 export interface SortUpdateV3Type {
@@ -2977,7 +3086,9 @@ export interface ColumnType {
     | 'LastModifiedBy'
     | 'AI'
     | 'Order'
-    | 'Meta';
+    | 'Meta'
+    | 'Colour'
+    | 'UUID';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -3192,6 +3303,10 @@ export interface FilterType {
   fk_value_col_id?: StringOrNullType;
   /** Foreign Key to Link Column */
   fk_link_col_id?: StringOrNullType;
+  /** Foreign Key to RLS Policy */
+  fk_rls_policy_id?: StringOrNullType;
+  /** Foreign Key to Button Column */
+  fk_button_col_id?: StringOrNullType;
   /** Unique ID */
   id?: IdType;
   /** Is this filter grouped? */
@@ -3207,6 +3322,10 @@ export interface FilterType {
    * @example 1
    */
   order?: number;
+  /** Whether this filter is enabled. Disabled filters are skipped during evaluation. */
+  enabled?: BoolType;
+  /** Foreign Key to List View Level */
+  fk_level_id?: StringOrNullType;
 }
 
 /**
@@ -3349,6 +3468,10 @@ export interface FilterReqType {
   logical_op?: 'and' | 'not' | 'or';
   /** The filter value. Can be NULL for some operators. */
   value?: any;
+  /** Whether this filter is enabled. Disabled filters are skipped during evaluation. */
+  enabled?: BoolType;
+  /** Foreign Key to List View Level */
+  fk_level_id?: StringOrNullType;
 }
 
 export interface FollowerType {
@@ -3579,6 +3702,8 @@ export interface ButtonType {
   fk_integration_id?: string;
   /** AI model */
   model?: string;
+  /** Visibility condition filters for the button */
+  filters?: FilterType[];
 }
 
 /**
@@ -4268,7 +4393,7 @@ export interface LinkToAnotherColumnReqType {
   /** The title of the virtual column */
   title: string;
   /** The type of the relationship */
-  type: 'bt' | 'hm' | 'mm' | 'oo';
+  type: 'bt' | 'hm' | 'mm' | 'om' | 'mo' | 'oo';
   /** Abstract type of the relationship */
   uidt: 'LinkToAnotherRecord' | 'Links';
   /** Is this relationship virtual? */
@@ -4303,6 +4428,7 @@ export interface LinkToAnotherRecordType {
   base_id?: string;
   fk_related_source_id?: string;
   fk_mm_source_id?: string;
+  version?: number;
 }
 
 /**
@@ -4535,7 +4661,9 @@ export interface NormalColumnRequestType {
     | 'LastModifiedBy'
     | 'AI'
     | 'Order'
-    | 'Meta';
+    | 'Meta'
+    | 'Colour'
+    | 'UUID';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -4777,6 +4905,10 @@ export interface BaseType {
       id: string;
     }[];
   }[];
+  /** Indicates if the base is a sandbox */
+  is_sandbox?: BoolType;
+  /** Indicates if the base is a sandbox master */
+  is_sandbox_master?: BoolType;
 }
 
 /**
@@ -4818,6 +4950,8 @@ export interface ProjectReqType {
   type?: 'database' | 'documentation' | 'dashboard';
   /** Base Meta */
   meta?: MetaType;
+  /** Workspace ID */
+  fk_workspace_id?: string;
 }
 
 /**
@@ -5094,6 +5228,8 @@ export interface SortType {
    * @example p_9sx43moxhqtjm3
    */
   base_id?: string;
+  /** Foreign Key to List View Level */
+  fk_level_id?: StringOrNullType;
 }
 
 /**
@@ -5114,6 +5250,8 @@ export interface SortReqType {
   fk_column_id?: IdType;
   /** Sort direction */
   direction?: 'asc' | 'desc';
+  /** Foreign Key to List View Level */
+  fk_level_id?: StringOrNullType;
 }
 
 /**
@@ -5334,7 +5472,14 @@ export interface ViewType {
     | KanbanType
     | MapType
     | CalendarType
-    | (FormType & GalleryType & GridType & KanbanType & MapType & CalendarType);
+    | ListType
+    | (FormType &
+        GalleryType &
+        GridType &
+        KanbanType &
+        MapType &
+        CalendarType &
+        ListType);
   /** ID of view owner user */
   owned_by?: IdType;
   /** The row coloring mode whether it is select, condition or not set */
@@ -5920,6 +6065,149 @@ export interface CustomUrlType {
   original_path?: string;
   /** Custom url path */
   custom_path?: string;
+}
+
+/**
+ * Model for List View Level
+ */
+export interface ListViewLevelType {
+  /** Unique ID for Level */
+  id?: string;
+  /** Foreign Key to View */
+  fk_view_id?: string;
+  /** Level number (1, 2, or 3) */
+  level?: number;
+  /** Foreign Key to Model (table) for this level */
+  fk_model_id?: string;
+  /** Foreign Key to Link Column connecting levels */
+  fk_link_column_id?: string;
+  /** Enable nested records (Level 1 only) */
+  enable_nested_records?: BoolType;
+  /** Foreign Key to Self-Link Column */
+  fk_self_link_column_id?: string;
+  /** Wrap column headers in this level */
+  wrap_headers?: BoolType;
+  /** Meta data for this level */
+  meta?: MetaType;
+}
+
+/**
+ * Model for List View
+ */
+export interface ListType {
+  /** The ID of the source that this view belongs to */
+  source_id?: string;
+  /** Columns in this view */
+  columns?: ListColumnType[];
+  /** Foreign Key to View */
+  fk_view_id?: string;
+  /** Meta data for this view */
+  meta?: MetaType;
+  /** The order of the list */
+  order?: number;
+  /** The ID of the base that this view belongs to */
+  base_id?: string;
+  /** To show this view or not */
+  show?: boolean;
+  /** Title of List View */
+  title?: string;
+  /** Show empty parent sections */
+  show_empty_parents?: BoolType;
+  /** Row height for this list view */
+  row_height?: number;
+  /** Foreign Key to Prefix Column */
+  fk_prefix_column_id?: StringOrNullType;
+  /** Levels configuration for this list view */
+  levels?: ListViewLevelType[];
+}
+
+/**
+ * Model for List Column
+ */
+export interface ListColumnType {
+  /** The ID of the source */
+  source_id?: string;
+  /** Foreign Key to Column */
+  fk_column_id?: string;
+  /** Foreign Key to View */
+  fk_view_id?: string;
+  /** Foreign Key to Level */
+  fk_level_id?: string;
+  /** Unique ID of List Column */
+  id?: string;
+  /** The order in the list of columns */
+  order?: number;
+  /** The ID of the base */
+  base_id?: string;
+  /** Whether to show this column or not */
+  show?: number;
+  /** Column width */
+  width?: string;
+}
+
+/**
+ * Model for List View Update Request
+ */
+export interface ListUpdateReqType {
+  /** Meta data for this view */
+  meta?: MetaType;
+  /** Show empty parent sections */
+  show_empty_parents?: BoolType;
+  /** Row height for this list view */
+  row_height?: number;
+  /** Foreign Key to Prefix Column */
+  fk_prefix_column_id?: StringOrNullType;
+  /** Levels configuration for this list view */
+  levels?: ListViewLevelReqType[];
+}
+
+/**
+ * Model for List View Level Request
+ */
+export interface ListViewLevelReqType {
+  /** Level number (1, 2, or 3) */
+  level: number;
+  /** Foreign Key to Model (table) for this level */
+  fk_model_id: string;
+  /** Foreign Key to Link Column */
+  fk_link_column_id?: StringOrNullType;
+  /** Model for Bool */
+  enable_nested_records?: BoolType;
+  /** Foreign Key to Self-Link Column */
+  fk_self_link_column_id?: StringOrNullType;
+  /** Wrap column headers in this level */
+  wrap_headers?: BoolType;
+}
+
+export interface WorkspaceUserType {
+  /** @format email */
+  email?: string;
+  fk_user_id?: string;
+  invite_accepted?: boolean;
+  invite_token?: string;
+  roles?: string;
+}
+
+export interface WorkspaceUserInviteType {
+  /** @format email */
+  email?: string;
+  roles?: string;
+}
+
+export interface WorkspaceUserListType {
+  list?: WorkspaceUserType[];
+  /** Model for Paginated */
+  pageInfo?: PaginatedType;
+}
+
+/**
+ * Model for Integration List
+ */
+export interface IntegrationListType {
+  /** List of Integration Models */
+  list: IntegrationType[];
+  /** Pagination Info */
+  pageInfo: PaginatedType;
 }
 
 import type {
@@ -11568,7 +11856,7 @@ export class Api<
       baseName: string,
       tableName: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt' | 'oo',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo' | 'ln',
       columnName: string,
       query?: {
         /** @min 1 */
@@ -11616,7 +11904,7 @@ export class Api<
       baseName: string,
       tableName: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt' | 'oo',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo' | 'ln',
       columnName: string,
       refRowId: string,
       query?: {
@@ -11683,7 +11971,7 @@ export class Api<
       baseName: string,
       tableName: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt' | 'oo',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo' | 'ln',
       columnName: string,
       refRowId: string,
       params: RequestParams = {}
@@ -11723,7 +12011,7 @@ export class Api<
       baseName: string,
       tableName: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt' | 'oo',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo' | 'ln',
       columnName: string,
       query?: {
         /** @min 1 */
@@ -12925,7 +13213,7 @@ export class Api<
     dataNestedList: (
       sharedViewUuid: string,
       rowId: any,
-      relationType: 'mm' | 'hm' | 'bt' | 'oo',
+      relationType: 'mm' | 'hm' | 'bt' | 'oo' | 'ln',
       columnName: string,
       query?: {
         /** Which fields to be shown */
@@ -15935,7 +16223,7 @@ export class Api<
      * @name List
      * @summary List integrations
      * @request GET:/api/v2/meta/integrations
-     * @response `200` `BaseUserDeleteRequestV3Type` OK
+     * @response `200` `IntegrationListType` OK
      */
     list: (
       query?: {
@@ -15949,7 +16237,7 @@ export class Api<
       },
       params: RequestParams = {}
     ) =>
-      this.request<BaseUserDeleteRequestV3Type, any>({
+      this.request<IntegrationListType, any>({
         path: `/api/v2/meta/integrations`,
         method: 'GET',
         query: query,
@@ -16086,6 +16374,59 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description List integrations
+     *
+     * @tags Integration
+     * @name WorkspaceList
+     * @summary List integrations
+     * @request GET:/api/v2/meta/workspaces/{workspaceId}/integrations
+     * @response `200` `IntegrationListType` OK
+     */
+    workspaceList: (
+      workspaceId: string,
+      query?: {
+        /** Integration Type */
+        type?: IntegrationsType;
+        includeDatabaseInfo?: boolean;
+        limit?: number;
+        offset?: number;
+        baseId?: string;
+        query?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<IntegrationListType, any>({
+        path: `/api/v2/meta/workspaces/${workspaceId}/integrations`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Create integration
+     *
+     * @tags Integration
+     * @name WorkspaceCreate
+     * @summary Create integration
+     * @request POST:/api/v2/meta/workspaces/{workspaceId}/integrations
+     * @response `200` `IntegrationType` OK
+     */
+    workspaceCreate: (
+      workspaceId: string,
+      data: IntegrationReqType,
+      params: RequestParams = {}
+    ) =>
+      this.request<IntegrationType, any>({
+        path: `/api/v2/meta/workspaces/${workspaceId}/integrations`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
   };
@@ -16366,6 +16707,112 @@ export class Api<
         path: `/api/v2/internal/${workspaceId}/${baseId}`,
         method: 'GET',
         query: query,
+        format: 'json',
+        ...params,
+      }),
+  };
+  workspaceUser = {
+    /**
+     * @description Workspace users list
+     *
+     * @tags Workspace user
+     * @name List
+     * @summary Workspace users list
+     * @request GET:/api/v1/workspaces/{workspaceId}/users
+     * @response `200` `WorkspaceUserListType` OK
+     */
+    list: (
+      workspaceId: string,
+      query?: {
+        includeDeleted?: boolean;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<WorkspaceUserListType, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Workspace user read
+     *
+     * @tags Workspace user
+     * @name Read
+     * @summary Workspace user read
+     * @request GET:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `WorkspaceUserType` OK
+     */
+    read: (workspaceId: string, userId: string, params: RequestParams = {}) =>
+      this.request<WorkspaceUserType, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description Update workspace user
+     *
+     * @tags Workspace user
+     * @name Update
+     * @summary Update workspace user
+     * @request PATCH:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `void` OK
+     */
+    update: (
+      workspaceId: string,
+      userId: string,
+      data: {
+        roles?: string;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * @description Delete workspace user
+     *
+     * @tags Workspace User
+     * @name Delete
+     * @summary Delete workspace user
+     * @request DELETE:/api/v1/workspaces/{workspaceId}/users/{userId}
+     * @response `200` `void` OK
+     */
+    delete: (workspaceId: string, userId: string, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/workspaces/${workspaceId}/users/${userId}`,
+        method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description Workspace user invite
+     *
+     * @tags Workspace user
+     * @name Invite
+     * @summary Workspace user invite
+     * @request POST:/api/v1/workspaces/{workspaceId}/invitations
+     * @response `200` `BaseUserDeleteRequestV3Type` OK
+     */
+    invite: (
+      workspaceId: string,
+      data: WorkspaceUserInviteType,
+      params: RequestParams = {}
+    ) =>
+      this.request<BaseUserDeleteRequestV3Type, any>({
+        path: `/api/v1/workspaces/${workspaceId}/invitations`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
         format: 'json',
         ...params,
       }),

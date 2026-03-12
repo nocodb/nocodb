@@ -12,7 +12,7 @@ const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { base, isSharedBase, isManagedAppMaster } = storeToRefs(useBase())
+const { base, isSharedBase, isManagedAppMaster, isSandbox } = storeToRefs(useBase())
 
 const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
 
@@ -40,13 +40,20 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 const copySharedBase = async () => {
   const baseUrl = getMainUrl()
-  window.open(`${baseUrl || ''}#/copy-shared-base?base=${route.params.baseId}`, '_blank', 'noopener,noreferrer')
+  window.open(`${baseUrl || ''}/copy-shared-base?base=${route.params.baseId}`, '_blank', 'noopener,noreferrer')
 }
 </script>
 
 <template>
   <div
-    v-if="!isSharedBase && !isManagedAppMaster && isUIAllowed('baseShare') && visibility !== 'hidden' && (activeTable || base)"
+    v-if="
+      !isSharedBase &&
+      !isManagedAppMaster &&
+      !isSandbox &&
+      isUIAllowed('baseShare') &&
+      visibility !== 'hidden' &&
+      (activeTable || base)
+    "
     class="nc-share-base-button flex flex-col justify-center"
     data-testid="share-base-button"
     :data-sharetype="visibility"

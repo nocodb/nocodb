@@ -44,7 +44,7 @@ const enum NcForm {
   subheading = 'nc-form-sub-heading',
 }
 
-const { isMobileMode, user } = useGlobal()
+const { isMobileMode, user, appInfo } = useGlobal()
 
 const { $api, $e } = useNuxtApp()
 
@@ -2128,7 +2128,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     {{ $t('labels.redirectToUrl') }}
 
                                     <LazyPaymentUpgradeBadge
-                                      v-if="!isOpenRedirectUrl"
+                                      v-if="!isOpenRedirectUrl && !appInfo.isOnPrem"
                                       :feature="PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION"
                                       :content="
                                         $t('upgrade.upgradeToAddRedirectUrlSubtitle', {
@@ -2146,7 +2146,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     :disabled="isLocked || !isEditable"
                                     @change="
                                       (value) => {
-                                        if (value && click(PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION)) return
+                                        if (value && !appInfo.isOnPrem && click(PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION))
+                                          return
 
                                         isOpenRedirectUrl = !!value
                                         updateView()

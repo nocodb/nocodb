@@ -3,9 +3,10 @@
   "compilerOptions": {
     "strict": true,
     "esModuleInterop": true,
-    "incremental": false,
+    "incremental": true,
+    "tsBuildInfoFile": "./node_modules/.cache/.tsbuildinfo",
     "skipLibCheck": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "noUnusedLocals": false,
     "strictNullChecks": true,
@@ -19,5 +20,5 @@
       "@nuxt/image"
     ]
   },
-  "exclude": ["node_modules", "dist", ".output"]
+  "exclude": ["node_modules", "dist", ".output", "test", "**/node_modules", "**/dist", "**/.output"]
 }

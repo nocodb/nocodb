@@ -180,6 +180,7 @@ const getTypeSpecificSemantic = (
       UITypes.Email,
       UITypes.PhoneNumber,
       UITypes.URL,
+      UITypes.UUID,
     ].includes(fieldUiType)
   ) {
     return `${baseSemantic}_text`;
@@ -277,6 +278,7 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
       UITypes.Time,
+      UITypes.Colour,
       ...numericUITypes,
     ],
     semanticType: 'pattern_match',
@@ -300,6 +302,7 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
       UITypes.Time,
+      UITypes.Colour,
       ...numericUITypes,
     ],
     semanticType: 'pattern_not_match',
@@ -532,14 +535,16 @@ export const comparisonOpList = (
     text: 'is blank',
     value: 'blank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    // UUID excluded: auto-generated on insert, never blank
+    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup, UITypes.UUID],
     semanticType: 'blank_check',
   },
   {
     text: 'is not blank',
     value: 'notblank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    // UUID excluded: auto-generated on insert, never blank
+    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup, UITypes.UUID],
     semanticType: 'not_blank_check',
   },
 ];
@@ -824,6 +829,7 @@ export const getPlaceholderNewRow = (
             UITypes.Percent,
             UITypes.Rating,
             UITypes.Duration,
+            UITypes.Colour,
             UITypes.JSON,
 
             // User is using allOf and anyOf so we cannot include it here

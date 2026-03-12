@@ -3,8 +3,6 @@ import { useTitle } from '@vueuse/core'
 
 const { isUIAllowed } = useRoles()
 
-const { hideSidebar } = storeToRefs(useSidebarStore())
-
 const workspaceStore = useWorkspace()
 
 const { loadRoles } = useRoles()
@@ -34,8 +32,6 @@ watch(
 )
 
 onMounted(() => {
-  hideSidebar.value = true
-
   isFromIntegrationPage.value = true
 
   until(() => currentWorkspace.value?.id)
@@ -47,8 +43,6 @@ onMounted(() => {
 
 onBeforeMount(() => {
   isFromIntegrationPage.value = false
-
-  hideSidebar.value = false
 })
 </script>
 
@@ -65,6 +59,7 @@ onBeforeMount(() => {
         </h1>
       </div>
     </div>
+
     <NcTabs v-model:active-key="activeViewTab">
       <template #leftExtra>
         <div class="w-3"></div>
@@ -100,7 +95,7 @@ onBeforeMount(() => {
               </div>
             </div>
           </template>
-          <div class="h-[calc(100vh-92px)] p-6">
+          <div class="p-6 h-[calc(100vh-92px)]">
             <WorkspaceIntegrationsConnectionsTab />
           </div>
         </a-tab-pane>
@@ -124,7 +119,7 @@ onBeforeMount(() => {
   @apply !pl-0;
 }
 :deep(.ant-tabs-tab) {
-  @apply pt-2 pb-3;
+  @apply pt-1.5 pb-2;
 }
 
 .ant-tabs-content-top {

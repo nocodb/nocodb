@@ -7,6 +7,8 @@ import { formulaErrorTest } from './tests/formula-error.test';
 import { formulaRollupTest } from './tests/formula-rollup.test';
 import { formulaParsedTreeBuilderTest } from './tests/formula-parsed-tree-builder.test';
 import { formulaEdgeCasesTest } from './tests/formula-edge-cases.test';
+import { formulaJsonTest } from './tests/formula-json.test';
+import { formulaSwitchIfTest } from './tests/formula-switch-if.test';
 
 function _formulaTests() {
   formulaLookupLtarTest();
@@ -16,6 +18,8 @@ function _formulaTests() {
   formulaRollupTest();
   formulaParsedTreeBuilderTest();
   formulaEdgeCasesTest();
+  formulaJsonTest();
+  formulaSwitchIfTest();
 }
 
 export const formulaTests = runOnSet(2, function () {

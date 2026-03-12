@@ -248,6 +248,30 @@ export default class NocoCache {
     );
   }
 
+  public static async delHashField(
+    context: CacheContext,
+    key: string,
+    field: string,
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return this.client.delHashField(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      field,
+    );
+  }
+
+  public static async expireHash(
+    context: CacheContext,
+    key: string,
+    ttl: number,
+  ): Promise<boolean> {
+    if (this.cacheDisabled) return Promise.resolve(true);
+    return this.client.expireHash(
+      `${this.prefix}:${cacheContext(context)}:${key}`,
+      ttl,
+    );
+  }
+
   public static async keyExists(
     context: CacheContext,
     key: string,

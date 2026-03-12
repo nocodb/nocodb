@@ -7,6 +7,8 @@ interface Prop {
   cellValue: any
   column: any
   items: number
+  /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
+  parentBreadcrumbs?: string[]
 }
 
 const props = defineProps<Prop>()
@@ -25,9 +27,16 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isTemplateMode = inject(IsTemplateModeInj, ref(false))
+
+// Use prop-based breadcrumbs (injection doesn't work across dropdown teleport boundary)
+const parentBreadcrumbs = computed(() => props.parentBreadcrumbs || [])
+
 const isExpandedFormCloseAfterSave = ref(false)
 
 const isNewRecord = ref(false)
+
+const isBlueprintMode = ref(false)
 
 const injectedColumn = inject(ColumnInj, ref())
 
@@ -125,7 +134,9 @@ const newRowState = computed(() => {
 
     if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
       return (
-        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id && colOpt.fk_child_column_id === colOpt1.fk_parent_column_id
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
+        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
+        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
       )
     } else {
       return (
@@ -166,6 +177,7 @@ const addNewRecord = () => {
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
   isNewRecord.value = true
+  isBlueprintMode.value = false
 }
 
 const reloadViewDataListener = withLoading((params) => {
@@ -182,6 +194,16 @@ onBeforeUnmount(() => {
 })
 
 const onCreatedRecord = async (record: any) => {
+  // Blueprint mode: store the record data as a blueprint in ltarState (no real record created)
+  if (isBlueprintMode.value) {
+    const blueprint = { ...record, _isBlueprint: true }
+    await addLTARRef(blueprint, injectedColumn?.value as ColumnType)
+    loadChildrenList(false, state.value)
+    isBlueprintMode.value = false
+    isNewRecord.value = false
+    return
+  }
+
   reloadTrigger?.trigger({
     shouldShowLoading: false,
   })
@@ -505,6 +527,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
             v-if="
               !isPublic &&
               !isDataReadOnly &&
+              !isTemplateMode &&
               isUIAllowed('dataEdit', externalBaseUserRoles) &&
               isUIAllowed('dataEdit') &&
               !isForm &&
@@ -565,16 +588,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
-        :load-row="!isPublic"
+        :load-row="!isPublic && !isBlueprintMode"
         :close-after-save="isExpandedFormCloseAfterSave"
         :meta="relatedTableMeta"
-        :new-record-header="
-          isExpandedFormCloseAfterSave
-            ? $t('activity.tableNameCreateNewRecord', {
-                tableName: relatedTableMeta?.title,
-              })
-            : undefined
-        "
         :row="{
           row: expandedFormRow,
           oldRow: expandedFormRow,
@@ -589,7 +605,16 @@ const handleKeyDown = (e: KeyboardEvent) => {
         use-meta-fields
         skip-reload
         maintain-default-view-order
-        :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
+        :blueprint-mode="isBlueprintMode"
+        :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
+        :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Record' : 'Create & Link'"
+        :new-record-header="
+          isBlueprintMode
+            ? `New ${relatedTableMeta?.title} Record`
+            : isExpandedFormCloseAfterSave
+            ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title })
+            : undefined
+        "
         @created-record="onCreatedRecord"
         @deleted-record="onDeletedRecord"
       />

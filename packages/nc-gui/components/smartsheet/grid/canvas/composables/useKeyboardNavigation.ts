@@ -4,7 +4,7 @@ import { EDIT_INTERACTABLE } from '../utils/constants'
 import { findFirstExpandedGroupWithPath, findGroupByPath, getDefaultGroupData } from '../utils/groupby'
 
 // column types which support delete even when it's in edit state
-const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User]
+const EDIT_MODE_CLEARABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.GeoData]
 
 const MAX_SELECTION_LIMIT = 100
 const MIN_COLUMN_INDEX = 1
@@ -95,7 +95,7 @@ export function useKeyboardNavigation({
       return true
     }
 
-    if (isExpandedCellInputExist()) return
+    if (isExpandedCellInputExist() || isNcListSearchInputActive()) return
     if (isNcDropdownOpen()) return
     if (isCmdJActive() || cmdKActive()) return
 

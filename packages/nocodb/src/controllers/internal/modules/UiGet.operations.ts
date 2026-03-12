@@ -20,7 +20,6 @@ import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
 import { SyncService } from '~/services/sync.service';
 import { ExtensionsService } from '~/services/extensions.service';
-
 @Injectable()
 export class UiGetOperations
   implements InternalApiModule<InternalGETResponseType>
@@ -54,6 +53,7 @@ export class UiGetOperations
     'hookList' as const,
     'hookLogList' as const,
     'hookFilterList' as const,
+    'buttonFilterList' as const,
     'hookSamplePayload' as const,
     'tableSampleData' as const,
     'linkFilterList' as const,
@@ -68,6 +68,8 @@ export class UiGetOperations
     'syncSourceList' as const,
     'extensionList' as const,
     'extensionRead' as const,
+    'listViewDataList' as const,
+    'listViewDataCount' as const,
   ];
   httpMethod = 'GET' as const;
 
@@ -209,11 +211,21 @@ export class UiGetOperations
             },
           }),
         );
-      case 'commentCount':
+      case 'commentCount': {
+        // qs parses ids[]=a&ids[]=b as an array, but when >20 elements
+        // (qs arrayLimit default) it produces a plain object instead.
+        let ids = req.query.ids;
+        if (!Array.isArray(ids)) {
+          ids =
+            typeof ids === 'object' && ids !== null
+              ? Object.values(ids)
+              : [ids];
+        }
         return await this.commentsService.commentsCount(context, {
           fk_model_id: req.query.fk_model_id as string,
-          ids: Array.isArray(req.query.ids) ? req.query.ids : [req.query.ids],
+          ids,
         });
+      }
       case 'dataList':
         context.cache = true;
         return await this.dataTableService.dataList(context, {

@@ -19,4 +19,13 @@ export class OrgLcenseService {
     await Noco.loadEEState();
     return true;
   }
+
+  async licenseStatus() {
+    const license = await Store.get(NC_LICENSE_KEY);
+    return {
+      ee: Noco.isEE(),
+      hasLicense: !!license?.value,
+      status: Noco.isEE() ? 'active' : 'none',
+    };
+  }
 }

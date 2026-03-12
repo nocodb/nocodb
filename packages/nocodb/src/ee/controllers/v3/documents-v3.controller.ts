@@ -11,15 +11,13 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import type { NcContext, NcRequest } from 'nocodb-sdk';
+import type { NcContext, NcRequest } from '~/interface/config';
 import type {
-  DocumentV3ListResponseType,
-  DocumentV3Type,
-} from '~/services/v3/documents-v3.types';
-import {
   DocumentCreateV3Type,
   DocumentReorderV3Type,
   DocumentUpdateV3Type,
+  DocumentV3ListResponseType,
+  DocumentV3Type,
 } from '~/services/v3/documents-v3.types';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -54,10 +52,11 @@ export class DocumentsV3Controller {
   @Acl('documentCreate', { scope: 'base' })
   async docCreate(
     @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
     @Body() body: DocumentCreateV3Type,
     @Request() req: NcRequest,
   ): Promise<DocumentV3Type> {
-    return await this.documentsV3Service.docCreate(context, body, req);
+    return await this.documentsV3Service.docCreate(context, baseId, body, req);
   }
 
   @Get(`${PREFIX_APIV3_METABASE}/docs/:docId`)

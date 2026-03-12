@@ -6389,18 +6389,11 @@
               }
             }
           },
-          "400": {
-            "description": "Bad request."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Base not found."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "400": { "$ref": "#/components/responses/BadRequestV3" },
+          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "404": { "$ref": "#/components/responses/NotFoundV3" },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       },
       "post": {
@@ -6513,18 +6506,11 @@
               }
             }
           },
-          "400": {
-            "description": "Bad request — invalid content or payload too large (max 5MB)."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Base not found."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "400": { "$ref": "#/components/responses/BadRequestV3" },
+          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "404": { "$ref": "#/components/responses/NotFoundV3" },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       }
     },
@@ -6632,15 +6618,10 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Document not found."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "404": { "$ref": "#/components/responses/NotFoundV3" },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       },
       "patch": {
@@ -6754,21 +6735,12 @@
               }
             }
           },
-          "400": {
-            "description": "Bad request — invalid content or payload too large (max 5MB)."
-          },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Document not found."
-          },
-          "422": {
-            "description": "Version conflict — the document has been modified by another user. Reload the document and retry."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "400": { "$ref": "#/components/responses/BadRequestV3" },
+          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "404": { "$ref": "#/components/responses/NotFoundV3" },
+          "422": { "description": "Version conflict — the document has been modified by another user. Reload the document and retry." },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       },
       "delete": {
@@ -6816,15 +6788,10 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Document not found."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "404": { "$ref": "#/components/responses/NotFoundV3" },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       }
     },
@@ -6932,18 +6899,12 @@
               }
             }
           },
-          "401": {
-            "description": "Unauthorized."
-          },
-          "404": {
-            "description": "Document not found."
-          },
-          "422": {
-            "description": "Invalid move — cannot move document under itself or its own descendant."
-          },
-          "500": {
-            "description": "Internal server error."
-          }
+          "400": { "$ref": "#/components/responses/BadRequestV3" },
+          "401": { "$ref": "#/components/responses/UnauthorizedV3" },
+          "403": { "$ref": "#/components/responses/ForbiddenV3" },
+          "404": { "$ref": "#/components/responses/NotFoundV3" },
+          "422": { "description": "Invalid move — cannot move document under itself or its own descendant." },
+          "500": { "$ref": "#/components/responses/InternalServerErrorV3" }
         }
       }
     }
@@ -13099,6 +13060,7 @@
       "Document": {
         "type": "object",
         "description": "Full document response (includes content).",
+        "required": ["id", "base_id", "title", "content", "order", "parent_id", "has_children", "version", "created_at", "updated_at"],
         "properties": {
           "id": {
             "type": "string",
@@ -13164,6 +13126,7 @@
       "DocumentListItem": {
         "type": "object",
         "description": "Lightweight document (list response — excludes content).",
+        "required": ["id", "base_id", "title", "order", "parent_id", "has_children", "version", "created_at", "updated_at"],
         "properties": {
           "id": {
             "type": "string"

@@ -12,6 +12,7 @@ import {
   toDocumentV3ListItem,
 } from '~/services/v3/documents-v3.types';
 import { DocumentsService } from '~/services/documents.service';
+import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class DocumentsV3Service {
@@ -78,6 +79,12 @@ export class DocumentsV3Service {
     body: DocumentReorderV3Type,
     req: NcRequest,
   ): Promise<DocumentV3Type> {
+    if (body.order == null && body.parent_id === undefined) {
+      NcError.get(context).badRequest(
+        'At least one of order or parent_id must be provided',
+      );
+    }
+
     const doc = await this.documentsService.reorder(
       context,
       param.docId,

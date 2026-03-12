@@ -16,8 +16,9 @@ export interface DocumentUpdateV3Type {
   version: number;
 }
 
+/** At least one of `order` or `parent_id` must be provided. */
 export interface DocumentReorderV3Type {
-  order: number;
+  order?: number;
   parent_id?: string | null;
 }
 

@@ -6879,6 +6879,12 @@
                     "parent_id": "dc_n3w1p2a3r4e5n"
                   }
                 },
+                "Move to Different Parent Only": {
+                  "description": "Move a document under a different parent (server assigns order).",
+                  "value": {
+                    "parent_id": "dc_n3w1p2a3r4e5n"
+                  }
+                },
                 "Move to Root": {
                   "description": "Move a child document to the root level.",
                   "value": {
@@ -13077,8 +13083,7 @@
       },
       "DocumentReorder": {
         "type": "object",
-        "description": "Request body for reordering or moving a document.",
-        "required": ["order"],
+        "description": "Request body for reordering or moving a document. At least one of order or parent_id must be provided.",
         "properties": {
           "order": {
             "type": "number",

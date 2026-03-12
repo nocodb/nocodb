@@ -6,6 +6,7 @@ import {
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
+  PermissionOptionValue,
   type PermissionRole,
   ProjectRoles,
 } from 'nocodb-sdk'
@@ -100,6 +101,14 @@ const getParentEffectiveValue = (docId: string, permissionKey: PermissionKey): s
   if (!doc?.parent_id) return undefined
 
   return resolveDocPermission(doc.parent_id, permissionKey)
+}
+
+/**
+ * Get the resolved visibility for a doc (explicit → inherited → default).
+ * Used to constrain editing options.
+ */
+const getResolvedVisibility = (docId: string): string => {
+  return resolveDocPermission(docId, PermissionKey.DOCUMENT_VISIBILITY) ?? PermissionOptionValue.VIEWERS_AND_UP
 }
 
 // Build a flat list with depth info for indentation
@@ -351,6 +360,7 @@ onMounted(loadAllDocs)
               tooltip: !isCreatorOrAbove ? $t('msg.info.onlyCreatorsCanConfigureDocPermissions') : undefined,
               effectiveValue: getEffectiveValue(record.doc.id, PermissionKey.DOCUMENT_EDIT),
               parentEffectiveValue: getParentEffectiveValue(record.doc.id, PermissionKey.DOCUMENT_EDIT),
+              visibilityValue: getResolvedVisibility(record.doc.id),
             }"
             mode="inline"
             :readonly="!isCreatorOrAbove"

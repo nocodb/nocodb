@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type DocumentType, extractBaseRoleFromWorkspaceRole, getPermissionOptionValue, PermissionEntity, PermissionGrantedType, PermissionKey, type PermissionRole, ProjectRoles } from 'nocodb-sdk'
+import { type DocumentType, extractBaseRoleFromWorkspaceRole, getPermissionOptionValue, PermissionEntity, PermissionGrantedType, PermissionKey, PermissionOptionValue, type PermissionRole, ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -85,6 +85,11 @@ const visibilityConfig = computed<PermissionConfig>(() => ({
   parentEffectiveValue: getParentEffectiveValue(props.docId, PermissionKey.DOCUMENT_VISIBILITY),
 }))
 
+// Resolved visibility for this doc (explicit → inherited → default)
+const currentVisibility = computed(() => {
+  return resolveDocPermission(props.docId, PermissionKey.DOCUMENT_VISIBILITY) ?? PermissionOptionValue.VIEWERS_AND_UP
+})
+
 const editConfig = computed<PermissionConfig>(() => ({
   entity: PermissionEntity.DOCUMENT,
   entityId: props.docId,
@@ -94,6 +99,7 @@ const editConfig = computed<PermissionConfig>(() => ({
   tooltip: !isCreatorOrAbove.value ? t('msg.info.onlyCreatorsCanConfigureDocPermissions') : undefined,
   effectiveValue: getEffectiveValue(props.docId, PermissionKey.DOCUMENT_EDIT),
   parentEffectiveValue: getParentEffectiveValue(props.docId, PermissionKey.DOCUMENT_EDIT),
+  visibilityValue: currentVisibility.value,
 }))
 
 const hasExplicitPermissions = computed(() => {
@@ -165,7 +171,7 @@ const navigateToDocsPermissions = () => {
     :show-separator="false"
     wrap-class-name="nc-modal-doc-permissions"
   >
-    <div class="flex flex-col gap-5">
+    <div class="flex flex-col gap-4">
       <div class="flex-1 flex items-center gap-2 text-nc-content-gray-emphasis">
         <GeneralIcon icon="ncLock" class="w-5 h-5 flex-none" />
         <div class="text-subHeading2">{{ $t('title.pagePermissions') }}</div>
@@ -181,8 +187,8 @@ const navigateToDocsPermissions = () => {
       </div>
 
       <!-- Visibility Section -->
-      <div class="flex flex-col gap-3">
-        <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center">
+      <div class="flex flex-col gap-2">
+        <div class="text-nc-content-gray-emphasis text-bodyBold min-h-7 flex items-center">
           {{ $t('title.pageVisibility') }}
         </div>
         <PermissionsSelector
@@ -194,8 +200,8 @@ const navigateToDocsPermissions = () => {
       </div>
 
       <!-- Edit Section -->
-      <div class="flex flex-col gap-3">
-        <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center">
+      <div class="flex flex-col gap-2">
+        <div class="text-nc-content-gray-emphasis text-bodyBold min-h-7 flex items-center">
           {{ $t('title.pageEditing') }}
         </div>
         <PermissionsSelector

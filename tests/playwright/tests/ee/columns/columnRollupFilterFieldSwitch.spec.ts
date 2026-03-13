@@ -63,7 +63,7 @@ test.describe('Rollup filter condition persistence across field switches', () =>
     await page.waitForTimeout(500);
 
     // 4. Open Details > Fields view
-    await dashboard.grid.topbar.openDetailedTab();
+    await dashboard.grid.topbar.openDetailedTab({ waitForResponse: false });
     await dashboard.details.clickFieldsTab();
     await page.waitForTimeout(1000);
 

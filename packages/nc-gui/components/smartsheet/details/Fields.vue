@@ -990,13 +990,51 @@ const saveChanges = async () => {
       },
     )
 
-    // Persist filter conditions for rollup/lookup/LTAR columns via postSaveOrUpdateCbk
-    // This must run before metaToLocal() which remounts the provider and loses the filterRef
+    // Persist filter conditions for the active field via postSaveOrUpdateCbk
+    // (uses the mounted filterRef so nested groups are handled correctly)
     if (activeField.value?.id && editOrAddProviderRef.value?.triggerPostSaveOrUpdateCbk) {
       try {
         await editOrAddProviderRef.value.triggerPostSaveOrUpdateCbk({
           colId: activeField.value.id,
         })
+      } catch {
+        // Filter save failure shouldn't block the rest of the save flow
+      }
+    }
+
+    // Persist filter conditions for non-active fields that were edited then switched away.
+    // Their filters sit in ops[].column.filters (kept in sync by ColumnFilter's v-model watcher)
+    // but have no mounted component to call applyChanges on, so we drive the API directly.
+    for (const op of ops.value) {
+      if (!op.column?.id || op.column.id === activeField.value?.id) continue
+      const pendingFilters = (op.column.filters as any[])?.filter((f) => f.status)
+      if (!pendingFilters?.length) continue
+
+      try {
+        for (const filter of pendingFilters) {
+          if (filter.status === 'delete' && filter.id) {
+            await $api.internal.postOperation(
+              meta.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              { operation: 'filterDelete', filterId: filter.id },
+              {},
+            )
+          } else if (filter.status === 'update' && filter.id) {
+            await $api.internal.postOperation(
+              meta.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              { operation: 'filterUpdate', filterId: filter.id },
+              { ...filter },
+            )
+          } else if (filter.status === 'create') {
+            await $api.internal.postOperation(
+              meta.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              { operation: 'linkFilterCreate', columnId: op.column.id },
+              { ...filter, children: undefined, fk_parent_id: null },
+            )
+          }
+        }
       } catch {
         // Filter save failure shouldn't block the rest of the save flow
       }

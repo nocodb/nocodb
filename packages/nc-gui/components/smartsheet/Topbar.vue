@@ -26,7 +26,7 @@ const { isPanelExpanded: isChatPanelExpanded } = useChatPanel()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const isSharedBase = computed(() => route.value.params.typeOrId === 'base')
 
@@ -130,7 +130,8 @@ const topbarBreadcrumbItemWidth = computed(() => {
             !activeWorkflowId &&
             openedViewsTab === 'view' &&
             !isMobileMode &&
-            isViewActionsEnabled
+            isViewActionsEnabled &&
+            showEEFeatures
           "
           v-e="['c:action-toggle']"
           type="secondary"

@@ -51,6 +51,9 @@ export const useEeConfig = createSharedComposable(() => {
   /** True when running on-prem without a valid enterprise license (CE mode) */
   const isEEFeatureBlocked = computed(() => isOnPrem.value && !appInfo.value?.ee)
 
+  /** True on licensed On-Prem & Cloud — false on unlicensed On-Prem */
+  const showEEFeatures = computed(() => !isEEFeatureBlocked.value)
+
   // Will only consider ws owner not super admin
   const isWsOwner = computed(() =>
     isUIAllowed('workspaceBilling', {
@@ -1854,6 +1857,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockMapView,
     showUpgradeToUseMapView,
     isEEFeatureBlocked,
+    showEEFeatures,
     blockSSO,
     blockSnapshots,
     blockCustomUrls,

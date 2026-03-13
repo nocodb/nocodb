@@ -28,7 +28,7 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isViewActionsEnabled } = useActionPane()
 
-const { blockPinnedFilter } = useEeConfig()
+const { blockPinnedFilter, showEEFeatures } = useEeConfig()
 
 const containerRef = ref<HTMLElement>()
 
@@ -121,7 +121,7 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
           <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban || isList" />
 
           <SmartsheetToolbarRowColorFilterDropdown
-            v-if="!isMobileMode && !isPublic && !isSharedBase && (isGrid || isGallery || isKanban || isList)"
+            v-if="!isMobileMode && !isPublic && !isSharedBase && showEEFeatures && (isGrid || isGallery || isKanban || isList)"
           />
 
           <SmartsheetToolbarBulkAction
@@ -131,7 +131,8 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
               !isPublic &&
               !isSharedBase &&
               isUIAllowed('scriptExecute') &&
-              isViewActionsEnabled
+              isViewActionsEnabled &&
+              showEEFeatures
             "
           />
         </template>

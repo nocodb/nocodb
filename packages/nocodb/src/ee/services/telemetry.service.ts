@@ -3,7 +3,7 @@ import { PostHog } from 'posthog-node';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig, NcRequest } from '~/interface/config';
-import { packageInfo } from '~/utils';
+import { packageInfo, T } from '~/utils';
 
 @Injectable()
 export class TelemetryService {
@@ -33,44 +33,48 @@ export class TelemetryService {
     clientId?: any;
     [key: string]: any;
   }) {
-    if (!process.env.NC_CLOUD_POSTHOG_API_KEY) {
+    // Cloud path: send to PostHog
+    if (process.env.NC_CLOUD_POSTHOG_API_KEY) {
+      // skip if email belongs to nocodb
+      if (req?.user?.email?.endsWith('@nocodb.com')) return;
+
+      const distinctId =
+        clientId ||
+        req?.headers?.['nc-client-id'] ||
+        payload['userId'] ||
+        payload['user_id'];
+
+      // skip if client id / user id is not present
+      if (distinctId)
+        this.phClient?.capture({
+          distinctId,
+          event,
+          properties: {
+            created_at: Date.now(),
+            email: req?.user?.email,
+            ip: req?.clientIp,
+            $ip: req?.clientIp,
+            user_agent: req?.headers?.['user-agent'],
+            workspace_id: req?.ncWorkspaceId,
+            project_id: req?.ncBaseId,
+            req_id: req?.id,
+            backend: true,
+            ...payload,
+          },
+          ...(req?.ncWorkspaceId
+            ? {
+                groups: {
+                  workspace_id: req.ncWorkspaceId,
+                },
+              }
+            : {}),
+        });
       return;
     }
 
-    // skip if email belongs to nocodb
-    if (req?.user?.email?.endsWith('@nocodb.com')) return;
-
-    const distinctId =
-      clientId ||
-      req?.headers?.['nc-client-id'] ||
-      payload['userId'] ||
-      payload['user_id'];
-
-    // skip if client id / user id is not present
-    if (distinctId)
-      this.phClient?.capture({
-        distinctId,
-        event,
-        properties: {
-          created_at: Date.now(),
-          email: req?.user?.email,
-          ip: req?.clientIp,
-          $ip: req?.clientIp,
-          user_agent: req?.headers?.['user-agent'],
-          workspace_id: req?.ncWorkspaceId,
-          project_id: req?.ncBaseId,
-          req_id: req?.id,
-          backend: true,
-          ...payload,
-        },
-        ...(req?.ncWorkspaceId
-          ? {
-              groups: {
-                workspace_id: req.ncWorkspaceId,
-              },
-            }
-          : {}),
-      });
+    // Free/unlicensed user path: fall back to CE telemetry (Tele → telemetry.nocodb.com)
+    if (event === '$pageview') T.page({ ...payload, event });
+    else T.event({ ...payload, event });
   }
 
   async trackEvents(param: {

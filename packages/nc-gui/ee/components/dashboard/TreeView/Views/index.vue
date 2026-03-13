@@ -147,6 +147,17 @@ const sortedSections = computed(() => {
 /** Whether a section is currently being dragged */
 const sectionsDragging = ref(false)
 
+/** Whether a view is currently being dragged (for cross-section drop targets) */
+const viewDragging = ref(false)
+
+const onViewDragStart = () => {
+  viewDragging.value = true
+}
+
+const onViewDragEnd = () => {
+  viewDragging.value = false
+}
+
 // Sections sortable — separate container that only holds real sections
 let sectionsSortable: Sortable
 
@@ -320,9 +331,12 @@ watch(
             @change-color="onChangeSectionColor(section, $event)"
           />
           <DashboardTreeViewViewsList
-            v-if="expandedSections[section.id!] || getActiveViewForSection(section.id).length"
+            v-if="expandedSections[section.id!] || getActiveViewForSection(section.id).length || viewDragging"
             :section-views="expandedSections[section.id!] ? getViewsInSection(section.id) : getActiveViewForSection(section.id)"
             :is-in-section="true"
+            :section-id="section.id"
+            @view-drag-start="onViewDragStart"
+            @view-drag-end="onViewDragEnd"
           />
         </div>
       </div>
@@ -342,7 +356,7 @@ watch(
           @collapse-all="collapseAllSections"
         />
         <DashboardTreeViewViewsList
-          v-if="expandedSections[DEFAULT_SECTION_ID] || getActiveViewForSection(DEFAULT_SECTION_ID).length"
+          v-if="expandedSections[DEFAULT_SECTION_ID] || getActiveViewForSection(DEFAULT_SECTION_ID).length || viewDragging"
           :section-views="
             expandedSections[DEFAULT_SECTION_ID]
               ? getViewsInSection(DEFAULT_SECTION_ID)
@@ -350,6 +364,9 @@ watch(
           "
           :hide-create-view-btn="true"
           :is-in-section="true"
+          :section-id="DEFAULT_SECTION_ID"
+          @view-drag-start="onViewDragStart"
+          @view-drag-end="onViewDragEnd"
         />
       </div>
     </template>

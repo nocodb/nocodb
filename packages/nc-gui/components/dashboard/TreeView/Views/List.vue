@@ -9,6 +9,8 @@ interface Props {
   sectionViews?: ViewType[]
   /** When true, applies extra indentation for views nested inside a section */
   isInSection?: boolean
+  /** Section ID this list belongs to — enables cross-section drag when set */
+  sectionId?: string | null
 }
 
 interface Emits {
@@ -24,10 +26,15 @@ interface Emits {
   ): void
 
   (event: 'deleted'): void
+
+  (event: 'viewDragStart'): void
+
+  (event: 'viewDragEnd'): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
   isInSection: false,
+  sectionId: undefined,
 })
 
 const emits = defineEmits<Emits>()
@@ -102,18 +109,52 @@ function validate(view: ViewType) {
   return true
 }
 
+/** The virtual section ID for unsectioned views (must match viewSectionsStore) */
+const DEFAULT_SECTION_ID = '__default__'
+
 let sortable: Sortable
+
+/** Compute new order for an item dropped at newIndex in the target container */
+function computeNewOrder(evt: SortableEvent, newIndex: number): number | null {
+  const children: HTMLCollection = evt.to.children
+
+  if (children.length <= 1) {
+    // Only the moved item in the target — use order 1
+    return 1
+  }
+
+  const itemBeforeEl = children[newIndex - 1] as HTMLElement | undefined
+  const itemAfterEl = children[newIndex + 1] as HTMLElement | undefined
+
+  const itemBefore = itemBeforeEl && views.value.find((v) => v.id === itemBeforeEl.dataset.id)
+  const itemAfter = itemAfterEl && views.value.find((v) => v.id === itemAfterEl.dataset.id)
+
+  if (children.length - 1 === newIndex) {
+    return (itemBefore?.order ?? 0) + 1
+  } else if (newIndex === 0) {
+    return (itemAfter?.order ?? 1) / 2
+  } else {
+    return ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
+  }
+}
 
 const initSortable = (el: Element) => {
   if (isMobileMode.value) return
   if (sortable) sortable.destroy()
 
+  const hasSectionId = props.sectionId != null
+
   sortable = Sortable.create(el as HTMLElement, {
+    // When sectionId is set, enable cross-section drag via shared group
+    group: hasSectionId ? 'views' : undefined,
     ghostClass: 'ghost',
     onStart: (evt: SortableEvent) => {
       evt.stopImmediatePropagation()
       evt.preventDefault()
       dragging.value = true
+      if (hasSectionId) {
+        emits('viewDragStart')
+      }
     },
     onEnd: async (evt) => {
       const { newIndex = 0, oldIndex = 0 } = evt
@@ -122,8 +163,13 @@ const initSortable = (el: Element) => {
       evt.preventDefault()
 
       dragging.value = false
+      if (hasSectionId) {
+        emits('viewDragEnd')
+      }
 
-      if (newIndex === oldIndex) return
+      const isCrossSection = evt.from !== evt.to
+
+      if (!isCrossSection && newIndex === oldIndex) return
 
       const itemEl = evt.item as HTMLElement
       const currentItem = views.value.find((v) => v.id === itemEl.dataset.id)
@@ -136,56 +182,59 @@ const initSortable = (el: Element) => {
 
       const isFirstCollaborativeView = firstCollaborativeView?.id === currentItem.id
 
-      // get the html collection of all list items
-      const children: HTMLCollection = evt.to.children
+      const newOrder = computeNewOrder(evt, newIndex)
+      if (newOrder == null) return
 
-      // skip if children count is 1
-      if (children.length < 2) return
+      currentItem.order = newOrder
 
-      // get items before and after the moved item
-      const itemBeforeEl = children[newIndex - 1] as HTMLElement
-      const itemAfterEl = children[newIndex + 1] as HTMLElement
+      if (isCrossSection) {
+        // Cross-section move: update section assignment + order
+        const toSectionId = (evt.to as HTMLElement).dataset.sectionId
+        const targetSectionId = toSectionId === DEFAULT_SECTION_ID ? null : toSectionId || null
 
-      // get items meta of before and after the moved item
-      const itemBefore = itemBeforeEl && views.value.find((v) => v.id === itemBeforeEl.dataset.id)
-      const itemAfter = itemAfterEl && views.value.find((v) => v.id === itemAfterEl.dataset.id)
+        // Update local state immediately
+        ;(currentItem as any).fk_view_section_id = targetSectionId
 
-      // set new order value based on the new order of the items
-      if (children.length - 1 === newIndex) {
-        // Item moved to last position
-        currentItem.order = (itemBefore?.order ?? 0) + 1
-      } else if (newIndex === 0) {
-        // Item moved to first position
-        currentItem.order = (itemAfter?.order ?? 1) / 2
-      } else {
-        // Item moved to middle position
-        currentItem.order = ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
-      }
+        if (table.value.base_id && table.value.id) {
+          const key = `${table.value.base_id}:${table.value.id}`
+          const tableViews = viewsByTable.value.get(key)
+          if (tableViews) {
+            tableViews.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 
-      // Update the order in the viewsByTable map to trigger reactivity
-      if (table.value.base_id && table.value.id) {
-        const key = `${table.value.base_id}:${table.value.id}`
-        const tableViews = viewsByTable.value.get(key)
-        if (tableViews) {
-          // Sort the views array by order to reflect the new position
-          tableViews.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-
-          const defaultViewAfterUpdate = getFirstNonPersonalView(tableViews, {
-            includeViewType: ViewTypes.GRID,
-          })
-
-          await updateView(
-            currentItem.id,
-            {
+            await updateView(currentItem.id, {
               order: currentItem.order,
-            },
-            {
-              is_default_view: isFirstCollaborativeView || defaultViewAfterUpdate?.id !== firstCollaborativeView?.id,
-            },
-          )
+              fk_view_section_id: targetSectionId,
+            } as Partial<ViewType>)
 
-          markItem(currentItem.id)
-          $e('a:view:reorder')
+            markItem(currentItem.id)
+            $e('a:view:move-to-section:drag', { sectionId: targetSectionId })
+          }
+        }
+      } else {
+        // Same-section reorder (existing logic)
+        if (table.value.base_id && table.value.id) {
+          const key = `${table.value.base_id}:${table.value.id}`
+          const tableViews = viewsByTable.value.get(key)
+          if (tableViews) {
+            tableViews.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+            const defaultViewAfterUpdate = getFirstNonPersonalView(tableViews, {
+              includeViewType: ViewTypes.GRID,
+            })
+
+            await updateView(
+              currentItem.id,
+              {
+                order: currentItem.order,
+              },
+              {
+                is_default_view: isFirstCollaborativeView || defaultViewAfterUpdate?.id !== firstCollaborativeView?.id,
+              },
+            )
+
+            markItem(currentItem.id)
+            $e('a:view:reorder')
+          }
         }
       }
     },
@@ -411,9 +460,10 @@ const filteredViews = computed(() => {
 <template>
   <div>
     <div
-      v-if="filteredViews.length"
+      v-if="filteredViews.length || sectionId != null"
       ref="menuRef"
-      :class="{ dragging }"
+      :data-section-id="sectionId"
+      :class="{ dragging, 'min-h-6': sectionId != null && !filteredViews.length }"
       class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     >
       <DashboardTreeViewViewsNode

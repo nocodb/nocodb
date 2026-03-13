@@ -245,6 +245,19 @@ const {
   buttonColId,
 )
 
+// Sync internal filter changes to v-model for consumers that bind it (e.g. webhooks,
+// buttons). Rollup/Lookup/LTAR column editors intentionally omit v-model — their filter
+// state is preserved by the keep-alive component approach, not via vModel.filters.
+if (!autoSave.value) {
+  watch(
+    filters,
+    (newFilters) => {
+      modelValue.value = [...newFilters]
+    },
+    { deep: true },
+  )
+}
+
 const { getPlanLimit } = useWorkspace()
 
 const localNestedFilters = ref([])
@@ -352,6 +365,10 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
   })
 }
 
+// Track whether the initial load has been performed to avoid overwriting
+// pre-populated modelValue (e.g. restored pending filters in field editor)
+let hasPerformedInitialLoad = false
+
 watch(
   () => activeView.value?.id,
   (viewId, oldViewId) => {
@@ -366,7 +383,14 @@ watch(
       (linkColId?.value || !link.value) &&
       (widgetId.value || !widget.value) &&
       (buttonColId?.value || !isButton.value)
-    )
+    ) {
+      // On the first fire (immediate), skip loading if initialModelValue has data —
+      // matches the onMounted guard that also skips loadFilters when initialModelValue exists
+      if (!hasPerformedInitialLoad && initialModelValue?.length) {
+        hasPerformedInitialLoad = true
+        return
+      }
+      hasPerformedInitialLoad = true
       loadFilters({
         hookId: hookId.value,
         rlsPolicyId: rlsPolicyId?.value,
@@ -377,6 +401,7 @@ watch(
         isLink: link.value,
         isButton: isButton.value,
       })
+    }
   },
   { immediate: true },
 )

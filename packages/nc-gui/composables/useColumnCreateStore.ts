@@ -99,6 +99,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const setPostSaveOrUpdateCbk = (cbk: typeof postSaveOrUpdateCbk) => {
       postSaveOrUpdateCbk = cbk
     }
+
+    const triggerPostSaveOrUpdateCbk = async (params: { colId: string; column?: ColumnType }) => {
+      await postSaveOrUpdateCbk?.(params)
+    }
     const defaultType = isMetaReadOnly.value ? UITypes.Formula : UITypes.SingleLineText
 
     const defaultFormState = {
@@ -578,6 +582,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       isXcdbBase,
       disableSubmitBtn,
       setPostSaveOrUpdateCbk,
+      triggerPostSaveOrUpdateCbk,
       updateFieldName,
       fromTableExplorer,
       isAiMode,

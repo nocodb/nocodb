@@ -145,8 +145,17 @@ const initSortable = (el: Element) => {
   const hasSectionId = props.sectionId != null
 
   sortable = Sortable.create(el as HTMLElement, {
-    // When sectionId is set, enable cross-section drag via shared group
-    group: hasSectionId ? 'views' : undefined,
+    // When sectionId is set, enable cross-section drag via shared group.
+    // `put` restricts drops to lists belonging to the same table.
+    group: hasSectionId
+      ? {
+          name: 'views',
+          put: (_to, from) => {
+            const fromTableId = (from.el as HTMLElement).dataset.tableId
+            return fromTableId === table.value.id
+          },
+        }
+      : undefined,
     ghostClass: 'ghost',
     onStart: (evt: SortableEvent) => {
       evt.stopImmediatePropagation()
@@ -463,6 +472,7 @@ const filteredViews = computed(() => {
       v-if="filteredViews.length || sectionId != null"
       ref="menuRef"
       :data-section-id="sectionId"
+      :data-table-id="table?.id"
       :class="{ dragging, 'min-h-6': sectionId != null && !filteredViews.length }"
       class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     >

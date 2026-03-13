@@ -97,7 +97,7 @@ const workspaceStore = useWorkspace()
 const baseStore = useBase()
 const { baseId: activeBaseId } = storeToRefs(baseStore)
 
-const { blockCalendarRange, getPlanTitle } = useEeConfig()
+const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
 
 const viewStore = useViewsStore()
 
@@ -1109,7 +1109,7 @@ watch(activeBaseId, () => {
                   </a-select-option>
                 </a-select>
               </div>
-              <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
+              <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
                 <template #default="{ click }">
                   <div class="w-full space-y-2">
                     <NcButton

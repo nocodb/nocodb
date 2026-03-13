@@ -275,6 +275,21 @@ const temporaryAddCount = ref(0)
 
 const changingField = ref(false)
 
+// Field types whose editors are kept alive (v-show) across field switches so filter
+// state inside SmartsheetToolbarColumnFilter is never destroyed.
+const KEEP_ALIVE_TYPES = [UITypes.Links, UITypes.LinkToAnotherRecord, UITypes.Rollup, UITypes.Lookup]
+
+const isKeepAliveType = (field?: TableExplorerColumn) => !!(field?.uidt && KEEP_ALIVE_TYPES.includes(field.uidt as UITypes))
+
+// Provider instance refs for keep-alive field editors (plain object — not reactive)
+const aliveProviderRefs: Record<string, any> = {}
+
+// Keys (id or temp_id) of keep-alive fields that have been activated in this session
+const aliveFieldKeys = ref<string[]>([])
+
+// Ref for the single regular (non-keep-alive) field editor
+const regularProviderRef = ref()
+
 const addFieldMoveHook = ref<number>()
 
 const duplicateFieldHook = ref<TableExplorerColumn>()
@@ -326,6 +341,13 @@ const changeField = (field?: TableExplorerColumn, event?: MouseEvent) => {
   }
 
   if (compareCols(field, activeField.value) || (field === undefined && activeField.value === undefined)) return
+
+  // Skip the changingField unmount/remount cycle for keep-alive types so their
+  // mounted filter components (and internal state) are preserved across switches.
+  if (isKeepAliveType(field) || isKeepAliveType(activeField.value)) {
+    activeField.value = field
+    return
+  }
 
   changingField.value = true
 
@@ -889,6 +911,18 @@ const metaToLocal = () => {
   }
 }
 
+// Register a keep-alive field the first time it is activated
+watch(
+  activeField,
+  (newField) => {
+    if (!newField || !isKeepAliveType(newField)) return
+    const key = newField.id || newField.temp_id
+    if (!key || aliveFieldKeys.value.includes(key)) return
+    aliveFieldKeys.value = [...aliveFieldKeys.value, key]
+  },
+  { immediate: true },
+)
+
 const saveChanges = async () => {
   if (!isColumnsValid.value) {
     message.error(t('msg.error.multiFieldSaveValidation'))
@@ -990,51 +1024,22 @@ const saveChanges = async () => {
       },
     )
 
-    // Persist filter conditions for the active field via postSaveOrUpdateCbk
-    // (uses the mounted filterRef so nested groups are handled correctly)
-    if (activeField.value?.id && editOrAddProviderRef.value?.triggerPostSaveOrUpdateCbk) {
+    // Persist filter conditions for all keep-alive field editors (they stay mounted
+    // across field switches so their filterRef.applyChanges handles everything correctly).
+    for (const key of aliveFieldKeys.value) {
+      const provider = aliveProviderRefs[key]
+      if (!provider?.triggerPostSaveOrUpdateCbk) continue
       try {
-        await editOrAddProviderRef.value.triggerPostSaveOrUpdateCbk({
-          colId: activeField.value.id,
-        })
+        await provider.triggerPostSaveOrUpdateCbk({ colId: key })
       } catch {
         // Filter save failure shouldn't block the rest of the save flow
       }
     }
 
-    // Persist filter conditions for non-active fields that were edited then switched away.
-    // Their filters sit in ops[].column.filters (kept in sync by ColumnFilter's v-model watcher)
-    // but have no mounted component to call applyChanges on, so we drive the API directly.
-    for (const op of ops.value) {
-      if (!op.column?.id || op.column.id === activeField.value?.id) continue
-      const pendingFilters = (op.column.filters as any[])?.filter((f) => f.status)
-      if (!pendingFilters?.length) continue
-
+    // Persist filter conditions for the active field if it is not a keep-alive type
+    if (activeField.value?.id && !isKeepAliveType(activeField.value) && regularProviderRef.value?.triggerPostSaveOrUpdateCbk) {
       try {
-        for (const filter of pendingFilters) {
-          if (filter.status === 'delete' && filter.id) {
-            await $api.internal.postOperation(
-              meta.value!.fk_workspace_id!,
-              meta.value!.base_id!,
-              { operation: 'filterDelete', filterId: filter.id },
-              {},
-            )
-          } else if (filter.status === 'update' && filter.id) {
-            await $api.internal.postOperation(
-              meta.value!.fk_workspace_id!,
-              meta.value!.base_id!,
-              { operation: 'filterUpdate', filterId: filter.id },
-              { ...filter },
-            )
-          } else if (filter.status === 'create') {
-            await $api.internal.postOperation(
-              meta.value!.fk_workspace_id!,
-              meta.value!.base_id!,
-              { operation: 'linkFilterCreate', columnId: op.column.id },
-              { ...filter, children: undefined, fk_parent_id: null },
-            )
-          }
-        }
+        await regularProviderRef.value.triggerPostSaveOrUpdateCbk({ colId: activeField.value.id })
       } catch {
         // Filter save failure shouldn't block the rest of the save flow
       }
@@ -1375,8 +1380,6 @@ watch(activeAiTab, (newValue) => {
 })
 
 const rightPanelRef = ref()
-
-const editOrAddProviderRef = ref()
 
 const oldRightPanelWidth = ref()
 
@@ -2277,9 +2280,28 @@ onBeforeRouteUpdate((_to, from, next) => {
               @keydown.up.stop
               @keydown.down.stop
             >
+              <!-- Keep-alive editors for LTAR/Links/Rollup/Lookup: stay mounted so filter state survives field switches -->
+              <template v-for="key in aliveFieldKeys" :key="key">
+                <SmartsheetColumnEditOrAddProvider
+                  v-show="(activeField?.id || activeField?.temp_id) === key"
+                  :ref="(el: any) => { if (el) aliveProviderRefs[key] = el; else delete aliveProviderRefs[key] }"
+                  class="p-4 w-[25rem] flex-none"
+                  :column="fields.find((f) => (f.id || f.temp_id) === key) || activeField"
+                  :preload="fieldState(fields.find((f) => (f.id || f.temp_id) === key) || activeField)"
+                  :table-explorer-columns="fields"
+                  :is-column-valid="isColumnValid"
+                  embed-mode
+                  from-table-explorer
+                  :disable-title-focus="!!fields.find((f) => (f.id || f.temp_id) === key)?.id"
+                  @update="onFieldUpdate"
+                  @add="onFieldAdd"
+                />
+              </template>
+
+              <!-- Regular editor for non-keep-alive field types -->
               <SmartsheetColumnEditOrAddProvider
-                v-if="activeField"
-                ref="editOrAddProviderRef"
+                v-if="activeField && !isKeepAliveType(activeField)"
+                ref="regularProviderRef"
                 class="p-4 w-[25rem] flex-none"
                 :column="activeField"
                 :preload="fieldState(activeField)"
@@ -2291,7 +2313,8 @@ onBeforeRouteUpdate((_to, from, next) => {
                 @update="onFieldUpdate"
                 @add="onFieldAdd"
               />
-              <div v-else class="w-[25rem] flex flex-col justify-center p-4 items-center">
+
+              <div v-if="!activeField" class="w-[25rem] flex flex-col justify-center p-4 items-center">
                 <img src="~assets/img/placeholder/multi-field-editor.png" class="!w-[18rem]" />
                 <div class="text-2xl text-nc-content-gray-subtle2 font-bold text-center pt-6">
                   {{ $t('labels.multiField.selectField') }}

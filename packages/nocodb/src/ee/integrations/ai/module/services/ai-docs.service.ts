@@ -81,8 +81,8 @@ export class AiDocsService {
 
     const { precedingContent, title } = params.input;
 
-    if (!precedingContent?.trim()) {
-      NcError.badRequest('Preceding content is required');
+    if (!precedingContent?.trim() && !title?.trim()) {
+      NcError.badRequest('Preceding content or document title is required');
     }
 
     const { integration, wrapper } = await this.getAiWrapper(context);

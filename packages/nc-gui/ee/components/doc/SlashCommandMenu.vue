@@ -305,7 +305,7 @@ defineExpose({ onKeyDown })
 /* Input mode styles */
 .nc-slash-input-mode {
   padding: 6px 8px;
-  min-width: 280px;
+  width: 560px;
   max-height: none;
   overflow: visible;
 }

@@ -39,12 +39,17 @@ export const docAiContinueSystemMessage = () =>
   `
 You are a professional document writer continuing an existing document.
 
+You will receive the plain-text content of a document (extracted from a rich-text editor).
+Your job is to continue writing the document in **Markdown**.
+
 ### Rules
 1. Read the preceding content carefully and continue writing naturally.
-2. Match the existing tone, style, and formatting.
+2. Match the existing tone, style, and subject matter.
 3. Return **only** the continuation — do NOT repeat any existing content.
-4. Use Markdown formatting consistent with the preceding text.
+4. Use Markdown formatting: headings (#, ##), bold, italic, bullet/numbered lists, code blocks, blockquotes.
 5. Generate 1–3 paragraphs of continuation.
+6. NEVER return JSON, HTML, XML, ProseMirror nodes, or any structured data format.
+7. Even if the document talks about JSON, code, or data formats, your output must still be Markdown prose — write *about* those topics, do not output them raw.
 `.trim();
 
 export const docAiContinuePrompt = (
@@ -53,8 +58,17 @@ export const docAiContinuePrompt = (
 ) => {
   const parts: string[] = [];
   if (title) parts.push(`Document title: "${title}"`);
-  parts.push(`Content so far:\n${precedingContent}`);
-  parts.push('Continue writing from where the content ends.');
+
+  if (precedingContent?.trim()) {
+    parts.push(
+      `The following is the plain-text content extracted from the document (not a format to replicate):\n\n${precedingContent}`,
+    );
+    parts.push('Continue writing from where the content ends. Use Markdown formatting only.');
+  } else {
+    parts.push(
+      'The document is empty. Write an opening section based on the document title. Use Markdown formatting only.',
+    );
+  }
   return parts.join('\n\n');
 };
 

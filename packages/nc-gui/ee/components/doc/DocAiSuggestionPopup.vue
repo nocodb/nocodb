@@ -4,6 +4,8 @@ interface Props {
   result: string
   error: string
   operationLabel: string
+  /** When true, result is inserted inline in the editor — popup only shows action bar */
+  inlineMode: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -11,9 +13,10 @@ const props = withDefaults(defineProps<Props>(), {
   result: '',
   error: '',
   operationLabel: '',
+  inlineMode: false,
 })
 
-const { loading, result, error } = toRefs(props)
+const { loading, result, error, inlineMode } = toRefs(props)
 
 const emit = defineEmits<{
   (e: 'accept'): void
@@ -31,7 +34,53 @@ const hasResult = computed(() => !!result.value && !loading.value)
 
 const hasError = computed(() => !!error.value && !loading.value)
 
-onClickOutside(popupRef, () => emit('discard'))
+// Animated loading steps
+const loadingStepIndex = ref(0)
+
+let loadingStepTimer: ReturnType<typeof setInterval> | null = null
+
+const loadingSteps = computed(() => [
+  t('labels.docAiReadingDocument'),
+  t('labels.docAiThinking'),
+  t('labels.docAiWriting'),
+])
+
+const currentLoadingStep = computed(() => loadingSteps.value[loadingStepIndex.value] || loadingSteps.value[0])
+
+watch(loading, (isLoading) => {
+  if (isLoading) {
+    loadingStepIndex.value = 0
+    loadingStepTimer = setInterval(() => {
+      if (loadingStepIndex.value < loadingSteps.value.length - 1) {
+        loadingStepIndex.value++
+      }
+    }, 2000)
+  } else {
+    if (loadingStepTimer) {
+      clearInterval(loadingStepTimer)
+      loadingStepTimer = null
+    }
+    loadingStepIndex.value = 0
+  }
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (loadingStepTimer) {
+    clearInterval(loadingStepTimer)
+    loadingStepTimer = null
+  }
+})
+
+onClickOutside(popupRef, () => {
+  // In inline mode, clicking outside means the user is interacting with
+  // the document — treat as implicit accept (content stays).
+  // In popup mode, clicking outside discards.
+  if (inlineMode.value && hasResult.value) {
+    emit('accept')
+  } else {
+    emit('discard')
+  }
+})
 
 useEventListener('keydown', (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
@@ -45,7 +94,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div ref="popupRef" class="nc-doc-ai-suggestion" data-testid="nc-doc-ai-suggestion">
+  <div ref="popupRef" class="nc-doc-ai-suggestion" :class="{ 'nc-doc-ai-suggestion-inline': inlineMode && hasResult }" data-testid="nc-doc-ai-suggestion">
     <!-- Loading state -->
     <div v-if="loading" class="nc-doc-ai-suggestion-loading">
       <div class="nc-doc-ai-suggestion-icon">
@@ -53,7 +102,11 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </div>
       <div class="nc-doc-ai-suggestion-thinking">
         <span class="nc-doc-ai-suggestion-brand">NocoAI</span>
-        <span class="nc-doc-ai-suggestion-thinking-text">{{ t('labels.docAiThinking') }}</span>
+        <span class="nc-doc-ai-suggestion-thinking-text">
+          <Transition name="nc-doc-ai-step-fade" mode="out-in">
+            <span :key="currentLoadingStep">{{ currentLoadingStep }}</span>
+          </Transition>
+        </span>
         <span class="nc-doc-ai-suggestion-dots">
           <span class="dot dot-1" />
           <span class="dot dot-2" />
@@ -71,8 +124,59 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </NcButton>
     </div>
 
-    <!-- Result state -->
-    <template v-if="hasResult">
+    <!-- Result state — inline mode: content already in editor, show only action bar -->
+    <template v-if="hasResult && inlineMode">
+      <div class="nc-doc-ai-suggestion-actions nc-doc-ai-suggestion-actions-inline">
+        <div class="nc-doc-ai-suggestion-inline-label">
+          <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-brand !h-3.5 !w-3.5" />
+          <span class="nc-doc-ai-suggestion-brand">NocoAI</span>
+          <span class="nc-doc-ai-suggestion-header-dot" />
+          <span class="nc-doc-ai-suggestion-label text-nc-content-gray-subtle">{{ operationLabel }}</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <NcButton
+            v-e="['c:doc:ai:suggestion:accept']"
+            size="xs"
+            type="secondary"
+            data-testid="nc-doc-ai-suggestion-accept"
+            @click="emit('accept')"
+          >
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="check" class="!h-3.5 !w-3.5" />
+              <span>{{ t('labels.docAiAccept') }}</span>
+            </div>
+          </NcButton>
+          <NcButton
+            v-e="['c:doc:ai:suggestion:discard']"
+            size="xs"
+            type="text"
+            class="nc-doc-ai-suggestion-discard-btn"
+            data-testid="nc-doc-ai-suggestion-discard"
+            @click="emit('discard')"
+          >
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="close" class="!h-3.5 !w-3.5" />
+              <span>{{ t('labels.docAiDiscard') }}</span>
+            </div>
+          </NcButton>
+          <NcButton
+            v-e="['c:doc:ai:suggestion:tryAgain']"
+            size="xs"
+            type="text"
+            data-testid="nc-doc-ai-suggestion-try-again"
+            @click="emit('tryAgain')"
+          >
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="refresh" class="!h-3 !w-3" />
+              <span>{{ t('labels.docAiTryAgain') }}</span>
+            </div>
+          </NcButton>
+        </div>
+      </div>
+    </template>
+
+    <!-- Result state — popup mode: show result in popup with all actions -->
+    <template v-else-if="hasResult">
       <div class="nc-doc-ai-suggestion-header">
         <div class="nc-doc-ai-suggestion-icon">
           <GeneralIcon icon="ncAutoAwesome" class="text-nc-content-brand" />
@@ -277,9 +381,41 @@ useEventListener('keydown', (e: KeyboardEvent) => {
   border-top: 1px solid var(--nc-border-gray-light);
 }
 
+.nc-doc-ai-suggestion-inline {
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--nc-border-gray-medium);
+}
+
+.nc-doc-ai-suggestion-actions-inline {
+  @apply flex-row items-center justify-between gap-3 px-3.5 py-2.5;
+  border-top: none;
+}
+
+.nc-doc-ai-suggestion-inline-label {
+  @apply flex items-center gap-1.5;
+}
+
 .nc-doc-ai-suggestion-discard-btn {
   &:hover {
     @apply !text-nc-content-red-dark;
   }
+}
+
+/* Loading step fade transition */
+.nc-doc-ai-step-fade-enter-active,
+.nc-doc-ai-step-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.nc-doc-ai-step-fade-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.nc-doc-ai-step-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
 }
 </style>

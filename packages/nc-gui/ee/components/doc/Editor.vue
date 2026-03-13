@@ -8,7 +8,8 @@ import Link from '@tiptap/extension-link'
 import Placeholder from '@tiptap/extension-placeholder'
 import TaskList from '@tiptap/extension-task-list'
 import TableRow from '@tiptap/extension-table-row'
-import { Selection, TextSelection } from '@tiptap/pm/state'
+import { Plugin, PluginKey, Selection, TextSelection } from '@tiptap/pm/state'
+import { Decoration, DecorationSet } from '@tiptap/pm/view'
 import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
 import { DocHighlightExtension } from './DocHighlightExtension'
@@ -231,6 +232,66 @@ const getDocPlainText = (maxChars = 2000, fromEnd = true) => {
   return `${text.slice(0, headLen)}\n...\n${text.slice(-(maxChars - headLen))}`
 }
 
+/** If the AI returns ProseMirror JSON instead of Markdown, extract the text content.
+ *  This is a safety net — the prompt should prevent it, but edge cases exist. */
+const sanitizeAiResponse = (text: string): string => {
+  const trimmed = text.trim()
+  // Detect JSON array or object with ProseMirror-like node structures
+  if (
+    (trimmed.startsWith('[') || trimmed.startsWith('{')) &&
+    /"type"\s*:\s*"(heading|paragraph|text|taskList|taskItem|callout|bulletList|orderedList|codeBlock|blockquote)"/.test(
+      trimmed,
+    )
+  ) {
+    try {
+      const parsed = JSON.parse(trimmed.startsWith('[') ? trimmed : `[${trimmed}]`)
+      const extractText = (nodes: any[]): string => {
+        const lines: string[] = []
+        for (const node of nodes) {
+          if (node.type === 'text') {
+            lines.push(node.text || '')
+          } else if (node.type === 'heading') {
+            const level = node.attrs?.level || 1
+            const prefix = '#'.repeat(level)
+            lines.push(`${prefix} ${extractText(node.content || [])}`)
+          } else if (node.type === 'paragraph') {
+            lines.push(extractText(node.content || []))
+          } else if (node.type === 'bulletList' || node.type === 'taskList') {
+            for (const item of node.content || []) {
+              const itemText = extractText(item.content || [])
+              if (node.type === 'taskList') {
+                const checked = item.attrs?.checked ? '[x]' : '[ ]'
+                lines.push(`- ${checked} ${itemText}`)
+              } else {
+                lines.push(`- ${itemText}`)
+              }
+            }
+          } else if (node.type === 'orderedList') {
+            let idx = 1
+            for (const item of node.content || []) {
+              lines.push(`${idx++}. ${extractText(item.content || [])}`)
+            }
+          } else if (node.type === 'callout') {
+            const icon = node.attrs?.icon || '💡'
+            lines.push(`> ${icon} ${extractText(node.content || [])}`)
+          } else if (node.type === 'blockquote') {
+            lines.push(`> ${extractText(node.content || [])}`)
+          } else if (node.type === 'codeBlock') {
+            lines.push(`\`\`\`\n${extractText(node.content || [])}\n\`\`\``)
+          } else if (node.content) {
+            lines.push(extractText(node.content))
+          }
+        }
+        return lines.join('\n\n')
+      }
+      return extractText(parsed)
+    } catch {
+      // Not valid JSON — return as-is
+    }
+  }
+  return text
+}
+
 /** Extract plain text of the selected content. */
 const getSelectedText = () => {
   if (!editor.value) return ''
@@ -251,6 +312,8 @@ interface AiSuggestionState {
   /** Operation name + params for "Try again" */
   operation: string
   operationParams: Record<string, any>
+  /** When true, result is inserted inline in the editor — popup only shows action bar */
+  inlineMode: boolean
 }
 
 const aiSuggestion = reactive<AiSuggestionState>({
@@ -262,9 +325,48 @@ const aiSuggestion = reactive<AiSuggestionState>({
   selectionRange: { from: 0, to: 0 },
   operation: '',
   operationParams: {},
+  inlineMode: false,
 })
 
 const aiSuggestionStyle = ref<Record<string, string>>({ display: 'none' })
+
+const aiHighlightPluginKey = new PluginKey('aiHighlight')
+
+/** Add a highlight decoration over the given range to mark AI-generated content. */
+const addAiHighlight = (from: number, to: number) => {
+  if (!editor.value) return
+  // Remove any existing highlight first
+  removeAiHighlight()
+
+  const plugin = new Plugin({
+    key: aiHighlightPluginKey,
+    state: {
+      init(_, state) {
+        const clampedTo = Math.min(to, state.doc.content.size)
+        return DecorationSet.create(state.doc, [
+          Decoration.inline(from, clampedTo, { class: 'nc-doc-ai-generated' }),
+        ])
+      },
+      apply(tr, set) {
+        return set.map(tr.mapping, tr.doc)
+      },
+    },
+    props: {
+      decorations(state) {
+        return this.getState(state)
+      },
+    },
+  })
+  editor.value.registerPlugin(plugin)
+  // Force ProseMirror to re-render with the new decorations
+  editor.value.view.dispatch(editor.value.state.tr)
+}
+
+/** Remove the AI highlight decoration. */
+const removeAiHighlight = () => {
+  if (!editor.value) return
+  editor.value.unregisterPlugin(aiHighlightPluginKey)
+}
 
 /** Position the suggestion popup below the text selection using ProseMirror coordinates.
  *  Uses editor.view.coordsAtPos() which is stable regardless of mouse position. */
@@ -333,10 +435,81 @@ const showAiSuggestion = async (
   editor.value.view.dispatch(editor.value.state.tr)
 
   try {
-    const result = await aiFn()
+    const rawResult = await aiFn()
     aiSuggestion.loading = false
-    if (result) {
-      aiSuggestion.result = result
+    if (rawResult) {
+      aiSuggestion.result = sanitizeAiResponse(rawResult)
+    } else {
+      aiSuggestion.error = 'No result returned'
+    }
+  } catch {
+    aiSuggestion.loading = false
+    aiSuggestion.error = 'Something went wrong. Please try again.'
+  }
+}
+
+/** Show the AI suggestion popup at the cursor position (no selection needed).
+ *  Inserts the result inline into the editor and shows an action bar below.
+ *  Used for operations like "Continue writing" triggered from the slash menu. */
+const showAiSuggestionAtCursor = async (
+  operation: string,
+  operationParams: Record<string, any>,
+  operationLabel: string,
+  aiFn: () => Promise<string | undefined>,
+) => {
+  if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+  if (!editor.value || !editorContentRef.value) return
+
+  const pos = editor.value.state.selection.from
+
+  aiSuggestion.visible = true
+  aiSuggestion.loading = true
+  aiSuggestion.result = ''
+  aiSuggestion.error = ''
+  aiSuggestion.operationLabel = operationLabel
+  aiSuggestion.selectionRange = { from: pos, to: pos }
+  aiSuggestion.operation = operation
+  aiSuggestion.operationParams = operationParams
+  aiSuggestion.inlineMode = true
+
+  // Position loader at cursor
+  const view = editor.value.view
+  const coords = view.coordsAtPos(pos)
+  const containerRect = editorContentRef.value.getBoundingClientRect()
+
+  const popupMaxWidth = 560
+  const rawLeft = coords.left - containerRect.left
+  const maxLeft = Math.max(0, containerRect.width - popupMaxWidth)
+  const left = Math.max(0, Math.min(rawLeft, maxLeft))
+
+  aiSuggestionStyle.value = {
+    position: 'absolute',
+    top: `${coords.bottom - containerRect.top + 12}px`,
+    left: `${left}px`,
+    zIndex: '50',
+  }
+
+  try {
+    const rawResult = await aiFn()
+    aiSuggestion.loading = false
+    if (rawResult) {
+      const sanitized = sanitizeAiResponse(rawResult)
+      aiSuggestion.result = sanitized
+
+      // Insert content inline at cursor position
+      editor.value.chain().focus().setTextSelection(pos).run()
+      insertMarkdownContent(editor.value, sanitized)
+
+      // Highlight the inserted content
+      const endPos = editor.value.state.selection.from
+      addAiHighlight(pos, endPos)
+
+      // Switch to sticky positioning so action bar is always visible
+      aiSuggestionStyle.value = {
+        position: 'sticky',
+        bottom: '24px',
+        zIndex: '50',
+      }
     } else {
       aiSuggestion.error = 'No result returned'
     }
@@ -347,10 +520,16 @@ const showAiSuggestion = async (
 }
 
 const dismissAiSuggestion = () => {
+  // In inline mode with result already inserted, undo the insertion on discard
+  if (aiSuggestion.inlineMode && aiSuggestion.result && editor.value) {
+    removeAiHighlight()
+    editor.value.commands.undo()
+  }
   aiSuggestion.visible = false
   aiSuggestion.loading = false
   aiSuggestion.result = ''
   aiSuggestion.error = ''
+  aiSuggestion.inlineMode = false
   // Refocus editor so the bubble menu can reappear on next selection
   editor.value?.commands.focus()
 }
@@ -359,7 +538,17 @@ const onAiSuggestionAccept = () => {
   if (!editor.value || !aiSuggestion.result) return
   $e('a:doc:ai:suggestion:accept', { operation: aiSuggestion.operation })
 
+  if (aiSuggestion.inlineMode) {
+    // Inline mode — content already in editor, remove highlight and dismiss
+    removeAiHighlight()
+    // Reset inlineMode before dismiss so it doesn't undo the insertion
+    aiSuggestion.inlineMode = false
+    dismissAiSuggestion()
+    return
+  }
+
   const { from, to } = aiSuggestion.selectionRange
+  // Selection-mode — replace selected text
   editor.value.chain().focus().setTextSelection({ from, to }).deleteSelection().run()
   insertMarkdownContent(editor.value, aiSuggestion.result)
   dismissAiSuggestion()
@@ -377,7 +566,48 @@ const onAiSuggestionInsertBelow = () => {
 
 const onAiSuggestionTryAgain = () => {
   $e('a:doc:ai:suggestion:tryAgain', { operation: aiSuggestion.operation })
-  runAiSuggestionOperation(aiSuggestion.operation, aiSuggestion.operationParams)
+  if (aiSuggestion.operation === 'continue') {
+    // Undo previous inline insertion, then re-run
+    if (aiSuggestion.inlineMode && aiSuggestion.result && editor.value) {
+      removeAiHighlight()
+      editor.value.commands.undo()
+    }
+    const pos = aiSuggestion.selectionRange.from
+    const fullText = editor.value!.state.doc.textBetween(0, pos, '\n')
+    const precedingContent = fullText.length > 2000 ? fullText.slice(-2000) : fullText
+    if (!precedingContent.trim() && !title.value?.trim()) return
+    aiSuggestion.loading = true
+    aiSuggestion.result = ''
+    aiSuggestion.error = ''
+    aiContinue(precedingContent, title.value)
+      .then((rawResult) => {
+        aiSuggestion.loading = false
+        if (rawResult && editor.value) {
+          const sanitized = sanitizeAiResponse(rawResult)
+          aiSuggestion.result = sanitized
+          // Insert inline
+          editor.value.chain().focus().setTextSelection(pos).run()
+          insertMarkdownContent(editor.value, sanitized)
+          // Highlight the inserted content
+          const endPos = editor.value.state.selection.from
+          addAiHighlight(pos, endPos)
+          // Switch to sticky positioning so action bar is always visible
+          aiSuggestionStyle.value = {
+            position: 'sticky',
+            bottom: '24px',
+            zIndex: '50',
+          }
+        } else {
+          aiSuggestion.error = 'No result returned'
+        }
+      })
+      .catch(() => {
+        aiSuggestion.loading = false
+        aiSuggestion.error = 'Something went wrong. Please try again.'
+      })
+  } else {
+    runAiSuggestionOperation(aiSuggestion.operation, aiSuggestion.operationParams)
+  }
 }
 
 /** Reset all AI submenu panels to hidden when the dropdown opens/closes. */
@@ -472,12 +702,17 @@ const wireDocAiStorage = () => {
     continueWriting: async () => {
       if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
       $e('a:doc:ai:continue')
-      const precedingContent = getDocPlainText(2000, true)
-      if (!precedingContent.trim()) return
-      const result = await aiContinue(precedingContent, title.value)
-      if (result && editor.value) {
-        insertMarkdownContent(editor.value, result)
-      }
+      // Send document content up to the cursor position, not the entire document
+      const pos = editor.value!.state.selection.from
+      const fullText = editor.value!.state.doc.textBetween(0, pos, '\n')
+      const precedingContent = fullText.length > 2000 ? fullText.slice(-2000) : fullText
+      if (!precedingContent.trim() && !title.value?.trim()) return
+      showAiSuggestionAtCursor(
+        'continue',
+        {},
+        t('labels.docAiContinueWriting'),
+        () => aiContinue(precedingContent || '', title.value),
+      )
     },
     summarize: async () => {
       if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
@@ -2221,6 +2456,7 @@ onBeforeUnmount(() => {
                   :result="aiSuggestion.result"
                   :error="aiSuggestion.error"
                   :operation-label="aiSuggestion.operationLabel"
+                  :inline-mode="aiSuggestion.inlineMode"
                   @accept="onAiSuggestionAccept"
                   @discard="dismissAiSuggestion"
                   @try-again="onAiSuggestionTryAgain"
@@ -3967,5 +4203,17 @@ body.nc-doc-dragging,
 body.nc-doc-dragging .nc-doc-editor-inner,
 body.nc-doc-dragging .nc-doc-editor-inner * {
   cursor: grabbing !important;
+}
+
+/* AI-generated content highlight — applied via ProseMirror decoration */
+.nc-doc-ai-generated {
+  background-color: rgba(59, 130, 246, 0.08);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.25);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.dark .nc-doc-ai-generated {
+  background-color: rgba(96, 165, 250, 0.1);
+  border-bottom-color: rgba(96, 165, 250, 0.2);
 }
 </style>

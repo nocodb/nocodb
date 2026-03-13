@@ -32,6 +32,16 @@ const hasResult = computed(() => !!result.value && !loading.value)
 const hasError = computed(() => !!error.value && !loading.value)
 
 onClickOutside(popupRef, () => emit('discard'))
+
+useEventListener('keydown', (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    emit('discard')
+  } else if (e.key === 'Enter' && hasResult.value) {
+    e.preventDefault()
+    emit('accept')
+  }
+})
 </script>
 
 <template>

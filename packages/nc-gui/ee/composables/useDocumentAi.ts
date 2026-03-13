@@ -11,7 +11,7 @@ export const useDocumentAi = createSharedComposable(() => {
 
   const { activeProjectId } = storeToRefs(basesStore)
 
-  const { aiIntegrationAvailable, aiLoading, aiError } = useNocoAi()
+  const { aiIntegrationAvailable, aiError } = useNocoAi()
 
   const docAiLoading = ref(false)
 
@@ -48,7 +48,7 @@ export const useDocumentAi = createSharedComposable(() => {
     return res?.text as string | undefined
   }
 
-  const aiImprove = async (text: string, mode: 'grammar' | 'concise' | 'formal' | 'casual' | 'clear') => {
+  const aiImprove = async (text: string, mode: string) => {
     const res = await callDocAiApi('docAiImprove', { text, mode })
     return res?.text as string | undefined
   }

@@ -193,7 +193,7 @@ const { aiWrite, aiContinue, aiImprove, aiSummarize, aiTranslate, docAiLoading }
 const { isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
 const { blockDocAi, showUpgradeToUseDocAi } = useEeConfig()
 
-const isDocAiAvailable = computed(() => isAiFeaturesEnabled.value && aiIntegrationAvailable.value && !blockDocAi.value)
+const isDocAiConfigured = computed(() => isAiFeaturesEnabled.value && aiIntegrationAvailable.value)
 
 const docAiTranslateLanguages = [
   'English',
@@ -214,6 +214,8 @@ const docAiTranslateLanguages = [
   'Vietnamese',
   'Filipino',
 ]
+
+const docAiTones = ['Professional', 'Casual', 'Straightforward', 'Confident', 'Friendly']
 
 /**
  * Extract plain text from the current ProseMirror doc (for AI context).
@@ -327,6 +329,9 @@ const showAiSuggestion = async (
 
   positionAiSuggestion()
 
+  // Force bubble menu to re-evaluate should-show (it only checks on selection change)
+  editor.value.view.dispatch(editor.value.state.tr)
+
   try {
     const result = await aiFn()
     aiSuggestion.loading = false
@@ -375,6 +380,54 @@ const onAiSuggestionTryAgain = () => {
   runAiSuggestionOperation(aiSuggestion.operation, aiSuggestion.operationParams)
 }
 
+/** Reset all AI submenu panels to hidden when the dropdown opens/closes. */
+const resetAiSubMenus = () => {
+  document.querySelectorAll('.nc-doc-ai-menu .nc-doc-ai-menu-sub-panel').forEach((el) => {
+    ;(el as HTMLElement).style.display = 'none'
+  })
+}
+
+/** Position a submenu panel based on available viewport space.
+ *  Also hides any other open sub-panels to prevent overlap. */
+const positionSubMenu = (e: MouseEvent) => {
+  const currentSub = e.currentTarget as HTMLElement
+  const subEl = currentSub?.querySelector('.nc-doc-ai-menu-sub-panel') as HTMLElement
+  if (!subEl) return
+
+  // Hide all other sub-panels first
+  const menu = currentSub.closest('.nc-doc-ai-menu')
+  menu?.querySelectorAll('.nc-doc-ai-menu-sub-panel').forEach((el) => {
+    if (el !== subEl) (el as HTMLElement).style.display = 'none'
+  })
+
+  // Show this one to measure
+  subEl.style.display = 'block'
+  const parentRect = currentSub.getBoundingClientRect()
+  const panelWidth = subEl.offsetWidth || 200
+  const panelHeight = subEl.offsetHeight || 300
+
+  // Horizontal: prefer right, flip to left if no space
+  const spaceRight = window.innerWidth - parentRect.right
+  if (spaceRight < panelWidth + 8) {
+    subEl.style.left = 'auto'
+    subEl.style.right = '100%'
+  } else {
+    subEl.style.left = '100%'
+    subEl.style.right = 'auto'
+  }
+
+  // Vertical: align top with trigger item, clamp to viewport
+  const absoluteTop = parentRect.top
+  const overflow = (absoluteTop + panelHeight) - window.innerHeight + 8
+  if (overflow > 0) {
+    subEl.style.top = `${-overflow}px`
+  } else if (absoluteTop < 8) {
+    subEl.style.top = `${8 - parentRect.top}px`
+  } else {
+    subEl.style.top = '0px'
+  }
+}
+
 /** Dispatch an AI operation into the suggestion popup. */
 const runAiSuggestionOperation = (operation: string, params: Record<string, any>) => {
   const selected = getSelectedText()
@@ -383,13 +436,14 @@ const runAiSuggestionOperation = (operation: string, params: Record<string, any>
   if (operation === 'improve') {
     const mode = params.mode as string
     const labelKey: Record<string, string> = {
+      writing: 'labels.docAiImproveWriting',
       grammar: 'labels.docAiFixGrammar',
-      concise: 'labels.docAiMakeConcise',
-      formal: 'labels.docAiMakeFormal',
-      casual: 'labels.docAiMakeCasual',
-      clear: 'labels.docAiImproveClarity',
+      shorter: 'labels.docAiMakeShorter',
+      longer: 'labels.docAiMakeLonger',
     }
-    showAiSuggestion('improve', params, t(labelKey[mode] || mode), () => aiImprove(selected, mode as any))
+    // For tone modes, capitalize the mode name as the label
+    const label = labelKey[mode] ? t(labelKey[mode]) : mode.charAt(0).toUpperCase() + mode.slice(1)
+    showAiSuggestion('improve', params, label, () => aiImprove(selected, mode as any))
   } else if (operation === 'translate') {
     const lang = params.targetLanguage as string
     showAiSuggestion('translate', params, t('labels.docAiTranslateTo', { language: lang }), () => aiTranslate(selected, lang))
@@ -1888,15 +1942,19 @@ onBeforeUnmount(() => {
                   </NcTooltip>
 
                   <!-- AI Actions -->
-                  <template v-if="isDocAiAvailable && isEditable">
+                  <template v-if="isEeUI && isEditable">
                     <div class="nc-doc-bubble-ai-divider" />
-                    <NcDropdown trigger="click" placement="bottomLeft">
+                    <NcDropdown :disabled="!isDocAiConfigured" trigger="click" placement="bottomLeft" @update:visible="resetAiSubMenus">
                       <NcTooltip placement="top">
-                        <template #title>AI</template>
+                        <template #title>
+                          {{ isDocAiConfigured ? 'NocoAI' : $t('title.noAiIntegrationAvailable') }}
+                        </template>
                         <NcButton
                           size="small"
                           type="text"
+                          :disabled="!isDocAiConfigured"
                           :loading="docAiLoading"
+                          class="nc-doc-ai-btn"
                           data-testid="nc-doc-ai-menu-btn"
                           @mousedown.prevent
                         >
@@ -1904,66 +1962,118 @@ onBeforeUnmount(() => {
                         </NcButton>
                       </NcTooltip>
                       <template #overlay>
-                        <NcMenu data-testid="nc-doc-ai-menu">
-                          <NcMenuItem
+                        <div class="nc-doc-ai-menu" data-testid="nc-doc-ai-menu">
+                          <!-- Improve & Fix -->
+                          <div
+                            v-e="['c:doc:ai:improve:writing']"
+                            class="nc-doc-ai-menu-item"
+                            data-testid="nc-doc-ai-improve-writing"
+                            @click="editor?.storage.docAi?.improve?.('writing')"
+                          >
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncWandSparkles" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiImproveWriting') }}</span>
+                          </div>
+                          <div
                             v-e="['c:doc:ai:improve:grammar']"
+                            class="nc-doc-ai-menu-item"
                             data-testid="nc-doc-ai-improve-grammar"
                             @click="editor?.storage.docAi?.improve?.('grammar')"
                           >
-                            {{ $t('labels.docAiFixGrammar') }}
-                          </NcMenuItem>
-                          <NcMenuItem
-                            v-e="['c:doc:ai:improve:concise']"
-                            data-testid="nc-doc-ai-improve-concise"
-                            @click="editor?.storage.docAi?.improve?.('concise')"
-                          >
-                            {{ $t('labels.docAiMakeConcise') }}
-                          </NcMenuItem>
-                          <NcMenuItem
-                            v-e="['c:doc:ai:improve:formal']"
-                            data-testid="nc-doc-ai-improve-formal"
-                            @click="editor?.storage.docAi?.improve?.('formal')"
-                          >
-                            {{ $t('labels.docAiMakeFormal') }}
-                          </NcMenuItem>
-                          <NcMenuItem
-                            v-e="['c:doc:ai:improve:casual']"
-                            data-testid="nc-doc-ai-improve-casual"
-                            @click="editor?.storage.docAi?.improve?.('casual')"
-                          >
-                            {{ $t('labels.docAiMakeCasual') }}
-                          </NcMenuItem>
-                          <NcMenuItem
-                            v-e="['c:doc:ai:improve:clear']"
-                            data-testid="nc-doc-ai-improve-clear"
-                            @click="editor?.storage.docAi?.improve?.('clear')"
-                          >
-                            {{ $t('labels.docAiImproveClarity') }}
-                          </NcMenuItem>
-                          <NcDivider />
-                          <NcMenuItem
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncCheck" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiFixGrammar') }}</span>
+                          </div>
+
+                          <div class="nc-doc-ai-menu-divider" />
+
+                          <!-- Summarize -->
+                          <div
                             v-e="['c:doc:ai:summarize:selection']"
+                            class="nc-doc-ai-menu-item"
                             data-testid="nc-doc-ai-summarize"
                             @click="onAiSummarizeSelection"
                           >
-                            {{ $t('labels.docAiSummarize') }}
-                          </NcMenuItem>
-                          <NcDivider />
-                          <NcSubMenu class="py-0" variant="small" data-testid="nc-doc-ai-translate-submenu">
-                            <template #title>
-                              {{ $t('labels.docAiTranslate') }}
-                            </template>
-                            <NcMenuItem
-                              v-for="lang in docAiTranslateLanguages"
-                              :key="lang"
-                              v-e="[`c:doc:ai:translate:${lang.toLowerCase()}`]"
-                              :data-testid="`nc-doc-ai-translate-${lang.toLowerCase()}`"
-                              @click="editor?.storage.docAi?.translate?.(lang)"
-                            >
-                              {{ lang }}
-                            </NcMenuItem>
-                          </NcSubMenu>
-                        </NcMenu>
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncAlignLeft" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiSummarize') }}</span>
+                          </div>
+
+                          <!-- Translate submenu -->
+                          <div class="nc-doc-ai-menu-sub" data-testid="nc-doc-ai-translate-submenu" @mouseenter="positionSubMenu">
+                            <div class="nc-doc-ai-menu-item">
+                              <div class="nc-doc-ai-menu-icon">
+                                <GeneralIcon icon="ncGlobe" />
+                              </div>
+                              <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiTranslate') }}</span>
+                              <GeneralIcon icon="chevronRight" class="nc-doc-ai-menu-arrow" />
+                            </div>
+                            <div class="nc-doc-ai-menu-sub-panel">
+                              <div
+                                v-for="lang in docAiTranslateLanguages"
+                                :key="lang"
+                                v-e="[`c:doc:ai:translate:${lang.toLowerCase()}`]"
+                                class="nc-doc-ai-menu-item"
+                                :data-testid="`nc-doc-ai-translate-${lang.toLowerCase()}`"
+                                @click="editor?.storage.docAi?.translate?.(lang)"
+                              >
+                                <span class="nc-doc-ai-menu-label">{{ lang }}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Change tone submenu -->
+                          <div class="nc-doc-ai-menu-sub" data-testid="nc-doc-ai-tone-submenu" @mouseenter="positionSubMenu">
+                            <div class="nc-doc-ai-menu-item">
+                              <div class="nc-doc-ai-menu-icon">
+                                <GeneralIcon icon="ncMessageCircle" />
+                              </div>
+                              <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiChangeTone') }}</span>
+                              <GeneralIcon icon="chevronRight" class="nc-doc-ai-menu-arrow" />
+                            </div>
+                            <div class="nc-doc-ai-menu-sub-panel">
+                              <div
+                                v-for="tone in docAiTones"
+                                :key="tone"
+                                v-e="[`c:doc:ai:improve:${tone.toLowerCase()}`]"
+                                class="nc-doc-ai-menu-item"
+                                :data-testid="`nc-doc-ai-tone-${tone.toLowerCase()}`"
+                                @click="editor?.storage.docAi?.improve?.(tone.toLowerCase())"
+                              >
+                                <span class="nc-doc-ai-menu-label">{{ tone }}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="nc-doc-ai-menu-divider" />
+
+                          <!-- Make shorter / longer -->
+                          <div
+                            v-e="['c:doc:ai:improve:shorter']"
+                            class="nc-doc-ai-menu-item"
+                            data-testid="nc-doc-ai-make-shorter"
+                            @click="editor?.storage.docAi?.improve?.('shorter')"
+                          >
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncMinimize" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiMakeShorter') }}</span>
+                          </div>
+                          <div
+                            v-e="['c:doc:ai:improve:longer']"
+                            class="nc-doc-ai-menu-item"
+                            data-testid="nc-doc-ai-make-longer"
+                            @click="editor?.storage.docAi?.improve?.('longer')"
+                          >
+                            <div class="nc-doc-ai-menu-icon">
+                              <GeneralIcon icon="ncMaximize" />
+                            </div>
+                            <span class="nc-doc-ai-menu-label">{{ $t('labels.docAiMakeLonger') }}</span>
+                          </div>
+                        </div>
                       </template>
                     </NcDropdown>
                   </template>
@@ -2283,6 +2393,96 @@ onBeforeUnmount(() => {
 
   .nc-doc-bubble-ai-divider {
     @apply w-px h-4 mx-0.5 bg-nc-border-gray-medium;
+  }
+
+  .nc-doc-ai-btn:hover {
+    @apply !text-nc-content-brand;
+  }
+}
+
+// AI dropdown menu — matches slash command menu styling
+// Ensure the Ant dropdown overlay doesn't clip sub-menus
+:global(.ant-dropdown:has(.nc-doc-ai-menu)) {
+  overflow: visible !important;
+}
+
+.nc-doc-ai-menu {
+  background: var(--nc-bg-default);
+  border-radius: 8px;
+  padding: 4px 0;
+  min-width: 220px;
+  border: 1px solid var(--nc-border-gray-medium);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+}
+
+.nc-doc-ai-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background-color: var(--nc-bg-gray-light);
+  }
+}
+
+.nc-doc-ai-menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+  color: var(--nc-content-gray-subtle);
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.nc-doc-ai-menu-label {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--nc-content-gray);
+  line-height: 1;
+}
+
+.nc-doc-ai-menu-divider {
+  height: 1px;
+  background: var(--nc-border-gray-medium);
+  margin: 4px 12px;
+}
+
+.nc-doc-ai-menu-arrow {
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
+  color: var(--nc-content-gray-muted);
+  flex-shrink: 0;
+}
+
+.nc-doc-ai-menu-sub {
+  position: relative;
+
+  > .nc-doc-ai-menu-sub-panel {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    background: var(--nc-bg-default);
+    border-radius: 8px;
+    padding: 4px 0;
+    min-width: 180px;
+    border: 1px solid var(--nc-border-gray-medium);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    z-index: 60;
+  }
+
+  &:hover > .nc-doc-ai-menu-item {
+    background-color: var(--nc-bg-gray-light);
   }
 }
 

@@ -62,17 +62,25 @@ export const docAiContinuePrompt = (
 
 export type ImproveMode =
   | 'grammar'
-  | 'concise'
-  | 'formal'
+  | 'writing'
+  | 'shorter'
+  | 'longer'
+  | 'professional'
   | 'casual'
-  | 'clear';
+  | 'straightforward'
+  | 'confident'
+  | 'friendly';
 
 const improveModeInstructions: Record<ImproveMode, string> = {
   grammar: 'Fix all grammar, spelling, and punctuation errors. Preserve the original meaning and tone.',
-  concise: 'Make the text more concise. Remove redundancy and filler words while preserving meaning.',
-  formal: 'Rewrite in a formal, professional tone suitable for business communication.',
+  writing: 'Improve the overall writing quality — fix grammar, improve word choice, enhance flow, and make the text clearer and more polished.',
+  shorter: 'Make the text shorter and more concise. Remove redundancy and filler words while preserving meaning.',
+  longer: 'Expand the text with more detail, examples, or explanation while preserving the original meaning and tone.',
+  professional: 'Rewrite in a professional, polished tone suitable for business communication.',
   casual: 'Rewrite in a friendly, conversational tone.',
-  clear: 'Improve clarity. Simplify complex sentences, use active voice, and ensure the message is easy to understand.',
+  straightforward: 'Rewrite in a direct, no-nonsense tone. Be clear and to the point.',
+  confident: 'Rewrite in a confident, assertive tone. Use strong language and decisive phrasing.',
+  friendly: 'Rewrite in a warm, approachable, and friendly tone.',
 };
 
 export const docAiImproveSystemMessage = () =>
@@ -86,8 +94,10 @@ You are a professional editor improving existing text.
 4. Preserve the original meaning.
 `.trim();
 
-export const docAiImprovePrompt = (text: string, mode: ImproveMode) =>
-  `${improveModeInstructions[mode]}\n\nText to improve:\n${text}`;
+export const docAiImprovePrompt = (text: string, mode: ImproveMode) => {
+  const instruction = improveModeInstructions[mode] || improveModeInstructions.writing;
+  return `${instruction}\n\nText to improve:\n${text}`;
+};
 
 // ── Summarize ─────────────────────────────────────────────────────────────────
 

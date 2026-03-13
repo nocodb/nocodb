@@ -240,7 +240,7 @@ const uiFilters = (t: UiTypesType) => {
   const showAiFields = [AIPrompt, AIButton].includes(t.name)
     ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI && showEEFeatures.value
     : true
-  const showColourField = t.name === UITypes.Colour ? isEeUI : true
+  const showColourField = t.name === UITypes.Colour ? isEeUI && showEEFeatures.value : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
   const showLTAR =
@@ -252,10 +252,10 @@ const uiFilters = (t: UiTypesType) => {
   }
 
   // UUID is only supported for PostgreSQL databases
-  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI)
+  const showUUID = t.name !== UITypes.UUID || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
   // AutoNumber is only supported for PostgreSQL databases
-  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI)
+  const showAutoNumber = t.name !== UITypes.AutoNumber || (isPg(meta.value?.source_id) && isEeUI && showEEFeatures.value)
 
   return (
     systemFiledNotEdited &&
@@ -1442,7 +1442,8 @@ const unique = computed({
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
                 !isUUID(formState) &&
                 !isAutoNumber(formState) &&
-                isEeUI
+                isEeUI &&
+                showEEFeatures
               "
               class="flex"
             >

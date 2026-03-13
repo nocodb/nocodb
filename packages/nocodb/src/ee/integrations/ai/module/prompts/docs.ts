@@ -74,16 +74,10 @@ export const docAiContinuePrompt = (
 
 // ── Improve Writing ───────────────────────────────────────────────────────────
 
-export type ImproveMode =
-  | 'grammar'
-  | 'writing'
-  | 'shorter'
-  | 'longer'
-  | 'professional'
-  | 'casual'
-  | 'straightforward'
-  | 'confident'
-  | 'friendly';
+import type { DocAiImproveMode } from 'nocodb-sdk';
+
+/** @deprecated Use `DocAiImproveMode` from `nocodb-sdk` instead. */
+export type ImproveMode = DocAiImproveMode;
 
 const improveModeInstructions: Record<ImproveMode, string> = {
   grammar: 'Fix all grammar, spelling, and punctuation errors. Preserve the original meaning and tone.',

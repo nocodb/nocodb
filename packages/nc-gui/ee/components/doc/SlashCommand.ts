@@ -17,6 +17,7 @@ import { createApp, h, ref } from 'vue'
 import tippy from 'tippy.js'
 import type { Instance as TippyInstance } from 'tippy.js'
 import SlashCommandMenu from './SlashCommandMenu.vue'
+import { getI18n } from '~/plugins/a.i18n'
 
 export interface SlashCommandItem {
   title: string
@@ -387,8 +388,8 @@ export const slashCommandItems: SlashCommandItem[] = [
   },
   // — AI —
   {
-    title: 'Continue writing',
-    description: 'AI continues from here',
+    get title() { return getI18n().global.t('labels.docAiContinueWriting') },
+    get description() { return getI18n().global.t('labels.docAiContinuesFromHere') },
     icon: icons.continueWriting,
     group: 'NocoAI',
     command: (editor: Editor, range: Range) => {
@@ -397,8 +398,8 @@ export const slashCommandItems: SlashCommandItem[] = [
     },
   },
   {
-    title: 'Summarize document',
-    description: 'AI summary of the full document',
+    get title() { return getI18n().global.t('labels.docAiSummarizeDocument') },
+    get description() { return getI18n().global.t('labels.docAiSummaryOfDocument') },
     icon: icons.summarize,
     group: 'NocoAI',
     command: (editor: Editor, range: Range) => {

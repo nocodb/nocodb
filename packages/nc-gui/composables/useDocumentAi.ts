@@ -14,6 +14,8 @@ export const useDocumentAi = createSharedComposable(() => {
 
   const aiTranslate = async (_text: string, _targetLanguage: string): Promise<string | undefined> => undefined
 
+  const abortCurrentRequest = () => {}
+
   return {
     docAiLoading,
     aiWrite,
@@ -21,5 +23,6 @@ export const useDocumentAi = createSharedComposable(() => {
     aiImprove,
     aiSummarize,
     aiTranslate,
+    abortCurrentRequest,
   }
 })

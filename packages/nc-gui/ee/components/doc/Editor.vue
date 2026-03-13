@@ -190,7 +190,7 @@ const { copy } = useCopy()
 const { isCopied: isLinkCopied, performCopy: performCopyLink } = useIsCopied(2000)
 
 // --- Document AI ---
-const { aiWrite, aiContinue, aiImprove, aiSummarize, aiTranslate, docAiLoading } = useDocumentAi()
+const { aiWrite, aiContinue, aiImprove, aiSummarize, aiTranslate, docAiLoading, abortCurrentRequest } = useDocumentAi()
 const { isAiFeaturesEnabled, aiIntegrationAvailable } = useNocoAi()
 const { blockDocAi, showUpgradeToUseDocAi } = useEeConfig()
 
@@ -341,6 +341,7 @@ const scrollAiSuggestionIntoView = () => {
 }
 
 const aiHighlightPluginKey = new PluginKey('aiHighlight')
+const aiAcceptedPluginKey = new PluginKey('aiAcceptedHighlight')
 
 /** Add a highlight decoration over the given range to mark AI-generated content. */
 const addAiHighlight = (from: number, to: number) => {
@@ -376,6 +377,61 @@ const addAiHighlight = (from: number, to: number) => {
 const removeAiHighlight = () => {
   if (!editor.value) return
   editor.value.unregisterPlugin(aiHighlightPluginKey)
+}
+
+/** Swap the AI highlight from "generated" (amber) to "accepted" (fade-out) in place.
+ *  Directly swaps CSS classes on existing DOM spans to avoid plugin re-registration
+ *  which would cause a visible flash (unregister renders → register renders). */
+const swapAiHighlightToAccepted = () => {
+  if (!editor.value) return
+
+  // Swap class directly on DOM — no re-render, no flash
+  const editorEl = editor.value.view.dom
+  editorEl.querySelectorAll('.nc-doc-ai-generated').forEach((span) => {
+    span.classList.remove('nc-doc-ai-generated')
+    span.classList.add('nc-doc-ai-accepted')
+  })
+
+  // Clean up the plugin after the fade-out animation completes
+  setTimeout(() => {
+    try { editor.value?.unregisterPlugin(aiHighlightPluginKey) } catch {}
+  }, 3000)
+}
+
+/** Flash a brief fade-out highlight over a range to confirm accepted content. */
+const flashAcceptedHighlight = (from: number, to: number) => {
+  if (!editor.value) return
+
+  // Remove any previous accepted highlight first
+  try { editor.value.unregisterPlugin(aiAcceptedPluginKey) } catch {}
+
+  const plugin = new Plugin({
+    key: aiAcceptedPluginKey,
+    state: {
+      init(_, state) {
+        const clampedTo = Math.min(to, state.doc.content.size)
+        return DecorationSet.create(state.doc, [
+          Decoration.inline(from, clampedTo, { class: 'nc-doc-ai-accepted' }),
+        ])
+      },
+      apply(tr, set) {
+        return set.map(tr.mapping, tr.doc)
+      },
+    },
+    props: {
+      decorations(state) {
+        return this.getState(state)
+      },
+    },
+  })
+
+  editor.value.registerPlugin(plugin)
+  editor.value.view.dispatch(editor.value.state.tr)
+
+  // Remove after animation completes
+  setTimeout(() => {
+    try { editor.value?.unregisterPlugin(aiAcceptedPluginKey) } catch {}
+  }, 3000)
 }
 
 /** Position the suggestion popup below the text selection using ProseMirror coordinates.
@@ -457,6 +513,23 @@ const showAiSuggestion = async (
   }
 }
 
+/** Insert AI result inline at the given position, highlight it, and switch to sticky action bar. */
+const insertInlineAiResult = (sanitized: string, pos: number) => {
+  if (!editor.value) return
+  editor.value.chain().focus().setTextSelection(pos).run()
+  const beforeSize = editor.value.state.doc.content.size
+  insertMarkdownContent(editor.value, sanitized)
+  const afterSize = editor.value.state.doc.content.size
+  const insertedLength = afterSize - beforeSize
+  addAiHighlight(pos, pos + insertedLength)
+  aiSuggestionStyle.value = {
+    position: 'sticky',
+    bottom: '24px',
+    zIndex: '50',
+  }
+  scrollAiSuggestionIntoView()
+}
+
 /** Show the AI suggestion popup at the cursor position (no selection needed).
  *  Inserts the result inline into the editor and shows an action bar below.
  *  Used for operations like "Continue writing" triggered from the slash menu. */
@@ -505,22 +578,7 @@ const showAiSuggestionAtCursor = async (
     if (rawResult) {
       const sanitized = sanitizeAiResponse(rawResult)
       aiSuggestion.result = sanitized
-
-      // Insert content inline at cursor position
-      editor.value.chain().focus().setTextSelection(pos).run()
-      insertMarkdownContent(editor.value, sanitized)
-
-      // Highlight the inserted content
-      const endPos = editor.value.state.selection.from
-      addAiHighlight(pos, endPos)
-
-      // Switch to sticky positioning so action bar is always visible
-      aiSuggestionStyle.value = {
-        position: 'sticky',
-        bottom: '24px',
-        zIndex: '50',
-      }
-      scrollAiSuggestionIntoView()
+      insertInlineAiResult(sanitized, pos)
     } else {
       aiSuggestion.error = 'No result returned'
     }
@@ -531,6 +589,8 @@ const showAiSuggestionAtCursor = async (
 }
 
 const dismissAiSuggestion = () => {
+  // Abort any in-flight AI request
+  abortCurrentRequest()
   // In inline mode with result already inserted, undo the insertion on discard
   if (aiSuggestion.inlineMode && aiSuggestion.result && editor.value) {
     removeAiHighlight()
@@ -550,8 +610,9 @@ const onAiSuggestionAccept = () => {
   $e('a:doc:ai:suggestion:accept', { operation: aiSuggestion.operation })
 
   if (aiSuggestion.inlineMode) {
-    // Inline mode — content already in editor, remove highlight and dismiss
-    removeAiHighlight()
+    // Inline mode — content already in editor.
+    // Swap the decoration class to fade-out in place (no remove+re-add blink).
+    swapAiHighlightToAccepted()
     // Reset inlineMode before dismiss so it doesn't undo the insertion
     aiSuggestion.inlineMode = false
     dismissAiSuggestion()
@@ -561,7 +622,10 @@ const onAiSuggestionAccept = () => {
   const { from, to } = aiSuggestion.selectionRange
   // Selection-mode — replace selected text
   editor.value.chain().focus().setTextSelection({ from, to }).deleteSelection().run()
+  const beforeSize = editor.value.state.doc.content.size
   insertMarkdownContent(editor.value, aiSuggestion.result)
+  const afterSize = editor.value.state.doc.content.size
+  flashAcceptedHighlight(from, from + (afterSize - beforeSize))
   dismissAiSuggestion()
 }
 
@@ -571,7 +635,10 @@ const onAiSuggestionInsertBelow = () => {
 
   const { to } = aiSuggestion.selectionRange
   editor.value.chain().focus().setTextSelection(to).run()
+  const beforeSize = editor.value.state.doc.content.size
   insertMarkdownContent(editor.value, `\n${aiSuggestion.result}`)
+  const afterSize = editor.value.state.doc.content.size
+  flashAcceptedHighlight(to, to + (afterSize - beforeSize))
   dismissAiSuggestion()
 }
 
@@ -583,7 +650,9 @@ const onAiSuggestionTryAgain = () => {
       removeAiHighlight()
       editor.value.commands.undo()
     }
-    const pos = aiSuggestion.selectionRange.from
+    // Re-read position from editor state after undo (stored pos may be invalid)
+    const pos = editor.value?.state.selection.from ?? aiSuggestion.selectionRange.from
+    aiSuggestion.selectionRange = { from: pos, to: pos }
     const fullText = editor.value!.state.doc.textBetween(0, pos, '\n')
     const precedingContent = fullText.length > 2000 ? fullText.slice(-2000) : fullText
     if (!precedingContent.trim() && !title.value?.trim()) return
@@ -596,18 +665,7 @@ const onAiSuggestionTryAgain = () => {
         if (rawResult && editor.value) {
           const sanitized = sanitizeAiResponse(rawResult)
           aiSuggestion.result = sanitized
-          // Insert inline
-          editor.value.chain().focus().setTextSelection(pos).run()
-          insertMarkdownContent(editor.value, sanitized)
-          // Highlight the inserted content
-          const endPos = editor.value.state.selection.from
-          addAiHighlight(pos, endPos)
-          // Switch to sticky positioning so action bar is always visible
-          aiSuggestionStyle.value = {
-            position: 'sticky',
-            bottom: '24px',
-            zIndex: '50',
-          }
+          insertInlineAiResult(sanitized, pos)
         } else {
           aiSuggestion.error = 'No result returned'
         }
@@ -687,7 +745,7 @@ const runAiSuggestionOperation = (operation: string, params: Record<string, any>
     }
     // For tone modes, capitalize the mode name as the label
     const label = labelKey[mode] ? t(labelKey[mode]) : mode.charAt(0).toUpperCase() + mode.slice(1)
-    showAiSuggestion('improve', params, label, () => aiImprove(selected, mode as any))
+    showAiSuggestion('improve', params, label, () => aiImprove(selected, mode))
   } else if (operation === 'translate') {
     const lang = params.targetLanguage as string
     showAiSuggestion('translate', params, t('labels.docAiTranslateTo', { language: lang }), () => aiTranslate(selected, lang))
@@ -1801,7 +1859,7 @@ const onCopyLinkUrl = async () => {
   isLinkCopiedTooltip.value = true
   setTimeout(() => {
     isLinkCopiedTooltip.value = false
-  }, 1500)
+  }, 3000)
 }
 
 let cleanupHoverListeners: (() => void) | undefined
@@ -4222,13 +4280,36 @@ body.nc-doc-dragging .nc-doc-editor-inner * {
 
 /* AI-generated content highlight — applied via ProseMirror decoration */
 .nc-doc-ai-generated {
-  background-color: rgba(59, 130, 246, 0.08);
-  border-bottom: 1px solid rgba(59, 130, 246, 0.25);
+  background-color: rgba(245, 158, 11, 0.1);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
   transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .dark .nc-doc-ai-generated {
-  background-color: rgba(96, 165, 250, 0.1);
-  border-bottom-color: rgba(96, 165, 250, 0.2);
+  background-color: rgba(251, 191, 36, 0.1);
+  border-bottom-color: rgba(251, 191, 36, 0.25);
+}
+
+/* Brief fade-out highlight on accept / insert below */
+.nc-doc-ai-accepted {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+  animation: aiAcceptedFade 3s ease-out forwards;
+}
+
+.dark .nc-doc-ai-accepted {
+  background-color: rgba(251, 191, 36, 0.1);
+  border-bottom-color: rgba(251, 191, 36, 0.25);
+}
+
+@keyframes aiAcceptedFade {
+  0% {
+    background-color: rgba(245, 158, 11, 0.1);
+    border-bottom-color: rgba(245, 158, 11, 0.3);
+  }
+  100% {
+    background-color: transparent;
+    border-bottom-color: transparent;
+  }
 }
 </style>

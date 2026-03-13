@@ -8,6 +8,7 @@
 import { Extension } from '@tiptap/core'
 import type { Editor } from '@tiptap/core'
 import { marked } from 'marked'
+import DOMPurify from 'isomorphic-dompurify'
 
 export interface DocAiStorage {
   write: ((instruction: string) => Promise<void>) | null
@@ -40,7 +41,8 @@ export const DocAiExtension = Extension.create({
  * TipTap's insertContent natively handles HTML parsing with proper schema awareness.
  */
 export function insertMarkdownContent(editor: Editor, markdown: string) {
-  const html = marked.parse(markdown, { async: false }) as string
+  const rawHtml = marked.parse(markdown, { async: false }) as string
+  const html = DOMPurify.sanitize(rawHtml)
 
   editor.chain().focus().insertContent(html).run()
 }

@@ -83,6 +83,12 @@ onClickOutside(popupRef, () => {
 })
 
 useEventListener('keydown', (e: KeyboardEvent) => {
+  // Only handle keys when the popup or editor is focused (not other inputs)
+  const target = e.target as HTMLElement | null
+  const isInPopup = popupRef.value?.contains(target)
+  const isInEditor = target?.closest('.ProseMirror')
+  if (!isInPopup && !isInEditor) return
+
   if (e.key === 'Escape') {
     e.preventDefault()
     emit('discard')
@@ -283,10 +289,11 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 <style lang="scss" scoped>
 .nc-doc-ai-suggestion {
   @apply flex flex-col;
-  background: var(--nc-bg-default);
-  border: 1px solid var(--nc-border-gray-medium);
+  background: color-mix(in srgb, var(--nc-bg-default) 97%, var(--nc-content-brand) 3%);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-left: 3px solid var(--nc-content-brand);
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08);
   width: 560px;
   z-index: 50;
   overflow: hidden;
@@ -366,7 +373,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 }
 
 .nc-doc-ai-suggestion-content {
-  @apply px-3.5 py-2 text-bodySm text-nc-content-gray leading-relaxed;
+  @apply px-3.5 py-2 text-body text-nc-content-gray leading-relaxed;
   white-space: pre-wrap;
   max-height: 200px;
   overflow-y: auto;
@@ -378,14 +385,16 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 
 .nc-doc-ai-suggestion-actions {
   @apply flex items-center gap-1.5 px-2.5 py-2;
-  border-top: 1px solid var(--nc-border-gray-light);
+  border-top: 1px solid rgba(99, 102, 241, 0.12);
+  background: color-mix(in srgb, var(--nc-bg-default) 94%, var(--nc-content-brand) 6%);
 }
 
 .nc-doc-ai-suggestion-inline {
   width: 100%;
   border-radius: 8px;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
-  border-top: 1px solid var(--nc-border-gray-medium);
+  box-shadow: 0 -4px 16px rgba(99, 102, 241, 0.08), 0 -1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-left: 3px solid var(--nc-content-brand);
 }
 
 .nc-doc-ai-suggestion-actions-inline {

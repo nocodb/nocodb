@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import type { DocAiImproveMode } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/ncError';
@@ -14,6 +15,13 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { AiDocsService } from '~/integrations/ai/module/services/ai-docs.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+
+type DocAiRequestBody =
+  | { operation: 'docAiWrite'; input: { instruction: string; context?: string; title?: string } }
+  | { operation: 'docAiContinue'; input: { precedingContent: string; title?: string } }
+  | { operation: 'docAiImprove'; input: { text: string; mode: DocAiImproveMode } }
+  | { operation: 'docAiSummarize'; input: { text: string } }
+  | { operation: 'docAiTranslate'; input: { text: string; targetLanguage: string } };
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -29,10 +37,7 @@ export class AiDocsController {
     @TenantContext() context: NcContext,
     @Req() req: Request,
     @Body()
-    body: {
-      operation: string;
-      input: any;
-    },
+    body: DocAiRequestBody,
   ) {
     const { operation } = body;
 
@@ -62,7 +67,7 @@ export class AiDocsController {
         req,
       });
     } else {
-      NcError.badRequest(`Unknown document AI operation: ${operation}`);
+      NcError.badRequest('Unknown document AI operation');
     }
   }
 }

@@ -15,6 +15,15 @@ export const useDocumentAi = createSharedComposable(() => {
 
   const docAiLoading = ref(false)
 
+  let activeAbortController: AbortController | null = null
+
+  const abortCurrentRequest = () => {
+    if (activeAbortController) {
+      activeAbortController.abort()
+      activeAbortController = null
+    }
+  }
+
   const callDocAiApi = async (operation: string, input: any, customBaseId?: string) => {
     try {
       const baseId = customBaseId || activeProjectId.value
@@ -23,17 +32,29 @@ export const useDocumentAi = createSharedComposable(() => {
         return
       }
 
+      // Abort any in-flight request before starting a new one
+      abortCurrentRequest()
+      const controller = new AbortController()
+      activeAbortController = controller
+
       docAiLoading.value = true
       aiError.value = ''
 
-      const res = await $api.instance.post(`/api/v2/ai/bases/${baseId}/docs`, { operation, input }).then((r: any) => r.data)
+      const res = await $api.instance
+        .post(`/api/v2/ai/bases/${baseId}/docs`, { operation, input }, { signal: controller.signal })
+        .then((r: any) => r.data)
 
       return res
     } catch (e: any) {
+      if (e?.name === 'CanceledError' || e?.code === 'ERR_CANCELED') {
+        // Request was aborted — silently ignore
+        return
+      }
       const error = await extractSdkResponseErrorMsg(e)
       aiError.value = error
       message.warning(error || 'AI is busy. Please try again.')
     } finally {
+      activeAbortController = null
       docAiLoading.value = false
     }
   }
@@ -70,5 +91,6 @@ export const useDocumentAi = createSharedComposable(() => {
     aiImprove,
     aiSummarize,
     aiTranslate,
+    abortCurrentRequest,
   }
 })

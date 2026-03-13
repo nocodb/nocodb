@@ -330,6 +330,16 @@ const aiSuggestion = reactive<AiSuggestionState>({
 
 const aiSuggestionStyle = ref<Record<string, string>>({ display: 'none' })
 
+const aiSuggestionPopupRef = ref<InstanceType<typeof DocAiSuggestionPopup> | null>(null)
+
+/** Scroll the AI suggestion popup into view within the scroll container. */
+const scrollAiSuggestionIntoView = () => {
+  nextTick(() => {
+    const el = (aiSuggestionPopupRef.value as any)?.$el as HTMLElement | undefined
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
+}
+
 const aiHighlightPluginKey = new PluginKey('aiHighlight')
 
 /** Add a highlight decoration over the given range to mark AI-generated content. */
@@ -430,15 +440,14 @@ const showAiSuggestion = async (
   aiSuggestion.operationParams = operationParams
 
   positionAiSuggestion()
-
-  // Force bubble menu to re-evaluate should-show (it only checks on selection change)
-  editor.value.view.dispatch(editor.value.state.tr)
+  scrollAiSuggestionIntoView()
 
   try {
     const rawResult = await aiFn()
     aiSuggestion.loading = false
     if (rawResult) {
       aiSuggestion.result = sanitizeAiResponse(rawResult)
+      scrollAiSuggestionIntoView()
     } else {
       aiSuggestion.error = 'No result returned'
     }
@@ -488,6 +497,7 @@ const showAiSuggestionAtCursor = async (
     left: `${left}px`,
     zIndex: '50',
   }
+  scrollAiSuggestionIntoView()
 
   try {
     const rawResult = await aiFn()
@@ -510,6 +520,7 @@ const showAiSuggestionAtCursor = async (
         bottom: '24px',
         zIndex: '50',
       }
+      scrollAiSuggestionIntoView()
     } else {
       aiSuggestion.error = 'No result returned'
     }
@@ -662,6 +673,9 @@ const positionSubMenu = (e: MouseEvent) => {
 const runAiSuggestionOperation = (operation: string, params: Record<string, any>) => {
   const selected = getSelectedText()
   if (!selected.trim()) return
+
+  // Immediately hide bubble menu before async work begins
+  aiSuggestion.visible = true
 
   if (operation === 'improve') {
     const mode = params.mode as string
@@ -2132,10 +2146,11 @@ onBeforeUnmount(() => {
             <template v-if="editor">
               <!-- Bubble menu: appears on text selection (including inside table cells) -->
               <BubbleMenu
+                v-if="!aiSuggestion.visible"
                 :editor="editor"
                 :update-delay="250"
                 :tippy-options="{ duration: 100, maxWidth: 'none' }"
-                :should-show="(props: any) => !aiSuggestion.visible && showRichTextMenu(props)"
+                :should-show="showRichTextMenu"
               >
                 <!-- Formatting toolbar + custom link button -->
                 <div class="nc-doc-bubble-toolbar flex items-center">
@@ -2188,7 +2203,6 @@ onBeforeUnmount(() => {
                           size="small"
                           type="text"
                           :disabled="!isDocAiConfigured"
-                          :loading="docAiLoading"
                           class="nc-doc-ai-btn"
                           data-testid="nc-doc-ai-menu-btn"
                           @mousedown.prevent
@@ -2450,6 +2464,7 @@ onBeforeUnmount(() => {
 
                 <!-- AI Suggestion Popup — floats below selection after bubble menu AI action -->
                 <DocAiSuggestionPopup
+                  ref="aiSuggestionPopupRef"
                   v-if="aiSuggestion.visible"
                   :style="aiSuggestionStyle"
                   :loading="aiSuggestion.loading"

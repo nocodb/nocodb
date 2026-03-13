@@ -13,8 +13,8 @@ export interface DocAiStorage {
   write: ((instruction: string) => Promise<void>) | null
   continueWriting: (() => Promise<void>) | null
   summarize: (() => Promise<void>) | null
-  improve: ((mode: string) => Promise<void>) | null
-  translate: ((targetLanguage: string) => Promise<void>) | null
+  improve: ((mode: string) => void) | null
+  translate: ((targetLanguage: string) => void) | null
   _pendingInstruction: string | null
   isLoading: boolean
 }

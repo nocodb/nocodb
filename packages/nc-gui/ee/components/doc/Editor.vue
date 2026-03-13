@@ -195,6 +195,26 @@ const { blockDocAi, showUpgradeToUseDocAi } = useEeConfig()
 
 const isDocAiAvailable = computed(() => isAiFeaturesEnabled.value && aiIntegrationAvailable.value && !blockDocAi.value)
 
+const docAiTranslateLanguages = [
+  'English',
+  'Spanish',
+  'French',
+  'German',
+  'Portuguese',
+  'Italian',
+  'Dutch',
+  'Russian',
+  'Chinese, Simplified',
+  'Chinese, Traditional',
+  'Japanese',
+  'Korean',
+  'Arabic',
+  'Hebrew',
+  'Indonesian',
+  'Vietnamese',
+  'Filipino',
+]
+
 /**
  * Extract plain text from the current ProseMirror doc (for AI context).
  * For "continue writing", takes from the end. For general context, takes
@@ -205,7 +225,6 @@ const getDocPlainText = (maxChars = 2000, fromEnd = true) => {
   const text = editor.value.state.doc.textContent
   if (text.length <= maxChars) return text
   if (fromEnd) return text.slice(-maxChars)
-  // Mixed: first 500 chars + last (maxChars - 500) chars
   const headLen = Math.min(500, Math.floor(maxChars / 4))
   return `${text.slice(0, headLen)}\n...\n${text.slice(-(maxChars - headLen))}`
 }
@@ -215,6 +234,168 @@ const getSelectedText = () => {
   if (!editor.value) return ''
   const { from, to } = editor.value.state.selection
   return editor.value.state.doc.textBetween(from, to, '\n')
+}
+
+// --- AI Suggestion Popup State ---
+
+interface AiSuggestionState {
+  visible: boolean
+  loading: boolean
+  result: string
+  error: string
+  operationLabel: string
+  /** Saved selection range for accept/insert-below actions */
+  selectionRange: { from: number; to: number }
+  /** Operation name + params for "Try again" */
+  operation: string
+  operationParams: Record<string, any>
+}
+
+const aiSuggestion = reactive<AiSuggestionState>({
+  visible: false,
+  loading: false,
+  result: '',
+  error: '',
+  operationLabel: '',
+  selectionRange: { from: 0, to: 0 },
+  operation: '',
+  operationParams: {},
+})
+
+const aiSuggestionStyle = ref<Record<string, string>>({ display: 'none' })
+
+/** Position the suggestion popup below the text selection using ProseMirror coordinates.
+ *  Uses editor.view.coordsAtPos() which is stable regardless of mouse position. */
+const positionAiSuggestion = () => {
+  if (!editor.value || !editorContentRef.value) {
+    aiSuggestionStyle.value = { display: 'none' }
+    return
+  }
+
+  const { from, to } = editor.value.state.selection
+  if (from === to) {
+    aiSuggestionStyle.value = { display: 'none' }
+    return
+  }
+
+  const view = editor.value.view
+  const startCoords = view.coordsAtPos(from)
+  const endCoords = view.coordsAtPos(to)
+  const containerRect = editorContentRef.value.getBoundingClientRect()
+
+  // Bottom of selection = the lowest line's bottom edge
+  const selectionBottom = Math.max(startCoords.bottom, endCoords.bottom)
+  // Left-align with the start of the selection
+  const selectionLeft = startCoords.left
+
+  // Clamp left so popup (max 560px wide) doesn't overflow the container
+  const popupMaxWidth = 560
+  const rawLeft = selectionLeft - containerRect.left
+  const maxLeft = Math.max(0, containerRect.width - popupMaxWidth)
+  const left = Math.max(0, Math.min(rawLeft, maxLeft))
+
+  aiSuggestionStyle.value = {
+    position: 'absolute',
+    top: `${selectionBottom - containerRect.top + 12}px`,
+    left: `${left}px`,
+    zIndex: '50',
+  }
+}
+
+/** Show the AI suggestion popup with a loading state, then run the AI operation. */
+const showAiSuggestion = async (
+  operation: string,
+  operationParams: Record<string, any>,
+  operationLabel: string,
+  aiFn: () => Promise<string | undefined>,
+) => {
+  if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
+  if (!editor.value) return
+
+  // Save selection range before the async call
+  const { from, to } = editor.value.state.selection
+  if (from === to) return
+
+  aiSuggestion.visible = true
+  aiSuggestion.loading = true
+  aiSuggestion.result = ''
+  aiSuggestion.error = ''
+  aiSuggestion.operationLabel = operationLabel
+  aiSuggestion.selectionRange = { from, to }
+  aiSuggestion.operation = operation
+  aiSuggestion.operationParams = operationParams
+
+  positionAiSuggestion()
+
+  try {
+    const result = await aiFn()
+    aiSuggestion.loading = false
+    if (result) {
+      aiSuggestion.result = result
+    } else {
+      aiSuggestion.error = 'No result returned'
+    }
+  } catch {
+    aiSuggestion.loading = false
+    aiSuggestion.error = 'Something went wrong. Please try again.'
+  }
+}
+
+const dismissAiSuggestion = () => {
+  aiSuggestion.visible = false
+  aiSuggestion.loading = false
+  aiSuggestion.result = ''
+  aiSuggestion.error = ''
+  // Refocus editor so the bubble menu can reappear on next selection
+  editor.value?.commands.focus()
+}
+
+const onAiSuggestionAccept = () => {
+  if (!editor.value || !aiSuggestion.result) return
+  $e('a:doc:ai:suggestion:accept', { operation: aiSuggestion.operation })
+
+  const { from, to } = aiSuggestion.selectionRange
+  editor.value.chain().focus().setTextSelection({ from, to }).deleteSelection().run()
+  insertMarkdownContent(editor.value, aiSuggestion.result)
+  dismissAiSuggestion()
+}
+
+const onAiSuggestionInsertBelow = () => {
+  if (!editor.value || !aiSuggestion.result) return
+  $e('a:doc:ai:suggestion:insertBelow', { operation: aiSuggestion.operation })
+
+  const { to } = aiSuggestion.selectionRange
+  editor.value.chain().focus().setTextSelection(to).run()
+  insertMarkdownContent(editor.value, `\n${aiSuggestion.result}`)
+  dismissAiSuggestion()
+}
+
+const onAiSuggestionTryAgain = () => {
+  $e('a:doc:ai:suggestion:tryAgain', { operation: aiSuggestion.operation })
+  runAiSuggestionOperation(aiSuggestion.operation, aiSuggestion.operationParams)
+}
+
+/** Dispatch an AI operation into the suggestion popup. */
+const runAiSuggestionOperation = (operation: string, params: Record<string, any>) => {
+  const selected = getSelectedText()
+  if (!selected.trim()) return
+
+  if (operation === 'improve') {
+    const mode = params.mode as string
+    const labelKey: Record<string, string> = {
+      grammar: 'labels.docAiFixGrammar',
+      concise: 'labels.docAiMakeConcise',
+      formal: 'labels.docAiMakeFormal',
+      casual: 'labels.docAiMakeCasual',
+      clear: 'labels.docAiImproveClarity',
+    }
+    showAiSuggestion('improve', params, t(labelKey[mode] || mode), () => aiImprove(selected, mode as any))
+  } else if (operation === 'translate') {
+    const lang = params.targetLanguage as string
+    showAiSuggestion('translate', params, t('labels.docAiTranslateTo', { language: lang }), () => aiTranslate(selected, lang))
+  } else if (operation === 'summarize') {
+    showAiSuggestion('summarize', params, t('labels.docAiSummarize'), () => aiSummarize(selected))
+  }
 }
 
 /**
@@ -255,46 +436,26 @@ const wireDocAiStorage = () => {
         insertMarkdownContent(editor.value, result)
       }
     },
-    improve: async (mode: string) => {
+    improve: (mode: string) => {
       if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
       $e('a:doc:ai:improve', { mode })
-      const selected = getSelectedText()
-      if (!selected.trim()) return
-      const result = await aiImprove(selected, mode as any)
-      if (result && editor.value) {
-        editor.value.chain().focus().deleteSelection().run()
-        insertMarkdownContent(editor.value, result)
-      }
+      runAiSuggestionOperation('improve', { mode })
     },
-    translate: async (targetLanguage: string) => {
+    translate: (targetLanguage: string) => {
       if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
       $e('a:doc:ai:translate', { targetLanguage })
-      const selected = getSelectedText()
-      if (!selected.trim()) return
-      const result = await aiTranslate(selected, targetLanguage)
-      if (result && editor.value) {
-        editor.value.chain().focus().deleteSelection().run()
-        insertMarkdownContent(editor.value, result)
-      }
+      runAiSuggestionOperation('translate', { targetLanguage })
     },
     _pendingInstruction: null,
     get isLoading() { return docAiLoading.value },
   }
 }
 
-/** Summarize just the selected text (bubble menu action). */
-const onAiSummarizeSelection = async () => {
+/** Summarize just the selected text (bubble menu action) — routes through popup. */
+const onAiSummarizeSelection = () => {
   if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
-  const selected = getSelectedText()
-  if (!selected.trim()) return
   $e('a:doc:ai:summarize:selection')
-  const result = await aiSummarize(selected)
-  if (result && editor.value) {
-    // Move cursor to end of selection, then insert summary as a new paragraph below
-    const { to } = editor.value.state.selection
-    editor.value.chain().focus().setTextSelection(to).run()
-    insertMarkdownContent(editor.value, `\n${result}`)
-  }
+  runAiSuggestionOperation('summarize', {})
 }
 
 // --- Search & Replace bar state (Cmd/Ctrl+F) ---
@@ -1685,7 +1846,7 @@ onBeforeUnmount(() => {
                 :editor="editor"
                 :update-delay="250"
                 :tippy-options="{ duration: 100, maxWidth: 'none' }"
-                :should-show="showRichTextMenu"
+                :should-show="(props: any) => !aiSuggestion.visible && showRichTextMenu(props)"
               >
                 <!-- Formatting toolbar + custom link button -->
                 <div class="nc-doc-bubble-toolbar flex items-center">
@@ -1779,7 +1940,7 @@ onBeforeUnmount(() => {
                           >
                             {{ $t('labels.docAiImproveClarity') }}
                           </NcMenuItem>
-                          <a-menu-divider />
+                          <NcDivider />
                           <NcMenuItem
                             v-e="['c:doc:ai:summarize:selection']"
                             data-testid="nc-doc-ai-summarize"
@@ -1787,42 +1948,21 @@ onBeforeUnmount(() => {
                           >
                             {{ $t('labels.docAiSummarize') }}
                           </NcMenuItem>
-                          <a-menu-divider />
-                          <NcMenuItem
-                            v-e="['c:doc:ai:translate:spanish']"
-                            data-testid="nc-doc-ai-translate-spanish"
-                            @click="editor?.storage.docAi?.translate?.('Spanish')"
-                          >
-                            {{ $t('labels.docAiTranslateTo', { language: 'Spanish' }) }}
-                          </NcMenuItem>
-                          <NcMenuItem
-                            v-e="['c:doc:ai:translate:french']"
-                            data-testid="nc-doc-ai-translate-french"
-                            @click="editor?.storage.docAi?.translate?.('French')"
-                          >
-                            {{ $t('labels.docAiTranslateTo', { language: 'French' }) }}
-                          </NcMenuItem>
-                          <NcMenuItem
-                            v-e="['c:doc:ai:translate:german']"
-                            data-testid="nc-doc-ai-translate-german"
-                            @click="editor?.storage.docAi?.translate?.('German')"
-                          >
-                            {{ $t('labels.docAiTranslateTo', { language: 'German' }) }}
-                          </NcMenuItem>
-                          <NcMenuItem
-                            v-e="['c:doc:ai:translate:japanese']"
-                            data-testid="nc-doc-ai-translate-japanese"
-                            @click="editor?.storage.docAi?.translate?.('Japanese')"
-                          >
-                            {{ $t('labels.docAiTranslateTo', { language: 'Japanese' }) }}
-                          </NcMenuItem>
-                          <NcMenuItem
-                            v-e="['c:doc:ai:translate:chinese']"
-                            data-testid="nc-doc-ai-translate-chinese"
-                            @click="editor?.storage.docAi?.translate?.('Chinese')"
-                          >
-                            {{ $t('labels.docAiTranslateTo', { language: 'Chinese' }) }}
-                          </NcMenuItem>
+                          <NcDivider />
+                          <NcSubMenu class="py-0" variant="small" data-testid="nc-doc-ai-translate-submenu">
+                            <template #title>
+                              {{ $t('labels.docAiTranslate') }}
+                            </template>
+                            <NcMenuItem
+                              v-for="lang in docAiTranslateLanguages"
+                              :key="lang"
+                              v-e="[`c:doc:ai:translate:${lang.toLowerCase()}`]"
+                              :data-testid="`nc-doc-ai-translate-${lang.toLowerCase()}`"
+                              @click="editor?.storage.docAi?.translate?.(lang)"
+                            >
+                              {{ lang }}
+                            </NcMenuItem>
+                          </NcSubMenu>
                         </NcMenu>
                       </template>
                     </NcDropdown>
@@ -1962,6 +2102,21 @@ onBeforeUnmount(() => {
                     <span>{{ $t('labels.removeLink') }}</span>
                   </div>
                 </div>
+
+                <!-- AI Suggestion Popup — floats below selection after bubble menu AI action -->
+                <DocAiSuggestionPopup
+                  v-if="aiSuggestion.visible"
+                  :style="aiSuggestionStyle"
+                  :loading="aiSuggestion.loading"
+                  :result="aiSuggestion.result"
+                  :error="aiSuggestion.error"
+                  :operation-label="aiSuggestion.operationLabel"
+                  @accept="onAiSuggestionAccept"
+                  @discard="dismissAiSuggestion"
+                  @try-again="onAiSuggestionTryAgain"
+                  @insert-below="onAiSuggestionInsertBelow"
+                  @stop="dismissAiSuggestion"
+                />
               </div>
 
               <!-- Table context menus: column/row handles + dropdown menus (hidden for read-only users) -->

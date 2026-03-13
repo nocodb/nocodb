@@ -323,6 +323,7 @@ import NcArrowDownIcon from '~icons/nc-icons-v2/arrow-down.svg'
 import NcCornerRightUpIcon from '~icons/nc-icons-v2/corner-right-up.svg'
 import NcChevronsRightIcon from '~icons/nc-icons-v2/chevrons-right.svg'
 import NcListIcon from '~icons/nc-icons-v2/list.svg'
+import NcListEndIcon from '~icons/nc-icons-v2/list-end.svg'
 import NcNumberListIcon from '~icons/nc-icons-v2/number-list.svg'
 import NcCheckListIcon from '~icons/nc-icons-v2/check-list.svg'
 import NcChevronsDownIcon from '~icons/nc-icons-v2/chevrons-down.svg'
@@ -1401,6 +1402,7 @@ export const iconMap = {
   'ncCornerRightUp': NcCornerRightUpIcon,
   'ncChevronsRight': NcChevronsRightIcon,
   'ncList': NcListIcon,
+  'ncListEnd': NcListEndIcon,
   'ncNumberList': NcNumberListIcon,
   'ncCheckList': NcCheckListIcon,
   'ncChevronsDown': NcChevronsDownIcon,

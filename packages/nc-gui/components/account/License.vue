@@ -13,6 +13,7 @@ const isEEActive = computed(() => appInfo.value.ee === true)
 
 const licenseStatus = computed(() => {
   if (!key.value) return 'none'
+
   return isEEActive.value ? 'active' : 'expired'
 })
 
@@ -56,35 +57,22 @@ loadLicense()
     <div class="max-w-[600px] mx-auto mt-8 px-4">
       <div class="text-xl font-semibold mb-6">{{ $t('title.license') }}</div>
 
-      <div
-        class="flex items-center gap-3 p-4 rounded-lg mb-6"
-        :class="
-          licenseStatus === 'active'
-            ? 'bg-green-50 border border-green-200'
-            : licenseStatus === 'expired'
-            ? 'bg-orange-50 border border-orange-200'
-            : 'bg-gray-50 border border-gray-200'
-        "
+      <NcAlert
+        visible
+        :type="licenseStatus === 'active' ? 'success' : licenseStatus === 'expired' ? 'warning' : 'info'"
+        background
+        class="mb-6"
       >
-        <GeneralIcon
-          :icon="licenseStatus === 'active' ? 'ncCheck' : licenseStatus === 'expired' ? 'ncAlertCircle' : 'ncInfo'"
-          class="h-5 w-5"
-          :class="
-            licenseStatus === 'active' ? 'text-green-600' : licenseStatus === 'expired' ? 'text-orange-600' : 'text-gray-500'
-          "
-        />
-        <div class="flex flex-col">
-          <span class="text-sm font-medium">
-            {{
-              licenseStatus === 'active'
-                ? $t('title.licenseActive')
-                : licenseStatus === 'expired'
-                ? $t('title.licenseInvalid')
-                : $t('title.licenseNone')
-            }}
-          </span>
-        </div>
-      </div>
+        <template #description>
+          {{
+            licenseStatus === 'active'
+              ? $t('title.licenseActive')
+              : licenseStatus === 'expired'
+              ? $t('title.licenseInvalid')
+              : $t('title.licenseNone')
+          }}
+        </template>
+      </NcAlert>
 
       <div class="flex flex-col gap-2 mb-4">
         <label class="text-sm font-medium text-nc-content-gray-subtle">{{ $t('title.licenseKey') }}</label>

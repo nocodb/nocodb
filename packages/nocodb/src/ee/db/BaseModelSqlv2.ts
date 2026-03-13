@@ -190,12 +190,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     viewId,
     schema,
     context,
+    queryQueue,
   }: {
     [key: string]: any;
     model: Model;
     schema?: string;
   }) {
-    super({ dbDriver, model, viewId });
+    super({ dbDriver, model, viewId, queryQueue });
     this.schema = schema;
     this.context = context;
   }
@@ -216,6 +217,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       viewId: this.viewId,
       context: this.context,
       schema: this.schema,
+      queryQueue: this._queryQueue,
     });
   }
 
@@ -1633,6 +1635,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               const mmBaseModel = await Model.getBaseModelSQL(mmContext, {
                 model: mmTable,
                 dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
               });
 
               const mmParentColumn = await Column.get(mmContext, {
@@ -1658,6 +1661,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               const refBaseModel = await Model.getBaseModelSQL(refContext, {
                 model: relatedTable,
                 dbDriver: this.dbDriver,
+                queryQueue: this._queryQueue,
               });
 
               const childColumn = await Column.get(refContext, {

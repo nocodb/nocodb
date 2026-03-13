@@ -3,18 +3,15 @@ import { PostHog } from 'posthog-node';
 import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig, NcRequest } from '~/interface/config';
-import { packageInfo, T } from '~/utils';
+import { TelemetryService as TelemetryServiceCE } from 'src/services/telemetry.service';
 
 @Injectable()
-export class TelemetryService {
+export class TelemetryService extends TelemetryServiceCE {
   private logger: Logger = new Logger(TelemetryService.name);
-  private defaultPayload: any;
   private phClient: PostHog;
 
   constructor(private configService: ConfigService<AppConfig>) {
-    this.defaultPayload = {
-      package_id: packageInfo.version,
-    };
+    super();
     if (process.env.NC_CLOUD_POSTHOG_API_KEY)
       this.phClient = new PostHog(process.env.NC_CLOUD_POSTHOG_API_KEY, {
         host: 'https://app.posthog.com',
@@ -73,8 +70,7 @@ export class TelemetryService {
     }
 
     // Free/unlicensed user path: fall back to CE telemetry (Tele → telemetry.nocodb.com)
-    if (event === '$pageview') T.page({ ...payload, event });
-    else T.event({ ...payload, event });
+    super.sendEvent({ evt_type: event, ...payload });
   }
 
   async trackEvents(param: {

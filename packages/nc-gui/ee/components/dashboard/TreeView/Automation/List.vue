@@ -19,7 +19,7 @@ const { $e } = useNuxtApp()
 
 const { isMobileMode } = useGlobal()
 
-const { isEEFeatureBlocked } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures } = useEeConfig()
 
 const { isUIAllowed } = useRoles()
 
@@ -223,7 +223,7 @@ watchEffect(() => {
         </div>
         <template #overlay>
           <NcMenu class="max-w-54" variant="medium">
-            <NcMenuItem v-if="isScriptsCreateOrEditAllowed" @click="openNewScriptModal({ baseId })">
+            <NcMenuItem v-if="isScriptsCreateOrEditAllowed && showEEFeatures" @click="openNewScriptModal({ baseId })">
               <div class="item">
                 <div class="item-inner">
                   <GeneralIcon icon="ncScript" />
@@ -236,7 +236,7 @@ watchEffect(() => {
                 <GeneralIcon class="plus" icon="plus" />
               </div>
             </NcMenuItem>
-            <NcMenuItem v-if="isWorkflowsCreateOrEditAllowed" @click="openNewWorkflowModal({ baseId })">
+            <NcMenuItem v-if="isWorkflowsCreateOrEditAllowed && showEEFeatures" @click="openNewWorkflowModal({ baseId })">
               <div class="item">
                 <div class="item-inner">
                   <GeneralIcon icon="ncAutomation" />

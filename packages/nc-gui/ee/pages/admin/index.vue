@@ -9,7 +9,7 @@ const { orgRoles, isUIAllowed } = useRoles()
 
 const { appInfo } = useGlobal()
 
-const { isEEFeatureBlocked, showUpgradeToUseSSO } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseSSO } = useEeConfig()
 
 const isSuperAdmin = computed(() => !!orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
@@ -160,7 +160,7 @@ watch(
             </NcMenuItem>
 
             <NcMenuItem
-              v-if="isUIAllowed('ssoSettings')"
+              v-if="isUIAllowed('ssoSettings') && showEEFeatures"
               key="authentication"
               :class="{ active: activeTab === 'authentication' }"
               class="item"

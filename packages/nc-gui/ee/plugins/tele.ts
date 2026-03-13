@@ -3,8 +3,7 @@ import { useDebounceFn } from '@vueuse/core'
 // import posthog from 'posthog-js'
 // @ts-expect-error - nc-analytics is not typed
 import { init } from 'nc-analytics'
-import type { Socket } from 'socket.io-client'
-import { io } from 'socket.io-client'
+import { SocketTele } from '~/utils/teleUtils'
 import type { NuxtApp } from '#app'
 
 // todo: generate client id and keep it in cookie(share across sub-domains)
@@ -159,67 +158,10 @@ class EventBatcher {
   }
 }
 
-/**
- * Socket.io based telemetry for free/unlicensed users.
- * Falls back to the CE telemetry path: socket.io → SocketGateway → Tele → telemetry.nocodb.com
- */
-class SocketTele {
-  private socket: Socket | null = null
-  private nuxtApp: NuxtApp
-
-  constructor(nuxtApp: NuxtApp) {
-    this.nuxtApp = nuxtApp
-  }
-
-  async init(token: string) {
-    try {
-      if (this.socket) this.socket.disconnect()
-
-      const appInfo = this.nuxtApp.$state?.appInfo?.value
-      const url = new URL(appInfo?.ncSiteUrl || '', window.location.href.split(/[?#]/)[0])
-      let socketPath = url.pathname
-      socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
-
-      this.socket = io(url.href, {
-        extraHeaders: { 'xc-auth': token },
-        path: socketPath,
-      })
-
-      this.socket.on('connect_error', () => {
-        this.socket?.disconnect()
-      })
-    } catch {}
-  }
-
-  disconnect() {
-    this.socket?.disconnect()
-    this.socket = null
-  }
-
-  emit(event: string, data: Record<string, any>) {
-    if (this.socket) {
-      this.socket.emit('event', {
-        event,
-        ...(data || {}),
-      })
-    }
-  }
-
-  emitPage(path: string, pid: string | undefined) {
-    if (this.socket) {
-      this.socket.emit('page', { path, pid })
-    }
-  }
-
-  get connected() {
-    return !!this.socket
-  }
-}
-
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
   const eventBatcher = new EventBatcher(nuxtApp)
-  const socketTele = new SocketTele(nuxtApp)
+  const socketTele = new SocketTele()
 
   const router = useRouter()
 
@@ -316,14 +258,16 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       // Free/unlicensed user: use socket.io telemetry (CE path)
       useSocketTele = true
 
+      const ncSiteUrl = appInfo?.ncSiteUrl
+
       if (globalState.signedIn.value) {
-        socketTele.init(globalState.token.value)
+        socketTele.init(globalState.token.value, ncSiteUrl)
       }
 
       // Watch for token changes to reconnect/disconnect socket
       watch(globalState.token, (newToken, oldToken) => {
         try {
-          if (newToken && newToken !== oldToken) socketTele.init(newToken)
+          if (newToken && newToken !== oldToken) socketTele.init(newToken, ncSiteUrl)
           else if (!newToken) socketTele.disconnect()
         } catch {}
       })

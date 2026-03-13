@@ -1,5 +1,4 @@
-import type { Socket } from 'socket.io-client'
-import { io } from 'socket.io-client'
+import { SocketTele } from '~/utils/teleUtils'
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
@@ -10,50 +9,29 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
     const { appInfo } = useGlobal()
 
-    let socket: Socket
-
-    const init = async (token: string) => {
-      try {
-        if (socket) socket.disconnect()
-
-        const url = new URL(appInfo.value.ncSiteUrl, window.location.href.split(/[?#]/)[0])
-        let socketPath = url.pathname
-        socketPath += socketPath.endsWith('/') ? 'socket.io' : '/socket.io'
-
-        socket = io(url.href, {
-          extraHeaders: { 'xc-auth': token },
-          path: socketPath,
-        })
-
-        socket.on('connect_error', () => {
-          socket.disconnect()
-        })
-      } catch {}
-    }
+    const socketTele = new SocketTele()
 
     if (nuxtApp.$state.signedIn.value) {
-      await init(nuxtApp.$state.token.value)
+      await socketTele.init(nuxtApp.$state.token.value, appInfo.value.ncSiteUrl)
     }
 
     router.afterEach((to, from) => {
-      if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) return
+      if (!socketTele.connected || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)))
+        return
 
-      socket.emit('page', {
-        path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
-        pid: route.value?.params?.baseId,
-      })
+      socketTele.emitPage(
+        to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
+        route.value?.params?.baseId as string,
+      )
     })
 
     const tele = {
       emit(evt: string, data: Record<string, any>) {
-        if (socket) {
-          socket.emit('event', {
-            event: evt,
-            ...(data || {}),
-            path: route.value?.matched?.[0]?.path,
-            pid: route.value?.params?.baseId,
-          })
-        }
+        socketTele.emit(evt, {
+          ...(data || {}),
+          path: route.value?.matched?.[0]?.path,
+          pid: route.value?.params?.baseId as string,
+        })
       },
     }
 
@@ -84,8 +62,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
     watch((nuxtApp.$state as ReturnType<typeof useGlobal>).token, (newToken, oldToken) => {
       try {
-        if (newToken && newToken !== oldToken) init(newToken)
-        else if (!newToken) socket?.disconnect()
+        if (newToken && newToken !== oldToken) socketTele.init(newToken, appInfo.value.ncSiteUrl)
+        else if (!newToken) socketTele.disconnect()
       } catch (e) {
         console.error(e)
       }

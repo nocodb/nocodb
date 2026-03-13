@@ -22,6 +22,8 @@ const { isUIAllowed } = useRoles()
 
 const { activeWorkspaceId, workspaces } = storeToRefs(useWorkspace())
 
+const { showEEFeatures } = useEeConfig()
+
 const { baseCreateMode } = storeToRefs(useBases())
 
 const baseStore = useBase()

@@ -21,7 +21,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { blockMapView, blockTimelineView, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
+const { blockMapView, blockTimelineView, showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -207,7 +207,7 @@ async function onOpenModal({
           </NcTooltip>
         </template>
         <NcMenuItem
-          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW) && showEEFeatures"
           data-testid="sidebar-view-create-map"
           @click="
             () => {
@@ -240,7 +240,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
         <NcMenuItem
-          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
+          v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE) && showEEFeatures"
           data-testid="sidebar-view-create-timeline"
           @click="
             () => {
@@ -263,6 +263,7 @@ async function onOpenModal({
               <PaymentUpgradeBadge
                 :feature="PlanFeatureTypes.FEATURE_TIMELINE_VIEW"
                 :plan-title="PlanTitles.BUSINESS"
+                show-as-lock
                 remove-click
               />
             </template>
@@ -272,7 +273,7 @@ async function onOpenModal({
           </div>
         </NcMenuItem>
 
-        <template v-if="isEeUI">
+        <template v-if="isEeUI && showEEFeatures">
           <!-- Section -->
           <NcDivider />
 

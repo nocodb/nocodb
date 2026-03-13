@@ -5,10 +5,12 @@ const { isUIAllowed } = useRoles()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { showEEFeatures } = useEeConfig()
+
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
-const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType'))
+const hasPermissionForBaseAccess = computed(() => isEeUI && isUIAllowed('manageBaseType') && showEEFeatures.value)
 
 const hasPermissionForMigrate = computed(() => isUIAllowed('baseMiscSettings') && isUIAllowed('migrateBase'))
 

@@ -26,6 +26,8 @@ const { isMobileMode, activeBreakpoint } = useGlobal()
 
 const { orgRoles } = useRoles()
 
+const { showEEFeatures } = useEeConfig()
+
 const isFilterDropdownOpen = ref(false)
 const isSearchFocused = ref(false)
 
@@ -37,8 +39,12 @@ const filterOptions = computed<NcListItemType[]>(() => [
   ...(isEeUI
     ? [
         { value: 'starred', label: t('general.starred'), icon: 'star' },
-        { value: 'private', label: t('general.private'), icon: 'ncLock' },
-        { value: 'managed', label: t('labels.managed'), icon: 'ncBox' },
+        ...(showEEFeatures.value
+          ? [
+              { value: 'private', label: t('general.private'), icon: 'ncLock' },
+              { value: 'managed', label: t('labels.managed'), icon: 'ncBox' },
+            ]
+          : []),
       ]
     : []),
   ...(!isSuperAdmin.value ? [{ value: 'owned', label: t('activity.ownedByMe'), icon: 'ncUser' }] : []),

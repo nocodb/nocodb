@@ -155,16 +155,22 @@ function onContentTouchEnd() {
   const wrapper = getContentWrapper()
 
   if (currentTranslateY.value > props.swipeThreshold) {
-    // Swiped enough — close
-    visible.value = false
+    // Swiped enough — animate off-screen, then close
     currentTranslateY.value = 0
 
+    if (wrapper) {
+      wrapper.style.transition = 'transform 0.25s ease-out'
+      wrapper.style.transform = 'translateY(100%)'
+    }
+
     setTimeout(() => {
+      visible.value = false
+
       if (wrapper) {
         wrapper.style.transition = ''
         wrapper.style.transform = ''
       }
-    }, 300)
+    }, 250)
   } else {
     // Snap back
     currentTranslateY.value = 0
@@ -274,7 +280,7 @@ onMounted(() => {
 <style lang="scss">
 .nc-drawer-wrapper {
   .ant-drawer-content-wrapper {
-    @apply !rounded-t-3xl overflow-hidden;
+    @apply !rounded-t-3xl overflow-hidden dark:border-t-1 dark:border-nc-border-gray-medium;
   }
 
   .ant-drawer-content {

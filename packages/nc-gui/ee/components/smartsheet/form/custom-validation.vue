@@ -4,7 +4,7 @@ import { PlanFeatureTypes, PlanTitles, StringValidationType, UITypes, Validation
 
 const { activeField, updateColMeta, v$ } = useFormViewStoreOrThrow()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const validators = computed(() => {
   return activeField.value!.meta.validators as Validation[]
@@ -100,7 +100,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isCustomValidationSupported" class="p-4 border-b border-nc-border-gray-medium">
+  <div v-if="isCustomValidationSupported && showEEFeatures" class="p-4 border-b border-nc-border-gray-medium">
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
         <div class="text-nc-content-gray font-medium">Custom validations</div>

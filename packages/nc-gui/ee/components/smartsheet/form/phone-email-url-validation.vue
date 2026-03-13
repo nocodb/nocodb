@@ -9,7 +9,7 @@ const validatorMap = {
 
 const { activeField, updateColMeta } = useFormViewStoreOrThrow()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const isDefaultValidateEnabled = computed(() => !!parseProp(activeField.value?.meta)?.validate)
 
@@ -43,7 +43,7 @@ const title = computed(() => {
 })
 
 const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => {
-  if (!activeField.value) return
+  if (!activeField.value || !showEEFeatures.value) return
 
   switch (type) {
     case 'validate': {
@@ -142,6 +142,7 @@ const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => 
           >
             Accept only work email
             <LazyPaymentUpgradeBadge
+              v-if="showEEFeatures"
               class="-my-1"
               :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
               :content="
@@ -153,19 +154,28 @@ const addPlaceholderValidators = (value, type: 'validate' | 'businessEmail') => 
           </div>
         </div>
 
-        <a-switch
-          :checked="isBusinessEmailEnabled"
-          size="small"
-          class="flex-none nc-form-switch-focus"
-          data-testid="nc-form-field-allow-only-work-email"
-          @change="
-            click(
-              PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
-              () => addPlaceholderValidators($event, 'businessEmail'),
-              isBusinessEmailEnabled,
-            )
-          "
-        />
+        <NcTooltip :disabled="showEEFeatures" placement="topRight">
+          <template #title>
+            <div class="text-center">
+              {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+            </div>
+          </template>
+
+          <a-switch
+            :checked="isBusinessEmailEnabled"
+            size="small"
+            class="flex-none nc-form-switch-focus"
+            data-testid="nc-form-field-allow-only-work-email"
+            :disabled="!showEEFeatures"
+            @change="
+              click(
+                PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
+                () => addPlaceholderValidators($event, 'businessEmail'),
+                isBusinessEmailEnabled,
+              )
+            "
+          />
+        </NcTooltip>
       </div>
     </template>
   </PaymentUpgradeBadgeProvider>

@@ -3,7 +3,7 @@ import { PlanFeatureTypes, PlanTitles, SelectValidationType, type Validation } f
 
 const { activeField, updateColMeta } = useFormViewStoreOrThrow()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const isLimitRangeEnabled = computed(() => {
   return !!(
@@ -26,7 +26,7 @@ const getMaxValidator = computed(() => {
 })
 
 const addPlaceholderValidators = (value, type: 'minMax') => {
-  if (!activeField.value) return
+  if (!activeField.value || !showEEFeatures.value) return
 
   switch (type) {
     case 'minMax': {
@@ -73,6 +73,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
           >
             Limit selection
             <LazyPaymentUpgradeBadge
+              v-if="showEEFeatures"
               class="-my-1"
               :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION"
               :content="
@@ -119,20 +120,28 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
             </div>
           </div>
         </div>
+        <NcTooltip :disabled="showEEFeatures" placement="topRight">
+          <template #title>
+            <div class="text-center">
+              {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+            </div>
+          </template>
 
-        <a-switch
-          :checked="isLimitRangeEnabled"
-          size="small"
-          class="flex-none nc-form-switch-focus"
-          :data-testid="`nc-limit-to-range-${activeField?.uidt}`"
-          @change="
-            click(
-              PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
-              () => addPlaceholderValidators($event, 'minMax'),
-              isLimitRangeEnabled,
-            )
-          "
-        />
+          <a-switch
+            :checked="isLimitRangeEnabled"
+            size="small"
+            class="flex-none nc-form-switch-focus"
+            :data-testid="`nc-limit-to-range-${activeField?.uidt}`"
+            :disabled="!showEEFeatures"
+            @change="
+              click(
+                PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
+                () => addPlaceholderValidators($event, 'minMax'),
+                isLimitRangeEnabled,
+              )
+            "
+          />
+        </NcTooltip>
       </div>
     </template>
   </PaymentUpgradeBadgeProvider>

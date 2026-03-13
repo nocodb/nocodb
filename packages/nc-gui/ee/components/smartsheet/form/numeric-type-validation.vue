@@ -3,7 +3,7 @@ import { NumberValidationType, PlanFeatureTypes, PlanTitles, UITypes, type Valid
 
 const { activeField, updateColMeta } = useFormViewStoreOrThrow()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const isLimitRangeEnabled = computed(() => {
   return !!(
@@ -45,7 +45,7 @@ const subtitle = computed(() => {
 })
 
 const addPlaceholderValidators = (value, type: 'minMax') => {
-  if (!activeField.value) return
+  if (!activeField.value || !showEEFeatures.value) return
 
   switch (type) {
     case 'minMax': {
@@ -93,6 +93,7 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
             {{ title }}
 
             <LazyPaymentUpgradeBadge
+              v-if="showEEFeatures"
               class="-my-1"
               :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
               :content="
@@ -139,19 +140,28 @@ const addPlaceholderValidators = (value, type: 'minMax') => {
           </div>
         </div>
 
-        <a-switch
-          :checked="isLimitRangeEnabled"
-          size="small"
-          class="flex-none nc-form-switch-focus"
-          :data-testid="`nc-limit-to-range-${activeField?.uidt}`"
-          @change="
-            click(
-              PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
-              () => addPlaceholderValidators($event, 'minMax'),
-              isLimitRangeEnabled,
-            )
-          "
-        />
+        <NcTooltip :disabled="showEEFeatures" placement="topRight">
+          <template #title>
+            <div class="text-center">
+              {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+            </div>
+          </template>
+
+          <a-switch
+            :checked="isLimitRangeEnabled"
+            size="small"
+            class="flex-none nc-form-switch-focus"
+            :data-testid="`nc-limit-to-range-${activeField?.uidt}`"
+            :disabled="!showEEFeatures"
+            @change="
+              click(
+                PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION,
+                () => addPlaceholderValidators($event, 'minMax'),
+                isLimitRangeEnabled,
+              )
+            "
+          />
+        </NcTooltip>
       </div>
     </template>
   </PaymentUpgradeBadgeProvider>

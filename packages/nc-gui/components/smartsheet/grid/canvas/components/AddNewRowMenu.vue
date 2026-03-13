@@ -25,7 +25,7 @@ const { meta } = useSmartsheetStoreOrThrow()
 
 const { templates: allTemplates, selectedTemplate, setSelectedTemplate } = useRecordTemplate()
 
-const { blockRecordTemplates, showUpgradeToUseRecordTemplates } = useEeConfig()
+const { blockRecordTemplates, showUpgradeToUseRecordTemplates, showEEFeatures } = useEeConfig()
 
 /**
  * Filter the base-level template list to only show enabled templates
@@ -100,6 +100,7 @@ const templatesList = computed(() => {
   <div>
     <!-- Manage Templates -->
     <NcList
+      v-if="showEEFeatures"
       value=""
       :list="[
         {
@@ -136,7 +137,7 @@ const templatesList = computed(() => {
       </template>
     </NcList>
 
-    <template v-if="!blockRecordTemplates && templates.length">
+    <template v-if="!blockRecordTemplates && templates.length && showEEFeatures">
       <NcDivider class="!my-0" />
       <NcList
         :value="selectedTemplate?.id ?? ''"

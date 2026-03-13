@@ -14,6 +14,8 @@ on:
     secrets:
       NC_GITHUB_TOKEN:
         required: true
+      NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM:
+        required: false
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -141,6 +143,33 @@ jobs:
           mkdir -p node_modules/nocodb/docker
           cp -r ../../packages/nocodb/docker/nc-gui node_modules/nocodb/docker/nc-gui
 
+          # Replace nc-lib-gui's dist with our freshly built EE GUI.
+          # GuiMiddleware falls back to nc-lib-gui when NC_GUI_DIST_PATH is absent —
+          # by swapping the files here we ensure the executable serves the correct build.
+          rm -rf node_modules/nc-lib-gui/lib/dist
+          cp -r ../../packages/nocodb/docker/nc-gui node_modules/nc-lib-gui/lib/dist
+
+          # Convert ESM-only @csstools packages to CJS (pkg can't snapshot .mjs files)
+          for pkg_dir in node_modules/@csstools/css-calc node_modules/@csstools/css-parser-algorithms node_modules/@csstools/css-tokenizer node_modules/@csstools/color-helpers node_modules/@csstools/css-color-parser; do
+            if [ -f "$pkg_dir/dist/index.mjs" ]; then
+              npx esbuild "$pkg_dir/dist/index.mjs" --bundle --format=cjs --platform=node --outfile="$pkg_dir/dist/index.cjs" '--external:@csstools/*'
+              node -e "
+                const fs = require('fs');
+                const p = JSON.parse(fs.readFileSync('$pkg_dir/package.json', 'utf8'));
+                if (p.exports && p.exports['.']) { p.exports['.'].require = './dist/index.cjs'; p.exports['.'].default = './dist/index.cjs'; }
+                p.main = './dist/index.cjs';
+                fs.writeFileSync('$pkg_dir/package.json', JSON.stringify(p, null, 2));
+              "
+            fi
+          done
+
+          # Patch aws-jwt-verify subpath imports (pkg doesn't support #imports)
+          for f in node_modules/aws-jwt-verify/dist/cjs/jwt-rsa.js node_modules/aws-jwt-verify/dist/cjs/jwk.js node_modules/aws-jwt-verify/dist/cjs/https.js node_modules/aws-jwt-verify/dist/cjs/jwt.js; do
+            if [ -f "$f" ]; then
+              sed -i 's|require("#node-web-compat")|require("./node-web-compat-node.js")|g' "$f"
+            fi
+          done
+
       - name: Build sqlite3 for all platforms
         run: |
           cd scripts/pkg-executable
@@ -158,7 +187,7 @@ jobs:
           cd scripts/pkg-executable
           # Remove overrides added by downgradeSqlite.js to avoid npx conflict
           node -e "const p=require('./package.json'); delete p.overrides; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2));"
-          npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**,jsdom/**" --run
+          npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**,jsdom/**,lru-cache/**,@csstools/**,@asamuzakjp/**" --run
 
       - name: Build executables
         run: |

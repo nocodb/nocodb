@@ -69,7 +69,7 @@ jobs:
   build-docker:
     needs: process-input
     if: ${{ github.event.inputs.skipDocker != 'true' }}
-    runs-on: ubicloud-standard-4
+    runs-on: ubicloud-standard-8
     env:
       working-directory: ./packages/nocodb
     steps:
@@ -91,6 +91,17 @@ jobs:
 
       - name: Remove use-node-version from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
+
+      - name: Cache integration dists
+        uses: actions/cache@v4
+        with:
+          path: |
+            packages/noco-integrations/packages/*/dist
+            packages/noco-integrations/core/dist
+            packages/noco-integrations/.build-checksums.json
+          key: integrations-dist-${{ hashFiles('packages/noco-integrations/packages/*/src/**', 'packages/noco-integrations/core/src/**', 'packages/noco-integrations/packages/*/package.json') }}
+          restore-keys: |
+            integrations-dist-
 
       - name: Install dependencies
         run: pnpm bootstrap
@@ -249,6 +260,7 @@ jobs:
       tag: ${{ needs.process-input.outputs.ceTag }}
     secrets:
       NC_GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+      NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN_ONPREM }}
 
   # ---------------------------------------------------------------------------
   # Job 5: PR develop → master on CE repo (COMMENTED OUT)

@@ -245,9 +245,9 @@ const {
   buttonColId,
 )
 
-// When autoSave is off (column filter editors like Rollup/Lookup/LTAR),
-// sync internal filter changes back to the parent via v-model so the
-// formState stays up-to-date and survives field switches in Details > Fields.
+// Sync internal filter changes to v-model for consumers that bind it (e.g. webhooks,
+// buttons). Rollup/Lookup/LTAR column editors intentionally omit v-model — their filter
+// state is preserved by the keep-alive component approach, not via vModel.filters.
 if (!autoSave.value) {
   watch(
     filters,

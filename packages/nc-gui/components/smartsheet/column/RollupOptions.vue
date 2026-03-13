@@ -115,6 +115,19 @@ provide(
   }),
 )
 
+// Eagerly load the related table meta so the filter column dropdown is populated.
+// `getMetaByKey` returns undefined until getMeta is called; this watch fires immediately
+// (and again if the user changes the relation) to ensure the cache is populated.
+watch(
+  selectedTable,
+  async (table) => {
+    if (table?.base_id && table?.id) {
+      await getMeta(table.base_id, table.id)
+    }
+  },
+  { immediate: true },
+)
+
 onMounted(() => {
   if (isEdit.value) {
     vModel.value.fk_relation_column_id = vModel.value.colOptions?.fk_relation_column_id
@@ -456,7 +469,6 @@ const handleScrollIntoView = () => {
         <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
-            v-model="vModel.filters"
             class="!pl-10 !p-0 max-w-620px"
             :auto-save="false"
             :show-loading="false"

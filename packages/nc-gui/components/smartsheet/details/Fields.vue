@@ -900,13 +900,20 @@ const metaToLocal = () => {
   if (activeField.value?.id) {
     const field = fields.value.find((c) => c.id === activeField.value?.id)
     if (field) {
-      changeField(field)
-      changingField.value = true
-
-      nextTick(() => {
+      // For keep-alive types, changeField already updates activeField without the
+      // changingField unmount cycle, so don't re-apply it here (it would briefly
+      // destroy all keep-alive editors via the outer v-if="!changingField" container).
+      if (isKeepAliveType(field)) {
         activeField.value = field
-        changingField.value = false
-      })
+      } else {
+        changeField(field)
+        changingField.value = true
+
+        nextTick(() => {
+          activeField.value = field
+          changingField.value = false
+        })
+      }
     }
   }
 }

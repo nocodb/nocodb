@@ -576,6 +576,16 @@ const dismissAiSuggestion = () => {
   editor.value?.commands.focus()
 }
 
+const onAiSuggestionDiscard = () => {
+  $e('a:doc:ai:suggestion:discard', { operation: aiSuggestion.operation })
+  dismissAiSuggestion()
+}
+
+const onAiSuggestionStop = () => {
+  $e('a:doc:ai:suggestion:stop', { operation: aiSuggestion.operation })
+  dismissAiSuggestion()
+}
+
 const onAiSuggestionAccept = () => {
   if (!editor.value || !aiSuggestion.result) return
   $e('a:doc:ai:suggestion:accept', { operation: aiSuggestion.operation })
@@ -2505,10 +2515,10 @@ onBeforeUnmount(() => {
                   :operation-label="aiSuggestion.operationLabel"
                   :inline-mode="aiSuggestion.inlineMode"
                   @accept="onAiSuggestionAccept"
-                  @discard="dismissAiSuggestion"
+                  @discard="onAiSuggestionDiscard"
                   @try-again="onAiSuggestionTryAgain"
                   @insert-below="onAiSuggestionInsertBelow"
-                  @stop="dismissAiSuggestion"
+                  @stop="onAiSuggestionStop"
                 />
               </div>
 

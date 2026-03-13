@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { IntegrationCategoryType, PlanFeatureTypes } from 'nocodb-sdk';
+import { AppEvents, IntegrationCategoryType, PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { AiIntegration } from '@noco-local-integrations/core';
 import { NcError } from '~/helpers/ncError';
 import { Integration } from '~/models';
 import { checkForFeature } from '~/helpers/paymentHelpers';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
   docAiWriteSystemMessage,
   docAiWritePrompt,
@@ -21,6 +22,8 @@ import type { ImproveMode } from '~/integrations/ai/module/prompts';
 
 @Injectable()
 export class AiDocsService {
+  constructor(private readonly appHooksService: AppHooksService) {}
+
   private async getAiWrapper(context: NcContext) {
     const integration = await Integration.getCategoryDefault(
       context,
@@ -64,6 +67,12 @@ export class AiDocsService {
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
 
+    this.appHooksService.emit(AppEvents.DOC_AI_COMPLETION, {
+      context,
+      req: params.req,
+      operation: 'write',
+    });
+
     return { text: data };
   }
 
@@ -95,6 +104,12 @@ export class AiDocsService {
     });
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    this.appHooksService.emit(AppEvents.DOC_AI_COMPLETION, {
+      context,
+      req: params.req,
+      operation: 'continue',
+    });
 
     return { text: data };
   }
@@ -132,6 +147,12 @@ export class AiDocsService {
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
 
+    this.appHooksService.emit(AppEvents.DOC_AI_COMPLETION, {
+      context,
+      req: params.req,
+      operation: 'improve',
+    });
+
     return { text: data };
   }
 
@@ -162,6 +183,12 @@ export class AiDocsService {
     });
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    this.appHooksService.emit(AppEvents.DOC_AI_COMPLETION, {
+      context,
+      req: params.req,
+      operation: 'summarize',
+    });
 
     return { text: data };
   }
@@ -198,6 +225,12 @@ export class AiDocsService {
     });
 
     await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    this.appHooksService.emit(AppEvents.DOC_AI_COMPLETION, {
+      context,
+      req: params.req,
+      operation: 'translate',
+    });
 
     return { text: data };
   }

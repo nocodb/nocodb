@@ -7,6 +7,7 @@ import type {
   ChatSessionCreateEvent,
   ChatSessionDeleteEvent,
   ChatSessionUpdateEvent,
+  DocAiCompletionEvent,
   ColumnEvent,
   DocumentCommentCreateEvent,
   DocumentCommentDeleteEvent,
@@ -467,6 +468,12 @@ export class AppHooksService extends ApppHookServiceCE {
     listener: (data: ScimUserEvent) => void,
   ): () => void;
 
+  // Doc AI Events
+  on(
+    event: AppEvents.DOC_AI_COMPLETION,
+    listener: (data: DocAiCompletionEvent) => void,
+  ): () => void;
+
   // Chat Events
   on(
     event: AppEvents.CHAT_SESSION_CREATE,
@@ -895,6 +902,12 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(
     event: AppEvents.VIEW_SECTION_DELETE,
     data: ViewSectionDeleteEvent,
+  ): void;
+
+  // Doc AI Events
+  emit(
+    event: AppEvents.DOC_AI_COMPLETION,
+    data: DocAiCompletionEvent,
   ): void;
 
   // Chat Events

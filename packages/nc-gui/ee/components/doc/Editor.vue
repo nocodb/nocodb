@@ -341,9 +341,8 @@ const scrollAiSuggestionIntoView = () => {
 }
 
 const aiHighlightPluginKey = new PluginKey('aiHighlight')
-const aiAcceptedPluginKey = new PluginKey('aiAcceptedHighlight')
-
-/** Add a highlight decoration over the given range to mark AI-generated content. */
+/** Add a highlight decoration over the given range to mark AI-generated content.
+ *  The highlight persists until dismissed, then clears on the next user interaction. */
 const addAiHighlight = (from: number, to: number) => {
   if (!editor.value) return
   // Remove any existing highlight first
@@ -359,6 +358,8 @@ const addAiHighlight = (from: number, to: number) => {
         ])
       },
       apply(tr, set) {
+        // Keep decorations alive — removal is handled by markAiHighlightForRemoval
+        // via DOM class swap + plugin unregister after fade animation.
         return set.map(tr.mapping, tr.doc)
       },
     },
@@ -373,65 +374,35 @@ const addAiHighlight = (from: number, to: number) => {
   editor.value.view.dispatch(editor.value.state.tr)
 }
 
+/** Mark the AI highlight for removal on the next user interaction.
+ *  Deferred so synchronous transactions from dismiss/focus don't clear it immediately.
+ *  On the triggering transaction, swaps the class to a fade-out animation before removal. */
+const markAiHighlightForRemoval = () => {
+  setTimeout(() => {
+    // Listen for the next transaction to trigger the fade-out
+    const handler = () => {
+      if (!editor.value) return
+      editor.value.off('transaction', handler)
+      // Swap class on DOM spans to trigger CSS fade-out animation
+      const editorEl = editor.value.view.dom
+      const spans = editorEl.querySelectorAll('.nc-doc-ai-generated')
+      spans.forEach((span) => {
+        span.classList.remove('nc-doc-ai-generated')
+        span.classList.add('nc-doc-ai-fadeout')
+      })
+      // Unregister plugin after animation completes
+      setTimeout(() => {
+        try { editor.value?.unregisterPlugin(aiHighlightPluginKey) } catch {}
+      }, 600)
+    }
+    editor.value?.on('transaction', handler)
+  }, 100)
+}
+
 /** Remove the AI highlight decoration. */
 const removeAiHighlight = () => {
   if (!editor.value) return
   editor.value.unregisterPlugin(aiHighlightPluginKey)
-}
-
-/** Swap the AI highlight from "generated" (amber) to "accepted" (fade-out) in place.
- *  Directly swaps CSS classes on existing DOM spans to avoid plugin re-registration
- *  which would cause a visible flash (unregister renders → register renders). */
-const swapAiHighlightToAccepted = () => {
-  if (!editor.value) return
-
-  // Swap class directly on DOM — no re-render, no flash
-  const editorEl = editor.value.view.dom
-  editorEl.querySelectorAll('.nc-doc-ai-generated').forEach((span) => {
-    span.classList.remove('nc-doc-ai-generated')
-    span.classList.add('nc-doc-ai-accepted')
-  })
-
-  // Clean up the plugin after the fade-out animation completes
-  setTimeout(() => {
-    try { editor.value?.unregisterPlugin(aiHighlightPluginKey) } catch {}
-  }, 3000)
-}
-
-/** Flash a brief fade-out highlight over a range to confirm accepted content. */
-const flashAcceptedHighlight = (from: number, to: number) => {
-  if (!editor.value) return
-
-  // Remove any previous accepted highlight first
-  try { editor.value.unregisterPlugin(aiAcceptedPluginKey) } catch {}
-
-  const plugin = new Plugin({
-    key: aiAcceptedPluginKey,
-    state: {
-      init(_, state) {
-        const clampedTo = Math.min(to, state.doc.content.size)
-        return DecorationSet.create(state.doc, [
-          Decoration.inline(from, clampedTo, { class: 'nc-doc-ai-accepted' }),
-        ])
-      },
-      apply(tr, set) {
-        return set.map(tr.mapping, tr.doc)
-      },
-    },
-    props: {
-      decorations(state) {
-        return this.getState(state)
-      },
-    },
-  })
-
-  editor.value.registerPlugin(plugin)
-  editor.value.view.dispatch(editor.value.state.tr)
-
-  // Remove after animation completes
-  setTimeout(() => {
-    try { editor.value?.unregisterPlugin(aiAcceptedPluginKey) } catch {}
-  }, 3000)
 }
 
 /** Position the suggestion popup below the text selection using ProseMirror coordinates.
@@ -611,8 +582,8 @@ const onAiSuggestionAccept = () => {
 
   if (aiSuggestion.inlineMode) {
     // Inline mode — content already in editor.
-    // Swap the decoration class to fade-out in place (no remove+re-add blink).
-    swapAiHighlightToAccepted()
+    // Mark highlight for removal on next user interaction (click/type).
+    markAiHighlightForRemoval()
     // Reset inlineMode before dismiss so it doesn't undo the insertion
     aiSuggestion.inlineMode = false
     dismissAiSuggestion()
@@ -625,7 +596,8 @@ const onAiSuggestionAccept = () => {
   const beforeSize = editor.value.state.doc.content.size
   insertMarkdownContent(editor.value, aiSuggestion.result)
   const afterSize = editor.value.state.doc.content.size
-  flashAcceptedHighlight(from, from + (afterSize - beforeSize))
+  addAiHighlight(from, from + (afterSize - beforeSize))
+  markAiHighlightForRemoval()
   dismissAiSuggestion()
 }
 
@@ -638,7 +610,8 @@ const onAiSuggestionInsertBelow = () => {
   const beforeSize = editor.value.state.doc.content.size
   insertMarkdownContent(editor.value, `\n${aiSuggestion.result}`)
   const afterSize = editor.value.state.doc.content.size
-  flashAcceptedHighlight(to, to + (afterSize - beforeSize))
+  addAiHighlight(to, to + (afterSize - beforeSize))
+  markAiHighlightForRemoval()
   dismissAiSuggestion()
 }
 
@@ -791,11 +764,12 @@ const wireDocAiStorage = () => {
       $e('a:doc:ai:summarize')
       const text = (editor.value?.state.doc.textContent || '').slice(0, 10000)
       if (!text.trim()) return
-      const result = await aiSummarize(text)
-      if (result && editor.value) {
-        editor.value.chain().focus().setCallout({ type: 'note' }).run()
-        insertMarkdownContent(editor.value, result)
-      }
+      showAiSuggestionAtCursor(
+        'summarize',
+        {},
+        t('labels.docAiSummarize'),
+        () => aiSummarize(text),
+      )
     },
     improve: (mode: string) => {
       if (blockDocAi.value) { showUpgradeToUseDocAi(); return }
@@ -4290,26 +4264,11 @@ body.nc-doc-dragging .nc-doc-editor-inner * {
   border-bottom-color: rgba(251, 191, 36, 0.25);
 }
 
-/* Brief fade-out highlight on accept / insert below */
-.nc-doc-ai-accepted {
-  background-color: rgba(245, 158, 11, 0.1);
-  border-bottom: 1px solid rgba(245, 158, 11, 0.3);
-  animation: aiAcceptedFade 3s ease-out forwards;
+.nc-doc-ai-fadeout {
+  background-color: transparent !important;
+  border-bottom-color: transparent !important;
+  transition: background-color 0.5s ease, border-bottom-color 0.5s ease;
 }
 
-.dark .nc-doc-ai-accepted {
-  background-color: rgba(251, 191, 36, 0.1);
-  border-bottom-color: rgba(251, 191, 36, 0.25);
-}
 
-@keyframes aiAcceptedFade {
-  0% {
-    background-color: rgba(245, 158, 11, 0.1);
-    border-bottom-color: rgba(245, 158, 11, 0.3);
-  }
-  100% {
-    background-color: transparent;
-    border-bottom-color: transparent;
-  }
-}
 </style>

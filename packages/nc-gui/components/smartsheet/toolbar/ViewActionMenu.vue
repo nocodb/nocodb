@@ -198,7 +198,8 @@ const isFieldHeaderVisibilityOptionVisible = computed(() => {
     !props.inSidebar &&
     isUIAllowed('viewCreateOrEdit') &&
     [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type) &&
-    isEeUI
+    isEeUI &&
+    showEEFeatures.value
   )
 })
 

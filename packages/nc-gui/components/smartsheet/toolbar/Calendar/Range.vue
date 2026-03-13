@@ -4,7 +4,7 @@ import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
 
-const { blockCalendarRange, getPlanTitle } = useEeConfig()
+const { blockCalendarRange, getPlanTitle, showEEFeatures } = useEeConfig()
 
 const activeView = inject(ActiveViewInj, ref())
 
@@ -265,7 +265,7 @@ const onValueChange = async () => {
               </div>
             </a-select-option>
           </a-select>
-          <div v-if="isEeUI" class="w-full space-y-2">
+          <div v-if="isEeUI && showEEFeatures" class="w-full space-y-2">
             <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_CALENDAR_RANGE">
               <template #default="{ click }">
                 <NcButton

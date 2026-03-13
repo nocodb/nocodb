@@ -180,7 +180,7 @@ const isMobileSearchActive = computed(() => isMobileMode.value && isSearchExpand
       <SmartsheetToolbarCalendarRange v-if="isCalendar && isViewOperationsAllowed" />
 
       <template v-if="isCalendar && !isMobileMode">
-        <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && isViewOperationsAllowed" />
+        <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic && !isSharedBase && isViewOperationsAllowed && showEEFeatures" />
         <SmartsheetToolbarFieldsMenu :show-system-fields="false" />
         <SmartsheetToolbarColumnFilterMenu v-if="isViewOperationsAllowed" />
 

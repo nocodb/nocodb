@@ -53,6 +53,7 @@ const {
   showUpgradeToUseTeams,
   blockWorkspaceMembers,
   showUpgradeToManageWorkspaceMembers,
+  showEEFeatures,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -455,14 +456,14 @@ watch(inviteDlg, (newVal) => {
           allow-clear
           :disabled="isCollaboratorsLoading"
           class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
-          :placeholder="isTeamsEnabled ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
+          :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
         >
           <template #prefix>
             <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
           </template>
         </a-input>
         <div class="flex items-center gap-4">
-          <template v-if="!isMobileMode && (isPaymentEnabled || appInfo.isOnPrem) && paidUsersCount">
+          <template v-if="!isMobileMode && (isPaymentEnabled || appInfo.isOnPrem) && paidUsersCount && showEEFeatures">
             <NcTooltip
               v-if="activePlanTitle === PlanTitles.FREE && !appInfo.isOnPrem"
               :tooltip-style="{ width: '230px' }"
@@ -490,7 +491,7 @@ watch(inviteDlg, (newVal) => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel"
+              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
               v-e="['c:workspace:team-add']"
               size="small"
               type="secondary"

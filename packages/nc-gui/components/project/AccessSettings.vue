@@ -49,7 +49,7 @@ const { t } = useI18n()
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
-const { isPaymentEnabled, showUserPlanLimitExceededModal, showUpgradeToUseTeams } = useEeConfig()
+const { isPaymentEnabled, showEEFeatures, showUserPlanLimitExceededModal, showUpgradeToUseTeams } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -621,7 +621,7 @@ onBeforeUnmount(() => {
         <div v-if="!isAdminPanel" class="w-full flex justify-between items-center max-w-full gap-3">
           <a-input
             v-model:value="userSearchText"
-            :placeholder="isTeamsEnabled ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
+            :placeholder="isTeamsEnabled && showEEFeatures ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
             :disabled="isLoading"
             allow-clear
             class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
@@ -636,7 +636,7 @@ onBeforeUnmount(() => {
 
           <div class="flex items-center gap-2">
             <NcButton
-              v-if="isTeamsEnabled && !isAdminPanel"
+              v-if="isTeamsEnabled && !isAdminPanel && showEEFeatures"
               v-e="['c:base:team-add']"
               size="small"
               type="secondary"

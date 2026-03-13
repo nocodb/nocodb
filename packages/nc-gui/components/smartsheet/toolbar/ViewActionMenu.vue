@@ -46,7 +46,7 @@ const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
+const { showEEFeatures, showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
@@ -349,7 +349,7 @@ defineOptions({
         </NcMenuItem>
 
         <SmartsheetToolbarViewActionMenuMoveToSection
-          v-if="isEeUI"
+          v-if="isEeUI && showEEFeatures"
           :view="view"
           :table="table"
           :in-sidebar="inSidebar"
@@ -358,7 +358,7 @@ defineOptions({
       </template>
 
       <SmartsheetToolbarNotAllowedTooltip
-        v-if="copyViewConfigMenuItemStatus.isVisible"
+        v-if="copyViewConfigMenuItemStatus.isVisible && showEEFeatures"
         :enabled="copyViewConfigMenuItemStatus.isDisabled"
       >
         <template #title>
@@ -564,7 +564,7 @@ defineOptions({
             <SmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
           </NcMenuItem>
         </NcSubMenu>
-        <template v-if="isEeUI">
+        <template v-if="isEeUI && showEEFeatures">
           <SmartsheetToolbarNotAllowedTooltip
             v-if="isPersonalView"
             :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"

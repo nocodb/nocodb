@@ -55,7 +55,7 @@ const { viewsByTable } = storeToRefs(viewsStore)
 
 const { t } = useI18n()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const { getMeta, getMetaByKey } = useMetas()
 
@@ -773,7 +773,7 @@ const handleScrollIntoView = () => {
       </a-form-item>
     </div>
 
-    <template v-if="isEeUI">
+    <template v-if="isEeUI && showEEFeatures">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LTAR_LIMIT_SELECTION_BY_FILTER">
           <template #default="{ click }">

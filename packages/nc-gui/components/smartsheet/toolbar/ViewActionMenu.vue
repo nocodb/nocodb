@@ -528,7 +528,7 @@ defineOptions({
           >
             <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="!isUIAllowed('fieldAdd')" />
           </NcMenuItem>
-          <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI" :enabled="disablePersonalView">
+          <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI && showEEFeatures" :enabled="disablePersonalView">
             <template #title>
               <div class="max-w-80">
                 {{

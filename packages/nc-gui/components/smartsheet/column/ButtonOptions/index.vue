@@ -34,7 +34,7 @@ const { getMeta } = useMetas()
 
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName, setPostSaveOrUpdateCbk } =
   useColumnCreateStoreOrThrow()
@@ -55,7 +55,9 @@ const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+if (showEEFeatures.value) {
+  await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
+}
 
 const { activeBaseScripts } = toRefs(scriptStore)
 
@@ -92,7 +94,7 @@ const buttonTypes = computed(() => [
     value: ButtonActionsType.Webhook,
     icon: 'ncWebhook',
   },
-  ...(isAiButtonEnabled.value
+  ...(isAiButtonEnabled.value && showEEFeatures.value
     ? [
         {
           icon: 'ncAutoAwesome',
@@ -102,7 +104,7 @@ const buttonTypes = computed(() => [
         },
       ]
     : []),
-  ...(isEeUI
+  ...(isEeUI && showEEFeatures.value
     ? [
         {
           icon: 'ncScript',
@@ -586,12 +588,12 @@ onUnmounted(() => {
       v-model:selected-webhook="selectedWebhook"
     />
     <SmartsheetColumnButtonOptionsScript
-      v-if="vModel?.type === buttonActionsType.Script"
+      v-if="vModel?.type === buttonActionsType.Script && showEEFeatures"
       v-model:model-value="vModel"
       v-model:selected-script="selectedScript"
     />
 
-    <PaymentUpgradeBadgeProvider v-if="isEeUI" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
+    <PaymentUpgradeBadgeProvider v-if="isEeUI && showEEFeatures" :feature="PlanFeatureTypes.FEATURE_BUTTON_VISIBILITY">
       <template #default="{ click }">
         <div class="nc-button-filter-section mt-2">
           <div

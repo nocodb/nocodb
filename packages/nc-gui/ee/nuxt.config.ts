@@ -41,8 +41,11 @@ export default defineNuxtConfig({
   },
   chatwoot: {
     init: {
-      websiteToken: process.env.NUXT_CHATWOOT_WEBSITE_TOKEN,
-      baseUrl: 'https://app.chatwoot.com',
+      // Empty baseUrl prevents the module from loading the SDK script.
+      // We load it manually in useProvideChatwoot after appInfo is available
+      // so we can pick the correct token (cloud vs OSS).
+      websiteToken: '',
+      baseUrl: '',
     },
     settings: {
       darkMode: 'light',
@@ -270,6 +273,8 @@ export default defineNuxtConfig({
       'process.env.NC_ON_PREM': process.env.NC_ON_PREM ? JSON.stringify(process.env.NC_ON_PREM) : '"false"',
       'process.nextTick': 'globalThis.setImmediate',
       'process.env.ANT_MESSAGE_DURATION': process.env.ANT_MESSAGE_DURATION,
+      'process.env.NC_CHATWOOT_TOKEN': JSON.stringify(process.env.NUXT_CHATWOOT_WEBSITE_TOKEN || ''),
+      'process.env.NC_CHATWOOT_TOKEN_OSS': JSON.stringify(process.env.NUXT_CHATWOOT_WEBSITE_TOKEN_OSS || ''),
     },
     server: {
       watch: {

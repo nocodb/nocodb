@@ -6,8 +6,53 @@ export const useProvideChatwoot = createSharedComposable(() => {
   const route = router.currentRoute
 
   const chatwootReady = ref(false)
+  const sdkLoaded = ref(false)
 
   const isChatWootEnabled = computed(() => !appInfo.value.disableSupportChat)
+
+  /**
+   * Determine the Chatwoot website token based on deployment mode.
+   * - Cloud → NC_CHATWOOT_TOKEN (set via NUXT_CHATWOOT_WEBSITE_TOKEN at build)
+   * - Free/unlicensed → NC_CHATWOOT_TOKEN_OSS (set via NUXT_CHATWOOT_WEBSITE_TOKEN_OSS at build)
+   * - Licensed on-prem → empty (no chat)
+   */
+  function getChatwootToken(): string {
+    if (appInfo.value.isCloud) return process.env.NC_CHATWOOT_TOKEN || ''
+    if (!appInfo.value.ee) return process.env.NC_CHATWOOT_TOKEN_OSS || ''
+    return ''
+  }
+
+  /**
+   * Load the Chatwoot SDK script and call run() with the correct token.
+   * The @productdevbook/chatwoot module is kept for useChatWoot() composable
+   * but configured with empty baseUrl so it doesn't auto-load the SDK.
+   */
+  function loadChatwootSdk() {
+    if (sdkLoaded.value) return
+
+    const token = getChatwootToken()
+    if (!token) return
+
+    sdkLoaded.value = true
+
+    const script = document.createElement('script')
+    script.src = 'https://app.chatwoot.com/packs/js/sdk.js'
+    script.async = true
+    script.defer = true
+    script.onload = () => {
+      window.chatwootSettings = {
+        hideMessageBubble: true,
+        darkMode: 'light',
+        position: 'right',
+        locale: 'en',
+      }
+      window.chatwootSDK?.run({
+        websiteToken: token,
+        baseUrl: 'https://app.chatwoot.com',
+      })
+    }
+    document.head.appendChild(script)
+  }
 
   const initUserCustomerAttributes = () => {
     if (!chatwootReady.value || ncIsPlaywright() || !user.value?.id || appInfo.value.disableSupportChat) {
@@ -55,6 +100,17 @@ export const useProvideChatwoot = createSharedComposable(() => {
     chatwootReady.value = true
     initUserCustomerAttributes()
   }
+
+  // Load the SDK once appInfo is available (determines which token to use)
+  watch(
+    () => appInfo.value,
+    () => {
+      if (appInfo.value && !appInfo.value.disableSupportChat) {
+        loadChatwootSdk()
+      }
+    },
+    { immediate: true },
+  )
 
   watch(
     [() => user.value?.email, () => user.value?.id, () => appInfo.value.disableSupportChat],

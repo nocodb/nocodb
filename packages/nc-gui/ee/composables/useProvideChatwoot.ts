@@ -26,6 +26,10 @@ export const useProvideChatwoot = createSharedComposable(() => {
    * The @productdevbook/chatwoot module loads the SDK and calls run() with
    * an empty token (creating a non-functional hidden widget). Once appInfo
    * is available, we clean up the broken widget and reinit with the real token.
+   *
+   * The SDK script loads asynchronously — if it hasn't loaded yet when this
+   * is called, we wait for the `chatwoot:ready` event (fired by the module
+   * after its initial run()) before reinitializing.
    */
   function initChatwootWidget() {
     if (sdkLoaded.value) return
@@ -35,21 +39,38 @@ export const useProvideChatwoot = createSharedComposable(() => {
 
     sdkLoaded.value = true
 
-    // Remove the broken widget created by the module's empty-token run()
-    document.querySelector('.woot-widget-holder')?.remove()
-    document.querySelector('.woot--bubble-holder')?.remove()
+    function reinitWithToken() {
+      // Remove the broken widget created by the module's empty-token run()
+      document.querySelector('.woot-widget-holder')?.remove()
+      document.querySelector('.woot--bubble-holder')?.remove()
 
-    window.chatwootSettings = {
-      hideMessageBubble: true,
-      darkMode: 'light',
-      position: 'right',
-      locale: 'en',
+      window.chatwootSettings = {
+        hideMessageBubble: true,
+        darkMode: 'light',
+        position: 'right',
+        locale: 'en',
+      }
+
+      window.chatwootSDK?.run({
+        websiteToken: token,
+        baseUrl: 'https://app.chatwoot.com',
+      })
     }
 
-    window.chatwootSDK?.run({
-      websiteToken: token,
-      baseUrl: 'https://app.chatwoot.com',
-    })
+    // SDK script loads asynchronously — it may not be available yet
+    if (window.chatwootSDK) {
+      reinitWithToken()
+    } else {
+      // Poll until the SDK script finishes loading
+      const check = setInterval(() => {
+        if (window.chatwootSDK) {
+          clearInterval(check)
+          reinitWithToken()
+        }
+      }, 200)
+      // Give up after 30s
+      setTimeout(() => clearInterval(check), 30000)
+    }
   }
 
   const initUserCustomerAttributes = () => {

@@ -186,8 +186,7 @@ jobs:
         run: |
           TAGS="nocodb/nocodb:${{ needs.process-input.outputs.ceTag }}"
           if [[ "${{ github.event.inputs.skipLatestTag }}" != "true" ]]; then
-            TAGS="${TAGS}
-          nocodb/nocodb:latest"
+            TAGS+=$'\nnocodb/nocodb:latest'
           fi
           echo "tags<<EOF" >> $GITHUB_OUTPUT
           echo "${TAGS}" >> $GITHUB_OUTPUT
@@ -261,9 +260,11 @@ jobs:
           node-version: 22.12.0
 
       - name: Generate draft release notes
+        env:
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
         run: |
           npx github-release-notes@0.17.2 release \
-            --token ${{ secrets.NC_GITHUB_TOKEN }} \
+            --token "${GITHUB_TOKEN}" \
             --draft \
             --tags ${{ needs.process-input.outputs.ceTag }}..${{ needs.process-input.outputs.prevTag }}
 

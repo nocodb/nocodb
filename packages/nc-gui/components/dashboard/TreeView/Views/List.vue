@@ -98,6 +98,12 @@ function markItem(id: string) {
 
 const source = computed(() => base.value?.sources?.find((b) => b.id === table.value.source_id))
 
+const isDefaultSource = computed(() => {
+  if (base.value?.sources?.length === 1) return true
+  if (!source.value) return false
+  return isDefaultBase(source.value)
+})
+
 /** validate view title */
 function validate(view: ViewType) {
   if (!view.title || view.title.trim().length < 0) {
@@ -483,7 +489,14 @@ const filteredViews = computed(() => {
       :class="{ dragging, 'min-h-6': sectionId != null && !filteredViews.length }"
       class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     >
-      <div v-if="sectionId != null && !filteredViews.length" class="flex items-center py-1 pl-13.5 text-nc-content-gray-subtle2 text-captionSm">
+      <div
+        v-if="sectionId != null && !filteredViews.length && !dragging"
+        class="flex items-center py-1 text-nc-content-gray-muted text-captionSm"
+        :class="{
+          'pl-13.5': isDefaultSource,
+          'pl-20.5': !isDefaultSource,
+        }"
+      >
         {{ $t('general.empty') }}
       </div>
       <DashboardTreeViewViewsNode

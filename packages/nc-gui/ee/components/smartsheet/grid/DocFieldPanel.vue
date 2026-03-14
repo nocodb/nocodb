@@ -17,6 +17,8 @@ const { closeDoc, switchField, setFullscreen } = docFieldStore
 
 const { t } = useI18n()
 
+const meta = inject(MetaInj, ref())
+
 const panelRef = ref<HTMLElement>()
 
 const isResizing = ref(false)
@@ -89,8 +91,9 @@ const panelStyle = computed(() => {
   if (isFullscreen.value) {
     return {
       left: 'var(--mini-sidebar-width)',
-      width: 'calc(100vw - var(--mini-sidebar-width))',
-      height: '100vh',
+      right: '0',
+      top: '0',
+      bottom: '0',
     }
   }
   return { width: `${panelWidth.value}px` }
@@ -128,6 +131,13 @@ const panelClasses = computed(() => {
 
     <!-- Header -->
     <div class="flex items-center gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0">
+      <!-- Table name prefix (fullscreen only) -->
+      <div v-if="isFullscreen && meta?.title" class="flex items-center gap-1 text-bodySm text-nc-content-gray-subtle2 truncate max-w-40">
+        <GeneralIcon icon="table" class="w-4 h-4 flex-shrink-0" />
+        <span class="truncate">{{ meta.title }}</span>
+        <span>·</span>
+      </div>
+
       <!-- Field switcher -->
       <NcDropdown v-if="docColumns.length > 1" placement="bottomLeft">
         <NcButton size="xs" type="text" class="!px-1">
@@ -169,7 +179,7 @@ const panelClasses = computed(() => {
           data-testid="nc-doc-field-panel-fullscreen"
           @click="setFullscreen(!isFullscreen)"
         >
-          <GeneralIcon :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'" class="w-4 h-4" />
+          <GeneralIcon :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'" class="w-4 h-4" :class="{ 'text-nc-content-brand': isFullscreen }" />
         </NcButton>
       </NcTooltip>
 
@@ -212,7 +222,10 @@ const panelClasses = computed(() => {
 <style lang="scss" scoped>
 .nc-doc-field-panel {
   outline: none;
-  position: relative;
+
+  &:not(.fixed) {
+    position: relative;
+  }
 
   &.is-resizing {
     user-select: none;

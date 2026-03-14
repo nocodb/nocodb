@@ -4,6 +4,7 @@ import { PublishCommand, SNSClient } from '@aws-sdk/client-sns';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import { TelemetryService as TelemetryServiceCE } from 'src/services/telemetry.service';
+import Noco from '~/Noco';
 
 @Injectable()
 export class TelemetryService extends TelemetryServiceCE {
@@ -69,8 +70,11 @@ export class TelemetryService extends TelemetryServiceCE {
       return;
     }
 
-    // Free/unlicensed user path: fall back to CE telemetry (Tele → telemetry.nocodb.com)
-    super.sendEvent({ evt_type: event, ...payload });
+    // Only free/unlicensed users should send to telemetry.nocodb.com.
+    // Licensed on-prem (Noco.isEE() = true) — skip to preserve privacy.
+    if (!Noco.isEE()) {
+      super.sendEvent({ evt_type: event, ...payload });
+    }
   }
 
   async trackEvents(param: {

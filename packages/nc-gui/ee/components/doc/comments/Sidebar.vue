@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const { docId } = toRefs(props)
 
-const { user } = useGlobal()
+const { user, isMobileMode } = useGlobal()
 
 // Provide MetaInj stub so SmartsheetExpandedFormRichComment's @mentions lookup doesn't crash
 provide(
@@ -405,7 +405,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
   >
     <!-- Header -->
     <div
-      class="flex items-center justify-between h-[var(--topbar-height)] px-3 py-2.5 border-b-1 border-nc-border-gray-medium flex-none"
+      class="flex items-center justify-between sm:h-[var(--topbar-height)] px-3 py-2.5 border-b-1 border-nc-border-gray-medium flex-none"
     >
       <div class="flex items-center gap-2">
         <span class="font-semibold text-sm text-nc-content-gray">{{ $t('general.comments') }}</span>
@@ -419,6 +419,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
         <NcDropdown v-model:visible="isFilterOpen" :trigger="['click']" placement="bottomRight">
           <NcButton
             size="xsmall"
+            mobile-size="small"
             type="text"
             data-testid="nc-doc-comments-filter-btn"
             :class="{ '!text-nc-content-brand': hasActiveFilters }"
@@ -455,7 +456,7 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
           </template>
         </NcDropdown>
         <!-- Close button -->
-        <NcButton size="xsmall" type="text" data-testid="nc-doc-comments-close-btn" @click="emit('close')">
+        <NcButton v-if="!isMobileMode" size="xsmall" type="text" data-testid="nc-doc-comments-close-btn" @click="emit('close')">
           <GeneralIcon icon="close" />
         </NcButton>
       </div>
@@ -490,7 +491,11 @@ onBeforeUnmount(() => document.removeEventListener('click', onDocumentClick, tru
     </div>
 
     <!-- Comments list -->
-    <div v-else ref="commentsWrapperEl" class="flex flex-col flex-1 py-1 nc-scrollbar-thin overflow-y-auto">
+    <div
+      v-else
+      ref="commentsWrapperEl"
+      class="flex flex-col flex-1 py-3 sm:py-1 nc-scrollbar-thin overflow-y-auto nc-scroll-fade-bottom"
+    >
       <template v-for="(threadItem, index) of filteredThreadedComments" :key="threadItem.id">
         <div
           class="nc-doc-thread-card mx-3 rounded-lg border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight transition-all duration-150"

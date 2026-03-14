@@ -23,6 +23,8 @@ interface Props {
 
   // Drawer props (mobile)
   drawerHeight?: string
+  drawerContentHeight?: boolean
+  drawerMaxHeight?: string
   drawerPlacement?: 'bottom' | 'top' | 'left' | 'right'
   closable?: boolean
   maskClosable?: boolean
@@ -32,6 +34,8 @@ interface Props {
   showDragHandle?: boolean
   swipeToClose?: boolean
   swipeThreshold?: number
+  scrollableBody?: boolean
+  drawerBodyClassName?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -46,7 +50,9 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   nonNcDropdown: false,
   onVisibleChange: undefined,
-  drawerHeight: '50dvh',
+  drawerHeight: '85svh',
+  drawerContentHeight: false,
+  drawerMaxHeight: '85svh',
   drawerPlacement: 'bottom',
   closable: false,
   maskClosable: true,
@@ -56,6 +62,8 @@ const props = withDefaults(defineProps<Props>(), {
   showDragHandle: true,
   swipeToClose: true,
   swipeThreshold: 80,
+  scrollableBody: true,
+  drawerBodyClassName: '',
 })
 
 const emits = defineEmits(['update:visible'])
@@ -79,6 +87,8 @@ const dropdownProps = computed(() => ({
 const drawerProps = computed(() => ({
   title: props.title,
   height: props.drawerHeight,
+  contentHeight: props.drawerContentHeight,
+  maxHeight: props.drawerMaxHeight,
   placement: props.drawerPlacement,
   closable: props.closable,
   maskClosable: props.maskClosable,
@@ -88,6 +98,8 @@ const drawerProps = computed(() => ({
   showDragHandle: props.showDragHandle,
   swipeToClose: props.swipeToClose,
   swipeThreshold: props.swipeThreshold,
+  scrollableBody: props.scrollableBody,
+  bodyClassName: props.drawerBodyClassName,
 }))
 </script>
 

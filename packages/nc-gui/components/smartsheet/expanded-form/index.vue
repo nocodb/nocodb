@@ -263,6 +263,22 @@ const duplicatingRowInProgress = ref(false)
 
 const { isSqlView } = useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
+// Mobile: toggle between Fields and Discussion (Comments/Activity) view
+const mobileDiscussionMode = ref(false)
+
+const showMobileDiscussionToggle = computed(() => {
+  return (
+    isMobileMode.value &&
+    !isNew.value &&
+    !props.templateMode &&
+    !props.blueprintMode &&
+    commentsDrawer.value &&
+    isUIAllowed('commentList', baseRoles.value) &&
+    !isPublic.value &&
+    !isSqlView.value
+  )
+})
+
 useProvideSmartsheetLtarHelpers(meta)
 
 watch(
@@ -711,6 +727,7 @@ const onConfirmDeleteRowClick = async () => {
 }
 
 watch(rowId, async (nRow) => {
+  mobileDiscussionMode.value = false
   await triggerRowLoad(nRow)
 })
 
@@ -1031,6 +1048,19 @@ export default {
         </div>
         <div v-else class="ml-auto" />
         <div class="flex gap-2">
+          <NcButton
+            v-if="showMobileDiscussionToggle"
+            v-e="['c:row-expand:mobile-discussion-toggle']"
+            class="!w-7 !h-7"
+            type="secondary"
+            size="xsmall"
+            @click="mobileDiscussionMode = !mobileDiscussionMode"
+          >
+            <GeneralIcon
+              :icon="mobileDiscussionMode ? 'menu' : 'ncMessageSquare1Outline'"
+              class="text-md text-nc-content-inverted-secondary"
+            />
+          </NcButton>
           <PermissionsTooltip
             v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
             :entity="PermissionEntity.TABLE"
@@ -1221,7 +1251,11 @@ export default {
       </div>
       <div ref="wrapper" class="flex-grow h-[calc(100%_-_4rem)] w-full">
         <template v-if="activeViewMode === ExpandedFormMode.FIELD">
+          <div v-if="isMobileMode && mobileDiscussionMode && showMobileDiscussionToggle" class="h-full">
+            <SmartsheetExpandedFormSidebar />
+          </div>
           <SmartsheetExpandedFormPresentorsFields
+            v-else
             :row-id="rowId"
             :fields="fields ?? []"
             :hidden-fields="hiddenFields"

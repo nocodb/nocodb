@@ -15,6 +15,8 @@ const reloadViewDataEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const { isMobileMode } = useGlobal()
 
+const { t } = useI18n()
+
 const { isUserViewOwner } = useViewsStore()
 
 const filterComp = ref<typeof ColumnFilter>()
@@ -106,8 +108,69 @@ provide(AllFiltersInj, allFilters)
 useMenuCloseOnEsc(open)
 
 const draftFilter = ref({})
-const queryFilterOpen = ref(false)
-const viewFilterOpen = ref(true)
+
+// ── Section height ──
+// On mobile, tabs live in the drawer header and the locked footer in the drawer footer
+// — both outside the overlay body. So overlay = sections only → 100%.
+// On desktop, tabs & footer share the overlay — measure and subtract.
+const desktopTabsRef = ref<HTMLElement | null>(null)
+const desktopFooterRef = ref<HTMLElement | null>(null)
+
+const { height: desktopTabsHeight } = useElementBounding(desktopTabsRef)
+const { height: desktopFooterHeight } = useElementBounding(desktopFooterRef)
+
+const sectionHeight = computed(() => {
+  if (isMobileMode.value) return '100%'
+
+  const total = (desktopTabsHeight.value || 0) + (desktopFooterHeight.value || 0)
+  return total ? `calc(100% - ${total}px)` : '100%'
+})
+
+// ── Tab navigation ──
+// Sections are shown as tabs when more than one section is available.
+// This applies to both mobile and desktop, eliminating height conflicts.
+type FilterTab = 'filters' | 'viewFilters' | 'urlFilters'
+
+const activeFilterTab = ref<FilterTab>('filters')
+
+const filterTabs = computed(() => {
+  const tabs: { key: FilterTab; label: string; count?: number; tooltip?: string }[] = []
+
+  // For restricted editors: view filters tab (read-only persisted filters)
+  if (isRestrictedEditor.value && filtersLength.value) {
+    tabs.push({ key: 'viewFilters', label: t('title.viewFilters'), count: filtersLength.value, tooltip: t('msg.viewFilter') })
+  }
+
+  // Main filters tab — always present
+  // For full editors: editable view filters. For restricted: temp/local filters.
+  tabs.push({
+    key: 'filters',
+    label: t('activity.filters'),
+    count: isRestrictedEditor.value ? localFilters.value?.length || 0 : filtersLength.value,
+  })
+
+  // URL filters tab — only when URL params have filters
+  if (filtersFromUrlParams.value) {
+    tabs.push({
+      key: 'urlFilters',
+      label: t('title.urlFilters'),
+      count: filtersFromUrlParams.value?.filters?.length || 0,
+      tooltip: t('msg.urlFilter'),
+    })
+  }
+
+  return tabs
+})
+
+// Show tabs only when there's more than one section
+const showFilterTabs = computed(() => filterTabs.value.length > 1)
+
+// Reset to a valid tab when tabs change (e.g., URL filters removed)
+watch(filterTabs, (tabs) => {
+  if (!tabs.find((tab) => tab.key === activeFilterTab.value)) {
+    activeFilterTab.value = tabs[0]?.key || 'filters'
+  }
+})
 
 const smartsheetEventListener = async (event: string, payload?: any) => {
   if (
@@ -214,117 +277,102 @@ watch(
 </script>
 
 <template>
-  <NcDropdown v-model:visible="open" overlay-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown overflow-hidden">
-    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
-      <template #title>
-        {{ $t('activity.filter') }}
-      </template>
+  <NcDropDrawer
+    v-model:visible="open"
+    :scrollable-body="false"
+    drawer-body-class-name="nc-dropdown-filter-menu nc-toolbar-dropdown !px-0 !pb-0 h-full"
+    overlay-class-name="nc-dropdown-filter-menu overflow-hidden"
+  >
+    <template #default="{ onClick }">
+      <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
+        <template #title>
+          {{ $t('activity.filter') }}
+        </template>
 
-      <NcButton
-        v-e="['c:filter']"
-        class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7 group"
-        size="small"
-        type="secondary"
-        :show-as-disabled="isLocked"
-        :class="{
-          [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: combinedFilterLength,
-        }"
-      >
-        <div class="flex items-center gap-1 min-h-5">
-          <div class="flex items-center gap-2">
-            <component :is="iconMap.filter" class="h-4 w-4" />
-            <!-- Filter -->
-            <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
-              $t('activity.filter')
-            }}</span>
-          </div>
+        <NcButton
+          v-e="['c:filter']"
+          class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7 group"
+          size="small"
+          type="secondary"
+          :show-as-disabled="isLocked"
+          :class="{
+            [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: combinedFilterLength,
+          }"
+          @click="onClick"
+        >
+          <div class="flex items-center gap-1 min-h-5">
+            <div class="flex items-center gap-2">
+              <component :is="iconMap.filter" class="h-4 w-4" />
+              <!-- Filter -->
+              <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">{{
+                $t('activity.filter')
+              }}</span>
+            </div>
 
-          <NcTooltip v-if="combinedFilterLength" :disabled="!isCurrentUserFilterPresent" class="flex">
-            <template #title>
-              {{ $t('tooltip.filteredByCurrentUser') }}
-            </template>
-            <span
-              class="nc-toolbar-btn-chip inline-flex items-center"
-              :class="{
-                [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
-                [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
-              }"
-            >
-              {{ combinedFilterLength }}
-              <span v-if="isCurrentUserFilterPresent" class="ml-1 pb-0.6">{{ '@' }}</span>
-            </span>
-          </NcTooltip>
-
-          <!-- show a warning icon with tooltip if query filter error is there -->
-          <template v-if="filtersFromUrlParams?.errors?.length">
-            <NcTooltip :title="$t('msg.urlFilterError')" placement="top">
-              <GeneralIcon icon="ncAlertCircle" class="nc-error-icon w-3.5" />
+            <NcTooltip v-if="combinedFilterLength" :disabled="!isCurrentUserFilterPresent" class="flex">
+              <template #title>
+                {{ $t('tooltip.filteredByCurrentUser') }}
+              </template>
+              <span
+                class="nc-toolbar-btn-chip inline-flex items-center"
+                :class="{
+                  [filteredOrSortedAppearanceConfig.FILTERED.toolbarChipBgClass]: true,
+                  [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
+                }"
+              >
+                {{ combinedFilterLength }}
+                <span v-if="isCurrentUserFilterPresent" class="ml-1 pb-0.6">{{ '@' }}</span>
+              </span>
             </NcTooltip>
-          </template>
-        </div>
-      </NcButton>
-    </NcTooltip>
+
+            <!-- show a warning icon with tooltip if query filter error is there -->
+            <template v-if="filtersFromUrlParams?.errors?.length">
+              <NcTooltip :title="$t('msg.urlFilterError')" placement="top">
+                <GeneralIcon icon="ncAlertCircle" class="nc-error-icon w-3.5" />
+              </NcTooltip>
+            </template>
+          </div>
+        </NcButton>
+      </NcTooltip>
+    </template>
+
+    <!-- Tab bar in drawer header (mobile only, when multiple tabs) -->
+    <template v-if="isMobileMode && showFilterTabs" #drawer-header>
+      <SmartsheetToolbarColumnFilterTabs v-model:active-key="activeFilterTab" :tabs="filterTabs" />
+    </template>
+
+    <!-- Locked footer in drawer footer (mobile only) -->
+    <template v-if="isMobileMode && isRestrictedEditor && (isLocked || isPersonalViewNonOwner)" #drawer-footer>
+      <GeneralLockedViewFooter @on-open="open = false" />
+    </template>
 
     <template #overlay>
-      <div :key="filterKey">
-        <template v-if="!isRestrictedEditor">
-          <SmartsheetToolbarColumnFilter
-            ref="filterComp"
-            v-model:draft-filter="draftFilter"
-            v-model:is-open="open"
-            class="nc-table-toolbar-menu"
-            :auto-save="true"
-            data-testid="nc-filter-menu"
-            :is-view-filter="true"
-            @update:filters-length="filtersLength = $event"
-          >
-          </SmartsheetToolbarColumnFilter>
-        </template>
-        <template v-else>
-          <template v-if="!!filtersLength">
-            <div class="px-2 mt-2">
-              <div
-                class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
-                :class="{ 'pb-3': !viewFilterOpen }"
-                @click="viewFilterOpen = !viewFilterOpen"
-              >
-                <div class="flex-grow gap-2 flex">
-                  {{ $t('title.viewFilters') }}
+      <div :key="filterKey" class="xs:(h-full)">
+        <!-- Desktop: Tab bar (inline, when multiple tabs) -->
+        <div v-if="!isMobileMode && showFilterTabs" ref="desktopTabsRef" class="flex-none">
+          <SmartsheetToolbarColumnFilterTabs v-model:active-key="activeFilterTab" :tabs="filterTabs" />
+        </div>
 
-                  <div>
-                    <NcTooltip :title="$t('msg.viewFilter')" placement="top">
-                      <GeneralIcon icon="ncInfo" class="nc-info-icon !w-3.5 !h-3.5" />
-                    </NcTooltip>
-                  </div>
-                </div>
-                <div class="p-2">
-                  <GeneralIcon
-                    icon="ncChevronDown"
-                    class="nc-chevron-icon transition-all cursor-pointer w-4 h-4"
-                    :class="{ 'transform rotate-180': viewFilterOpen }"
-                  />
-                </div>
-              </div>
-              <div
-                class="overflow-hidden transition-all duration-300 -mt-2"
-                :class="{ 'max-h-0': !viewFilterOpen, 'max-h-[1000px] overflow-auto': viewFilterOpen }"
-              >
-                <SmartsheetToolbarColumnFilter
-                  :key="`existing-${filterKey}`"
-                  v-model:is-open="open"
-                  class="nc-table-toolbar-menu !pl-2 !w-full"
-                  :model-value="existingFilters"
-                  :auto-save="false"
-                  :is-view-filter="!isPersonalViewNonOwner && !isLocked"
-                  read-only
-                  @update:filters-length="filtersLength = $event || 0"
-                >
-                </SmartsheetToolbarColumnFilter>
-              </div>
-            </div>
-            <a-divider v-if="showTempFilters" class="!my-1" />
+        <!-- Section: Main Filters (full editor or temp filters) -->
+        <div
+          v-show="!showFilterTabs || activeFilterTab === 'filters'"
+          class="xs:(overflow-y-auto nc-scrollbar-thin)"
+          :style="{ height: sectionHeight }"
+        >
+          <template v-if="!isRestrictedEditor">
+            <SmartsheetToolbarColumnFilter
+              ref="filterComp"
+              v-model:draft-filter="draftFilter"
+              v-model:is-open="open"
+              class="nc-table-toolbar-menu"
+              :auto-save="true"
+              data-testid="nc-filter-menu"
+              :is-view-filter="true"
+              @update:filters-length="filtersLength = $event"
+            >
+            </SmartsheetToolbarColumnFilter>
           </template>
-          <template v-if="showTempFilters">
+          <template v-else-if="showTempFilters">
             <SmartsheetToolbarColumnFilter
               ref="filterComp"
               v-model="localFilters"
@@ -338,76 +386,67 @@ watch(
             >
             </SmartsheetToolbarColumnFilter>
           </template>
-          <GeneralLockedViewFooter v-if="isLocked || isPersonalViewNonOwner" @on-open="open = false" />
-        </template>
-        <template v-if="filtersFromUrlParams">
-          <a-divider class="!my-1" />
-          <div class="px-2 pb-2">
-            <div
-              class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
-              :class="{ 'pb-0': !queryFilterOpen }"
-              @click="queryFilterOpen = !queryFilterOpen"
-            >
-              <div class="flex-grow gap-2 flex">
-                {{ $t('title.urlFilters') }}
-                <div
-                  v-if="filtersFromUrlParams?.filters?.length"
-                  class="bg-nc-bg-brand px-1 rounded rounded-6px font-medium text-nc-content-brand h-5"
-                >
-                  {{ filtersFromUrlParams.filters.length }}
-                </div>
+        </div>
 
-                <div>
-                  <NcTooltip :title="$t('msg.urlFilter')" placement="top">
-                    <GeneralIcon icon="ncInfo" class="nc-info-icon !w-3.5 !h-3.5" />
-                  </NcTooltip>
-                </div>
-              </div>
-              <div class="p-2">
-                <GeneralIcon
-                  icon="ncChevronDown"
-                  class="nc-chevron-icon transition-all cursor-pointer w-4 h-4"
-                  :class="{ 'transform rotate-180': queryFilterOpen }"
-                />
-              </div>
-            </div>
-            <div
-              class="overflow-hidden transition-all duration-300 mt-1"
-              :class="{ 'max-h-0': !queryFilterOpen, 'max-h-[1000px] overflow-auto': queryFilterOpen }"
-            >
-              <SmartsheetToolbarColumnFilter
-                v-if="filtersFromUrlParams.filters"
-                :key="whereQueryFromUrl"
-                ref="filterComp"
-                v-model="filtersFromUrlParams.filters"
-                v-model:is-open="open"
-                class="nc-query-filter readonly px-2 pb-2"
-                :auto-save="false"
-                :is-view-filter="false"
-                read-only
-                query-filter
-              >
-              </SmartsheetToolbarColumnFilter>
+        <!-- Section: View Filters (read-only, restricted editors) -->
+        <div
+          v-if="isRestrictedEditor && !!filtersLength"
+          v-show="!showFilterTabs || activeFilterTab === 'viewFilters'"
+          class="xs:(overflow-y-auto nc-scrollbar-thin)"
+          :style="{ height: sectionHeight }"
+        >
+          <SmartsheetToolbarColumnFilter
+            :key="`existing-${filterKey}`"
+            v-model:is-open="open"
+            class="nc-table-toolbar-menu !w-full"
+            :model-value="existingFilters"
+            :auto-save="false"
+            :is-view-filter="!isPersonalViewNonOwner && !isLocked"
+            read-only
+            @update:filters-length="filtersLength = $event || 0"
+          >
+          </SmartsheetToolbarColumnFilter>
+        </div>
 
-              <div
-                v-else-if="filtersFromUrlParams?.errors?.length"
-                class="px-2 transition-margin duration-500"
-                :class="{ 'mb-2': queryFilterOpen }"
-              >
-                <NcAlert
-                  type="error"
-                  message="Error"
-                  :description="$t('msg.urlFilterError')"
-                  :copy-text="filtersFromUrlParamsReadableErrors"
-                  :copy-btn-tooltip="$t('tooltip.copyErrorMessage')"
-                />
-              </div>
-            </div>
+        <!-- Section: URL Filters -->
+        <div
+          v-if="filtersFromUrlParams"
+          v-show="!showFilterTabs || activeFilterTab === 'urlFilters'"
+          class="xs:(overflow-y-auto nc-scrollbar-thin)"
+          :style="{ height: sectionHeight }"
+        >
+          <SmartsheetToolbarColumnFilter
+            v-if="filtersFromUrlParams.filters"
+            :key="whereQueryFromUrl"
+            ref="filterComp"
+            v-model="filtersFromUrlParams.filters"
+            v-model:is-open="open"
+            class="nc-query-filter readonly"
+            :auto-save="false"
+            :is-view-filter="false"
+            read-only
+            query-filter
+          >
+          </SmartsheetToolbarColumnFilter>
+
+          <div v-else-if="filtersFromUrlParams?.errors?.length">
+            <NcAlert
+              type="error"
+              message="Error"
+              :description="$t('msg.urlFilterError')"
+              :copy-text="filtersFromUrlParamsReadableErrors"
+              :copy-btn-tooltip="$t('tooltip.copyErrorMessage')"
+            />
           </div>
-        </template>
+        </div>
+
+        <!-- Desktop: Locked footer -->
+        <div v-if="!isMobileMode && isRestrictedEditor && (isLocked || isPersonalViewNonOwner)" ref="desktopFooterRef">
+          <GeneralLockedViewFooter @on-open="open = false" />
+        </div>
       </div>
     </template>
-  </NcDropdown>
+  </NcDropDrawer>
 </template>
 
 <style lang="scss">

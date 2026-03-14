@@ -79,9 +79,9 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
       <!-- Actions -->
       <div class="flex items-center gap-0.5 flex-shrink-0">
         <!-- Hover-only actions: 3-dot menu, reply, resolve (unresolved only) -->
-        <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div class="flex items-center gap-0.5 sm:opacity-0 group-hover:opacity-100 transition-opacity">
           <NcDropdown v-if="isOwner || hasEditPermission" overlay-class-name="!min-w-[140px]" placement="bottomRight">
-            <NcButton class="nc-doc-comment-action-btn" size="xxsmall" type="text" @click.stop>
+            <NcButton class="nc-doc-comment-action-btn" size="xxsmall" mobile-size="small" type="text" @click.stop>
               <GeneralIcon class="text-xs" icon="threeDotVertical" />
             </NcButton>
             <template #overlay>
@@ -110,6 +110,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
               v-e="['c:doc:comment:reply']"
               class="nc-doc-comment-action-btn"
               size="xxsmall"
+              mobile-size="small"
               type="text"
               @click.stop="emit('reply')"
             >
@@ -125,6 +126,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
                 v-e="['c:doc:comment:react']"
                 class="nc-doc-comment-action-btn"
                 size="xxsmall"
+                mobile-size="small"
                 type="text"
                 data-testid="nc-doc-comment-react-btn"
                 @click.stop
@@ -150,7 +152,13 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
 
           <!-- Resolve button (unresolved state) — only on top-level comments, not replies -->
           <NcTooltip v-if="!isReply && !comment.resolved_by && hasEditPermission" class="flex" placement="topRight">
-            <NcButton class="nc-doc-comment-action-btn" size="xxsmall" type="text" @click.stop="emit('resolve')">
+            <NcButton
+              class="nc-doc-comment-action-btn"
+              size="xxsmall"
+              mobile-size="small"
+              type="text"
+              @click.stop="emit('resolve')"
+            >
               <GeneralIcon class="text-xs" icon="checkCircle" />
             </NcButton>
             <template #title>{{ $t('general.resolve') }}</template>
@@ -163,6 +171,7 @@ const isInlineComment = computed(() => !!comment.value.anchor_id)
           <NcButton
             class="nc-doc-resolve-badge nc-doc-comment-action-btn"
             size="xxsmall"
+            mobile-size="small"
             type="text"
             @click.stop="emit('resolve')"
           >

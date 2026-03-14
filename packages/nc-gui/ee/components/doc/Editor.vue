@@ -1748,9 +1748,28 @@ onBeforeUnmount(() => {
     </div>
     <!-- /relative wrapper -->
 
-    <!-- Comments sidebar — slides in from the right alongside editor -->
+    <!-- Comments sidebar — drawer on mobile, inline panel on desktop -->
+    <NcDrawer
+      v-if="isMobileMode"
+      v-model:visible="isCommentsPanelOpen"
+      height="85svh"
+      :show-drag-handle="true"
+      :swipe-to-close="true"
+      :scrollable-body="false"
+      body-class-name="!p-0"
+    >
+      <DocCommentsSidebar
+        :doc-id="docId"
+        :base-id="base?.id"
+        :editor="editor"
+        :pending-selection="pendingInlineCommentSelection"
+        class="!w-full !h-full !border-l-0"
+        @close="isCommentsPanelOpen = false"
+        @clear-pending-selection="pendingInlineCommentSelection = null"
+      />
+    </NcDrawer>
     <DocCommentsSidebar
-      v-if="isCommentsPanelOpen"
+      v-else-if="isCommentsPanelOpen"
       :doc-id="docId"
       :base-id="base?.id"
       :editor="editor"

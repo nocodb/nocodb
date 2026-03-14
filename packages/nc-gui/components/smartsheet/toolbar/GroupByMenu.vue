@@ -316,7 +316,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
         <!-- Group-by list -->
         <div
           v-else-if="_groupBy.length || syncedGroupByEntries.length"
-          class="flex flex-col bg-nc-bg-default overflow-auto nc-group-by-list menu-filter-dropdown sm:w-100 p-4"
+          class="flex flex-col bg-nc-bg-default overflow-auto nc-group-by-list menu-filter-dropdown xs:nc-w-screen-95 sm:w-100 p-4"
           data-testid="nc-group-by-menu"
         >
           <div class="max-h-100" @click.stop>

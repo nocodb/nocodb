@@ -3,49 +3,52 @@ import plugin from 'windicss/plugin'
 export default plugin(({ addUtilities }) => {
   const utils: Record<string, any> = {}
 
-  utils['.nc-h-screen'] = {
-    'height': '100vh',
-    '@supports (height: 100dvh)': {
-      height: '100dvh',
-    },
-    '@supports (height: 100svh)': {
-      height: '100svh',
-    },
+  // Helper to generate viewport-safe utilities with dvh/svh progressive enhancement
+  const addScreenUtil = (name: string, prop: string, unit: string, dUnit: string, sUnit: string, value: number) => {
+    const suffix = value === 100 ? '' : `-${value}`
+    utils[`.nc-${name}${suffix}`] = {
+      [prop]: `${value}${unit}`,
+      [`@supports (${prop}: ${value}${dUnit})`]: {
+        [prop]: `${value}${dUnit}`,
+      },
+      [`@supports (${prop}: ${value}${sUnit})`]: {
+        [prop]: `${value}${sUnit}`,
+      },
+    }
   }
 
-  utils['.nc-min-h-screen'] = {
-    'min-height': '100vh',
-    '@supports (min-height: 100dvh)': {
-      'min-height': '100dvh',
-    },
-    '@supports (min-height: 100svh)': {
-      'min-height': '100svh',
-    },
+  // Generate utilities for 0-100 (nc-h-screen = 100vh, nc-h-screen-80 = 80vh, etc.)
+  for (let i = 0; i <= 100; i++) {
+    addScreenUtil('h-screen', 'height', 'vh', 'dvh', 'svh', i)
+    addScreenUtil('min-h-screen', 'min-height', 'vh', 'dvh', 'svh', i)
+    addScreenUtil('w-screen', 'width', 'vw', 'dvw', 'svw', i)
+    addScreenUtil('min-w-screen', 'min-width', 'vw', 'dvw', 'svw', i)
   }
 
-  utils['.nc-w-screen'] = {
-    'width': '100vw',
-    '@supports (width: 100dvw)': {
-      width: '100dvw',
-    },
-    '@supports (width: 100svw)': {
-      width: '100svw',
-    },
+  // Scroll fade masks — apply on scrollable containers
+  // nc-scroll-fade       → fade top & bottom
+  // nc-scroll-fade-top   → fade top only
+  // nc-scroll-fade-bottom → fade bottom only
+  const fadeSize = '34px'
+
+  utils['.nc-scroll-fade'] = {
+    'mask-image': `linear-gradient(transparent 0%, black ${fadeSize}, black calc(100% - ${fadeSize}), transparent 100%)`,
+    '-webkit-mask-image': `linear-gradient(transparent 0%, black ${fadeSize}, black calc(100% - ${fadeSize}), transparent 100%)`,
   }
 
-  utils['.nc-min-w-screen'] = {
-    'min-width': '100vw',
-    '@supports (width: 100dvw)': {
-      'min-width': '100dvw',
-    },
-    '@supports (min-width: 100svw)': {
-      'min-width': '100svw',
-    },
+  utils['.nc-scroll-fade-top'] = {
+    'mask-image': `linear-gradient(transparent 0%, black ${fadeSize}, black 100%)`,
+    '-webkit-mask-image': `linear-gradient(transparent 0%, black ${fadeSize}, black 100%)`,
+  }
+
+  utils['.nc-scroll-fade-bottom'] = {
+    'mask-image': `linear-gradient(black 0%, black calc(100% - ${fadeSize}), transparent 100%)`,
+    '-webkit-mask-image': `linear-gradient(black 0%, black calc(100% - ${fadeSize}), transparent 100%)`,
   }
 
   addUtilities(utils, {
     layer: 'utilities',
     variants: ['responsive'],
-    completions: Object.keys(utils).map((k) => k.replace(/^\./, '')), // <-- this enables autocomplete in IDE
+    completions: Object.keys(utils).map((k) => k.replace(/^\./, '')),
   })
 })

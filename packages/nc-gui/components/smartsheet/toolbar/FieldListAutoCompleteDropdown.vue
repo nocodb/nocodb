@@ -154,12 +154,12 @@ if (!localValue.value && allowEmpty !== true) {
       :value="option.value"
       :disabled="option.ncItemDisabled"
     >
-      <NcTooltip :disabled="!option.ncItemDisabled" placement="right" class="w-full max-w-50">
+      <NcTooltip :disabled="!option.ncItemDisabled" placement="right" class="w-full h-full max-w-50">
         <template #title>
           {{ option.ncItemTooltip }}
         </template>
 
-        <div class="flex items-center w-full justify-between gap-2">
+        <div class="h-full flex items-center w-full justify-between gap-2">
           <div class="flex gap-1.5 flex-1 items-center truncate h-full">
             <component :is="option.icon" class="!w-3.5 !h-3.5 !mx-0" color="text-nc-content-gray-muted" />
             <NcTooltip

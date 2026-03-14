@@ -282,6 +282,13 @@ const openKeyboardShortcutDialog = () => {
                 </div>
               </NcMenuItem>
 
+              <NcDivider />
+
+              <NcMenuItem @click="openExperimentationMenu">
+                <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
+                <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
+              </NcMenuItem>
+
               <template v-if="isThemeEnabled">
                 <NcDivider />
                 <NcMenuItem v-e="['c:nocodb:theme']" data-testid="nc-sidebar-user-theme" @click="toggleTheme">

@@ -9,6 +9,7 @@ import { FileSystemIconLoader } from 'unplugin-icons/loaders'
 import { sentryVitePlugin } from '@sentry/vite-plugin'
 
 import PurgeIcons from 'vite-plugin-purge-icons'
+import { pwaConfig } from '../pwa.config'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -20,7 +21,15 @@ export default defineNuxtConfig({
     componentIslands: false,
     inlineRouteRules: true,
   },
-  modules: ['nuxt-echarts', '@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
+  modules: [
+    'nuxt-echarts',
+    '@vueuse/nuxt',
+    'nuxt-windicss',
+    '@nuxt/image',
+    '@pinia/nuxt',
+    '@productdevbook/chatwoot',
+    '@vite-pwa/nuxt',
+  ],
   echarts: {
     renderer: ['canvas'],
     charts: ['BarChart', 'LineChart', 'PieChart'],
@@ -41,6 +50,7 @@ export default defineNuxtConfig({
     },
   },
   ssr: false,
+  pwa: pwaConfig,
   router: {
     options: {
       hashMode: false,
@@ -72,6 +82,15 @@ export default defineNuxtConfig({
           type: 'image/x-icon',
           href: '/favicon.ico',
         },
+        {
+          rel: 'manifest',
+          href: '/manifest.webmanifest',
+        },
+        {
+          rel: 'apple-touch-icon',
+          href: '/apple-touch-icon-180x180.png',
+          sizes: '180x180',
+        },
         ...(process.env.NC_CDN_URL
           ? [
               {
@@ -90,6 +109,10 @@ export default defineNuxtConfig({
         {
           name: 'viewport',
           content: 'width=device-width, initial-scale=1',
+        },
+        {
+          name: 'theme-color',
+          content: '#3366FF',
         },
         {
           hid: 'description',

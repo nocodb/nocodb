@@ -158,6 +158,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
           class="nc-expanded-cell-header h-full flex-none"
           :is-hidden-col="isHiddenCol"
           show-lock-icon
+          show-menu-mobile
         />
         <LazySmartsheetHeaderCell
           v-else
@@ -165,6 +166,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
           class="nc-expanded-cell-header flex-none"
           :is-hidden-col="isHiddenCol"
           show-lock-icon
+          show-menu-mobile
         />
       </div>
 

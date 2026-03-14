@@ -12,14 +12,12 @@ export const useProvideChatwoot = createSharedComposable(() => {
 
   /**
    * Determine the Chatwoot website token based on deployment mode.
-   * - Cloud → NC_CHATWOOT_TOKEN (set via NUXT_CHATWOOT_WEBSITE_TOKEN at build)
+   * - Cloud / licensed on-prem → NC_CHATWOOT_TOKEN (set via NUXT_CHATWOOT_WEBSITE_TOKEN at build)
    * - Free/unlicensed → NC_CHATWOOT_TOKEN_OSS (set via NUXT_CHATWOOT_WEBSITE_TOKEN_OSS at build)
-   * - Licensed on-prem → empty (no chat)
    */
   function getChatwootToken(): string {
-    if (appInfo.value.isCloud) return process.env.NC_CHATWOOT_TOKEN || ''
-    if (!appInfo.value.ee) return process.env.NC_CHATWOOT_TOKEN_OSS || ''
-    return ''
+    if (appInfo.value.isCloud || appInfo.value.ee) return process.env.NC_CHATWOOT_TOKEN || ''
+    return process.env.NC_CHATWOOT_TOKEN_OSS || ''
   }
 
   /**

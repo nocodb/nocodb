@@ -119,4 +119,60 @@ export class DocFieldService extends DocFieldServiceCE {
     await Document.softDelete(context, doc.id);
     return true;
   }
+
+  /**
+   * Restore a soft-deleted document by its ID.
+   * Used for undo after delete or undo after paste.
+   */
+  async restore(
+    context: NcContext,
+    docId: string,
+  ): Promise<boolean> {
+    await Document.restore(context, docId);
+    return true;
+  }
+
+  /**
+   * Duplicate a document from one cell to another.
+   * Used for copy-paste: clones the source doc's content into a new doc
+   * linked to the target cell. If the target already has a doc, it is
+   * soft-deleted first.
+   */
+  async duplicate(
+    context: NcContext,
+    params: {
+      sourceColumnId: string;
+      sourceRowId: string;
+      targetColumnId: string;
+      targetRowId: string;
+    },
+    req: NcRequest,
+  ): Promise<DocumentType | null> {
+    const { sourceColumnId, sourceRowId, targetColumnId, targetRowId } = params;
+
+    // Fetch source document with content
+    const sourceDoc = await Document.getByFieldAndRow(
+      context,
+      sourceColumnId,
+      sourceRowId,
+    );
+    if (!sourceDoc) return null;
+
+    // Delete existing target doc if present
+    await this.deleteByFieldAndRow(context, targetColumnId, targetRowId);
+
+    // Create new doc with cloned content
+    const newDoc = await Document.createForField(context, {
+      base_id: context.base_id,
+      fk_workspace_id: context.workspace_id,
+      fk_column_id: targetColumnId,
+      fk_row_id: targetRowId,
+      title: sourceDoc.title || 'Untitled',
+      content: sourceDoc.content,
+      created_by: req.user?.id,
+      updated_by: req.user?.id,
+    });
+
+    return newDoc;
+  }
 }

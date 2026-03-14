@@ -1,7 +1,6 @@
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
-import { ComputedTypePasteError } from '~/lib/error';
 
 export class DocHelper extends AbstractColumnHelper {
   columnDefaultMeta = {};
@@ -9,27 +8,36 @@ export class DocHelper extends AbstractColumnHelper {
   serializeValue(
     _value: any,
     params: SerializerOrParserFnProps['params']
-  ): string | null {
+  ): any {
     if (params.serializeSearchQuery) return null;
 
-    if (params.isMultipleCellPaste) {
-      return undefined;
-    } else {
-      throw new ComputedTypePasteError();
+    // For paste operations, pass through the structured clipboard data
+    // so the frontend can use it to call the duplication API.
+    const item = params.clipboardItem;
+    if (item?.dbCellValue !== undefined) {
+      return {
+        value: item.dbCellValue,
+        rowId: item.rowId,
+        columnId: item.column?.id,
+      };
     }
+
+    return undefined;
   }
 
   parseValue(
-    _value: any,
+    value: any,
     _params: SerializerOrParserFnProps['params']
   ): string | null {
-    return null;
+    // Return the doc_id as-is for clipboard storage
+    return value || null;
   }
 
   parsePlainCellValue(
-    _value: any,
+    value: any,
     _params: SerializerOrParserFnProps['params']
   ): string | null {
-    return '';
+    // Show "Document" as plain text representation
+    return value ? 'Document' : '';
   }
 }

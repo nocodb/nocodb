@@ -460,6 +460,8 @@ const permissionScopes = {
     'docFieldGetOrCreate',
     'docFieldUpdate',
     'docFieldDelete',
+    'docFieldDuplicate',
+    'docFieldRestore',
 
     // Document Comments
     'documentCommentList',
@@ -998,6 +1000,8 @@ const rolePermissions:
       docFieldGetOrCreate: true,
       docFieldUpdate: true,
       docFieldDelete: true,
+      docFieldDuplicate: true,
+      docFieldRestore: true,
 
       // Extensions
       extensionUpdate: true,
@@ -1649,6 +1653,8 @@ const permissionDescriptions: Record<string, string> = {
   docFieldGetOrCreate: 'open or create a doc field document',
   docFieldUpdate: 'update a doc field document',
   docFieldDelete: 'delete a doc field document',
+  docFieldDuplicate: 'duplicate a doc field document',
+  docFieldRestore: 'restore a deleted doc field document',
 
   documentCommentList: 'view document comments',
   documentCommentCount: 'view document comment count',

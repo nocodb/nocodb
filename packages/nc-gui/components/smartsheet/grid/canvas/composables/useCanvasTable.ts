@@ -235,7 +235,7 @@ export function useCanvasTable({
   // Initialize loaders that need meta.base_id after meta is available
   const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas(), (meta.value as TableType)?.base_id)
   const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas())
-  const { addUndo, defineViewScope } = useUndoRedo()
+  const { addUndo, clone, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
@@ -1296,10 +1296,42 @@ export function useCanvasTable({
       }
     }
 
+    // Track deleted doc cells for undo: { rowIndex, colTitle, docId, columnId, rowPk }
+    const deletedDocCells: { rowIndex: number; colTitle: string; docId: string; columnId: string; rowPk: string }[] = []
+
     for (const row of rows) {
       for (const col of cols) {
         const colObj = col.columnObj
         if (!row || !colObj || !colObj.title || !col.isCellEditable || col.isSyncedColumn) continue
+
+        if (isDoc(colObj)) {
+          const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+          const docId = row.row[colObj.title]
+          if (docId && colObj.id && pk) {
+            try {
+              await $api.internal.postOperation(
+                meta.value?.fk_workspace_id as string,
+                meta.value?.base_id as string,
+                {
+                  operation: 'docFieldDelete',
+                  columnId: colObj.id,
+                  rowId: pk,
+                },
+              )
+              row.row[colObj.title] = null
+              deletedDocCells.push({
+                rowIndex: row.rowMeta.rowIndex!,
+                colTitle: colObj.title,
+                docId,
+                columnId: colObj.id,
+                rowPk: pk,
+              })
+            } catch {
+              // silently skip failed deletions
+            }
+          }
+          continue
+        }
 
         if (isVirtualCol(colObj)) continue
 
@@ -1312,13 +1344,63 @@ export function useCanvasTable({
     }
 
     if (props.length === 0) {
-      if (!bulkLtarDeleteOps.length) {
+      if (!bulkLtarDeleteOps.length && !deletedDocCells.length) {
         message.info(t('msg.info.noEditableCellsToClear'))
       }
       return
     }
 
-    await bulkUpdateRows(rows, props, undefined, false, path)
+    if (props.length) {
+      await bulkUpdateRows(rows, props, undefined, false, path)
+    }
+
+    if (deletedDocCells.length) {
+      addUndo({
+        redo: {
+          fn: async (cells: typeof deletedDocCells) => {
+            const { cachedRows } = getDataCache(path)
+            for (const cell of cells) {
+              const rowObj = cachedRows.value.get(cell.rowIndex)
+              if (!rowObj) continue
+              try {
+                await $api.internal.postOperation(
+                  meta.value?.fk_workspace_id as string,
+                  meta.value?.base_id as string,
+                  { operation: 'docFieldDelete', columnId: cell.columnId, rowId: cell.rowPk },
+                )
+                rowObj.row[cell.colTitle] = null
+              } catch {
+                // skip
+              }
+            }
+            triggerRefreshCanvas()
+          },
+          args: [clone(deletedDocCells)],
+        },
+        undo: {
+          fn: async (cells: typeof deletedDocCells) => {
+            const { cachedRows } = getDataCache(path)
+            for (const cell of cells) {
+              const rowObj = cachedRows.value.get(cell.rowIndex)
+              if (!rowObj) continue
+              try {
+                await $api.internal.postOperation(
+                  meta.value?.fk_workspace_id as string,
+                  meta.value?.base_id as string,
+                  { operation: 'docFieldRestore', docId: cell.docId },
+                )
+                rowObj.row[cell.colTitle] = cell.docId
+              } catch {
+                // skip
+              }
+            }
+            triggerRefreshCanvas()
+          },
+          args: [clone(deletedDocCells)],
+        },
+        scope: defineViewScope({ view: activeView.value }),
+      })
+    }
   }
 
   const cachedCurrentRow = ref<Row>()

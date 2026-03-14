@@ -165,6 +165,9 @@ export function useKeyboardNavigation({
         const res = await handleCellKeyDown({ e, column, row, pk, value, path: groupPath })
 
         if (res) {
+          if (e.key === 'Delete' || e.key === 'Backspace') {
+            requestAnimationFrame(triggerReRender)
+          }
           return
         }
       }

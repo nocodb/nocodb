@@ -559,6 +559,28 @@ export default class Document extends DocumentCE implements DocumentType {
     }
   }
 
+  /**
+   * Restore a soft-deleted document (set deleted=false).
+   * Used for undo operations on Doc field cells.
+   */
+  public static async restore(
+    context: NcContext,
+    docId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    await ncMeta.metaUpdate(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      { deleted: false },
+      docId,
+    );
+
+    // Clear cache so next read fetches fresh data
+    const key = `${CacheScope.DOCUMENT}:${docId}`;
+    await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
+  }
+
   private static async cascadeSoftDelete(
     context: NcContext,
     parentId: string,

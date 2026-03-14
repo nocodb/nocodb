@@ -7,17 +7,13 @@ const {
   mode,
   panelWidth,
   isLoading,
-  isPinned,
   isFullscreen,
   activeColumn,
   docColumns,
-  activeRowId,
   activeColumnId,
 } = docFieldStore
 
-const { closeDoc, switchField, togglePin, setFullscreen } = docFieldStore
-
-const meta = inject(MetaInj, ref())
+const { closeDoc, switchField, setFullscreen } = docFieldStore
 
 const { t } = useI18n()
 
@@ -28,37 +24,36 @@ const resizeStartX = ref(0)
 const resizeStartWidth = ref(0)
 
 const MIN_WIDTH = 320
-const MAX_WIDTH = 800
 
 const panelTitle = computed(() => {
   return activeColumn.value?.title || t('general.untitled')
-})
-
-const panelSubtitle = computed(() => {
-  const tableName = meta.value?.title || ''
-  const rowId = activeRowId.value || ''
-  if (!tableName) return rowId
-  return rowId ? `${tableName} · Row ${rowId}` : tableName
 })
 
 const onResizeStart = (e: MouseEvent) => {
   isResizing.value = true
   resizeStartX.value = e.clientX
   resizeStartWidth.value = panelWidth.value
+  document.body.style.cursor = 'col-resize'
 
   window.addEventListener('mousemove', onResizeMove)
   window.addEventListener('mouseup', onResizeEnd)
 }
 
+const getMaxWidth = () => {
+  const containerWidth = panelRef.value?.parentElement?.clientWidth ?? 0
+  return Math.max(MIN_WIDTH, Math.floor(containerWidth * 0.75))
+}
+
 const onResizeMove = (e: MouseEvent) => {
   if (!isResizing.value) return
   const delta = resizeStartX.value - e.clientX
-  const newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, resizeStartWidth.value + delta))
+  const newWidth = Math.max(MIN_WIDTH, Math.min(getMaxWidth(), resizeStartWidth.value + delta))
   panelWidth.value = newWidth
 }
 
 const onResizeEnd = () => {
   isResizing.value = false
+  document.body.style.cursor = ''
   window.removeEventListener('mousemove', onResizeMove)
   window.removeEventListener('mouseup', onResizeEnd)
 }
@@ -82,6 +77,7 @@ const onKeydown = (e: KeyboardEvent) => {
       closeDoc()
     }
   }
+
 }
 
 watch(isOpen, (val) => {
@@ -106,10 +102,8 @@ const panelClasses = computed(() => {
   if (isResizing.value) base.push('is-resizing')
   if (isFullscreen.value) {
     base.push('fixed', 'top-0', 'z-50')
-  } else if (isPinned.value) {
-    base.push('flex-shrink-0', 'h-full')
   } else {
-    base.push('absolute', 'right-0', 'top-0', 'h-full', 'z-40', 'shadow-lg')
+    base.push('flex-shrink-0', 'h-full')
   }
   return base
 })
@@ -168,19 +162,6 @@ const panelClasses = computed(() => {
       <div class="flex-1" />
 
       <!-- Toolbar buttons -->
-      <NcTooltip :title="isPinned ? $t('general.unpin') : $t('general.pin')">
-        <NcButton
-          size="xs"
-          type="text"
-          :aria-label="isPinned ? $t('general.unpin') : $t('general.pin')"
-          :class="{ '!text-nc-content-brand': isPinned }"
-          data-testid="nc-doc-field-panel-pin"
-          @click="togglePin"
-        >
-          <GeneralIcon :icon="isPinned ? 'ncPinOff' : 'ncPin'" class="w-4 h-4" />
-        </NcButton>
-      </NcTooltip>
-
       <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
         <NcButton
           size="xs"
@@ -203,14 +184,6 @@ const panelClasses = computed(() => {
         >
           <GeneralIcon icon="close" class="w-4 h-4" />
         </NcButton>
-      </NcTooltip>
-    </div>
-
-    <!-- Subtitle -->
-    <div class="px-4 py-2 border-b border-nc-border-gray-light flex-shrink-0">
-      <NcTooltip show-on-truncate-only class="text-captionSm text-nc-content-gray-subtle2 truncate block">
-        <template #title>{{ panelSubtitle }}</template>
-        {{ panelSubtitle }}
       </NcTooltip>
     </div>
 
@@ -244,16 +217,30 @@ const panelClasses = computed(() => {
   &:not(.fixed):not(.is-resizing) {
     transition: width 0.15s ease;
   }
+
+  &.is-resizing {
+    cursor: col-resize;
+    user-select: none;
+  }
 }
 
 .nc-doc-field-panel-resize-handle {
-  @apply absolute top-0 h-full z-10 cursor-col-resize transition-colors;
+  @apply absolute top-0 h-full z-10 cursor-col-resize;
   left: -4px;
   width: 8px;
 
-  &:hover,
-  &:active {
-    @apply bg-nc-fill-primary;
+  &:before {
+    @apply bg-transparent absolute left-0 top-[12px] h-[calc(100%_-_24px)] rounded-full z-40 transition-colors;
+    content: '';
+    width: 3px;
   }
+
+  &:hover:before {
+    @apply bg-nc-border-gray-medium;
+  }
+}
+
+.nc-doc-field-panel.is-resizing .nc-doc-field-panel-resize-handle:before {
+  @apply bg-nc-border-gray-medium;
 }
 </style>

@@ -197,6 +197,9 @@ watch(
 )
 
 useEventListener('keydown', (e: KeyboardEvent) => {
+  // Skip if event originated inside the doc field panel (it has its own search)
+  if ((e.target as HTMLElement)?.closest?.('.nc-doc-field-panel')) return
+
   if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
     e.preventDefault()
     handleShowSearchInput()

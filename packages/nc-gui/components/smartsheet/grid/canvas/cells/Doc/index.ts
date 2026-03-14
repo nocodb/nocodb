@@ -27,21 +27,61 @@ function computePill(
 
 export const DocCellRenderer: CellRenderer = {
   render: (ctx: CanvasRenderingContext2D, props: CellRendererOptions) => {
-    const { x, y, width, height, value, mousePosition, spriteLoader, setCursor, getColor, t } = props
+    const { x, y, width, value, selected, mousePosition, spriteLoader, setCursor, getColor, t } = props
 
     const hasDoc = !!value
+
+    // Empty cell — show "+ New" only when selected
+    if (!hasDoc) {
+      if (!selected) return
+
+      const grayColor = getColor(themeV4Colors.gray['500'])
+      const bgHover = getColor(themeV4Colors.gray['100'])
+
+      const label = t('general.new')
+      const pill = computePill(ctx, label, width, x, y)
+
+      const isPillHovered =
+        mousePosition &&
+        mousePosition.x >= pill.startX &&
+        mousePosition.x <= pill.startX + pill.pillWidth &&
+        mousePosition.y >= pill.startY &&
+        mousePosition.y <= pill.startY + pillHeight
+
+      if (isPillHovered) {
+        ctx.beginPath()
+        ctx.roundRect(pill.startX, pill.startY, pill.pillWidth, pillHeight, 6)
+        ctx.fillStyle = bgHover
+        ctx.fill()
+      }
+
+      let contentX = pill.startX + (pill.pillWidth - pill.contentWidth) / 2
+
+      // Icon
+      spriteLoader.renderIcon(ctx, {
+        icon: 'ncPlus',
+        size: iconSize,
+        x: contentX,
+        y: pill.startY + (pillHeight - iconSize) / 2,
+        color: grayColor,
+      })
+      contentX += iconSize + iconSpacing
+
+      ctx.font = '500 13px Inter'
+      ctx.fillStyle = grayColor
+      ctx.textBaseline = 'middle'
+      ctx.fillText(pill.truncatedInfo.text, contentX, pill.startY + 12)
+
+      if (isPillHovered) setCursor('pointer')
+      return
+    }
+
     const brandColor = getColor(themeV4Colors.brand['500'])
-    const graySubtle = getColor(themeV4Colors.gray['500'])
     const bgHover = getColor(themeV4Colors.brand['50'])
 
-    const isCellHovered = mousePosition && isBoxHovered({ x, y, width, height }, mousePosition)
-
-    // No doc and not hovering — empty cell
-    if (!hasDoc && !isCellHovered) return
-
-    const label = hasDoc ? t('general.open') : t('general.new')
-    const icon = hasDoc ? 'ncFileText' : 'ncPlus'
-    const color = hasDoc ? brandColor : graySubtle
+    const label = t('general.open')
+    const icon = 'ncFileText'
+    const color = brandColor
 
     const pill = computePill(ctx, label, width, x, y)
 
@@ -82,7 +122,7 @@ export const DocCellRenderer: CellRenderer = {
     if (isPillHovered) setCursor('pointer')
   },
 
-  async handleClick({ mousePosition, column, row, getCellPosition, pk, openDocField, t, value }) {
+  async handleClick({ mousePosition, column, row, getCellPosition, pk, openDocField, t, value, selected }) {
     if (!row || !column?.id || !mousePosition) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
@@ -90,10 +130,32 @@ export const DocCellRenderer: CellRenderer = {
     const hasDoc = !!value
     const isCellHovered = isBoxHovered({ x, y, width, height }, mousePosition)
 
-    // No doc and not hovering — nothing to click
-    if (!hasDoc && !isCellHovered) return false
+    if (!isCellHovered) return false
 
-    const label = hasDoc ? t('general.open') : t('general.new')
+    // Empty cell — first click selects, second click on "+ New" pill creates doc
+    if (!hasDoc) {
+      if (!selected) return false // Let grid handle selection
+
+      const label = t('general.new')
+      const ctx = defaultOffscreen2DContext
+      const pill = computePill(ctx, label, width, x, y)
+
+      const isPillHovered =
+        mousePosition.x >= pill.startX &&
+        mousePosition.x <= pill.startX + pill.pillWidth &&
+        mousePosition.y >= pill.startY &&
+        mousePosition.y <= pill.startY + pillHeight
+
+      if (!isPillHovered) return false
+
+      if (openDocField && column.columnObj?.id && pk) {
+        await openDocField(String(pk), column.columnObj.id, row.row)
+      }
+      return true
+    }
+
+    // Has doc — only respond to pill click
+    const label = t('general.open')
 
     const ctx = defaultOffscreen2DContext
     const pill = computePill(ctx, label, width, x, y)
@@ -119,12 +181,7 @@ export const DocCellRenderer: CellRenderer = {
       }
       return true
     }
-    if (ctx.e.key === 'Delete' || ctx.e.key === 'Backspace') {
-      if (ctx.value && ctx.deleteDocField && ctx.column?.columnObj?.id && ctx.pk) {
-        await ctx.deleteDocField(ctx.column.columnObj.id, String(ctx.pk), ctx.row?.row)
-      }
-      return true
-    }
+    // Delete/Backspace handled by clearCell in useCopyPaste (supports undo)
     return false
   },
 }

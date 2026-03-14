@@ -21,6 +21,8 @@ export class DocFieldPostOperations
     'docFieldGetOrCreate' as const,
     'docFieldUpdate' as const,
     'docFieldDelete' as const,
+    'docFieldDuplicate' as const,
+    'docFieldRestore' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -79,6 +81,29 @@ export class DocFieldPostOperations
           columnId,
           rowId,
         );
+      }
+      case 'docFieldDuplicate': {
+        const sourceColumnId = req.query.sourceColumnId as string;
+        const sourceRowId = req.query.sourceRowId as string;
+        const targetColumnId = req.query.targetColumnId as string;
+        const targetRowId = req.query.targetRowId as string;
+        if (!sourceColumnId || !sourceRowId || !targetColumnId || !targetRowId) {
+          NcError.badRequest(
+            'Missing required parameters: sourceColumnId, sourceRowId, targetColumnId, targetRowId',
+          );
+        }
+        return await this.docFieldService.duplicate(
+          context,
+          { sourceColumnId, sourceRowId, targetColumnId, targetRowId },
+          req,
+        );
+      }
+      case 'docFieldRestore': {
+        const docId = req.query.docId as string;
+        if (!docId) {
+          NcError.badRequest('Missing required parameter: docId');
+        }
+        return await this.docFieldService.restore(context, docId);
       }
     }
   }

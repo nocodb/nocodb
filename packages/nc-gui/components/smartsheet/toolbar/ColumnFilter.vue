@@ -1311,7 +1311,7 @@ defineExpose({
                   v-model:value="filter.logical_op"
                   v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="xs:(col-span-3 !max-w-none !min-w-none) h-full !max-w-18 !min-w-18 capitalize"
+                  class="xs:(col-span-3 !max-w-none !min-w-0) h-full !max-w-18 !min-w-18 capitalize"
                   hide-details
                   :disabled="
                     filter.readOnly ||
@@ -1357,7 +1357,7 @@ defineExpose({
                   :class="{
                     'xs:(!max-w-none) !max-w-32': !webHook,
                   }"
-                  class="xs:(col-span-6 min-w-none) nc-filter-field-select min-w-32 max-h-8"
+                  class="xs:(col-span-6 min-w-0) nc-filter-field-select min-w-32 max-h-8"
                   :columns="fieldsToFilter"
                   :disable-smartsheet="!!widget || !!workflow || !!rlsPolicyId"
                   :disabled="filter.readOnly || isLockedView || readOnly"
@@ -1372,7 +1372,7 @@ defineExpose({
                   v-model:value="filter.comparison_op"
                   v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="xs:(col-span-3 !min-w-none) caption nc-filter-operation-select !min-w-26.75 max-h-8"
+                  class="xs:(col-span-3 !min-w-0) caption nc-filter-operation-select !min-w-26.75 max-h-8"
                   :placeholder="$t('labels.operation')"
                   :class="{
                     '!max-w-26.75': !webHook,
@@ -1414,7 +1414,7 @@ defineExpose({
                   v-model:value="filter.comparison_sub_op"
                   v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="xs:(col-span-3 !min-w-none) caption nc-filter-sub_operation-select !min-w-28"
+                  class="xs:(col-span-3 !min-w-0) caption nc-filter-sub_operation-select !min-w-28"
                   :class="{
                     'flex-grow w-full': !showFilterInput(filter),
                     'max-w-28': showFilterInput(filter) && !webHook,

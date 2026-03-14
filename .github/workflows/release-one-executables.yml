@@ -143,12 +143,6 @@ jobs:
           mkdir -p node_modules/nocodb/docker
           cp -r ../../packages/nocodb/docker/nc-gui node_modules/nocodb/docker/nc-gui
 
-          # Replace nc-lib-gui's dist with our freshly built EE GUI.
-          # GuiMiddleware falls back to nc-lib-gui when NC_GUI_DIST_PATH is absent —
-          # by swapping the files here we ensure the executable serves the correct build.
-          rm -rf node_modules/nc-lib-gui/lib/dist
-          cp -r ../../packages/nocodb/docker/nc-gui node_modules/nc-lib-gui/lib/dist
-
           # Convert ESM-only @csstools packages to CJS (pkg can't snapshot .mjs files)
           for pkg_dir in node_modules/@csstools/css-calc node_modules/@csstools/css-parser-algorithms node_modules/@csstools/css-tokenizer node_modules/@csstools/color-helpers node_modules/@csstools/css-color-parser; do
             if [ -f "$pkg_dir/dist/index.mjs" ]; then
@@ -187,7 +181,7 @@ jobs:
           cd scripts/pkg-executable
           # Remove overrides added by downgradeSqlite.js to avoid npx conflict
           node -e "const p=require('./package.json'); delete p.overrides; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2));"
-          npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**,jsdom/**,lru-cache/**,@csstools/**,@asamuzakjp/**" --run
+          npx modclean --patterns="default:*" --ignore="nocodb/**,dayjs/**,express-status-monitor/**,sqlite3/**,jsdom/**,lru-cache/**,@csstools/**,@asamuzakjp/**" --run
 
       - name: Build executables
         run: |

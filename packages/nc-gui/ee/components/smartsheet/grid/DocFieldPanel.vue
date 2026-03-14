@@ -220,7 +220,7 @@ const panelClasses = computed(() => {
         <GeneralLoader />
       </div>
       <div v-else-if="docId" class="h-full overflow-auto">
-        <LazyDocEditor :key="docId" :doc-id="docId" />
+        <LazyDocEditor :key="docId" :doc-id="docId" embedded />
       </div>
       <div v-else class="flex items-center justify-center h-full text-nc-content-gray-subtle2">
         {{ t('msg.docFieldEmpty') }}

@@ -40,9 +40,13 @@ import { TaskItem } from '~/helpers/tiptap-markdown/extensions/nodes/task-item'
 import { UserMention, UserMentionList } from '~/helpers/tiptap-markdown/extensions/nodes/mention'
 import { suggestion } from '~/helpers/tiptap'
 
-const props = defineProps<{
-  docId: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    docId: string
+    embedded?: boolean
+  }>(),
+  { embedded: false },
+)
 
 const docId = toRef(props, 'docId')
 
@@ -2091,23 +2095,23 @@ onBeforeUnmount(() => {
     Keep the editor mounted across page switches to avoid detaching
     ProseMirror's view from the DOM. Content is swapped via setContent.
   -->
-  <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden">
+  <div v-else class="nc-doc-editor flex flex-row h-full w-full overflow-hidden" :class="{ 'nc-doc-embedded': embedded }">
     <!-- Editor area — relative wrapper for floating menu + scroll content -->
     <div class="relative flex-1 min-w-0 h-full overflow-hidden">
       <!-- Sticky header background — slides in when title scrolls out of view -->
-      <Transition name="nc-doc-sticky-slide">
+      <Transition v-if="!embedded" name="nc-doc-sticky-slide">
         <div v-if="!isTitleVisible && isLoaded" class="nc-doc-sticky-header" />
       </Transition>
 
       <!-- Breadcrumb — always visible, same pattern as page menu -->
-      <div class="nc-doc-page-menu-left">
+      <div v-if="!embedded" class="nc-doc-page-menu-left">
         <GeneralOpenLeftSidebarBtn />
 
         <DocBreadcrumb v-if="isLoaded" :doc-id="docId" :current-title="title" />
       </div>
 
       <!-- Page actions — always visible at top-right -->
-      <div class="nc-doc-page-menu">
+      <div v-if="!embedded" class="nc-doc-page-menu">
         <DocPresence />
         <NcTooltip :title="$t('general.comments')" placement="bottom" class="flex">
           <NcButton
@@ -2254,8 +2258,8 @@ onBeforeUnmount(() => {
       >
         <div
           v-if="isStale"
-          class="nc-doc-stale-banner w-full mx-auto px-6 sm:px-10 lg:px-16 pt-[var(--topbar-height)]"
-          :class="{ 'max-w-[900px]': !isFullWidth }"
+          class="nc-doc-stale-banner w-full mx-auto px-6 sm:px-10 lg:px-16"
+          :class="[embedded ? 'pt-2' : 'pt-[var(--topbar-height)]', { 'max-w-[900px]': !isFullWidth }]"
         >
           <NcAlert type="info" :closable="false" align="center" class="!bg-nc-bg-brand">
             <template #message>
@@ -2290,7 +2294,7 @@ onBeforeUnmount(() => {
           :dir="resolvedDir"
         >
           <!-- Title -->
-          <div class="nc-doc-editor-header pt-12 pb-4">
+          <div class="nc-doc-editor-header pb-4" :class="embedded ? 'pt-4' : 'pt-12'">
             <NcTooltip v-if="!coverImageSrc && isUIAllowed('documentUpdate')" :disabled="isEditable">
               <template #title>{{ $t('msg.info.editingRestrictedForThisPage') }}</template>
               <div
@@ -4322,6 +4326,10 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   overflow: hidden;
   margin-top: var(--topbar-height);
+
+  .nc-doc-embedded & {
+    margin-top: 0;
+  }
 }
 
 .nc-doc-cover-image {

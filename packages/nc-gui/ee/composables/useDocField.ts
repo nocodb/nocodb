@@ -19,6 +19,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
   const activeRowId = ref<string | null>(null)
   const activeColumnId = ref<string | null>(null)
   const activeRowIndex = ref<number | null>(null)
+  const activeRowData = ref<Record<string, any> | null>(null)
   const docId = ref<string | null>(null)
   const mode = ref<DocFieldPanelMode>('floating')
   const panelWidth = useStorage('nc-doc-field-panel-width', 480)
@@ -56,6 +57,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     activeRowId.value = rowId
     activeColumnId.value = columnId
     if (rowIndex != null) activeRowIndex.value = rowIndex
+    activeRowData.value = rowData || null
     isOpen.value = true
     isLoading.value = true
     docId.value = null
@@ -93,6 +95,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
 
     activeRowId.value = rowInfo.rowId
     activeRowIndex.value = rowIndex
+    activeRowData.value = rowInfo.rowData
     isLoading.value = true
     docId.value = null
 
@@ -159,12 +162,10 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
   })
 
   const activeDisplayValue = computed(() => {
-    if (activeRowIndex.value == null || !rowNavigator.value || !meta.value?.columns) return null
+    if (!activeRowData.value || !meta.value?.columns) return null
     const pvCol = meta.value.columns.find((c) => c.pv)
     if (!pvCol?.title) return null
-    const rowInfo = rowNavigator.value.getRow(activeRowIndex.value)
-    if (!rowInfo) return null
-    const val = rowInfo.rowData[pvCol.title]
+    const val = activeRowData.value[pvCol.title]
     return val != null && val !== '' ? String(val) : null
   })
 
@@ -173,6 +174,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     activeRowId.value = null
     activeColumnId.value = null
     activeRowIndex.value = null
+    activeRowData.value = null
     docId.value = null
     isLoading.value = false
 

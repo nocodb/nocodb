@@ -251,7 +251,9 @@ const {
 // Sync internal filter changes to v-model for consumers that bind it (e.g. webhooks,
 // buttons). Rollup/Lookup/LTAR column editors intentionally omit v-model — their filter
 // state is preserved by the keep-alive component approach, not via vModel.filters.
-if (!autoSave.value) {
+// Skip for queryFilter (URL filters) — those are read-only parsed from URL params and
+// must not be overwritten by internal filter state from useViewFilters.
+if (!autoSave.value && !props.queryFilter) {
   watch(
     filters,
     (newFilters) => {
@@ -380,6 +382,7 @@ watch(
     if (
       !nested.value &&
       !isViewFilter.value &&
+      !props.queryFilter &&
       viewId &&
       viewId !== oldViewId &&
       (hookId?.value || !webHook.value) &&
@@ -645,7 +648,7 @@ onMounted(async () => {
 
   await Promise.all([
     (async () => {
-      if (!props.isTempFilters && !initialModelValue?.length)
+      if (!props.queryFilter && !props.isTempFilters && !initialModelValue?.length)
         await loadFilters({
           hookId: hookId?.value,
           rlsPolicyId: rlsPolicyId?.value,
@@ -1279,7 +1282,7 @@ defineExpose({
             </div>
           </template>
 
-          <div v-else class="flex items-start sm:items-center gap-2 w-full">
+          <div v-else class="flex xs:(items-start) items-center gap-2 w-full">
             <NcCheckbox
               v-if="isEeUI && !hideCheckbox"
               :checked="filter.enabled !== false"
@@ -1308,7 +1311,7 @@ defineExpose({
                   v-model:value="filter.logical_op"
                   v-e="['c:filter:logical-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="xs:col-span-3 h-full sm:!max-w-18 sm:!min-w-18 capitalize"
+                  class="xs:(col-span-3 !max-w-none !min-w-none) h-full !max-w-18 !min-w-18 capitalize"
                   hide-details
                   :disabled="
                     filter.readOnly ||
@@ -1352,9 +1355,9 @@ defineExpose({
                   :key="`${i}_6`"
                   v-model="filter.fk_column_id"
                   :class="{
-                    'sm:max-w-32': !webHook,
+                    'xs:(!max-w-none) !max-w-32': !webHook,
                   }"
-                  class="xs:col-span-6 nc-filter-field-select sm:min-w-32 max-h-8"
+                  class="xs:(col-span-6 min-w-none) nc-filter-field-select min-w-32 max-h-8"
                   :columns="fieldsToFilter"
                   :disable-smartsheet="!!widget || !!workflow || !!rlsPolicyId"
                   :disabled="filter.readOnly || isLockedView || readOnly"
@@ -1369,7 +1372,7 @@ defineExpose({
                   v-model:value="filter.comparison_op"
                   v-e="['c:filter:comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="xs:col-span-3 caption nc-filter-operation-select sm:!min-w-26.75 max-h-8"
+                  class="xs:(col-span-3 !min-w-none) caption nc-filter-operation-select !min-w-26.75 max-h-8"
                   :placeholder="$t('labels.operation')"
                   :class="{
                     '!max-w-26.75': !webHook,
@@ -1411,7 +1414,7 @@ defineExpose({
                   v-model:value="filter.comparison_sub_op"
                   v-e="['c:filter:sub-comparison-op:select', { link: !!link, webHook: !!webHook }]"
                   :dropdown-match-select-width="false"
-                  class="xs:(col-span-3) caption nc-filter-sub_operation-select sm:min-w-28"
+                  class="xs:(col-span-3 !min-w-none) caption nc-filter-sub_operation-select !min-w-28"
                   :class="{
                     'flex-grow w-full': !showFilterInput(filter),
                     'max-w-28': showFilterInput(filter) && !webHook,

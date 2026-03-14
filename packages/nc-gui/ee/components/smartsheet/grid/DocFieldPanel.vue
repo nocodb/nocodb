@@ -169,24 +169,24 @@ const panelClasses = computed(() => {
 
         <!-- Row navigation -->
         <div class="flex items-center gap-0.5">
-          <NcTooltip :title="$t('general.previous')">
+          <NcTooltip :title="$t('labels.prevRow')">
             <NcButton
               size="xs"
               type="text"
               :disabled="!hasPrev"
-              :aria-label="$t('general.previous')"
+              :aria-label="$t('labels.prevRow')"
               data-testid="nc-doc-field-panel-prev"
               @click="navigatePrev"
             >
               <GeneralIcon icon="arrowUp" class="w-4 h-4" />
             </NcButton>
           </NcTooltip>
-          <NcTooltip :title="$t('general.next')">
+          <NcTooltip :title="$t('labels.nextRow')">
             <NcButton
               size="xs"
               type="text"
               :disabled="!hasNext"
-              :aria-label="$t('general.next')"
+              :aria-label="$t('labels.nextRow')"
               data-testid="nc-doc-field-panel-next"
               @click="navigateNext"
             >

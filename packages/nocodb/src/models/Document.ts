@@ -75,7 +75,7 @@ export default class Document implements DocumentType {
 
   public static async listExistenceByColumnsAndRows(
     ..._args
-  ): Promise<Map<string, Map<string, string>>> {
+  ): Promise<Map<string, Map<string, { id: string; title: string }>>> {
     return new Map();
   }
 }

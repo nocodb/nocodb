@@ -26,6 +26,7 @@ import { TypeConversionError } from '../../../../../error/type-conversion.error'
 import type { SuppressedError } from '../../../../../error/suppressed.error'
 import { EDIT_INTERACTABLE } from '../utils/constants'
 import type { ActionManager } from '../loaders/ActionManager'
+import { docCellValue } from '../cells/Doc'
 
 const MAX_ROWS = 5000
 
@@ -419,7 +420,7 @@ export function useCopyPaste({
         const textLtarOps: TextLtarOp[] = []
         let isInfoShown = false
         // Track pasted doc cells for undo: { rowIndex, colTitle, newDocId, oldValue, columnId, rowPk }
-        const pastedDocCells: { rowIndex: number; colTitle: string; newDocId: string; oldValue: string | null; columnId: string; rowPk: string }[] = []
+        const pastedDocCells: { rowIndex: number; colTitle: string; newDocId: string; newDocTitle?: string; oldValue: any; columnId: string; rowPk: string }[] = []
         // We can use this if we want to avoid same info multiple times per column
         const isColInfoShown = {} as Record<string, boolean>
 
@@ -567,11 +568,12 @@ export function useCopyPaste({
                     },
                   )
                   if (result?.id) {
-                    targetRow.row[column.title!] = result.id
+                    targetRow.row[column.title!] = docCellValue(result.id, result.title)
                     pastedDocCells.push({
                       rowIndex: targetRow.rowMeta.rowIndex!,
                       colTitle: column.title!,
                       newDocId: result.id,
+                      newDocTitle: result.title,
                       oldValue,
                       columnId: column.id as string,
                       rowPk: targetRowPk,
@@ -704,7 +706,7 @@ export function useCopyPaste({
                       meta.value?.base_id as string,
                       { operation: 'docFieldRestore', docId: cell.newDocId },
                     )
-                    rowObj.row[cell.colTitle] = cell.newDocId
+                    rowObj.row[cell.colTitle] = docCellValue(cell.newDocId, cell.newDocTitle)
                   } catch { /* skip */ }
                 }
                 await syncCellData?.(activeCell.value, groupPath)
@@ -1044,13 +1046,14 @@ export function useCopyPaste({
               )
 
               if (result?.id) {
-                rowObj.row[columnObj.title!] = result.id
+                const newDocValue = docCellValue(result.id, result.title)
+                rowObj.row[columnObj.title!] = newDocValue
 
                 const newDocId = result.id
 
                 addUndo({
                   redo: {
-                    fn: async (cellCtx: Cell, col: ColumnType, _oldVal: string | null, docId: string) => {
+                    fn: async (cellCtx: Cell, col: ColumnType, _oldVal: any, docId: string, docTitle: string) => {
                       const rowObj = (unref(cachedRows) as Map<number, Row>).get(cellCtx.row)
                       if (!rowObj || !col.title) return
                       await $api.internal.postOperation(
@@ -1058,13 +1061,13 @@ export function useCopyPaste({
                         meta.value?.base_id as string,
                         { operation: 'docFieldRestore', docId },
                       )
-                      rowObj.row[col.title] = docId
+                      rowObj.row[col.title] = docCellValue(docId, docTitle)
                       await syncCellData?.(cellCtx, groupPath)
                     },
-                    args: [clone(activeCell.value), clone(columnObj), oldCellValue, newDocId],
+                    args: [clone(activeCell.value), clone(columnObj), oldCellValue, newDocId, result.title],
                   },
                   undo: {
-                    fn: async (cellCtx: Cell, col: ColumnType, oldVal: string | null, docId: string) => {
+                    fn: async (cellCtx: Cell, col: ColumnType, oldVal: any, docId: string) => {
                       const rowObj = (unref(cachedRows) as Map<number, Row>).get(cellCtx.row)
                       if (!rowObj || !col.title) return
                       await $api.internal.postOperation(
@@ -1075,7 +1078,7 @@ export function useCopyPaste({
                       rowObj.row[col.title] = oldVal
                       await syncCellData?.(cellCtx, groupPath)
                     },
-                    args: [clone(activeCell.value), clone(columnObj), oldCellValue, newDocId],
+                    args: [clone(activeCell.value), clone(columnObj), oldCellValue, newDocId, result.title],
                   },
                   scope: defineViewScope({ view: view?.value }),
                 })
@@ -1162,7 +1165,7 @@ export function useCopyPaste({
 
           let pasteValue
           let rangeBulkLtarOpsInfoShown = false
-          const pastedDocCells2: { rowIndex: number; colTitle: string; newDocId: string; oldValue: string | null; columnId: string; rowPk: string }[] = []
+          const pastedDocCells2: { rowIndex: number; colTitle: string; newDocId: string; newDocTitle?: string; oldValue: any; columnId: string; rowPk: string }[] = []
           // We can use this if we want to avoid same info multiple times per column
           const isColInfoShown = {} as Record<string, boolean>
           const rangeBulkLtarOps: BulkLtarOp[] = []
@@ -1192,11 +1195,12 @@ export function useCopyPaste({
                       },
                     )
                     if (result?.id) {
-                      row.row[col.title!] = result.id
+                      row.row[col.title!] = docCellValue(result.id, result.title)
                       pastedDocCells2.push({
                         rowIndex: row.rowMeta.rowIndex!,
                         colTitle: col.title!,
                         newDocId: result.id,
+                        newDocTitle: result.title,
                         oldValue,
                         columnId: col.id as string,
                         rowPk: targetRowPk,
@@ -1405,7 +1409,7 @@ export function useCopyPaste({
                         meta.value?.base_id as string,
                         { operation: 'docFieldRestore', docId: cell.newDocId },
                       )
-                      rowObj.row[cell.colTitle] = cell.newDocId
+                      rowObj.row[cell.colTitle] = docCellValue(cell.newDocId, cell.newDocTitle)
                     } catch { /* skip */ }
                   }
                   await syncCellData?.(activeCell.value, groupPath)
@@ -1545,8 +1549,9 @@ export function useCopyPaste({
 
     if (isDoc(columnObj)) {
       const pk = extractPkFromRow(rowObj.row, meta.value?.columns as ColumnType[])
-      const oldDocId = rowObj.row[columnObj.title!]
-      if (oldDocId && columnObj.id && pk) {
+      const oldDocValue = rowObj.row[columnObj.title!]
+      const oldDocIdStr = oldDocValue?.id || (typeof oldDocValue === 'string' ? oldDocValue : null)
+      if (oldDocValue && columnObj.id && pk) {
         try {
           await $api.internal.postOperation(
             meta.value?.fk_workspace_id as string,
@@ -1561,7 +1566,7 @@ export function useCopyPaste({
 
           addUndo({
             redo: {
-              fn: async (cellCtx: { row: number; col: number }, col: ColumnType, docId: string) => {
+              fn: async (cellCtx: { row: number; col: number }, col: ColumnType) => {
                 const rowObj = cachedRows.value.get(cellCtx.row)
                 if (!rowObj || !col.title) return
                 await $api.internal.postOperation(
@@ -1572,10 +1577,10 @@ export function useCopyPaste({
                 rowObj.row[col.title] = null
                 await syncCellData?.(cellCtx, groupPath)
               },
-              args: [clone(ctx), clone(columnObj), oldDocId],
+              args: [clone(ctx), clone(columnObj)],
             },
             undo: {
-              fn: async (cellCtx: { row: number; col: number }, col: ColumnType, docId: string) => {
+              fn: async (cellCtx: { row: number; col: number }, col: ColumnType, docId: string, oldVal: any) => {
                 const rowObj = cachedRows.value.get(cellCtx.row)
                 if (!rowObj || !col.title) return
                 await $api.internal.postOperation(
@@ -1583,10 +1588,10 @@ export function useCopyPaste({
                   meta.value?.base_id as string,
                   { operation: 'docFieldRestore', docId },
                 )
-                rowObj.row[col.title] = docId
+                rowObj.row[col.title] = oldVal
                 await syncCellData?.(cellCtx, groupPath)
               },
-              args: [clone(ctx), clone(columnObj), oldDocId],
+              args: [clone(ctx), clone(columnObj), oldDocIdStr, clone(oldDocValue)],
             },
             scope: defineViewScope({ view: view?.value }),
           })

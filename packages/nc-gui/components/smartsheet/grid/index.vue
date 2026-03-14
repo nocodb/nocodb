@@ -376,7 +376,7 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
 
 <template>
   <div
-    class="relative flex flex-row h-full min-h-0 w-full nc-grid-wrapper"
+    class="relative flex flex-row h-full min-h-0 w-full overflow-hidden nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
   >

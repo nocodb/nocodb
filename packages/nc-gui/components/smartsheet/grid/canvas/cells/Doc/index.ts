@@ -1,5 +1,18 @@
 import { defaultOffscreen2DContext, isBoxHovered, truncateText } from '../../utils/canvas'
 
+/** Extract doc ID from a Doc cell value (object {id,title} or legacy string) */
+function getDocId(value: any): string | null {
+  if (!value) return null
+  if (typeof value === 'object' && value.id) return value.id
+  if (typeof value === 'string') return value
+  return null
+}
+
+/** Build a Doc cell value object */
+export function docCellValue(id: string, title?: string): { id: string; title: string } {
+  return { id, title: title || 'Untitled' }
+}
+
 const horizontalPadding = 8
 const pillHeight = 24
 const iconSize = 14
@@ -11,6 +24,7 @@ function computePill(
   cellWidth: number,
   cellX: number,
   cellY: number,
+  leftAligned = false,
 ) {
   const maxPillWidth = cellWidth - 8
 
@@ -19,7 +33,7 @@ function computePill(
   const contentWidth = iconSize + iconSpacing + truncatedInfo.width
   const pillWidth = Math.min(maxPillWidth, contentWidth + horizontalPadding * 2)
 
-  const startX = cellX + (cellWidth - pillWidth) / 2
+  const startX = leftAligned ? cellX + 4 : cellX + (cellWidth - pillWidth) / 2
   const startY = cellY + 4
 
   return { startX, startY, pillWidth, contentWidth, truncatedInfo }
@@ -76,14 +90,16 @@ export const DocCellRenderer: CellRenderer = {
       return
     }
 
+    const defaultColor = getColor(themeV4Colors.gray['600'])
     const brandColor = getColor(themeV4Colors.brand['500'])
-    const bgHover = getColor(themeV4Colors.brand['50'])
+    const bgHover = selected ? getColor(themeV4Colors.brand['50']) : getColor(themeV4Colors.gray['100'])
 
-    const label = t('general.open')
+    const docTitle = (value as any)?.title || t('general.untitled')
+    const label = docTitle
     const icon = 'ncFileText'
-    const color = brandColor
+    const color = selected ? brandColor : defaultColor
 
-    const pill = computePill(ctx, label, width, x, y)
+    const pill = computePill(ctx, label, width, x, y, true)
 
     const isPillHovered =
       mousePosition &&
@@ -100,7 +116,7 @@ export const DocCellRenderer: CellRenderer = {
       ctx.fill()
     }
 
-    let contentX = pill.startX + (pill.pillWidth - pill.contentWidth) / 2
+    let contentX = pill.startX + horizontalPadding
     const contentY = pill.startY + (pillHeight - iconSize) / 2
 
     // Icon
@@ -155,10 +171,11 @@ export const DocCellRenderer: CellRenderer = {
     }
 
     // Has doc — only respond to pill click
-    const label = t('general.open')
+    const docTitle = (value as any)?.title || t('general.untitled')
+    const label = docTitle
 
     const ctx = defaultOffscreen2DContext
-    const pill = computePill(ctx, label, width, x, y)
+    const pill = computePill(ctx, label, width, x, y, true)
 
     const isPillHovered =
       mousePosition.x >= pill.startX &&

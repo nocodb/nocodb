@@ -81,12 +81,6 @@ const onKeydown = (e: KeyboardEvent) => {
   }
 }
 
-watch(isOpen, (val) => {
-  if (val) {
-    nextTick(() => panelRef.value?.focus())
-  }
-})
-
 const panelStyle = computed(() => {
   if (isFullscreen.value) {
     return {
@@ -112,111 +106,115 @@ const panelClasses = computed(() => {
 </script>
 
 <template>
-  <div
-    v-if="isOpen"
-    ref="panelRef"
-    tabindex="-1"
-    :class="panelClasses"
-    :style="panelStyle"
-    data-testid="nc-doc-field-panel"
-    @keydown="onKeydown"
-  >
-    <!-- Resize handle (left edge) -->
+  <Transition name="nc-slide-right" @after-enter="panelRef?.focus()">
     <div
-      v-if="!isFullscreen"
-      class="nc-doc-field-panel-resize-handle"
-      data-testid="nc-doc-field-panel-resize"
-      @mousedown.prevent="onResizeStart"
-    />
+      v-if="isOpen"
+      ref="panelRef"
+      tabindex="-1"
+      :class="panelClasses"
+      :style="panelStyle"
+      data-testid="nc-doc-field-panel"
+      @keydown="onKeydown"
+    >
+      <!-- Resize handle (left edge) -->
+      <div
+        v-if="!isFullscreen"
+        class="nc-doc-field-panel-resize-handle"
+        data-testid="nc-doc-field-panel-resize"
+        @mousedown.prevent="onResizeStart"
+      />
 
-    <!-- Header -->
-    <div class="flex items-center gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0">
-      <!-- Table name prefix (fullscreen only) -->
-      <div v-if="isFullscreen && meta?.title" class="flex items-center gap-1 text-bodySm text-nc-content-gray-subtle2 truncate max-w-40">
-        <GeneralIcon icon="table" class="w-4 h-4 flex-shrink-0" />
-        <span class="truncate">{{ meta.title }}</span>
-        <span>·</span>
+      <!-- Header -->
+      <div class="flex items-center gap-2 px-3 py-2 border-b border-nc-border-gray-medium flex-shrink-0">
+        <!-- Table name prefix (fullscreen only) -->
+        <div v-if="isFullscreen && meta?.title" class="flex items-center gap-1 text-bodySm text-nc-content-gray-subtle2 truncate max-w-40">
+          <GeneralIcon icon="table" class="w-4 h-4 flex-shrink-0" />
+          <span class="truncate">{{ meta.title }}</span>
+          <span>·</span>
+        </div>
+
+        <!-- Field switcher -->
+        <NcDropdown v-if="docColumns.length > 1" placement="bottomLeft">
+          <NcButton size="xs" type="text" class="!px-1">
+            <div class="flex items-center gap-1 text-nc-content-gray">
+              <GeneralIcon icon="ncFileText" class="w-4 h-4" />
+              <span class="text-bodySm font-medium truncate max-w-32">{{ panelTitle }}</span>
+              <GeneralIcon icon="arrowDown" class="w-3 h-3" />
+            </div>
+          </NcButton>
+          <template #overlay>
+            <NcMenu>
+              <NcMenuItem
+                v-for="col in docColumns"
+                :key="col.id"
+                :class="{ '!text-nc-content-brand': col.id === activeColumnId }"
+                @click="onFieldSwitch(col.id!)"
+              >
+                <div class="flex items-center gap-2">
+                  <GeneralIcon icon="ncFileText" class="w-4 h-4" />
+                  <span class="truncate">{{ col.title }}</span>
+                </div>
+              </NcMenuItem>
+            </NcMenu>
+          </template>
+        </NcDropdown>
+        <div v-else class="flex items-center gap-1 text-nc-content-gray-subtle px-1">
+          <GeneralIcon icon="ncFileText" class="w-4 h-4" />
+          <span class="text-bodySm font-medium truncate max-w-32">{{ panelTitle }}</span>
+        </div>
+
+        <div class="flex-1" />
+
+        <!-- Toolbar buttons -->
+        <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
+          <NcButton
+            size="xs"
+            type="text"
+            :aria-label="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')"
+            data-testid="nc-doc-field-panel-fullscreen"
+            @click="setFullscreen(!isFullscreen)"
+          >
+            <GeneralIcon :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'" class="w-4 h-4" :class="{ 'text-nc-content-brand': isFullscreen }" />
+          </NcButton>
+        </NcTooltip>
+
+        <NcTooltip :title="$t('general.close')">
+          <NcButton
+            size="xs"
+            type="text"
+            :aria-label="$t('general.close')"
+            data-testid="nc-doc-field-panel-close"
+            @click="closeDoc"
+          >
+            <GeneralIcon icon="close" class="w-4 h-4" />
+          </NcButton>
+        </NcTooltip>
       </div>
 
-      <!-- Field switcher -->
-      <NcDropdown v-if="docColumns.length > 1" placement="bottomLeft">
-        <NcButton size="xs" type="text" class="!px-1">
-          <div class="flex items-center gap-1 text-nc-content-gray">
-            <GeneralIcon icon="ncFileText" class="w-4 h-4" />
-            <span class="text-bodySm font-medium truncate max-w-32">{{ panelTitle }}</span>
-            <GeneralIcon icon="arrowDown" class="w-3 h-3" />
-          </div>
-        </NcButton>
-        <template #overlay>
-          <NcMenu>
-            <NcMenuItem
-              v-for="col in docColumns"
-              :key="col.id"
-              :class="{ '!text-nc-content-brand': col.id === activeColumnId }"
-              @click="onFieldSwitch(col.id!)"
-            >
-              <div class="flex items-center gap-2">
-                <GeneralIcon icon="ncFileText" class="w-4 h-4" />
-                <span class="truncate">{{ col.title }}</span>
-              </div>
-            </NcMenuItem>
-          </NcMenu>
-        </template>
-      </NcDropdown>
-      <div v-else class="flex items-center gap-1 text-nc-content-gray-subtle px-1">
-        <GeneralIcon icon="ncFileText" class="w-4 h-4" />
-        <span class="text-bodySm font-medium truncate max-w-32">{{ panelTitle }}</span>
+      <!-- Body -->
+      <div class="flex-1 min-h-0 overflow-hidden">
+        <div v-if="isLoading" class="flex items-center justify-center h-full">
+          <GeneralLoader />
+        </div>
+        <div v-else-if="docId" class="h-full overflow-auto">
+          <LazyDocEditor :key="docId" :doc-id="docId" embedded />
+        </div>
+        <div v-else class="flex items-center justify-center h-full text-nc-content-gray-subtle2">
+          {{ t('msg.docFieldEmpty') }}
+        </div>
       </div>
-
-      <div class="flex-1" />
-
-      <!-- Toolbar buttons -->
-      <NcTooltip :title="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')">
-        <NcButton
-          size="xs"
-          type="text"
-          :aria-label="isFullscreen ? $t('labels.exitFullscreen') : $t('labels.enterFullscreen')"
-          data-testid="nc-doc-field-panel-fullscreen"
-          @click="setFullscreen(!isFullscreen)"
-        >
-          <GeneralIcon :icon="isFullscreen ? 'ncMinimize' : 'ncMaximize'" class="w-4 h-4" :class="{ 'text-nc-content-brand': isFullscreen }" />
-        </NcButton>
-      </NcTooltip>
-
-      <NcTooltip :title="$t('general.close')">
-        <NcButton
-          size="xs"
-          type="text"
-          :aria-label="$t('general.close')"
-          data-testid="nc-doc-field-panel-close"
-          @click="closeDoc"
-        >
-          <GeneralIcon icon="close" class="w-4 h-4" />
-        </NcButton>
-      </NcTooltip>
     </div>
-
-    <!-- Body -->
-    <div class="flex-1 min-h-0 overflow-hidden">
-      <div v-if="isLoading" class="flex items-center justify-center h-full">
-        <GeneralLoader />
-      </div>
-      <div v-else-if="docId" class="h-full overflow-auto">
-        <LazyDocEditor :key="docId" :doc-id="docId" embedded />
-      </div>
-      <div v-else class="flex items-center justify-center h-full text-nc-content-gray-subtle2">
-        {{ t('msg.docFieldEmpty') }}
-      </div>
-    </div>
-  </div>
+  </Transition>
 
   <!-- Fullscreen backdrop -->
-  <div
-    v-if="isOpen && isFullscreen"
-    class="fixed top-0 bottom-0 right-0 bg-black/20 z-49 cursor-pointer"
-    :style="{ left: 'var(--mini-sidebar-width)' }"
-    @click="setFullscreen(false)"
-  />
+  <Transition name="nc-fade">
+    <div
+      v-if="isOpen && isFullscreen"
+      class="fixed top-0 bottom-0 right-0 bg-black/20 z-49 cursor-pointer"
+      :style="{ left: 'var(--mini-sidebar-width)' }"
+      @click="setFullscreen(false)"
+    />
+  </Transition>
 </template>
 
 <style lang="scss" scoped>
@@ -244,5 +242,35 @@ const panelClasses = computed(() => {
 
 .nc-doc-field-panel.is-resizing .nc-doc-field-panel-resize-handle {
   @apply bg-nc-border-gray-medium;
+}
+
+/* Slide-in from right */
+.nc-slide-right-enter-active {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.nc-slide-right-leave-active {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 1, 1), opacity 0.15s ease;
+}
+
+.nc-slide-right-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.nc-slide-right-leave-to {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+/* Backdrop fade */
+.nc-fade-enter-active,
+.nc-fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.nc-fade-enter-from,
+.nc-fade-leave-to {
+  opacity: 0;
 }
 </style>

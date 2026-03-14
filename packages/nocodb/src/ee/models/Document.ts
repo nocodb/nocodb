@@ -819,15 +819,15 @@ export default class Document extends DocumentCE implements DocumentType {
 
   /**
    * Batch-check which (columnId, rowId) pairs have a document.
-   * Returns a nested map: columnId → rowId → docId.
+   * Returns a nested map: columnId → rowId → { id, title }.
    */
   public static async listExistenceByColumnsAndRows(
     context: NcContext,
     columnIds: string[],
     rowIds: string[],
     ncMeta = Noco.ncMeta,
-  ): Promise<Map<string, Map<string, string>>> {
-    const result = new Map<string, Map<string, string>>();
+  ): Promise<Map<string, Map<string, { id: string; title: string }>>> {
+    const result = new Map<string, Map<string, { id: string; title: string }>>();
     if (!columnIds.length || !rowIds.length) return result;
 
     const rows = await ncMeta
@@ -838,13 +838,16 @@ export default class Document extends DocumentCE implements DocumentType {
       .where('deleted', false)
       .whereIn('fk_column_id', columnIds)
       .whereIn('fk_row_id', rowIds)
-      .select('id', 'fk_column_id', 'fk_row_id');
+      .select('id', 'title', 'fk_column_id', 'fk_row_id');
 
     for (const row of rows) {
       if (!result.has(row.fk_column_id)) {
         result.set(row.fk_column_id, new Map());
       }
-      result.get(row.fk_column_id)!.set(row.fk_row_id, row.id);
+      result.get(row.fk_column_id)!.set(row.fk_row_id, {
+        id: row.id,
+        title: row.title || 'Untitled',
+      });
     }
 
     return result;

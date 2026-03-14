@@ -26,6 +26,7 @@ import {
 } from '../utils/constants'
 import { ActionManager } from '../loaders/ActionManager'
 import { useGridCellHandler } from '../cells'
+import { docCellValue } from '../cells/Doc'
 import { TableMetaLoader } from '../loaders/TableMetaLoader'
 import type { CanvasGridColumn } from '../../../../../lib/types'
 import { CanvasElement } from '../utils/CanvasElement'
@@ -1296,8 +1297,8 @@ export function useCanvasTable({
       }
     }
 
-    // Track deleted doc cells for undo: { rowIndex, colTitle, docId, columnId, rowPk }
-    const deletedDocCells: { rowIndex: number; colTitle: string; docId: string; columnId: string; rowPk: string }[] = []
+    // Track deleted doc cells for undo: { rowIndex, colTitle, docValue, columnId, rowPk }
+    const deletedDocCells: { rowIndex: number; colTitle: string; docValue: any; columnId: string; rowPk: string }[] = []
 
     for (const row of rows) {
       for (const col of cols) {
@@ -1306,8 +1307,8 @@ export function useCanvasTable({
 
         if (isDoc(colObj)) {
           const pk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-          const docId = row.row[colObj.title]
-          if (docId && colObj.id && pk) {
+          const docValue = row.row[colObj.title]
+          if (docValue && colObj.id && pk) {
             try {
               await $api.internal.postOperation(
                 meta.value?.fk_workspace_id as string,
@@ -1322,7 +1323,7 @@ export function useCanvasTable({
               deletedDocCells.push({
                 rowIndex: row.rowMeta.rowIndex!,
                 colTitle: colObj.title,
-                docId,
+                docValue,
                 columnId: colObj.id,
                 rowPk: pk,
               })
@@ -1384,12 +1385,14 @@ export function useCanvasTable({
               const rowObj = cachedRows.value.get(cell.rowIndex)
               if (!rowObj) continue
               try {
+                const docId = cell.docValue?.id || (typeof cell.docValue === 'string' ? cell.docValue : null)
+                if (!docId) continue
                 await $api.internal.postOperation(
                   meta.value?.fk_workspace_id as string,
                   meta.value?.base_id as string,
-                  { operation: 'docFieldRestore', docId: cell.docId },
+                  { operation: 'docFieldRestore', docId },
                 )
-                rowObj.row[cell.colTitle] = cell.docId
+                rowObj.row[cell.colTitle] = cell.docValue
               } catch {
                 // skip
               }

@@ -205,8 +205,8 @@ export class DatasService extends DatasServiceCE {
     for (const row of rows) {
       const pk = pkColumns.map((c) => row[c.title]).join('___');
       for (const col of docColumns) {
-        const colMap = existenceMap.get(col.id);
-        row[col.title] = colMap?.get(pk) || null;
+        const docInfo = existenceMap.get(col.id)?.get(pk);
+        row[col.title] = docInfo || null;
       }
     }
   }

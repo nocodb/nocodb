@@ -58,7 +58,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
 
       // Optimistically update row data so grid cell reflects doc existence
       if (doc.id && rowData && activeColumn.value?.title) {
-        rowData[activeColumn.value.title] = doc.id
+        rowData[activeColumn.value.title] = { id: doc.id, title: doc.title || 'Untitled' }
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))

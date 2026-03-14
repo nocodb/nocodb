@@ -116,3 +116,10 @@ antd.variable.css
 .playwright-mcp
 .playwright-cli
 .claude/skills/nocodb-dev-api/.credentials.json
+
+# nc-dev
+.nc-dev-config.json
+.nc-dev-registry.json
+.nc-dev-proxy.pid
+.nc-dev-proxy.log
+.nc-dev-logs/

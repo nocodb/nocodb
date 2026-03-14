@@ -51,7 +51,8 @@
     "install:local-sdk": "node scripts/installLocalSdk.js",
     "sync:ee:to:ce": "rsync -arzhv --delete --exclude-from='scripts/sync/exclude-list.txt' --filter=':- .gitignore' ./ ../nocodb/",
     "sync:ce:to:ee": "rsync -arzhv --delete --exclude-from='scripts/sync/exclude-list.txt' --filter=':- .gitignore' ../nocodb/ ./",
-    "migration:add": "node scripts/addMigration.js"
+    "migration:add": "node scripts/addMigration.js",
+    "nc-dev": "node scripts/nc-dev/index.mjs"
   },
   "pnpm": {
     "overrides": {

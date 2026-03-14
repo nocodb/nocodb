@@ -2432,10 +2432,9 @@ onBeforeUnmount(() => {
                       <GeneralIcon icon="link2" />
                     </NcButton>
                   </NcTooltip>
-                  <NcTooltip placement="top">
+                  <NcTooltip v-if="isEditable && !embedded" placement="top">
                     <template #title>{{ $t('tooltip.addComment') }}</template>
                     <NcButton
-                      v-if="isEditable"
                       size="small"
                       type="text"
                       data-testid="nc-doc-comment-add-btn"

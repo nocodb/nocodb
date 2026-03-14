@@ -5,6 +5,9 @@ interface Props {
   visible: boolean
   title?: string
   height?: string
+  /** When true, drawer height fits its content up to `maxHeight` instead of using a fixed `height`. */
+  contentHeight?: boolean
+  maxHeight?: string
   placement?: 'bottom' | 'top' | 'left' | 'right'
   closable?: boolean
   maskClosable?: boolean
@@ -23,6 +26,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   title: '',
   height: 'auto',
+  contentHeight: false,
+  maxHeight: '85svh',
   placement: 'bottom',
   closable: false,
   maskClosable: true,
@@ -229,8 +234,15 @@ const bodyHeight = computed(() => {
   return total ? `calc(100% - ${total}px)` : '100%'
 })
 
+// When contentHeight is enabled, use 'auto' for Ant Drawer's height
+// and apply maxHeight on the content wrapper via CSS
+const effectiveHeight = computed(() => (props.contentHeight ? 'auto' : props.height))
+
 const wrapClassNameComputed = computed(() => {
   let className = 'nc-drawer-wrapper'
+  if (props.contentHeight) {
+    className += ' nc-drawer-content-height'
+  }
   if (props.wrapClassName) {
     className += ` ${props.wrapClassName}`
   }
@@ -249,7 +261,7 @@ onMounted(() => {
     :closable="closable"
     :mask-closable="maskClosable"
     :destroy-on-close="destroyOnClose"
-    :height="height"
+    :height="effectiveHeight"
     :class="wrapClassNameComputed"
     :body-style="{ padding: 0, ...bodyStyle }"
     :footer="null"
@@ -310,6 +322,12 @@ onMounted(() => {
 
   .ant-drawer-body {
     @apply !p-0 h-full;
+  }
+
+  &.nc-drawer-content-height {
+    .ant-drawer-content-wrapper {
+      max-height: v-bind('props.maxHeight');
+    }
   }
 }
 </style>

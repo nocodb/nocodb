@@ -23,6 +23,8 @@ interface Props {
 
   // Drawer props (mobile)
   drawerHeight?: string
+  drawerContentHeight?: boolean
+  drawerMaxHeight?: string
   drawerPlacement?: 'bottom' | 'top' | 'left' | 'right'
   closable?: boolean
   maskClosable?: boolean
@@ -49,6 +51,8 @@ const props = withDefaults(defineProps<Props>(), {
   nonNcDropdown: false,
   onVisibleChange: undefined,
   drawerHeight: '85svh',
+  drawerContentHeight: false,
+  drawerMaxHeight: '85svh',
   drawerPlacement: 'bottom',
   closable: false,
   maskClosable: true,
@@ -83,6 +87,8 @@ const dropdownProps = computed(() => ({
 const drawerProps = computed(() => ({
   title: props.title,
   height: props.drawerHeight,
+  contentHeight: props.drawerContentHeight,
+  maxHeight: props.drawerMaxHeight,
   placement: props.drawerPlacement,
   closable: props.closable,
   maskClosable: props.maskClosable,

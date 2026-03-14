@@ -93,6 +93,7 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>
   appInfo: Ref<AppInfo>
+  appInfoStatus: Ref<'idle' | 'loading' | 'loaded' | 'error'>
 }
 
 export interface Getters {

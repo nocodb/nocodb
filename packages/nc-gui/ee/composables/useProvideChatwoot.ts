@@ -1,6 +1,6 @@
 export const useProvideChatwoot = createSharedComposable(() => {
   const { setUser, setConversationCustomAttributes, setCustomAttributes } = useChatWoot()
-  const { user, appInfo } = useGlobal()
+  const { user, appInfo, appInfoStatus } = useGlobal()
   const router = useRouter()
   const { activeWorkspace } = storeToRefs(useWorkspace())
   const route = router.currentRoute
@@ -99,12 +99,12 @@ export const useProvideChatwoot = createSharedComposable(() => {
     initUserCustomerAttributes()
   }
 
-  // Load the SDK once appInfo is fetched from the backend (version !== '0.0.0').
+  // Load the SDK once appInfo has been fetched from the backend.
   // On initial load isCloud/ee are false (defaults) — we must wait for real values.
   watch(
-    () => appInfo.value,
-    () => {
-      if (appInfo.value?.version && appInfo.value.version !== '0.0.0' && !appInfo.value.disableSupportChat) {
+    appInfoStatus,
+    (status) => {
+      if (status === 'loaded' && !appInfo.value.disableSupportChat) {
         loadChatwootSdk()
       }
     },

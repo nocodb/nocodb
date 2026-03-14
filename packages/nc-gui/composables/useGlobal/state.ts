@@ -165,6 +165,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** our local user object */
   const user = ref<User | null>(null)
 
+  /** tracks appInfo API call status: 'idle' → 'loading' → 'loaded' | 'error' */
+  const appInfoStatus = ref<'idle' | 'loading' | 'loaded' | 'error'>('idle')
+
   return {
     ...toRefs(storage.value),
     storage,
@@ -175,5 +178,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     error,
     user,
     appInfo,
+    appInfoStatus,
   }
 }

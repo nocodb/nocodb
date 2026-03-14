@@ -21,11 +21,13 @@ export const useProvideChatwoot = createSharedComposable(() => {
   }
 
   /**
-   * Load the Chatwoot SDK script and call run() with the correct token.
-   * The @productdevbook/chatwoot module is kept for useChatWoot() composable
-   * but configured with empty baseUrl so it doesn't auto-load the SDK.
+   * Reinitialize the Chatwoot widget with the correct token.
+   *
+   * The @productdevbook/chatwoot module loads the SDK and calls run() with
+   * an empty token (creating a non-functional hidden widget). Once appInfo
+   * is available, we clean up the broken widget and reinit with the real token.
    */
-  function loadChatwootSdk() {
+  function initChatwootWidget() {
     if (sdkLoaded.value) return
 
     const token = getChatwootToken()
@@ -33,23 +35,21 @@ export const useProvideChatwoot = createSharedComposable(() => {
 
     sdkLoaded.value = true
 
-    const script = document.createElement('script')
-    script.src = 'https://app.chatwoot.com/packs/js/sdk.js'
-    script.async = true
-    script.defer = true
-    script.onload = () => {
-      window.chatwootSettings = {
-        hideMessageBubble: true,
-        darkMode: 'light',
-        position: 'right',
-        locale: 'en',
-      }
-      window.chatwootSDK?.run({
-        websiteToken: token,
-        baseUrl: 'https://app.chatwoot.com',
-      })
+    // Remove the broken widget created by the module's empty-token run()
+    document.querySelector('.woot-widget-holder')?.remove()
+    document.querySelector('.woot--bubble-holder')?.remove()
+
+    window.chatwootSettings = {
+      hideMessageBubble: true,
+      darkMode: 'light',
+      position: 'right',
+      locale: 'en',
     }
-    document.head.appendChild(script)
+
+    window.chatwootSDK?.run({
+      websiteToken: token,
+      baseUrl: 'https://app.chatwoot.com',
+    })
   }
 
   const initUserCustomerAttributes = () => {
@@ -105,7 +105,7 @@ export const useProvideChatwoot = createSharedComposable(() => {
     appInfoStatus,
     (status) => {
       if (status === 'loaded' && !appInfo.value.disableSupportChat) {
-        loadChatwootSdk()
+        initChatwootWidget()
       }
     },
     { immediate: true },

@@ -41,11 +41,11 @@ export default defineNuxtConfig({
   },
   chatwoot: {
     init: {
-      // Empty baseUrl prevents the module from loading the SDK script.
-      // We load it manually in useProvideChatwoot after appInfo is available
-      // so we can pick the correct token (cloud vs OSS).
+      // Empty token — the module loads the SDK but run() with empty token
+      // creates a non-functional widget (hidden via hideMessageBubble).
+      // useProvideChatwoot reinitializes with the correct token after appInfo loads.
       websiteToken: '',
-      baseUrl: '',
+      baseUrl: 'https://app.chatwoot.com',
     },
     settings: {
       darkMode: 'light',

@@ -158,6 +158,14 @@ const onViewDragEnd = () => {
   viewDragging.value = false
 }
 
+/** Auto-expand the target section after a cross-section drop */
+const onViewDroppedInSection = (sectionId: string) => {
+  if (!expandedSections.value[sectionId]) {
+    expandedSections.value[sectionId] = true
+    saveExpandedSections()
+  }
+}
+
 // Sections sortable — separate container that only holds real sections
 let sectionsSortable: Sortable
 
@@ -337,6 +345,7 @@ watch(
             :section-id="section.id"
             @view-drag-start="onViewDragStart"
             @view-drag-end="onViewDragEnd"
+            @view-dropped-in-section="onViewDroppedInSection"
           />
         </div>
       </div>
@@ -367,6 +376,7 @@ watch(
           :section-id="DEFAULT_SECTION_ID"
           @view-drag-start="onViewDragStart"
           @view-drag-end="onViewDragEnd"
+          @view-dropped-in-section="onViewDroppedInSection"
         />
       </div>
     </template>

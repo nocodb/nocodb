@@ -30,6 +30,8 @@ interface Emits {
   (event: 'viewDragStart'): void
 
   (event: 'viewDragEnd'): void
+
+  (event: 'viewDroppedInSection', sectionId: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -217,6 +219,11 @@ const initSortable = (el: Element) => {
 
             markItem(currentItem.id)
             $e('a:view:move-to-section:drag', { sectionId: targetSectionId })
+
+            // Notify parent to expand the target section so the dropped view is visible
+            if (toSectionId) {
+              emits('viewDroppedInSection', toSectionId)
+            }
           }
         }
       } else {
@@ -476,6 +483,9 @@ const filteredViews = computed(() => {
       :class="{ dragging, 'min-h-6': sectionId != null && !filteredViews.length }"
       class="nc-views-menu flex flex-col w-full !border-r-0 !bg-inherit"
     >
+      <div v-if="sectionId != null && !filteredViews.length" class="flex items-center py-1 pl-13.5 text-nc-content-gray-subtle2 text-captionSm">
+        {{ $t('general.empty') }}
+      </div>
       <DashboardTreeViewViewsNode
         v-for="view of filteredViews"
         :key="view.id"

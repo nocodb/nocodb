@@ -115,7 +115,7 @@ const getTopLevelViews = () => {
 
 /** Get views for a specific section */
 const getViewsInSection = (sectionId?: string): ViewType[] => {
-  if (sectionId === DEFAULT_SECTION_ID) {
+  if (!sectionId) {
     return getTopLevelViews()
   }
   return views.value.filter((v) => v.fk_view_section_id === sectionId)

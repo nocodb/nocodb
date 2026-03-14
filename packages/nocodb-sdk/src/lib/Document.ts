@@ -1,3 +1,5 @@
+export type DocumentSource = 'sidebar' | 'field';
+
 export interface DocumentType {
   id?: string;
   base_id?: string;
@@ -17,6 +19,10 @@ export interface DocumentType {
   comment_count?: number;
   /** True when the document has explicit (non-default) permissions set */
   has_permissions?: boolean;
+  // Field-linked document properties
+  fk_column_id?: string;
+  fk_row_id?: string;
+  doc_source?: DocumentSource;
 }
 
 /** @deprecated Use DocumentType instead */

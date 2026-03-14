@@ -1006,6 +1006,7 @@ export class ColumnsService implements IColumnsService {
         UITypes.ForeignKey,
         UITypes.Links,
         UITypes.Button,
+        UITypes.Doc,
       ].includes(column.uidt)
     ) {
       if (column.uidt === colBody.uidt) {
@@ -3487,6 +3488,13 @@ export class ColumnsService implements IColumnsService {
         });
         break;
       }
+      case UITypes.Doc: {
+        savedColumn = await Column.insert(context, {
+          ...colBody,
+          fk_model_id: table.id,
+        });
+        break;
+      }
       case UITypes.CreatedTime:
       case UITypes.LastModifiedTime:
       case UITypes.CreatedBy:
@@ -4202,6 +4210,7 @@ export class ColumnsService implements IColumnsService {
       case UITypes.QrCode:
       case UITypes.Barcode:
       case UITypes.Button:
+      case UITypes.Doc:
         // PR review fix #3: UUID removed from this group — it has a physical DB column
         // and must go through the default path (sqlOpPlus + tableUpdate) to drop it.
         await Column.delete2(

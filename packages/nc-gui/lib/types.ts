@@ -580,6 +580,7 @@ interface CellRenderer {
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    openDocField?: (rowId: string, columnId: string) => Promise<void>
     formula?: boolean
     allowLocalUrl?: boolean
     t: Composer['t']
@@ -606,6 +607,7 @@ interface CellRenderer {
     makeCellEditable: MakeCellEditableFn
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
+    openDocField?: (rowId: string, columnId: string) => Promise<void>
     allowLocalUrl?: boolean
     t: Composer['t']
   }) => Promise<boolean | void>

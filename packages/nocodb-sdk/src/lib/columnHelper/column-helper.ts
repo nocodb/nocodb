@@ -8,6 +8,7 @@ import {
   AttachmentHelper,
   BarcodeHelper,
   ButtonHelper,
+  DocHelper,
   CheckboxHelper,
   ColourHelper,
   CreatedTimeHelper,
@@ -82,6 +83,7 @@ export class ColumnHelperClass {
     [UITypes.Links]: LinksHelper,
     [UITypes.LinkToAnotherRecord]: LTARHelper,
     [UITypes.Button]: ButtonHelper,
+    [UITypes.Doc]: DocHelper,
   };
 
   // Method to retrieve the specific column class and instantiate it

@@ -40,6 +40,10 @@ const tableRef = ref<typeof InfiniteTable>()
 
 useProvideViewAggregate(view, meta, xWhere, reloadVisibleDataHook)
 
+const docFieldStore = useProvideDocField()
+
+const { isOpen: isDocFieldPanelOpen, isPinned: isDocFieldPinned } = docFieldStore
+
 const {
   loadData,
   selectedRows: _selectedRows,
@@ -372,10 +376,11 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
 
 <template>
   <div
-    class="relative flex flex-col h-full min-h-0 w-full nc-grid-wrapper"
+    class="relative flex flex-row h-full min-h-0 w-full nc-grid-wrapper"
     data-testid="nc-grid-wrapper"
     :style="`background-color: ${isGroupBy && !isCanvasGroupByTableEnabled ? `${baseColor}` : 'var(--nc-bg-gray-extralight)'};`"
   >
+    <div class="flex flex-col flex-1 min-w-0 h-full">
     <Table
       v-if="!isGroupBy && !isInfiniteScrollingEnabled"
       ref="tableRef"
@@ -534,6 +539,9 @@ watch([() => view.value?.id, () => meta.value?.columns], async () => {
         :rows="selectedRows"
       />
     </Suspense>
+    </div>
+
+    <SmartsheetGridDocFieldPanel />
   </div>
 </template>
 

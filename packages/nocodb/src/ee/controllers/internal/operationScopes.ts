@@ -140,6 +140,11 @@ export const OPERATION_SCOPES = {
   documentDelete: 'base',
   documentReorder: 'base',
 
+  // Doc Field (EE-only)
+  docFieldGet: 'base',
+  docFieldGetOrCreate: 'base',
+  docFieldUpdate: 'base',
+
   // Document Comments (EE-only)
   documentCommentList: 'base',
   documentCommentCount: 'base',

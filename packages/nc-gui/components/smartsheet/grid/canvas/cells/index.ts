@@ -42,6 +42,7 @@ import { RollupCellRenderer } from './Rollup'
 import { LinksCellRenderer } from './Links'
 import { LookupCellRenderer } from './Lookup'
 import { ButtonCellRenderer } from './Button'
+import { DocCellRenderer } from './Doc'
 import { LtarCellRenderer } from './LTAR'
 import { FormulaCellRenderer } from './Formula'
 import { UUIDCellRenderer } from './UUID'
@@ -97,6 +98,9 @@ export function useGridCellHandler(params: {
   const { open: openDetachedExpandedForm } = useExpandedFormDetached()
   const { open: openDetachedLongText } = useDetachedLongText()
 
+  const docFieldStore = useDocField()
+  const openDocField = docFieldStore?.openDoc
+
   const baseUsers = computed<(Partial<UserType> | Partial<User>)[]>(() =>
     params.meta?.value?.base_id ? basesUser.value.get(params.meta?.value.base_id) || [] : [],
   )
@@ -143,6 +147,7 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.Links, LinksCellRenderer)
   cellTypesRegistry.set(UITypes.Lookup, LookupCellRenderer)
   cellTypesRegistry.set(UITypes.Button, ButtonCellRenderer)
+  cellTypesRegistry.set(UITypes.Doc, DocCellRenderer)
   cellTypesRegistry.set(UITypes.LinkToAnotherRecord, LtarCellRenderer)
   cellTypesRegistry.set(UITypes.Formula, FormulaCellRenderer)
   cellTypesRegistry.set(UITypes.Geometry, SingleLineTextCellRenderer)
@@ -483,6 +488,7 @@ export function useGridCellHandler(params: {
         isPublic: isPublic.value,
         openDetachedExpandedForm,
         openDetachedLongText,
+        openDocField,
         path: ctx.path ?? [],
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
@@ -520,6 +526,7 @@ export function useGridCellHandler(params: {
         markdownLoader: params.markdownLoader,
         makeCellEditable,
         openDetachedLongText,
+        openDocField,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         path: ctx.path ?? [],
         t,

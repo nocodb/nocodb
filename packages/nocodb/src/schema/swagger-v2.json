@@ -13627,7 +13627,8 @@
               "LastModifiedBy",
               "Meta",
               "Colour",
-              "UUID"
+              "UUID",
+              "Doc"
             ],
             "type": "string"
           },
@@ -16556,7 +16557,8 @@
           "JSON",
           "SpecificDBType",
           "Colour",
-          "UUID"
+          "UUID",
+          "Doc"
         ],
         "type": "string"
       },
@@ -17246,6 +17248,9 @@
           },
           {
             "$ref": "#/components/schemas/FieldTypeSpecificDBType"
+          },
+          {
+            "$ref": "#/components/schemas/FieldTypeDoc"
           }
         ],
         "discriminator": {
@@ -17287,7 +17292,8 @@
             "GeoData": "#/components/schemas/FieldTypeGeoData",
             "Geometry": "#/components/schemas/FieldTypeGeometry",
             "JSON": "#/components/schemas/FieldTypeJSON",
-            "SpecificDBType": "#/components/schemas/FieldTypeSpecificDBType"
+            "SpecificDBType": "#/components/schemas/FieldTypeSpecificDBType",
+            "Doc": "#/components/schemas/FieldTypeDoc"
           }
         },
         "type": "object"
@@ -17943,6 +17949,26 @@
           },
           "colOptions": {
             "$ref": "#/components/schemas/FieldTypeMetaButton"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "FieldTypeDoc": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "maxLength": 255,
+            "type": "string",
+            "minLength": 1,
+            "description": "Column Title"
+          },
+          "uidt": {
+            "$ref": "#/components/schemas/FieldTypeEnum"
+          },
+          "description": {
+            "$ref": "#/components/schemas/FieldTypeDescription"
           }
         },
         "required": [

@@ -455,6 +455,11 @@ const permissionScopes = {
     'dropPermission',
     'bulkDropPermissions',
 
+    // Doc Field
+    'docFieldGet',
+    'docFieldGetOrCreate',
+    'docFieldUpdate',
+
     // Document Comments
     'documentCommentList',
     'documentCommentCount',
@@ -874,6 +879,9 @@ const rolePermissions:
       documentListAll: true,
       documentGet: true,
 
+      // Doc Field — read-only for viewers
+      docFieldGet: true,
+
       // Document Comments — read-only for viewers
       documentCommentList: true,
       documentCommentCount: true,
@@ -984,6 +992,10 @@ const rolePermissions:
       // so that document lifecycle is controlled by project admins.
       documentUpdate: true,
       documentReorder: true,
+
+      // Doc Field — editors can create (lazy) and update field docs
+      docFieldGetOrCreate: true,
+      docFieldUpdate: true,
 
       // Extensions
       extensionUpdate: true,
@@ -1630,6 +1642,10 @@ const permissionDescriptions: Record<string, string> = {
   documentUpdate: 'update a document',
   documentDelete: 'delete a document',
   documentReorder: 'reorder documents',
+
+  docFieldGet: 'view a doc field document',
+  docFieldGetOrCreate: 'open or create a doc field document',
+  docFieldUpdate: 'update a doc field document',
 
   documentCommentList: 'view document comments',
   documentCommentCount: 'view document comment count',

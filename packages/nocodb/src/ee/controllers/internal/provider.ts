@@ -26,8 +26,10 @@ import { DocumentCommentsPostOperations } from '~/controllers/internal/modules/D
 import { AiDataPostOperations } from '~/controllers/internal/modules/AiDataPost.operations';
 import { ApiTokenGetOperations } from '~/controllers/internal/modules/ApiTokenGet.operations';
 import { ApiTokenPostOperations } from '~/controllers/internal/modules/ApiTokenPost.operations';
-import { BaseTrashGetOperations } from '~/controllers/internal/modules/BaseTrashGet.operations';
-import { BaseTrashPostOperations } from '~/controllers/internal/modules/BaseTrashPost.operations';
+import { TrashGetOperations } from '~/controllers/internal/modules/TrashGet.operations';
+import { TrashPostOperations } from '~/controllers/internal/modules/TrashPost.operations';
+import { DocFieldGetOperations } from '~/controllers/internal/modules/DocFieldGet.operations';
+import { DocFieldPostOperations } from '~/controllers/internal/modules/DocFieldPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -58,8 +60,10 @@ export const InternalApiModules = [
   AiDataPostOperations,
   ApiTokenGetOperations,
   ApiTokenPostOperations,
-  BaseTrashGetOperations,
-  BaseTrashPostOperations,
+  TrashGetOperations,
+  TrashPostOperations,
+  DocFieldGetOperations,
+  DocFieldPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

@@ -104,6 +104,8 @@ export const isMultiUser = (column: ColumnType) =>
 
 export const isButton = (column: ColumnType) => column.uidt === UITypes.Button;
 
+export const isDoc = (column: ColumnType) => column.uidt === UITypes.Doc;
+
 export const isAiButton = (column: ColumnType) =>
   column.uidt === UITypes.Button &&
   (column?.colOptions as any)?.type === ButtonActionsType.Ai;

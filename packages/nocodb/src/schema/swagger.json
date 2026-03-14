@@ -22565,7 +22565,8 @@
               "Meta",
               "Colour",
               "UUID",
-              "Deleted"
+              "Deleted",
+              "Doc"
             ],
             "type": "string"
           },
@@ -26631,7 +26632,8 @@
               "Deleted",
               "Meta",
               "Colour",
-              "UUID"
+              "UUID",
+              "Doc"
             ],
             "type": "string",
             "description": "UI Data Type"

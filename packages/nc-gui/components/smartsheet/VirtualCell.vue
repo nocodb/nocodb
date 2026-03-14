@@ -62,6 +62,7 @@ const virtualCellType = computed(() => {
   if (isCount(column.value)) return 'count'
   if (isLookup(column.value)) return 'lookup'
   if (isButton(column.value)) return 'button'
+  if (isDoc(column.value)) return 'doc'
   if (isCreatedOrLastModifiedTimeCol(column.value)) return 'createdOrLastModifiedTimeCol'
   if (isCreatedOrLastModifiedByCol(column.value)) return 'createdOrLastModifiedByCol'
 })
@@ -99,6 +100,7 @@ const virtualCellClassName = computed(() => {
     <VirtualCellCount v-else-if="virtualCellType === 'count'" />
     <VirtualCellLookup v-else-if="virtualCellType === 'lookup'" />
     <VirtualCellButton v-else-if="virtualCellType === 'button'" />
+    <VirtualCellDoc v-else-if="virtualCellType === 'doc'" />
     <CellDateTimeReadonly v-else-if="virtualCellType === 'createdOrLastModifiedTimeCol'" :model-value="modelValue" />
     <CellUserReadonly v-else-if="virtualCellType === 'createdOrLastModifiedByCol'" :model-value="modelValue" />
   </div>

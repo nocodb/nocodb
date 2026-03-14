@@ -56,6 +56,7 @@ enum UITypes {
   Deleted = 'Deleted',
   Meta = 'Meta',
   UUID = 'UUID',
+  Doc = 'Doc',
 }
 
 export const UITypesName = {
@@ -106,6 +107,7 @@ export const UITypesName = {
   [UITypes.Deleted]: 'Deleted',
   [UITypes.Meta]: 'Row Meta',
   [UITypes.UUID]: 'UUID',
+  [UITypes.Doc]: 'Doc',
   AIButton: 'AI Button',
   AIPrompt: 'AI Text',
 };
@@ -253,6 +255,14 @@ export const UITypesSearchTerms = {
     'GUID',
     'universally unique identifier',
   ],
+  [UITypes.Doc]: [
+    'Doc',
+    'document',
+    'rich text document',
+    'page',
+    'wiki',
+    'notes',
+  ],
   AIButton: ['AI Button', 'AI action', 'smart button'],
   AIPrompt: ['AI Text', 'AI Prompt', 'AI field', 'smart field'],
 };
@@ -335,6 +345,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.Deleted]: 'Deleted',
   [UITypes.Meta]: 'Row Meta',
   [UITypes.UUID]: 'UUID',
+  [UITypes.Doc]: 'Doc',
 };
 
 export const numericUITypes = [
@@ -385,6 +396,7 @@ export function isVirtualCol(
     UITypes.CreatedBy,
     UITypes.LastModifiedBy,
     UITypes.Button,
+    UITypes.Doc,
     // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
@@ -637,6 +649,7 @@ export const readonlyMetaAllowedTypes = [
   UITypes.Barcode,
   UITypes.QrCode,
   UITypes.UUID,
+  UITypes.Doc,
 ];
 
 export const partialUpdateAllowedTypes = [
@@ -885,6 +898,7 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
       UITypes.ForeignKey,
       UITypes.UUID,
       UITypes.AutoNumber,
+      UITypes.Doc,
     ].includes(column.uidt as UITypes) ||
     // Check if the column is a system-generated user tracking field (CreatedBy, LastModifiedBy)
     isCreatedOrLastModifiedByCol(column) ||

@@ -1,7 +1,7 @@
 import { ModelTypes } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import DocumentCE from 'src/models/Document';
-import type { DocumentType, NcContext } from 'nocodb-sdk';
+import type { DocumentSource, DocumentType, NcContext } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -116,6 +116,7 @@ export default class Document extends DocumentCE implements DocumentType {
           deleted: false,
           parent_id: parentId,
           ...this.typeCondition,
+          doc_source: 'sidebar',
         },
         orderBy: {
           order: 'asc',
@@ -296,6 +297,7 @@ export default class Document extends DocumentCE implements DocumentType {
           base_id: baseId,
           deleted: false,
           ...this.typeCondition,
+          doc_source: 'sidebar',
         },
         orderBy: {
           order: 'asc',
@@ -378,6 +380,9 @@ export default class Document extends DocumentCE implements DocumentType {
       'has_children',
       'created_by',
       'updated_by',
+      'fk_column_id',
+      'fk_row_id',
+      'doc_source',
     ]);
 
     // Extract content before inserting metadata
@@ -717,10 +722,114 @@ export default class Document extends DocumentCE implements DocumentType {
       .where('fk_workspace_id', context.workspace_id)
       .where('deleted', false)
       .where('type', ModelTypes.DOCUMENT)
+      .where('doc_source', 'sidebar')
       .count('id as count')
       .first();
 
     return +(result?.count || 0);
+  }
+
+  /**
+   * Find a field-linked document by column ID and row ID.
+   * Returns the document with content if found, null otherwise.
+   */
+  public static async getByFieldAndRow(
+    context: NcContext,
+    columnId: string,
+    rowId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const doc = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        fk_column_id: columnId,
+        fk_row_id: rowId,
+        doc_source: 'field',
+        deleted: false,
+      },
+    );
+
+    if (!doc) return null;
+
+    // Fetch content from separate table
+    const contentRow = await Noco.ncDocsContent.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOC_CONTENT,
+      { fk_doc_id: doc.id },
+      ['content'],
+    );
+    doc.content = contentRow?.content;
+
+    return new Document(this.parseDocument(doc));
+  }
+
+  /**
+   * Create a document linked to a specific field + row.
+   * Used for lazy doc creation when user first edits a Doc field cell.
+   */
+  public static async createForField(
+    context: NcContext,
+    payload: {
+      base_id: string;
+      fk_workspace_id: string;
+      fk_column_id: string;
+      fk_row_id: string;
+      title?: string;
+      content?: Record<string, any>;
+      created_by?: string;
+      updated_by?: string;
+    },
+    ncMeta = Noco.ncMeta,
+  ) {
+    return this.insert(
+      context,
+      {
+        ...payload,
+        doc_source: 'field' as DocumentSource,
+        parent_id: null,
+      },
+      ncMeta,
+    );
+  }
+
+  /**
+   * Soft-delete all field-linked documents for a given column.
+   * Called when a Doc column is deleted.
+   */
+  public static async softDeleteByColumn(
+    context: NcContext,
+    columnId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const docs = await ncMeta.metaList2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.DOCS,
+      {
+        condition: {
+          fk_column_id: columnId,
+          doc_source: 'field',
+          deleted: false,
+        },
+        fields: ['id'],
+      },
+    );
+
+    for (const doc of docs) {
+      await ncMeta.metaUpdate(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.DOCS,
+        { deleted: true },
+        doc.id,
+      );
+
+      const key = `${CacheScope.DOCUMENT}:${doc.id}`;
+      await NocoCache.deepDel(context, key, CacheDelDirection.CHILD_TO_PARENT);
+    }
   }
 
   /**

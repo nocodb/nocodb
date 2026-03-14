@@ -3,11 +3,11 @@
  * nc-dev — Multi-instance NocoDB development tool
  *
  * Commands:
- *   init                  Setup config + seed develop DBs (must be on develop branch)
- *   start [--fresh]       Fork meta_develop+data_develop → start this branch's be+fe
+ *   init [--ce]           Setup config + seed develop DBs (must be on develop branch)
+ *   start [--fresh] [--ce] Fork meta_develop+data_develop → start this branch's be+fe
  *   stop [branch]         Stop instance (default: current branch)
  *   list                  List all registered instances
- *   reset                 Drop DB forks + restart fresh (use after rebase)
+ *   reset [--ce]          Drop DB forks + restart fresh (use after rebase)
  *   cleanup [branch]      Stop + drop forked DBs
  *
  * Routing: {branch-slug}.noco.localhost:1355 → be/fe via proxy.mjs
@@ -117,7 +117,7 @@ function readConfig() {
     if (parsed) { console.log('  ℹ DB config from packages/nocodb/.env'); return parsed; }
   }
 
-  console.error('\n  ✗ No DB config found.\n    Run: node scripts/nc-dev/index.mjs init\n');
+  console.error('\n  ✗ No DB config found.\n    Run: pnpm nc-dev init\n');
   process.exit(1);
 }
 
@@ -199,6 +199,20 @@ function keepAlive(children) {
     children.forEach(([, c]) => c.kill('SIGTERM'));
     setTimeout(() => process.exit(0), 1500);
   });
+}
+
+// ─── Edition helpers ──────────────────────────────────────────────────────────
+
+function parseEdition(args) {
+  return args.includes('--ce') ? 'ce' : 'ee';
+}
+
+function beScript(edition) {
+  return edition === 'ce' ? 'watch:run:pg' : 'watch:run:nc-dev';
+}
+
+function feScript(edition) {
+  return edition === 'ce' ? 'dev' : 'dev:ee';
 }
 
 // ─── DB helpers ───────────────────────────────────────────────────────────────
@@ -343,7 +357,7 @@ function dropBothDbs(config, entry) {
 /**
  * Full setup: ensure develop branch, create config, update .gitignore, seed DBs.
  */
-async function cmdInit() {
+async function cmdInit(edition) {
   // 1. Enforce develop branch
   const branch = getCurrentBranch();
   if (branch !== 'develop') {
@@ -385,15 +399,16 @@ async function cmdInit() {
   const metaUrl = buildDbUrl(config, SRC_META);
   const dataUrl = buildDbUrl(config, SRC_DATA);
 
-  console.log(`\n  Seeding → NC_DB: ${SRC_META}  NC_DATA_DB: ${SRC_DATA}`);
+  const editionLabel = edition === 'ce' ? 'CE' : 'EE';
+  console.log(`\n  Seeding (${editionLabel}) → NC_DB: ${SRC_META}  NC_DATA_DB: ${SRC_DATA}`);
   console.log(`  Starting be+fe — Ctrl+C when seeding is done\n`);
 
-  const be = spawnStreaming('be', '\x1b[36m', 'pnpm', ['run', 'watch:run:nc-dev'], {
+  const be = spawnStreaming('be', '\x1b[36m', 'pnpm', ['run', beScript(edition)], {
     cwd: resolve(REPO_ROOT, 'packages/nocodb'),
     env: { NC_DB: metaUrl, NC_DATA_DB: dataUrl, NODE_ENV: 'development' },
   });
 
-  const fe = spawnStreaming('fe', '\x1b[35m', 'pnpm', ['run', 'dev:ee'], {
+  const fe = spawnStreaming('fe', '\x1b[35m', 'pnpm', ['run', feScript(edition)], {
     cwd: resolve(REPO_ROOT, 'packages/nc-gui'),
     env: { NODE_ENV: 'development' },
   });
@@ -403,6 +418,7 @@ async function cmdInit() {
 }
 
 async function cmdStart(opts = {}) {
+  const { edition = 'ee' } = opts;
   const config = readConfig();
   const branch = getCurrentBranch();
   const slug = branchToSlug(branch);
@@ -437,21 +453,23 @@ async function cmdStart(opts = {}) {
     entry = { branch, slug, metaDbName, dataDbName, metaDbUrl: buildDbUrl(config, metaDbName), dataDbUrl: buildDbUrl(config, dataDbName), bePort, fePort, bePid: null, fePid: null, startedAt: new Date().toISOString() };
   }
 
-  console.log(`\n  Starting — streaming logs (Ctrl+C to stop)\n`);
-  printInstanceInfo(branch, entry);
+  const editionLabel = edition === 'ce' ? 'CE' : 'EE';
+  console.log(`\n  Starting (${editionLabel}) — streaming logs (Ctrl+C to stop)\n`);
+  printInstanceInfo(branch, entry, edition);
 
-  const be = spawnStreaming('be', '\x1b[36m', 'pnpm', ['run', 'watch:run:nc-dev'], {
+  const be = spawnStreaming('be', '\x1b[36m', 'pnpm', ['run', beScript(edition)], {
     cwd: resolve(REPO_ROOT, 'packages/nocodb'),
     env: { PORT: String(entry.bePort), NC_DB: entry.metaDbUrl, NC_DATA_DB: entry.dataDbUrl, NODE_ENV: 'development' },
   });
 
-  const fe = spawnStreaming('fe', '\x1b[35m', 'pnpm', ['run', 'dev:ee'], {
+  const fe = spawnStreaming('fe', '\x1b[35m', 'pnpm', ['run', feScript(edition)], {
     cwd: resolve(REPO_ROOT, 'packages/nc-gui'),
     env: { PORT: String(entry.fePort), NUXT_PUBLIC_NC_BACKEND_URL: `http://localhost:${entry.bePort}`, NODE_ENV: 'development' },
   });
 
   entry.bePid = be.pid;
   entry.fePid = fe.pid;
+  entry.edition = edition;
   entry.startedAt = new Date().toISOString();
   registry[branch] = entry;
   writeRegistry(registry);
@@ -488,13 +506,14 @@ async function cmdList() {
   const entries = Object.values(readRegistry());
   if (!entries.length) { console.log('  No instances registered.'); return; }
 
-  console.log(`\n  ${'Branch'.padEnd(32)} ${'BE'.padEnd(7)} ${'FE'.padEnd(7)} Status`);
-  console.log('  ' + '─'.repeat(60));
+  console.log(`\n  ${'Branch'.padEnd(32)} ${'BE'.padEnd(7)} ${'FE'.padEnd(7)} ${'Mode'.padEnd(5)} Status`);
+  console.log('  ' + '─'.repeat(68));
   for (const e of entries) {
     const beUp = isProcessRunning(e.bePid);
     const feUp = isProcessRunning(e.fePid);
     const status = beUp && feUp ? '✓ running' : beUp || feUp ? '⚠ partial' : '✗ stopped';
-    console.log(`  ${e.branch.padEnd(32)} :${String(e.bePort).padEnd(6)} :${String(e.fePort).padEnd(6)} ${status}`);
+    const mode = (e.edition || 'ee').toUpperCase();
+    console.log(`  ${e.branch.padEnd(32)} :${String(e.bePort).padEnd(6)} :${String(e.fePort).padEnd(6)} ${mode.padEnd(5)} ${status}`);
   }
   console.log('');
   entries.filter((e) => isProcessRunning(e.bePid) || isProcessRunning(e.fePid))
@@ -502,7 +521,7 @@ async function cmdList() {
   console.log('');
 }
 
-async function cmdReset() {
+async function cmdReset(edition) {
   const config = readConfig();
   const branch = getCurrentBranch();
   const registry = readRegistry();
@@ -516,7 +535,7 @@ async function cmdReset() {
     writeRegistry(registry);
   }
 
-  await cmdStart({ fresh: false });
+  await cmdStart({ fresh: false, edition });
 }
 
 async function cmdCleanup(targetBranch) {
@@ -536,8 +555,10 @@ async function cmdCleanup(targetBranch) {
 
 // ─── Print ────────────────────────────────────────────────────────────────────
 
-function printInstanceInfo(branch, entry) {
+function printInstanceInfo(branch, entry, edition) {
+  const editionLabel = (edition || entry.edition || 'ee').toUpperCase();
   console.log(`  Branch:   ${branch}`);
+  console.log(`  Mode:     ${editionLabel}`);
   console.log(`  URL:      http://${branchToSlug(branch)}.noco.localhost:${PROXY_PORT}`);
   console.log(`  Backend:  http://localhost:${entry.bePort}`);
   console.log(`  Frontend: http://localhost:${entry.fePort}`);
@@ -549,29 +570,33 @@ function printInstanceInfo(branch, entry) {
 // ─── CLI ──────────────────────────────────────────────────────────────────────
 
 const [, , cmd, ...args] = process.argv;
+const edition = parseEdition(args);
 
 const commands = {
-  init:    cmdInit,
-  start:   () => cmdStart({ fresh: args.includes('--fresh') }),
-  stop:    () => cmdStop(args[0]),
+  init:    () => cmdInit(edition),
+  start:   () => cmdStart({ fresh: args.includes('--fresh'), edition }),
+  stop:    () => cmdStop(args.find((a) => !a.startsWith('--'))),
   list:    cmdList,
-  reset:   cmdReset,
-  cleanup: () => cmdCleanup(args[0]),
+  reset:   () => cmdReset(edition),
+  cleanup: () => cmdCleanup(args.find((a) => !a.startsWith('--'))),
 };
 
 if (!cmd || !commands[cmd]) {
   console.log(`
   nc-dev — multi-instance NocoDB dev proxy
 
-  Usage:  pnpm nc-dev <command>
+  Usage:  pnpm nc-dev <command> [--ce]
 
   Commands:
-    init                  Setup config + seed develop DBs (must be on develop branch)
-    start [--fresh]       Fork develop DBs → start this branch
-    stop [branch]         Stop instance
-    list                  List all instances
-    reset                 Drop forks + restart fresh (use after rebase)
-    cleanup [branch]      Stop + drop forked DBs
+    init [--ce]            Setup config + seed develop DBs (must be on develop branch)
+    start [--fresh] [--ce] Fork develop DBs → start this branch
+    stop [branch]          Stop instance
+    list                   List all instances
+    reset [--ce]           Drop forks + restart fresh (use after rebase)
+    cleanup [branch]       Stop + drop forked DBs
+
+  Flags:
+    --ce                   Run in CE mode (default: EE)
 `);
   process.exit(cmd ? 1 : 0);
 }

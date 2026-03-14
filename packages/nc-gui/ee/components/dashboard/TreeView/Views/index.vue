@@ -340,7 +340,7 @@ watch(
           />
           <DashboardTreeViewViewsList
             v-if="expandedSections[section.id!] || getActiveViewForSection(section.id).length || viewDragging"
-            :section-views="expandedSections[section.id!] ? getViewsInSection(section.id) : getActiveViewForSection(section.id)"
+            :section-views="expandedSections[section.id!] || viewDragging ? getViewsInSection(section.id) : getActiveViewForSection(section.id)"
             :is-in-section="true"
             :section-id="section.id"
             @view-drag-start="onViewDragStart"
@@ -367,7 +367,7 @@ watch(
         <DashboardTreeViewViewsList
           v-if="expandedSections[DEFAULT_SECTION_ID] || getActiveViewForSection(DEFAULT_SECTION_ID).length || viewDragging"
           :section-views="
-            expandedSections[DEFAULT_SECTION_ID]
+            expandedSections[DEFAULT_SECTION_ID] || viewDragging
               ? getViewsInSection(DEFAULT_SECTION_ID)
               : getActiveViewForSection(DEFAULT_SECTION_ID)
           "

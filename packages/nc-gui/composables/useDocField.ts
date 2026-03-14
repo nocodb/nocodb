@@ -37,6 +37,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
   const navigatePrev = () => {}
   const navigateNext = () => {}
   const createDocForCurrentRow = async () => {}
+  const updateDocTitle = (_title: string) => {}
 
   return {
     isOpen,
@@ -65,6 +66,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     navigatePrev,
     navigateNext,
     createDocForCurrentRow,
+    updateDocTitle,
   }
 }, 'doc-field-store')
 

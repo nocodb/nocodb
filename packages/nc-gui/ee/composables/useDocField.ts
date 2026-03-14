@@ -5,7 +5,7 @@ import { useStorage } from '@vueuse/core'
 type DocFieldPanelMode = 'floating' | 'pinned' | 'fullscreen'
 
 const [useProvideDocField, useDocField] = useInjectionState(() => {
-  const { $api } = useNuxtApp()
+  const { $api, $eventBus } = useNuxtApp()
 
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId } = storeToRefs(workspaceStore)
@@ -210,6 +210,18 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     }
   }
 
+  /** Update the document title in the grid row data so the cell reflects the rename */
+  const updateDocTitle = (title: string) => {
+    const colTitle = activeColumn.value?.title
+    if (!colTitle || !activeRowData.value) return
+
+    const cellValue = activeRowData.value[colTitle]
+    if (cellValue && typeof cellValue === 'object') {
+      activeRowData.value[colTitle] = { ...cellValue, title }
+      $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+    }
+  }
+
   const switchField = (columnId: string) => {
     if (!activeRowId.value) return
     openDoc(activeRowId.value, columnId)
@@ -251,6 +263,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     navigatePrev,
     navigateNext,
     createDocForCurrentRow,
+    updateDocTitle,
   }
 }, 'doc-field-store')
 

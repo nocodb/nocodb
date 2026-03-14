@@ -1,10 +1,17 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { DocFieldService as DocFieldServiceCE } from 'src/services/doc-field.service';
-import type { DocumentType } from 'nocodb-sdk';
+import type {
+  DocumentCreatePayload,
+  DocumentDeletePayload,
+  DocumentType,
+  DocumentUpdatePayload,
+} from 'nocodb-sdk';
+import { AuditV1OperationTypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { Document, FileReference } from '~/models';
+import { Audit, Document, FileReference } from '~/models';
 import Column from '~/models/Column';
+import { generateAuditV1Payload } from '~/utils';
 
 /**
  * Service for Doc field type — manages documents linked to table cells.
@@ -65,6 +72,27 @@ export class DocFieldService extends DocFieldServiceCE {
       NcError.get(context).badRequest('Failed to create document for field');
     }
 
+    Audit.insert(
+      await generateAuditV1Payload<DocumentCreatePayload>(
+        AuditV1OperationTypes.DOCUMENT_CREATE,
+        {
+          context: {
+            ...context,
+            source_id: column.source_id,
+            fk_model_id: column.fk_model_id,
+            row_id: rowId,
+          },
+          details: {
+            document_title: doc.title,
+            document_id: doc.id,
+            doc_field_title: column.title,
+            doc_field_id: columnId,
+          },
+          req,
+        },
+      ),
+    );
+
     return doc;
   }
 
@@ -101,6 +129,32 @@ export class DocFieldService extends DocFieldServiceCE {
       updatePayload.version = payload.version;
     }
 
+    if (payload.title !== undefined && payload.title !== doc.title) {
+      const column = await Column.get(context, { colId: doc.fk_column_id });
+
+      Audit.insert(
+        await generateAuditV1Payload<DocumentUpdatePayload>(
+          AuditV1OperationTypes.DOCUMENT_UPDATE,
+          {
+            context: {
+              ...context,
+              source_id: column.source_id,
+              fk_model_id: column.fk_model_id,
+              row_id: doc.fk_row_id,
+            },
+            details: {
+              document_title: payload.title,
+              document_id: docId,
+              old_title: doc.title,
+              doc_field_title: column.title,
+              doc_field_id: doc.fk_column_id,
+            },
+            req,
+          },
+        ),
+      );
+    }
+
     return Document.update(context, docId, updatePayload);
   }
 
@@ -112,9 +166,35 @@ export class DocFieldService extends DocFieldServiceCE {
     context: NcContext,
     columnId: string,
     rowId: string,
+    req?: NcRequest,
   ): Promise<boolean> {
     const doc = await Document.getByFieldAndRow(context, columnId, rowId);
     if (!doc) return true;
+
+    if (req) {
+      const column = await Column.get(context, { colId: columnId });
+
+      Audit.insert(
+        await generateAuditV1Payload<DocumentDeletePayload>(
+          AuditV1OperationTypes.DOCUMENT_DELETE,
+          {
+            context: {
+              ...context,
+              source_id: column.source_id,
+              fk_model_id: column.fk_model_id,
+              row_id: rowId,
+            },
+            details: {
+              document_title: doc.title,
+              document_id: doc.id,
+              doc_field_title: column.title,
+              doc_field_id: columnId,
+            },
+            req,
+          },
+        ),
+      );
+    }
 
     await Document.softDelete(context, doc.id);
     return true;

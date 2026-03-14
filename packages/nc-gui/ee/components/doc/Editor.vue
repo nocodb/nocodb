@@ -72,6 +72,7 @@ const { batchUploadFiles } = useAttachment()
 const { openFilePicker: openFileAttachmentPicker, uploadAndInsert: uploadAndInsertFile } = useDocumentFileUpload()
 
 const { activeDocuments } = storeToRefs(documentsStore)
+const docFieldStore = useDocField()
 
 const hasSubDocuments = computed(
   () =>
@@ -1700,6 +1701,10 @@ const debouncedTitleSync = useDebounceFn(() => {
   // Guard: only sync to store if activeDocument still matches the editor's doc
   if (activeDocument.value?.id === doc.value.id && effectiveTitle !== activeDocument.value?.title) {
     activeDocument.value!.title = effectiveTitle
+  }
+  // Sync title to grid cell when editing a doc-field document
+  if (props.embedded && docFieldStore) {
+    docFieldStore.updateDocTitle(effectiveTitle)
   }
   // Trigger a save if the title differs from what was last persisted
   if (effectiveTitle !== lastSavedTitle.value) {

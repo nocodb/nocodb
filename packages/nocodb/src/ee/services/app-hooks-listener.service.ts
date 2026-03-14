@@ -4823,15 +4823,47 @@ export class AppHooksListenerService
       }
       case AppEvents.DOCUMENT_UPDATE: {
         const param = data as DocumentUpdateEvent;
+
+        // For doc-field documents, include column/row context so audit appears in expanded form
+        let docFieldContext:
+          | {
+              source_id?: string;
+              fk_model_id?: string;
+              row_id?: string;
+            }
+          | undefined;
+        let docFieldDetails:
+          | { doc_field_title?: string; doc_field_id?: string; old_title?: string }
+          | undefined;
+
+        if (param.doc.fk_column_id && param.doc.fk_row_id) {
+          const column = await Column.get(param.context, {
+            colId: param.doc.fk_column_id,
+          });
+          if (column) {
+            docFieldContext = {
+              source_id: column.source_id,
+              fk_model_id: column.fk_model_id,
+              row_id: param.doc.fk_row_id,
+            };
+            docFieldDetails = {
+              doc_field_title: column.title,
+              doc_field_id: param.doc.fk_column_id,
+              old_title: param.oldTitle,
+            };
+          }
+        }
+
         await this.auditInsert(
           await generateAuditV1Payload<DocumentUpdatePayload>(
             AuditV1OperationTypes.DOCUMENT_UPDATE,
             {
               req: param.req,
-              context: param.context,
+              context: { ...param.context, ...docFieldContext },
               details: {
                 document_title: param.doc.title ?? 'Untitled',
                 document_id: param.doc.id!,
+                ...docFieldDetails,
               },
             },
           ),

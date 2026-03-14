@@ -80,6 +80,7 @@ export class DocFieldPostOperations
           context,
           columnId,
           rowId,
+          req,
         );
       }
       case 'docFieldDuplicate': {

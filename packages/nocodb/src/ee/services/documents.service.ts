@@ -607,6 +607,10 @@ export class DocumentsService extends DocumentsServiceCE {
       req,
       doc,
       user: req.user,
+      oldTitle:
+        payload.title !== undefined && existing.title !== doc.title
+          ? existing.title
+          : undefined,
     });
 
     // Detect net-new @mentions in the updated content and emit a mention event.

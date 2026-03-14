@@ -158,6 +158,16 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     return activeRowIndex.value < rowNavigator.value.totalRows() - 1
   })
 
+  const activeDisplayValue = computed(() => {
+    if (activeRowIndex.value == null || !rowNavigator.value || !meta.value?.columns) return null
+    const pvCol = meta.value.columns.find((c) => c.pv)
+    if (!pvCol?.title) return null
+    const rowInfo = rowNavigator.value.getRow(activeRowIndex.value)
+    if (!rowInfo) return null
+    const val = rowInfo.rowData[pvCol.title]
+    return val != null && val !== '' ? String(val) : null
+  })
+
   const closeDoc = () => {
     isOpen.value = false
     activeRowId.value = null
@@ -228,6 +238,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     docColumns,
     hasPrev,
     hasNext,
+    activeDisplayValue,
     rowNavigator,
     openDoc,
     closeDoc,

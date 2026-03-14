@@ -13,6 +13,7 @@ const {
   activeColumnId,
   hasPrev,
   hasNext,
+  activeDisplayValue,
 } = docFieldStore
 
 const { closeDoc, switchField, setFullscreen, navigatePrev, navigateNext, createDocForCurrentRow } = docFieldStore
@@ -165,6 +166,14 @@ const panelClasses = computed(() => {
           <span class="text-bodySm font-medium truncate max-w-32">{{ panelTitle }}</span>
         </div>
 
+        <!-- Display value badge -->
+        <NcTooltip v-if="activeDisplayValue" show-on-truncate-only class="truncate max-w-40">
+          <template #title>{{ activeDisplayValue }}</template>
+          <span class="nc-doc-field-display-value truncate max-w-40">
+            {{ activeDisplayValue }}
+          </span>
+        </NcTooltip>
+
         <div class="flex-1" />
 
         <!-- Row navigation -->
@@ -278,6 +287,10 @@ const panelClasses = computed(() => {
 
 .nc-doc-field-panel.is-resizing .nc-doc-field-panel-resize-handle {
   @apply bg-nc-border-gray-medium;
+}
+
+.nc-doc-field-display-value {
+  @apply text-captionSm text-nc-content-gray-subtle2 bg-nc-bg-gray-light rounded-md px-2 py-0.5;
 }
 
 /* Slide-in from right */

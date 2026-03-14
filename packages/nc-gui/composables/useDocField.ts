@@ -24,6 +24,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
   const docColumns = computed(() => [])
   const hasPrev = computed(() => false)
   const hasNext = computed(() => false)
+  const activeDisplayValue = computed(() => null)
 
   const rowNavigator = ref(null)
 
@@ -53,6 +54,7 @@ const [useProvideDocField, useDocField] = useInjectionState(() => {
     docColumns,
     hasPrev,
     hasNext,
+    activeDisplayValue,
     rowNavigator,
     openDoc,
     closeDoc,

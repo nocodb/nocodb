@@ -1052,13 +1052,13 @@ defineExpose({
     :class="{
       'w-min': !isMobileMode,
       'w-full': isMobileMode,
-      'min-w-122 py-2 pl-4': !nested && !queryFilter && !widget && !isMobileMode,
-      'py-2 pl-4': !nested && !queryFilter && !widget && isMobileMode,
-      'xs:(h-full max-h-full flex flex-col) max-h-[max(80vh,500px)]': !nested && !queryFilter && !link,
-      'xs:(max-h-full) max-h-[max(50vh,400px)]': !nested && !queryFilter && link,
+      'min-w-122 py-2 pl-4': !nested && !widget && !isMobileMode,
+      'py-2 pl-4': !nested && !widget && isMobileMode,
+      'xs:(h-full max-h-full flex flex-col) max-h-[max(80vh,500px)]': !nested && !link,
+      'xs:(max-h-full) max-h-[max(50vh,400px)]': !nested && link,
       '!min-w-127.5': isForm && !webHook && !isMobileMode,
       '!min-w-full !w-full !pl-0': !nested && (webHook || widget),
-      'min-w-full': nested || queryFilter,
+      'min-w-full': nested,
     }"
   >
     <div v-if="nested" class="flex min-w-full w-min items-center gap-1 mb-2">
@@ -1137,9 +1137,9 @@ defineExpose({
       handle=".nc-column-filter-drag-handler"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
       :class="{
-        'nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
-        'xs:(max-h-full) max-h-420px': !nested && !queryFilter && !link,
-        'xs:(max-h-full) max-h-320px': !nested && !queryFilter && link,
+        'nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested,
+        'xs:(max-h-full) max-h-420px': !nested && !link,
+        'xs:(max-h-full) max-h-320px': !nested && link,
         '!pr-0': (webHook || widget) && !nested,
       }"
       :move="onMoveCallback"
@@ -1230,7 +1230,12 @@ defineExpose({
                     </div>
                   </template>
                   <template #end>
-                    <SmartsheetToolbarColumnFilterMobileActionMenu v-if="isMobileMode" :items="mobileActionMenuItems(filter)" />
+                    <template v-if="isMobileMode">
+                      <SmartsheetToolbarColumnFilterMobileActionMenu
+                        v-if="mobileActionMenuItems(filter).length"
+                        :items="mobileActionMenuItems(filter)"
+                      />
+                    </template>
 
                     <template v-else>
                       <NcButton
@@ -1689,7 +1694,7 @@ defineExpose({
                 </NcButton>
               </template>
             </div>
-            <div v-if="isMobileMode" class="h-8 flex items-center">
+            <div v-if="isMobileMode && mobileActionMenuItems(filter).length" class="h-8 flex items-center">
               <SmartsheetToolbarColumnFilterMobileActionMenu :items="mobileActionMenuItems(filter)" />
             </div>
           </div>
@@ -1871,11 +1876,7 @@ defineExpose({
   }
 
   & > :last-child {
-    @apply relative;
-    &::after {
-      content: '';
-      @apply absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0;
-    }
+    @apply relative sm:(after:(content-[''] absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0));
   }
 
   :deep(::placeholder) {

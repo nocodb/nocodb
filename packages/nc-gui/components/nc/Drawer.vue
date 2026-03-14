@@ -16,6 +16,8 @@ interface Props {
   swipeThreshold?: number
   scrollableBody?: boolean
   bodyClassName?: string
+  headerClassName?: string
+  footerClassName?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -213,6 +215,20 @@ watch(visible, (val) => {
   }
 })
 
+// ── Dynamic body height (avoids flex-1 min-content issues) ──────────
+const dragHandleRef = ref<HTMLElement | null>(null)
+const headerRef = ref<HTMLElement | null>(null)
+const footerRef = ref<HTMLElement | null>(null)
+
+const { height: dragHandleHeight } = useElementBounding(dragHandleRef)
+const { height: headerHeight } = useElementBounding(headerRef)
+const { height: footerHeight } = useElementBounding(footerRef)
+
+const bodyHeight = computed(() => {
+  const total = (dragHandleHeight.value || 0) + (headerHeight.value || 0) + (footerHeight.value || 0)
+  return total ? `calc(100% - ${total}px)` : '100%'
+})
+
 const wrapClassNameComputed = computed(() => {
   let className = 'nc-drawer-wrapper'
   if (props.wrapClassName) {
@@ -242,18 +258,18 @@ onMounted(() => {
   >
     <div
       ref="drawerContentRef"
-      class="nc-drawer-content flex flex-col h-full"
+      class="nc-drawer-content h-full"
       @touchstart="onContentTouchStart"
       @touchmove="onContentTouchMove"
       @touchend="onContentTouchEnd"
     >
       <!-- Drag handle -->
-      <div v-if="showDragHandle" class="nc-drawer-drag-handle flex-none">
+      <div v-if="showDragHandle" ref="dragHandleRef" class="nc-drawer-drag-handle" :class="headerClassName">
         <div class="nc-drawer-drag-indicator" />
       </div>
 
       <!-- Header -->
-      <div v-if="slots.header || title" class="nc-drawer-header flex-none">
+      <div v-if="slots.header || title" ref="headerRef" class="nc-drawer-header">
         <slot name="header">
           <div class="text-sm font-semibold text-nc-content-gray">{{ title }}</div>
         </slot>
@@ -262,15 +278,20 @@ onMounted(() => {
       <!-- Body -->
       <div
         ref="drawerBodyRef"
-        class="nc-drawer-body flex-1 min-h-0"
-        :class="[scrollableBody ? 'overflow-y-auto nc-scrollbar-thin' : 'overflow-hidden', scrollableBody ? scrollFadeClass : '', bodyClassName]"
+        class="nc-drawer-body"
+        :style="{ height: bodyHeight }"
+        :class="[
+          scrollableBody ? 'overflow-y-auto nc-scrollbar-thin' : 'overflow-hidden',
+          scrollableBody ? scrollFadeClass : '',
+          bodyClassName,
+        ]"
         @scroll="scrollableBody ? debouncedUpdateScrollFade() : undefined"
       >
         <slot />
       </div>
 
       <!-- Footer -->
-      <div v-if="slots.footer" class="nc-drawer-footer flex-none">
+      <div v-if="slots.footer" ref="footerRef" class="nc-drawer-footer" :class="footerClassName">
         <slot name="footer" />
       </div>
     </div>
@@ -288,10 +309,9 @@ onMounted(() => {
   }
 
   .ant-drawer-body {
-    @apply !p-0;
+    @apply !p-0 h-full;
   }
 }
-
 </style>
 
 <style lang="scss" scoped>
@@ -308,14 +328,10 @@ onMounted(() => {
 }
 
 .nc-drawer-header {
-  @apply px-4 pb-2;
+  @apply pb-2;
 }
 
 .nc-drawer-body {
   @apply px-4 pb-4;
-}
-
-.nc-drawer-footer {
-  @apply px-4 py-3 border-t-1 border-nc-border-gray-medium;
 }
 </style>

@@ -39,7 +39,7 @@ const isNotificationOpen = ref(false)
 
 const { isPanelExpanded: isChatPanelExpanded, hasWorkspaceContext: hasChatWorkspaceContext, toggleChatPanel } = useChatPanel()
 
-const { blockAiChat } = useEeConfig()
+const { blockAiChat, showEEFeatures } = useEeConfig()
 
 const handleChatToggle = () => {
   toggleChatPanel()
@@ -112,7 +112,7 @@ const mainItems = computed<NavItem[]>(() => [
     disabled: !hasAvailableBases.value,
     onClick: () => onTabClick('data'),
   },
-  ...(isEeUI && !isMobileMode.value
+  ...(isEeUI && !isMobileMode.value && showEEFeatures.value
     ? [
         {
           key: 'workflows',

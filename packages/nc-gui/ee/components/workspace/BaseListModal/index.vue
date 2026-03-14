@@ -24,7 +24,7 @@ const { loadProjects } = basesStore
 const { navigateToTable } = useTablesStore()
 const { activeBreakpoint, appInfo } = useGlobal()
 const { $api, $e } = useNuxtApp()
-const { isEEFeatureBlocked, showUpgradeToCreateWorkspace } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToCreateWorkspace } = useEeConfig()
 
 const { orgRoles } = useRoles()
 
@@ -603,7 +603,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
           </div>
 
           <!-- New Workspace Button -->
-          <div v-if="canCreateWorkspace" class="px-2 py-1.5 w-full">
+          <div v-if="canCreateWorkspace && showEEFeatures" class="px-2 py-1.5 w-full">
             <NcButton
               type="secondary"
               text-color="primary"

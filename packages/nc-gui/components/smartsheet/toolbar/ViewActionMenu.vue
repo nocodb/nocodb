@@ -46,7 +46,7 @@ const { base } = storeToRefs(useBase())
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
+const { showEEFeatures, showRecordPlanLimitExceededModal, getPlanTitle } = useEeConfig()
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
 
@@ -198,7 +198,8 @@ const isFieldHeaderVisibilityOptionVisible = computed(() => {
     !props.inSidebar &&
     isUIAllowed('viewCreateOrEdit') &&
     [ViewTypes.GALLERY, ViewTypes.KANBAN].includes(view.value?.type) &&
-    isEeUI
+    isEeUI &&
+    showEEFeatures.value
   )
 })
 
@@ -349,7 +350,7 @@ defineOptions({
         </NcMenuItem>
 
         <SmartsheetToolbarViewActionMenuMoveToSection
-          v-if="isEeUI"
+          v-if="isEeUI && showEEFeatures"
           :view="view"
           :table="table"
           :in-sidebar="inSidebar"
@@ -358,7 +359,7 @@ defineOptions({
       </template>
 
       <SmartsheetToolbarNotAllowedTooltip
-        v-if="copyViewConfigMenuItemStatus.isVisible"
+        v-if="copyViewConfigMenuItemStatus.isVisible && showEEFeatures"
         :enabled="copyViewConfigMenuItemStatus.isDisabled"
       >
         <template #title>
@@ -528,7 +529,7 @@ defineOptions({
           >
             <SmartsheetToolbarLockType :type="LockType.Collaborative" :disabled="!isUIAllowed('fieldAdd')" />
           </NcMenuItem>
-          <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI" :enabled="disablePersonalView">
+          <SmartsheetToolbarNotAllowedTooltip v-if="isEeUI && showEEFeatures" :enabled="disablePersonalView">
             <template #title>
               <div class="max-w-80">
                 {{
@@ -564,7 +565,7 @@ defineOptions({
             <SmartsheetToolbarLockType :type="LockType.Locked" :disabled="!isUIAllowed('fieldAdd')" />
           </NcMenuItem>
         </NcSubMenu>
-        <template v-if="isEeUI">
+        <template v-if="isEeUI && showEEFeatures">
           <SmartsheetToolbarNotAllowedTooltip
             v-if="isPersonalView"
             :enabled="!(isViewOwner || isUIAllowed('reAssignViewOwner'))"

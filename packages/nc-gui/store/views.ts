@@ -70,7 +70,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const { blockCardFieldHeaderVisibility } = useEeConfig()
+  const { blockCardFieldHeaderVisibility, showEEFeatures } = useEeConfig()
 
   const route = router.currentRoute
 
@@ -1120,7 +1120,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     const result = {
       isDisabled: false,
       tooltip: '',
-      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit'),
+      isVisible: isEeUI && isUIAllowed('viewCreateOrEdit') && showEEFeatures.value,
     }
 
     if (!view) return result

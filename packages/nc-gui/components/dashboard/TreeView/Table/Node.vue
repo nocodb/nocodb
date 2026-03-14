@@ -49,7 +49,7 @@ const { loadViews: _loadViews } = useViewsStore()
 const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { showRecordPlanLimitExceededModal } = useEeConfig()
+const { showEEFeatures, showRecordPlanLimitExceededModal } = useEeConfig()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -404,12 +404,16 @@ const enabledOptions = computed(() => {
       }) &&
       (source.value?.is_meta || source.value?.is_local),
     tablePermission:
-      isEeUI && table.value?.type === 'table' && isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
+      isEeUI &&
+      table.value?.type === 'table' &&
+      isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
     tableRowLevelSecurity:
       isEeUI &&
       isFeatureEnabled(FEATURE_FLAG.ROW_LEVEL_SECURITY) &&
       table.value?.type === 'table' &&
-      isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }),
+      isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }) &&
+      showEEFeatures.value,
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })

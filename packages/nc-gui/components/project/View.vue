@@ -33,6 +33,7 @@ const {
   showUpgradeToUseSync,
   isWsAuditEnabled,
   isEEFeatureBlocked,
+  showEEFeatures,
 } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
@@ -82,7 +83,9 @@ const userCount = computed(() => {
 
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
-const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList'))
+const isAuditsTabVisible = computed(
+  () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList') && showEEFeatures.value,
+)
 
 const isWorkflowsTabVisible = computed(
   () =>
@@ -90,7 +93,8 @@ const isWorkflowsTabVisible = computed(
     appInfo.value?.ee &&
     isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) &&
     isUIAllowed('workflowCreateOrEdit') &&
-    !isMobileMode.value,
+    !isMobileMode.value &&
+    showEEFeatures.value,
 )
 
 // Get actual workflow count
@@ -108,11 +112,11 @@ const projectPageTab = computed({
     return _projectPageTab.value
   },
   set(value) {
-    if (value === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
+    if (value === 'permissions' && showEEFeatures.value && showUpgradeToUseTableAndFieldPermissions()) {
       return
     }
 
-    if (value === 'syncs' && showUpgradeToUseSync()) {
+    if (value === 'syncs' && showEEFeatures.value && showUpgradeToUseSync()) {
       return
     }
 
@@ -444,7 +448,7 @@ watch(
           </template>
           <ProjectWorkflowsList :base-id="base.id" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id" key="permissions">
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && showEEFeatures" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
@@ -477,7 +481,7 @@ watch(
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="syncs">
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode && showEEFeatures" key="syncs">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
@@ -513,7 +517,14 @@ watch(
           </div>
         </a-tab-pane>
         <a-tab-pane
-          v-if="isEeUI && isUIAllowed('baseMiscSettings') && isUIAllowed('manageSnapshot') && base.id && !isMobileMode"
+          v-if="
+            isEeUI &&
+            isUIAllowed('baseMiscSettings') &&
+            isUIAllowed('manageSnapshot') &&
+            base.id &&
+            !isMobileMode &&
+            showEEFeatures
+          "
           key="snapshots"
         >
           <template #tab>

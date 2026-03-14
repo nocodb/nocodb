@@ -19,7 +19,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
+const { showEEFeatures, showUpgradeToUseMapView, showUpgradeToUseTimelineView } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -257,7 +257,7 @@ async function onOpenModal({
                   </NcTooltip>
                 </template>
                 <a-menu-item
-                  v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+                  v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW) && showEEFeatures"
                   data-testid="topbar-view-create-map"
                   @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
                 >
@@ -268,7 +268,7 @@ async function onOpenModal({
                 </a-menu-item>
 
                 <a-menu-item
-                  v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
+                  v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE) && showEEFeatures"
                   data-testid="topbar-view-create-timeline"
                   @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
                 >

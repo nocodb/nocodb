@@ -23,7 +23,7 @@ const { isMarketVisible } = storeToRefs(useScriptStore())
 
 const { appInfo, isMobileMode } = useGlobal()
 
-const { isEEFeatureBlocked, showUpgradeToUseScripts, showUpgradeToUseSync } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseScripts, showUpgradeToUseSync } = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -94,13 +94,18 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
         </div>
       </NcMenuItem>
 
-      <NcMenuItem v-if="!isMobileMode" inner-class="w-full" data-testid="create-new-dashboard" @click="emits('emptyDashboard')">
+      <NcMenuItem
+        v-if="!isMobileMode && showEEFeatures"
+        inner-class="w-full"
+        data-testid="create-new-dashboard"
+        @click="emits('emptyDashboard')"
+      >
         <GeneralIcon icon="dashboards" />
         {{ $t('labels.dashboard') }}
         <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
       </NcMenuItem>
 
-      <ProjectSyncCreateProvider v-if="!isMobileMode">
+      <ProjectSyncCreateProvider v-if="!isMobileMode && showEEFeatures">
         <template #default="{ createSyncClick }">
           <NcMenuItem
             class="nc-menu-item-integration"
@@ -133,7 +138,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
 
     <!-- Docs tab items: document -->
     <template v-if="isDocsTab">
-      <NcMenuItem inner-class="w-full" data-testid="create-new-document" @click="emits('emptyPage')">
+      <NcMenuItem v-if="showEEFeatures" inner-class="w-full" data-testid="create-new-document" @click="emits('emptyPage')">
         <GeneralIcon icon="ncFileText" />
         {{ $t('objects.document') }}
         <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
@@ -143,6 +148,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
     <!-- Automations tab items: workflow, script -->
     <template v-if="isWorkflowsTab">
       <NcMenuItem
+        v-if="showEEFeatures"
         class="nc-menu-item-integration"
         inner-class="w-full"
         data-testid="create-new-workflow"
@@ -161,7 +167,13 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
         </div>
       </NcMenuItem>
 
-      <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-script" @click="emits('emptyScript')">
+      <NcMenuItem
+        v-if="showEEFeatures"
+        inner-class="w-full"
+        class="nc-menu-item-combo"
+        data-testid="create-new-script"
+        @click="emits('emptyScript')"
+      >
         <div class="w-full flex items-center">
           <div class="flex-1 flex items-center gap-2 cursor-pointer">
             <GeneralIcon icon="ncScript" />

@@ -16,7 +16,7 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { showExternalSourcePlanLimitExceededModal } = useEeConfig()
+const { showEEFeatures, showExternalSourcePlanLimitExceededModal } = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -118,9 +118,9 @@ const onCreateBaseClick = () => {
             </template>
           </ProjectActionItem>
 
-          <ProjectActionCreateEmptyDashboard v-if="!isMobileMode" />
+          <ProjectActionCreateEmptyDashboard v-if="!isMobileMode && showEEFeatures" />
 
-          <ProjectActionCreateNewSync v-if="!isMobileMode" :base-id="base?.id" />
+          <ProjectActionCreateNewSync v-if="!isMobileMode && showEEFeatures" :base-id="base?.id" />
 
           <NcTooltip
             v-if="!isMobileMode && isUIAllowed('sourceCreate')"
@@ -159,12 +159,12 @@ const onCreateBaseClick = () => {
         </template>
 
         <!-- Docs tab actions -->
-        <template v-if="activeSidebarTab === 'docs'">
+        <template v-if="activeSidebarTab === 'docs' && showEEFeatures">
           <ProjectActionCreateNewDocument :base-id="base?.id" />
         </template>
 
         <!-- Automation actions (shown on Automation tab) -->
-        <template v-if="activeSidebarTab === 'workflows' && !isMobileMode">
+        <template v-if="activeSidebarTab === 'workflows' && !isMobileMode && showEEFeatures">
           <ProjectActionCreateEmptyWorkflow />
           <ProjectActionCreateEmptyScript />
           <ProjectActionScriptsByNocoDB />

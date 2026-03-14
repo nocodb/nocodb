@@ -43,7 +43,7 @@ const { navigateToProject } = useGlobal()
 
 const wsBaseListActions = useWsBaseListActions()
 
-const { blockPrivateBases, showUpgradeToUsePrivateBases, isOnPrem } = useEeConfig()
+const { blockPrivateBases, showUpgradeToUsePrivateBases, isOnPrem, showEEFeatures } = useEeConfig()
 
 const nameValidationRules = [
   {
@@ -311,7 +311,7 @@ if (props.isCreateNewActionMenu) {
             />
           </a-form-item>
 
-          <a-form-item name="default_role" class="!mb-0">
+          <a-form-item v-if="showEEFeatures" name="default_role" class="!mb-0">
             <template #label>
               <div>{{ t('general.baseType') }}</div>
             </template>

@@ -71,6 +71,8 @@ const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { showEEFeatures } = useEeConfig()
+
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
 const setAsDisplayValue = async () => {
@@ -745,7 +747,7 @@ const onDeleteColumn = () => {
     </NcMenuItem>
 
     <NcTooltip
-      v-if="isEeUI && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      v-if="isEeUI && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey && showEEFeatures"
       :disabled="showEditRestrictedColumnTooltip(column) && !(column?.readonly && meta?.synced)"
       placement="right"
       :arrow="false"

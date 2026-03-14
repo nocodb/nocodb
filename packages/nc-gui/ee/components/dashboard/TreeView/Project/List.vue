@@ -13,6 +13,8 @@ const route = router.currentRoute
 
 const { activeWorkspaceId, activeWorkspace } = storeToRefs(useWorkspace())
 
+const { showEEFeatures } = useEeConfig()
+
 const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
@@ -374,7 +376,10 @@ useEventListener(document, 'contextmenu', handleContext, true)
         </ProjectWrapper>
       </div>
 
-      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
+      <WorkspaceCreateProjectDlg
+        v-model="baseCreateDlg"
+        :default-base-create-mode="!showEEFeatures ? NcBaseCreateMode.FROM_SCRATCH : undefined"
+      />
     </template>
 
     <div

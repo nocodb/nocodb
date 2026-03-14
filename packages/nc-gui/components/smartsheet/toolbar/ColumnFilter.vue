@@ -143,7 +143,8 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { blockToggleFilter, showUpgradeToUseToggleFilter, blockPinnedFilter, showUpgradeToUsePinnedFilter } = useEeConfig()
+const { blockToggleFilter, showUpgradeToUseToggleFilter, blockPinnedFilter, showUpgradeToUsePinnedFilter, showEEFeatures } =
+  useEeConfig()
 
 const {
   nestedFilters,
@@ -1575,6 +1576,7 @@ defineExpose({
                   {{ getPinTooltip(filter) }}
                 </template>
                 <NcButton
+                  v-if="showEEFeatures"
                   v-e="['c:filter:pin']"
                   type="text"
                   size="small"

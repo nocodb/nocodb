@@ -16,8 +16,15 @@ const { isUIAllowed } = useRoles()
 
 const { t } = useI18n()
 
-const { isWsAuditEnabled, isPaymentEnabled, isEEFeatureBlocked, getFeature, showUpgradeToUseTeams, handleUpgradePlan } =
-  useEeConfig()
+const {
+  isWsAuditEnabled,
+  isPaymentEnabled,
+  isEEFeatureBlocked,
+  showEEFeatures,
+  getFeature,
+  showUpgradeToUseTeams,
+  handleUpgradePlan,
+} = useEeConfig()
 
 const isWorkspaceSsoAvail = computed(() => {
   if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SSO)) {
@@ -68,7 +75,7 @@ const activeWsSettingsTab = computed(() => {
       {{ $t('labels.inviteUsersToWorkspace') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isTeamsEnabled"
+      v-if="isEeUI && isTeamsEnabled && showEEFeatures"
       v-e="['c:settings:ws:add-team']"
       icon="ncBuilding"
       data-testid="ws-teams"
@@ -91,7 +98,14 @@ const activeWsSettingsTab = computed(() => {
       {{ $t('general.integrations') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && !activeWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling') && !isMobileMode"
+      v-if="
+        isEeUI &&
+        !activeWorkspace?.fk_org_id &&
+        isPaymentEnabled &&
+        isUIAllowed('workspaceBilling') &&
+        !isMobileMode &&
+        showEEFeatures
+      "
       v-e="['c:settings:ws:billing']"
       icon="ncDollarSign"
       data-testid="ws-billing"
@@ -101,7 +115,7 @@ const activeWsSettingsTab = computed(() => {
       {{ $t('general.billing') }}
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isEeUI && isUIAllowed('workspaceAuditList') && !isMobileMode"
+      v-if="isEeUI && isUIAllowed('workspaceAuditList') && !isMobileMode && showEEFeatures"
       v-e="['c:settings:ws:audits']"
       icon="audit"
       data-testid="ws-audits"
@@ -118,7 +132,7 @@ const activeWsSettingsTab = computed(() => {
       </template>
     </NcSidebarMenuItem>
     <NcSidebarMenuItem
-      v-if="isWorkspaceSsoAvail && !activeWorkspace?.fk_org_id && isUIAllowed('workspaceSSO') && !isMobileMode"
+      v-if="isWorkspaceSsoAvail && !activeWorkspace?.fk_org_id && isUIAllowed('workspaceSSO') && !isMobileMode && showEEFeatures"
       v-e="['c:settings:ws:sso']"
       icon="sso"
       data-testid="ws-sso"

@@ -12,7 +12,7 @@ export const useScriptStore = defineStore('script', () => {
   const workspaceStore = useWorkspace()
   const { activeWorkspaceId, isSharedBase } = storeToRefs(useWorkspace())
 
-  const { showScriptPlanLimitExceededModal, showUpgradeToUseScripts, updateStatLimit } = useEeConfig()
+  const { showScriptPlanLimitExceededModal, showUpgradeToUseScripts, updateStatLimit, showEEFeatures } = useEeConfig()
 
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -48,7 +48,7 @@ export const useScriptStore = defineStore('script', () => {
   const activeBaseSchema = ref(null)
   // Actions
   const loadScripts = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (!activeWorkspaceId.value || isSharedBase.value) return []
+    if (!activeWorkspaceId.value || isSharedBase.value || !showEEFeatures.value) return []
 
     const existingScripts = scripts.value.get(baseId)
     if (existingScripts && !force) {
@@ -74,7 +74,7 @@ export const useScriptStore = defineStore('script', () => {
   }
 
   const loadScript = async (scriptId: string, showLoader = true) => {
-    if (!activeProjectId.value || !activeWorkspaceId.value || !scriptId) {
+    if (!activeProjectId.value || !activeWorkspaceId.value || !scriptId || !showEEFeatures.value) {
       return null
     }
 
@@ -326,7 +326,7 @@ export const useScriptStore = defineStore('script', () => {
   }
 
   const updateBaseSchema = async () => {
-    if (!activeWorkspaceId.value || !activeProjectId.value || isSharedBase.value) return
+    if (!activeWorkspaceId.value || !activeProjectId.value || isSharedBase.value || !showEEFeatures.value) return
 
     try {
       activeBaseSchema.value = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {

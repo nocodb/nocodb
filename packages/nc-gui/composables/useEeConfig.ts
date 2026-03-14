@@ -229,6 +229,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isEEFeatureBlocked = computed(() => true)
 
+  const showEEFeatures = computed(() => false)
+
   const blockWorkspaceMembers = computed(() => false)
 
   const showUpgradeToManageWorkspaceMembers = (..._args: any[]) => {}
@@ -343,6 +345,7 @@ export const useEeConfig = createSharedComposable(() => {
     blockMapView,
     showUpgradeToUseMapView,
     isEEFeatureBlocked,
+    showEEFeatures,
     blockWorkspaceMembers,
     showUpgradeToManageWorkspaceMembers,
     showUpgradeToUseSSO,

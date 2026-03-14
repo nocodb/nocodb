@@ -150,7 +150,7 @@ const sendRecord = async () => {
               <div
                 v-for="selectedUser in selectedUsers"
                 :key="selectedUser.id"
-                class="flex items-center gap-1.5 bg-white border-1 border-nc-border-gray-medium rounded-full pl-0.5 pr-1 py-0.5 shadow-xs"
+                class="flex items-center gap-1.5 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-full pl-0.5 pr-1 py-0.5 shadow-xs"
               >
                 <GeneralUserIcon :user="selectedUser" size="medium" />
                 <span class="text-sm text-nc-content-gray truncate max-w-32">

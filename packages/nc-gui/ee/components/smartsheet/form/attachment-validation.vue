@@ -3,7 +3,7 @@ import { AttachmentValidationType, type FileSizeValidation, PlanFeatureTypes, Pl
 
 const { activeField, updateColMeta } = useFormViewStoreOrThrow()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const isEnabled = computed(() => {
   const result = {
@@ -71,7 +71,7 @@ const addPlaceholderValidators = (value, type: AttachmentValidationType) => {
 </script>
 
 <template>
-  <template v-if="activeField">
+  <template v-if="activeField && showEEFeatures">
     <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION">
       <template #default="{ click }">
         <div class="w-full flex items-start justify-between gap-3">

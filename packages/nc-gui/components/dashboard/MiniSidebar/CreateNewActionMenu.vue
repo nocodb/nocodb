@@ -29,7 +29,7 @@ const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const { isEEFeatureBlocked, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
+const { isEEFeatureBlocked, showEEFeatures, showUpgradeToUseTimelineView, showUpgradeToUseMapView } = useEeConfig()
 
 const { activeSidebarTab } = storeToRefs(useSidebarStore())
 
@@ -189,7 +189,7 @@ const hasDocumentCreateAccess = computed(() => {
               {{ $t('labels.createNew') }}
             </span>
           </NcMenuItemLabel>
-          <template v-if="isEeUI">
+          <template v-if="isEeUI && showEEFeatures">
             <NcTooltip
               :title="
                 !isWorkflowsTab
@@ -324,7 +324,7 @@ const hasDocumentCreateAccess = computed(() => {
                 </NcMenuItem>
               </template>
               <NcMenuItem
-                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.MAP_VIEW) && showEEFeatures"
                 data-testid="mini-sidebar-view-create-map"
                 @click="showUpgradeToUseMapView({ successCallback: () => onOpenModal({ type: ViewTypes.MAP }) })"
               >
@@ -332,7 +332,7 @@ const hasDocumentCreateAccess = computed(() => {
                 <div>{{ $t('objects.viewType.map') }}</div>
               </NcMenuItem>
               <NcMenuItem
-                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE)"
+                v-if="isEeUI && isFeatureEnabled(FEATURE_FLAG.TIMELINE) && showEEFeatures"
                 data-testid="mini-sidebar-view-create-timeline"
                 @click="showUpgradeToUseTimelineView({ successCallback: () => onOpenModal({ type: ViewTypes.TIMELINE }) })"
               >
@@ -349,7 +349,7 @@ const hasDocumentCreateAccess = computed(() => {
             </NcSubMenu>
           </NcTooltip>
 
-          <template v-if="isEeUI">
+          <template v-if="isEeUI && showEEFeatures">
             <NcTooltip
               :title="
                 !isDataTab

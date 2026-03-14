@@ -34,6 +34,7 @@ const {
   blockTeamsManagement,
   showUpgradeToUseTeams,
   isEEFeatureBlocked,
+  showEEFeatures,
 } = useEeConfig()
 
 const { isFromIntegrationPage, integrationPaginationData, loadIntegrations } = useProvideIntegrationViewStore()
@@ -167,7 +168,7 @@ watch(
 
     await until(() => isBaseRolesLoaded.value).toBeTruthy()
 
-    if (!isUIAllowed('workspaceCollaborators') && !isEEFeatureBlocked.value) {
+    if (!isUIAllowed('workspaceCollaborators') && showEEFeatures.value) {
       tab.value = 'settings'
     } else if (
       (!isWsAuditEnabled.value && newTab === 'audits') ||
@@ -311,7 +312,7 @@ onBeforeUnmount(() => {
           <WorkspaceCollaboratorsList :workspace-id="currentWorkspace.id" :is-active="tab === 'collaborators'" />
         </a-tab-pane>
 
-        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission" key="teams" class="w-full h-full">
+        <a-tab-pane v-if="isEeUI && hasTeamsEditPermission && showEEFeatures" key="teams" class="w-full h-full">
           <template #tab>
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
@@ -326,7 +327,12 @@ onBeforeUnmount(() => {
       <template v-if="!isMobileMode">
         <template
           v-if="
-            isEeUI && !props.workspaceId && !currentWorkspace?.fk_org_id && isPaymentEnabled && isUIAllowed('workspaceBilling')
+            isEeUI &&
+            !props.workspaceId &&
+            !currentWorkspace?.fk_org_id &&
+            isPaymentEnabled &&
+            isUIAllowed('workspaceBilling') &&
+            showEEFeatures
           "
         >
           <a-tab-pane key="billing" class="w-full">
@@ -341,7 +347,7 @@ onBeforeUnmount(() => {
           </a-tab-pane>
         </template>
 
-        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList')">
+        <template v-if="isEeUI && !props.workspaceId && isUIAllowed('workspaceAuditList') && showEEFeatures">
           <a-tab-pane key="audits" class="w-full">
             <template #tab>
               <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">

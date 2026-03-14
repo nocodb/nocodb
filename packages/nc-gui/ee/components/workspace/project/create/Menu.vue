@@ -32,6 +32,8 @@ const wsBaseListActions = useWsBaseListActions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+const { showEEFeatures } = useEeConfig()
+
 const { isAiFeaturesEnabled } = useNocoAi()
 
 const onClickOption = (mode: NcBaseCreateMode) => {
@@ -78,7 +80,7 @@ onMounted(() => {
     />
 
     <WorkspaceProjectCreateMenuItem
-      v-if="isTemplatesFeatureEnabled"
+      v-if="isTemplatesFeatureEnabled && showEEFeatures"
       v-e="['c:base:template:create']"
       :variant="variant"
       icon="globe"
@@ -99,7 +101,7 @@ onMounted(() => {
       @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
     />
 
-    <template v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)">
+    <template v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS) && showEEFeatures">
       <WorkspaceProjectCreateMenuItem
         v-e="['c:base:market:create']"
         :variant="variant"

@@ -17,7 +17,7 @@ const { t } = useI18n()
 
 const { $e } = useNuxtApp()
 
-const { getPlanTitle } = useEeConfig()
+const { getPlanTitle, showEEFeatures } = useEeConfig()
 
 const {
   setAdditionalValidations,
@@ -330,7 +330,7 @@ const handleScrollIntoView = () => {
         </div>
       </a-form-item>
     </div>
-    <div v-if="isEeUI" class="w-full flex flex-col gap-4">
+    <div v-if="isEeUI && showEEFeatures" class="w-full flex flex-col gap-4">
       <div class="flex flex-col gap-2">
         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_LOOKUP_LIMIT_RECORDS_BY_FILTER">
           <template #default="{ click }">

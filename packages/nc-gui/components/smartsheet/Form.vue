@@ -137,7 +137,7 @@ const { state, row } = useProvideSmartsheetRowStore(
   }),
 )
 
-const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner } = useEeConfig()
+const { blockAddNewRecord, navigateToPricing, getPlanTitle, activePlan, isWsOwner, showEEFeatures } = useEeConfig()
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -1117,7 +1117,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     />
                     <div class="absolute bottom-0 right-0 hidden group-hover:block">
                       <div class="flex items-center space-x-1 m-2">
-                        <NcTooltip :disabled="isEeUI || isLocked">
+                        <NcTooltip :disabled="(isEeUI && showEEFeatures) || isLocked">
                           <template #title>
                             <div class="text-center">
                               {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -1130,7 +1130,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 size="small"
                                 class="nc-form-upload-banner-btn"
                                 data-testid="nc-form-upload-banner-btn"
-                                :disabled="!isEeUI || isLocked"
+                                :disabled="!isEeUI || isLocked || !showEEFeatures"
                                 @click.stop="click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO, () => openUploadImage(true))"
                               >
                                 <div class="flex gap-2 items-center">
@@ -1140,7 +1140,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     {{ $t('general.banner') }}
                                   </span>
                                   <PaymentUpgradeBadge
-                                    v-if="!isLocked"
+                                    v-if="!isLocked && showEEFeatures"
                                     :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
                                     :content="
                                       $t('upgrade.upgradeToAddCustomBannerSubtitle', {
@@ -1234,7 +1234,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               class="items-center space-x-1 flex-nowrap m-3"
                               :class="formViewData.logo_url ? 'hidden absolute top-0 left-0 group-hover:flex' : 'flex'"
                             >
-                              <NcTooltip :disabled="isEeUI || isLocked">
+                              <NcTooltip :disabled="(isEeUI && showEEFeatures) || isLocked">
                                 <template #title>
                                   <div class="text-center">
                                     {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -1250,7 +1250,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                       size="small"
                                       class="nc-form-upload-logo-btn group"
                                       data-testid="nc-form-upload-log-btn"
-                                      :disabled="!isEeUI || isLocked"
+                                      :disabled="!isEeUI || isLocked || !showEEFeatures"
                                       @click.stop="click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO, () => openUploadImage(false))"
                                     >
                                       <div class="flex gap-2 items-center">
@@ -1259,7 +1259,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                           {{ formViewData.logo_url ? $t('general.replace') : $t('general.upload') }} Logo</span
                                         >
                                         <PaymentUpgradeBadge
-                                          v-if="!isLocked"
+                                          v-if="!isLocked && showEEFeatures"
                                           :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO"
                                           :content="
                                             $t('upgrade.upgradeToAddCustomLogoSubtitle', {
@@ -1985,6 +1985,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   {{ $t('labels.hideNocodbBranding') }}
 
                                   <LazyPaymentUpgradeBadge
+                                    v-if="showEEFeatures"
                                     :feature="PlanFeatureTypes.FEATURE_HIDE_BRANDING"
                                     :content="
                                       $t('upgrade.upgradeToHideFormBrandingSubtitle', {
@@ -1995,7 +1996,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 </span>
 
                                 <a-switch
-                                  v-if="isEeUI"
+                                  v-if="isEeUI && showEEFeatures"
                                   v-e="[`a:form-view:hide-branding`]"
                                   :checked="parseProp(formViewData.meta)?.hide_branding"
                                   size="small"
@@ -2010,7 +2011,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   }"
                                 />
 
-                                <NcTooltip v-else placement="top">
+                                <NcTooltip v-else placement="topRight">
                                   <template #title>
                                     <div class="text-center">
                                       {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -2047,6 +2048,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   <span class="flex items-center gap-3">
                                     {{ $t('activity.customizeSubmitButton') }}
                                     <LazyPaymentUpgradeBadge
+                                      v-if="showEEFeatures"
                                       :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL"
                                       :content="
                                         $t('upgrade.upgradeToCustomizeSubmitButtonSubtitle', {
@@ -2056,7 +2058,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     />
                                   </span>
                                   <a-switch
-                                    v-if="isEeUI"
+                                    v-if="isEeUI && showEEFeatures"
                                     v-e="[`a:form-view:custom-submit-label`]"
                                     :checked="parseProp(formViewData.meta)?.custom_submit_enabled"
                                     size="small"
@@ -2074,7 +2076,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     }
                                   "
                                   />
-                                  <NcTooltip v-else placement="top">
+                                  <NcTooltip v-else placement="topRight">
                                     <template #title>
                                       <div class="text-center">
                                         {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
@@ -2138,6 +2140,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                     />
                                   </span>
                                   <a-switch
+                                    v-if="showEEFeatures"
                                     v-e="[`a:form-view:redirect-url`]"
                                     :checked="isOpenRedirectUrl"
                                     size="small"
@@ -2154,6 +2157,14 @@ const { message: templatedMessage } = useTemplatedMessage(
                                       }
                                     "
                                   />
+                                  <NcTooltip v-else placement="topRight">
+                                    <template #title>
+                                      <div class="text-center">
+                                        {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                                      </div>
+                                    </template>
+                                    <a-switch :checked="false" size="small" :disabled="true" />
+                                  </NcTooltip>
                                 </div>
                               </template>
                             </PaymentUpgradeBadgeProvider>

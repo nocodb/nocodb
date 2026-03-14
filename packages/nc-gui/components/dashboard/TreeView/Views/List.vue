@@ -491,10 +491,10 @@ const filteredViews = computed(() => {
     >
       <div
         v-if="sectionId != null && !filteredViews.length && !dragging"
-        class="flex items-center py-1 text-nc-content-gray-muted text-captionSm"
+        class="flex items-center py-1 text-nc-content-gray-muted text-body sm:text-bodyDefaultSm"
         :class="{
-          'pl-13.5': isDefaultSource,
-          'pl-20.5': !isDefaultSource,
+          'pl-14.5 xs:(pl-16)': isDefaultSource,
+          'pl-21.5 xs:(pl-23)': !isDefaultSource,
         }"
       >
         {{ $t('general.empty') }}

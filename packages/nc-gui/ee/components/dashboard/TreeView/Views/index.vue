@@ -355,7 +355,7 @@ watch(
             @change-color="onChangeSectionColor(section, $event)"
           />
           <DashboardTreeViewViewsList
-            v-if="expandedSections[section.id!] || getActiveViewForSection(section.id).length || viewDragging"
+            v-if="expandedSections[section.id!] || getActiveViewForSection(section.id).length || dragOverSectionId === section.id"
             :section-views="
               expandedSections[section.id!] || dragOverSectionId === section.id
                 ? getViewsInSection(section.id)
@@ -385,7 +385,7 @@ watch(
           @collapse-all="collapseAllSections"
         />
         <DashboardTreeViewViewsList
-          v-if="expandedSections[DEFAULT_SECTION_ID] || getActiveViewForSection(DEFAULT_SECTION_ID).length || viewDragging"
+          v-if="expandedSections[DEFAULT_SECTION_ID] || getActiveViewForSection(DEFAULT_SECTION_ID).length || dragOverSectionId === DEFAULT_SECTION_ID"
           :section-views="
             expandedSections[DEFAULT_SECTION_ID] || dragOverSectionId === DEFAULT_SECTION_ID
               ? getViewsInSection(DEFAULT_SECTION_ID)

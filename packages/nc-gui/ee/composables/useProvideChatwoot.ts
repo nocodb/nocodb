@@ -99,11 +99,12 @@ export const useProvideChatwoot = createSharedComposable(() => {
     initUserCustomerAttributes()
   }
 
-  // Load the SDK once appInfo is available (determines which token to use)
+  // Load the SDK once appInfo is fetched from the backend (version !== '0.0.0').
+  // On initial load isCloud/ee are false (defaults) — we must wait for real values.
   watch(
     () => appInfo.value,
     () => {
-      if (appInfo.value && !appInfo.value.disableSupportChat) {
+      if (appInfo.value?.version && appInfo.value.version !== '0.0.0' && !appInfo.value.disableSupportChat) {
         loadChatwootSdk()
       }
     },

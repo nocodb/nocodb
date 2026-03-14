@@ -101,6 +101,9 @@ const sourceSelectorRef = ref()
 
 const sourceIdRef = ref(sourceId)
 
+// Server-side import: stores the attachment object after upload (used for CSV, Excel, and JSON)
+const serverAttachment = ref<{ path?: string; url?: string; title?: string; mimetype?: string; size?: number } | null>(null)
+
 const { clone } = useUndoRedo()
 
 const useForm = Form.useForm
@@ -256,52 +259,160 @@ async function handlePreImport() {
 
   const isPreImportFileMode = isPreImportFileFilled.value && activeTab.value === ImportTypeTabs.upload
 
-  if (isImportTypeCsv.value) {
-    if (isPreImportFileMode) {
-      await parseAndExtractData(importState.fileList as streamImportFileList)
-    } else if (isPreImportUrlFilled.value) {
-      try {
-        await validate()
-        await parseAndExtractData(importState.url)
-      } catch (e: any) {
-        localImportError.value = await extractSdkResponseErrorMsg(e)
-      }
-    }
-  } else if (isImportTypeJson.value) {
-    if (isPreImportFileMode) {
-      if (isWorkerSupport && importWorker) {
-        await parseAndExtractData(importState.fileList as streamImportFileList)
-      } else {
-        await parseAndExtractData((importState.fileList as importFileList)[0].data)
-      }
-    } else if (isPreImportJsonFilled.value) {
-      await parseAndExtractData(JSON.stringify(importState.jsonEditor))
-    }
-  } else if (IsImportTypeExcel) {
-    if (isPreImportFileMode) {
-      if (isWorkerSupport && importWorker) {
-        await parseAndExtractData(importState.fileList as streamImportFileList)
-      } else {
-        await parseAndExtractData((importState.fileList as importFileList)[0].data)
-      }
-    } else if (isPreImportUrlFilled.value) {
-      try {
-        await validate()
-        await parseAndExtractData(importState.url)
-      } catch (e: any) {
-        localImportError.value = await extractSdkResponseErrorMsg(e)
-      }
-    }
+  try {
+    await handleServerPreImport(isPreImportFileMode)
+  } catch (e: any) {
+    localImportError.value = (await extractSdkResponseErrorMsg(e)) || e?.toString()
   }
 
   isParsingData.value = false
   preImportLoading.value = false
 }
 
+// Server-side import: upload file, call preview API, populate template data (CSV, Excel, JSON)
+async function handleServerPreImport(isFileMode: boolean) {
+  let attachment: { path?: string; url?: string; title?: string; mimetype?: string; size?: number }
+
+  if (isFileMode) {
+    const fileList = importState.fileList as streamImportFileList
+    if (!fileList.length) return
+
+    const file = fileList[0]
+    if (!file?.originFileObj) return
+
+    const uploadResult = await $api.storage.upload(
+      {
+        path: 'csv-import/temp',
+      },
+      {
+        files: [file.originFileObj] as any,
+      },
+    )
+
+    attachment = uploadResult[0]
+  } else if (isImportTypeJson.value && isPreImportJsonFilled.value) {
+    // For JSON editor input, create a blob and upload it
+    const jsonContent = JSON.stringify(importState.jsonEditor)
+    const blob = new Blob([jsonContent], { type: 'application/json' })
+    const jsonFile = new File([blob], 'import.json', { type: 'application/json' })
+
+    const uploadResult = await $api.storage.upload(
+      {
+        path: 'csv-import/temp',
+      },
+      {
+        files: [jsonFile] as any,
+      },
+    )
+
+    attachment = uploadResult[0]
+  } else if (isPreImportUrlFilled.value) {
+    await validate()
+    attachment = {
+      url: importState.url,
+      title: importState.url.split('/').pop() || 'file-import',
+    }
+  } else {
+    return
+  }
+
+  serverAttachment.value = attachment
+
+  // Call server-side preview API
+  const previewResult = await $api.instance.post(`/api/v1/db/file-import/${baseId}/preview`, {
+    importType: importType,
+    attachment,
+    parserConfig: {
+      firstRowAsHeaders: importState.parserConfig.firstRowAsHeaders,
+      delimiter: undefined,
+      encoding: (importState.fileList as streamImportFileList)?.[0]?.encoding || 'utf-8',
+      maxRowsToParse: importState.parserConfig.maxRowsToParse,
+      autoSelectFieldTypes: importState.parserConfig.autoSelectFieldTypes,
+      normalizeNested: importState.parserConfig.normalizeNested,
+    },
+  })
+
+  const responseData = previewResult.data
+
+  if (importType === 'excel' && responseData.sheets) {
+    // Excel: multiple sheets → multiple tables
+    const draftTableNames: string[] = []
+    const tables: any[] = []
+    const allImportData: Record<string, any[]> = {}
+    const allImportColumns: any[] = []
+
+    for (const sheet of responseData.sheets) {
+      const rawName = (sheet.sheetName || 'Sheet')
+        .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+        .trim()
+      const uniqueName = populateUniqueTableName(rawName, draftTableNames)
+      draftTableNames.push(uniqueName)
+
+      tables.push({
+        table_name: uniqueName,
+        ref_table_name: uniqueName,
+        columns: sheet.columns.map((col: any) => ({
+          ...col,
+          selected: true,
+        })),
+      })
+
+      allImportData[uniqueName] = sheet.previewData
+      allImportColumns.push(sheet.columns)
+    }
+
+    templateData.value = { tables }
+    importData.value = allImportData
+
+    if (importDataOnly) {
+      importColumns.value = allImportColumns as any
+    }
+  } else {
+    // CSV / JSON: single table
+    const { columns, previewData } = responseData
+
+    const tableName = isFileMode
+      ? ((importState.fileList as streamImportFileList)[0]?.name || 'file_import')
+          .replace(/\.[^/.]+$/, '')
+          .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+          .trim()
+      : (importState.url?.split('/').pop() || 'file_import')
+          .replace(/\.[^/.]+$/, '')
+          .replace(/[` ~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/g, '_')
+          .trim()
+
+    const uniqueTableName = populateUniqueTableName(tableName)
+
+    templateData.value = {
+      tables: [
+        {
+          table_name: uniqueTableName,
+          ref_table_name: uniqueTableName,
+          columns: columns.map((col: any) => ({
+            ...col,
+            selected: true,
+          })),
+        },
+      ],
+    }
+
+    if (importDataOnly) {
+      importColumns.value = [columns] as any
+    }
+
+    importData.value = {
+      [uniqueTableName]: previewData,
+    }
+  }
+
+  templateEditorModal.value = true
+  showMaxFileLimitError.value = false
+}
+
 async function handleImport() {
   localImportError.value = ''
   try {
-    if (!templateGenerator && !importWorker) {
+    if (!templateGenerator && !importWorker && !serverAttachment.value) {
       localImportError.value = t('msg.error.templateGeneratorNotFound')
       return
     }
@@ -460,9 +571,9 @@ const beforeUpload = (file: UploadFile, fileList: UploadFile[]) => {
     showMaxFileLimitError.value = true
   }
 
-  const exceedLimit = file.size! / 1024 / 1024 > 25
+  const exceedLimit = file.size! / 1024 / 1024 > 600
   if (exceedLimit) {
-    message.error(`File ${file.name} is too big. The accepted file size is less than 25MB.`)
+    message.error(`File ${file.name} is too big. The accepted file size is less than 600MB.`)
   }
   return !exceedLimit || Upload.LIST_IGNORE
 }
@@ -753,6 +864,7 @@ watch(
           :base-id="baseId"
           :source-id="sourceIdRef"
           :import-worker="importWorker"
+          :server-attachment="serverAttachment"
           :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"
           @import="handleImport"

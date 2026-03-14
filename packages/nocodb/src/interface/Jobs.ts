@@ -65,6 +65,7 @@ export enum JobTypes {
   HookErrorNotification = 'hook-error-notification',
   ChatMessage = 'chat-message',
   ChatApproval = 'chat-approval',
+  CsvImport = 'csv-import',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -327,4 +328,54 @@ export interface ChatApprovalJobData extends JobData {
   messageId: string;
   decisions: Record<string, 'approved' | 'denied'>;
   baseId?: string;
+}
+
+export interface CsvImportJobData extends JobData {
+  baseId: string;
+  sourceId: string;
+  // import format: csv, excel, or json
+  importType?: 'csv' | 'excel' | 'json';
+  // for import into existing table
+  tableId?: string;
+  // for creating a new table
+  tableName?: string;
+  // attachment object returned from upload API
+  attachment: {
+    path?: string;
+    url?: string;
+    title?: string;
+    mimetype?: string;
+    size?: number;
+  };
+  // user-confirmed column definitions
+  columns: Array<{
+    title: string;
+    column_name: string;
+    uidt: string;
+    key: number;
+    meta?: Record<string, any>;
+    dtxp?: string;
+    path?: string[];
+  }>;
+  // parser options
+  parserConfig: {
+    firstRowAsHeaders: boolean;
+    delimiter?: string;
+    encoding?: string;
+    maxRowsToParse?: number;
+    autoSelectFieldTypes?: boolean;
+    normalizeNested?: boolean;
+  };
+  // import options
+  options: {
+    shouldImportData: boolean;
+    importDataOnly: boolean;
+  };
+  // for importDataOnly: source->dest column mapping
+  columnMapping?: Array<{
+    sourceCn: string;
+    destCn: string;
+    enabled: boolean;
+  }>;
+  req: NcRequest;
 }

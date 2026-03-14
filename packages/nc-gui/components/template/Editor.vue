@@ -27,6 +27,7 @@ interface Props {
   baseId: string
   sourceId: string
   importWorker: Worker
+  serverAttachment?: { path?: string; url?: string; title?: string; mimetype?: string; size?: number } | null
   tableIcon?: string
 }
 
@@ -35,7 +36,7 @@ interface Option {
   value: string
 }
 
-const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, sourceId } =
+const { quickImportType, baseTemplate, importData, importColumns, importDataOnly, maxRowsToParse, baseId, sourceId, serverAttachment } =
   defineProps<Props>()
 
 const emit = defineEmits(['import', 'error', 'change'])
@@ -87,7 +88,7 @@ const reloadHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const useForm = Form.useForm
 
-const { $api, $state } = useNuxtApp()
+const { $api, $state, $poller } = useNuxtApp()
 
 const basesStore = useBases()
 
@@ -551,10 +552,117 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
 
 function updateImportTips(baseName: string, tableName: string, progress: number, total: number) {
   importingTips.value[`${baseName}-${tableName}`] = `Importing data to ${baseName} - ${tableName}: ${progress}/${total} records`
-  importingTableTips.value[tableName] = parseInt(`${(progress / total) * 100}`)
+  const percent = total > 0 ? parseInt(`${(progress / total) * 100}`) : 0
+  // Store with both table_name and title as key for template compatibility
+  importingTableTips.value[tableName] = percent
+}
+
+// Server-side file import via job (CSV, Excel, JSON)
+async function importViaJob() {
+  isImporting.value = true
+  expansionPanel.value = []
+
+  try {
+    // For each table in the template (Excel can have multiple sheets)
+    for (const table of data.tables) {
+      const jobPayload: Record<string, any> = {
+        importType: quickImportType,
+        sourceId: sourceId || base.value?.sources?.[0]?.id,
+        attachment: serverAttachment,
+        columns: (table.columns as any[])
+          ?.filter((c) => !('selected' in c) || c.selected)
+          .map((c) => ({
+            title: c.title,
+            column_name: c.column_name,
+            uidt: c.uidt,
+            key: c.key,
+            meta: c.meta,
+            dtxp: c.dtxp,
+            path: c.path,
+          })),
+        parserConfig: {
+          firstRowAsHeaders: true,
+          maxRowsToParse: maxRowsToParse,
+          autoSelectFieldTypes: true,
+        },
+        options: {
+          shouldImportData: true,
+          importDataOnly,
+        },
+      }
+
+      if (importDataOnly) {
+        const validationErrors = getErrorByTableName(table.table_name)
+        if (validationErrors.length) throw new Error(`${validationErrors[0]}`)
+
+        jobPayload.tableId = meta.value?.id
+        jobPayload.columnMapping = srcDestMapping.value[table.table_name]?.map((m: any) => ({
+          sourceCn: m.srcCn,
+          destCn: m.destCn,
+          enabled: m.enabled,
+        }))
+      } else {
+        await validate()
+        jobPayload.tableName = table.table_name
+      }
+
+      const jobResult = await $api.instance.post(`/api/v1/db/file-import/${base.value.id}`, jobPayload)
+      const jobId = jobResult.data.id
+
+      const baseName = base.value.title as string
+
+      await new Promise<void>((resolve, reject) => {
+        $poller.subscribe(
+          { id: jobId },
+          (pollerData: { id: string; status?: string; data?: { error?: { message: string }; message?: string; result?: any } }) => {
+            if (pollerData.status === 'close') {
+              resolve()
+              return
+            }
+
+            if (pollerData.status === 'completed') {
+              resolve()
+              return
+            }
+
+            if (pollerData.status === 'failed') {
+              reject(new Error(pollerData.data?.error?.message || 'Import failed'))
+              return
+            }
+
+            if (pollerData.data?.message) {
+              try {
+                const progress = JSON.parse(pollerData.data.message)
+                if (progress.rowsInserted !== undefined) {
+                  updateImportTips(baseName, table.table_name, progress.rowsInserted, progress.totalProcessed || 0)
+                }
+              } catch {
+                // Plain text log message — ignore
+              }
+            }
+          },
+        )
+      })
+    }
+
+    if (importDataOnly) {
+      reloadHook.trigger()
+      message.success(t('msg.success.tableDataImported'))
+    } else {
+      await loadProjectTables(base.value.id, true)
+      message.success(t(`msg.success.${data.tables.length > 1 ? 'tableImportedPlural' : 'tableImported'}`))
+    }
+  } finally {
+    isImporting.value = false
+  }
 }
 
 async function importTemplate() {
+  // Use server-side job when attachment is available (CSV, Excel, JSON)
+  if (serverAttachment) {
+    return await importViaJob()
+  }
+
   if (importDataOnly) {
     for (const table of data.tables) {
       // validate required columns
@@ -1006,7 +1114,7 @@ function getErrorByTableName(tableName: string) {
               </NcTooltip>
               <div v-if="isImporting" class="w-[150px]">
                 <a-progress
-                  :percent="importingTableTips[meta!.id!] ?? 0"
+                  :percent="importingTableTips[table.table_name] ?? 0"
                   size="small"
                   status="normal"
                   stroke-color="var(--nc-content-brand)"
@@ -1222,7 +1330,7 @@ function getErrorByTableName(tableName: string) {
 
                 <div v-if="isImporting" class="w-[150px]">
                   <a-progress
-                    :percent="importingTableTips[table.title] ?? 0"
+                    :percent="importingTableTips[table.table_name] ?? 0"
                     size="small"
                     status="normal"
                     stroke-color="var(--nc-content-brand)"
